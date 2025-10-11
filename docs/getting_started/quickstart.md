@@ -1,26 +1,20 @@
-# Quickstart
+# 快速上手
 
-Tutorial for [NautilusTrader](https://nautilustrader.io/docs/) a high-performance algorithmic trading platform and event driven backtester.
+本快速上手教程展示如何使用 NautilusTrader 对外汇（FX）数据进行回测，并快速启动一个示例环境。
+为了节省时间，本教程提供了以 Nautilus 标准持久化格式（Parquet）预加载的示例数据。
 
-[View source on GitHub](https://github.com/nautechsystems/nautilus_trader/blob/develop/docs/getting_started/quickstart.ipynb).
+## 前置条件
 
-## Overview
+- 已安装 Python 3.11+。
+- 已安装最新发布的 NautilusTrader（可通过 `pip install -U nautilus_trader` 安装）。
+- 已安装 JupyterLab 或类似工具（可通过 `pip install -U jupyterlab` 安装）。
 
-This quickstart tutorial shows you how to get up and running with NautilusTrader backtesting using FX data.
-To support this, we provide pre-loaded test data in the standard Nautilus persistence format (Parquet).
+## 1. 获取示例数据
 
-## Prerequisites
+为方便起见，我们已准备好符合 Nautilus 数据格式的示例数据供本例使用。
+运行下一个代码单元将下载并设置数据（大约需 1–2 分钟）。
 
-- Python 3.11+ installed.
-- [NautilusTrader](https://pypi.org/project/nautilus_trader/) latest release installed (`pip install -U nautilus_trader`).
-- [JupyterLab](https://jupyter.org/) or similar installed (`pip install -U jupyterlab`).
-
-## 1. Get sample data
-
-To save time, we have prepared sample data in the Nautilus format for use with this example.
-Run the next cell to download and set up the data (this should take ~ 1-2 mins).
-
-For further details on how to load data into Nautilus, see [Loading External Data](../concepts/data#loading-data) guide.
+更多关于如何将数据加载到 Nautilus 的细节，请参阅 [Loading External Data](../concepts/data#loading-data) 指南。
 
 ```python
 import os
@@ -33,21 +27,21 @@ from nautilus_trader.test_kit.providers import CSVTickDataLoader
 from nautilus_trader.test_kit.providers import TestInstrumentProvider
 
 
-# Change to project root directory
+# 切换到项目根目录
 original_cwd = os.getcwd()
 project_root = os.path.abspath(os.path.join(os.getcwd(), "..", ".."))
 os.chdir(project_root)
 
 print(f"Working directory: {os.getcwd()}")
 
-# Create catalog directory
+# 创建 catalog 目录
 catalog_path = Path("catalog")
 catalog_path.mkdir(exist_ok=True)
 
 print(f"Catalog directory: {catalog_path.absolute()}")
 
 try:
-    # Download EUR/USD sample data
+    # 下载 EUR/USD 示例数据
     print("Downloading EUR/USD sample data...")
     url = "https://raw.githubusercontent.com/nautechsystems/nautilus_data/main/raw_data/fx_hist_data/DAT_ASCII_EURUSD_T_202001.csv.gz"
     filename = "EURUSD_202001.csv.gz"
@@ -56,11 +50,11 @@ try:
     urllib.request.urlretrieve(url, filename)  # noqa: S310
     print("Download complete")
 
-    # Create the instrument using the current schema (includes multiplier)
+    # 使用当前 schema 创建 instrument（包含 multiplier）
     print("Creating EUR/USD instrument...")
     instrument = TestInstrumentProvider.default_fx_ccy("EUR/USD")
 
-    # Load and process the tick data
+    # 加载并处理 tick 数据
     print("Loading tick data...")
     wrangler = QuoteTickDataWrangler(instrument)
 
@@ -72,29 +66,29 @@ try:
     df.columns = ["bid_price", "ask_price", "size"]
     print(f"Loaded {len(df)} ticks")
 
-    # Process ticks
+    # 处理 ticks
     print("Processing ticks...")
     ticks = wrangler.process(df)
 
-    # Write to catalog
+    # 写入 catalog
     print("Writing data to catalog...")
     catalog = ParquetDataCatalog(str(catalog_path))
 
-    # Write instrument first
+    # 先写入 instrument
     catalog.write_data([instrument])
     print("Instrument written to catalog")
 
-    # Write tick data
+    # 写入 tick 数据
     catalog.write_data(ticks)
     print("Tick data written to catalog")
 
-    # Verify what was written
+    # 验证已写入内容
     print("\nVerifying catalog contents...")
     test_catalog = ParquetDataCatalog(str(catalog_path))
     loaded_instruments = test_catalog.instruments()
     print(f"Instruments in catalog: {[str(i.id) for i in loaded_instruments]}")
 
-    # Clean up downloaded file
+    # 清理下载文件
     os.unlink(filename)
     print("\nData setup complete!")
 
@@ -120,12 +114,12 @@ from nautilus_trader.model import QuoteTick
 from nautilus_trader.persistence.catalog import ParquetDataCatalog
 ```
 
-## 2. Set up a Parquet data catalog
+## 2. 设置 Parquet 数据目录
 
-If everything worked correctly, you should be able to see a single EUR/USD instrument in the catalog.
+如果前面的步骤执行成功，你应该能在 catalog 中看到单条 EUR/USD instrument。
 
 ```python
-# Load the catalog from the project root directory
+# 从项目根目录加载 catalog
 project_root = os.path.abspath(os.path.join(os.getcwd(), "..", ".."))
 catalog_path = os.path.join(project_root, "catalog")
 
@@ -141,11 +135,11 @@ else:
     print("\nNo instruments found. Please run the data download cell first.")
 ```
 
-## 3. Write a trading strategy
+## 3. 编写交易策略
 
-NautilusTrader includes many built-in indicators. In this example we use the MACD indicator to build a simple trading strategy.
+NautilusTrader 内置了许多常用指标。本例使用 MACD 指标来构建一个简单的交易策略。
 
-You can read more about [MACD here](https://www.investopedia.com/terms/m/macd.asp); this indicator merely serves as an example without any expected alpha. You can also register indicators to receive certain data types; however, in this example we manually pass the received `QuoteTick` to the indicator in the `on_quote_tick` method.
+可在此处阅读关于 [MACD 的更多说明](https://www.investopedia.com/terms/m/macd.asp)；该指标在本示例中仅用作演示，并非保证有超额收益（alpha）。你也可以注册指标以接收特定数据类型；但在本示例中，我们在 `on_quote_tick` 回调中手动将接收到的 `QuoteTick` 传递给指标。
 
 ```python
 from nautilus_trader.core.message import Event
@@ -169,43 +163,43 @@ class MACDConfig(StrategyConfig):
 
 
 class MACDStrategy(Strategy):
-    """A MACD-based strategy that only trades on zero-line crossovers."""
+    """基于 MACD 的策略，仅在零线交叉时进行交易。"""
 
     def __init__(self, config: MACDConfig):
         super().__init__(config=config)
-        # Our "trading signal"
+        # 我们的“交易信号”
         self.macd = MovingAverageConvergenceDivergence(
             fast_period=config.fast_period, slow_period=config.slow_period, price_type=PriceType.MID
         )
 
         self.trade_size = Quantity.from_int(config.trade_size)
 
-        # Track our position and MACD state
+        # 跟踪持仓与 MACD 状态
         self.position: Position | None = None
-        self.last_macd_above_zero = None  # Track if MACD was above zero on last check
+        self.last_macd_above_zero = None  # 跟踪上次检查时 MACD 是否在零线上方
 
     def on_start(self):
-        """Subscribe to market data on strategy start."""
+        """策略启动时订阅行情数据。"""
         self.subscribe_quote_ticks(instrument_id=self.config.instrument_id)
 
     def on_stop(self):
-        """Clean up on strategy stop."""
+        """策略停止时清理资源。"""
         self.close_all_positions(self.config.instrument_id)
         self.unsubscribe_quote_ticks(instrument_id=self.config.instrument_id)
 
     def on_quote_tick(self, tick: QuoteTick):
-        """Process incoming quote ticks."""
-        # Update indicator
+        """处理收到的 quote tick。"""
+        # 更新指标
         self.macd.handle_quote_tick(tick)
 
         if not self.macd.initialized:
-            return  # Wait for indicator to warm up
+            return  # 等待指标预热完成
 
-        # Check for trading opportunities
+        # 检查交易信号
         self.check_signals()
 
     def on_event(self, event: Event):
-        """Handle position events."""
+        """处理持仓相关事件。"""
         if isinstance(event, PositionOpened):
             self.position = self.cache.position(event.position_id)
             self._log.info(f"Position opened: {self.position.side} @ {self.position.avg_px_open}")
@@ -215,39 +209,39 @@ class MACDStrategy(Strategy):
                 self.position = None
 
     def check_signals(self):
-        """Check MACD signals - only act on actual crossovers."""
+        """仅在发生真正的交叉时才执行交易。"""
         current_macd = self.macd.value
         current_above_zero = current_macd > 0
 
-        # Skip if this is the first reading
+        # 如果是首次读数则跳过
         if self.last_macd_above_zero is None:
             self.last_macd_above_zero = current_above_zero
             return
 
-        # Only act on actual crossovers
+        # 仅在发生交叉时才采取行动
         if self.last_macd_above_zero != current_above_zero:
-            if current_above_zero:  # Just crossed above zero
-                # Only go long if we're not already long
+            if current_above_zero:  # 刚刚上穿零线
+                # 仅在当前不是多头时才开多
                 if not self.is_long:
-                    # Close any short position first
+                    # 如果当前是空头则先平仓
                     if self.is_short:
                         self.close_position(self.position)
-                    # Then go long (but only when flat)
+                    # 平仓后再开多（仅在无仓位时）
                     self.go_long()
 
-            else:  # Just crossed below zero
-                # Only go short if we're not already short
+            else:  # 刚刚下穿零线
+                # 仅在当前不是空头时才开空
                 if not self.is_short:
-                    # Close any long position first
+                    # 如果当前是多头则先平仓
                     if self.is_long:
                         self.close_position(self.position)
-                    # Then go short (but only when flat)
+                    # 平仓后再开空（仅在无仓位时）
                     self.go_short()
 
         self.last_macd_above_zero = current_above_zero
 
     def go_long(self):
-        """Enter long position only if flat."""
+        """在无仓位时开多。"""
         if self.is_flat:
             order = self.order_factory.market(
                 instrument_id=self.config.instrument_id,
@@ -258,7 +252,7 @@ class MACDStrategy(Strategy):
             self._log.info(f"Going LONG - MACD crossed above zero: {self.macd.value:.6f}")
 
     def go_short(self):
-        """Enter short position only if flat."""
+        """在无仓位时开空。"""
         if self.is_flat:
             order = self.order_factory.market(
                 instrument_id=self.config.instrument_id,
@@ -270,26 +264,26 @@ class MACDStrategy(Strategy):
 
     @property
     def is_flat(self) -> bool:
-        """Check if we have no position."""
+        """检查是否无仓位。"""
         return self.position is None
 
     @property
     def is_long(self) -> bool:
-        """Check if we have a long position."""
+        """检查是否持有多头仓位。"""
         return self.position and self.position.side == PositionSide.LONG
 
     @property
     def is_short(self) -> bool:
-        """Check if we have a short position."""
+        """检查是否持有空头仓位。"""
         return self.position and self.position.side == PositionSide.SHORT
 
     def on_dispose(self):
-        """Clean up on strategy disposal."""
+        """策略销毁时清理资源。"""
 ```
 
-### Enhanced Strategy with Stop-Loss and Take-Profit
+### 带止损/止盈的增强策略
 
-The basic MACD strategy above will now generate trades. For better risk management, here's an enhanced version with stop-loss and take-profit orders:
+上面的基础 MACD 策略会产生交易。为更好地管理风险，下面提供一个带止损（stop-loss）和止盈（take-profit）的增强版本：
 
 ```python
 from nautilus_trader.model.objects import Price
@@ -302,12 +296,12 @@ class MACDEnhancedConfig(StrategyConfig):
     trade_size: int = 1_000_000
     entry_threshold: float = 0.00005
     exit_threshold: float = 0.00002
-    stop_loss_pips: int = 20  # Stop loss in pips
-    take_profit_pips: int = 40  # Take profit in pips
+    stop_loss_pips: int = 20  # 以 pips 为单位的止损
+    take_profit_pips: int = 40  # 以 pips 为单位的止盈
 
 
 class MACDEnhancedStrategy(Strategy):
-    """Enhanced MACD strategy with stop-loss and take-profit."""
+    """带止损与止盈的增强 MACD 策略。"""
 
     def __init__(self, config: MACDEnhancedConfig):
         super().__init__(config=config)
@@ -320,17 +314,17 @@ class MACDEnhancedStrategy(Strategy):
         self.last_macd_sign = 0
 
     def on_start(self):
-        """Subscribe to market data on strategy start."""
+        """策略启动时订阅行情数据。"""
         self.subscribe_quote_ticks(instrument_id=self.config.instrument_id)
 
     def on_stop(self):
-        """Clean up on strategy stop."""
+        """策略停止时清理资源。"""
         self.cancel_all_orders(self.config.instrument_id)
         self.close_all_positions(self.config.instrument_id)
         self.unsubscribe_quote_ticks(instrument_id=self.config.instrument_id)
 
     def on_quote_tick(self, tick: QuoteTick):
-        """Process incoming quote ticks."""
+        """处理收到的 quote tick。"""
         self.macd.handle_quote_tick(tick)
 
         if not self.macd.initialized:
@@ -339,37 +333,37 @@ class MACDEnhancedStrategy(Strategy):
         self.check_signals(tick)
 
     def on_event(self, event: Event):
-        """Handle position events."""
+        """处理持仓相关事件。"""
         if isinstance(event, PositionOpened):
             self.position = self.cache.position(event.position_id)
             self._log.info(f"Position opened: {self.position.side} @ {self.position.avg_px_open}")
-            # Place stop-loss and take-profit orders
+            # 下止损与止盈单
             self.place_exit_orders()
         elif isinstance(event, PositionClosed):
             if self.position and self.position.id == event.position_id:
                 pnl = self.position.realized_pnl
                 self._log.info(f"Position closed with PnL: {pnl}")
                 self.position = None
-                # Cancel any remaining exit orders
+                # 取消剩余的止损/止盈单
                 self.cancel_all_orders(self.config.instrument_id)
 
     def check_signals(self, tick: QuoteTick):
-        """Check MACD signals and manage positions."""
+        """检测 MACD 信号并管理持仓。"""
         current_macd = self.macd.value
         current_sign = 1 if current_macd > 0 else -1
 
-        # Skip if we already have a position
+        # 如果已有持仓则跳过
         if self.position:
             return
 
-        # Detect MACD zero-line crossover
+        # 检测 MACD 零线交叉
         if self.last_macd_sign != 0 and self.last_macd_sign != current_sign:
             if current_sign > 0:
                 self.go_long(tick)
             else:
                 self.go_short(tick)
 
-        # Entry signals based on threshold
+        # 基于阈值的入场信号
         elif abs(current_macd) > self.config.entry_threshold:
             if current_macd > self.config.entry_threshold:
                 self.go_long(tick)
@@ -379,9 +373,9 @@ class MACDEnhancedStrategy(Strategy):
         self.last_macd_sign = current_sign
 
     def go_long(self, tick: QuoteTick):
-        """Enter long position."""
+        """开多仓。"""
         if self.position:
-            return  # Already have a position
+            return  # 已有持仓
 
         order = self.order_factory.market(
             instrument_id=self.config.instrument_id,
@@ -392,9 +386,9 @@ class MACDEnhancedStrategy(Strategy):
         self._log.info(f"Going LONG @ {tick.ask_price} - MACD: {self.macd.value:.6f}")
 
     def go_short(self, tick: QuoteTick):
-        """Enter short position."""
+        """开空仓。"""
         if self.position:
-            return  # Already have a position
+            return  # 已有持仓
 
         order = self.order_factory.market(
             instrument_id=self.config.instrument_id,
@@ -405,19 +399,19 @@ class MACDEnhancedStrategy(Strategy):
         self._log.info(f"Going SHORT @ {tick.bid_price} - MACD: {self.macd.value:.6f}")
 
     def place_exit_orders(self):
-        """Place stop-loss and take-profit orders for the current position."""
+        """为当前持仓下止损和止盈单。"""
         if not self.position:
             return
 
         entry_price = float(self.position.avg_px_open)
-        pip_value = 0.0001  # For FX pairs (adjust for different instruments)
+        pip_value = 0.0001  # 适用于 FX 货币对（不同品种需调整）
 
         if self.position.side == PositionSide.LONG:
-            # Long position: stop below entry, target above
+            # 多头：止损在开仓价下方，目标在开仓价上方
             stop_price = entry_price - (self.config.stop_loss_pips * pip_value)
             target_price = entry_price + (self.config.take_profit_pips * pip_value)
 
-            # Stop-loss order
+            # 止损单
             stop_loss = self.order_factory.stop_market(
                 instrument_id=self.config.instrument_id,
                 order_side=OrderSide.SELL,
@@ -426,7 +420,7 @@ class MACDEnhancedStrategy(Strategy):
             )
             self.submit_order(stop_loss)
 
-            # Take-profit order
+            # 止盈限价单
             take_profit = self.order_factory.limit(
                 instrument_id=self.config.instrument_id,
                 order_side=OrderSide.SELL,
@@ -437,12 +431,12 @@ class MACDEnhancedStrategy(Strategy):
 
             self._log.info(f"Placed LONG exit orders - Stop: {stop_price:.5f}, Target: {target_price:.5f}")
 
-        else:  # SHORT position
-            # Short position: stop above entry, target below
+        else:  # 空头
+            # 空头：止损在开仓价上方，目标在开仓价下方
             stop_price = entry_price + (self.config.stop_loss_pips * pip_value)
             target_price = entry_price - (self.config.take_profit_pips * pip_value)
 
-            # Stop-loss order
+            # 止损单
             stop_loss = self.order_factory.stop_market(
                 instrument_id=self.config.instrument_id,
                 order_side=OrderSide.BUY,
@@ -451,7 +445,7 @@ class MACDEnhancedStrategy(Strategy):
             )
             self.submit_order(stop_loss)
 
-            # Take-profit order
+            # 止盈限价单
             take_profit = self.order_factory.limit(
                 instrument_id=self.config.instrument_id,
                 order_side=OrderSide.BUY,
@@ -463,20 +457,20 @@ class MACDEnhancedStrategy(Strategy):
             self._log.info(f"Placed SHORT exit orders - Stop: {stop_price:.5f}, Target: {target_price:.5f}")
 
     def on_dispose(self):
-        """Clean up on strategy disposal."""
+        """策略销毁时清理资源。"""
 ```
 
-## Configuring backtests
+## 配置回测
 
-Now that we have a trading strategy and data, we can begin to configure a backtest run. Nautilus uses a `BacktestNode` to orchestrate backtest runs, which requires some setup. This may seem a little complex at first, however this is necessary for the capabilities that Nautilus strives for.
+现在我们有了策略与数据，就可以开始配置回测运行了。Nautilus 使用 `BacktestNode` 来协调回测执行，这需要一些配置步骤。初看起来可能有些复杂，但这是为了支持 Nautilus 的强大功能所必需的。
 
-To configure a `BacktestNode`, we first need to create an instance of a `BacktestRunConfig`, configuring the following (minimal) aspects of the backtest:
+要配置 `BacktestNode`，首先需要创建一个 `BacktestRunConfig` 实例，至少配置以下几项：
 
-- `engine`: The engine for the backtest representing our core system, which will also contain our strategies.
-- `venues`: The simulated venues (exchanges or brokers) available in the backtest.
-- `data`: The input data we would like to perform the backtest on.
+- `engine`：表示核心系统的回测引擎，同时包含我们的策略。
+- `venues`：回测中模拟的交易场所（交易所或经纪商）。
+- `data`：我们希望用于回测的输入数据。
 
-There are many more configurable features described later in the docs; for now this will get us up and running.
+后续文档中描述了更多可配置的功能；当前这些设置足够帮助你快速运行回测。
 
 ```python
 venue = BacktestVenueConfig(
@@ -488,18 +482,18 @@ venue = BacktestVenueConfig(
 )
 ```
 
-## 5. Configure data
+## 5. 配置数据
 
-We need to know about the instruments that we would like to load data for, we can use the `ParquetDataCatalog` for this.
+要加载哪些品种（instruments），可以通过 `ParquetDataCatalog` 查询。
 
 ```python
 instruments = catalog.instruments()
 instruments
 ```
 
-Next, configure the data for the backtest. Nautilus provides a flexible data-loading system for backtests, but that flexibility requires some configuration.
+接下来配置回测使用的数据。Nautilus 为回测提供了灵活的数据加载系统，但这种灵活性需要一定的配置。
 
-For each tick type (and instrument), we add a `BacktestDataConfig`. In this instance we are simply adding the `QuoteTick`(s) for our EUR/USD instrument:
+对每种 tick 类型（以及每个 instrument），我们都需要添加一个 `BacktestDataConfig`。在本例中，我们仅为 EUR/USD 添加 `QuoteTick`：
 
 ```python
 from nautilus_trader.model import QuoteTick
@@ -513,19 +507,17 @@ data = BacktestDataConfig(
 )
 ```
 
-## 6. Configure engine
+## 6. 配置引擎
 
-Create a `BacktestEngineConfig` to represent the configuration of our core trading system.
-Pass in your trading strategies, adjust the log level as needed, and configure any other components (the defaults are fine too).
+创建一个 `BacktestEngineConfig` 来表示我们核心交易系统的配置。
+传入交易策略、根据需要调整日志级别，并配置其它组件（默认配置通常已足够）。
 
-Add strategies via the `ImportableStrategyConfig`, which enables importing strategies from arbitrary files or user packages. In this instance our `MACDStrategy` lives in the current module, which Python refers to as `__main__`.
+通过 `ImportableStrategyConfig` 添加策略，该配置允许从任意文件或包中导入策略。在本例中，我们的 `MACDStrategy` 位于当前模块（Python 中的 `__main__`）。
 
 ```python
-# NautilusTrader currently exceeds the rate limit for Jupyter notebook logging (stdout output),
-# this is why the `log_level` is set to "ERROR". If you lower this level to see
-# more logging then the notebook will hang during cell execution. A fix is currently
-# being investigated which involves either raising the configured rate limits for
-# Jupyter, or throttling the log flushing from Nautilus.
+# NautilusTrader 在 Jupyter 中的日志输出会超过默认速率限制（stdout），
+# 因此示例中把 `log_level` 设置为 "ERROR"。若将其调低以查看更多日志，notebook 可能会在执行单元时被挂起。
+# 目前正在研究该问题的解决方案，包括提高 Jupyter 的速率限制或对 Nautilus 的日志刷新进行限流。
 # https://github.com/jupyterlab/jupyterlab/issues/12845
 # https://github.com/deshaw/jupyterlab-limit-output
 engine = BacktestEngineConfig(
@@ -544,10 +536,9 @@ engine = BacktestEngineConfig(
 )
 ```
 
-## 7. Run backtest
+## 7. 运行回测
 
-We can now pass our various config pieces to the `BacktestRunConfig`. This object now contains the
-full configuration for our backtest.
+将前面准备好的配置项传入 `BacktestRunConfig`。该对象现在包含完整的回测配置。
 
 ```python
 config = BacktestRunConfig(
@@ -557,7 +548,7 @@ config = BacktestRunConfig(
 )
 ```
 
-The `BacktestNode` class orchestrates the backtest run. This separation between configuration and execution enables the `BacktestNode` to run multiple configurations (different parameters or batches of data). We are now ready to run some backtests.
+`BacktestNode` 类负责协调回测执行。配置与执行分离使得 `BacktestNode` 能够运行多组配置（例如不同参数组合或多批数据）。现在我们可以运行回测了。
 
 ```python
 from nautilus_trader.backtest.results import BacktestResult
@@ -565,31 +556,29 @@ from nautilus_trader.backtest.results import BacktestResult
 
 node = BacktestNode(configs=[config])
 
- # Runs one or many configs synchronously
+ # 同步运行一或多组配置
 results: list[BacktestResult] = node.run()
 ```
 
-### Expected Output
+### 期望输出
 
-When you run the backtest with the improved MACD strategy, you should see:
+使用上述增强版 MACD 策略回测时，你应能看到：
 
-- **Actual trades being executed** (both BUY and SELL orders).
-- **Positions being opened and closed** with proper exit logic.
-- **P&L calculations** showing wins and losses.
-- **Performance metrics** including win rate, profit factor, and additional statistics.
+- 实际订单被执行（BUY/SELL）。
+- 按正确的退出逻辑开仓和平仓。
+- 盈亏（P&L）计算结果，展示盈亏情况。
+- 一系列绩效指标，例如胜率（win rate）、利润因子（profit factor）等。
 
-If you're not seeing any trades, check:
+若未看到任何交易，请检查：
 
-1. The data time range (you may need more data).
-2. The threshold parameters (they might be too restrictive).
-3. The indicator warm-up period (MACD needs time to initialize).
+1. 数据时间范围（可能需要更多数据）。
+2. 阈值参数（可能设置得过于严格）。
+3. 指标的预热时间（MACD 需要时间初始化）。
 
-## 8. Analyze results
+## 8. 分析结果
 
-Now that the run is complete, we can also directly query for the `BacktestEngine`(s) used internally by the `BacktestNode`
-by using the run configs ID.
-
-The engine(s) can provide additional reports and information.
+回测结束后，你也可以通过运行配置 ID 查询 `BacktestNode` 内部使用的 `BacktestEngine` 实例，
+从而获取更多报告与信息。
 
 ```python
 from nautilus_trader.backtest.engine import BacktestEngine
@@ -609,30 +598,30 @@ engine.trader.generate_positions_report()
 engine.trader.generate_account_report(Venue("SIM"))
 ```
 
-## 9. Performance Metrics
+## 9. 绩效指标
 
-Let's add some additional performance metrics to better understand how our strategy performed:
+我们可以添加一些额外的绩效统计，以更好地理解策略表现：
 
 ```python
-# Get performance statistics
+# 获取绩效统计
 
-# Get the account and positions
+# 获取账户与持仓
 account = engine.trader.generate_account_report(Venue("SIM"))
 positions = engine.trader.generate_positions_report()
 orders = engine.trader.generate_order_fills_report()
 
-# Print summary statistics
+# 打印总结统计
 print("=== STRATEGY PERFORMANCE ===")
 print(f"Total Orders: {len(orders)}")
 print(f"Total Positions: {len(positions)}")
 
 if len(positions) > 0:
-    # Convert P&L strings to numeric values
+    # 将 P&L 字符串转换为数值
     positions["pnl_numeric"] = positions["realized_pnl"].apply(
         lambda x: float(str(x).replace(" USD", "").replace(",", "")) if isinstance(x, str) else float(x)
     )
 
-    # Calculate win rate
+    # 计算胜率
     winning_trades = positions[positions["pnl_numeric"] > 0]
     losing_trades = positions[positions["pnl_numeric"] < 0]
 
@@ -642,7 +631,7 @@ if len(positions) > 0:
     print(f"Winning Trades: {len(winning_trades)}")
     print(f"Losing Trades: {len(losing_trades)}")
 
-    # Calculate returns
+    # 计算收益
     total_pnl = positions["pnl_numeric"].sum()
     avg_pnl = positions["pnl_numeric"].mean()
     max_win = positions["pnl_numeric"].max()
@@ -653,7 +642,7 @@ if len(positions) > 0:
     print(f"Best Trade: {max_win:.2f} USD")
     print(f"Worst Trade: {max_loss:.2f} USD")
 
-    # Calculate risk metrics if we have both wins and losses
+    # 当存在盈利和亏损交易时计算风险指标
     if len(winning_trades) > 0 and len(losing_trades) > 0:
         avg_win = winning_trades["pnl_numeric"].mean()
         avg_loss = abs(losing_trades["pnl_numeric"].mean())
@@ -668,8 +657,4 @@ else:
 
 print("\n=== FINAL ACCOUNT STATE ===")
 print(account.tail(1).to_string())
-```
-
-```python
-
 ```
