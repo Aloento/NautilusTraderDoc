@@ -1,0 +1,222 @@
+<!doctype html>
+<html lang="zh" dir="ltr" class="docs-wrapper plugin-docs plugin-id-default docs-version-current docs-doc-page docs-doc-id-concepts/overview" data-has-hydrated="false">
+<head>
+<meta charset="UTF-8">
+<meta name="generator" content="Docusaurus v3.9.1">
+<title data-rh="true">Overview | NautilusTrader 文档</title><meta data-rh="true" name="viewport" content="width=device-width,initial-scale=1"><meta data-rh="true" name="twitter:card" content="summary_large_image"><meta data-rh="true" property="og:url" content="https://nautilus.aloen.to/concepts/overview"><meta data-rh="true" property="og:locale" content="zh"><meta data-rh="true" name="docusaurus_locale" content="zh"><meta data-rh="true" name="docsearch:language" content="zh"><meta data-rh="true" name="docusaurus_version" content="current"><meta data-rh="true" name="docusaurus_tag" content="docs-default-current"><meta data-rh="true" name="docsearch:version" content="current"><meta data-rh="true" name="docsearch:docusaurus_tag" content="docs-default-current"><meta data-rh="true" property="og:title" content="Overview | NautilusTrader 文档"><meta data-rh="true" name="description" content="Introduction"><meta data-rh="true" property="og:description" content="Introduction"><link data-rh="true" rel="icon" href="/logo.png"><link data-rh="true" rel="canonical" href="https://nautilus.aloen.to/concepts/overview"><link data-rh="true" rel="alternate" href="https://nautilus.aloen.to/concepts/overview" hreflang="zh"><link data-rh="true" rel="alternate" href="https://nautilus.aloen.to/concepts/overview" hreflang="x-default"><script data-rh="true" type="application/ld+json">{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Concepts","item":"https://nautilus.aloen.to/concepts/"},{"@type":"ListItem","position":2,"name":"Overview","item":"https://nautilus.aloen.to/concepts/overview"}]}</script><link rel="stylesheet" href="/assets/css/styles.33db920f.css">
+<script src="/assets/js/runtime~main.4ed1c191.js" defer="defer"></script>
+<script src="/assets/js/main.3352860b.js" defer="defer"></script>
+</head>
+<body class="navigation-with-keyboard">
+<svg style="display: none;"><defs>
+<symbol id="theme-svg-external-link" viewBox="0 0 24 24"><path fill="currentColor" d="M21 13v10h-21v-19h12v2h-10v15h17v-8h2zm3-12h-10.988l4.035 4-6.977 7.07 2.828 2.828 6.977-7.07 4.125 4.172v-11z"/></symbol>
+</defs></svg>
+<script>!function(){var t=function(){try{return new URLSearchParams(window.location.search).get("docusaurus-theme")}catch(t){}}()||function(){try{return window.localStorage.getItem("theme")}catch(t){}}();document.documentElement.setAttribute("data-theme",t||(window.matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light")),document.documentElement.setAttribute("data-theme-choice",t||"system")}(),function(){try{const c=new URLSearchParams(window.location.search).entries();for(var[t,e]of c)if(t.startsWith("docusaurus-data-")){var a=t.replace("docusaurus-data-","data-");document.documentElement.setAttribute(a,e)}}catch(t){}}()</script><div id="__docusaurus"><link rel="preload" as="image" href="/logo.png"><div role="region" aria-label="跳到主要内容"><a class="skipToContent__uWo" href="#__docusaurus_skipToContent_fallback">跳到主要内容</a></div><nav aria-label="主导航" class="theme-layout-navbar navbar navbar--fixed-top"><div class="navbar__inner"><div class="theme-layout-navbar-left navbar__items"><button aria-label="切换导航栏" aria-expanded="false" class="navbar__toggle clean-btn" type="button"><svg width="30" height="30" viewBox="0 0 30 30" aria-hidden="true"><path stroke="currentColor" stroke-linecap="round" stroke-miterlimit="10" stroke-width="2" d="M4 7h22M4 15h22M4 23h22"></path></svg></button><a class="navbar__brand" href="/"><div class="navbar__logo"><img src="/logo.png" alt="NautilusTrader Logo" class="themedComponent_WkLn themedComponent--light_cjoX"><img src="/logo.png" alt="NautilusTrader Logo" class="themedComponent_WkLn themedComponent--dark_jZId"></div><b class="navbar__title text--truncate">NautilusTrader</b></a><a aria-current="page" class="navbar__item navbar__link navbar__link--active" href="/api_reference/">文档</a></div><div class="theme-layout-navbar-right navbar__items navbar__items--right"><a href="https://github.com/Aloento/NautilusTraderDoc" target="_blank" rel="noopener noreferrer" class="navbar__item navbar__link">GitHub<svg width="13.5" height="13.5" aria-label="(opens in new tab)" class="iconExternalLink_KfBJ"><use href="#theme-svg-external-link"></use></svg></a><div class="toggle_RWFU colorModeToggle_sA1q"><button class="clean-btn toggleButton_qjfc toggleButtonDisabled_cpNp" type="button" disabled="" title="system mode" aria-label="切换浅色/暗黑模式（当前为system mode）"><svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true" class="toggleIcon_CetX lightToggleIcon_UYsV"><path fill="currentColor" d="M12,9c1.65,0,3,1.35,3,3s-1.35,3-3,3s-3-1.35-3-3S10.35,9,12,9 M12,7c-2.76,0-5,2.24-5,5s2.24,5,5,5s5-2.24,5-5 S14.76,7,12,7L12,7z M2,13l2,0c0.55,0,1-0.45,1-1s-0.45-1-1-1l-2,0c-0.55,0-1,0.45-1,1S1.45,13,2,13z M20,13l2,0c0.55,0,1-0.45,1-1 s-0.45-1-1-1l-2,0c-0.55,0-1,0.45-1,1S19.45,13,20,13z M11,2v2c0,0.55,0.45,1,1,1s1-0.45,1-1V2c0-0.55-0.45-1-1-1S11,1.45,11,2z M11,20v2c0,0.55,0.45,1,1,1s1-0.45,1-1v-2c0-0.55-0.45-1-1-1C11.45,19,11,19.45,11,20z M5.99,4.58c-0.39-0.39-1.03-0.39-1.41,0 c-0.39,0.39-0.39,1.03,0,1.41l1.06,1.06c0.39,0.39,1.03,0.39,1.41,0s0.39-1.03,0-1.41L5.99,4.58z M18.36,16.95 c-0.39-0.39-1.03-0.39-1.41,0c-0.39,0.39-0.39,1.03,0,1.41l1.06,1.06c0.39,0.39,1.03,0.39,1.41,0c0.39-0.39,0.39-1.03,0-1.41 L18.36,16.95z M19.42,5.99c0.39-0.39,0.39-1.03,0-1.41c-0.39-0.39-1.03-0.39-1.41,0l-1.06,1.06c-0.39,0.39-0.39,1.03,0,1.41 s1.03,0.39,1.41,0L19.42,5.99z M7.05,18.36c0.39-0.39,0.39-1.03,0-1.41c-0.39-0.39-1.03-0.39-1.41,0l-1.06,1.06 c-0.39,0.39-0.39,1.03,0,1.41s1.03,0.39,1.41,0L7.05,18.36z"></path></svg><svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true" class="toggleIcon_CetX darkToggleIcon_i1s2"><path fill="currentColor" d="M9.37,5.51C9.19,6.15,9.1,6.82,9.1,7.5c0,4.08,3.32,7.4,7.4,7.4c0.68,0,1.35-0.09,1.99-0.27C17.45,17.19,14.93,19,12,19 c-3.86,0-7-3.14-7-7C5,9.07,6.81,6.55,9.37,5.51z M12,3c-4.97,0-9,4.03-9,9s4.03,9,9,9s9-4.03,9-9c0-0.46-0.04-0.92-0.1-1.36 c-0.98,1.37-2.58,2.26-4.4,2.26c-2.98,0-5.4-2.42-5.4-5.4c0-1.81,0.89-3.42,2.26-4.4C12.92,3.04,12.46,3,12,3L12,3z"></path></svg><svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true" class="toggleIcon_CetX systemToggleIcon_yIQx"><path fill="currentColor" d="m12 21c4.971 0 9-4.029 9-9s-4.029-9-9-9-9 4.029-9 9 4.029 9 9 9zm4.95-13.95c1.313 1.313 2.05 3.093 2.05 4.95s-0.738 3.637-2.05 4.95c-1.313 1.313-3.093 2.05-4.95 2.05v-14c1.857 0 3.637 0.737 4.95 2.05z"></path></svg></button></div><div class="navbarSearchContainer_PsjF"></div></div></div><div role="presentation" class="navbar-sidebar__backdrop"></div></nav><div id="__docusaurus_skipToContent_fallback" class="theme-layout-main main-wrapper mainWrapper_jk42"><div class="docsWrapper_KWBO"><button aria-label="回到顶部" class="clean-btn theme-back-to-top-button backToTopButton_XpKL" type="button"></button><div class="docRoot_joIP"><aside class="theme-doc-sidebar-container docSidebarContainer_DOen"><div class="sidebarViewport_j7YP"><div class="sidebar_nPgc"><nav aria-label="文档侧边栏" class="menu thin-scrollbar menu_MTDt"><ul class="theme-doc-sidebar-menu menu__list"><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-1 menu__list-item menu__list-item--collapsed"><div class="menu__list-item-collapsible"><a class="categoryLink_GgI9 menu__link menu__link--sublist" href="/api_reference/"><span title="Python API" class="categoryLinkLabel_XKxb">Python API</span></a><button aria-label="展开侧边栏分类 &#x27;Python API&#x27;" aria-expanded="false" type="button" class="clean-btn menu__caret"></button></div></li><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-1 menu__list-item"><div class="menu__list-item-collapsible"><a class="categoryLink_GgI9 menu__link menu__link--sublist menu__link--active" href="/concepts/"><span title="Concepts" class="categoryLinkLabel_XKxb">Concepts</span></a><button aria-label="折叠侧边栏分类 &#x27;Concepts&#x27;" aria-expanded="true" type="button" class="clean-btn menu__caret"></button></div><ul class="menu__list"><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class="menu__link" tabindex="0" href="/concepts/actors"><span title="Actors" class="linkLabel_CNtA">Actors</span></a></li><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class="menu__link" tabindex="0" href="/concepts/adapters"><span title="Adapters" class="linkLabel_CNtA">Adapters</span></a></li><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class="menu__link" tabindex="0" href="/concepts/architecture"><span title="Architecture" class="linkLabel_CNtA">Architecture</span></a></li><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class="menu__link" tabindex="0" href="/concepts/backtesting"><span title="Backtesting" class="linkLabel_CNtA">Backtesting</span></a></li><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class="menu__link" tabindex="0" href="/concepts/cache"><span title="Cache" class="linkLabel_CNtA">Cache</span></a></li><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class="menu__link" tabindex="0" href="/concepts/data"><span title="Data" class="linkLabel_CNtA">Data</span></a></li><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class="menu__link" tabindex="0" href="/concepts/execution"><span title="Execution" class="linkLabel_CNtA">Execution</span></a></li><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class="menu__link" tabindex="0" href="/concepts/instruments"><span title="Instruments" class="linkLabel_CNtA">Instruments</span></a></li><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class="menu__link" tabindex="0" href="/concepts/live"><span title="Live Trading" class="linkLabel_CNtA">Live Trading</span></a></li><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class="menu__link" tabindex="0" href="/concepts/logging"><span title="Logging" class="linkLabel_CNtA">Logging</span></a></li><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class="menu__link" tabindex="0" href="/concepts/message_bus"><span title="Message Bus" class="linkLabel_CNtA">Message Bus</span></a></li><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class="menu__link" tabindex="0" href="/concepts/orders"><span title="Orders" class="linkLabel_CNtA">Orders</span></a></li><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class="menu__link menu__link--active" aria-current="page" tabindex="0" href="/concepts/overview"><span title="Overview" class="linkLabel_CNtA">Overview</span></a></li><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class="menu__link" tabindex="0" href="/concepts/portfolio"><span title="Portfolio" class="linkLabel_CNtA">Portfolio</span></a></li><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class="menu__link" tabindex="0" href="/concepts/positions"><span title="Positions" class="linkLabel_CNtA">Positions</span></a></li><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class="menu__link" tabindex="0" href="/concepts/reports"><span title="Reports" class="linkLabel_CNtA">Reports</span></a></li><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class="menu__link" tabindex="0" href="/concepts/strategies"><span title="Strategies" class="linkLabel_CNtA">Strategies</span></a></li></ul></li><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-1 menu__list-item menu__list-item--collapsed"><div class="menu__list-item-collapsible"><a class="categoryLink_GgI9 menu__link menu__link--sublist" href="/developer_guide/"><span title="Developer Guide" class="categoryLinkLabel_XKxb">Developer Guide</span></a><button aria-label="展开侧边栏分类 &#x27;Developer Guide&#x27;" aria-expanded="false" type="button" class="clean-btn menu__caret"></button></div></li><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-1 menu__list-item menu__list-item--collapsed"><div class="menu__list-item-collapsible"><a class="categoryLink_GgI9 menu__link menu__link--sublist" href="/getting_started/"><span title="入门" class="categoryLinkLabel_XKxb">入门</span></a><button aria-label="展开侧边栏分类 &#x27;入门&#x27;" aria-expanded="false" type="button" class="clean-btn menu__caret"></button></div></li><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-1 menu__list-item menu__list-item--collapsed"><div class="menu__list-item-collapsible"><a class="categoryLink_GgI9 menu__link menu__link--sublist" href="/integrations/"><span title="Integrations" class="categoryLinkLabel_XKxb">Integrations</span></a><button aria-label="展开侧边栏分类 &#x27;Integrations&#x27;" aria-expanded="false" type="button" class="clean-btn menu__caret"></button></div></li><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-1 menu__list-item menu__list-item--collapsed"><div class="menu__list-item-collapsible"><a class="categoryLink_GgI9 menu__link menu__link--sublist" href="/tutorials/"><span title="Tutorials" class="categoryLinkLabel_XKxb">Tutorials</span></a><button aria-label="展开侧边栏分类 &#x27;Tutorials&#x27;" aria-expanded="false" type="button" class="clean-btn menu__caret"></button></div></li></ul></nav></div></div></aside><main class="docMainContainer_bw1l"><div class="container padding-top--md padding-bottom--lg"><div class="row"><div class="col docItemCol_PIhC"><div class="docItemContainer_pFw3"><article><nav class="theme-doc-breadcrumbs breadcrumbsContainer_HRKZ" aria-label="页面路径"><ul class="breadcrumbs"><li class="breadcrumbs__item"><a aria-label="主页面" class="breadcrumbs__link" href="/"><svg viewBox="0 0 24 24" class="breadcrumbHomeIcon_sX5c"><path d="M10 19v-5h4v5c0 .55.45 1 1 1h3c.55 0 1-.45 1-1v-7h1.7c.46 0 .68-.57.33-.87L12.67 3.6c-.38-.34-.96-.34-1.34 0l-8.36 7.53c-.34.3-.13.87.33.87H5v7c0 .55.45 1 1 1h3c.55 0 1-.45 1-1z" fill="currentColor"></path></svg></a></li><li class="breadcrumbs__item"><a class="breadcrumbs__link" href="/concepts/"><span>Concepts</span></a></li><li class="breadcrumbs__item breadcrumbs__item--active"><span class="breadcrumbs__link">Overview</span></li></ul></nav><div class="tocCollapsible_DhUt theme-doc-toc-mobile tocMobile_Izjv"><button type="button" class="clean-btn tocCollapsibleButton_eYR5">本页总览</button></div><div class="theme-doc-markdown markdown"><header><h1>Overview</h1></header>
+<h2 class="anchor anchorWithStickyNavbar_RpWm" id="introduction">Introduction<a href="#introduction" class="hash-link" aria-label="Introduction的直接链接" title="Introduction的直接链接" translate="no">​</a></h2>
+<p>NautilusTrader is an open-source, high-performance, production-grade algorithmic trading platform,
+providing quantitative traders with the ability to backtest portfolios of automated trading strategies
+on historical data with an event-driven engine, and also deploy those same strategies live, with no code changes.</p>
+<p>The platform is <em>AI-first</em>, designed to develop and deploy algorithmic trading strategies within a highly performant
+and robust Python-native environment. This helps to address the parity challenge of keeping the Python research/backtest
+environment consistent with the production live trading environment.</p>
+<p>NautilusTrader&#x27;s design, architecture, and implementation philosophy prioritizes software correctness and safety at the
+highest level, with the aim of supporting Python-native, mission-critical, trading system backtesting
+and live deployment workloads.</p>
+<p>The platform is also universal and asset-class-agnostic — with any REST API or WebSocket stream able to be integrated via modular
+adapters. It supports high-frequency trading across a wide range of asset classes and instrument types
+including FX, Equities, Futures, Options, Crypto, DeFi, and Betting — enabling seamless operations across multiple venues simultaneously.</p>
+<h2 class="anchor anchorWithStickyNavbar_RpWm" id="features">Features<a href="#features" class="hash-link" aria-label="Features的直接链接" title="Features的直接链接" translate="no">​</a></h2>
+<ul>
+<li><strong>Fast</strong>: Core is written in Rust with asynchronous networking using <a href="https://crates.io/crates/tokio" target="_blank" rel="noopener noreferrer">tokio</a>.</li>
+<li><strong>Reliable</strong>: Rust-powered type- and thread-safety, with optional Redis-backed state persistence.</li>
+<li><strong>Portable</strong>: OS independent, runs on Linux, macOS, and Windows. Deploy using Docker.</li>
+<li><strong>Flexible</strong>: Modular adapters mean any REST API or WebSocket stream can be integrated.</li>
+<li><strong>Advanced</strong>: Time in force <code>IOC</code>, <code>FOK</code>, <code>GTC</code>, <code>GTD</code>, <code>DAY</code>, <code>AT_THE_OPEN</code>, <code>AT_THE_CLOSE</code>, advanced order types and conditional triggers. Execution instructions <code>post-only</code>, <code>reduce-only</code>, and icebergs. Contingency orders including <code>OCO</code>, <code>OUO</code>, <code>OTO</code>.</li>
+<li><strong>Customizable</strong>: Add user-defined custom components, or assemble entire systems from scratch leveraging the <a href="/concepts/cache">cache</a> and <a href="/concepts/message_bus">message bus</a>.</li>
+<li><strong>Backtesting</strong>: Run with multiple venues, instruments and strategies simultaneously using historical quote tick, trade tick, bar, order book and custom data with nanosecond resolution.</li>
+<li><strong>Live</strong>: Use identical strategy implementations between backtesting and live deployments.</li>
+<li><strong>Multi-venue</strong>: Multiple venue capabilities facilitate market-making and statistical arbitrage strategies.</li>
+<li><strong>AI Training</strong>: Backtest engine fast enough to be used to train AI trading agents (RL/ES).</li>
+</ul>
+<p><img decoding="async" loading="lazy" src="https://github.com/nautechsystems/nautilus_trader/blob/develop/assets/nautilus-art.png?raw=true" alt="Nautilus" title="nautilus" class="img_DwKz"></p>
+<blockquote>
+<p><em>nautilus - from ancient Greek &#x27;sailor&#x27; and naus &#x27;ship&#x27;.</em></p>
+<p><em>The nautilus shell consists of modular chambers with a growth factor which approximates a logarithmic spiral.
+The idea is that this can be translated to the aesthetics of design and architecture.</em></p>
+</blockquote>
+<h2 class="anchor anchorWithStickyNavbar_RpWm" id="why-nautilustrader">Why NautilusTrader?<a href="#why-nautilustrader" class="hash-link" aria-label="Why NautilusTrader?的直接链接" title="Why NautilusTrader?的直接链接" translate="no">​</a></h2>
+<ul>
+<li><strong>Highly performant event-driven Python</strong>: Native binary core components.</li>
+<li><strong>Parity between backtesting and live trading</strong>: Identical strategy code.</li>
+<li><strong>Reduced operational risk</strong>: Enhanced risk management functionality, logical accuracy, and type safety.</li>
+<li><strong>Highly extendable</strong>: Message bus, custom components and actors, custom data, custom adapters.</li>
+</ul>
+<p>Traditionally, trading strategy research and backtesting might be conducted in Python
+using vectorized methods, with the strategy then needing to be reimplemented in a more event-driven way
+using C++, C#, Java or other statically typed language(s). The reasoning here is that vectorized backtesting code cannot
+express the granular time and event dependent complexity of real-time trading, where compiled languages have
+proven to be more suitable due to their inherently higher performance, and type safety.</p>
+<p>One of the key advantages of NautilusTrader here, is that this reimplementation step is now circumvented - as the critical core components of the platform
+have all been written entirely in <a href="https://www.rust-lang.org/" target="_blank" rel="noopener noreferrer">Rust</a> or <a href="https://cython.org/" target="_blank" rel="noopener noreferrer">Cython</a>.
+This means we&#x27;re using the right tools for the job, where systems programming languages compile performant binaries,
+with CPython C extension modules then able to offer a Python-native environment, suitable for professional quantitative traders and trading firms.</p>
+<h2 class="anchor anchorWithStickyNavbar_RpWm" id="use-cases">Use cases<a href="#use-cases" class="hash-link" aria-label="Use cases的直接链接" title="Use cases的直接链接" translate="no">​</a></h2>
+<p>There are three main use cases for this software package:</p>
+<ul>
+<li>Backtest trading systems on historical data (<code>backtest</code>).</li>
+<li>Simulate trading systems with real-time data and virtual execution (<code>sandbox</code>).</li>
+<li>Deploy trading systems live on real or paper accounts (<code>live</code>).</li>
+</ul>
+<p>The project&#x27;s codebase provides a framework for implementing the software layer of systems which achieve the above. You will find
+the default <code>backtest</code> and <code>live</code> system implementations in their respectively named subpackages. A <code>sandbox</code> environment can
+be built using the sandbox adapter.</p>
+<div class="theme-admonition theme-admonition-note admonition_lEzE alert alert--secondary"><div class="admonitionHeading_aAf0"><span class="admonitionIcon_xtBN"><svg viewBox="0 0 14 16"><path fill-rule="evenodd" d="M6.3 5.69a.942.942 0 0 1-.28-.7c0-.28.09-.52.28-.7.19-.18.42-.28.7-.28.28 0 .52.09.7.28.18.19.28.42.28.7 0 .28-.09.52-.28.7a1 1 0 0 1-.7.3c-.28 0-.52-.11-.7-.3zM8 7.99c-.02-.25-.11-.48-.31-.69-.2-.19-.42-.3-.69-.31H6c-.27.02-.48.13-.69.31-.2.2-.3.44-.31.69h1v3c.02.27.11.5.31.69.2.2.42.31.69.31h1c.27 0 .48-.11.69-.31.2-.19.3-.42.31-.69H8V7.98v.01zM7 2.3c-3.14 0-5.7 2.54-5.7 5.68 0 3.14 2.56 5.7 5.7 5.7s5.7-2.55 5.7-5.7c0-3.15-2.56-5.69-5.7-5.69v.01zM7 .98c3.86 0 7 3.14 7 7s-3.14 7-7 7-7-3.12-7-7 3.14-7 7-7z"></path></svg></span>备注</div><div class="admonitionContent_Vfkp"><ul>
+<li>All examples will utilize these default system implementations.</li>
+<li>We consider trading strategies to be subcomponents of end-to-end trading systems, these systems
+include the application and infrastructure layers.</li>
+</ul></div></div>
+<h2 class="anchor anchorWithStickyNavbar_RpWm" id="distributed">Distributed<a href="#distributed" class="hash-link" aria-label="Distributed的直接链接" title="Distributed的直接链接" translate="no">​</a></h2>
+<p>The platform is designed to be easily integrated into a larger distributed system.
+To facilitate this, nearly all configuration and domain objects can be serialized using JSON, MessagePack or Apache Arrow (Feather) for communication over the network.</p>
+<h2 class="anchor anchorWithStickyNavbar_RpWm" id="common-core">Common core<a href="#common-core" class="hash-link" aria-label="Common core的直接链接" title="Common core的直接链接" translate="no">​</a></h2>
+<p>The common system core is utilized by all node <a href="/concepts/architecture#environment-contexts">environment contexts</a> (<code>backtest</code>, <code>sandbox</code>, and <code>live</code>).
+User-defined <code>Actor</code>, <code>Strategy</code> and <code>ExecAlgorithm</code> components are managed consistently across these environment contexts.</p>
+<h2 class="anchor anchorWithStickyNavbar_RpWm" id="backtesting">Backtesting<a href="#backtesting" class="hash-link" aria-label="Backtesting的直接链接" title="Backtesting的直接链接" translate="no">​</a></h2>
+<p>Backtesting can be achieved by first making data available to a <code>BacktestEngine</code> either directly or via
+a higher level <code>BacktestNode</code> and <code>ParquetDataCatalog</code>, and then running the data through the system with nanosecond resolution.</p>
+<h2 class="anchor anchorWithStickyNavbar_RpWm" id="live-trading">Live trading<a href="#live-trading" class="hash-link" aria-label="Live trading的直接链接" title="Live trading的直接链接" translate="no">​</a></h2>
+<p>A <code>TradingNode</code> can ingest data and events from multiple data and execution clients.
+Live deployments can use both demo/paper trading accounts, or real accounts.</p>
+<p>For live trading, a <code>TradingNode</code> can ingest data and events from multiple data and execution clients.
+The platform supports both demo/paper trading accounts and real accounts. High performance can be achieved by running
+asynchronously on a single <a href="https://docs.python.org/3/library/asyncio-eventloop.html" target="_blank" rel="noopener noreferrer">event loop</a>,
+with the potential to further boost performance by leveraging the <a href="https://github.com/MagicStack/uvloop" target="_blank" rel="noopener noreferrer">uvloop</a> implementation (available for Linux and macOS).</p>
+<h2 class="anchor anchorWithStickyNavbar_RpWm" id="domain-model">Domain model<a href="#domain-model" class="hash-link" aria-label="Domain model的直接链接" title="Domain model的直接链接" translate="no">​</a></h2>
+<p>The platform features a comprehensive trading domain model that includes various value types such as
+<code>Price</code> and <code>Quantity</code>, as well as more complex entities such as <code>Order</code> and <code>Position</code> objects,
+which are used to aggregate multiple events to determine state.</p>
+<h2 class="anchor anchorWithStickyNavbar_RpWm" id="timestamps">Timestamps<a href="#timestamps" class="hash-link" aria-label="Timestamps的直接链接" title="Timestamps的直接链接" translate="no">​</a></h2>
+<p>All timestamps within the platform are recorded at nanosecond precision in UTC.</p>
+<p>Timestamp strings follow ISO 8601 (RFC 3339) format with either 9 digits (nanoseconds) or 3 digits (milliseconds) of decimal precision,
+(but mostly nanoseconds) always maintaining all digits including trailing zeros.
+These can be seen in log messages, and debug/display outputs for objects.</p>
+<p>A timestamp string consists of:</p>
+<ul>
+<li>Full date component always present: <code>YYYY-MM-DD</code>.</li>
+<li><code>T</code> separator between date and time components.</li>
+<li>Always nanosecond precision (9 decimal places) or millisecond precision (3 decimal places) for certain cases such as GTD expiry times.</li>
+<li>Always UTC timezone designated by <code>Z</code> suffix.</li>
+</ul>
+<p>Example: <code>2024-01-05T15:30:45.123456789Z</code></p>
+<p>For the complete specification, refer to <a href="https://datatracker.ietf.org/doc/html/rfc3339" target="_blank" rel="noopener noreferrer">RFC 3339: Date and Time on the Internet</a>.</p>
+<h2 class="anchor anchorWithStickyNavbar_RpWm" id="uuids">UUIDs<a href="#uuids" class="hash-link" aria-label="UUIDs的直接链接" title="UUIDs的直接链接" translate="no">​</a></h2>
+<p>The platform uses Universally Unique Identifiers (UUID) version 4 (RFC 4122) for unique identifiers.
+Our high-performance implementation leverages the <code>uuid</code> crate for correctness validation when parsing from strings,
+ensuring input UUIDs comply with the specification.</p>
+<p>A valid UUID v4 consists of:</p>
+<ul>
+<li>32 hexadecimal digits displayed in 5 groups.</li>
+<li>Groups separated by hyphens: <code>8-4-4-4-12</code> format.</li>
+<li>Version 4 designation (indicated by the third group starting with &quot;4&quot;).</li>
+<li>RFC 4122 variant designation (indicated by the fourth group starting with &quot;8&quot;, &quot;9&quot;, &quot;a&quot;, or &quot;b&quot;).</li>
+</ul>
+<p>Example: <code>2d89666b-1a1e-4a75-b193-4eb3b454c757</code></p>
+<p>For the complete specification, refer to <a href="https://datatracker.ietf.org/doc/html/rfc4122" target="_blank" rel="noopener noreferrer">RFC 4122: A Universally Unique IDentifier (UUID) URN Namespace</a>.</p>
+<h2 class="anchor anchorWithStickyNavbar_RpWm" id="data-types">Data types<a href="#data-types" class="hash-link" aria-label="Data types的直接链接" title="Data types的直接链接" translate="no">​</a></h2>
+<p>The following market data types can be requested historically, and also subscribed to as live streams when available from a venue / data provider, and implemented in an integrations adapter.</p>
+<ul>
+<li><code>OrderBookDelta</code> (L1/L2/L3)</li>
+<li><code>OrderBookDeltas</code> (container type)</li>
+<li><code>OrderBookDepth10</code> (fixed depth of 10 levels per side)</li>
+<li><code>QuoteTick</code></li>
+<li><code>TradeTick</code></li>
+<li><code>Bar</code></li>
+<li><code>Instrument</code></li>
+<li><code>InstrumentStatus</code></li>
+<li><code>InstrumentClose</code></li>
+</ul>
+<p>The following <code>PriceType</code> options can be used for bar aggregations:</p>
+<ul>
+<li><code>BID</code></li>
+<li><code>ASK</code></li>
+<li><code>MID</code></li>
+<li><code>LAST</code></li>
+</ul>
+<h2 class="anchor anchorWithStickyNavbar_RpWm" id="bar-aggregations">Bar aggregations<a href="#bar-aggregations" class="hash-link" aria-label="Bar aggregations的直接链接" title="Bar aggregations的直接链接" translate="no">​</a></h2>
+<p>The following <code>BarAggregation</code> methods are available:</p>
+<ul>
+<li><code>MILLISECOND</code></li>
+<li><code>SECOND</code></li>
+<li><code>MINUTE</code></li>
+<li><code>HOUR</code></li>
+<li><code>DAY</code></li>
+<li><code>WEEK</code></li>
+<li><code>MONTH</code></li>
+<li><code>YEAR</code></li>
+<li><code>TICK</code></li>
+<li><code>VOLUME</code></li>
+<li><code>VALUE</code> (a.k.a Dollar bars)</li>
+<li><code>RENKO</code> (price-based bricks)</li>
+<li><code>TICK_IMBALANCE</code></li>
+<li><code>TICK_RUNS</code></li>
+<li><code>VOLUME_IMBALANCE</code></li>
+<li><code>VOLUME_RUNS</code></li>
+<li><code>VALUE_IMBALANCE</code></li>
+<li><code>VALUE_RUNS</code></li>
+</ul>
+<p>Currently implemented aggregations:</p>
+<ul>
+<li><code>MILLISECOND</code></li>
+<li><code>SECOND</code></li>
+<li><code>MINUTE</code></li>
+<li><code>HOUR</code></li>
+<li><code>DAY</code></li>
+<li><code>WEEK</code></li>
+<li><code>MONTH</code></li>
+<li><code>YEAR</code></li>
+<li><code>TICK</code></li>
+<li><code>VOLUME</code></li>
+<li><code>VALUE</code></li>
+<li><code>RENKO</code></li>
+</ul>
+<p>Aggregations listed above that are not repeated in the implemented list are planned but not yet available.</p>
+<p>The price types and bar aggregations can be combined with step sizes &gt;= 1 in any way through a <code>BarSpecification</code>.
+This enables maximum flexibility and now allows alternative bars to be aggregated for live trading.</p>
+<h2 class="anchor anchorWithStickyNavbar_RpWm" id="account-types">Account types<a href="#account-types" class="hash-link" aria-label="Account types的直接链接" title="Account types的直接链接" translate="no">​</a></h2>
+<p>The following account types are available for both live and backtest environments:</p>
+<ul>
+<li><code>Cash</code> single-currency (base currency)</li>
+<li><code>Cash</code> multi-currency</li>
+<li><code>Margin</code> single-currency (base currency)</li>
+<li><code>Margin</code> multi-currency</li>
+<li><code>Betting</code> single-currency</li>
+</ul>
+<h2 class="anchor anchorWithStickyNavbar_RpWm" id="order-types">Order types<a href="#order-types" class="hash-link" aria-label="Order types的直接链接" title="Order types的直接链接" translate="no">​</a></h2>
+<p>The following order types are available (when possible on a venue):</p>
+<ul>
+<li><code>MARKET</code></li>
+<li><code>LIMIT</code></li>
+<li><code>STOP_MARKET</code></li>
+<li><code>STOP_LIMIT</code></li>
+<li><code>MARKET_TO_LIMIT</code></li>
+<li><code>MARKET_IF_TOUCHED</code></li>
+<li><code>LIMIT_IF_TOUCHED</code></li>
+<li><code>TRAILING_STOP_MARKET</code></li>
+<li><code>TRAILING_STOP_LIMIT</code></li>
+</ul>
+<h2 class="anchor anchorWithStickyNavbar_RpWm" id="value-types">Value types<a href="#value-types" class="hash-link" aria-label="Value types的直接链接" title="Value types的直接链接" translate="no">​</a></h2>
+<p>The following value types are backed by either 128-bit or 64-bit raw integer values, depending on the
+<a href="/getting_started/installation#precision-mode">precision mode</a> used during compilation.</p>
+<ul>
+<li><code>Price</code></li>
+<li><code>Quantity</code></li>
+<li><code>Money</code></li>
+</ul>
+<h3 class="anchor anchorWithStickyNavbar_RpWm" id="high-precision-mode-128-bit">High-precision mode (128-bit)<a href="#high-precision-mode-128-bit" class="hash-link" aria-label="High-precision mode (128-bit)的直接链接" title="High-precision mode (128-bit)的直接链接" translate="no">​</a></h3>
+<p>When the <code>high-precision</code> feature flag is <strong>enabled</strong> (default), values use the specification:</p>
+<table><thead><tr><th style="text-align:left">Type</th><th style="text-align:left">Raw backing</th><th style="text-align:left">Max precision</th><th style="text-align:left">Min value</th><th style="text-align:left">Max value</th></tr></thead><tbody><tr><td style="text-align:left"><code>Price</code></td><td style="text-align:left"><code>i128</code></td><td style="text-align:left">16</td><td style="text-align:left">-17,014,118,346,046</td><td style="text-align:left">17,014,118,346,046</td></tr><tr><td style="text-align:left"><code>Money</code></td><td style="text-align:left"><code>i128</code></td><td style="text-align:left">16</td><td style="text-align:left">-17,014,118,346,046</td><td style="text-align:left">17,014,118,346,046</td></tr><tr><td style="text-align:left"><code>Quantity</code></td><td style="text-align:left"><code>u128</code></td><td style="text-align:left">16</td><td style="text-align:left">0</td><td style="text-align:left">34,028,236,692,093</td></tr></tbody></table>
+<h3 class="anchor anchorWithStickyNavbar_RpWm" id="standard-precision-mode-64-bit">Standard-precision mode (64-bit)<a href="#standard-precision-mode-64-bit" class="hash-link" aria-label="Standard-precision mode (64-bit)的直接链接" title="Standard-precision mode (64-bit)的直接链接" translate="no">​</a></h3>
+<p>When the <code>high-precision</code> feature flag is <strong>disabled</strong>, values use the specification:</p>
+<table><thead><tr><th style="text-align:left">Type</th><th style="text-align:left">Raw backing</th><th style="text-align:left">Max precision</th><th style="text-align:left">Min value</th><th style="text-align:left">Max value</th></tr></thead><tbody><tr><td style="text-align:left"><code>Price</code></td><td style="text-align:left"><code>i64</code></td><td style="text-align:left">9</td><td style="text-align:left">-9,223,372,036</td><td style="text-align:left">9,223,372,036</td></tr><tr><td style="text-align:left"><code>Money</code></td><td style="text-align:left"><code>i64</code></td><td style="text-align:left">9</td><td style="text-align:left">-9,223,372,036</td><td style="text-align:left">9,223,372,036</td></tr><tr><td style="text-align:left"><code>Quantity</code></td><td style="text-align:left"><code>u64</code></td><td style="text-align:left">9</td><td style="text-align:left">0</td><td style="text-align:left">18,446,744,073</td></tr></tbody></table></div><footer class="theme-doc-footer docusaurus-mt-lg"><div class="row margin-top--sm theme-doc-footer-edit-meta-row"><div class="col"><a href="https://github.com/Aloento/NautilusTraderDoc/tree/main/docs/concepts/overview.md" target="_blank" rel="noopener noreferrer" class="theme-edit-this-page"><svg fill="currentColor" height="20" width="20" viewBox="0 0 40 40" class="iconEdit_F7ru" aria-hidden="true"><g><path d="m34.5 11.7l-3 3.1-6.3-6.3 3.1-3q0.5-0.5 1.2-0.5t1.1 0.5l3.9 3.9q0.5 0.4 0.5 1.1t-0.5 1.2z m-29.5 17.1l18.4-18.5 6.3 6.3-18.4 18.4h-6.3v-6.2z"></path></g></svg>编辑此页</a></div><div class="col lastUpdated_GNoA"></div></div></footer></article><nav class="docusaurus-mt-lg pagination-nav" aria-label="文件选项卡"><a class="pagination-nav__link pagination-nav__link--prev" href="/concepts/orders"><div class="pagination-nav__sublabel">上一页</div><div class="pagination-nav__label">Orders</div></a><a class="pagination-nav__link pagination-nav__link--next" href="/concepts/portfolio"><div class="pagination-nav__sublabel">下一页</div><div class="pagination-nav__label">Portfolio</div></a></nav></div></div><div class="col col--3"><div class="tableOfContents_pg_n thin-scrollbar theme-doc-toc-desktop"><ul class="table-of-contents table-of-contents__left-border"><li><a href="#introduction" class="table-of-contents__link toc-highlight">Introduction</a></li><li><a href="#features" class="table-of-contents__link toc-highlight">Features</a></li><li><a href="#why-nautilustrader" class="table-of-contents__link toc-highlight">Why NautilusTrader?</a></li><li><a href="#use-cases" class="table-of-contents__link toc-highlight">Use cases</a></li><li><a href="#distributed" class="table-of-contents__link toc-highlight">Distributed</a></li><li><a href="#common-core" class="table-of-contents__link toc-highlight">Common core</a></li><li><a href="#backtesting" class="table-of-contents__link toc-highlight">Backtesting</a></li><li><a href="#live-trading" class="table-of-contents__link toc-highlight">Live trading</a></li><li><a href="#domain-model" class="table-of-contents__link toc-highlight">Domain model</a></li><li><a href="#timestamps" class="table-of-contents__link toc-highlight">Timestamps</a></li><li><a href="#uuids" class="table-of-contents__link toc-highlight">UUIDs</a></li><li><a href="#data-types" class="table-of-contents__link toc-highlight">Data types</a></li><li><a href="#bar-aggregations" class="table-of-contents__link toc-highlight">Bar aggregations</a></li><li><a href="#account-types" class="table-of-contents__link toc-highlight">Account types</a></li><li><a href="#order-types" class="table-of-contents__link toc-highlight">Order types</a></li><li><a href="#value-types" class="table-of-contents__link toc-highlight">Value types</a><ul><li><a href="#high-precision-mode-128-bit" class="table-of-contents__link toc-highlight">High-precision mode (128-bit)</a></li><li><a href="#standard-precision-mode-64-bit" class="table-of-contents__link toc-highlight">Standard-precision mode (64-bit)</a></li></ul></li></ul></div></div></div></div></main></div></div></div><footer class="theme-layout-footer footer footer--dark"><div class="container container-fluid"><div class="footer__bottom text--center"><div class="footer__copyright">Copyright © 2025 NautilusTrader Documentation.</div></div></div></footer></div>
+</body>
+</html>
