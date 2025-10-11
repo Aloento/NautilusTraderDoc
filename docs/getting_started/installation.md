@@ -2,12 +2,12 @@
 
 NautilusTrader is officially supported for Python 3.11-3.13 on the following 64-bit platforms:
 
-| Operating System       | Supported Versions | CPU Architecture  |
-|------------------------|--------------------|-------------------|
-| Linux (Ubuntu)         | 22.04 and later    | x86_64            |
-| Linux (Ubuntu)         | 22.04 and later    | ARM64             |
-| macOS                  | 15.0 and later     | ARM64             |
-| Windows Server         | 2022 and later     | x86_64            |
+| Operating System | Supported Versions | CPU Architecture |
+| ---------------- | ------------------ | ---------------- |
+| Linux (Ubuntu)   | 22.04 and later    | x86_64           |
+| Linux (Ubuntu)   | 22.04 and later    | ARM64            |
+| macOS            | 15.0 and later     | ARM64            |
+| Windows Server   | 2022 and later     | x86_64           |
 
 :::note
 NautilusTrader may work on other platforms, but only those listed above are regularly used by developers and tested in CI.
@@ -25,13 +25,13 @@ We recommend using the latest supported version of Python and installing [nautil
 
 **There are two supported ways to install**:
 
-1. Pre-built binary wheel from PyPI *or* the Nautech Systems package index.
+1. Pre-built binary wheel from PyPI _or_ the Nautech Systems package index.
 2. Build from source.
 
 :::tip
 We highly recommend installing using the [uv](https://docs.astral.sh/uv) package manager with a "vanilla" CPython.
 
-Conda and other Python distributions *may* work but aren’t officially supported.
+Conda and other Python distributions _may_ work but aren’t officially supported.
 :::
 
 ## From PyPI
@@ -126,7 +126,7 @@ You can view all available versions of `nautilus_trader` on the [package index](
 To programmatically request and list available versions:
 
 ```bash
-curl -s https://packages.nautechsystems.io/simple/nautilus-trader/index.html | grep -oP '(?<=<a href="))[^"]+(?=")' | awk -F'#' '{print $1}' | sort
+curl -s https://packages.nautechsystems.io/simple/nautilus-trader/index.html | grep -oP '(?&lt;=<a href="))[^"]+(?=")' | awk -F'#' '{print $1}' | sort
 ```
 
 ### Branch updates
@@ -154,7 +154,7 @@ curl https://sh.rustup.rs -sSf | sh
   - Download and install [`rustup-init.exe`](https://win.rustup.rs/x86_64)
   - Install "Desktop development with C++" using [Build Tools for Visual Studio 2022](https://visualstudio.microsoft.com/visual-cpp-build-tools/)
 - Verify (any system):
-    from a terminal session run: `rustc --version`
+  from a terminal session run: `rustc --version`
 
 2. Enable `cargo` in the current shell:
    - Linux and macOS:
@@ -164,9 +164,11 @@ source $HOME/.cargo/env
 ```
 
 - Windows:
+
   - Start a new PowerShell
 
-     1. Install [clang](https://clang.llvm.org/) (a C language frontend for LLVM):
+    1.  Install [clang](https://clang.llvm.org/) (a C language frontend for LLVM):
+
 - Linux:
 
 ```bash

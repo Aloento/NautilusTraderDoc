@@ -6,7 +6,7 @@ NautilusTrader is an open-source, high-performance, production-grade algorithmic
 providing quantitative traders with the ability to backtest portfolios of automated trading strategies
 on historical data with an event-driven engine, and also deploy those same strategies live, with no code changes.
 
-The platform is *AI-first*, designed to develop and deploy algorithmic trading strategies within a highly performant
+The platform is _AI-first_, designed to develop and deploy algorithmic trading strategies within a highly performant
 and robust Python-native environment. This helps to address the parity challenge of keeping the Python research/backtest
 environment consistent with the production live trading environment.
 
@@ -32,10 +32,11 @@ including FX, Equities, Futures, Options, Crypto, DeFi, and Betting — enabling
 - **AI Training**: Backtest engine fast enough to be used to train AI trading agents (RL/ES).
 
 ![Nautilus](https://github.com/nautechsystems/nautilus_trader/blob/develop/assets/nautilus-art.png?raw=true "nautilus")
-> *nautilus - from ancient Greek 'sailor' and naus 'ship'.*
+
+> _nautilus - from ancient Greek 'sailor' and naus 'ship'._
 >
-> *The nautilus shell consists of modular chambers with a growth factor which approximates a logarithmic spiral.
-> The idea is that this can be translated to the aesthetics of design and architecture.*
+> _The nautilus shell consists of modular chambers with a growth factor which approximates a logarithmic spiral.
+> The idea is that this can be translated to the aesthetics of design and architecture._
 
 ## Why NautilusTrader?
 
@@ -71,7 +72,7 @@ be built using the sandbox adapter.
 
 - All examples will utilize these default system implementations.
 - We consider trading strategies to be subcomponents of end-to-end trading systems, these systems
-include the application and infrastructure layers.
+  include the application and infrastructure layers.
 
 :::
 
@@ -203,7 +204,7 @@ Currently implemented aggregations:
 
 Aggregations listed above that are not repeated in the implemented list are planned but not yet available.
 
-The price types and bar aggregations can be combined with step sizes >= 1 in any way through a `BarSpecification`.
+The price types and bar aggregations can be combined with step sizes &gt;= 1 in any way through a `BarSpecification`.
 This enables maximum flexibility and now allows alternative bars to be aggregated for live trading.
 
 ## Account types
@@ -243,18 +244,18 @@ The following value types are backed by either 128-bit or 64-bit raw integer val
 
 When the `high-precision` feature flag is **enabled** (default), values use the specification:
 
-| Type         | Raw backing | Max precision | Min value           | Max value          |
-|:-------------|:------------|:--------------|:--------------------|:-------------------|
-| `Price`      | `i128`      | 16            | -17,014,118,346,046 | 17,014,118,346,046 |
-| `Money`      | `i128`      | 16            | -17,014,118,346,046 | 17,014,118,346,046 |
-| `Quantity`   | `u128`      | 16            | 0                   | 34,028,236,692,093 |
+| Type       | Raw backing | Max precision | Min value           | Max value          |
+| :--------- | :---------- | :------------ | :------------------ | :----------------- |
+| `Price`    | `i128`      | 16            | -17,014,118,346,046 | 17,014,118,346,046 |
+| `Money`    | `i128`      | 16            | -17,014,118,346,046 | 17,014,118,346,046 |
+| `Quantity` | `u128`      | 16            | 0                   | 34,028,236,692,093 |
 
 ### Standard-precision mode (64-bit)
 
 When the `high-precision` feature flag is **disabled**, values use the specification:
 
-| Type         | Raw backing | Max precision | Min value           | Max value          |
-|:-------------|:------------|:--------------|:--------------------|:-------------------|
-| `Price`      | `i64`       | 9             | -9,223,372,036      | 9,223,372,036      |
-| `Money`      | `i64`       | 9             | -9,223,372,036      | 9,223,372,036      |
-| `Quantity`   | `u64`       | 9             | 0                   | 18,446,744,073     |
+| Type       | Raw backing | Max precision | Min value      | Max value      |
+| :--------- | :---------- | :------------ | :------------- | :------------- |
+| `Price`    | `i64`       | 9             | -9,223,372,036 | 9,223,372,036  |
+| `Money`    | `i64`       | 9             | -9,223,372,036 | 9,223,372,036  |
+| `Quantity` | `u64`       | 9             | 0              | 18,446,744,073 |

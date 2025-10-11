@@ -503,7 +503,7 @@ specific venue they are being routed to.
 - **OUO (One-Updates-Other)** – two (or more) linked live orders where executing one reduces the open quantity of the remainder.
 
 :::info
-These contingency types relate to ContingencyType FIX tag <1385> [https://www.onixs.biz/fix-dictionary/5.0.sp2/tagnum_1385.html](https://www.onixs.biz/fix-dictionary/5.0.sp2/tagnum_1385.html).
+These contingency types relate to ContingencyType FIX tag [1385](https://www.onixs.biz/fix-dictionary/5.0.sp2/tagnum_1385.html).
 :::
 
 #### One-Triggers-Other (OTO)

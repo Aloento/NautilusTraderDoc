@@ -67,7 +67,7 @@ installation. This is the fastest way to get up and running to try out NautilusT
 - Run the docker container, exposing the jupyter port:
   - `docker run -p 8888:8888 ghcr.io/nautechsystems/jupyterlab:nightly`
 - Open your web browser to `localhost:{port}`:
-  - <http://localhost:8888>
+  - `http://localhost:8888`
 
 :::info
 NautilusTrader currently exceeds the rate limit for Jupyter notebook logging (stdout output),

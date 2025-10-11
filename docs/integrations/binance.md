@@ -303,15 +303,15 @@ def on_data(self, data: Data):
 
 Binance uses an interval-based rate limiting system where request weight is tracked per fixed time window (e.g., every minute resets at :00 seconds). The adapter uses token bucket rate limiters to approximate this behavior, helping to reduce the risk of quota violations while maintaining high throughput for normal trading operations.
 
-| Key / Endpoint       | Limit (weight/min)            | Notes                                             |
-| -------------------- | ----------------------------- | ------------------------------------------------- |
-| `binance:global`     | Spot: 6,000<br>Futures: 2,400 | Default bucket applied to every request.          |
-| `/api/v3/order`      | 3,000                         | Spot order placement.                             |
-| `/api/v3/allOrders`  | 150                           | Spot all-orders endpoint (20× weight multiplier). |
-| `/api/v3/klines`     | 600                           | Spot historical klines.                           |
-| `/fapi/v1/order`     | 1,200                         | Futures order placement.                          |
-| `/fapi/v1/allOrders` | 60                            | Futures historical orders (20× multiplier).       |
-| `/fapi/v1/klines`    | 600                           | Futures historical klines.                        |
+| Key / Endpoint       | Limit (weight/min)              | Notes                                             |
+| -------------------- | ------------------------------- | ------------------------------------------------- |
+| `binance:global`     | Spot: 6,000<br />Futures: 2,400 | Default bucket applied to every request.          |
+| `/api/v3/order`      | 3,000                           | Spot order placement.                             |
+| `/api/v3/allOrders`  | 150                             | Spot all-orders endpoint (20× weight multiplier). |
+| `/api/v3/klines`     | 600                             | Spot historical klines.                           |
+| `/fapi/v1/order`     | 1,200                           | Futures order placement.                          |
+| `/fapi/v1/allOrders` | 60                              | Futures historical orders (20× multiplier).       |
+| `/fapi/v1/klines`    | 600                             | Futures historical klines.                        |
 
 Binance assigns request weight dynamically (e.g. `/klines` scales with `limit`). The quotas above mirror the static limits but the client still draws a single token per call, so long history pulls may need manual pacing to respect the live `X-MBX-USED-WEIGHT-*` headers.
 

@@ -21,7 +21,7 @@ The statistics are generally categorized as follows.
 - Orders based statistics
 
 It's also possible to call a traders `PortfolioAnalyzer` and calculate statistics at any arbitrary
-time, including *during* a backtest, or live trading session.
+time, including _during_ a backtest, or live trading session.
 
 ## Custom statistics
 
@@ -48,7 +48,7 @@ class WinRate(PortfolioStatistic):
 
         # Calculate statistic
         winners = [x for x in realized_pnls if x > 0.0]
-        losers = [x for x in realized_pnls if x <= 0.0]
+        losers = [x for x in realized_pnls if x &lt;= 0.0]
 
         return len(winners) / float(max(1, (len(winners) + len(losers))))
 ```
@@ -67,9 +67,9 @@ See the `PortfolioAnalyzer` [API Reference](../api_reference/analysis.md#class-p
 ```
 
 :::tip
-Ensure your statistic is robust to degenerate inputs such as ``None``, empty series, or insufficient data.
+Ensure your statistic is robust to degenerate inputs such as `None`, empty series, or insufficient data.
 
-The expectation is that you would then return ``None``, NaN or a reasonable default.
+The expectation is that you would then return `None`, NaN or a reasonable default.
 :::
 
 ## Backtest analysis

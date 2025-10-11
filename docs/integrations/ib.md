@@ -1361,8 +1361,7 @@ order_tags = IBOrderTags(
 
 - `conId`: Contract ID of the instrument to monitor
 - `exchange`: Exchange to monitor (e.g., "SMART", "NASDAQ")
-- `isMore`: True for >=, False for <=
-- `price`: Price threshold
+- `isMore`: True for &gt;=, False for &lt;=- `price`: Price threshold
 - `triggerMethod`: 0=Default, 1=DoubleBidAsk, 2=Last, 3=DoubleLast, 4=BidAsk, 7=LastBidAsk, 8=MidPoint
 
 **Time Condition:**
@@ -1374,8 +1373,7 @@ order_tags = IBOrderTags(
 
 - `conId`: Contract ID of the instrument to monitor
 - `exchange`: Exchange to monitor
-- `isMore`: True for >=, False for <=
-- `volume`: Volume threshold
+- `isMore`: True for &gt;=, False for &lt;=- `volume`: Volume threshold
 
 **Execution Condition:**
 
@@ -1386,14 +1384,12 @@ order_tags = IBOrderTags(
 **Margin Condition:**
 
 - `percent`: Margin cushion percentage threshold
-- `isMore`: True for >=, False for <=
-
-**Percent Change Condition:**
+- `isMore`: True for &gt;=, False for &lt;=
+  **Percent Change Condition:**
 
 - `conId`: Contract ID of the instrument to monitor
 - `exchange`: Exchange to monitor
-- `isMore`: True for >=, False for <=
-- `changePercent`: Percentage change threshold
+- `isMore`: True for &gt;=, False for &lt;=- `changePercent`: Percentage change threshold
 
 #### Complete example: all condition types
 
