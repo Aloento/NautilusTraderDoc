@@ -1,31 +1,28 @@
-# Backtest (low-level API)
+# 回测（低级 API）
 
-Tutorial for [NautilusTrader](https://nautilustrader.io/docs/) a high-performance algorithmic trading platform and event driven backtester.
+本教程面向 NautilusTrader（高性能算法交易平台与事件驱动回测器），演示如何使用低级 API —— `BacktestEngine` —— 在模拟的 Binance 现货（Spot）交易所上，使用历史成交（trade tick）数据回测一个带有 TWAP 执行算法的简单 EMA（指数移动平均）交叉策略。
 
-[View source on GitHub](https://github.com/nautechsystems/nautilus_trader/blob/develop/docs/getting_started/backtest_low_level.ipynb).
+[在 GitHub 查看源码](https://github.com/nautechsystems/nautilus_trader/blob/develop/docs/getting_started/backtest_low_level.ipynb)。
 
-## Overview
+## 概述
 
-This tutorial walks through how to use a `BacktestEngine` to backtest a simple EMA cross strategy
-with a TWAP execution algorithm on a simulated Binance Spot exchange using historical trade tick data.
+本教程将覆盖以下内容：
 
-The following points will be covered:
+- 使用数据加载器（data loaders）和 wranglers 读取原始数据（外部于 Nautilus）。
+- 将这些数据添加到 `BacktestEngine`。
+- 向 `BacktestEngine` 添加交易场所（venues）、策略（strategies）和执行算法（execution algorithms）。
+- 使用 `BacktestEngine` 运行回测。
+- 运行后分析（post-run analysis）以及重复运行（repeated runs）。
 
-- Load raw data (external to Nautilus) using data loaders and wranglers.
-- Add this data to a `BacktestEngine`.
-- Add venues, strategies, and execution algorithms to a `BacktestEngine`.
-- Run backtests with a `BacktestEngine`.
-- Perform post-run analysis and repeated runs.
+## 前置条件
 
-## Prerequisites
+- 已安装 Python 3.11+。
+- 已安装 JupyterLab 或同类工具（可用 `pip install -U jupyterlab` 安装）。
+- 已安装最新版本的 NautilusTrader（可用 `pip install -U nautilus_trader` 安装）。
 
-- Python 3.11+ installed.
-- [JupyterLab](https://jupyter.org/) or similar installed (`pip install -U jupyterlab`).
-- [NautilusTrader](https://pypi.org/project/nautilus_trader/) latest release installed (`pip install -U nautilus_trader`).
+## 导入（Imports）
 
-## Imports
-
-We'll start with all of our imports for the remainder of this tutorial.
+下面列出本教程余下部分所需的所有 import：
 
 ```python
 from decimal import Decimal
@@ -48,14 +45,14 @@ from nautilus_trader.test_kit.providers import TestDataProvider
 from nautilus_trader.test_kit.providers import TestInstrumentProvider
 ```
 
-## Loading data
+## 加载数据
 
-For this tutorial we use stub test data from the NautilusTrader repository (the automated test suite also uses this data to verify platform correctness).
+本教程使用 NautilusTrader 仓库中的示例（stub）测试数据（自动化测试套件也使用这些数据来验证平台功能）。
 
-First, instantiate a data provider to read raw CSV trade tick data into memory as a `pd.DataFrame`.
-Next, initialize the instrument that matches the data (in this case the `ETHUSDT` spot cryptocurrency pair for Binance) and reuse it for the remainder of the backtest run.
+首先，实例化一个数据提供器（data provider），把原始的 CSV 成交 tick 数据读取到内存中的 `pd.DataFrame`。
+然后初始化与数据匹配的 `Instrument`（本例中为 Binance 的现货交易对 `ETHUSDT`），并在整个回测中重复使用该 instrument 对象。
 
-Then wrangle the data into a list of Nautilus `TradeTick` objects so you can add them to the `BacktestEngine`.
+接着使用 wrangler 将数据整理为一系列 Nautilus 的 `TradeTick` 对象，这样就可以把它们添加到 `BacktestEngine` 中。
 
 ```python
 # Load stub test data
@@ -70,15 +67,15 @@ wrangler = TradeTickDataWrangler(instrument=ETHUSDT_BINANCE)
 ticks = wrangler.process(trades_df)
 ```
 
-See the [Loading External Data](https://nautilustrader.io/docs/latest/concepts/data#loading-data) guide for a more detailed explanation of the typical data processing components and pipeline.
+更多关于数据加载和典型处理流程的说明，请参见 [Loading External Data](../concepts/data#loading-data) 指南。
 
-## Initialize a backtest engine
+## 初始化 Backtest Engine
 
-Create a backtest engine. You can call `BacktestEngine()` to instantiate an engine with the default configuration.
+创建一个回测引擎（BacktestEngine）。直接调用 `BacktestEngine()` 会用默认配置实例化一个引擎。
 
-We also initialize a `BacktestEngineConfig` (with only a custom `trader_id` specified) to illustrate the general configuration pattern.
+这里我们也演示如何初始化 `BacktestEngineConfig`（示例中仅自定义了 `trader_id`），以说明常见的配置模式。
 
-See the [Configuration](https://nautilustrader.io/docs/api_reference/config) API reference for details of all configuration options available.
+有关所有可用配置选项的详细信息，请参见 [Configuration](https://nautilustrader.io/docs/api_reference/config) API 参考。
 
 ```python
 # Configure backtest engine
@@ -88,11 +85,11 @@ config = BacktestEngineConfig(trader_id=TraderId("BACKTESTER-001"))
 engine = BacktestEngine(config=config)
 ```
 
-## Add venues
+## 添加交易场所（venues）
 
-Create a venue to trade on that matches the market data you add to the engine.
+为要与之匹配的市场数据创建一个交易场所。
 
-In this case we set up a simulated Binance Spot exchange.
+本例中我们建立了一个模拟的 Binance 现货交易场所。
 
 ```python
 # Add a trading venue (multiple venues possible)
@@ -106,11 +103,11 @@ engine.add_venue(
 )
 ```
 
-## Add data
+## 添加数据
 
-Add data to the backtest engine. Start by adding the `Instrument` object we initialized earlier to match the data.
+把数据添加到回测引擎。首先添加之前初始化的 `Instrument` 对象，以便与数据对应。
 
-Then add the trades we wrangled earlier.
+然后添加我们用 wrangler 处理得到的 trades（ticks）。
 
 ```python
 # Add instrument(s)
@@ -121,19 +118,19 @@ engine.add_data(ticks)
 ```
 
 :::note
-Machine resources and your imagination limit the amount and variety of data types you can use (custom types are possible).
-You can also backtest across multiple venues, again constrained only by machine resources.
+可用的数据类型和数量仅受机器资源与你的想象力限制（也可以使用自定义数据类型）。
+你也可以在多交易场所上进行回测，同样受限于机器资源。
 :::
 
-## Add strategies
+## 添加策略
 
-Add the trading strategies you plan to run as part of the system.
+把计划运行的交易策略添加到系统中。
 
 :::note
-You can backtest multiple strategies and instruments; machine resources remain the only limit.
+可以同时回测多种策略和多种品种；唯一的限制是机器资源。
 :::
 
-First, initialize a strategy configuration, then use it to initialize a strategy that you can add to the engine:
+先初始化策略配置（strategy config），然后用配置创建策略实例并添加到引擎：
 
 ```python
 # Configure your strategy
@@ -152,15 +149,15 @@ strategy = EMACrossTWAP(config=strategy_config)
 engine.add_strategy(strategy=strategy)
 ```
 
-You may notice that this strategy config includes parameters related to a TWAP execution algorithm.
-We can flexibly use different parameters per order submit, but we still need to initialize and add the actual `ExecAlgorithm` component that executes the algorithm.
+你会注意到该策略配置包含了与 TWAP 执行算法相关的参数。
+虽然可以在每次下单时灵活使用不同参数，但仍然需要初始化并添加实际负责执行算法的 `ExecAlgorithm` 组件。
 
-## Add execution algorithms
+## 添加执行算法（execution algorithms）
 
-NautilusTrader enables you to build complex systems of custom components. Here we highlight one built-in component: a TWAP execution algorithm. Configure it and add it to the engine using the same general pattern as for strategies.
+NautilusTrader 允许你构建由自定义组件组成的复杂系统；这里示例一个内置组件：TWAP 执行算法。使用与添加策略类似的模式配置并加入引擎即可。
 
 :::note
-You can backtest multiple execution algorithms; machine resources remain the only limit.
+可以回测多种执行算法；限制仍然是机器资源。
 :::
 
 ```python
@@ -169,23 +166,22 @@ exec_algorithm = TWAPExecAlgorithm()  # Using defaults
 engine.add_exec_algorithm(exec_algorithm)
 ```
 
-## Run backtest
+## 运行回测
 
-After configuring the data, venues, and trading system, run a backtest.
-Call the `.run(...)` method to process all available data by default.
+在配置好数据、交易场所和交易系统后，运行回测。默认情况下调用 `.run(...)` 方法会处理所有可用数据。
 
-See the [BacktestEngineConfig](https://nautilustrader.io/docs/latest/api_reference/config) API reference for a complete description of all available methods and options.
+有关所有方法和选项的完整描述，请参见 [BacktestEngineConfig](https://nautilustrader.io/docs/latest/api_reference/config) API 参考。
 
 ```python
 # Run the engine (from start to end of data)
 engine.run()
 ```
 
-## Post-run and analysis
+## 运行后分析（Post-run）
 
-After the backtest completes, the engine automatically logs a post-run tearsheet with default statistics (or custom statistics that you load; see the advanced [Portfolio statistics](../concepts/portfolio.md#portfolio-statistics) guide).
+回测完成后，引擎会自动记录一份运行后报告（tearsheet），包含默认统计数据（或你加载的自定义统计；详见高级的 [Portfolio statistics](../concepts/portfolio.md#portfolio-statistics) 指南）。
 
-The engine also keeps many data and execution objects in memory, which you can use to generate additional reports for performance analysis.
+引擎还会在内存中保留许多数据与执行对象，便于你生成额外的性能分析报告。
 
 ```python
 engine.trader.generate_account_report(BINANCE)
@@ -199,19 +195,19 @@ engine.trader.generate_order_fills_report()
 engine.trader.generate_positions_report()
 ```
 
-## Repeated runs
+## 重复运行（Repeated runs）
 
-You can reset the engine for repeated runs with different strategy and component configurations.
-Call the `.reset(...)` method to retain all loaded data and components while resetting other stateful values, as if you had a fresh `BacktestEngine`. This avoids loading the same data again.
+你可以通过重置引擎来进行不同策略或组件配置的重复回测。
+调用 `.reset(...)` 方法会保留已加载的数据和组件，同时重置其它有状态的值，就像是一个新的 `BacktestEngine`，这样可以避免重复加载相同的数据。
 
 ```python
 # For repeated backtest runs make sure to reset the engine
 engine.reset()
 ```
 
-Remove and add individual components (actors, strategies, execution algorithms) as required.
+按需移除或添加各类组件（actors、strategies、execution algorithms）。
 
-See the [Trader](../api_reference/trading.md) API reference for a description of all methods available to achieve this.
+有关可用方法的详细说明，请参见 [Trader](../api_reference/trading.md) API 参考。
 
 ```python
 # Once done, good practice to dispose of the object if the script continues

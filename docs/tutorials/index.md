@@ -11,7 +11,7 @@ Each tutorial is generated from a Jupyter notebook located in the docs [tutorial
 :::tip
 
 - Make sure you are using the tutorial docs that match your NautilusTrader version:
-- **Latest**: These docs are built from the HEAD of the `master` branch and work with the latest stable release. See `https://nautilustrader.io/docs/latest/tutorials/`.
+- **Latest**: These docs are built from the HEAD of the `master` branch and work with the latest stable release. See [here](../tutorials/).
 - **Nightly**: These docs are built from the HEAD of the `nightly` branch and work with bleeding-edge and experimental features. See `https://nautilustrader.io/docs/nightly/tutorials/`.
 
 :::

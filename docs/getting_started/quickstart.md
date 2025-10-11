@@ -20,7 +20,7 @@ To support this, we provide pre-loaded test data in the standard Nautilus persis
 To save time, we have prepared sample data in the Nautilus format for use with this example.
 Run the next cell to download and set up the data (this should take ~ 1-2 mins).
 
-For further details on how to load data into Nautilus, see [Loading External Data](https://nautilustrader.io/docs/latest/concepts/data#loading-data) guide.
+For further details on how to load data into Nautilus, see [Loading External Data](../concepts/data#loading-data) guide.
 
 ```python
 import os
