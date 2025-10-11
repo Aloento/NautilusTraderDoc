@@ -77,11 +77,11 @@ To interact with Polymarket via NautilusTrader, you'll need a **Polygon**-compat
 
 Polymarket supports multiple signature types for order signing and verification:
 
-| Signature Type | Wallet Type                    | Description | Use Case |
-|----------------|--------------------------------|-------------|----------|
-| `0`            | EOA (Externally Owned Account) | Standard EIP712 signatures from wallets with direct private key control. | **Default.** Direct wallet connections (MetaMask, hardware wallets, etc.). |
-| `1`            | Email/Magic Wallet Proxy       | Smart contract wallet for email-based accounts (Magic Link). Only the email-associated address can execute functions. | Polymarket Proxy associated with Email/Magic accounts. Requires `funder` address. |
-| `2`            | Browser Wallet Proxy           | Modified Gnosis Safe (1-of-1 multisig) for browser wallets. | Polymarket Proxy associated with browser wallets. Enables UI verification. Requires `funder` address. |
+| Signature Type | Wallet Type                    | Description                                                                                                           | Use Case                                                                                              |
+| -------------- | ------------------------------ | --------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------- |
+| `0`            | EOA (Externally Owned Account) | Standard EIP712 signatures from wallets with direct private key control.                                              | **Default.** Direct wallet connections (MetaMask, hardware wallets, etc.).                            |
+| `1`            | Email/Magic Wallet Proxy       | Smart contract wallet for email-based accounts (Magic Link). Only the email-associated address can execute functions. | Polymarket Proxy associated with Email/Magic accounts. Requires `funder` address.                     |
+| `2`            | Browser Wallet Proxy           | Modified Gnosis Safe (1-of-1 multisig) for browser wallets.                                                           | Polymarket Proxy associated with browser wallets. Enables UI verification. Requires `funder` address. |
 
 :::note
 See also: [Proxy wallet](https://docs.polymarket.com/developers/proxy-wallet) in the Polymarket documentation for more details about signature types and proxy wallet infrastructure.
@@ -126,7 +126,7 @@ Once you have these in place, the script will:
 
 :::note
 You can also adjust the approval amount in the script instead of using `MAX_INT`,
-with the amount specified in *fractional units* of **USDC.e**, though this has not been tested.
+with the amount specified in _fractional units_ of **USDC.e**, though this has not been tested.
 :::
 
 Ensure that your private key and public key are correctly stored in the environment variables before running the script.
@@ -147,7 +147,7 @@ python nautilus_trader/adapters/polymarket/scripts/set_allowances.py
 
 The script performs the following actions:
 
-- Connects to the Polygon network via an RPC URL (<https://polygon-rpc.com/>).
+- Connects to the Polygon network via an RPC URL ([https://polygon-rpc.com/](https://polygon-rpc.com/)).
 - Signs and sends a transaction to approve the maximum USDC allowance for Polymarket contracts.
 - Sets approval for the CTF contract to manage Conditional Tokens on your behalf.
 - Repeats the approval process for specific addresses like the Polymarket CLOB Exchange and Neg Risk Adapter.
@@ -159,6 +159,7 @@ This allows Polymarket to interact with your funds when executing trades and ens
 To trade with Polymarket, you'll need to generate API credentials. Follow these steps:
 
 1. Ensure the following environment variables are set:
+
    - `POLYMARKET_PK`: Your private key for signing transactions.
    - `POLYMARKET_FUNDER`: The wallet address (public key) on the **Polygon** network used for funding trades on Polymarket.
 
@@ -202,19 +203,19 @@ Polymarket operates as a prediction market with a more limited set of order type
 
 ### Order types
 
-| Order Type             | Binary Options | Notes                               |
-|------------------------|----------------|-------------------------------------|
+| Order Type             | Binary Options | Notes                                                                     |
+| ---------------------- | -------------- | ------------------------------------------------------------------------- |
 | `MARKET`               | ✓              | **BUY orders require quote quantity**, SELL orders require base quantity. |
-| `LIMIT`                | ✓              |                                     |
-| `STOP_MARKET`          | -              | *Not supported by Polymarket*.      |
-| `STOP_LIMIT`           | -              | *Not supported by Polymarket*.      |
-| `MARKET_IF_TOUCHED`    | -              | *Not supported by Polymarket*.      |
-| `LIMIT_IF_TOUCHED`     | -              | *Not supported by Polymarket*.      |
-| `TRAILING_STOP_MARKET` | -              | *Not supported by Polymarket*.      |
+| `LIMIT`                | ✓              |                                                                           |
+| `STOP_MARKET`          | -              | _Not supported by Polymarket_.                                            |
+| `STOP_LIMIT`           | -              | _Not supported by Polymarket_.                                            |
+| `MARKET_IF_TOUCHED`    | -              | _Not supported by Polymarket_.                                            |
+| `LIMIT_IF_TOUCHED`     | -              | _Not supported by Polymarket_.                                            |
+| `TRAILING_STOP_MARKET` | -              | _Not supported by Polymarket_.                                            |
 
 ### Quantity semantics
 
-Polymarket interprets order quantities differently depending on the order type *and* side:
+Polymarket interprets order quantities differently depending on the order type _and_ side:
 
 - **Limit** orders interpret `quantity` as the number of conditional tokens (base units).
 - **Market SELL** orders also use base-unit quantities.
@@ -251,19 +252,19 @@ strategy.submit_order(order)
 
 ### Execution instructions
 
-| Instruction   | Binary Options | Notes                                    |
-|---------------|----------------|------------------------------------------|
-| `post_only`   | -              | *Not supported by Polymarket*.           |
-| `reduce_only` | -              | *Not supported by Polymarket*.           |
+| Instruction   | Binary Options | Notes                          |
+| ------------- | -------------- | ------------------------------ |
+| `post_only`   | -              | _Not supported by Polymarket_. |
+| `reduce_only` | -              | _Not supported by Polymarket_. |
 
 ### Time-in-force options
 
-| Time in force | Binary Options | Notes                                    |
-|---------------|----------------|------------------------------------------|
-| `GTC`         | ✓              | Good Till Canceled.                      |
-| `GTD`         | ✓              | Good Till Date.                          |
-| `FOK`         | ✓              | Fill or Kill.                            |
-| `IOC`         | ✓              | Immediate or Cancel (maps to FAK).       |
+| Time in force | Binary Options | Notes                              |
+| ------------- | -------------- | ---------------------------------- |
+| `GTC`         | ✓              | Good Till Canceled.                |
+| `GTD`         | ✓              | Good Till Date.                    |
+| `FOK`         | ✓              | Fill or Kill.                      |
+| `IOC`         | ✓              | Immediate or Cancel (maps to FAK). |
 
 :::note
 FAK (Fill and Kill) is Polymarket's terminology for Immediate or Cancel (IOC) semantics.
@@ -271,46 +272,46 @@ FAK (Fill and Kill) is Polymarket's terminology for Immediate or Cancel (IOC) se
 
 ### Advanced order features
 
-| Feature            | Binary Options | Notes                               |
-|--------------------|----------------|-------------------------------------|
-| Order Modification | -              | Cancellation functionality only.    |
-| Bracket/OCO Orders | -              | *Not supported by Polymarket*.      |
-| Iceberg Orders     | -              | *Not supported by Polymarket*.      |
+| Feature            | Binary Options | Notes                            |
+| ------------------ | -------------- | -------------------------------- |
+| Order Modification | -              | Cancellation functionality only. |
+| Bracket/OCO Orders | -              | _Not supported by Polymarket_.   |
+| Iceberg Orders     | -              | _Not supported by Polymarket_.   |
 
 ### Batch operations
 
-| Operation          | Binary Options | Notes                               |
-|--------------------|----------------|-------------------------------------|
-| Batch Submit       | -              | *Not supported by Polymarket*.      |
-| Batch Modify       | -              | *Not supported by Polymarket*.      |
-| Batch Cancel       | -              | *Not supported by Polymarket*.      |
+| Operation    | Binary Options | Notes                          |
+| ------------ | -------------- | ------------------------------ |
+| Batch Submit | -              | _Not supported by Polymarket_. |
+| Batch Modify | -              | _Not supported by Polymarket_. |
+| Batch Cancel | -              | _Not supported by Polymarket_. |
 
 ### Position management
 
-| Feature              | Binary Options | Notes                             |
-|--------------------|----------------|-------------------------------------|
-| Query positions     | ✓              | Contract balance-based positions.  |
-| Position mode       | -              | Binary outcome positions only.     |
-| Leverage control    | -              | No leverage available.             |
-| Margin mode         | -              | No margin trading.                 |
+| Feature          | Binary Options | Notes                             |
+| ---------------- | -------------- | --------------------------------- |
+| Query positions  | ✓              | Contract balance-based positions. |
+| Position mode    | -              | Binary outcome positions only.    |
+| Leverage control | -              | No leverage available.            |
+| Margin mode      | -              | No margin trading.                |
 
 ### Order querying
 
-| Feature              | Binary Options | Notes                             |
-|----------------------|----------------|-----------------------------------|
-| Query open orders    | ✓              | Active orders only.               |
-| Query order history  | ✓              | Limited historical data.          |
-| Order status updates | ✓              | Real-time order state changes.    |
-| Trade history        | ✓              | Execution and fill reports.       |
+| Feature              | Binary Options | Notes                          |
+| -------------------- | -------------- | ------------------------------ |
+| Query open orders    | ✓              | Active orders only.            |
+| Query order history  | ✓              | Limited historical data.       |
+| Order status updates | ✓              | Real-time order state changes. |
+| Trade history        | ✓              | Execution and fill reports.    |
 
 ### Contingent orders
 
-| Feature            | Binary Options | Notes                               |
-|--------------------|----------------|-------------------------------------|
-| Order lists        | -              | *Not supported by Polymarket*.      |
-| OCO orders         | -              | *Not supported by Polymarket*.      |
-| Bracket orders     | -              | *Not supported by Polymarket*.      |
-| Conditional orders | -              | *Not supported by Polymarket*.      |
+| Feature            | Binary Options | Notes                          |
+| ------------------ | -------------- | ------------------------------ |
+| Order lists        | -              | _Not supported by Polymarket_. |
+| OCO orders         | -              | _Not supported by Polymarket_. |
+| Bracket orders     | -              | _Not supported by Polymarket_. |
+| Conditional orders | -              | _Not supported by Polymarket_. |
 
 ### Precision limits
 
@@ -319,6 +320,7 @@ Polymarket enforces different precision constraints based on tick size and order
 **Binary Option instruments** typically support up to 6 decimal places for amounts (with 0.0001 tick size), but **market orders have stricter precision requirements**:
 
 - **FOK (Fill-or-Kill) market orders:**
+
   - Sell orders: maker amount limited to **2 decimal places**.
   - Taker amount: limited to **4 decimal places**.
   - The product `size × price` must not exceed **2 decimal places**.
@@ -328,7 +330,7 @@ Polymarket enforces different precision constraints based on tick size and order
 ### Tick size precision hierarchy
 
 | Tick Size | Price Decimals | Size Decimals | Amount Decimals |
-|-----------|----------------|---------------|-----------------|
+| --------- | -------------- | ------------- | --------------- |
 | 0.1       | 1              | 2             | 3               |
 | 0.01      | 2              | 2             | 4               |
 | 0.001     | 3              | 2             | 5               |
@@ -362,7 +364,7 @@ The Polymarket API returns either all **active** (open) orders or specific order
 Polymarket order ID (`venue_order_id`). The execution reconciliation procedure for Polymarket is as follows:
 
 - Generate order reports for all instruments with active (open) orders, as reported by Polymarket.
-- Generate position reports from contract balances reported by Polymarket, *for instruments available in the cache*.
+- Generate position reports from contract balances reported by Polymarket, _for instruments available in the cache_.
 - Compare these reports with Nautilus execution state.
 - Generate missing orders to bring Nautilus execution state in line with positions reported by Polymarket.
 
@@ -405,41 +407,41 @@ The following limitations and considerations are currently known:
 
 ### Data client configuration options
 
-| Option                          | Default           | Description |
-|---------------------------------|-------------------|-------------|
-| `venue`                         | `POLYMARKET`      | Venue identifier registered for the data client. |
-| `private_key`                   | `None`            | Wallet private key; sourced from `POLYMARKET_PK` when omitted. |
-| `signature_type`                | `0`               | Signature scheme (0 = EOA, 1 = email proxy, 2 = browser wallet proxy). |
-| `funder`                        | `None`            | USDC.e funding wallet; sourced from `POLYMARKET_FUNDER` when omitted. |
-| `api_key`                       | `None`            | API key; sourced from `POLYMARKET_API_KEY` when omitted. |
-| `api_secret`                    | `None`            | API secret; sourced from `POLYMARKET_API_SECRET` when omitted. |
-| `passphrase`                    | `None`            | API passphrase; sourced from `POLYMARKET_PASSPHRASE` when omitted. |
-| `base_url_http`                 | `None`            | Override for the REST base URL. |
-| `base_url_ws`                   | `None`            | Override for the WebSocket base URL. |
-| `ws_connection_initial_delay_secs` | `5`           | Delay (seconds) before the first WebSocket connection to buffer subscriptions. |
-| `ws_connection_delay_secs`      | `0.1`             | Delay (seconds) between subsequent WebSocket connection attempts. |
-| `update_instruments_interval_mins` | `60`          | Interval (minutes) between instrument catalogue refreshes. |
-| `compute_effective_deltas`      | `False`           | Compute effective order book deltas for bandwidth savings. |
-| `drop_quotes_missing_side`      | `True`            | Drop quotes with missing bid/ask prices instead of substituting boundary values. |
+| Option                             | Default      | Description                                                                      |
+| ---------------------------------- | ------------ | -------------------------------------------------------------------------------- |
+| `venue`                            | `POLYMARKET` | Venue identifier registered for the data client.                                 |
+| `private_key`                      | `None`       | Wallet private key; sourced from `POLYMARKET_PK` when omitted.                   |
+| `signature_type`                   | `0`          | Signature scheme (0 = EOA, 1 = email proxy, 2 = browser wallet proxy).           |
+| `funder`                           | `None`       | USDC.e funding wallet; sourced from `POLYMARKET_FUNDER` when omitted.            |
+| `api_key`                          | `None`       | API key; sourced from `POLYMARKET_API_KEY` when omitted.                         |
+| `api_secret`                       | `None`       | API secret; sourced from `POLYMARKET_API_SECRET` when omitted.                   |
+| `passphrase`                       | `None`       | API passphrase; sourced from `POLYMARKET_PASSPHRASE` when omitted.               |
+| `base_url_http`                    | `None`       | Override for the REST base URL.                                                  |
+| `base_url_ws`                      | `None`       | Override for the WebSocket base URL.                                             |
+| `ws_connection_initial_delay_secs` | `5`          | Delay (seconds) before the first WebSocket connection to buffer subscriptions.   |
+| `ws_connection_delay_secs`         | `0.1`        | Delay (seconds) between subsequent WebSocket connection attempts.                |
+| `update_instruments_interval_mins` | `60`         | Interval (minutes) between instrument catalogue refreshes.                       |
+| `compute_effective_deltas`         | `False`      | Compute effective order book deltas for bandwidth savings.                       |
+| `drop_quotes_missing_side`         | `True`       | Drop quotes with missing bid/ask prices instead of substituting boundary values. |
 
 ### Execution client configuration options
 
-| Option                           | Default      | Description |
-|----------------------------------|--------------|-------------|
-| `venue`                          | `POLYMARKET` | Venue identifier registered for the execution client. |
-| `private_key`                    | `None`       | Wallet private key; sourced from `POLYMARKET_PK` when omitted. |
-| `signature_type`                 | `0`          | Signature scheme (0 = EOA, 1 = email proxy, 2 = browser wallet proxy). |
-| `funder`                         | `None`       | USDC.e funding wallet; sourced from `POLYMARKET_FUNDER` when omitted. |
-| `api_key`                        | `None`       | API key; sourced from `POLYMARKET_API_KEY` when omitted. |
-| `api_secret`                     | `None`       | API secret; sourced from `POLYMARKET_API_SECRET` when omitted. |
-| `passphrase`                     | `None`       | API passphrase; sourced from `POLYMARKET_PASSPHRASE` when omitted. |
-| `base_url_http`                  | `None`       | Override for the REST base URL. |
-| `base_url_ws`                    | `None`       | Override for the WebSocket base URL. |
-| `max_retries`                    | `None`       | Maximum retry attempts for submit/cancel requests. |
-| `retry_delay_initial_ms`         | `None`       | Initial delay (milliseconds) between retries. |
-| `retry_delay_max_ms`             | `None`       | Maximum delay (milliseconds) between retries. |
-| `generate_order_history_from_trades` | `False` | Generate synthetic order history from trade reports when `True` (experimental). |
-| `log_raw_ws_messages`            | `False`      | Log raw WebSocket payloads at INFO level when `True`. |
+| Option                               | Default      | Description                                                                     |
+| ------------------------------------ | ------------ | ------------------------------------------------------------------------------- |
+| `venue`                              | `POLYMARKET` | Venue identifier registered for the execution client.                           |
+| `private_key`                        | `None`       | Wallet private key; sourced from `POLYMARKET_PK` when omitted.                  |
+| `signature_type`                     | `0`          | Signature scheme (0 = EOA, 1 = email proxy, 2 = browser wallet proxy).          |
+| `funder`                             | `None`       | USDC.e funding wallet; sourced from `POLYMARKET_FUNDER` when omitted.           |
+| `api_key`                            | `None`       | API key; sourced from `POLYMARKET_API_KEY` when omitted.                        |
+| `api_secret`                         | `None`       | API secret; sourced from `POLYMARKET_API_SECRET` when omitted.                  |
+| `passphrase`                         | `None`       | API passphrase; sourced from `POLYMARKET_PASSPHRASE` when omitted.              |
+| `base_url_http`                      | `None`       | Override for the REST base URL.                                                 |
+| `base_url_ws`                        | `None`       | Override for the WebSocket base URL.                                            |
+| `max_retries`                        | `None`       | Maximum retry attempts for submit/cancel requests.                              |
+| `retry_delay_initial_ms`             | `None`       | Initial delay (milliseconds) between retries.                                   |
+| `retry_delay_max_ms`                 | `None`       | Maximum delay (milliseconds) between retries.                                   |
+| `generate_order_history_from_trades` | `False`      | Generate synthetic order history from trade reports when `True` (experimental). |
+| `log_raw_ws_messages`                | `False`      | Log raw WebSocket payloads at INFO level when `True`.                           |
 
 :::info
 For additional features or to contribute to the Polymarket adapter, please see our

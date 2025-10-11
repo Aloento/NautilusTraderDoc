@@ -50,14 +50,14 @@ NautilusTrader integration guide.
 
 ## Product support
 
-| Product Type      | Data Feed | Trading | Notes                                               |
-|-------------------|-----------|---------|-----------------------------------------------------|
-| Spot              | ✓         | ✓       | Limited pairs, unified wallet with derivatives.     |
-| Perpetual Swaps   | ✓         | ✓       | Inverse and linear contracts available.             |
-| Futures           | ✓         | ✓       | Traditional fixed expiration contracts.             |
-| Quanto Futures    | ✓         | ✓       | Settled in different currency than underlying.      |
-| Prediction Markets| ✓         | ✓       | Event-based contracts, 0-100 pricing, USDT settled. |
-| Options           | -         | -       | *Not provided by BitMEX*.                           |
+| Product Type       | Data Feed | Trading | Notes                                               |
+| ------------------ | --------- | ------- | --------------------------------------------------- |
+| Spot               | ✓         | ✓       | Limited pairs, unified wallet with derivatives.     |
+| Perpetual Swaps    | ✓         | ✓       | Inverse and linear contracts available.             |
+| Futures            | ✓         | ✓       | Traditional fixed expiration contracts.             |
+| Quanto Futures     | ✓         | ✓       | Settled in different currency than underlying.      |
+| Prediction Markets | ✓         | ✓       | Event-based contracts, 0-100 pricing, USDT settled. |
+| Options            | -         | -       | _Not provided by BitMEX_.                           |
 
 :::note
 BitMEX has discontinued their options products to focus on their core derivatives and spot offerings.
@@ -146,7 +146,7 @@ BitMEX UI. Use `XBTUSDT` instead of `XBT/USDT`.
 
 ### Quantity scaling
 
-BitMEX reports spot and derivative quantities in *contract* units. The actual asset size per
+BitMEX reports spot and derivative quantities in _contract_ units. The actual asset size per
 contract is exchange-specific and published on the instrument definition:
 
 - `lotSize` – minimum number of contracts you can trade.
@@ -158,7 +158,7 @@ SOL, and the minimum order (`lotSize * contract_size`) is `0.1` SOL. The adapter
 contract size directly from these fields and scales both inbound market data and outbound orders
 accordingly, so quantities in Nautilus are always expressed in base units (SOL, ETH, etc.).
 
-See the BitMEX API documentation for details on these fields: <https://www.bitmex.com/app/apiOverview#Instrument-Properties>.
+See the BitMEX API documentation for details on these fields: [https://www.bitmex.com/app/apiOverview#Instrument-Properties](https://www.bitmex.com/app/apiOverview#Instrument-Properties).
 
 ## Orders capability
 
@@ -166,20 +166,20 @@ The BitMEX integration supports the following order types and execution features
 
 ### Order types
 
-| Order Type             | Supported | Notes                                         |
-|------------------------|-----------|-----------------------------------------------|
+| Order Type             | Supported | Notes                                                                       |
+| ---------------------- | --------- | --------------------------------------------------------------------------- |
 | `MARKET`               | ✓         | Executed immediately at current market price. Quote quantity not supported. |
-| `LIMIT`                | ✓         | Executed only at specified price or better.   |
-| `STOP_MARKET`          | ✓         | Supported (set `trigger_price`).              |
-| `STOP_LIMIT`           | ✓         | Supported (set `price` and `trigger_price`).  |
-| `MARKET_IF_TOUCHED`    | ✓         | Supported (set `trigger_price`).              |
-| `LIMIT_IF_TOUCHED`     | ✓         | Supported (set `price` and `trigger_price`).  |
-| `TRAILING_STOP_MARKET` | -         | *Not implemented* (supported by BitMEX).      |
+| `LIMIT`                | ✓         | Executed only at specified price or better.                                 |
+| `STOP_MARKET`          | ✓         | Supported (set `trigger_price`).                                            |
+| `STOP_LIMIT`           | ✓         | Supported (set `price` and `trigger_price`).                                |
+| `MARKET_IF_TOUCHED`    | ✓         | Supported (set `trigger_price`).                                            |
+| `LIMIT_IF_TOUCHED`     | ✓         | Supported (set `price` and `trigger_price`).                                |
+| `TRAILING_STOP_MARKET` | -         | _Not implemented_ (supported by BitMEX).                                    |
 
 ### Execution instructions
 
 | Instruction   | Supported | Notes                                                                             |
-|---------------|-----------|-----------------------------------------------------------------------------------|
+| ------------- | --------- | --------------------------------------------------------------------------------- |
 | `post_only`   | ✓         | Supported via `ParticipateDoNotInitiate` execution instruction on `LIMIT` orders. |
 | `reduce_only` | ✓         | Supported via `ReduceOnly` execution instruction.                                 |
 
@@ -200,11 +200,11 @@ BitMEX supports multiple reference prices to evaluate stop/conditional order tri
 
 Choose the trigger type that matches your strategy and/or risk preferences.
 
-| Reference price | Nautilus `TriggerType` | BitMEX value  | Notes                                                                           |
-|-----------------|------------------------|---------------|---------------------------------------------------------------------------------|
-| Last trade      | `LAST_PRICE`           | `LastPrice`   | BitMEX default; triggers on the last traded price.                              |
-| Mark price      | `MARK_PRICE`           | `MarkPrice`   | Recommended for many stop-loss use cases to reduce stop-outs from price spikes. |
-| Index price     | `INDEX_PRICE`          | `IndexPrice`  | Tracks the external index; useful for some contracts.                           |
+| Reference price | Nautilus `TriggerType` | BitMEX value | Notes                                                                           |
+| --------------- | ---------------------- | ------------ | ------------------------------------------------------------------------------- |
+| Last trade      | `LAST_PRICE`           | `LastPrice`  | BitMEX default; triggers on the last traded price.                              |
+| Mark price      | `MARK_PRICE`           | `MarkPrice`  | Recommended for many stop-loss use cases to reduce stop-outs from price spikes. |
+| Index price     | `INDEX_PRICE`          | `IndexPrice` | Tracks the external index; useful for some contracts.                           |
 
 - If no `trigger_type` is provided, BitMEX uses its venue default (`LastPrice`).
 - These trigger references are exchange-evaluated; the order remains resting at the venue until triggered.
@@ -228,13 +228,13 @@ in `examples/live/bitmex/bitmex_exec_tester.py`.
 
 ### Time in force
 
-| Time in force  | Supported | Notes                                               |
-|----------------|-----------|-----------------------------------------------------|
-| `GTC`          | ✓         | Good Till Canceled (default).                       |
-| `GTD`          | -         | *Not supported by BitMEX*.                          |
-| `FOK`          | ✓         | Fill or Kill - fills entire order or cancels.       |
-| `IOC`          | ✓         | Immediate or Cancel - partial fill allowed.         |
-| `DAY`          | ✓         | Expires at 00:00 UTC (BitMEX trading day boundary). |
+| Time in force | Supported | Notes                                               |
+| ------------- | --------- | --------------------------------------------------- |
+| `GTC`         | ✓         | Good Till Canceled (default).                       |
+| `GTD`         | -         | _Not supported by BitMEX_.                          |
+| `FOK`         | ✓         | Fill or Kill - fills entire order or cancels.       |
+| `IOC`         | ✓         | Immediate or Cancel - partial fill allowed.         |
+| `DAY`         | ✓         | Expires at 00:00 UTC (BitMEX trading day boundary). |
 
 :::note
 `DAY` orders expire at 12:00am UTC, which marks the BitMEX trading day boundary (end of trading hours for that day).
@@ -244,33 +244,33 @@ See the [BitMEX Exchange Rules](https://www.bitmex.com/exchange-rules) and [API 
 ### Advanced order features
 
 | Feature            | Supported | Notes                                          |
-|--------------------|-----------|------------------------------------------------|
+| ------------------ | --------- | ---------------------------------------------- |
 | Order Modification | ✓         | Modify price, quantity, and trigger price.     |
 | Bracket Orders     | -         | Use `contingency_type` and `linked_order_ids`. |
 | Iceberg Orders     | ✓         | Use `display_qty`.                             |
-| Trailing Stops     | -         | *Not implemented* (supported by BitMEX).       |
-| Pegged Orders      | -         | *Not implemented* (supported by BitMEX).       |
+| Trailing Stops     | -         | _Not implemented_ (supported by BitMEX).       |
+| Pegged Orders      | -         | _Not implemented_ (supported by BitMEX).       |
 
 ### Batch operations
 
-| Operation          | Supported | Notes                                       |
-|--------------------|-----------|---------------------------------------------|
-| Batch Submit       | -         | *Not supported by BitMEX*.                  |
-| Batch Modify       | -         | *Not supported by BitMEX*.                  |
-| Batch Cancel       | ✓         | Cancel multiple orders in a single request. |
+| Operation    | Supported | Notes                                       |
+| ------------ | --------- | ------------------------------------------- |
+| Batch Submit | -         | _Not supported by BitMEX_.                  |
+| Batch Modify | -         | _Not supported by BitMEX_.                  |
+| Batch Cancel | ✓         | Cancel multiple orders in a single request. |
 
 ### Position management
 
-| Feature             | Supported | Notes                                              |
-|---------------------|-----------|----------------------------------------------------|
-| Query positions     | ✓         | REST and real-time position updates via WebSocket. |
-| Cross margin        | ✓         | Default margin mode.                               |
-| Isolated margin     | ✓         |                                                    |
+| Feature         | Supported | Notes                                              |
+| --------------- | --------- | -------------------------------------------------- |
+| Query positions | ✓         | REST and real-time position updates via WebSocket. |
+| Cross margin    | ✓         | Default margin mode.                               |
+| Isolated margin | ✓         |                                                    |
 
 ### Order querying
 
 | Feature              | Supported | Notes                                        |
-|----------------------|-----------|----------------------------------------------|
+| -------------------- | --------- | -------------------------------------------- |
 | Query open orders    | ✓         | List all active orders.                      |
 | Query order history  | ✓         | Historical order data.                       |
 | Order status updates | ✓         | Real-time order state changes via WebSocket. |
@@ -337,10 +337,10 @@ Exceeding BitMEX rate limits returns HTTP 429 and may trigger temporary IP bans;
 
 The rate limits can be configured if your account has different limits than the defaults:
 
-| Parameter                  | Default (authenticated) | Default (unauthenticated) | Description                                         |
-|----------------------------|-------------------------|---------------------------|-----------------------------------------------------|
-| `max_requests_per_second`  | 10                      | 10                        | Maximum requests per second (burst limit).          |
-| `max_requests_per_minute`  | 120                     | 30                        | Maximum requests per minute (rolling window).       |
+| Parameter                 | Default (authenticated) | Default (unauthenticated) | Description                                   |
+| ------------------------- | ----------------------- | ------------------------- | --------------------------------------------- |
+| `max_requests_per_second` | 10                      | 10                        | Maximum requests per second (burst limit).    |
+| `max_requests_per_minute` | 120                     | 30                        | Maximum requests per minute (rolling window). |
 
 :::info
 For more details on rate limiting, see the [BitMEX API documentation on rate limits](https://www.bitmex.com/app/restAPI#Limits).
@@ -396,15 +396,15 @@ The broadcaster exposes metrics including total cancels, successful cancels, fai
 
 #### Tracked metrics
 
-| Metric                   | Type   | Description                                                                                                           |
-|--------------------------|--------|-----------------------------------------------------------------------------------------------------------------------|
-| `total_cancels`          | `u64`  | Total number of cancel operations initiated (includes single, batch, and cancel-all requests).                        |
-| `successful_cancels`     | `u64`  | Number of cancel operations that successfully received acknowledgement from BitMEX.                                   |
-| `failed_cancels`         | `u64`  | Number of cancel operations where all HTTP clients in the pool failed (no healthy clients or all requests failed).    |
-| `expected_rejects`       | `u64`  | Number of expected rejection patterns detected (e.g., post-only order rejections).                                    |
-| `idempotent_successes`   | `u64`  | Number of idempotent success responses (order already cancelled, order not found, unable to cancel due to state).     |
-| `healthy_clients`        | `usize`| Current number of healthy HTTP clients in the pool (clients that passed recent health checks).                        |
-| `total_clients`          | `usize`| Total number of HTTP clients configured in the pool (`canceller_pool_size`).                                          |
+| Metric                 | Type    | Description                                                                                                        |
+| ---------------------- | ------- | ------------------------------------------------------------------------------------------------------------------ |
+| `total_cancels`        | `u64`   | Total number of cancel operations initiated (includes single, batch, and cancel-all requests).                     |
+| `successful_cancels`   | `u64`   | Number of cancel operations that successfully received acknowledgement from BitMEX.                                |
+| `failed_cancels`       | `u64`   | Number of cancel operations where all HTTP clients in the pool failed (no healthy clients or all requests failed). |
+| `expected_rejects`     | `u64`   | Number of expected rejection patterns detected (e.g., post-only order rejections).                                 |
+| `idempotent_successes` | `u64`   | Number of idempotent success responses (order already cancelled, order not found, unable to cancel due to state).  |
+| `healthy_clients`      | `usize` | Current number of healthy HTTP clients in the pool (clients that passed recent health checks).                     |
+| `total_clients`        | `usize` | Total number of HTTP clients configured in the pool (`canceller_pool_size`).                                       |
 
 These metrics can be accessed programmatically via the `get_metrics()` and `get_metrics_async()` methods on the `CancelBroadcaster` instance.
 
@@ -412,8 +412,8 @@ These metrics can be accessed programmatically via the `get_metrics()` and `get_
 
 The cancel broadcaster is configured via the execution client configuration:
 
-| Option                | Default | Description                                                                               |
-|-----------------------|---------|-------------------------------------------------------------------------------------------|
+| Option                | Default | Description                                                                                                          |
+| --------------------- | ------- | -------------------------------------------------------------------------------------------------------------------- |
 | `canceller_pool_size` | `3`     | Size of the HTTP client pool for the broadcaster. Higher values increase fault tolerance but consume more resources. |
 
 **Example configuration**:
@@ -467,41 +467,41 @@ The adapter automatically routes requests to the correct endpoints when `testnet
 
 The BitMEX data client provides the following configuration options:
 
-| Option                            | Default  | Description |
-|-----------------------------------|----------|-------------|
-| `api_key`                         | `None`   | Optional API key; if `None`, loaded from `BITMEX_API_KEY`. |
-| `api_secret`                      | `None`   | Optional API secret; if `None`, loaded from `BITMEX_API_SECRET`. |
-| `base_url_http`                   | `None`   | Override for the REST base URL (defaults to production). |
-| `base_url_ws`                     | `None`   | Override for the WebSocket base URL (defaults to production). |
-| `testnet`                         | `False`  | Route requests to the BitMEX testnet when `True`. |
-| `http_timeout_secs`               | `60`     | Request timeout applied to HTTP calls. |
-| `max_retries`                     | `None`   | Maximum retry attempts for HTTP calls (disabled when `None`). |
-| `retry_delay_initial_ms`          | `1,000`  | Initial backoff delay (milliseconds) between retries. |
-| `retry_delay_max_ms`              | `5,000`  | Maximum backoff delay (milliseconds) between retries. |
-| `recv_window_ms`                  | `10,000` | Expiration window (milliseconds) for signed requests. See [Request authentication](#request-authentication-and-expiration). |
-| `update_instruments_interval_mins`| `60`     | Interval (minutes) between instrument catalogue refreshes. |
-| `max_requests_per_second`         | `10`     | Burst rate limit enforced by the adapter for REST calls. |
-| `max_requests_per_minute`         | `120`    | Rolling minute rate limit enforced by the adapter for REST calls. |
+| Option                             | Default  | Description                                                                                                                 |
+| ---------------------------------- | -------- | --------------------------------------------------------------------------------------------------------------------------- |
+| `api_key`                          | `None`   | Optional API key; if `None`, loaded from `BITMEX_API_KEY`.                                                                  |
+| `api_secret`                       | `None`   | Optional API secret; if `None`, loaded from `BITMEX_API_SECRET`.                                                            |
+| `base_url_http`                    | `None`   | Override for the REST base URL (defaults to production).                                                                    |
+| `base_url_ws`                      | `None`   | Override for the WebSocket base URL (defaults to production).                                                               |
+| `testnet`                          | `False`  | Route requests to the BitMEX testnet when `True`.                                                                           |
+| `http_timeout_secs`                | `60`     | Request timeout applied to HTTP calls.                                                                                      |
+| `max_retries`                      | `None`   | Maximum retry attempts for HTTP calls (disabled when `None`).                                                               |
+| `retry_delay_initial_ms`           | `1,000`  | Initial backoff delay (milliseconds) between retries.                                                                       |
+| `retry_delay_max_ms`               | `5,000`  | Maximum backoff delay (milliseconds) between retries.                                                                       |
+| `recv_window_ms`                   | `10,000` | Expiration window (milliseconds) for signed requests. See [Request authentication](#request-authentication-and-expiration). |
+| `update_instruments_interval_mins` | `60`     | Interval (minutes) between instrument catalogue refreshes.                                                                  |
+| `max_requests_per_second`          | `10`     | Burst rate limit enforced by the adapter for REST calls.                                                                    |
+| `max_requests_per_minute`          | `120`    | Rolling minute rate limit enforced by the adapter for REST calls.                                                           |
 
 ### Execution client configuration options
 
 The BitMEX execution client provides the following configuration options:
 
-| Option                   | Default  | Description |
-|--------------------------|----------|-------------|
-| `api_key`                | `None`   | Optional API key; if `None`, loaded from `BITMEX_API_KEY`. |
-| `api_secret`             | `None`   | Optional API secret; if `None`, loaded from `BITMEX_API_SECRET`. |
-| `base_url_http`          | `None`   | Override for the REST base URL (defaults to production). |
-| `base_url_ws`            | `None`   | Override for the WebSocket base URL (defaults to production). |
-| `testnet`                | `False`  | Route orders to the BitMEX testnet when `True`. |
-| `http_timeout_secs`      | `60`     | Request timeout applied to HTTP calls. |
-| `max_retries`            | `None`   | Maximum retry attempts for HTTP calls (disabled when `None`). |
-| `retry_delay_initial_ms` | `1,000`  | Initial backoff delay (milliseconds) between retries. |
-| `retry_delay_max_ms`     | `5,000`  | Maximum backoff delay (milliseconds) between retries. |
-| `recv_window_ms`         | `10,000` | Expiration window (milliseconds) for signed requests. See [Request authentication](#request-authentication-and-expiration). |
-| `max_requests_per_second`| `10`     | Burst rate limit enforced by the adapter for REST calls. |
-| `max_requests_per_minute`| `120`    | Rolling minute rate limit enforced by the adapter for REST calls. |
-| `canceller_pool_size`    | `3`      | Number of redundant HTTP clients in the cancel broadcaster pool. See [Cancel broadcaster](#cancel-broadcaster). |
+| Option                    | Default  | Description                                                                                                                 |
+| ------------------------- | -------- | --------------------------------------------------------------------------------------------------------------------------- |
+| `api_key`                 | `None`   | Optional API key; if `None`, loaded from `BITMEX_API_KEY`.                                                                  |
+| `api_secret`              | `None`   | Optional API secret; if `None`, loaded from `BITMEX_API_SECRET`.                                                            |
+| `base_url_http`           | `None`   | Override for the REST base URL (defaults to production).                                                                    |
+| `base_url_ws`             | `None`   | Override for the WebSocket base URL (defaults to production).                                                               |
+| `testnet`                 | `False`  | Route orders to the BitMEX testnet when `True`.                                                                             |
+| `http_timeout_secs`       | `60`     | Request timeout applied to HTTP calls.                                                                                      |
+| `max_retries`             | `None`   | Maximum retry attempts for HTTP calls (disabled when `None`).                                                               |
+| `retry_delay_initial_ms`  | `1,000`  | Initial backoff delay (milliseconds) between retries.                                                                       |
+| `retry_delay_max_ms`      | `5,000`  | Maximum backoff delay (milliseconds) between retries.                                                                       |
+| `recv_window_ms`          | `10,000` | Expiration window (milliseconds) for signed requests. See [Request authentication](#request-authentication-and-expiration). |
+| `max_requests_per_second` | `10`     | Burst rate limit enforced by the adapter for REST calls.                                                                    |
+| `max_requests_per_minute` | `120`    | Rolling minute rate limit enforced by the adapter for REST calls.                                                           |
+| `canceller_pool_size`     | `3`      | Number of redundant HTTP clients in the cancel broadcaster pool. See [Cancel broadcaster](#cancel-broadcaster).             |
 
 ### Configuration examples
 

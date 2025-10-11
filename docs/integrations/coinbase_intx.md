@@ -133,74 +133,74 @@ Coinbase International offers market, limit, and stop order types, enabling a br
 
 ### Order Types
 
-| Order Type             | Derivatives | Spot | Notes                                   |
-|------------------------|-------------|------|-----------------------------------------|
-| `MARKET`               | ✓           | ✓    | Must use `IOC` or `FOK` time-in-forc    |
-| `LIMIT`                | ✓           | ✓    |                                         |
-| `STOP_MARKET`          | ✓           | ✓    |                                         |
-| `STOP_LIMIT`           | ✓           | ✓    |                                         |
-| `MARKET_IF_TOUCHED`    | -           | -    | *Not supported*.                        |
-| `LIMIT_IF_TOUCHED`     | -           | -    | *Not supported*.                        |
-| `TRAILING_STOP_MARKET` | -           | -    | *Not supported*.                        |
+| Order Type             | Derivatives | Spot | Notes                                |
+| ---------------------- | ----------- | ---- | ------------------------------------ |
+| `MARKET`               | ✓           | ✓    | Must use `IOC` or `FOK` time-in-forc |
+| `LIMIT`                | ✓           | ✓    |                                      |
+| `STOP_MARKET`          | ✓           | ✓    |                                      |
+| `STOP_LIMIT`           | ✓           | ✓    |                                      |
+| `MARKET_IF_TOUCHED`    | -           | -    | _Not supported_.                     |
+| `LIMIT_IF_TOUCHED`     | -           | -    | _Not supported_.                     |
+| `TRAILING_STOP_MARKET` | -           | -    | _Not supported_.                     |
 
 ### Execution Instructions
 
-| Instruction   | Derivatives | Spot | Notes                                            |
-|---------------|-------------|------|--------------------------------------------------|
-| `post_only`   | ✓           | ✓    | Ensures orders only provide liquidity.           |
-| `reduce_only` | ✓           | ✓    | Ensures orders only reduce existing positions.   |
+| Instruction   | Derivatives | Spot | Notes                                          |
+| ------------- | ----------- | ---- | ---------------------------------------------- |
+| `post_only`   | ✓           | ✓    | Ensures orders only provide liquidity.         |
+| `reduce_only` | ✓           | ✓    | Ensures orders only reduce existing positions. |
 
 ### Time in force options
 
-| Time in force | Derivatives | Spot | Notes                                            |
-|---------------|-------------|------|--------------------------------------------------|
-| `GTC`         | ✓           | ✓    | Good Till Canceled.                              |
-| `GTD`         | ✓           | ✓    | Good Till Date.                                  |
-| `FOK`         | ✓           | ✓    | Fill or Kill.                                    |
-| `IOC`         | ✓           | ✓    | Immediate or Cancel.                             |
+| Time in force | Derivatives | Spot | Notes                |
+| ------------- | ----------- | ---- | -------------------- |
+| `GTC`         | ✓           | ✓    | Good Till Canceled.  |
+| `GTD`         | ✓           | ✓    | Good Till Date.      |
+| `FOK`         | ✓           | ✓    | Fill or Kill.        |
+| `IOC`         | ✓           | ✓    | Immediate or Cancel. |
 
 ### Advanced Order Features
 
-| Feature            | Derivatives | Spot | Notes                                       |
-|--------------------|-------------|------|---------------------------------------------|
-| Order Modification | ✓           | ✓    | Price and quantity modification.             |
-| Bracket/OCO Orders | ?           | ?    | Requires further investigation.              |
-| Iceberg Orders     | ✓           | ✓    | Available via FIX protocol.                 |
+| Feature            | Derivatives | Spot | Notes                            |
+| ------------------ | ----------- | ---- | -------------------------------- |
+| Order Modification | ✓           | ✓    | Price and quantity modification. |
+| Bracket/OCO Orders | ?           | ?    | Requires further investigation.  |
+| Iceberg Orders     | ✓           | ✓    | Available via FIX protocol.      |
 
 ### Batch operations
 
-| Operation          | Derivatives | Spot | Notes                                       |
-|--------------------|-------------|------|---------------------------------------------|
-| Batch Submit       | -           | -    | *Not supported*.                            |
-| Batch Modify       | -           | -    | *Not supported*.                            |
-| Batch Cancel       | -           | -    | *Not supported*.                            |
+| Operation    | Derivatives | Spot | Notes            |
+| ------------ | ----------- | ---- | ---------------- |
+| Batch Submit | -           | -    | _Not supported_. |
+| Batch Modify | -           | -    | _Not supported_. |
+| Batch Cancel | -           | -    | _Not supported_. |
 
 ### Position management
 
-| Feature              | Derivatives | Spot | Notes                                       |
-|--------------------|-------------|------|---------------------------------------------|
-| Query positions     | ✓           | -    | Real-time position updates for derivatives.  |
-| Position mode       | -           | -    | Single position mode only.                   |
-| Leverage control    | ✓           | -    | Per-portfolio leverage settings.             |
-| Margin mode         | ✓           | -    | Cross margin only.                           |
+| Feature          | Derivatives | Spot | Notes                                       |
+| ---------------- | ----------- | ---- | ------------------------------------------- |
+| Query positions  | ✓           | -    | Real-time position updates for derivatives. |
+| Position mode    | -           | -    | Single position mode only.                  |
+| Leverage control | ✓           | -    | Per-portfolio leverage settings.            |
+| Margin mode      | ✓           | -    | Cross margin only.                          |
 
 ### Order querying
 
-| Feature             | Derivatives | Spot | Notes                                       |
-|---------------------|-------------|------|---------------------------------------------|
-| Query open orders   | ✓           | ✓    | List all active orders.                      |
-| Query order history | ✓           | ✓    | Historical order data.                       |
-| Order status updates| ✓           | ✓    | Real-time updates via FIX drop copy.       |
-| Trade history       | ✓           | ✓    | Execution and fill reports.                 |
+| Feature              | Derivatives | Spot | Notes                                |
+| -------------------- | ----------- | ---- | ------------------------------------ |
+| Query open orders    | ✓           | ✓    | List all active orders.              |
+| Query order history  | ✓           | ✓    | Historical order data.               |
+| Order status updates | ✓           | ✓    | Real-time updates via FIX drop copy. |
+| Trade history        | ✓           | ✓    | Execution and fill reports.          |
 
 ### Contingent orders
 
-| Feature              | Derivatives | Spot | Notes                                       |
-|--------------------|-------------|------|---------------------------------------------|
-| Order lists         | -           | -    | *Not supported*.                            |
-| OCO orders          | ?           | ?    | Requires further investigation.              |
-| Bracket orders      | ?           | ?    | Requires further investigation.              |
-| Conditional orders  | ✓           | ✓    | Stop and stop-limit orders.                |
+| Feature            | Derivatives | Spot | Notes                           |
+| ------------------ | ----------- | ---- | ------------------------------- |
+| Order lists        | -           | -    | _Not supported_.                |
+| OCO orders         | ?           | ?    | Requires further investigation. |
+| Bracket orders     | ?           | ?    | Requires further investigation. |
+| Conditional orders | ✓           | ✓    | Stop and stop-limit orders.     |
 
 ### FIX drop copy integration
 
@@ -253,28 +253,28 @@ See the Coinbase International [Create order](https://docs.cdp.coinbase.com/intx
 
 ### Data client configuration options
 
-| Option            | Default        | Description |
-|-------------------|----------------|-------------|
-| `venue`           | `COINBASE_INTX`| Venue identifier registered for the data client. |
-| `api_key`         | `None`         | API key; loaded from `COINBASE_INTX_API_KEY` (or testnet variant) when omitted. |
-| `api_secret`      | `None`         | API secret; loaded from `COINBASE_INTX_API_SECRET` (or testnet variant) when omitted. |
-| `api_passphrase`  | `None`         | API passphrase; loaded from `COINBASE_INTX_API_PASSPHRASE` when omitted. |
-| `base_url_http`   | `None`         | Override for the REST base URL. |
-| `base_url_ws`     | `None`         | Override for the WebSocket base URL. |
-| `http_timeout_secs` | `60`        | Default timeout (seconds) applied to REST calls. |
+| Option              | Default         | Description                                                                           |
+| ------------------- | --------------- | ------------------------------------------------------------------------------------- |
+| `venue`             | `COINBASE_INTX` | Venue identifier registered for the data client.                                      |
+| `api_key`           | `None`          | API key; loaded from `COINBASE_INTX_API_KEY` (or testnet variant) when omitted.       |
+| `api_secret`        | `None`          | API secret; loaded from `COINBASE_INTX_API_SECRET` (or testnet variant) when omitted. |
+| `api_passphrase`    | `None`          | API passphrase; loaded from `COINBASE_INTX_API_PASSPHRASE` when omitted.              |
+| `base_url_http`     | `None`          | Override for the REST base URL.                                                       |
+| `base_url_ws`       | `None`          | Override for the WebSocket base URL.                                                  |
+| `http_timeout_secs` | `60`            | Default timeout (seconds) applied to REST calls.                                      |
 
 ### Execution client configuration options
 
-| Option             | Default        | Description |
-|--------------------|----------------|-------------|
-| `venue`            | `COINBASE_INTX`| Venue identifier registered for the execution client. |
-| `api_key`          | `None`         | API key; loaded from `COINBASE_INTX_API_KEY` (or testnet variant) when omitted. |
-| `api_secret`       | `None`         | API secret; loaded from `COINBASE_INTX_API_SECRET` (or testnet variant) when omitted. |
-| `api_passphrase`   | `None`         | API passphrase; loaded from `COINBASE_INTX_API_PASSPHRASE` when omitted. |
-| `portfolio_id`     | `None`         | Portfolio identifier to trade; required for order submission. |
-| `base_url_http`    | `None`         | Override for the REST base URL. |
-| `base_url_ws`      | `None`         | Override for the WebSocket base URL. |
-| `http_timeout_secs`| `60`           | Default timeout (seconds) applied to REST calls. |
+| Option              | Default         | Description                                                                           |
+| ------------------- | --------------- | ------------------------------------------------------------------------------------- |
+| `venue`             | `COINBASE_INTX` | Venue identifier registered for the execution client.                                 |
+| `api_key`           | `None`          | API key; loaded from `COINBASE_INTX_API_KEY` (or testnet variant) when omitted.       |
+| `api_secret`        | `None`          | API secret; loaded from `COINBASE_INTX_API_SECRET` (or testnet variant) when omitted. |
+| `api_passphrase`    | `None`          | API passphrase; loaded from `COINBASE_INTX_API_PASSPHRASE` when omitted.              |
+| `portfolio_id`      | `None`          | Portfolio identifier to trade; required for order submission.                         |
+| `base_url_http`     | `None`          | Override for the REST base URL.                                                       |
+| `base_url_ws`       | `None`          | Override for the WebSocket base URL.                                                  |
+| `http_timeout_secs` | `60`            | Default timeout (seconds) applied to REST calls.                                      |
 
 An example configuration could be:
 
@@ -349,7 +349,7 @@ credentials are valid and have trading permissions.
 ## Implementation notes
 
 - **Heartbeats**: The adapter maintains heartbeats on both the WebSocket and FIX connections to ensure reliable connectivity.
-- **Rate Limits**: The REST API client is configured to limit requests to 100 per second, matching the Coinbase International REST allowance. See <https://docs.cdp.coinbase.com/intx/docs/rate-limits> for the official guidance.
+- **Rate Limits**: The REST API client is configured to limit requests to 100 per second, matching the Coinbase International REST allowance. See [https://docs.cdp.coinbase.com/intx/docs/rate-limits](https://docs.cdp.coinbase.com/intx/docs/rate-limits) for the official guidance.
 
 :::warning
 Coinbase International returns HTTP 429 when you exceed the 100 requests/sec allowance and can throttle the API key for several seconds, so keep bursts below the documented ceiling.

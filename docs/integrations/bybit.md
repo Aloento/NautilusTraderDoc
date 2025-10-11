@@ -44,7 +44,7 @@ Product is also referred to as `category` in the Bybit v5 API.
 The following product types are supported on Bybit:
 
 | Product Type                | Supported | Notes                                    |
-|-----------------------------|-----------|------------------------------------------|
+| --------------------------- | --------- | ---------------------------------------- |
 | Spot cryptocurrencies       | ✓         | Native spot markets with margin support. |
 | Linear perpetual contracts  | ✓         | USDT/USDC margined perpetual swaps.      |
 | Linear futures contracts    | ✓         | Delivery-settled linear futures.         |
@@ -71,86 +71,86 @@ for the instrument ID. For example:
 ## Orders capability
 
 Bybit offers a flexible combination of trigger types, enabling a broader range of Nautilus orders.
-All the order types listed below can be used as *either* entries or exits, except for trailing stops
+All the order types listed below can be used as _either_ entries or exits, except for trailing stops
 (which utilize a position-related API).
 
 ### Order types
 
 | Order Type             | Spot | Linear | Inverse | Notes                     |
-|------------------------|------|--------|---------|---------------------------|
+| ---------------------- | ---- | ------ | ------- | ------------------------- |
 | `MARKET`               | ✓    | ✓      | ✓       | Supports quote quantity.  |
 | `LIMIT`                | ✓    | ✓      | ✓       |                           |
 | `STOP_MARKET`          | ✓    | ✓      | ✓       |                           |
 | `STOP_LIMIT`           | ✓    | ✓      | ✓       |                           |
 | `MARKET_IF_TOUCHED`    | ✓    | ✓      | ✓       |                           |
 | `LIMIT_IF_TOUCHED`     | ✓    | ✓      | ✓       |                           |
-| `TRAILING_STOP_MARKET` | -    | ✓      | ✓       | *Not supported for Spot*. |
+| `TRAILING_STOP_MARKET` | -    | ✓      | ✓       | _Not supported for Spot_. |
 
 ### Execution instructions
 
-| Instruction   | Spot | Linear | Inverse | Notes                              |
-|---------------|------|--------|---------|------------------------------------|
-| `post_only`   | ✓    | ✓      | ✓       | Only supported on `LIMIT` orders.  |
-| `reduce_only` | -    | ✓      | ✓       | *Not supported for Spot*.          |
+| Instruction   | Spot | Linear | Inverse | Notes                             |
+| ------------- | ---- | ------ | ------- | --------------------------------- |
+| `post_only`   | ✓    | ✓      | ✓       | Only supported on `LIMIT` orders. |
+| `reduce_only` | -    | ✓      | ✓       | _Not supported for Spot_.         |
 
 ### Time in force
 
-| Time in force | Spot | Linear | Inverse | Notes                        |
-|---------------|------|--------|---------|------------------------------|
-| `GTC`         | ✓    | ✓      | ✓       | Good Till Canceled.          |
-| `GTD`         | -    | -      | -       | *Not supported*.             |
-| `FOK`         | ✓    | ✓      | ✓       | Fill or Kill.                |
-| `IOC`         | ✓    | ✓      | ✓       | Immediate or Cancel.         |
+| Time in force | Spot | Linear | Inverse | Notes                |
+| ------------- | ---- | ------ | ------- | -------------------- |
+| `GTC`         | ✓    | ✓      | ✓       | Good Till Canceled.  |
+| `GTD`         | -    | -      | -       | _Not supported_.     |
+| `FOK`         | ✓    | ✓      | ✓       | Fill or Kill.        |
+| `IOC`         | ✓    | ✓      | ✓       | Immediate or Cancel. |
 
 ### Advanced order features
 
 | Feature            | Spot | Linear | Inverse | Notes                                  |
-|--------------------|------|--------|---------|----------------------------------------|
+| ------------------ | ---- | ------ | ------- | -------------------------------------- |
 | Order Modification | ✓    | ✓      | ✓       | Price and quantity modification.       |
 | Bracket/OCO Orders | ✓    | ✓      | ✓       | UI only; API users implement manually. |
 | Iceberg Orders     | ✓    | ✓      | ✓       | Max 10 per account, 1 per symbol.      |
 
 ### Batch operations
 
-| Operation          | Spot | Linear | Inverse | Notes                                  |
-|--------------------|------|--------|---------|----------------------------------------|
-| Batch Submit       | ✓    | ✓      | ✓       | Submit multiple orders in single request. |
-| Batch Modify       | ✓    | ✓      | ✓       | Modify multiple orders in single request. |
-| Batch Cancel       | ✓    | ✓      | ✓       | Cancel multiple orders in single request. |
+| Operation    | Spot | Linear | Inverse | Notes                                     |
+| ------------ | ---- | ------ | ------- | ----------------------------------------- |
+| Batch Submit | ✓    | ✓      | ✓       | Submit multiple orders in single request. |
+| Batch Modify | ✓    | ✓      | ✓       | Modify multiple orders in single request. |
+| Batch Cancel | ✓    | ✓      | ✓       | Cancel multiple orders in single request. |
 
 ### Position management
 
-| Feature             | Spot | Linear | Inverse | Notes                                    |
-|---------------------|------|--------|---------|------------------------------------------|
-| Query positions     | -    | ✓      | ✓       | Real-time position updates.              |
-| Position mode       | -    | ✓      | ✓       | One-Way vs Hedge mode.                   |
-| Leverage control    | -    | ✓      | ✓       | Dynamic leverage adjustment per symbol.  |
-| Margin mode         | -    | ✓      | ✓       | Cross vs Isolated margin.                |
+| Feature          | Spot | Linear | Inverse | Notes                                   |
+| ---------------- | ---- | ------ | ------- | --------------------------------------- |
+| Query positions  | -    | ✓      | ✓       | Real-time position updates.             |
+| Position mode    | -    | ✓      | ✓       | One-Way vs Hedge mode.                  |
+| Leverage control | -    | ✓      | ✓       | Dynamic leverage adjustment per symbol. |
+| Margin mode      | -    | ✓      | ✓       | Cross vs Isolated margin.               |
 
 ### Order querying
 
-| Feature             | Spot | Linear | Inverse | Notes                                   |
-|---------------------|------|--------|---------|-----------------------------------------|
-| Query open orders   | ✓    | ✓      | ✓       | List all active orders.                 |
-| Query order history | ✓    | ✓      | ✓       | Historical order data.                  |
-| Order status updates| ✓    | ✓      | ✓       | Real-time order state changes.          |
-| Trade history       | ✓    | ✓      | ✓       | Execution and fill reports.             |
+| Feature              | Spot | Linear | Inverse | Notes                          |
+| -------------------- | ---- | ------ | ------- | ------------------------------ |
+| Query open orders    | ✓    | ✓      | ✓       | List all active orders.        |
+| Query order history  | ✓    | ✓      | ✓       | Historical order data.         |
+| Order status updates | ✓    | ✓      | ✓       | Real-time order state changes. |
+| Trade history        | ✓    | ✓      | ✓       | Execution and fill reports.    |
 
 ### Contingent orders
 
-| Feature             | Spot | Linear | Inverse | Notes                                   |
-|---------------------|------|--------|---------|-----------------------------------------|
-| Order lists         | -    | -      | -       | *Not supported*.                        |
-| OCO orders          | ✓    | ✓      | ✓       | UI only; API users implement manually.  |
-| Bracket orders      | ✓    | ✓      | ✓       | UI only; API users implement manually.  |
-| Conditional orders  | ✓    | ✓      | ✓       | Stop and limit-if-touched orders.       |
+| Feature            | Spot | Linear | Inverse | Notes                                  |
+| ------------------ | ---- | ------ | ------- | -------------------------------------- |
+| Order lists        | -    | -      | -       | _Not supported_.                       |
+| OCO orders         | ✓    | ✓      | ✓       | UI only; API users implement manually. |
+| Bracket orders     | ✓    | ✓      | ✓       | UI only; API users implement manually. |
+| Conditional orders | ✓    | ✓      | ✓       | Stop and limit-if-touched orders.      |
 
 ### Order parameters
 
 Individual orders can be customized using the `params` dictionary when submitting orders:
 
-| Parameter     | Type   | Description                                                                    |
-|---------------|--------|--------------------------------------------------------------------------------|
+| Parameter     | Type   | Description                                                                                                                                                                                                                    |
+| ------------- | ------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | `is_leverage` | `bool` | For SPOT products only. If `True`, enables margin trading (borrowing) for the order. Default: `False`. See [Bybit's isLeverage documentation](https://bybit-exchange.github.io/docs/v5/order/create-order#request-parameters). |
 
 #### Example: SPOT margin trading
@@ -178,8 +178,8 @@ For a complete example of using order parameters including `is_leverage`, see th
 
 The following limitations apply to SPOT products, as positions are not tracked on the venue side:
 
-- `reduce_only` orders are *not supported*.
-- Trailing stop orders are *not supported*.
+- `reduce_only` orders are _not supported_.
+- Trailing stop orders are _not supported_.
 
 ### Trailing stops
 
@@ -196,23 +196,23 @@ Consider the following points when using trailing stops on Bybit:
 
 Every HTTP call consumes the global token bucket as well as any keyed quota(s). When usage exceeds a bucket, requests are queued automatically, so manual throttling is rarely required.
 
-| Key / Endpoint            | Limit (requests/sec) | Notes                                                |
-|---------------------------|----------------------|------------------------------------------------------|
-| `bybit:global`            | 120                  | Exchange-wide 600 req / 5 s ceiling.                 |
-| `/v5/market/kline`        | 20                   | Historical sweeps throttled slightly below global.   |
-| `/v5/market/trades`       | 24                   | Matches the global quota.                            |
-| `/v5/order/create`        | 10                   | Standard order placement.                            |
-| `/v5/order/cancel`        | 10                   | Single-order cancellation.                           |
-| `/v5/order/create-batch`  | 5                    | Batch placement endpoints.                           |
-| `/v5/order/cancel-batch`  | 5                    | Batch cancellation endpoints.                        |
-| `/v5/order/cancel-all`    | 2                    | Full book cancel to mirror Bybit guidance.           |
+| Key / Endpoint           | Limit (requests/sec) | Notes                                              |
+| ------------------------ | -------------------- | -------------------------------------------------- |
+| `bybit:global`           | 120                  | Exchange-wide 600 req / 5 s ceiling.               |
+| `/v5/market/kline`       | 20                   | Historical sweeps throttled slightly below global. |
+| `/v5/market/trades`      | 24                   | Matches the global quota.                          |
+| `/v5/order/create`       | 10                   | Standard order placement.                          |
+| `/v5/order/cancel`       | 10                   | Single-order cancellation.                         |
+| `/v5/order/create-batch` | 5                    | Batch placement endpoints.                         |
+| `/v5/order/cancel-batch` | 5                    | Batch cancellation endpoints.                      |
+| `/v5/order/cancel-all`   | 2                    | Full book cancel to mirror Bybit guidance.         |
 
 :::warning
 Bybit responds with error code `10016` when the rate limit is exceeded and may temporarily block the IP if requests continue without back-off.
 :::
 
 :::info
-For more details on rate limiting, see the official documentation: <https://bybit-exchange.github.io/docs/v5/rate-limit>.
+For more details on rate limiting, see the official documentation: [https://bybit-exchange.github.io/docs/v5/rate-limit](https://bybit-exchange.github.io/docs/v5/rate-limit).
 :::
 
 ### Data clients
@@ -281,7 +281,7 @@ When maker fees are negative (rebates), the currency logic is **inverted**:
 For all derivatives products (LINEAR, INVERSE, OPTION), fees are always charged in the **settlement currency**:
 
 | Product Type | Settlement Currency                   | Fee Currency |
-|--------------|---------------------------------------|--------------|
+| ------------ | ------------------------------------- | ------------ |
 | LINEAR       | USDT (typically)                      | USDT         |
 | INVERSE      | Base coin (e.g., BTC for BTCUSD)      | Base coin    |
 | OPTION       | USDC (legacy) or USDT (post Feb 2025) | USDC/USDT    |
@@ -312,48 +312,48 @@ The product types for each client must be specified in the configurations.
 
 ### Data client configuration options
 
-| Option                           | Default | Description |
-|----------------------------------|---------|-------------|
-| `api_key`                        | `None`  | API key; loaded from `BYBIT_API_KEY`/`BYBIT_TESTNET_API_KEY` when omitted. |
-| `api_secret`                     | `None`  | API secret; loaded from `BYBIT_API_SECRET`/`BYBIT_TESTNET_API_SECRET` when omitted. |
-| `product_types`                  | `None`  | Sequence of `BybitProductType` values to enable; loads all products when `None`. |
-| `base_url_http`                  | `None`  | Override for the REST base URL. |
-| `demo`                           | `False` | Connect to the Bybit demo environment when `True`. |
-| `testnet`                        | `False` | Connect to the Bybit testnet when `True`. |
-| `update_instruments_interval_mins` | `60` | Interval (minutes) between instrument catalogue refreshes. |
-| `recv_window_ms`                 | `5,000`| Receive window (milliseconds) for signed REST requests. |
-| `bars_timestamp_on_close`        | `True` | Timestamp bars on the close (`True`) or open (`False`) of the interval. |
-| `max_retries`                    | `None` | Maximum retry attempts for REST/WebSocket recovery. |
-| `retry_delay_initial_ms`         | `None` | Initial delay (milliseconds) between retries. |
-| `retry_delay_max_ms`             | `None` | Maximum delay (milliseconds) between retries. |
+| Option                             | Default | Description                                                                         |
+| ---------------------------------- | ------- | ----------------------------------------------------------------------------------- |
+| `api_key`                          | `None`  | API key; loaded from `BYBIT_API_KEY`/`BYBIT_TESTNET_API_KEY` when omitted.          |
+| `api_secret`                       | `None`  | API secret; loaded from `BYBIT_API_SECRET`/`BYBIT_TESTNET_API_SECRET` when omitted. |
+| `product_types`                    | `None`  | Sequence of `BybitProductType` values to enable; loads all products when `None`.    |
+| `base_url_http`                    | `None`  | Override for the REST base URL.                                                     |
+| `demo`                             | `False` | Connect to the Bybit demo environment when `True`.                                  |
+| `testnet`                          | `False` | Connect to the Bybit testnet when `True`.                                           |
+| `update_instruments_interval_mins` | `60`    | Interval (minutes) between instrument catalogue refreshes.                          |
+| `recv_window_ms`                   | `5,000` | Receive window (milliseconds) for signed REST requests.                             |
+| `bars_timestamp_on_close`          | `True`  | Timestamp bars on the close (`True`) or open (`False`) of the interval.             |
+| `max_retries`                      | `None`  | Maximum retry attempts for REST/WebSocket recovery.                                 |
+| `retry_delay_initial_ms`           | `None`  | Initial delay (milliseconds) between retries.                                       |
+| `retry_delay_max_ms`               | `None`  | Maximum delay (milliseconds) between retries.                                       |
 
 ### Execution client configuration options
 
-| Option                           | Default | Description |
-|----------------------------------|---------|-------------|
-| `api_key`                        | `None`  | API key; loaded from `BYBIT_API_KEY`/`BYBIT_TESTNET_API_KEY` when omitted. |
-| `api_secret`                     | `None`  | API secret; loaded from `BYBIT_API_SECRET`/`BYBIT_TESTNET_API_SECRET` when omitted. |
-| `product_types`                  | `None`  | Sequence of `BybitProductType` values to enable (SPOT cannot be mixed with derivatives for execution). |
-| `base_url_http`                  | `None`  | Override for the REST base URL. |
-| `base_url_ws_private`            | `None`  | Override for the private WebSocket base URL. |
-| `base_url_ws_trade`              | `None`  | Override for the trade WebSocket base URL. |
-| `demo`                           | `False` | Connect to the Bybit demo environment when `True`. |
-| `testnet`                        | `False` | Connect to the Bybit testnet when `True`. |
-| `use_gtd`                        | `False` | Remap GTD orders to GTC when `True` (Bybit lacks native GTD support). |
-| `use_ws_execution_fast`          | `False` | Subscribe to the low-latency execution stream. |
-| `use_ws_trade_api`               | `False` | Send order requests over WebSocket instead of HTTP. |
-| `use_http_batch_api`             | `False` | Use Bybit's HTTP batch trading API (requires WebSocket trading enabled). |
-| `use_spot_position_reports`      | `False` | Report SPOT wallet balances as positions when `True`. |
-| `ignore_uncached_instrument_executions` | `False` | Ignore execution messages for instruments not yet cached. |
-| `max_retries`                    | `None` | Maximum retry attempts for order submission/cancel/modify calls. |
-| `retry_delay_initial_ms`         | `None` | Initial delay (milliseconds) between retries. |
-| `retry_delay_max_ms`             | `None` | Maximum delay (milliseconds) between retries. |
-| `recv_window_ms`                 | `5,000`| Receive window (milliseconds) for signed REST requests. |
-| `ws_trade_timeout_secs`          | `5.0`  | Timeout (seconds) waiting for trade WebSocket acknowledgements. |
-| `ws_auth_timeout_secs`           | `5.0`  | Timeout (seconds) waiting for auth WebSocket acknowledgements. |
-| `futures_leverages`              | `None` | Mapping of `BybitSymbol` to leverage settings. |
-| `position_mode`                  | `None` | Mapping of `BybitSymbol` to position mode (one-way vs hedge). |
-| `margin_mode`                    | `None` | Margin mode setting for the account. |
+| Option                                  | Default | Description                                                                                            |
+| --------------------------------------- | ------- | ------------------------------------------------------------------------------------------------------ |
+| `api_key`                               | `None`  | API key; loaded from `BYBIT_API_KEY`/`BYBIT_TESTNET_API_KEY` when omitted.                             |
+| `api_secret`                            | `None`  | API secret; loaded from `BYBIT_API_SECRET`/`BYBIT_TESTNET_API_SECRET` when omitted.                    |
+| `product_types`                         | `None`  | Sequence of `BybitProductType` values to enable (SPOT cannot be mixed with derivatives for execution). |
+| `base_url_http`                         | `None`  | Override for the REST base URL.                                                                        |
+| `base_url_ws_private`                   | `None`  | Override for the private WebSocket base URL.                                                           |
+| `base_url_ws_trade`                     | `None`  | Override for the trade WebSocket base URL.                                                             |
+| `demo`                                  | `False` | Connect to the Bybit demo environment when `True`.                                                     |
+| `testnet`                               | `False` | Connect to the Bybit testnet when `True`.                                                              |
+| `use_gtd`                               | `False` | Remap GTD orders to GTC when `True` (Bybit lacks native GTD support).                                  |
+| `use_ws_execution_fast`                 | `False` | Subscribe to the low-latency execution stream.                                                         |
+| `use_ws_trade_api`                      | `False` | Send order requests over WebSocket instead of HTTP.                                                    |
+| `use_http_batch_api`                    | `False` | Use Bybit's HTTP batch trading API (requires WebSocket trading enabled).                               |
+| `use_spot_position_reports`             | `False` | Report SPOT wallet balances as positions when `True`.                                                  |
+| `ignore_uncached_instrument_executions` | `False` | Ignore execution messages for instruments not yet cached.                                              |
+| `max_retries`                           | `None`  | Maximum retry attempts for order submission/cancel/modify calls.                                       |
+| `retry_delay_initial_ms`                | `None`  | Initial delay (milliseconds) between retries.                                                          |
+| `retry_delay_max_ms`                    | `None`  | Maximum delay (milliseconds) between retries.                                                          |
+| `recv_window_ms`                        | `5,000` | Receive window (milliseconds) for signed REST requests.                                                |
+| `ws_trade_timeout_secs`                 | `5.0`   | Timeout (seconds) waiting for trade WebSocket acknowledgements.                                        |
+| `ws_auth_timeout_secs`                  | `5.0`   | Timeout (seconds) waiting for auth WebSocket acknowledgements.                                         |
+| `futures_leverages`                     | `None`  | Mapping of `BybitSymbol` to leverage settings.                                                         |
+| `position_mode`                         | `None`  | Mapping of `BybitSymbol` to position mode (one-way vs hedge).                                          |
+| `margin_mode`                           | `None`  | Margin mode setting for the account.                                                                   |
 
 The most common use case is to configure a live `TradingNode` to include Bybit
 data and execution clients. To achieve this, add a `BYBIT` section to your client

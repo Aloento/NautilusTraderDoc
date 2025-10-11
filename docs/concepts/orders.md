@@ -10,8 +10,8 @@ and contingencies for order execution and management, facilitating the creation 
 
 ## Overview
 
-All order types are derived from two fundamentals: *Market* and *Limit* orders. In terms of liquidity, they are opposites.
-*Market* orders consume liquidity by executing immediately at the best available price, whereas *Limit*
+All order types are derived from two fundamentals: _Market_ and _Limit_ orders. In terms of liquidity, they are opposites.
+_Market_ orders consume liquidity by executing immediately at the best available price, whereas _Limit_
 orders provide liquidity by resting in the order book at a specified price until matched.
 
 The order types available for the platform are (using the enum values):
@@ -34,7 +34,7 @@ Instead, it logs a clear, explanatory error.
 
 ### Terminology
 
-- An order is **aggressive** if its type is `MARKET` or if it executes as a *marketable* order (i.e., takes liquidity).
+- An order is **aggressive** if its type is `MARKET` or if it executes as a _marketable_ order (i.e., takes liquidity).
 - An order is **passive** if it is not marketable (i.e., provides liquidity).
 - An order is **active local** if it remains within the local system boundary in one of the following three non-terminal statuses:
   - `INITIALIZED`
@@ -85,7 +85,7 @@ at which the order will expire and be removed from the venue's order book (or or
 
 An order which is marked as `post_only` will only ever participate in providing liquidity to the
 limit order book, and never initiating a trade which takes liquidity as an aggressor. This option is
-important for market makers, or traders seeking to restrict the order to a liquidity *maker* fee tier.
+important for market makers, or traders seeking to restrict the order to a liquidity _maker_ fee tier.
 
 ### Reduce-only
 
@@ -99,7 +99,7 @@ However, the behavior in the Nautilus `SimulatedExchange` is typical of a real v
 
 ### Display quantity
 
-The `display_qty` specifies the portion of a *Limit* order which is displayed on the limit order book.
+The `display_qty` specifies the portion of a _Limit_ order which is displayed on the limit order book.
 These are also known as iceberg orders as there is a visible portion to be displayed, with more quantity which is hidden.
 Specifying a display quantity of zero is also equivalent to setting an order as `hidden`.
 
@@ -121,7 +121,7 @@ which is applicable to conditional trigger orders, specifying the method of trig
 ### Trigger offset type
 
 Applicable to conditional trailing-stop trigger orders, specifies the method of triggering modification
-of the stop price based on the offset from the *market* (bid, ask or last price as applicable).
+of the stop price based on the offset from the _market_ (bid, ask or last price as applicable).
 
 - `DEFAULT`: The default offset type for the venue (typically `PRICE`).
 - `PRICE`: The offset is based on a price difference.
@@ -157,12 +157,12 @@ Any optional parameters will be clearly marked with a comment which includes the
 
 ### Market
 
-A *Market* order is an instruction by the trader to immediately trade
+A _Market_ order is an instruction by the trader to immediately trade
 the given quantity at the best price available. You can also specify several
 time in force options, and indicate whether this order is only intended to reduce
 a position.
 
-In the following example we create a *Market* order on the Interactive Brokers [IdealPro](https://ibkr.info/node/1708) Forex ECN
+In the following example we create a _Market_ order on the Interactive Brokers [IdealPro](https://ibkr.info/node/1708) Forex ECN
 to BUY 100,000 AUD using USD:
 
 ```python
@@ -188,10 +188,10 @@ See the `MarketOrder` [API Reference](../api_reference/model/orders.md#class-mar
 
 ### Limit
 
-A *Limit* order is placed on the limit order book at a specific price, and will only
+A _Limit_ order is placed on the limit order book at a specific price, and will only
 execute at that price (or better).
 
-In the following example we create a *Limit* order on the Binance Futures Crypto exchange to SELL 20 ETHUSDT-PERP Perpetual Futures
+In the following example we create a _Limit_ order on the Binance Futures Crypto exchange to SELL 20 ETHUSDT-PERP Perpetual Futures
 contracts at a limit price of 5000 USDT, as a market maker.
 
 ```python
@@ -222,11 +222,11 @@ See the `LimitOrder` [API Reference](../api_reference/model/orders.md#class-limi
 
 ### Stop-Market
 
-A *Stop-Market* order is a conditional order which once triggered, will immediately
-place a *Market* order. This order type is often used as a stop-loss to limit losses, either
+A _Stop-Market_ order is a conditional order which once triggered, will immediately
+place a _Market_ order. This order type is often used as a stop-loss to limit losses, either
 as a SELL order against LONG positions, or as a BUY order against SHORT positions.
 
-In the following example we create a *Stop-Market* order on the Binance Spot/Margin exchange
+In the following example we create a _Stop-Market_ order on the Binance Spot/Margin exchange
 to SELL 1 BTC at a trigger price of 100,000 USDT, active until further notice:
 
 ```python
@@ -257,10 +257,10 @@ See the `StopMarketOrder` [API Reference](../api_reference/model/orders.md#class
 
 ### Stop-Limit
 
-A *Stop-Limit* order is a conditional order which once triggered will immediately place
-a *Limit* order at the specified price.
+A _Stop-Limit_ order is a conditional order which once triggered will immediately place
+a _Limit_ order at the specified price.
 
-In the following example we create a *Stop-Limit* order on the Currenex FX ECN to BUY 50,000 GBP at a limit price of 1.3000 USD
+In the following example we create a _Stop-Limit_ order on the Currenex FX ECN to BUY 50,000 GBP at a limit price of 1.3000 USD
 once the market hits the trigger price of 1.30010 USD, active until midday 6th June, 2022 (UTC):
 
 ```python
@@ -294,10 +294,10 @@ See the `StopLimitOrder` [API Reference](../api_reference/model/orders.md#class-
 
 ### Market-To-Limit
 
-A *Market-To-Limit* order submits as a market order at the current best price.
-If the order partially fills, the system cancels the remainder and resubmits it as a *Limit* order at the executed price.
+A _Market-To-Limit_ order submits as a market order at the current best price.
+If the order partially fills, the system cancels the remainder and resubmits it as a _Limit_ order at the executed price.
 
-In the following example we create a *Market-To-Limit* order on the Interactive Brokers [IdealPro](https://ibkr.info/node/1708) Forex ECN
+In the following example we create a _Market-To-Limit_ order on the Interactive Brokers [IdealPro](https://ibkr.info/node/1708) Forex ECN
 to BUY 200,000 USD using JPY:
 
 ```python
@@ -324,12 +324,12 @@ See the `MarketToLimitOrder` [API Reference](../api_reference/model/orders.md#cl
 
 ### Market-If-Touched
 
-A *Market-If-Touched* order is a conditional order which once triggered will immediately
-place a *Market* order. This order type is often used to enter a new position on a stop price,
+A _Market-If-Touched_ order is a conditional order which once triggered will immediately
+place a _Market_ order. This order type is often used to enter a new position on a stop price,
 or to take profits for an existing position, either as a SELL order against LONG positions,
 or as a BUY order against SHORT positions.
 
-In the following example we create a *Market-If-Touched* order on the Binance Futures exchange
+In the following example we create a _Market-If-Touched_ order on the Binance Futures exchange
 to SELL 10 ETHUSDT-PERP Perpetual Futures contracts at a trigger price of 10,000 USDT, active until further notice:
 
 ```python
@@ -360,10 +360,10 @@ See the `MarketIfTouchedOrder` [API Reference](../api_reference/model/orders.md#
 
 ### Limit-If-Touched
 
-A *Limit-If-Touched* order is a conditional order which once triggered will immediately place
-a *Limit* order at the specified price.
+A _Limit-If-Touched_ order is a conditional order which once triggered will immediately place
+a _Limit_ order at the specified price.
 
-In the following example we create a *Limit-If-Touched* order to BUY 5 BTCUSDT-PERP Perpetual Futures contracts on the
+In the following example we create a _Limit-If-Touched_ order to BUY 5 BTCUSDT-PERP Perpetual Futures contracts on the
 Binance Futures exchange at a limit price of 30,100 USDT (once the market hits the trigger price of 30,150 USDT),
 active until midday 6th June, 2022 (UTC):
 
@@ -398,11 +398,11 @@ See the `LimitIfTouched` [API Reference](../api_reference/model/orders.md#class-
 
 ### Trailing-Stop-Market
 
-A *Trailing-Stop-Market* order is a conditional order which trails a stop trigger price
-a fixed offset away from the defined market price. Once triggered a *Market* order will
+A _Trailing-Stop-Market_ order is a conditional order which trails a stop trigger price
+a fixed offset away from the defined market price. Once triggered a _Market_ order will
 immediately be placed.
 
-In the following example we create a *Trailing-Stop-Market* order on the Binance Futures exchange to SELL 10 ETHUSD-PERP COIN_M margined
+In the following example we create a _Trailing-Stop-Market_ order on the Binance Futures exchange to SELL 10 ETHUSD-PERP COIN_M margined
 Perpetual Futures Contracts activating at a price of 5,000 USD, then trailing at an offset of 1% (in basis points) away from the current last traded price:
 
 ```python
@@ -438,11 +438,11 @@ See the `TrailingStopMarketOrder` [API Reference](../api_reference/model/orders.
 
 ### Trailing-Stop-Limit
 
-A *Trailing-Stop-Limit* order is a conditional order which trails a stop trigger price
-a fixed offset away from the defined market price. Once triggered a *Limit* order will
+A _Trailing-Stop-Limit_ order is a conditional order which trails a stop trigger price
+a fixed offset away from the defined market price. Once triggered a _Limit_ order will
 immediately be placed at the defined price (which is also updated as the market moves until triggered).
 
-In the following example we create a *Trailing-Stop-Limit* order on the Currenex FX ECN to BUY 1,250,000 AUD using USD
+In the following example we create a _Trailing-Stop-Limit_ order on the Currenex FX ECN to BUY 1,250,000 AUD using USD
 at a limit price of 0.71000 USD, activating at 0.72000 USD then trailing at a stop offset of 0.00100 USD
 away from the current ask price, active until further notice:
 
@@ -494,15 +494,16 @@ specific venue they are being routed to.
 ### Contingency types
 
 - **OTO (One-Triggers-Other)** – a parent order that, once executed, automatically places one or more child orders.
-  - *Full-trigger model*: child order(s) are released **only after the parent is completely filled**. Common at most retail equity/option brokers (e.g. Schwab, Fidelity, TD Ameritrade) and many spot-crypto venues (Binance, Coinbase).
-  - *Partial-trigger model*: child order(s) are released **pro-rata to each partial fill**. Used by professional-grade platforms such as Interactive Brokers, most futures/FX OMSs, and Kraken Pro.
+
+  - _Full-trigger model_: child order(s) are released **only after the parent is completely filled**. Common at most retail equity/option brokers (e.g. Schwab, Fidelity, TD Ameritrade) and many spot-crypto venues (Binance, Coinbase).
+  - _Partial-trigger model_: child order(s) are released **pro-rata to each partial fill**. Used by professional-grade platforms such as Interactive Brokers, most futures/FX OMSs, and Kraken Pro.
 
 - **OCO (One-Cancels-Other)** – two (or more) linked live orders where executing one cancels the remainder.
 
 - **OUO (One-Updates-Other)** – two (or more) linked live orders where executing one reduces the open quantity of the remainder.
 
 :::info
-These contingency types relate to ContingencyType FIX tag <1385> <https://www.onixs.biz/fix-dictionary/5.0.sp2/tagnum_1385.html>.
+These contingency types relate to ContingencyType FIX tag <1385> [https://www.onixs.biz/fix-dictionary/5.0.sp2/tagnum_1385.html](https://www.onixs.biz/fix-dictionary/5.0.sp2/tagnum_1385.html).
 :::
 
 #### One-Triggers-Other (OTO)
@@ -510,47 +511,46 @@ These contingency types relate to ContingencyType FIX tag <1385> <https://www.on
 An OTO order involves two parts:
 
 1. **Parent order** – submitted to the matching engine immediately.
-2. **Child order(s)** – held *off-book* until the trigger condition is met.
+2. **Child order(s)** – held _off-book_ until the trigger condition is met.
 
 ##### Trigger models
 
 | Trigger model       | When are child orders released?                                                                                                                  |
-|---------------------|--------------------------------------------------------------------------------------------------------------------------------------------------|
-| **Full trigger**    | When the parent order’s cumulative quantity equals its original quantity (i.e., it is *fully* filled).                                           |
+| ------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------ |
+| **Full trigger**    | When the parent order’s cumulative quantity equals its original quantity (i.e., it is _fully_ filled).                                           |
 | **Partial trigger** | Immediately upon each partial execution of the parent; the child’s quantity matches the executed amount and is increased as further fills occur. |
 
 :::info
-The default backtest venue for NautilusTrader uses a *partial-trigger model* for OTO orders.
-A future update will add configuration to opt-in to a *full-trigger model*.
+The default backtest venue for NautilusTrader uses a _partial-trigger model_ for OTO orders.
+A future update will add configuration to opt-in to a _full-trigger model_.
 :::
 
-> **Why the distinction matters**
-> *Full trigger* leaves a risk window: any partially filled position is live without its protective exit until the remaining quantity fills.
-> *Partial trigger* mitigates that risk by ensuring every executed lot instantly has its linked stop/limit, at the cost of creating more order traffic and updates.
+> **Why the distinction matters** > _Full trigger_ leaves a risk window: any partially filled position is live without its protective exit until the remaining quantity fills.
+> _Partial trigger_ mitigates that risk by ensuring every executed lot instantly has its linked stop/limit, at the cost of creating more order traffic and updates.
 
 An OTO order can use any supported asset type on the venue (e.g. stock entry with option hedge, futures entry with OCO bracket, crypto spot entry with TP/SL).
 
-| Venue / Adapter ID                           | Asset classes             | Trigger rule for child                      | Practical notes                                                   |
-|----------------------------------------------|---------------------------|---------------------------------------------|-------------------------------------------------------------------|
-| Binance / Binance Futures (`BINANCE`)        | Spot, perpetual futures   | **Partial or full** – fires on first fill.  | OTOCO/TP-SL children appear instantly; monitor margin usage.      |
-| Bybit Spot (`BYBIT`)                         | Spot                      | **Full** – child placed after completion.   | TP-SL preset activates only once the limit order is fully filled. |
-| Bybit Perps (`BYBIT`)                        | Perpetual futures         | **Partial and full** – configurable.        | “Partial-position” mode sizes TP-SL as fills arrive.              |
-| Kraken Futures (`KRAKEN`)                    | Futures & perps           | **Partial and full** – automatic.           | Child quantity matches every partial execution.                   |
-| OKX (`OKX`)                                  | Spot, futures, options    | **Full** – attached stop waits for fill.    | Position-level TP-SL can be added separately.                     |
-| Interactive Brokers (`INTERACTIVE_BROKERS`)  | Stocks, options, FX, fut  | **Configurable** – OCA can pro-rate.        | `OcaType 2/3` reduces remaining child quantities.                 |
-| Coinbase International (`COINBASE_INTX`)     | Spot & perps              | **Full** – bracket added post-execution.    | Entry plus bracket not simultaneous; added once position is live. |
-| dYdX v4 (`DYDX`)                             | Perpetual futures (DEX)   | On-chain condition (size exact).            | TP-SL triggers by oracle price; partial fill not applicable.      |
-| Polymarket (`POLYMARKET`)                    | Prediction market (DEX)   | N/A.                                        | Advanced contingency handled entirely at the strategy layer.      |
-| Betfair (`BETFAIR`)                          | Sports betting            | N/A.                                        | Advanced contingency handled entirely at the strategy layer.      |
+| Venue / Adapter ID                          | Asset classes            | Trigger rule for child                     | Practical notes                                                   |
+| ------------------------------------------- | ------------------------ | ------------------------------------------ | ----------------------------------------------------------------- |
+| Binance / Binance Futures (`BINANCE`)       | Spot, perpetual futures  | **Partial or full** – fires on first fill. | OTOCO/TP-SL children appear instantly; monitor margin usage.      |
+| Bybit Spot (`BYBIT`)                        | Spot                     | **Full** – child placed after completion.  | TP-SL preset activates only once the limit order is fully filled. |
+| Bybit Perps (`BYBIT`)                       | Perpetual futures        | **Partial and full** – configurable.       | “Partial-position” mode sizes TP-SL as fills arrive.              |
+| Kraken Futures (`KRAKEN`)                   | Futures & perps          | **Partial and full** – automatic.          | Child quantity matches every partial execution.                   |
+| OKX (`OKX`)                                 | Spot, futures, options   | **Full** – attached stop waits for fill.   | Position-level TP-SL can be added separately.                     |
+| Interactive Brokers (`INTERACTIVE_BROKERS`) | Stocks, options, FX, fut | **Configurable** – OCA can pro-rate.       | `OcaType 2/3` reduces remaining child quantities.                 |
+| Coinbase International (`COINBASE_INTX`)    | Spot & perps             | **Full** – bracket added post-execution.   | Entry plus bracket not simultaneous; added once position is live. |
+| dYdX v4 (`DYDX`)                            | Perpetual futures (DEX)  | On-chain condition (size exact).           | TP-SL triggers by oracle price; partial fill not applicable.      |
+| Polymarket (`POLYMARKET`)                   | Prediction market (DEX)  | N/A.                                       | Advanced contingency handled entirely at the strategy layer.      |
+| Betfair (`BETFAIR`)                         | Sports betting           | N/A.                                       | Advanced contingency handled entirely at the strategy layer.      |
 
 #### One-Cancels-Other (OCO)
 
-An OCO order is a set of linked orders where the execution of **any** order (full *or partial*) triggers a best-efforts cancellation of the others.
+An OCO order is a set of linked orders where the execution of **any** order (full _or partial_) triggers a best-efforts cancellation of the others.
 Both orders are live simultaneously; once one starts filling, the venue attempts to cancel the unexecuted portion of the remainder.
 
 #### One-Updates-Other (OUO)
 
-An OUO order is a set of linked orders where execution of one order causes an immediate *reduction* of open quantity in the other order(s).
+An OUO order is a set of linked orders where execution of one order causes an immediate _reduction_ of open quantity in the other order(s).
 Both orders are live concurrently, and each partial execution proportionally updates the remaining quantity of its peer order on a best-effort basis.
 
 ### Bracket orders
@@ -611,7 +611,7 @@ The choice of trigger type determines how the order emulation will behave:
 Here are all the available values you can set into `emulation_trigger` parameter and their purposes:
 
 | Trigger Type      | Description                                                                                          | Common use cases                                                                                             |
-|:------------------|:-----------------------------------------------------------------------------------------------------|:-------------------------------------------------------------------------------------------------------------|
+| :---------------- | :--------------------------------------------------------------------------------------------------- | :----------------------------------------------------------------------------------------------------------- |
 | `NO_TRIGGER`      | Disables emulation completely. The order is sent directly to the venue without any local processing. | When you want to use the venue's native order handling, or for simple order types that don't need emulation. |
 | `DEFAULT`         | Same as `BID_ASK`. This is the standard choice for most emulated orders.                             | General-purpose emulation when you want to work with the "default" type of market prices.                    |
 | `BID_ASK`         | Uses the best bid and ask prices (quotes) to guide emulation.                                        | Stop orders, trailing stops, and other orders that should react to the current market spread.                |
@@ -640,12 +640,12 @@ An emulated order will progress through the following stages:
 
 1. Submitted by a `Strategy` through the `submit_order` method.
 2. Sent to the `RiskEngine` for pre-trade risk checks (it may be denied at this point).
-3. Sent to the `OrderEmulator` where it is *held* / emulated.
+3. Sent to the `OrderEmulator` where it is _held_ / emulated.
 4. Once triggered, emulated order is transformed into a `MARKET` or `LIMIT` order and released (submitted to the venue).
 5. Released order undergoes final risk checks before venue submission.
 
 :::note
-Emulated orders are subject to the same risk controls as *regular* orders, and can be
+Emulated orders are subject to the same risk controls as _regular_ orders, and can be
 modified and canceled by a trading strategy in the normal way. They will also be included
 when canceling all orders.
 :::
@@ -657,17 +657,17 @@ through the cache.
 
 #### Held emulated orders
 
-The following will occur for an emulated order now *held* by the `OrderEmulator` component:
+The following will occur for an emulated order now _held_ by the `OrderEmulator` component:
 
 - The original `SubmitOrder` command will be cached.
 - The emulated order will be processed inside a local `MatchingCore` component.
 - The `OrderEmulator` will subscribe to any needed market data (if not already) to update the matching core.
-- The emulated order can be modified (by the trader) and updated (by the market) until *released* or canceled.
+- The emulated order can be modified (by the trader) and updated (by the market) until _released_ or canceled.
 
 #### Released emulated orders
 
 Once data arrival triggers / matches an emulated order locally, the following
-*release* actions will occur:
+_release_ actions will occur:
 
 - The order will be transformed to either a `MARKET` or `LIMIT` order (see below table) through an additional `OrderInitialized` event.
 - The orders `emulation_trigger` will be set to `NONE` (it will no longer be treated as an emulated order by any component).
@@ -685,7 +685,7 @@ which order type they transform to when being released for submission to the
 trading venue.
 
 | Order type for emulation | Can emulate | Released type |
-|:-------------------------|:------------|:--------------|
+| :----------------------- | :---------- | :------------ |
 | `MARKET`                 |             | n/a           |
 | `MARKET_TO_LIMIT`        |             | n/a           |
 | `LIMIT`                  | ✓           | `MARKET`      |
@@ -717,12 +717,12 @@ You can query order objects directly using:
 
 - `order.is_emulated`
 
-If either of these return `False`, then the order has been *released* from the
+If either of these return `False`, then the order has been _released_ from the
 `OrderEmulator`, and so is no longer considered an emulated order (or was never an emulated order).
 
 :::warning
 It's not advised to hold a local reference to an emulated order, as the order
-object will be transformed when/if the emulated order is *released*. You should rely
+object will be transformed when/if the emulated order is _released_. You should rely
 on the `Cache` which is made for the job.
 :::
 
