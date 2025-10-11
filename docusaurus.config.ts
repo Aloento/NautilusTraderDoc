@@ -40,28 +40,25 @@ const config: Config = {
       {
         docs: {
           sidebarPath: './sidebars.ts',
-          routeBasePath: '/', // 让文档成为网站根路径
+          routeBasePath: '/',
           // Please change this to your repo.
           // Remove this to remove the "edit this page" links.
           editUrl:
             'https://github.com/Aloento/NautilusTraderDoc/tree/main/',
         },
-        blog: false, // 禁用 blog
+        blog: false,
       } satisfies Preset.Options,
     ],
   ],
-
   themeConfig: {
-    // Replace with your project's social card
-    image: 'img/docusaurus-social-card.jpg',
     colorMode: {
       respectPrefersColorScheme: true,
     },
     navbar: {
-      title: 'NautilusTrader Documentation',
+      title: 'NautilusTrader',
       logo: {
         alt: 'NautilusTrader Logo',
-        src: 'img/logo.svg',
+        src: 'logo.svg',
       },
       items: [
         {
