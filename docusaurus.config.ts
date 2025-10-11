@@ -5,8 +5,8 @@ import { themes as prismThemes } from 'prism-react-renderer';
 // This runs in Node.js - Don't use client-side code here (browser APIs, JSX...)
 
 const config: Config = {
-  title: 'NautilusTrader Documentation',
-  tagline: 'High-performance algorithmic trading platform',
+  title: 'NautilusTrader 文档',
+  tagline: '高性能算法交易平台',
   favicon: 'favicon.ico',
 
   // Future flags, see https://docusaurus.io/docs/api/docusaurus-config#future
@@ -65,7 +65,7 @@ const config: Config = {
           type: 'docSidebar',
           sidebarId: 'tutorialSidebar',
           position: 'left',
-          label: 'Documentation',
+          label: '文档',
         },
         {
           href: 'https://github.com/Aloento/NautilusTraderDoc',
