@@ -24,8 +24,8 @@
 | [examples/](https://github.com/nautechsystems/nautilus_trader/tree/develop/examples) | 可直接运行的独立 Python 示例。                       |
 | [docs/tutorials/](../tutorials/)                                                     | 以 Jupyter notebook 形式展示的教程，演示常见工作流。 |
 | [docs/concepts/](../concepts/)                                                       | 概念性指南，包含简洁的代码片段以说明关键特性。       |
-| [nautilus_trader/examples/](../nautilus_trader/examples/)                            | 纯 Python 的基础策略、指标和执行算法示例。           |
-| [tests/unit_tests/](../../tests/unit_tests/)                                         | 覆盖核心功能和边界情况的单元测试。                   |
+| nautilus_trader/examples/                                                            | 纯 Python 的基础策略、指标和执行算法示例。           |
+| tests/unit_tests/                                                                    | 覆盖核心功能和边界情况的单元测试。                   |
 
 ## 回测（Backtesting）API 等级
 
