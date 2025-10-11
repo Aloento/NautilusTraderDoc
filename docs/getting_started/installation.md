@@ -1,214 +1,209 @@
-# Installation
+# 安装
 
-NautilusTrader is officially supported for Python 3.11-3.13 on the following 64-bit platforms:
+NautilusTrader 官方支持下列 64 位平台上的 Python 3.11–3.13：
 
-| Operating System | Supported Versions | CPU Architecture |
-| ---------------- | ------------------ | ---------------- |
-| Linux (Ubuntu)   | 22.04 and later    | x86_64           |
-| Linux (Ubuntu)   | 22.04 and later    | ARM64            |
-| macOS            | 15.0 and later     | ARM64            |
-| Windows Server   | 2022 and later     | x86_64           |
+| 操作系统       | 支持的版本       | CPU 架构 |
+| -------------- | ---------------- | -------- |
+| Linux (Ubuntu) | 22.04 及更高版本 | x86_64   |
+| Linux (Ubuntu) | 22.04 及更高版本 | ARM64    |
+| macOS          | 15.0 及更高版本  | ARM64    |
+| Windows Server | 2022 及更高版本  | x86_64   |
 
 :::note
-NautilusTrader may work on other platforms, but only those listed above are regularly used by developers and tested in CI.
+NautilusTrader 可能能在其它平台上运行，但上表列出的平台是开发者常用并在 CI 中经常测试的。
 :::
 
-Continuous CI coverage comes from the GitHub Actions runners we build on:
+我们在以下 GitHub Actions runner 镜像上维护持续的 CI 覆盖：
 
-- `Linux (Ubuntu)` builds currently pin to `ubuntu-22.04` to keep glibc 2.35 compatibility even as `ubuntu-latest` moves ahead.
-- `macOS (ARM64)` builds run on `macos-latest`, so support tracks that runner image as it moves ahead.
-- `Windows (x86_64)` builds run on `windows-latest`, so support tracks that runner image as it moves ahead.
+- `Linux (Ubuntu)` 的构建目前固定使用 `ubuntu-22.04`，以保持与 glibc 2.35 的兼容性（即便 `ubuntu-latest` 在前进）。
+- `macOS (ARM64)` 的构建运行在 `macos-latest`，因此支持会随该 runner 镜像更新而跟进。
+- `Windows (x86_64)` 的构建运行在 `windows-latest`，支持同样随该 runner 镜像更新而跟进。
 
-On Linux, confirm your glibc version with `ldd --version` and ensure it reports 2.35 or newer before proceeding.
+在 Linux 上，请先使用 `ldd --version` 确认你的 glibc 版本为 2.35 或更新的版本，然后再继续安装。
 
-We recommend using the latest supported version of Python and installing [nautilus_trader](https://pypi.org/project/nautilus_trader/) inside a virtual environment to isolate dependencies.
+我们建议使用受支持的最新 Python 版本，并在虚拟环境中安装 [nautilus_trader](https://pypi.org/project/nautilus_trader/)，以隔离依赖。
 
-**There are two supported ways to install**:
+**目前有两种受支持的安装方式**：
 
-1. Pre-built binary wheel from PyPI _or_ the Nautech Systems package index.
-2. Build from source.
+1. 从 PyPI 或 Nautech Systems 包索引安装预构建的二进制 wheel。
+2. 从源码构建并安装。
 
 :::tip
-We highly recommend installing using the [uv](https://docs.astral.sh/uv) package manager with a "vanilla" CPython.
+我们强烈建议使用 [uv](https://docs.astral.sh/uv) 包管理器并配合“原生”CPython（vanilla CPython）进行安装。
 
-Conda and other Python distributions _may_ work but aren’t officially supported.
+Conda 和其它 Python 发行版可能可用，但不在官方支持范围内。
 :::
 
-## From PyPI
+## 从 PyPI 安装
 
-To install the latest [nautilus_trader](https://pypi.org/project/nautilus_trader/) binary wheel (or sdist package) from PyPI using Python's pip package manager:
+使用 Python 的 pip 包管理器从 PyPI 安装最新的 `nautilus_trader` 二进制 wheel（或 sdist）：
 
 ```bash
 pip install -U nautilus_trader
 ```
 
-## Extras
+## 可选扩展（Extras）
 
-Install optional dependencies as 'extras' for specific integrations:
+为特定集成安装可选依赖（extras）：
 
-- `betfair`: Betfair adapter (integration) dependencies.
-- `docker`: Needed for Docker when using the IB gateway (with the Interactive Brokers adapter).
-- `dydx`: dYdX adapter (integration) dependencies.
-- `ib`: Interactive Brokers adapter (integration) dependencies.
-- `polymarket`: Polymarket adapter (integration) dependencies.
+- `betfair`：Betfair 适配器相关依赖。
+- `docker`：在使用 IB gateway（Interactive Brokers 适配器）且需要 Docker 时使用。
+- `dydx`：dYdX 适配器相关依赖。
+- `ib`：Interactive Brokers 适配器相关依赖。
+- `polymarket`：Polymarket 适配器相关依赖。
 
-To install with specific extras using pip:
+使用 pip 安装包含特定 extras 的包示例：
 
 ```bash
 pip install -U "nautilus_trader[docker,ib]"
 ```
 
-## From the Nautech Systems package index
+## 从 Nautech Systems 包索引安装
 
-The Nautech Systems package index (`packages.nautechsystems.io`) complies with [PEP-503](https://peps.python.org/pep-0503/) and hosts both stable and development binary wheels for `nautilus_trader`.
-This enables users to install either the latest stable release or pre-release versions for testing.
+Nautech Systems 的包索引（`packages.nautechsystems.io`）遵循 [PEP-503](https://peps.python.org/pep-0503/)，托管了 `nautilus_trader` 的稳定与开发二进制 wheel。
+用户可以选择安装最新的稳定发布，或安装预发布（development）版本以便测试。
 
-### Stable wheels
+### 稳定版本（Stable wheels）
 
-Stable wheels correspond to official releases of `nautilus_trader` on PyPI, and use standard versioning.
+稳定 wheel 对应 PyPI 上的官方发布，并遵循标准版本规则。
 
-To install the latest stable release:
+安装最新稳定版本：
 
 ```bash
 pip install -U nautilus_trader --index-url=https://packages.nautechsystems.io/simple
 ```
 
 :::tip
-Use `--extra-index-url` instead of `--index-url` if you want pip to fall back to PyPI automatically:
+如果希望在主索引上回退到 PyPI，请使用 `--extra-index-url` 而不是 `--index-url`：
 
 :::
 
-### Development wheels
+### 开发版本（Development wheels）
 
-Development wheels are published from both the `nightly` and `develop` branches,
-allowing users to test features and fixes ahead of stable releases.
+开发版本的 wheels 来自 `nightly` 与 `develop` 分支，允许用户在稳定发布之前测试功能与修复。
 
-This process also helps preserve compute resources and provides easy access to the exact binaries tested in CI pipelines,
-while adhering to [PEP-440](https://peps.python.org/pep-0440/) versioning standards:
+这种做法有助于节省构建资源，并能方便地获取 CI 中测试过的二进制文件，同时遵循 [PEP-440](https://peps.python.org/pep-0440/) 的版本规范：
 
-- `develop` wheels use the version format `dev{date}+{build_number}` (e.g., `1.208.0.dev20241212+7001`).
-- `nightly` wheels use the version format `a{date}` (alpha) (e.g., `1.208.0a20241212`).
+- `develop` 构建以 `dev{date}+{build_number}` 格式发布（例如 `1.208.0.dev20241212+7001`）。
+- `nightly` 构建以 `a{date}`（alpha）格式发布（例如 `1.208.0a20241212`）。
 
-| Platform           | Nightly | Develop |
+| 平台               | Nightly | Develop |
 | :----------------- | :------ | :------ |
 | `Linux (x86_64)`   | ✓       | ✓       |
 | `Linux (ARM64)`    | ✓       | -       |
 | `macOS (ARM64)`    | ✓       | ✓       |
 | `Windows (x86_64)` | ✓       | ✓       |
 
-**Note**: Development wheels from the `develop` branch publish for every supported platform except Linux ARM64.
-Skipping that target keeps CI feedback fast while avoiding unnecessary build resource usage.
+**注意**：`develop` 分支的开发构建会为除 Linux ARM64 外的所有受支持平台发布，以加快 CI 反馈并避免不必要的构建资源消耗。
 
 :::warning
-We do not recommend using development wheels in production environments, such as live trading controlling real capital.
+我们不建议在生产环境（例如真实资本的实盘交易）中使用开发版本的 wheels。
 :::
 
-### Installation commands
+### 安装命令
 
-By default, pip will install the latest stable release. Adding the `--pre` flag ensures that pre-release versions, including development wheels, are considered.
+默认情况下，pip 会安装最新的稳定发布。若要包含预发布版本（例如开发构建），可以添加 `--pre` 标志。
 
-To install the latest available pre-release (including development wheels):
+安装最新可用的预发布版本（包括开发构建）：
 
 ```bash
 pip install -U nautilus_trader --pre --index-url=https://packages.nautechsystems.io/simple
 ```
 
-To install a specific development wheel (e.g., `1.221.0a20250912` for September 12, 2025):
+安装指定的开发构建示例（例如 2025-09-12 的 `1.221.0a20250912`）：
 
 ```bash
 pip install nautilus_trader==1.221.0a20250912 --index-url=https://packages.nautechsystems.io/simple
 ```
 
-### Available versions
+### 可用版本查询
 
-You can view all available versions of `nautilus_trader` on the [package index](https://packages.nautechsystems.io/simple/nautilus-trader/index.html).
+你可以在该 [package index 页面](https://packages.nautechsystems.io/simple/nautilus-trader/index.html) 查看所有可用的 `nautilus_trader` 版本。
 
-To programmatically request and list available versions:
+通过脚本方式列出可用版本示例：
 
 ```bash
 curl -s https://packages.nautechsystems.io/simple/nautilus-trader/index.html | grep -oP '(?&lt;=<a href="))[^"]+(?=")' | awk -F'#' '{print $1}' | sort
 ```
 
-### Branch updates
+### 分支发布策略
 
-- `develop` branch wheels (`.dev`): Build and publish continuously with every merged commit.
-- `nightly` branch wheels (`a`): Build and publish daily when we automatically merge the `develop` branch at **14:00 UTC** (if there are changes).
+- `develop` 分支构建（`.dev`）：每次合并提交后持续构建并发布。
+- `nightly` 分支构建（`a`）：在我们自动将 `develop` 合并（若有变更）时每日发布，发布时间为 **14:00 UTC**。
 
-### Retention policies
+### 保留策略
 
-- `develop` branch wheels (`.dev`): We retain only the most recent wheel build.
-- `nightly` branch wheels (`a`): We retain only the 30 most recent wheel builds.
+- `develop` 分支构建（`.dev`）：仅保留最近一次的 wheel 构建。
+- `nightly` 分支构建（`a`）：仅保留最近 30 个 wheel 构建。
 
-## From source
+## 从源码安装
 
-It's possible to install from source using pip if you first install the build dependencies as specified in the `pyproject.toml`.
+如果先安装 `pyproject.toml` 中列出的构建依赖，也可以使用 pip 从源码安装。
 
-1. Install [rustup](https://rustup.rs/) (the Rust toolchain installer):
-   - Linux and macOS:
+1. 安装 [rustup](https://rustup.rs/)（Rust 工具链安装器）：
+   - Linux 和 macOS：
 
 ```bash
 curl https://sh.rustup.rs -sSf | sh
 ```
 
-- Windows:
-  - Download and install [`rustup-init.exe`](https://win.rustup.rs/x86_64)
-  - Install "Desktop development with C++" using [Build Tools for Visual Studio 2022](https://visualstudio.microsoft.com/visual-cpp-build-tools/)
-- Verify (any system):
-  from a terminal session run: `rustc --version`
+- Windows：
+  - 下载并安装 [`rustup-init.exe`](https://win.rustup.rs/x86_64)
+  - 使用 [Visual Studio 2022 的 Build Tools](https://visualstudio.microsoft.com/visual-cpp-build-tools/) 安装“Desktop development with C++”组件
+- 验证（任意系统）：在终端中运行 `rustc --version`
 
-2. Enable `cargo` in the current shell:
-   - Linux and macOS:
+1. 在当前 shell 中启用 `cargo`：
+   - Linux 和 macOS：
 
 ```bash
 source $HOME/.cargo/env
 ```
 
-- Windows:
+- Windows：
 
-  - Start a new PowerShell
+  - 启动一个新的 PowerShell
 
-    1.  Install [clang](https://clang.llvm.org/) (a C language frontend for LLVM):
+    1. 安装 [clang](https://clang.llvm.org/)（LLVM 的 C 语言前端）：
 
-- Linux:
+- Linux：
 
 ```bash
 sudo apt-get install clang
 ```
 
-- Windows:
+- Windows：
 
-1. Add Clang to your [Build Tools for Visual Studio 2022](https://visualstudio.microsoft.com/visual-cpp-build-tools/):
+1. 在 Visual Studio 安装程序中为 Build Tools 添加 Clang：
 
-- Start | Visual Studio Installer | Modify | C++ Clang tools for Windows (latest) = checked | Modify
+- 打开：Start | Visual Studio Installer | Modify | 勾选 “C++ Clang tools for Windows (latest)” 并修改安装
 
-2. Enable `clang` in the current shell:
+1. 在当前 shell 中将 Clang 加入 PATH：
 
 ```powershell
 [System.Environment]::SetEnvironmentVariable('path', "C:\Program Files\Microsoft Visual Studio\2022\BuildTools\VC\Tools\Llvm\x64\bin\;" + $env:Path,"User")
 ```
 
-- Verify (any system):
-  from a terminal session run:
+- 验证（任意系统）：在终端中运行：
 
 ```bash
 clang --version
 ```
 
-3. Install uv (see the [uv installation guide](https://docs.astral.sh/uv/getting-started/installation) for more details):
+1. 安装 uv（详见 [uv 安装指南](https://docs.astral.sh/uv/getting-started/installation)）：
 
-   - Linux and macOS:
+   - Linux 和 macOS：
 
 ```bash
 curl -LsSf https://astral.sh/uv/install.sh | sh
 ```
 
-- Windows (PowerShell):
+- Windows（PowerShell）：
 
 ```powershell
 irm https://astral.sh/uv/install.ps1 | iex
 ```
 
-4. Clone the source with `git`, and install from the project's root directory:
+1. 使用 `git` 克隆源码并在项目根目录安装：
 
 ```bash
 git clone --branch develop --depth 1 https://github.com/nautechsystems/nautilus_trader
@@ -217,120 +212,116 @@ uv sync --all-extras
 ```
 
 :::note
-The `--depth 1` flag fetches just the latest commit for a faster, lightweight clone.
+`--depth 1` 标志只获取最新的提交，以便快速且精简地克隆仓库。
 :::
 
-5. Set environment variables for PyO3 compilation (Linux and macOS only):
+1. 为 PyO3 编译设置环境变量（仅限 Linux 和 macOS）：
 
 ```bash
-# Set the library path for the Python interpreter (in this case Python 3.13.4)
+# 为 Python 解释器设置库路径（此处示例为 Python 3.13.4）
 export LD_LIBRARY_PATH="$HOME/.local/share/uv/python/cpython-3.13.4-linux-x86_64-gnu/lib:$LD_LIBRARY_PATH"
 
-# Set the Python executable path for PyO3
+# 为 PyO3 指定 Python 可执行文件路径
 export PYO3_PYTHON=$(pwd)/.venv/bin/python
 ```
 
 :::note
-Adjust the Python version and architecture in the `LD_LIBRARY_PATH` to match your system.
-Use `uv python list` to find the exact path for your Python installation.
+根据你的系统调整 `LD_LIBRARY_PATH` 中的 Python 版本与架构。
+使用 `uv python list` 来查找你安装的 Python 的精确路径。
 :::
 
-## From GitHub release
+## 从 GitHub release 安装
 
-To install a binary wheel from GitHub, first navigate to the [latest release](https://github.com/nautechsystems/nautilus_trader/releases/latest).
-Download the appropriate `.whl` for your operating system and Python version, then run:
+要从 GitHub 安装二进制 wheel，请先打开 [最新发布页面](https://github.com/nautechsystems/nautilus_trader/releases/latest)，
+下载与你的操作系统和 Python 版本匹配的 `.whl` 文件，然后运行：
 
 ```bash
 pip install <file-name>.whl
 ```
 
-## Versioning and releases
+## 版本与发布策略
 
-NautilusTrader is still under active development. Some features may be incomplete, and while
-the API is becoming more stable, breaking changes can occur between releases.
-We strive to document these changes in the release notes on a **best-effort basis**.
+NautilusTrader 仍在积极开发中。部分功能可能尚未完成，且尽管 API 日益稳定，仍可能在各版本之间发生破坏性变更。
+我们会尽最大努力在发布说明中记录变更，但不保证完全覆盖。
 
-We aim to follow a **weekly release schedule**, though experimental or larger features may cause delays.
+我们通常以 **每周发布** 为目标，但大型或实验性功能可能会导致发布时间延后。
 
-Use NautilusTrader only if you are prepared to adapt to these changes.
+请在愿意适应这些变化的前提下使用 NautilusTrader。
 
 ## Redis
 
-Using [Redis](https://redis.io) with NautilusTrader is **optional** and only required if configured as the backend for a cache database or [message bus](../concepts/message_bus.md).
+在 NautilusTrader 中使用 [Redis](https://redis.io) 是 **可选的**，仅在你将其配置为缓存数据库或 [message bus](../concepts/message_bus.md) 的后端时才需要。
 
 :::info
-The minimum supported Redis version is 6.2 (required for [streams](https://redis.io/docs/latest/develop/data-types/streams/) functionality).
+最低支持的 Redis 版本为 6.2（需要支持 [streams](https://redis.io/docs/latest/develop/data-types/streams/) 功能）。
 :::
 
-For a quick setup, we recommend using a [Redis Docker container](https://hub.docker.com/_/redis/). You can find an example setup in the `.docker` directory,
-or run the following command to start a container:
+我们建议快速启动时使用 [Redis Docker 镜像](https://hub.docker.com/_/redis/)。仓库中的 `.docker` 目录含有示例配置，或可运行下面命令启动容器：
 
 ```bash
 docker run -d --name redis -p 6379:6379 redis:latest
 ```
 
-This command will:
+该命令将会：
 
-- Pull the latest version of Redis from Docker Hub if it's not already downloaded.
-- Run the container in detached mode (`-d`).
-- Name the container `redis` for easy reference.
-- Expose Redis on the default port 6379, making it accessible to NautilusTrader on your machine.
+- 如果本地未下载，则从 Docker Hub 拉取最新版 Redis。
+- 以分离模式（`-d`）运行容器。
+- 将容器命名为 `redis`，便于管理。
+- 暴露默认端口 6379，使 NautilusTrader 可在本机访问 Redis。
 
-To manage the Redis container:
+管理 Redis 容器示例：
 
-- Start it with `docker start redis`
-- Stop it with `docker stop redis`
+- 启动：`docker start redis`
+- 停止：`docker stop redis`
 
 :::tip
-We recommend using [Redis Insight](https://redis.io/insight/) as a GUI to visualize and debug Redis data efficiently.
+我们推荐使用 [Redis Insight](https://redis.io/insight/) 作为 GUI，用于高效可视化和调试 Redis 数据。
 :::
 
-## Precision mode
+## 精度模式（Precision mode）
 
-NautilusTrader supports two precision modes for its core value types (`Price`, `Quantity`, `Money`),
-which differ in their internal bit-width and maximum decimal precision.
+NautilusTrader 对核心数值类型（`Price`、`Quantity`、`Money`）支持两种精度模式，它们在内部位宽与最大小数位数上有所区别：
 
-- **High-precision**: 128-bit integers with up to 16 decimals of precision, and a larger value range.
-- **Standard-precision**: 64-bit integers with up to 9 decimals of precision, and a smaller value range.
+- **高精度（High-precision）**：使用 128 位整数，最高支持 16 位小数，且数值范围更大。
+- **标准精度（Standard-precision）**：使用 64 位整数，最高支持 9 位小数，且数值范围较小。
 
 :::note
-By default, the official Python wheels **ship** in high-precision (128-bit) mode on Linux and macOS.
-On Windows, only standard-precision (64-bit) is available due to the lack of native 128-bit integer support.
+默认情况下，官方的 Python wheel 在 Linux 与 macOS 上以高精度（128-bit）模式发布。
+由于 Windows 对原生 128 位整数支持不足，Windows 上仅提供标准精度（64-bit）。
 
-For the Rust crates, the default is standard-precision unless you explicitly enable the `high-precision` feature flag.
+对于 Rust crates，默认使用标准精度，除非你显式启用 `high-precision` 功能标志（feature flag）。
 :::
 
-The performance tradeoff is that standard-precision is ~3–5% faster in typical backtests,
-but has lower decimal precision and a smaller representable value range.
+标准精度通常在典型回测中能带来约 3–5% 的性能提升，但会降低小数精度并缩小可表示的数值范围。
 
 :::note
-Performance benchmarks comparing the modes are pending.
+关于不同模式的性能基准测试尚在进行中。
 :::
 
-### Build configuration
+### 构建配置
 
-The precision mode is determined by:
+精度模式由以下方式决定：
 
-- Setting the `HIGH_PRECISION` environment variable during compilation, **and/or**
-- Enabling the `high-precision` Rust feature flag explicitly.
+- 在编译时设置 `HIGH_PRECISION` 环境变量，**和/或**
+- 在 Rust 层显式启用 `high-precision` 功能标志。
 
-#### High-precision mode (128-bit)
+#### 高精度模式（128-bit）
 
 ```bash
 export HIGH_PRECISION=true
 make install-debug
 ```
 
-#### Standard-precision mode (64-bit)
+#### 标准精度模式（64-bit）
 
 ```bash
 export HIGH_PRECISION=false
 make install-debug
 ```
 
-### Rust feature flag
+### Rust 功能标志
 
-To enable high-precision (128-bit) mode in Rust, add the `high-precision` feature to your `Cargo.toml`:
+要在 Rust 中启用高精度（128-bit）模式，请在 `Cargo.toml` 中为相关依赖添加 `high-precision` 特性：
 
 ```toml
 [dependencies]
@@ -338,5 +329,5 @@ nautilus_core = { version = "*", features = ["high-precision"] }
 ```
 
 :::info
-See the [Value Types](../concepts/overview.md#value-types) specifications for more details.
+有关更多细节，请参见 [Value Types](../concepts/overview.md#value-types) 规范。
 :::
