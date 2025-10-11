@@ -1,29 +1,28 @@
-# Backtest (high-level API)
+# 回测（高级 API）
 
-Tutorial for [NautilusTrader](https://nautilustrader.io/docs/) a high-performance algorithmic trading platform and event driven backtester.
+本教程针对 NautilusTrader（高性能的算法交易平台与事件驱动的回测器），演示如何使用其高级 API 进行回测。
 
-[View source on GitHub](https://github.com/nautechsystems/nautilus_trader/blob/develop/docs/getting_started/backtest_high_level.ipynb).
+[在 GitHub 查看源码](https://github.com/nautechsystems/nautilus_trader/blob/develop/docs/getting_started/backtest_high_level.ipynb)。
 
-## Overview
+## 概述
 
-This tutorial walks through how to use a `BacktestNode` to backtest a simple EMA cross strategy
-on a simulated FX ECN venue using historical quote tick data.
+本教程将展示如何使用 `BacktestNode`，利用历史报价（quote tick）数据在模拟的 FX ECN 交易场景上回测一个简单的 EMA（指数移动平均）交叉策略。
 
-The following points will be covered:
+本教程将涵盖以下内容：
 
-- Load raw data (external to Nautilus) into the data catalog.
-- Set up configuration objects for a `BacktestNode`.
-- Run backtests with a `BacktestNode`.
+- 将原始数据（外部于 Nautilus）导入数据目录（data catalog）。
+- 为 `BacktestNode` 配置所需的配置对象。
+- 使用 `BacktestNode` 运行回测并查看结果。
 
-## Prerequisites
+## 前置条件
 
-- Python 3.11+ installed.
-- [JupyterLab](https://jupyter.org/) or similar installed (`pip install -U jupyterlab`).
-- [NautilusTrader](https://pypi.org/project/nautilus_trader/) latest release installed (`pip install -U nautilus_trader`).
+- 已安装 Python 3.11+。
+- 已安装 JupyterLab 或同类工具（可用 `pip install -U jupyterlab` 安装）。
+- 已安装最新版本的 NautilusTrader（可用 `pip install -U nautilus_trader` 安装）。
 
-## Imports
+## 导入（Imports）
 
-We'll start with all of our imports for the remainder of this tutorial.
+下面列出本教程余下部分所需的全部 import：
 
 ```python
 import shutil
@@ -46,19 +45,19 @@ from nautilus_trader.test_kit.providers import CSVTickDataLoader
 from nautilus_trader.test_kit.providers import TestInstrumentProvider
 ```
 
-As a one-off before we start the notebook, we need to download some sample data for backtesting.
+在开始 notebook 之前，需要先下载一些示例数据以便用于回测。
 
-For this example we will use FX data from `histdata.com`. Simply go to [https://www.histdata.com/download-free-forex-historical-data/?/ascii/tick-data-quotes/](https://www.histdata.com/download-free-forex-historical-data/?/ascii/tick-data-quotes/) and select an FX pair, then select one or more months of data to download.
+在本示例中我们使用来自 histdata.com 的外汇（FX）数据。访问 [histdata 的下载页面](https://www.histdata.com/download-free-forex-historical-data/?/ascii/tick-data-quotes/)，选择一个货币对并下载一个或多个月的数据。
 
-Examples of downloaded files:
+示例下载文件：
 
-- `DAT_ASCII_EURUSD_T_202410.csv` (EUR\USD data for month 2024-10)
-- `DAT_ASCII_EURUSD_T_202411.csv` (EUR\USD data for month 2024-11)
+- `DAT_ASCII_EURUSD_T_202410.csv`（2024 年 10 月的 EUR/USD 数据）
+- `DAT_ASCII_EURUSD_T_202411.csv`（2024 年 11 月的 EUR/USD 数据）
 
-Once you have downloaded the data:
+下载数据后：
 
-1. Copy files like the ones above into one folder—for example `~/Downloads/Data/` (by default, it will use the user's `Downloads/Data/` directory).
-2. Set the `DATA_DIR` variable below to the directory containing the data.
+1. 把上述类似的文件复制到一个文件夹，例如 `~/Downloads/Data/`（默认会使用用户的 `Downloads/Data/` 目录）。
+2. 将下面的 `DATA_DIR` 变量设置为包含数据的目录。
 
 ```python
 DATA_DIR = "~/Downloads/Data/"
@@ -71,15 +70,15 @@ assert raw_files, f"Unable to find any histdata files in directory {path}"
 raw_files
 ```
 
-## Loading data into the Parquet data catalog
+## 将数据加载到 Parquet 数据目录
 
-Histdata stores the FX data in CSV/text format with fields `timestamp, bid_price, ask_price`.
-First, load this raw data into a `pandas.DataFrame` with a schema compatible with Nautilus quotes.
+Histdata 将外汇数据以 CSV/text 格式存储，字段通常为 `timestamp, bid_price, ask_price`。
+首先把这些原始数据加载为与 Nautilus 报价兼容的 `pandas.DataFrame`。
 
-Then create Nautilus `QuoteTick` objects by processing the DataFrame with a `QuoteTickDataWrangler`.
+随后使用 `QuoteTickDataWrangler` 对 DataFrame 进行处理，生成 Nautilus 的 `QuoteTick` 对象。
 
 ```python
-# Here we just take the first data file found and load into a pandas DataFrame
+# 这里我们只读取找到的第一个数据文件并加载为 pandas DataFrame
 df = CSVTickDataLoader.load(
     file_path=raw_files[0],                                   # Input 1st CSV file
     index_col=0,                                              # Use 1st column in data as index for dataframe
@@ -90,74 +89,74 @@ df = CSVTickDataLoader.load(
     date_format="%Y%m%d %H%M%S%f",                            # Format for parsing datetime
 )
 
-# Let's make sure data are sorted by timestamp
+# 确保数据按时间戳排序
 df = df.sort_index()
 
-# Preview of loaded dataframe
+# 预览已加载的数据框（前两行）
 df.head(2)
 ```
 
 ```python
-# Process quotes using a wrangler
+# 使用 wrangler 处理报价数据
 EURUSD = TestInstrumentProvider.default_fx_ccy("EUR/USD")
 wrangler = QuoteTickDataWrangler(EURUSD)
 
 ticks = wrangler.process(df)
 
-# Preview: see first 2 ticks
+# 预览：查看前 2 条 tick
 ticks[0:2]
 ```
 
-See the [Loading data](../concepts/data) guide for further details.
+更多关于数据加载的细节，请参见 [Loading data](../concepts/data) 指南。
 
-Next, instantiate a `ParquetDataCatalog` (pass in a directory to store the data; by default we use the current directory).
-Write the instrument and tick data to the catalog. Loading the data should only take a couple of minutes, depending on how many months you include.
+接下来，实例化一个 `ParquetDataCatalog`（传入一个目录用来存放数据；默认会使用当前目录）。
+然后把 instrument 和 tick 数据写入 catalog。根据你包含的数据月份数量，加载过程通常只需要几分钟。
 
 ```python
 CATALOG_PATH = Path.cwd() / "catalog"
 
-# Clear if it already exists, then create fresh
+# 如果目录已存在则先删除，再创建一个新的
 if CATALOG_PATH.exists():
     shutil.rmtree(CATALOG_PATH)
 CATALOG_PATH.mkdir(parents=True)
 
-# Create a catalog instance
+# 创建 catalog 实例
 catalog = ParquetDataCatalog(CATALOG_PATH)
 
-# Write instrument to the catalog
+# 写入 instrument 到 catalog
 catalog.write_data([EURUSD])
 
-# Write ticks to catalog
+# 写入 ticks 到 catalog
 catalog.write_data(ticks)
 ```
 
-## Using the Data Catalog
+## 使用数据目录
 
-After you load data into the catalog, use the `catalog` instance to load data for backtests or research.
-It contains various methods to pull data from the catalog, such as `.instruments(...)` and `quote_ticks(...)` (shown below).
+数据写入 catalog 后，可以使用 `catalog` 实例来为回测或研究加载数据。
+它提供了多种方法来从目录中提取数据，例如 `.instruments(...)` 和 `quote_ticks(...)`（示例如下）。
 
 ```python
-# Get list of all instruments in catalog
+# 获取 catalog 中的所有 instruments 列表
 catalog.instruments()
 ```
 
 ```python
-# See 1st instrument from catalog
+# 查看 catalog 的第 1 个 instrument
 instrument = catalog.instruments()[0]
 instrument
 ```
 
 ```python
-# Query quote-ticks from catalog
+# 从 catalog 中查询 quote-ticks
 start = dt_to_unix_nanos(pd.Timestamp("2024-10-01", tz="UTC"))
 end =  dt_to_unix_nanos(pd.Timestamp("2024-10-15", tz="UTC"))
 selected_quote_ticks = catalog.quote_ticks(instrument_ids=[EURUSD.id.value], start=start, end=end)
 
-# Preview first
+# 预览前几条
 selected_quote_ticks[:2]
 ```
 
-## Add venues
+## 添加交易场所（venues）
 
 ```python
 venue_configs = [
@@ -171,7 +170,7 @@ venue_configs = [
 ]
 ```
 
-## Add data
+## 添加数据配置
 
 ```python
 str(CATALOG_PATH)
@@ -189,7 +188,7 @@ data_configs = [
 ]
 ```
 
-## Add strategies
+## 添加策略
 
 ```python
 strategies = [
@@ -207,11 +206,10 @@ strategies = [
 ]
 ```
 
-## Configure backtest
+## 配置回测
 
-Nautilus uses a `BacktestRunConfig` object to centralize backtest configuration.
-The `BacktestRunConfig` is Partialable, so you can configure it in stages.
-This design reduces boilerplate when you create multiple backtest runs (for example when performing a parameter grid search).
+Nautilus 使用 `BacktestRunConfig` 对象来集中管理回测配置。
+`BacktestRunConfig` 支持分阶段配置（Partialable），因此你可以逐步构建配置对象，便于在需要进行参数网格搜索等多次回测时减少样板代码。
 
 ```python
 config = BacktestRunConfig(
@@ -221,9 +219,9 @@ config = BacktestRunConfig(
 )
 ```
 
-## Run backtest
+## 运行回测
 
-Now we can run the backtest node, which will simulate trading across the entire data stream.
+现在可以运行回测节点（BacktestNode），它会在整个数据流上模拟交易过程。
 
 ```python
 node = BacktestNode(configs=[config])
