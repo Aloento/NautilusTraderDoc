@@ -9,19 +9,18 @@ Tutorial for [NautilusTrader](https://nautilustrader.io/docs/) a high-performanc
 This quickstart tutorial shows you how to get up and running with NautilusTrader backtesting using FX data.
 To support this, we provide pre-loaded test data in the standard Nautilus persistence format (Parquet).
 
-
 ## Prerequisites
+
 - Python 3.11+ installed.
 - [NautilusTrader](https://pypi.org/project/nautilus_trader/) latest release installed (`pip install -U nautilus_trader`).
 - [JupyterLab](https://jupyter.org/) or similar installed (`pip install -U jupyterlab`).
 
 ## 1. Get sample data
 
-To save time, we have prepared sample data in the Nautilus format for use with this example. 
+To save time, we have prepared sample data in the Nautilus format for use with this example.
 Run the next cell to download and set up the data (this should take ~ 1-2 mins).
 
 For further details on how to load data into Nautilus, see [Loading External Data](https://nautilustrader.io/docs/latest/concepts/data#loading-data) guide.
-
 
 ```python
 import os
@@ -108,7 +107,6 @@ finally:
     print(f"Changed back to: {os.getcwd()}")
 ```
 
-
 ```python
 from nautilus_trader.backtest.node import BacktestDataConfig
 from nautilus_trader.backtest.node import BacktestEngineConfig
@@ -125,7 +123,6 @@ from nautilus_trader.persistence.catalog import ParquetDataCatalog
 ## 2. Set up a Parquet data catalog
 
 If everything worked correctly, you should be able to see a single EUR/USD instrument in the catalog.
-
 
 ```python
 # Load the catalog from the project root directory
@@ -149,8 +146,6 @@ else:
 NautilusTrader includes many built-in indicators. In this example we use the MACD indicator to build a simple trading strategy.
 
 You can read more about [MACD here](https://www.investopedia.com/terms/m/macd.asp); this indicator merely serves as an example without any expected alpha. You can also register indicators to receive certain data types; however, in this example we manually pass the received `QuoteTick` to the indicator in the `on_quote_tick` method.
-
-
 
 ```python
 from nautilus_trader.core.message import Event
@@ -295,7 +290,6 @@ class MACDStrategy(Strategy):
 ### Enhanced Strategy with Stop-Loss and Take-Profit
 
 The basic MACD strategy above will now generate trades. For better risk management, here's an enhanced version with stop-loss and take-profit orders:
-
 
 ```python
 from nautilus_trader.model.objects import Price
@@ -484,8 +478,6 @@ To configure a `BacktestNode`, we first need to create an instance of a `Backtes
 
 There are many more configurable features described later in the docs; for now this will get us up and running.
 
-
-
 ```python
 venue = BacktestVenueConfig(
     name="SIM",
@@ -500,7 +492,6 @@ venue = BacktestVenueConfig(
 
 We need to know about the instruments that we would like to load data for, we can use the `ParquetDataCatalog` for this.
 
-
 ```python
 instruments = catalog.instruments()
 instruments
@@ -509,8 +500,6 @@ instruments
 Next, configure the data for the backtest. Nautilus provides a flexible data-loading system for backtests, but that flexibility requires some configuration.
 
 For each tick type (and instrument), we add a `BacktestDataConfig`. In this instance we are simply adding the `QuoteTick`(s) for our EUR/USD instrument:
-
-
 
 ```python
 from nautilus_trader.model import QuoteTick
@@ -530,8 +519,6 @@ Create a `BacktestEngineConfig` to represent the configuration of our core tradi
 Pass in your trading strategies, adjust the log level as needed, and configure any other components (the defaults are fine too).
 
 Add strategies via the `ImportableStrategyConfig`, which enables importing strategies from arbitrary files or user packages. In this instance our `MACDStrategy` lives in the current module, which Python refers to as `__main__`.
-
-
 
 ```python
 # NautilusTrader currently exceeds the rate limit for Jupyter notebook logging (stdout output),
@@ -559,9 +546,8 @@ engine = BacktestEngineConfig(
 
 ## 7. Run backtest
 
-We can now pass our various config pieces to the `BacktestRunConfig`. This object now contains the 
+We can now pass our various config pieces to the `BacktestRunConfig`. This object now contains the
 full configuration for our backtest.
-
 
 ```python
 config = BacktestRunConfig(
@@ -572,8 +558,6 @@ config = BacktestRunConfig(
 ```
 
 The `BacktestNode` class orchestrates the backtest run. This separation between configuration and execution enables the `BacktestNode` to run multiple configurations (different parameters or batches of data). We are now ready to run some backtests.
-
-
 
 ```python
 from nautilus_trader.backtest.results import BacktestResult
@@ -588,24 +572,24 @@ results: list[BacktestResult] = node.run()
 ### Expected Output
 
 When you run the backtest with the improved MACD strategy, you should see:
+
 - **Actual trades being executed** (both BUY and SELL orders).
 - **Positions being opened and closed** with proper exit logic.
 - **P&L calculations** showing wins and losses.
 - **Performance metrics** including win rate, profit factor, and additional statistics.
 
 If you're not seeing any trades, check:
+
 1. The data time range (you may need more data).
 2. The threshold parameters (they might be too restrictive).
 3. The indicator warm-up period (MACD needs time to initialize).
 
-
 ## 8. Analyze results
 
 Now that the run is complete, we can also directly query for the `BacktestEngine`(s) used internally by the `BacktestNode`
-by using the run configs ID. 
+by using the run configs ID.
 
 The engine(s) can provide additional reports and information.
-
 
 ```python
 from nautilus_trader.backtest.engine import BacktestEngine
@@ -617,11 +601,9 @@ engine: BacktestEngine = node.get_engine(config.id)
 len(engine.trader.generate_order_fills_report())
 ```
 
-
 ```python
 engine.trader.generate_positions_report()
 ```
-
 
 ```python
 engine.trader.generate_account_report(Venue("SIM"))
@@ -630,7 +612,6 @@ engine.trader.generate_account_report(Venue("SIM"))
 ## 9. Performance Metrics
 
 Let's add some additional performance metrics to better understand how our strategy performed:
-
 
 ```python
 # Get performance statistics
@@ -688,7 +669,6 @@ else:
 print("\n=== FINAL ACCOUNT STATE ===")
 print(account.tail(1).to_string())
 ```
-
 
 ```python
 

@@ -24,7 +24,6 @@ This tutorial will walk through how to set up a Nautilus Parquet data catalog wi
 
 We'll use a Databento historical client for the rest of this tutorial. You can either initialize one by passing your Databento API key to the constructor, or implicitly use the `DATABENTO_API_KEY` environment variable (as shown).
 
-
 ```python
 import databento as db
 
@@ -33,6 +32,7 @@ client = db.Historical()  # This will use the DATABENTO_API_KEY environment vari
 ```
 
 **It's important to note that every historical streaming request from `timeseries.get_range` will incur a cost (even for the same data), therefore we need to**:
+
 - Know and understand the cost prior to making a request
 - Not make requests for the same data more than once (not efficient)
 - Persist the responses to disk by writing zstd compressed DBN files (so that we don't have to request again)
@@ -42,8 +42,7 @@ Each request sequence will first request the cost of the data, and then make a r
 
 Note the response returned is in USD, displayed as fractional cents.
 
-The following request is only for a small amount of data (as used in this Medium article [Building high-frequency trading signals in Python with Databento and sklearn](https://databento.com/blog/hft-sklearn-python)), just to demonstrate the basic workflow. 
-
+The following request is only for a small amount of data (as used in this Medium article [Building high-frequency trading signals in Python with Databento and sklearn](https://databento.com/blog/hft-sklearn-python)), just to demonstrate the basic workflow.
 
 ```python
 from pathlib import Path
@@ -53,12 +52,10 @@ from databento import DBNStore
 
 We'll prepare a directory for the raw Databento DBN format data, which we'll use for the rest of the tutorial.
 
-
 ```python
 DATABENTO_DATA_DIR = Path("databento")
 DATABENTO_DATA_DIR.mkdir(exist_ok=True)
 ```
-
 
 ```python
 # Request cost quote (USD) - this endpoint is 'free'
@@ -73,7 +70,6 @@ client.metadata.get_cost(
 ```
 
 Use the historical API to request for the data used in the Medium article.
-
 
 ```python
 path = DATABENTO_DATA_DIR / "es-front-glbx-mbp10.dbn.zst"
@@ -93,7 +89,6 @@ if not path.exists():
 
 Inspect the data by reading from disk and convert to a pandas.DataFrame
 
-
 ```python
 data = DBNStore.from_file(path)
 
@@ -103,7 +98,6 @@ df
 
 ## Write to data catalog
 
-
 ```python
 import shutil
 from pathlib import Path
@@ -112,7 +106,6 @@ from nautilus_trader.adapters.databento.loaders import DatabentoDataLoader
 from nautilus_trader.model import InstrumentId
 from nautilus_trader.persistence.catalog import ParquetDataCatalog
 ```
-
 
 ```python
 CATALOG_PATH = Path.cwd() / "catalog"
@@ -128,7 +121,6 @@ catalog = ParquetDataCatalog(CATALOG_PATH)
 
 Now that we've prepared the data catalog, we need a `DatabentoDataLoader` which we'll use to decode and load the data into Nautilus objects.
 
-
 ```python
 loader = DatabentoDataLoader()
 ```
@@ -136,7 +128,6 @@ loader = DatabentoDataLoader()
 Next, we'll load Rust pyo3 objects to write to the catalog (we could use legacy Cython objects, but this is slightly more efficient) by setting `as_legacy_cython=False`.
 
 Passing an `instrument_id` is optional but makes data loading faster as symbology mapping is not required. If provided, it must be in the valid Nautilus format of `symbol.venue` (e.g., "ES.GLBX").
-
 
 ```python
 path = DATABENTO_DATA_DIR / "es-front-glbx-mbp10.dbn.zst"
@@ -156,12 +147,10 @@ depth10 = loader.from_dbn_file(
 # )
 ```
 
-
 ```python
 # Write data to catalog (this takes ~20 seconds or ~250,000/second for writing MBP-10 at the moment)
 catalog.write_data(depth10)
 ```
-
 
 ```python
 # Test reading from catalog
@@ -172,7 +161,6 @@ len(depths)
 ## Preparing a month of AAPL trades
 
 Now we'll expand on this workflow by preparing a month of AAPL trades on the Nasdaq exchange using the Databento `trade` schema, which will translate to Nautilus `TradeTick` objects.
-
 
 ```python
 # Request cost quote (USD) - this endpoint is 'free'
@@ -185,7 +173,6 @@ client.metadata.get_cost(
 ```
 
 When requesting historical data with the Databento `Historical` data client, ensure you pass a `path` parameter to write the data to disk.
-
 
 ```python
 path = DATABENTO_DATA_DIR / "aapl-xnas-202401.trades.dbn.zst"
@@ -203,7 +190,6 @@ if not path.exists():
 
 Inspect the data by reading from disk and convert to a pandas.DataFrame
 
-
 ```python
 data = DBNStore.from_file(path)
 
@@ -214,7 +200,6 @@ df
 We'll use an `InstrumentId` of `"AAPL.XNAS"`, where XNAS is the ISO 10383 MIC (Market Identifier Code) for the Nasdaq venue.
 
 While passing an `instrument_id` to the loader isn't strictly necessary, it speeds up data loading by eliminating the need for symbology mapping. Additionally, setting the `as_legacy_cython` option to False further optimizes the process since we'll be writing the loaded data to the catalog. Although we could use legacy Cython objects, this method is more efficient for loading.
-
 
 ```python
 instrument_id = InstrumentId.from_str("AAPL.XNAS")
@@ -228,17 +213,14 @@ trades = loader.from_dbn_file(
 
 Here we'll organize our data as a file per month, this is an arbitrary choice as a file per day could be just as valid.
 
-
 ```python
 # Write data to catalog
 catalog.write_data(trades)
 ```
 
-
 ```python
 trades = catalog.trade_ticks([instrument_id])
 ```
-
 
 ```python
 len(trades)

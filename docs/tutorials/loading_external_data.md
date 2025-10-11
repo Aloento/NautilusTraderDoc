@@ -4,10 +4,7 @@ This tutorial demonstrates how to load external data into the `ParquetDataCatalo
 
 **Warning**:
 
-<div style="border:1px solid #ffcc00; padding:10px; margin-top:10px; margin-bottom:10px; background-color:#333333; color: #ffcc00;">
-Intended to be run on bare metal (not in the jupyterlab docker container)
-</div>
-
+> **Intended to be run on bare metal (not in the jupyterlab docker container)**
 
 ```python
 import os
@@ -32,11 +29,9 @@ from nautilus_trader.test_kit.providers import CSVTickDataLoader
 from nautilus_trader.test_kit.providers import TestInstrumentProvider
 ```
 
-
 ```python
 DATA_DIR = "~/Downloads/Data/"
 ```
-
 
 ```python
 path = Path(DATA_DIR).expanduser() / "HISTDATA"
@@ -44,7 +39,6 @@ raw_files = list(path.iterdir())
 assert raw_files, f"Unable to find any histdata files in directory {path}"
 raw_files
 ```
-
 
 ```python
 # Here we just take the first data file found and load into a pandas DataFrame
@@ -58,7 +52,6 @@ wrangler = QuoteTickDataWrangler(EURUSD)
 ticks = wrangler.process(df)
 ```
 
-
 ```python
 CATALOG_PATH = os.getcwd() + "/catalog"
 
@@ -71,19 +64,16 @@ os.mkdir(CATALOG_PATH)
 catalog = ParquetDataCatalog(CATALOG_PATH)
 ```
 
-
 ```python
 # Write instrument and ticks to catalog
 catalog.write_data([EURUSD])
 catalog.write_data(ticks)
 ```
 
-
 ```python
 # Fetch all instruments from catalog (as a check)
 catalog.instruments()
 ```
-
 
 ```python
 start = dt_to_unix_nanos(pd.Timestamp("2020-01-03", tz="UTC"))
@@ -92,7 +82,6 @@ end =  dt_to_unix_nanos(pd.Timestamp("2020-01-04", tz="UTC"))
 ticks = catalog.quote_ticks(instrument_ids=[EURUSD.id.value], start=start, end=end)
 ticks[:10]
 ```
-
 
 ```python
 instrument = catalog.instruments()[0]
@@ -139,18 +128,15 @@ config = BacktestRunConfig(
 
 ```
 
-
 ```python
 node = BacktestNode(configs=[config])
 
 [result] = node.run()
 ```
 
-
 ```python
 result
 ```
-
 
 ```python
 

@@ -22,7 +22,6 @@ This tutorial runs through how to set up a `BacktestEngine` (low-level API) for 
 
 We'll start with all of our imports for the remainder of this tutorial.
 
-
 ```python
 from decimal import Decimal
 
@@ -49,7 +48,6 @@ from nautilus_trader.test_kit.providers import TestInstrumentProvider
 
 ## Set up backtest engine
 
-
 ```python
 # Initialize a backtest configuration
 config = BacktestEngineConfig(
@@ -68,7 +66,6 @@ engine = BacktestEngine(config=config)
 
 We can optionally plug in a module to simulate rollover interest. The data is available from pre-packaged test data.
 
-
 ```python
 provider = TestDataProvider()
 interest_rate_data = provider.read_csv("short-term-interest.csv")
@@ -79,7 +76,6 @@ fx_rollover_interest = FXRolloverInterestModule(config=config)
 ## Add fill model
 
 For this backtest we'll use a simple probabilistic fill model.
-
 
 ```python
 fill_model = FillModel(
@@ -93,7 +89,6 @@ fill_model = FillModel(
 ## Add venue
 
 For this backtest we just need a single trading venue which will be a similated FX ECN.
-
 
 ```python
 SIM = Venue("SIM")
@@ -112,7 +107,6 @@ engine.add_venue(
 
 Now we can add instruments and data. For this backtest we'll pre-process bid and ask side bar data into quotes using a `QuoteTickDataWrangler`.
 
-
 ```python
 # Add instruments
 USDJPY_SIM = TestInstrumentProvider.default_fx_ccy("USD/JPY", SIM)
@@ -130,7 +124,6 @@ engine.add_data(ticks)
 ## Configure strategy
 
 Next we'll configure and initialize a simple `EMACross` strategy we'll use for the backtest.
-
 
 ```python
 # Configure your strategy
@@ -151,7 +144,6 @@ engine.add_strategy(strategy=strategy)
 
 We now have everything required to run the backtest. Once the engine has completed running through all the data, a post-analysis report will be logged.
 
-
 ```python
 engine.run()
 ```
@@ -160,16 +152,13 @@ engine.run()
 
 Additionally, we can produce various reports to further analyze the backtest result.
 
-
 ```python
 engine.trader.generate_account_report(SIM)
 ```
 
-
 ```python
 engine.trader.generate_order_fills_report()
 ```
-
 
 ```python
 engine.trader.generate_positions_report()

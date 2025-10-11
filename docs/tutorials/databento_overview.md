@@ -1,8 +1,8 @@
 # Databento overview
 
-Databento documentation: 
+Databento documentation:
 
-* [https://databento.com/docs](https://databento.com/docs)
+- [https://databento.com/docs](https://databento.com/docs)
 
 ## 3 services
 
@@ -16,9 +16,9 @@ Databento provides 3 types of services:
 
 Databento supports 3 formats for data:
 
-* `DBN` - Databento Binary Encoding (binary)
-* `csv` - comma separated values (text)
-* `json` - JavaScript Object notation (text)
+- `DBN` - Databento Binary Encoding (binary)
+- `csv` - comma separated values (text)
+- `json` - JavaScript Object notation (text)
 
 ## Python library
 
@@ -32,21 +32,21 @@ Schema is just a sophisticated name for `type of data` you want.
 
 Most used schemas ordered from most detailed:
 
-| Schema | Type | Description |
-|--------|------|-------------|
-| `mbo` | L3 data | Provides every order book event across every price level, keyed by order ID. Allows determination of queue position for each order, offering highest level of granularity available. |
-| `mbp-10` | L2 data | Provides every order book event across top ten price levels, keyed by price. Includes trades and changes to aggregate market depth, with total size and order count at top ten price levels. |
-| `mbp-1` | L1 data | Provides every order book event updating the top price level (BBO). Includes trades and changes to book depth, with total size and order count at BBO. |
-| `bbo-1s` | L1 sampled | Similar to L1 data but sampled in 1 second intervals. Provides last best bid, best offer, and sale at 1-second intervals. |
-| `tbbo` | L1 trades | Provides every trade event alongside the BBO immediately before the effect of each trade. Subset of MBP-1. |
-| `trades` | Trade data | Provides every trade event. This is a subset of MBO data. |
-| `ohlcv-1s` | 1s bars | OHLCV bars aggregated from trades at 1-second intervals. |
-| `ohlcv-1m` | 1m bars | OHLCV bars aggregated from trades at 1-minute intervals. |
-| `ohlcv-1h` | 1h bars | OHLCV bars aggregated from trades at 1-hour intervals. |
-| `ohlcv-1d` | 1d bars | OHLCV bars aggregated from trades at 1-day intervals. |
-| `definition` | Reference | Provides reference information about instruments including symbol, name, expiration date, listing date, tick size, strike price. |
-| `status` | Exchange status | Provides updates about trading session like halts, pauses, short-selling restrictions, auction start, and other matching engine statuses. |
-| `statistics` | Exchange stats | Provides official summary statistics published by venue, including daily volume, open interest, settlement prices, and official open/high/low prices. |
+| Schema       | Type            | Description                                                                                                                                                                                  |
+| ------------ | --------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `mbo`        | L3 data         | Provides every order book event across every price level, keyed by order ID. Allows determination of queue position for each order, offering highest level of granularity available.         |
+| `mbp-10`     | L2 data         | Provides every order book event across top ten price levels, keyed by price. Includes trades and changes to aggregate market depth, with total size and order count at top ten price levels. |
+| `mbp-1`      | L1 data         | Provides every order book event updating the top price level (BBO). Includes trades and changes to book depth, with total size and order count at BBO.                                       |
+| `bbo-1s`     | L1 sampled      | Similar to L1 data but sampled in 1 second intervals. Provides last best bid, best offer, and sale at 1-second intervals.                                                                    |
+| `tbbo`       | L1 trades       | Provides every trade event alongside the BBO immediately before the effect of each trade. Subset of MBP-1.                                                                                   |
+| `trades`     | Trade data      | Provides every trade event. This is a subset of MBO data.                                                                                                                                    |
+| `ohlcv-1s`   | 1s bars         | OHLCV bars aggregated from trades at 1-second intervals.                                                                                                                                     |
+| `ohlcv-1m`   | 1m bars         | OHLCV bars aggregated from trades at 1-minute intervals.                                                                                                                                     |
+| `ohlcv-1h`   | 1h bars         | OHLCV bars aggregated from trades at 1-hour intervals.                                                                                                                                       |
+| `ohlcv-1d`   | 1d bars         | OHLCV bars aggregated from trades at 1-day intervals.                                                                                                                                        |
+| `definition` | Reference       | Provides reference information about instruments including symbol, name, expiration date, listing date, tick size, strike price.                                                             |
+| `status`     | Exchange status | Provides updates about trading session like halts, pauses, short-selling restrictions, auction start, and other matching engine statuses.                                                    |
+| `statistics` | Exchange stats  | Provides official summary statistics published by venue, including daily volume, open interest, settlement prices, and official open/high/low prices.                                        |
 
 **How Databento generates lower-resolution data?**
 
@@ -55,10 +55,10 @@ Most used schemas ordered from most detailed:
 
 Additional sources:
 
-* Example tutorial how to convert tick/trades data into bars:
-    * [https://databento.com/docs/examples/basics-historical/tick-resampling/example](https://databento.com/docs/examples/basics-historical/tick-resampling/example)
-* All schemas explained in detail:
-    * [https://databento.com/docs/schemas-and-data-formats?historical=python&live=python&reference=python](https://databento.com/docs/schemas-and-data-formats?historical=python&live=python&reference=python)
+- Example tutorial how to convert tick/trades data into bars:
+  - [https://databento.com/docs/examples/basics-historical/tick-resampling/example](https://databento.com/docs/examples/basics-historical/tick-resampling/example)
+- All schemas explained in detail:
+  - [https://databento.com/docs/schemas-and-data-formats?historical=python&live=python&reference=python](https://databento.com/docs/schemas-and-data-formats?historical=python&live=python&reference=python)
 
 ## Symbology
 
@@ -66,32 +66,31 @@ Symbology is just a sophisticated name for the naming convention of various inst
 
 Databento supports 4 symbology types (naming conventions):
 
-| Symbology Type    | Description                                      | Example/Pattern                | Key Notes                                                                   |
-|:-----------------|:-------------------------------------------------|:------------------------------|:----------------------------------------------------------------------------|
-| `raw_symbol`     | Original string symbols used by data publisher    | `AAPL`, `ESH3`                | Best for direct market connectivity environments                             |
-| `instrument_id`  | Unique numeric IDs assigned by publisher          | `12345`, `9876543`            | Space-efficient but can be remapped daily by some publishers                 |
-| `parent`         | Groups related symbols using root symbol          | `ES.FUT`, `ES.OPT`            | Allows querying all futures/options for a root symbol at once                |
-| `continuous`     | References instruments that change over time      | `ES.c.0`, `CL.n.1`, `ZN.v.0`  | Roll rules: Calendar (c), Open Interest (n), Volume (v)                      |
+| Symbology Type  | Description                                    | Example/Pattern              | Key Notes                                                     |
+| :-------------- | :--------------------------------------------- | :--------------------------- | :------------------------------------------------------------ |
+| `raw_symbol`    | Original string symbols used by data publisher | `AAPL`, `ESH3`               | Best for direct market connectivity environments              |
+| `instrument_id` | Unique numeric IDs assigned by publisher       | `12345`, `9876543`           | Space-efficient but can be remapped daily by some publishers  |
+| `parent`        | Groups related symbols using root symbol       | `ES.FUT`, `ES.OPT`           | Allows querying all futures/options for a root symbol at once |
+| `continuous`    | References instruments that change over time   | `ES.c.0`, `CL.n.1`, `ZN.v.0` | Roll rules: Calendar (c), Open Interest (n), Volume (v)       |
 
 Additionally, Databento supports a special symbol value:
 
-| Special Value     | Description                                      | Usage                          | Key Notes                                                                   |
-|:-----------------|:-------------------------------------------------|:------------------------------|:----------------------------------------------------------------------------|
-| `ALL_SYMBOLS`    | Requests all symbols in dataset                  | `ALL_SYMBOLS`                  | Wildcard value for requesting all available symbols (not a symbology type) |
-
+| Special Value | Description                     | Usage         | Key Notes                                                                  |
+| :------------ | :------------------------------ | :------------ | :------------------------------------------------------------------------- |
+| `ALL_SYMBOLS` | Requests all symbols in dataset | `ALL_SYMBOLS` | Wildcard value for requesting all available symbols (not a symbology type) |
 
 When requesting data, **input** and **output** symbology can be specified. These 4 combinations are supported (for various exchanges / publishers):
 
-| SType in    | SType out      | DBEQ.BASIC | GLBX.MDP3 | IFEU.IMPACT | NDEX.IMPACT | OPRA.PILLAR | XNAS.ITCH |
-|:---------------|:-----------------|:-----------|:----------|:------------|:------------|:------------|:----------|
-| `parent`       | `instrument_id`  |            | ✓         | ✓           | ✓           | ✓           |           |
-| `continuous`   | `instrument_id`  |            | ✓         |             |             |             |           |
-| `raw_symbol`   | `instrument_id`  | ✓          | ✓         | ✓           | ✓           | ✓           | ✓         |
-| `instrument_id`| `raw_symbol`     | ✓          | ✓         | ✓           | ✓           | ✓           | ✓         |
+| SType in        | SType out       | DBEQ.BASIC | GLBX.MDP3 | IFEU.IMPACT | NDEX.IMPACT | OPRA.PILLAR | XNAS.ITCH |
+| :-------------- | :-------------- | :--------- | :-------- | :---------- | :---------- | :---------- | :-------- |
+| `parent`        | `instrument_id` |            | ✓         | ✓           | ✓           | ✓           |           |
+| `continuous`    | `instrument_id` |            | ✓         |             |             |             |           |
+| `raw_symbol`    | `instrument_id` | ✓          | ✓         | ✓           | ✓           | ✓           | ✓         |
+| `instrument_id` | `raw_symbol`    | ✓          | ✓         | ✓           | ✓           | ✓           | ✓         |
 
 For more details:
 
-* [https://databento.com/docs/standards-and-conventions/symbology?historical=python&live=python&reference=python](https://databento.com/docs/standards-and-conventions/symbology?historical=python&live=python&reference=python)
+- [https://databento.com/docs/standards-and-conventions/symbology?historical=python&live=python&reference=python](https://databento.com/docs/standards-and-conventions/symbology?historical=python&live=python&reference=python)
 
 ## Databento file format
 
@@ -102,12 +101,11 @@ You can easily load DBN file and convert it into simple CSV / JSON data.
 
 For more details:
 
-* [https://databento.com/docs/standards-and-conventions/databento-binary-encoding#getting-started-with-dbn?historical=python&live=python&reference=python](https://databento.com/docs/standards-and-conventions/databento-binary-encoding#getting-started-with-dbn?historical=python&live=python&reference=python)
+- [https://databento.com/docs/standards-and-conventions/databento-binary-encoding#getting-started-with-dbn?historical=python&live=python&reference=python](https://databento.com/docs/standards-and-conventions/databento-binary-encoding#getting-started-with-dbn?historical=python&live=python&reference=python)
 
 # Historical API examples
 
 ## Authenticate & connect to Databento
-
 
 ```python
 import databento as db
@@ -123,7 +121,6 @@ client = db.Historical(API_KEY)
 ### List Publishers
 
 Shows all data publishers.
-
 
 ```python
 publishers = client.metadata.list_publishers()
@@ -161,8 +158,7 @@ Example output:
 
 Each dataset is in format: `PUBLISHER.DATASET`
 
-* Publisher / Market code is based on: [https://www.iso20022.org/market-identifier-codes](https://www.iso20022.org/market-identifier-codes)
-
+- Publisher / Market code is based on: [https://www.iso20022.org/market-identifier-codes](https://www.iso20022.org/market-identifier-codes)
 
 ```python
 datasets = client.metadata.list_datasets()
@@ -195,7 +191,6 @@ Example output:
 
 List all supported data formats in Databento.
 
-
 ```python
 schemas = client.metadata.list_schemas(dataset="GLBX.MDP3")
 schemas
@@ -223,7 +218,6 @@ Example output:
 ### Dataset condition
 
 Show data availability and quality.
-
 
 ```python
 conditions = client.metadata.get_dataset_condition(
@@ -259,9 +253,8 @@ Example output:
 
 Show available range for dataset.
 
-* Use this method to discover data availability.
-* The start and end values in the response can be used with the `timeseries.get_range` and `batch.submit_job` endpoints.
-
+- Use this method to discover data availability.
+- The start and end values in the response can be used with the `timeseries.get_range` and `batch.submit_job` endpoints.
 
 ```python
 available_range = client.metadata.get_dataset_range(dataset="GLBX.MDP3")
@@ -278,7 +271,6 @@ Example output:
 ### Record count
 
 Returns count of records return from data query.
-
 
 ```python
 record_count = client.metadata.get_record_count(
@@ -301,7 +293,6 @@ Example output:
 
 Get costs = how much you pay for the data in US dollars.
 
-
 ```python
 cost = client.metadata.get_cost(
     dataset="GLBX.MDP3",
@@ -322,13 +313,13 @@ Example output:
 
 ### `get_range`
 
-* Makes a streaming request for time series data from Databento.
-* This is the primary method for getting historical market data, instrument definitions, and status data directly into your application.
-* This method only returns after all of the data has been downloaded, which can take a long time.
+- Makes a streaming request for time series data from Databento.
+- This is the primary method for getting historical market data, instrument definitions, and status data directly into your application.
+- This method only returns after all of the data has been downloaded, which can take a long time.
 
 **Warning:**
-* `ts_event` represents start-time of aggregation. So if we download bars, the timestamp represents **opening time** for each bar.
 
+- `ts_event` represents start-time of aggregation. So if we download bars, the timestamp represents **opening time** for each bar.
 
 ```python
 data = client.timeseries.get_range(
@@ -348,7 +339,6 @@ Example output:
 
 `<DBNStore(schema=ohlcv-1h)>`
 
-
 ```python
 # Convert DBN format to pandas-dataframe
 df = data.to_df()
@@ -358,18 +348,18 @@ print(len(df))
 df
 ```
 
-Example output: *(not real data, just example of output format)*
+Example output: _(not real data, just example of output format)_
 
-| ts_event | rtype | publisher_id | instrument_id | open | high | low | close | volume | symbol |
-|:--|:--|:--|:--|:--|:--|:--|:--|:--|:--|
-| 2022-06-01 00:00:00+00:00 | 34 | 1 | 3403 | 4149.25 | 4153.50 | 4149.00 | 4150.75 | 9281 | ESM2 |
-| 2022-06-01 01:00:00+00:00 | 34 | 1 | 3403 | 4151.00 | 4157.75 | 4149.50 | 4154.25 | 11334 | ESM2 |
-| 2022-06-01 02:00:00+00:00 | 34 | 1 | 3403 | 4154.25 | 4155.25 | 4146.50 | 4147.00 | 7258 | ESM2 |
+| ts_event                  | rtype | publisher_id | instrument_id | open    | high    | low     | close   | volume | symbol |
+| :------------------------ | :---- | :----------- | :------------ | :------ | :------ | :------ | :------ | :----- | :----- |
+| 2022-06-01 00:00:00+00:00 | 34    | 1            | 3403          | 4149.25 | 4153.50 | 4149.00 | 4150.75 | 9281   | ESM2   |
+| 2022-06-01 01:00:00+00:00 | 34    | 1            | 3403          | 4151.00 | 4157.75 | 4149.50 | 4154.25 | 11334  | ESM2   |
+| 2022-06-01 02:00:00+00:00 | 34    | 1            | 3403          | 4154.25 | 4155.25 | 4146.50 | 4147.00 | 7258   | ESM2   |
 
 Note:
 
-* `rtype` = 1-hour bars 
-* More codes like this: [https://databento.com/docs/standards-and-conventions/common-fields-enums-types#rtype?historical=python&live=python&reference=python](https://databento.com/docs/standards-and-conventions/common-fields-enums-types#rtype?historical=python&live=python&reference=python)
+- `rtype` = 1-hour bars
+- More codes like this: [https://databento.com/docs/standards-and-conventions/common-fields-enums-types#rtype?historical=python&live=python&reference=python](https://databento.com/docs/standards-and-conventions/common-fields-enums-types#rtype?historical=python&live=python&reference=python)
 
 ## Symbols
 
@@ -377,8 +367,7 @@ Note:
 
 Resolve a list of symbols from an **input** symbology type, to an **output** symbology type.
 
-* Example: `raw_symbol` to an `instrument_id`: `ESM2` → `3403`
-
+- Example: `raw_symbol` to an `instrument_id`: `ESM2` → `3403`
 
 ```python
 result = client.symbology.resolve(
@@ -418,7 +407,6 @@ The `DBNStore` object is an helper class for working with `DBN` encoded data.
 
 Read data from a DBN byte stream.
 
-
 ```python
 dbn_data = client.timeseries.get_range(
     dataset="GLBX.MDP3",
@@ -431,21 +419,19 @@ dbn_data = client.timeseries.get_range(
 dbn_data.to_df()
 ```
 
-Example output: *(not real data, just example of output format)*
+Example output: _(not real data, just example of output format)_
 
-| ts_event | rtype | publisher_id | instrument_id | open | high | low | close | volume | symbol |
-|:--|:--|:--|:--|:--|:--|:--|:--|:--|:--|
-| 2022-06-06 00:00:00+00:00 | 34 | 1 | 3403 | 4109.50 | 4117.00 | 4105.50 | 4115.75 | 8541 | ESM2 |
-| 2022-06-06 01:00:00+00:00 | 34 | 1 | 3403 | 4115.75 | 4122.75 | 4113.00 | 4122.25 | 14008 | ESM2 |
-| 2022-06-06 02:00:00+00:00 | 34 | 1 | 3403 | 4122.25 | 4127.00 | 4120.75 | 4126.25 | 10150 | ESM2 |
-
+| ts_event                  | rtype | publisher_id | instrument_id | open    | high    | low     | close   | volume | symbol |
+| :------------------------ | :---- | :----------- | :------------ | :------ | :------ | :------ | :------ | :----- | :----- |
+| 2022-06-06 00:00:00+00:00 | 34    | 1            | 3403          | 4109.50 | 4117.00 | 4105.50 | 4115.75 | 8541   | ESM2   |
+| 2022-06-06 01:00:00+00:00 | 34    | 1            | 3403          | 4115.75 | 4122.75 | 4113.00 | 4122.25 | 14008  | ESM2   |
+| 2022-06-06 02:00:00+00:00 | 34    | 1            | 3403          | 4122.25 | 4127.00 | 4120.75 | 4126.25 | 10150  | ESM2   |
 
 ```python
 # Save streamed data to file - recommended suffix is: `*.dbn.zst`
 path = "./GLBX-ESM2-20220606.ohlcv-1h.dbn.zst"
 dbn_data.to_file(path)
 ```
-
 
 ```python
 # Load data from previously saved file and create DBN object again
@@ -455,36 +441,34 @@ with open(path, "rb") as saved:
 loaded_dbn_data.to_df()
 ```
 
-Example output *(not real data, just example of output format)*:
+Example output _(not real data, just example of output format)_:
 
-| ts_event | rtype | publisher_id | instrument_id | open | high | low | close | volume | symbol |
-|:--|:--|:--|:--|:--|:--|:--|:--|:--|:--|
-| 2022-06-06 00:00:00+00:00 | 34 | 1 | 3403 | 4109.50 | 4117.00 | 4105.50 | 4115.75 | 8541 | ESM2 |
-| 2022-06-06 01:00:00+00:00 | 34 | 1 | 3403 | 4115.75 | 4122.75 | 4113.00 | 4122.25 | 14008 | ESM2 |
-| 2022-06-06 02:00:00+00:00 | 34 | 1 | 3403 | 4122.25 | 4127.00 | 4120.75 | 4126.25 | 10150 | ESM2 |
+| ts_event                  | rtype | publisher_id | instrument_id | open    | high    | low     | close   | volume | symbol |
+| :------------------------ | :---- | :----------- | :------------ | :------ | :------ | :------ | :------ | :----- | :----- |
+| 2022-06-06 00:00:00+00:00 | 34    | 1            | 3403          | 4109.50 | 4117.00 | 4105.50 | 4115.75 | 8541   | ESM2   |
+| 2022-06-06 01:00:00+00:00 | 34    | 1            | 3403          | 4115.75 | 4122.75 | 4113.00 | 4122.25 | 14008  | ESM2   |
+| 2022-06-06 02:00:00+00:00 | 34    | 1            | 3403          | 4122.25 | 4127.00 | 4120.75 | 4126.25 | 10150  | ESM2   |
 
 ### `from_file`
 
 Reads data from a DBN file.
-
 
 ```python
 loaded_dbn_data = db.DBNStore.from_file(path)
 loaded_dbn_data.to_df()
 ```
 
-Example output: *(not real data, just example of output format)*
+Example output: _(not real data, just example of output format)_
 
-| ts_event | rtype | publisher_id | instrument_id | open | high | low | close | volume | symbol |
-|:--|:--|:--|:--|:--|:--|:--|:--|:--|:--|
-| 2022-06-06 00:00:00+00:00 | 34 | 1 | 3403 | 4109.50 | 4117.00 | 4105.50 | 4115.75 | 8541 | ESM2 |
-| 2022-06-06 01:00:00+00:00 | 34 | 1 | 3403 | 4115.75 | 4122.75 | 4113.00 | 4122.25 | 14008 | ESM2 |
-| 2022-06-06 02:00:00+00:00 | 34 | 1 | 3403 | 4122.25 | 4127.00 | 4120.75 | 4126.25 | 10150 | ESM2 |
+| ts_event                  | rtype | publisher_id | instrument_id | open    | high    | low     | close   | volume | symbol |
+| :------------------------ | :---- | :----------- | :------------ | :------ | :------ | :------ | :------ | :----- | :----- |
+| 2022-06-06 00:00:00+00:00 | 34    | 1            | 3403          | 4109.50 | 4117.00 | 4105.50 | 4115.75 | 8541   | ESM2   |
+| 2022-06-06 01:00:00+00:00 | 34    | 1            | 3403          | 4115.75 | 4122.75 | 4113.00 | 4122.25 | 14008  | ESM2   |
+| 2022-06-06 02:00:00+00:00 | 34    | 1            | 3403          | 4122.25 | 4127.00 | 4120.75 | 4126.25 | 10150  | ESM2   |
 
 ### `to_csv`
 
 Write data to a file in CSV format.
-
 
 ```python
 dbn_data = client.timeseries.get_range(
@@ -503,24 +487,22 @@ dbn_data.to_csv("GLBX-ESM2-20220606-ohlcv-1h.csv")
 
 Converts DBN data to a pandas DataFrame.
 
-
 ```python
 # Export to pandas DataFrame
 dbn_data.to_df()
 ```
 
-Example output: *(not real data, just example of output format)*
+Example output: _(not real data, just example of output format)_
 
-| ts_event | rtype | publisher_id | instrument_id | open | high | low | close | volume | symbol |
-|:--|:--|:--|:--|:--|:--|:--|:--|:--|:--|
-| 2022-06-06 00:00:00+00:00 | 34 | 1 | 3403 | 4109.50 | 4117.00 | 4105.50 | 4115.75 | 8541 | ESM2 |
-| 2022-06-06 01:00:00+00:00 | 34 | 1 | 3403 | 4115.75 | 4122.75 | 4113.00 | 4122.25 | 14008 | ESM2 |
-| 2022-06-06 02:00:00+00:00 | 34 | 1 | 3403 | 4122.25 | 4127.00 | 4120.75 | 4126.25 | 10150 | ESM2 |
+| ts_event                  | rtype | publisher_id | instrument_id | open    | high    | low     | close   | volume | symbol |
+| :------------------------ | :---- | :----------- | :------------ | :------ | :------ | :------ | :------ | :----- | :----- |
+| 2022-06-06 00:00:00+00:00 | 34    | 1            | 3403          | 4109.50 | 4117.00 | 4105.50 | 4115.75 | 8541   | ESM2   |
+| 2022-06-06 01:00:00+00:00 | 34    | 1            | 3403          | 4115.75 | 4122.75 | 4113.00 | 4122.25 | 14008  | ESM2   |
+| 2022-06-06 02:00:00+00:00 | 34    | 1            | 3403          | 4122.25 | 4127.00 | 4120.75 | 4126.25 | 10150  | ESM2   |
 
 ### `to_json`
 
 Write data to a file in JSON format.
-
 
 ```python
 # Export to pandas DataFrame
@@ -531,7 +513,6 @@ dbn_data.to_json("GLBX-ESM2-20220606-ohlcv-1h.json")
 
 Write data to a DBN file.
 
-
 ```python
 # Export to DBN file
 dbn_data.to_file("GLBX-ESM2-20220606.ohlcv-1h.dbn.zst")
@@ -539,9 +520,8 @@ dbn_data.to_file("GLBX-ESM2-20220606.ohlcv-1h.dbn.zst")
 
 ### `to_ndarray`
 
-* Converts data to a numpy N-dimensional array.
-* Each element will contain a Python representation of the binary fields as a `Tuple`.
-
+- Converts data to a numpy N-dimensional array.
+- Each element will contain a Python representation of the binary fields as a `Tuple`.
 
 ```python
 # Export to numpy-array
@@ -551,8 +531,7 @@ ndarray
 
 ### `to_parquet`
 
-* Write data to a file in [Apache parquet](https://parquet.apache.org/) format.
-
+- Write data to a file in [Apache parquet](https://parquet.apache.org/) format.
 
 ```python
 # Export to Apache Parquet file
@@ -561,8 +540,7 @@ dbn_data.to_parquet("GLBX-ESM2-20220606-ohlcv-1h.parquet")
 
 ### `for` cycle
 
-* You can use standard python `for` cycle to iterate over DBN file content.
-
+- You can use standard python `for` cycle to iterate over DBN file content.
 
 ```python
 # Let's load some data first
@@ -578,14 +556,13 @@ dbn_data = client.timeseries.get_range(
 dbn_data.to_df()
 ```
 
-Example output: *(not real data, just example of output format)*
+Example output: _(not real data, just example of output format)_
 
-| ts_event | rtype | publisher_id | instrument_id | open | high | low | close | volume | symbol |
-|:--|:--|:--|:--|:--|:--|:--|:--|:--|:--|
-| 2022-06-06 00:00:00+00:00 | 34 | 1 | 3403 | 4109.50 | 4117.00 | 4105.50 | 4115.75 | 8541 | ESM2 |
-| 2022-06-06 01:00:00+00:00 | 34 | 1 | 3403 | 4115.75 | 4122.75 | 4113.00 | 4122.25 | 14008 | ESM2 |
-| 2022-06-06 02:00:00+00:00 | 34 | 1 | 3403 | 4122.25 | 4127.00 | 4120.75 | 4126.25 | 10150 | ESM2 |
-
+| ts_event                  | rtype | publisher_id | instrument_id | open    | high    | low     | close   | volume | symbol |
+| :------------------------ | :---- | :----------- | :------------ | :------ | :------ | :------ | :------ | :----- | :----- |
+| 2022-06-06 00:00:00+00:00 | 34    | 1            | 3403          | 4109.50 | 4117.00 | 4105.50 | 4115.75 | 8541   | ESM2   |
+| 2022-06-06 01:00:00+00:00 | 34    | 1            | 3403          | 4115.75 | 4122.75 | 4113.00 | 4122.25 | 14008  | ESM2   |
+| 2022-06-06 02:00:00+00:00 | 34    | 1            | 3403          | 4122.25 | 4127.00 | 4120.75 | 4126.25 | 10150  | ESM2   |
 
 ```python
 # We can use DBN data in for-cycle:
@@ -613,7 +590,6 @@ OhlcvMsg {
 }
 ```
 
-
 ```python
 for bar in dbn_data:
     print(f"Bar open: {bar.open}")  # print only bar-open information
@@ -628,7 +604,6 @@ Example output:
 
 ## Download 1-min 6E data
 
-
 ```python
 from datetime import timedelta
 
@@ -640,7 +615,6 @@ pd.set_option("display.max_columns", None)
 pd.set_option("display.max_rows", None)
 ```
 
-
 ```python
 # Settings
 dataset="GLBX.MDP3"
@@ -650,7 +624,6 @@ schema="ohlcv-1m"
 start="2025-01-01"
 end="2025-01-05"
 ```
-
 
 ```python
 # Check costs in dollars
@@ -670,7 +643,6 @@ Example output:
 
 `0.01$`
 
-
 ```python
 # Download data
 data = client.timeseries.get_range(
@@ -685,7 +657,6 @@ data = client.timeseries.get_range(
 # Export data in DBNStore format (CSV data are 10x bigger)
 data.to_file(f"{dataset}_{symbol}_{start}-{end}.{schema}.dbn.zst")
 ```
-
 
 ```python
 # Cleanup and view data as DataFrame
@@ -711,13 +682,12 @@ print(len(df))
 df.head(3)
 ```
 
-Example output: *(not real data, just example of output format)*
+Example output: _(not real data, just example of output format)_
 
 `2734`
 
-| symbol | datetime | open | high | low | close | volume |
-|:--|:--|:--|:--|:--|:--|:--|
-| 6E.v.0 | 2025-01-02 00:01:00+01:00 | 1.03890 | 1.03930 | 1.03845 | 1.03905 | 291 |
-| 6E.v.0 | 2025-01-02 00:02:00+01:00 | 1.03900 | 1.03900 | 1.03870 | 1.03880 | 311 |
-| 6E.v.0 | 2025-01-02 00:03:00+01:00 | 1.03880 | 1.03890 | 1.03870 | 1.03885 | 140 |
-
+| symbol | datetime                  | open    | high    | low     | close   | volume |
+| :----- | :------------------------ | :------ | :------ | :------ | :------ | :----- |
+| 6E.v.0 | 2025-01-02 00:01:00+01:00 | 1.03890 | 1.03930 | 1.03845 | 1.03905 | 291    |
+| 6E.v.0 | 2025-01-02 00:02:00+01:00 | 1.03900 | 1.03900 | 1.03870 | 1.03880 | 311    |
+| 6E.v.0 | 2025-01-02 00:03:00+01:00 | 1.03880 | 1.03890 | 1.03870 | 1.03885 | 140    |

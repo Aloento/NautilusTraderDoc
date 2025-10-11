@@ -10,21 +10,20 @@ This tutorial walks through how to use a `BacktestNode` to backtest a simple EMA
 on a simulated FX ECN venue using historical quote tick data.
 
 The following points will be covered:
+
 - Load raw data (external to Nautilus) into the data catalog.
 - Set up configuration objects for a `BacktestNode`.
 - Run backtests with a `BacktestNode`.
 
-
 ## Prerequisites
+
 - Python 3.11+ installed.
 - [JupyterLab](https://jupyter.org/) or similar installed (`pip install -U jupyterlab`).
 - [NautilusTrader](https://pypi.org/project/nautilus_trader/) latest release installed (`pip install -U nautilus_trader`).
 
-
 ## Imports
 
 We'll start with all of our imports for the remainder of this tutorial.
-
 
 ```python
 import shutil
@@ -49,7 +48,7 @@ from nautilus_trader.test_kit.providers import TestInstrumentProvider
 
 As a one-off before we start the notebook, we need to download some sample data for backtesting.
 
-For this example we will use FX data from `histdata.com`. Simply go to https://www.histdata.com/download-free-forex-historical-data/?/ascii/tick-data-quotes/ and select an FX pair, then select one or more months of data to download.
+For this example we will use FX data from `histdata.com`. Simply go to [https://www.histdata.com/download-free-forex-historical-data/?/ascii/tick-data-quotes/](https://www.histdata.com/download-free-forex-historical-data/?/ascii/tick-data-quotes/) and select an FX pair, then select one or more months of data to download.
 
 Examples of downloaded files:
 
@@ -61,12 +60,9 @@ Once you have downloaded the data:
 1. Copy files like the ones above into one folder—for example `~/Downloads/Data/` (by default, it will use the user's `Downloads/Data/` directory).
 2. Set the `DATA_DIR` variable below to the directory containing the data.
 
-
-
 ```python
 DATA_DIR = "~/Downloads/Data/"
 ```
-
 
 ```python
 path = Path(DATA_DIR).expanduser()
@@ -81,8 +77,6 @@ Histdata stores the FX data in CSV/text format with fields `timestamp, bid_price
 First, load this raw data into a `pandas.DataFrame` with a schema compatible with Nautilus quotes.
 
 Then create Nautilus `QuoteTick` objects by processing the DataFrame with a `QuoteTickDataWrangler`.
-
-
 
 ```python
 # Here we just take the first data file found and load into a pandas DataFrame
@@ -103,7 +97,6 @@ df = df.sort_index()
 df.head(2)
 ```
 
-
 ```python
 # Process quotes using a wrangler
 EURUSD = TestInstrumentProvider.default_fx_ccy("EUR/USD")
@@ -119,8 +112,6 @@ See the [Loading data](../concepts/data) guide for further details.
 
 Next, instantiate a `ParquetDataCatalog` (pass in a directory to store the data; by default we use the current directory).
 Write the instrument and tick data to the catalog. Loading the data should only take a couple of minutes, depending on how many months you include.
-
-
 
 ```python
 CATALOG_PATH = Path.cwd() / "catalog"
@@ -140,25 +131,21 @@ catalog.write_data([EURUSD])
 catalog.write_data(ticks)
 ```
 
-## Using the Data Catalog 
+## Using the Data Catalog
 
 After you load data into the catalog, use the `catalog` instance to load data for backtests or research.
 It contains various methods to pull data from the catalog, such as `.instruments(...)` and `quote_ticks(...)` (shown below).
-
-
 
 ```python
 # Get list of all instruments in catalog
 catalog.instruments()
 ```
 
-
 ```python
 # See 1st instrument from catalog
 instrument = catalog.instruments()[0]
 instrument
 ```
-
 
 ```python
 # Query quote-ticks from catalog
@@ -171,7 +158,6 @@ selected_quote_ticks[:2]
 ```
 
 ## Add venues
-
 
 ```python
 venue_configs = [
@@ -187,11 +173,9 @@ venue_configs = [
 
 ## Add data
 
-
 ```python
 str(CATALOG_PATH)
 ```
-
 
 ```python
 data_configs = [
@@ -206,7 +190,6 @@ data_configs = [
 ```
 
 ## Add strategies
-
 
 ```python
 strategies = [
@@ -230,8 +213,6 @@ Nautilus uses a `BacktestRunConfig` object to centralize backtest configuration.
 The `BacktestRunConfig` is Partialable, so you can configure it in stages.
 This design reduces boilerplate when you create multiple backtest runs (for example when performing a parameter grid search).
 
-
-
 ```python
 config = BacktestRunConfig(
     engine=BacktestEngineConfig(strategies=strategies),
@@ -243,7 +224,6 @@ config = BacktestRunConfig(
 ## Run backtest
 
 Now we can run the backtest node, which will simulate trading across the entire data stream.
-
 
 ```python
 node = BacktestNode(configs=[config])

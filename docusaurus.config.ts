@@ -7,7 +7,7 @@ import { themes as prismThemes } from 'prism-react-renderer';
 const config: Config = {
   title: 'NautilusTrader 文档',
   tagline: '高性能算法交易平台',
-  favicon: 'favicon.ico',
+  favicon: 'logo.png',
 
   // Future flags, see https://docusaurus.io/docs/api/docusaurus-config#future
   future: {
@@ -15,7 +15,7 @@ const config: Config = {
   },
 
   // Set the production url of your site here
-  url: 'https://your-docusaurus-site.example.com',
+  url: 'https://nautilus.aloen.to',
   // Set the /<baseUrl>/ pathname under which your site is served
   // For GitHub pages deployment, it is often '/<projectName>/'
   baseUrl: '/',
@@ -58,7 +58,7 @@ const config: Config = {
       title: 'NautilusTrader',
       logo: {
         alt: 'NautilusTrader Logo',
-        src: 'logo.svg',
+        src: 'logo.png',
       },
       items: [
         {

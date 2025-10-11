@@ -22,7 +22,6 @@ This tutorial runs through how to set up the data catalog and a `BacktestNode` t
 
 We'll start with all of our imports for the remainder of this guide:
 
-
 ```python
 import os
 import shutil
@@ -48,12 +47,10 @@ from nautilus_trader.test_kit.providers import TestInstrumentProvider
 
 ## Loading data
 
-
 ```python
 # Path to your data directory, using user /Downloads as an example
 DATA_DIR = "~/Downloads"
 ```
-
 
 ```python
 data_path = Path(DATA_DIR).expanduser() / "Data" / "Binance"
@@ -62,14 +59,12 @@ assert raw_files, f"Unable to find any histdata files in directory {data_path}"
 raw_files
 ```
 
-
 ```python
 # First we'll load the initial order book snapshot
 path_snap = data_path / "BTCUSDT_T_DEPTH_2022-11-01_depth_snap.csv"
 df_snap = BinanceOrderBookDeltaDataLoader.load(path_snap)
 df_snap.head()
 ```
-
 
 ```python
 # Then we'll load the order book updates, to save time here we're limiting to 1 million rows
@@ -80,7 +75,6 @@ df_update.head()
 ```
 
 ### Process deltas using a wrangler
-
 
 ```python
 BTCUSDT_BINANCE = TestInstrumentProvider.btcusdt_binance()
@@ -94,7 +88,6 @@ deltas[:10]
 
 ### Set up data catalog
 
-
 ```python
 CATALOG_PATH = os.getcwd() + "/catalog"
 
@@ -107,19 +100,16 @@ os.mkdir(CATALOG_PATH)
 catalog = ParquetDataCatalog(CATALOG_PATH)
 ```
 
-
 ```python
 # Write instrument and ticks to catalog
 catalog.write_data([BTCUSDT_BINANCE])
 catalog.write_data(deltas)
 ```
 
-
 ```python
 # Confirm the instrument was written
 catalog.instruments()
 ```
-
 
 ```python
 # Explore the available data in the catalog
@@ -132,7 +122,6 @@ deltas[:10]
 ```
 
 ## Configure backtest
-
 
 ```python
 instrument = catalog.instruments()[0]
@@ -192,18 +181,15 @@ config
 
 ## Run the backtest
 
-
 ```python
 node = BacktestNode(configs=[config])
 
 result = node.run()
 ```
 
-
 ```python
 result
 ```
-
 
 ```python
 from nautilus_trader.backtest.engine import BacktestEngine
@@ -215,16 +201,13 @@ engine: BacktestEngine = node.get_engine(config.id)
 engine.trader.generate_order_fills_report()
 ```
 
-
 ```python
 engine.trader.generate_positions_report()
 ```
 
-
 ```python
 engine.trader.generate_account_report(Venue("BINANCE"))
 ```
-
 
 ```python
 

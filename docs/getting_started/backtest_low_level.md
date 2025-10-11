@@ -10,23 +10,22 @@ This tutorial walks through how to use a `BacktestEngine` to backtest a simple E
 with a TWAP execution algorithm on a simulated Binance Spot exchange using historical trade tick data.
 
 The following points will be covered:
+
 - Load raw data (external to Nautilus) using data loaders and wranglers.
 - Add this data to a `BacktestEngine`.
 - Add venues, strategies, and execution algorithms to a `BacktestEngine`.
 - Run backtests with a `BacktestEngine`.
 - Perform post-run analysis and repeated runs.
 
-
 ## Prerequisites
+
 - Python 3.11+ installed.
 - [JupyterLab](https://jupyter.org/) or similar installed (`pip install -U jupyterlab`).
 - [NautilusTrader](https://pypi.org/project/nautilus_trader/) latest release installed (`pip install -U nautilus_trader`).
 
-
 ## Imports
 
 We'll start with all of our imports for the remainder of this tutorial.
-
 
 ```python
 from decimal import Decimal
@@ -58,8 +57,6 @@ Next, initialize the instrument that matches the data (in this case the `ETHUSDT
 
 Then wrangle the data into a list of Nautilus `TradeTick` objects so you can add them to the `BacktestEngine`.
 
-
-
 ```python
 # Load stub test data
 provider = TestDataProvider()
@@ -83,8 +80,6 @@ We also initialize a `BacktestEngineConfig` (with only a custom `trader_id` spec
 
 See the [Configuration](https://nautilustrader.io/docs/api_reference/config) API reference for details of all configuration options available.
 
-
-
 ```python
 # Configure backtest engine
 config = BacktestEngineConfig(trader_id=TraderId("BACKTESTER-001"))
@@ -98,8 +93,6 @@ engine = BacktestEngine(config=config)
 Create a venue to trade on that matches the market data you add to the engine.
 
 In this case we set up a simulated Binance Spot exchange.
-
-
 
 ```python
 # Add a trading venue (multiple venues possible)
@@ -119,8 +112,6 @@ Add data to the backtest engine. Start by adding the `Instrument` object we init
 
 Then add the trades we wrangled earlier.
 
-
-
 ```python
 # Add instrument(s)
 engine.add_instrument(ETHUSDT_BINANCE)
@@ -134,7 +125,6 @@ Machine resources and your imagination limit the amount and variety of data type
 You can also backtest across multiple venues, again constrained only by machine resources.
 :::
 
-
 ## Add strategies
 
 Add the trading strategies you plan to run as part of the system.
@@ -144,8 +134,6 @@ You can backtest multiple strategies and instruments; machine resources remain t
 :::
 
 First, initialize a strategy configuration, then use it to initialize a strategy that you can add to the engine:
-
-
 
 ```python
 # Configure your strategy
@@ -175,8 +163,6 @@ NautilusTrader enables you to build complex systems of custom components. Here w
 You can backtest multiple execution algorithms; machine resources remain the only limit.
 :::
 
-
-
 ```python
 # Instantiate and add your execution algorithm
 exec_algorithm = TWAPExecAlgorithm()  # Using defaults
@@ -190,8 +176,6 @@ Call the `.run(...)` method to process all available data by default.
 
 See the [BacktestEngineConfig](https://nautilustrader.io/docs/latest/api_reference/config) API reference for a complete description of all available methods and options.
 
-
-
 ```python
 # Run the engine (from start to end of data)
 engine.run()
@@ -203,17 +187,13 @@ After the backtest completes, the engine automatically logs a post-run tearsheet
 
 The engine also keeps many data and execution objects in memory, which you can use to generate additional reports for performance analysis.
 
-
-
 ```python
 engine.trader.generate_account_report(BINANCE)
 ```
 
-
 ```python
 engine.trader.generate_order_fills_report()
 ```
-
 
 ```python
 engine.trader.generate_positions_report()
@@ -224,8 +204,6 @@ engine.trader.generate_positions_report()
 You can reset the engine for repeated runs with different strategy and component configurations.
 Call the `.reset(...)` method to retain all loaded data and components while resetting other stateful values, as if you had a fresh `BacktestEngine`. This avoids loading the same data again.
 
-
-
 ```python
 # For repeated backtest runs make sure to reset the engine
 engine.reset()
@@ -234,8 +212,6 @@ engine.reset()
 Remove and add individual components (actors, strategies, execution algorithms) as required.
 
 See the [Trader](../api_reference/trading.md) API reference for a description of all methods available to achieve this.
-
-
 
 ```python
 # Once done, good practice to dispose of the object if the script continues
