@@ -3,313 +3,267 @@
 <head>
 <meta charset="UTF-8">
 <meta name="generator" content="Docusaurus v3.9.1">
-<title data-rh="true">Architecture | NautilusTrader 文档</title><meta data-rh="true" name="viewport" content="width=device-width,initial-scale=1"><meta data-rh="true" name="twitter:card" content="summary_large_image"><meta data-rh="true" property="og:url" content="https://nautilus.aloen.to/concepts/architecture"><meta data-rh="true" property="og:locale" content="zh"><meta data-rh="true" name="docusaurus_locale" content="zh"><meta data-rh="true" name="docsearch:language" content="zh"><meta data-rh="true" name="docusaurus_version" content="current"><meta data-rh="true" name="docusaurus_tag" content="docs-default-current"><meta data-rh="true" name="docsearch:version" content="current"><meta data-rh="true" name="docsearch:docusaurus_tag" content="docs-default-current"><meta data-rh="true" property="og:title" content="Architecture | NautilusTrader 文档"><meta data-rh="true" name="description" content="Welcome to the architectural overview of NautilusTrader."><meta data-rh="true" property="og:description" content="Welcome to the architectural overview of NautilusTrader."><link data-rh="true" rel="icon" href="/logo.png"><link data-rh="true" rel="canonical" href="https://nautilus.aloen.to/concepts/architecture"><link data-rh="true" rel="alternate" href="https://nautilus.aloen.to/concepts/architecture" hreflang="zh"><link data-rh="true" rel="alternate" href="https://nautilus.aloen.to/concepts/architecture" hreflang="x-default"><script data-rh="true" type="application/ld+json">{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Concepts","item":"https://nautilus.aloen.to/concepts/"},{"@type":"ListItem","position":2,"name":"Architecture","item":"https://nautilus.aloen.to/concepts/architecture"}]}</script><link rel="stylesheet" href="/assets/css/styles.33db920f.css">
-<script src="/assets/js/runtime~main.461aeaee.js" defer="defer"></script>
+<title data-rh="true">架构 | NautilusTrader 文档</title><meta data-rh="true" name="viewport" content="width=device-width,initial-scale=1"><meta data-rh="true" name="twitter:card" content="summary_large_image"><meta data-rh="true" property="og:url" content="https://nautilus.aloen.to/concepts/architecture"><meta data-rh="true" property="og:locale" content="zh"><meta data-rh="true" name="docusaurus_locale" content="zh"><meta data-rh="true" name="docsearch:language" content="zh"><meta data-rh="true" name="docusaurus_version" content="current"><meta data-rh="true" name="docusaurus_tag" content="docs-default-current"><meta data-rh="true" name="docsearch:version" content="current"><meta data-rh="true" name="docsearch:docusaurus_tag" content="docs-default-current"><meta data-rh="true" property="og:title" content="架构 | NautilusTrader 文档"><meta data-rh="true" name="description" content="欢迎阅读 NautilusTrader 的架构概览。"><meta data-rh="true" property="og:description" content="欢迎阅读 NautilusTrader 的架构概览。"><link data-rh="true" rel="icon" href="/logo.png"><link data-rh="true" rel="canonical" href="https://nautilus.aloen.to/concepts/architecture"><link data-rh="true" rel="alternate" href="https://nautilus.aloen.to/concepts/architecture" hreflang="zh"><link data-rh="true" rel="alternate" href="https://nautilus.aloen.to/concepts/architecture" hreflang="x-default"><script data-rh="true" type="application/ld+json">{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"概念","item":"https://nautilus.aloen.to/concepts/"},{"@type":"ListItem","position":2,"name":"架构","item":"https://nautilus.aloen.to/concepts/architecture"}]}</script><link rel="stylesheet" href="/assets/css/styles.33db920f.css">
+<script src="/assets/js/runtime~main.d37f7723.js" defer="defer"></script>
 <script src="/assets/js/main.3352860b.js" defer="defer"></script>
 </head>
 <body class="navigation-with-keyboard">
 <svg style="display: none;"><defs>
 <symbol id="theme-svg-external-link" viewBox="0 0 24 24"><path fill="currentColor" d="M21 13v10h-21v-19h12v2h-10v15h17v-8h2zm3-12h-10.988l4.035 4-6.977 7.07 2.828 2.828 6.977-7.07 4.125 4.172v-11z"/></symbol>
 </defs></svg>
-<script>!function(){var t=function(){try{return new URLSearchParams(window.location.search).get("docusaurus-theme")}catch(t){}}()||function(){try{return window.localStorage.getItem("theme")}catch(t){}}();document.documentElement.setAttribute("data-theme",t||(window.matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light")),document.documentElement.setAttribute("data-theme-choice",t||"system")}(),function(){try{const c=new URLSearchParams(window.location.search).entries();for(var[t,e]of c)if(t.startsWith("docusaurus-data-")){var a=t.replace("docusaurus-data-","data-");document.documentElement.setAttribute(a,e)}}catch(t){}}()</script><div id="__docusaurus"><link rel="preload" as="image" href="/logo.png"><div role="region" aria-label="跳到主要内容"><a class="skipToContent__uWo" href="#__docusaurus_skipToContent_fallback">跳到主要内容</a></div><nav aria-label="主导航" class="theme-layout-navbar navbar navbar--fixed-top"><div class="navbar__inner"><div class="theme-layout-navbar-left navbar__items"><button aria-label="切换导航栏" aria-expanded="false" class="navbar__toggle clean-btn" type="button"><svg width="30" height="30" viewBox="0 0 30 30" aria-hidden="true"><path stroke="currentColor" stroke-linecap="round" stroke-miterlimit="10" stroke-width="2" d="M4 7h22M4 15h22M4 23h22"></path></svg></button><a class="navbar__brand" href="/"><div class="navbar__logo"><img src="/logo.png" alt="NautilusTrader Logo" class="themedComponent_WkLn themedComponent--light_cjoX"><img src="/logo.png" alt="NautilusTrader Logo" class="themedComponent_WkLn themedComponent--dark_jZId"></div><b class="navbar__title text--truncate">NautilusTrader</b></a><a aria-current="page" class="navbar__item navbar__link navbar__link--active" href="/api_reference/">文档</a></div><div class="theme-layout-navbar-right navbar__items navbar__items--right"><a href="https://github.com/Aloento/NautilusTraderDoc" target="_blank" rel="noopener noreferrer" class="navbar__item navbar__link">GitHub<svg width="13.5" height="13.5" aria-label="(opens in new tab)" class="iconExternalLink_KfBJ"><use href="#theme-svg-external-link"></use></svg></a><div class="toggle_RWFU colorModeToggle_sA1q"><button class="clean-btn toggleButton_qjfc toggleButtonDisabled_cpNp" type="button" disabled="" title="system mode" aria-label="切换浅色/暗黑模式（当前为system mode）"><svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true" class="toggleIcon_CetX lightToggleIcon_UYsV"><path fill="currentColor" d="M12,9c1.65,0,3,1.35,3,3s-1.35,3-3,3s-3-1.35-3-3S10.35,9,12,9 M12,7c-2.76,0-5,2.24-5,5s2.24,5,5,5s5-2.24,5-5 S14.76,7,12,7L12,7z M2,13l2,0c0.55,0,1-0.45,1-1s-0.45-1-1-1l-2,0c-0.55,0-1,0.45-1,1S1.45,13,2,13z M20,13l2,0c0.55,0,1-0.45,1-1 s-0.45-1-1-1l-2,0c-0.55,0-1,0.45-1,1S19.45,13,20,13z M11,2v2c0,0.55,0.45,1,1,1s1-0.45,1-1V2c0-0.55-0.45-1-1-1S11,1.45,11,2z M11,20v2c0,0.55,0.45,1,1,1s1-0.45,1-1v-2c0-0.55-0.45-1-1-1C11.45,19,11,19.45,11,20z M5.99,4.58c-0.39-0.39-1.03-0.39-1.41,0 c-0.39,0.39-0.39,1.03,0,1.41l1.06,1.06c0.39,0.39,1.03,0.39,1.41,0s0.39-1.03,0-1.41L5.99,4.58z M18.36,16.95 c-0.39-0.39-1.03-0.39-1.41,0c-0.39,0.39-0.39,1.03,0,1.41l1.06,1.06c0.39,0.39,1.03,0.39,1.41,0c0.39-0.39,0.39-1.03,0-1.41 L18.36,16.95z M19.42,5.99c0.39-0.39,0.39-1.03,0-1.41c-0.39-0.39-1.03-0.39-1.41,0l-1.06,1.06c-0.39,0.39-0.39,1.03,0,1.41 s1.03,0.39,1.41,0L19.42,5.99z M7.05,18.36c0.39-0.39,0.39-1.03,0-1.41c-0.39-0.39-1.03-0.39-1.41,0l-1.06,1.06 c-0.39,0.39-0.39,1.03,0,1.41s1.03,0.39,1.41,0L7.05,18.36z"></path></svg><svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true" class="toggleIcon_CetX darkToggleIcon_i1s2"><path fill="currentColor" d="M9.37,5.51C9.19,6.15,9.1,6.82,9.1,7.5c0,4.08,3.32,7.4,7.4,7.4c0.68,0,1.35-0.09,1.99-0.27C17.45,17.19,14.93,19,12,19 c-3.86,0-7-3.14-7-7C5,9.07,6.81,6.55,9.37,5.51z M12,3c-4.97,0-9,4.03-9,9s4.03,9,9,9s9-4.03,9-9c0-0.46-0.04-0.92-0.1-1.36 c-0.98,1.37-2.58,2.26-4.4,2.26c-2.98,0-5.4-2.42-5.4-5.4c0-1.81,0.89-3.42,2.26-4.4C12.92,3.04,12.46,3,12,3L12,3z"></path></svg><svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true" class="toggleIcon_CetX systemToggleIcon_yIQx"><path fill="currentColor" d="m12 21c4.971 0 9-4.029 9-9s-4.029-9-9-9-9 4.029-9 9 4.029 9 9 9zm4.95-13.95c1.313 1.313 2.05 3.093 2.05 4.95s-0.738 3.637-2.05 4.95c-1.313 1.313-3.093 2.05-4.95 2.05v-14c1.857 0 3.637 0.737 4.95 2.05z"></path></svg></button></div><div class="navbarSearchContainer_PsjF"></div></div></div><div role="presentation" class="navbar-sidebar__backdrop"></div></nav><div id="__docusaurus_skipToContent_fallback" class="theme-layout-main main-wrapper mainWrapper_jk42"><div class="docsWrapper_KWBO"><button aria-label="回到顶部" class="clean-btn theme-back-to-top-button backToTopButton_XpKL" type="button"></button><div class="docRoot_joIP"><aside class="theme-doc-sidebar-container docSidebarContainer_DOen"><div class="sidebarViewport_j7YP"><div class="sidebar_nPgc"><nav aria-label="文档侧边栏" class="menu thin-scrollbar menu_MTDt"><ul class="theme-doc-sidebar-menu menu__list"><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-1 menu__list-item menu__list-item--collapsed"><div class="menu__list-item-collapsible"><a class="categoryLink_GgI9 menu__link menu__link--sublist" href="/api_reference/"><span title="Python API" class="categoryLinkLabel_XKxb">Python API</span></a><button aria-label="展开侧边栏分类 &#x27;Python API&#x27;" aria-expanded="false" type="button" class="clean-btn menu__caret"></button></div></li><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-1 menu__list-item"><div class="menu__list-item-collapsible"><a class="categoryLink_GgI9 menu__link menu__link--sublist menu__link--active" href="/concepts/"><span title="Concepts" class="categoryLinkLabel_XKxb">Concepts</span></a><button aria-label="折叠侧边栏分类 &#x27;Concepts&#x27;" aria-expanded="true" type="button" class="clean-btn menu__caret"></button></div><ul class="menu__list"><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class="menu__link" tabindex="0" href="/concepts/actors"><span title="Actors" class="linkLabel_CNtA">Actors</span></a></li><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class="menu__link" tabindex="0" href="/concepts/adapters"><span title="Adapters" class="linkLabel_CNtA">Adapters</span></a></li><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class="menu__link menu__link--active" aria-current="page" tabindex="0" href="/concepts/architecture"><span title="Architecture" class="linkLabel_CNtA">Architecture</span></a></li><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class="menu__link" tabindex="0" href="/concepts/backtesting"><span title="Backtesting" class="linkLabel_CNtA">Backtesting</span></a></li><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class="menu__link" tabindex="0" href="/concepts/cache"><span title="Cache" class="linkLabel_CNtA">Cache</span></a></li><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class="menu__link" tabindex="0" href="/concepts/data"><span title="Data" class="linkLabel_CNtA">Data</span></a></li><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class="menu__link" tabindex="0" href="/concepts/execution"><span title="Execution" class="linkLabel_CNtA">Execution</span></a></li><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class="menu__link" tabindex="0" href="/concepts/instruments"><span title="Instruments" class="linkLabel_CNtA">Instruments</span></a></li><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class="menu__link" tabindex="0" href="/concepts/live"><span title="Live Trading" class="linkLabel_CNtA">Live Trading</span></a></li><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class="menu__link" tabindex="0" href="/concepts/logging"><span title="Logging" class="linkLabel_CNtA">Logging</span></a></li><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class="menu__link" tabindex="0" href="/concepts/message_bus"><span title="Message Bus" class="linkLabel_CNtA">Message Bus</span></a></li><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class="menu__link" tabindex="0" href="/concepts/orders"><span title="Orders" class="linkLabel_CNtA">Orders</span></a></li><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class="menu__link" tabindex="0" href="/concepts/overview"><span title="Overview" class="linkLabel_CNtA">Overview</span></a></li><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class="menu__link" tabindex="0" href="/concepts/portfolio"><span title="Portfolio" class="linkLabel_CNtA">Portfolio</span></a></li><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class="menu__link" tabindex="0" href="/concepts/positions"><span title="Positions" class="linkLabel_CNtA">Positions</span></a></li><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class="menu__link" tabindex="0" href="/concepts/reports"><span title="Reports" class="linkLabel_CNtA">Reports</span></a></li><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class="menu__link" tabindex="0" href="/concepts/strategies"><span title="Strategies" class="linkLabel_CNtA">Strategies</span></a></li></ul></li><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-1 menu__list-item menu__list-item--collapsed"><div class="menu__list-item-collapsible"><a class="categoryLink_GgI9 menu__link menu__link--sublist" href="/developer_guide/"><span title="开发者指南" class="categoryLinkLabel_XKxb">开发者指南</span></a><button aria-label="展开侧边栏分类 &#x27;开发者指南&#x27;" aria-expanded="false" type="button" class="clean-btn menu__caret"></button></div></li><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-1 menu__list-item menu__list-item--collapsed"><div class="menu__list-item-collapsible"><a class="categoryLink_GgI9 menu__link menu__link--sublist" href="/getting_started/"><span title="入门" class="categoryLinkLabel_XKxb">入门</span></a><button aria-label="展开侧边栏分类 &#x27;入门&#x27;" aria-expanded="false" type="button" class="clean-btn menu__caret"></button></div></li><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-1 menu__list-item menu__list-item--collapsed"><div class="menu__list-item-collapsible"><a class="categoryLink_GgI9 menu__link menu__link--sublist" href="/integrations/"><span title="集成" class="categoryLinkLabel_XKxb">集成</span></a><button aria-label="展开侧边栏分类 &#x27;集成&#x27;" aria-expanded="false" type="button" class="clean-btn menu__caret"></button></div></li><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-1 menu__list-item menu__list-item--collapsed"><div class="menu__list-item-collapsible"><a class="categoryLink_GgI9 menu__link menu__link--sublist" href="/tutorials/"><span title="教程" class="categoryLinkLabel_XKxb">教程</span></a><button aria-label="展开侧边栏分类 &#x27;教程&#x27;" aria-expanded="false" type="button" class="clean-btn menu__caret"></button></div></li></ul></nav></div></div></aside><main class="docMainContainer_bw1l"><div class="container padding-top--md padding-bottom--lg"><div class="row"><div class="col docItemCol_PIhC"><div class="docItemContainer_pFw3"><article><nav class="theme-doc-breadcrumbs breadcrumbsContainer_HRKZ" aria-label="页面路径"><ul class="breadcrumbs"><li class="breadcrumbs__item"><a aria-label="主页面" class="breadcrumbs__link" href="/"><svg viewBox="0 0 24 24" class="breadcrumbHomeIcon_sX5c"><path d="M10 19v-5h4v5c0 .55.45 1 1 1h3c.55 0 1-.45 1-1v-7h1.7c.46 0 .68-.57.33-.87L12.67 3.6c-.38-.34-.96-.34-1.34 0l-8.36 7.53c-.34.3-.13.87.33.87H5v7c0 .55.45 1 1 1h3c.55 0 1-.45 1-1z" fill="currentColor"></path></svg></a></li><li class="breadcrumbs__item"><a class="breadcrumbs__link" href="/concepts/"><span>Concepts</span></a></li><li class="breadcrumbs__item breadcrumbs__item--active"><span class="breadcrumbs__link">Architecture</span></li></ul></nav><div class="tocCollapsible_DhUt theme-doc-toc-mobile tocMobile_Izjv"><button type="button" class="clean-btn tocCollapsibleButton_eYR5">本页总览</button></div><div class="theme-doc-markdown markdown"><header><h1>Architecture</h1></header>
-<p>Welcome to the architectural overview of NautilusTrader.</p>
-<p>This guide dives deep into the foundational principles, structures, and designs that underpin
-the platform. Whether you&#x27;re a developer, system architect, or just curious about the inner workings
-of NautilusTrader, this section covers:</p>
+<script>!function(){var t=function(){try{return new URLSearchParams(window.location.search).get("docusaurus-theme")}catch(t){}}()||function(){try{return window.localStorage.getItem("theme")}catch(t){}}();document.documentElement.setAttribute("data-theme",t||(window.matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light")),document.documentElement.setAttribute("data-theme-choice",t||"system")}(),function(){try{const c=new URLSearchParams(window.location.search).entries();for(var[t,e]of c)if(t.startsWith("docusaurus-data-")){var a=t.replace("docusaurus-data-","data-");document.documentElement.setAttribute(a,e)}}catch(t){}}()</script><div id="__docusaurus"><link rel="preload" as="image" href="/logo.png"><div role="region" aria-label="跳到主要内容"><a class="skipToContent__uWo" href="#__docusaurus_skipToContent_fallback">跳到主要内容</a></div><nav aria-label="主导航" class="theme-layout-navbar navbar navbar--fixed-top"><div class="navbar__inner"><div class="theme-layout-navbar-left navbar__items"><button aria-label="切换导航栏" aria-expanded="false" class="navbar__toggle clean-btn" type="button"><svg width="30" height="30" viewBox="0 0 30 30" aria-hidden="true"><path stroke="currentColor" stroke-linecap="round" stroke-miterlimit="10" stroke-width="2" d="M4 7h22M4 15h22M4 23h22"></path></svg></button><a class="navbar__brand" href="/"><div class="navbar__logo"><img src="/logo.png" alt="NautilusTrader Logo" class="themedComponent_WkLn themedComponent--light_cjoX"><img src="/logo.png" alt="NautilusTrader Logo" class="themedComponent_WkLn themedComponent--dark_jZId"></div><b class="navbar__title text--truncate">NautilusTrader</b></a><a aria-current="page" class="navbar__item navbar__link navbar__link--active" href="/api_reference/">文档</a></div><div class="theme-layout-navbar-right navbar__items navbar__items--right"><a href="https://github.com/Aloento/NautilusTraderDoc" target="_blank" rel="noopener noreferrer" class="navbar__item navbar__link">GitHub<svg width="13.5" height="13.5" aria-label="(opens in new tab)" class="iconExternalLink_KfBJ"><use href="#theme-svg-external-link"></use></svg></a><div class="toggle_RWFU colorModeToggle_sA1q"><button class="clean-btn toggleButton_qjfc toggleButtonDisabled_cpNp" type="button" disabled="" title="system mode" aria-label="切换浅色/暗黑模式（当前为system mode）"><svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true" class="toggleIcon_CetX lightToggleIcon_UYsV"><path fill="currentColor" d="M12,9c1.65,0,3,1.35,3,3s-1.35,3-3,3s-3-1.35-3-3S10.35,9,12,9 M12,7c-2.76,0-5,2.24-5,5s2.24,5,5,5s5-2.24,5-5 S14.76,7,12,7L12,7z M2,13l2,0c0.55,0,1-0.45,1-1s-0.45-1-1-1l-2,0c-0.55,0-1,0.45-1,1S1.45,13,2,13z M20,13l2,0c0.55,0,1-0.45,1-1 s-0.45-1-1-1l-2,0c-0.55,0-1,0.45-1,1S19.45,13,20,13z M11,2v2c0,0.55,0.45,1,1,1s1-0.45,1-1V2c0-0.55-0.45-1-1-1S11,1.45,11,2z M11,20v2c0,0.55,0.45,1,1,1s1-0.45,1-1v-2c0-0.55-0.45-1-1-1C11.45,19,11,19.45,11,20z M5.99,4.58c-0.39-0.39-1.03-0.39-1.41,0 c-0.39,0.39-0.39,1.03,0,1.41l1.06,1.06c0.39,0.39,1.03,0.39,1.41,0s0.39-1.03,0-1.41L5.99,4.58z M18.36,16.95 c-0.39-0.39-1.03-0.39-1.41,0c-0.39,0.39-0.39,1.03,0,1.41l1.06,1.06c0.39,0.39,1.03,0.39,1.41,0c0.39-0.39,0.39-1.03,0-1.41 L18.36,16.95z M19.42,5.99c0.39-0.39,0.39-1.03,0-1.41c-0.39-0.39-1.03-0.39-1.41,0l-1.06,1.06c-0.39,0.39-0.39,1.03,0,1.41 s1.03,0.39,1.41,0L19.42,5.99z M7.05,18.36c0.39-0.39,0.39-1.03,0-1.41c-0.39-0.39-1.03-0.39-1.41,0l-1.06,1.06 c-0.39,0.39-0.39,1.03,0,1.41s1.03,0.39,1.41,0L7.05,18.36z"></path></svg><svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true" class="toggleIcon_CetX darkToggleIcon_i1s2"><path fill="currentColor" d="M9.37,5.51C9.19,6.15,9.1,6.82,9.1,7.5c0,4.08,3.32,7.4,7.4,7.4c0.68,0,1.35-0.09,1.99-0.27C17.45,17.19,14.93,19,12,19 c-3.86,0-7-3.14-7-7C5,9.07,6.81,6.55,9.37,5.51z M12,3c-4.97,0-9,4.03-9,9s4.03,9,9,9s9-4.03,9-9c0-0.46-0.04-0.92-0.1-1.36 c-0.98,1.37-2.58,2.26-4.4,2.26c-2.98,0-5.4-2.42-5.4-5.4c0-1.81,0.89-3.42,2.26-4.4C12.92,3.04,12.46,3,12,3L12,3z"></path></svg><svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true" class="toggleIcon_CetX systemToggleIcon_yIQx"><path fill="currentColor" d="m12 21c4.971 0 9-4.029 9-9s-4.029-9-9-9-9 4.029-9 9 4.029 9 9 9zm4.95-13.95c1.313 1.313 2.05 3.093 2.05 4.95s-0.738 3.637-2.05 4.95c-1.313 1.313-3.093 2.05-4.95 2.05v-14c1.857 0 3.637 0.737 4.95 2.05z"></path></svg></button></div><div class="navbarSearchContainer_PsjF"></div></div></div><div role="presentation" class="navbar-sidebar__backdrop"></div></nav><div id="__docusaurus_skipToContent_fallback" class="theme-layout-main main-wrapper mainWrapper_jk42"><div class="docsWrapper_KWBO"><button aria-label="回到顶部" class="clean-btn theme-back-to-top-button backToTopButton_XpKL" type="button"></button><div class="docRoot_joIP"><aside class="theme-doc-sidebar-container docSidebarContainer_DOen"><div class="sidebarViewport_j7YP"><div class="sidebar_nPgc"><nav aria-label="文档侧边栏" class="menu thin-scrollbar menu_MTDt"><ul class="theme-doc-sidebar-menu menu__list"><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-1 menu__list-item menu__list-item--collapsed"><div class="menu__list-item-collapsible"><a class="categoryLink_GgI9 menu__link menu__link--sublist" href="/api_reference/"><span title="Python API" class="categoryLinkLabel_XKxb">Python API</span></a><button aria-label="展开侧边栏分类 &#x27;Python API&#x27;" aria-expanded="false" type="button" class="clean-btn menu__caret"></button></div></li><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-1 menu__list-item"><div class="menu__list-item-collapsible"><a class="categoryLink_GgI9 menu__link menu__link--sublist menu__link--active" href="/concepts/"><span title="概念" class="categoryLinkLabel_XKxb">概念</span></a><button aria-label="折叠侧边栏分类 &#x27;概念&#x27;" aria-expanded="true" type="button" class="clean-btn menu__caret"></button></div><ul class="menu__list"><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class="menu__link" tabindex="0" href="/concepts/actors"><span title="Actors" class="linkLabel_CNtA">Actors</span></a></li><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class="menu__link" tabindex="0" href="/concepts/adapters"><span title="适配器" class="linkLabel_CNtA">适配器</span></a></li><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class="menu__link menu__link--active" aria-current="page" tabindex="0" href="/concepts/architecture"><span title="架构" class="linkLabel_CNtA">架构</span></a></li><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class="menu__link" tabindex="0" href="/concepts/backtesting"><span title="回测" class="linkLabel_CNtA">回测</span></a></li><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class="menu__link" tabindex="0" href="/concepts/cache"><span title="Cache" class="linkLabel_CNtA">Cache</span></a></li><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class="menu__link" tabindex="0" href="/concepts/data"><span title="数据" class="linkLabel_CNtA">数据</span></a></li><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class="menu__link" tabindex="0" href="/concepts/execution"><span title="执行" class="linkLabel_CNtA">执行</span></a></li><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class="menu__link" tabindex="0" href="/concepts/instruments"><span title="合约与交易品种" class="linkLabel_CNtA">合约与交易品种</span></a></li><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class="menu__link" tabindex="0" href="/concepts/live"><span title="Live 交易" class="linkLabel_CNtA">Live 交易</span></a></li><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class="menu__link" tabindex="0" href="/concepts/logging"><span title="日志" class="linkLabel_CNtA">日志</span></a></li><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class="menu__link" tabindex="0" href="/concepts/message_bus"><span title="消息总线" class="linkLabel_CNtA">消息总线</span></a></li><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class="menu__link" tabindex="0" href="/concepts/orders"><span title="订单" class="linkLabel_CNtA">订单</span></a></li><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class="menu__link" tabindex="0" href="/concepts/overview"><span title="概览" class="linkLabel_CNtA">概览</span></a></li><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class="menu__link" tabindex="0" href="/concepts/portfolio"><span title="投资组合" class="linkLabel_CNtA">投资组合</span></a></li><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class="menu__link" tabindex="0" href="/concepts/positions"><span title="持仓" class="linkLabel_CNtA">持仓</span></a></li><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class="menu__link" tabindex="0" href="/concepts/reports"><span title="报告" class="linkLabel_CNtA">报告</span></a></li><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class="menu__link" tabindex="0" href="/concepts/strategies"><span title="策略" class="linkLabel_CNtA">策略</span></a></li></ul></li><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-1 menu__list-item menu__list-item--collapsed"><div class="menu__list-item-collapsible"><a class="categoryLink_GgI9 menu__link menu__link--sublist" href="/developer_guide/"><span title="开发者指南" class="categoryLinkLabel_XKxb">开发者指南</span></a><button aria-label="展开侧边栏分类 &#x27;开发者指南&#x27;" aria-expanded="false" type="button" class="clean-btn menu__caret"></button></div></li><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-1 menu__list-item menu__list-item--collapsed"><div class="menu__list-item-collapsible"><a class="categoryLink_GgI9 menu__link menu__link--sublist" href="/getting_started/"><span title="入门" class="categoryLinkLabel_XKxb">入门</span></a><button aria-label="展开侧边栏分类 &#x27;入门&#x27;" aria-expanded="false" type="button" class="clean-btn menu__caret"></button></div></li><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-1 menu__list-item menu__list-item--collapsed"><div class="menu__list-item-collapsible"><a class="categoryLink_GgI9 menu__link menu__link--sublist" href="/integrations/"><span title="集成" class="categoryLinkLabel_XKxb">集成</span></a><button aria-label="展开侧边栏分类 &#x27;集成&#x27;" aria-expanded="false" type="button" class="clean-btn menu__caret"></button></div></li><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-1 menu__list-item menu__list-item--collapsed"><div class="menu__list-item-collapsible"><a class="categoryLink_GgI9 menu__link menu__link--sublist" href="/tutorials/"><span title="教程" class="categoryLinkLabel_XKxb">教程</span></a><button aria-label="展开侧边栏分类 &#x27;教程&#x27;" aria-expanded="false" type="button" class="clean-btn menu__caret"></button></div></li></ul></nav></div></div></aside><main class="docMainContainer_bw1l"><div class="container padding-top--md padding-bottom--lg"><div class="row"><div class="col docItemCol_PIhC"><div class="docItemContainer_pFw3"><article><nav class="theme-doc-breadcrumbs breadcrumbsContainer_HRKZ" aria-label="页面路径"><ul class="breadcrumbs"><li class="breadcrumbs__item"><a aria-label="主页面" class="breadcrumbs__link" href="/"><svg viewBox="0 0 24 24" class="breadcrumbHomeIcon_sX5c"><path d="M10 19v-5h4v5c0 .55.45 1 1 1h3c.55 0 1-.45 1-1v-7h1.7c.46 0 .68-.57.33-.87L12.67 3.6c-.38-.34-.96-.34-1.34 0l-8.36 7.53c-.34.3-.13.87.33.87H5v7c0 .55.45 1 1 1h3c.55 0 1-.45 1-1z" fill="currentColor"></path></svg></a></li><li class="breadcrumbs__item"><a class="breadcrumbs__link" href="/concepts/"><span>概念</span></a></li><li class="breadcrumbs__item breadcrumbs__item--active"><span class="breadcrumbs__link">架构</span></li></ul></nav><div class="tocCollapsible_DhUt theme-doc-toc-mobile tocMobile_Izjv"><button type="button" class="clean-btn tocCollapsibleButton_eYR5">本页总览</button></div><div class="theme-doc-markdown markdown"><header><h1>架构</h1></header>
+<p>欢迎阅读 NautilusTrader 的架构概览。</p>
+<p>本指南深入介绍支撑该平台的基本原则、结构与设计。无论你是开发者、系统架构师，还是对 NautilusTrader 内部实现感兴趣的读者，本章节包含：</p>
 <ul>
-<li>The design philosophy that drives decisions and shapes the system&#x27;s evolution.</li>
-<li>The overarching system architecture providing a bird&#x27;s-eye view of the entire system framework.</li>
-<li>How the framework is organized to facilitate modularity and maintainability.</li>
-<li>The code structure that ensures readability and scalability.</li>
-<li>A breakdown of component organization and interaction to understand how different parts communicate and collaborate.</li>
-<li>And finally, the implementation techniques that are crucial for performance, reliability, and robustness.</li>
+<li>推动设计决策与系统演进的设计理念。</li>
+<li>提供全局视角的系统架构总览。</li>
+<li>为实现模块化与可维护性而组织的框架结构说明。</li>
+<li>保持可读性与可扩展性的代码结构要点。</li>
+<li>组件组织与交互的分解，帮助理解各部分如何通信与协作。</li>
+<li>最后，若干对性能、可靠性与健壮性至关重要的实现技术。</li>
 </ul>
-<div class="theme-admonition theme-admonition-note admonition_lEzE alert alert--secondary"><div class="admonitionHeading_aAf0"><span class="admonitionIcon_xtBN"><svg viewBox="0 0 14 16"><path fill-rule="evenodd" d="M6.3 5.69a.942.942 0 0 1-.28-.7c0-.28.09-.52.28-.7.19-.18.42-.28.7-.28.28 0 .52.09.7.28.18.19.28.42.28.7 0 .28-.09.52-.28.7a1 1 0 0 1-.7.3c-.28 0-.52-.11-.7-.3zM8 7.99c-.02-.25-.11-.48-.31-.69-.2-.19-.42-.3-.69-.31H6c-.27.02-.48.13-.69.31-.2.2-.3.44-.31.69h1v3c.02.27.11.5.31.69.2.2.42.31.69.31h1c.27 0 .48-.11.69-.31.2-.19.3-.42.31-.69H8V7.98v.01zM7 2.3c-3.14 0-5.7 2.54-5.7 5.68 0 3.14 2.56 5.7 5.7 5.7s5.7-2.55 5.7-5.7c0-3.15-2.56-5.69-5.7-5.69v.01zM7 .98c3.86 0 7 3.14 7 7s-3.14 7-7 7-7-3.12-7-7 3.14-7 7-7z"></path></svg></span>备注</div><div class="admonitionContent_Vfkp"><p>Throughout the documentation, the term <em>&quot;Nautilus system boundary&quot;</em> refers to operations within
-the runtime of a single Nautilus node (also known as a &quot;trader instance&quot;).</p></div></div>
-<h2 class="anchor anchorWithStickyNavbar_RpWm" id="design-philosophy">Design philosophy<a href="#design-philosophy" class="hash-link" aria-label="Design philosophy的直接链接" title="Design philosophy的直接链接" translate="no">​</a></h2>
-<p>The major architectural techniques and design patterns employed by NautilusTrader are:</p>
+<div class="theme-admonition theme-admonition-note admonition_lEzE alert alert--secondary"><div class="admonitionHeading_aAf0"><span class="admonitionIcon_xtBN"><svg viewBox="0 0 14 16"><path fill-rule="evenodd" d="M6.3 5.69a.942.942 0 0 1-.28-.7c0-.28.09-.52.28-.7.19-.18.42-.28.7-.28.28 0 .52.09.7.28.18.19.28.42.28.7 0 .28-.09.52-.28.7a1 1 0 0 1-.7.3c-.28 0-.52-.11-.7-.3zM8 7.99c-.02-.25-.11-.48-.31-.69-.2-.19-.42-.3-.69-.31H6c-.27.02-.48.13-.69.31-.2.2-.3.44-.31.69h1v3c.02.27.11.5.31.69.2.2.42.31.69.31h1c.27 0 .48-.11.69-.31.2-.19.3-.42.31-.69H8V7.98v.01zM7 2.3c-3.14 0-5.7 2.54-5.7 5.68 0 3.14 2.56 5.7 5.7 5.7s5.7-2.55 5.7-5.7c0-3.15-2.56-5.69-5.7-5.69v.01zM7 .98c3.86 0 7 3.14 7 7s-3.14 7-7 7-7-3.12-7-7 3.14-7 7-7z"></path></svg></span>备注</div><div class="admonitionContent_Vfkp"><p>在整篇文档中，术语 <em>&quot;Nautilus system boundary&quot;</em> 指的是单个 Nautilus 节点（也称为“trader instance”）运行时内部的操作范围。</p></div></div>
+<h2 class="anchor anchorWithStickyNavbar_RpWm" id="设计理念">设计理念<a href="#设计理念" class="hash-link" aria-label="设计理念的直接链接" title="设计理念的直接链接" translate="no">​</a></h2>
+<p>NautilusTrader 采用的主要架构技术与设计模式包括：</p>
 <ul>
-<li><a href="https://en.wikipedia.org/wiki/Domain-driven_design" target="_blank" rel="noopener noreferrer">Domain driven design (DDD)</a></li>
-<li><a href="https://en.wikipedia.org/wiki/Event-driven_programming" target="_blank" rel="noopener noreferrer">Event-driven architecture</a></li>
-<li><a href="https://en.wikipedia.org/wiki/Messaging_pattern" target="_blank" rel="noopener noreferrer">Messaging patterns</a> (Pub/Sub, Req/Rep, point-to-point)</li>
-<li><a href="https://en.wikipedia.org/wiki/Hexagonal_architecture_(software)" target="_blank" rel="noopener noreferrer">Ports and adapters</a></li>
-<li><a href="#crash-only-design">Crash-only design</a></li>
+<li><a href="https://en.wikipedia.org/wiki/Domain-driven_design" target="_blank" rel="noopener noreferrer">领域驱动设计（Domain driven design, DDD）</a></li>
+<li><a href="https://en.wikipedia.org/wiki/Event-driven_programming" target="_blank" rel="noopener noreferrer">事件驱动架构（Event-driven architecture）</a></li>
+<li><a href="https://en.wikipedia.org/wiki/Messaging_pattern" target="_blank" rel="noopener noreferrer">消息模式（Messaging patterns）</a>（Pub/Sub、Req/Rep、点对点）</li>
+<li><a href="https://en.wikipedia.org/wiki/Hexagonal_architecture_(software)" target="_blank" rel="noopener noreferrer">Ports and adapters（六边形架构）</a></li>
+<li><a href="#crash-only-design">Crash-only design（仅崩溃设计）</a></li>
 </ul>
-<p>These techniques have been utilized to assist in achieving certain architectural quality attributes.</p>
-<h3 class="anchor anchorWithStickyNavbar_RpWm" id="quality-attributes">Quality attributes<a href="#quality-attributes" class="hash-link" aria-label="Quality attributes的直接链接" title="Quality attributes的直接链接" translate="no">​</a></h3>
-<p>Architectural decisions are often a trade-off between competing priorities. The
-below is a list of some of the most important quality attributes which are considered
-when making design and architectural decisions, roughly in order of &#x27;weighting&#x27;.</p>
+<p>这些技术用于在架构决策中实现若干关键质量属性。</p>
+<h3 class="anchor anchorWithStickyNavbar_RpWm" id="质量属性">质量属性<a href="#质量属性" class="hash-link" aria-label="质量属性的直接链接" title="质量属性的直接链接" translate="no">​</a></h3>
+<p>架构决策通常需要在相互竞争的目标间权衡。下面按大致重要性列出在设计与架构决策时会优先考虑的若干质量属性：</p>
 <ul>
-<li>Reliability</li>
-<li>Performance</li>
-<li>Modularity</li>
-<li>Testability</li>
-<li>Maintainability</li>
-<li>Deployability</li>
+<li>可靠性（Reliability）</li>
+<li>性能（Performance）</li>
+<li>模块化（Modularity）</li>
+<li>可测试性（Testability）</li>
+<li>可维护性（Maintainability）</li>
+<li>可部署性（Deployability）</li>
 </ul>
-<h3 class="anchor anchorWithStickyNavbar_RpWm" id="assurance-driven-engineering">Assurance-driven engineering<a href="#assurance-driven-engineering" class="hash-link" aria-label="Assurance-driven engineering的直接链接" title="Assurance-driven engineering的直接链接" translate="no">​</a></h3>
-<p>NautilusTrader is incrementally adopting a high-assurance mindset: critical code
-paths should carry executable invariants that verify behaviour matches the
-business requirements. Practically this means we:</p>
+<h3 class="anchor anchorWithStickyNavbar_RpWm" id="以可证明性为导向的工程实践">以可证明性为导向的工程实践<a href="#以可证明性为导向的工程实践" class="hash-link" aria-label="以可证明性为导向的工程实践的直接链接" title="以可证明性为导向的工程实践的直接链接" translate="no">​</a></h3>
+<p>NautilusTrader 正在逐步采用高保障（high-assurance）的工程思路：关键代码路径应携带可执行的不变式（executable invariants），以验证行为符合业务需求。具体实践包括：</p>
 <ul>
-<li>Identify the components whose failure has the highest blast radius (core
-domain types, risk and execution flows) and write down their invariants in
-plain language.</li>
-<li>Codify those invariants as executable checks (unit tests, property tests,
-fuzzers, static assertions) that run in CI, keeping the feedback loop light.</li>
-<li>Prefer zero-cost safety techniques built into Rust (ownership, <code>Result</code>
-surfaces, <code>panic = abort</code>) and add targeted formal tools only where they pay
-for themselves.</li>
-<li>Track “assurance debt” alongside feature work so new integrations extend the
-safety net rather than bypass it.</li>
+<li>识别失败会带来最大冲击的组件（核心域类型、风控与执行流等），并以自然语言写出它们的不变式。</li>
+<li>将这些不变式编码为可执行检查（单元测试、属性测试、模糊测试、静态断言），在 CI 中运行以保持快速反馈。</li>
+<li>优先使用 Rust 内置的“零成本”安全技术（所有权、<code>Result</code> 返回类型、<code>panic = abort</code> 等），仅在确有必要时引入有成本的形式化工具。</li>
+<li>将“保障欠债（assurance debt）”与功能工作并行跟踪，确保新集成扩展了安全网而非绕过它。</li>
 </ul>
-<p>This approach preserves the platform’s delivery cadence while giving mission
-critical flows the additional scrutiny they need.</p>
-<p>Further reading: <a href="https://highassurance.rs/" target="_blank" rel="noopener noreferrer">High Assurance Rust</a>.</p>
-<h3 class="anchor anchorWithStickyNavbar_RpWm" id="crash-only-design">Crash-only design<a href="#crash-only-design" class="hash-link" aria-label="Crash-only design的直接链接" title="Crash-only design的直接链接" translate="no">​</a></h3>
-<p>NautilusTrader embraces <a href="https://en.wikipedia.org/wiki/Crash-only_software" target="_blank" rel="noopener noreferrer">crash-only design</a>,
-a philosophy where <em>&quot;the only way to stop the system is to crash it&quot;</em>, and <em>&quot;the only way to bring it
-up is to recover from a crash&quot;</em>. This approach simplifies state management and improves reliability
-by eliminating the complexity of graceful shutdown code paths that are rarely tested.</p>
-<p>Key principles:</p>
+<p>这一策略在保证持续交付节奏的同时，为关键流程提供额外的审查力度。</p>
+<p>进一步阅读：<a href="https://highassurance.rs/" target="_blank" rel="noopener noreferrer">High Assurance Rust</a>。</p>
+<h3 class="anchor anchorWithStickyNavbar_RpWm" id="仅崩溃设计crash-only-design">仅崩溃设计（Crash-only design）<a href="#仅崩溃设计crash-only-design" class="hash-link" aria-label="仅崩溃设计（Crash-only design）的直接链接" title="仅崩溃设计（Crash-only design）的直接链接" translate="no">​</a></h3>
+<p>NautilusTrader 倡导<a href="https://en.wikipedia.org/wiki/Crash-only_software" target="_blank" rel="noopener noreferrer">仅崩溃设计（crash-only design）</a>，该理念可概述为“停止系统的唯一方式是让它崩溃，启动系统的唯一方式是从崩溃中恢复”。此策略通过消除很少被测试的优雅关机路径的复杂性来简化状态管理并提升可靠性。</p>
+<p>关键原则：</p>
 <ul>
-<li><strong>Single code path</strong> - Recovery from crash is the primary (and only) initialization path, ensuring it is well-tested.</li>
-<li><strong>No graceful shutdown</strong> - The system does not attempt complex cleanup procedures that may fail or hang.</li>
-<li><strong>Externalized state</strong> - Critical state is persisted externally (database, message bus) so crashes do not lose data.</li>
-<li><strong>Fast restart</strong> - The system is designed to restart quickly after a crash, minimizing downtime.</li>
-<li><strong>Idempotent operations</strong> - Operations are designed to be safely retried after restart.</li>
+<li><strong>单一路径（Single code path）</strong> — 从崩溃恢复是主要且唯一的初始化路径，确保被充分测试。</li>
+<li><strong>无优雅关机（No graceful shutdown）</strong> — 系统不尝试那些可能失败或挂起的复杂清理操作。</li>
+<li><strong>外部化状态（Externalized state）</strong> — 关键状态持久化到外部（数据库、消息总线），以避免崩溃导致数据丢失。</li>
+<li><strong>快速重启（Fast restart）</strong> — 系统设计为能在崩溃后快速重启，最小化停机时间。</li>
+<li><strong>幂等操作（Idempotent operations）</strong> — 操作设计为可安全重试。</li>
 </ul>
-<p>This design complements the <a href="#data-integrity-and-fail-fast-policy">fail-fast policy</a>, where
-unrecoverable errors (data corruption, invariant violations) result in immediate process termination
-rather than attempting to continue in a compromised state.</p>
-<p><strong>References:</strong></p>
+<p>该设计理念补充了下文的<a href="#data-integrity-and-fail-fast-policy">快速失败（fail-fast）策略</a>，即在遇到不可恢复的错误（数据损坏、不变式违背）时立即终止进程，而不是在受损状态中继续运行。</p>
+<p><strong>参考资料：</strong></p>
 <ul>
-<li><a href="https://www.usenix.org/conference/hotos-ix/crash-only-software" target="_blank" rel="noopener noreferrer">Crash-Only Software</a> - Candea &amp; Fox, HotOS 2003 (original research paper)</li>
-<li><a href="https://www.usenix.org/conference/osdi-04/microreboot%E2%80%94-technique-cheap-recovery" target="_blank" rel="noopener noreferrer">Microreboot—A Technique for Cheap Recovery</a> - Candea et al., OSDI 2004</li>
-<li><a href="https://brooker.co.za/blog/2012/01/22/crash-only.html" target="_blank" rel="noopener noreferrer">The properties of crash-only software</a> - Marc Brooker&#x27;s blog</li>
-<li><a href="https://lwn.net/Articles/191059/" target="_blank" rel="noopener noreferrer">Crash-only software: More than meets the eye</a> - LWN.net article</li>
-<li><a href="http://roc.cs.berkeley.edu/" target="_blank" rel="noopener noreferrer">Recovery-Oriented Computing (ROC) Project</a> - UC Berkeley/Stanford research</li>
+<li><a href="https://www.usenix.org/conference/hotos-ix/crash-only-software" target="_blank" rel="noopener noreferrer">Crash-Only Software</a> - Candea &amp; Fox, HotOS 2003（原始论文）</li>
+<li><a href="https://www.usenix.org/conference/osdi-04/microreboot%E2%80%94-technique-cheap-recovery" target="_blank" rel="noopener noreferrer">Microreboot—A Technique for Cheap Recovery</a> - Candea 等，OSDI 2004</li>
+<li><a href="https://brooker.co.za/blog/2012/01/22/crash-only.html" target="_blank" rel="noopener noreferrer">The properties of crash-only software</a> - Marc Brooker 博客</li>
+<li><a href="https://lwn.net/Articles/191059/" target="_blank" rel="noopener noreferrer">Crash-only software: More than meets the eye</a> - LWN.net 文章</li>
+<li><a href="http://roc.cs.berkeley.edu/" target="_blank" rel="noopener noreferrer">Recovery-Oriented Computing (ROC) Project</a> - 加州大学伯克利/斯坦福研究项目</li>
 </ul>
-<h3 class="anchor anchorWithStickyNavbar_RpWm" id="data-integrity-and-fail-fast-policy">Data integrity and fail-fast policy<a href="#data-integrity-and-fail-fast-policy" class="hash-link" aria-label="Data integrity and fail-fast policy的直接链接" title="Data integrity and fail-fast policy的直接链接" translate="no">​</a></h3>
-<p>NautilusTrader prioritizes data integrity over availability for trading operations. The system employs
-a strict fail-fast policy for arithmetic operations and data handling to prevent silent data corruption
-that could lead to incorrect trading decisions.</p>
-<h4 class="anchor anchorWithStickyNavbar_RpWm" id="fail-fast-principles">Fail-fast principles<a href="#fail-fast-principles" class="hash-link" aria-label="Fail-fast principles的直接链接" title="Fail-fast principles的直接链接" translate="no">​</a></h4>
-<p>The system will fail fast (panic or return an error) when encountering:</p>
+<h3 class="anchor anchorWithStickyNavbar_RpWm" id="数据完整性与快速失败fail-fast策略">数据完整性与快速失败（fail-fast）策略<a href="#数据完整性与快速失败fail-fast策略" class="hash-link" aria-label="数据完整性与快速失败（fail-fast）策略的直接链接" title="数据完整性与快速失败（fail-fast）策略的直接链接" translate="no">​</a></h3>
+<p>在交易系统中，数据完整性优先于可用性。NautilusTrader 实施严格的快速失败策略，用以在算术或数据处理出现异常时阻止静默的数 据损坏，从而避免错误的交易决策。</p>
+<h4 class="anchor anchorWithStickyNavbar_RpWm" id="快速失败原则">快速失败原则<a href="#快速失败原则" class="hash-link" aria-label="快速失败原则的直接链接" title="快速失败原则的直接链接" translate="no">​</a></h4>
+<p>当遇到下列情况时，系统会快速失败（panic 或返回错误）：</p>
 <ul>
-<li>Arithmetic overflow or underflow in operations on timestamps, prices, or quantities that exceed valid ranges.</li>
-<li>Invalid data during deserialization including NaN, Infinity, or out-of-range values in market data or configuration.</li>
-<li>Type conversion failures such as negative values where only positive values are valid (timestamps, quantities).</li>
-<li>Malformed input parsing for prices, timestamps, or precision values.</li>
+<li>在时间戳、价格或数量等运算中出现算术溢出或下溢，超出有效范围。</li>
+<li>反序列化过程中遇到无效数据，例如 NaN、Infinity 或超出范围的市场数据或配置值。</li>
+<li>类型转换失败，例如仅应为正值的字段出现负值（时间戳、数量等）。</li>
+<li>对价格、时间戳或精度值的解析出现格式错误。</li>
 </ul>
-<p>Rationale:</p>
-<p>In trading systems, corrupt data is worse than no data. A single incorrect price, timestamp, or quantity
-can cascade through the system, resulting in:</p>
+<p>理由：</p>
+<p>在交易系统中，损坏的数据比没有数据更危险。单个错误的价格、时间戳或数量可能会在系统中蔓延，导致：</p>
 <ul>
-<li>Incorrect position sizing or risk calculations.</li>
-<li>Orders placed at wrong prices.</li>
-<li>Backtests producing misleading results.</li>
-<li>Silent financial losses.</li>
+<li>仓位规模或风控计算错误。</li>
+<li>以错误价格下单。</li>
+<li>回测结果产生误导性结论。</li>
+<li>无声的财务损失。</li>
 </ul>
-<p>By crashing immediately on invalid data, NautilusTrader ensures:</p>
+<p>通过在发现无效数据时立即崩溃，NautilusTrader 能确保：</p>
 <ol>
-<li><strong>No silent corruption</strong> - Invalid data never propagates through the system.</li>
-<li><strong>Immediate feedback</strong> - Issues are discovered during development and testing, not in production.</li>
-<li><strong>Audit trail</strong> - Crash logs clearly identify the source of invalid data.</li>
-<li><strong>Deterministic behavior</strong> - The same invalid input always produces the same failure.</li>
+<li><strong>无静默损坏</strong> — 无效数据不会在系统中传播。</li>
+<li><strong>及时反馈</strong> — 问题在开发和测试阶段被发现，而非生产环境中滞留。</li>
+<li><strong>审计线索</strong> — 崩溃日志能清晰地标识无效数据的来源。</li>
+<li><strong>确定性行为</strong> — 相同的无效输入总会导致同样的失败。</li>
 </ol>
-<h4 class="anchor anchorWithStickyNavbar_RpWm" id="when-fail-fast-applies">When fail-fast applies<a href="#when-fail-fast-applies" class="hash-link" aria-label="When fail-fast applies的直接链接" title="When fail-fast applies的直接链接" translate="no">​</a></h4>
-<p>Panics are used for:</p>
+<h4 class="anchor anchorWithStickyNavbar_RpWm" id="何时应用快速失败">何时应用快速失败<a href="#何时应用快速失败" class="hash-link" aria-label="何时应用快速失败的直接链接" title="何时应用快速失败的直接链接" translate="no">​</a></h4>
+<p>使用 panic 的场景包括：</p>
 <ul>
-<li>Programmer errors (logic bugs, incorrect API usage).</li>
-<li>Data that violates fundamental invariants (negative timestamps, NaN prices).</li>
-<li>Arithmetic that would silently produce incorrect results.</li>
+<li>程序员错误（逻辑缺陷、错误的 API 使用）。</li>
+<li>违反基本不变式的数据（负时间戳、NaN 价格）。</li>
+<li>会静默产生不正确结果的算术操作。</li>
 </ul>
-<p>Results or Options are used for:</p>
+<p>而对下列情况使用 Result 或 Option：</p>
 <ul>
-<li>Expected runtime failures (network errors, file I/O).</li>
-<li>Business logic validation (order constraints, risk limits).</li>
-<li>User input validation.</li>
-<li>Library APIs exposed to downstream crates where callers need explicit error handling without relying on panics for control flow.</li>
+<li>可预期的运行时失败（网络错误、文件 I/O）。</li>
+<li>业务逻辑校验（订单约束、风控限制）。</li>
+<li>用户输入验证。</li>
+<li>向下游 crate 暴露的库 API——调用方需要显式的错误处理而非依赖 panic 作为控制流。</li>
 </ul>
-<h4 class="anchor anchorWithStickyNavbar_RpWm" id="example-scenarios">Example scenarios<a href="#example-scenarios" class="hash-link" aria-label="Example scenarios的直接链接" title="Example scenarios的直接链接" translate="no">​</a></h4>
-<div class="language-rust codeBlockContainer_euGm theme-code-block" style="--prism-color:#393A34;--prism-background-color:#f6f8fa"><div class="codeBlockContent_zF3K"><pre tabindex="0" class="prism-code language-rust codeBlock_G1mO thin-scrollbar" style="color:#393A34;background-color:#f6f8fa"><code class="codeBlockLines_QZRj"><span class="token-line" style="color:#393A34"><span class="token comment" style="color:#999988;font-style:italic">// CORRECT: Panics on overflow - prevents data corruption</span><span class="token plain"></span><br></span><span class="token-line" style="color:#393A34"><span class="token plain"></span><span class="token keyword" style="color:#00009f">let</span><span class="token plain"> total_ns </span><span class="token operator" style="color:#393A34">=</span><span class="token plain"> timestamp1 </span><span class="token operator" style="color:#393A34">+</span><span class="token plain"> timestamp2</span><span class="token punctuation" style="color:#393A34">;</span><span class="token plain"> </span><span class="token comment" style="color:#999988;font-style:italic">// Panics if result &gt; u64::MAX</span><span class="token plain"></span><br></span><span class="token-line" style="color:#393A34"><span class="token plain" style="display:inline-block"></span><br></span><span class="token-line" style="color:#393A34"><span class="token plain"></span><span class="token comment" style="color:#999988;font-style:italic">// CORRECT: Rejects NaN during deserialization</span><span class="token plain"></span><br></span><span class="token-line" style="color:#393A34"><span class="token plain"></span><span class="token keyword" style="color:#00009f">let</span><span class="token plain"> price </span><span class="token operator" style="color:#393A34">=</span><span class="token plain"> </span><span class="token namespace" style="opacity:0.7">serde_json</span><span class="token namespace punctuation" style="opacity:0.7;color:#393A34">::</span><span class="token function" style="color:#d73a49">from_str</span><span class="token punctuation" style="color:#393A34">(</span><span class="token string" style="color:#e3116c">&quot;NaN&quot;</span><span class="token punctuation" style="color:#393A34">)</span><span class="token punctuation" style="color:#393A34">;</span><span class="token plain"> </span><span class="token comment" style="color:#999988;font-style:italic">// Error: &quot;must be finite&quot;</span><span class="token plain"></span><br></span><span class="token-line" style="color:#393A34"><span class="token plain" style="display:inline-block"></span><br></span><span class="token-line" style="color:#393A34"><span class="token plain"></span><span class="token comment" style="color:#999988;font-style:italic">// CORRECT: Explicit overflow handling when needed</span><span class="token plain"></span><br></span><span class="token-line" style="color:#393A34"><span class="token plain"></span><span class="token keyword" style="color:#00009f">let</span><span class="token plain"> total_ns </span><span class="token operator" style="color:#393A34">=</span><span class="token plain"> timestamp1</span><span class="token punctuation" style="color:#393A34">.</span><span class="token function" style="color:#d73a49">checked_add</span><span class="token punctuation" style="color:#393A34">(</span><span class="token plain">timestamp2</span><span class="token punctuation" style="color:#393A34">)</span><span class="token operator" style="color:#393A34">?</span><span class="token punctuation" style="color:#393A34">;</span><span class="token plain"> </span><span class="token comment" style="color:#999988;font-style:italic">// Returns Option&lt;UnixNanos&gt;</span><br></span></code></pre></div></div>
-<p>This policy is implemented throughout the core types (<code>UnixNanos</code>, <code>Price</code>, <code>Quantity</code>, etc.)
-and ensures that NautilusTrader maintains the highest standards of data correctness for production trading.</p>
-<p>In production deployments, the system is typically configured with <code>panic = abort</code> in release builds,
-ensuring that any panic results in a clean process termination that can be handled by process supervisors
-or orchestration systems. This aligns with the <a href="#crash-only-design">crash-only design</a> principle, where unrecoverable errors
-lead to immediate restart rather than attempting to continue in a potentially corrupted state.</p>
-<h2 class="anchor anchorWithStickyNavbar_RpWm" id="system-architecture">System architecture<a href="#system-architecture" class="hash-link" aria-label="System architecture的直接链接" title="System architecture的直接链接" translate="no">​</a></h2>
-<p>The NautilusTrader codebase is actually both a framework for composing trading
-systems, and a set of default system implementations which can operate in various
-<a href="#environment-contexts">environment contexts</a>.</p>
+<h4 class="anchor anchorWithStickyNavbar_RpWm" id="示例场景">示例场景<a href="#示例场景" class="hash-link" aria-label="示例场景的直接链接" title="示例场景的直接链接" translate="no">​</a></h4>
+<div class="language-rust codeBlockContainer_euGm theme-code-block" style="--prism-color:#393A34;--prism-background-color:#f6f8fa"><div class="codeBlockContent_zF3K"><pre tabindex="0" class="prism-code language-rust codeBlock_G1mO thin-scrollbar" style="color:#393A34;background-color:#f6f8fa"><code class="codeBlockLines_QZRj"><span class="token-line" style="color:#393A34"><span class="token comment" style="color:#999988;font-style:italic">// 正确：溢出时 panic — 防止数据损坏</span><span class="token plain"></span><br></span><span class="token-line" style="color:#393A34"><span class="token plain"></span><span class="token keyword" style="color:#00009f">let</span><span class="token plain"> total_ns </span><span class="token operator" style="color:#393A34">=</span><span class="token plain"> timestamp1 </span><span class="token operator" style="color:#393A34">+</span><span class="token plain"> timestamp2</span><span class="token punctuation" style="color:#393A34">;</span><span class="token plain"> </span><span class="token comment" style="color:#999988;font-style:italic">// 如果结果 &gt; u64::MAX 则 panic</span><span class="token plain"></span><br></span><span class="token-line" style="color:#393A34"><span class="token plain" style="display:inline-block"></span><br></span><span class="token-line" style="color:#393A34"><span class="token plain"></span><span class="token comment" style="color:#999988;font-style:italic">// 正确：在反序列化时拒绝 NaN</span><span class="token plain"></span><br></span><span class="token-line" style="color:#393A34"><span class="token plain"></span><span class="token keyword" style="color:#00009f">let</span><span class="token plain"> price </span><span class="token operator" style="color:#393A34">=</span><span class="token plain"> </span><span class="token namespace" style="opacity:0.7">serde_json</span><span class="token namespace punctuation" style="opacity:0.7;color:#393A34">::</span><span class="token function" style="color:#d73a49">from_str</span><span class="token punctuation" style="color:#393A34">(</span><span class="token string" style="color:#e3116c">&quot;NaN&quot;</span><span class="token punctuation" style="color:#393A34">)</span><span class="token punctuation" style="color:#393A34">;</span><span class="token plain"> </span><span class="token comment" style="color:#999988;font-style:italic">// Error: &quot;must be finite&quot;</span><span class="token plain"></span><br></span><span class="token-line" style="color:#393A34"><span class="token plain" style="display:inline-block"></span><br></span><span class="token-line" style="color:#393A34"><span class="token plain"></span><span class="token comment" style="color:#999988;font-style:italic">// 正确：在需要时显式处理溢出</span><span class="token plain"></span><br></span><span class="token-line" style="color:#393A34"><span class="token plain"></span><span class="token keyword" style="color:#00009f">let</span><span class="token plain"> total_ns </span><span class="token operator" style="color:#393A34">=</span><span class="token plain"> timestamp1</span><span class="token punctuation" style="color:#393A34">.</span><span class="token function" style="color:#d73a49">checked_add</span><span class="token punctuation" style="color:#393A34">(</span><span class="token plain">timestamp2</span><span class="token punctuation" style="color:#393A34">)</span><span class="token operator" style="color:#393A34">?</span><span class="token punctuation" style="color:#393A34">;</span><span class="token plain"> </span><span class="token comment" style="color:#999988;font-style:italic">// 返回 Option&lt;UnixNanos&gt;</span><br></span></code></pre></div></div>
+<p>该策略在核心类型（<code>UnixNanos</code>、<code>Price</code>、<code>Quantity</code> 等）中得到贯彻，确保 NautilusTrader 在生产交易中维持最高的数据正确性标准。</p>
+<p>在生产部署中，通常会在 release 构建中配置 <code>panic = abort</code>，以确保任何 panic 都会导致进程干净地终止，从而由进程监控器或编排系统进行处理。这与<a href="#crash-only-design">仅崩溃设计</a>原则一致：不可恢复的错误应立即触发重启，而非在已受损的状态下继续运行。</p>
+<h2 class="anchor anchorWithStickyNavbar_RpWm" id="系统架构">系统架构<a href="#系统架构" class="hash-link" aria-label="系统架构的直接链接" title="系统架构的直接链接" translate="no">​</a></h2>
+<p>NautilusTrader 代码库既是用于组合交易系统的框架，也是包含一组可在不同<a href="#environment-contexts">环境上下文（environment contexts）</a>中运行的默认系统实现。</p>
 <p><img decoding="async" loading="lazy" src="https://github.com/nautechsystems/nautilus_trader/blob/develop/assets/architecture-overview.png?raw=true" alt="Architecture" title="architecture" class="img_DwKz"></p>
-<h3 class="anchor anchorWithStickyNavbar_RpWm" id="core-components">Core components<a href="#core-components" class="hash-link" aria-label="Core components的直接链接" title="Core components的直接链接" translate="no">​</a></h3>
-<p>The platform is built around several key components that work together to provide a comprehensive trading system:</p>
+<h3 class="anchor anchorWithStickyNavbar_RpWm" id="核心组件">核心组件<a href="#核心组件" class="hash-link" aria-label="核心组件的直接链接" title="核心组件的直接链接" translate="no">​</a></h3>
+<p>平台由若干关键组件构成，它们协同工作以提供一个完整的交易系统：</p>
 <h4 class="anchor anchorWithStickyNavbar_RpWm" id="nautiluskernel"><code>NautilusKernel</code><a href="#nautiluskernel" class="hash-link" aria-label="nautiluskernel的直接链接" title="nautiluskernel的直接链接" translate="no">​</a></h4>
-<p>The central orchestration component responsible for:</p>
+<p>中央的编排组件，负责：</p>
 <ul>
-<li>Initializing and managing all system components.</li>
-<li>Configuring the messaging infrastructure.</li>
-<li>Maintaining environment-specific behaviors.</li>
-<li>Coordinating shared resources and lifecycle management.</li>
-<li>Providing a unified entry point for system operations.</li>
+<li>初始化并管理所有系统组件。</li>
+<li>配置消息传递基础设施（messaging infrastructure）。</li>
+<li>维护与环境相关的行为。</li>
+<li>协调共享资源与生命周期管理。</li>
+<li>为系统操作提供统一的入口点。</li>
 </ul>
 <h4 class="anchor anchorWithStickyNavbar_RpWm" id="messagebus"><code>MessageBus</code><a href="#messagebus" class="hash-link" aria-label="messagebus的直接链接" title="messagebus的直接链接" translate="no">​</a></h4>
-<p>The backbone of inter-component communication, implementing:</p>
+<p>组件间通信的中枢，具有以下能力：</p>
 <ul>
-<li><strong>Publish/Subscribe patterns</strong>: For broadcasting events and data to multiple consumers.</li>
-<li><strong>Request/Response communication</strong>: For operations requiring acknowledgment.</li>
-<li><strong>Command/Event messaging</strong>: For triggering actions and notifying state changes.</li>
-<li><strong>Optional state persistence</strong>: Using Redis for durability and restart capabilities.</li>
+<li><strong>发布/订阅（Publish/Subscribe）模式</strong>：用于向多个消费者广播事件和数据。</li>
+<li><strong>请求/响应（Request/Response）通信</strong>：用于需要确认的操作。</li>
+<li><strong>命令/事件（Command/Event）消息</strong>：用于触发动作与状态变更通知。</li>
+<li><strong>可选的状态持久化</strong>：使用 Redis 提供持久化和重启能力。</li>
 </ul>
 <h4 class="anchor anchorWithStickyNavbar_RpWm" id="cache"><code>Cache</code><a href="#cache" class="hash-link" aria-label="cache的直接链接" title="cache的直接链接" translate="no">​</a></h4>
-<p>High-performance in-memory storage system that:</p>
+<p>高性能的内存存储系统，负责：</p>
 <ul>
-<li>Stores instruments, accounts, orders, positions, and more.</li>
-<li>Provides performant fetching capabilities for trading components.</li>
-<li>Maintains consist state across the system.</li>
-<li>Supports both read and write operations with optimized access patterns.</li>
+<li>存储 instruments、accounts、orders、positions 等实体。</li>
+<li>为交易组件提供高性能的读取能力。</li>
+<li>在系统内维护一致的状态（consistent state）。</li>
+<li>支持优化的读写访问模式。</li>
 </ul>
 <h4 class="anchor anchorWithStickyNavbar_RpWm" id="dataengine"><code>DataEngine</code><a href="#dataengine" class="hash-link" aria-label="dataengine的直接链接" title="dataengine的直接链接" translate="no">​</a></h4>
-<p>Processes and routes market data throughout the system:</p>
+<p>处理并路由市场数据到系统各处：</p>
 <ul>
-<li>Handles multiple data types (quotes, trades, bars, order books, custom data, and more).</li>
-<li>Routes data to appropriate consumers based on subscriptions.</li>
-<li>Manages data flow from external sources to internal components.</li>
+<li>处理多种数据类型（行情 quotes、成交 trades、K 线 bars、order books、定制数据等）。</li>
+<li>根据订阅将数据路由到相应的消费者。</li>
+<li>管理外部数据源到内部组件之间的数据流。</li>
 </ul>
 <h4 class="anchor anchorWithStickyNavbar_RpWm" id="executionengine"><code>ExecutionEngine</code><a href="#executionengine" class="hash-link" aria-label="executionengine的直接链接" title="executionengine的直接链接" translate="no">​</a></h4>
-<p>Manages order lifecycle and execution:</p>
+<p>管理订单生命周期和执行：</p>
 <ul>
-<li>Routes trading commands to the appropriate adapter clients.</li>
-<li>Tracks order and position states.</li>
-<li>Coordinates with risk management systems.</li>
-<li>Handles execution reports and fills from venues.</li>
-<li>Handles reconciliation of external execution state.</li>
+<li>将交易命令路由到相应的 adapter clients。</li>
+<li>跟踪订单与仓位状态。</li>
+<li>与风控系统进行协调。</li>
+<li>处理交易所返回的 execution reports 与 fills。</li>
+<li>处理外部执行状态的对账。</li>
 </ul>
 <h4 class="anchor anchorWithStickyNavbar_RpWm" id="riskengine"><code>RiskEngine</code><a href="#riskengine" class="hash-link" aria-label="riskengine的直接链接" title="riskengine的直接链接" translate="no">​</a></h4>
-<p>Provides comprehensive risk management:</p>
+<p>提供全面的风控能力：</p>
 <ul>
-<li>Pre-trade risk checks and validation.</li>
-<li>Position and exposure monitoring.</li>
-<li>Real-time risk calculations.</li>
-<li>Configurable risk rules and limits.</li>
+<li>交易前的风控检查与校验。</li>
+<li>仓位与敞口监控。</li>
+<li>实时风控计算。</li>
+<li>可配置的风控规则与限制。</li>
 </ul>
-<h3 class="anchor anchorWithStickyNavbar_RpWm" id="environment-contexts">Environment contexts<a href="#environment-contexts" class="hash-link" aria-label="Environment contexts的直接链接" title="Environment contexts的直接链接" translate="no">​</a></h3>
-<p>An environment context in NautilusTrader defines the type of data and trading venue you are working
-with. Understanding these contexts is crucial for effective backtesting, development, and live trading.</p>
-<p>Here are the available environments you can work with:</p>
+<h3 class="anchor anchorWithStickyNavbar_RpWm" id="环境上下文environment-contexts">环境上下文（Environment contexts）<a href="#环境上下文environment-contexts" class="hash-link" aria-label="环境上下文（Environment contexts）的直接链接" title="环境上下文（Environment contexts）的直接链接" translate="no">​</a></h3>
+<p>环境上下文定义了你正在使用的数据类型与交易场所（venue）。理解这些上下文对有效的回测、开发与实盘交易至关重要。</p>
+<p>可用的环境包括：</p>
 <ul>
-<li><code>Backtest</code>: Historical data with simulated venues.</li>
-<li><code>Sandbox</code>: Real-time data with simulated venues.</li>
-<li><code>Live</code>: Real-time data with live venues (paper trading or real accounts).</li>
+<li><code>Backtest</code>：历史数据，模拟交易场所。</li>
+<li><code>Sandbox</code>：实时数据，模拟交易场所。</li>
+<li><code>Live</code>：实时数据，真实交易场所（包含纸面交易或真实账户）。</li>
 </ul>
-<h3 class="anchor anchorWithStickyNavbar_RpWm" id="common-core">Common core<a href="#common-core" class="hash-link" aria-label="Common core的直接链接" title="Common core的直接链接" translate="no">​</a></h3>
-<p>The platform has been designed to share as much common code between backtest, sandbox and live trading systems as possible.
-This is formalized in the <code>system</code> subpackage, where you will find the <code>NautilusKernel</code> class,
-providing a common core system &#x27;kernel&#x27;.</p>
-<p>The <em>ports and adapters</em> architectural style enables modular components to be integrated into the
-core system, providing various hooks for user-defined or custom component implementations.</p>
-<h3 class="anchor anchorWithStickyNavbar_RpWm" id="data-and-execution-flow-patterns">Data and execution flow patterns<a href="#data-and-execution-flow-patterns" class="hash-link" aria-label="Data and execution flow patterns的直接链接" title="Data and execution flow patterns的直接链接" translate="no">​</a></h3>
-<p>Understanding how data and execution flow through the system is crucial for effective use of the platform:</p>
-<h4 class="anchor anchorWithStickyNavbar_RpWm" id="data-flow-pattern">Data flow pattern<a href="#data-flow-pattern" class="hash-link" aria-label="Data flow pattern的直接链接" title="Data flow pattern的直接链接" translate="no">​</a></h4>
+<h3 class="anchor anchorWithStickyNavbar_RpWm" id="公共核心common-core">公共核心（Common core）<a href="#公共核心common-core" class="hash-link" aria-label="公共核心（Common core）的直接链接" title="公共核心（Common core）的直接链接" translate="no">​</a></h3>
+<p>平台在回测、沙盒与实盘系统间尽可能共享大量代码。该思想在 <code>system</code> 子包中得到形式化，在那里你会找到 <code>NautilusKernel</code> 类，它提供了一个通用的系统“kernel”。</p>
+<p>“ports and adapters” 的架构风格使得模块化组件可以被集成到核心系统中，为用户自定义或定制组件实现提供各种钩子。</p>
+<h3 class="anchor anchorWithStickyNavbar_RpWm" id="数据与执行流模式">数据与执行流模式<a href="#数据与执行流模式" class="hash-link" aria-label="数据与执行流模式的直接链接" title="数据与执行流模式的直接链接" translate="no">​</a></h3>
+<p>理解数据与执行在系统中的流动对于有效使用平台非常重要：</p>
+<h4 class="anchor anchorWithStickyNavbar_RpWm" id="数据流模式">数据流模式<a href="#数据流模式" class="hash-link" aria-label="数据流模式的直接链接" title="数据流模式的直接链接" translate="no">​</a></h4>
 <ol>
-<li><strong>External Data Ingestion</strong>: Market data enters via venue-specific <code>DataClient</code> adapters where it is normalized.</li>
-<li><strong>Data Processing</strong>: The <code>DataEngine</code> handles data processing for internal components.</li>
-<li><strong>Caching</strong>: Processed data is stored in the high-performance <code>Cache</code> for fast access.</li>
-<li><strong>Event Publishing</strong>: Data events are published to the <code>MessageBus</code>.</li>
-<li><strong>Consumer Delivery</strong>: Subscribed components (Actors, Strategies) receive relevant data events.</li>
+<li><strong>外部数据摄取（External Data Ingestion）</strong>：市场数据通过特定 venue 的 <code>DataClient</code> adapter 进入并被标准化。</li>
+<li><strong>数据处理（Data Processing）</strong>：<code>DataEngine</code> 负责对内部组件的数据处理。</li>
+<li><strong>缓存（Caching）</strong>：处理后的数据被存入高性能的 <code>Cache</code> 以便快速访问。</li>
+<li><strong>事件发布（Event Publishing）</strong>：数据事件被发布到 <code>MessageBus</code>。</li>
+<li><strong>消费者分发（Consumer Delivery）</strong>：已订阅的组件（Actors、Strategies）收到相关的数据事件。</li>
 </ol>
-<h4 class="anchor anchorWithStickyNavbar_RpWm" id="execution-flow-pattern">Execution flow pattern<a href="#execution-flow-pattern" class="hash-link" aria-label="Execution flow pattern的直接链接" title="Execution flow pattern的直接链接" translate="no">​</a></h4>
+<h4 class="anchor anchorWithStickyNavbar_RpWm" id="执行流模式">执行流模式<a href="#执行流模式" class="hash-link" aria-label="执行流模式的直接链接" title="执行流模式的直接链接" translate="no">​</a></h4>
 <ol>
-<li><strong>Command Generation</strong>: User strategies create trading commands.</li>
-<li><strong>Command Publishing</strong>: Commands are sent through the <code>MessageBus</code>.</li>
-<li><strong>Risk Validation</strong>: The <code>RiskEngine</code> validates trading commands against configured risk rules.</li>
-<li><strong>Execution Routing</strong>: The <code>ExecutionEngine</code> routes commands to appropriate venues.</li>
-<li><strong>External Submission</strong>: The <code>ExecutionClient</code> submits orders to external trading venues.</li>
-<li><strong>Event Flow Back</strong>: Order events (fills, cancellations) flow back through the system.</li>
-<li><strong>State Updates</strong>: Portfolio and position states are updated based on execution events.</li>
+<li><strong>命令生成（Command Generation）</strong>：用户策略创建交易命令。</li>
+<li><strong>命令发布（Command Publishing）</strong>：通过 <code>MessageBus</code> 发送命令。</li>
+<li><strong>风控校验（Risk Validation）</strong>：<code>RiskEngine</code> 根据配置的风控规则校验交易命令。</li>
+<li><strong>执行路由（Execution Routing）</strong>：<code>ExecutionEngine</code> 将命令路由到合适的交易场所。</li>
+<li><strong>外部提交（External Submission）</strong>：<code>ExecutionClient</code> 向外部交易场所提交订单。</li>
+<li><strong>事件回流（Event Flow Back）</strong>：订单事件（成交 fills、撤单 cancellations）回流至系统。</li>
+<li><strong>状态更新（State Updates）</strong>：组合与仓位状态根据执行事件进行更新。</li>
 </ol>
-<h4 class="anchor anchorWithStickyNavbar_RpWm" id="component-state-management">Component state management<a href="#component-state-management" class="hash-link" aria-label="Component state management的直接链接" title="Component state management的直接链接" translate="no">​</a></h4>
-<p>All components follow a finite state machine pattern with well-defined states:</p>
+<h4 class="anchor anchorWithStickyNavbar_RpWm" id="组件状态管理">组件状态管理<a href="#组件状态管理" class="hash-link" aria-label="组件状态管理的直接链接" title="组件状态管理的直接链接" translate="no">​</a></h4>
+<p>所有组件遵循有限状态机模式（finite state machine），并具有明确定义的状态：</p>
 <ul>
-<li><strong>PRE_INITIALIZED</strong>: Component is created but not yet wired up to the system.</li>
-<li><strong>READY</strong>: Component is configured and wired up, but not yet running.</li>
-<li><strong>RUNNING</strong>: Component is actively processing messages and performing operations.</li>
-<li><strong>STOPPED</strong>: Component has been gracefully stopped and is no longer processing.</li>
-<li><strong>DEGRADED</strong>: Component is running but with reduced functionality due to errors.</li>
-<li><strong>FAULTED</strong>: Component has encountered a critical error and cannot continue.</li>
-<li><strong>DISPOSED</strong>: Component has been cleaned up and resources have been released.</li>
+<li><strong>PRE_INITIALIZED</strong>：组件已创建但尚未与系统连接。</li>
+<li><strong>READY</strong>：组件已配置并连接，但尚未运行。</li>
+<li><strong>RUNNING</strong>：组件正在处理消息并执行操作。</li>
+<li><strong>STOPPED</strong>：组件已被优雅停止，不再处理消息。</li>
+<li><strong>DEGRADED</strong>：组件可运行但功能受限（由于错误）。</li>
+<li><strong>FAULTED</strong>：组件遇到严重错误，无法继续运行。</li>
+<li><strong>DISPOSED</strong>：组件已清理并释放资源。</li>
 </ul>
-<h3 class="anchor anchorWithStickyNavbar_RpWm" id="messaging">Messaging<a href="#messaging" class="hash-link" aria-label="Messaging的直接链接" title="Messaging的直接链接" translate="no">​</a></h3>
-<p>To facilitate modularity and loose coupling, an extremely efficient <code>MessageBus</code> passes messages (data, commands and events) between components.</p>
-<p>From a high level architectural view, it&#x27;s important to understand that the platform has been designed to run efficiently
-on a single thread, for both backtesting and live trading. Much research and testing
-resulted in arriving at this design, as it was found the overhead of context switching between threads
-didn&#x27;t actually result in improved performance.</p>
-<p>When considering the logic of how your algo trading will work within the system boundary, you can expect each component to consume messages
-in a deterministic synchronous way (<em>similar</em> to the <a href="https://en.wikipedia.org/wiki/Actor_model" target="_blank" rel="noopener noreferrer">actor model</a>).</p>
-<div class="theme-admonition theme-admonition-note admonition_lEzE alert alert--secondary"><div class="admonitionHeading_aAf0"><span class="admonitionIcon_xtBN"><svg viewBox="0 0 14 16"><path fill-rule="evenodd" d="M6.3 5.69a.942.942 0 0 1-.28-.7c0-.28.09-.52.28-.7.19-.18.42-.28.7-.28.28 0 .52.09.7.28.18.19.28.42.28.7 0 .28-.09.52-.28.7a1 1 0 0 1-.7.3c-.28 0-.52-.11-.7-.3zM8 7.99c-.02-.25-.11-.48-.31-.69-.2-.19-.42-.3-.69-.31H6c-.27.02-.48.13-.69.31-.2.2-.3.44-.31.69h1v3c.02.27.11.5.31.69.2.2.42.31.69.31h1c.27 0 .48-.11.69-.31.2-.19.3-.42.31-.69H8V7.98v.01zM7 2.3c-3.14 0-5.7 2.54-5.7 5.68 0 3.14 2.56 5.7 5.7 5.7s5.7-2.55 5.7-5.7c0-3.15-2.56-5.69-5.7-5.69v.01zM7 .98c3.86 0 7 3.14 7 7s-3.14 7-7 7-7-3.12-7-7 3.14-7 7-7z"></path></svg></span>备注</div><div class="admonitionContent_Vfkp"><p>Of interest is the LMAX exchange architecture, which achieves award winning performance running on
-a single thread. You can read about their <em>disruptor</em> pattern based architecture in <a href="https://martinfowler.com/articles/lmax.html" target="_blank" rel="noopener noreferrer">this interesting article</a> by Martin Fowler.</p></div></div>
-<h2 class="anchor anchorWithStickyNavbar_RpWm" id="framework-organization">Framework organization<a href="#framework-organization" class="hash-link" aria-label="Framework organization的直接链接" title="Framework organization的直接链接" translate="no">​</a></h2>
-<p>The codebase is organized with a layering of abstraction levels, and generally
-grouped into logical subpackages of cohesive concepts. You can navigate to the documentation
-for each of these subpackages from the left nav menu.</p>
-<h3 class="anchor anchorWithStickyNavbar_RpWm" id="core--low-level">Core / low-Level<a href="#core--low-level" class="hash-link" aria-label="Core / low-Level的直接链接" title="Core / low-Level的直接链接" translate="no">​</a></h3>
+<h3 class="anchor anchorWithStickyNavbar_RpWm" id="消息传递messaging">消息传递（Messaging）<a href="#消息传递messaging" class="hash-link" aria-label="消息传递（Messaging）的直接链接" title="消息传递（Messaging）的直接链接" translate="no">​</a></h3>
+<p>为了促进模块化与低耦合，高效的 <code>MessageBus</code> 在组件之间传递消息（数据、命令与事件）。</p>
+<p>从高层架构角度理解，平台被设计为在单线程下高效运行，适用于回测与实盘。大量研究与测试表明，对于该类系统上下文，线程间上下文切换的开销并不能带来性能提升。</p>
+<p>在考虑你的算法交易在系统边界内如何运行时，你可以期望每个组件以确定性的同步方式消费消息（类似于<a href="https://en.wikipedia.org/wiki/Actor_model" target="_blank" rel="noopener noreferrer">Actor 模型</a>）。</p>
+<div class="theme-admonition theme-admonition-note admonition_lEzE alert alert--secondary"><div class="admonitionHeading_aAf0"><span class="admonitionIcon_xtBN"><svg viewBox="0 0 14 16"><path fill-rule="evenodd" d="M6.3 5.69a.942.942 0 0 1-.28-.7c0-.28.09-.52.28-.7.19-.18.42-.28.7-.28.28 0 .52.09.7.28.18.19.28.42.28.7 0 .28-.09.52-.28.7a1 1 0 0 1-.7.3c-.28 0-.52-.11-.7-.3zM8 7.99c-.02-.25-.11-.48-.31-.69-.2-.19-.42-.3-.69-.31H6c-.27.02-.48.13-.69.31-.2.2-.3.44-.31.69h1v3c.02.27.11.5.31.69.2.2.42.31.69.31h1c.27 0 .48-.11.69-.31.2-.19.3-.42.31-.69H8V7.98v.01zM7 2.3c-3.14 0-5.7 2.54-5.7 5.68 0 3.14 2.56 5.7 5.7 5.7s5.7-2.55 5.7-5.7c0-3.15-2.56-5.69-5.7-5.69v.01zM7 .98c3.86 0 7 3.14 7 7s-3.14 7-7 7-7-3.12-7-7 3.14-7 7-7z"></path></svg></span>备注</div><div class="admonitionContent_Vfkp"><p>值得关注的是 LMAX 的交易所架构——他们在单线程上也实现了屡获殊荣的高性能。你可以阅读 Martin Fowler 关于其基于 <em>disruptor</em> 模式的架构的文章：<a href="https://martinfowler.com/articles/lmax.html" target="_blank" rel="noopener noreferrer">this interesting article</a>。</p></div></div>
+<h2 class="anchor anchorWithStickyNavbar_RpWm" id="框架组织">框架组织<a href="#框架组织" class="hash-link" aria-label="框架组织的直接链接" title="框架组织的直接链接" translate="no">​</a></h2>
+<p>代码库按抽象层次组织，并按照概念上内聚的子包进行分组。你可以在左侧导航中访问这些子包的文档。</p>
+<h3 class="anchor anchorWithStickyNavbar_RpWm" id="core--低层">Core / 低层<a href="#core--低层" class="hash-link" aria-label="Core / 低层的直接链接" title="Core / 低层的直接链接" translate="no">​</a></h3>
 <ul>
-<li><code>core</code>: Constants, functions and low-level components used throughout the framework.</li>
-<li><code>common</code>: Common parts for assembling the frameworks various components.</li>
-<li><code>network</code>: Low-level base components for networking clients.</li>
-<li><code>serialization</code>: Serialization base components and serializer implementations.</li>
-<li><code>model</code>: Defines a rich trading domain model.</li>
+<li><code>core</code>：在框架中广泛使用的常量、函数和低级组件。</li>
+<li><code>common</code>：用于组装框架各组件的通用部分。</li>
+<li><code>network</code>：网络客户端的低级基类组件。</li>
+<li><code>serialization</code>：序列化基础组件与序列化器实现。</li>
+<li><code>model</code>：定义丰富的交易领域模型。</li>
 </ul>
-<h3 class="anchor anchorWithStickyNavbar_RpWm" id="components">Components<a href="#components" class="hash-link" aria-label="Components的直接链接" title="Components的直接链接" translate="no">​</a></h3>
+<h3 class="anchor anchorWithStickyNavbar_RpWm" id="组件">组件<a href="#组件" class="hash-link" aria-label="组件的直接链接" title="组件的直接链接" translate="no">​</a></h3>
 <ul>
-<li><code>accounting</code>: Different account types and account management machinery.</li>
-<li><code>adapters</code>: Integration adapters for the platform including brokers and exchanges.</li>
-<li><code>analysis</code>: Components relating to trading performance statistics and analysis.</li>
-<li><code>cache</code>: Provides common caching infrastructure.</li>
-<li><code>data</code>: The data stack and data tooling for the platform.</li>
-<li><code>execution</code>: The execution stack for the platform.</li>
-<li><code>indicators</code>: A set of efficient indicators and analyzers.</li>
-<li><code>persistence</code>: Data storage, cataloging and retrieval, mainly to support backtesting.</li>
-<li><code>portfolio</code>: Portfolio management functionality.</li>
-<li><code>risk</code>: Risk specific components and tooling.</li>
-<li><code>trading</code>: Trading domain specific components and tooling.</li>
+<li><code>accounting</code>：不同的账户类型和账户管理机制。</li>
+<li><code>adapters</code>：平台的集成适配器（包括经纪商与交易所）。</li>
+<li><code>analysis</code>：与交易绩效统计与分析相关的组件。</li>
+<li><code>cache</code>：提供通用的缓存基础设施。</li>
+<li><code>data</code>：平台的数据栈与数据工具。</li>
+<li><code>execution</code>：平台的执行栈。</li>
+<li><code>indicators</code>：一组高效的指标与分析器。</li>
+<li><code>persistence</code>：数据存储、目录整理与检索，主要支持回测。</li>
+<li><code>portfolio</code>：组合管理功能。</li>
+<li><code>risk</code>：风控相关组件与工具。</li>
+<li><code>trading</code>：交易域相关的组件与工具。</li>
 </ul>
-<h3 class="anchor anchorWithStickyNavbar_RpWm" id="system-implementations">System implementations<a href="#system-implementations" class="hash-link" aria-label="System implementations的直接链接" title="System implementations的直接链接" translate="no">​</a></h3>
+<h3 class="anchor anchorWithStickyNavbar_RpWm" id="系统实现">系统实现<a href="#系统实现" class="hash-link" aria-label="系统实现的直接链接" title="系统实现的直接链接" translate="no">​</a></h3>
 <ul>
-<li><code>backtest</code>: Backtesting componentry as well as a backtest engine and node implementations.</li>
-<li><code>live</code>: Live engine and client implementations as well as a node for live trading.</li>
-<li><code>system</code>: The core system kernel common between <code>backtest</code>, <code>sandbox</code>, <code>live</code> <a href="#environment-contexts">environment contexts</a>.</li>
+<li><code>backtest</code>：回测组件、回测引擎以及节点实现。</li>
+<li><code>live</code>：实盘引擎与客户端实现，以及用于实盘交易的节点。</li>
+<li><code>system</code>：<code>backtest</code>、<code>sandbox</code>、<code>live</code> 等<a href="#environment-contexts">环境上下文</a>之间共享的核心系统 kernel。</li>
 </ul>
-<h2 class="anchor anchorWithStickyNavbar_RpWm" id="code-structure">Code structure<a href="#code-structure" class="hash-link" aria-label="Code structure的直接链接" title="Code structure的直接链接" translate="no">​</a></h2>
-<p>The foundation of the codebase is the <code>crates</code> directory, containing a collection of Rust crates including a C foreign function interface (FFI) generated by <code>cbindgen</code>.</p>
-<p>The bulk of the production code resides in the <code>nautilus_trader</code> directory, which contains a collection of Python/Cython subpackages and modules.</p>
-<p>Python bindings for the Rust core are provided by statically linking the Rust libraries to the C extension modules generated by Cython at compile time (effectively extending the CPython API).</p>
-<h3 class="anchor anchorWithStickyNavbar_RpWm" id="dependency-flow">Dependency flow<a href="#dependency-flow" class="hash-link" aria-label="Dependency flow的直接链接" title="Dependency flow的直接链接" translate="no">​</a></h3>
-<div class="language-text codeBlockContainer_euGm theme-code-block" style="--prism-color:#393A34;--prism-background-color:#f6f8fa"><div class="codeBlockContent_zF3K"><pre tabindex="0" class="prism-code language-text codeBlock_G1mO thin-scrollbar" style="color:#393A34;background-color:#f6f8fa"><code class="codeBlockLines_QZRj"><span class="token-line" style="color:#393A34"><span class="token plain">┌─────────────────────────┐</span><br></span><span class="token-line" style="color:#393A34"><span class="token plain">│                         │</span><br></span><span class="token-line" style="color:#393A34"><span class="token plain">│                         │</span><br></span><span class="token-line" style="color:#393A34"><span class="token plain">│     nautilus_trader     │</span><br></span><span class="token-line" style="color:#393A34"><span class="token plain">│                         │</span><br></span><span class="token-line" style="color:#393A34"><span class="token plain">│     Python / Cython     │</span><br></span><span class="token-line" style="color:#393A34"><span class="token plain">│                         │</span><br></span><span class="token-line" style="color:#393A34"><span class="token plain">│                         │</span><br></span><span class="token-line" style="color:#393A34"><span class="token plain">└────────────┬────────────┘</span><br></span><span class="token-line" style="color:#393A34"><span class="token plain"> C API       │</span><br></span><span class="token-line" style="color:#393A34"><span class="token plain">             │</span><br></span><span class="token-line" style="color:#393A34"><span class="token plain">             │</span><br></span><span class="token-line" style="color:#393A34"><span class="token plain">             │</span><br></span><span class="token-line" style="color:#393A34"><span class="token plain"> C API       ▼</span><br></span><span class="token-line" style="color:#393A34"><span class="token plain">┌─────────────────────────┐</span><br></span><span class="token-line" style="color:#393A34"><span class="token plain">│                         │</span><br></span><span class="token-line" style="color:#393A34"><span class="token plain">│                         │</span><br></span><span class="token-line" style="color:#393A34"><span class="token plain">│      nautilus_core      │</span><br></span><span class="token-line" style="color:#393A34"><span class="token plain">│                         │</span><br></span><span class="token-line" style="color:#393A34"><span class="token plain">│          Rust           │</span><br></span><span class="token-line" style="color:#393A34"><span class="token plain">│                         │</span><br></span><span class="token-line" style="color:#393A34"><span class="token plain">│                         │</span><br></span><span class="token-line" style="color:#393A34"><span class="token plain">└─────────────────────────┘</span><br></span></code></pre></div></div>
-<div class="theme-admonition theme-admonition-note admonition_lEzE alert alert--secondary"><div class="admonitionHeading_aAf0"><span class="admonitionIcon_xtBN"><svg viewBox="0 0 14 16"><path fill-rule="evenodd" d="M6.3 5.69a.942.942 0 0 1-.28-.7c0-.28.09-.52.28-.7.19-.18.42-.28.7-.28.28 0 .52.09.7.28.18.19.28.42.28.7 0 .28-.09.52-.28.7a1 1 0 0 1-.7.3c-.28 0-.52-.11-.7-.3zM8 7.99c-.02-.25-.11-.48-.31-.69-.2-.19-.42-.3-.69-.31H6c-.27.02-.48.13-.69.31-.2.2-.3.44-.31.69h1v3c.02.27.11.5.31.69.2.2.42.31.69.31h1c.27 0 .48-.11.69-.31.2-.19.3-.42.31-.69H8V7.98v.01zM7 2.3c-3.14 0-5.7 2.54-5.7 5.68 0 3.14 2.56 5.7 5.7 5.7s5.7-2.55 5.7-5.7c0-3.15-2.56-5.69-5.7-5.69v.01zM7 .98c3.86 0 7 3.14 7 7s-3.14 7-7 7-7-3.12-7-7 3.14-7 7-7z"></path></svg></span>备注</div><div class="admonitionContent_Vfkp"><p>Both Rust and Cython are build dependencies. The binary wheels produced from a build do not require
-Rust or Cython to be installed at runtime.</p></div></div>
-<h3 class="anchor anchorWithStickyNavbar_RpWm" id="type-safety">Type safety<a href="#type-safety" class="hash-link" aria-label="Type safety的直接链接" title="Type safety的直接链接" translate="no">​</a></h3>
-<p>The design of the platform prioritizes software correctness and safety at the highest level.</p>
-<p>The Rust codebase in <code>nautilus_core</code> is always type safe and memory safe as guaranteed by the <code>rustc</code> compiler,
-and so is <em>correct by construction</em> (unless explicitly marked <code>unsafe</code>, see the Rust section of the <a href="/developer_guide/rust">Developer Guide</a>).</p>
-<p>Cython provides type safety at the C level at both compile time, and runtime:</p>
-<div class="theme-admonition theme-admonition-info admonition_lEzE alert alert--info"><div class="admonitionHeading_aAf0"><span class="admonitionIcon_xtBN"><svg viewBox="0 0 14 16"><path fill-rule="evenodd" d="M7 2.3c3.14 0 5.7 2.56 5.7 5.7s-2.56 5.7-5.7 5.7A5.71 5.71 0 0 1 1.3 8c0-3.14 2.56-5.7 5.7-5.7zM7 1C3.14 1 0 4.14 0 8s3.14 7 7 7 7-3.14 7-7-3.14-7-7-7zm1 3H6v5h2V4zm0 6H6v2h2v-2z"></path></svg></span>信息</div><div class="admonitionContent_Vfkp"><p>If you pass an argument with an invalid type to a Cython implemented module with typed parameters,
-then you will receive a <code>TypeError</code> at runtime.</p></div></div>
-<p>If a function or method&#x27;s parameter is not explicitly typed to accept <code>None</code>, passing <code>None</code> as an
-argument will result in a <code>ValueError</code> at runtime.</p>
-<div class="theme-admonition theme-admonition-warning admonition_lEzE alert alert--warning"><div class="admonitionHeading_aAf0"><span class="admonitionIcon_xtBN"><svg viewBox="0 0 16 16"><path fill-rule="evenodd" d="M8.893 1.5c-.183-.31-.52-.5-.887-.5s-.703.19-.886.5L.138 13.499a.98.98 0 0 0 0 1.001c.193.31.53.501.886.501h13.964c.367 0 .704-.19.877-.5a1.03 1.03 0 0 0 .01-1.002L8.893 1.5zm.133 11.497H6.987v-2.003h2.039v2.003zm0-3.004H6.987V5.987h2.039v4.006z"></path></svg></span>注意</div><div class="admonitionContent_Vfkp"><p>The above exceptions are not explicitly documented to prevent excessive bloating of the docstrings.</p></div></div>
-<h3 class="anchor anchorWithStickyNavbar_RpWm" id="errors-and-exceptions">Errors and exceptions<a href="#errors-and-exceptions" class="hash-link" aria-label="Errors and exceptions的直接链接" title="Errors and exceptions的直接链接" translate="no">​</a></h3>
-<p>Every attempt has been made to accurately document the possible exceptions which
-can be raised from NautilusTrader code, and the conditions which will trigger them.</p>
-<div class="theme-admonition theme-admonition-warning admonition_lEzE alert alert--warning"><div class="admonitionHeading_aAf0"><span class="admonitionIcon_xtBN"><svg viewBox="0 0 16 16"><path fill-rule="evenodd" d="M8.893 1.5c-.183-.31-.52-.5-.887-.5s-.703.19-.886.5L.138 13.499a.98.98 0 0 0 0 1.001c.193.31.53.501.886.501h13.964c.367 0 .704-.19.877-.5a1.03 1.03 0 0 0 .01-1.002L8.893 1.5zm.133 11.497H6.987v-2.003h2.039v2.003zm0-3.004H6.987V5.987h2.039v4.006z"></path></svg></span>注意</div><div class="admonitionContent_Vfkp"><p>There may be other undocumented exceptions which can be raised by Python&#x27;s standard
-library, or from third party library dependencies.</p></div></div>
-<h3 class="anchor anchorWithStickyNavbar_RpWm" id="processes-and-threads">Processes and threads<a href="#processes-and-threads" class="hash-link" aria-label="Processes and threads的直接链接" title="Processes and threads的直接链接" translate="no">​</a></h3>
-<div class="theme-admonition theme-admonition-tip admonition_lEzE alert alert--success"><div class="admonitionHeading_aAf0"><span class="admonitionIcon_xtBN"><svg viewBox="0 0 12 16"><path fill-rule="evenodd" d="M6.5 0C3.48 0 1 2.19 1 5c0 .92.55 2.25 1 3 1.34 2.25 1.78 2.78 2 4v1h5v-1c.22-1.22.66-1.75 2-4 .45-.75 1-2.08 1-3 0-2.81-2.48-5-5.5-5zm3.64 7.48c-.25.44-.47.8-.67 1.11-.86 1.41-1.25 2.06-1.45 3.23-.02.05-.02.11-.02.17H5c0-.06 0-.13-.02-.17-.2-1.17-.59-1.83-1.45-3.23-.2-.31-.42-.67-.67-1.11C2.44 6.78 2 5.65 2 5c0-2.2 2.02-4 4.5-4 1.22 0 2.36.42 3.22 1.19C10.55 2.94 11 3.94 11 5c0 .66-.44 1.78-.86 2.48zM4 14h5c-.23 1.14-1.3 2-2.5 2s-2.27-.86-2.5-2z"></path></svg></span>提示</div><div class="admonitionContent_Vfkp"><p>For optimal performance and to prevent potential issues related to Python&#x27;s memory
-model and equality, it is highly recommended to run each trader instance in a separate process.</p></div></div></div><footer class="theme-doc-footer docusaurus-mt-lg"><div class="row margin-top--sm theme-doc-footer-edit-meta-row"><div class="col"><a href="https://github.com/Aloento/NautilusTraderDoc/tree/main/docs/concepts/architecture.md" target="_blank" rel="noopener noreferrer" class="theme-edit-this-page"><svg fill="currentColor" height="20" width="20" viewBox="0 0 40 40" class="iconEdit_F7ru" aria-hidden="true"><g><path d="m34.5 11.7l-3 3.1-6.3-6.3 3.1-3q0.5-0.5 1.2-0.5t1.1 0.5l3.9 3.9q0.5 0.4 0.5 1.1t-0.5 1.2z m-29.5 17.1l18.4-18.5 6.3 6.3-18.4 18.4h-6.3v-6.2z"></path></g></svg>编辑此页</a></div><div class="col lastUpdated_GNoA"></div></div></footer></article><nav class="docusaurus-mt-lg pagination-nav" aria-label="文件选项卡"><a class="pagination-nav__link pagination-nav__link--prev" href="/concepts/adapters"><div class="pagination-nav__sublabel">上一页</div><div class="pagination-nav__label">Adapters</div></a><a class="pagination-nav__link pagination-nav__link--next" href="/concepts/backtesting"><div class="pagination-nav__sublabel">下一页</div><div class="pagination-nav__label">Backtesting</div></a></nav></div></div><div class="col col--3"><div class="tableOfContents_pg_n thin-scrollbar theme-doc-toc-desktop"><ul class="table-of-contents table-of-contents__left-border"><li><a href="#design-philosophy" class="table-of-contents__link toc-highlight">Design philosophy</a><ul><li><a href="#quality-attributes" class="table-of-contents__link toc-highlight">Quality attributes</a></li><li><a href="#assurance-driven-engineering" class="table-of-contents__link toc-highlight">Assurance-driven engineering</a></li><li><a href="#crash-only-design" class="table-of-contents__link toc-highlight">Crash-only design</a></li><li><a href="#data-integrity-and-fail-fast-policy" class="table-of-contents__link toc-highlight">Data integrity and fail-fast policy</a></li></ul></li><li><a href="#system-architecture" class="table-of-contents__link toc-highlight">System architecture</a><ul><li><a href="#core-components" class="table-of-contents__link toc-highlight">Core components</a></li><li><a href="#environment-contexts" class="table-of-contents__link toc-highlight">Environment contexts</a></li><li><a href="#common-core" class="table-of-contents__link toc-highlight">Common core</a></li><li><a href="#data-and-execution-flow-patterns" class="table-of-contents__link toc-highlight">Data and execution flow patterns</a></li><li><a href="#messaging" class="table-of-contents__link toc-highlight">Messaging</a></li></ul></li><li><a href="#framework-organization" class="table-of-contents__link toc-highlight">Framework organization</a><ul><li><a href="#core--low-level" class="table-of-contents__link toc-highlight">Core / low-Level</a></li><li><a href="#components" class="table-of-contents__link toc-highlight">Components</a></li><li><a href="#system-implementations" class="table-of-contents__link toc-highlight">System implementations</a></li></ul></li><li><a href="#code-structure" class="table-of-contents__link toc-highlight">Code structure</a><ul><li><a href="#dependency-flow" class="table-of-contents__link toc-highlight">Dependency flow</a></li><li><a href="#type-safety" class="table-of-contents__link toc-highlight">Type safety</a></li><li><a href="#errors-and-exceptions" class="table-of-contents__link toc-highlight">Errors and exceptions</a></li><li><a href="#processes-and-threads" class="table-of-contents__link toc-highlight">Processes and threads</a></li></ul></li></ul></div></div></div></div></main></div></div></div><footer class="theme-layout-footer footer footer--dark"><div class="container container-fluid"><div class="footer__bottom text--center"><div class="footer__copyright">Copyright © 2025 NautilusTrader Documentation.</div></div></div></footer></div>
+<h2 class="anchor anchorWithStickyNavbar_RpWm" id="代码结构">代码结构<a href="#代码结构" class="hash-link" aria-label="代码结构的直接链接" title="代码结构的直接链接" translate="no">​</a></h2>
+<p>代码库的基础是 <code>crates</code> 目录，包含若干 Rust crate，其中包括由 <code>cbindgen</code> 生成的 C 外部函数接口（FFI）。</p>
+<p>生产代码的大部分位于 <code>nautilus_trader</code> 目录，包含一系列 Python/Cython 子包与模块。</p>
+<p>Rust 核心的 Python 绑定通过在编译时将 Rust 库静态链接到 Cython 生成的 C 扩展模块来提供（等同于扩展 CPython API）。</p>
+<h3 class="anchor anchorWithStickyNavbar_RpWm" id="依赖流向">依赖流向<a href="#依赖流向" class="hash-link" aria-label="依赖流向的直接链接" title="依赖流向的直接链接" translate="no">​</a></h3>
+<div class="language-graph codeBlockContainer_euGm theme-code-block" style="--prism-color:#393A34;--prism-background-color:#f6f8fa"><div class="codeBlockContent_zF3K"><pre tabindex="0" class="prism-code language-graph codeBlock_G1mO thin-scrollbar" style="color:#393A34;background-color:#f6f8fa"><code class="codeBlockLines_QZRj"><span class="token-line" style="color:#393A34"><span class="token plain">┌─────────────────────────┐</span><br></span><span class="token-line" style="color:#393A34"><span class="token plain">│                         │</span><br></span><span class="token-line" style="color:#393A34"><span class="token plain">│                         │</span><br></span><span class="token-line" style="color:#393A34"><span class="token plain">│     nautilus_trader     │</span><br></span><span class="token-line" style="color:#393A34"><span class="token plain">│                         │</span><br></span><span class="token-line" style="color:#393A34"><span class="token plain">│     Python / Cython     │</span><br></span><span class="token-line" style="color:#393A34"><span class="token plain">│                         │</span><br></span><span class="token-line" style="color:#393A34"><span class="token plain">│                         │</span><br></span><span class="token-line" style="color:#393A34"><span class="token plain">└────────────┬────────────┘</span><br></span><span class="token-line" style="color:#393A34"><span class="token plain"> C API       │</span><br></span><span class="token-line" style="color:#393A34"><span class="token plain">             │</span><br></span><span class="token-line" style="color:#393A34"><span class="token plain">             │</span><br></span><span class="token-line" style="color:#393A34"><span class="token plain">             │</span><br></span><span class="token-line" style="color:#393A34"><span class="token plain"> C API       ▼</span><br></span><span class="token-line" style="color:#393A34"><span class="token plain">┌─────────────────────────┐</span><br></span><span class="token-line" style="color:#393A34"><span class="token plain">│                         │</span><br></span><span class="token-line" style="color:#393A34"><span class="token plain">│                         │</span><br></span><span class="token-line" style="color:#393A34"><span class="token plain">│      nautilus_core      │</span><br></span><span class="token-line" style="color:#393A34"><span class="token plain">│                         │</span><br></span><span class="token-line" style="color:#393A34"><span class="token plain">│          Rust           │</span><br></span><span class="token-line" style="color:#393A34"><span class="token plain">│                         │</span><br></span><span class="token-line" style="color:#393A34"><span class="token plain">│                         │</span><br></span><span class="token-line" style="color:#393A34"><span class="token plain">└─────────────────────────┘</span><br></span></code></pre></div></div>
+<div class="theme-admonition theme-admonition-note admonition_lEzE alert alert--secondary"><div class="admonitionHeading_aAf0"><span class="admonitionIcon_xtBN"><svg viewBox="0 0 14 16"><path fill-rule="evenodd" d="M6.3 5.69a.942.942 0 0 1-.28-.7c0-.28.09-.52.28-.7.19-.18.42-.28.7-.28.28 0 .52.09.7.28.18.19.28.42.28.7 0 .28-.09.52-.28.7a1 1 0 0 1-.7.3c-.28 0-.52-.11-.7-.3zM8 7.99c-.02-.25-.11-.48-.31-.69-.2-.19-.42-.3-.69-.31H6c-.27.02-.48.13-.69.31-.2.2-.3.44-.31.69h1v3c.02.27.11.5.31.69.2.2.42.31.69.31h1c.27 0 .48-.11.69-.31.2-.19.3-.42.31-.69H8V7.98v.01zM7 2.3c-3.14 0-5.7 2.54-5.7 5.68 0 3.14 2.56 5.7 5.7 5.7s5.7-2.55 5.7-5.7c0-3.15-2.56-5.69-5.7-5.69v.01zM7 .98c3.86 0 7 3.14 7 7s-3.14 7-7 7-7-3.12-7-7 3.14-7 7-7z"></path></svg></span>备注</div><div class="admonitionContent_Vfkp"><p>Rust 与 Cython 都是构建时的依赖。构建产出的二进制 wheel 在运行时并不需要 Rust 或 Cython。</p></div></div>
+<h3 class="anchor anchorWithStickyNavbar_RpWm" id="类型安全">类型安全<a href="#类型安全" class="hash-link" aria-label="类型安全的直接链接" title="类型安全的直接链接" translate="no">​</a></h3>
+<p>平台设计在最高层面优先考虑软件的正确性与安全性。</p>
+<p><code>nautilus_core</code> 中的 Rust 代码由 <code>rustc</code> 编译器保证类型与内存安全，因此在默认情况下是“按构造正确”的（除非显式使用 <code>unsafe</code>，详见<a href="/developer_guide/rust">开发者指南的 Rust 一节</a>）。</p>
+<p>Cython 在 C 层面提供编译期和运行期的类型安全：</p>
+<div class="theme-admonition theme-admonition-info admonition_lEzE alert alert--info"><div class="admonitionHeading_aAf0"><span class="admonitionIcon_xtBN"><svg viewBox="0 0 14 16"><path fill-rule="evenodd" d="M7 2.3c3.14 0 5.7 2.56 5.7 5.7s-2.56 5.7-5.7 5.7A5.71 5.71 0 0 1 1.3 8c0-3.14 2.56-5.7 5.7-5.7zM7 1C3.14 1 0 4.14 0 8s3.14 7 7 7 7-3.14 7-7-3.14-7-7-7zm1 3H6v5h2V4zm0 6H6v2h2v-2z"></path></svg></span>信息</div><div class="admonitionContent_Vfkp"><p>向具有类型化参数的 Cython 实现模块传入错误类型的参数时，运行时会抛出 <code>TypeError</code>。</p></div></div>
+<p>如果函数或方法的参数未显式声明接受 <code>None</code>，则传入 <code>None</code> 会在运行时引发 <code>ValueError</code>。</p>
+<div class="theme-admonition theme-admonition-warning admonition_lEzE alert alert--warning"><div class="admonitionHeading_aAf0"><span class="admonitionIcon_xtBN"><svg viewBox="0 0 16 16"><path fill-rule="evenodd" d="M8.893 1.5c-.183-.31-.52-.5-.887-.5s-.703.19-.886.5L.138 13.499a.98.98 0 0 0 0 1.001c.193.31.53.501.886.501h13.964c.367 0 .704-.19.877-.5a1.03 1.03 0 0 0 .01-1.002L8.893 1.5zm.133 11.497H6.987v-2.003h2.039v2.003zm0-3.004H6.987V5.987h2.039v4.006z"></path></svg></span>注意</div><div class="admonitionContent_Vfkp"><p>为避免文档冗长，上述异常可能并未在文档中逐一列出。</p></div></div>
+<h3 class="anchor anchorWithStickyNavbar_RpWm" id="错误与异常">错误与异常<a href="#错误与异常" class="hash-link" aria-label="错误与异常的直接链接" title="错误与异常的直接链接" translate="no">​</a></h3>
+<p>我们尽力准确记录 NautilusTrader 代码可能抛出的异常及其触发条件。</p>
+<div class="theme-admonition theme-admonition-warning admonition_lEzE alert alert--warning"><div class="admonitionHeading_aAf0"><span class="admonitionIcon_xtBN"><svg viewBox="0 0 16 16"><path fill-rule="evenodd" d="M8.893 1.5c-.183-.31-.52-.5-.887-.5s-.703.19-.886.5L.138 13.499a.98.98 0 0 0 0 1.001c.193.31.53.501.886.501h13.964c.367 0 .704-.19.877-.5a1.03 1.03 0 0 0 .01-1.002L8.893 1.5zm.133 11.497H6.987v-2.003h2.039v2.003zm0-3.004H6.987V5.987h2.039v4.006z"></path></svg></span>注意</div><div class="admonitionContent_Vfkp"><p>仍可能存在未记录的异常，这些异常可能来自 Python 标准库或第三方依赖库。</p></div></div>
+<h3 class="anchor anchorWithStickyNavbar_RpWm" id="进程与线程">进程与线程<a href="#进程与线程" class="hash-link" aria-label="进程与线程的直接链接" title="进程与线程的直接链接" translate="no">​</a></h3>
+<div class="theme-admonition theme-admonition-tip admonition_lEzE alert alert--success"><div class="admonitionHeading_aAf0"><span class="admonitionIcon_xtBN"><svg viewBox="0 0 12 16"><path fill-rule="evenodd" d="M6.5 0C3.48 0 1 2.19 1 5c0 .92.55 2.25 1 3 1.34 2.25 1.78 2.78 2 4v1h5v-1c.22-1.22.66-1.75 2-4 .45-.75 1-2.08 1-3 0-2.81-2.48-5-5.5-5zm3.64 7.48c-.25.44-.47.8-.67 1.11-.86 1.41-1.25 2.06-1.45 3.23-.02.05-.02.11-.02.17H5c0-.06 0-.13-.02-.17-.2-1.17-.59-1.83-1.45-3.23-.2-.31-.42-.67-.67-1.11C2.44 6.78 2 5.65 2 5c0-2.2 2.02-4 4.5-4 1.22 0 2.36.42 3.22 1.19C10.55 2.94 11 3.94 11 5c0 .66-.44 1.78-.86 2.48zM4 14h5c-.23 1.14-1.3 2-2.5 2s-2.27-.86-2.5-2z"></path></svg></span>提示</div><div class="admonitionContent_Vfkp"><p>为获得最佳性能并避免与 Python 内存模型及相等性相关的潜在问题，强烈建议将每个 trader 实例放在独立进程中运行。</p></div></div></div><footer class="theme-doc-footer docusaurus-mt-lg"><div class="row margin-top--sm theme-doc-footer-edit-meta-row"><div class="col"><a href="https://github.com/Aloento/NautilusTraderDoc/tree/main/docs/concepts/architecture.md" target="_blank" rel="noopener noreferrer" class="theme-edit-this-page"><svg fill="currentColor" height="20" width="20" viewBox="0 0 40 40" class="iconEdit_F7ru" aria-hidden="true"><g><path d="m34.5 11.7l-3 3.1-6.3-6.3 3.1-3q0.5-0.5 1.2-0.5t1.1 0.5l3.9 3.9q0.5 0.4 0.5 1.1t-0.5 1.2z m-29.5 17.1l18.4-18.5 6.3 6.3-18.4 18.4h-6.3v-6.2z"></path></g></svg>编辑此页</a></div><div class="col lastUpdated_GNoA"></div></div></footer></article><nav class="docusaurus-mt-lg pagination-nav" aria-label="文件选项卡"><a class="pagination-nav__link pagination-nav__link--prev" href="/concepts/adapters"><div class="pagination-nav__sublabel">上一页</div><div class="pagination-nav__label">适配器</div></a><a class="pagination-nav__link pagination-nav__link--next" href="/concepts/backtesting"><div class="pagination-nav__sublabel">下一页</div><div class="pagination-nav__label">回测</div></a></nav></div></div><div class="col col--3"><div class="tableOfContents_pg_n thin-scrollbar theme-doc-toc-desktop"><ul class="table-of-contents table-of-contents__left-border"><li><a href="#设计理念" class="table-of-contents__link toc-highlight">设计理念</a><ul><li><a href="#质量属性" class="table-of-contents__link toc-highlight">质量属性</a></li><li><a href="#以可证明性为导向的工程实践" class="table-of-contents__link toc-highlight">以可证明性为导向的工程实践</a></li><li><a href="#仅崩溃设计crash-only-design" class="table-of-contents__link toc-highlight">仅崩溃设计（Crash-only design）</a></li><li><a href="#数据完整性与快速失败fail-fast策略" class="table-of-contents__link toc-highlight">数据完整性与快速失败（fail-fast）策略</a></li></ul></li><li><a href="#系统架构" class="table-of-contents__link toc-highlight">系统架构</a><ul><li><a href="#核心组件" class="table-of-contents__link toc-highlight">核心组件</a></li><li><a href="#环境上下文environment-contexts" class="table-of-contents__link toc-highlight">环境上下文（Environment contexts）</a></li><li><a href="#公共核心common-core" class="table-of-contents__link toc-highlight">公共核心（Common core）</a></li><li><a href="#数据与执行流模式" class="table-of-contents__link toc-highlight">数据与执行流模式</a></li><li><a href="#消息传递messaging" class="table-of-contents__link toc-highlight">消息传递（Messaging）</a></li></ul></li><li><a href="#框架组织" class="table-of-contents__link toc-highlight">框架组织</a><ul><li><a href="#core--低层" class="table-of-contents__link toc-highlight">Core / 低层</a></li><li><a href="#组件" class="table-of-contents__link toc-highlight">组件</a></li><li><a href="#系统实现" class="table-of-contents__link toc-highlight">系统实现</a></li></ul></li><li><a href="#代码结构" class="table-of-contents__link toc-highlight">代码结构</a><ul><li><a href="#依赖流向" class="table-of-contents__link toc-highlight">依赖流向</a></li><li><a href="#类型安全" class="table-of-contents__link toc-highlight">类型安全</a></li><li><a href="#错误与异常" class="table-of-contents__link toc-highlight">错误与异常</a></li><li><a href="#进程与线程" class="table-of-contents__link toc-highlight">进程与线程</a></li></ul></li></ul></div></div></div></div></main></div></div></div><footer class="theme-layout-footer footer footer--dark"><div class="container container-fluid"><div class="footer__bottom text--center"><div class="footer__copyright">Copyright © 2025 NautilusTrader Documentation.</div></div></div></footer></div>
 </body>
 </html>
