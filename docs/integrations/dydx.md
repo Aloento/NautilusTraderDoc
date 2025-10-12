@@ -1,89 +1,73 @@
 # dYdX
 
-dYdX is one of the largest decentralized cryptocurrency exchanges in terms of daily trading volume
-for crypto derivative products. dYdX runs on smart contracts on the Ethereum blockchain, and allows
-users to trade with no intermediaries. This integration supports live market data ingestion and order
-execution with dYdX v4, which is the first version of the protocol to be fully decentralized with no
-central components.
+dYdX 是在加密衍生品交易量方面规模较大的去中心化交易所（DEX）之一。dYdX 运行在以太坊链上的智能合约上，允许用户在无需中介的情况下进行交易。本集成支持 dYdX v4 的实时行情数据接入（market data ingestion）和订单执行；dYdX v4 是该协议首个实现完全去中心化、无中心化组件的版本。
 
-## Installation
+## 安装
 
-To install NautilusTrader with dYdX support:
+要安装包含 dYdX 支持的 NautilusTrader：
 
 ```bash
 pip install --upgrade "nautilus_trader[dydx]"
 ```
 
-To build from source with all extras (including dYdX):
+要从源码构建并包含所有可选项（包括 dYdX）：
 
 ```bash
 uv sync --all-extras
 ```
 
-## Examples
+## 示例
 
-You can find live example scripts [here](https://github.com/nautechsystems/nautilus_trader/tree/develop/examples/live/dydx/).
+可在此处找到 dYdX 的实时示例脚本：[examples/live/dydx](https://github.com/nautechsystems/nautilus_trader/tree/develop/examples/live/dydx/)。
 
-## Overview
+## 概览
 
-This guide assumes a trader is setting up for both live market data feeds, and trade execution.
-The dYdX adapter includes multiple components, which can be used together or separately depending
-on the use case.
+本指南假设你要同时配置实时行情数据订阅和交易执行。dYdX 适配器由多个组件组成，可根据使用场景单独使用或组合使用：
 
-- `DYDXHttpClient`: Low-level HTTP API connectivity.
-- `DYDXWebSocketClient`: Low-level WebSocket API connectivity.
-- `DYDXAccountGRPCAPI`: Low-level gRPC API connectivity for account updates.
-- `DYDXInstrumentProvider`: Instrument parsing and loading functionality.
-- `DYDXDataClient`: A market data feed manager.
-- `DYDXExecutionClient`: An account management and trade execution gateway.
-- `DYDXLiveDataClientFactory`: Factory for dYdX data clients (used by the trading node builder).
-- `DYDXLiveExecClientFactory`: Factory for dYdX execution clients (used by the trading node builder).
+- `DYDXHttpClient`：低级别 HTTP API 连接。
+- `DYDXWebSocketClient`：低级别 WebSocket API 连接。
+- `DYDXAccountGRPCAPI`：低级别 gRPC API，用于账户更新。
+- `DYDXInstrumentProvider`：合约/品种解析与加载功能。
+- `DYDXDataClient`：行情数据订阅管理器（market data feed manager）。
+- `DYDXExecutionClient`：账户管理与订单执行网关（execution gateway）。
+- `DYDXLiveDataClientFactory`：dYdX 数据客户端的工厂（用于 trading node builder）。
+- `DYDXLiveExecClientFactory`：dYdX 执行客户端的工厂（用于 trading node builder）。
 
 :::note
-Most users will simply define a configuration for a live trading node (as below),
-and won't need to necessarily work with these lower level components directly.
+大多数用户只需要为实时交易节点（live trading node）定义配置（如下示例），不必直接使用这些低级组件。
 :::
 
-:::warning First-time account activation
-A dYdX v4 trading account (sub-account 0) is created **only after** the wallet’s first deposit or trade.
-Until then, every gRPC/Indexer query returns `NOT_FOUND`, so `DYDXExecutionClient.connect()` fails.
+:::warning 首次激活账户
+dYdX v4 的交易账户（子账户 sub-account 0）只有在钱包首次入金或发生交易之后才会被链上创建。在此之前，任何 gRPC/Indexer 查询都会返回 `NOT_FOUND`，导致 `DYDXExecutionClient.connect()` 连接失败。
 
-**Action →** Before starting a live `TradingNode`, send any positive amount of USDC (≥ 1 wei) or other supported collateral from the same wallet **on the same network** (mainnet / testnet).
-Once the transaction has finalised (a few blocks) restart the node; the client will connect cleanly.
+**操作建议 →** 在启动实时 `TradingNode` 之前，请从相同钱包在相同网络（主网或测试网）中存入任意正额 USDC（≥ 1 wei）或其他支持的抵押品。交易在被区块确认后（几块区块后）重启节点，客户端即可正常连接。
 :::
 
-## Troubleshooting
+## 故障排查（Troubleshooting）
 
 ### `StatusCode.NOT_FOUND` — account … /0 not found
 
-**Cause** *The wallet/sub-account has never been funded and therefore does not yet exist on-chain.*
+原因：该钱包/子账户从未被注资，因此尚未在链上创建。
 
-**Fix**
+解决方法：
 
-1. Deposit any positive amount of USDC to sub-account 0 on the correct network.
-2. Wait for finality (≈ 30 s on mainnet, longer on testnet).
-3. Restart the `TradingNode`; the connection should now succeed.
+1. 在正确的网络上向子账户 0 存入任意正额的 USDC。
+2. 等待链上最终确认（主网约需 ~30 秒，测试网可能更久）。
+3. 重启 `TradingNode`，连接应能成功建立。
 
 :::tip
-In unattended deployments, wrap the `connect()` call in an exponential-backoff loop so the client retries until the deposit appears.
+在无人值守的部署场景中，可将 `connect()` 调用包装在指数退避（exponential-backoff）重试循环中，直到存款确认后重连成功。
 :::
 
-## Symbology
+## 合约符号（Symbology）
 
-Only perpetual contracts are available on dYdX. To be consistent with other adapters and to be
-futureproof in case other products become available on dYdX, NautilusTrader appends `-PERP` for all
-available perpetual symbols. For example, the Bitcoin/USD-C perpetual futures contract is identified
-as `BTC-USD-PERP`. The quote currency for all markets is USD-C. Therefore, dYdX abbreviates it to USD.
+dYdX 目前只提供永续合约（perpetual contracts）。为了与其它适配器保持一致，并在将来若 dYdX 出现其它产品时具备向后兼容性，NautilusTrader 会在所有永续合约的符号后添加 `-PERP`。例如，Bitcoin/USD-C 的永续期货合约标识为 `BTC-USD-PERP`。平台中所有市场的计价货币为 USD-C，因此在显示时常被简写为 USD。
 
-## Short-term and long-term orders
+## 短期订单与长期订单
 
-dYdX makes a distinction between short-term orders and long-term orders (or stateful orders).
-Short-term orders are meant to be placed immediately and belongs in the same block the order was received.
-These orders stay in-memory up to 20 blocks, with only their fill amount and expiry block height being committed to state.
-Short-term orders are mainly intended for use by market makers with high throughput or for market orders.
+dYdX 区分短期订单（short-term orders）与长期/有状态订单（long-term / stateful orders）。短期订单设计为立即下单，并期望在接收订单的同一区块内被处理。此类订单会在内存中保留最多 20 个区块，只有其成交量（fill amount）与到期区块高度会被提交到链上状态。短期订单主要面向高吞吐量的做市商或市价单场景。
 
-By default, all orders are sent as short-term orders. To construct long-term orders, you can attach a tag to
-an order like this:
+默认情况下，所有订单都会以短期订单发送。若需构建长期订单，可通过在订单上附加标签（tag）来实现，例如：
 
 ```python
 from nautilus_trader.adapters.dydx import DYDXOrderTags
@@ -101,7 +85,7 @@ order: LimitOrder = self.order_factory.limit(
 )
 ```
 
-To specify the number of blocks that an order is active:
+若要指定订单在链上保持活动的区块数，可以这样设置：
 
 ```python
 from nautilus_trader.adapters.dydx import DYDXOrderTags
@@ -119,20 +103,15 @@ order: LimitOrder = self.order_factory.limit(
 )
 ```
 
-## Market orders
+## 市价单（Market orders）
 
-Market orders require specifying a price to for price slippage protection and use hidden orders.
-By setting a price for a market order, you can limit the potential price slippage. For example,
-if you set the price of $100 for a market buy order, the order will only be executed if the market price
-is at or below $100. If the market price is above $100, the order will not be executed.
+在 dYdX 中，市价单需要指定一个价格以作为滑点保护（slippage protection），且会使用隐藏单（hidden orders）。通过为市价单设置价格，你可以限制潜在的滑点。例如：如果为买入市价单指定价格 $100，则仅当市场价格小于等于 $100 时该单才可能被成交；若市场价格高于 $100，则不会执行该订单。
 
-Some exchanges, including dYdX, support hidden orders. A hidden order is an order that is not visible
-to other market participants, but is still executable. By setting a price for a market order, you can
-create a hidden order that will only be executed if the market price reaches the specified price.
+包括 dYdX 在内的一些交易所支持隐藏单：隐藏单对其它市场参与者不可见，但仍可被撮合成交。为市价单指定价格，可将其作为隐藏单，只有当市场价格达到指定价格时才会执行。
 
-If the market price is not specified, a default value of 0 is used.
+若未指定市场价格（market_order_price），默认值为 0。
 
-To specify the price when creating a market order:
+创建市价单并指定价格的示例：
 
 ```python
 order = self.order_factory.market(
@@ -144,129 +123,126 @@ order = self.order_factory.market(
 )
 ```
 
-## Stop limit and stop market orders
+## 止损限价与止损市价（Stop limit / Stop market）
 
-Both stop limit and stop market conditional orders can be submitted. dYdX only supports long-term orders
-for conditional orders.
+支持提交止损限价和止损市价等条件性订单。对于条件性订单，dYdX 仅支持以长期订单（long-term orders）方式提交。
 
-## Orders capability
+## 订单能力概览
 
-dYdX supports perpetual futures trading with a comprehensive set of order types and execution features.
+dYdX 对永续合约交易提供了较为完备的订单类型与执行特性，下面按类别列出支持情况：
 
-### Order Types
+### 订单类型（Order Types）
 
-| Order Type             | Perpetuals | Notes                                   |
-|------------------------|------------|-----------------------------------------|
-| `MARKET`               | ✓          | Requires price for slippage protection. Quote quantity not supported. |
-| `LIMIT`                | ✓          |                                         |
-| `STOP_MARKET`          | ✓          | Long-term orders only.                  |
-| `STOP_LIMIT`           | ✓          | Long-term orders only.                  |
-| `MARKET_IF_TOUCHED`    | -          | *Not supported*.                        |
-| `LIMIT_IF_TOUCHED`     | -          | *Not supported*.                        |
-| `TRAILING_STOP_MARKET` | -          | *Not supported*.                        |
+| Order Type             | Perpetuals | 说明                                   |
+|------------------------|------------|----------------------------------------|
+| `MARKET`               | ✓          | 需提供价格以防止滑点；不支持按计价货币下单（quote quantity）。 |
+| `LIMIT`                | ✓          |                                        |
+| `STOP_MARKET`          | ✓          | 仅支持以长期订单方式提交。             |
+| `STOP_LIMIT`           | ✓          | 仅支持以长期订单方式提交。             |
+| `MARKET_IF_TOUCHED`    | -          | *不支持*。                             |
+| `LIMIT_IF_TOUCHED`     | -          | *不支持*。                             |
+| `TRAILING_STOP_MARKET` | -          | *不支持*。                             |
 
-### Execution Instructions
+### 执行指令（Execution Instructions）
 
-| Instruction   | Perpetuals | Notes                          |
-|---------------|------------|--------------------------------|
-| `post_only`   | ✓          | Supported on all order types.  |
-| `reduce_only` | ✓          | Supported on all order types.  |
+| Instruction   | Perpetuals | 说明                          |
+|---------------|------------|-------------------------------|
+| `post_only`   | ✓          | 支持所有订单类型。            |
+| `reduce_only` | ✓          | 支持所有订单类型。            |
 
-### Time in force options
+### 有效期类型（Time in force）
 
-| Time in force| Perpetuals | Notes                |
-|--------------|------------|----------------------|
-| `GTC`        | ✓          | Good Till Canceled.  |
-| `GTD`        | ✓          | Good Till Date.      |
-| `FOK`        | ✓          | Fill or Kill.        |
-| `IOC`        | ✓          | Immediate or Cancel. |
+| Time in force| Perpetuals | 说明                |
+|--------------|------------|---------------------|
+| `GTC`        | ✓          | Good Till Canceled。 |
+| `GTD`        | ✓          | Good Till Date。     |
+| `FOK`        | ✓          | Fill or Kill。       |
+| `IOC`        | ✓          | Immediate or Cancel。|
 
-### Advanced Order Features
+### 高级订单功能（Advanced Order Features）
 
-| Feature            | Perpetuals | Notes                                          |
-|--------------------|------------|------------------------------------------------|
-| Order Modification | ✓          | Short-term orders only; cancel-replace method. |
-| Bracket/OCO Orders | -          | *Not supported*.                               |
-| Iceberg Orders     | -          | *Not supported*.                               |
+| Feature            | Perpetuals | 说明                                         |
+|--------------------|------------|----------------------------------------------|
+| Order Modification | ✓          | 仅限短期订单；使用取消-替换（cancel-replace）。|
+| Bracket/OCO Orders | -          | *不支持*。                                    |
+| Iceberg Orders     | -          | *不支持*。                                    |
 
-### Batch operations
+### 批量操作（Batch operations）
 
-| Operation          | Perpetuals | Notes                                          |
-|--------------------|------------|------------------------------------------------|
-| Batch Submit       | -          | *Not supported*.                               |
-| Batch Modify       | -          | *Not supported*.                               |
-| Batch Cancel       | -          | *Not supported*.                               |
+| Operation          | Perpetuals | 说明                                         |
+|--------------------|------------|----------------------------------------------|
+| Batch Submit       | -          | *不支持*。                                    |
+| Batch Modify       | -          | *不支持*。                                    |
+| Batch Cancel       | -          | *不支持*。                                    |
 
-### Position management
+### 持仓管理（Position management）
 
-| Feature              | Perpetuals | Notes                                          |
-|--------------------|------------|------------------------------------------------|
-| Query positions     | ✓          | Real-time position updates.                    |
-| Position mode       | -          | Net position mode only.                       |
-| Leverage control    | ✓          | Per-market leverage settings.                 |
-| Margin mode         | -          | Cross margin only.                             |
+| Feature              | Perpetuals | 说明                                         |
+|--------------------|------------|----------------------------------------------|
+| Query positions     | ✓          | 实时持仓查询。                               |
+| Position mode       | -          | 仅支持净头寸模式（net position）。           |
+| Leverage control    | ✓          | 可对每个市场设置杠杆。                       |
+| Margin mode         | -          | 仅支持全仓（cross margin）。                 |
 
-### Order querying
+### 订单查询（Order querying）
 
-| Feature              | Perpetuals | Notes                                          |
-|----------------------|------------|------------------------------------------------|
-| Query open orders    | ✓          | List all active orders.                        |
-| Query order history  | ✓          | Historical order data.                         |
-| Order status updates | ✓          | Real-time order state changes.                |
-| Trade history        | ✓          | Execution and fill reports.                   |
+| Feature              | Perpetuals | 说明                                         |
+|----------------------|------------|----------------------------------------------|
+| Query open orders    | ✓          | 列出所有活动订单。                           |
+| Query order history  | ✓          | 历史订单数据。                               |
+| Order status updates | ✓          | 实时订单状态变更。                           |
+| Trade history        | ✓          | 成交与回执报告。                             |
 
-### Contingent orders
+### 组合/条件性订单（Contingent orders）
 
-| Feature             | Perpetuals | Notes                                          |
-|---------------------|------------|------------------------------------------------|
-| Order lists         | -          | *Not supported*.                               |
-| OCO orders          | -          | *Not supported*.                               |
-| Bracket orders      | -          | *Not supported*.                               |
-| Conditional orders  | ✓          | Stop market and stop limit orders.           |
+| Feature             | Perpetuals | 说明                                         |
+|---------------------|------------|----------------------------------------------|
+| Order lists         | -          | *不支持*。                                    |
+| OCO orders          | -          | *不支持*。                                    |
+| Bracket orders      | -          | *不支持*。                                    |
+| Conditional orders  | ✓          | 支持止损市价（stop market）与止损限价（stop limit）。 |
 
 ### Order classification
 
-dYdX classifies orders as either **short-term** or **long-term** orders:
+dYdX 将订单分为 **短期订单（short-term）** 与 **长期订单（long-term）**：
 
-- **Short-term orders**: Default for all orders; intended for high-frequency trading and market orders.
-- **Long-term orders**: Required for conditional orders; use `DYDXOrderTags` to specify.
+- **短期订单**：所有订单的默认类型；适用于高频交易和市价单。
+- **长期订单**：条件性订单需以长期订单方式提交；可使用 `DYDXOrderTags` 指定。
 
-## Configuration
+## 配置（Configuration）
 
-The product types for each client must be specified in the configurations.
+各客户端的产品类型需在配置中明确指定。
 
-### Data client configuration options
+### 数据客户端配置选项（Data client configuration options）
 
-| Option                           | Default | Description |
-|----------------------------------|---------|-------------|
-| `wallet_address`                 | `None`  | Wallet address; loaded from `DYDX_WALLET_ADDRESS`/`DYDX_TESTNET_WALLET_ADDRESS` when omitted. |
-| `is_testnet`                     | `False` | Connect to the dYdX testnet when `True`. |
-| `update_instruments_interval_mins` | `60`  | Interval (minutes) between instrument catalogue refreshes. |
-| `max_retries`                    | `None`  | Maximum retry attempts for REST/WebSocket recovery. |
-| `retry_delay_initial_ms`         | `None`  | Initial delay (milliseconds) between retries. |
-| `retry_delay_max_ms`             | `None`  | Maximum delay (milliseconds) between retries. |
+| Option                           | Default | 说明 |
+|----------------------------------|---------|------|
+| `wallet_address`                 | `None`  | 钱包地址；若省略会从环境变量 `DYDX_WALLET_ADDRESS` / `DYDX_TESTNET_WALLET_ADDRESS` 加载。 |
+| `is_testnet`                     | `False` | 为 `True` 时连接 dYdX 测试网。 |
+| `update_instruments_interval_mins` | `60`  | instrument 目录刷新间隔（分钟）。 |
+| `max_retries`                    | `None`  | REST/WebSocket 恢复重试的最大次数。 |
+| `retry_delay_initial_ms`         | `None`  | 重试初始延迟（毫秒）。 |
+| `retry_delay_max_ms`             | `None`  | 重试最大延迟（毫秒）。 |
 
-### Execution client configuration options
+### 执行客户端配置选项（Execution client configuration options）
 
-| Option                   | Default | Description |
-|--------------------------|---------|-------------|
-| `wallet_address`         | `None`  | Wallet address; loaded from `DYDX_WALLET_ADDRESS`/`DYDX_TESTNET_WALLET_ADDRESS` when omitted. |
-| `subaccount`             | `0`     | Subaccount number (dYdX provisions subaccount `0` by default). |
-| `mnemonic`               | `None`  | Mnemonic used to derive the signing key; loaded from environment when omitted. |
-| `base_url_http`          | `None`  | Override for the REST base URL. |
-| `base_url_ws`            | `None`  | Override for the WebSocket base URL. |
-| `is_testnet`             | `False` | Connect to the dYdX testnet when `True`. |
-| `max_retries`            | `None`  | Maximum retry attempts for order submission/cancel/modify calls. |
-| `retry_delay_initial_ms` | `None`  | Initial delay (milliseconds) between retries. |
-| `retry_delay_max_ms`     | `None`  | Maximum delay (milliseconds) between retries. |
+| Option                   | Default | 说明 |
+|--------------------------|---------|------|
+| `wallet_address`         | `None`  | 钱包地址；若省略会从环境变量 `DYDX_WALLET_ADDRESS` / `DYDX_TESTNET_WALLET_ADDRESS` 加载。 |
+| `subaccount`             | `0`     | 子账户编号（dYdX 默认为子账户 `0`）。 |
+| `mnemonic`               | `None`  | 用于派生签名密钥的助记词；若省略将从环境中加载。 |
+| `base_url_http`          | `None`  | REST 基地址重写。 |
+| `base_url_ws`            | `None`  | WebSocket 基地址重写。 |
+| `is_testnet`             | `False` | 为 `True` 时连接 dYdX 测试网。 |
+| `max_retries`            | `None`  | 订单提交/取消/修改调用的最大重试次数。 |
+| `retry_delay_initial_ms` | `None`  | 重试初始延迟（毫秒）。 |
+| `retry_delay_max_ms`     | `None`  | 重试最大延迟（毫秒）。 |
 
 ### Execution clients
 
-The account type must be a margin account to trade the perpetual futures contracts.
+账户类型必须为保证金账户（margin account）才能交易永续合约。
 
-The most common use case is to configure a live `TradingNode` to include dYdX
-data and execution clients. To achieve this, add a `DYDX` section to your client
-configuration(s):
+最常见的用例是将 dYdX 的数据客户端与执行客户端一并配置到实时 `TradingNode` 中。为此，请在你的客户端配置中添加一个 `DYDX` 部分，例如：
 
 ```python
 from nautilus_trader.live.node import TradingNode
@@ -290,50 +266,47 @@ config = TradingNodeConfig(
 )
 ```
 
-Then, create a `TradingNode` and add the client factories:
+然后创建一个 `TradingNode` 并注册相应的客户端工厂：
 
 ```python
 from nautilus_trader.adapters.dydx import DYDXLiveDataClientFactory
 from nautilus_trader.adapters.dydx import DYDXLiveExecClientFactory
 from nautilus_trader.live.node import TradingNode
 
-# Instantiate the live trading node with a configuration
+# 使用配置实例化实时交易节点
 node = TradingNode(config=config)
 
-# Register the client factories with the node
+# 向节点注册客户端工厂
 node.add_data_client_factory("DYDX", DYDXLiveDataClientFactory)
 node.add_exec_client_factory("DYDX", DYDXLiveExecClientFactory)
 
-# Finally build the node
+# 最后构建节点
 node.build()
 ```
 
-### API credentials
+### API 凭证（API credentials）
 
-There are two options for supplying your credentials to the dYdX clients.
-Either pass the corresponding `wallet_address` and `mnemonic` values to the configuration objects, or
-set the following environment variables:
+为 dYdX 客户端提供凭证有两种方式：要么在配置对象中直接传入 `wallet_address` 与 `mnemonic`，要么设置相应的环境变量：
 
-For dYdX live clients, you can set:
+对于 dYdX 实盘客户端（live clients），可设置：
 
 - `DYDX_WALLET_ADDRESS`
 - `DYDX_MNEMONIC`
 
-For dYdX testnet clients, you can set:
+对于 dYdX 测试网客户端（testnet clients），可设置：
 
 - `DYDX_TESTNET_WALLET_ADDRESS`
 - `DYDX_TESTNET_MNEMONIC`
 
 :::tip
-We recommend using environment variables to manage your credentials.
+建议使用环境变量来管理凭证。这样更安全，也便于在不同环境间切换。
 :::
 
-The data client is using the wallet address to determine the trading fees. The trading fees are used during back tests only.
+数据客户端会使用钱包地址来确定交易费用（trading fees），这些费用信息仅在回测时使用。
 
-### Testnets
+### 测试网（Testnets）
 
-It's also possible to configure one or both clients to connect to the dYdX testnet.
-Simply set the `is_testnet` option to `True` (this is `False` by default):
+也可以将数据客户端或执行客户端配置为连接 dYdX 测试网。只需将 `is_testnet` 选项设为 `True`（默认值为 `False`）：
 
 ```python
 config = TradingNodeConfig(
@@ -355,19 +328,14 @@ config = TradingNodeConfig(
 )
 ```
 
-### Parser warnings
+### 解析器警告（Parser warnings）
 
-Some dYdX instruments are unable to be parsed into Nautilus objects if they
-contain enormous field values beyond what can be handled by the platform.
-In these cases, a *warn and continue* approach is taken (the instrument will not be available).
+某些 dYdX 的合约在解析为 Nautilus 对象时可能因字段值过大而超出平台处理范围。遇到此类情况时，会采用“警告并跳过”（warn and continue）的策略，该合约将不会被加入可用合约列表。
 
-## Order books
+## 市场深度（Order books）
 
-Order books can be maintained at full depth or top-of-book quotes depending on the
-subscription. The venue does not provide quotes, but the adapter subscribes to order
-book deltas and sends new quotes to the `DataEngine` when there is a top-of-book price or size change.
+根据订阅类型，order book 可维护为全深度（full depth）或仅顶级盘口（top-of-book）。交易所不直接推送聚合的 quote，适配器会订阅 order book 的增量（deltas），并在顶级盘口价格或数量变动时向 `DataEngine` 发送新的报价。
 
 :::info
-For additional features or to contribute to the dYdX adapter, please see our
-[contributing guide](https://github.com/nautechsystems/nautilus_trader/blob/develop/CONTRIBUTING.md).
+如需了解更多功能或贡献 dYdX 适配器，请参阅我们的[贡献指南](https://github.com/nautechsystems/nautilus_trader/blob/develop/CONTRIBUTING.md)。
 :::
