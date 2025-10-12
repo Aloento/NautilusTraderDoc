@@ -1,126 +1,129 @@
-# Docs Style Guide
+# 文档风格指南
 
-This guide outlines the style conventions and best practices for writing documentation for NautilusTrader.
+本指南列出为 NautilusTrader 撰写文档时建议遵循的样式约定与最佳实践。
 
-## General principles
+## 总体原则
 
-- We favor simplicity over complexity, less is more.
-- We favor concise yet readable prose and documentation.
-- We value standardization in conventions, style, patterns, etc.
-- Documentation should be accessible to users of varying technical backgrounds.
+- 倾向于简单胜于复杂，能简洁表达的就不要冗长；少即是多。
+- 追求简洁但可读性的表述与文档结构。
+- 重视一致性的约定——包括样式、格式与模式。
+- 文档应对不同技术背景的读者都友好且可访问。
 
-## Language and tone
+## 语言与语气
 
-- Use active voice when possible ("Configure the adapter" vs "The adapter should be configured").
-- Write in present tense for describing current functionality.
-- Use future tense only for planned features.
-- Avoid unnecessary jargon; define technical terms on first use.
-- Be direct and concise; avoid filler words like "basically", "simply", "just".
+- 尽量使用主动语态（例如使用 “Configure the adapter” 而不是 “The adapter should be configured”）。
+- 描述当前功能时使用现在时。
+- 仅在描述计划中将要实现的功能时使用将来时。
+- 避免不必要的行话；首次出现的技术术语应给出定义。
+- 语言直接且简练，避免像“basically”“simply”“just”这类填充词。
 
-## Markdown tables
+## Markdown 表格
 
-### Column alignment and spacing
+### 列对齐与间距
 
-- Use symmetrical column widths based on the space dictated by the widest content in each column.
-- Align column separators (`|`) vertically for better readability.
-- Use consistent spacing around cell content.
+- 根据每列中最宽内容调整列宽，使列宽对称。
+- 垂直对齐列分隔符（`|`），以提高可读性。
+- 单元格内容周围保持一致的空格。
 
-### Notes and descriptions
+### 注释与说明
 
-- All notes and descriptions should have terminating periods.
-- Keep notes concise but informative.
-- Use sentence case (capitalize only the first letter and proper nouns).
+- 所有注释和说明句末应有句点（终止符）。
+- 注释应简明且信息充分。
+- 使用句子式大小写（句首字母大写，专有名词除外）。
 
-### Example
+### 示例（Markdown 表格）
 
 ```markdown
-| Order Type             | Spot | Margin | USDT Futures | Coin Futures | Notes                   |
-|------------------------|------|--------|--------------|--------------|-------------------------|
-| `MARKET`               | ✓    | ✓      | ✓            | ✓            |                         |
-| `STOP_MARKET`          | -    | ✓      | ✓            | ✓            | Not supported for Spot. |
-| `MARKET_IF_TOUCHED`    | -    | -      | ✓            | ✓            | Futures only.           |
+| Order Type          | Spot | Margin | USDT Futures | Coin Futures | Notes                   |
+| ------------------- | ---- | ------ | ------------ | ------------ | ----------------------- |
+| `MARKET`            | ✓    | ✓      | ✓            | ✓            |                         |
+| `STOP_MARKET`       | -    | ✓      | ✓            | ✓            | Not supported for Spot. |
+| `MARKET_IF_TOUCHED` | -    | -      | ✓            | ✓            | Futures only.           |
 ```
 
-### Support indicators
+### 支持标记
 
-- Use `✓` for supported features.
-- Use `-` for unsupported features (not `✗` or other symbols).
-- When adding notes for unsupported features, emphasize with italics: `*Not supported*`.
-- Leave cells empty when no content is needed.
+- 使用 `✓` 表示支持的功能。
+- 使用 `-` 表示不支持（不要使用 `✗` 或其他符号）。
+- 如果为不支持的功能添加说明，使用斜体强调：`*Not supported*`。
+- 不需要内容的单元格应留空。
 
-## Code references
+## 代码引用
 
-- Use backticks for inline code, method names, class names, and configuration options.
-- Use code blocks for multi-line examples.
-- When referencing functions or code locations, include the pattern `file_path:line_number` to allow easy navigation.
+- 行内代码、方法名、类名和配置选项请使用反引号（backticks）。
+- 多行示例使用代码块。
+- 引用函数或代码位置时，请使用 `file_path:line_number` 格式，便于定位。
 
-## Headings
+## 标题（Headings）
 
-We follow modern documentation conventions that prioritize readability and accessibility:
+我们遵循以可读性与无障碍为优先的现代文档约定：
 
-- Use title case for the main page heading (# Level 1 only).
-- Use sentence case for all subheadings (## Level 2 and below).
-- Always capitalize proper nouns regardless of heading level (product names, technologies, companies, acronyms).
-- Ensure proper heading hierarchy (don't skip levels).
+- 主页主标题（一级标题，`#`）使用 Title Case（各主要词首字母大写）。
+- 二级及以下子标题使用 Sentence case（句子式大小写）。
+- 无论标题级别，都要将专有名词大写（产品名、技术、公司名、缩写等）。
+- 保持标题层级一致，不要跳级。
 
-This convention aligns with industry standards used by major technology companies including Google Developer Documentation, Microsoft Docs, and Anthropic's documentation.
-It improves readability, reduces cognitive load, and is more accessible for international users and screen readers.
+该约定与业界主流文档风格（如 Google Developer Documentation、Microsoft Docs 等）一致，能提升可读性、降低认知负担，并对国际化用户与屏幕阅读器更友好。
 
-### Examples
+### 示例
 
 ```markdown
 # NautilusTrader Developer Guide
 
 ## Getting started with Python
+
 ## Using the Binance adapter
+
 ## REST API implementation
+
 ## WebSocket data streaming
+
 ## Testing with pytest
 ```
 
-## Lists
+## 列表
 
-- Use hyphens (`-`) for unordered list bullets; avoid `*` or `+` to keep the Markdown style consistent across the project.
-- Use numbered lists only when order matters.
-- Maintain consistent indentation for nested lists.
-- End list items with periods when they are complete sentences.
+- 无序列表使用短横线（`-`），避免使用 `*` 或 `+`，以保持项目中 Markdown 风格一致。
+- 只有在顺序重要时才使用有序（编号）列表。
+- 嵌套列表保持缩进一致。
+- 当列表项为完整句子时，以句点结尾。
 
-## Links and references
+## 链接与引用
 
-- Use descriptive link text (avoid "click here" or "this link").
-- Reference external documentation when appropriate.
-- Ensure all internal links are relative and accurate.
+- 使用描述性链接文本（避免使用“click here”或“this link”）。
+- 适当引用外部文档作为补充说明。
+- 确保所有内部链接为相对路径且指向正确位置。
 
-## Technical terminology
+## 技术术语
 
-- Base capability matrices on the Nautilus domain model, not exchange-specific terminology.
-- Mention exchange-specific terms in parentheses or notes when necessary for clarity.
-- Use consistent terminology throughout the documentation.
+- 在能力矩阵等处，应以 Nautilus 的领域模型为基准，而非特定交易所的术语。
+- 必要时在括号或注释中说明交易所相关术语以便读者理解。
+- 在文档中保持术语一致性。
 
-## Examples and code samples
+## 示例与代码片段
 
-- Provide practical, working examples.
-- Include necessary imports and context.
-- Use realistic variable names and values.
-- Add comments to explain non-obvious parts of examples.
+- 提供实用且可运行的示例。
+- 示例中包含必要的 import 和上下文。
+- 使用贴近真实的变量名与数值。
+- 对非直观部分添加注释说明。
 
-## Warnings and notes
+## 警告与提示
 
-- Use appropriate admonition blocks for important information:
-  - `:::note` for general information.
-  - `:::warning` for important caveats.
-  - `:::tip` for helpful suggestions.
+- 对重要信息使用相应的 admonition 块：
+  - `:::note` 用于一般信息。
+  - `:::warning` 用于重要的注意事项或风险说明。
+  - `:::tip` 用于实用建议或小技巧。
 
-## Line length and wrapping
+## 行长与换行
 
-- Wrap lines at no more than ~100-120 characters for better readability and diff reviews.
-- Break long sentences at natural points (after commas, conjunctions, or phrases).
-- Avoid orphaned words on new lines when possible.
-- Code blocks and URLs can exceed the line limit when necessary.
+- 行宽建议限制在大约 100–120 字符，以便更好地阅读与差异对比（diff）审阅。
+- 在自然停顿处换行（例如逗号、连词或片语之后）。
+- 避免新行中出现孤立的单词。
+- 代码块与 URL 在必要时可超过行长限制。
 
-## API documentation
+## API 文档
 
-- Document parameters and return types clearly.
-- Include usage examples for complex APIs.
-- Explain any side effects or important behavior.
-- Keep parameter descriptions concise but complete.
+- 清晰记录参数与返回值类型。
+- 为复杂 API 提供使用示例。
+- 说明副作用或重要行为细节。
+- 参数描述应简洁且完整。
