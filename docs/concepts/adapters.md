@@ -1,9 +1,8 @@
-# Adapters
+# 适配器
 
-The NautilusTrader design integrates data providers and/or trading venues
-through adapter implementations. These can be found in the top-level `adapters` subpackage.
+NautilusTrader 的设计通过适配器（adapter）实现与数据提供者或交易场所（venues）的集成。相关实现位于顶级子包 `adapters` 中。
 
-An integration adapter is *typically* comprised of the following main components:
+一个集成适配器通常由下列主要组件组成：
 
 - `HttpClient`
 - `WebSocketClient`
@@ -11,19 +10,18 @@ An integration adapter is *typically* comprised of the following main components
 - `DataClient`
 - `ExecutionClient`
 
-## Instrument providers
+## 合约/品种提供器（Instrument providers）
 
-Instrument providers do as their name suggests - instantiating Nautilus
-`Instrument` objects by parsing the raw API of the publisher or venue.
+顾名思义，InstrumentProvider 负责解析发布方或交易所的原始 API，并实例化 Nautilus 的 `Instrument` 对象。
 
-The use cases for the instruments available from an `InstrumentProvider` are either:
+从 `InstrumentProvider` 获取到的 instrument 的使用场景通常为：
 
-- Used standalone to discover the instruments available for an integration, using these for research or backtesting purposes
-- Used in a `sandbox` or `live` [environment context](architecture.md#environment-contexts) for consumption by actors/strategies
+- 独立使用以发现某个集成支持的 instruments，用于研究或回测（research/backtesting）
+- 在 `sandbox` 或 `live` [environment context](architecture.md#environment-contexts) 中被 actor/strategy 消费
 
-### Research and backtesting
+### 研究与回测
 
-Here is an example of discovering the current instruments for the Binance Futures testnet:
+下面示例展示如何在 Binance Futures Testnet 上发现当前可用的 instruments：
 
 ```python
 import asyncio
@@ -56,12 +54,11 @@ provider = BinanceFuturesInstrumentProvider(
 await provider.load_all_async()
 ```
 
-### Live trading
+### 实盘交易（Live trading）
 
-Each integration is implementation specific, and there are generally two options for the behavior of an `InstrumentProvider` within a `TradingNode` for live trading,
-as configured:
+每个集成的实现细节不同。在 `TradingNode` 中配置 `InstrumentProvider` 用于实盘时，通常有两种行为选项：
 
-- All instruments are automatically loaded on start:
+- 启动时自动加载所有 instruments：
 
 ```python
 from nautilus_trader.config import InstrumentProviderConfig
@@ -69,43 +66,40 @@ from nautilus_trader.config import InstrumentProviderConfig
 InstrumentProviderConfig(load_all=True)
 ```
 
-- Only those instruments explicitly specified in the configuration are loaded on start:
+- 或仅加载配置中明确列出的那些 instruments：
 
 ```python
 InstrumentProviderConfig(load_ids=["BTCUSDT-PERP.BINANCE", "ETHUSDT-PERP.BINANCE"])
 ```
 
-## Data clients
+## 数据客户端（Data clients）
 
-### Requests
+### 请求（Requests）
 
-An `Actor` or `Strategy` can request custom data from a `DataClient` by sending a `DataRequest`. If the client that receives the
-`DataRequest` implements a handler for the request, data will be returned to the `Actor` or `Strategy`.
+`Actor` 或 `Strategy` 可以通过发送 `DataRequest` 向 `DataClient` 请求自定义数据。如果接收该 `DataRequest` 的客户端实现了相应的处理器，就会把数据返回给 `Actor` 或 `Strategy`。
 
-#### Example
+#### 示例
 
-An example of this is a `DataRequest` for an `Instrument`, which the `Actor` class implements (copied below). Any `Actor` or
-`Strategy` can call a `request_instrument` method with an `InstrumentId` to request the instrument from a `DataClient`.
+一个常见例子是请求某个 `Instrument` 的信息，`Actor` 类实现了相应的方法（下方为摘录）。任意 `Actor` 或 `Strategy` 都可以通过 `InstrumentId` 调用 `request_instrument`，向 `DataClient` 请求该 instrument。
 
-In this particular case, the `Actor` implements a separate method `request_instrument`. A similar type of
-`DataRequest` could be instantiated and called from anywhere and/or anytime in the actor/strategy code.
+在这个例子中，`Actor` 实现了一个独立的方法 `request_instrument`。类似的 `DataRequest` 也可以在 actor/strategy 的任意位置被创建并调用。
 
-A simplified version of `request_instrument` for an actor/strategy is:
+下面是 actor/strategy 中 `request_instrument` 的简化版本：
 
 ```python
 # nautilus_trader/common/actor.pyx
 
 cpdef void request_instrument(self, InstrumentId instrument_id, ClientId client_id=None):
     """
-    Request `Instrument` data for the given instrument ID.
+    请求给定 instrument ID 的 `Instrument` 数据。
 
     Parameters
     ----------
     instrument_id : InstrumentId
-        The instrument ID for the request.
+        请求的 instrument ID。
     client_id : ClientId, optional
-        The specific client ID for the command.
-        If ``None`` then will be inferred from the venue in the instrument ID.
+        指定用于该命令的 client ID。
+        如果为 ``None``，则会从 instrument ID 中的 venue 推断出默认 client。
     """
     Condition.not_none(instrument_id, "instrument_id")
 
@@ -124,8 +118,7 @@ cpdef void request_instrument(self, InstrumentId instrument_id, ClientId client_
     self._send_data_req(request)
 ```
 
-A simplified version of the request handler implemented in a `LiveMarketDataClient` that will retrieve the data
-and send it back to actors/strategies is for example:
+下面是一个由 `LiveMarketDataClient` 实现的请求处理器的简化示例，负责获取数据并返回给 actor/strategy：
 
 ```python
 # nautilus_trader/live/data_client.py
@@ -145,8 +138,8 @@ async def _request_instrument(self, request: RequestInstrument) -> None:
     self._handle_instrument(instrument, request.id, request.params)
 ```
 
-The `DataEngine` which is an important component in Nautilus links a request with a `DataClient`.
-For example a simplified version of handling an instrument request is:
+`DataEngine` 是 Nautilus 中的核心组件之一，它把请求与具体的 `DataClient` 关联起来。
+下面是处理 instrument 请求的简化示例：
 
 ```python
 # nautilus_trader/data/engine.pyx
