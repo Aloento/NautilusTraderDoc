@@ -1,22 +1,19 @@
-# Execution
+# 执行
 
-NautilusTrader can handle trade execution and order management for multiple strategies and venues
-simultaneously (per instance). Several interacting components are involved in execution, making it
-crucial to understand the possible flows of execution messages (commands and events).
+NautilusTrader 能够为多个策略和多个交易场所（每个实例）同时处理交易执行和订单管理。执行流程涉及多个相互作用的组件，理解命令与事件等执行消息的可能流向至关重要。
 
-The main execution-related components include:
+主要的执行相关组件包括：
 
 - `Strategy`
-- `ExecAlgorithm` (execution algorithms)
+- `ExecAlgorithm`（执行算法）
 - `OrderEmulator`
 - `RiskEngine`
-- `ExecutionEngine` or `LiveExecutionEngine`
-- `ExecutionClient` or `LiveExecutionClient`
+- `ExecutionEngine` 或 `LiveExecutionEngine`
+- `ExecutionClient` 或 `LiveExecutionClient`
 
-## Execution flow
+## 执行流程
 
-The `Strategy` base class inherits from `Actor` and so contains all of the common data related
-methods. It also provides methods for managing orders and trade execution:
+`Strategy` 基类继承自 `Actor`，因此包含了所有通用的数据相关方法。它还提供了一组用于管理订单和交易执行的方法：
 
 - `submit_order(...)`
 - `submit_order_list(...)`
@@ -29,20 +26,17 @@ methods. It also provides methods for managing orders and trade execution:
 - `query_account(...)`
 - `query_order(...)`
 
-These methods create the necessary execution commands under the hood and send them on the message
-bus to the relevant components (point-to-point), as well as publishing any events (such as the
-initialization of new orders i.e. `OrderInitialized` events).
+这些方法在内部会构造必要的执行命令，并通过消息总线（point-to-point）发送到相关组件，同时发布相应的事件（例如新订单初始化事件 `OrderInitialized`）。
 
-The general execution flow looks like the following (each arrow indicates movement across the message bus):
+一般的执行流如下（箭头表示消息在消息总线上的流向）：
 
 `Strategy` -> `OrderEmulator` -> `ExecAlgorithm` -> `RiskEngine` -> `ExecutionEngine` -> `ExecutionClient`
 
-The `OrderEmulator` and `ExecAlgorithm`(s) components are optional in the flow, depending on
-individual order parameters (as explained below).
+`OrderEmulator` 与 `ExecAlgorithm` 是可选环节，是否参与取决于具体订单参数（下面会说明）。
 
-This diagram illustrates message flow (commands and events) across the Nautilus execution components.
+下面的示意图展示了 Nautilus 执行组件之间命令与事件的消息流：
 
-```
+````text
                   ┌───────────────────┐
                   │                   │
                   │                   │
@@ -70,128 +64,105 @@ This diagram illustrates message flow (commands and events) across the Nautilus 
                   │                   │
                   └───────────────────┘
 
-```
+```text
 
-## Order Management System (OMS)
+## 订单管理系统（OMS）
 
-An order management system (OMS) type refers to the method used for assigning orders to positions and tracking those positions for an instrument.
-OMS types apply to both strategies and venues (simulated and real). Even if a venue doesn't explicitly
-state the method in use, an OMS type is always in effect. The OMS type for a component can be specified
-using the `OmsType` enum.
+订单管理系统（Order Management System，简称 OMS）类型指的是用于为合约分配订单并跟踪该合约有关头寸的方法。OMS 类型适用于策略端和交易场所（无论是模拟还是实盘）。即使某个交易场所没有明确声明使用哪种方式，系统内部总会生效某种 OMS 类型。可以通过 `OmsType` 枚举为组件指定 OMS 类型。
 
-The `OmsType` enum has three variants:
+`OmsType` 枚举包含三种取值：
 
-- `UNSPECIFIED`: The OMS type defaults based on where it is applied (details below)
-- `NETTING`: Positions are combined into a single position per instrument ID
-- `HEDGING`: Multiple positions per instrument ID are supported (both long and short)
+- `UNSPECIFIED`：默认由应用场景决定（详见下文）
+- `NETTING`：对每个 instrument ID 合并为单一头寸
+- `HEDGING`：对每个 instrument ID 支持多笔头寸（可同时存在多头与空头）
 
-The table below describes different configuration combinations and their applicable scenarios.
-When the strategy and venue OMS types differ, the `ExecutionEngine` handles this by overriding or assigning `position_id` values for received `OrderFilled` events.
-A "virtual position" refers to a position ID that exists within the Nautilus system but not on the venue in
-reality.
+下表描述了策略端与交易场所不同配置组合下的适用场景。当策略与场所的 OMS 类型不一致时，`ExecutionEngine` 会在接收到 `OrderFilled` 事件时覆写或分配 `position_id`。这里的“虚拟头寸（virtual position）”指的是存在于 Nautilus 系统中但并非真实存在于交易场所的头寸 ID。
 
-| Strategy OMS                 | Venue OMS              | Description                                                                                                                                                |
-|:-----------------------------|:-----------------------|:-----------------------------------------------------------------------------------------------------------------------------------------------------------|
-| `NETTING`                    | `NETTING`              | The strategy uses the venues native OMS type, with a single position ID per instrument ID.                                                                 |
-| `HEDGING`                    | `HEDGING`              | The strategy uses the venues native OMS type, with multiple position IDs per instrument ID (both `LONG` and `SHORT`).                                      |
-| `NETTING`                    | `HEDGING`              | The strategy **overrides** the venues native OMS type. The venue tracks multiple positions per instrument ID, but Nautilus maintains a single position ID. |
-| `HEDGING`                    | `NETTING`              | The strategy **overrides** the venues native OMS type. The venue tracks a single position per instrument ID, but Nautilus maintains multiple position IDs. |
+| Strategy OMS                 | Venue OMS              | 说明                                                                                                                                                |
+|:-----------------------------|:-----------------------|:---------------------------------------------------------------------------------------------------------------------------------------------------|
+| `NETTING`                    | `NETTING`              | 策略采用场所的原生 OMS 类型，针对每个 instrument ID 使用单一 position ID。                                                                 |
+| `HEDGING`                    | `HEDGING`              | 策略采用场所的原生 OMS 类型，针对每个 instrument ID 支持多个 position ID（包括 `LONG` 与 `SHORT`）。                                      |
+| `NETTING`                    | `HEDGING`              | 策略覆盖了场所的原生 OMS 类型。场所按 instrument ID 跟踪多个头寸，但 Nautilus 在策略端以单一 position ID 维护头寸。 |
+| `HEDGING`                    | `NETTING`              | 策略覆盖了场所的原生 OMS 类型。场所仅按 instrument ID 跟踪单一头寸，但 Nautilus 在策略端维护多个 position ID。 |
 
 :::note
-Configuring OMS types separately for strategies and venues increases platform complexity but allows
-for a wide range of trading styles and preferences (see below).
+为策略和场所分别配置不同的 OMS 类型会增加平台复杂度，但可以支持更丰富的交易风格与偏好（见上表）。
 :::
 
-OMS config examples:
+OMS 配置示例：
 
-- Most cryptocurrency exchanges use a `NETTING` OMS type, representing a single position per market. It may be desirable for a trader to track multiple "virtual" positions for a strategy.
-- Some FX ECNs or brokers use a `HEDGING` OMS type, tracking multiple positions both `LONG` and `SHORT`. The trader may only care about the NET position per currency pair.
+- 多数加密货币交易所使用 `NETTING` 模式（每个市场一个头寸）。在策略层仍可能希望跟踪多个“虚拟”头寸。
+- 某些外汇 ECN 或经纪商采用 `HEDGING` 模式，允许同时存在多笔多头与空头头寸；而交易者可能只关心货币对的净头寸（NET）。
 
 :::info
-Nautilus does not yet support venue-side hedging modes such as Binance `BOTH` vs. `LONG/SHORT` where the venue nets per direction.
-It is advised to keep Binance account configurations as `BOTH` so that a single position is netted.
+目前 Nautilus 尚不支持场所端的某些对冲模式（例如 Binance 的 `BOTH` 与 `LONG/SHORT` 模式中按方向 netting 的情形）。建议将 Binance 账户配置为 `BOTH`，以便采用单一净头寸。
 :::
 
-### OMS configuration
+### OMS 配置说明
 
-If a strategy OMS type is not explicitly set using the `oms_type` configuration option,
-it will default to `UNSPECIFIED`. This means the `ExecutionEngine` will not override any venue `position_id`s,
-and the OMS type will follow the venue's OMS type.
+如果没有在配置中通过 `oms_type` 明确指定策略的 OMS 类型，则其默认为 `UNSPECIFIED`。这意味着 `ExecutionEngine` 不会覆盖场所的 `position_id`，OMS 类型将遵从交易场所的设置。
 
 :::tip
-When configuring a backtest, you can specify the `oms_type` for the venue. To enhance backtest
-accuracy, it is recommended to match this with the actual OMS type used by the venue in practice.
+在配置回测时，可以为交易场所指定 `oms_type`。为了提高回测的准确性，建议尽量与该交易场所实际使用的 OMS 类型保持一致。
 :::
 
-## Risk engine
+## 风控引擎（Risk engine）
 
-The `RiskEngine` is a core component of every Nautilus system, including backtest, sandbox, and live environments.
-Every order command and event passes through the `RiskEngine` unless specifically bypassed in the `RiskEngineConfig`.
+`RiskEngine` 是 Nautilus 系统（包括回测、沙箱和实盘）中的核心组件。除非在 `RiskEngineConfig` 中显式地绕过，所有订单命令与事件都会经过 `RiskEngine` 的校验。
 
-The `RiskEngine` includes several built-in pre-trade risk checks, including:
+`RiskEngine` 内置了若干下单前（pre-trade）的风控检查，包括但不限于：
 
-- Price precisions correct for the instrument.
-- Prices are positive (unless an option type instrument)
-- Quantity precisions correct for the instrument.
-- Below maximum notional for the instrument.
-- Within maximum or minimum quantity for the instrument.
-- Only reducing position when a `reduce_only` execution instruction is specified for the order.
+- 价格精度是否符合合约要求。
+- 价格是否为正（期权类合约可能例外）。
+- 数量精度是否符合合约要求。
+- 是否低于合约的最大名义金额（max notional）。
+- 是否在合约允许的最小或最大下单量范围内。
+- 当订单带有 `reduce_only` 执行指令时，仅允许减仓操作。
 
-If any risk check fails, the system generates an `OrderDenied` event, effectively closing the order and
-preventing it from progressing further. This event includes a human-readable reason for the denial.
+若任一风控检查不通过，系统会生成 `OrderDenied` 事件，从而关闭该订单并阻止其继续流转。该事件会包含可供人类阅读的拒单原因说明。
 
-### Trading state
+### 交易状态（Trading state）
 
-Additionally, the current trading state of a Nautilus system affects order flow.
+此外，系统的当前交易状态会影响订单处理流程。
 
-The `TradingState` enum has three variants:
+`TradingState` 枚举包含三种状态：
 
-- `ACTIVE`: Operates normally.
-- `HALTED`: Does not process further order commands until state changes.
-- `REDUCING`: Only processes cancels or commands that reduce open positions.
+- `ACTIVE`：正常运行。
+- `HALTED`：暂停接收/处理新的订单命令，直到状态变化。
+- `REDUCING`：仅处理取消或会导致减仓的命令。
 
 :::info
-See the `RiskEngineConfig` [API Reference](../api_reference/config#risk) for further details.
+更多细节见 `RiskEngineConfig` 的 [API Reference](../api_reference/config#risk)。
 :::
 
-## Execution algorithms
+## 执行算法（Execution algorithms）
 
-The platform supports customized execution algorithm components and provides some built-in
-algorithms, such as the Time-Weighted Average Price (TWAP) algorithm.
+平台支持自定义执行算法组件，并提供了一些内置算法，例如时间加权平均价格（TWAP, Time-Weighted Average Price）。
 
-### TWAP (Time-Weighted Average Price)
+### TWAP（时间加权平均价格）
 
-The TWAP execution algorithm aims to execute orders by evenly spreading them over a specified
-time horizon. The algorithm receives a primary order representing the total size and direction
-then splits this by spawning smaller child orders, which are then executed at regular intervals
-throughout the time horizon.
+TWAP 执行算法旨在将大额委托的执行均匀分散到指定的时间区间内。算法接收代表总量与方向的主订单（primary order），然后将其拆分为多个子订单（child/secondary orders），在时间区间内以固定间隔下发执行。
 
-This helps to reduce the impact of the full size of the primary order on the market, by
-minimizing the concentration of trade size at any given time.
+这样可以减小主订单对市场的冲击，避免在某一时刻集中成交过大成交量。
 
-The algorithm will immediately submit the first order, with the final order submitted being the
-primary order at the end of the horizon period.
+算法会立即提交第一笔子订单，最后一笔提交则是在时间窗口结束时的主订单。
 
-Using the TWAP algorithm as an example (found in ``/examples/algorithms/twap.py``), this example
-demonstrates how to initialize and register a TWAP execution algorithm directly with a
-`BacktestEngine` (assuming an engine is already initialized):
+下面以位于 ``/examples/algorithms/twap.py`` 的 TWAP 实现为例，演示如何在一个已初始化的 `BacktestEngine` 中初始化并注册一个 TWAP 执行算法：
 
 ```python
 from nautilus_trader.examples.algorithms.twap import TWAPExecAlgorithm
 
-# `engine` is an initialized BacktestEngine instance
+# `engine` 是一个已初始化的 BacktestEngine 实例
 exec_algorithm = TWAPExecAlgorithm()
 engine.add_exec_algorithm(exec_algorithm)
-```
+````
 
-For this particular algorithm, two parameters must be specified:
+该算法需要指定两个参数：
 
 - `horizon_secs`
 - `interval_secs`
 
-The `horizon_secs` parameter determines the time period over which the algorithm will execute, while
-the `interval_secs` parameter sets the time between individual order executions. These parameters
-determine how a primary order is split into a series of spawned orders.
+其中 `horizon_secs` 表示执行的总时间（秒），`interval_secs` 表示每次下发子订单之间的时间间隔（秒）。这些参数决定了主订单将如何被拆分为一系列子订单。
 
 ```python
 from decimal import Decimal
@@ -199,111 +170,95 @@ from nautilus_trader.model.data import BarType
 from nautilus_trader.test_kit.providers import TestInstrumentProvider
 from nautilus_trader.examples.strategies.ema_cross_twap import EMACrossTWAP, EMACrossTWAPConfig
 
-# Configure your strategy
+# 配置策略
 config = EMACrossTWAPConfig(
     instrument_id=TestInstrumentProvider.ethusdt_binance().id,
     bar_type=BarType.from_str("ETHUSDT.BINANCE-250-TICK-LAST-INTERNAL"),
     trade_size=Decimal("0.05"),
     fast_ema_period=10,
     slow_ema_period=20,
-    twap_horizon_secs=10.0,   # execution algorithm parameter (total horizon in seconds)
-    twap_interval_secs=2.5,    # execution algorithm parameter (seconds between orders)
+    twap_horizon_secs=10.0,   # 执行算法参数（总时间，秒）
+    twap_interval_secs=2.5,    # 执行算法参数（订单间隔，秒）
 )
 
-# Instantiate your strategy
+# 实例化策略
 strategy = EMACrossTWAP(config=config)
 ```
 
-Alternatively, you can specify these parameters dynamically per order, determining them based on
-actual market conditions. In this case, the strategy configuration parameters could be provided to
-an execution model which determines the horizon and interval.
+也可以在下单时动态指定这些参数，根据实时市场状况计算 horizon 与 interval。在这种情况下，策略配置参数可以提供给某个执行模型，由模型决定具体的时间与间隔。
 
 :::info
-There is no limit to the number of execution algorithm parameters you can create. The parameters
-just need to be a dictionary with string keys and primitive values (values that can be serialized
-over the wire, such as ints, floats, and strings).
+执行算法参数数量不限。参数只需为以字符串为键、原始类型值（如 int、float、string）为值的字典（可序列化传输）。
 :::
 
-### Writing execution algorithms
+### 编写自定义执行算法
 
-To implement a custom execution algorithm you must define a class which inherits from `ExecAlgorithm`.
+要实现自定义执行算法，需要定义一个继承自 `ExecAlgorithm` 的类。
 
-An execution algorithm is a type of `Actor`, so it's capable of the following:
+执行算法本身是一个 `Actor`，因此可以：
 
-- Request and subscribe to data.
-- Access the `Cache`.
-- Set time alerts and/or timers using a `Clock`.
+- 请求并订阅数据。
+- 访问 `Cache`。
+- 使用 `Clock` 设置时间提醒或定时器。
 
-Additionally it can:
+此外，执行算法还能：
 
-- Access the central `Portfolio`.
-- Spawn secondary orders from a received primary (original) order.
+- 访问中心化的 `Portfolio`。
+- 从接收到的主订单（primary/original order）生成并派生二级订单（secondary orders）。
 
-Once an execution algorithm is registered, and the system is running, it will receive orders off the
-messages bus which are addressed to its `ExecAlgorithmId` via the `exec_algorithm_id` order parameter.
-The order may also carry the `exec_algorithm_params` being a `dict[str, Any]`.
+当执行算法被注册并且系统运行时，会通过消息总线接收发送给其 `ExecAlgorithmId` 的订单（通过订单参数 `exec_algorithm_id` 指定）。订单还可能携带 `exec_algorithm_params`，其类型为 `dict[str, Any]`。
 
 :::warning
-Because of the flexibility of the `exec_algorithm_params` dictionary. It's important to thoroughly
-validate all of the key value pairs for correct operation of the algorithm (for starters that the
-dictionary is not ``None`` and all necessary parameters actually exist).
+由于 `exec_algorithm_params` 是一个灵活的字典，务必对字典中的键值对进行充分校验（至少需确认该字典不为 `None` 且所有必要参数存在），以保证算法运行正确。
 :::
 
-Received orders will arrive via the following `on_order(...)` method. These received orders are
-know as "primary" (original) orders when being handled by an execution algorithm.
+接收订单会触发执行算法的 `on_order(...)` 方法。此时该订单被视为主订单（primary/original order）：
 
 ```python
 from nautilus_trader.model.orders.base import Order
 
 def on_order(self, order: Order) -> None:
-    # Handle the order here
+    # 在此处处理订单
 ```
 
-When the algorithm is ready to spawn a secondary order, it can use one of the following methods:
+当算法准备生成二级订单时，可以调用下列方法之一：
 
-- `spawn_market(...)` (spawns a `MARKET` order)
-- `spawn_market_to_limit(...)` (spawns a `MARKET_TO_LIMIT` order)
-- `spawn_limit(...)` (spawns a `LIMIT` order)
+- `spawn_market(...)`（生成 `MARKET` 市价单）
+- `spawn_market_to_limit(...)`（生成 `MARKET_TO_LIMIT` 单）
+- `spawn_limit(...)`（生成 `LIMIT` 限价单）
 
 :::note
-Additional order types will be implemented in future versions, as the need arises.
+未来版本可能会增加更多的订单类型以满足需求。
 :::
 
-Each of these methods takes the primary (original) `Order` as the first argument. The primary order
-quantity will be reduced by the `quantity` passed in (becoming the spawned orders quantity).
+上述方法均以主订单（primary/original `Order`）作为第一个参数。生成二级订单时，主订单的剩余数量会被减少相应的 `quantity`（这部分会成为生成订单的数量）。
 
 :::warning
-There must be enough primary order quantity remaining (this is validated).
+必须确保主订单剩余数量足够（系统会对此进行校验）。
 :::
 
-Once the desired number of secondary orders have been spawned, and the execution routine is over,
-the intention is that the algorithm will then finally send the primary (original) order.
+当生成所需数量的二级订单并完成执行逻辑后，算法通常会在最后发送主订单本身（original order）。
 
-### Spawned orders
+### 派生（spawned）订单
 
-All secondary orders spawned from an execution algorithm will carry a `exec_spawn_id` which is
-simply the `ClientOrderId` of the primary (original) order, and whose `client_order_id`
-derives from this original identifier with the following convention:
+所有由执行算法派生出的二级订单都会携带 `exec_spawn_id`，该值即为主订单的 `ClientOrderId`。派生订单的 `client_order_id` 则基于该主订单 ID 按下列约定生成：
 
-- `exec_spawn_id` (primary order `client_order_id` value)
-- `spawn_sequence` (the sequence number for the spawned order)
+- `exec_spawn_id`（主订单的 `client_order_id` 值）
+- `spawn_sequence`（派生订单的序号）
 
-```
+```text
 {exec_spawn_id}-E{spawn_sequence}
 ```
 
-e.g. `O-20230404-001-000-E1` (for the first spawned order)
+例如：`O-20230404-001-000-E1`（表示第一笔派生订单）
 
 :::note
-The "primary" and "secondary" / "spawn" terminology was specifically chosen to avoid conflict
-or confusion with the "parent" and "child" contingent orders terminology (an execution algorithm may also deal with contingent orders).
+使用“primary / secondary（或 spawn）” 的术语是为了避免与“parent / child（父/子）”等或有（contingent）订单术语产生混淆（执行算法也可能会处理或有订单）。
 :::
 
-### Managing execution algorithm orders
+### 管理执行算法生成的订单
 
-The `Cache` provides several methods to aid in managing (keeping track of) the activity of
-an execution algorithm. Calling the below method will return all execution algorithm orders
-for the given query filters.
+`Cache` 提供了若干方法，帮助跟踪执行算法相关的订单活动。调用下面的方法可以根据过滤条件返回符合条件的执行算法订单列表：
 
 ```python
 def orders_for_exec_algorithm(
@@ -316,56 +271,53 @@ def orders_for_exec_algorithm(
 ) -> list[Order]:
 ```
 
-As well as more specifically querying the orders for a certain execution series/spawn.
-Calling the below method will return all orders for the given `exec_spawn_id` (if found).
+还可以更细粒度地查询某一执行序列/派生系列的订单。调用下面的方法会返回给定 `exec_spawn_id` 的所有订单（如果存在）：
 
 ```python
 def orders_for_exec_spawn(self, exec_spawn_id: ClientOrderId) -> list[Order]:
 ```
 
 :::note
-This also includes the primary (original) order.
+返回结果中也会包含主订单本身（original/primary order）。
 :::
 
-## Own order books
+## 自有订单簿（Own order books）
 
-Own order books are L3 order books that track only your own (user) orders organized by price level, maintained separately from the venue's public order books.
+自有订单簿是仅跟踪自身（用户）委托、按价位组织的 L3 级别订单簿，独立于交易所的公共订单簿维护。
 
-### Purpose
+### 目的
 
-Own order books serve several purposes:
+自有订单簿的用途包括：
 
-- Monitor the state of your orders within the venue's public book in real-time.
-- Validate order placement by checking available liquidity at price levels before submission.
-- Help prevent self-trading by identifying price levels where your own orders already exist.
-- Support advanced order management strategies that depend on queue position.
-- Enable reconciliation between internal state and venue state during live trading.
+- 实时监控你的委托在交易所公共订单簿中的状态。
+- 在提交前通过检查某个价位的可用流动性来验证下单的合理性。
+- 帮助防止自成交（self-trading），识别已存在自身委托的价位。
+- 支持依赖队列位置（queue position）的高级订单管理策略。
+- 在实盘交易时，支持内部状态与交易所状态的对账。
 
-### Lifecycle
+### 生命周期
 
-Own order books are maintained per instrument and automatically updated as orders transition through their lifecycle.
-Orders are added when submitted or accepted, updated when modified, and removed when filled, canceled, rejected, or expired.
+自有订单簿按合约维度维护，并会在订单生命周期中自动更新：订单提交或被接受时加入；修改时更新；成交、取消、拒单或过期时移除。
 
-Only orders with prices can be represented in own order books. Market orders and other order types without explicit prices are excluded since they cannot be positioned at specific price levels.
+只有带价格的订单才会出现在自有订单簿中。市价单和其它没有显式价格的订单类型无法按价位定位，因此不纳入自有订单簿。
 
-### Safe cancellation queries
+### 安全的取消查询（Safe cancellation queries）
 
-When querying own order books for orders to cancel, use a `status` filter that **excludes** `PENDING_CANCEL` to avoid processing orders already being cancelled.
+在查询自有订单簿以获取要取消的订单时，应使用一个排除 `PENDING_CANCEL` 状态的 `status` 过滤器，以避免对已在取消中的订单再次发起取消请求。
 
 :::warning
-Including `PENDING_CANCEL` in status filters can cause:
+在状态过滤器中包含 `PENDING_CANCEL` 可能导致：
 
-- Duplicate cancel attempts on the same order.
-- Inflated open order counts (orders in `PENDING_CANCEL` remain "open" until confirmed canceled).
-- Order state explosion when multiple strategies attempt to cancel the same orders.
+- 对同一笔订单发起重复的取消请求。
+- 造成未平仓订单计数虚增（`PENDING_CANCEL` 状态的订单在确认取消前仍被视为“未平仓”）。
+- 当多个策略尝试取消同一订单时，可能导致订单状态爆炸（state explosion）。
 
 :::
 
-The optional `accepted_buffer_ns` many methods expose is a time-based guard that only returns orders whose `ts_accepted` is at least that many nanoseconds in the past. Orders that have not yet been accepted by the venue still have `ts_accepted = 0`, so they are included once the buffer window elapses. To exclude those inflight orders you must pair the buffer with an explicit status filter (for example, restrict to `ACCEPTED` / `PARTIALLY_FILLED`).
+很多方法暴露了可选参数 `accepted_buffer_ns`，这是一个基于时间的保护窗口，仅返回那些其 `ts_accepted` 至少早于当前时间该缓冲窗口时长（以纳秒计）的订单。尚未被场所接受的订单其 `ts_accepted = 0`，因此在缓冲窗口过去后才会被包含。若需要排除这些在途订单（inflight orders），必须同时配合显式的状态过滤（例如只包含 `ACCEPTED` / `PARTIALLY_FILLED`）。
 
-### Auditing
+### 审计
 
-During live trading, own order books can be periodically audited against the cache's order indexes to ensure consistency.
-The audit mechanism verifies that closed orders are properly removed and that inflight orders (submitted but not yet accepted) remain tracked during venue latency windows.
+在实盘交易中，可以定期将自有订单簿与 `Cache` 的订单索引进行审计，以确保一致性。审计机制会验证已关闭的订单是否被正确移除，以及在场所延迟窗口期内已提交但尚未被接受的在途订单仍被追踪。
 
-The audit interval can be configured using the `own_books_audit_interval_secs` parameter in live trading configurations.
+审计周期可以通过实盘交易配置中的 `own_books_audit_interval_secs` 参数进行设置。
