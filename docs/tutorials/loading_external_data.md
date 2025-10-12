@@ -1,10 +1,10 @@
-# Loading external data
+# 加载外部数据
 
-This tutorial demonstrates how to load external data into the `ParquetDataCatalog`, and then use this to run a one-shot backtest using a `BacktestNode`.
+本教程演示如何将外部数据加载到 `ParquetDataCatalog`，并基于该数据目录使用 `BacktestNode` 运行一次性回测（one-shot backtest）。
 
-**Warning**:
+**注意**：
 
-> **Intended to be run on bare metal (not in the jupyterlab docker container)**
+> **建议在裸机环境运行（不要在 jupyterlab Docker 容器中执行）**
 
 ```python
 import os
@@ -41,11 +41,11 @@ raw_files
 ```
 
 ```python
-# Here we just take the first data file found and load into a pandas DataFrame
+# 本例取找到的第一个原始数据文件并加载为 pandas DataFrame
 df = CSVTickDataLoader.load(raw_files[0], index_col=0, datetime_format="%Y%m%d %H%M%S%f")
 df.columns = ["timestamp", "bid_price", "ask_price"]
 
-# Process quotes using a wrangler
+# 使用 wrangler 处理报价数据，生成 Nautilus 的 QuoteTick 对象
 EURUSD = TestInstrumentProvider.default_fx_ccy("EUR/USD")
 wrangler = QuoteTickDataWrangler(EURUSD)
 
@@ -55,23 +55,23 @@ ticks = wrangler.process(df)
 ```python
 CATALOG_PATH = os.getcwd() + "/catalog"
 
-# Clear if it already exists, then create fresh
+# 若目录存在则先删除以确保干净的环境
 if os.path.exists(CATALOG_PATH):
     shutil.rmtree(CATALOG_PATH)
 os.mkdir(CATALOG_PATH)
 
-# Create a catalog instance
+# 创建 ParquetDataCatalog 实例
 catalog = ParquetDataCatalog(CATALOG_PATH)
 ```
 
 ```python
-# Write instrument and ticks to catalog
+# 将 instrument 与 ticks 写入 catalog
 catalog.write_data([EURUSD])
 catalog.write_data(ticks)
 ```
 
 ```python
-# Fetch all instruments from catalog (as a check)
+# 从 catalog 中获取所有 instruments（用于校验）
 catalog.instruments()
 ```
 
@@ -125,7 +125,6 @@ config = BacktestRunConfig(
     data=data_configs,
     venues=venue_configs,
 )
-
 ```
 
 ```python
@@ -136,8 +135,4 @@ node = BacktestNode(configs=[config])
 
 ```python
 result
-```
-
-```python
-
 ```
