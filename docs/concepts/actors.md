@@ -4,21 +4,20 @@
 We are currently working on this concept guide.
 :::
 
-The `Actor` serves as the foundational component for interacting with the trading system.
-It provides core functionality for receiving market data, handling events, and managing state within
-the trading environment. The `Strategy` class inherits from Actor and extends its capabilities with
-order management methods.
+`Actor` 是与交易系统交互的基础组件。
+它提供了接收市场数据、处理事件以及在交易环境中管理状态的核心功能。
+`Strategy` 类继承自 `Actor`，并在此基础上扩展了订单管理相关的方法。
 
-**Key capabilities**:
+**主要能力**：
 
-- Event subscription and handling.
-- Market data reception.
-- State management.
-- System interaction primitives.
+- 事件订阅与处理。
+- 市场数据接收。
+- 状态管理。
+- 与系统交互的原语（primitives）。
 
-## Basic example
+## 基本示例
 
-Just like strategies, actors support configuration through a very similar pattern.
+与策略类似，actor 也通过类似的配置模式来初始化。
 
 ```python
 from nautilus_trader.config import ActorConfig
@@ -37,67 +36,67 @@ class MyActor(Actor):
     def __init__(self, config: MyActorConfig) -> None:
         super().__init__(config)
 
-        # Custom state variables
+        # 自定义状态变量
         self.count_of_processed_bars: int = 0
 
     def on_start(self) -> None:
-        # Subscribe to all incoming bars
-        self.subscribe_bars(self.config.bar_type)   # You can access configuration directly via `self.config`
+        # 订阅所有传入的 bar
+        self.subscribe_bars(self.config.bar_type)   # 可以通过 `self.config` 直接访问配置
 
     def on_bar(self, bar: Bar):
         self.count_of_processed_bars += 1
 ```
 
-## Data handling and callbacks
+## 数据处理与回调
 
-When working with data in Nautilus, it's important to understand the relationship between data
-*requests/subscriptions* and their corresponding callback handlers. The system uses different handlers
-depending on whether the data is historical or real-time.
+在 Nautilus 中处理数据时，需要理解数据的 _请求/订阅_（requests/subscriptions）与相应回调处理器之间的关系。
+系统会根据数据是历史数据还是实时数据选择不同的处理 handler。
 
-### Historical vs real-time data
+### 历史数据 vs 实时数据
 
-The system distinguishes between two types of data flow:
+系统将数据流分为两类：
 
-1. **Historical data** (from *requests*):
-   - Obtained through methods like `request_bars()`, `request_quote_ticks()`, etc.
-   - Processed through the `on_historical_data()` handler.
-   - Used for initial data loading and historical analysis.
+1. **历史数据**（来自 _requests_）:
 
-2. **Real-time data** (from *subscriptions*):
-   - Obtained through methods like `subscribe_bars()`, `subscribe_quote_ticks()`, etc.
-   - Processed through specific handlers like `on_bar()`, `on_quote_tick()`, etc.
-   - Used for live data processing.
+   - 通过 `request_bars()`、`request_quote_ticks()` 等方法获取。
+   - 由 `on_historical_data()` Handler 处理。
+   - 常用于初始数据加载和历史分析。
 
-### Callback handlers
+2. **实时数据**（来自 _subscriptions_）:
+   - 通过 `subscribe_bars()`、`subscribe_quote_ticks()` 等方法获取。
+   - 由专门的 handler（例如 `on_bar()`、`on_quote_tick()` 等）处理。
+   - 用于实时（live）数据处理。
 
-Here's how different data operations map to their handlers:
+### 回调处理器映射
 
-| Operation                       | Category         | Handler                  | Purpose |
-|:--------------------------------|:-----------------|:-------------------------|:--------|
-| `subscribe_data()`              | Real‑time        | `on_data()`              | Live data updates. |
-| `subscribe_instrument()`        | Real‑time        | `on_instrument()`        | Live instrument definition updates. |
-| `subscribe_instruments()`       | Real‑time        | `on_instrument()`        | Live instrument definition updates (for venue). |
-| `subscribe_order_book_deltas()` | Real‑time        | `on_order_book_deltas()` | Live order book updates. |
-| `subscribe_quote_ticks()`       | Real‑time        | `on_quote_tick()`        | Live quote updates. |
-| `subscribe_trade_ticks()`       | Real‑time        | `on_trade_tick()`        | Live trade updates. |
-| `subscribe_mark_prices()`       | Real‑time        | `on_mark_price()`        | Live mark price updates. |
-| `subscribe_index_prices()`      | Real‑time        | `on_index_price()`       | Live index price updates. |
-| `subscribe_funding_rates()`     | Real‑time        | `on_funding_rate()`      | Live funding rate updates. |
-| `subscribe_bars()`              | Real‑time        | `on_bar()`               | Live bar updates. |
-| `subscribe_instrument_status()` | Real‑time        | `on_instrument_status()` | Live instrument status updates. |
-| `subscribe_instrument_close()`  | Real‑time        | `on_instrument_close()`  | Live instrument close updates. |
-| `subscribe_order_fills()`       | Real‑time        | `on_order_filled()`      | Live order fill events for an instrument. |
-| `request_data()`                | Historical       | `on_historical_data()`   | Historical data processing. |
-| `request_instrument()`          | Historical       | `on_instrument()`        | Instrument definition updates. |
-| `request_instruments()`         | Historical       | `on_instrument()`        | Instrument definition updates. |
-| `request_quote_ticks()`         | Historical       | `on_historical_data()`   | Historical quotes processing. |
-| `request_trade_ticks()`         | Historical       | `on_historical_data()`   | Historical trades processing. |
-| `request_bars()`                | Historical       | `on_historical_data()`   | Historical bars processing. |
-| `request_aggregated_bars()`     | Historical       | `on_historical_data()`   | Historical aggregated bars (on-the-fly). |
+下面列出了不同数据操作与其对应的 handler：
 
-### Example
+| Operation                       | Category   | Handler                  | Purpose                                       |
+| :------------------------------ | :--------- | :----------------------- | :-------------------------------------------- |
+| `subscribe_data()`              | Real‑time  | `on_data()`              | 实时数据更新                                  |
+| `subscribe_instrument()`        | Real‑time  | `on_instrument()`        | 实时的 instrument 定义更新                    |
+| `subscribe_instruments()`       | Real‑time  | `on_instrument()`        | （针对某个 venue 的）一批 instrument 定义更新 |
+| `subscribe_order_book_deltas()` | Real‑time  | `on_order_book_deltas()` | 实时订单薄（order book）更新                  |
+| `subscribe_quote_ticks()`       | Real‑time  | `on_quote_tick()`        | 实时报价更新                                  |
+| `subscribe_trade_ticks()`       | Real‑time  | `on_trade_tick()`        | 实时成交（trade）更新                         |
+| `subscribe_mark_prices()`       | Real‑time  | `on_mark_price()`        | 实时标记价（mark price）更新                  |
+| `subscribe_index_prices()`      | Real‑time  | `on_index_price()`       | 实时指数价更新                                |
+| `subscribe_funding_rates()`     | Real‑time  | `on_funding_rate()`      | 实时 funding rate 更新                        |
+| `subscribe_bars()`              | Real‑time  | `on_bar()`               | 实时 bar 更新                                 |
+| `subscribe_instrument_status()` | Real‑time  | `on_instrument_status()` | 实时 instrument 状态更新                      |
+| `subscribe_instrument_close()`  | Real‑time  | `on_instrument_close()`  | instrument 收盘（close）事件                  |
+| `subscribe_order_fills()`       | Real‑time  | `on_order_filled()`      | 某合约/标的的成交回报事件                     |
+| `request_data()`                | Historical | `on_historical_data()`   | 历史数据处理                                  |
+| `request_instrument()`          | Historical | `on_instrument()`        | instrument 定义更新                           |
+| `request_instruments()`         | Historical | `on_instrument()`        | instrument 定义更新                           |
+| `request_quote_ticks()`         | Historical | `on_historical_data()`   | 历史报价处理                                  |
+| `request_trade_ticks()`         | Historical | `on_historical_data()`   | 历史成交处理                                  |
+| `request_bars()`                | Historical | `on_historical_data()`   | 历史 bar 处理                                 |
+| `request_aggregated_bars()`     | Historical | `on_historical_data()`   | 即时聚合的历史 bars（on-the-fly）             |
 
-Here's an example demonstrating both historical and real-time data handling:
+### 历史与实时数据示例
+
+下面示例同时演示了历史数据请求与实时订阅的处理方式：
 
 ```python
 from nautilus_trader.common.actor import Actor
@@ -118,57 +117,52 @@ class MyActor(Actor):
         self.bar_type = config.bar_type
 
     def on_start(self) -> None:
-        # Request historical data - will be processed by on_historical_data() handler
+        # 请求历史数据 —— 由 on_historical_data() 处理
         self.request_bars(
             bar_type=self.bar_type,
-            # Many optional parameters
-            start=None,                # datetime, optional
-            end=None,                  # datetime, optional
-            callback=None,             # called with the request ID when completed
-            update_catalog_mode=None,  # UpdateCatalogMode | None, default None
-            params=None,               # dict[str, Any], optional
+            # 许多可选参数
+            start=None,                # datetime，可选
+            end=None,                  # datetime，可选
+            callback=None,             # 请求完成时带回 request ID 的回调
+            update_catalog_mode=None,  # UpdateCatalogMode | None，默认 None
+            params=None,               # dict[str, Any]，可选
         )
 
-        # Subscribe to real-time data - will be processed by on_bar() handler
+        # 订阅实时数据 —— 由 on_bar() 处理
         self.subscribe_bars(
             bar_type=self.bar_type,
-            # Many optional parameters
-            client_id=None,  # ClientId, optional
-            params=None,     # dict[str, Any], optional
+            # 许多可选参数
+            client_id=None,  # ClientId，可选
+            params=None,     # dict[str, Any]，可选
         )
 
     def on_historical_data(self, data: Data) -> None:
-        # Handle historical data (from requests)
+        # 处理历史数据（来自 request）
         if isinstance(data, Bar):
             self.log.info(f"Received historical bar: {data}")
 
     def on_bar(self, bar: Bar) -> None:
-        # Handle real-time bar updates (from subscriptions)
+        # 处理实时 bar 更新（来自订阅）
         self.log.info(f"Received real-time bar: {bar}")
 ```
 
-This separation between historical and real-time data handlers allows for different processing logic
-based on the data context. For example, you might want to:
+将历史与实时数据处理器分离有利于根据数据上下文采用不同的处理逻辑。例如，你可能会：
 
-- Use historical data to initialize indicators or establish baseline metrics.
-- Process real-time data differently for live trading decisions.
-- Apply different validation or logging for historical vs real-time data.
+- 使用历史数据来初始化指标或建立基线统计。
+- 在实时交易决策中对实时数据采用不同的处理方式。
+- 对历史数据和实时数据分别应用不同的校验或日志策略。
 
 :::tip
-When debugging data flow issues, check that you're looking at the correct handler for your data source.
-If you're not seeing data in `on_bar()` but see log messages about receiving bars, check `on_historical_data()`
-as the data might be coming from a request rather than a subscription.
+在调试数据流问题时，先确认你关注的是正确的 handler。如果你在 `on_bar()` 中没有看到数据，但日志显示已接收到 bar，可能是因为数据来自 request（历史数据），应检查 `on_historical_data()`。
 :::
 
-## Order fill subscriptions
+## 成交回报（Order fill）订阅
 
-Actors can subscribe to order fill events for specific instruments using `subscribe_order_fills()`. This is useful
-for monitoring trading activity, implementing custom fill analysis, or tracking execution quality.
+Actors 可以通过 `subscribe_order_fills()` 订阅某个合约/标的的成交回报事件，这对于监控交易活动、实现自定义成交分析或追踪执行质量非常有用。
 
-When subscribed, all order fills for the specified instrument are forwarded to the `on_order_filled()` handler,
-regardless of which strategy or component generated the original order.
+订阅后，该标的的所有成交回报都会被转发到 `on_order_filled()` 处理器，不论最初的订单由哪个策略或组件发出。
 
-### Example
+### 示例
 
 ```python
 from nautilus_trader.common.actor import Actor
@@ -188,11 +182,11 @@ class FillMonitorActor(Actor):
         self.total_volume = 0.0
 
     def on_start(self) -> None:
-        # Subscribe to all fills for the instrument
+        # 订阅该合约的所有成交回报
         self.subscribe_order_fills(self.config.instrument_id)
 
     def on_order_filled(self, event: OrderFilled) -> None:
-        # Handle order fill events
+        # 处理成交回报事件
         self.fill_count += 1
         self.total_volume += float(event.last_qty)
 
@@ -202,11 +196,11 @@ class FillMonitorActor(Actor):
         )
 
     def on_stop(self) -> None:
-        # Unsubscribe from fills
+        # 取消订阅成交回报
         self.unsubscribe_order_fills(self.config.instrument_id)
 ```
 
 :::note
-Order fill subscriptions are message bus-only subscriptions and do not involve the data engine.
-The `on_order_filled()` handler will only receive events while the actor is in a running state.
+成交回报订阅仅限消息总线（message bus），不通过数据引擎（data engine）。
+只有 actor 处于运行（running）状态时，`on_order_filled()` 处理器才会接收事件。
 :::

@@ -1,4 +1,4 @@
-# 基准测试（Benchmarking）
+# 基准测试
 
 本指南说明 NautilusTrader 如何衡量 Rust 代码性能、何时使用不同的基准工具，以及在新增基准测试（benches）时应遵循的约定。
 
