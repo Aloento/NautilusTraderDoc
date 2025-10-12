@@ -1,34 +1,32 @@
-# Portfolio
+# 投资组合
 
 :::info
-We are currently working on this concept guide.
+本概念指南仍在持续完善中。
 :::
 
-The Portfolio serves as the central hub for managing and tracking all positions across active strategies for the trading node or backtest.
-It consolidates position data from multiple instruments, providing a unified view of your holdings, risk exposure, and overall performance.
-Explore this section to understand how NautilusTrader aggregates and updates portfolio state to support effective trading and risk management.
+投资组合（Portfolio）是管理和跟踪交易节点或回测中所有活跃策略持仓的中心枢纽。
+它会汇总来自多个合约/品种的持仓数据，为你提供持仓、风险暴露以及整体绩效的统一视图。
+本节介绍 NautilusTrader 如何聚合并维护投资组合状态，以支持有效的交易和风险管理。
 
-## Portfolio statistics
+## 投资组合统计（Portfolio statistics）
 
-There are a variety of [built-in portfolio statistics](https://github.com/nautechsystems/nautilus_trader/tree/develop/nautilus_trader/analysis/statistics)
-which are used to analyse a trading portfolios performance for both backtests and live trading.
+仓库中提供了多种内置的[投资组合统计工具](https://github.com/nautechsystems/nautilus_trader/tree/develop/nautilus_trader/analysis/statistics)，
+可以用于回测和实盘的绩效分析。
 
-The statistics are generally categorized as follows.
+这些统计指标通常可分为以下几类：
 
-- PnLs based statistics (per currency)
-- Returns based statistics
-- Positions based statistics
-- Orders based statistics
+- 基于已实现/未实现 PnL 的统计（按货币）
+- 基于收益率（returns）的统计
+- 基于持仓（positions）的统计
+- 基于订单（orders）的统计
 
-It's also possible to call a traders `PortfolioAnalyzer` and calculate statistics at any arbitrary
-time, including _during_ a backtest, or live trading session.
+你也可以在任意时点调用交易者的 `PortfolioAnalyzer` 来计算统计指标，包括在回测或实盘运行过程中（_during_）调用。
 
-## Custom statistics
+## 自定义统计（Custom statistics）
 
-Custom portfolio statistics can be defined by inheriting from the `PortfolioStatistic`
-base class, and implementing any of the `calculate_` methods.
+通过继承 `PortfolioStatistic` 基类并实现相应的 `calculate_` 方法，可以定义自定义的投资组合统计。
 
-For example, the following is the implementation for the built-in `WinRate` statistic:
+例如，内置统计 `WinRate` 的实现如下：
 
 ```python
 import pandas as pd
@@ -53,31 +51,30 @@ class WinRate(PortfolioStatistic):
         return len(winners) / float(max(1, (len(winners) + len(losers))))
 ```
 
-These statistics can then be registered with a traders `PortfolioAnalyzer`.
+然后可以将这些统计注册到交易者的 `PortfolioAnalyzer` 中：
 
 ```python
 stat = WinRate()
 
 # Register with the portfolio analyzer
 engine.portfolio.analyzer.register_statistic(stat)
-
-:::info
-See the `PortfolioAnalyzer` [API Reference](../api_reference/analysis.md#class-portfolioanalyzer) for details on available methods.
-:::
 ```
 
-:::tip
-Ensure your statistic is robust to degenerate inputs such as `None`, empty series, or insufficient data.
-
-The expectation is that you would then return `None`, NaN or a reasonable default.
+:::info
+有关可用方法的详细说明，请参阅 `PortfolioAnalyzer` 的 [API 参考](../api_reference/analysis.md#class-portfolioanalyzer)。
 :::
 
-## Backtest analysis
+:::tip
+确保你的统计在面对退化输入时具有健壮性，例如 `None`、空序列或数据不足的情况。
 
-Following a backtest run, a performance analysis will be carried out by passing realized PnLs, returns, positions and orders data to each registered
-statistic in turn, calculating their values (with a default configuration). Any output is then displayed in the tear sheet
-under the `Portfolio Performance` heading, grouped as.
+在这些情况下，通常应返回 `None`、NaN 或其他合理的默认值。
+:::
 
-- Realized PnL statistics (per currency)
-- Returns statistics (for the entire portfolio)
-- General statistics derived from position and order data (for the entire portfolio)
+## 回测分析（Backtest analysis）
+
+回测结束后，系统会将已实现 PnLs、收益率、持仓和订单数据传给已注册的每个统计计算器（按照默认配置），逐一计算它们的值。
+计算结果会在报告（tear sheet）中以 `Portfolio Performance` 为标题展示，按如下分组显示：
+
+- 已实现 PnL 统计（按货币）
+- 收益率统计（针对整个投资组合）
+- 基于持仓和订单数据的通用统计（针对整个投资组合）
