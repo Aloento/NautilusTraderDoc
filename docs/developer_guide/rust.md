@@ -1,50 +1,50 @@
-# Rust Style Guide
+# Rust 风格指南
 
-The [Rust](https://www.rust-lang.org/learn) programming language is an ideal fit for implementing the mission-critical core of the platform and systems.
-Its strong type system, ownership model, and compile-time checks eliminate memory errors and data races by construction,
-while zero-cost abstractions and the absence of a garbage collector deliver C-like performance—critical for high-frequency trading workloads.
+[Rust](https://www.rust-lang.org/learn) 语言非常适合实现平台和系统的关键核心部分。
+它强类型系统、所有权模型与编译期检查在设计上消除了内存错误和数据竞争，
+而零成本抽象与无垃圾回收机制则提供了接近 C 的性能，这对高频交易这类对延迟和吞吐敏感的工作负载至关重要。
 
-## Cargo manifest conventions
+## Cargo 清单（manifest）约定
 
-- In `[dependencies]`, list internal crates (`nautilus-*`) first in alphabetical order, insert a blank line, then external required dependencies alphabetically, followed by another blank line and the optional dependencies (those with `optional = true`) in alphabetical order. Preserve inline comments with their dependency.
-- Add `"python"` to every `extension-module` feature list that builds a Python artefact, keeping it adjacent to `"pyo3/extension-module"` so the full Python stack is obvious.
-- When a manifest groups adapters separately (for example `crates/pyo3`), keep the `# Adapters` block immediately below the internal crate list so downstream consumers can scan adapter coverage quickly.
-- Always include a blank line before `[dev-dependencies]` and `[build-dependencies]` sections.
-- Apply the same layout across related manifests when the feature or dependency sets change to avoid drift between crates.
-- Use snake_case filenames for `bin/` sources (for example `bin/ws_data.rs`) and reflect those paths in each `[[bin]]` section.
-- Keep `[[bin]] name` entries in kebab-case (for example `name = "hyperliquid-ws-data"`) so the compiled binaries retain their intended CLI names.
+- 在 `[dependencies]` 中：先按字母顺序列出内部 crate（例如 `nautilus-*`），插入一个空行，再按字母顺序列出外部必需依赖；随后再插入一个空行，最后按字母顺序列出可选依赖（即带有 `optional = true` 的项）。保留每个依赖行上的内联注释。
+- 对于会构建 Python 工件的 `extension-module` 特性列表，请始终把 `"python"` 加入其中，并与 `"pyo3/extension-module"` 相邻，以便一眼看出完整的 Python 栈依赖。
+- 当 manifest 将适配器（adapters）单独分组时（例如 `crates/pyo3`），把 `# Adapters` 块放在内部 crate 列表下方，便于下游消费者快速查看适配器覆盖情况。
+- 在 `[dev-dependencies]` 和 `[build-dependencies]` 节之前始终保留一个空行。
+- 当相关 manifest 的特性或依赖集合发生变化时，保持相同布局以避免各个 crate 之间出现样式漂移。
+- 对 `bin/` 下的源文件使用 snake_case 文件名（例如 `bin/ws_data.rs`），并在每个 `[[bin]]` 部分中反映相应路径。
+- 保持 `[[bin]] name` 条目使用 kebab-case（例如 `name = "hyperliquid-ws-data"`），以保证编译出的二进制文件拥有预期的 CLI 名称。
 
-## Versioning guidance
+## 版本管理建议
 
-- Use workspace inheritance for shared dependencies (for example `serde = { workspace = true }`).
-- Only pin versions directly for crate-specific dependencies that are not part of the workspace.
-- Group workspace-provided dependencies before crate-only dependencies so the inheritance is easy to audit.
+- 对于共享依赖使用 workspace 继承（例如 `serde = { workspace = true }`）。
+- 仅对不属于 workspace 的 crate 特有依赖直接固定版本（pin）。
+- 把 workspace 提供的依赖放在 crate 专属依赖之前，便于审计继承关系。
 
-## Feature flag conventions
+## 特性（feature）约定
 
-- Prefer additive feature flags—enabling a feature must not break existing functionality.
-- Use descriptive flag names that explain what capability is enabled.
-- Document every feature in the crate-level documentation so consumers know what they toggle.
-- Common patterns:
-  - `high-precision`: switches the value-type backing (64-bit or 128-bit integers) to support domains that require extra precision.
-  - `default = []`: keep defaults minimal.
-  - `python`: enables Python bindings.
-  - `extension-module`: builds a Python extension module (always include `python`).
-  - `ffi`: enables C FFI bindings.
-  - `stubs`: exposes testing stubs.
+- 优先采用“可叠加”（additive）的特性开关——启用某特性不应破坏现有功能。
+- 使用描述性名称来说明特性启用后会带来什么能力。
+- 在 crate 级别文档中记录每个特性，方便使用者了解其影响。
+- 常见模式：
+  - `high-precision`：切换底层数值类型（64 位或 128 位整数），以支持需要更高精度的场景。
+  - `default = []`：保持默认集尽可能精简。
+  - `python`：启用 Python 绑定。
+  - `extension-module`：构建 Python 扩展模块（始终同时包含 `python`）。
+  - `ffi`：启用 C 语言 FFI 绑定。
+  - `stubs`：暴露用于测试的桩（stubs）。
 
-## Module organization
+## 模块组织
 
-- Keep modules focused on a single responsibility.
-- Use `mod.rs` as the module root when defining submodules.
-- Prefer relatively flat hierarchies over deep nesting to keep paths manageable.
-- Re-export commonly used items from the crate root for convenience.
+- 保持模块聚焦单一职责。
+- 在定义子模块时使用 `mod.rs` 作为模块根文件。
+- 相较于深度嵌套，更倾向于使用相对扁平的层级，以便路径更易管理。
+- 对常用项在 crate 根处进行 re-export，提升使用方便性。
 
-## Code style and conventions
+## 代码风格与约定
 
-### File header requirements
+### 文件头要求
 
-All Rust files must include the standardized copyright header:
+所有 Rust 文件必须包含标准化的版权头：
 
 ```rust
 // -------------------------------------------------------------------------------------------------
@@ -63,21 +63,19 @@ All Rust files must include the standardized copyright header:
 // -------------------------------------------------------------------------------------------------
 ```
 
-### Code formatting
+### 代码格式化
 
-Import formatting is automatically handled by rustfmt when running `make format`.
-The tool organizes imports into groups (standard library, external crates, local imports) and sorts them alphabetically within each group.
+运行 `make format` 时，`rustfmt` 会自动处理导入（import）的格式化。
+该工具会将导入按组（标准库、外部 crate、本地导入）划分，并在每个组内按字母顺序排序。
 
-Within this section, follow these spacing rules:
+在本节内，请遵循以下空行规则：
 
-- Leave **one blank line between functions** (including tests) – this improves readability and
-mirrors the default behavior of `rustfmt`.
-- Leave **one blank line above every doc comment** (`///` or `//!`) so that the comment is clearly
-  detached from the previous code block.
+- 在函数之间（包括测试）保留**一行空行**——这有助于可读性，也与 `rustfmt` 的默认行为一致。
+- 在每个文档注释（`///` 或 `//!`）上方保留**一行空行**，以便将注释与前面的代码块明显分离。
 
-#### String formatting
+#### 字符串格式
 
-Prefer inline format strings over positional arguments:
+优先使用带变量名的内联格式字符串，而非位置参数：
 
 ```rust
 // Preferred - inline format with variable names
@@ -87,20 +85,20 @@ anyhow::bail!("Failed to subtract {n} months from {datetime}");
 anyhow::bail!("Failed to subtract {} months from {}", n, datetime);
 ```
 
-This makes messages more readable and self-documenting, especially when there are multiple variables.
+这种方式使得错误消息更具可读性与自说明性，尤其在变量较多时更明显。
 
-### Logging
+### 日志（Logging）
 
-- Fully qualify logging macros so the backend is explicit:
-  - Use `log::…` (`log::info!`, `log::warn!`, etc.) inside synchronous core crates.
-  - Use `tracing::…` (`tracing::debug!`, `tracing::info!`, etc.) for async runtimes, adapters, and peripheral components.
-- Start messages with a capitalised word, prefer complete sentences, and omit terminal periods (e.g. `"Processing batch"`, not `"Processing batch."`).
+- 明确限定日志宏的路径以指明后端：
+  - 在同步核心 crate 中使用 `log::…`（如 `log::info!`, `log::warn!` 等）。
+  - 在异步运行时、适配器及外围组件中使用 `tracing::…`（如 `tracing::debug!`, `tracing::info!` 等）。
+- 日志消息以首字母大写开头，优先使用完整句子，但省略结尾句号（例如使用 "Processing batch" 而不是 "Processing batch."）。
 
-### Error handling
+### 错误处理
 
-Use structured error handling patterns consistently:
+一致地采用结构化的错误处理模式：
 
-1. **Primary Pattern**: Use `anyhow::Result<T>` for fallible functions:
+1. **主要模式**：对可能失败的函数使用 `anyhow::Result<T>`：
 
    ```rust
    pub fn calculate_balance(&mut self) -> anyhow::Result<Money> {
@@ -108,7 +106,7 @@ Use structured error handling patterns consistently:
    }
    ```
 
-2. **Custom Error Types**: Use `thiserror` for domain-specific errors:
+2. **自定义错误类型**：对领域特定错误使用 `thiserror`：
 
    ```rust
    #[derive(Error, Debug)]
@@ -120,9 +118,9 @@ Use structured error handling patterns consistently:
    }
    ```
 
-3. **Error Propagation**: Use the `?` operator for clean error propagation.
+3. **错误传播**：使用 `?` 运算符实现清晰的错误传播。
 
-4. **Error Creation**: Prefer `anyhow::bail!` for early returns with errors:
+4. **构造错误**：偏好用 `anyhow::bail!` 做早期返回：
 
    ```rust
    // Preferred - using bail! for early returns
@@ -139,22 +137,22 @@ Use structured error handling patterns consistently:
    }
    ```
 
-   **Note**: Use `anyhow::bail!` for early returns, but `anyhow::anyhow!` in closure contexts like `ok_or_else()` where early returns aren't possible.
+   注意：在需要闭包上下文（如 `ok_or_else()`）而无法早期返回时，使用 `anyhow::anyhow!`。
 
-### Async patterns
+### 异步模式（Async patterns）
 
-Use consistent async/await patterns:
+保持异步/await 的一致使用惯例：
 
-1. **Async function naming**: No special suffix is required; prefer natural names.
-2. **Tokio usage**: Use `tokio::spawn` for fire-and-forget work, and document when that background task is expected to finish.
-3. **Error handling**: Return `anyhow::Result` from async functions to match the synchronous conventions.
-4. **Cancellation safety**: Call out whether the function is cancellation-safe and what invariants still hold when it is cancelled.
-5. **Stream handling**: Use `tokio_stream` (or `futures::Stream`) for async iterators to make back-pressure explicit.
-6. **Timeout patterns**: Wrap network or long-running awaits with timeouts (`tokio::time::timeout`) and propagate or handle the timeout error.
+1. **异步函数命名**：无需特殊后缀，使用自然命名即可。
+2. **Tokio 使用**：对 fire-and-forget 类型的工作使用 `tokio::spawn`，并在文档中说明该后台任务何时应该完成。
+3. **错误处理**：异步函数也返回 `anyhow::Result`，以与同步约定一致。
+4. **取消安全（cancellation safety）**：在文档中说明函数是否对取消安全以及被取消后仍保持的不变式。
+5. **流处理**：使用 `tokio_stream`（或 `futures::Stream`）实现异步迭代器，从而显式处理背压（back-pressure）。
+6. **超时模式**：对网络或长耗时的 await 使用超时封装（`tokio::time::timeout`），并传播或处理超时错误。
 
-### Attribute patterns
+### 属性（attribute）使用规范
 
-Consistent attribute usage and ordering:
+一致地使用属性并保持固定顺序：
 
 ```rust
 #[repr(C)]
@@ -166,7 +164,7 @@ Consistent attribute usage and ordering:
 pub struct Symbol(Ustr);
 ```
 
-For enums with extensive derive attributes:
+对于带大量 derive 属性的枚举：
 
 ```rust
 #[repr(C)]
@@ -184,7 +182,7 @@ For enums with extensive derive attributes:
     FromRepr,
     EnumIter,
     EnumString,
-)]
+)
 #[strum(ascii_case_insensitive)]
 #[strum(serialize_all = "SCREAMING_SNAKE_CASE")]
 #[cfg_attr(
@@ -199,9 +197,9 @@ pub enum AccountType {
 }
 ```
 
-### Constructor patterns
+### 构造函数模式
 
-Use the `new()` vs `new_checked()` convention consistently:
+在 `new()` 与 `new_checked()` 之间保留一致约定：
 
 ```rust
 /// Creates a new [`Symbol`] instance with correctness checking.
@@ -227,15 +225,15 @@ pub fn new<T: AsRef<str>>(value: T) -> Self {
 }
 ```
 
-Always use the `FAILED` constant for `.expect()` messages related to correctness checks:
+始终在与正确性检查相关的 `.expect()` 信息中使用 `FAILED` 常量：
 
 ```rust
 use nautilus_core::correctness::FAILED;
 ```
 
-### Constants and naming conventions
+### 常量与命名约定
 
-Use SCREAMING_SNAKE_CASE for constants with descriptive names:
+对描述性常量使用 SCREAMING_SNAKE_CASE：
 
 ```rust
 /// Number of nanoseconds in one second.
@@ -249,9 +247,9 @@ pub const BAR_SPEC_1_MINUTE_LAST: BarSpecification = BarSpecification {
 };
 ```
 
-### Hash collections
+### 哈希集合（Hash collections）
 
-Prefer `AHashMap` and `AHashSet` from the `ahash` crate over the standard library's `HashMap` and `HashSet`:
+优先使用 `ahash` crate 提供的 `AHashMap` 和 `AHashSet`，替代标准库的 `HashMap` 和 `HashSet`：
 
 ```rust
 use ahash::{AHashMap, AHashSet};
@@ -266,20 +264,20 @@ let mut symbols: HashSet<Symbol> = HashSet::new();
 let mut prices: HashMap<InstrumentId, Price> = HashMap::new();
 ```
 
-**Why use `ahash`?**
+**为什么使用 `ahash`？**
 
-- **Superior performance**: AHash uses AES-NI hardware instructions when available, providing 2-3x faster hashing compared to the default SipHash.
-- **Low collision rates**: Despite being non-cryptographic, AHash provides excellent distribution and low collision rates for typical data.
-- **Drop-in replacement**: Fully compatible API with standard library collections.
+- **更优的性能**：AHash 在可用时利用 AES-NI 硬件指令，相较默认的 SipHash 可提供 2-3 倍的哈希速度提升。
+- **低碰撞率**：尽管不是加密哈希，但 AHash 在典型数据下仍能提供良好的分布与较低的碰撞概率。
+- **无缝替换**：与标准库集合兼容的 API，便于直接替换。
 
-**When to use standard `HashMap`/`HashSet`:**
+**何时使用标准 `HashMap`/`HashSet`：**
 
-- **Cryptographic security required**: Use standard `HashMap` when hash flooding attacks are a concern (e.g., handling untrusted user input in network protocols).
-- **Network clients**: Currently prefer standard `HashMap` for network-facing components where security considerations outweigh performance benefits.
+- **需要加密安全**：当哈希泛滥攻击（hash flooding）是关注点（例如处理来自不受信任用户的网络输入）时，请使用标准的 `HashMap`。
+- **面向网络的客户端**：对于网络相关组件，目前更倾向于使用标准库的 `HashMap`，因为安全性优先于性能。
 
-### Re-export patterns
+### Re-export 约定
 
-Organize re-exports alphabetically and place at the end of lib.rs files:
+按字母顺序组织 re-export，并放在 `lib.rs` 文件末尾：
 
 ```rust
 // Re-exports
@@ -297,11 +295,11 @@ pub use crate::identifiers::{
 };
 ```
 
-### Documentation standards
+### 文档标准
 
-#### Module-Level documentation
+#### 模块级文档
 
-All modules must have module-level documentation starting with a brief description:
+所有模块必须有模块级文档，并以简短描述开始：
 
 ```rust
 //! Functions for correctness checks similar to the *design by contract* philosophy.
@@ -312,7 +310,7 @@ All modules must have module-level documentation starting with a brief descripti
 //! some section of code - for correct behavior as per the design specification.
 ```
 
-For modules with feature flags, document them clearly:
+对于带有特性开关的模块，要清晰地记录这些特性：
 
 ```rust
 //! # Feature flags
@@ -326,9 +324,9 @@ For modules with feature flags, document them clearly:
 //! - `stubs`: Enables type stubs for use in testing scenarios.
 ```
 
-#### Field documentation
+#### 字段文档
 
-All struct and enum fields must have documentation with terminating periods:
+所有结构体和枚举字段必须有以句号结尾的文档注释：
 
 ```rust
 pub struct Currency {
@@ -345,14 +343,14 @@ pub struct Currency {
 }
 ```
 
-#### Function documentation
+#### 函数文档
 
-Document all public functions with:
+对所有公共函数请记录：
 
-- Purpose and behavior
-- Explanation of input argument usage
-- Error conditions (if applicable)
-- Panic conditions (if applicable)
+- 目的与行为
+- 参数的使用说明
+- 可能出现的错误条件（如适用）
+- 可能触发的 panic 条件（如适用）
 
 ```rust
 /// Returns a reference to the `AccountBalance` for the specified currency, or `None` if absent.
@@ -365,9 +363,9 @@ pub fn base_balance(&self, currency: Option<Currency>) -> Option<&AccountBalance
 }
 ```
 
-#### Errors and panics documentation format
+#### 错误与 panic 的文档格式
 
-For single line errors and panics documentation, use sentence case with the following convention:
+针对单行错误与 panic 的文档，使用句子式大小写并遵循下列约定：
 
 ```rust
 /// Returns a reference to the `AccountBalance` for the specified currency, or `None` if absent.
@@ -384,7 +382,7 @@ pub fn base_balance(&self, currency: Option<Currency>) -> anyhow::Result<Option<
 }
 ```
 
-For multi-line errors and panics documentation, use sentence case with bullets and terminating periods:
+对于多行的错误与 panic 文档，使用句子式大小写，并以要点形式列出每项，句尾以句号结束：
 
 ```rust
 /// Calculates the unrealized profit and loss for the position.
@@ -407,9 +405,9 @@ pub fn calculate_unrealized_pnl(&self, market_price: Price) -> anyhow::Result<Mo
 }
 ```
 
-#### Safety documentation format
+#### 安全（Safety）文档格式
 
-For Safety documentation, use the `SAFETY:` prefix followed by a short description explaining why the unsafe operation is valid:
+对于 Safety 文档，使用 `SAFETY:` 前缀，简要说明为何该 unsafe 操作是安全的：
 
 ```rust
 /// Creates a new instance from raw components without validation.
@@ -425,7 +423,7 @@ pub unsafe fn from_raw_parts(ptr: *const u8, len: usize) -> Self {
 }
 ```
 
-For inline unsafe blocks, use the `SAFETY:` comment directly above the unsafe code:
+对于内联的 unsafe 块，在 unsafe 代码上方直接添加 `SAFETY:` 注释：
 
 ```rust
 impl Send for MessageBus {
@@ -438,18 +436,16 @@ impl Send for MessageBus {
 }
 ```
 
-## Python bindings
+## Python 绑定
 
-Python bindings are provided via Cython and [PyO3](https://pyo3.rs), allowing users to import NautilusTrader crates directly in Python without a Rust toolchain.
+通过 Cython 和 [PyO3](https://pyo3.rs) 提供 Python 绑定，使用户无需 Rust 工具链即可在 Python 中直接导入 NautilusTrader 的 crate。
 
-### PyO3 naming conventions
+### PyO3 命名约定
 
-When exposing Rust functions to Python **via PyO3**:
+在通过 PyO3 向 Python 暴露 Rust 函数时：
 
-1. The Rust symbol **must** be prefixed with `py_*` to make its purpose explicit inside the Rust
-   codebase.
-2. Use the `#[pyo3(name = "…")]` attribute to publish the *Python* name **without** the `py_`
-   prefix so the Python API remains clean.
+1. Rust 符号在代码库内部应以 `py_*` 为前缀以明确其用途。
+2. 使用 `#[pyo3(name = "…")]` 属性在 Python 层公开名称（不带 `py_` 前缀），以保持 Python API 的简洁。
 
 ```rust
 #[pyo3(name = "do_something")]
@@ -458,15 +454,15 @@ pub fn py_do_something() -> PyResult<()> {
 }
 ```
 
-### Testing conventions
+### 测试约定
 
-- Use `mod tests` as the standard test module name unless you need to specifically compartmentalize.
-- Use `#[rstest]` attributes consistently, this standardization reduces cognitive overhead.
-- Do *not* use Arrange, Act, Assert separator comments in Rust tests.
+- 使用 `mod tests` 作为标准测试模块名，除非需要特殊划分。
+- 一致使用 `#[rstest]` 属性，降低认知开销。
+- 不要在 Rust 测试中使用 Arrange、Act、Assert 分隔注释。
 
-#### Test organization
+#### 测试组织
 
-Use consistent test module structure with section separators:
+使用带节分隔符的一致测试模块结构：
 
 ```rust
 ////////////////////////////////////////////////////////////////////////////////
@@ -487,9 +483,9 @@ mod tests {
 }
 ```
 
-#### Parameterized testing
+#### 参数化测试
 
-Use the `rstest` attribute consistently, and for parameterized tests:
+对参数化测试一致使用 `rstest`：
 
 ```rust
 #[rstest]
@@ -502,9 +498,9 @@ fn test_symbol_is_composite(#[case] input: &str, #[case] expected: bool) {
 }
 ```
 
-#### Test naming
+#### 测试命名
 
-Use descriptive test names that explain the scenario:
+使用能说明场景的描述性测试名称：
 
 ```rust
 fn test_sma_with_no_inputs()
@@ -512,20 +508,20 @@ fn test_sma_with_single_input()
 fn test_symbol_is_composite()
 ```
 
-## Rust-Python memory management
+## Rust 与 Python 内存管理
 
-When working with PyO3 bindings, it's critical to understand and avoid reference cycles between Rust's `Arc` reference counting and Python's garbage collector.
-This section documents best practices for handling Python objects in Rust callback-holding structures.
+在处理 PyO3 绑定时，必须理解并避免 Rust 的 `Arc` 引用计数与 Python 垃圾回收器之间产生的引用环。
+本节记录了在持有回调的结构体中处理 Python 对象的最佳实践。
 
-### The reference cycle problem
+### 引用环问题
 
-**Problem**: Using `Arc<PyObject>` in callback-holding structs creates circular references:
+**问题**：在持有回调的结构体中使用 `Arc<PyObject>` 会产生循环引用：
 
-1. **Rust `Arc` holds Python objects** → increases Python reference count.
-2. **Python objects might reference Rust objects** → creates cycles.
-3. **Neither side can be garbage collected** → memory leak.
+1. **Rust 的 `Arc` 持有 Python 对象** → 增加 Python 的引用计数。
+2. **Python 对象可能引用 Rust 对象** → 形成循环。
+3. **两端都无法被回收** → 导致内存泄漏。
 
-**Example of problematic pattern**:
+**问题模式示例**：
 
 ```rust
 // AVOID: This creates reference cycles
@@ -534,9 +530,9 @@ struct CallbackHolder {
 }
 ```
 
-### The solution: GIL-based cloning
+### 解决方案：基于 GIL 的克隆（GIL-based cloning）
 
-**Solution**: Use plain `PyObject` with proper GIL-based cloning via `clone_py_object()`:
+**解决思路**：使用普通的 `PyObject` 并通过 `clone_py_object()` 在获取 GIL 的上下文中安全克隆：
 
 ```rust
 use nautilus_core::python::clone_py_object;
@@ -556,9 +552,9 @@ impl Clone for CallbackHolder {
 }
 ```
 
-### Best practices
+### 最佳实践
 
-#### 1. Use `clone_py_object()` for Python object cloning
+#### 1. 使用 `clone_py_object()` 进行 Python 对象克隆
 
 ```rust
 // When cloning Python callbacks
@@ -568,7 +564,7 @@ let cloned_callback = clone_py_object(&original_callback);
 self.py_handler.as_ref().map(clone_py_object)
 ```
 
-#### 2. Remove `#[derive(Clone)]` from callback-holding structs
+#### 2. 从持有回调的结构体移除 `#[derive(Clone)]`
 
 ```rust
 // BEFORE: Automatic derive causes issues with PyObject
@@ -594,7 +590,7 @@ impl Clone for Config {
 }
 ```
 
-#### 3. Update function signatures to accept `PyObject`
+#### 3. 更新函数签名以接受 `PyObject`
 
 ```rust
 // BEFORE: Arc wrapper in function signatures
@@ -604,7 +600,7 @@ fn spawn_task(handler: Arc<PyObject>) { ... }  // ❌
 fn spawn_task(handler: PyObject) { ... }  // ✅
 ```
 
-#### 4. Avoid `Arc::new()` when creating Python callbacks
+#### 4. 创建 Python 回调时避免使用 `Arc::new()`
 
 ```rust
 // BEFORE: Wrapping in Arc
@@ -614,45 +610,40 @@ let callback = Arc::new(py_function);  // ❌
 let callback = py_function;  // ✅
 ```
 
-### Why this works
+### 为什么这样可行
 
-The `clone_py_object()` function:
+`clone_py_object()` 的实现要点：
 
-- **Acquires the Python GIL** before performing clone operations.
-- **Uses Python's native reference counting** via `clone_ref()`.
-- **Avoids Rust Arc wrappers** that interfere with Python GC.
-- **Maintains thread safety** through proper GIL management.
+- **在克隆操作前获取 Python GIL**。
+- **使用 Python 的本地引用计数**（例如 `clone_ref()`）。
+- **避免使用 Rust 的 Arc 包装**，从而不干扰 Python 的 GC。
+- **通过正确的 GIL 管理保持线程安全**。
 
-This approach allows both Rust and Python garbage collectors to work correctly, eliminating memory leaks from reference cycles.
+这种方法允许 Rust 与 Python 的垃圾回收机制协同工作，避免因引用环导致的内存泄漏。
 
-## Common anti-patterns
+## 常见反模式
 
-1. **Avoid `.clone()` in hot paths** – favour borrowing or shared ownership via `Arc`.
-2. **Avoid `.unwrap()` in production code** – generally propagate errors with `?` or map them into domain errors, but unwrapping lock poisoning is acceptable because it signals a severe program state that should abort fast.
-3. **Avoid `String` when `&str` suffices** – minimise allocations on tight loops.
-4. **Avoid exposing interior mutability** – hide mutexes/`RefCell` behind safe APIs.
-5. **Avoid large structs in `Result<T, E>`** – box large error payloads (`Box<dyn Error + Send + Sync>`).
+1. **在热点路径使用 `.clone()`**——应优先考虑借用或通过 `Arc` 共享所有权。
+2. **在生产代码中使用 `.unwrap()`**——通常应使用 `?` 传播错误或将其映射为领域错误，但对锁中毒（lock poisoning）进行 unwrap 是可接受的，因为这通常表明应当快速中止的严重程序状态。
+3. **在能使用 `&str` 的地方使用 `String`**——在紧循环中尽量减少分配。
+4. **暴露内部可变性（interior mutability）**——尽量通过安全 API 隐藏 `Mutex`/`RefCell`。
+5. **在 `Result<T, E>` 中放入大型结构体**——对大型错误载荷使用 boxing（`Box<dyn Error + Send + Sync>`）。
 
-## Unsafe Rust
+## 不安全的 Rust（Unsafe Rust）
 
-It will be necessary to write `unsafe` Rust code to be able to achieve the value
-of interoperating between Cython and Rust. The ability to step outside the boundaries of safe Rust is what makes it possible to
-implement many of the most fundamental features of the Rust language itself, just as C and C++ are used to implement
-their own standard libraries.
+为了在 Cython 与 Rust 之间实现互操作，编写 `unsafe` Rust 代码是必要的。跳出安全 Rust 的边界使我们能实现许多 Rust 语言自身的底层特性，正如 C 和 C++ 用于实现它们自己的标准库一样。
 
-Great care will be taken with the use of Rusts `unsafe` facility - which just enables a small set of additional language features, thereby changing
-the contract between the interface and caller, shifting some responsibility for guaranteeing correctness
-from the Rust compiler, and onto us. The goal is to realize the advantages of the `unsafe` facility, whilst avoiding *any* undefined behavior.
-The definition for what the Rust language designers consider undefined behavior can be found in the [language reference](https://doc.rust-lang.org/stable/reference/behavior-considered-undefined.html).
+在使用 Rust 的 `unsafe` 功能时务必非常谨慎——`unsafe` 只是启用一小部分额外的语言能力，它改变了接口与调用者之间的契约，将部分正确性保证的责任从编译器转移给我们。目标是在利用 `unsafe` 带来能力的同时，避免任何未定义行为（undefined behavior）。
+关于 Rust 语言设计者对未定义行为的定义，请参见[语言参考](https://doc.rust-lang.org/stable/reference/behavior-considered-undefined.html)。
 
-### Safety policy
+### 安全策略
 
-To maintain correctness, any use of `unsafe` Rust must follow our policy:
+为保持正确性，任何使用 `unsafe` 的代码都必须遵循我们的策略：
 
-- If a function is `unsafe` to call, there *must* be a `Safety` section in the documentation explaining why the function is `unsafe`.
-and covering the invariants which the function expects the callers to uphold, and how to meet their obligations in that contract.
-- Document why each function is `unsafe` in its doc comment's Safety section, and cover all `unsafe` blocks with unit tests.
-- Always include a `SAFETY:` comment explaining why the unsafe operation is valid:
+- 如果一个函数在调用上是 `unsafe` 的，文档中**必须**包含 `Safety` 小节，解释为何该函数为 `unsafe`，并说明调用者需要满足的各项不变式以及如何履行这些义务。
+  并覆盖所有 `unsafe` 区块的单元测试。
+- 在文档注释的 Safety 小节中说明为何函数为 `unsafe`，并为所有 `unsafe` 块提供单元测试覆盖。
+- 始终包含 `SAFETY:` 注释说明为何该 unsafe 操作是有效的：
 
 ```rust
 // SAFETY: Message bus is not meant to be passed between threads
@@ -661,23 +652,20 @@ and covering the invariants which the function expects the callers to uphold, an
 unsafe impl Send for MessageBus {}
 ```
 
-- **Crate-level lint** – every crate that exposes FFI symbols enables
-  `#![deny(unsafe_op_in_unsafe_fn)]`. Even inside an `unsafe fn`, each pointer dereference or
-  other dangerous operation must be wrapped in its own `unsafe { … }` block.
+- **Crate 级 lint** ——每个导出 FFI 符号的 crate 都应启用
+  `#![deny(unsafe_op_in_unsafe_fn)]`。即便位于 `unsafe fn` 内部，每次指针解除引用或其他危险操作也必须用独立的 `unsafe { … }` 包裹。
 
-- **CVec contract** – for raw vectors that cross the FFI boundary read the
-  [FFI Memory Contract](ffi.md). Foreign code becomes the owner of the allocation and **must**
-  call the matching `vec_drop_*` function exactly once.
+- **CVec 合约** ——对于跨 FFI 边界的原始向量，请阅读 [FFI Memory Contract](ffi.md)。外部代码会成为该分配的所有者，**必须**恰好调用一次对应的 `vec_drop_*` 函数。
 
-## Tooling configuration
+## 工具链配置
 
-The project uses several tools for code quality:
+项目使用若干工具来保证代码质量：
 
-- **rustfmt**: Automatic code formatting (see `rustfmt.toml`).
-- **clippy**: Linting and best practices (see `clippy.toml`).
-- **cbindgen**: C header generation for FFI.
+- **rustfmt**：自动代码格式化（参见 `rustfmt.toml`）。
+- **clippy**：代码 lint 与最佳实践（参见 `clippy.toml`）。
+- **cbindgen**：为 FFI 生成 C 头文件。
 
-## Resources
+## 参考资料
 
 - [The Rustonomicon](https://doc.rust-lang.org/nomicon/) – The Dark Arts of Unsafe Rust.
 - [The Rust Reference – Unsafety](https://doc.rust-lang.org/stable/reference/unsafety.html).
