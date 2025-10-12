@@ -1,348 +1,309 @@
-# Architecture
+# 架构
 
-Welcome to the architectural overview of NautilusTrader.
+欢迎阅读 NautilusTrader 的架构概览。
 
-This guide dives deep into the foundational principles, structures, and designs that underpin
-the platform. Whether you're a developer, system architect, or just curious about the inner workings
-of NautilusTrader, this section covers:
+本指南深入介绍支撑该平台的基本原则、结构与设计。无论你是开发者、系统架构师，还是对 NautilusTrader 内部实现感兴趣的读者，本章节包含：
 
-- The design philosophy that drives decisions and shapes the system's evolution.
-- The overarching system architecture providing a bird's-eye view of the entire system framework.
-- How the framework is organized to facilitate modularity and maintainability.
-- The code structure that ensures readability and scalability.
-- A breakdown of component organization and interaction to understand how different parts communicate and collaborate.
-- And finally, the implementation techniques that are crucial for performance, reliability, and robustness.
+- 推动设计决策与系统演进的设计理念。
+- 提供全局视角的系统架构总览。
+- 为实现模块化与可维护性而组织的框架结构说明。
+- 保持可读性与可扩展性的代码结构要点。
+- 组件组织与交互的分解，帮助理解各部分如何通信与协作。
+- 最后，若干对性能、可靠性与健壮性至关重要的实现技术。
 
 :::note
-Throughout the documentation, the term *"Nautilus system boundary"* refers to operations within
-the runtime of a single Nautilus node (also known as a "trader instance").
+在整篇文档中，术语 _"Nautilus system boundary"_ 指的是单个 Nautilus 节点（也称为“trader instance”）运行时内部的操作范围。
 :::
 
-## Design philosophy
+## 设计理念
 
-The major architectural techniques and design patterns employed by NautilusTrader are:
+NautilusTrader 采用的主要架构技术与设计模式包括：
 
-- [Domain driven design (DDD)](https://en.wikipedia.org/wiki/Domain-driven_design)
-- [Event-driven architecture](https://en.wikipedia.org/wiki/Event-driven_programming)
-- [Messaging patterns](https://en.wikipedia.org/wiki/Messaging_pattern) (Pub/Sub, Req/Rep, point-to-point)
-- [Ports and adapters](https://en.wikipedia.org/wiki/Hexagonal_architecture_(software))
-- [Crash-only design](#crash-only-design)
+- [领域驱动设计（Domain driven design, DDD）](https://en.wikipedia.org/wiki/Domain-driven_design)
+- [事件驱动架构（Event-driven architecture）](https://en.wikipedia.org/wiki/Event-driven_programming)
+- [消息模式（Messaging patterns）](https://en.wikipedia.org/wiki/Messaging_pattern)（Pub/Sub、Req/Rep、点对点）
+- [Ports and adapters（六边形架构）](<https://en.wikipedia.org/wiki/Hexagonal_architecture_(software)>)
+- [Crash-only design（仅崩溃设计）](#crash-only-design)
 
-These techniques have been utilized to assist in achieving certain architectural quality attributes.
+这些技术用于在架构决策中实现若干关键质量属性。
 
-### Quality attributes
+### 质量属性
 
-Architectural decisions are often a trade-off between competing priorities. The
-below is a list of some of the most important quality attributes which are considered
-when making design and architectural decisions, roughly in order of 'weighting'.
+架构决策通常需要在相互竞争的目标间权衡。下面按大致重要性列出在设计与架构决策时会优先考虑的若干质量属性：
 
-- Reliability
-- Performance
-- Modularity
-- Testability
-- Maintainability
-- Deployability
+- 可靠性（Reliability）
+- 性能（Performance）
+- 模块化（Modularity）
+- 可测试性（Testability）
+- 可维护性（Maintainability）
+- 可部署性（Deployability）
 
-### Assurance-driven engineering
+### 以可证明性为导向的工程实践
 
-NautilusTrader is incrementally adopting a high-assurance mindset: critical code
-paths should carry executable invariants that verify behaviour matches the
-business requirements. Practically this means we:
+NautilusTrader 正在逐步采用高保障（high-assurance）的工程思路：关键代码路径应携带可执行的不变式（executable invariants），以验证行为符合业务需求。具体实践包括：
 
-- Identify the components whose failure has the highest blast radius (core
-  domain types, risk and execution flows) and write down their invariants in
-  plain language.
-- Codify those invariants as executable checks (unit tests, property tests,
-  fuzzers, static assertions) that run in CI, keeping the feedback loop light.
-- Prefer zero-cost safety techniques built into Rust (ownership, `Result`
-  surfaces, `panic = abort`) and add targeted formal tools only where they pay
-  for themselves.
-- Track “assurance debt” alongside feature work so new integrations extend the
-  safety net rather than bypass it.
+- 识别失败会带来最大冲击的组件（核心域类型、风控与执行流等），并以自然语言写出它们的不变式。
+- 将这些不变式编码为可执行检查（单元测试、属性测试、模糊测试、静态断言），在 CI 中运行以保持快速反馈。
+- 优先使用 Rust 内置的“零成本”安全技术（所有权、`Result` 返回类型、`panic = abort` 等），仅在确有必要时引入有成本的形式化工具。
+- 将“保障欠债（assurance debt）”与功能工作并行跟踪，确保新集成扩展了安全网而非绕过它。
 
-This approach preserves the platform’s delivery cadence while giving mission
-critical flows the additional scrutiny they need.
+这一策略在保证持续交付节奏的同时，为关键流程提供额外的审查力度。
 
-Further reading: [High Assurance Rust](https://highassurance.rs/).
+进一步阅读：[High Assurance Rust](https://highassurance.rs/)。
 
-### Crash-only design
+### 仅崩溃设计（Crash-only design）
 
-NautilusTrader embraces [crash-only design](https://en.wikipedia.org/wiki/Crash-only_software),
-a philosophy where *"the only way to stop the system is to crash it"*, and *"the only way to bring it
-up is to recover from a crash"*. This approach simplifies state management and improves reliability
-by eliminating the complexity of graceful shutdown code paths that are rarely tested.
+NautilusTrader 倡导[仅崩溃设计（crash-only design）](https://en.wikipedia.org/wiki/Crash-only_software)，该理念可概述为“停止系统的唯一方式是让它崩溃，启动系统的唯一方式是从崩溃中恢复”。此策略通过消除很少被测试的优雅关机路径的复杂性来简化状态管理并提升可靠性。
 
-Key principles:
+关键原则：
 
-- **Single code path** - Recovery from crash is the primary (and only) initialization path, ensuring it is well-tested.
-- **No graceful shutdown** - The system does not attempt complex cleanup procedures that may fail or hang.
-- **Externalized state** - Critical state is persisted externally (database, message bus) so crashes do not lose data.
-- **Fast restart** - The system is designed to restart quickly after a crash, minimizing downtime.
-- **Idempotent operations** - Operations are designed to be safely retried after restart.
+- **单一路径（Single code path）** — 从崩溃恢复是主要且唯一的初始化路径，确保被充分测试。
+- **无优雅关机（No graceful shutdown）** — 系统不尝试那些可能失败或挂起的复杂清理操作。
+- **外部化状态（Externalized state）** — 关键状态持久化到外部（数据库、消息总线），以避免崩溃导致数据丢失。
+- **快速重启（Fast restart）** — 系统设计为能在崩溃后快速重启，最小化停机时间。
+- **幂等操作（Idempotent operations）** — 操作设计为可安全重试。
 
-This design complements the [fail-fast policy](#data-integrity-and-fail-fast-policy), where
-unrecoverable errors (data corruption, invariant violations) result in immediate process termination
-rather than attempting to continue in a compromised state.
+该设计理念补充了下文的[快速失败（fail-fast）策略](#data-integrity-and-fail-fast-policy)，即在遇到不可恢复的错误（数据损坏、不变式违背）时立即终止进程，而不是在受损状态中继续运行。
 
-**References:**
+**参考资料：**
 
-- [Crash-Only Software](https://www.usenix.org/conference/hotos-ix/crash-only-software) - Candea & Fox, HotOS 2003 (original research paper)
-- [Microreboot—A Technique for Cheap Recovery](https://www.usenix.org/conference/osdi-04/microreboot—-technique-cheap-recovery) - Candea et al., OSDI 2004
-- [The properties of crash-only software](https://brooker.co.za/blog/2012/01/22/crash-only.html) - Marc Brooker's blog
-- [Crash-only software: More than meets the eye](https://lwn.net/Articles/191059/) - LWN.net article
-- [Recovery-Oriented Computing (ROC) Project](http://roc.cs.berkeley.edu/) - UC Berkeley/Stanford research
+- [Crash-Only Software](https://www.usenix.org/conference/hotos-ix/crash-only-software) - Candea & Fox, HotOS 2003（原始论文）
+- [Microreboot—A Technique for Cheap Recovery](https://www.usenix.org/conference/osdi-04/microreboot—-technique-cheap-recovery) - Candea 等，OSDI 2004
+- [The properties of crash-only software](https://brooker.co.za/blog/2012/01/22/crash-only.html) - Marc Brooker 博客
+- [Crash-only software: More than meets the eye](https://lwn.net/Articles/191059/) - LWN.net 文章
+- [Recovery-Oriented Computing (ROC) Project](http://roc.cs.berkeley.edu/) - 加州大学伯克利/斯坦福研究项目
 
-### Data integrity and fail-fast policy
+### 数据完整性与快速失败（fail-fast）策略
 
-NautilusTrader prioritizes data integrity over availability for trading operations. The system employs
-a strict fail-fast policy for arithmetic operations and data handling to prevent silent data corruption
-that could lead to incorrect trading decisions.
+在交易系统中，数据完整性优先于可用性。NautilusTrader 实施严格的快速失败策略，用以在算术或数据处理出现异常时阻止静默的数 据损坏，从而避免错误的交易决策。
 
-#### Fail-fast principles
+#### 快速失败原则
 
-The system will fail fast (panic or return an error) when encountering:
+当遇到下列情况时，系统会快速失败（panic 或返回错误）：
 
-- Arithmetic overflow or underflow in operations on timestamps, prices, or quantities that exceed valid ranges.
-- Invalid data during deserialization including NaN, Infinity, or out-of-range values in market data or configuration.
-- Type conversion failures such as negative values where only positive values are valid (timestamps, quantities).
-- Malformed input parsing for prices, timestamps, or precision values.
+- 在时间戳、价格或数量等运算中出现算术溢出或下溢，超出有效范围。
+- 反序列化过程中遇到无效数据，例如 NaN、Infinity 或超出范围的市场数据或配置值。
+- 类型转换失败，例如仅应为正值的字段出现负值（时间戳、数量等）。
+- 对价格、时间戳或精度值的解析出现格式错误。
 
-Rationale:
+理由：
 
-In trading systems, corrupt data is worse than no data. A single incorrect price, timestamp, or quantity
-can cascade through the system, resulting in:
+在交易系统中，损坏的数据比没有数据更危险。单个错误的价格、时间戳或数量可能会在系统中蔓延，导致：
 
-- Incorrect position sizing or risk calculations.
-- Orders placed at wrong prices.
-- Backtests producing misleading results.
-- Silent financial losses.
+- 仓位规模或风控计算错误。
+- 以错误价格下单。
+- 回测结果产生误导性结论。
+- 无声的财务损失。
 
-By crashing immediately on invalid data, NautilusTrader ensures:
+通过在发现无效数据时立即崩溃，NautilusTrader 能确保：
 
-1. **No silent corruption** - Invalid data never propagates through the system.
-2. **Immediate feedback** - Issues are discovered during development and testing, not in production.
-3. **Audit trail** - Crash logs clearly identify the source of invalid data.
-4. **Deterministic behavior** - The same invalid input always produces the same failure.
+1. **无静默损坏** — 无效数据不会在系统中传播。
+2. **及时反馈** — 问题在开发和测试阶段被发现，而非生产环境中滞留。
+3. **审计线索** — 崩溃日志能清晰地标识无效数据的来源。
+4. **确定性行为** — 相同的无效输入总会导致同样的失败。
 
-#### When fail-fast applies
+#### 何时应用快速失败
 
-Panics are used for:
+使用 panic 的场景包括：
 
-- Programmer errors (logic bugs, incorrect API usage).
-- Data that violates fundamental invariants (negative timestamps, NaN prices).
-- Arithmetic that would silently produce incorrect results.
+- 程序员错误（逻辑缺陷、错误的 API 使用）。
+- 违反基本不变式的数据（负时间戳、NaN 价格）。
+- 会静默产生不正确结果的算术操作。
 
-Results or Options are used for:
+而对下列情况使用 Result 或 Option：
 
-- Expected runtime failures (network errors, file I/O).
-- Business logic validation (order constraints, risk limits).
-- User input validation.
-- Library APIs exposed to downstream crates where callers need explicit error handling without relying on panics for control flow.
+- 可预期的运行时失败（网络错误、文件 I/O）。
+- 业务逻辑校验（订单约束、风控限制）。
+- 用户输入验证。
+- 向下游 crate 暴露的库 API——调用方需要显式的错误处理而非依赖 panic 作为控制流。
 
-#### Example scenarios
+#### 示例场景
 
 ```rust
-// CORRECT: Panics on overflow - prevents data corruption
-let total_ns = timestamp1 + timestamp2; // Panics if result > u64::MAX
+// 正确：溢出时 panic — 防止数据损坏
+let total_ns = timestamp1 + timestamp2; // 如果结果 > u64::MAX 则 panic
 
-// CORRECT: Rejects NaN during deserialization
+// 正确：在反序列化时拒绝 NaN
 let price = serde_json::from_str("NaN"); // Error: "must be finite"
 
-// CORRECT: Explicit overflow handling when needed
-let total_ns = timestamp1.checked_add(timestamp2)?; // Returns Option<UnixNanos>
+// 正确：在需要时显式处理溢出
+let total_ns = timestamp1.checked_add(timestamp2)?; // 返回 Option<UnixNanos>
 ```
 
-This policy is implemented throughout the core types (`UnixNanos`, `Price`, `Quantity`, etc.)
-and ensures that NautilusTrader maintains the highest standards of data correctness for production trading.
+该策略在核心类型（`UnixNanos`、`Price`、`Quantity` 等）中得到贯彻，确保 NautilusTrader 在生产交易中维持最高的数据正确性标准。
 
-In production deployments, the system is typically configured with `panic = abort` in release builds,
-ensuring that any panic results in a clean process termination that can be handled by process supervisors
-or orchestration systems. This aligns with the [crash-only design](#crash-only-design) principle, where unrecoverable errors
-lead to immediate restart rather than attempting to continue in a potentially corrupted state.
+在生产部署中，通常会在 release 构建中配置 `panic = abort`，以确保任何 panic 都会导致进程干净地终止，从而由进程监控器或编排系统进行处理。这与[仅崩溃设计](#crash-only-design)原则一致：不可恢复的错误应立即触发重启，而非在已受损的状态下继续运行。
 
-## System architecture
+## 系统架构
 
-The NautilusTrader codebase is actually both a framework for composing trading
- systems, and a set of default system implementations which can operate in various
-[environment contexts](#environment-contexts).
+NautilusTrader 代码库既是用于组合交易系统的框架，也是包含一组可在不同[环境上下文（environment contexts）](#environment-contexts)中运行的默认系统实现。
 
 ![Architecture](https://github.com/nautechsystems/nautilus_trader/blob/develop/assets/architecture-overview.png?raw=true "architecture")
 
-### Core components
+### 核心组件
 
-The platform is built around several key components that work together to provide a comprehensive trading system:
+平台由若干关键组件构成，它们协同工作以提供一个完整的交易系统：
 
 #### `NautilusKernel`
 
-The central orchestration component responsible for:
+中央的编排组件，负责：
 
-- Initializing and managing all system components.
-- Configuring the messaging infrastructure.
-- Maintaining environment-specific behaviors.
-- Coordinating shared resources and lifecycle management.
-- Providing a unified entry point for system operations.
+- 初始化并管理所有系统组件。
+- 配置消息传递基础设施（messaging infrastructure）。
+- 维护与环境相关的行为。
+- 协调共享资源与生命周期管理。
+- 为系统操作提供统一的入口点。
 
 #### `MessageBus`
 
-The backbone of inter-component communication, implementing:
+组件间通信的中枢，具有以下能力：
 
-- **Publish/Subscribe patterns**: For broadcasting events and data to multiple consumers.
-- **Request/Response communication**: For operations requiring acknowledgment.
-- **Command/Event messaging**: For triggering actions and notifying state changes.
-- **Optional state persistence**: Using Redis for durability and restart capabilities.
+- **发布/订阅（Publish/Subscribe）模式**：用于向多个消费者广播事件和数据。
+- **请求/响应（Request/Response）通信**：用于需要确认的操作。
+- **命令/事件（Command/Event）消息**：用于触发动作与状态变更通知。
+- **可选的状态持久化**：使用 Redis 提供持久化和重启能力。
 
 #### `Cache`
 
-High-performance in-memory storage system that:
+高性能的内存存储系统，负责：
 
-- Stores instruments, accounts, orders, positions, and more.
-- Provides performant fetching capabilities for trading components.
-- Maintains consist state across the system.
-- Supports both read and write operations with optimized access patterns.
+- 存储 instruments、accounts、orders、positions 等实体。
+- 为交易组件提供高性能的读取能力。
+- 在系统内维护一致的状态（consistent state）。
+- 支持优化的读写访问模式。
 
 #### `DataEngine`
 
-Processes and routes market data throughout the system:
+处理并路由市场数据到系统各处：
 
-- Handles multiple data types (quotes, trades, bars, order books, custom data, and more).
-- Routes data to appropriate consumers based on subscriptions.
-- Manages data flow from external sources to internal components.
+- 处理多种数据类型（行情 quotes、成交 trades、K 线 bars、order books、定制数据等）。
+- 根据订阅将数据路由到相应的消费者。
+- 管理外部数据源到内部组件之间的数据流。
 
 #### `ExecutionEngine`
 
-Manages order lifecycle and execution:
+管理订单生命周期和执行：
 
-- Routes trading commands to the appropriate adapter clients.
-- Tracks order and position states.
-- Coordinates with risk management systems.
-- Handles execution reports and fills from venues.
-- Handles reconciliation of external execution state.
+- 将交易命令路由到相应的 adapter clients。
+- 跟踪订单与仓位状态。
+- 与风控系统进行协调。
+- 处理交易所返回的 execution reports 与 fills。
+- 处理外部执行状态的对账。
 
 #### `RiskEngine`
 
-Provides comprehensive risk management:
+提供全面的风控能力：
 
-- Pre-trade risk checks and validation.
-- Position and exposure monitoring.
-- Real-time risk calculations.
-- Configurable risk rules and limits.
+- 交易前的风控检查与校验。
+- 仓位与敞口监控。
+- 实时风控计算。
+- 可配置的风控规则与限制。
 
-### Environment contexts
+### 环境上下文（Environment contexts）
 
-An environment context in NautilusTrader defines the type of data and trading venue you are working
-with. Understanding these contexts is crucial for effective backtesting, development, and live trading.
+环境上下文定义了你正在使用的数据类型与交易场所（venue）。理解这些上下文对有效的回测、开发与实盘交易至关重要。
 
-Here are the available environments you can work with:
+可用的环境包括：
 
-- `Backtest`: Historical data with simulated venues.
-- `Sandbox`: Real-time data with simulated venues.
-- `Live`: Real-time data with live venues (paper trading or real accounts).
+- `Backtest`：历史数据，模拟交易场所。
+- `Sandbox`：实时数据，模拟交易场所。
+- `Live`：实时数据，真实交易场所（包含纸面交易或真实账户）。
 
-### Common core
+### 公共核心（Common core）
 
-The platform has been designed to share as much common code between backtest, sandbox and live trading systems as possible.
-This is formalized in the `system` subpackage, where you will find the `NautilusKernel` class,
-providing a common core system 'kernel'.
+平台在回测、沙盒与实盘系统间尽可能共享大量代码。该思想在 `system` 子包中得到形式化，在那里你会找到 `NautilusKernel` 类，它提供了一个通用的系统“kernel”。
 
-The *ports and adapters* architectural style enables modular components to be integrated into the
-core system, providing various hooks for user-defined or custom component implementations.
+“ports and adapters” 的架构风格使得模块化组件可以被集成到核心系统中，为用户自定义或定制组件实现提供各种钩子。
 
-### Data and execution flow patterns
+### 数据与执行流模式
 
-Understanding how data and execution flow through the system is crucial for effective use of the platform:
+理解数据与执行在系统中的流动对于有效使用平台非常重要：
 
-#### Data flow pattern
+#### 数据流模式
 
-1. **External Data Ingestion**: Market data enters via venue-specific `DataClient` adapters where it is normalized.
-2. **Data Processing**: The `DataEngine` handles data processing for internal components.
-3. **Caching**: Processed data is stored in the high-performance `Cache` for fast access.
-4. **Event Publishing**: Data events are published to the `MessageBus`.
-5. **Consumer Delivery**: Subscribed components (Actors, Strategies) receive relevant data events.
+1. **外部数据摄取（External Data Ingestion）**：市场数据通过特定 venue 的 `DataClient` adapter 进入并被标准化。
+2. **数据处理（Data Processing）**：`DataEngine` 负责对内部组件的数据处理。
+3. **缓存（Caching）**：处理后的数据被存入高性能的 `Cache` 以便快速访问。
+4. **事件发布（Event Publishing）**：数据事件被发布到 `MessageBus`。
+5. **消费者分发（Consumer Delivery）**：已订阅的组件（Actors、Strategies）收到相关的数据事件。
 
-#### Execution flow pattern
+#### 执行流模式
 
-1. **Command Generation**: User strategies create trading commands.
-2. **Command Publishing**: Commands are sent through the `MessageBus`.
-3. **Risk Validation**: The `RiskEngine` validates trading commands against configured risk rules.
-4. **Execution Routing**: The `ExecutionEngine` routes commands to appropriate venues.
-5. **External Submission**: The `ExecutionClient` submits orders to external trading venues.
-6. **Event Flow Back**: Order events (fills, cancellations) flow back through the system.
-7. **State Updates**: Portfolio and position states are updated based on execution events.
+1. **命令生成（Command Generation）**：用户策略创建交易命令。
+2. **命令发布（Command Publishing）**：通过 `MessageBus` 发送命令。
+3. **风控校验（Risk Validation）**：`RiskEngine` 根据配置的风控规则校验交易命令。
+4. **执行路由（Execution Routing）**：`ExecutionEngine` 将命令路由到合适的交易场所。
+5. **外部提交（External Submission）**：`ExecutionClient` 向外部交易场所提交订单。
+6. **事件回流（Event Flow Back）**：订单事件（成交 fills、撤单 cancellations）回流至系统。
+7. **状态更新（State Updates）**：组合与仓位状态根据执行事件进行更新。
 
-#### Component state management
+#### 组件状态管理
 
-All components follow a finite state machine pattern with well-defined states:
+所有组件遵循有限状态机模式（finite state machine），并具有明确定义的状态：
 
-- **PRE_INITIALIZED**: Component is created but not yet wired up to the system.
-- **READY**: Component is configured and wired up, but not yet running.
-- **RUNNING**: Component is actively processing messages and performing operations.
-- **STOPPED**: Component has been gracefully stopped and is no longer processing.
-- **DEGRADED**: Component is running but with reduced functionality due to errors.
-- **FAULTED**: Component has encountered a critical error and cannot continue.
-- **DISPOSED**: Component has been cleaned up and resources have been released.
+- **PRE_INITIALIZED**：组件已创建但尚未与系统连接。
+- **READY**：组件已配置并连接，但尚未运行。
+- **RUNNING**：组件正在处理消息并执行操作。
+- **STOPPED**：组件已被优雅停止，不再处理消息。
+- **DEGRADED**：组件可运行但功能受限（由于错误）。
+- **FAULTED**：组件遇到严重错误，无法继续运行。
+- **DISPOSED**：组件已清理并释放资源。
 
-### Messaging
+### 消息传递（Messaging）
 
-To facilitate modularity and loose coupling, an extremely efficient `MessageBus` passes messages (data, commands and events) between components.
+为了促进模块化与低耦合，高效的 `MessageBus` 在组件之间传递消息（数据、命令与事件）。
 
-From a high level architectural view, it's important to understand that the platform has been designed to run efficiently
-on a single thread, for both backtesting and live trading. Much research and testing
-resulted in arriving at this design, as it was found the overhead of context switching between threads
-didn't actually result in improved performance.
+从高层架构角度理解，平台被设计为在单线程下高效运行，适用于回测与实盘。大量研究与测试表明，对于该类系统上下文，线程间上下文切换的开销并不能带来性能提升。
 
-When considering the logic of how your algo trading will work within the system boundary, you can expect each component to consume messages
-in a deterministic synchronous way (*similar* to the [actor model](https://en.wikipedia.org/wiki/Actor_model)).
+在考虑你的算法交易在系统边界内如何运行时，你可以期望每个组件以确定性的同步方式消费消息（类似于[Actor 模型](https://en.wikipedia.org/wiki/Actor_model)）。
 
 :::note
-Of interest is the LMAX exchange architecture, which achieves award winning performance running on
-a single thread. You can read about their *disruptor* pattern based architecture in [this interesting article](https://martinfowler.com/articles/lmax.html) by Martin Fowler.
+值得关注的是 LMAX 的交易所架构——他们在单线程上也实现了屡获殊荣的高性能。你可以阅读 Martin Fowler 关于其基于 _disruptor_ 模式的架构的文章：[this interesting article](https://martinfowler.com/articles/lmax.html)。
 :::
 
-## Framework organization
+## 框架组织
 
-The codebase is organized with a layering of abstraction levels, and generally
-grouped into logical subpackages of cohesive concepts. You can navigate to the documentation
-for each of these subpackages from the left nav menu.
+代码库按抽象层次组织，并按照概念上内聚的子包进行分组。你可以在左侧导航中访问这些子包的文档。
 
-### Core / low-Level
+### Core / 低层
 
-- `core`: Constants, functions and low-level components used throughout the framework.
-- `common`: Common parts for assembling the frameworks various components.
-- `network`: Low-level base components for networking clients.
-- `serialization`: Serialization base components and serializer implementations.
-- `model`: Defines a rich trading domain model.
+- `core`：在框架中广泛使用的常量、函数和低级组件。
+- `common`：用于组装框架各组件的通用部分。
+- `network`：网络客户端的低级基类组件。
+- `serialization`：序列化基础组件与序列化器实现。
+- `model`：定义丰富的交易领域模型。
 
-### Components
+### 组件
 
-- `accounting`: Different account types and account management machinery.
-- `adapters`: Integration adapters for the platform including brokers and exchanges.
-- `analysis`: Components relating to trading performance statistics and analysis.
-- `cache`: Provides common caching infrastructure.
-- `data`: The data stack and data tooling for the platform.
-- `execution`: The execution stack for the platform.
-- `indicators`: A set of efficient indicators and analyzers.
-- `persistence`: Data storage, cataloging and retrieval, mainly to support backtesting.
-- `portfolio`: Portfolio management functionality.
-- `risk`: Risk specific components and tooling.
-- `trading`: Trading domain specific components and tooling.
+- `accounting`：不同的账户类型和账户管理机制。
+- `adapters`：平台的集成适配器（包括经纪商与交易所）。
+- `analysis`：与交易绩效统计与分析相关的组件。
+- `cache`：提供通用的缓存基础设施。
+- `data`：平台的数据栈与数据工具。
+- `execution`：平台的执行栈。
+- `indicators`：一组高效的指标与分析器。
+- `persistence`：数据存储、目录整理与检索，主要支持回测。
+- `portfolio`：组合管理功能。
+- `risk`：风控相关组件与工具。
+- `trading`：交易域相关的组件与工具。
 
-### System implementations
+### 系统实现
 
-- `backtest`: Backtesting componentry as well as a backtest engine and node implementations.
-- `live`: Live engine and client implementations as well as a node for live trading.
-- `system`: The core system kernel common between `backtest`, `sandbox`, `live` [environment contexts](#environment-contexts).
+- `backtest`：回测组件、回测引擎以及节点实现。
+- `live`：实盘引擎与客户端实现，以及用于实盘交易的节点。
+- `system`：`backtest`、`sandbox`、`live` 等[环境上下文](#environment-contexts)之间共享的核心系统 kernel。
 
-## Code structure
+## 代码结构
 
-The foundation of the codebase is the `crates` directory, containing a collection of Rust crates including a C foreign function interface (FFI) generated by `cbindgen`.
+代码库的基础是 `crates` 目录，包含若干 Rust crate，其中包括由 `cbindgen` 生成的 C 外部函数接口（FFI）。
 
-The bulk of the production code resides in the `nautilus_trader` directory, which contains a collection of Python/Cython subpackages and modules.
+生产代码的大部分位于 `nautilus_trader` 目录，包含一系列 Python/Cython 子包与模块。
 
-Python bindings for the Rust core are provided by statically linking the Rust libraries to the C extension modules generated by Cython at compile time (effectively extending the CPython API).
+Rust 核心的 Python 绑定通过在编译时将 Rust 库静态链接到 Cython 生成的 C 扩展模块来提供（等同于扩展 CPython API）。
 
-### Dependency flow
+### 依赖流向
 
-```
+```graph
 ┌─────────────────────────┐
 │                         │
 │                         │
@@ -369,44 +330,37 @@ Python bindings for the Rust core are provided by statically linking the Rust li
 ```
 
 :::note
-Both Rust and Cython are build dependencies. The binary wheels produced from a build do not require
-Rust or Cython to be installed at runtime.
+Rust 与 Cython 都是构建时的依赖。构建产出的二进制 wheel 在运行时并不需要 Rust 或 Cython。
 :::
 
-### Type safety
+### 类型安全
 
-The design of the platform prioritizes software correctness and safety at the highest level.
+平台设计在最高层面优先考虑软件的正确性与安全性。
 
-The Rust codebase in `nautilus_core` is always type safe and memory safe as guaranteed by the `rustc` compiler,
-and so is *correct by construction* (unless explicitly marked `unsafe`, see the Rust section of the [Developer Guide](../developer_guide/rust.md)).
+`nautilus_core` 中的 Rust 代码由 `rustc` 编译器保证类型与内存安全，因此在默认情况下是“按构造正确”的（除非显式使用 `unsafe`，详见[开发者指南的 Rust 一节](../developer_guide/rust.md)）。
 
-Cython provides type safety at the C level at both compile time, and runtime:
+Cython 在 C 层面提供编译期和运行期的类型安全：
 
 :::info
-If you pass an argument with an invalid type to a Cython implemented module with typed parameters,
-then you will receive a `TypeError` at runtime.
+向具有类型化参数的 Cython 实现模块传入错误类型的参数时，运行时会抛出 `TypeError`。
 :::
 
-If a function or method's parameter is not explicitly typed to accept `None`, passing `None` as an
-argument will result in a `ValueError` at runtime.
+如果函数或方法的参数未显式声明接受 `None`，则传入 `None` 会在运行时引发 `ValueError`。
 
 :::warning
-The above exceptions are not explicitly documented to prevent excessive bloating of the docstrings.
+为避免文档冗长，上述异常可能并未在文档中逐一列出。
 :::
 
-### Errors and exceptions
+### 错误与异常
 
-Every attempt has been made to accurately document the possible exceptions which
-can be raised from NautilusTrader code, and the conditions which will trigger them.
+我们尽力准确记录 NautilusTrader 代码可能抛出的异常及其触发条件。
 
 :::warning
-There may be other undocumented exceptions which can be raised by Python's standard
-library, or from third party library dependencies.
+仍可能存在未记录的异常，这些异常可能来自 Python 标准库或第三方依赖库。
 :::
 
-### Processes and threads
+### 进程与线程
 
 :::tip
-For optimal performance and to prevent potential issues related to Python's memory
-model and equality, it is highly recommended to run each trader instance in a separate process.
+为获得最佳性能并避免与 Python 内存模型及相等性相关的潜在问题，强烈建议将每个 trader 实例放在独立进程中运行。
 :::
