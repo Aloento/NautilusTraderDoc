@@ -95,7 +95,7 @@ NautilusTrader 默认使用签名类型 0（EOA），但可以通过配置参数
 在开始交易之前，你需要为 Polymarket 的智能合约为你的钱包设置相应的 allowance（授权）。
 可通过运行项目中提供的脚本来完成，脚本路径为 `/adapters/polymarket/scripts/set_allowances.py`。
 
-该脚本改编自 @poly-rodr 在 gist 上的实现：<https://gist.github.com/poly-rodr/44313920481de58d5a3f6d1f8226bd5e>。
+该脚本改编自 @poly-rodr 在 gist 上的实现：[https://gist.github.com/poly-rodr/44313920481de58d5a3f6d1f8226bd5e](https://gist.github.com/poly-rodr/44313920481de58d5a3f6d1f8226bd5e)。
 
 :::note
 对于每个你打算在 Polymarket 上交易的 EOA 钱包，该脚本只需运行 **一次**。
@@ -137,7 +137,7 @@ python nautilus_trader/adapters/polymarket/scripts/set_allowances.py
 
 该脚本会执行下列操作：
 
-- 通过 RPC URL（例如 <https://polygon-rpc.com/）连接到> Polygon 网络。
+- 通过 RPC URL（例如 [https://polygon-rpc.com/](https://polygon-rpc.com/)）连接到 Polygon 网络。
 - 对批准 Polymarket 合约的最大 USDC 授权发起签名并发送交易。
 - 为 CTF 合约设置批准，以便其代为管理条件代币（Conditional Tokens）。
 - 为特定地址（如 Polymarket CLOB Exchange 与 Neg Risk Adapter）重复批准流程。

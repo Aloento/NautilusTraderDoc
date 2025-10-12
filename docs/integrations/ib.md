@@ -1,10 +1,10 @@
 # Interactive Brokers
 
-Interactive Brokers（IB）是一个覆盖广泛金融工具的交易平台，包括股票、期权、期货、外汇、债券、基金和加密货币。NautilusTrader 提供了一个适配器，通过其 Python 库 `ibapi`（<https://github.com/nautechsystems/ibapi）调用> Trader Workstation（TWS）API（<https://ibkrcampus.com/ibkr-api-page/trader-workstation-api/）来与> IB 集成。
+Interactive Brokers（IB）是一个覆盖广泛金融工具的交易平台，包括股票、期权、期货、外汇、债券、基金和加密货币。NautilusTrader 提供了一个适配器，通过其 Python 库 `ibapi`（[https://github.com/nautechsystems/ibapi](https://github.com/nautechsystems/ibapi)）调用 Trader Workstation（TWS）API（[https://ibkrcampus.com/ibkr-api-page/trader-workstation-api/](https://ibkrcampus.com/ibkr-api-page/trader-workstation-api/)）来与 IB 集成。
 
-TWS API 用于连接 IB 的独立交易应用程序：TWS 和 IB Gateway。两者均可从 IB 官网下载。如果你尚未安装 TWS 或 IB Gateway，请参阅「初始设置」指南（<https://ibkrcampus.com/ibkr-api-page/trader-workstation-api/#tws-download）。在> NautilusTrader 中，你可以通过 `InteractiveBrokersClient` 与其中任一应用建立连接。
+TWS API 用于连接 IB 的独立交易应用程序：TWS 和 IB Gateway。两者均可从 IB 官网下载。如果你尚未安装 TWS 或 IB Gateway，请参阅「初始设置」指南（[https://ibkrcampus.com/ibkr-api-page/trader-workstation-api/#tws-download](https://ibkrcampus.com/ibkr-api-page/trader-workstation-api/#tws-download)）。在 NautilusTrader 中，你可以通过 `InteractiveBrokersClient` 与其中任一应用建立连接。
 
-另一种选择是使用 IB Gateway 的 Docker 化版本（<https://github.com/gnzsnz/ib-gateway-docker），这对在云端自动化部署交易策略尤为方便。该方案要求本机安装> Docker（<https://www.docker.com/）以及> Python 的 `docker` 包（<https://pypi.org/project/docker/），NautilusTrader> 已把该包作为可选 extras 一并提供。
+另一种选择是使用 IB Gateway 的 Docker 化版本（[https://github.com/gnzsnz/ib-gateway-docker](https://github.com/gnzsnz/ib-gateway-docker)），这对在云端自动化部署交易策略尤为方便。该方案要求本机安装 Docker（[https://www.docker.com/](https://www.docker.com/)）以及 Python 的 `docker` 包（[https://pypi.org/project/docker/](https://pypi.org/project/docker/)），NautilusTrader 已把该包作为可选 extras 一并提供。
 
 :::note
 独立版的 TWS 与 IB Gateway 在启动时需要手动输入用户名、密码及交易模式（live 或 paper）。Docker 化的 IB Gateway 则可通过程序化方式完成这些步骤，无需人工干预。
@@ -25,13 +25,12 @@ uv sync --all-extras
 ```
 
 :::note
-由于 IB 官方未提供 `ibapi` 的 wheel 包，NautilusTrader 在 PyPI 上对其进行了重打包发布（<https://pypi.org/project/nautilus-ibapi/）。>
+由于 IB 官方未提供 `ibapi` 的 wheel 包，NautilusTrader 在 PyPI 上对其进行了重打包发布（[https://pypi.org/project/nautilus-ibapi/](https://pypi.org/project/nautilus-ibapi/)）。
 :::
 
 ## 示例
 
-可在仓库中找到实时示例脚本：
-<https://github.com/nautechsystems/nautilus_trader/tree/develop/examples/live/interactive_brokers/。>
+可在仓库中找到实时示例脚本：[https://github.com/nautechsystems/nautilus_trader/tree/develop/examples/live/interactive_brokers/](https://github.com/nautechsystems/nautilus_trader/tree/develop/examples/live/interactive_brokers/)
 
 ## 快速上手
 
@@ -367,7 +366,7 @@ CFD/商品交易所（CFD/Commodity Exchanges）：
 
 ### 合约查询
 
-欲查询合约信息，可使用 IB 的 Contract Information Center（<https://pennies.interactivebrokers.com/cstools/contract_info/）。>
+欲查询合约信息，可使用 IB 的 Contract Information Center（[https://pennies.interactivebrokers.com/cstools/contract_info/](https://pennies.interactivebrokers.com/cstools/contract_info/)）。
 
 ### 加载合约
 
@@ -1362,7 +1361,7 @@ order_tags = IBOrderTags(
 
 - `conId`：要监控的合约 ID
 - `exchange`：要监控的交易所（例如："SMART", "NASDAQ"）
-- `isMore`：True 表示 >=，False 表示 <=
+- `isMore`：True 表示 \>=，False 表示 \<=
 - `price`：价格阈值
 - `triggerMethod`：0=Default, 1=DoubleBidAsk, 2=Last, 3=DoubleLast, 4=BidAsk, 7=LastBidAsk, 8=MidPoint
 
@@ -1375,7 +1374,7 @@ order_tags = IBOrderTags(
 
 - `conId`：要监控的合约 ID
 - `exchange`：要监控的交易所
-- `isMore`：True 表示 >=，False 表示 <=
+- `isMore`：True 表示 \>=，False 表示 \<=
 - `volume`：成交量阈值
 
 **执行条件（Execution Condition）：**
@@ -1387,13 +1386,13 @@ order_tags = IBOrderTags(
 **保证金条件（Margin Condition）：**
 
 - `percent`：保证金余量百分比阈值
-- `isMore`：True 表示 >=，False 表示 <=
+- `isMore`：True 表示 \>=，False 表示 \<=
 
 **百分比变化条件（Percent Change Condition）：**
 
 - `conId`：要监控的合约 ID
 - `exchange`：要监控的交易所
-- `isMore`：True 表示 >=，False 表示 <=
+- `isMore`：True 表示 \>=，False 表示 \<=
 - `changePercent`：百分比变化阈值
 
 #### 完整示例：包含所有条件类型
