@@ -1,110 +1,105 @@
-# Adapters
+# 适配器（Adapters）
 
-## Introduction
+## 介绍
 
-This developer guide provides specifications and instructions on how to develop an integration adapter for the NautilusTrader platform.
-Adapters provide connectivity to trading venues and data providers—translating raw venue APIs into Nautilus’s unified interface and normalized domain model.
+本开发者指南说明如何为 NautilusTrader 平台开发集成适配器（adapter）。适配器负责连接交易所或数据提供方，将各类原始场馆 API 翻译为 Nautilus 的统一接口与归一化的领域模型。
 
-## Structure of an adapter
+## 适配器的结构
 
-NautilusTrader adapters follow a layered architecture pattern with:
+NautilusTrader 的适配器遵循分层架构，通常包含：
 
-- **Rust core** for networking clients and performance-critical operations.
-- **Python layer** (optional) for integrating into the legacy system.
+- Rust 核心（Rust core）：用于网络客户端与性能关键路径的实现。
+- Python 层（可选）：用于与现有 Python 系统或更高层集成。
 
-Good references for consistent patterns are currently:
+目前几个实现模式一致、可作为参考的适配器有：
 
 - BitMEX
 - Bybit
 - OKX
 
-### Rust core (`crates/adapters/your_adapter/`)
+### Rust 核心（`crates/adapters/your_adapter/`）
 
-The Rust layer handles:
+Rust 层负责：
 
-- **HTTP client**: Raw API communication, request signing, rate limiting.
-- **WebSocket client**: Low-latency streaming connections, message parsing.
-- **Parsing**: Fast conversion of venue data to Nautilus domain models.
-- **Python bindings**: PyO3 exports to make Rust functionality available to Python.
+- HTTP 客户端：原始 API 通信、请求签名、流控（rate limiting）。
+- WebSocket 客户端：低延迟流式连接与消息解析。
+- 解析（Parsing）：高效地将场馆数据转换为 Nautilus 的领域对象。
+- Python 绑定：通过 PyO3 导出，使 Rust 功能可以被 Python 调用。
 
-Typical Rust structure:
+典型的 Rust 项目结构：
 
-```
+```tree
 crates/adapters/your_adapter/
 ├── src/
-│   ├── common/           # Shared types and utilities
-│   │   ├── consts.rs     # Venue constants / broker IDs
-│   │   ├── credential.rs # API key storage and signing helpers
-│   │   ├── enums.rs      # Venue enums mirrored in REST/WS payloads
-│   │   ├── urls.rs       # Environment & product aware base-url resolvers
-│   │   ├── parse.rs      # Shared parsing helpers
-│   │   └── testing.rs    # Fixtures reused across unit tests
-│   ├── http/             # HTTP client implementation
-│   │   ├── client.rs     # HTTP client with authentication
-│   │   ├── models.rs     # Structs for REST payloads
-│   │   ├── query.rs      # Request and query builders
-│   │   └── parse.rs      # Response parsing functions
-│   ├── websocket/        # WebSocket implementation
-│   │   ├── client.rs     # WebSocket client
-│   │   ├── messages.rs   # Structs for stream payloads
-│   │   └── parse.rs      # Message parsing functions
-│   ├── python/           # PyO3 Python bindings
-│   ├── config.rs         # Configuration structures
-│   └── lib.rs            # Library entry point
-└── tests/                # Integration tests with mock servers
+│   ├── common/           # 共享类型与工具函数
+│   │   ├── consts.rs     # 场馆常量 / broker ID
+│   │   ├── credential.rs # API key 存储与签名辅助
+│   │   ├── enums.rs      # 与 REST/WS 负载对应的枚举
+│   │   ├── urls.rs       # 与环境/产品相关的 base-url 解析器
+│   │   ├── parse.rs      # 共享解析辅助函数
+│   │   └── testing.rs    # 单元测试复用的 fixtures
+│   ├── http/             # HTTP 客户端实现
+│   │   ├── client.rs     # 带认证的 HTTP 客户端
+│   │   ├── models.rs     # REST 负载对应的结构体
+│   │   ├── query.rs      # 请求 / 查询构造器
+│   │   └── parse.rs      # 响应解析函数
+│   ├── websocket/        # WebSocket 实现
+│   │   ├── client.rs     # WebSocket 客户端
+│   │   ├── messages.rs   # 流式消息的结构体
+│   │   └── parse.rs      # 消息解析函数
+│   ├── python/           # PyO3 对 Python 的导出
+│   ├── config.rs         # 配置结构体
+│   └── lib.rs            # 库入口
+└── tests/                # 使用 mock server 的集成测试
 ```
 
-### Python layer (`nautilus_trader/adapters/your_adapter`)
+### Python 层（`nautilus_trader/adapters/your_adapter`）
 
-The Python layer provides the integration interface through these components:
+Python 层向平台暴露集成接口，通常包含：
 
-1. **Instrument Provider**: Supplies instrument definitions via `InstrumentProvider`.
-2. **Data Client**: Handles market data feeds and historical data requests via `LiveDataClient` and `LiveMarketDataClient`.
-3. **Execution Client**: Manages order execution via `LiveExecutionClient`.
-4. **Factories**: Converts venue-specific data to Nautilus domain models.
-5. **Configuration**: User-facing configuration classes for client settings.
+1. Instrument Provider：通过 `InstrumentProvider` 提供 instrument 定义。
+2. Data Client：通过 `LiveDataClient` / `LiveMarketDataClient` 处理行情与历史数据请求。
+3. Execution Client：通过 `LiveExecutionClient` 管理委托执行。
+4. Factories：把场馆特定的数据转换为 Nautilus 的领域模型。
+5. Configuration：面向用户的客户端配置类。
 
-Typical Python structure:
+典型的 Python 包结构：
 
-```
+```tree
 nautilus_trader/adapters/your_adapter/
-├── config.py     # Configuration classes
-├── constants.py  # Adapter constants
-├── data.py       # LiveDataClient/LiveMarketDataClient
+├── config.py     # 配置类
+├── constants.py  # 适配器常量
+├── data.py       # LiveDataClient / LiveMarketDataClient
 ├── execution.py  # LiveExecutionClient
-├── factories.py  # Instrument factories
+├── factories.py  # instrument factory
 ├── providers.py  # InstrumentProvider
-└── __init__.py   # Package initialization
+└── __init__.py   # 包初始化
 ```
 
-## Adapter implementation steps
+## 适配器实现步骤（概览）
 
-1. Create a new Python subpackage for your adapter.
-2. Implement the Instrument Provider by inheriting from `InstrumentProvider` and implementing the necessary methods to load instruments.
-3. Implement the Data Client by inheriting from either the `LiveDataClient` or `LiveMarketDataClient` class as applicable, providing implementations for the required methods.
-4. Implement the Execution Client by inheriting from `LiveExecutionClient` and providing implementations for the required methods.
-5. Create configuration classes to hold your adapter’s settings.
-6. Test your adapter thoroughly to ensure all methods are correctly implemented and the adapter works as expected (see the [Testing Guide](testing.md)).
+1. 为你的适配器创建一个新的 Python 子包。
+2. 实现 Instrument Provider：继承 `InstrumentProvider` 并实现加载 instruments 的方法。
+3. 实现 Data Client：根据需要继承 `LiveDataClient` 或 `LiveMarketDataClient`，实现抽象方法。
+4. 实现 Execution Client：继承 `LiveExecutionClient` 并实现相关方法。
+5. 编写配置类以保存适配器设置（API key、URL 等）。
+6. 充分测试适配器，确保各方法按预期工作（见 [Testing Guide](testing.md)）。
 
 ---
 
-## Rust adapter patterns
+## Rust 端的设计模式建议
 
-- **Common code (`common/`)**: Group venue constants, credential helpers, enums, and reusable parsers under `src/common`. Adapters such as OKX keep submodules like `consts`, `credential`, `enums`, and `urls` alongside a `testing` module for fixtures, providing a single place for cross-cutting pieces. When an adapter has multiple environments or product categories, add a dedicated `common::urls` helper so REST/WebSocket base URLs stay in sync with the Python layer.
-- **Configurations (`config.rs`)**: Expose typed config structs in `src/config.rs` so Python callers toggle venue-specific behaviour (see how OKX wires demo URLs, retries, and channel flags). Keep defaults minimal and delegate URL selection to helpers in `common::urls`.
-- **Error taxonomy (`error.rs`)**: Centralise HTTP/WebSocket failure handling in an adapter-specific error enum. BitMEX, for example, separates retryable, non-retryable, and fatal variants while embedding the original transport error—follow that shape so operational tooling can react consistently.
-- **Python exports (`python/mod.rs`)**: Mirror the Rust surface area through PyO3 modules by re-exporting clients, enums, and helper functions. When new functionality lands in Rust, add it to `python/mod.rs` so the Python layer stays in sync (the OKX adapter is a good reference).
-- **Python bindings (`python/`)**: Expose Rust functionality to Python through PyO3. Mark venue-specific structs that need Python access with `#[pyclass]` and implement `#[pymethods]` blocks with `#[getter]` attributes for field access. For async methods in the HTTP client, use `pyo3_async_runtimes::tokio::future_into_py` to convert Rust futures into Python awaitables. When returning lists of custom types, map each item with `Py::new(py, item)` before constructing the Python list. Register all exported classes and enums in `python/mod.rs` using `m.add_class::<YourType>()` so they're available to Python code. Follow the pattern established in other adapters: prefixing Python-facing methods with `py_*` in Rust while using `#[pyo3(name = "method_name")]` to expose them without the prefix.
-- **String interning**: Use `ustr::Ustr` for any non-unique strings the platform stores repeatedly (venues, symbols, instrument IDs) to minimise allocations and comparisons.
-- **Testing helpers (`common/testing.rs`)**: Store shared fixtures and payload loaders in `src/common/testing.rs` for use across HTTP and WebSocket unit tests. This keeps `#[cfg(test)]` helpers out of production modules and encourages reuse.
+- Common code (`common/`)：把场馆常量、凭证辅助、枚举与可复用解析器放在 `src/common`。当适配器支持多个环境或产品线时，在 `common::urls` 中集中管理 URL 选择，保证 REST 与 WebSocket 的 base URL 与 Python 层一致。
+- Configurations (`config.rs`)：在 `src/config.rs` 中暴露类型化的配置结构，便于 Python 层切换场馆特有行为（例如 OKX 如何配置 demo URL、重试与通道标志）。保持默认值最小化，并把 URL 选择委托给 `common::urls`。
+- Error taxonomy (`error.rs`)：把 HTTP/WebSocket 的错误集中到适配器特定的错误枚举。参考 BitMEX 做法：区分可重试（retryable）、不可重试（non-retryable）和致命（fatal）错误，同时保留底层传输错误，方便运维工具做一致处理。
+- Python exports (`python/mod.rs`)：通过 PyO3 模块重导出客户端、枚举与辅助函数，保持 Rust 与 Python 接口同步（OKX 适配器是好的参考）。
+- Python bindings（`python/`）：用 PyO3 暴露 Rust 功能，使用 `#[pyclass]` 标记需在 Python 可见的结构体，并在 `#[pymethods]` 中用 `#[getter]` 提供字段访问。对于 HTTP 客户端中异步方法，可用 `pyo3_async_runtimes::tokio::future_into_py` 将 Rust future 转为 Python awaitable。返回自定义类型列表时，先用 `Py::new(py, item)` 映射每个项再构造 Python 列表。把所有导出类/枚举在 `python/mod.rs` 中注册（`m.add_class::<YourType>()`）。建议在 Rust 代码中给面向 Python 的方法以 `py_*` 前缀，同时通过 `#[pyo3(name = "method_name")]` 将其暴露为没有前缀的名字。
+- 字符串驻留（String interning）：对频繁重复存储的非唯一字符串（场馆、symbol、instrument ID）使用 `ustr::Ustr` 以减少内存与比较成本。
+- Testing helpers (`common/testing.rs`)：把共享的 fixtures 和样本 payload 放到 `src/common/testing.rs`，将 `#[cfg(test)]` 相关辅助从生产模块中剥离，方便复用。
 
-## HTTP client patterns
+## HTTP 客户端设计要点
 
-Adapters use a two-layer HTTP client structure to enable efficient cloning for Python bindings while keeping the actual HTTP logic in a single place.
-
-### Client structure
-
-Use an inner/outer client pattern with `Arc` wrapping:
+为了方便 Python 绑定的高效克隆，HTTP 客户端采用内层/外层（inner/outer）结构，并用 `Arc` 包裹：
 
 ```rust
 use std::sync::Arc;
@@ -125,50 +120,47 @@ pub struct MyHttpClient {
 }
 ```
 
-**Key points**:
+要点：
 
-- Inner client (`*HttpInnerClient`) contains all HTTP logic and state.
-- Outer client (`*HttpClient`) wraps the inner client in an `Arc` for efficient cloning.
-- Use `nautilus_network::http::HttpClient` instead of `reqwest::Client` directly - this provides rate limiting, retry logic, and consistent error handling.
-- The outer client delegates all methods to the inner client.
+- 内层 client（`*HttpInnerClient`）包含所有 HTTP 的逻辑与状态。
+- 外层 client（`*HttpClient`）用 `Arc` 包裹内层以支持高效克隆。
+- 优先使用 `nautilus_network::http::HttpClient` 而不是直接使用 `reqwest::Client` ——前者提供了内置的流控、重试与统一的错误处理。
+- 外层 client 的方法只是简单委托给内层。
 
-### Parser functions
+### 解析（Parser）函数
 
-Parser functions convert venue-specific data structures into Nautilus domain objects. These belong in `common/parse.rs` for cross-cutting conversions (instruments, trades, bars) or `http/parse.rs` for REST-specific transformations. Each parser takes venue data plus context (account IDs, timestamps, instrument references) and returns a Nautilus domain type wrapped in `Result`.
+解析函数把场馆特定的数据结构转为 Nautilus 的领域对象。公共转换放在 `common/parse.rs`，REST 特定的放在 `http/parse.rs`。每个解析函数接收场馆数据与上下文（账号 ID、时间戳、instrument 引用等），并返回包裹在 `Result` 中的 Nautilus 类型。
 
-**Standard patterns:**
+常见做法：
 
-- Handle string-to-numeric conversions with proper error context using `.parse::<f64>()` and `anyhow::Context`.
-- Check for empty strings before parsing optional fields - venues often return `""` instead of omitting fields.
-- Map venue enums to Nautilus enums explicitly with `match` statements rather than implementing automatic conversions that could hide mapping errors.
-- Accept instrument references when precision or other metadata is required for constructing Nautilus types (quantities, prices).
-- Use descriptive function names: `parse_position_status_report`, `parse_order_status_report`, `parse_trade_tick`.
+- 使用 `.parse::<f64>()` 并结合 `anyhow::Context` 提供充足的错误上下文来处理字符串到数值的转换。
+- 在解析可选字段前先检查空字符串，因为很多场馆会返回 `""` 而不是直接省略字段。
+- 使用 `match` 明确地把场馆枚举映射到 Nautilus 枚举，避免自动转换掩盖映射错误。
+- 在需要精度或其它元数据构建 Nautilus 类型（数量、价格）时接受 instrument 引用。
+- 使用描述性的函数名，例如 `parse_position_status_report`、`parse_order_status_report`、`parse_trade_tick`。
 
-Place parsing helpers (`parse_price_with_precision`, `parse_timestamp`) in the same module as private functions when they're reused across multiple parsers.
+把复用的解析辅助（如 `parse_price_with_precision`, `parse_timestamp`）放在相同模块中作为私有函数。
 
-### Method naming and organization
+### 方法命名与组织
 
-Organize HTTP methods into two distinct sections:
+把 HTTP 方法分为两类：低级直接 API 调用和高级领域方法。
 
-- Low-level direct API calls.
-- High-level domain methods.
+命名约定：
 
-**Naming conventions:**
+- 低级 API 方法：以 `http_` 为前缀，并放在 impl 块的顶部（例如 `http_get_instruments`, `http_place_order`）。
+- 高级领域方法：无前缀，放在单独的段落（例如 `submit_order`, `cancel_order`）。
+- 低级方法接收场馆特定类型（builder、JSON 值）。
+- 高级方法接收 Nautilus 的领域对象（InstrumentId、ClientOrderId、OrderSide 等）。
 
-- **Low-level API methods**: Prefix with `http_` and place near the top of the impl block (e.g., `http_get_instruments`, `http_place_order`).
-- **High-level domain methods**: No prefix, placed in a separate section (e.g., `submit_order`, `cancel_order`).
-- Low-level methods take venue-specific types (builders, JSON values).
-- High-level methods take Nautilus domain objects (InstrumentId, ClientOrderId, OrderSide, etc.).
+高级方法的典型流程：
 
-**High-level method flow:**
+在内层 client 中，高级方法通常遵循三步：从 Nautilus 类型构建场馆参数 -> 调用对应的 `http_*` 低级方法 -> 解析或抽取响应。对于返回领域对象的端点（positions、orders、trades），使用 `common/parse` 中的解析函数；对于返回原始场馆数据的端点（费率、余额），直接从响应包中抽取结果。以 `request_*` 前缀的方法表示返回领域数据，而 `submit_*`、`cancel_*`、`modify_*` 等方法用于执行动作并返回确认信息。
 
-High-level domain methods in the inner client follow a three-step pattern: build venue-specific parameters from Nautilus types, call the corresponding `http_*` method, then parse or extract the response. For endpoints returning domain objects (positions, orders, trades), call parser functions from `common/parse`. For endpoints returning raw venue data (fee rates, balances), extract the result directly from the response envelope. Methods prefixed with `request_*` indicate they return domain data, while methods like `submit_*`, `cancel_*`, or `modify_*` perform actions and return acknowledgments.
+外层 client 仅把方法委托给内层，目的仅为通过 `Arc` 支持 Python 端的廉价克隆。
 
-The outer client delegates all methods directly to the inner client without additional logic - this separation exists solely to enable cheap cloning for Python bindings via `Arc`.
+### 查询参数构造器（Query builders）
 
-### Query parameter builders
-
-Use the `derive_builder` crate with proper defaults and ergonomic Option handling:
+使用 `derive_builder` crate 并提供合理的默认值与友好的 Option 处理：
 
 ```rust
 use derive_builder::Builder;
@@ -195,91 +187,91 @@ impl Default for InstrumentsInfoParams {
 }
 ```
 
-**Key attributes:**
+关键属性说明：
 
-- `#[builder(setter(into, strip_option), default)]` - enables clean API: `.symbol("BTCUSDT")` instead of `.symbol(Some("BTCUSDT".to_string()))`.
-- `#[serde(skip_serializing_if = "Option::is_none")]` - omits optional fields from query strings.
-- Always implement `Default` for builder parameters.
+- `#[builder(setter(into, strip_option), default)]`：用户可直接写 `.symbol("BTCUSDT")` 而不是 `.symbol(Some("BTCUSDT".to_string()))`。
+- `#[serde(skip_serializing_if = "Option::is_none")]`：在序列化查询字符串时省略 None 字段。
+- 对 builder 参数始终实现 `Default`。
 
-### Request signing and authentication
+### 签名与认证
 
-Keep signing logic in the inner client.
+把签名逻辑放在内层 client 中。
 
-### Error handling and retry logic
+### 错误处理与重试
 
-Use the `RetryManager` from `nautilus_network` for consistent retry behavior.
+使用 `nautilus_network` 提供的 `RetryManager` 实现一致的重试策略。
 
-### Rate limiting
+### 速率限制（Rate limiting）
 
-Configure rate limiting through `HttpClient`.
+通过 `HttpClient` 配置速率限制。
 
-## WebSocket client patterns
+## WebSocket 客户端模式
 
-WebSocket clients handle real-time streaming data and require careful management of connection state, authentication, subscriptions, and reconnection logic.
+WebSocket 客户端用于实时流数据，需仔细管理连接状态、认证、订阅与重连逻辑。
 
-### Client structure
+### 客户端结构
 
-WebSocket clients typically don't need the inner/outer pattern since they're not frequently cloned. Use a single struct with clear state management.
+WebSocket 客户端通常不需要内/外层模式，因为它们不常被克隆。使用单个结构体并清晰地管理状态。
 
-### Authentication
+### 认证
 
-Handle authentication separately from subscriptions.
+把认证逻辑与订阅管理分离。
 
-### Subscription management
+### 订阅管理
 
-#### Subscription lifecycle
+#### 订阅生命周期
 
-A **subscription** represents any topic in one of two states:
+一个订阅（subscription）通常处于两种状态之一：
 
-| State         | Description |
-|---------------|-------------|
-| **Pending**   | Subscription request sent to venue, awaiting acknowledgment |
-| **Confirmed** | Venue acknowledged subscription and is actively streaming data |
+| State         | Description                    |
+| ------------- | ------------------------------ |
+| **Pending**   | 已向场馆发送订阅请求，等待确认 |
+| **Confirmed** | 场馆已确认订阅并开始推送数据   |
 
-State transitions follow this lifecycle:
+状态转换示例：
 
-| Trigger           | Method Called        | From State | To State  | Notes |
-|-------------------|----------------------|------------|-----------|-------|
-| User subscribes   | `mark_subscribe()`   | —          | Pending   | Topic added to pending set |
-| Venue confirms    | `confirm()`          | Pending    | Confirmed | Moved from pending to confirmed |
-| Venue rejects     | `mark_failure()`     | Pending    | Pending   | Stays pending for retry on reconnect |
-| User unsubscribes | `mark_unsubscribe()` | Confirmed  | Pending   | Temporarily pending until ack |
-| Unsubscribe ack   | `clear_pending()`    | Pending    | Removed   | Topic fully removed |
+| Trigger           | Method Called        | From State | To State  | 说明                        |
+| ----------------- | -------------------- | ---------- | --------- | --------------------------- |
+| User subscribes   | `mark_subscribe()`   | —          | Pending   | 将 topic 加入 pending 集合  |
+| Venue confirms    | `confirm()`          | Pending    | Confirmed | 从 pending 移至 confirmed   |
+| Venue rejects     | `mark_failure()`     | Pending    | Pending   | 保持 pending，重连后重试    |
+| User unsubscribes | `mark_unsubscribe()` | Confirmed  | Pending   | 直到收到 ack 前暂为 pending |
+| Unsubscribe ack   | `clear_pending()`    | Pending    | Removed   | 从集合中移除                |
 
-**Key principles**:
+关键原则：
 
-- `subscription_count()` reports **only confirmed subscriptions**, not pending ones.
-- Failed subscriptions remain pending and are automatically retried on reconnect.
-- Both confirmed and pending subscriptions are restored after reconnection.
-- Unsubscribe operations must check the `op` field in acknowledgments to avoid re-confirming topics.
+- `subscription_count()` 只统计 confirmed 状态的订阅，不包括 pending。
+- 失败的订阅保持 pending 状态，并在重连时自动重试。
+- 重连后需恢复 confirmed 与 pending 两类订阅。
+- 取消订阅时需检查 ack 中的 `op` 字段以避免重复确认。
 
-#### Topic format patterns
+#### 主题（topic）格式模式
 
-Adapters use venue-specific delimiters to structure subscription topics:
+适配器使用场馆特定的分隔符来构造订阅主题：
 
 | Adapter    | Delimiter | Example                | Pattern                      |
-|------------|-----------|------------------------|------------------------------|
+| ---------- | --------- | ---------------------- | ---------------------------- |
 | **BitMEX** | `:`       | `trade:XBTUSD`         | `{channel}:{symbol}`         |
 | **OKX**    | `:`       | `trades:BTC-USDT-SWAP` | `{channel}:{symbol}`         |
 | **Bybit**  | `.`       | `orderbook.50.BTCUSDT` | `{channel}.{depth}.{symbol}` |
 
-Parse topics using `split_once()` with the appropriate delimiter to extract channel and symbol components.
+用 `split_once()` 按相应分隔符拆分以提取 channel 与 symbol。
 
-### Reconnection logic
+### 重连逻辑
 
-On reconnection, restore authentication and public subscriptions, but skip private channels that were explicitly unsubscribed.
+重连时恢复认证与公共订阅，但跳过那些在断开前显式取消的私有通道。
 
-### Ping/Pong handling
+### Ping/Pong 处理
 
-Support both control frame pings and application-level pings.
+既要支持控制帧（control-frame）级别的 ping，也要支持应用层的 ping。
 
-### Message routing
+### 消息路由
 
-Route different message types to appropriate handlers.
+将不同类型的消息路由到对应的处理器。
 
-### Error handling
+### 错误处理
 
-Classify errors to determine retry behavior:
+对错误进行分类以决定是否重连或重试：
 
 ```rust
 #[derive(Debug, thiserror::Error)]
@@ -307,34 +299,33 @@ impl MyWebSocketClient {
 }
 ```
 
-## Modeling venue payloads
+## 场馆负载建模（Modeling venue payloads）
 
-Use the following conventions when mirroring upstream schemas in Rust.
+在将上游架构映射到 Rust 时建议遵循以下约定。
 
-### REST models (`http::models` and `http::query`)
+### REST 模型（`http::models` 和 `http::query`）
 
-- Put request and response representations in `src/http/models.rs` and derive `serde::Deserialize` (add `serde::Serialize` when the adapter sends data back).
-- Mirror upstream payload names with blanket casing attributes such as `#[serde(rename_all = "camelCase")]` or `#[serde(rename_all = "snake_case")]`; only add per-field renames when the upstream key would be an invalid Rust identifier or collide with a keyword (for example `#[serde(rename = "type")] pub order_type: String`).
-- Keep helper structs for query parameters in `src/http/query.rs`, deriving `serde::Serialize` to remain type-safe and reusing constants from `common::consts` instead of duplicating literals.
+- 把请求与响应的表示放在 `src/http/models.rs` 并派生 `serde::Deserialize`（当适配器需要向场馆发送数据时再添加 `serde::Serialize`）。
+- 使用整体的大小写重命名属性（如 `#[serde(rename_all = "camelCase")]` 或 `#[serde(rename_all = "snake_case")]`）以匹配上游字段名；只有在上游键为非法 Rust 标识符或与关键字冲突时才对单个字段重命名（例如 `#[serde(rename = "type")] pub order_type: String`）。
+- 把查询参数的辅助结构放在 `src/http/query.rs` 并派生 `serde::Serialize`，复用 `common::consts` 中的常量以避免重复字面量。
 
-### WebSocket messages (`websocket::messages`)
+### WebSocket 消息（`websocket::messages`）
 
-- Define streaming payload types in `src/websocket/messages.rs`, giving each venue topic a struct or enum that mirrors the upstream JSON.
-- Apply the same naming guidance as REST models: rely on blanket casing renames and keep field names aligned with the venue unless syntax forces a change; consider serde helpers such as `#[serde(tag = "op")]` or `#[serde(flatten)]` and document the choice.
-- Note any intentional deviations from the upstream schema in code comments and module docs so other contributors can follow the mapping quickly.
+- 在 `src/websocket/messages.rs` 中为流式负载定义类型，为每个场馆主题创建与上游 JSON 对应的 struct 或 enum。
+- 对命名的处理沿用 REST 的指导：尽量使用整体重命名规则并保持字段名与上游一致，必要时使用 serde 的 `#[serde(tag = "op")]` 或 `#[serde(flatten)]` 等辅助注解，并在文档中说明选择理由。
+- 对有意偏离上游模式的映射，在代码注释与模块文档中说明，以便贡献者快速理解映射规则。
 
 ---
 
-## Testing
+## 测试
 
-Adapters should ship two layers of coverage: the Rust crate that talks to the venue and the Python glue that exposes it to the wider platform.
-Keep the suites deterministic and colocated with the production code they protect.
+适配器应提供两层测试覆盖：Rust 端与暴露给平台的 Python glue。保证测试套件确定性并与被保护的生产代码紧密放置。
 
-### Rust testing
+### Rust 测试
 
-#### Layout
+#### 项目布局示例
 
-```
+```tree
 crates/adapters/your_adapter/
 ├── src/
 │   ├── http/
@@ -346,75 +337,59 @@ crates/adapters/your_adapter/
 ├── tests/
 │   ├── http.rs            # Mock HTTP integration tests
 │   └── websocket.rs       # Mock WebSocket integration tests
-└── test_data/             # Canonical venue payloads used by the suites
-    ├── http_get_{endpoint}.json  # Full venue responses with retCode/result/time
-    └── ws_{message_type}.json    # WebSocket message samples
+└── test_data/             # 用于测试套件的上游负载样本
+    ├── http_get_{endpoint}.json  # 含 retCode/result/time 的完整场馆响应
+    └── ws_{message_type}.json    # WebSocket 消息样本
 ```
 
-- Place unit tests next to the module they exercise (`#[cfg(test)]` blocks). Use `src/common/testing.rs` (or an equivalent helper module) for shared fixtures so production files stay tidy.
-- Keep Axum-based integration suites under `crates/adapters/<adapter>/tests/`, mirroring the public APIs (HTTP client, WebSocket client, caches, reconnection flows).
-- Store upstream payload samples (snapshots, REST replies) under `test_data/` and reference them from both unit and integration tests. Name test data files consistently: `http_get_{endpoint_name}.json` for REST responses, `ws_{message_type}.json` for WebSocket messages. Include complete venue response envelopes (status codes, timestamps, result wrappers) rather than just the data payload. Provide multiple realistic examples in each file - for instance, position data should include long, short, and flat positions to exercise all parser branches.
+- 把单元测试放在其所在模块旁（`#[cfg(test)]` 块）。对于共享 fixtures，使用 `src/common/testing.rs`（或等效模块），保持生产代码清爽。
+- 把基于 Axum 的集成测试放在 `crates/adapters/<adapter>/tests/`，覆盖公共 API（HTTP client、WebSocket client、缓存、重连流）。
+- 将上游负载样本存放在 `test_data/` 并在单元和集成测试中复用。测试数据命名应一致：REST 响应用 `http_get_{endpoint_name}.json`，WebSocket 用 `ws_{message_type}.json`。样本应包含完整的响应包（状态码、时间戳、结果包装），并提供多个现实例子以覆盖解析分支，例如 position 数据应包含 long、short 与 flat 的案例。
 
-#### Unit tests
+#### 单元测试
 
-- Focus on pure logic: parsers, signing helpers, canonicalisers, and any business rules that do not require a live transport.
-- Avoid duplicating coverage that the integration tests already provide.
+- 关注纯逻辑：解析器、签名辅助、规范化器与不依赖实时传输的业务规则。
+- 避免重复覆盖那些已由集成测试保证的行为。
 
-#### Integration tests
+#### 集成测试
 
-Exercise the public API against Axum mock servers. At a minimum, mirror the BitMEX test surface (see
-`crates/adapters/bitmex/tests/`) so every adapter proves the same behaviours.
+使用 Axum mock server 验证对外公共 API。至少参考 BitMEX 的测试覆盖（见 `crates/adapters/bitmex/tests/`），确保每个适配器验证相同的行为集。
 
-##### HTTP client integration coverage
+##### HTTP 客户端集成测试要点
 
-- **Happy paths** – fetch a representative public resource (e.g., instruments or mark price) and ensure the
-  response is converted into Nautilus domain models.
-- **Credential guard** – call a private endpoint without credentials and assert a structured error; repeat with
-  credentials to prove success.
-- **Rate limiting / retry mapping** – surface venue-specific rate-limit responses and assert the adapter produces
-  the correct `OkxError`/`BitmexHttpError` variant so the retry policy can react.
-- **Query builders** – exercise builders for paginated/time-bounded endpoints (historical trades, candles) and
-  assert the emitted query string matches the venue specification (`after`, `before`, `limit`, etc.).
-- **Error translation** – verify non-2xx upstream responses map to adapter error enums with the original code/message attached.
+- Happy paths（正常路径）— 获取代表性公开资源（如 instruments 或 mark price），并断言其被正确转换为 Nautilus 的领域模型。
+- Credential guard（凭证保护）— 无凭证调用私有端点并断言返回结构化错误；再带凭证调用以证明成功。
+- 速率限制 / 重试映射 — 模拟场馆的速率限制响应并断言适配器映射为正确的错误变体（如 `OkxError` / `BitmexHttpError`），以便重试策略做出响应。
+- Query builders — 测试分页 / 按时间查询的构造器（历史成交、K 线），断言生成的查询字符串符合场馆规范（`after`、`before`、`limit` 等）。
+- Error translation — 验证非 2xx 的上游响应被映射为适配器错误枚举并附带原始 code/message。
 
-##### WebSocket client integration coverage
+##### WebSocket 客户端集成测试要点
 
-- **Login handshake** – confirm a successful login flips the internal auth state and test failure cases where the
-  server returns a non-zero code; the client should surface an error and avoid marking itself as authenticated.
-- **Ping/Pong** – prove both text-based and control-frame pings trigger immediate pong responses.
-- **Subscription lifecycle** – assert subscription requests/acks are emitted for public and private channels, and that
-  unsubscribe calls remove entries from the cached subscription sets.
-- **Reconnect behaviour** – simulate a disconnect and ensure the client re-authenticates, restores public channels,
-  and skips private channels that were explicitly unsubscribed pre-disconnect.
-- **Message routing** – feed representative data/ack/error payloads through the socket and assert they arrive on the
-  public stream as the correct `NautilusWsMessage` variant.
-- **Quota tagging** – (optional but recommended) validate that order/cancel/amend operations are tagged with the
-  appropriate quota label so rate limiting can be enforced independently of subscription traffic.
+- Login handshake — 断言成功登录会切换内部认证状态，并测试服务器返回非零 code 的失败场景；客户端应抛出错误并避免将自己标记为已认证。
+- Ping/Pong — 验证文本型与控制帧 ping 都能触发即时 pong。
+- Subscription lifecycle — 断言 public/private 通道的订阅请求/ack 被正确发送与接收，且取消订阅会从缓存集合中移除条目。
+- Reconnect behaviour — 模拟断连并验证客户端能重新认证、恢复公共通道，并跳过在断开前已显式取消的私有通道。
+- Message routing — 向 socket 注入代表性的数据/ack/error 负载，并断言其在 public stream 上以正确的 `NautilusWsMessage` 变体出现。
+- Quota tagging — （可选）验证订单/撤单/改单等操作带上合适的配额标签，以便在订阅流量之外对速率限制进行独立管控。
 
-- Prefer event-driven assertions with shared state (for example, collect `subscription_events`, track
-  pending/confirmed topics, wait for `connection_count` transitions) instead of arbitrary `sleep` calls.
-- Use adapter-specific helpers to gate on explicit signals such as "auth confirmed" or "reconnection finished" so
-  suites remain deterministic under load.
+- 优先使用事件驱动的断言与共享状态（例如收集 `subscription_events`、跟踪 pending/confirmed 话题、等待 `connection_count` 的状态变化），而不是任意的 sleep 调用。
+- 使用适配器特有的辅助工具来等待显式信号（如 "auth confirmed" 或 "reconnection finished"），以保持测试在高并发下的确定性。
 
-### Python testing
+### Python 层测试
 
-- Exercise the adapter’s Python surface (instrument providers, data/execution clients, factories) inside `tests/integration_tests/adapters/<adapter>/`.
-- Mock the PyO3 boundary (`nautilus_pyo3` shims, stubbed Rust clients) so tests stay fast while verifying that configuration, factory wiring, and error handling match the exported Rust API.
-- Mirror the Rust integration coverage: when the Rust suite adds a new behaviour (e.g., reconnection replay, error
-  propagation), assert the Python layer performs the same sequence (connect/disconnect, submit/amend/cancel
-  translations, venue ID hand-off, failure handling). BitMEX’s Python tests provide the target level of detail.
+- 在 `tests/integration_tests/adapters/<adapter>/` 中对适配器的 Python 表面（instrument providers、data/execution clients、factories）进行测试。
+- 在测试中 mock PyO3 边界（`nautilus_pyo3` shim、stubbed Rust clients），以保证测试速度同时验证配置、factory 连接与错误处理与导出的 Rust API 一致。
+- 对标 Rust 的集成覆盖：当 Rust 端引入新行为（例如重连回放、错误传播）时，断言 Python 层执行相同的序列（连接/断开、提交/改/撤单的翻译、场馆 ID 的传递、失败处理）。BitMEX 的 Python 测试是可参考的目标级别。
 
 ---
 
-## Python adapter layer
+## Python 适配器层实现指南（模板）
 
-Below is a step-by-step guide to building an adapter for a new data provider using the provided template.
+下面给出使用模板为新数据提供方构建适配器的分步指南。
 
 ### InstrumentProvider
 
-The `InstrumentProvider` supplies instrument definitions available on the venue. This
-includes loading all available instruments, specific instruments by ID, and applying filters to the
-instrument list.
+`InstrumentProvider` 负责提供场馆可用的 instrument 定义，包括加载全部 instrument、按 ID 加载特定 instrument，以及对 instrument 列表应用过滤器。
 
 ```python
 from nautilus_trader.common.providers import InstrumentProvider
@@ -422,7 +397,7 @@ from nautilus_trader.model import InstrumentId
 
 
 class TemplateInstrumentProvider(InstrumentProvider):
-    """Example `InstrumentProvider` showing the minimal overrides required for a complete integration."""
+    """示例 `InstrumentProvider`，展示完成集成所需的最小覆盖方法。"""
 
     async def load_all_async(self, filters: dict | None = None) -> None:
         raise NotImplementedError("implement `load_all_async` in your adapter subclass")
@@ -434,17 +409,15 @@ class TemplateInstrumentProvider(InstrumentProvider):
         raise NotImplementedError("implement `load_async` in your adapter subclass")
 ```
 
-**Key methods**:
+关键方法：
 
-- `load_all_async`: Loads all instruments asynchronously, optionally applying filters.
-- `load_ids_async`: Loads specific instruments by their IDs.
-- `load_async`: Loads a single instrument by its ID.
+- `load_all_async`：异步加载全部 instruments，可选地应用过滤条件。
+- `load_ids_async`：按 ID 加载指定的 instruments。
+- `load_async`：按 ID 加载单个 instrument。
 
 ### DataClient
 
-The `LiveDataClient` handles the subscription and management of data feeds that are not specifically
-related to market data. This might include news feeds, custom data streams, or other data sources
-that enhance trading strategies but do not directly represent market activity.
+`LiveDataClient` 处理与市场数据非直接相关的数据订阅与管理，例如新闻流、定制数据流或其它能增强策略但不直接代表市场活动的数据源。
 
 ```python
 from nautilus_trader.data.messages import RequestData
@@ -455,7 +428,7 @@ from nautilus_trader.model import DataType
 
 
 class TemplateLiveDataClient(LiveDataClient):
-    """Example `LiveDataClient` showing the overridable abstract methods."""
+    """示例 `LiveDataClient`，展示可覆盖的抽象方法。"""
 
     async def _connect(self) -> None:
         raise NotImplementedError("implement `_connect` in your adapter subclass")
@@ -473,19 +446,17 @@ class TemplateLiveDataClient(LiveDataClient):
         raise NotImplementedError("implement `_request` in your adapter subclass")
 ```
 
-**Key methods**:
+关键方法：
 
-- `_connect`: Establishes a connection to the data provider.
-- `_disconnect`: Closes the connection to the data provider.
-- `_subscribe`: Subscribes to a specific data type.
-- `_unsubscribe`: Unsubscribes from a specific data type.
-- `_request`: Requests data from the provider.
+- `_connect`：建立与数据提供方的连接。
+- `_disconnect`：关闭连接。
+- `_subscribe`：订阅特定数据类型。
+- `_unsubscribe`：取消订阅。
+- `_request`：向提供方请求数据。
 
 ### MarketDataClient
 
-The `MarketDataClient` handles market-specific data such as order books, top-of-book quotes and trades,
-and instrument status updates. It focuses on providing historical and real-time market data that is essential for
-trading operations.
+`MarketDataClient` 处理市场相关的数据，如 order book、top-of-book 报价与成交、以及 instrument 的状态更新，关注历史与实时数据供交易所需。
 
 ```python
 from nautilus_trader.data.messages import RequestBars
@@ -523,7 +494,7 @@ from nautilus_trader.live.data_client import LiveMarketDataClient
 
 
 class TemplateLiveMarketDataClient(LiveMarketDataClient):
-    """Example `LiveMarketDataClient` showing the overridable abstract methods."""
+    """示例 `LiveMarketDataClient`，展示可覆盖的抽象方法。"""
 
     async def _connect(self) -> None:
         raise NotImplementedError("implement `_connect` in your adapter subclass")
@@ -631,49 +602,47 @@ class TemplateLiveMarketDataClient(LiveMarketDataClient):
         raise NotImplementedError("implement `_request_order_book_snapshot` in your adapter subclass")
 ```
 
-**Key methods**:
+关键方法：
 
-- `_connect`: Establishes a connection to the venue APIs.
-- `_disconnect`: Closes the connection to the venue APIs.
-- `_subscribe`: Subscribes to generic data (base method for custom data types).
-- `_unsubscribe`: Unsubscribes from generic data (base method for custom data types).
-- `_request`: Requests generic data (base method for custom data types).
-- `_subscribe_instruments`: Subscribes to market data for multiple instruments.
-- `_unsubscribe_instruments`: Unsubscribes from market data for multiple instruments.
-- `_subscribe_instrument`: Subscribes to market data for a single instrument.
-- `_unsubscribe_instrument`: Unsubscribes from market data for a single instrument.
-- `_subscribe_order_book_deltas`: Subscribes to order book delta updates.
-- `_unsubscribe_order_book_deltas`: Unsubscribes from order book delta updates.
-- `_subscribe_order_book_snapshots`: Subscribes to order book snapshot updates.
-- `_unsubscribe_order_book_snapshots`: Unsubscribes from order book snapshot updates.
-- `_subscribe_quote_ticks`: Subscribes to top-of-book quote updates.
-- `_unsubscribe_quote_ticks`: Unsubscribes from quote tick updates.
-- `_subscribe_trade_ticks`: Subscribes to trade tick updates.
-- `_unsubscribe_trade_ticks`: Unsubscribes from trade tick updates.
-- `_subscribe_mark_prices`: Subscribes to mark price updates.
-- `_unsubscribe_mark_prices`: Unsubscribes from mark price updates.
-- `_subscribe_index_prices`: Subscribes to index price updates.
-- `_unsubscribe_index_prices`: Unsubscribes from index price updates.
-- `_subscribe_funding_rates`: Subscribes to funding rate updates.
-- `_unsubscribe_funding_rates`: Unsubscribes from funding rate updates.
-- `_subscribe_bars`: Subscribes to bar/candlestick updates.
-- `_unsubscribe_bars`: Unsubscribes from bar updates.
-- `_subscribe_instrument_status`: Subscribes to instrument status updates.
-- `_unsubscribe_instrument_status`: Unsubscribes from instrument status updates.
-- `_subscribe_instrument_close`: Subscribes to instrument close price updates.
-- `_unsubscribe_instrument_close`: Unsubscribes from instrument close price updates.
-- `_request_instrument`: Requests historical data for a single instrument.
-- `_request_instruments`: Requests historical data for multiple instruments.
-- `_request_quote_ticks`: Requests historical quote tick data.
-- `_request_trade_ticks`: Requests historical trade tick data.
-- `_request_bars`: Requests historical bar data.
-- `_request_order_book_snapshot`: Requests an order book snapshot.
+- `_connect`：建立与场馆 API 的连接。
+- `_disconnect`：关闭连接。
+- `_subscribe`：订阅通用数据（为自定义数据类型提供基类）。
+- `_unsubscribe`：取消订阅通用数据。
+- `_request`：请求通用数据。
+- `_subscribe_instruments`：订阅多 instrument 的市场数据。
+- `_unsubscribe_instruments`：取消订阅多 instrument 的市场数据。
+- `_subscribe_instrument`：订阅单个 instrument 的市场数据。
+- `_unsubscribe_instrument`：取消订阅单个 instrument 的市场数据。
+- `_subscribe_order_book_deltas`：订阅 order book 差分更新。
+- `_unsubscribe_order_book_deltas`：取消订阅 order book 差分更新。
+- `_subscribe_order_book_snapshots`：订阅 order book 快照。
+- `_unsubscribe_order_book_snapshots`：取消订阅 order book 快照。
+- `_subscribe_quote_ticks`：订阅 top-of-book 报价更新。
+- `_unsubscribe_quote_ticks`：取消订阅 quote tick 更新。
+- `_subscribe_trade_ticks`：订阅 trade tick 更新。
+- `_unsubscribe_trade_ticks`：取消订阅 trade tick 更新。
+- `_subscribe_mark_prices`：订阅 mark price 更新。
+- `_unsubscribe_mark_prices`：取消订阅 mark price 更新。
+- `_subscribe_index_prices`：订阅 index price 更新。
+- `_unsubscribe_index_prices`：取消订阅 index price 更新。
+- `_subscribe_funding_rates`：订阅 funding rate 更新。
+- `_unsubscribe_funding_rates`：取消订阅 funding rate 更新。
+- `_subscribe_bars`：订阅 K 线 / bars 更新。
+- `_unsubscribe_bars`：取消订阅 bars 更新。
+- `_subscribe_instrument_status`：订阅 instrument 状态更新。
+- `_unsubscribe_instrument_status`：取消订阅 instrument 状态更新。
+- `_subscribe_instrument_close`：订阅 instrument 收盘价更新。
+- `_unsubscribe_instrument_close`：取消订阅 instrument 收盘价更新。
+- `_request_instrument`：请求单个 instrument 的历史数据。
+- `_request_instruments`：请求多个 instrument 的历史数据。
+- `_request_quote_ticks`：请求历史 quote tick 数据。
+- `_request_trade_ticks`：请求历史 trade tick 数据。
+- `_request_bars`：请求历史 K 线 数据。
+- `_request_order_book_snapshot`：请求 order book 快照。
 
 ### ExecutionClient
 
-The `ExecutionClient` is responsible for order management, including submission, modification, and
-cancellation of orders. It is a crucial component of the adapter that interacts with the venue
-trading system to manage and execute trades.
+`ExecutionClient` 负责订单管理，包括提交、修改与撤单。它与场馆交易系统交互以管理并执行交易。
 
 ```python
 from nautilus_trader.execution.messages import BatchCancelOrders
@@ -693,7 +662,7 @@ from nautilus_trader.live.execution_client import LiveExecutionClient
 
 
 class TemplateLiveExecutionClient(LiveExecutionClient):
-    """Example `LiveExecutionClient` outlining the required overrides."""
+    """示例 `LiveExecutionClient`，概述所需覆盖的方法。"""
 
     async def _connect(self) -> None:
         raise NotImplementedError("implement `_connect` in your adapter subclass")
@@ -744,26 +713,24 @@ class TemplateLiveExecutionClient(LiveExecutionClient):
         raise NotImplementedError("method `generate_position_status_reports` must be implemented in the subclass")
 ```
 
-**Key methods**:
+关键方法：
 
-- `_connect`: Establishes a connection to the venue APIs.
-- `_disconnect`: Closes the connection to the venue APIs.
-- `_submit_order`: Submits a new order to the venue.
-- `_submit_order_list`: Submits a list of orders to the venue.
-- `_modify_order`: Modifies an existing order on the venue.
-- `_cancel_order`: Cancels a specific order on the venue.
-- `_cancel_all_orders`: Cancels all orders for an instrument on the venue.
-- `_batch_cancel_orders`: Cancels a batch of orders for an instrument on the venue.
-- `generate_order_status_report`: Generates a report for a specific order on the venue.
-- `generate_order_status_reports`: Generates reports for all orders on the venue.
-- `generate_fill_reports`: Generates reports for filled orders on the venue.
-- `generate_position_status_reports`: Generates reports for position status on the venue.
+- `_connect`：建立与场馆 API 的连接。
+- `_disconnect`：关闭连接。
+- `_submit_order`：向场馆提交新订单。
+- `_submit_order_list`：提交订单列表。
+- `_modify_order`：修改已存在订单。
+- `_cancel_order`：撤销指定订单。
+- `_cancel_all_orders`：撤销场馆上某 instrument 的所有订单。
+- `_batch_cancel_orders`：批量撤单。
+- `generate_order_status_report`：为指定订单生成状态报告。
+- `generate_order_status_reports`：为所有订单生成状态报告。
+- `generate_fill_reports`：为已成交订单生成成交报告。
+- `generate_position_status_reports`：生成头寸状态报告。
 
-### Configuration
+### 配置
 
-The configuration file defines settings specific to the adapter, such as API keys and connection
-details. These settings are essential for initializing and managing the adapter’s connection to the
-data provider.
+配置文件定义适配器相关设置，例如 API key 与连接信息。此类设置对初始化与管理适配器连接至数据提供方至关重要。
 
 ```python
 from nautilus_trader.config import LiveDataClientConfig
@@ -771,7 +738,7 @@ from nautilus_trader.config import LiveExecClientConfig
 
 
 class TemplateDataClientConfig(LiveDataClientConfig):
-    """Configuration for `TemplateDataClient` instances."""
+    """`TemplateDataClient` 的配置类。"""
 
     api_key: str
     api_secret: str
@@ -779,38 +746,38 @@ class TemplateDataClientConfig(LiveDataClientConfig):
 
 
 class TemplateExecClientConfig(LiveExecClientConfig):
-    """Configuration for `TemplateExecClient` instances."""
+    """`TemplateExecClient` 的配置类。"""
 
     api_key: str
     api_secret: str
     base_url: str
 ```
 
-**Key attributes**:
+关键属性：
 
-- `api_key`: The API key for authenticating with the data provider.
-- `api_secret`: The API secret for authenticating with the data provider.
-- `base_url`: The base URL for connecting to the data provider's API.
+- `api_key`：用于与数据提供方认证的 API key。
+- `api_secret`：用于认证的 API secret。
+- `base_url`：连接到数据提供方 API 的 base URL。
 
-## Common test scenarios
+## 常见测试场景
 
-Exercise adapters across every venue behaviour they claim to support. Incorporate these scenarios into the Rust and Python suites.
+针对适配器说明书中声称支持的每一种场馆行为都应该有测试用例。把下列场景纳入 Rust 与 Python 的测试套件。
 
-### Product coverage
+### 产品覆盖
 
-Ensure each supported product family is tested.
+确保每个支持的产品类别都有测试覆盖：
 
-- Spot instruments
-- Derivatives (perpetuals, futures, swaps)
-- Options and structured products
+- 现货（Spot）
+- 衍生品（永续、期货、掉期）
+- 期权与结构化产品
 
-### Order flow
+### 订单流
 
-- Cover each supported order type (limit, market, stop, conditional, etc.) under every venue time-in-force option, expiries, and rejection handling.
-- Submit buy and sell market orders and assert balance, position, and average-price updates align with venue responses.
-- Submit representative buy and sell limit orders, verifying acknowledgements, execution reports, full and partial fills, and cancel flows.
+- 覆盖每种支持的订单类型（限价、市价、止损、条件单等），在各类场馆的 time-in-force、到期与拒单处理下都应验证行为。
+- 提交买/卖市价单，并断言余额、头寸与平均价更新与场馆响应一致。
+- 提交代表性的买/卖限价单，验证确认、执行报告、完整/部分成交与撤单流程。
 
-### State management
+### 状态管理
 
-- Start sessions with existing open orders to ensure the adapter reconciles state on connect before issuing new commands.
-- Seed preloaded positions and confirm position snapshots, valuation, and PnL agree with the venue prior to trading.
+- 在启动会话时带有未完成订单，以确保适配器在连接时能与场馆对齐状态后再发出新命令。
+- 预置头寸并确认头寸快照、估值与 PnL 在交易前与场馆一致。
