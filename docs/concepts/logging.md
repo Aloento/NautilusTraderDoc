@@ -271,5 +271,5 @@ for i in range(number_of_backtests):
 在 Windows 平台上，解释器关闭期间的不确定性垃圾回收可能会偶尔导致日志线程无法正常 join。
 当最后一个 `LogGuard` 被释放时，日志子系统会向后台线程发送关闭信号并尝试 join，以确保所有待写消息被写入。如果 Python 的垃圾回收在解释器开始关闭后才释放 guard，join 可能无法完成，从而造成日志被截断。
 
-该问题在 GitHub 上以 issue #3027 跟踪： <https://github.com/nautechsystems/nautilus_trader/issues/3027> 。
+该问题在 GitHub 上以 issue #3027 跟踪： [https://github.com/nautechsystems/nautilus_trader/issues/3027](https://github.com/nautechsystems/nautilus_trader/issues/3027) 。
 目前正在评估一种更确定性的关闭机制。

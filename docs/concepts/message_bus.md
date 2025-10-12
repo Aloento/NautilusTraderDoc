@@ -243,7 +243,7 @@ def on_signal(self, signal):
 当消息总线配置了外部 backing（例如某种数据库或消息代理）并提供相应的集成时，便可以将消息发布到外部系统。
 
 :::info
-当前对外部可序列化消息的支持实现了 Redis。最低支持的 Redis 版本为 6.2（需要 streams 功能）。更多信息请参见 <https://redis.io/docs/latest/develop/data-types/streams/。>
+当前对外部可序列化消息的支持实现了 Redis。最低支持的 Redis 版本为 6.2（需要 streams 功能）。更多信息请参见 [https://redis.io/docs/latest/develop/data-types/streams/](https://redis.io/docs/latest/develop/data-types/streams/)。
 :::
 
 在内部实现层面，当配置了 backing（或其他兼容技术）后，所有外发消息会先被序列化，然后通过一个多生产单消费者（MPSC）通道发送到一个独立线程（以 Rust 实现）。在该独立线程中，消息被写入最终目标（当前为 Redis streams）。
