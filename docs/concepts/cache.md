@@ -1,30 +1,32 @@
 # Cache
 
-The `Cache` is a central in-memory database that automatically stores and manages all trading-related data.
-Think of it as your trading system’s memory – storing everything from market data to order history to custom calculations.
+`Cache` 是一个中央的内存数据库，自动存储并管理所有与交易相关的数据。
+可以把它看作交易系统的“记忆”：从市场数据到订单历史，再到自定义计算结果，都会被存放在这里。
 
-The Cache serves multiple key purposes:
+Cache 的主要用途包括：
 
-1. **Stores market data**:
-   - Stores recent market history (e.g., order books, quotes, trades, bars).
-   - Gives you access to both current and historical market data for your strategy.
+1. **存储市场数据**：
 
-2. **Tracks trading data**:
-   - Maintains complete `Order` history and current execution state.
-   - Tracks all `Position`s and `Account` information.
-   - Stores `Instrument` definitions and `Currency` information.
+   - 保存最近的市场历史（例如：order books、quotes、trades、bars）。
+   - 为策略提供当前及历史市场数据的访问能力。
 
-3. **Stores custom data**:
-   - Any user-defined objects or data can be stored in the `Cache` for later use.
-   - Enables data sharing between different strategies.
+2. **跟踪交易数据**：
 
-## How caching works
+   - 维护完整的 `Order` 历史以及当前执行状态。
+   - 跟踪所有 `Position` 和 `Account` 信息。
+   - 存储 `Instrument` 定义和 `Currency` 信息。
 
-**Built-in types**:
+3. **保存自定义数据**：
+   - 任意用户自定义对象或数据都可以存入 `Cache` 以备后用。
+   - 便于不同策略之间共享数据。
 
-- Data is automatically added to the `Cache` as it flows through the system.
-- In live contexts, updates happen asynchronously - which means there might be a small delay between an event occurring and it appearing in the `Cache`.
-- All data flows through the `Cache` before reaching your strategy’s callbacks – see the diagram below:
+## 缓存是如何工作的
+
+**内置数据类型**：
+
+- 数据在流经系统时会被自动添加到 `Cache` 中。
+- 在实时（live）场景下，更新是异步发生的——这意味着事件发生与其出现在 `Cache` 中之间可能存在短暂延迟。
+- 所有数据在到达策略回调之前都会先经过 `Cache`——见下图：
 
 ```
 ┌─────────────────┐     ┌─────────────────┐     ┌─────────────────┐     ┌───────────────────────┐
@@ -36,53 +38,53 @@ The Cache serves multiple key purposes:
 └─────────────────┘     └─────────────────┘     └─────────────────┘     └───────────────────────┘
 ```
 
-### Basic example
+### 基本示例
 
-Within a strategy, you can access the `Cache` through `self.cache`. Here’s a typical example:
+在策略内部，你可以通过 `self.cache` 访问 `Cache`。下面是一个常见示例：
 
 :::note
-Anywhere you find `self`, it refers mostly to the `Strategy` itself.
+在本文中出现的 `self` 通常指代 `Strategy` 实例本身。
 :::
 
 ```python
 def on_bar(self, bar: Bar) -> None:
-    # Current bar is provided in the parameter 'bar'
+    # 当前 bar 由参数 'bar' 提供
 
-    # Get historical bars from Cache
-    last_bar = self.cache.bar(self.bar_type, index=0)        # Last bar (practically the same as the 'bar' parameter)
-    previous_bar = self.cache.bar(self.bar_type, index=1)    # Previous bar
-    third_last_bar = self.cache.bar(self.bar_type, index=2)  # Third last bar
+    # 从 Cache 获取历史 bars
+    last_bar = self.cache.bar(self.bar_type, index=0)        # 最近一根 bar（与参数 'bar' 基本相同）
+    previous_bar = self.cache.bar(self.bar_type, index=1)    # 前一根 bar
+    third_last_bar = self.cache.bar(self.bar_type, index=2)  # 倒数第三根 bar
 
-    # Get current position information
+    # 获取当前持仓信息
     if self.last_position_opened_id is not None:
         position = self.cache.position(self.last_position_opened_id)
         if position.is_open:
-            # Check position details
+            # 检查持仓详情
             current_pnl = position.unrealized_pnl
 
-    # Get all open orders for our instrument
+    # 获取该标的的所有未平订单
     open_orders = self.cache.orders_open(instrument_id=self.instrument_id)
 ```
 
-## Configuration
+## 配置
 
-The `Cache`’s behavior and capacity can be configured through the `CacheConfig` class.
-You can provide this configuration either to a `BacktestEngine` or a `TradingNode`, depending on your [environment context](architecture.md#environment-contexts).
+`Cache` 的行为与容量可通过 `CacheConfig` 类进行配置。
+你可以在 `BacktestEngine` 或 `TradingNode` 上提供该配置，具体取决于你的运行环境（参见架构文档中的 environment contexts）。
 
-Here's a basic example of configuring the `Cache`:
+下面是一个配置 `Cache` 的基本示例：
 
 ```python
 from nautilus_trader.config import CacheConfig, BacktestEngineConfig, TradingNodeConfig
 
-# For backtesting
+# 回测场景
 engine_config = BacktestEngineConfig(
     cache=CacheConfig(
-        tick_capacity=10_000,  # Store last 10,000 ticks per instrument
-        bar_capacity=5_000,    # Store last 5,000 bars per bar type
+        tick_capacity=10_000,  # 每个合约保留最近 10,000 条 tick
+        bar_capacity=5_000,    # 每种 bar 类型保留最近 5,000 根 bar
     ),
 )
 
-# For live trading
+# 实盘场景
 node_config = TradingNodeConfig(
     cache=CacheConfig(
         tick_capacity=10_000,
@@ -92,131 +94,131 @@ node_config = TradingNodeConfig(
 ```
 
 :::tip
-By default, the `Cache` keeps the last 10,000 bars for each bar type and 10,000 trade ticks per instrument.
-These limits provide a good balance between memory usage and data availability. Increase them if your strategy needs more historical data.
+默认情况下，`Cache` 为每种 bar 类型保留最近 10,000 根 bar，并为每个合约保留 10,000 条 trade tick。
+这些默认值在内存占用与数据可用性之间提供了较好的平衡；如果你的策略需要更多历史数据，可以适当增大。
 :::
 
-### Configuration Options
+### 配置选项
 
-The `CacheConfig` class supports these parameters:
+`CacheConfig` 支持下列参数：
 
 ```python
 from nautilus_trader.config import CacheConfig
 
 cache_config = CacheConfig(
-    database: DatabaseConfig | None = None,  # Database configuration for persistence
-    encoding: str = "msgpack",               # Data encoding format ('msgpack' or 'json')
-    timestamps_as_iso8601: bool = False,     # Store timestamps as ISO8601 strings
-    buffer_interval_ms: int | None = None,   # Buffer interval for batch operations
-    use_trader_prefix: bool = True,          # Use trader prefix in keys
-    use_instance_id: bool = False,           # Include instance ID in keys
-    flush_on_start: bool = False,            # Clear database on startup
-    drop_instruments_on_reset: bool = True,  # Clear instruments on reset
-    tick_capacity: int = 10_000,             # Maximum ticks stored per instrument
-    bar_capacity: int = 10_000,              # Maximum bars stored per each bar-type
+    database: DatabaseConfig | None = None,  # 持久化使用的数据库配置
+    encoding: str = "msgpack",               # 数据编码格式（'msgpack' 或 'json'）
+    timestamps_as_iso8601: bool = False,     # 是否以 ISO8601 字符串存储时间戳
+    buffer_interval_ms: int | None = None,   # 批量写入的缓冲时间（毫秒）
+    use_trader_prefix: bool = True,          # 在 key 中使用 trader 前缀
+    use_instance_id: bool = False,           # 在 key 中包含实例 ID
+    flush_on_start: bool = False,            # 启动时是否清空数据库
+    drop_instruments_on_reset: bool = True,  # reset 时是否清除 instrument
+    tick_capacity: int = 10_000,             # 每个合约最大保存的 ticks 数量
+    bar_capacity: int = 10_000,              # 每种 bar type 最大保存的 bars 数量
 )
 ```
 
 :::note
-Each bar type maintains its own separate capacity. For example, if you're using both 1-minute and 5-minute bars, each will store up to `bar_capacity` bars.
-When `bar_capacity` is reached, the oldest data is automatically removed from the `Cache`.
+每种 bar 类型维护独立的容量限制。例如同时使用 1 分钟和 5 分钟 bar 时，两者各自最多保存 `bar_capacity` 根 bar。
+当达到 `bar_capacity` 时，最旧的数据会被自动移除。
 :::
 
-### Database Configuration
+### 数据库配置
 
-For persistence between system restarts, you can configure a database backend.
+若需在系统重启间保持数据持久化，可配置后端数据库。
 
-When is it useful to use persistence?
+何时适合使用持久化？
 
-- **Long-running systems**: If you want your data to survive system restarts, upgrading, or unexpected failures, having a database configuration helps to pick up exactly where you left off.
-- **Historical insights**: When you need to preserve past trading data for detailed post-analysis or audits.
-- **Multi-node or distributed setups**: If multiple services or nodes need to access the same state, a persistent store helps ensure shared and consistent data.
+- **长时间运行的系统**：如果希望在重启、升级或意外故障后继续从上次状态恢复，持久化配置能帮你做到这一点。
+- **历史分析**：需要保存完整历史数据以便事后分析或审计时很有用。
+- **多节点或分布式部署**：当多个服务或节点需要共享同一状态时，持久化存储能保证一致性。
 
 ```python
 from nautilus_trader.config import DatabaseConfig
 
 config = CacheConfig(
     database=DatabaseConfig(
-        type="redis",      # Database type
-        host="localhost",  # Database host
-        port=6379,         # Database port
-        timeout=2,         # Connection timeout (seconds)
+        type="redis",      # 数据库类型
+        host="localhost",  # 数据库主机
+        port=6379,         # 数据库端口
+        timeout=2,         # 连接超时（秒）
     ),
 )
 ```
 
-## Using the cache
+## 使用 Cache
 
-### Accessing Market data
+### 访问市场数据
 
-The `Cache` provides a comprehensive interface for accessing different types of market data, including order books, quotes, trades, bars.
-All market data in the cache are stored with reverse indexing — meaning the most recent data is at index 0.
+`Cache` 提供了全面的接口来访问不同类型的市场数据，包括 order books、quotes、trades、bars。
+缓存中的所有市场数据均采用倒序索引——即最新的数据位于 index 0。
 
-#### Bar(s) access
+#### Bar(s) 访问
 
 ```python
-# Get a list of all cached bars for a bar type
-bars = self.cache.bars(bar_type)  # Returns List[Bar] or an empty list if no bars found
+# 获取指定 bar type 的所有缓存 bars
+bars = self.cache.bars(bar_type)  # 返回 List[Bar] 或在无数据时返回空列表
 
-# Get the most recent bar
-latest_bar = self.cache.bar(bar_type)  # Returns Bar or None if no such object exists
+# 获取最新一根 bar
+latest_bar = self.cache.bar(bar_type)  # 返回 Bar 或在不存在时返回 None
 
-# Get a specific historical bar by index (0 = most recent)
-second_last_bar = self.cache.bar(bar_type, index=1)  # Returns Bar or None if no such object exists
+# 按索引获取历史某根 bar（0 = 最新）
+second_last_bar = self.cache.bar(bar_type, index=1)  # 返回 Bar 或在不存在时返回 None
 
-# Check if bars exist and get count
-bar_count = self.cache.bar_count(bar_type)  # Returns number of bars in cache for the specified bar type
-has_bars = self.cache.has_bars(bar_type)    # Returns bool indicating if any bars exist for the specified bar type
+# 检查 bars 是否存在并获取计数
+bar_count = self.cache.bar_count(bar_type)  # 返回缓存中该 bar type 的 bars 数量
+has_bars = self.cache.has_bars(bar_type)    # 返回 bool，表示是否存在任何 bars
 ```
 
 #### Quote ticks
 
 ```python
-# Get quotes
-quotes = self.cache.quote_ticks(instrument_id)                     # Returns List[QuoteTick] or an empty list if no quotes found
-latest_quote = self.cache.quote_tick(instrument_id)                # Returns QuoteTick or None if no such object exists
-second_last_quote = self.cache.quote_tick(instrument_id, index=1)  # Returns QuoteTick or None if no such object exists
+# 获取 quotes
+quotes = self.cache.quote_ticks(instrument_id)                     # 返回 List[QuoteTick] 或在无数据时返回空列表
+latest_quote = self.cache.quote_tick(instrument_id)                # 返回 QuoteTick 或在不存在时返回 None
+second_last_quote = self.cache.quote_tick(instrument_id, index=1)  # 返回 QuoteTick 或在不存在时返回 None
 
-# Check quote availability
-quote_count = self.cache.quote_tick_count(instrument_id)  # Returns the number of quotes in cache for this instrument
-has_quotes = self.cache.has_quote_ticks(instrument_id)    # Returns bool indicating if any quotes exist for this instrument
+# 检查 quote 可用性
+quote_count = self.cache.quote_tick_count(instrument_id)  # 返回该合约在缓存中的 quote 数量
+has_quotes = self.cache.has_quote_ticks(instrument_id)    # 返回 bool，表示是否存在任何 quotes
 ```
 
 #### Trade ticks
 
 ```python
-# Get trades
-trades = self.cache.trade_ticks(instrument_id)         # Returns List[TradeTick] or an empty list if no trades found
-latest_trade = self.cache.trade_tick(instrument_id)    # Returns TradeTick or None if no such object exists
-second_last_trade = self.cache.trade_tick(instrument_id, index=1)  # Returns TradeTick or None if no such object exists
+# 获取 trades
+trades = self.cache.trade_ticks(instrument_id)         # 返回 List[TradeTick] 或在无数据时返回空列表
+latest_trade = self.cache.trade_tick(instrument_id)    # 返回 TradeTick 或在不存在时返回 None
+second_last_trade = self.cache.trade_tick(instrument_id, index=1)  # 返回 TradeTick 或在不存在时返回 None
 
-# Check trade availability
-trade_count = self.cache.trade_tick_count(instrument_id)  # Returns the number of trades in cache for this instrument
-has_trades = self.cache.has_trade_ticks(instrument_id)    # Returns bool indicating if any trades exist
+# 检查 trade 可用性
+trade_count = self.cache.trade_tick_count(instrument_id)  # 返回该合约在缓存中的 trade 数量
+has_trades = self.cache.has_trade_ticks(instrument_id)    # 返回 bool，表示是否存在任何 trades
 ```
 
 #### Order Book
 
 ```python
-# Get current order book
-book = self.cache.order_book(instrument_id)  # Returns OrderBook or None if no such object exists
+# 获取当前 order book
+book = self.cache.order_book(instrument_id)  # 返回 OrderBook 或在不存在时返回 None
 
-# Check if order book exists
-has_book = self.cache.has_order_book(instrument_id)  # Returns bool indicating if an order book exists
+# 检查 order book 是否存在
+has_book = self.cache.has_order_book(instrument_id)  # 返回 bool，表示是否存在 order book
 
-# Get count of order book updates
-update_count = self.cache.book_update_count(instrument_id)  # Returns the number of updates received
+# 获取 order book 更新次数
+update_count = self.cache.book_update_count(instrument_id)  # 返回收到的更新次数
 ```
 
-#### Price access
+#### 价格访问
 
 ```python
 from nautilus_trader.core.rust.model import PriceType
 
-# Get current price by type; Returns Price or None.
+# 按价格类型获取当前价格；返回 Price 或 None。
 price = self.cache.price(
     instrument_id=instrument_id,
-    price_type=PriceType.MID,  # Options: BID, ASK, MID, LAST
+    price_type=PriceType.MID,  # 可选：BID, ASK, MID, LAST
 )
 ```
 
@@ -225,34 +227,34 @@ price = self.cache.price(
 ```python
 from nautilus_trader.core.rust.model import PriceType, AggregationSource
 
-# Get all available bar types for an instrument; Returns List[BarType].
+# 获取某合约的所有可用 bar types；返回 List[BarType]
 bar_types = self.cache.bar_types(
     instrument_id=instrument_id,
-    price_type=PriceType.LAST,  # Options: BID, ASK, MID, LAST
+    price_type=PriceType.LAST,  # 可选：BID, ASK, MID, LAST
     aggregation_source=AggregationSource.EXTERNAL,
 )
 ```
 
-#### Simple example
+#### 简单示例
 
 ```python
 class MarketDataStrategy(Strategy):
     def on_start(self):
-        # Subscribe to 1-minute bars
-        self.bar_type = BarType.from_str(f"{self.instrument_id}-1-MINUTE-LAST-EXTERNAL")  # example of instrument_id = "EUR/USD.FXCM"
+        # 订阅 1 分钟 bars
+        self.bar_type = BarType.from_str(f"{self.instrument_id}-1-MINUTE-LAST-EXTERNAL")  # 举例：instrument_id = "EUR/USD.FXCM"
         self.subscribe_bars(self.bar_type)
 
     def on_bar(self, bar: Bar) -> None:
         bars = self.cache.bars(self.bar_type)[:3]
-        if len(bars) < 3:   # Wait until we have at least 3 bars
+        if len(bars) < 3:   # 等待至少 3 根 bar
             return
 
-        # Access last 3 bars for analysis
-        current_bar = bars[0]    # Most recent bar
-        prev_bar = bars[1]       # Second to last bar
-        prev_prev_bar = bars[2]  # Third to last bar
+        # 访问最近 3 根 bar 进行分析
+        current_bar = bars[0]    # 最新的一根
+        prev_bar = bars[1]       # 倒数第二根
+        prev_prev_bar = bars[2]  # 倒数第三根
 
-        # Get latest quote and trade
+        # 获取最新 quote 和 trade
         latest_quote = self.cache.quote_tick(self.instrument_id)
         latest_trade = self.cache.trade_tick(self.instrument_id)
 
@@ -261,9 +263,9 @@ class MarketDataStrategy(Strategy):
             self.log.info(f"Current spread: {current_spread}")
 ```
 
-### Trading Objects
+### 交易对象
 
-The `Cache` provides comprehensive access to all trading objects within the system, including:
+`Cache` 提供对系统内所有交易对象的全面访问，包括：
 
 - Orders
 - Positions
@@ -272,243 +274,242 @@ The `Cache` provides comprehensive access to all trading objects within the syst
 
 #### Orders
 
-Orders can be accessed and queried through multiple methods, with flexible filtering options by venue, strategy, instrument, and order side.
+可以通过多种方法访问和查询订单，并支持按 venue、strategy、instrument、order side 等灵活过滤。
 
-##### Basic Order Access
+##### 基本订单访问
 
 ```python
-# Get a specific order by its client order ID
+# 通过 client order ID 获取指定订单
 order = self.cache.order(ClientOrderId("O-123"))
 
-# Get all orders in the system
+# 获取系统内所有订单
 orders = self.cache.orders()
 
-# Get orders filtered by specific criteria
-orders_for_venue = self.cache.orders(venue=venue)                       # All orders for a specific venue
-orders_for_strategy = self.cache.orders(strategy_id=strategy_id)        # All orders for a specific strategy
-orders_for_instrument = self.cache.orders(instrument_id=instrument_id)  # All orders for an instrument
+# 按条件过滤订单
+orders_for_venue = self.cache.orders(venue=venue)                       # 某个 venue 的所有订单
+orders_for_strategy = self.cache.orders(strategy_id=strategy_id)        # 某个 strategy 的所有订单
+orders_for_instrument = self.cache.orders(instrument_id=instrument_id)  # 某个合约的所有订单
 ```
 
-##### Order State Queries
+##### 订单状态查询
 
 ```python
-# Get orders by their current state
-open_orders = self.cache.orders_open()          # Orders currently active at the venue
-closed_orders = self.cache.orders_closed()      # Orders that have completed their lifecycle
-emulated_orders = self.cache.orders_emulated()  # Orders being simulated locally by the system
-inflight_orders = self.cache.orders_inflight()  # Orders submitted (or modified) to venue, but not yet confirmed
+# 按当前状态获取订单
+open_orders = self.cache.orders_open()          # 目前在交易所仍然有效的订单
+closed_orders = self.cache.orders_closed()      # 已完成生命周期的订单
+emulated_orders = self.cache.orders_emulated()  # 系统本地模拟的订单
+inflight_orders = self.cache.orders_inflight()  # 已提交（或修改）但尚未确认的订单
 
-# Check specific order states
-exists = self.cache.order_exists(client_order_id)            # Checks if an order with the given ID exists in the cache
-is_open = self.cache.is_order_open(client_order_id)          # Checks if an order is currently open
-is_closed = self.cache.is_order_closed(client_order_id)      # Checks if an order is closed
-is_emulated = self.cache.is_order_emulated(client_order_id)  # Checks if an order is being simulated locally
-is_inflight = self.cache.is_order_inflight(client_order_id)  # Checks if an order is submitted or modified, but not yet confirmed
+# 检查特定订单状态
+exists = self.cache.order_exists(client_order_id)            # 检查是否存在给定 ID 的订单
+is_open = self.cache.is_order_open(client_order_id)          # 检查订单是否处于打开状态
+is_closed = self.cache.is_order_closed(client_order_id)      # 检查订单是否已关闭
+is_emulated = self.cache.is_order_emulated(client_order_id)  # 检查订单是否为本地模拟
+is_inflight = self.cache.is_order_inflight(client_order_id)  # 检查订单是否已提交但未确认
 ```
 
-##### Order Statistics
+##### 订单统计
 
 ```python
-# Get counts of orders in different states
-open_count = self.cache.orders_open_count()          # Number of open orders
-closed_count = self.cache.orders_closed_count()      # Number of closed orders
-emulated_count = self.cache.orders_emulated_count()  # Number of emulated orders
-inflight_count = self.cache.orders_inflight_count()  # Number of inflight orders
-total_count = self.cache.orders_total_count()        # Total number of orders in the system
+# 获取不同状态订单的计数
+open_count = self.cache.orders_open_count()          # 当前打开订单数量
+closed_count = self.cache.orders_closed_count()      # 已关闭订单数量
+emulated_count = self.cache.orders_emulated_count()  # 模拟订单数量
+inflight_count = self.cache.orders_inflight_count()  # 在途订单数量
+total_count = self.cache.orders_total_count()        # 系统内订单总数
 
-# Get filtered order counts
-buy_orders_count = self.cache.orders_open_count(side=OrderSide.BUY)  # Number of currently open BUY orders
-venue_orders_count = self.cache.orders_total_count(venue=venue)      # Total number of orders for a given venue
+# 获取按条件过滤的订单计数
+buy_orders_count = self.cache.orders_open_count(side=OrderSide.BUY)  # 当前打开的 BUY 订单数量
+venue_orders_count = self.cache.orders_total_count(venue=venue)      # 特定 venue 的订单总数
 ```
 
 #### Positions
 
-The `Cache` maintains a record of all positions and offers several ways to query them.
+`Cache` 维护所有持仓的记录，并提供多种查询方式。
 
-##### Position Access
+##### 持仓访问
 
 ```python
-# Get a specific position by its ID
+# 按 ID 获取指定持仓
 position = self.cache.position(PositionId("P-123"))
 
-# Get positions by their state
-all_positions = self.cache.positions()            # All positions in the system
-open_positions = self.cache.positions_open()      # All currently open positions
-closed_positions = self.cache.positions_closed()  # All closed positions
+# 按状态获取持仓
+all_positions = self.cache.positions()            # 系统内的所有持仓
+open_positions = self.cache.positions_open()      # 当前打开的持仓
+closed_positions = self.cache.positions_closed()  # 已平仓的持仓
 
-# Get positions filtered by various criteria
-venue_positions = self.cache.positions(venue=venue)                       # Positions for a specific venue
-instrument_positions = self.cache.positions(instrument_id=instrument_id)  # Positions for a specific instrument
-strategy_positions = self.cache.positions(strategy_id=strategy_id)        # Positions for a specific strategy
-long_positions = self.cache.positions(side=PositionSide.LONG)             # All long positions
+# 按条件过滤持仓
+venue_positions = self.cache.positions(venue=venue)                       # 某个 venue 的持仓
+instrument_positions = self.cache.positions(instrument_id=instrument_id)  # 某个合约的持仓
+strategy_positions = self.cache.positions(strategy_id=strategy_id)        # 某个 strategy 的持仓
+long_positions = self.cache.positions(side=PositionSide.LONG)             # 所有多头持仓
 ```
 
-##### Position State Queries
+##### 持仓状态查询
 
 ```python
-# Check position states
-exists = self.cache.position_exists(position_id)        # Checks if a position with the given ID exists
-is_open = self.cache.is_position_open(position_id)      # Checks if a position is open
-is_closed = self.cache.is_position_closed(position_id)  # Checks if a position is closed
+# 检查持仓状态
+exists = self.cache.position_exists(position_id)        # 检查是否存在给定 ID 的持仓
+is_open = self.cache.is_position_open(position_id)      # 检查持仓是否为打开状态
+is_closed = self.cache.is_position_closed(position_id)  # 检查持仓是否已关闭
 
-# Get position and order relationships
-orders = self.cache.orders_for_position(position_id)       # All orders related to a specific position
-position = self.cache.position_for_order(client_order_id)  # Find the position associated with a specific order
+# 获取持仓与订单的关联
+orders = self.cache.orders_for_position(position_id)       # 与某个持仓关联的所有订单
+position = self.cache.position_for_order(client_order_id)  # 查找与某个订单相关的持仓
 ```
 
-##### Position Statistics
+##### 持仓统计
 
 ```python
-# Get position counts in different states
-open_count = self.cache.positions_open_count()      # Number of currently open positions
-closed_count = self.cache.positions_closed_count()  # Number of closed positions
-total_count = self.cache.positions_total_count()    # Total number of positions in the system
+# 获取不同状态持仓的计数
+open_count = self.cache.positions_open_count()      # 当前打开持仓数量
+closed_count = self.cache.positions_closed_count()  # 已关闭持仓数量
+total_count = self.cache.positions_total_count()    # 系统内持仓总数
 
-# Get filtered position counts
-long_positions_count = self.cache.positions_open_count(side=PositionSide.LONG)              # Number of open long positions
-instrument_positions_count = self.cache.positions_total_count(instrument_id=instrument_id)  # Number of positions for a given instrument
+# 获取按条件过滤的持仓计数
+long_positions_count = self.cache.positions_open_count(side=PositionSide.LONG)              # 打开的多头持仓数量
+instrument_positions_count = self.cache.positions_total_count(instrument_id=instrument_id)  # 某个合约的持仓数量
 ```
 
 #### Accounts
 
 ```python
-# Access account information
-account = self.cache.account(account_id)       # Retrieve account by ID
-account = self.cache.account_for_venue(venue)  # Retrieve account for a specific venue
-account_id = self.cache.account_id(venue)      # Retrieve account ID for a venue
-accounts = self.cache.accounts()               # Retrieve all accounts in the cache
+# 访问账户信息
+account = self.cache.account(account_id)       # 按 ID 获取账户
+account = self.cache.account_for_venue(venue)  # 获取特定 venue 对应的账户
+account_id = self.cache.account_id(venue)      # 获取某个 venue 的账户 ID
+accounts = self.cache.accounts()               # 获取缓存中的所有账户
 ```
 
-#### Instruments and Currencies
+#### Instruments 和 Currencies
 
 ##### Instruments
 
 ```python
-# Get instrument information
-instrument = self.cache.instrument(instrument_id) # Retrieve a specific instrument by its ID
-all_instruments = self.cache.instruments()        # Retrieve all instruments in the cache
+# 获取合约信息
+instrument = self.cache.instrument(instrument_id) # 按 ID 获取指定合约
+all_instruments = self.cache.instruments()        # 获取缓存中所有合约
 
-# Get filtered instruments
-venue_instruments = self.cache.instruments(venue=venue)              # Instruments for a specific venue
-instruments_by_underlying = self.cache.instruments(underlying="ES")  # Instruments by underlying
+# 按条件过滤合约
+venue_instruments = self.cache.instruments(venue=venue)              # 某个 venue 的合约
+instruments_by_underlying = self.cache.instruments(underlying="ES")  # 按 underlying 过滤合约
 
-# Get instrument identifiers
-instrument_ids = self.cache.instrument_ids()                   # Get all instrument IDs
-venue_instrument_ids = self.cache.instrument_ids(venue=venue)  # Get instrument IDs for a specific venue
+# 获取合约标识列表
+instrument_ids = self.cache.instrument_ids()                   # 获取所有合约 ID
+venue_instrument_ids = self.cache.instrument_ids(venue=venue)  # 获取特定 venue 的合约 ID 列表
 ```
 
 ##### Currencies
 
 ```python
-# Get currency information
-currency = self.cache.load_currency("USD")  # Loads currency data for USD
+# 获取货币信息
+currency = self.cache.load_currency("USD")  # 加载 USD 的货币信息
 ```
 
 ---
 
-### Custom Data
+### 自定义数据
 
-The `Cache` can also store and retrieve custom data types in addition to built-in market data and trading objects.
-You can keep any user-defined data you want to share between system components (mostly Actors / Strategies).
+除了内置的市场数据和交易对象外，`Cache` 还能存储和检索自定义数据类型。
+你可以把任意需要在系统各组件之间共享的数据存入 Cache（通常在 Actors / Strategies 之间共享）。
 
-#### Basic Storage and Retrieval
+#### 基本存取
 
 ```python
-# Call this code inside Strategy methods (`self` refers to Strategy)
+# 在 Strategy 方法内调用（此处的 `self` 指 Strategy）
 
-# Store data
+# 存储数据
 self.cache.add(key="my_key", value=b"some binary data")
 
-# Retrieve data
-stored_data = self.cache.get("my_key")  # Returns bytes or None
+# 检索数据
+stored_data = self.cache.get("my_key")  # 返回 bytes 或 None
 ```
 
-For more complex use cases, the `Cache` can store custom data objects that inherit from the `nautilus_trader.core.Data` base class.
+对于更复杂的使用场景，`Cache` 还支持存储继承自 `nautilus_trader.core.Data` 基类的自定义数据对象。
 
 :::warning
-The `Cache` is not designed to be a full database replacement. For large datasets or complex querying needs, consider using a dedicated database system.
+`Cache` 并非为替代完整数据库而设计。对于海量数据或复杂查询需求，建议使用专业的数据库系统。
 :::
 
-## Best practices and common questions
+## 最佳实践与常见问题
 
-### Cache vs. Portfolio Usage
+### Cache 与 Portfolio 的区别与用途
 
-The `Cache` and `Portfolio` components serve different but complementary purposes in NautilusTrader:
+`Cache` 与 `Portfolio` 在 NautilusTrader 中扮演不同但互补的角色：
 
-**Cache**:
+**Cache**：
 
-- Maintains the historical knowledge and current state of the trading system.
-- Updates immediately for local state changes (initializing an order to be submitted)
-- Updates asynchronously as external events occur (order is filled).
-- Provides complete history of trading activity and market data.
-- All data a strategy has received (events/updates) is stored in Cache.
+- 保存系统的历史记录与当前状态。
+- 本地状态变更（例如初始化提交订单）会立刻更新 Cache。
+- 外部事件发生后（例如订单成交）会以异步方式更新 Cache。
+- 提供完整的交易活动和市场数据历史。
+- 策略接收到的所有数据（事件/更新）都会被存储在 Cache 中。
 
-**Portfolio**:
+  **Portfolio**：
 
-- Aggregated position/exposure and account information.
-- Provides current state without history.
+- 提供聚合后的持仓/敞口与账户信息。
+- 主要反映当前状态，不保留历史。
 
-**Example**:
+  **示例**：
 
 ```python
 class MyStrategy(Strategy):
     def on_position_changed(self, event: PositionEvent) -> None:
-        # Use Cache when you need historical perspective
+        # 当需要查看历史时使用 Cache
         position_history = self.cache.position_snapshots(event.position_id)
 
-        # Use Portfolio when you need current real-time state
+        # 当需要当前实时聚合状态时使用 Portfolio
         current_exposure = self.portfolio.net_exposure(event.instrument_id)
 ```
 
-### Cache vs. Strategy variables
+### Cache 与 Strategy 变量的选择
 
-Choosing between storing data in the `Cache` versus strategy variables depends on your specific needs:
+在 `Cache` 与策略内部变量之间如何选择，取决于你的具体需求：
 
-**Cache Storage**:
+**使用 Cache 存储**：
 
-- Use for data that needs to be shared between strategies.
-- Best for data that needs to persist between system restarts.
-- Acts as a central database accessible to all components.
-- Ideal for state that needs to survive strategy resets.
+- 适用于需要在多个策略之间共享的数据。
+- 适用于需要在系统重启后保留的数据。
+- 作为所有组件可访问的中央存储。
+- 适合在策略重置后仍需保留的状态。
 
-**Strategy Variables**:
+  **使用策略变量**：
 
-- Use for strategy-specific calculations.
-- Better for temporary values and intermediate results.
-- Provides faster access and better encapsulation.
-- Best for data that only your strategy needs.
+- 适用于仅用于策略内部计算的临时数据。
+- 更适合短时值和中间结果。
+- 访问更快、封装性更好。
+- 适合仅供当前策略使用的数据。
 
-**Example**:
+  **示例**：
 
-Example that clarifies how you might store data in the `Cache` so multiple strategies can access the same information.
+下例演示如何将数据存入 `Cache`，以便多个策略可以访问同一信息。
 
 ```python
 import pickle
 
 class MyStrategy(Strategy):
     def on_start(self):
-        # Prepare data you want to share with other strategies
+        # 准备要与其它策略共享的数据
         shared_data = {
             "last_reset": self.clock.timestamp_ns(),
             "trading_enabled": True,
-            # Include any other fields that you want other strategies to read
+            # 包含其它你希望被其他策略读取的字段
         }
 
-        # Store it in the cache with a descriptive key
-        # This way, multiple strategies can call self.cache.get("shared_strategy_info")
-        # to retrieve the same data
+        # 使用描述性 key 将其存入 cache
+        # 这样，多个策略就可以通过 self.cache.get("shared_strategy_info") 来读取相同的数据
         self.cache.add("shared_strategy_info", pickle.dumps(shared_data))
 
 ```
 
-How another strategy (running in parallel) can retrieve cached data above:
+另一个并行运行的策略如何读取上面存入的缓存数据：
 
 ```python
 import pickle
 
 class AnotherStrategy(Strategy):
     def on_start(self):
-        # Load the shared data from the same key
+        # 从相同 key 读取共享数据
         data_bytes = self.cache.get("shared_strategy_info")
         if data_bytes is not None:
             shared_data = pickle.loads(data_bytes)
