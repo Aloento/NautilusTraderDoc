@@ -1,26 +1,26 @@
-# Backtest: FX bar data
+# 回测：FX bar 数据
 
-Tutorial for [NautilusTrader](https://nautilustrader.io/docs/) a high-performance algorithmic trading platform and event driven backtester.
+本教程面向 NautilusTrader（高性能算法交易与事件驱动回测框架），演示如何使用 FX bar 数据设置一个单次（one-shot）回测，使用低阶 API 的 `BacktestEngine` 进行运行。
 
-[View source on GitHub](https://github.com/nautechsystems/nautilus_trader/blob/develop/docs/tutorials/backtest_fx_bars.ipynb).
+[在 GitHub 查看源码](https://github.com/nautechsystems/nautilus_trader/blob/develop/docs/tutorials/backtest_fx_bars.ipynb)。
 
 :::info
-We are currently working on this tutorial.
+本教程仍在编写中，部分内容可能会更新。
 :::
 
-## Overview
+## 概述
 
-This tutorial runs through how to set up a `BacktestEngine` (low-level API) for a single 'one-shot' backtest run using FX bar data.
+本教程展示如何用 FX bar 数据为 `BacktestEngine` 配置并执行一次性回测（one-shot backtest），适合对单个时间区间或样本数据做离线策略验证。
 
-## Prerequisites
+## 前置条件
 
-- Python 3.11+ installed
-- [JupyterLab](https://jupyter.org/) or similar installed (`pip install -U jupyterlab`)
-- [NautilusTrader](https://pypi.org/project/nautilus_trader/) latest release installed (`pip install -U nautilus_trader`)
+- 已安装 Python 3.11+。
+- 已安装 JupyterLab 或同类工具（`pip install -U jupyterlab`）。
+- 已安装 NautilusTrader 最新发布版（`pip install -U nautilus_trader`）。
 
-## Imports
+## 导入
 
-We'll start with all of our imports for the remainder of this tutorial.
+下面是本教程余下部分所需的 import 列表：
 
 ```python
 from decimal import Decimal
@@ -46,25 +46,25 @@ from nautilus_trader.test_kit.providers import TestDataProvider
 from nautilus_trader.test_kit.providers import TestInstrumentProvider
 ```
 
-## Set up backtest engine
+## 创建 BacktestEngine 配置
 
 ```python
-# Initialize a backtest configuration
+# 初始化回测配置
 config = BacktestEngineConfig(
     trader_id="BACKTESTER-001",
     logging=LoggingConfig(log_level="ERROR"),
     risk_engine=RiskEngineConfig(
-        bypass=True,  # Example of bypassing pre-trade risk checks for backtests
+        bypass=True,  # 在回测中示例性地绕过 pre-trade 风控检查
     ),
 )
 
-# Build backtest engine
+# 构建 BacktestEngine
 engine = BacktestEngine(config=config)
 ```
 
-## Add simulation module
+## 添加仿真模块（可选）
 
-We can optionally plug in a module to simulate rollover interest. The data is available from pre-packaged test data.
+可选地，我们可以插入一个模块来模拟 rollover interest（隔夜利息）。示例数据可从预打包的测试数据中读取。
 
 ```python
 provider = TestDataProvider()
@@ -73,9 +73,9 @@ config = FXRolloverInterestConfig(interest_rate_data)
 fx_rollover_interest = FXRolloverInterestModule(config=config)
 ```
 
-## Add fill model
+## 添加 fill model
 
-For this backtest we'll use a simple probabilistic fill model.
+本示例使用一个简单的概率型 fill model。
 
 ```python
 fill_model = FillModel(
@@ -86,33 +86,33 @@ fill_model = FillModel(
 )
 ```
 
-## Add venue
+## 添加交易场所（venue）
 
-For this backtest we just need a single trading venue which will be a similated FX ECN.
+示例中我们只需要一个模拟的 FX ECN 作为交易场所。
 
 ```python
 SIM = Venue("SIM")
 engine.add_venue(
     venue=SIM,
-    oms_type=OmsType.HEDGING,  # Venue will generate position IDs
+    oms_type=OmsType.HEDGING,  # venue 将生成 position IDs
     account_type=AccountType.MARGIN,
-    base_currency=None,  # Multi-currency account
+    base_currency=None,  # 多币种账户
     starting_balances=[Money(1_000_000, USD), Money(10_000_000, JPY)],
     fill_model=fill_model,
     modules=[fx_rollover_interest],
 )
 ```
 
-## Add instruments and data
+## 添加合约与数据
 
-Now we can add instruments and data. For this backtest we'll pre-process bid and ask side bar data into quotes using a `QuoteTickDataWrangler`.
+接下来添加合约与数据。本回测示例将把 bid / ask 的 bar 数据预处理为 quotes，使用 `QuoteTickDataWrangler`。
 
 ```python
-# Add instruments
+# 添加合约
 USDJPY_SIM = TestInstrumentProvider.default_fx_ccy("USD/JPY", SIM)
 engine.add_instrument(USDJPY_SIM)
 
-# Add data
+# 添加数据
 wrangler = QuoteTickDataWrangler(instrument=USDJPY_SIM)
 ticks = wrangler.process_bar_data(
     bid_data=provider.read_csv_bars("fxcm/usdjpy-m1-bid-2013.csv"),
@@ -121,12 +121,12 @@ ticks = wrangler.process_bar_data(
 engine.add_data(ticks)
 ```
 
-## Configure strategy
+## 配置策略
 
-Next we'll configure and initialize a simple `EMACross` strategy we'll use for the backtest.
+然后配置并初始化一个简单的 `EMACross` 策略，用于本次回测。
 
 ```python
-# Configure your strategy
+# 策略配置
 config = EMACrossConfig(
     instrument_id=USDJPY_SIM.id,
     bar_type=BarType.from_str("USD/JPY.SIM-5-MINUTE-BID-INTERNAL"),
@@ -135,22 +135,22 @@ config = EMACrossConfig(
     trade_size=Decimal(1_000_000),
 )
 
-# Instantiate and add your strategy
+# 实例化并添加策略
 strategy = EMACross(config=config)
 engine.add_strategy(strategy=strategy)
 ```
 
-## Run backtest
+## 运行回测
 
-We now have everything required to run the backtest. Once the engine has completed running through all the data, a post-analysis report will be logged.
+现在已准备好运行回测。引擎跑完所有数据并完成后，会记录一份事后分析报告。
 
 ```python
 engine.run()
 ```
 
-## Generating reports
+## 生成报告
 
-Additionally, we can produce various reports to further analyze the backtest result.
+还可以生成多种报告以便进一步分析回测结果：
 
 ```python
 engine.trader.generate_account_report(SIM)
