@@ -1,39 +1,38 @@
-# Instruments
+# 合约与交易品种
 
-The `Instrument` base class represents the core specification for any tradable asset/contract. There are
-currently a number of subclasses representing a range of *asset classes* and *instrument classes* which are supported by the platform:
+`Instrument` 基类定义了任何可交易资产/合约的核心规范。平台目前包含多个子类，用于表示不同的*资产类别*和*合约类型*：
 
-- `Equity` (listed shares or ETFs traded on cash markets)
-- `FuturesContract` (deliverable futures contract with defined underlying, expiry, and multiplier)
-- `FuturesSpread` (exchange-defined multi-leg futures strategy—e.g., calendar or inter-commodity—quoted as one instrument)
-- `OptionContract` (exchange-traded option—put or call—on an underlying with strike and expiry)
-- `OptionSpread` (exchange-defined multi-leg options strategy—e.g., vertical, calendar, straddle—quoted as one instrument)
-- `BinaryOption` (fixed-payout option that settles to 0 or 1 based on a binary outcome)
-- `Cfd` (over-the-counter Contract for Difference that tracks an underlying and is cash-settled)
-- `Commodity` (spot commodity instrument—e.g., gold or oil—traded in cash markets)
-- `CurrencyPair` (spot FX or crypto pair in BASE/QUOTE format traded in cash markets)
-- `CryptoOption` (option on a crypto underlying with crypto quote/settlement; supports inverse or quanto styles)
-- `CryptoPerpetual` (perpetual futures contract—aka perpetual swap—on crypto with no expiry; can be inverse or quanto-settled)
-- `CryptoFuture` (dated, deliverable crypto futures contract with fixed expiry, underlying crypto, and settlement currency)
-- `IndexInstrument` (spot index calculated from constituents; used as a reference price and not directly tradable)
-- `BettingInstrument` (a sports/gaming market selection—e.g., team or runner—tradable on betting venues)
+- `Equity`：在现金市场交易的上市股票或 ETF
+- `FuturesContract`：有实物/现金交割的期货合约，具有明确的标的、到期日和乘数
+- `FuturesSpread`：交易所定义的多腿期货策略（例如日历展期或跨品种），作为单一工具报价
+- `OptionContract`：交易所上市的期权（看涨或看跌），具有行权价和到期日
+- `OptionSpread`：交易所定义的多腿期权策略（例如垂直价差、日历、跨式），作为单一工具报价
+- `BinaryOption`：按二元结果结算为 0 或 1 的固定收益期权
+- `Cfd`：场外交易的差价合约（Contract for Difference），跟踪标的并以现金结算
+- `Commodity`：现货商品（例如黄金或原油），在现货/现金市场交易
+- `CurrencyPair`：以 BASE/QUOTE 格式表示的现货外汇或加密货币交易对
+- `CryptoOption`：以加密货币为标的且以加密货币计价/结算的期权，支持 inverse 或 quanto 风格
+- `CryptoPerpetual`：无到期日的加密永续合约（perpetual swap），可为 inverse 或 quanto 结算
+- `CryptoFuture`：有固定到期日、以加密货币为标的并以某种结算货币结算的加密期货合约
+- `IndexInstrument`：由成分计算得出的现货指数，用作参考价，通常不可直接交易
+- `BettingInstrument`：体育或博彩市场的一个选择（例如某队或某名选手），可在博彩场所交易
 
-## Symbology
+## 记号与标识（Symbology）
 
-All instruments should have a unique `InstrumentId`, which is made up of both the native symbol, and venue ID, separated by a period.
-For example, on the Binance Futures crypto exchange, the Ethereum Perpetual Futures Contract has the instrument ID `ETHUSDT-PERP.BINANCE`.
+所有合约都应具有唯一的 `InstrumentId`，由本地符号（native symbol）和市场/交易所 ID（venue ID）通过小数点分隔组成。
+例如，在 Binance Futures（加密）上，以太坊永续合约的 InstrumentId 为 `ETHUSDT-PERP.BINANCE`。
 
-All native symbols *should* be unique for a venue (this is not always the case e.g. Binance share native symbols between spot and futures markets),
-and the `{symbol.venue}` combination *must* be unique for a Nautilus system.
+通常每个交易场所的本地符号应当是唯一的（但并非在所有场景都成立，例如 Binance 在现货与期货间可能复用相同符号），
+而 `{symbol.venue}` 的组合在整个 Nautilus 系统中**必须**唯一。
 
 :::warning
-The correct instrument must be matched to a market dataset such as ticks or order book data for logically sound operation.
-An incorrectly specified instrument may truncate data or otherwise produce surprising results.
+必须将合约与对应的市场数据集（如 tick 或 order book 数据）正确匹配，才能保证逻辑上的正确性。
+错误的合约定义可能导致数据被截断或出现意外结果。
 :::
 
-## Backtesting
+## 回测（Backtesting）
 
-Generic test instruments can be instantiated through the `TestInstrumentProvider`:
+通用的测试合约可以通过 `TestInstrumentProvider` 实例化：
 
 ```python
 from nautilus_trader.test_kit.providers import TestInstrumentProvider
@@ -41,7 +40,7 @@ from nautilus_trader.test_kit.providers import TestInstrumentProvider
 audusd = TestInstrumentProvider.default_fx_ccy("AUD/USD")
 ```
 
-Exchange specific instruments can be discovered from live exchange data using an adapters `InstrumentProvider`:
+针对特定交易所的合约可以通过适配器提供的 `InstrumentProvider` 从实时交易所数据中发现：
 
 ```python
 from nautilus_trader.adapters.binance.spot.providers import BinanceSpotInstrumentProvider
@@ -54,26 +53,24 @@ btcusdt = InstrumentId.from_str("BTCUSDT.BINANCE")
 instrument = provider.find(btcusdt)
 ```
 
-Or flexibly defined by the user through an `Instrument` constructor, or one of its more specific subclasses:
+或者用户也可以直接通过 `Instrument` 构造函数或其更具体的子类灵活地定义合约：
 
 ```python
 from nautilus_trader.model.instruments import Instrument
 
-instrument = Instrument(...)  # <-- provide all necessary parameters
+instrument = Instrument(...)  # <-- 提供所有必要参数
 ```
 
-See the full instrument [API Reference](../api_reference/model/instruments.md).
+完整的合约 API 参考见：[API Reference](../api_reference/model/instruments.md)。
 
-## Live trading
+## 实盘交易（Live trading）
 
-Live integration adapters have defined `InstrumentProvider` classes which work in an automated way to cache the
-latest instrument definitions for the exchange. Refer to a particular `Instrument`
-object by passing the matching `InstrumentId` to data and execution related methods and classes that require one.
+实盘集成适配器提供了 `InstrumentProvider` 类，用于自动缓存交易所的最新合约定义。需要在数据或执行相关方法中引用某个 `Instrument` 时，
+使用对应的 `InstrumentId` 来进行识别与传参。
 
-## Finding instruments
+## 查找合约（Finding instruments）
 
-Since the same actor/strategy classes can be used for both backtest and live trading, you can
-get instruments in exactly the same way through the central cache:
+由于同一套 actor/strategy 类可以用于回测与实盘，你可以通过中央缓存以完全相同的方式获取合约：
 
 ```python
 from nautilus_trader.model import InstrumentId
@@ -82,13 +79,13 @@ instrument_id = InstrumentId.from_str("ETHUSDT-PERP.BINANCE")
 instrument = self.cache.instrument(instrument_id)
 ```
 
-It's also possible to subscribe to any changes to a particular instrument:
+你也可以订阅某个合约的变更：
 
 ```python
 self.subscribe_instrument(instrument_id)
 ```
 
-Or subscribe to all instrument changes for an entire venue:
+或者订阅整个交易场所（venue）上所有合约的变更：
 
 ```python
 from nautilus_trader.model import Venue
@@ -97,50 +94,42 @@ binance = Venue("BINANCE")
 self.subscribe_instruments(binance)
 ```
 
-When an update to the instrument(s) is received by the `DataEngine`, the object(s) will
-be passed to the actors/strategies `on_instrument()` method. A user can override this method with actions
-to take upon receiving an instrument update:
+当 `DataEngine` 收到合约更新时，该对象会传入 actor/strategy 的 `on_instrument()` 方法。用户可以重写此方法以对合约更新执行自定义操作：
 
 ```python
 from nautilus_trader.model.instruments import Instrument
 
 def on_instrument(self, instrument: Instrument) -> None:
-    # Take some action on an instrument update
+    # 在合约更新时执行某些操作
     pass
 ```
 
-## Precisions and increments
+## 精度与增量（Precisions and increments）
 
-The instrument objects are a convenient way to organize the specification of an
-instrument through *read-only* properties. Correct price and quantity precisions, as well as
-minimum price and size increments, multipliers and standard lot sizes, are available.
+合约对象以*只读*属性的形式组织合约规范，提供了正确的价格与数量精度、最小价格与数量增量、乘数和标准手数等信息。
 
 :::note
-Most of these limits are checked by the Nautilus `RiskEngine`, otherwise invalid
-values for prices and quantities *can* result in the exchange rejecting orders.
+大多数这些限制项会由 Nautilus 的 `RiskEngine` 进行校验，否则价格或数量的不合法值可能导致交易所拒单。
 :::
 
-## Limits
+## 限制（Limits）
 
-Certain value limits are optional for instruments and can be `None`, these are exchange
-dependent and can include:
+某些限制字段在合约中是可选的（可能为 `None`），这取决于交易所，常见的包括：
 
-- `max_quantity` (maximum quantity for a single order).
-- `min_quantity` (minimum quantity for a single order).
-- `max_notional` (maximum value of a single order).
-- `min_notional` (minimum value of a single order).
-- `max_price` (maximum valid quote or order price).
-- `min_price` (minimum valid quote or order price).
+- `max_quantity`（单笔订单允许的最大数量）
+- `min_quantity`（单笔订单允许的最小数量）
+- `max_notional`（单笔订单允许的最大名义价值）
+- `min_notional`（单笔订单允许的最小名义价值）
+- `max_price`（允许的最大报价或订单价格）
+- `min_price`（允许的最小报价或订单价格）
 
 :::note
-Most of these limits are checked by the Nautilus `RiskEngine`, otherwise exceeding
-published limits *can* result in the exchange rejecting orders.
+大多数这些限制也会由 Nautilus 的 `RiskEngine` 进行校验，超出交易所发布的限制可能导致交易所拒单。
 :::
 
-## Prices and quantities
+## 价格与数量的创建（Prices and quantities）
 
-Instrument objects also offer a convenient way to create correct prices
-and quantities based on given values.
+合约对象还提供便捷方法，用于根据给定值创建合法的价格和数量：
 
 ```python
 instrument = self.cache.instrument(instrument_id)
@@ -150,54 +139,53 @@ quantity = instrument.make_qty(150)
 ```
 
 :::tip
-The above is the recommended method for creating valid prices and quantities,
-such as when passing them to the order factory to create an order.
+以上方法是创建合法价格与数量的推荐方式，例如在将其传递给订单工厂（order factory）时使用。
 :::
 
-## Margins and fees
+## 保证金与费用（Margins and fees）
 
-Margin calculations are handled by the `MarginAccount` class. This section explains how margins work and introduces key concepts you need to know.
+保证金计算由 `MarginAccount` 类负责。下文说明了保证金的工作方式并介绍了关键概念。
 
-### When margins apply?
+### 何时适用保证金？
 
-Each exchange (e.g., CME or Binance) operates with a specific account type that determines whether margin calculations are applicable.
-When setting up an exchange venue, you'll specify one of these account types:
+不同交易所（例如 CME 或 Binance）采用特定的账户类型来决定是否需要进行保证金计算。
+在设置交易场所时，你需要指定以下账户类型之一：
 
-- `AccountType.MARGIN`: Accounts that use margin calculations, which are explained below.
-- `AccountType.CASH`: Simple accounts where margin calculations do not apply.
-- `AccountType.BETTING`: Accounts designed for betting, which also do not involve margin calculations.
+- `AccountType.MARGIN`：适用保证金计算的账户类型
+- `AccountType.CASH`：不适用保证金计算的现金账户
+- `AccountType.BETTING`：用于博彩类型的账户，也不涉及保证金计算
 
-### Vocabulary
+### 术语说明（Vocabulary）
 
-To understand trading on margin, let’s start with some key terms:
+为便于理解保证金交易，先介绍若干关键术语：
 
-**Notional Value**: The total contract value in the quote currency. It represents the full market value of your position. For example, with EUR/USD futures on CME (symbol 6E).
+**名义价值（Notional Value）**：以计价货币表示的合约总价值，代表你持仓的市场总价值。例如在 CME 的 EUR/USD 期货（代码 6E）：
 
-- Each contract represents 125,000 EUR (EUR is base currency, USD is quote currency).
-- If the current market price is 1.1000, the notional value equals 125,000 EUR × 1.1000 (price of EUR/USD) = 137,500 USD.
+- 每份合约代表 125,000 EUR（EUR 为 base，USD 为 quote）
+- 若当前市场价为 1.1000，则名义价值为 125,000 EUR × 1.1000（EUR/USD 价格）= 137,500 USD
 
-**Leverage** (`leverage`): The ratio that determines how much market exposure you can control relative to your account deposit. For example, with 10× leverage, you can control 10,000 USD worth of positions with just 1,000 USD in your account.
+**杠杆（Leverage）**：决定相对于账户保证金你可以控制多少市值敞口的比率。例如 10× 杠杆意味着用 1,000 USD 的保证金可以控制 10,000 USD 的头寸。
 
-**Initial Margin** (`margin_init`): The margin rate required to open a position. It represents the minimum amount of funds that must be available in your account to open new positions. This is only a pre-check — no funds are actually locked.
+**初始保证金（Initial Margin，`margin_init`）**：开仓所需的保证金率，表示在开仓前账户中需要满足的最低可用资金（这通常是一个预检，资金并非真正冻结）。
 
-**Maintenance Margin** (`margin_maint`): The margin rate required to keep a position open. This amount is locked in your account to maintain the position. It is always lower than the initial margin. You can view the total blocked funds (sum of maintenance margins for open positions) using the following in your strategy:
+**维持保证金（Maintenance Margin，`margin_maint`）**：维持仓位所需的保证金率，此金额会在账户中被锁定以维持仓位，通常低于初始保证金。你可以在策略中通过以下接口查看被锁定的总保证金（对所有未平仓位的维持保证金求和）：
 
 ```python
 self.portfolio.balances_locked(venue)
 ```
 
-**Maker/Taker Fees**: The fees charged by exchanges based on your order's interaction with the market:
+**Maker/Taker 费用**：交易所基于订单对市场的贡献类型收取的费用：
 
-- Maker Fee (`maker_fee`): A fee (typically lower) charged when you "make" liquidity by placing an order that remains on the order book. For example, a limit buy order below the current price adds liquidity, and the *maker* fee applies when it fills.
-- Taker Fee (`taker_fee`): A fee (typically higher) charged when you "take" liquidity by placing an order that executes immediately. For instance, a market buy order or a limit buy above the current price removes liquidity, and the *taker* fee applies.
+- Maker 费（`maker_fee`）：当你的挂单为订单簿提供流动性并最终成交时收取（通常较低）
+- Taker 费（`taker_fee`）：当你的订单立即成交、移除流动性时收取（通常较高）
 
 :::tip
-Not all exchanges or instruments implement maker/taker fees. If absent, set both `maker_fee` and `taker_fee` to 0 for the `Instrument` (e.g., `FuturesContract`, `Equity`, `CurrencyPair`, `Commodity`, `Cfd`, `BinaryOption`, `BettingInstrument`).
+并非所有交易所或合约都实现 maker/taker 费率。若不存在该机制，请在 `Instrument` 中将 `maker_fee` 与 `taker_fee` 都设为 0（例如对 `FuturesContract`、`Equity`、`CurrencyPair`、`Commodity`、`Cfd`、`BinaryOption`、`BettingInstrument`）。
 :::
 
-### Margin calculation formula
+### 保证金计算公式
 
-The `MarginAccount` class calculates margins using the following formulas:
+`MarginAccount` 使用如下公式计算保证金：
 
 ```python
 # Initial margin calculation
@@ -207,47 +195,39 @@ margin_init = (notional_value / leverage * margin_init) + (notional_value / leve
 margin_maint = (notional_value / leverage * margin_maint) + (notional_value / leverage * taker_fee)
 ```
 
-**Key Points**:
+要点说明：
 
-- Both formulas follow the same structure but use their respective margin rates (`margin_init` and `margin_maint`).
-- Each formula consists of two parts:
-  - **Primary margin calculation**: Based on notional value, leverage, and margin rate.
-  - **Fee Adjustment**: Accounts for the maker/taker fee.
+- 两个公式结构相同，但分别使用对应的保证金率（`margin_init` 与 `margin_maint`）。
+- 每个公式包括两部分：
+  - **基础保证金计算**：基于名义价值、杠杆与保证金率
+  - **费用调整**：将 maker/taker 费用纳入考虑
 
-### Implementation details
+### 实现细节
 
-For those interested in exploring the technical implementation:
+若需查看具体实现，请参考：
 
 - [nautilus_trader/accounting/accounts/margin.pyx](https://github.com/nautechsystems/nautilus_trader/blob/develop/nautilus_trader/accounting/accounts/margin.pyx)
-- Key methods: `calculate_margin_init(self, ...)` and `calculate_margin_maint(self, ...)`
+- 关键方法：`calculate_margin_init(self, ...)` 与 `calculate_margin_maint(self, ...)`
 
-## Commissions
+## 佣金（Commissions）
 
-Trading commissions represent the fees charged by exchanges or brokers for executing trades.
-While maker/taker fees are common in cryptocurrency markets, traditional exchanges like CME often
-employ other fee structures, such as per-contract commissions.
-NautilusTrader supports multiple commission models to accommodate diverse fee structures across different markets.
+交易佣金是交易所或经纪商为执行交易收取的费用。在加密市场常见 maker/taker 结构，而传统交易所（如 CME）常采用按合约计费的结构。
+NautilusTrader 支持多种佣金模型以适配不同市场的费率结构。
 
-### Built-in fee models
+### 内置费率模型
 
-The framework provides two built-in fee model implementations:
+框架内提供两种常见的内置费率模型实现：
 
-1. `MakerTakerFeeModel`: Implements the maker/taker fee structure common in cryptocurrency exchanges, where fees are
-    calculated as a percentage of the trade value.
-2. `FixedFeeModel`: Applies a fixed commission per trade, regardless of the trade size.
+1. `MakerTakerFeeModel`：实现加密货币交易所常见的 maker/taker 费率结构，费用按成交金额的一定比例计算。
+2. `FixedFeeModel`：按单笔交易收取固定费用，与交易规模无关。
 
-### Creating custom fee models
+### 自定义费率模型
 
-While the built-in fee models cover common scenarios, you might encounter situations requiring specific commission structures.
-NautilusTrader's flexible architecture allows you to implement custom fee models by inheriting from the base `FeeModel` class.
+尽管内置模型覆盖大多数场景，但某些交易所可能需要按合约收费等特殊结构。NautilusTrader 的可扩展架构允许通过继承基类 `FeeModel` 实现自定义费率模型。
 
-For example, if you're trading futures on exchanges that charge per-contract commissions (like CME), you can implement
-a custom fee model. When creating custom fee models, we inherit from the `FeeModel` base class, which is implemented
-in Cython for performance reasons. This Cython implementation is reflected in the parameter naming convention,
-where type information is incorporated into parameter names using underscores (like `Order_order` or `Quantity_fill_qty`).
+例如，在如 CME 这类按合约收费的场景中，可以实现按合约计费的模型。注意 `FeeModel` 在内部为 Cython 实现，为了性能其方法参数命名采用了带类型前缀的命名约定（例如 `Order_order` 或 `Quantity_fill_qty`）。
 
-While these parameter names might look unusual to Python developers, they're a result of Cython's type system and help
-maintain consistency with the framework's core components. Here's how you could create a per-contract commission model:
+下面示例展示了如何实现一个按合约计费的自定义模型（代码保持原样）：
 
 ```python
 class PerContractFeeModel(FeeModel):
@@ -260,26 +240,20 @@ class PerContractFeeModel(FeeModel):
         return total_commission
 ```
 
-This custom implementation calculates the total commission by multiplying a `fixed per-contract fee` by the `number
-of contracts` traded. The `get_commission(...)` method receives information about the order, fill quantity, fill price
-and instrument, allowing for flexible commission calculations based on these parameters.
+该实现通过将“每份合约的固定费用”乘以成交合约数量来计算总佣金。`get_commission(...)` 方法接收订单、成交数量、成交价格和合约等信息，从而支持灵活的佣金计算。
 
-Our new class `PerContractFeeModel` inherits class `FeeModel`, which is implemented in Cython,
-so notice the Cython-style parameter names in the method signature:
+由于 `PerContractFeeModel` 继承自用 Cython 实现的 `FeeModel`，方法签名中会出现 Cython 风格的参数命名：
 
-- `Order_order`: The order object, with type prefix `Order_`.
-- `Quantity_fill_qty`: The fill quantity, with type prefix `Quantity_`.
-- `Price_fill_px`: The fill price, with type prefix `Price_`.
-- `Instrument_instrument`: The instrument object, with type prefix `Instrument_`.
+- `Order_order`：订单对象，带有类型前缀 `Order_`
+- `Quantity_fill_qty`：成交数量，带有类型前缀 `Quantity_`
+- `Price_fill_px`：成交价格，带有类型前缀 `Price_`
+- `Instrument_instrument`：合约对象，带有类型前缀 `Instrument_`
 
-These parameter names follow NautilusTrader's Cython naming conventions, where the prefix indicates the expected type.
-While this might seem verbose compared to typical Python naming conventions, it ensures type safety and consistency
-with the framework's Cython codebase.
+这种命名约定虽然相比常规 Python 命名显得冗长，但有助于与框架中 Cython 代码保持一致性和类型清晰性。
 
-### Using fee models in practice
+### 在实际中使用费率模型
 
-To use any fee model in your trading system, whether built-in or custom, you specify it when setting up the venue.
-Here's an example using the custom per-contract fee model:
+在设置交易场所（venue）时指定想要的费率模型（内置或自定义）。例如使用前述的按合约计费模型：
 
 ```python
 from nautilus_trader.model.currencies import USD
@@ -296,57 +270,43 @@ engine.add_venue(
 ```
 
 :::tip
-When implementing custom fee models, ensure they accurately reflect the fee structure of your target exchange.
-Even small discrepancies in commission calculations can significantly impact strategy performance metrics during backtesting.
+实现自定义费率模型时，请确保模型与目标交易所的费率结构一致。即便是小幅差异，也可能在回测结果中对绩效度量产生显著影响。
 :::
 
-### Additional info
+### 额外信息
 
-The raw instrument definition as provided by the exchange (typically from JSON serialized data) is also
-included as a generic Python dictionary. This is to retain all information
-which is not necessarily part of the unified Nautilus API, and is available to the user
-at runtime by calling the `.info` property.
+交易所提供的原始合约定义（通常为 JSON 序列化数据）也会以通用的 Python 字典形式保留在合约对象中，便于在运行时通过 `.info` 属性访问那些并非统一 Nautilus API 一部分的额外信息。
 
-## Synthetic instruments
+## 合成（Synthetic）合约
 
-The platform supports creating customized synthetic instruments, which can generate synthetic quote
-and trades. These are useful for:
+平台支持创建自定义的合成合约（synthetic instruments），它们可以生成合成报价和成交，用途包括：
 
-- Enabling `Actor` and `Strategy` components to subscribe to quote or trade feeds.
-- Triggering emulated orders.
-- Constructing bars from synthetic quotes or trades.
+- 允许 `Actor` 与 `Strategy` 组件订阅合成的报价或成交流
+- 触发仿真（emulated）订单
+- 用合成报价/成交构建 K 线/Bar
 
-Synthetic instruments cannot be traded directly, as they are constructs that only exist locally
-within the platform. They serve as analytical tools, providing useful metrics based on their component
-instruments.
+合成合约不能被直接交易（它们仅在平台本地存在），主要作为分析工具，用来基于其组成合约计算有用的指标。
 
-In the future, we plan to support order management for synthetic instruments, enabling trading of
-their component instruments based on the synthetic instrument's behavior.
+未来计划支持基于合成合约行为的订单管理——即根据合成合约的变化去交易其组成合约。
 
 :::info
-The venue for a synthetic instrument is always designated as `'SYNTH'`.
+合成合约的 venue 恒定标记为 `'SYNTH'`。
 :::
 
-### Formula
+### 公式（Formula）
 
-A synthetic instrument is composed of a combination of two or more component instruments (which
-can include instruments from multiple venues), as well as a "derivation formula".
-Utilizing the dynamic expression engine powered by the [evalexpr](https://github.com/ISibboI/evalexpr)
-Rust crate, the platform can evaluate the formula to calculate the latest synthetic price tick
-from the incoming component instrument prices.
+一个合成合约由两个或更多组成合约（可跨多个交易场所）以及一个“派生公式（derivation formula）”构成。
+平台通过内嵌的动态表达式引擎（基于 Rust 的 [evalexpr](https://github.com/ISibboI/evalexpr) crate）来评估公式，从而根据各组成合约的最新价格计算出合成的最新价格 tick。
 
-See the `evalexpr` documentation for a full description of available features, operators and precedence.
+有关可用操作符与优先级的完整说明，请参阅 `evalexpr` 文档。
 
 :::tip
-Before defining a new synthetic instrument, ensure that all component instruments are already defined and exist in the cache.
+在定义新的合成合约前，请确保所有组成合约已定义并存在于缓存中。
 :::
 
-### Subscribing
+### 订阅（Subscribing）
 
-The following example demonstrates the creation of a new synthetic instrument with an actor/strategy.
-This synthetic instrument will represent a simple spread between Bitcoin and
-Ethereum spot prices on Binance. For this example, it is assumed that spot instruments for
-`BTCUSDT.BINANCE` and `ETHUSDT.BINANCE` are already present in the cache.
+下面示例演示如何在 actor/strategy 中创建一个新的合成合约。该例子表示在 Binance 上 BTC 与 ETH 现货价之间的简单价差，假设 `BTCUSDT.BINANCE` 与 `ETHUSDT.BINANCE` 已存在缓存中。
 
 ```python
 from nautilus_trader.model.instruments import SyntheticInstrument
@@ -378,32 +338,28 @@ self.subscribe_quote_ticks(self._synthetic_id)
 ```
 
 :::note
-The `instrument_id` for the synthetic instrument in the above example will be structured as `{symbol}.{SYNTH}`, resulting in `'BTC-ETH:BINANCE.SYNTH'`.
+上例中合成合约的 `instrument_id` 将以 `{symbol}.{SYNTH}` 的格式生成，例如 `'BTC-ETH:BINANCE.SYNTH'`。
 :::
 
-### Updating formulas
+### 更新公式（Updating formulas）
 
-It's also possible to update a synthetic instrument formulas at any time. The following example
-shows how to achieve this with an actor/strategy.
+合成合约的公式可以随时更新。下面示例展示如何在 actor/strategy 中更新公式：
 
 ```
-# Recover the synthetic instrument from the cache (assuming `synthetic_id` was assigned)
+# 从缓存中取回合成合约（假设已保存 synthetic_id）
 synthetic = self.cache.synthetic(self._synthetic_id)
 
-# Update the formula, here is a simple example of just taking the average
+# 更新公式，这里以计算平均值为例
 new_formula = "(BTCUSDT.BINANCE + ETHUSDT.BINANCE) / 2"
 synthetic.change_formula(new_formula)
 
-# Now update the synthetic instrument
+# 提交合成合约的更新
 self.update_synthetic(synthetic)
 ```
 
-### Trigger instrument IDs
+### 触发合约 ID（Trigger instrument IDs）
 
-The platform allows for emulated orders to be triggered based on synthetic instrument prices. In
-the following example, we build upon the previous one to submit a new emulated order.
-This order will be retained in the emulator until a trigger from synthetic quotes releases it.
-It will then be submitted to Binance as a MARKET order:
+平台允许根据合成合约价格触发仿真订单。下面基于此前例子演示如何提交一个仿真订单：该订单将在仿真器中被保留，直到合成报价触发器释放它，然后以 MARKET 订单发送到 Binance。
 
 ```python
 order = self.strategy.order_factory.limit(
@@ -418,13 +374,10 @@ order = self.strategy.order_factory.limit(
 self.strategy.submit_order(order)
 ```
 
-### Error handling
+### 错误处理（Error handling）
 
-Considerable effort has been made to validate inputs, including the derivation formula for
-synthetic instruments. Despite this, caution is advised as invalid or erroneous inputs may lead to
-undefined behavior.
+对合成合约的输入（包括派生公式）已做了大量验证工作，但仍需谨慎。无效或错误的输入可能导致未定义行为。
 
 :::info
-See the `SyntheticInstrument` [API reference](../api_reference/model/instruments.md#class-syntheticinstrument-1)
-for a detailed understanding of input requirements and potential exceptions.
+详见 `SyntheticInstrument` 的 [API 参考](../api_reference/model/instruments.md#class-syntheticinstrument-1)，了解输入要求与可能抛出的异常。
 :::
