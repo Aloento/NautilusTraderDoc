@@ -1,107 +1,105 @@
-# Data
+# 数据
 
-NautilusTrader provides a set of built-in data types specifically designed to represent a trading domain.
-These data types include:
+NautilusTrader 提供了一组内置的数据类型，用于表示交易领域中的常见数据结构。
+这些数据类型包括：
 
-- `OrderBookDelta` (L1/L2/L3): Represents the most granular order book updates.
-- `OrderBookDeltas` (L1/L2/L3): Batches multiple order book deltas for more efficient processing.
-- `OrderBookDepth10`: Aggregated order book snapshot (up to 10 levels per bid and ask side).
-- `QuoteTick`: Represents the best bid and ask prices along with their sizes at the top-of-book.
-- `TradeTick`: A single trade/match event between counterparties.
-- `Bar`: OHLCV (Open, High, Low, Close, Volume) bar/candle, aggregated using a specified *aggregation method*.
-- `MarkPriceUpdate`: The current mark price for an instrument (typically used in derivatives trading).
-- `IndexPriceUpdate`: The index price for an instrument (underlying price used for mark price calculations).
-- `FundingRateUpdate`: The funding rate for perpetual contracts (periodic payments between long and short positions).
-- `InstrumentStatus`: An instrument-level status event.
-- `InstrumentClose`: The closing price of an instrument.
+- `OrderBookDelta`（L1/L2/L3）：表示最细粒度的订单簿更新。
+- `OrderBookDeltas`（L1/L2/L3）：将多个 `OrderBookDelta` 批量打包以提高处理效率。
+- `OrderBookDepth10`：聚合的订单簿快照（每侧最多 10 个档位）。
+- `QuoteTick`：顶级盘口（top-of-book）的最优买卖价及其量。
+- `TradeTick`：一次成交/匹配事件。
+- `Bar`：OHLCV（开、高、低、收、量）K 线，按指定的聚合方法（aggregation method）生成。
+- `MarkPriceUpdate`：合约的标记价格（通常用于衍生品交易）。
+- `IndexPriceUpdate`：用于计算标记价的指数价格（underlying index price）。
+- `FundingRateUpdate`：永续合约的资金费率（多空之间的周期性支付）。
+- `InstrumentStatus`：品种级别的状态事件。
+- `InstrumentClose`：品种的收盘价。
 
-NautilusTrader is designed primarily to operate on granular order book data, providing the highest realism
-for execution simulations in backtesting.
-However, backtests can also be conducted on any of the supported market data types, depending on the desired simulation fidelity.
+NautilusTrader 的设计以处理细粒度订单簿数据为主，这能在回测中提供最接近实盘的执行仿真。
+当然，根据仿真的需求，也可以使用任何受支持的市场数据类型进行回测，灵活选择模拟精度。
 
-## Order books
+## 订单簿（Order books）
 
-A high-performance order book implemented in Rust is available to maintain order book state based on provided data.
+系统内置了一个用 Rust 实现的高性能订单簿，用来根据输入数据维护订单簿状态。
 
-`OrderBook` instances are maintained per instrument for both backtesting and live trading, with the following book types available:
+`OrderBook` 实例按合约维护，既可用于回测也可用于实盘，支持以下类型的订单簿：
 
-- `L3_MBO`: **Market by order (MBO)** or L3 data, uses every order book event at every price level, keyed by order ID.
-- `L2_MBP`: **Market by price (MBP)** or L2 data, aggregates order book events by price level.
-- `L1_MBP`: **Market by price (MBP)** or L1 data, also known as best bid and offer (BBO), captures only top-level updates.
+- `L3_MBO`：Market by order（MBO，L3），使用每一笔按订单 ID 编址的事件，保留每个价格级别的所有订单。
+- `L2_MBP`：Market by price（MBP，L2），按价格级别聚合订单簿事件。
+- `L1_MBP`：Market by price（MBP，L1），也称为 BBO（best bid and offer），只捕获顶层更新。
 
 :::note
-Top-of-book data, such as `QuoteTick`, `TradeTick` and `Bar`, can also be used for backtesting, with markets operating on `L1_MBP` book types.
+顶层数据（如 `QuoteTick`、`TradeTick` 和 `Bar`）也可用于回测，对于以 `L1_MBP` 为书籍类型的市场尤其常见。
 :::
 
-## Instruments
+## 合约/品种（Instruments）
 
-The following instrument definitions are available:
+支持的合约类型包括：
 
-- `Betting`: Represents an instrument in a betting market.
-- `BinaryOption`: Represents a generic binary option instrument.
-- `Cfd`: Represents a Contract for Difference (CFD) instrument.
-- `Commodity`:  Represents a commodity instrument in a spot/cash market.
-- `CryptoFuture`: Represents a deliverable futures contract instrument, with crypto assets as underlying and for settlement.
-- `CryptoPerpetual`: Represents a crypto perpetual futures contract instrument (a.k.a. perpetual swap).
-- `CurrencyPair`: Represents a generic currency pair instrument in a spot/cash market.
-- `Equity`: Represents a generic equity instrument.
-- `FuturesContract`: Represents a generic deliverable futures contract instrument.
-- `FuturesSpread`: Represents a generic deliverable futures spread instrument.
-- `Index`: Represents a generic index instrument.
-- `OptionContract`: Represents a generic option contract instrument.
-- `OptionSpread`: Represents a generic option spread instrument.
-- `Synthetic`: Represents a synthetic instrument with prices derived from component instruments using a formula.
+- `Betting`：博彩市场中的合约。
+- `BinaryOption`：二元期权合约。
+- `Cfd`：差价合约（CFD）。
+- `Commodity`：现货/现金市场的商品合约。
+- `CryptoFuture`：可交割的加密货币期货合约（以加密资产为标的并以其结算）。
+- `CryptoPerpetual`：加密永续合约（perpetual swap）。
+- `CurrencyPair`：现货/现金市场的货币对合约。
+- `Equity`：股票类合约。
+- `FuturesContract`：可交割期货合约。
+- `FuturesSpread`：期货价差合约。
+- `Index`：指数类合约。
+- `OptionContract`：期权合约。
+- `OptionSpread`：期权价差合约。
+- `Synthetic`：由若干组件合约按公式合成的合成品种（synthetic）。
 
-## Bars and aggregation
+## K 线与聚合（Bars and aggregation）
 
-### Introduction to bars
+### K 线简介
 
-A *bar* (also known as a candle, candlestick or kline) is a data structure that represents
-price and volume information over a specific period, including:
+_Bar_（有时称为 candle、candlestick 或 kline）是一种表示在特定时间段内价格和成交量信息的数据结构，通常包含：
 
-- Opening price
-- Highest price
-- Lowest price
-- Closing price
-- Traded volume (or ticks as a volume proxy)
+- 开盘价
+- 最高价
+- 最低价
+- 收盘价
+- 成交量（或用 ticks 计数作为成交量的近似）
 
-The system generates bars using an *aggregation method* that groups data by specific criteria.
+系统通过指定的聚合方法（aggregation method）将底层市场数据分组并生成 K 线。
 
-### Purpose of data aggregation
+### 聚合的目的
 
-Data aggregation in NautilusTrader transforms granular market data into structured bars or candles for several reasons:
+在 NautilusTrader 中进行数据聚合的原因包括：
 
-- To provide data for technical indicators and strategy development.
-- Because time-aggregated data (like minute bars) are often sufficient for many strategies.
-- To reduce costs compared to high-frequency L1/L2/L3 market data.
+- 为技术指标和策略开发提供数据。
+- 许多策略对时间聚合数据（如分钟线）已足够，无需使用高频 L1/L2/L3 数据。
+- 相比高频原始数据，聚合可以降低存储与处理成本。
 
-### Aggregation methods
+### 聚合方法
 
-The platform implements various aggregation methods:
+平台实现了多种聚合方法：
 
-| Name               | Description                                                                | Category     |
-|:-------------------|:---------------------------------------------------------------------------|:-------------|
-| `TICK`             | Aggregation of a number of ticks.                                          | Threshold    |
-| `TICK_IMBALANCE`   | Aggregation of the buy/sell imbalance of ticks.                            | Threshold    |
-| `TICK_RUNS`        | Aggregation of sequential buy/sell runs of ticks.                          | Information  |
-| `VOLUME`           | Aggregation of traded volume.                                              | Threshold    |
-| `VOLUME_IMBALANCE` | Aggregation of the buy/sell imbalance of traded volume.                    | Threshold    |
-| `VOLUME_RUNS`      | Aggregation of sequential runs of buy/sell traded volume.                  | Information  |
-| `VALUE`            | Aggregation of the notional value of trades (also known as "Dollar bars"). | Threshold    |
-| `VALUE_IMBALANCE`  | Aggregation of the buy/sell imbalance of trading by notional value.        | Information  |
-| `VALUE_RUNS`       | Aggregation of sequential buy/sell runs of trading by notional value.      | Threshold    |
-| `RENKO`            | Aggregation based on fixed price movements (brick size in ticks).          | Threshold    |
-| `MILLISECOND`      | Aggregation of time intervals with millisecond granularity.                | Time         |
-| `SECOND`           | Aggregation of time intervals with second granularity.                     | Time         |
-| `MINUTE`           | Aggregation of time intervals with minute granularity.                     | Time         |
-| `HOUR`             | Aggregation of time intervals with hour granularity.                       | Time         |
-| `DAY`              | Aggregation of time intervals with day granularity.                        | Time         |
-| `WEEK`             | Aggregation of time intervals with week granularity.                       | Time         |
-| `MONTH`            | Aggregation of time intervals with month granularity.                      | Time         |
-| `YEAR`             | Aggregation of time intervals with year granularity.                       | Time         |
+| 名称               | 描述                                                    | 类别        |
+| :----------------- | :------------------------------------------------------ | :---------- |
+| `TICK`             | 按一定数量的 ticks 进行聚合。                           | Threshold   |
+| `TICK_IMBALANCE`   | 按 ticks 的买/卖不平衡进行聚合。                        | Threshold   |
+| `TICK_RUNS`        | 按连续的买/卖序列（runs）聚合 ticks。                   | Information |
+| `VOLUME`           | 按交易量聚合。                                          | Threshold   |
+| `VOLUME_IMBALANCE` | 按成交量的买/卖不平衡聚合。                             | Threshold   |
+| `VOLUME_RUNS`      | 按成交量的连续买/卖序列聚合。                           | Information |
+| `VALUE`            | 按成交面值（notional value，也称为“Dollar bars”）聚合。 | Threshold   |
+| `VALUE_IMBALANCE`  | 按按面值计算的买/卖不平衡聚合。                         | Information |
+| `VALUE_RUNS`       | 按按面值计算的连续买/卖序列聚合。                       | Threshold   |
+| `RENKO`            | 基于固定价格变动（以 ticks 为砖块大小）的聚合。         | Threshold   |
+| `MILLISECOND`      | 以毫秒为粒度的时间窗口聚合。                            | Time        |
+| `SECOND`           | 以秒为粒度的时间窗口聚合。                              | Time        |
+| `MINUTE`           | 以分钟为粒度的时间窗口聚合。                            | Time        |
+| `HOUR`             | 以小时为粒度的时间窗口聚合。                            | Time        |
+| `DAY`              | 以日为粒度的时间窗口聚合。                              | Time        |
+| `WEEK`             | 以周为粒度的时间窗口聚合。                              | Time        |
+| `MONTH`            | 以月为粒度的时间窗口聚合。                              | Time        |
+| `YEAR`             | 以年为粒度的时间窗口聚合。                              | Time        |
 
 :::note
-The following bar aggregations are not currently implemented:
+以下聚合方法当前尚未实现：
 
 - `VOLUME_IMBALANCE`
 - `VOLUME_RUNS`
@@ -110,345 +108,333 @@ The following bar aggregations are not currently implemented:
 
 :::
 
-### Types of aggregation
+### 聚合类型
 
-NautilusTrader implements three distinct data aggregation methods:
+NautilusTrader 实现了三类主要的聚合方式：
 
-1. **Trade-to-bar aggregation**: Creates bars from `TradeTick` objects (executed trades)
-   - Use case: For strategies analyzing execution prices or when working directly with trade data.
-   - Always uses the `LAST` price type in the bar specification.
+1. **Trade-to-bar（成交到 K 线）**：由 `TradeTick`（成交数据）生成 K 线。
 
-2. **Quote-to-bar aggregation**: Creates bars from `QuoteTick` objects (bid/ask prices)
-   - Use case: For strategies focusing on bid/ask spreads or market depth analysis.
-   - Uses `BID`, `ASK`, or `MID` price types in the bar specification.
+   - 适用场景：分析成交价格或直接以成交数据为输入的策略。
+   - 在 Bar 规范中始终使用 `LAST` 作为 price_type。
 
-3. **Bar-to-bar aggregation**: Creates larger-timeframe `Bar` objects from smaller-timeframe `Bar` objects
-   - Use case: For resampling existing smaller timeframe bars (1-minute) into larger timeframes (5-minute, hourly).
-   - Always requires the `@` symbol in the specification.
+2. **Quote-to-bar（盘口到 K 线）**：由 `QuoteTick`（买/卖档）生成 K 线。
 
-### Bar types
+   - 适用场景：关注买卖价差或市场深度的策略。
+   - 在 Bar 规范中使用 `BID`、`ASK` 或 `MID` 作为 price_type。
 
-NautilusTrader defines a unique *bar type* (`BarType` class) based on the following components:
+3. **Bar-to-bar（K 线到 K 线）**：由较小周期的 `Bar` 生成更大周期的 `Bar`。
+   - 适用场景：对已有的小周期 K 线（例如 1 分钟）做重采样得到 5 分钟或小时线等。
+   - 这种方式在规范中需要使用 `@` 符号来标注来源。
 
-- **Instrument ID** (`InstrumentId`): Specifies the particular instrument for the bar.
-- **Bar Specification** (`BarSpecification`):
-  - `step`: Defines the interval or frequency of each bar.
-  - `aggregation`: Specifies the method used for data aggregation (see the above table).
-  - `price_type`: Indicates the price basis of the bar (e.g., bid, ask, mid, last).
-- **Aggregation Source** (`AggregationSource`): Indicates whether the bar was aggregated internally (within Nautilus).
-- or externally (by a trading venue or data provider).
+### Bar 类型
 
-Bar types can also be classified as either *standard* or *composite*:
+`BarType`（Bar 类型）由以下几个要素组成：
 
-- **Standard**: Generated from granular market data, such as quote-ticks or trade-ticks.
-- **Composite**: Derived from a higher-granularity bar type through subsampling (like 5-MINUTE bars aggregate from 1-MINUTE bars).
+- **Instrument ID**（`InstrumentId`）：指定该 Bar 所属的合约。
+- **Bar Specification**（`BarSpecification`）：
+  - `step`：定义 Bar 的时间间隔或频率。
+  - `aggregation`：指定使用的聚合方法（参见上表）。
+  - `price_type`：指定 Bar 的价格基准（如 bid、ask、mid、last）。
+- **Aggregation Source**（`AggregationSource`）：标明 Bar 是在本地（INTERNAL）还是由外部（EXTERNAL）聚合得到的。
 
-### Aggregation sources
+BarType 还可以分为 _standard_（标准）或 _composite_（复合）：
 
-Bar data aggregation can be either *internal* or *external*:
+- **标准（Standard）**：由原始市场数据（quote-ticks、trade-ticks）直接生成。
+- **复合（Composite）**：由更高粒度的 Bar 通过子抽样（subsampling）得到（例如 5 分钟 Bar 从 1 分钟 Bar 聚合而来）。
 
-- `INTERNAL`: The bar is aggregated inside the local Nautilus system boundary.
-- `EXTERNAL`: The bar is aggregated outside the local Nautilus system boundary (typically by a trading venue or data provider).
+### 聚合来源（Aggregation sources）
 
-For bar-to-bar aggregation, the target bar type is always `INTERNAL` (since you're doing the aggregation within NautilusTrader),
-but the source bars can be either `INTERNAL` or `EXTERNAL`, i.e., you can aggregate externally provided bars or already
-aggregated internal bars.
+聚合来源可为：
 
-### Defining bar types with *string syntax*
+- `INTERNAL`：在本地 Nautilus 系统内完成聚合。
+- `EXTERNAL`：由场外或数据提供方在系统外完成聚合。
 
-#### Standard bars
+对于 bar-to-bar（K 线到 K 线）聚合，目标 BarType 总是 `INTERNAL`（因为聚合在 Nautilus 内部完成），但来源 Bar 可以是 `INTERNAL` 或 `EXTERNAL`。
 
-You can define standard bar types from strings using the following convention:
+### 使用字符串语法定义 BarType
+
+#### 标准 Bar
+
+可用如下格式从字符串定义标准 BarType：
 
 `{instrument_id}-{step}-{aggregation}-{price_type}-{INTERNAL | EXTERNAL}`
 
-For example, to define a `BarType` for AAPL trades (last price) on Nasdaq (XNAS) using a 5-minute interval
-aggregated from trades locally by Nautilus:
+例如：在 Nasdaq（XNAS）上为 AAPL 定义一个 5 分钟、基于成交价（LAST）且在本地聚合的 BarType：
 
 ```python
 bar_type = BarType.from_str("AAPL.XNAS-5-MINUTE-LAST-INTERNAL")
 ```
 
-#### Composite bars
+#### 复合 Bar
 
-Composite bars are derived by aggregating higher-granularity bars into the desired bar type. To define a composite bar,
-use this convention:
+复合 Bar 的定义格式为：
 
 `{instrument_id}-{step}-{aggregation}-{price_type}-INTERNAL@{step}-{aggregation}-{INTERNAL | EXTERNAL}`
 
-**Notes**:
+注意事项：
 
-- The derived bar type must use an `INTERNAL` aggregation source (since this is how the bar is aggregated).
-- The sampled bar type must have a higher granularity than the derived bar type.
-- The sampled instrument ID is inferred to match that of the derived bar type.
-- Composite bars can be aggregated *from* `INTERNAL` or `EXTERNAL` aggregation sources.
+- 派生（derived）的 BarType 必须使用 `INTERNAL` 作为聚合来源（因为聚合在本地完成）。
+- 被采样的 BarType 必须具有比派生 Bar 更高的粒度。
+- 被采样的 instrument_id 会被推断为与派生 BarType 相同。
+- 复合 Bar 可从 `INTERNAL` 或 `EXTERNAL` 的来源进行聚合。
 
-For example, to define a `BarType` for AAPL trades (last price) on Nasdaq (XNAS) using a 5-minute interval
-aggregated locally by Nautilus, from 1-minute interval bars aggregated externally:
+例如：从外部提供的 1 分钟 Bar 聚合为在本地生成的 AAPL 5 分钟成交价 Bar：
 
 ```python
 bar_type = BarType.from_str("AAPL.XNAS-5-MINUTE-LAST-INTERNAL@1-MINUTE-EXTERNAL")
 ```
 
-### Aggregation syntax examples
+### 聚合语法示例
 
-The `BarType` string format encodes both the target bar type and, optionally, the source data type:
+`BarType` 字符串格式同时编码目标 BarType 和可选的来源数据类型：
 
-```
+```txt
 {instrument_id}-{step}-{aggregation}-{price_type}-{source}@{step}-{aggregation}-{source}
 ```
 
-The part after the `@` symbol is optional and only used for bar-to-bar aggregation:
+`@` 之后的部分是可选的，仅用于 bar-to-bar 聚合：
 
-- **Without `@`**: Aggregates from `TradeTick` objects (when price_type is `LAST`) or `QuoteTick` objects (when price_type is `BID`, `ASK`, or `MID`).
-- **With `@`**: Aggregates from existing `Bar` objects (specifying the source bar type).
+- **无 `@`**：当 price_type 为 `LAST` 时从 `TradeTick` 聚合；当 price_type 为 `BID`/`ASK`/`MID` 时从 `QuoteTick` 聚合。
+- **有 `@`**：从已有的 `Bar` 对象聚合（指定来源 BarType）。
 
-#### Trade-to-bar example
+#### Trade-to-bar 示例
 
 ```python
 def on_start(self) -> None:
-    # Define a bar type for aggregating from TradeTick objects
-    # Uses price_type=LAST which indicates TradeTick data as source
+    # 定义一个从 TradeTick 聚合的 BarType
+    # 使用 price_type=LAST 表示以 TradeTick 为数据源
     bar_type = BarType.from_str("6EH4.XCME-50-VOLUME-LAST-INTERNAL")
 
-    # Request historical data (will receive bars in on_historical_data handler)
+    # 请求历史数据（将在 on_historical_data 回调收到 bars）
     self.request_bars(bar_type)
 
-    # Subscribe to live data (will receive bars in on_bar handler)
+    # 订阅实时数据（将在 on_bar 回调收到 bars）
     self.subscribe_bars(bar_type)
 ```
 
-#### Quote-to-bar example
+#### Quote-to-bar 示例
 
 ```python
 def on_start(self) -> None:
-    # Create 1-minute bars from ASK prices (in QuoteTick objects)
+    # 从 ASK 价生成 1 分钟 Bar
     bar_type_ask = BarType.from_str("6EH4.XCME-1-MINUTE-ASK-INTERNAL")
 
-    # Create 1-minute bars from BID prices (in QuoteTick objects)
+    # 从 BID 价生成 1 分钟 Bar
     bar_type_bid = BarType.from_str("6EH4.XCME-1-MINUTE-BID-INTERNAL")
 
-    # Create 1-minute bars from MID prices (middle between ASK and BID prices in QuoteTick objects)
+    # 从 MID 价生成 1 分钟 Bar（MID 为 BID 与 ASK 的中间价）
     bar_type_mid = BarType.from_str("6EH4.XCME-1-MINUTE-MID-INTERNAL")
 
-    # Request historical data and subscribe to live data
-    self.request_bars(bar_type_ask)    # Historical bars processed in on_historical_data
-    self.subscribe_bars(bar_type_ask)  # Live bars processed in on_bar
+    # 请求历史并订阅实时
+    self.request_bars(bar_type_ask)    # 历史数据在 on_historical_data 中处理
+    self.subscribe_bars(bar_type_ask)  # 实时数据在 on_bar 中处理
 ```
 
-#### Bar-to-bar example
+#### Bar-to-bar 示例
 
 ```python
 def on_start(self) -> None:
-    # Create 5-minute bars from 1-minute bars (Bar objects)
-    # Format: target_bar_type@source_bar_type
-    # Note: price type (LAST) is only needed on the left target side, not on the source side
+    # 从 1 分钟 Bar 生成 5 分钟 Bar（格式：target_bar_type@source_bar_type）
+    # 注意：左侧目标的 price_type（如 LAST）需要指定，来源侧无需 price_type
     bar_type = BarType.from_str("6EH4.XCME-5-MINUTE-LAST-INTERNAL@1-MINUTE-EXTERNAL")
 
-    # Request historical data (processed in on_historical_data(...) handler)
+    # 请求历史数据（将在 on_historical_data(...) 处理）
     self.request_bars(bar_type)
 
-    # Subscribe to live updates (processed in on_bar(...) handler)
+    # 订阅实时更新（将在 on_bar(...) 处理）
     self.subscribe_bars(bar_type)
 ```
 
-#### Advanced bar-to-bar example
+#### 高级 Bar-to-bar 示例
 
-You can create complex aggregation chains where you aggregate from already aggregated bars:
+可以构建多级的聚合链条，例如：先从 TradeTick 生成 1 分钟 Bar，再从 1 分钟 Bar 生成 5 分钟 Bar，如下：
 
 ```python
-# First create 1-minute bars from TradeTick objects (LAST indicates TradeTick source)
+# 先从 TradeTick 生成 1 分钟 Bar（LAST 表示 TradeTick 来源）
 primary_bar_type = BarType.from_str("6EH4.XCME-1-MINUTE-LAST-INTERNAL")
 
-# Then create 5-minute bars from 1-minute bars
-# Note the @1-MINUTE-INTERNAL part identifying the source bars
+# 再从 1 分钟 Bar 生成 5 分钟 Bar
+# 注意 @1-MINUTE-INTERNAL 指明了来源 Bar
 intermediate_bar_type = BarType.from_str("6EH4.XCME-5-MINUTE-LAST-INTERNAL@1-MINUTE-INTERNAL")
 
-# Then create hourly bars from 5-minute bars
-# Note the @5-MINUTE-INTERNAL part identifying the source bars
+# 最后从 5 分钟 Bar 生成小时线
+# 注意 @5-MINUTE-INTERNAL 指明了来源 Bar
 hourly_bar_type = BarType.from_str("6EH4.XCME-1-HOUR-LAST-INTERNAL@5-MINUTE-INTERNAL")
 ```
 
-### Working with bars: request vs. subscribe
+### 使用 Bars：request 与 subscribe 的区别
 
-NautilusTrader provides two distinct operations for working with bars:
+NautilusTrader 提供两种与 Bar 交互的操作：
 
-- **`request_bars()`**: Fetches historical data processed by the `on_historical_data()` handler.
-- **`subscribe_bars()`**: Establishes a real-time data feed processed by the `on_bar()` handler.
+- **`request_bars()`**：请求历史数据，由 `on_historical_data()` 回调处理。
+- **`subscribe_bars()`**：订阅实时数据流，由 `on_bar()` 回调处理。
 
-These methods work together in a typical workflow:
+典型流程为：
 
-1. First, `request_bars()` loads historical data to initialize indicators or state of strategy with past market behavior.
-2. Then, `subscribe_bars()` ensures the strategy continues receiving new bars as they form in real-time.
+1. 先用 `request_bars()` 加载历史数据以初始化指标或策略状态。
+2. 再用 `subscribe_bars()` 保证策略在实时形成新 Bar 时能持续接收更新。
 
-Example usage in `on_start()`:
+示例（在 `on_start()` 中）：
 
 ```python
 def on_start(self) -> None:
-    # Define bar type
+    # 定义 BarType
     bar_type = BarType.from_str("6EH4.XCME-5-MINUTE-LAST-INTERNAL")
 
-    # Request historical data to initialize indicators
-    # These bars will be delivered to the on_historical_data(...) handler in strategy
+    # 请求历史数据用于初始化指标
+    # 这些 Bar 会在策略的 on_historical_data(...) 回调中收到
     self.request_bars(bar_type)
 
-    # Subscribe to real-time updates
-    # New bars will be delivered to the on_bar(...) handler in strategy
+    # 订阅实时更新
+    # 新生成的 Bar 会在策略的 on_bar(...) 回调中收到
     self.subscribe_bars(bar_type)
 
-    # Register indicators to receive bar updates (they will be automatically updated)
+    # 注册指标以接收 Bar 更新（指标会自动用历史数据和后续实时数据进行更新）
     self.register_indicator_for_bars(bar_type, self.my_indicator)
 ```
 
-Required handlers in your strategy to receive the data:
+策略需要实现的回调以接收数据：
 
 ```python
 def on_historical_data(self, data):
-    # Processes batches of historical bars from request_bars()
-    # Note: indicators registered with register_indicator_for_bars
-    # are updated automatically with historical data
+    # 处理由 request_bars() 返回的历史 Bar 批量
+    # 注意：通过 register_indicator_for_bars 注册的指标会自动被历史数据更新
     pass
 
 def on_bar(self, bar):
-    # Processes individual bars in real-time from subscribe_bars()
-    # Indicators registered with this bar type will update automatically and they will be updated before this handler is called
+    # 处理 subscribe_bars() 推送的实时单条 Bar
+    # 相关指标会在此回调之前完成更新
     pass
 ```
 
-### Historical data requests with aggregation
+### 带聚合的历史数据请求
 
-When requesting historical bars for backtesting or initializing indicators, you can use the `request_bars()` method, which supports both direct requests and aggregation:
+在请求用于回测或初始化指标的历史 Bar 时，`request_bars()` 支持直接请求或基于更低级别数据的聚合请求：
 
 ```python
-# Request raw 1-minute bars (aggregated from TradeTick objects as indicated by LAST price type)
+# 请求原始的 1 分钟 Bar（从 TradeTick 聚合，price_type=LAST）
 self.request_bars(BarType.from_str("6EH4.XCME-1-MINUTE-LAST-EXTERNAL"))
 
-# Request 5-minute bars aggregated from 1-minute bars
+# 请求从 1 分钟 Bar 聚合得到的 5 分钟 Bar
 self.request_bars(BarType.from_str("6EH4.XCME-5-MINUTE-LAST-INTERNAL@1-MINUTE-EXTERNAL"))
 ```
 
-If historical aggregated bars are needed, you can use specialized request `request_aggregated_bars()` method:
+如果需要专门请求已聚合的历史 Bar，可使用 `request_aggregated_bars()`：
 
 ```python
-# Request bars that are aggregated from historical trade ticks
+# 请求从历史成交 ticks 聚合得到的 Bar
 self.request_aggregated_bars([BarType.from_str("6EH4.XCME-100-VOLUME-LAST-INTERNAL")])
 
-# Request bars that are aggregated from other bars
+# 请求从其他 Bar 聚合得到的 Bar
 self.request_aggregated_bars([BarType.from_str("6EH4.XCME-5-MINUTE-LAST-INTERNAL@1-MINUTE-EXTERNAL")])
 ```
 
-### Common pitfalls
+### 常见陷阱
 
-**Register indicators before requesting data**: Ensure indicators are registered before requesting historical data so they get updated properly.
+**在请求历史数据前先注册指标**：确保在请求历史数据前完成指标注册，否则指标不会用历史数据进行初始化。
 
 ```python
-# Correct order
+# 正确顺序
 self.register_indicator_for_bars(bar_type, self.ema)
 self.request_bars(bar_type)
 
-# Incorrect order
-self.request_bars(bar_type)  # Indicator won't receive historical data
+# 错误顺序
+self.request_bars(bar_type)  # 指标不会收到历史数据
 self.register_indicator_for_bars(bar_type, self.ema)
 ```
 
-## Timestamps
+## 时间戳（Timestamps）
 
-The platform uses two fundamental timestamp fields that appear across many objects, including market data, orders, and events.
-These timestamps serve distinct purposes and help maintain precise timing information throughout the system:
+平台使用两个核心时间戳字段，出现在众多对象（市场数据、订单和事件）中：
+这些字段用途不同，有助于在系统中保持精确的时间语义：
 
-- `ts_event`: UNIX timestamp (nanoseconds) representing when an event actually occurred.
-- `ts_init`: UNIX timestamp (nanoseconds) representing when Nautilus created the internal object representing that event.
+- `ts_event`：UNIX 时间戳（纳秒），表示事件在外部真实发生的时间。
+- `ts_init`：UNIX 时间戳（纳秒），表示 Nautilus 在内部创建表示该事件对象的时间。
 
-### Examples
+### 示例
 
-| **Event Type**   | **`ts_event`**                                        | **`ts_init`** |
-| -----------------| ------------------------------------------------------| --------------|
-| `TradeTick`      | Time when trade occurred at the exchange.             | Time when Nautilus received the trade data. |
-| `QuoteTick`      | Time when quote occurred at the exchange.             | Time when Nautilus received the quote data. |
-| `OrderBookDelta` | Time when order book update occurred at the exchange. | Time when Nautilus received the order book update. |
-| `Bar`            | Time of the bar's closing (exact minute/hour).        | Time when Nautilus generated (for internal bars) or received the bar data (for external bars). |
-| `OrderFilled`    | Time when order was filled at the exchange.           | Time when Nautilus received and processed the fill confirmation. |
-| `OrderCanceled`  | Time when cancellation was processed at the exchange. | Time when Nautilus received and processed the cancellation confirmation. |
-| `NewsEvent`      | Time when the news was published.                     | Time when the event object was created (if internal event) or received (if external event) in Nautilus. |
-| Custom event     | Time when event conditions actually occurred.         | Time when the event object was created (if internal event) or received (if external event) in Nautilus. |
+| **事件类型**     | **`ts_event`**                    | **`ts_init`**                                                                         |
+| ---------------- | --------------------------------- | ------------------------------------------------------------------------------------- |
+| `TradeTick`      | 交易在交易所实际发生的时间。      | Nautilus 接收到该成交数据的时间。                                                     |
+| `QuoteTick`      | 报价在交易所发生的时间。          | Nautilus 接收到该报价数据的时间。                                                     |
+| `OrderBookDelta` | 订单簿更新在交易所发生的时间。    | Nautilus 接收到订单簿更新的时间。                                                     |
+| `Bar`            | Bar 的收盘时间（精确到分/小时）。 | Nautilus 在本地生成（针对 INTERNAL 条件）或接收到该 Bar（针对 EXTERNAL 条件）的时间。 |
+| `OrderFilled`    | 订单在交易所被成交的时间。        | Nautilus 接收到并处理成交回执的时间。                                                 |
+| `OrderCanceled`  | 取消在交易所被处理的时间。        | Nautilus 接收到并处理取消确认的时间。                                                 |
+| `NewsEvent`      | 新闻发布的时间。                  | 如果是内部事件则为对象创建时间；如果是外部事件则为接收时间。                          |
+| 自定义事件       | 事件条件实际发生的时间。          | 如果是内部事件则为对象创建时间；如果是外部事件则为接收时间。                          |
 
 :::note
-The `ts_init` field represents a more general concept than just the "time of reception" for events.
-It denotes the timestamp when an object, such as a data point or command, was initialized within Nautilus.
-This distinction is important because `ts_init` is not exclusive to "received events" — it applies to any internal
-initialization process.
+`ts_init` 的概念比简单的“接收时间”更广泛。
+它表示某个对象（数据点或命令）在 Nautilus 内部被初始化的时间。
+因此 `ts_init` 并不限于“接收到的外部事件”，也适用于所有内部初始化的场景。
 
-For example, the `ts_init` field is also used for commands, where the concept of reception does not apply.
-This broader definition ensures consistent handling of initialization timestamps across various object types in the system.
+例如，命令（command）也会使用 `ts_init` 字段，此时“接收”概念并不适用。
+这一更广泛的定义可确保不同对象类型在时间戳处理上的一致性。
 :::
 
-### Latency analysis
+### 延迟分析（Latency analysis）
 
-The dual timestamp system enables latency analysis within the platform:
+采用双时间戳机制后可以方便在平台内进行延迟分析：
 
-- Latency can be calculated as `ts_init - ts_event`.
-- This difference represents total system latency, including network transmission time, processing overhead, and any queueing delays.
-- It's important to remember that the clocks producing these timestamps are likely not synchronized.
+- 延迟可按 `ts_init - ts_event` 计算。
+- 该差值代表了系统端到端的延迟，包括网络传输、处理开销和排队时间等。
+- 注意：生成这些时间戳的时钟可能并未同步，因此直接比较时需谨慎。
 
-### Environment-specific behavior
+### 不同环境下的行为
 
-#### Backtesting environment
+#### 回测环境
 
-- Data is ordered by `ts_init` using a stable sort.
-- This behavior ensures deterministic processing order and simulates realistic system behavior, including latencies.
+- 数据按 `ts_init` 进行稳定排序（stable sort）。
+- 这样可以确保确定性的处理顺序，并在回测中模拟合理的系统延迟行为。
 
-#### Live trading environment
+#### 实盘环境
 
-- The system processes data as it arrives to minimize latency and enable real-time decisions.
-  - `ts_init` field records the exact moment when data is received by Nautilus in real-time.
-  - `ts_event` reflects the time the event occurred externally, enabling accurate comparisons between external event timing and system reception.
-- We can use the difference between `ts_init` and `ts_event` to detect network or processing delays.
+- 系统按数据到达顺序处理，以最小化端到端延迟并支持实时决策。
+  - `ts_init` 记录数据被 Nautilus 实时接收的精确时刻。
+  - `ts_event` 反映外部事件发生的时间，便于对比外部事件时间与系统接收时间。
+- 我们可以用 `ts_init - ts_event` 的差值来检测网络或处理的延迟问题。
 
-### Other notes and considerations
+### 其他注意事项
 
-- For data from external sources, `ts_init` is always the same as or later than `ts_event`.
-- For data created within Nautilus, `ts_init` and `ts_event` can be the same because the object is initialized at the same time the event happens.
-- Not every type with a `ts_init` field necessarily has a `ts_event` field. This reflects cases where:
-  - The initialization of an object happens at the same time as the event itself.
-  - The concept of an external event time does not apply.
+- 对于来自外部的数据，`ts_init` 总是等于或晚于 `ts_event`。
+- 对于 Nautilus 内部创建的数据，`ts_init` 与 `ts_event` 可能相同，因为对象是在事件发生时立即初始化的。
+- 并非所有带有 `ts_init` 字段的类型都必须包含 `ts_event` 字段：
+  - 例如对象初始化时间与事件发生时间相同，或根本不存在外部事件时间的概念。
 
-#### Persisted data
+#### 持久化数据
 
-The `ts_init` field indicates when the message was originally received.
+`ts_init` 字段也用来指示消息最初被接收的时间。
 
-## Data flow
+## 数据流（Data flow）
 
-The platform ensures consistency by flowing data through the same pathways across all system [environment contexts](/concepts/architecture.md#environment-contexts)
-(e.g., `backtest`, `sandbox`, `live`). Data is primarily transported via the `MessageBus` to the `DataEngine`
-and then distributed to subscribed or registered handlers.
+平台通过相同的数据通路在所有运行环境（参见 [environment contexts](/concepts/architecture.md#environment-contexts)）中保证一致性（例如 `backtest`、`sandbox`、`live`）。
+数据主要通过 `MessageBus` 流向 `DataEngine`，然后分发到已订阅或注册的处理器。
 
-For users who need more flexibility, the platform also supports the creation of custom data types.
-For details on how to implement user-defined data types, see the [Custom Data](#custom-data) section below.
+对于需要更多灵活性的用户，平台也支持自定义数据类型的创建。关于如何实现用户自定义数据类型，请参见下文的 [Custom Data](#custom-data) 部分。
 
-## Loading data
+## 数据加载（Loading data）
 
-NautilusTrader facilitates data loading and conversion for three main use cases:
+NautilusTrader 支持三类主要的用例下的数据加载和格式转换：
 
-- Providing data for a `BacktestEngine` to run backtests.
-- Persisting the Nautilus-specific Parquet format for the data catalog via `ParquetDataCatalog.write_data(...)` to be later used with a `BacktestNode`.
-- For research purposes (to ensure data is consistent between research and backtesting).
+- 为 `BacktestEngine` 提供回测所需的数据。
+- 使用 `ParquetDataCatalog.write_data(...)` 将数据以 Nautilus 特定的 Parquet 格式持久化，供 `BacktestNode` 后续使用。
+- 用于研究用途，确保研究与回测间的数据一致性。
 
-Regardless of the destination, the process remains the same: converting diverse external data formats into Nautilus data structures.
+无论目标为何，流程都是将不同的外部数据格式转换为 Nautilus 所使用的数据结构。
 
-To achieve this, two main components are necessary:
+为此通常需要两个组件：
 
-- A type of DataLoader (normally specific per raw source/format) which can read the data and return a `pd.DataFrame` with the correct schema for the desired Nautilus object.
-- A type of DataWrangler (specific per data type) which takes this `pd.DataFrame` and returns a `list[Data]` of Nautilus objects.
+- 一类 DataLoader（通常针对原始来源/格式实现），该组件读取数据并返回符合目标 Nautilus 对象 schema 的 `pd.DataFrame`。
+- 一类 DataWrangler（针对具体数据类型实现），它将 `pd.DataFrame` 转换为 Nautilus 对象构成的 `list[Data]`。
 
 ### Data loaders
 
-Data loader components are typically specific for the raw source/format and per integration. For instance, Binance order book data is stored in its raw CSV file form with
-an entirely different format to [Databento Binary Encoding (DBN)](https://databento.com/docs/knowledge-base/new-users/dbn-encoding/getting-started-with-dbn) files.
+DataLoader 通常针对具体的原始来源/格式实现。例如，Binance 的订单簿原始 CSV 文件与 [Databento Binary Encoding (DBN)](https://databento.com/docs/knowledge-base/new-users/dbn-encoding/getting-started-with-dbn) 的文件格式完全不同，需要不同的 loader。
 
 ### Data wranglers
 
-Data wranglers are implemented per specific Nautilus data type, and can be found in the `nautilus_trader.persistence.wranglers` module.
-Currently there exists:
+DataWrangler 按 Nautilus 的数据类型实现，可在 `nautilus_trader.persistence.wranglers` 模块中找到。目前包含：
 
 - `OrderBookDeltaDataWrangler`
 - `OrderBookDepth10DataWrangler`
@@ -457,25 +443,24 @@ Currently there exists:
 - `BarDataWrangler`
 
 :::warning
-There are a number of **DataWrangler v2** components, which will take a `pd.DataFrame` typically
-with a different fixed width Nautilus Arrow v2 schema, and output PyO3 Nautilus objects which are only compatible with the new version
-of the Nautilus core, currently in development.
+存在一些 **DataWrangler v2** 组件，它们接收通常具有不同定宽 Nautilus Arrow v2 schema 的 `pd.DataFrame`，并输出基于 PyO3 的 Nautilus 对象，
+这些对象只兼容正在开发中的新版 Nautilus core。
 
-**These PyO3 provided data objects are not compatible where the legacy Cython objects are currently used (e.g., adding directly to a `BacktestEngine`).**
+**这些 PyO3 提供的数据对象与当前仍在使用的旧版 Cython 对象不兼容（例如不能直接添加到现有的 `BacktestEngine`）。**
 :::
 
-### Transformation pipeline
+### 转换管线（Transformation pipeline）
 
-**Process flow**:
+流程概览：
 
-1. Raw data (e.g., CSV) is input into the pipeline.
-2. DataLoader processes the raw data and converts it into a `pd.DataFrame`.
-3. DataWrangler further processes the `pd.DataFrame` to generate a list of Nautilus objects.
-4. The Nautilus `list[Data]` is the output of the data loading process.
+1. 原始数据（例如 CSV）作为输入进入管线。
+2. DataLoader 处理原始数据并将其转换为 `pd.DataFrame`。
+3. DataWrangler 进一步处理 `pd.DataFrame`，输出 Nautilus 对象的列表。
+4. Nautilus 的 `list[Data]` 即为数据加载流程的最终输出。
 
-The following diagram illustrates how raw data is transformed into Nautilus data structures:
+下图示意了原始数据如何被转换为 Nautilus 数据结构：
 
-```
+```graph
   ┌──────────┐    ┌──────────────────────┐                  ┌──────────────────────┐
   │          │    │                      │                  │                      │
   │          │    │                      │                  │                      │
@@ -488,12 +473,12 @@ The following diagram illustrates how raw data is transformed into Nautilus data
 
 ```
 
-Concretely, this would involve:
+具体例子：
 
-- `BinanceOrderBookDeltaDataLoader.load(...)` which reads CSV files provided by Binance from disk, and returns a `pd.DataFrame`.
-- `OrderBookDeltaDataWrangler.process(...)` which takes the `pd.DataFrame` and returns `list[OrderBookDelta]`.
+- `BinanceOrderBookDeltaDataLoader.load(...)` 读取磁盘上的 Binance CSV 文件并返回 `pd.DataFrame`。
+- `OrderBookDeltaDataWrangler.process(...)` 接收该 `pd.DataFrame` 并返回 `list[OrderBookDelta]`。
 
-The following example shows how to accomplish the above in Python:
+下面的示例展示了如何在 Python 中完成上述操作：
 
 ```python
 from nautilus_trader import TEST_DATA_DIR
@@ -502,70 +487,70 @@ from nautilus_trader.persistence.wranglers import OrderBookDeltaDataWrangler
 from nautilus_trader.test_kit.providers import TestInstrumentProvider
 
 
-# Load raw data
+# 加载原始数据
 data_path = TEST_DATA_DIR / "binance" / "btcusdt-depth-snap.csv"
 df = BinanceOrderBookDeltaDataLoader.load(data_path)
 
-# Set up a wrangler
+# 设置一个 wrangler
 instrument = TestInstrumentProvider.btcusdt_binance()
 wrangler = OrderBookDeltaDataWrangler(instrument)
 
-# Process to a list `OrderBookDelta` Nautilus objects
+# 处理并得到 Nautilus 的 `OrderBookDelta` 对象列表
 deltas = wrangler.process(df)
 ```
 
-## Data catalog
+## 数据目录（Data catalog）
 
-The data catalog is a central store for Nautilus data, persisted in the [Parquet](https://parquet.apache.org) file format. It serves as the primary data management system for both backtesting and live trading scenarios, providing efficient storage, retrieval, and streaming capabilities for market data.
+数据目录是 Nautilus 数据的集中存储，使用 [Parquet](https://parquet.apache.org) 格式持久化。它是回测和实盘场景下的主要数据管理系统，提供高效的存储、检索和流式能力。
 
-### Overview and architecture
+### 概览与架构
 
-The NautilusTrader data catalog is built on a dual-backend architecture that combines the performance of Rust with the flexibility of Python:
+NautilusTrader 的数据目录采用双后端架构，兼顾 Rust 的性能和 Python 的灵活性：
 
-**Core components:**
+**核心组件：**
 
-- **ParquetDataCatalog**: The main Python interface for data operations.
-- **Rust backend**: High-performance query engine for core data types (OrderBookDelta, QuoteTick, TradeTick, Bar, MarkPriceUpdate).
-- **PyArrow backend**: Flexible fallback for custom data types and advanced filtering.
-- **fsspec integration**: Support for local and cloud storage (S3, GCS, Azure, etc.).
+- **ParquetDataCatalog**：主要的 Python 接口，用于数据操作。
+- **Rust backend**：针对核心数据类型（OrderBookDelta、QuoteTick、TradeTick、Bar、MarkPriceUpdate）的高性能查询引擎。
+- **PyArrow backend**：用于自定义数据类型和复杂过滤的灵活后备实现。
+- **fsspec 集成**：支持本地和云存储（S3、GCS、Azure 等）。
 
-**Key benefits**:
+**主要优势：**
 
-- **Performance**: Rust backend provides optimized query performance for core market data types.
-- **Flexibility**: PyArrow backend handles custom data types and complex filtering scenarios.
-- **Scalability**: Efficient compression and columnar storage reduce storage costs and improve I/O performance.
-- **Cloud native**: Built-in support for cloud storage providers through fsspec.
-- **No dependencies**: Self-contained solution requiring no external databases or services.
+- **性能**：Rust 后端为核心市场数据类型提供优化查询性能。
+- **灵活性**：PyArrow 后端适配自定义数据类型及复杂过滤场景。
+- **可扩展性**：高效的压缩和列式存储降低存储成本并提升 I/O 性能。
+- **云原生**：通过 fsspec 内置对云存储的支持。
+- **无外部依赖**：自包含的方案，无需额外数据库或服务。
 
-**Storage format advantages:**
+**存储格式优势：**
 
-- Superior compression ratio and read performance compared to CSV/JSON/HDF5.
-- Columnar storage enables efficient filtering and aggregation.
-- Schema evolution support for data model changes.
-- Cross-language compatibility (Python, Rust, Java, C++, etc.).
+- 相较于 CSV/JSON/HDF5，Parquet 在压缩率和读取性能上更优。
+- 列式存储便于高效过滤与聚合。
+- 支持 schema 演化，便于数据模型升级。
+- 跨语言兼容（Python、Rust、Java、C++ 等）。
 
-The Arrow schemas used for the Parquet format are primarily single-sourced in the core `persistence` Rust crate, with some legacy schemas available from the `/serialization/arrow/schema.py` module.
+用于 Parquet 的 Arrow schema 主要统一来源于 core 的 `persistence` Rust crate，部分遗留 schema 存在于 `/serialization/arrow/schema.py` 模块中。
 
 :::note
-The current plan is to eventually phase out the Python schemas module, so that all schemas are single sourced in the Rust core for consistency and performance.
+当前计划是逐步淘汰 Python 端的 schema 模块，把 schema 单一来源迁移到 Rust core，以提高一致性和性能。
 :::
 
-### Initializing
+### 初始化
 
-The data catalog can be initialized from a `NAUTILUS_PATH` environment variable, or by explicitly passing in a path like object.
+数据目录可以通过 `NAUTILUS_PATH` 环境变量初始化，或显式传入路径对象进行创建。
 
 :::note NAUTILUS_PATH environment variable
-The `NAUTILUS_PATH` environment variable should point to the **root** directory containing your Nautilus data. The catalog will automatically append `/catalog` to this path.
+`NAUTILUS_PATH` 应当指向包含 Nautilus 数据的根目录，目录下会自动追加 `/catalog` 作为数据目录。
 
-For example:
+例如：
 
-- If `NAUTILUS_PATH=/home/user/trading_data`.
-- Then the catalog will be located at `/home/user/trading_data/catalog`.
+- 若 `NAUTILUS_PATH=/home/user/trading_data`。
+- 则目录位于 `/home/user/trading_data/catalog`。
 
-This is a common pattern when using `ParquetDataCatalog.from_env()` - make sure your `NAUTILUS_PATH` points to the parent directory, not the catalog directory itself.
+使用 `ParquetDataCatalog.from_env()` 时请确保 `NAUTILUS_PATH` 指向父目录而非 catalog 目录本身。
 :::
 
-The following example shows how to initialize a data catalog where there is pre-existing data already written to disk at the given path.
+下面示例展示了如何在已有数据的路径上初始化数据目录：
 
 ```python
 from pathlib import Path
@@ -574,29 +559,29 @@ from nautilus_trader.persistence.catalog import ParquetDataCatalog
 
 CATALOG_PATH = Path.cwd() / "catalog"
 
-# Create a new catalog instance
+# 创建一个新的 catalog 实例
 catalog = ParquetDataCatalog(CATALOG_PATH)
 
-# Alternative: Environment-based initialization
-catalog = ParquetDataCatalog.from_env()  # Uses NAUTILUS_PATH environment variable
+# 或者：基于环境变量初始化
+catalog = ParquetDataCatalog.from_env()  # 使用 NAUTILUS_PATH 环境变量
 ```
 
-### Filesystem protocols and storage options
+### 文件系统协议与存储选项
 
-The catalog supports multiple filesystem protocols through fsspec integration, enabling seamless operation across local and cloud storage systems.
+目录通过 fsspec 支持多种文件系统协议，便于在本地与云之间无缝切换。
 
-#### Supported filesystem protocols
+#### 支持的文件系统协议
 
-**Local filesystem (`file`):**
+**本地文件系统（`file`）：**
 
 ```python
 catalog = ParquetDataCatalog(
     path="/path/to/catalog",
-    fs_protocol="file",  # Default protocol
+    fs_protocol="file",  # 默认协议
 )
 ```
 
-**Amazon S3 (`s3`):**
+**Amazon S3（`s3`）：**
 
 ```python
 catalog = ParquetDataCatalog(
@@ -606,12 +591,12 @@ catalog = ParquetDataCatalog(
         "key": "your-access-key-id",
         "secret": "your-secret-access-key",
         "region": "us-east-1",
-        "endpoint_url": "https://s3.amazonaws.com",  # Optional custom endpoint
+        "endpoint_url": "https://s3.amazonaws.com",  # 可选自定义 endpoint
     }
 )
 ```
 
-**Google Cloud Storage (`gcs`):**
+**Google Cloud Storage（`gcs`）：**
 
 ```python
 catalog = ParquetDataCatalog(
@@ -619,12 +604,12 @@ catalog = ParquetDataCatalog(
     fs_protocol="gcs",
     fs_storage_options={
         "project": "my-project-id",
-        "token": "/path/to/service-account.json",  # Or "cloud" for default credentials
+        "token": "/path/to/service-account.json",  # 或使用 "cloud" 以使用默认凭证
     }
 )
 ```
 
-**Azure Blob Storage (`abfs`):**
+**Azure Blob Storage（`abfs`）：**
 
 ```python
 catalog = ParquetDataCatalog(
@@ -633,23 +618,23 @@ catalog = ParquetDataCatalog(
     fs_storage_options={
         "account_name": "your-storage-account",
         "account_key": "your-account-key",
-        # Or use SAS token: "sas_token": "your-sas-token"
+        # 或使用 SAS token： "sas_token": "your-sas-token"
     }
 )
 ```
 
-#### URI-based initialization
+#### 基于 URI 的初始化
 
-For convenience, you can use URI strings that automatically parse protocol and storage options:
+为方便起见，可使用 URI 字符串自动解析协议和存储选项：
 
 ```python
-# Local filesystem
+# 本地文件系统
 catalog = ParquetDataCatalog.from_uri("/path/to/catalog")
 
-# S3 bucket
+# S3 存储
 catalog = ParquetDataCatalog.from_uri("s3://my-bucket/nautilus-data/")
 
-# With storage options
+# 带存储选项的示例
 catalog = ParquetDataCatalog.from_uri(
     "s3://my-bucket/nautilus-data/",
     storage_options={
@@ -660,32 +645,32 @@ catalog = ParquetDataCatalog.from_uri(
 )
 ```
 
-### Writing data
+### 写入数据
 
-Store data in the catalog using the `write_data()` method. All Nautilus built-in `Data` objects are supported, and any data which inherits from `Data` can be written.
+使用 `write_data()` 方法将数据写入 catalog。所有 Nautilus 内置的 `Data` 对象以及继承自 `Data` 的对象均受支持。
 
 ```python
-# Write a list of data objects
+# 写入一个数据对象列表
 catalog.write_data(quote_ticks)
 
-# Write with custom timestamp range
+# 指定时间戳范围写入
 catalog.write_data(
     trade_ticks,
-    start=1704067200000000000,  # Optional start timestamp override (UNIX nanoseconds)
-    end=1704153600000000000,    # Optional end timestamp override (UNIX nanoseconds)
+    start=1704067200000000000,  # 可选的起始时间覆盖（UNIX 纳秒）
+    end=1704153600000000000,    # 可选的结束时间覆盖（UNIX 纳秒）
 )
 
-# Skip disjoint check for overlapping data
+# 在覆盖/重叠数据时跳过 disjoint 检查
 catalog.write_data(bars, skip_disjoint_check=True)
 ```
 
-### File naming and data organization
+### 文件命名与数据组织
 
-The catalog automatically generates filenames based on the timestamp range of the data being written. Files are named using the pattern `{start_timestamp}_{end_timestamp}.parquet` where timestamps are in ISO format.
+catalog 会根据写入数据的时间范围自动生成文件名，采用 `{start_timestamp}_{end_timestamp}.parquet` 的命名规则，时间戳使用 ISO 格式。
 
-Data is organized in directories by data type and instrument ID:
+数据按数据类型和 instrument id 分目录存放：
 
-```
+```tree
 catalog/
 ├── data/
 │   ├── quote_ticks/
@@ -696,30 +681,30 @@ catalog/
 │           └── 20240101T000000000000000_20240101T235959999999999.parquet
 ```
 
-**Rust backend data types (enhanced performance):**
+**Rust backend 支持的数据类型（性能增强）：**
 
-The following data types use optimized Rust implementations:
+下列数据类型在 Rust 端有优化实现：
 
-- `OrderBookDelta`.
-- `OrderBookDeltas`.
-- `OrderBookDepth10`.
-- `QuoteTick`.
-- `TradeTick`.
-- `Bar`.
-- `MarkPriceUpdate`.
+- `OrderBookDelta`。
+- `OrderBookDeltas`。
+- `OrderBookDepth10`。
+- `QuoteTick`。
+- `TradeTick`。
+- `Bar`。
+- `MarkPriceUpdate`。
 
 :::warning
-By default, data that overlaps with existing files will cause an assertion error to maintain data integrity. Use `skip_disjoint_check=True` in `write_data()` to bypass this check when needed.
+默认情况下，重叠数据会触发断言错误以保证数据完整性。如需绕过此检查，可在 `write_data()` 中使用 `skip_disjoint_check=True`。
 :::
 
-### Reading data
+### 读取数据
 
-Use the `query()` method to read data back from the catalog:
+通过 `query()` 方法从 catalog 中读取数据：
 
 ```python
 from nautilus_trader.model import QuoteTick, TradeTick
 
-# Query quote ticks for a specific instrument and time range
+# 查询某合约在时间区间内的 quote ticks
 quotes = catalog.query(
     data_cls=QuoteTick,
     identifiers=["EUR/USD.SIM"],
@@ -727,7 +712,7 @@ quotes = catalog.query(
     end="2024-01-02T00:00:00Z"
 )
 
-# Query trade ticks with filtering
+# 带过滤条件的 trade ticks 查询
 trades = catalog.query(
     data_cls=TradeTick,
     identifiers=["BTC/USD.BINANCE"],
@@ -737,34 +722,34 @@ trades = catalog.query(
 )
 ```
 
-### `BacktestDataConfig` - data specification for backtests
+### `BacktestDataConfig` —— 回测的数据规范
 
-The `BacktestDataConfig` class is the primary mechanism for specifying data requirements before a backtest starts. It defines what data should be loaded from the catalog and how it should be filtered and processed during the backtest execution.
+`BacktestDataConfig` 类是回测启动前指定数据需求的主要方式。它定义了回测执行期间应从 catalog 加载哪些数据，以及如何过滤与处理这些数据。
 
-#### Core parameters
+#### 核心参数
 
-**Required parameters:**
+**必需参数：**
 
-- `catalog_path`: Path to the data catalog directory.
-- `data_cls`: The data type class (e.g., QuoteTick, TradeTick, OrderBookDelta, Bar).
+- `catalog_path`：数据目录的路径。
+- `data_cls`：数据类型类（例如 QuoteTick、TradeTick、OrderBookDelta、Bar）。
 
-**Optional parameters:**
+**可选参数：**
 
-- `catalog_fs_protocol`: Filesystem protocol ('file', 's3', 'gcs', etc.).
-- `catalog_fs_storage_options`: Storage-specific options (credentials, region, etc.).
-- `instrument_id`: Specific instrument to load data for.
-- `instrument_ids`: List of instruments (alternative to single instrument_id).
-- `start_time`: Start time for data filtering (ISO string or UNIX nanoseconds).
-- `end_time`: End time for data filtering (ISO string or UNIX nanoseconds).
-- `filter_expr`: Additional PyArrow filter expressions.
-- `client_id`: Client ID for custom data types.
-- `metadata`: Additional metadata for data queries.
-- `bar_spec`: Bar specification for bar data (e.g., "1-MINUTE-LAST").
-- `bar_types`: List of bar types (alternative to bar_spec).
+- `catalog_fs_protocol`：文件系统协议（'file'、's3'、'gcs' 等）。
+- `catalog_fs_storage_options`：存储相关选项（凭证、区域等）。
+- `instrument_id`：要加载的单个合约。
+- `instrument_ids`：合约列表（可替代单一的 instrument_id）。
+- `start_time`：数据筛选起始时间（ISO 字符串或 UNIX 纳秒）。
+- `end_time`：数据筛选结束时间（ISO 字符串或 UNIX 纳秒）。
+- `filter_expr`：额外的 PyArrow 过滤表达式。
+- `client_id`：自定义数据类型的客户端 ID。
+- `metadata`：查询时附加的元数据。
+- `bar_spec`：Bar 数据的规范（例如 "1-MINUTE-LAST"）。
+- `bar_types`：BarType 列表（可替代 bar_spec）。
 
-#### Basic usage examples
+#### 基本使用示例
 
-**Loading quote ticks:**
+**加载 quote ticks：**
 
 ```python
 from nautilus_trader.config import BacktestDataConfig
@@ -779,7 +764,7 @@ data_config = BacktestDataConfig(
 )
 ```
 
-**Loading multiple instruments:**
+**加载多个合约：**
 
 ```python
 data_config = BacktestDataConfig(
@@ -791,7 +776,7 @@ data_config = BacktestDataConfig(
 )
 ```
 
-**Loading Bar Data:**
+**加载 Bar 数据：**
 
 ```python
 data_config = BacktestDataConfig(
@@ -804,9 +789,9 @@ data_config = BacktestDataConfig(
 )
 ```
 
-#### Advanced configuration examples
+#### 高级配置示例
 
-**Cloud Storage with Custom Filtering:**
+**带自定义过滤的云存储示例：**
 
 ```python
 data_config = BacktestDataConfig(
@@ -825,7 +810,7 @@ data_config = BacktestDataConfig(
 )
 ```
 
-**Custom Data with Client ID:**
+**带 Client ID 的自定义数据示例：**
 
 ```python
 data_config = BacktestDataConfig(
@@ -838,14 +823,14 @@ data_config = BacktestDataConfig(
 )
 ```
 
-#### Integration with BacktestRunConfig
+#### 与 BacktestRunConfig 的集成
 
-The `BacktestDataConfig` objects are integrated into the backtesting framework through `BacktestRunConfig`:
+`BacktestDataConfig` 对象通过 `BacktestRunConfig` 集成进回测框架：
 
 ```python
 from nautilus_trader.config import BacktestRunConfig, BacktestVenueConfig
 
-# Define multiple data configurations
+# 定义多个数据配置
 data_configs = [
     BacktestDataConfig(
         catalog_path="/path/to/catalog",
@@ -863,53 +848,53 @@ data_configs = [
     ),
 ]
 
-# Create backtest run configuration
+# 创建回测运行配置
 run_config = BacktestRunConfig(
     venues=[BacktestVenueConfig(name="SIM", oms_type="HEDGING")],
-    data=data_configs,  # List of data configurations
+    data=data_configs,  # 数据配置列表
     start="2024-01-01T00:00:00Z",
     end="2024-01-02T00:00:00Z",
 )
 ```
 
-#### Data loading process
+#### 数据加载流程
 
-When a backtest runs, the `BacktestNode` processes each `BacktestDataConfig`:
+当回测运行时，`BacktestNode` 会依次处理每个 `BacktestDataConfig`：
 
-1. **Catalog Loading**: Creates a `ParquetDataCatalog` instance from the config.
-2. **Query Construction**: Builds query parameters from config attributes.
-3. **Data Retrieval**: Executes catalog queries using the appropriate backend.
-4. **Instrument Loading**: Loads instrument definitions if needed.
-5. **Engine Integration**: Adds data to the backtest engine with proper sorting.
+1. Catalog 加载：根据配置创建 `ParquetDataCatalog` 实例。
+2. 查询构建：从配置属性构建查询参数。
+3. 数据检索：使用合适的后端执行 catalog 查询。
+4. 合约/合约定义加载（Instrument Loading）：如需则加载标的定义。
+5. 引擎集成：按正确顺序将数据加入回测引擎。
 
-The system automatically handles:
+系统会自动处理：
 
-- Instrument ID resolution and validation.
-- Data type validation and conversion.
-- Memory-efficient streaming for large datasets.
-- Error handling and logging.
+- Instrument ID 的解析与验证（保留英文术语 Instrument ID）。
+- 数据类型的验证与转换。
+- 对大数据集的内存高效流式处理。
+- 错误处理与日志记录。
 
-### DataCatalogConfig - on-the-fly data loading
+### DataCatalogConfig —— 即时（on-the-fly）数据加载
 
-The `DataCatalogConfig` class provides configuration for on-the-fly data loading scenarios, particularly useful for backtests where the number of possible instruments is vast,
-Unlike `BacktestDataConfig` which pre-specifies data for backtests, `DataCatalogConfig` enables flexible catalog access during runtime.
-Catalogs defined this way can also be used for requesting historical data.
+`DataCatalogConfig` 类用于配置运行时的按需（on-the-fly）数据加载场景，特别适用于标的数量巨大且无法在回测前全部列举的情况。
+与事先为回测指定数据的 `BacktestDataConfig` 不同，`DataCatalogConfig` 允许在运行时灵活访问 catalog。
+以这种方式定义的 catalog 同样可以用于历史数据请求。
 
-#### Core parameters
+#### 核心参数
 
-**Required Parameters:**
+必填参数：
 
-- `path`: Path to the data catalog directory.
+- `path`：数据 catalog 的目录路径。
 
-**Optional Parameters:**
+可选参数：
 
-- `fs_protocol`: Filesystem protocol ('file', 's3', 'gcs', 'azure', etc.).
-- `fs_storage_options`: Protocol-specific storage options.
-- `name`: Optional name identifier for the catalog configuration.
+- `fs_protocol`：文件系统协议（如 'file'、's3'、'gcs'、'azure' 等）。
+- `fs_storage_options`：协议相关的存储选项。
+- `name`：可选的 catalog 配置标识名。
 
-#### Basic usage examples
+#### 基本使用示例
 
-**Local Catalog Configuration:**
+**本地 catalog 配置：**
 
 ```python
 from nautilus_trader.persistence.config import DataCatalogConfig
@@ -920,11 +905,11 @@ catalog_config = DataCatalogConfig(
     name="local_market_data"
 )
 
-# Convert to catalog instance
+# 转换为 catalog 实例
 catalog = catalog_config.as_catalog()
 ```
 
-**Cloud storage configuration:**
+**云存储配置示例：**
 
 ```python
 catalog_config = DataCatalogConfig(
@@ -940,31 +925,31 @@ catalog_config = DataCatalogConfig(
 )
 ```
 
-#### Integration with live trading
+#### 在实盘（live trading）中的集成
 
-`DataCatalogConfig` is commonly used in live trading configurations for historical data access:
+`DataCatalogConfig` 常用于实盘系统中以便访问历史数据：
 
 ```python
 from nautilus_trader.config import TradingNodeConfig
 from nautilus_trader.persistence.config import DataCatalogConfig
 
-# Configure catalog for live system
+# 为实盘系统配置 catalog
 catalog_config = DataCatalogConfig(
     path="/data/nautilus/catalog",
     fs_protocol="file",
     name="historical_data"
 )
 
-# Use in trading node configuration
+# 在交易节点配置中使用
 node_config = TradingNodeConfig(
-    # ... other configurations
-    catalog=catalog_config,  # Enable historical data access
+    # ... 其他配置
+    catalog=catalog_config,  # 启用历史数据访问
 )
 ```
 
-#### Streaming configuration
+#### 流式（streaming）配置
 
-For streaming data to catalogs during live trading or backtesting, use `StreamingConfig`:
+在实盘或回测期间将数据流式写入 catalog 时，可使用 `StreamingConfig`：
 
 ```python
 from nautilus_trader.persistence.config import StreamingConfig, RotationMode
@@ -973,78 +958,78 @@ import pandas as pd
 streaming_config = StreamingConfig(
     catalog_path="/path/to/streaming/catalog",
     fs_protocol="file",
-    flush_interval_ms=1000,  # Flush every second
+    flush_interval_ms=1000,  # 每秒 flush
     replace_existing=False,
     rotation_mode=RotationMode.DAILY,
     rotation_interval=pd.Timedelta(hours=1),
-    max_file_size=1024 * 1024 * 100,  # 100MB max file size
+    max_file_size=1024 * 1024 * 100,  # 最大 100MB
 )
 ```
 
-#### Use cases
+#### 常见用例
 
-**Historical Data Analysis:**
+历史数据分析：
 
-- Load historical data during live trading for strategy calculations.
-- Access reference data for instrument lookups.
-- Retrieve past performance metrics.
+- 在实盘期间加载历史数据以供策略计算。
+- 访问参考数据以进行标的查找（instrument lookup）。
+- 检索历史表现指标。
 
-**Dynamic data loading:**
+动态数据加载：
 
-- Load data based on runtime conditions.
-- Implement custom data loading strategies.
-- Support multiple catalog sources.
+- 根据运行时条件按需加载数据。
+- 实现自定义的数据加载策略。
+- 支持多个 catalog 源。
 
-**Research and development:**
+研发与研究：
 
-- Interactive data exploration in Jupyter notebooks.
-- Ad-hoc analysis and backtesting.
-- Data quality validation and monitoring.
+- 在 Jupyter 笔记本中进行交互式数据探索。
+- 即席分析与回测。
+- 数据质量验证与监控。
 
-### Query system and dual backend architecture
+### 查询系统与双后端（dual backend）架构
 
-The catalog's query system leverages a sophisticated dual-backend architecture that automatically selects the optimal query engine based on data type and query parameters.
+catalog 的查询系统采用双后端架构，会根据数据类型和查询参数自动选择最合适的查询引擎。
 
-#### Backend selection logic
+#### 后端选择逻辑
 
-**Rust backend (high performance):**
+**Rust 后端（高性能）：**
 
-- **Supported Types**: OrderBookDelta, OrderBookDeltas, OrderBookDepth10, QuoteTick, TradeTick, Bar, MarkPriceUpdate.
-- **Conditions**: Used when `files` parameter is None (automatic file discovery).
-- **Benefits**: Optimized performance, memory efficiency, native Arrow integration.
+- 支持类型（Supported Types）：OrderBookDelta、OrderBookDeltas、OrderBookDepth10、QuoteTick、TradeTick、Bar、MarkPriceUpdate。
+- 使用条件：当 `files` 参数为 None（自动发现文件）时使用。
+- 优点：性能与内存效率优化，原生 Arrow 集成。
 
-**PyArrow backend (flexible):**
+**PyArrow 后端（灵活）：**
 
-- **Supported Types**: All data types including custom data classes.
-- **Conditions**: Used for custom data types or when `files` parameter is specified.
-- **Benefits**: Advanced filtering, custom data support, complex query expressions.
+- 支持类型：包含自定义数据类在内的所有数据类型。
+- 使用条件：用于自定义数据类型或当指定 `files` 参数时。
+- 优点：高级过滤、自定义数据支持、复杂查询表达式。
 
-#### Query methods and parameters
+#### 查询方法与参数
 
-**Core query parameters:**
+核心查询参数示例：
 
 ```python
 catalog.query(
-    data_cls=QuoteTick,                    # Data type to query
-    identifiers=["EUR/USD.SIM"],           # Instrument identifiers
-    start="2024-01-01T00:00:00Z",         # Start time (various formats supported)
-    end="2024-01-02T00:00:00Z",           # End time
-    where="bid > 1.1000",                 # PyArrow filter expression
-    files=None,                           # Specific files (forces PyArrow backend)
+    data_cls=QuoteTick,                    # 要查询的数据类型
+    identifiers=["EUR/USD.SIM"],         # 标的标识列表
+    start="2024-01-01T00:00:00Z",        # 起始时间（支持多种格式）
+    end="2024-01-02T00:00:00Z",          # 结束时间
+    where="bid > 1.1000",               # PyArrow 过滤表达式
+    files=None,                            # 指定文件会强制使用 PyArrow 后端
 )
 ```
 
-**Time format support:**
+时间格式支持：
 
-- ISO 8601 strings: `"2024-01-01T00:00:00Z"`.
-- UNIX nanoseconds: `1704067200000000000` (or ISO format: `"2024-01-01T00:00:00Z"`).
-- Pandas Timestamps: `pd.Timestamp("2024-01-01", tz="UTC")`.
-- Python datetime objects (timezone-aware recommended).
+- ISO 8601 字符串：`"2024-01-01T00:00:00Z"`。
+- UNIX 纳秒（UNIX nanoseconds）：`1704067200000000000`（或使用 ISO 字符串）。
+- Pandas Timestamp：`pd.Timestamp("2024-01-01", tz="UTC")`。
+- Python datetime 对象（建议使用带时区）。
 
-**Advanced filtering examples:**
+高级过滤示例：
 
 ```python
-# Complex PyArrow expressions
+# 复杂的 PyArrow 表达式
 catalog.query(
     data_cls=TradeTick,
     identifiers=["BTC/USD.BINANCE"],
@@ -1053,7 +1038,7 @@ catalog.query(
     end="2024-01-02",
 )
 
-# Multiple instruments with metadata filtering
+# 多个标的并按 metadata 过滤
 catalog.query(
     data_cls=Bar,
     identifiers=["AAPL.NASDAQ", "MSFT.NASDAQ"],
@@ -1062,42 +1047,42 @@ catalog.query(
 )
 ```
 
-### Catalog operations
+### Catalog 操作
 
-The catalog provides several operation functions for maintaining and organizing data files. These operations help optimize storage, improve query performance, and ensure data integrity.
+catalog 提供若干维护和组织数据文件的操作函数，这些操作能优化存储、提升查询性能并保证数据完整性。
 
-#### Reset file names
+#### 重设文件名（Reset file names）
 
-Reset parquet file names to match their actual content timestamps. This ensures filename-based filtering works correctly.
+将 parquet 文件名重置为匹配实际内容的时间戳，确保基于文件名的过滤正常工作。
 
-**Reset all files in catalog:**
+**重置 catalog 中的所有文件：**
 
 ```python
-# Reset all parquet files in the catalog
+# 重置 catalog 中所有 parquet 文件的文件名
 catalog.reset_all_file_names()
 ```
 
-**Reset specific data type:**
+**重置特定数据类型的文件名：**
 
 ```python
-# Reset filenames for all quote tick files
+# 重置所有 quote tick 文件名
 catalog.reset_data_file_names(QuoteTick)
 
-# Reset filenames for specific instrument's trade files
+# 重置特定标的的 trade 文件名
 catalog.reset_data_file_names(TradeTick, "BTC/USD.BINANCE")
 ```
 
-#### Consolidate catalog
+#### 合并（Consolidate catalog）
 
-Combine multiple small parquet files into larger files to improve query performance and reduce storage overhead.
+将多个小的 parquet 文件合并成更大的文件，以提升查询性能并减少存储开销。
 
-**Consolidate entire catalog:**
+**合并整个 catalog：**
 
 ```python
-# Consolidate all files in the catalog
+# 合并 catalog 中的所有文件
 catalog.consolidate_catalog()
 
-# Consolidate files within a specific time range
+# 在指定时间范围内合并文件
 catalog.consolidate_catalog(
     start="2024-01-01T00:00:00Z",
     end="2024-01-02T00:00:00Z",
@@ -1105,13 +1090,13 @@ catalog.consolidate_catalog(
 )
 ```
 
-**Consolidate specific data type:**
+**合并特定数据类型：**
 
 ```python
-# Consolidate all quote tick files
+# 合并所有 quote tick 文件
 catalog.consolidate_data(QuoteTick)
 
-# Consolidate specific instrument's files
+# 合并特定标的的文件
 catalog.consolidate_data(
     TradeTick,
     identifier="BTC/USD.BINANCE",
@@ -1120,21 +1105,21 @@ catalog.consolidate_data(
 )
 ```
 
-#### Consolidate catalog by period
+#### 按周期合并（Consolidate by period）
 
-Split data files into fixed time periods for standardized file organization.
+按固定时间周期拆分/合并数据文件，以实现标准化的文件组织。
 
-**Consolidate entire catalog by period:**
+**按周期合并整个 catalog：**
 
 ```python
 import pandas as pd
 
-# Consolidate all files by 1-day periods
+# 将所有文件按天（1-day）合并
 catalog.consolidate_catalog_by_period(
     period=pd.Timedelta(days=1)
 )
 
-# Consolidate by 1-hour periods within time range
+# 在时间范围内按小时（1-hour）合并
 catalog.consolidate_catalog_by_period(
     period=pd.Timedelta(hours=1),
     start="2024-01-01T00:00:00Z",
@@ -1142,16 +1127,16 @@ catalog.consolidate_catalog_by_period(
 )
 ```
 
-**Consolidate specific data by period:**
+**按周期合并特定数据：**
 
 ```python
-# Consolidate quote data by 4-hour periods
+# 将 quote 数据按 4 小时合并
 catalog.consolidate_data_by_period(
     data_cls=QuoteTick,
     period=pd.Timedelta(hours=4)
 )
 
-# Consolidate specific instrument by 30-minute periods
+# 将特定标的按 30 分钟合并
 catalog.consolidate_data_by_period(
     data_cls=TradeTick,
     identifier="EUR/USD.SIM",
@@ -1161,33 +1146,33 @@ catalog.consolidate_data_by_period(
 )
 ```
 
-#### Delete data range
+#### 删除数据区间（Delete data range）
 
-Remove data within a specified time range for specific data types and instruments. This operation permanently deletes data and handles file intersections intelligently.
+删除指定时间范围内的某类数据或某个标的的数据。此操作会永久删除数据，并会智能处理与之相交的文件。
 
-**Delete entire catalog range:**
+**删除整个 catalog 的时间区间：**
 
 ```python
-# Delete all data within a time range across the entire catalog
+# 删除整个 catalog 中某一时间段的数据
 catalog.delete_catalog_range(
     start="2024-01-01T00:00:00Z",
     end="2024-01-02T00:00:00Z"
 )
 
-# Delete all data from the beginning up to a specific time
+# 删除从开始到指定时间点之前的所有数据
 catalog.delete_catalog_range(end="2024-01-01T00:00:00Z")
 ```
 
-**Delete specific data type:**
+**删除特定数据类型：**
 
 ```python
-# Delete all quote tick data for a specific instrument
+# 删除特定标的的所有 quote tick 数据
 catalog.delete_data_range(
     data_cls=QuoteTick,
     identifier="BTC/USD.BINANCE"
 )
 
-# Delete trade data within a specific time range
+# 删除某时间段内的 trade 数据
 catalog.delete_data_range(
     data_cls=TradeTick,
     identifier="EUR/USD.SIM",
@@ -1197,37 +1182,37 @@ catalog.delete_data_range(
 ```
 
 :::warning
-Delete operations permanently remove data and cannot be undone. Files that partially overlap the deletion range are split to preserve data outside the range.
+删除操作会永久移除数据，且不可撤销。与删除区间部分重叠的文件会被拆分以保留区间外的数据。
 :::
 
-### Feather streaming and conversion
+### Feather 流式与格式转换
 
-The catalog supports streaming data to temporary feather files during backtests, which can then be converted to permanent parquet format for efficient querying.
+catalog 支持在回测期间将数据流式写入临时的 feather 文件，随后再转换为高效查询的 parquet 格式。
 
-**Example: option greeks streaming**
+**示例：期权 Greeks 的流式处理**
 
 ```python
 from option_trader.greeks import GreeksData
 from nautilus_trader.persistence.config import StreamingConfig
 
-# 1. Configure streaming for custom data
+# 1. 为自定义数据配置流式写入
 streaming = StreamingConfig(
     catalog_path=catalog.path,
     include_types=[GreeksData],
     flush_interval_ms=1000,
 )
 
-# 2. Run backtest with streaming enabled
+# 2. 启用流式写入后运行回测
 engine_config = BacktestEngineConfig(streaming=streaming)
 results = node.run()
 
-# 3. Convert streamed data to permanent catalog
+# 3. 将流式数据转换为持久化的 catalog 数据
 catalog.convert_stream_to_data(
     results[0].instance_id,
     GreeksData,
 )
 
-# 4. Query converted data
+# 4. 查询已转换的数据
 greeks_data = catalog.query(
     data_cls=GreeksData,
     start="2024-01-01",
@@ -1236,141 +1221,136 @@ greeks_data = catalog.query(
 )
 ```
 
-### Catalog summary
+### Catalog 摘要
 
-The NautilusTrader data catalog provides comprehensive market data management:
+NautilusTrader 的数据 catalog 提供了全面的市场数据管理能力：
 
-**Core features**:
+核心特性：
 
-- **Dual Backend**: Rust performance + Python flexibility.
-- **Multi-Protocol**: Local, S3, GCS, Azure storage.
-- **Streaming**: Feather → Parquet conversion pipeline.
-- **Operations**: Reset file names, consolidate data, period-based organization.
+- 双后端（Dual Backend）：Rust 性能 + Python 的灵活性。
+- 多协议支持（Multi-Protocol）：本地、S3、GCS、Azure 等存储。
+- 流式处理（Streaming）：Feather → Parquet 的转换管道。
+- 运维操作：重置文件名、合并数据、按周期组织文件等。
 
-**Key use cases**:
+主要使用场景：
 
-- **Backtesting**: Pre-configured data loading via BacktestDataConfig.
-- **Live Trading**: On-demand data access via DataCatalogConfig.
-- **Maintenance**: File consolidation and organization operations.
-- **Research**: Interactive querying and analysis.
+- 回测（Backtesting）：通过 `BacktestDataConfig` 预配置数据加载。
+- 实盘（Live Trading）：通过 `DataCatalogConfig` 按需访问历史数据。
+- 维护（Maintenance）：文件合并与组织操作。
+- 研究（Research）：交互式查询与分析。
 
-## Data migrations
+## 数据迁移（Data migrations）
 
-NautilusTrader defines an internal data format specified in the `nautilus_model` crate.
-These models are serialized into Arrow record batches and written to Parquet files.
-Nautilus backtesting is most efficient when using these Nautilus-format Parquet files.
+NautilusTrader 定义了一个内部数据格式，位于 `nautilus_model` crate 中。
+这些模型会序列化为 Arrow record batch，并写入 Parquet 文件。
+使用 Nautilus 格式的 Parquet 文件能让 Nautilus 的回测达到最佳效率。
 
-However, migrating the data model between [precision modes](../getting_started/installation.md#precision-mode) and schema changes can be challenging.
-This guide explains how to handle data migrations using our utility tools.
+不过，在不同的精度模式（precision modes）或架构（schema）变更之间迁移数据模型可能具有一定挑战性。
+本节介绍如何使用我们的工具来处理数据迁移。
 
-### Migration tools
+### 迁移工具
 
-The `nautilus_persistence` crate provides two key utilities:
+`nautilus_persistence` crate 提供两个关键的实用工具：
 
 #### `to_json`
 
-Converts Parquet files to JSON while preserving metadata:
+将 Parquet 文件转换为 JSON，同时保留元数据：
 
-- Creates two files:
+- 会生成两个文件：
 
-  - `<input>.json`: Contains the deserialized data
-  - `<input>.metadata.json`: Contains schema metadata and row group configuration
+  - `<input>.json`：包含反序列化后的数据
+  - `<input>.metadata.json`：包含 schema 元数据和 row group 配置
 
-- Automatically detects data type from filename:
+- 根据文件名自动检测数据类型：
 
-  - `OrderBookDelta` (contains "deltas" or "order_book_delta")
-  - `QuoteTick` (contains "quotes" or "quote_tick")
-  - `TradeTick` (contains "trades" or "trade_tick")
-  - `Bar` (contains "bars")
+  - `OrderBookDelta`（文件名包含 "deltas" 或 "order_book_delta"）
+  - `QuoteTick`（文件名包含 "quotes" 或 "quote_tick"）
+  - `TradeTick`（文件名包含 "trades" 或 "trade_tick"）
+  - `Bar`（文件名包含 "bars"）
 
 #### `to_parquet`
 
-Converts JSON back to Parquet format:
+将 JSON 转换回 Parquet：
 
-- Reads both the data JSON and metadata JSON files.
-- Preserves row group sizes from original metadata.
-- Uses ZSTD compression.
-- Creates `<input>.parquet`.
+- 同时读取数据 JSON 与元数据 JSON 文件。
+- 保留原始元数据中的 row group 大小配置。
+- 使用 ZSTD 压缩。
+- 生成 `<input>.parquet` 文件。
 
-### Migration process
+### 迁移流程
 
-The following migration examples both use trades data (you can also migrate the other data types in the same way).
-All commands should be run from the root of the `persistence` crate directory.
+下面的迁移示例使用 trade 数据（其他数据类型的迁移方法类似）。
+所有命令应在 `persistence` crate 根目录下运行。
 
-#### Migrating from standard-precision (64-bit) to high-precision (128-bit)
+#### 从标准精度（64-bit）迁移到高精度（128-bit）
 
-This example describes a scenario where you want to migrate from standard-precision schema to high-precision schema.
+该示例展示如何将标准精度 schema 的 Parquet 转换为高精度 schema 的过程。
 
 :::note
-If you're migrating from a catalog that used the `Int64` and `UInt64` Arrow data types for prices and sizes,
-be sure to check out commit [e284162](https://github.com/nautechsystems/nautilus_trader/commit/e284162cf27a3222115aeb5d10d599c8cf09cf50)
-**before** compiling the code that writes the initial JSON.
+如果你要迁移的 catalog 使用了 Arrow 的 `Int64` 与 `UInt64` 类型来表示价格和数量，请在编译生成初始 JSON 之前，参考提交记录 [e284162](https://github.com/nautechsystems/nautilus_trader/commit/e284162cf27a3222115aeb5d10d599c8cf09cf50)。
 :::
 
-**1. Convert from standard-precision Parquet to JSON**:
+**1. 将标准精度 Parquet 转为 JSON：**
 
 ```bash
 cargo run --bin to_json trades.parquet
 ```
 
-This will create `trades.json` and `trades.metadata.json` files.
+此操作会生成 `trades.json` 与 `trades.metadata.json` 文件。
 
-**2. Convert from JSON to high-precision Parquet**:
+**2. 将 JSON 转回高精度 Parquet：**
 
-Add the `--features high-precision` flag to write data as high-precision (128-bit) schema Parquet.
+添加 `--features high-precision` 标志以写入高精度（128-bit）schema 的 Parquet。
 
 ```bash
 cargo run --features high-precision --bin to_parquet trades.json
 ```
 
-This will create a `trades.parquet` file with high-precision schema data.
+该命令会生成使用高精度 schema 的 `trades.parquet` 文件。
 
-#### Migrating schema changes
+#### 迁移 schema 版本
 
-This example describes a scenario where you want to migrate from one schema version to another.
+该示例演示如何将数据从一个 schema 版本迁移到另一个版本。
 
-**1. Convert from old schema Parquet to JSON**:
+**1. 将旧 schema 的 Parquet 转为 JSON：**
 
-Add the `--features high-precision` flag if the source data uses a high-precision (128-bit) schema.
+如果源数据使用了高精度 schema（128-bit），请添加 `--features high-precision` 标志。
 
 ```bash
 cargo run --bin to_json trades.parquet
 ```
 
-This will create `trades.json` and `trades.metadata.json` files.
+此操作会生成 `trades.json` 与 `trades.metadata.json` 文件。
 
-**2. Switch to new schema version**:
+**2. 切换到新的 schema 版本：**
 
 ```bash
 git checkout <new-version>
 ```
 
-**3. Convert from JSON back to new schema Parquet**:
+**3. 将 JSON 转回新 schema 的 Parquet：**
 
 ```bash
 cargo run --features high-precision --bin to_parquet trades.json
 ```
 
-This will create a `trades.parquet` file with the new schema.
+此命令会生成使用新 schema 的 `trades.parquet` 文件。
 
-### Best practices
+### 最佳实践
 
-- Always test migrations with a small dataset first.
-- Maintain backups of original files.
-- Verify data integrity after migration.
-- Perform migrations in a staging environment before applying them to production data.
+- 先用小数据集测试迁移流程。
+- 保留原始文件的备份。
+- 迁移后验证数据完整性。
+- 在将变更应用到生产数据之前，先在预发布（staging）环境中演练迁移。
 
-## Custom data
+## 自定义数据（Custom data）
 
-Due to the modular nature of the Nautilus design, it is possible to set up systems
-with very flexible data streams, including custom user-defined data types. This
-guide covers some possible use cases for this functionality.
+由于 Nautilus 设计的模块化特性，系统可以搭建非常灵活的数据流，包括自定义的用户数据类型。本节讨论几种常见用例。
 
-It's possible to create custom data types within the Nautilus system. First you
-will need to define your data by subclassing from `Data`.
+要在 Nautilus 中创建自定义数据类型，首先需要继承自基类 `Data`。
 
 :::info
-As `Data` holds no state, it is not strictly necessary to call `super().__init__()`.
+由于 `Data` 本身不保存状态，因此并非严格要求在子类中调用 `super().__init__()`。
 :::
 
 ```python
@@ -1379,9 +1359,9 @@ from nautilus_trader.core import Data
 
 class MyDataPoint(Data):
     """
-    This is an example of a user-defined data class, inheriting from the base class `Data`.
+    这是一个示例的用户自定义数据类，继承自基类 `Data`。
 
-    The fields `label`, `x`, `y`, and `z` in this class are examples of arbitrary user data.
+    类中字段 `label`, `x`, `y`, `z` 只是示例，可以根据需要任意扩展。
     """
 
     def __init__(
@@ -1403,48 +1383,34 @@ class MyDataPoint(Data):
     @property
     def ts_event(self) -> int:
         """
-        UNIX timestamp (nanoseconds) when the data event occurred.
+        事件发生时的 UNIX 时间戳（纳秒）。
 
-        Returns
-        -------
-        int
-
+        返回值类型：int
         """
         return self._ts_event
 
     @property
     def ts_init(self) -> int:
         """
-        UNIX timestamp (nanoseconds) when the object was initialized.
+        对象初始化时的 UNIX 时间戳（纳秒）。
 
-        Returns
-        -------
-        int
-
+        返回值类型：int
         """
         return self._ts_init
 
 ```
 
-The `Data` abstract base class acts as a contract within the system and requires two properties
-for all types of data: `ts_event` and `ts_init`. These represent the UNIX nanosecond timestamps
-for when the event occurred and when the object was initialized, respectively.
+`Data` 抽象基类在系统内部作为契约（contract），要求所有数据类型提供两个属性：`ts_event` 与 `ts_init`，分别表示事件发生时间和对象初始化时间，均为 UNIX 纳秒时间戳。
 
-The recommended approach to satisfy the contract is to assign `ts_event` and `ts_init`
-to backing fields, and then implement the `@property` for each as shown above
-(for completeness, the docstrings are copied from the `Data` base class).
+推荐的实现方式是将 `ts_event` 与 `ts_init` 存储到私有字段，再通过 `@property` 暴露（如上示例，部分 docstring 从 `Data` 基类中摘抄）。
 
 :::info
-These timestamps enable Nautilus to correctly order data streams for backtests
-using monotonically increasing `ts_init` UNIX nanoseconds.
+这些时间戳能确保 Nautilus 在回测中对数据流按单调递增的 `ts_init`（UNIX 纳秒）正确排序。
 :::
 
-We can now work with this data type for backtesting and live trading. For instance,
-we could now create an adapter which is able to parse and create objects of this
-type - and send them back to the `DataEngine` for consumption by subscribers.
+有了这个自定义数据类型后，你可以在回测或实盘中使用它。例如，可以实现一个 adapter 将外部数据解析为该类型的对象，并发送回 `DataEngine` 供订阅者消费。
 
-You can publish a custom data type within your actor/strategy using the message bus
-in the following way:
+在 actor/strategy 中，你可以通过 message bus 发布自定义数据类型：
 
 ```python
 self.publish_data(
@@ -1453,11 +1419,9 @@ self.publish_data(
 )
 ```
 
-The `metadata` dictionary optionally adds more granular information that is used in the
-topic name to publish data with the message bus.
+`metadata` 字典是可选的，用于在 topic 名称中添加更细粒度的信息以区分数据流。
 
-Extra metadata information can also be passed to a `BacktestDataConfig` configuration object in order to
-enrich and describe custom data objects used in a backtesting context:
+你也可以将额外的 metadata 信息传入 `BacktestDataConfig`，以便在回测配置中描述自定义数据对象：
 
 ```python
 from nautilus_trader.config import BacktestDataConfig
@@ -1469,7 +1433,7 @@ data_config = BacktestDataConfig(
 )
 ```
 
-You can subscribe to custom data types within your actor/strategy in the following way:
+在 actor/strategy 中订阅自定义数据类型的方式示例：
 
 ```python
 self.subscribe_data(
@@ -1479,24 +1443,21 @@ self.subscribe_data(
 )
 ```
 
-The `client_id` provides an identifier to route the data subscription to a specific client.
+`client_id` 用于将数据订阅路由到特定客户端。
 
-This will result in your actor/strategy passing these received `MyDataPoint`
-objects to your `on_data` method. You will need to check the type, as this
-method acts as a flexible handler for all custom data.
+订阅后，actor/strategy 会将接收到的 `MyDataPoint` 对象传入 `on_data` 方法，你需要在方法中做类型判断并处理对应数据：
 
 ```python
 def on_data(self, data: Data) -> None:
-    # First check the type of data
+    # 先判断数据类型
     if isinstance(data, MyDataPoint):
-        # Do something with the data
+        # 对数据执行处理逻辑
 ```
 
-### Publishing and receiving signal data
+### 发布与接收信号数据（signals）
 
-Here is an example of publishing and receiving signal data using the `MessageBus` from an actor or strategy.
-A signal is an automatically generated custom data identified by a name containing only one value of a basic type
-(str, float, int, bool or bytes).
+下面示例演示如何在 actor 或 strategy 中通过 `MessageBus` 发布与接收信号数据（signal）。
+信号是一种自动生成的自定义数据，其名称对应单一的基础类型值（str、float、int、bool 或 bytes）。
 
 ```python
 self.publish_signal("signal_name", value, ts_event)
@@ -1506,11 +1467,9 @@ def on_signal(self, signal):
     print("Signal", data)
 ```
 
-### Option greeks example
+### 期权 Greeks 示例
 
-This example demonstrates how to create a custom data type for option Greeks, specifically the delta.
-By following these steps, you can create custom data types, subscribe to them, publish them, and store
-them in the `Cache` or `ParquetDataCatalog` for efficient retrieval.
+本示例演示如何为期权 Greeks（例如 delta）创建自定义数据类型。按照示例，你可以创建、订阅、发布并将其存入 `Cache` 或 `ParquetDataCatalog` 以便高效检索。
 
 ```python
 import msgspec
@@ -1586,9 +1545,9 @@ class GreeksData(Data):
         )
 ```
 
-#### Publishing and receiving data
+#### 发布与接收数据示例
 
-Here is an example of publishing and receiving data using the `MessageBus` from an actor or strategy:
+下面示例展示如何在 actor 或 strategy 中使用 `MessageBus` 发布与接收数据：
 
 ```python
 register_serializable_type(GreeksData, GreeksData.to_dict, GreeksData.from_dict)
@@ -1604,9 +1563,9 @@ def on_data(self, data):
         print("Data", data)
 ```
 
-#### Writing and reading data using the cache
+#### 使用 Cache 写入与读取数据
 
-Here is an example of writing and reading data using the `Cache` from an actor or strategy:
+下面示例展示如何在 actor 或 strategy 中使用 `Cache` 写入和读取数据：
 
 ```python
 def greeks_key(instrument_id: InstrumentId):
@@ -1619,10 +1578,9 @@ def greeks_from_cache(self, instrument_id: InstrumentId):
     return GreeksData.from_bytes(self.cache.get(greeks_key(instrument_id)))
 ```
 
-#### Writing and reading data using a catalog
+#### 使用 catalog 写入与读取自定义数据
 
-For streaming custom data to feather files or writing it to parquet files in a catalog
-(`register_arrow` needs to be used):
+将自定义数据流式写入 feather，或写为 catalog 中的 parquet 文件（需先调用 `register_arrow`）：
 
 ```python
 register_arrow(GreeksData, GreeksData.schema(), GreeksData.to_catalog, GreeksData.from_catalog)
@@ -1633,12 +1591,11 @@ catalog = ParquetDataCatalog('.')
 catalog.write_data([GreeksData()])
 ```
 
-### Creating a custom data class automatically
+### 自动创建自定义数据类
 
-The `@customdataclass` decorator enables the creation of a custom data class with default
-implementations for all the features described above.
+`@customdataclass` 装饰器可用于自动生成自定义数据类，并为上面提到的功能提供默认实现。
 
-Each method can also be overridden if needed. Here is an example of its usage:
+方法均可按需重写。下面是一个使用示例：
 
 ```python
 from nautilus_trader.model.custom import customdataclass
@@ -1658,15 +1615,12 @@ GreeksTestData(
 )
 ```
 
-#### Custom data type stub
+#### 自定义数据类型的类型存根（stub）
 
-To enhance development convenience and improve code suggestions in your IDE, you can create a `.pyi`
-stub file with the proper constructor signature for your custom data types as well as type hints for attributes.
-This is particularly useful when the constructor is dynamically generated at runtime, as it allows the IDE to recognize
-and provide suggestions for the class's methods and attributes.
+为提高开发便捷性并改善 IDE 的代码提示，可以为动态生成构造函数的自定义数据类型创建一个 `.pyi` 类型存根文件，提供正确的构造器签名和属性类型提示。
+这样可以让 IDE 识别并为类的方法和属性提供补全建议。
 
-For instance, if you have a custom data class defined in `greeks.py`, you can create a corresponding `greeks.pyi` file
-with the following constructor signature:
+例如，若自定义数据类定义在 `greeks.py` 中，可创建对应的 `greeks.pyi` 文件，包含如下构造函数签名：
 
 ```python
 from nautilus_trader.core import Data
