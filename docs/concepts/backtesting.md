@@ -1,215 +1,186 @@
-# Backtesting
+# 回测
 
-Backtesting with NautilusTrader is a methodical simulation process that replicates trading
-activities using a specific system implementation. This system is composed of various components
-including the built-in engines, `Cache`, [MessageBus](message_bus.md), `Portfolio`, [Actors](actors.md), [Strategies](strategies.md), [Execution Algorithms](execution.md),
-and other user-defined modules. The entire trading simulation is predicated on a stream of historical data processed by a
-`BacktestEngine`. Once this data stream is exhausted, the engine concludes its operation, producing
-detailed results and performance metrics for in-depth analysis.
+使用 NautilusTrader 进行回测是一种有步骤的模拟流程，它通过特定系统实现来重现交易活动。该系统由多个组件组成，
+包括内置引擎、`Cache`、[MessageBus](message_bus.md)、`Portfolio`、[Actors](actors.md)、[Strategies](strategies.md)、[Execution Algorithms](execution.md)
+以及其他用户自定义模块。整个交易模拟以由 `BacktestEngine` 处理的一条历史数据流为基础。当数据流耗尽时，引擎结束运行并产出
+详尽的结果与绩效指标，供进一步分析使用。
 
-It's important to recognize that NautilusTrader offers two distinct API levels for setting up and conducting backtests:
+NautilusTrader 提供两种不同层次的 API 用于配置和运行回测：
 
-- **High-level API**: Uses a `BacktestNode` and configuration objects (`BacktestEngine`s are used internally).
-- **Low-level API**: Uses a `BacktestEngine` directly with more "manual" setup.
+- **High-level API（高层 API）**：使用 `BacktestNode` 和配置对象（内部会创建 `BacktestEngine`）。
+- **Low-level API（底层 API）**：直接使用 `BacktestEngine`，需要更多手工配置。
 
-## Choosing an API level
+## 选择哪个 API 层级
 
-Consider using the **low-level** API when:
+在以下情况下考虑使用 **Low-level API**：
 
-- Your entire data stream can be processed within the available machine resources (e.g., RAM).
-- You prefer not to store data in the Nautilus-specific Parquet format.
-- You have a specific need or preference to retain raw data in its original format (e.g., CSV, binary, etc.).
-- You require fine-grained control over the `BacktestEngine`, such as the ability to re-run backtests on identical datasets while swapping out components (e.g., actors or strategies) or adjusting parameter configurations.
+- 整个数据流能在可用机器资源内处理（例如内存足够）。
+- 你不想把数据存为 Nautilus 特定的 Parquet 格式。
+- 希望保留原始数据的原始格式（例如 CSV、二进制等）。
+- 需要对 `BacktestEngine` 进行精细控制，例如在相同数据集上重复回测但替换组件（actor、strategy）或调整参数。
 
-Consider using the **high-level** API when:
+在以下情况下考虑使用 **High-level API**：
 
-- Your data stream exceeds available memory, requiring streaming data in batches.
-- You want to leverage the performance and convenience of the `ParquetDataCatalog` for storing data in the Nautilus-specific Parquet format.
-- You value the flexibility and functionality of passing configuration objects to define and manage multiple backtest runs across various engines simultaneously.
+- 数据流超出可用内存，需要分批流式处理数据。
+- 想利用 `ParquetDataCatalog` 在 Nautilus 特定的 Parquet 格式下带来的性能与便利。
+- 希望通过配置对象在多个引擎上并行或批量管理多个回测运行。
 
-## Low-level API
+## 底层 API（Low-level API）
 
-The low-level API centers around a `BacktestEngine`, where inputs are initialized and added manually via a Python script.
-An instantiated `BacktestEngine` can accept the following:
+底层 API 以 `BacktestEngine` 为中心，输入通过 Python 脚本手动初始化并添加。一个实例化的 `BacktestEngine` 可以接收：
 
-- Lists of `Data` objects, which are automatically sorted into monotonic order based on `ts_init`.
-- Multiple venues, manually initialized.
-- Multiple actors, manually initialized and added.
-- Multiple execution algorithms, manually initialized and added.
+- `Data` 对象的列表（会基于 `ts_init` 自动按单调顺序排序）。
+- 多个手动初始化的 venue。
+- 多个手动初始化并添加的 actor。
+- 多个手动初始化并添加的 execution algorithm。
 
-This approach offers detailed control over the backtesting process, allowing you to manually configure each component.
+这种方式适合需要对回测过程进行逐项精细控制的场景。
 
-## High-level API
+## 高层 API（High-level API）
 
-The high-level API centers around a `BacktestNode`, which orchestrates the management of multiple `BacktestEngine` instances,
-each defined by a `BacktestRunConfig`. Multiple configurations can be bundled into a list and processed by the node in one run.
+高层 API 以 `BacktestNode` 为核心，负责协调多个 `BacktestEngine` 实例的管理，
+每个实例由一个 `BacktestRunConfig` 定义。多个配置可以打包成列表，由节点在一次运行中处理。
 
-Each `BacktestRunConfig` object consists of the following:
+每个 `BacktestRunConfig` 通常包含：
 
-- A list of `BacktestDataConfig` objects.
-- A list of `BacktestVenueConfig` objects.
-- A list of `ImportableActorConfig` objects.
-- A list of `ImportableStrategyConfig` objects.
-- A list of `ImportableExecAlgorithmConfig` objects.
-- An optional `ImportableControllerConfig` object.
-- An optional `BacktestEngineConfig` object, with a default configuration if not specified.
+- 一组 `BacktestDataConfig`。
+- 一组 `BacktestVenueConfig`。
+- 一组 `ImportableActorConfig`。
+- 一组 `ImportableStrategyConfig`。
+- 一组 `ImportableExecAlgorithmConfig`。
+- 一个可选的 `ImportableControllerConfig`。
+- 一个可选的 `BacktestEngineConfig`（如果未指定则使用默认配置）。
 
-## Data
+## 数据（Data）
 
-Data provided for backtesting drives the execution flow. Since a variety of data types can be used,
-it's crucial that your venue configurations align with the data being provided for backtesting.
-Mismatches between data and configuration can lead to unexpected behavior during execution.
+用于回测的数据驱动了执行流程。由于可用的数据类型多样，务必确保你的 venue 配置与提供的数据相匹配，
+否则配置与数据不一致会导致执行时出现意外行为。
 
-NautilusTrader is primarily designed and optimized for order book data, which provides
-a complete representation of every price level or order in the market, reflecting the real-time behavior of a trading venue.
-This ensures the highest level of execution granularity and realism. However, if granular order book data is either not
-available or necessary, then the platform has the capability of processing market data in the following descending order of detail:
+NautilusTrader 主要针对订单簿数据（order book）进行设计与优化，因为它能完整表示市场的每个价格档或订单，
+最接近真实交易场所的行为，能够提供最高精度的执行模拟。但若高精度的订单簿数据不可用或不是必须，平台也能按下列由精细到粗糙的顺序处理市况数据：
 
-1. **Order Book Data/Deltas (L3 market-by-order)**:
-   - Providing comprehensive market depth and detailed order flow, with visibility of all individual orders.
+1. **Order Book Data/Deltas（L3 market-by-order）**：提供最完整的市场深度和逐笔订单流，可见所有单个订单。
+2. **Order Book Data/Deltas（L2 market-by-price）**：按价格档聚合订单，保留多档市场深度。
+3. **Quote Ticks（L1 market-by-price）**：仅包含最优买卖价及对应量，表示“top of the book”。
+4. **Trade Ticks**：反映实际成交，提供交易发生的精确信息。
+5. **Bars**：按固定时间区间（如 1 分钟、1 小时或 1 天）聚合的 OHLC 数据。
 
-2. **Order Book Data/Deltas (L2 market-by-price)**:
-   - Providing market depth visibility across all price levels.
+### 数据选择：成本与准确度的权衡
 
-3. **Quote Ticks (L1 market-by-price)**:
-   - Representing the "top of the book" by capturing only the best bid and ask prices and sizes.
+对于许多策略来说，Bar 数据（例如 1 分钟 K 线）已足够用于回测与策略开发。Bar 数据通常比逐笔或订单簿数据更易获取且成本更低。
 
-4. **Trade Ticks**:
-   - Reflecting actual executed trades, offering a precise view of transaction activity.
+考虑到这一现实，Nautilus 支持基于 bar 的回测，并提供若干增强特性以在较低粒度数据下尽可能提升模拟精度。
 
-5. **Bars**:
-   - Aggregating trading activity - typically over fixed time intervals, such as 1-minute, 1-hour, or 1-day.
+提示：
 
-### Choosing data: cost vs. accuracy
+> 对于部分策略，使用 bar 数据作为初期验证快速且经济。若策略对执行时点非常敏感（例如需要在 OHLC 范围内的精确价格完成成交，或止盈/止损区间非常紧），建议升级到更高粒度的数据以做更精确的验证。
 
-For many trading strategies, bar data (e.g., 1-minute) can be sufficient for backtesting and strategy development. This is
-particularly important because bar data is typically much more accessible and cost-effective compared to tick or order book data.
+## 交易场所（Venues）
 
-Given this practical reality, Nautilus is designed to support bar-based backtesting with advanced features
-that maximize simulation accuracy, even when working with lower granularity data.
+为回测初始化 venue 时，必须指定其内部订单 `book_type`，以决定执行处理使用哪种订单簿模型：
 
-:::tip
-For some trading strategies, it can be practical to start development with bar data to validate core trading ideas.
-If the strategy looks promising, but is more sensitive to precise execution timing (e.g., requires fills at specific prices
-between OHLC levels, or uses tight take-profit/stop-loss levels), you can then invest in higher granularity data
-for more accurate validation.
-:::
+- `L1_MBP`：Level 1 market-by-price（默认）。仅维护顶级档位。
+- `L2_MBP`：Level 2 market-by-price。维护多档深度，每个价格档汇总为单个聚合订单。
+- `L3_MBO`：Level 3 market-by-order。按订单逐笔维护深度，保留数据提供的每一张订单记录。
 
-## Venues
+注意：
 
-When initializing a venue for backtesting, you must specify its internal order `book_type` for execution processing from the following options:
+> 数据的粒度必须与指定的 `book_type` 一致。Nautilus 无法从低粒度数据（如 quotes、trades、bars）合成出更高粒度的 L2 或 L3 数据。
 
-- `L1_MBP`: Level 1 market-by-price (default). Only the top level of the order book is maintained.
-- `L2_MBP`: Level 2 market-by-price. Order book depth is maintained, with a single order aggregated per price level.
-- `L3_MBO`: Level 3 market-by-order. Order book depth is maintained, with all individual orders tracked as provided by the data.
+警告：
 
-:::note
-The granularity of the data must match the specified order `book_type`. Nautilus cannot generate higher granularity data (L2 or L3) from lower-level data such as quotes, trades, or bars.
-:::
+> 如果将 venue 的 `book_type` 设置为 `L2_MBP` 或 `L3_MBO`，所有非订单簿的数据（如 quotes、trades、bars）在执行处理时将被忽略，
+> 这可能导致订单看似永远无法被成交。我们正在改进验证逻辑以减少这种配置与数据不匹配的问题。
 
-:::warning
-If you specify `L2_MBP` or `L3_MBO` as the venue’s `book_type`, all non-order book data (such as quotes, trades, and bars) will be ignored for execution processing.
-This may cause orders to appear as though they are never filled. We are actively working on improved validation logic to prevent configuration and data mismatches.
-:::
+警告：
 
-:::warning
-When providing L2 or higher order book data, ensure that the `book_type` is updated to reflect the data's granularity.
-Failing to do so will result in data aggregation: L2 data will be reduced to a single order per level, and L1 data will reflect only top-of-book levels.
-:::
+> 提供 L2 或更高粒度的订单簿数据时，请确保同步更新 `book_type` 来反映数据的真实粒度；否则会发生聚合或降级：L2 数据会被降为每档单个订单，L1 则只能反映顶级档位。
 
-## Execution
+## 执行（Execution）
 
-### Data and message sequencing
+### 数据与消息的时序
 
-In the main backtesting loop, new market data is first processed for the execution of existing orders before being processed
-by the data engine that will then send data to strategies.
+在主回测循环中，新到的市场数据会先用于已存在订单的执行逻辑，然后再由数据引擎传递给策略处理。这保证了在同一时间戳下先处理执行相关事件，随后触发策略逻辑。
 
-### Bar based execution
+### 基于 Bar 的执行
 
-Bar data provides a summary of market activity with four key prices for each time period (assuming bars are aggregated by trades):
+Bar 数据为每个时间段提供四个关键价格（假设 bar 基于成交汇总）：
 
-- **Open**: opening price (first trade)
-- **High**: highest price traded
-- **Low**: lowest price traded
-- **Close**: closing price (last trade)
+- **Open**：开盘价（第一笔成交）
+- **High**：最高成交价
+- **Low**：最低成交价
+- **Close**：收盘价（最后一笔成交）
 
-While this gives us an overview of price movement, we lose some important information that we'd have with more granular data:
+虽然 Bar 给出价格走势的概览，但相对于更细粒度的数据我们会丢失一些重要信息：
 
-- We don't know in what order the market hit the high and low prices.
-- We can't see exactly when prices changed within the time period.
-- We don't know the actual sequence of trades that occurred.
+- 无法得知最高价与最低价在时间上的先后顺序；
+- 无法精确看到区间内具体的价格变化时刻；
+- 无法还原真实成交的时间序列。
 
-This is why Nautilus processes bar data through a system that attempts to maintain
-the most realistic yet conservative market behavior possible, despite these limitations.
-At its core, the platform always maintains an order book simulation - even when you provide less
-granular data such as quotes, trades, or bars (although the simulation will only have a top level book).
+因此，Nautilus 在处理 bar 数据时采用一套尽量真实且偏保守的市场行为模拟机制。即便输入的是 quotes、trades 或 bars（较低粒度），平台内部仍然维护订单簿模拟——不过此时订单簿通常仅有顶级档位。
 
-:::warning
-When using bars for execution simulation (enabled by default with `bar_execution=True` in venue configurations),
-Nautilus strictly expects the timestamp (`ts_init`) of each bar to represent its **closing time**.
-This ensures accurate chronological processing, prevents look-ahead bias, and aligns market updates (Open → High → Low → Close) with the moment the bar is complete.
-:::
+警告：
 
-#### Bar timestamp convention
+> 使用 bar 进行执行模拟（在 venue 配置中默认为 `bar_execution=True`）时，Nautilus 严格要求每个 bar 的时间戳（`ts_init`）表示该 bar 的**收盘时间**，以保证时间顺序正确并避免前瞻性偏差（look-ahead bias）。
 
-If your data source provides bars timestamped at the **opening time** (common in some providers), you must adjust them to the closing time before loading into Nautilus.
-Failure to do so can lead to incorrect order fills, event sequencing errors, or unrealistic backtest results.
+#### Bar 的时间戳约定
 
-- Use adapter-specific configurations like `bars_timestamp_on_close=True` (e.g., for Bybit or Databento adapters) to handle this automatically during data ingestion.
-- For custom data, manually shift timestamps by the bar duration (e.g., add 1 minute for `1-MINUTE` bars).
-- Always verify your data's timestamp convention with a small sample to avoid simulation inaccuracies.
+如果你的数据源将 bar 的时间戳记录为**开盘时间**（某些供应商常见），则在导入到 Nautilus 之前必须将其转换为收盘时间。未做转换可能导致错误的订单成交、事件顺序错乱或不真实的回测结果。
 
-#### Processing bar data
+- 对于支持的适配器，可使用类似 `bars_timestamp_on_close=True` 的配置（如 Bybit 或 Databento 适配器）在数据引入时自动处理。
+- 对于自定义数据，需要手动将时间戳向后平移一个 bar 周期（例如对 1 分钟 bar 加 1 分钟）。
+- 在导入前用小样本验证时间戳约定，避免模拟偏差。
 
-Even when you provide bar data, Nautilus maintains an internal order book for each instrument - just like a real venue would.
+#### 处理 Bar 数据的流程
 
-1. **Time processing**:
-   - Nautilus has a specific way of handling the timing of bar data *for execution* that's crucial for accurate simulation.
-   - Bar timestamps (`ts_event`) are expected to represent the close time of the bar. This approach is most logical because it represents the moment when the bar is fully formed and its aggregation is complete.
-   - The initialization time (`ts_init`) can be controlled using the `ts_init_delta` parameter in `BarDataWrangler`, which should typically be set to the bar's step size (timeframe) in nanoseconds.
-   - The platform ensures all events happen in the correct sequence based on these timestamps, preventing any possibility of look-ahead bias in your backtests.
+即便输入的是 bar 数据，Nautilus 也会为每个合约维护一个内部订单簿，与真实交易场所一致：
 
-2. **Price processing**:
-   - The platform converts each bar's OHLC prices into a sequence of market updates.
-   - These updates always follow the same order: Open → High → Low → Close.
-   - If you provide multiple timeframes (like both 1-minute and 5-minute bars), the platform uses the more granular data for highest accuracy.
+1. 时间处理：
 
-3. **Executions**:
-   - When you place orders, they interact with the simulated order book just like they would on a real venue.
-   - For MARKET orders, execution happens at the current simulated market price plus any configured latency.
-   - For LIMIT orders working in the market, they'll execute if any of the bar's prices reach or cross your limit price (see below).
-   - The matching engine continuously processes orders as OHLC prices move, rather than waiting for complete bars.
+   - Nautilus 对用于执行的 bar 时间有特定处理要求；`ts_event` 应表示 bar 的收盘时间，这是最合乎逻辑的时间点，因为此时 bar 聚合完成。
+   - 可通过 `BarDataWrangler` 的 `ts_init_delta` 参数控制 `ts_init` 的偏移，通常设置为 bar 的步长（以纳秒为单位）。
+   - 平台会基于这些时间戳确保事件按正确顺序发生，防止前瞻性偏差。
 
-#### OHLC prices simulation
+2. 价格处理：
 
-During backtest execution, each bar is converted into a sequence of four price points:
+   - 平台将每根 bar 的 OHLC 价格转换为一系列市场更新事件。
+   - 更新顺序默认为：Open → High → Low → Close。
+   - 若同时提供多个时间框架（如 1 分钟与 5 分钟），将优先使用更高粒度的数据以提高准确性。
 
-1. Opening price
-2. High price *(Order between High/Low is configurable. See `bar_adaptive_high_low_ordering` below.)*
-3. Low price
-4. Closing price
+3. 成交（Executions）：
+   - 下单后，订单与模拟订单簿进行交互，行为类似真实场所。
+   - 对于 MARKET 订单，按当前模拟市场价执行并考虑配置的延迟。
+   - 对于在市的 LIMIT 订单，只要任一 bar 的价格触及或穿越限价即会触发执行（下文有更详细描述）。
+   - 匹配引擎会随着 OHLC 价格的移动持续处理订单，而不是等到整根 bar 结束再统一处理。
 
-The trading volume for that bar is **split evenly** among these four points (25% each). In marginal cases,
-if the original bar's volume divided by 4 is less than the instrument's minimum `size_increment`,
-we still use the minimum `size_increment` per price point to ensure valid market activity (e.g., 1 contract
-for CME group exchanges).
+#### OHLC 价格的模拟
 
-How these price points are sequenced can be controlled via the `bar_adaptive_high_low_ordering` parameter when configuring a venue.
+在回测执行过程中，每根 bar 会被拆分为四个价格点按序处理：
 
-Nautilus supports two modes of bar processing:
+1. 开盘价（Opening price）
+2. 最高价（High price）_(High/Low 的先后顺序可配置，见下文 `bar_adaptive_high_low_ordering`)_
+3. 最低价（Low price）
+4. 收盘价（Closing price）
 
-1. **Fixed ordering** (`bar_adaptive_high_low_ordering=False`, default)
-   - Processes every bar in a fixed sequence: `Open → High → Low → Close`.
-   - Simple and deterministic approach.
+该 bar 的成交量在四个价格点间**平均分配**（每点 25%）。在极端情况下，若原始 bar 的量除以 4 小于该合约的最小 `size_increment`，仍会以最小 `size_increment` 作为每个价格点的成交量，以确保市场活动有效（例如 CME 交易所的合约单位为 1）。
 
-2. **Adaptive ordering** (`bar_adaptive_high_low_ordering=True`)
-   - Uses bar structure to estimate likely price path:
-     - If Open is closer to High: processes as `Open → High → Low → Close`.
-     - If Open is closer to Low: processes as `Open → Low → High → Close`.
-   - [Research](https://gist.github.com/stefansimik/d387e1d9ff784a8973feca0cde51e363) shows this approach achieves ~75-85% accuracy in predicting correct High/Low sequence (compared to statistical ~50% accuracy with fixed ordering).
-   - This is particularly important when both take-profit and stop-loss levels occur within the same bar - as the sequence determines which order fills first.
+价格点的具体顺序可通过 venue 配置的 `bar_adaptive_high_low_ordering` 参数控制。
 
-Here's how to configure adaptive bar ordering for a venue, including account setup:
+Nautilus 支持两种 bar 处理模式：
+
+1. 固定顺序（Fixed ordering，`bar_adaptive_high_low_ordering=False`，默认）
+
+   - 按固定顺序处理每根 bar：`Open → High → Low → Close`。
+   - 简单且确定性强。
+
+2. 自适应顺序（Adaptive ordering，`bar_adaptive_high_low_ordering=True`）
+   - 基于 bar 的结构估算更可能的价格路径：
+   - 若 Open 更接近 High，则按 `Open → High → Low → Close` 处理；
+   - 若 Open 更接近 Low，则按 `Open → Low → High → Close` 处理；
+   - 研究显示（见链接）该方法在预测 High/Low 顺序上能达到约 75–85% 的准确率，远高于固定顺序的约 50%。
+   - 当止盈与止损都发生在同一根 bar 内时，此顺序对于先成交哪个单具有决定性影响。
+
+下面示例展示如何为 venue 配置自适应 bar 顺序并设置账户：
 
 ```python
 from nautilus_trader.backtest.engine import BacktestEngine
@@ -221,52 +192,50 @@ engine = BacktestEngine()
 
 # Add a venue with adaptive bar ordering and required account settings
 engine.add_venue(
-    venue=venue,  # Your Venue identifier, e.g., Venue("BINANCE")
-    oms_type=OmsType.NETTING,
-    account_type=AccountType.CASH,
-    starting_balances=[Money(10_000, Currency.from_str("USDT"))],
-    bar_adaptive_high_low_ordering=True,  # Enable adaptive ordering of High/Low bar prices
+  venue=venue,  # Your Venue identifier, e.g., Venue("BINANCE")
+  oms_type=OmsType.NETTING,
+  account_type=AccountType.CASH,
+  starting_balances=[Money(10_000, Currency.from_str("USDT"))],
+  bar_adaptive_high_low_ordering=True,  # Enable adaptive ordering of High/Low bar prices
 )
 ```
 
-### Slippage and spread handling
+### 滑点（Slippage）与点差（Spread）处理
 
-When backtesting with different types of data, Nautilus implements specific handling for slippage and spread simulation:
+在使用不同数据类型回测时，Nautilus 会针对滑点与点差采取不同的模拟策略：
 
-For L2 (market-by-price) or L3 (market-by-order) data, slippage is simulated with high accuracy by:
+对于 L2（market-by-price）或 L3（market-by-order）数据，滑点可通过订单簿真实深度高精度模拟：
 
-- Filling orders against actual order book levels.
-- Matching available size at each price level sequentially.
-- Maintaining realistic order book depth impact (per order fill).
+- 按真实订单簿档位逐档成交；
+- 按每档可用量依次匹配；
+- 保留真实的订单簿深度对每次成交的影响。
 
-For L1 data types (e.g., L1 order book, trades, quotes, bars), slippage is handled through:
+对于 L1 数据类型（如 L1 订单簿、trades、quotes、bars），滑点通过参数化机制处理：
 
-**Initial fill slippage** (`prob_slippage`):
+初始成交滑点（`prob_slippage`）：
 
-- Controlled by the `prob_slippage` parameter of the `FillModel`.
-- Determines if the initial fill will occur one tick away from current market price.
-- Example: With `prob_slippage=0.5`, a market BUY has 50% chance of filling one tick above the best ask price.
+- 由 `FillModel` 的 `prob_slippage` 参数控制；
+- 决定初始成交是否会发生 1 tick 的价差；
+- 例如 `prob_slippage=0.5` 表示买入市价单有 50% 概率以高 1 tick 的价格成交。
 
-:::note
-When backtesting with bar data, be aware that the reduced granularity of price information affects the slippage mechanism.
-For the most realistic backtesting results, consider using higher granularity data sources such as L2 or L3 order book data when available.
-:::
+提示：
 
-### Fill model
+> 使用 bar 数据回测时，价格粒度较低会影响滑点模拟。若需尽可能真实的回测结果，应优先考虑 L2 或 L3 级别的订单簿数据。
 
-The `FillModel` helps simulate order queue position and execution in a simple probabilistic way during backtesting.
-It addresses a fundamental challenge: *even with perfect historical market data, we can't fully simulate how orders may have interacted with other
-market participants in real-time*.
+### Fill 模型（Fill model）
 
-The `FillModel` simulates two key aspects of trading that exist in real markets regardless of data quality:
+`FillModel` 用于在回测中以概率方式模拟订单队列位置与执行，解决一个根本性的问题：即便拥有完备的历史市场数据，也无法精确重现订单在实时市场中与其他参与者交互的所有细节。
 
-1. **Queue position for limit orders**:
-   - When multiple traders place orders at the same price level, the order's position in the queue affects if and when it gets filled.
+`FillModel` 模拟交易中的两个关键方面：
 
-2. **Market impact and competition**:
-   - When taking liquidity with market orders, you compete with other traders for available liquidity, which can affect your fill price.
+1. 限价单的队列位置（Queue position）：
 
-#### Configuration and parameters
+   - 当多个交易者在相同价格档下单时，队列中的先后顺序决定了是否以及何时被成交。
+
+2. 市场影响与竞争（Market impact and competition）：
+   - 使用市价单吃入流动性时，你会与其他交易者竞争可用的流动性，进而影响最终成交价。
+
+#### 配置与参数
 
 ```python
 from nautilus_trader.backtest.models import FillModel
@@ -275,130 +244,105 @@ from nautilus_trader.backtest.engine import BacktestEngine
 
 # Create a custom fill model with your desired probabilities
 fill_model = FillModel(
-    prob_fill_on_limit=0.2,    # Chance a limit order fills when price matches (applied to bars/trades/quotes + L1/L2/L3 order book)
-    prob_fill_on_stop=0.95,    # [DEPRECATED] Will be removed in a future version, use `prob_slippage` instead
-    prob_slippage=0.5,         # Chance of 1-tick slippage (applied to bars/trades/quotes + L1 order book only)
-    random_seed=None,          # Optional: Set for reproducible results
+  prob_fill_on_limit=0.2,    # Chance a limit order fills when price matches (applied to bars/trades/quotes + L1/L2/L3 order book)
+  prob_fill_on_stop=0.95,    # [DEPRECATED] Will be removed in a future version, use `prob_slippage` instead
+  prob_slippage=0.5,         # Chance of 1-tick slippage (applied to bars/trades/quotes + L1 order book only)
+  random_seed=None,          # Optional: Set for reproducible results
 )
 
 # Add the fill model to your engine configuration
 engine = BacktestEngine(
-    config=BacktestEngineConfig(
-        trader_id="TESTER-001",
-        fill_model=fill_model,  # Inject your custom fill model here
-    )
+  config=BacktestEngineConfig(
+    trader_id="TESTER-001",
+    fill_model=fill_model,  # Inject your custom fill model here
+  )
 )
 ```
 
-**prob_fill_on_limit** (default: `1.0`)
+`prob_fill_on_limit`（默认：`1.0`）
 
-- Purpose:
-  - Simulates the probability of a limit order getting filled when its price level is reached in the market.
-- Details:
-  - Simulates your position in the order queue at a given price level.
-  - Applies to all data types (e.g., L1/L2/L3 order book, quotes, trades, bars).
-  - New random probability check occurs each time market price touches your order price (but does not move through it).
-  - On successful probability check, fills entire remaining order quantity.
+- 目的：模拟当价格触及限价位时，限价单被成交的概率。
+- 细节：
+  - 模拟订单在该价格档的队列位置。
+  - 适用于所有数据类型（L1/L2/L3 订单簿、quotes、trades、bars）。
+  - 每当市场价格触及但未穿越你的委托价时，会进行一次新的随机概率检验。
+  - 若检验通过，则填充剩余全部委托量。
 
-**Examples**:
+示例：
 
-- With `prob_fill_on_limit=0.0`:
-  - Limit BUY orders never fill when best ask reaches the limit price.
-  - Limit SELL orders never fill when best bid reaches the limit price.
-  - This simulates being at the very back of the queue and never reaching the front.
-- With `prob_fill_on_limit=0.5`:
-  - Limit BUY orders have 50% chance of filling when best ask reaches the limit price.
-  - Limit SELL orders have 50% chance of filling when best bid reaches the limit price.
-  - This simulates being in the middle of the queue.
-- With `prob_fill_on_limit=1.0` (default):
-  - Limit BUY orders always fill when best ask reaches the limit price.
-  - Limit SELL orders always fill when best bid reaches the limit price.
-  - This simulates being at the front of the queue with guaranteed fills.
+- `prob_fill_on_limit=0.0`：限价买单在最佳卖价到达限价时从不成交；限价卖单在最佳买价到达限价时从不成交（模拟排在队尾）。
+- `prob_fill_on_limit=0.5`：在价格触及时有 50% 概率成交（模拟处于队列中间）。
+- `prob_fill_on_limit=1.0`（默认）：在价格触及时必然成交（模拟处于队列最前端）。
 
-**prob_slippage** (default: `0.0`)
+`prob_slippage`（默认：`0.0`）
 
-- Purpose:
-  - Simulates the probability of experiencing price slippage when executing market orders.
-- Details:
-  - Only applies to L1 data types (e.g., quotes, trades, bars).
-  - When triggered, moves fill price one tick against your order direction.
-  - Affects all market-type orders (`MARKET`, `MARKET_TO_LIMIT`, `MARKET_IF_TOUCHED`, `STOP_MARKET`).
-  - Not utilized with L2/L3 data where order book depth can determine slippage.
+- 目的：模拟市价单执行时发生价格滑点的概率。
+- 细节：
+  - 仅适用于 L1 数据类型（quotes、trades、bars）。
+  - 触发时，会将成交价按一个 tick 向不利方向移动。
+  - 影响所有市价类订单（例如 `MARKET`、`MARKET_TO_LIMIT`、`MARKET_IF_TOUCHED`、`STOP_MARKET`）。
+  - 在 L2/L3 数据下不启用，因为订单簿深度可用于自然决定滑点。
 
-**Examples**:
+示例：
 
-- With `prob_slippage=0.0` (default):
-  - No artificial slippage is applied, representing an idealized scenario where you always get filled at the current market price.
-- With `prob_slippage=0.5`:
-  - Market BUY orders have 50% chance of filling one tick above the best ask price, and 50% chance at the best ask price.
-  - Market SELL orders have 50% chance of filling one tick below the best bid price, and 50% chance at the best bid price.
-- With `prob_slippage=1.0`:
-  - Market BUY orders always fill one tick above the best ask price.
-  - Market SELL orders always fill one tick below the best bid price.
-  - This simulates consistent adverse price movement against your orders.
+- `prob_slippage=0.0`（默认）：不施加额外滑点，理想化地以当前市场价成交。
+- `prob_slippage=0.5`：买入市价单有 50% 概率以高 1 tick 的价格成交；卖出市价单有 50% 概率以低 1 tick 的价格成交。
+- `prob_slippage=1.0`：买单始终以高 1 tick 成交，卖单始终以低 1 tick 成交（始终存在不利价格移动的情形）。
 
-**prob_fill_on_stop** (default: `1.0`)
+`prob_fill_on_stop`（默认：`1.0`）
 
-- Stop order is just shorter name for stop-market order, that convert to market orders when market-price touches the stop-price.
-- That means, stop order order-fill mechanics is simply market-order mechanics, that is controlled by the `prob_slippage` parameter.
+- Stop 单本质上是 stop-market，当市价触及 stop 价时转为市价单。
+- 因此 stop 单的成交机制等同于市价单，由 `prob_slippage` 控制。
 
-:::warning
-The `prob_fill_on_stop` parameter is deprecated and will be removed in a future version (use `prob_slippage` instead).
-:::
+警告：
 
-#### How simulation varies by data type
+> `prob_fill_on_stop` 参数已弃用，将在未来版本移除，请使用 `prob_slippage`。
 
-The behavior of the `FillModel` adapts based on the order book type being used:
+#### 不同数据类型下模拟行为的差异
 
-**L2/L3 order book data**
+`FillModel` 的行为会根据使用的订单簿类型而调整：
 
-With full order book depth, the `FillModel` focuses purely on simulating queue position for limit orders through `prob_fill_on_limit`.
-The order book itself handles slippage naturally based on available liquidity at each price level.
+**L2 / L3 订单簿数据**
 
-- `prob_fill_on_limit` is active - simulates queue position.
-- `prob_slippage` is not used - real order book depth determines price impact.
+在存在完整订单簿深度的情况下，`FillModel` 主要通过 `prob_fill_on_limit` 模拟限价单的队列位置；滑点由订单簿深度自然决定。
 
-**L1 order book data**
+- `prob_fill_on_limit` 生效；
+- `prob_slippage` 不生效（订单簿深度决定价格冲击）。
 
-With only best bid/ask prices available, the `FillModel` provides additional simulation:
+**L1 订单簿数据**
 
-- `prob_fill_on_limit` is active - simulates queue position.
-- `prob_slippage` is active - simulates basic price impact since we lack real depth information.
+只有最佳买卖价时，`FillModel` 会提供额外模拟：
 
-**Bar/Quote/Trade data**
+- `prob_fill_on_limit` 生效；
+- `prob_slippage` 生效，用以补偿缺失的深度信息。
 
-When using less granular data, the same behaviors apply as L1:
+**Bar / Quote / Trade 数据**
 
-- `prob_fill_on_limit` is active - simulates queue position.
-- `prob_slippage` is active - simulates basic price impact.
+与 L1 类似：
 
-#### Important considerations
+- `prob_fill_on_limit` 生效；
+- `prob_slippage` 生效。
 
-The `FillModel` has certain limitations to keep in mind:
+#### 重要注意事项
 
-- **Partial fills are supported** with L2/L3 order book data - when there is no longer any size available in the order book, no more fills will be generated and the order will remain in a partially filled state. This accurately simulates real market conditions where not enough liquidity is available at the desired price levels.
-- With L1 data, slippage limits to a fixed 1-tick, at which the system fills the entire order's quantity.
+- **支持部分成交（Partial fills）**：在 L2/L3 数据下，当订单簿中可用量不足时，可能产生部分成交，剩余挂单将保留，直到后续有可用流动性或被取消。
+- 在 L1 数据下，滑点被限制为固定的 1 tick，且会以该价位填充整个订单量。
 
-:::note
-As the `FillModel` continues to evolve, future versions may introduce more sophisticated simulation of order execution dynamics, including:
+注意：
 
-- Partial fill simulation.
-- Variable slippage based on order size.
-- More complex queue position modeling.
+> 随着 `FillModel` 的持续演进，未来版本可能会引入更复杂的执行动力学模拟，例如基于订单规模的可变滑点、更加精细的部分成交模拟以及更复杂的队列位置建模。
 
-:::
+## 账户类型（Account types）
 
-## Account types
+当你将 venue 添加到引擎——无论用于实盘还是回测——都必须通过 `account_type` 参数选择三种会计模式之一：
 
-When you attach a venue to the engine—either for live trading or a back‑test—you must pick one of three accounting modes by passing the `account_type` parameter:
+| Account type | Typical use-case                                | What the engine locks                                                     |
+| ------------ | ----------------------------------------------- | ------------------------------------------------------------------------- |
+| Cash         | Spot trading (e.g. BTC/USDT, stocks)            | Notional value for every position a pending order would open.             |
+| Margin       | Derivatives or any product that allows leverage | Initial margin for each order plus maintenance margin for open positions. |
+| Betting      | Sports betting, book‑making                     | Stake required by the venue; no leverage.                                 |
 
-| Account type           | Typical use-case                                         | What the engine locks                                                                                              |
-| ---------------------- | -------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------|
-| Cash                   | Spot trading (e.g. BTC/USDT, stocks)                     | Notional value for every position a pending order would open.                                                      |
-| Margin                 | Derivatives or any product that allows leverage          | Initial margin for each order plus maintenance margin for open positions.                                          |
-| Betting                | Sports betting, book‑making                              | Stake required by the venue; no leverage.                                                                          |
-
-Example of adding a `CASH` account for a backtest venue:
+向回测 venue 添加 `CASH` 账户的示例：
 
 ```python
 from nautilus_trader.adapters.binance import BINANCE_VENUE
@@ -412,78 +356,71 @@ engine = BacktestEngine()
 
 # Add a CASH account for the venue
 engine.add_venue(
-    venue=BINANCE_VENUE,  # Create or reference a Venue identifier
-    oms_type=OmsType.NETTING,
-    account_type=AccountType.CASH,
-    starting_balances=[Money(10_000, USDT)],
+  venue=BINANCE_VENUE,  # Create or reference a Venue identifier
+  oms_type=OmsType.NETTING,
+  account_type=AccountType.CASH,
+  starting_balances=[Money(10_000, USDT)],
 )
 ```
 
-### Cash accounts
+### 现金账户（Cash accounts）
 
-Cash accounts settle trades in full; there is no leverage and therefore no concept of margin.
+现金账户以全额结算交易；不存在杠杆概念，因此也没有保证金的概念。
 
-### Margin accounts
+### 保证金账户（Margin accounts）
 
-A *margin account* facilitates trading of instruments requiring margin, such as futures or leveraged products.
-It tracks account balances, calculates required margins, and manages leverage to ensure sufficient collateral for positions and orders.
+保证金账户用于交易需要保证金的品种，如期货或带杠杆的产品。它追踪账户余额、计算所需保证金并管理杠杆，确保持仓与委托拥有足够的抵押品。
 
-**Key concepts**:
+关键概念：
 
-- **Leverage**: Amplifies trading exposure relative to account equity. Higher leverage increases potential returns and risks.
-- **Initial Margin**: Collateral required to submit an order to open a position.
-- **Maintenance Margin**: Minimum collateral required to maintain an open position.
-- **Locked Balance**: Funds reserved as collateral, unavailable for new orders or withdrawals.
+- **Leverage（杠杆）**：放大相对于账户权益的交易敞口，杠杆越高，潜在收益与风险越大。
+- **Initial Margin（初始保证金）**：开仓时提交订单所需的抵押。
+- **Maintenance Margin（维持保证金）**：维持持仓所需的最小抵押。
+- **Locked Balance（冻结余额）**：作为抵押被保留、不可用于新订单或提款的资金。
 
-:::note
-Reduce-only orders **do not** contribute to `balance_locked` in cash accounts,
-nor do they add to initial margin in margin accounts—as they can only reduce existing exposure.
-:::
+注意：
 
-### Betting accounts
+> Reduce-only 订单在现金账户中不会增加 `balance_locked`，在保证金账户中也不会增加初始保证金，因为它们只能减少已有敞口。
 
-Betting accounts are specialised for venues where you stake an amount to win or lose a fixed payout (some prediction markets, sports books, etc.).
-The engine locks only the stake required by the venue; leverage and margin are not applicable.
+### 投注账户（Betting accounts）
 
-## Margin models
+投注账户用于需要押注金额以换取可能固定赔率回报的场景（例如某些预测市场或体育博彩）。引擎仅冻结场所要求的押注金额；杠杆与保证金概念不适用。
 
-NautilusTrader provides flexible margin calculation models to accommodate different venue types and trading scenarios.
+## 保证金模型（Margin models）
 
-### Overview
+NautilusTrader 提供灵活的保证金计算模型，以适应不同场所与交易场景的需求。
 
-Different venues and brokers have varying approaches to calculating margin requirements:
+### 概览
 
-- **Traditional Brokers** (Interactive Brokers, TD Ameritrade): Fixed margin percentages regardless of leverage.
-- **Crypto Exchanges** (Binance, some others): Leverage may reduce margin requirements.
-- **Futures Exchanges** (CME, ICE): Fixed margin amounts per contract.
+不同交易场所与经纪商在保证金计算上存在差异：
 
-### Available models
+- **传统经纪商**（如 Interactive Brokers、TD Ameritrade）：通常使用固定百分比，不随杠杆变化。
+- **加密货币交易所**（如 Binance 等）：杠杆可能会降低保证金要求。
+- **期货交易所**（如 CME、ICE）：按合约固定保证金金额。
+
+### 可用模型
 
 #### StandardMarginModel
 
-Uses fixed percentages without leverage division, matching traditional broker behavior.
+使用固定百分比（不随杠杆除法），符合传统经纪商的做法。
 
-**Formula:**
+公式：
 
 ```python
 # Fixed percentages - leverage ignored
 margin = notional * instrument.margin_init
 ```
 
-- Initial Margin = `notional_value * instrument.margin_init`
-- Maintenance Margin = `notional_value * instrument.margin_maint`
+- 初始保证金 = `notional_value * instrument.margin_init`
+- 维持保证金 = `notional_value * instrument.margin_maint`
 
-**Use cases:**
-
-- Traditional brokers (Interactive Brokers, TD Ameritrade).
-- Futures exchanges (CME, ICE).
-- Forex brokers with fixed margin requirements.
+- 适用场景：传统经纪商、期货交易所，以及使用固定保证金要求的外汇经纪商。
 
 #### LeveragedMarginModel
 
-Divides margin requirements by leverage.
+通过杠杆对保证金要求进行除法处理。
 
-**Formula:**
+公式：
 
 ```python
 # Leverage reduces margin requirements
@@ -491,17 +428,14 @@ adjusted_notional = notional / leverage
 margin = adjusted_notional * instrument.margin_init
 ```
 
-- Initial Margin = `(notional_value / leverage) * instrument.margin_init`
-- Maintenance Margin = `(notional_value / leverage) * instrument.margin_maint`
+- 初始保证金 = `(notional_value / leverage) * instrument.margin_init`
+- 维持保证金 = `(notional_value / leverage) * instrument.margin_maint`
 
-**Use cases:**
+- 适用场景：加密交易所或杠杆会影响保证金要求的场所。
 
-- Crypto exchanges that reduce margin with leverage.
-- Venues where leverage affects margin requirements.
+### 使用方法
 
-### Usage
-
-#### Programmatic configuration
+#### 编程配置
 
 ```python
 from nautilus_trader.backtest.models import LeveragedMarginModel
@@ -520,58 +454,58 @@ leveraged_model = LeveragedMarginModel()
 account.set_margin_model(leveraged_model)
 ```
 
-#### Backtest configuration
+#### 回测配置
 
 ```python
 from nautilus_trader.backtest.config import BacktestVenueConfig
 from nautilus_trader.backtest.config import MarginModelConfig
 
 venue_config = BacktestVenueConfig(
-    name="SIM",
-    oms_type="NETTING",
-    account_type="MARGIN",
-    starting_balances=["1_000_000 USD"],
-    margin_model=MarginModelConfig(model_type="standard"),  # Options: 'standard', 'leveraged'
+  name="SIM",
+  oms_type="NETTING",
+  account_type="MARGIN",
+  starting_balances=["1_000_000 USD"],
+  margin_model=MarginModelConfig(model_type="standard"),  # Options: 'standard', 'leveraged'
 )
 ```
 
-#### Available model types
+#### 可用模型类型
 
-- `"leveraged"`: Margin reduced by leverage (default).
-- `"standard"`: Fixed percentages (traditional brokers).
-- Custom class path: `"my_package.my_module.MyMarginModel"`.
+- `"leveraged"`：按杠杆降低保证金（默认）。
+- `"standard"`：固定百分比（传统经纪商）。
+- 自定义类路径：`"my_package.my_module.MyMarginModel"`。
 
-#### Default behavior
+#### 默认行为
 
-By default, `MarginAccount` uses `LeveragedMarginModel`.
+默认情况下，`MarginAccount` 使用 `LeveragedMarginModel`。
 
-#### Real-world example
+#### 现实场景示例
 
-**EUR/USD Trading Scenario:**
+**EUR/USD 交易示例：**
 
-- **Instrument**: EUR/USD
-- **Quantity**: 100,000 EUR
-- **Price**: 1.10000
-- **Notional Value**: $110,000
-- **Leverage**: 50x
-- **Instrument Margin Init**: 3%
+- **合约**：EUR/USD
+- **数量**：100,000 EUR
+- **价格**：1.10000
+- **名义价值**：$110,000
+- **杠杆**：50x
+- **合约初始保证金比率**：3%
 
-**Margin calculations:**
+保证金计算：
 
-| Model     | Calculation           | Result  | Percentage |
-|-----------|----------------------|---------|------------|
-| Standard  | $110,000 × 0.03      | $3,300  | 3.00%      |
-| Leveraged | ($110,000 ÷ 50) × 0.03 | $66   | 0.06%      |
+| Model     | Calculation            | Result | Percentage |
+| --------- | ---------------------- | ------ | ---------- |
+| Standard  | $110,000 × 0.03        | $3,300 | 3.00%      |
+| Leveraged | ($110,000 ÷ 50) × 0.03 | $66    | 0.06%      |
 
-**Account balance impact:**
+账户余额影响：
 
-- **Account Balance**: $10,000
-- **Standard Model**: Cannot trade (requires $3,300 margin)
-- **Leveraged Model**: Can trade (requires only $66 margin)
+- **账户余额**：$10,000
+- **Standard Model**：无法下单 (需 $3,300)
+- **Leveraged Model**：可下单 (仅需 $66)
 
-### Real-world scenarios
+### 真实场景示例
 
-#### Interactive Brokers EUR/USD futures
+#### Interactive Brokers 的 EUR/USD 期货
 
 ```python
 # IB requires fixed margin regardless of leverage
@@ -580,7 +514,7 @@ margin = account.calculate_margin_init(instrument, quantity, price)
 # Result: Fixed percentage of notional value
 ```
 
-#### Binance crypto trading
+#### Binance 加密交易
 
 ```python
 # Binance may reduce margin with leverage
@@ -589,73 +523,73 @@ margin = account.calculate_margin_init(instrument, quantity, price)
 # Result: Margin reduced by leverage factor
 ```
 
-### Model selection
+### 模型选择
 
-#### Using the default model
+#### 使用默认模型
 
-The default `LeveragedMarginModel` works out of the box:
+默认的 `LeveragedMarginModel` 可直接使用：
 
 ```python
 account = TestExecStubs.margin_account()
 margin = account.calculate_margin_init(instrument, quantity, price)
 ```
 
-#### Using the standard model
+#### 使用标准模型
 
-For traditional broker behavior:
+若需模拟传统经纪商行为：
 
 ```python
 account.set_margin_model(StandardMarginModel())
 margin = account.calculate_margin_init(instrument, quantity, price)
 ```
 
-### Custom models
+### 自定义模型
 
-You can create custom margin models by inheriting from `MarginModel`. Custom models receive configuration through the `MarginModelConfig`:
+你可以通过继承 `MarginModel` 来创建自定义保证金模型。自定义模型通过 `MarginModelConfig` 接收配置：
 
 ```python
 from nautilus_trader.backtest.models import MarginModel
 from nautilus_trader.backtest.config import MarginModelConfig
 
 class RiskAdjustedMarginModel(MarginModel):
-    def __init__(self, config: MarginModelConfig):
-        """Initialize with configuration parameters."""
-        self.risk_multiplier = Decimal(str(config.config.get("risk_multiplier", 1.0)))
-        self.use_leverage = config.config.get("use_leverage", False)
+  def __init__(self, config: MarginModelConfig):
+    """Initialize with configuration parameters."""
+    self.risk_multiplier = Decimal(str(config.config.get("risk_multiplier", 1.0)))
+    self.use_leverage = config.config.get("use_leverage", False)
 
-    def calculate_margin_init(self, instrument, quantity, price, leverage, use_quote_for_inverse=False):
-        notional = instrument.notional_value(quantity, price, use_quote_for_inverse)
-        if self.use_leverage:
-            adjusted_notional = notional.as_decimal() / leverage
-        else:
-            adjusted_notional = notional.as_decimal()
-        margin = adjusted_notional * instrument.margin_init * self.risk_multiplier
-        return Money(margin, instrument.quote_currency)
+  def calculate_margin_init(self, instrument, quantity, price, leverage, use_quote_for_inverse=False):
+    notional = instrument.notional_value(quantity, price, use_quote_for_inverse)
+    if self.use_leverage:
+      adjusted_notional = notional.as_decimal() / leverage
+    else:
+      adjusted_notional = notional.as_decimal()
+    margin = adjusted_notional * instrument.margin_init * self.risk_multiplier
+    return Money(margin, instrument.quote_currency)
 
-    def calculate_margin_maint(self, instrument, side, quantity, price, leverage, use_quote_for_inverse=False):
-        return self.calculate_margin_init(instrument, quantity, price, leverage, use_quote_for_inverse)
+  def calculate_margin_maint(self, instrument, side, quantity, price, leverage, use_quote_for_inverse=False):
+    return self.calculate_margin_init(instrument, quantity, price, leverage, use_quote_for_inverse)
 ```
 
-#### Using custom models
+#### 使用自定义模型
 
-**Programmatic:**
+**编程方式：**
 
 ```python
 from nautilus_trader.backtest.config import MarginModelConfig
 from nautilus_trader.backtest.config import MarginModelFactory
 
 config = MarginModelConfig(
-    model_type="my_package.my_module:RiskAdjustedMarginModel",
-    config={"risk_multiplier": 1.5, "use_leverage": False}
+  model_type="my_package.my_module:RiskAdjustedMarginModel",
+  config={"risk_multiplier": 1.5, "use_leverage": False}
 )
 
 custom_model = MarginModelFactory.create(config)
 account.set_margin_model(custom_model)
 ```
 
-### High-level backtest API configuration
+### 高层回测 API 配置
 
-When using the high-level backtest API, you can specify margin models in your venue configuration using `MarginModelConfig`:
+在使用高层回测 API 时，你可以在 venue 配置中通过 `MarginModelConfig` 指定保证金模型：
 
 ```python
 from nautilus_trader.backtest.config import MarginModelConfig
@@ -664,47 +598,47 @@ from nautilus_trader.config import BacktestRunConfig
 
 # Configure venue with specific margin model
 venue_config = BacktestVenueConfig(
-    name="SIM",
-    oms_type="NETTING",
-    account_type="MARGIN",
-    starting_balances=["1_000_000 USD"],
-    margin_model=MarginModelConfig(
-        model_type="standard"  # Use standard model for traditional broker simulation
-    ),
+  name="SIM",
+  oms_type="NETTING",
+  account_type="MARGIN",
+  starting_balances=["1_000_000 USD"],
+  margin_model=MarginModelConfig(
+    model_type="standard"  # Use standard model for traditional broker simulation
+  ),
 )
 
 # Use in backtest configuration
 config = BacktestRunConfig(
-    venues=[venue_config],
-    # ... other config
+  venues=[venue_config],
+  # ... other config
 )
 ```
 
-#### Configuration examples
+#### 配置示例
 
-**Standard model (traditional brokers):**
+**Standard 模型（传统经纪商）：**
 
 ```python
 margin_model=MarginModelConfig(model_type="standard")
 ```
 
-**Leveraged model (default):**
+**Leveraged 模型（默认）：**
 
 ```python
 margin_model=MarginModelConfig(model_type="leveraged")  # Default
 ```
 
-**Custom model with configuration:**
+**带配置的自定义模型：**
 
 ```python
 margin_model=MarginModelConfig(
-    model_type="my_package.my_module:CustomMarginModel",
-    config={
-        "risk_multiplier": 1.5,
-        "use_leverage": False,
-        "volatility_threshold": 0.02,
-    }
+  model_type="my_package.my_module:CustomMarginModel",
+  config={
+    "risk_multiplier": 1.5,
+    "use_leverage": False,
+    "volatility_threshold": 0.02,
+  }
 )
 ```
 
-The margin model will be automatically applied to the simulated exchange during backtest execution.
+回测执行时，系统会自动将所选保证金模型应用到模拟的交易所中。
