@@ -1,8 +1,8 @@
-# Integrations
+# 集成
 
-NautilusTrader uses modular *adapters* to connect to trading venues and data providers, translating raw APIs into a unified interface and normalized domain model.
+NautilusTrader 使用模块化的 _adapter_（适配器）来连接交易场所和数据提供方，将各类原始 API 转换为统一的接口和规范化的领域模型。
 
-The following integrations are currently supported:
+当前支持的集成如下：
 
 | Name                                                                         | ID                    | Type                    | Status                                                  | Docs                                   |
 | :--------------------------------------------------------------------------- | :-------------------- | :---------------------- | :------------------------------------------------------ | :------------------------------------- |
@@ -19,38 +19,37 @@ The following integrations are currently supported:
 | [Polymarket](https://polymarket.com)                                         | `POLYMARKET`          | Prediction Market (DEX) | ![status](https://img.shields.io/badge/stable-green)    | [Guide](integrations/polymarket.md)    |
 | [Tardis](https://tardis.dev)                                                 | `TARDIS`              | Crypto Data Provider    | ![status](https://img.shields.io/badge/stable-green)    | [Guide](integrations/tardis.md)        |
 
-- **ID**: The default client ID for the integrations adapter clients.
-- **Type**: The type of integration (often the venue type).
+- **ID**：集成适配器客户端的默认 client ID。
+- **Type**：集成的类型（通常对应场所类型）。
 
-## Status
+## 状态（Status）
 
-- `building`: Under construction and likely not in a usable state.
-- `beta`: Completed to a minimally working state and in a 'beta' testing phase.
-- `stable`: Stabilized feature set and API, the integration has been tested by both developers and users to a reasonable level (some bugs may still remain).
+- `building`：正在开发中，可能尚不可用。
+- `beta`：已达到最小可用状态，处于 beta 测试阶段。
+- `stable`：功能与 API 已稳定，经过开发者与用户的合理测试（仍可能存在一些缺陷）。
 
-## Implementation goals
+## 实现目标（Implementation goals）
 
-The primary goal of NautilusTrader is to provide a unified trading system for
-use with a variety of integrations. To support the widest range of trading
-strategies, priority will be given to *standard* functionality:
+NautilusTrader 的主要目标是为多种集成提供一个统一的交易系统。
+为了支持更广泛的交易策略，实现时会优先保证*标准*功能的可用性：
 
-- Requesting historical market data.
-- Streaming live market data.
-- Reconciling execution state.
-- Submitting standard order types with standard execution instructions.
-- Modifying existing orders (if possible on an exchange).
-- Canceling orders.
+- 请求历史市场数据（requesting historical market data）。
+- 实时流式市场数据（streaming live market data）。
+- 执行状态的对账（reconciling execution state）。
+- 提交常见的订单类型并支持标准的执行指令（submitting standard order types with standard execution instructions）。
+- 修改已提交的订单（如果交易所支持）。
+- 取消订单（canceling orders）。
 
-The implementation of each integration aims to meet the following criteria:
+每个集成的实现应满足以下准则：
 
-- Low-level client components should match the exchange API as closely as possible.
-- The full range of an exchange's functionality (where applicable to NautilusTrader) should *eventually* be supported.
-- Exchange specific data types will be added to support the functionality and return types which are reasonably expected by a user.
-- Actions unsupported by an exchange or NautilusTrader will be logged as a warning or error when invoked.
+- 底层客户端组件应尽量贴合交易所的原生 API。
+- 在适用于 NautilusTrader 的范围内，应*最终*支持交易所的全部功能。
+- 会添加交易所特有的数据类型，以支持用户合理期待的功能和返回类型。
+- 对于交易所或 NautilusTrader 不支持的操作，调用时应记录为警告或错误。
 
-## API unification
+## API 统一（API unification）
 
-All integrations must conform to NautilusTrader’s system API, requiring normalization and standardization:
+所有集成都必须遵循 NautilusTrader 的系统 API，要求对数据和行为进行规范化：
 
-- Symbols should use the venue’s native symbol format unless disambiguation is required (e.g., Binance Spot vs. Binance Futures).
-- Timestamps must use UNIX epoch nanoseconds. If milliseconds are used, field/property names should explicitly end with `_ms`.
+- Symbol（代码）应使用场所的原生符号格式，除非需要区分（例如 Binance Spot 与 Binance Futures）。
+- 时间戳必须使用 UNIX epoch 纳秒（nanoseconds）。如果使用毫秒（milliseconds），字段/属性名应明确以 `_ms` 结尾。
