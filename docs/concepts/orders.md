@@ -1,20 +1,15 @@
-# Orders
+# 订单
 
-This guide provides further details about the available order types for the platform, along with
-the execution instructions supported for each.
+本指南详细说明了平台支持的订单类型及每种类型可用的执行指令（execution instructions）。
 
-Orders are one of the fundamental building blocks of any algorithmic trading strategy.
-NautilusTrader supports a broad set of order types and execution instructions, from standard to advanced,
-exposing as much of a trading venue's functionality as possible. This enables traders to define instructions
-and contingencies for order execution and management, facilitating the creation of virtually any trading strategy.
+订单是任何算法交易策略的基础构件之一。NautilusTrader 支持从标准到高级的一整套订单类型与执行指令，尽可能暴露交易场所（venue）的功能，以便交易者可以定义精细的执行指令和应急措施，从而实现几乎任意的交易策略。
 
-## Overview
+## 概述
 
-All order types are derived from two fundamentals: _Market_ and _Limit_ orders. In terms of liquidity, they are opposites.
-_Market_ orders consume liquidity by executing immediately at the best available price, whereas _Limit_
-orders provide liquidity by resting in the order book at a specified price until matched.
+所有订单类型都源自两个基本类型：Market（市价）与 Limit（限价）订单。从流动性角度来看，它们互为对立：
+Market 订单通过以最优可得价格立即成交来消耗流动性；而 Limit 订单则在指定价格挂单，提供流动性，直到被撮合。
 
-The order types available for the platform are (using the enum values):
+平台支持的订单类型如下（使用相应的枚举值表示）：
 
 - `MARKET`
 - `LIMIT`
@@ -27,143 +22,119 @@ The order types available for the platform are (using the enum values):
 - `TRAILING_STOP_LIMIT`
 
 :::info
-NautilusTrader provides a unified API for many order types and execution instructions, but not all venues support every option.
-If an order includes an instruction or option the target venue does not support, the system does not submit it.
-Instead, it logs a clear, explanatory error.
+NautilusTrader 为多种订单类型和执行指令提供统一的 API，但并非所有交易场所都支持所有选项。
+如果某个订单包含目标场所不支持的指令或选项，系统不会提交该不受支持的部分，而会记录清晰的错误日志（不再提交该指令）。
 :::
 
-### Terminology
+### 术语
 
-- An order is **aggressive** if its type is `MARKET` or if it executes as a _marketable_ order (i.e., takes liquidity).
-- An order is **passive** if it is not marketable (i.e., provides liquidity).
-- An order is **active local** if it remains within the local system boundary in one of the following three non-terminal statuses:
+- 如果订单类型为 `MARKET` 或以可被视为市价（marketable）的方式执行，则称该订单为 **aggressive（主动）**（即吃单）。
+- 如果订单不可被立刻撮合（即提供流动性），则称为 **passive（被动）**。
+- 如果订单在本地系统边界内处于以下三种非终态之一，则称为 **active local（本地活跃）**：
   - `INITIALIZED`
   - `EMULATED`
   - `RELEASED`
-- An order is **in-flight** when at one of the following statuses:
+- 当订单处于下列状态之一时，称为 **in-flight（在途）**：
   - `SUBMITTED`
   - `PENDING_UPDATE`
   - `PENDING_CANCEL`
-- An order is **open** when at one of the following (non-terminal) statuses:
+- 当订单处于下列（非终态）状态之一时，称为 **open（未结）**：
   - `ACCEPTED`
   - `TRIGGERED`
   - `PENDING_UPDATE`
   - `PENDING_CANCEL`
   - `PARTIALLY_FILLED`
-- An order is **closed** when at one of the following (terminal) statuses:
+- 当订单处于下列（终态）状态之一时，称为 **closed（已结）**：
   - `DENIED`
   - `REJECTED`
   - `CANCELED`
   - `EXPIRED`
   - `FILLED`
 
-## Execution instructions
+## 执行指令（Execution instructions）
 
-Certain venues allow a trader to specify conditions and restrictions on
-how an order will be processed and executed. The following is a brief
-summary of the different execution instructions available.
+某些交易场所允许交易者在订单中指定处理与执行方式的条件或限制。下面简要汇总了常见的执行指令。
 
-### Time in force
+### 有效期（Time in force）
 
-The order's time in force specifies how long the order will remain open or active before any
-remaining quantity is canceled.
+订单的 time in force 指定了订单在多长时间内保持活跃，超出该时间未成交的剩余数量将被取消。
 
-- `GTC` **(Good Till Cancel)**: The order remains active until canceled by the trader or the venue.
-- `IOC` **(Immediate or Cancel / Fill and Kill)**: The order executes immediately, with any unfilled portion canceled.
-- `FOK` **(Fill or Kill)**: The order executes immediately in full or not at all.
-- `GTD` **(Good Till Date)**: The order remains active until a specified expiration date and time.
-- `DAY` **(Good for session/day)**: The order remains active until the end of the current trading session.
-- `AT_THE_OPEN` **(OPG)**: The order is only active at the open of the trading session.
-- `AT_THE_CLOSE`: The order is only active at the close of the trading session.
+- `GTC`（Good Till Cancel）：订单一直有效，直到被交易者或场所取消。
+- `IOC`（Immediate or Cancel / Fill and Kill）：订单立即撮合，未成交部分被取消。
+- `FOK`（Fill or Kill）：订单要么立即全部成交，要么全部撤销。
+- `GTD`（Good Till Date）：订单在指定到期日期前保持有效。
+- `DAY`（Good for session/day）：订单在当前交易日/交易时段结束前有效。
+- `AT_THE_OPEN`（OPG）：订单仅在交易时段开盘时段有效。
+- `AT_THE_CLOSE`：订单仅在收盘时段有效。
 
-### Expire time
+### 到期时间（Expire time）
 
-This instruction is to be used in conjunction with the `GTD` time in force to specify the time
-at which the order will expire and be removed from the venue's order book (or order management system).
+该指令通常与 `GTD` 一起使用，用于指定订单到期并从场所的订单簿（或订单管理系统）中移除的确切时间。
 
-### Post-only
+### 仅挂单（Post-only）
 
-An order which is marked as `post_only` will only ever participate in providing liquidity to the
-limit order book, and never initiating a trade which takes liquidity as an aggressor. This option is
-important for market makers, or traders seeking to restrict the order to a liquidity _maker_ fee tier.
+标记为 `post_only` 的订单仅作为流动性提供者出现在限价簿中，不会成为吃单（aggressor）而主动成交。这对于做市商或希望维持 maker 费率档位的交易者尤为重要。
 
-### Reduce-only
+### 仅减仓（Reduce-only）
 
-An order which is set as `reduce_only` will only ever reduce an existing position on an instrument and
-never open a new position (if already flat). The exact behavior of this instruction can vary between venues.
+设置为 `reduce_only` 的订单只会用于减少某合约的持仓，且在目前为平仓状态时不会开仓。不同场所对此指令的具体表现可能有所不同。
 
-However, the behavior in the Nautilus `SimulatedExchange` is typical of a real venue.
+在 Nautilus 的 `SimulatedExchange`（模拟交易所）中，表现与真实场所类似：
 
-- Order will be canceled if the associated position is closed (becomes flat).
-- Order quantity will be reduced as the associated position's size decreases.
+- 若关联持仓已被平仓（变为 flat），相关订单会被取消；
+- 随着关联持仓规模减少，订单数量也会相应减少。
 
-### Display quantity
+### 可见数量（Display quantity）
 
-The `display_qty` specifies the portion of a _Limit_ order which is displayed on the limit order book.
-These are also known as iceberg orders as there is a visible portion to be displayed, with more quantity which is hidden.
-Specifying a display quantity of zero is also equivalent to setting an order as `hidden`.
+`display_qty` 指定在限价簿上可见的限价订单数量（也称 iceberg 订单）。可见数量为 0 等同于将订单标记为 `hidden`（完全隐藏）。
 
-### Trigger type
+### 触发类型（Trigger type）
 
-Also known as [trigger method](https://guides.interactivebrokers.com/tws/usersguidebook/configuretws/modify_the_stop_trigger_method.htm)
-which is applicable to conditional trigger orders, specifying the method of triggering the stop price.
+又称为触发方法（trigger method），适用于条件触发订单，用来指定止损/触发价格的判定依据。参考 Interactive Brokers 的说明也能帮助理解触发方式的差异。
 
-- `DEFAULT`: The default trigger type for the venue (typically `LAST` or `BID_ASK`).
-- `LAST`: The trigger price will be based on the last traded price.
-- `BID_ASK`: The trigger price will be based on the `BID` for buy orders and `ASK` for sell orders.
-- `DOUBLE_LAST`: The trigger price will be based on the last two consecutive `LAST` prices.
-- `DOUBLE_BID_ASK`: The trigger price will be based on the last two consecutive `BID` or `ASK` prices as applicable.
-- `LAST_OR_BID_ASK`: The trigger price will be based on the `LAST` or `BID`/`ASK`.
-- `MID_POINT`: The trigger price will be based on the mid-point between the `BID` and `ASK`.
-- `MARK`: The trigger price will be based on the venue's mark price for the instrument.
-- `INDEX`: The trigger price will be based on the venue's index price for the instrument.
+- `DEFAULT`：场所默认的触发类型（通常为 `LAST` 或 `BID_ASK`）。
+- `LAST`：以最近成交价（last price）作为触发基准。
+- `BID_ASK`：以买单（BID）价格触发买入指令，以卖单（ASK）价格触发卖出指令。
+- `DOUBLE_LAST`：基于最近两次连续的 `LAST` 价格确认触发。
+- `DOUBLE_BID_ASK`：基于最近两次连续的 `BID`/`ASK` 价格确认触发。
+- `LAST_OR_BID_ASK`：以 `LAST` 或 `BID`/`ASK` 中任一满足条件者触发。
+- `MID_POINT`：以 `BID` 与 `ASK` 的中点作为触发价。
+- `MARK`：以场所的标记价（mark price）作为触发价（常见于衍生品）。
+- `INDEX`：以场所提供的指数价（index price）作为触发价。
 
-### Trigger offset type
+### 触发偏移类型（Trigger offset type）
 
-Applicable to conditional trailing-stop trigger orders, specifies the method of triggering modification
-of the stop price based on the offset from the _market_ (bid, ask or last price as applicable).
+适用于带追踪（trailing）功能的触发订单，指定如何根据市场价格偏移来调整止损价格。
 
-- `DEFAULT`: The default offset type for the venue (typically `PRICE`).
-- `PRICE`: The offset is based on a price difference.
-- `BASIS_POINTS`: The offset is based on a price percentage difference expressed in basis points (100bp = 1%).
-- `TICKS`: The offset is based on a number of ticks.
-- `PRICE_TIER`: The offset is based on a venue-specific price tier.
+- `DEFAULT`：场所的默认偏移类型（通常为 `PRICE`）。
+- `PRICE`：按价格差值计算偏移。
+- `BASIS_POINTS`：按基点（basis points）计算百分比偏移（100bp = 1%）。
+- `TICKS`：按价格跳动点数（ticks）计算偏移。
+- `PRICE_TIER`：基于交易场所特定的价格分级（price tier）。
 
-### Contingent orders
+### 条件/联动订单（Contingent orders）
 
-More advanced relationships can be specified between orders.
-For example, child orders can be assigned to trigger only when the parent is activated or filled, or orders can be
-linked so that one cancels or reduces the quantity of another. See the [Advanced Orders](#advanced-orders) section for more details.
+可以指定更复杂的订单间关系，例如子订单仅在父订单激活或成交后触发，或一个订单被触发时取消/减少另一个订单的数量。详见后文的“高级订单（Advanced orders）”部分。
 
-## Order factory
+## 订单工厂（Order factory）
 
-The easiest way to create new orders is by using the built-in `OrderFactory`, which is
-automatically attached to every `Strategy` class. This factory will take care
-of lower level details - such as ensuring the correct trader ID and strategy ID are assigned, generation
-of a necessary initialization ID and timestamp, and abstracts away parameters which don't necessarily
-apply to the order type being created, or are only needed to specify more advanced execution instructions.
+最简单的创建订单方式是使用内置的 `OrderFactory`，它会自动附加到每个 `Strategy` 类中。该工厂负责处理底层细节——例如确保正确的 trader ID 与 strategy ID、生成必要的初始化 ID 与时间戳，并对不适用于某些订单类型或仅用于高级执行指令的参数进行抽象封装。
 
-This leaves the factory with simpler order creation methods to work with, all the
-examples will leverage an `OrderFactory` from within a `Strategy` context.
+因此，工厂提供了更简洁的订单创建方法，示例中均在 `Strategy` 上下文中使用 `OrderFactory`。
 
 :::info
-See the `OrderFactory` [API Reference](../api_reference/common.md#class-orderfactory) for further details.
+更多细节请参阅 `OrderFactory` 的 [API 参考](../api_reference/common.md#class-orderfactory)。
 :::
 
-## Order types
+## 订单类型
 
-The following describes the order types which are available for the platform with a code example.
-Any optional parameters will be clearly marked with a comment which includes the default value.
+下面分别描述平台支持的订单类型并给出示例代码。任何可选参数都会在注释中标注默认值。
 
-### Market
+### 市价订单（Market）
 
-A _Market_ order is an instruction by the trader to immediately trade
-the given quantity at the best price available. You can also specify several
-time in force options, and indicate whether this order is only intended to reduce
-a position.
+Market（市价）订单是交易者按当前最优价格立即成交指定数量的指令。可以同时指定若干 time in force 选项，并可以指示该订单是否仅用于减仓（reduce-only）。
 
-In the following example we create a _Market_ order on the Interactive Brokers [IdealPro](https://ibkr.info/node/1708) Forex ECN
-to BUY 100,000 AUD using USD:
+下面示例在 Interactive Brokers 的 IdealPro 外汇 ECN 上创建一个以 USD 购买 100,000 AUD 的市价买单：
 
 ```python
 from nautilus_trader.model.enums import OrderSide
@@ -183,16 +154,14 @@ order: MarketOrder = self.order_factory.market(
 ```
 
 :::info
-See the `MarketOrder` [API Reference](../api_reference/model/orders.md#class-marketorder) for further details.
+更多细节请参阅 `MarketOrder` 的 [API 参考](../api_reference/model/orders.md#class-marketorder)。
 :::
 
-### Limit
+### 限价订单（Limit）
 
-A _Limit_ order is placed on the limit order book at a specific price, and will only
-execute at that price (or better).
+Limit（限价）订单在指定价格挂单，只有在该价格或更优价格下才会成交。
 
-In the following example we create a _Limit_ order on the Binance Futures Crypto exchange to SELL 20 ETHUSDT-PERP Perpetual Futures
-contracts at a limit price of 5000 USDT, as a market maker.
+下面示例在 Binance Futures（合约）上作为做市商以 5000 USDT 的限价卖出 20 份 ETHUSDT-PERP 永续合约：
 
 ```python
 from nautilus_trader.model.enums import OrderSide
@@ -217,17 +186,14 @@ order: LimitOrder = self.order_factory.limit(
 ```
 
 :::info
-See the `LimitOrder` [API Reference](../api_reference/model/orders.md#class-limitorder) for further details.
+更多细节请参阅 `LimitOrder` 的 [API 参考](../api_reference/model/orders.md#class-limitorder)。
 :::
 
-### Stop-Market
+### 止损市价（Stop-Market）
 
-A _Stop-Market_ order is a conditional order which once triggered, will immediately
-place a _Market_ order. This order type is often used as a stop-loss to limit losses, either
-as a SELL order against LONG positions, or as a BUY order against SHORT positions.
+Stop-Market（止损市价）是条件订单：一旦触发，就会立即提交一个 Market 订单。常用于止损（stop-loss），对多头仓位为卖出止损，对空头仓位为买入止损。
 
-In the following example we create a _Stop-Market_ order on the Binance Spot/Margin exchange
-to SELL 1 BTC at a trigger price of 100,000 USDT, active until further notice:
+下面示例在 Binance 现货/保证金上创建一个触发价为 100,000 USDT 的卖出止损市价单：
 
 ```python
 from nautilus_trader.model.enums import OrderSide
@@ -252,16 +218,14 @@ order: StopMarketOrder = self.order_factory.stop_market(
 ```
 
 :::info
-See the `StopMarketOrder` [API Reference](../api_reference/model/orders.md#class-stopmarketorder) for further details.
+更多细节请参阅 `StopMarketOrder` 的 [API 参考](../api_reference/model/orders.md#class-stopmarketorder)。
 :::
 
-### Stop-Limit
+### 止损限价（Stop-Limit）
 
-A _Stop-Limit_ order is a conditional order which once triggered will immediately place
-a _Limit_ order at the specified price.
+Stop-Limit（止损限价）是一种条件订单：触发后立即提交一个指定价格的 Limit 订单。
 
-In the following example we create a _Stop-Limit_ order on the Currenex FX ECN to BUY 50,000 GBP at a limit price of 1.3000 USD
-once the market hits the trigger price of 1.30010 USD, active until midday 6th June, 2022 (UTC):
+下面示例在 Currenex FX ECN 上创建一个在触发价 1.30010 USD 时以限价 1.30000 USD 买入 50,000 GBP 的订单，有效期至 2022-06-06 UTC 中午：
 
 ```python
 import pandas as pd
@@ -289,16 +253,14 @@ order: StopLimitOrder = self.order_factory.stop_limit(
 ```
 
 :::info
-See the `StopLimitOrder` [API Reference](../api_reference/model/orders.md#class-stoplimitorder) for further details.
+更多细节请参阅 `StopLimitOrder` 的 [API 参考](../api_reference/model/orders.md#class-stoplimitorder)。
 :::
 
-### Market-To-Limit
+### 市价转限价（Market-To-Limit）
 
-A _Market-To-Limit_ order submits as a market order at the current best price.
-If the order partially fills, the system cancels the remainder and resubmits it as a _Limit_ order at the executed price.
+Market-To-Limit 订单最初作为市价单提交并以当前最佳价撮合；如果部分成交，系统会取消剩余部分并将其以已成交价格重新提交为 Limit 订单。
 
-In the following example we create a _Market-To-Limit_ order on the Interactive Brokers [IdealPro](https://ibkr.info/node/1708) Forex ECN
-to BUY 200,000 USD using JPY:
+下面示例在 Interactive Brokers IdealPro 外汇 ECN 上创建一个以 JPY 买入 200,000 USD 的 Market-To-Limit 订单：
 
 ```python
 from nautilus_trader.model.enums import OrderSide
@@ -319,18 +281,14 @@ order: MarketToLimitOrder = self.order_factory.market_to_limit(
 ```
 
 :::info
-See the `MarketToLimitOrder` [API Reference](../api_reference/model/orders.md#class-markettolimitorder) for further details.
+更多细节请参阅 `MarketToLimitOrder` 的 [API 参考](../api_reference/model/orders.md#class-markettolimitorder)。
 :::
 
-### Market-If-Touched
+### 市价触及（Market-If-Touched）
 
-A _Market-If-Touched_ order is a conditional order which once triggered will immediately
-place a _Market_ order. This order type is often used to enter a new position on a stop price,
-or to take profits for an existing position, either as a SELL order against LONG positions,
-or as a BUY order against SHORT positions.
+Market-If-Touched（简称 MIT）是一种条件订单：触发时立即提交 Market 订单。常用于在触及某价格时开仓或为已有仓位止盈。
 
-In the following example we create a _Market-If-Touched_ order on the Binance Futures exchange
-to SELL 10 ETHUSDT-PERP Perpetual Futures contracts at a trigger price of 10,000 USDT, active until further notice:
+下面示例在 Binance Futures 上创建一个触发价为 10,000 USDT 的卖出 MIT 订单，数量为 10 张 ETHUSDT-PERP：
 
 ```python
 from nautilus_trader.model.enums import OrderSide
@@ -355,17 +313,14 @@ order: MarketIfTouchedOrder = self.order_factory.market_if_touched(
 ```
 
 :::info
-See the `MarketIfTouchedOrder` [API Reference](../api_reference/model/orders.md#class-marketiftouchedorder) for further details.
+更多细节请参阅 `MarketIfTouchedOrder` 的 [API 参考](../api_reference/model/orders.md#class-marketiftouchedorder)。
 :::
 
-### Limit-If-Touched
+### 限价触及（Limit-If-Touched）
 
-A _Limit-If-Touched_ order is a conditional order which once triggered will immediately place
-a _Limit_ order at the specified price.
+Limit-If-Touched（LIT）是条件订单：触发后立即提交指定价格的 Limit 订单。
 
-In the following example we create a _Limit-If-Touched_ order to BUY 5 BTCUSDT-PERP Perpetual Futures contracts on the
-Binance Futures exchange at a limit price of 30,100 USDT (once the market hits the trigger price of 30,150 USDT),
-active until midday 6th June, 2022 (UTC):
+下面示例在 Binance Futures 上创建一个触发价 30,150 USDT 时以限价 30,100 USDT 买入 5 张 BTCUSDT-PERP 的订单，有效期至 2022-06-06 UTC 中午：
 
 ```python
 import pandas as pd
@@ -393,17 +348,14 @@ order: LimitIfTouchedOrder = self.order_factory.limit_if_touched(
 ```
 
 :::info
-See the `LimitIfTouched` [API Reference](../api_reference/model/orders.md#class-limitiftouchedorder-1) for further details.
+更多细节请参阅 `LimitIfTouched` 的 [API 参考](../api_reference/model/orders.md#class-limitiftouchedorder-1)。
 :::
 
-### Trailing-Stop-Market
+### 追踪止损（Trailing-Stop-Market）
 
-A _Trailing-Stop-Market_ order is a conditional order which trails a stop trigger price
-a fixed offset away from the defined market price. Once triggered a _Market_ order will
-immediately be placed.
+Trailing-Stop-Market 是一种条件订单，它会将止损触发价按与市场价格的固定偏移量进行追踪。触发后提交 Market 订单。
 
-In the following example we create a _Trailing-Stop-Market_ order on the Binance Futures exchange to SELL 10 ETHUSD-PERP COIN_M margined
-Perpetual Futures Contracts activating at a price of 5,000 USD, then trailing at an offset of 1% (in basis points) away from the current last traded price:
+下面示例在 Binance Futures 上创建一个在激活价 5,000 USD 时生效、并以相对于最近成交价追踪 1%（以基点表示）的卖出追踪止损：
 
 ```python
 import pandas as pd
@@ -433,18 +385,14 @@ order: TrailingStopMarketOrder = self.order_factory.trailing_stop_market(
 ```
 
 :::info
-See the `TrailingStopMarketOrder` [API Reference](../api_reference/model/orders.md#class-trailingstopmarketorder-1) for further details.
+更多细节请参阅 `TrailingStopMarketOrder` 的 [API 参考](../api_reference/model/orders.md#class-trailingstopmarketorder-1)。
 :::
 
-### Trailing-Stop-Limit
+### 追踪止损限价（Trailing-Stop-Limit）
 
-A _Trailing-Stop-Limit_ order is a conditional order which trails a stop trigger price
-a fixed offset away from the defined market price. Once triggered a _Limit_ order will
-immediately be placed at the defined price (which is also updated as the market moves until triggered).
+Trailing-Stop-Limit 在被触发时会提交一个限价单，随着市场移动该限价也会随同更新直至触发。
 
-In the following example we create a _Trailing-Stop-Limit_ order on the Currenex FX ECN to BUY 1,250,000 AUD using USD
-at a limit price of 0.71000 USD, activating at 0.72000 USD then trailing at a stop offset of 0.00100 USD
-away from the current ask price, active until further notice:
+下面示例在 Currenex FX ECN 上创建一个以 0.71000 USD 为限价、激活价为 0.72000 USD、并以 0.00100 USD 的止损偏移追踪当前卖方价的买入追踪止损限价单：
 
 ```python
 import pandas as pd
@@ -476,213 +424,178 @@ order: TrailingStopLimitOrder = self.order_factory.trailing_stop_limit(
 ```
 
 :::info
-See the `TrailingStopLimitOrder` [API Reference](../api_reference/model/orders.md#class-trailingstoplimitorder-1) for further details.
+更多细节请参阅 `TrailingStopLimitOrder` 的 [API 参考](../api_reference/model/orders.md#class-trailingstoplimitorder-1)。
 :::
 
-## Advanced orders
+## 高级订单（Advanced orders）
 
-The following guide should be read in conjunction with the specific documentation from the broker or venue
-involving these order types, lists/groups and execution instructions (such as for Interactive Brokers).
+以下内容应结合具体经纪商或交易场所关于这些订单类型、列表/分组和执行指令的文档一起阅读（例如 Interactive Brokers 的文档）。
 
-### Order lists
+### 订单列表（Order lists）
 
-Combinations of contingent orders, or larger order bulks can be grouped together into a list with a common
-`order_list_id`. The orders contained in this list may or may not have a contingent relationship with
-each other, as this is specific to how the orders themselves are constructed, and the
-specific venue they are being routed to.
+一组有联动关系的订单或较大的订单集合可以被分配到同一个 `order_list_id` 下。这些订单之间是否存在从属/联动关系取决于订单本身的构造方式以及它们所要路由的具体交易场所。
 
-### Contingency types
+### 联动类型（Contingency types）
 
-- **OTO (One-Triggers-Other)** – a parent order that, once executed, automatically places one or more child orders.
+- **OTO（One-Triggers-Other）**：父订单在执行后会自动提交一个或多个子订单。
 
-  - _Full-trigger model_: child order(s) are released **only after the parent is completely filled**. Common at most retail equity/option brokers (e.g. Schwab, Fidelity, TD Ameritrade) and many spot-crypto venues (Binance, Coinbase).
-  - _Partial-trigger model_: child order(s) are released **pro-rata to each partial fill**. Used by professional-grade platforms such as Interactive Brokers, most futures/FX OMSs, and Kraken Pro.
+  - 完全触发（Full-trigger）：子订单仅在父订单完全成交后释放。这在多数零售股票/期权经纪商（如 Schwab、Fidelity、TD Ameritrade）以及许多现货加密场所（Binance、Coinbase）中常见。
+  - 部分触发（Partial-trigger）：子订单按每次父订单部分成交按比例释放。见诸于专业级平台（如 Interactive Brokers、大多数期货/外汇 OMS 与 Kraken Pro）。
 
-- **OCO (One-Cancels-Other)** – two (or more) linked live orders where executing one cancels the remainder.
+- **OCO（One-Cancels-Other）**：两个或多个联动的在途订单，其中任一订单成交（部分或全部）会触发对其它订单的取消尝试。
 
-- **OUO (One-Updates-Other)** – two (or more) linked live orders where executing one reduces the open quantity of the remainder.
+- **OUO（One-Updates-Other）**：两个或多个联动的在途订单，其中任一订单成交会触发对其他订单未成交数量的减少更新。
 
 :::info
-These contingency types relate to ContingencyType FIX tag [1385](https://www.onixs.biz/fix-dictionary/5.0.sp2/tagnum_1385.html).
+这些联动类型对应 FIX 标签 ContingencyType [1385](https://www.onixs.biz/fix-dictionary/5.0.sp2/tagnum_1385.html)。
 :::
 
 #### One-Triggers-Other (OTO)
 
-An OTO order involves two parts:
+一个 OTO 订单包含两部分：
 
-1. **Parent order** – submitted to the matching engine immediately.
-2. **Child order(s)** – held _off-book_ until the trigger condition is met.
+1. **Parent order（父订单）**——立即提交至撮合引擎；
+2. **Child order(s)（子订单）**——在触发条件满足前保持为离簿（off-book）状态。
 
-##### Trigger models
+##### 触发模型
 
-| Trigger model       | When are child orders released?                                                                                                                  |
-| ------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------ |
-| **Full trigger**    | When the parent order’s cumulative quantity equals its original quantity (i.e., it is _fully_ filled).                                           |
-| **Partial trigger** | Immediately upon each partial execution of the parent; the child’s quantity matches the executed amount and is increased as further fills occur. |
+| 触发模型            | 子订单何时释放？                                                               |
+| ------------------- | ------------------------------------------------------------------------------ |
+| **Full trigger**    | 当父订单累积成交量等于原始下单量（即父订单被完全成交）时释放。                 |
+| **Partial trigger** | 每次父订单部分成交时立即按成交量释放子订单，且子订单数量随后续成交增加而增加。 |
 
 :::info
-The default backtest venue for NautilusTrader uses a _partial-trigger model_ for OTO orders.
-A future update will add configuration to opt-in to a _full-trigger model_.
+NautilusTrader 的默认回测场所采用 OTO 的部分触发（partial-trigger）模型。未来会提供配置项以选择使用完全触发（full-trigger）模型。
 :::
 
-> **Why the distinction matters** > _Full trigger_ leaves a risk window: any partially filled position is live without its protective exit until the remaining quantity fills.
-> _Partial trigger_ mitigates that risk by ensuring every executed lot instantly has its linked stop/limit, at the cost of creating more order traffic and updates.
+> **为什么这个区别重要？** 完全触发会留下风险窗口：在父订单未被完全成交之前，部分已成交的头寸可能没有其保护性退出单；部分触发则可减轻该风险，因为每一笔成交都会即时关联相应的止损/止盈，但代价是产生更多订单流量和更新。
 
-An OTO order can use any supported asset type on the venue (e.g. stock entry with option hedge, futures entry with OCO bracket, crypto spot entry with TP/SL).
+OTO 可应用于任何场所支持的资产类型（例如股票入场附带期权对冲、期货入场并构造 OCO 组合、现货加密入场并附带 TP/SL 等）。
 
-| Venue / Adapter ID                          | Asset classes            | Trigger rule for child                     | Practical notes                                                   |
-| ------------------------------------------- | ------------------------ | ------------------------------------------ | ----------------------------------------------------------------- |
-| Binance / Binance Futures (`BINANCE`)       | Spot, perpetual futures  | **Partial or full** – fires on first fill. | OTOCO/TP-SL children appear instantly; monitor margin usage.      |
-| Bybit Spot (`BYBIT`)                        | Spot                     | **Full** – child placed after completion.  | TP-SL preset activates only once the limit order is fully filled. |
-| Bybit Perps (`BYBIT`)                       | Perpetual futures        | **Partial and full** – configurable.       | “Partial-position” mode sizes TP-SL as fills arrive.              |
-| Kraken Futures (`KRAKEN`)                   | Futures & perps          | **Partial and full** – automatic.          | Child quantity matches every partial execution.                   |
-| OKX (`OKX`)                                 | Spot, futures, options   | **Full** – attached stop waits for fill.   | Position-level TP-SL can be added separately.                     |
-| Interactive Brokers (`INTERACTIVE_BROKERS`) | Stocks, options, FX, fut | **Configurable** – OCA can pro-rate.       | `OcaType 2/3` reduces remaining child quantities.                 |
-| Coinbase International (`COINBASE_INTX`)    | Spot & perps             | **Full** – bracket added post-execution.   | Entry plus bracket not simultaneous; added once position is live. |
-| dYdX v4 (`DYDX`)                            | Perpetual futures (DEX)  | On-chain condition (size exact).           | TP-SL triggers by oracle price; partial fill not applicable.      |
-| Polymarket (`POLYMARKET`)                   | Prediction market (DEX)  | N/A.                                       | Advanced contingency handled entirely at the strategy layer.      |
-| Betfair (`BETFAIR`)                         | Sports betting           | N/A.                                       | Advanced contingency handled entirely at the strategy layer.      |
+| 场所 / 适配器 ID                            | 支持资产类别           | 子订单触发规则                         | 实务说明                                               |
+| ------------------------------------------- | ---------------------- | -------------------------------------- | ------------------------------------------------------ |
+| Binance / Binance Futures (`BINANCE`)       | 现货、永续合约         | **Partial or full** – 在首次成交时触发 | OTOCO/TP-SL 子单会即时出现；注意监控保证金占用。       |
+| Bybit Spot (`BYBIT`)                        | 现货                   | **Full** – 完成后放置子单              | 仅在限价单完全成交后激活 TP-SL。                       |
+| Bybit Perps (`BYBIT`)                       | 永续合约               | **Partial and full** – 可配置          | “Partial-position” 模式按成交到达调整 TP-SL。          |
+| Kraken Futures (`KRAKEN`)                   | 期货 & 永续            | **Partial and full** – 自动            | 子订单数量会随每次部分成交而匹配。                     |
+| OKX (`OKX`)                                 | 现货、期货、期权       | **Full** – 附加止损需等待成交          | 可单独添加仓位级别的 TP-SL。                           |
+| Interactive Brokers (`INTERACTIVE_BROKERS`) | 股票、期权、外汇、期货 | **Configurable** – OCA 可按比例减少    | `OcaType 2/3` 支持减少剩余子单数量。                   |
+| Coinbase International (`COINBASE_INTX`)    | 现货 & 永续            | **Full** – 成交后添加档位              | 入场与 bracket（挂单组合）并非同时提交；入场后再添加。 |
+| dYdX v4 (`DYDX`)                            | 永续（DEX）            | 链上条件（size exact）                 | TP-SL 由 oracle 价格触发；部分成交不适用。             |
+| Polymarket (`POLYMARKET`)                   | 预测市场（DEX）        | N/A                                    | 高级联动由策略层负责处理。                             |
+| Betfair (`BETFAIR`)                         | 体育博彩               | N/A                                    | 高级联动由策略层负责处理。                             |
 
 #### One-Cancels-Other (OCO)
 
-An OCO order is a set of linked orders where the execution of **any** order (full _or partial_) triggers a best-efforts cancellation of the others.
-Both orders are live simultaneously; once one starts filling, the venue attempts to cancel the unexecuted portion of the remainder.
+OCO 是一组联动订单，其中任意一个订单（无论部分或全部成交）都会触发对其它订单的尽力取消。两个订单同时处于激活状态；一旦其中一个开始成交，场所会尝试取消剩余未成交部分。
 
 #### One-Updates-Other (OUO)
 
-An OUO order is a set of linked orders where execution of one order causes an immediate _reduction_ of open quantity in the other order(s).
-Both orders are live concurrently, and each partial execution proportionally updates the remaining quantity of its peer order on a best-effort basis.
+OUO 是一组联动订单，其中一笔成交会立即按比例减少另一笔（或多笔）订单的未成交数量。双方订单并行存在，每次部分成交都会以尽力而为的方式更新其对手订单的剩余量。
 
-### Bracket orders
+### 组合单（Bracket orders）
 
-Bracket orders are an advanced order type that allows traders to set both take-profit and stop-loss
-levels for a position simultaneously. This involves placing a parent order (entry order) and two child
-orders: a take-profit `LIMIT` order and a stop-loss `STOP_MARKET` order. When the parent order executes,
-the system places the child orders. The take-profit closes the position if the market moves favorably, and the stop-loss limits losses if it moves unfavorably.
+Bracket（组合）订单是一种高级用法，允许交易者同时为仓位设置止盈（take-profit）和止损（stop-loss）。这通常包括一个父订单（入场）以及两个子订单：一个 LIMIT 型止盈单和一个 STOP_MARKET 型止损单。当父订单成交后，系统会提交这两个子单；若行情朝有利方向移动，止盈会平仓；若行情反向，则止损限制亏损。
 
-Bracket orders can be easily created using the [OrderFactory](../api_reference/common.md#class-orderfactory),
-which supports various order types, parameters, and instructions.
+可以通过 [OrderFactory](../api_reference/common.md#class-orderfactory) 简便地创建 bracket 订单，该工厂支持多种订单类型、参数及指令。
 
 :::warning
-You should be aware of the margin requirements of positions, as bracketing a position will consume
-more order margin.
+注意保证金要求：对仓位进行 bracket 操作会占用更多的委托保证金。
 :::
 
-## Emulated orders
+## 本地模拟订单（Emulated orders）
 
-### Introduction
+### 简介
 
-Before diving into the technical details, it's important to understand the fundamental purpose of emulated orders
-in NautilusTrader. At its core, emulation allows you to use certain order types even when your trading venue
-doesn't natively support them.
+在深入实现细节前，需理解 emulated orders 在 NautilusTrader 中的核心目的：当交易场所本身不支持某些订单类型时，平台可以在本地对这些订单行为进行模拟，使交易者仍可使用这些高级订单类型。
 
-This works by having Nautilus locally mimic the behavior of these order types (such as `STOP_LIMIT` or `TRAILING_STOP` orders)
-locally, while using only simple `MARKET` and `LIMIT` orders for actual execution on the venue.
+实现方式为：Nautilus 在本地模拟这些订单（例如 `STOP_LIMIT` 或 `TRAILING_STOP`），而对外仅向场所提交基础的 `MARKET` 或 `LIMIT` 订单来执行。
 
-When you create an emulated order, Nautilus continuously tracks a specific type of market price (specified by the
-`emulation_trigger` parameter) and based on the order type and conditions you've set, will automatically submit
-the appropriate fundamental order (`MARKET` / `LIMIT`) when the triggering condition is met.
+当创建 emulated order 时，Nautilus 会持续跟踪一种特定的市场价格类型（由 `emulation_trigger` 参数指定），并根据订单类型与设置的条件，在触发条件满足时自动提交相应的基础订单（`MARKET` / `LIMIT`）。
 
-For example, if you create an emulated `STOP_LIMIT` order, Nautilus will monitor the market price until your `stop`
-price is reached, and then automatically submits a `LIMIT` order to the venue.
+例如，创建一个 emulated 的 `STOP_LIMIT` 订单时，Nautilus 会监测市场价格，当达到你设置的止损价后自动向场所提交一个 `LIMIT` 订单。
 
-To perform emulation, Nautilus needs to know which **type of market price** it should monitor.
-By default, it uses bid and ask prices (quotes), which is why you'll often see `emulation_trigger=TriggerType.DEFAULT`
-in examples (this is equivalent to using `TriggerType.BID_ASK`). However, Nautilus supports various other price types,
-that can guide the emulation process.
+为了执行模拟，Nautilus 需要知道监测哪种“市场价格”类型。默认情况下使用 bid/ask（买卖挂单价），因此示例中常见 `emulation_trigger=TriggerType.DEFAULT`（等同于 `TriggerType.BID_ASK`）。当然，Nautilus 也支持多种其他价格类型以指导模拟流程。
 
-### Submitting order for emulation
+### 提交用于模拟的订单
 
-The only requirement to emulate an order is to pass a `TriggerType` to the `emulation_trigger`
-parameter of an `Order` constructor, or `OrderFactory` creation method. The following
-emulation trigger types are currently supported:
+要启用订单模拟，只需在订单构造器或 `OrderFactory` 的创建方法中为 `emulation_trigger` 参数传递一个 `TriggerType`。当前支持的 emulation trigger 类型如下：
 
-- `NO_TRIGGER`: disables local emulation completely and order is fully submitted to the venue.
-- `DEFAULT`: which is the same as `BID_ASK`.
-- `BID_ASK`: emulated using quotes to trigger.
-- `LAST`: emulated using trades to trigger.
+- `NO_TRIGGER`：完全禁用本地模拟，订单直接提交到场所。
+- `DEFAULT`：等同于 `BID_ASK`。
+- `BID_ASK`：使用买卖盘（quotes）作为触发依据。
+- `LAST`：使用成交价（trades）作为触发依据。
 
-The choice of trigger type determines how the order emulation will behave:
+触发类型的选择会影响模拟行为：
 
-- For `STOP` orders, the trigger price of order will be compared against the specified trigger type.
-- For `TRAILING_STOP` orders, the trailing offset will be updated based on the specified trigger type.
-- For `LIMIT` orders, the limit price of order will be compared against the specified trigger type.
+- 对于 `STOP` 订单，触发价将与所选触发类型进行比较；
+- 对于 `TRAILING_STOP`，追踪偏移将根据所选触发类型进行更新；
+- 对于 `LIMIT`，限价将与所选触发类型进行比较。
 
-Here are all the available values you can set into `emulation_trigger` parameter and their purposes:
+下面表格列出可用于 `emulation_trigger` 的值及其说明：
 
-| Trigger Type      | Description                                                                                          | Common use cases                                                                                             |
-| :---------------- | :--------------------------------------------------------------------------------------------------- | :----------------------------------------------------------------------------------------------------------- |
-| `NO_TRIGGER`      | Disables emulation completely. The order is sent directly to the venue without any local processing. | When you want to use the venue's native order handling, or for simple order types that don't need emulation. |
-| `DEFAULT`         | Same as `BID_ASK`. This is the standard choice for most emulated orders.                             | General-purpose emulation when you want to work with the "default" type of market prices.                    |
-| `BID_ASK`         | Uses the best bid and ask prices (quotes) to guide emulation.                                        | Stop orders, trailing stops, and other orders that should react to the current market spread.                |
-| `LAST_PRICE`      | Uses the price of the most recent trade to guide emulation.                                          | Orders that should trigger based on actual executed trades rather than quotes.                               |
-| `DOUBLE_LAST`     | Uses two consecutive last trade prices to confirm the trigger condition.                             | When you want additional confirmation of price movement before triggering.                                   |
-| `DOUBLE_BID_ASK`  | Uses two consecutive bid/ask price updates to confirm the trigger condition.                         | When you want extra confirmation of quote movements before triggering.                                       |
-| `LAST_OR_BID_ASK` | Triggers on either last trade price or bid/ask prices.                                               | When you want to be more responsive to any type of price movement.                                           |
-| `MID_POINT`       | Uses the middle point between the best bid and ask prices.                                           | Orders that should trigger based on the theoretical fair price.                                              |
-| `MARK_PRICE`      | Uses the mark price (common in derivatives markets) for triggering.                                  | Particularly useful for futures and perpetual contracts.                                                     |
-| `INDEX_PRICE`     | Uses an underlying index price for triggering.                                                       | When trading derivatives that track an index.                                                                |
+| Trigger Type      | 说明                                           | 常见使用场景                                                     |
+| :---------------- | :--------------------------------------------- | :--------------------------------------------------------------- |
+| `NO_TRIGGER`      | 完全禁用模拟，订单直接发送到场所，无本地处理。 | 想使用场所的原生订单处理，或仅为不需要模拟的简单订单类型时使用。 |
+| `DEFAULT`         | 等同于 `BID_ASK`，是大多数模拟订单的默认选择。 | 通用模拟场景，使用“默认”市场价格类型。                           |
+| `BID_ASK`         | 使用最优买/卖价（quotes）作为模拟触发依据。    | 适用于应对买卖价差的止损、追踪止损等场景。                       |
+| `LAST_PRICE`      | 使用最近成交价（last）作为模拟触发依据。       | 更适合基于实际成交触发的订单。                                   |
+| `DOUBLE_LAST`     | 使用两次连续的成交价确认触发条件。             | 需要更多价格确认以避免噪声触发。                                 |
+| `DOUBLE_BID_ASK`  | 使用两次连续的买/卖价更新确认触发条件。        | 需要在报价波动中额外确认触发时使用。                             |
+| `LAST_OR_BID_ASK` | 以成交价或买卖价的任一满足条件者触发。         | 希望对任意类型价格变动都更敏感时使用。                           |
+| `MID_POINT`       | 以买卖价中点作为触发依据。                     | 基于理论公平价触发的订单类型。                                   |
+| `MARK_PRICE`      | 使用标记价（mark price，常见于衍生品）触发。   | 对期货与永续合约等衍生品尤为有用。                               |
+| `INDEX_PRICE`     | 使用某个指数价作为触发依据。                   | 交易与指数挂钩的衍生品时使用。                                   |
 
-### Technical implementation
+### 技术实现
 
-The platform makes it possible to emulate most order types locally, regardless
-of whether the type is supported on a trading venue. The logic and code paths for
-order emulation are exactly the same for all [environment contexts](/concepts/architecture.md#environment-contexts)
-and utilize a common `OrderEmulator` component.
+平台允许在本地模拟大多数订单类型，无论目标场所是否原生支持。订单模拟的逻辑路径在所有环境上下文（[environment contexts](/concepts/architecture.md#environment-contexts)）中是一致的，并由公用的 `OrderEmulator` 组件负责。
 
 :::note
-There is no limitation on the number of emulated orders you can have per running instance.
+单个运行实例中可存在的 emulated orders 数量没有限制。
 :::
 
-### Life cycle
+### 生命周期
 
-An emulated order will progress through the following stages:
+一个 emulated order 的生命周期如下：
 
-1. Submitted by a `Strategy` through the `submit_order` method.
-2. Sent to the `RiskEngine` for pre-trade risk checks (it may be denied at this point).
-3. Sent to the `OrderEmulator` where it is _held_ / emulated.
-4. Once triggered, emulated order is transformed into a `MARKET` or `LIMIT` order and released (submitted to the venue).
-5. Released order undergoes final risk checks before venue submission.
+1. 由 `Strategy` 通过 `submit_order` 提交；
+2. 发往 `RiskEngine` 做事前风险检查（可能在此被拒绝）；
+3. 传入 `OrderEmulator`，在本地被“持有/模拟”；
+4. 一旦触发，本地 emulated order 会被转换为 `MARKET` 或 `LIMIT` 并释放（提交至场所）；
+5. 释放后的订单在提交场所前会再次经过最终风险检查。
 
 :::note
-Emulated orders are subject to the same risk controls as _regular_ orders, and can be
-modified and canceled by a trading strategy in the normal way. They will also be included
-when canceling all orders.
+Emulated orders 与普通订单遵循相同的风控约束，且可以像常规订单一样被策略修改或取消；在执行“取消所有订单”操作时也包含在内。
 :::
 
 :::info
-An emulated order will retain its original client order ID throughout its entire life cycle, making it easy to query
-through the cache.
+一个 emulated order 在整个生命周期中会保留其原始的 client order ID，便于通过缓存（cache）查询。
 :::
 
-#### Held emulated orders
+#### 被持有的 emulated orders
 
-The following will occur for an emulated order now _held_ by the `OrderEmulator` component:
+当 emulated order 被 `OrderEmulator` 持有时，会发生以下处理：
 
-- The original `SubmitOrder` command will be cached.
-- The emulated order will be processed inside a local `MatchingCore` component.
-- The `OrderEmulator` will subscribe to any needed market data (if not already) to update the matching core.
-- The emulated order can be modified (by the trader) and updated (by the market) until _released_ or canceled.
+- 原始的 `SubmitOrder` 命令将被缓存；
+- emulated order 会在本地的 `MatchingCore` 中进行处理；
+- `OrderEmulator` 会订阅所需的市场数据（如果尚未订阅）以更新匹配模块；
+- emulated order 在被释放或取消之前可以被交易者修改，且会随市场更新而变更。
 
-#### Released emulated orders
+#### 已释放的 emulated orders
 
-Once data arrival triggers / matches an emulated order locally, the following
-_release_ actions will occur:
+一旦有数据到达触发或本地匹配到 emulated order，会发生以下“释放”操作：
 
-- The order will be transformed to either a `MARKET` or `LIMIT` order (see below table) through an additional `OrderInitialized` event.
-- The orders `emulation_trigger` will be set to `NONE` (it will no longer be treated as an emulated order by any component).
-- The order attached to the original `SubmitOrder` command will be sent back to the `RiskEngine` for additional checks since any modification/updates.
-- If not denied, then the command will continue to the `ExecutionEngine` and on to the trading venue via an `ExecutionClient` as normal.
+- 订单将通过附加的 `OrderInitialized` 事件被转换为 `MARKET` 或 `LIMIT`；
+- 该订单的 `emulation_trigger` 会被设置为 `NONE`（不再被视为 emulated order）；
+- 原始 `SubmitOrder` 命令中附带的订单会被重新发送至 `RiskEngine` 进行因修改而产生的额外检查；
+- 若未被拒绝，命令将继续进入 `ExecutionEngine`，并通过 `ExecutionClient` 发往交易场所。
 
-The following table lists which order types are possible to emulate, and
-which order type they transform to when being released for submission to the
-trading venue.
+下表列出哪些订单类型可以被模拟，以及在释放时会转换成何种订单类型并提交至交易场所。
 
-### Order types, which can be emulated
+### 可模拟的订单类型
 
-The following table lists which order types are possible to emulate, and
-which order type they transform to when being released for submission to the
-trading venue.
+下表列出了可模拟的订单类型以及它们在释放后将转换成的订单类型：
 
 | Order type for emulation | Can emulate | Released type |
 | :----------------------- | :---------- | :------------ |
@@ -696,51 +609,44 @@ trading venue.
 | `TRAILING_STOP_MARKET`   | ✓           | `MARKET`      |
 | `TRAILING_STOP_LIMIT`    | ✓           | `LIMIT`       |
 
-### Querying
+### 查询（Querying）
 
-When writing trading strategies, it may be necessary to know the state of emulated orders in the system.
-There are several ways to query emulation status:
+在编写策略时，可能需要获知系统中 emulated orders 的状态，以下为几种查询方式：
 
-#### Through the Cache
+#### 通过 Cache
 
-The following `Cache` methods are available:
+`Cache` 提供的相关方法包括：
 
-- `self.cache.orders_emulated(...)`: Returns all currently emulated orders.
-- `self.cache.is_order_emulated(...)`: Checks if a specific order is emulated.
-- `self.cache.orders_emulated_count(...)`: Returns the count of emulated orders.
+- `self.cache.orders_emulated(...)`：返回当前所有被模拟的订单；
+- `self.cache.is_order_emulated(...)`：检查某个特定订单是否为模拟订单；
+- `self.cache.orders_emulated_count(...)`：返回被模拟订单的数量。
 
-See the full [API reference](../api_reference/cache) for additional details.
+更多细节请参阅完整的 [API 参考](../api_reference/cache)。
 
-#### Direct order queries
+#### 直接查询订单对象
 
-You can query order objects directly using:
+也可以直接在订单对象上查询：
 
 - `order.is_emulated`
 
-If either of these return `False`, then the order has been _released_ from the
-`OrderEmulator`, and so is no longer considered an emulated order (or was never an emulated order).
+若上述任一查询返回 `False`，则说明该订单已从 `OrderEmulator` 中释放，或从未为 emulated order。
 
 :::warning
-It's not advised to hold a local reference to an emulated order, as the order
-object will be transformed when/if the emulated order is _released_. You should rely
-on the `Cache` which is made for the job.
+不建议持有对 emulated order 的本地对象引用，因为该对象在释放时会被转换。应依赖用于查询与跟踪的 `Cache`。
 :::
 
-### Persistence and recovery
+### 持久化与恢复
 
-If a running system either crashes or shuts down with active emulated orders, then
-they will be reloaded inside the `OrderEmulator` from any configured cache database.
-This ensures order state persistence across system restarts and recoveries.
+如果运行中的系统在存在活跃 emulated orders 时崩溃或关闭，这些订单将在重启后从配置的缓存数据库中被重新加载到 `OrderEmulator`，确保持久化与恢复。
 
-### Best practices
+### 最佳实践
 
-When working with emulated orders, consider the following best practices:
+使用 emulated orders 时建议遵循以下最佳实践：
 
-1. Always use the `Cache` for querying or tracking emulated orders rather than storing local references
-2. Be aware that emulated orders transform to different types when released
-3. Remember that emulated orders undergo risk checks both at submission and release
+1. 始终使用 `Cache` 查询或跟踪 emulated orders，而非持有本地引用；
+2. 了解 emulated orders 在释放时会转换为不同的订单类型；
+3. 记住 emulated orders 在提交与释放时都会经过风控检查。
 
 :::note
-Order emulation allows you to use advanced order types even on venues that don't natively support them,
-making your trading strategies more portable across different venues.
+订单模拟使你即便在目标场所不支持高级订单类型时，也能使用这些工具，从而提高策略在不同场所之间的可移植性。
 :::
