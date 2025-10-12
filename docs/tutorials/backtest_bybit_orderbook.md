@@ -1,6 +1,6 @@
 # 回测：Bybit OrderBook 数据
 
-本教程面向 NautilusTrader（高性能算法交易与事件驱动回测框架），演示如何为 Order Book 数据建立数据目录（data catalog）并使用 `BacktestNode` 回测 `OrderBookImbalance` 策略。示例需要使用 Bybit 提供的 order book depth 数据（不随仓库提供）。
+本教程面向 NautilusTrader，演示如何为 Order Book 数据建立数据目录（data catalog）并使用 `BacktestNode` 回测 `OrderBookImbalance` 策略。示例需要使用 Bybit 提供的 order book depth 数据（不随仓库提供）。
 
 [在 GitHub 查看源码](https://github.com/nautechsystems/nautilus_trader/blob/develop/docs/tutorials/backtest_binance_orderbook.ipynb)。
 

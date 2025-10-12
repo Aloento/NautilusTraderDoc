@@ -1,6 +1,6 @@
 # 回测：FX bar 数据
 
-本教程面向 NautilusTrader（高性能算法交易与事件驱动回测框架），演示如何使用 FX bar 数据设置一个单次（one-shot）回测，使用低阶 API 的 `BacktestEngine` 进行运行。
+本教程面向 NautilusTrader，演示如何使用 FX bar 数据设置一个单次（one-shot）回测，使用低阶 API 的 `BacktestEngine` 进行运行。
 
 [在 GitHub 查看源码](https://github.com/nautechsystems/nautilus_trader/blob/develop/docs/tutorials/backtest_fx_bars.ipynb)。
 

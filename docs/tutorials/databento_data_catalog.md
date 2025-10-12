@@ -1,6 +1,6 @@
 # Databento 数据目录
 
-本教程面向 NautilusTrader（高性能算法交易与事件驱动回测框架），演示如何使用不同的 Databento schema 来构建 Nautilus 的 Parquet 数据目录。
+本教程面向 NautilusTrader，演示如何使用不同的 Databento schema 来构建 Nautilus 的 Parquet 数据目录。
 
 [在 GitHub 查看源码](https://github.com/nautechsystems/nautilus_trader/blob/develop/docs/tutorials/databento_data_catalog.ipynb)。
 
