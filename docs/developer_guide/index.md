@@ -1,45 +1,34 @@
-# Developer Guide
+# 开发者指南
 
-Welcome to the developer guide for NautilusTrader!
+欢迎阅读 NautilusTrader 的开发者指南！
 
-Here you'll find guidance on developing and extending NautilusTrader to meet your trading needs or to contribute improvements back to the project.
+这里汇集了如何开发和扩展 NautilusTrader 以满足你交易需求的说明，以及如何将改进贡献回项目的指引。
 
 :::info
-This guide is structured so that automated tooling can consume it alongside human readers.
+本指南的结构同时兼顾了机器化工具和人类读者的阅读需求，便于自动化处理与人工查阅并存。
 :::
 
-We believe in using the right tool for the job. The overall design philosophy is to fully utilize
-the high level power of Python, with its rich eco-system of frameworks and libraries, whilst
-overcoming some of its inherent shortcomings in performance and lack of built-in type safety
-(with it being an interpreted dynamic language).
+我们信奉“用对工具做对事”的理念。整体设计思想是尽可能发挥 Python 在高级抽象和丰富生态上的优势，同时通过额外手段弥补其在性能和类型安全（作为解释型动态语言时固有的短板）方面的不足。
 
-One of the advantages of Cython is that allocation and freeing of memory is handled by the C code
-generator during the ‘cythonization’ step of the build (unless you’re specifically utilizing some of
-its lower level features).
+Cython 的一个重要优势是：内存的分配与释放可以在构建的“cythonization”步骤中由 C 代码生成器处理（除非你在实现中显式使用了它的低级特性）。
 
-This approach combines Python’s simplicity with near-native C performance via compiled extensions.
+这种做法把 Python 的简洁性与通过编译扩展获得的近原生 C 性能结合了起来。
 
-The main development and runtime environment we are working in is Python. With the
-introduction of Cython throughout the production codebase in `.pyx` and `.pxd` files, it's
-important to be aware of how the CPython implementation of Python interacts with the underlying
-CPython API, and the NautilusTrader C extension modules which Cython produces.
+我们主要的开发与运行环境是 Python。由于生产代码库中大量采用了以 `.pyx` 与 `.pxd` 为后缀的 Cython 文件，因此理解 CPython 实现如何与底层 CPython API 交互，以及 Cython 生成的 NautilusTrader C 扩展模块的工作方式，会非常有帮助。
 
-We recommend a thorough review of the [Cython docs](https://cython.readthedocs.io/en/latest/) to familiarize yourself with some of its core
-concepts, and where C typing is being used.
+建议仔细阅读 [Cython 文档](https://cython.readthedocs.io/en/latest/) 来熟悉其核心概念，以及在哪些地方使用了 C 类型（C typing）。
 
-It's not necessary to become a C language expert, however it's helpful to understand how Cython C
-syntax is used in function and method definitions, in local code blocks, and the common primitive C
-types and how these map to their corresponding `PyObject` types.
+你不需要成为 C 语言专家，但理解 Cython 中的 C 语法如何用于函数与方法定义、局部代码块，以及常见原始 C 类型如何映射到对应的 `PyObject` 类型，会对开发与调试极为有利。
 
-## Contents
+## 目录
 
-- [Environment Setup](environment_setup.md)
-- [Coding Standards](coding_standards.md)
+- [环境搭建（Environment Setup）](environment_setup.md)
+- [编码规范（Coding Standards）](coding_standards.md)
 - [Cython](cython.md)
 - [Rust](rust.md)
-- [Docs](docs.md)
-- [Testing](testing.md)
-- [Adapters](adapters.md)
-- [Benchmarking](benchmarking.md)
-- [Packaged Data](packaged_data.md)
-- [FFI Memory Contract](ffi.md)
+- [文档（Docs）](docs.md)
+- [测试（Testing）](testing.md)
+- [适配器（Adapters）](adapters.md)
+- [基准测试（Benchmarking）](benchmarking.md)
+- [封装数据（Packaged Data）](packaged_data.md)
+- [FFI 内存契约（FFI Memory Contract）](ffi.md)
