@@ -1,215 +1,197 @@
+
 # BitMEX
 
-Founded in 2014, BitMEX (Bitcoin Mercantile Exchange) is a cryptocurrency derivatives
-trading platform offering spot, perpetual contracts, traditional futures, prediction
-markets, and other advanced trading products. This integration supports live market data
-ingest and order execution with BitMEX.
+BitMEX（Bitcoin Mercantile Exchange）成立于 2014 年，是一家提供现货、永续合约、传统期货、预测市场及其他高级交易产品的加密衍生品交易平台。本篇集成指南介绍如何在 NautilusTrader 中接入 BitMEX 的实时行情（market data）与下单执行功能。
 
-## Overview
+## 概述
 
-This adapter is implemented in Rust, with optional Python bindings for ease of use in Python-based workflows.
-It does not require external BitMEX client libraries—the core components are compiled as a static library and linked automatically during the build.
+该适配器以 Rust 实现，并提供可选的 Python 绑定，方便在以 Python 为主的工作流中使用。
+适配器不依赖外部的 BitMEX 客户端库：核心组件被编译为静态库并在构建时自动链接。
 
-## Examples
+## 示例
 
-You can find live example scripts [here](https://github.com/nautechsystems/nautilus_trader/tree/develop/examples/live/bitmex/).
+可在仓库中找到实时示例脚本：[examples/live/bitmex](https://github.com/nautechsystems/nautilus_trader/tree/develop/examples/live/bitmex/)。
 
-## Components
+## 组件
 
-This guide assumes a trader is setting up for both live market data feeds, and trade execution.
-The BitMEX adapter includes multiple components, which can be used together or separately depending
-on the use case.
+本指南假设用户同时需要接入实时行情和交易执行。BitMEX 适配器由多个组件构成，可根据使用场景组合或单独使用：
 
-- `BitmexHttpClient`: Low-level HTTP API connectivity.
-- `BitmexWebSocketClient`: Low-level WebSocket API connectivity.
-- `BitmexInstrumentProvider`: Instrument parsing and loading functionality.
-- `BitmexDataClient`: A market data feed manager.
-- `BitmexExecutionClient`: An account management and trade execution gateway.
-- `BitmexLiveDataClientFactory`: Factory for BitMEX data clients (used by the trading node builder).
-- `BitmexLiveExecClientFactory`: Factory for BitMEX execution clients (used by the trading node builder).
+- `BitmexHttpClient`：用于低级别的 HTTP API 连接。
+- `BitmexWebSocketClient`：用于低级别的 WebSocket 连接。
+- `BitmexInstrumentProvider`：合约/标的解析与加载功能。
+- `BitmexDataClient`：行情数据管理器。
+- `BitmexExecutionClient`：账户管理与交易执行网关。
+- `BitmexLiveDataClientFactory`：用于交易节点构建器的数据客户端工厂。
+- `BitmexLiveExecClientFactory`：用于交易节点构建器的执行客户端工厂。
 
 :::note
-Most users will simply define a configuration for a live trading node (as below),
-and won't need to necessarily work with these lower level components directly.
+大多数用户只需为实时交易节点定义配置（见下文示例），通常无需直接操作这些低级组件。
 :::
 
-## BitMEX documentation
+## BitMEX 文档
 
-BitMEX provides extensive documentation for users:
+BitMEX 提供了详尽的官方文档：
 
-- [BitMEX API Explorer](https://www.bitmex.com/app/restAPI) - Interactive API documentation.
-- [BitMEX API Documentation](https://www.bitmex.com/app/apiOverview) - Complete API reference.
-- [BitMEX Exchange Rules](https://www.bitmex.com/exchange-rules) - Official exchange rules and regulations.
-- [Contract Guides](https://www.bitmex.com/app/contract) - Detailed contract specifications.
-- [Spot Trading Guide](https://www.bitmex.com/app/spotGuide) - Spot trading overview.
-- [Perpetual Contracts Guide](https://www.bitmex.com/app/perpetualContractsGuide) - Perpetual swaps explained.
-- [Futures Contracts Guide](https://www.bitmex.com/app/futuresGuide) - Traditional futures information.
+- [BitMEX API Explorer](https://www.bitmex.com/app/restAPI) — 交互式 API 文档。
+- [BitMEX API Documentation](https://www.bitmex.com/app/apiOverview) — 完整的 API 参考。
+- [BitMEX Exchange Rules](https://www.bitmex.com/exchange-rules) — 官方交易所规则与规范。
+- [Contract Guides](https://www.bitmex.com/app/contract) — 合约规格说明。
+- [Spot Trading Guide](https://www.bitmex.com/app/spotGuide) — 现货交易指南。
+- [Perpetual Contracts Guide](https://www.bitmex.com/app/perpetualContractsGuide) — 永续合约说明。
+- [Futures Contracts Guide](https://www.bitmex.com/app/futuresGuide) — 期货合约说明。
 
-It's recommended you refer to the BitMEX documentation in conjunction with this
-NautilusTrader integration guide.
+建议在阅读本集成指南的同时参考 BitMEX 的官方文档以获得更完整的信息。
 
-## Product support
+## 支持的产品
 
-| Product Type       | Data Feed | Trading | Notes                                               |
-| ------------------ | --------- | ------- | --------------------------------------------------- |
-| Spot               | ✓         | ✓       | Limited pairs, unified wallet with derivatives.     |
-| Perpetual Swaps    | ✓         | ✓       | Inverse and linear contracts available.             |
-| Futures            | ✓         | ✓       | Traditional fixed expiration contracts.             |
-| Quanto Futures     | ✓         | ✓       | Settled in different currency than underlying.      |
-| Prediction Markets | ✓         | ✓       | Event-based contracts, 0-100 pricing, USDT settled. |
-| Options            | -         | -       | _Not provided by BitMEX_.                           |
+| 产品类型             | 数据源    | 交易支持 | 说明                                                    |
+| -------------------- | --------- | -------- | ------------------------------------------------------- |
+| 现货（Spot）         | ✓         | ✓        | 支持受限交易对，与衍生品共用钱包。                        |
+| 永续合约（Perpetual）| ✓         | ✓        | 支持反向与线性永续合约。                                 |
+| 期货（Futures）      | ✓         | ✓        | 传统的有到期日的合约。                                   |
+| Quanto 期货          | ✓         | ✓        | 结算货币与标的不同的合约。                               |
+| 预测市场（Prediction）| ✓        | ✓        | 基于事件的合约，价格区间 0-100，以 USDT 结算。             |
+| 期权（Options）      | -         | -        | _BitMEX 不再提供期权产品。_                              |
 
 :::note
-BitMEX has discontinued their options products to focus on their core derivatives and spot offerings.
+BitMEX 已停止其期权产品，以聚焦其核心的衍生品与现货业务。
 :::
 
-### Spot trading
+### 现货交易
 
-- Direct token/coin trading with immediate settlement.
-- Major pairs including XBT/USDT, ETH/USDT, ETH/XBT.
-- Additional altcoin pairs (LINK, SOL, UNI, APE, AXS, BMEX against USDT).
+- 直接的代币/币种现货交易，实时交割。
+- 常见主流交易对包括 XBT/USDT、ETH/USDT、ETH/XBT。
+- 也支持部分山寨币对（如 LINK、SOL、UNI、APE、AXS、BMEX 对 USDT）。
 
-### Derivatives
+### 衍生品
 
-- **Perpetual contracts**: Inverse (e.g., XBTUSD) and linear (e.g., ETHUSDT).
-- **Traditional futures**: Fixed expiration date contracts.
-- **Quanto futures**: Contracts settled in a different currency than the underlying.
-- **Prediction markets**: Event-based derivatives (e.g., P_FTXZ26, P_SBFJAILZ26) allowing traders to speculate on outcomes across crypto, finance, and other events. No leverage, priced 0-100, settled in USDT.
+- 永续合约：包含反向合约（例如 XBTUSD）和线性合约（例如 ETHUSDT）。
+- 传统期货：具有固定到期日的合约。
+- Quanto 期货：以与标的不同货币结算的合约。
+- 预测市场：基于事件的衍生品（例如 P_FTXZ26、P_SBFJAILZ26），无杠杆，价格 0–100，以 USDT 结算。
 
-## Symbology
+## 符号约定（Symbology）
 
-BitMEX uses a specific naming convention for its trading symbols. Understanding this
-convention is crucial for correctly identifying and trading instruments.
+BitMEX 使用特定的合约/交易符号命名规则。理解这些规则有助于正确识别和交易标的。
 
-### Symbol format
+### 符号格式
 
-BitMEX symbols typically follow these patterns:
+常见格式如下：
 
-- **Spot pairs**: Base currency + Quote currency (e.g., `XBT/USDT`, `ETH/USDT`).
-- **Perpetual contracts**: Base currency + Quote currency (e.g., `XBTUSD`, `ETHUSD`).
-- **Futures contracts**: Base currency + Expiry code (e.g., `XBTM24`, `ETHH25`).
-- **Quanto contracts**: Special naming for non-USD settled contracts.
-- **Prediction markets**: `P_` prefix + Event identifier + Expiry code (e.g., `P_POWELLK26`, `P_FTXZ26`).
+- **现货对**：基础货币 + 报价货币（例如 `XBT/USDT`、`ETH/USDT`）。
+- **永续合约**：基础货币 + 报价货币（例如 `XBTUSD`、`ETHUSD`）。
+- **期货合约**：基础货币 + 到期代码（例如 `XBTM24`、`ETHH25`）。
+- **Quanto 合约**：用于非 USD 结算合约的特殊命名。
+- **预测市场**：以 `P_` 前缀 + 事件标识 + 到期代码（例如 `P_POWELLK26`、`P_FTXZ26`）。
 
 :::info
-BitMEX uses `XBT` as the symbol for Bitcoin instead of `BTC`. This follows the ISO 4217
-currency code standard where "X" denotes non-national currencies. XBT and BTC refer to
-the same asset - Bitcoin.
+BitMEX 使用 `XBT` 作为比特币的代码而非 `BTC`，遵循 ISO 4217 中以 "X" 开头表示非国家法币的惯例。XBT 与 BTC 指代同一资产（Bitcoin）。
 :::
 
-### Expiry codes
+### 到期代码
 
-Futures contracts use standard futures month codes:
+期货合约使用标准的期货月份代码：
 
-- `F` = January
-- `G` = February
-- `H` = March
-- `J` = April
-- `K` = May
-- `M` = June
-- `N` = July
-- `Q` = August
-- `U` = September
-- `V` = October
-- `X` = November
-- `Z` = December
+- `F` = 一月
+- `G` = 二月
+- `H` = 三月
+- `J` = 四月
+- `K` = 五月
+- `M` = 六月
+- `N` = 七月
+- `Q` = 八月
+- `U` = 九月
+- `V` = 十月
+- `X` = 十一月
+- `Z` = 十二月
 
-Followed by the year (e.g., `24` for 2024, `25` for 2025).
+后接年份（例如 `24` 表示 2024 年，`25` 表示 2025 年）。
 
-### NautilusTrader instrument IDs
+### NautilusTrader 中的 Instrument ID
 
-Within NautilusTrader, BitMEX instruments are identified using the native BitMEX symbol
-directly, combined with the venue identifier:
+在 NautilusTrader 中，BitMEX 的标的使用原生 BitMEX 符号直接标识，并与场馆（venue）标识符组合：
 
 ```python
 from nautilus_trader.model.identifiers import InstrumentId
 
-# Spot pairs (note: no slash in the symbol)
-spot_id = InstrumentId.from_str("XBTUSDT.BITMEX")  # XBT/USDT spot
-eth_spot_id = InstrumentId.from_str("ETHUSDT.BITMEX")  # ETH/USDT spot
+# 现货（注意：符号中不带斜杠）
+spot_id = InstrumentId.from_str("XBTUSDT.BITMEX")  # XBT/USDT 现货
+eth_spot_id = InstrumentId.from_str("ETHUSDT.BITMEX")  # ETH/USDT 现货
 
-# Perpetual contracts
-perp_id = InstrumentId.from_str("XBTUSD.BITMEX")  # Bitcoin perpetual (inverse)
-linear_perp_id = InstrumentId.from_str("ETHUSDT.BITMEX")  # Ethereum perpetual (linear)
+# 永续合约
+perp_id = InstrumentId.from_str("XBTUSD.BITMEX")  # 比特币永续（反向）
+linear_perp_id = InstrumentId.from_str("ETHUSDT.BITMEX")  # 以太坊永续（线性）
 
-# Futures contract (June 2024)
-futures_id = InstrumentId.from_str("XBTM24.BITMEX")  # Bitcoin futures expiring June 2024
+# 期货合约（例如 2024 年 6 月到期）
+futures_id = InstrumentId.from_str("XBTM24.BITMEX")  # 比特币 2024-06 到期的期货
 
-# Prediction market contracts
-prediction_id = InstrumentId.from_str("P_XBTETFV23.BITMEX")  # Bitcoin ETF SEC approval prediction expiring October 2023
+# 预测市场合约
+prediction_id = InstrumentId.from_str("P_XBTETFV23.BITMEX")  # 关于比特币 ETF SEC 批准的预测合约（2023-10 到期）
 ```
 
 :::note
-BitMEX spot symbols in NautilusTrader don't include the slash (/) that appears in the
-BitMEX UI. Use `XBTUSDT` instead of `XBT/USDT`.
+在 NautilusTrader 中，BitMEX 的现货符号不包含 UI 中常见的斜杠（/）。请使用 `XBTUSDT` 而非 `XBT/USDT`。
 :::
 
-### Quantity scaling
+### 数量缩放（Quantity scaling）
 
-BitMEX reports spot and derivative quantities in _contract_ units. The actual asset size per
-contract is exchange-specific and published on the instrument definition:
+BitMEX 在现货与衍生品中以「合约（contract）」为单位上报数量。每份合约对应的实际基础资产大小由交易所发布在合约定义中：
 
-- `lotSize` – minimum number of contracts you can trade.
-- `underlyingToPositionMultiplier` – number of contracts per unit of the underlying asset.
+- `lotSize` — 可交易的最小合约数量。
+- `underlyingToPositionMultiplier` — 每一单位标的对应的合约数。
 
-For example, the SOL/USDT spot instrument (`SOLUSDT`) exposes `lotSize = 1000` and
-`underlyingToPositionMultiplier = 10000`, meaning one contract represents `1 / 10000 = 0.0001`
-SOL, and the minimum order (`lotSize * contract_size`) is `0.1` SOL. The adapter now derives the
-contract size directly from these fields and scales both inbound market data and outbound orders
-accordingly, so quantities in Nautilus are always expressed in base units (SOL, ETH, etc.).
+例如，SOL/USDT 现货（`SOLUSDT`）可能返回 `lotSize = 1000` 和 `underlyingToPositionMultiplier = 10000`，表示一份合约代表 `1 / 10000 = 0.0001` SOL，而最小下单量（`lotSize * contract_size`）为 `0.1` SOL。适配器会根据这些字段推导合约大小，并对入站行情与出站订单做相应缩放，使 Nautilus 中的数量总以基础单位（SOL、ETH 等）表示。
 
-See the BitMEX API documentation for details on these fields: [https://www.bitmex.com/app/apiOverview#Instrument-Properties](https://www.bitmex.com/app/apiOverview#Instrument-Properties).
+详情请参见 BitMEX 的合约属性文档： [Instrument Properties (BitMEX API)](https://www.bitmex.com/app/apiOverview#Instrument-Properties)。
 
-## Orders capability
+## 订单能力（Orders capability）
 
-The BitMEX integration supports the following order types and execution features.
+BitMEX 集成支持下列订单类型与执行特性。
 
-### Order types
+### 订单类型
 
-| Order Type             | Supported | Notes                                                                       |
-| ---------------------- | --------- | --------------------------------------------------------------------------- |
-| `MARKET`               | ✓         | Executed immediately at current market price. Quote quantity not supported. |
-| `LIMIT`                | ✓         | Executed only at specified price or better.                                 |
-| `STOP_MARKET`          | ✓         | Supported (set `trigger_price`).                                            |
-| `STOP_LIMIT`           | ✓         | Supported (set `price` and `trigger_price`).                                |
-| `MARKET_IF_TOUCHED`    | ✓         | Supported (set `trigger_price`).                                            |
-| `LIMIT_IF_TOUCHED`     | ✓         | Supported (set `price` and `trigger_price`).                                |
-| `TRAILING_STOP_MARKET` | -         | _Not implemented_ (supported by BitMEX).                                    |
+| 订单类型                | 支持   | 说明                                                                          |
+| ---------------------- | ------ | ----------------------------------------------------------------------------- |
+| `MARKET`               | ✓      | 以市价立即成交。不支持按报价数量（quote quantity）。                           |
+| `LIMIT`                | ✓      | 仅在指定价格或更优价格成交。                                                  |
+| `STOP_MARKET`          | ✓      | 支持（设置 `trigger_price`）。                                                 |
+| `STOP_LIMIT`           | ✓      | 支持（设置 `price` 与 `trigger_price`）。                                      |
+| `MARKET_IF_TOUCHED`    | ✓      | 支持（设置 `trigger_price`）。                                                 |
+| `LIMIT_IF_TOUCHED`     | ✓      | 支持（设置 `price` 与 `trigger_price`）。                                      |
+| `TRAILING_STOP_MARKET` | -      | _未实现_（BitMEX 原生支持）。                                                  |
 
-### Execution instructions
+### 执行指令（Execution instructions）
 
-| Instruction   | Supported | Notes                                                                             |
-| ------------- | --------- | --------------------------------------------------------------------------------- |
-| `post_only`   | ✓         | Supported via `ParticipateDoNotInitiate` execution instruction on `LIMIT` orders. |
-| `reduce_only` | ✓         | Supported via `ReduceOnly` execution instruction.                                 |
+| 指令            | 支持   | 说明                                                                                  |
+| --------------- | ------ | ------------------------------------------------------------------------------------- |
+| `post_only`     | ✓      | 通过 `ParticipateDoNotInitiate` 执行指令在 `LIMIT` 订单上实现。                        |
+| `reduce_only`   | ✓      | 通过 `ReduceOnly` 执行指令实现。                                                       |
 
 :::note
-Post-only orders that would cross the spread are canceled by BitMEX rather than rejected. The
-integration surfaces these as rejections with `due_post_only=True` so strategies can handle them
-consistently.
+会导致跨价（cross the spread）的 post-only 订单会被 BitMEX 取消而非拒绝。该集成会将此类取消作为带 `due_post_only=True` 的拒单上报，便于策略统一处理。
 :::
 
-### Trigger types
+### 触发类型（Trigger types）
 
-BitMEX supports multiple reference prices to evaluate stop/conditional order triggers for:
+BitMEX 支持多种参考价格作为止损/条件单的触发依据：
 
 - `STOP_MARKET`
 - `STOP_LIMIT`
 - `MARKET_IF_TOUCHED`
 - `LIMIT_IF_TOUCHED`
 
-Choose the trigger type that matches your strategy and/or risk preferences.
+根据策略或风险偏好选择合适的触发类型。
 
-| Reference price | Nautilus `TriggerType` | BitMEX value | Notes                                                                           |
-| --------------- | ---------------------- | ------------ | ------------------------------------------------------------------------------- |
-| Last trade      | `LAST_PRICE`           | `LastPrice`  | BitMEX default; triggers on the last traded price.                              |
-| Mark price      | `MARK_PRICE`           | `MarkPrice`  | Recommended for many stop-loss use cases to reduce stop-outs from price spikes. |
-| Index price     | `INDEX_PRICE`          | `IndexPrice` | Tracks the external index; useful for some contracts.                           |
+| 参考价        | Nautilus `TriggerType` | BitMEX 值    | 说明                                                                 |
+| ------------- | ---------------------- | ------------ | -------------------------------------------------------------------- |
+| 最近成交价     | `LAST_PRICE`           | `LastPrice`  | BitMEX 默认；基于最后成交价触发。                                     |
+| 标记价         | `MARK_PRICE`           | `MarkPrice`  | 建议用于止损以减少被价格尖峰触发的风险（推荐）。                     |
+| 指数价         | `INDEX_PRICE`          | `IndexPrice` | 跟踪外部指数；对某些合约有用。                                       |
 
-- If no `trigger_type` is provided, BitMEX uses its venue default (`LastPrice`).
-- These trigger references are exchange-evaluated; the order remains resting at the venue until triggered.
+- 若未提供 `trigger_type`，BitMEX 将使用场馆默认（`LastPrice`）。
+- 这些触发参考由交易所在场内评估；订单在被触发前会一直驻留在交易所。
 
-**Example**:
+示例：
 
 ```python
 from nautilus_trader.model.enums import TriggerType
@@ -219,204 +201,199 @@ order = self.order_factory.stop_market(
     order_side=order_side,
     quantity=qty,
     trigger_price=trigger,
-    trigger_type=TriggerType.MARK_PRICE,  # Use BitMEX Mark Price as reference
+    trigger_type=TriggerType.MARK_PRICE,  # 使用 BitMEX 的 Mark Price 作为触发参考
 )
 ```
 
-`ExecTester` example configuration also demonstrates setting `stop_trigger_type=TriggerType.MARK_PRICE`
-in `examples/live/bitmex/bitmex_exec_tester.py`.
+`ExecTester` 的示例配置也展示了如何在 `examples/live/bitmex/bitmex_exec_tester.py` 中将 `stop_trigger_type=TriggerType.MARK_PRICE`。
 
-### Time in force
+### 有效期（Time in force）
 
-| Time in force | Supported | Notes                                               |
-| ------------- | --------- | --------------------------------------------------- |
-| `GTC`         | ✓         | Good Till Canceled (default).                       |
-| `GTD`         | -         | _Not supported by BitMEX_.                          |
-| `FOK`         | ✓         | Fill or Kill - fills entire order or cancels.       |
-| `IOC`         | ✓         | Immediate or Cancel - partial fill allowed.         |
-| `DAY`         | ✓         | Expires at 00:00 UTC (BitMEX trading day boundary). |
-
-:::note
-`DAY` orders expire at 12:00am UTC, which marks the BitMEX trading day boundary (end of trading hours for that day).
-See the [BitMEX Exchange Rules](https://www.bitmex.com/exchange-rules) and [API documentation](https://www.bitmex.com/api/explorer/) for complete details.
-:::
-
-### Advanced order features
-
-| Feature            | Supported | Notes                                          |
-| ------------------ | --------- | ---------------------------------------------- |
-| Order Modification | ✓         | Modify price, quantity, and trigger price.     |
-| Bracket Orders     | -         | Use `contingency_type` and `linked_order_ids`. |
-| Iceberg Orders     | ✓         | Use `display_qty`.                             |
-| Trailing Stops     | -         | _Not implemented_ (supported by BitMEX).       |
-| Pegged Orders      | -         | _Not implemented_ (supported by BitMEX).       |
-
-### Batch operations
-
-| Operation    | Supported | Notes                                       |
-| ------------ | --------- | ------------------------------------------- |
-| Batch Submit | -         | _Not supported by BitMEX_.                  |
-| Batch Modify | -         | _Not supported by BitMEX_.                  |
-| Batch Cancel | ✓         | Cancel multiple orders in a single request. |
-
-### Position management
-
-| Feature         | Supported | Notes                                              |
-| --------------- | --------- | -------------------------------------------------- |
-| Query positions | ✓         | REST and real-time position updates via WebSocket. |
-| Cross margin    | ✓         | Default margin mode.                               |
-| Isolated margin | ✓         |                                                    |
-
-### Order querying
-
-| Feature              | Supported | Notes                                        |
-| -------------------- | --------- | -------------------------------------------- |
-| Query open orders    | ✓         | List all active orders.                      |
-| Query order history  | ✓         | Historical order data.                       |
-| Order status updates | ✓         | Real-time order state changes via WebSocket. |
-| Trade history        | ✓         | Execution and fill reports.                  |
-
-## Market data
-
-- Order book deltas: `L2_MBP` only; `depth` 0 (full book) or 25.
-- Order book snapshots: `L2_MBP` only; `depth` 0 (default 10) or 10.
-- Quotes, trades, and instrument updates are supported via WebSocket.
-- Funding rates, mark prices, and index prices are supported where applicable.
-- Historical requests via REST:
-  - Trade ticks with optional `start`, `end`, and `limit` filters (up to 1,000 results per call).
-  - Time bars (`1m`, `5m`, `1h`, `1d`) for externally aggregated LAST prices, including optional partial bins.
+| 有效期        | 支持   | 说明                                                    |
+| ------------- | ------ | ------------------------------------------------------- |
+| `GTC`         | ✓      | Good Till Canceled（默认）。                             |
+| `GTD`         | -      | _BitMEX 不支持。_                                       |
+| `FOK`         | ✓      | Fill or Kill — 要么全部成交要么取消。                   |
+| `IOC`         | ✓      | Immediate or Cancel — 允许部分成交并取消剩余。          |
+| `DAY`         | ✓      | 在 UTC 00:00 过期（BitMEX 的交易日界限）。               |
 
 :::note
-BitMEX caps each REST response at 1,000 rows and requires manual pagination via `start`/`startTime`. The current adapter returns only the
-first page; wider pagination support is scheduled for a future update.
+`DAY` 订单在 UTC 时间的 00:00 到期，这对应 BitMEX 的交易日边界（当日交易结束）。更多细节请参阅 [BitMEX Exchange Rules](https://www.bitmex.com/exchange-rules) 与 [API 文档](https://www.bitmex.com/api/explorer/)。
 :::
 
-## Connection management
+### 高级订单功能
+
+| 功能               | 支持   | 说明                                               |
+| ------------------ | ------ | -------------------------------------------------- |
+| 订单修改（Modify） | ✓      | 可修改价格、数量和触发价。                          |
+| Bracket Orders     | -      | 使用 `contingency_type` 与 `linked_order_ids`。     |
+| 冰山订单（Iceberg） | ✓      | 使用 `display_qty` 支持。                           |
+| 跟踪止损（Trailing）| -      | _未实现_（BitMEX 原生支持）。                       |
+| 钉住订单（Pegged）  | -      | _未实现_（BitMEX 原生支持）。                       |
+
+### 批量操作
+
+| 操作           | 支持   | 说明                                               |
+| -------------- | ------ | -------------------------------------------------- |
+| 批量提交       | -      | _BitMEX 不支持。_                                  |
+| 批量修改       | -      | _BitMEX 不支持。_                                  |
+| 批量取消       | ✓      | 支持一次请求取消多个订单。                         |
+
+### 持仓管理
+
+| 功能             | 支持   | 说明                                                       |
+| ---------------- | ------ | ---------------------------------------------------------- |
+| 查询持仓         | ✓      | 支持通过 REST 查询与 WebSocket 实时持仓更新。              |
+| Cross margin     | ✓      | 默认为交叉保证金模式。                                     |
+| Isolated margin  | ✓      | 支持逐仓模式。                                              |
+
+### 订单查询
+
+| 功能                  | 支持   | 说明                                           |
+| --------------------- | ------ | ---------------------------------------------- |
+| 查询未成交订单        | ✓      | 列出所有活动订单。                              |
+| 查询订单历史          | ✓      | 历史订单数据。                                  |
+| 订单状态更新          | ✓      | 通过 WebSocket 获取实时订单状态变更。           |
+| 交易历史              | ✓      | 执行和成交报告。                                |
+
+## 行情数据（Market data）
+
+- 订单薄增量：仅 `L2_MBP`；支持 `depth` 为 0（全量）或 25。
+- 订单薄快照：仅 `L2_MBP`；支持 `depth` 为 0（默认 10）或 10。
+- 通过 WebSocket 支持盘口报价、成交以及合约更新。
+- 支持 funding rate、mark price 与 index price（视合约而定）。
+- 通过 REST 支持历史数据请求：
+  - 成交 ticks，支持可选的 `start`、`end` 与 `limit`（单次调用上限 1,000 条）。
+  - 时间 K 线（`1m`, `5m`, `1h`, `1d`），基于外部聚合的 LAST 价并支持可选的部分区间。
+
+:::note
+BitMEX 将每次 REST 响应限制为最多 1,000 行，并需使用 `start`/`startTime` 手动翻页。目前适配器仅返回第一页，后续版本计划增加更完整的翻页支持。
+:::
+
+## 连接管理
 
 ### HTTP Keep-Alive
 
-The BitMEX adapter utilizes HTTP keep-alive for optimal performance:
+BitMEX 适配器使用 HTTP keep-alive 以获得最佳性能：
 
-- **Connection pooling**: Connections are automatically pooled and reused.
-- **Keep-alive timeout**: 90 seconds (matches BitMEX server-side timeout).
-- **Automatic reconnection**: Failed connections are automatically re-established.
-- **SSL session caching**: Reduces handshake overhead for subsequent requests.
+- 连接池：连接会被自动复用与池化。
+- keep-alive 超时：90 秒（与 BitMEX 服务器端超时一致）。
+- 自动重连：连接失败时会自动重建。
+- SSL 会话缓存：减少后续请求的握手开销。
 
-This configuration ensures low-latency communication with BitMEX servers by maintaining
-persistent connections and avoiding the overhead of establishing new connections for each request.
+该配置通过维持持久连接，避免为每次请求建立新连接，从而降低延迟。
 
-### Request authentication and expiration
+### 请求鉴权与过期
 
-BitMEX uses an `api-expires` header for request authentication to prevent replay attacks:
+BitMEX 使用 `api-expires` 头部进行请求鉴权以防重放攻击：
 
-- Signed requests include an `api-expires` Unix timestamp set `recv_window_ms / 1000` seconds ahead (10 seconds by default).
-- BitMEX rejects any request once that timestamp has passed, so keep latency within your configured window.
+- 签名请求需包含一个比当前时间提前 `recv_window_ms / 1000` 秒的 `api-expires` Unix 时间戳（默认 10 秒）。
+- 一旦该时间戳过期，BitMEX 会拒绝请求，因此请确保延迟在配置窗口内。
 
-## Rate limiting
+## 速率限制（Rate limiting）
 
-BitMEX implements a dual-layer rate limiting system:
+BitMEX 实施双层速率限制机制：
 
-### REST limits
+### REST 限制
 
-- **Burst limit**: 10 requests per second for authenticated users (applies to order placement, modification, and cancel endpoints).
-- **Rolling minute limit**: 120 requests per minute for authenticated users (30 requests per minute for unauthenticated users).
-- **Order caps**: 200 open orders and 10 stop orders per symbol; exceeding these caps triggers exchange-side rejections.
+- **突发限制（Burst）**：认证用户每秒 10 次请求（适用于下单、修改、取消等端点）。
+- **滚动分钟限制**：认证用户每分钟 120 次请求（未认证用户为每分钟 30 次）。
+- **订单上限**：每个标的最多 200 个未平仓订单和 10 个止损订单；超出交易所限制会被拒单。
 
-The adapter enforces these quotas automatically and surfaces the rate-limit headers BitMEX returns with each response.
+适配器会自动执行这些配额并将 BitMEX 返回的速率限制头部信息暴露出来。
 
-### WebSocket limits
+### WebSocket 限制
 
-- Connection requests: follow the exchange guidance (currently 3 connections per second per IP).
-- Private streams require authentication; the adapter reconnects automatically if a limit is exceeded.
+- 连接请求请遵循交易所指引（当前为每个 IP 每秒 3 次连接）。
+- 私有流需要认证；如果超限，适配器会自动重连。
 
 :::warning
-Exceeding BitMEX rate limits returns HTTP 429 and may trigger temporary IP bans; persistent 4xx/5xx errors can extend the lockout period.
+超过 BitMEX 的速率限制将返回 HTTP 429，并可能导致临时 IP 封禁；持续的 4xx/5xx 错误会延长封禁时长。
 :::
 
-### Configurable rate limits
+### 可配置的速率限制
 
-The rate limits can be configured if your account has different limits than the defaults:
+若你的账户有不同的配额，可以通过配置调整速率限制：
 
-| Parameter                 | Default (authenticated) | Default (unauthenticated) | Description                                   |
-| ------------------------- | ----------------------- | ------------------------- | --------------------------------------------- |
-| `max_requests_per_second` | 10                      | 10                        | Maximum requests per second (burst limit).    |
-| `max_requests_per_minute` | 120                     | 30                        | Maximum requests per minute (rolling window). |
+| 参数                       | 默认（已认证） | 默认（未认证） | 说明                                         |
+| -------------------------- | -------------- | -------------- | -------------------------------------------- |
+| `max_requests_per_second`  | 10             | 10             | 每秒最大请求数（突发限制）。                  |
+| `max_requests_per_minute`  | 120            | 30             | 每分钟最大请求数（滚动窗口）。                |
 
 :::info
-For more details on rate limiting, see the [BitMEX API documentation on rate limits](https://www.bitmex.com/app/restAPI#Limits).
+更多关于速率限制的详情请参见 BitMEX 的速率限制文档： [BitMEX API - Limits](https://www.bitmex.com/app/restAPI#Limits).
 :::
 
 :::warning
-**Cancel Broadcaster Rate Limit Considerations**
+**Cancel Broadcaster 的速率限制注意事项**
 
-The cancel broadcaster (when `canceller_pool_size > 1`) fans out each cancel request to multiple independent HTTP clients in parallel. Each client maintains its own rate limiter, which means the effective request rate is multiplied by the pool size.
+当 `canceller_pool_size > 1` 时，cancel broadcaster 会并行将每次取消请求分发到多个独立的 HTTP 客户端实例。每个客户端都有自己的速率限制器，这意味着总体请求速率会随池大小成比例放大。
 
-**Example**: With `canceller_pool_size=3` (default) and `max_requests_per_second=10`, a single cancel operation consumes **3 requests** (one per client), potentially reaching **30 requests/second** if canceling rapidly.
+例如：在 `canceller_pool_size=3`（默认）且 `max_requests_per_second=10` 的配置下，一次取消操作会消耗 **3 次请求**（每个客户端各一次），在快速取消时可能达到 **30 次/秒**。
 
-Since BitMEX enforces rate limits **at the account level** (not per connection), the broadcaster can push you over the exchange's default limits of 10 req/s burst and 120 req/min rolling window.
+由于 BitMEX 在账户级别（而非连接级别）实施速率限制，广播器可能导致超过默认的 10 req/s 突发限制和 120 req/min 的滚动限制。
 
-**Mitigations**: Reduce `max_requests_per_second` and `max_requests_per_minute` proportionally (divide by `canceller_pool_size`), or adjust the pool size itself (see [Cancel broadcaster configuration](#cancel-broadcaster)).
-Future versions may support shared rate limiters across the pool.
+**缓解办法**：根据 `canceller_pool_size` 成比例降低 `max_requests_per_second` 和 `max_requests_per_minute`（即除以池大小），或调整池大小本身（参见 Cancel Broadcaster（取消请求广播器）配置小节）。未来版本可能支持跨池的共享速率限制器。
 :::
 
-### Rate-limit headers
+### 速率限制头部
 
-BitMEX exposes the current allowance via response headers:
+BitMEX 会通过响应头暴露当前配额信息：
 
-- `x-ratelimit-limit`: total requests permitted in the current window.
-- `x-ratelimit-remaining`: remaining requests before throttling occurs.
-- `x-ratelimit-reset`: UNIX timestamp when the allowance resets.
-- `retry-after`: seconds to wait after a 429 response.
+- `x-ratelimit-limit`：当前窗口内允许的总请求数。
+- `x-ratelimit-remaining`：剩余可用请求数。
+- `x-ratelimit-reset`：配额重置的 UNIX 时间戳。
+- `retry-after`：在收到 429 响应后应等待的秒数。
 
-## Cancel broadcaster
+## Cancel Broadcaster（取消请求广播器）
 
-The BitMEX execution client includes a cancel broadcaster that provides fault-tolerant order cancellation through parallel request fanout.
+BitMEX 执行客户端包含一个 cancel broadcaster，用于通过并行请求扇出实现容错的订单取消。
 
-### Concepts
+### 概念
 
-Order cancellations are time-critical operations - when a strategy decides to cancel an order, any delay or failure can result in unintended fills, slippage, or unwanted position exposure. The cancel broadcaster addresses this by:
+订单取消是时间敏感的操作——当策略决定取消订单时，任何延迟或失败都可能导致非预期成交、滑点或未受控的仓位暴露。cancel broadcaster 通过以下方式解决这一问题：
 
-- **Parallel fanout**: Cancel requests are simultaneously broadcast to multiple independent HTTP client instances.
-- **First-success short-circuiting**: The first successful response wins, and remaining in-flight requests are immediately aborted.
-- **Fault tolerance**: If one HTTP client experiences network issues, DNS failures, or connection timeouts, other clients in the pool continue processing.
-- **Idempotent success handling**: Responses indicating the order was already canceled (such as "orderID not found" or similar idempotent states) are treated as success rather than failure, preventing unnecessary error propagation.
+- **并行扇出**：把取消请求同时广播到多个独立的 HTTP 客户端实例。
+- **先成功短路**：第一个成功响应即为最终结果，其他正在进行的请求会被立刻中止。
+- **容错性**：当某个 HTTP 客户端出现网络、DNS 或超时问题，池中其他客户端仍可继续处理请求。
+- **幂等成功处理**：对于已被取消或不存在的订单（例如返回 "orderID not found"）会被视为成功而非错误，避免不必要的错误传播。
 
-This architecture ensures that a single network path failure or slow connection doesn't block critical cancel operations, improving the reliability of risk management and position control in live trading.
+该架构可确保单一路径故障或慢连接不会阻塞关键的取消操作，从而提升实盘交易中风险管理与仓位控制的可靠性。
 
-### Health monitoring
+### 健康监测
 
-Each HTTP client in the broadcaster pool maintains health metrics:
+池中每个 HTTP 客户端维护健康指标：
 
-- Successful cancellations mark a client as healthy.
-- Failed requests increment error counters.
-- Background health checks periodically verify client connectivity.
-- Degraded clients are tracked but remain in the pool to maintain fault tolerance.
+- 成功取消会将客户端标记为健康。
+- 失败请求会增加错误计数。
+- 后台健康检查会定期验证客户端连通性。
+- 状态降级的客户端仍保留在池中以维持容错。
 
-The broadcaster exposes metrics including total cancels, successful cancels, failed cancels, expected rejects (already canceled orders), and idempotent successes for operational monitoring and debugging.
+广播器会暴露包括总取消次数、成功取消数、失败取消数、预期拒单数（已被取消的订单）和幂等成功数等指标，便于运维监控与故障排查。
 
-#### Tracked metrics
+#### 跟踪指标
 
-| Metric                 | Type    | Description                                                                                                        |
-| ---------------------- | ------- | ------------------------------------------------------------------------------------------------------------------ |
-| `total_cancels`        | `u64`   | Total number of cancel operations initiated (includes single, batch, and cancel-all requests).                     |
-| `successful_cancels`   | `u64`   | Number of cancel operations that successfully received acknowledgement from BitMEX.                                |
-| `failed_cancels`       | `u64`   | Number of cancel operations where all HTTP clients in the pool failed (no healthy clients or all requests failed). |
-| `expected_rejects`     | `u64`   | Number of expected rejection patterns detected (e.g., post-only order rejections).                                 |
-| `idempotent_successes` | `u64`   | Number of idempotent success responses (order already cancelled, order not found, unable to cancel due to state).  |
-| `healthy_clients`      | `usize` | Current number of healthy HTTP clients in the pool (clients that passed recent health checks).                     |
-| `total_clients`        | `usize` | Total number of HTTP clients configured in the pool (`canceller_pool_size`).                                       |
+| 指标                   | 类型    | 说明                                                                                                           |
+| ---------------------- | ------- | -------------------------------------------------------------------------------------------------------------- |
+| `total_cancels`        | `u64`   | 发起的取消操作总数（包含单次、批量与取消所有请求）。                                                           |
+| `successful_cancels`   | `u64`   | 成功收到 BitMEX 确认的取消操作数量。                                                                           |
+| `failed_cancels`       | `u64`   | 池中所有 HTTP 客户端均失败的取消次数（无健康客户端或全部请求失败）。                                           |
+| `expected_rejects`     | `u64`   | 检测到的预期拒单模式数量（例如 post-only 拒单）。                                                             |
+| `idempotent_successes` | `u64`   | 幂等成功响应次数（例如订单已取消、找不到订单、因状态无法取消等）。                                            |
+| `healthy_clients`      | `usize` | 当前池中健康 HTTP 客户端数（通过近期健康检查的客户端）。                                                      |
+| `total_clients`        | `usize` | 池中配置的 HTTP 客户端总数（`canceller_pool_size`）。                                                          |
 
-These metrics can be accessed programmatically via the `get_metrics()` and `get_metrics_async()` methods on the `CancelBroadcaster` instance.
+这些指标可以通过 `CancelBroadcaster` 实例的 `get_metrics()` 和 `get_metrics_async()` 方法以编程方式获取。
 
-### Configuration
+### 配置
 
-The cancel broadcaster is configured via the execution client configuration:
+cancel broadcaster 通过执行客户端的配置项进行设置：
 
-| Option                | Default | Description                                                                                                          |
-| --------------------- | ------- | -------------------------------------------------------------------------------------------------------------------- |
-| `canceller_pool_size` | `3`     | Size of the HTTP client pool for the broadcaster. Higher values increase fault tolerance but consume more resources. |
+| 选项                   | 默认 | 说明                                                                                                                   |
+| --------------------- | ---- | ---------------------------------------------------------------------------------------------------------------------- |
+| `canceller_pool_size` | `3`  | 广播器中 HTTP 客户端池的大小。更高的值提升容错性但也消耗更多资源。                                                    |
 
-**Example configuration**:
+示例配置：
 
 ```python
 from nautilus_trader.adapters.bitmex.config import BitmexExecClientConfig
@@ -424,102 +401,100 @@ from nautilus_trader.adapters.bitmex.config import BitmexExecClientConfig
 exec_config = BitmexExecClientConfig(
     api_key="YOUR_API_KEY",
     api_secret="YOUR_API_SECRET",
-    canceller_pool_size=3,  # Default pool size
+    canceller_pool_size=3,  # 默认池大小
 )
 ```
 
 :::tip
-For HFT strategies without higher rate limits, consider reducing `canceller_pool_size=1` to minimize rate limit consumption.
-The default pool size of 3 broadcasts each cancel request to 3 parallel HTTP clients for fault tolerance, which consumes 3× the rate limit quota per cancel operation.
-Single-client mode still benefits from the broadcaster's idempotent success handling but uses standard rate limits.
+对于没有更高速率限制的 HFT 策略，可考虑将 `canceller_pool_size=1` 以降低速率限制消耗。
+默认的池大小 3 会把每次取消请求广播到 3 个并行 HTTP 客户端，从而每次取消操作消耗 3 倍的配额。
+单客户端模式仍然受益于广播器的幂等成功处理，但仅使用标准速率限制。
 :::
 
-The broadcaster is automatically started when the execution client connects and stopped when it disconnects. All cancel operations (`cancel_order`, `cancel_all_orders`, `batch_cancel_orders`) are automatically routed through the broadcaster without requiring any changes to strategy code.
+当执行客户端连接时，广播器会自动启动；断开连接时自动停止。所有取消操作（`cancel_order`、`cancel_all_orders`、`batch_cancel_orders`）都会自动通过广播器路由，无需修改策略代码。
 
-## Configuration
+## 配置
 
-### API credentials
+### API 凭证
 
-BitMEX API credentials can be provided either directly in the configuration or via environment variables:
+BitMEX 的 API 凭证可以直接在配置中提供，也可以通过环境变量传入：
 
-- `BITMEX_API_KEY`: Your BitMEX API key for production.
-- `BITMEX_API_SECRET`: Your BitMEX API secret for production.
-- `BITMEX_TESTNET_API_KEY`: Your BitMEX API key for testnet (when `testnet=True`).
-- `BITMEX_TESTNET_API_SECRET`: Your BitMEX API secret for testnet (when `testnet=True`).
+- `BITMEX_API_KEY`：生产环境的 API Key。
+- `BITMEX_API_SECRET`：生产环境的 API Secret。
+- `BITMEX_TESTNET_API_KEY`：测试网的 API Key（当 `testnet=True` 时）。
+- `BITMEX_TESTNET_API_SECRET`：测试网的 API Secret（当 `testnet=True` 时）。
 
-To generate API keys:
+生成 API Key 的步骤：
 
-1. Log in to your BitMEX account.
-2. Navigate to Account & Security → API Keys.
-3. Create a new API key with appropriate permissions.
-4. For testnet, use [testnet.bitmex.com](https://testnet.bitmex.com).
+1. 登录 BitMEX 账号。
+2. 前往 Account & Security → API Keys。
+3. 创建一个具有合适权限的新 API Key。
+4. 测试网请使用 [testnet.bitmex.com](https://testnet.bitmex.com)。
 
 :::note
-**Testnet API endpoints**:
+**Testnet API 端点**：
 
-- REST API: `https://testnet.bitmex.com/api/v1`
-- WebSocket: `wss://ws.testnet.bitmex.com/realtime`
+- REST API：`https://testnet.bitmex.com/api/v1`
+- WebSocket：`wss://ws.testnet.bitmex.com/realtime`
 
-The adapter automatically routes requests to the correct endpoints when `testnet=True` is configured.
+当配置 `testnet=True` 时，适配器会自动将请求路由到相应的测试网端点。
 :::
 
-### Data client configuration options
+### 数据客户端配置选项
 
-The BitMEX data client provides the following configuration options:
+BitMEX 数据客户端提供以下配置项：
 
-| Option                             | Default  | Description                                                                                                                 |
-| ---------------------------------- | -------- | --------------------------------------------------------------------------------------------------------------------------- |
-| `api_key`                          | `None`   | Optional API key; if `None`, loaded from `BITMEX_API_KEY`.                                                                  |
-| `api_secret`                       | `None`   | Optional API secret; if `None`, loaded from `BITMEX_API_SECRET`.                                                            |
-| `base_url_http`                    | `None`   | Override for the REST base URL (defaults to production).                                                                    |
-| `base_url_ws`                      | `None`   | Override for the WebSocket base URL (defaults to production).                                                               |
-| `testnet`                          | `False`  | Route requests to the BitMEX testnet when `True`.                                                                           |
-| `http_timeout_secs`                | `60`     | Request timeout applied to HTTP calls.                                                                                      |
-| `max_retries`                      | `None`   | Maximum retry attempts for HTTP calls (disabled when `None`).                                                               |
-| `retry_delay_initial_ms`           | `1,000`  | Initial backoff delay (milliseconds) between retries.                                                                       |
-| `retry_delay_max_ms`               | `5,000`  | Maximum backoff delay (milliseconds) between retries.                                                                       |
-| `recv_window_ms`                   | `10,000` | Expiration window (milliseconds) for signed requests. See [Request authentication](#request-authentication-and-expiration). |
-| `update_instruments_interval_mins` | `60`     | Interval (minutes) between instrument catalogue refreshes.                                                                  |
-| `max_requests_per_second`          | `10`     | Burst rate limit enforced by the adapter for REST calls.                                                                    |
-| `max_requests_per_minute`          | `120`    | Rolling minute rate limit enforced by the adapter for REST calls.                                                           |
+| 选项                             | 默认    | 说明                                                                                                                       |
+| -------------------------------- | ------- | -------------------------------------------------------------------------------------------------------------------------- |
+| `api_key`                         | `None`  | 可选的 API Key；若为 `None`，从 `BITMEX_API_KEY` 加载。                                                                     |
+| `api_secret`                      | `None`  | 可选的 API Secret；若为 `None`，从 `BITMEX_API_SECRET` 加载。                                                               |
+| `base_url_http`                   | `None`  | 覆盖 REST 基础 URL（默认为生产环境）。                                                                                     |
+| `base_url_ws`                     | `None`  | 覆盖 WebSocket 基础 URL（默认为生产环境）。                                                                                 |
+| `testnet`                         | `False` | 为 `True` 时将请求路由到 BitMEX 测试网。                                                                                   |
+| `http_timeout_secs`               | `60`    | HTTP 请求的超时时间（秒）。                                                                                                 |
+| `max_retries`                     | `None`  | HTTP 重试最大次数（为 `None` 时禁用重试）。                                                                                 |
+| `retry_delay_initial_ms`          | `1,000` | 重试间的初始退避延迟（毫秒）。                                                                                             |
+| `retry_delay_max_ms`              | `5,000` | 重试间的最大退避延迟（毫秒）。                                                                                             |
+| `recv_window_ms`                  | `10,000`| 签名请求的过期窗口（毫秒）。详见 [请求鉴权](#请求鉴权与过期)。                                                             |
+| `update_instruments_interval_mins`| `60`    | 合约目录刷新间隔（分钟）。                                                                                                 |
+| `max_requests_per_second`         | `10`    | 适配器对 REST 调用施加的突发速率限制。                                                                                     |
+| `max_requests_per_minute`         | `120`   | 适配器对 REST 调用施加的滚动分钟速率限制。                                                                                 |
 
-### Execution client configuration options
+### 执行客户端配置选项
 
-The BitMEX execution client provides the following configuration options:
+| 选项                      | 默认    | 说明                                                                                                                       |
+| ------------------------ | ------- | -------------------------------------------------------------------------------------------------------------------------- |
+| `api_key`                 | `None`  | 可选的 API Key；若为 `None`，从 `BITMEX_API_KEY` 加载。                                                                     |
+| `api_secret`              | `None`  | 可选的 API Secret；若为 `None`，从 `BITMEX_API_SECRET` 加载。                                                               |
+| `base_url_http`           | `None`  | 覆盖 REST 基础 URL（默认为生产环境）。                                                                                     |
+| `base_url_ws`             | `None`  | 覆盖 WebSocket 基础 URL（默认为生产环境）。                                                                                 |
+| `testnet`                 | `False` | 为 `True` 时将订单路由到 BitMEX 测试网。                                                                                   |
+| `http_timeout_secs`       | `60`    | HTTP 请求的超时时间（秒）。                                                                                                 |
+| `max_retries`             | `None`  | HTTP 重试最大次数（为 `None` 时禁用重试）。                                                                                 |
+| `retry_delay_initial_ms`  | `1,000` | 重试间的初始退避延迟（毫秒）。                                                                                             |
+| `retry_delay_max_ms`      | `5,000` | 重试间的最大退避延迟（毫秒）。                                                                                             |
+| `recv_window_ms`          | `10,000`| 签名请求的过期窗口（毫秒）。详见 [请求鉴权](#请求鉴权与过期)。                                                             |
+| `max_requests_per_second` | `10`    | 适配器对 REST 调用施加的突发速率限制。                                                                                     |
+| `max_requests_per_minute` | `120`   | 适配器对 REST 调用施加的滚动分钟速率限制。                                                                                 |
+| `canceller_pool_size`     | `3`     | 取消广播器中冗余 HTTP 客户端的数量。详见 Cancel Broadcaster（取消请求广播器）部分。                                       |
 
-| Option                    | Default  | Description                                                                                                                 |
-| ------------------------- | -------- | --------------------------------------------------------------------------------------------------------------------------- |
-| `api_key`                 | `None`   | Optional API key; if `None`, loaded from `BITMEX_API_KEY`.                                                                  |
-| `api_secret`              | `None`   | Optional API secret; if `None`, loaded from `BITMEX_API_SECRET`.                                                            |
-| `base_url_http`           | `None`   | Override for the REST base URL (defaults to production).                                                                    |
-| `base_url_ws`             | `None`   | Override for the WebSocket base URL (defaults to production).                                                               |
-| `testnet`                 | `False`  | Route orders to the BitMEX testnet when `True`.                                                                             |
-| `http_timeout_secs`       | `60`     | Request timeout applied to HTTP calls.                                                                                      |
-| `max_retries`             | `None`   | Maximum retry attempts for HTTP calls (disabled when `None`).                                                               |
-| `retry_delay_initial_ms`  | `1,000`  | Initial backoff delay (milliseconds) between retries.                                                                       |
-| `retry_delay_max_ms`      | `5,000`  | Maximum backoff delay (milliseconds) between retries.                                                                       |
-| `recv_window_ms`          | `10,000` | Expiration window (milliseconds) for signed requests. See [Request authentication](#request-authentication-and-expiration). |
-| `max_requests_per_second` | `10`     | Burst rate limit enforced by the adapter for REST calls.                                                                    |
-| `max_requests_per_minute` | `120`    | Rolling minute rate limit enforced by the adapter for REST calls.                                                           |
-| `canceller_pool_size`     | `3`      | Number of redundant HTTP clients in the cancel broadcaster pool. See [Cancel broadcaster](#cancel-broadcaster).             |
+### 配置示例
 
-### Configuration examples
-
-A typical BitMEX configuration for live trading includes both testnet and mainnet options:
+以下为一个典型的 BitMEX 实盘配置示例，包含 testnet 与 mainnet：
 
 ```python
 from nautilus_trader.adapters.bitmex.config import BitmexDataClientConfig
 from nautilus_trader.adapters.bitmex.config import BitmexExecClientConfig
 
-# Using environment variables (recommended)
+# 使用环境变量（推荐）
 testnet_data_config = BitmexDataClientConfig(
-    testnet=True,  # API credentials loaded from BITMEX_API_KEY and BITMEX_API_SECRET
+    testnet=True,  # API 凭证从 BITMEX_API_KEY 与 BITMEX_API_SECRET 加载
 )
 
-# Using explicit credentials
+# 使用显式凭证
 mainnet_data_config = BitmexDataClientConfig(
-    api_key="YOUR_API_KEY",  # Or use os.getenv("BITMEX_API_KEY")
-    api_secret="YOUR_API_SECRET",  # Or use os.getenv("BITMEX_API_SECRET")
+    api_key="YOUR_API_KEY",  # 或使用 os.getenv("BITMEX_API_KEY")
+    api_secret="YOUR_API_SECRET",  # 或使用 os.getenv("BITMEX_API_SECRET")
     testnet=False,
 )
 
@@ -530,49 +505,40 @@ mainnet_exec_config = BitmexExecClientConfig(
 )
 ```
 
-## Trading considerations
+## 交易注意事项
 
-### Contingent orders
+### 联动订单（Contingent orders）
 
-The BitMEX execution adapter now maps Nautilus contingent order lists to the exchange's
-native `clOrdLinkID`/`contingencyType` mechanics. When the engine submits
-`ContingencyType::Oco` or `ContingencyType::Oto` orders the adapter will:
+BitMEX 执行适配器现在将 Nautilus 的联动订单列表映射到交易所原生的 `clOrdLinkID`/`contingencyType` 机制。当引擎提交 `ContingencyType::Oco` 或 `ContingencyType::Oto` 订单时，适配器会执行：
 
-- Create/maintain the linked order group on BitMEX so child stops and targets inherit the
-  parent order status.
-- Propagate order list updates and cancellations so that contingent peers stay aligned with
-  the current position state.
-- Surface execution reports with the appropriate contingency metadata, enabling strategy-level
-  tracking without additional manual wiring.
+- 在 BitMEX 上创建/维护联动订单组，使得子止损与目标单继承父单状态。
+- 传播订单列表的更新与取消，以确保联动订单在当前仓位状态下保持一致。
+- 以合适的联动元数据（contingency metadata）回传执行报告，便于策略层追踪而无需额外手动接线。
 
-This means common bracket flows (entry + stop + take-profit) and multi-leg stop structures can
-now be managed directly by BitMEX instead of being emulated client-side. When defining
-strategies, continue to use Nautilus `OrderList`/`ContingencyType` abstractions—the adapter
-handles the required BitMEX wiring automatically.
+这意味着常见的 bracket 流（入场 + 止损 + 止盈）与多腿止损结构可以直接交由 BitMEX 管理，而无需客户端模拟。在定义策略时继续使用 Nautilus 的 `OrderList`/`ContingencyType` 抽象——适配器会自动完成必要的 BitMEX 端联动。
 
-### Contract specifications
+### 合约规格
 
-- **Inverse contracts**: Settled in cryptocurrency (e.g., XBTUSD settled in XBT).
-- **Linear contracts**: Settled in stablecoin (e.g., ETHUSDT settled in USDT).
-- **Contract size**: Varies by instrument, check specifications carefully.
-- **Tick size**: Minimum price increment varies by contract.
+- **反向合约（Inverse）**：以加密货币结算（例如 XBTUSD 以 XBT 结算）。
+- **线性合约（Linear）**：以稳定币结算（例如 ETHUSDT 以 USDT 结算）。
+- **合约大小**：因合约而异，请仔细查阅合约规格。
+- **最小变动价位（Tick size）**：不同合约的最小价格步长不同。
 
-### Margin requirements
+### 保证金要求
 
-- Initial margin requirements vary by contract and market conditions.
-- Maintenance margin is typically lower than initial margin.
-- Liquidation occurs when maintenance margin requirement is not satisfied.
-- BitMEX supports both isolated margin and cross margin modes.
-- Risk limits can be adjusted based on position size per the [Exchange Rules](https://www.bitmex.com/exchange-rules).
+- 初始保证金要求随合约与市场状况变化而不同。
+- 维持保证金通常低于初始保证金。
+- 当维持保证金不足时会触发强平（liquidation）。
+- BitMEX 支持逐仓（isolated）与全仓（cross）两种保证金模式。
+- 风险限额可根据持仓规模进行调整，详见 [Exchange Rules](https://www.bitmex.com/exchange-rules)。
 
-### Fees
+### 手续费
 
-- **Maker fees**: Typically negative (rebate) for providing liquidity.
-- **Taker fees**: Positive fee for taking liquidity.
-- **Funding rates**: Apply to perpetual contracts every 8 hours.
-- **Prediction market fees**: Maker 0.00%, Taker 0.25% (no leverage allowed).
+- **Maker 费用**：通常为负（即返佣），用于提供流动性。
+- **Taker 费用**：作为吃单方需支付的费用。
+- **资金费率**：适用于永续合约，每 8 小时结算一次。
+- **预测市场费用**：Maker 0.00%，Taker 0.25%（不允许杠杆）。
 
 :::info
-For additional features or to contribute to the BitMEX adapter, please see our
-[contributing guide](https://github.com/nautechsystems/nautilus_trader/blob/develop/CONTRIBUTING.md).
+如需更多功能或希望为 BitMEX 适配器贡献代码，请参阅我们的 [贡献指南](https://github.com/nautechsystems/nautilus_trader/blob/develop/CONTRIBUTING.md)。
 :::
