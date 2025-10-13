@@ -36,7 +36,7 @@ NautilusTrader 能够为多个策略和多个交易场所（每个实例）同�
 
 下面的示意图展示了 Nautilus 执行组件之间命令与事件的消息流：
 
-````text
+```text
                   ┌───────────────────┐
                   │                   │
                   │                   │
@@ -64,7 +64,7 @@ NautilusTrader 能够为多个策略和多个交易场所（每个实例）同�
                   │                   │
                   └───────────────────┘
 
-```text
+```
 
 ## 订单管理系统（OMS）
 
@@ -78,12 +78,12 @@ NautilusTrader 能够为多个策略和多个交易场所（每个实例）同�
 
 下表描述了策略端与交易场所不同配置组合下的适用场景。当策略与场所的 OMS 类型不一致时，`ExecutionEngine` 会在接收到 `OrderFilled` 事件时覆写或分配 `position_id`。这里的“虚拟头寸（virtual position）”指的是存在于 Nautilus 系统中但并非真实存在于交易场所的头寸 ID。
 
-| Strategy OMS                 | Venue OMS              | 说明                                                                                                                                                |
-|:-----------------------------|:-----------------------|:---------------------------------------------------------------------------------------------------------------------------------------------------|
-| `NETTING`                    | `NETTING`              | 策略采用场所的原生 OMS 类型，针对每个 instrument ID 使用单一 position ID。                                                                 |
-| `HEDGING`                    | `HEDGING`              | 策略采用场所的原生 OMS 类型，针对每个 instrument ID 支持多个 position ID（包括 `LONG` 与 `SHORT`）。                                      |
-| `NETTING`                    | `HEDGING`              | 策略覆盖了场所的原生 OMS 类型。场所按 instrument ID 跟踪多个头寸，但 Nautilus 在策略端以单一 position ID 维护头寸。 |
-| `HEDGING`                    | `NETTING`              | 策略覆盖了场所的原生 OMS 类型。场所仅按 instrument ID 跟踪单一头寸，但 Nautilus 在策略端维护多个 position ID。 |
+| Strategy OMS | Venue OMS | 说明                                                                                                                |
+| :----------- | :-------- | :------------------------------------------------------------------------------------------------------------------ |
+| `NETTING`    | `NETTING` | 策略采用场所的原生 OMS 类型，针对每个 instrument ID 使用单一 position ID。                                          |
+| `HEDGING`    | `HEDGING` | 策略采用场所的原生 OMS 类型，针对每个 instrument ID 支持多个 position ID（包括 `LONG` 与 `SHORT`）。                |
+| `NETTING`    | `HEDGING` | 策略覆盖了场所的原生 OMS 类型。场所按 instrument ID 跟踪多个头寸，但 Nautilus 在策略端以单一 position ID 维护头寸。 |
+| `HEDGING`    | `NETTING` | 策略覆盖了场所的原生 OMS 类型。场所仅按 instrument ID 跟踪单一头寸，但 Nautilus 在策略端维护多个 position ID。      |
 
 :::note
 为策略和场所分别配置不同的 OMS 类型会增加平台复杂度，但可以支持更丰富的交易风格与偏好（见上表）。
@@ -147,7 +147,7 @@ TWAP 执行算法旨在将大额委托的执行均匀分散到指定的时间区
 
 算法会立即提交第一笔子订单，最后一笔提交则是在时间窗口结束时的主订单。
 
-下面以位于 ``/examples/algorithms/twap.py`` 的 TWAP 实现为例，演示如何在一个已初始化的 `BacktestEngine` 中初始化并注册一个 TWAP 执行算法：
+下面以位于 `/examples/algorithms/twap.py` 的 TWAP 实现为例，演示如何在一个已初始化的 `BacktestEngine` 中初始化并注册一个 TWAP 执行算法：
 
 ```python
 from nautilus_trader.examples.algorithms.twap import TWAPExecAlgorithm
@@ -155,7 +155,7 @@ from nautilus_trader.examples.algorithms.twap import TWAPExecAlgorithm
 # `engine` 是一个已初始化的 BacktestEngine 实例
 exec_algorithm = TWAPExecAlgorithm()
 engine.add_exec_algorithm(exec_algorithm)
-````
+```
 
 该算法需要指定两个参数：
 
