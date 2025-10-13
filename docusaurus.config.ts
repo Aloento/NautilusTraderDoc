@@ -76,8 +76,21 @@ const config: Config = {
     },
     footer: {
       style: 'dark',
-      links: [],
-      copyright: `Copyright © ${new Date().getFullYear()} NautilusTrader Documentation.`,
+      links: [
+        {
+          items: [
+            {
+              label: 'Official GitHub',
+              href: 'https://github.com/nautechsystems/nautilus_trader',
+            },
+            {
+              label: 'Official Documentation',
+              href: 'https://nautilustrader.io/docs',
+            },
+          ],
+        },
+      ],
+      copyright: `© ${new Date().getFullYear()} Nautech Systems Pty Ltd. All rights reserved.`,
     },
     prism: {
       theme: prismThemes.github,
