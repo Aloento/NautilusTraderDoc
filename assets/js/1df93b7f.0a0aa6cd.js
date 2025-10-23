@@ -1,0 +1,1 @@
+"use strict";(globalThis.webpackChunknautilus_trader=globalThis.webpackChunknautilus_trader||[]).push([[4583],{1522:(t,a,r)=>{r.r(a),r.d(a,{default:()=>s});var u=r(7596),e=(r(6363),r(7259));function s(){return(0,e.jsx)(u.rd,{to:"/getting_started/"})}}}]);
