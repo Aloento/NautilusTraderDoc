@@ -607,7 +607,7 @@ When multiple data points have identical timestamps, higher priority streams are
 - ​**Memory efficient**​: Dynamic generators load data incrementally
 - ​**Time complexity**​: O(log n) per item for n streams (heap operations)
 - ​**Space complexity**​: O(k) where k is the total number of active data points across all streams at any given time
-- **Parameters:** **empty_data_callback** (_Callable_ _[_ \*[\**str* *,* *int* *]\* _,_ _None_ _]_ _,_ ​*optional*​) – Called once per stream when it is exhausted. Arguments are the stream name and the final `ts_init` timestamp observed.
+- **Parameters:** **empty_data_callback** (_Callable_ _[_ \*[\*_str_ _,_ _int_ *]\* _,_ _None_ _]_ _,_ ​*optional*​) – Called once per stream when it is exhausted. Arguments are the stream name and the final `ts_init` timestamp observed.
 
 #### SEE ALSO
 
@@ -678,6 +678,7 @@ The method automatically handles:
 Remove the data stream identified by `data_name`. The operation is silently ignored if the specified stream does not exist.
 
 - **Parameters:**
+
   - **data_name** (​*str*​) – The unique identifier of the data stream to remove.
   - **complete_remove** (_bool_ _,_ ​*default False*​) –
     Controls the level of cleanup performed:
@@ -687,6 +688,7 @@ Remove the data stream identified by `data_name`. The operation is silently igno
     > re-initialization (useful for temporary stream removal)
 
     - `True`: Complete removal including any associated generator function (recommended for permanent stream removal)
+
 - **Raises:** **ValueError** – If data_name is not a valid string.
 
 #### set_index(self, str data_name, int index) → void
@@ -1115,7 +1117,7 @@ Provides an order matching engine for a single market.
   - **use_position_ids** (_bool_ _,_ ​*default True*​) – If venue position IDs will be generated on order fills.
   - **use_random_ids** (_bool_ _,_ ​*default False*​) – If all venue generated identifiers will be random UUID4’s.
   - **use_reduce_only** (_bool_ _,_ ​*default True*​) – If the reduce_only execution instruction on orders will be honored.
-  - **auction_match_algo** (_Callable_ _[_ \*[\**Ladder* *,* *Ladder* *]\* _,_ _Tuple_ \*[\**List* *,* *List* *]\* _,_ ​*optional*​) – The auction matching algorithm.
+  - **auction_match_algo** (_Callable_ _[_ \*[\*_Ladder_ _,_ _Ladder_ *]\* _,_ _Tuple_ \*[\**List*_,_ _List_ *]\* _,_ ​*optional*​) – The auction matching algorithm.
   - **bar_adaptive_high_low_ordering** (_bool_ _,_ ​*default False*​) – Determines whether the processing order of bar prices is adaptive based on a heuristic. This setting is only relevant when bar_execution is True. If False, bar prices are always processed in the fixed order: Open, High, Low, Close. If True, the processing order adapts with the heuristic:
     - If High is closer to Open than Low then the processing order is Open, High, Low, Close.
     - If Low is closer to Open than High then the processing order is Open, Low, High, Close.
@@ -1880,7 +1882,7 @@ Generate an AccountState event and publish on the message bus.
   - **margins** (_list_ _​[​_[_MarginBalance_](https://nautilustrader.io/docs/latest/api_reference/model/#nautilus_trader.model.MarginBalance) ​*]*​) – The margin balances.
   - **reported** (​*bool*​) – If the balances are reported directly from the exchange.
   - **ts_event** (​*uint64_t*​) – UNIX timestamp (nanoseconds) when the account state event occurred.
-  - **info** (_dict_ \*[\**str* *,* *object* ​*]\*​) – The additional implementation specific account information.
+  - **info** (_dict_ \*[\*_str_ _,_ _object_ ​*]\*​) – The additional implementation specific account information.
 
 #### generate_order_accepted(self, StrategyId strategy_id, InstrumentId instrument_id, ClientOrderId client_order_id, VenueOrderId venue_order_id, uint64_t ts_event) → void
 
@@ -1946,7 +1948,7 @@ Generate an OrderFilled event and send it to the ExecutionEngine.
   - **commission** ([_Money_](https://nautilustrader.io/docs/latest/api_reference/model/#nautilus_trader.model.Money)) – The fill commission.
   - **liquidity_side** (LiquiditySide {`NO_LIQUIDITY_SIDE`, `MAKER`, `TAKER`}) – The execution liquidity side.
   - **ts_event** (​*uint64_t*​) – UNIX timestamp (nanoseconds) when the order filled event occurred.
-  - **info** (_dict_ \*[\**str* *,* *object* *]\* _,_ ​*optional*​) – The additional fill information.
+  - **info** (_dict_ \*[\*_str_ _,_ _object_ *]\* _,_ ​*optional*​) – The additional fill information.
 
 #### generate_order_modify_rejected(self, StrategyId strategy_id, InstrumentId instrument_id, ClientOrderId client_order_id, VenueOrderId venue_order_id, str reason, uint64_t ts_event) → void
 
@@ -2725,7 +2727,7 @@ Bases: [`FillModel`](https://nautilustrader.io/docs/latest/api_reference/backtes
 
 Fill model that applies different execution models based on order size.
 
-Small orders (<=10) get good liquidity at best prices. Large orders experience price impact with partial fills at worse prices.
+Small orders (\<\=10) get good liquidity at best prices. Large orders experience price impact with partial fills at worse prices.
 
 #### get_orderbook_for_fill_simulation(self, Instrument instrument: Instrument, Order order: Order, Price best_bid: Price, Price best_ask: Price) → [OrderBook](https://nautilustrader.io/docs/latest/api_reference/model/book#nautilus_trader.model.book.OrderBook) | None
 
@@ -3577,7 +3579,7 @@ Load the actor/strategy state from the give state dictionary.
 
 Calls on_load and passes the state.
 
-- **Parameters:** **state** (_dict_ \*[\**str* *,* *bytes* ​*]\*​) – The strategy state to load.
+- **Parameters:** **state** (_dict_ \*[\*_str_ _,_ _bytes_ ​*]\*​) – The strategy state to load.
 
 #### WARNING
 
@@ -3729,7 +3731,7 @@ Actions to be performed when the actor state is loaded.
 
 Saved state values will be contained in the give state dictionary.
 
-- **Parameters:** **state** (_dict_ \*[\**str* *,* *bytes* ​*]\*​) – The strategy state to load.
+- **Parameters:** **state** (_dict_ \*[\*_str_ _,_ _bytes_ ​*]\*​) – The strategy state to load.
 
 #### WARNING
 
@@ -3994,15 +3996,15 @@ If the request fails, then an error is logged.
 
 - **Parameters:**
   - **bar_types** (_list_ _​[​_[_BarType_](https://nautilustrader.io/docs/latest/api_reference/model/data#nautilus_trader.model.data.BarType) ​*]*​) – The list of bar types for the request. Composite bars can also be used and need to figure in the list after a BarType on which it depends.
-  - **start** (​*datetime*​) – The start datetime (UTC) of request time range. Should be left-inclusive (start <= value), but inclusiveness is not currently guaranteed.
-  - **end** (_datetime_ _,_ ​*optional*​) – The end datetime (UTC) of request time range. If None then will be replaced with the current UTC time. Should be right-inclusive (value <= end), but inclusiveness is not currently guaranteed.
+  - **start** (​*datetime*​) – The start datetime (UTC) of request time range. Should be left-inclusive (start \<\= value), but inclusiveness is not currently guaranteed.
+  - **end** (_datetime_ _,_ ​*optional*​) – The end datetime (UTC) of request time range. If None then will be replaced with the current UTC time. Should be right-inclusive (value \<\= end), but inclusiveness is not currently guaranteed.
   - **limit** (_int_ _,_ ​*optional*​) – The limit on the amount of data received (quote ticks, trade ticks or bars).
   - **client_id** ([_ClientId_](https://nautilustrader.io/docs/latest/api_reference/model/identifiers#nautilus_trader.model.identifiers.ClientId) _,_ ​*optional*​) – The specific client ID for the command. If `None` then will be inferred from the venue in the instrument ID.
   - **callback** (_Callable_ _[_ _​[​_[_UUID4_](https://nautilustrader.io/docs/latest/api_reference/core#nautilus_trader.core.UUID4) _]_ _,_ _None_ _]_ _,_ ​*optional*​) – The registered callback, to be called with the request ID when the response has completed processing.
   - **include_external_data** (_bool_ _,_ ​*default False*​) – If True, includes the queried external data in the response.
   - **update_subscriptions** (_bool_ _,_ ​*default False*​) – If True, updates the aggregators of any existing or future subscription with the queried external data.
   - **update_catalog** (_bool_ _,_ ​*optional*​) – Whether to update a catalog with the received data.
-  - **params** (_dict_ \*[\**str* *,* *Any* *]\* _,_ ​*optional*​) – Additional parameters potentially used by a specific client.
+  - **params** (_dict_ \*[\*_str_ _,_ _Any_ *]\* _,_ ​*optional*​) – Additional parameters potentially used by a specific client.
 - **Returns:** The request_id for the request.
 - **Return type:** [UUID4](https://nautilustrader.io/docs/latest/api_reference/core#nautilus_trader.core.UUID4)
 - **Raises:**
@@ -4026,13 +4028,13 @@ If the request fails, then an error is logged.
 
 - **Parameters:**
   - **bar_type** ([_BarType_](https://nautilustrader.io/docs/latest/api_reference/model/data#nautilus_trader.model.data.BarType)) – The bar type for the request.
-  - **start** (​*datetime*​) – The start datetime (UTC) of request time range. Should be left-inclusive (start <= value), but inclusiveness is not currently guaranteed.
-  - **end** (_datetime_ _,_ ​*optional*​) – The end datetime (UTC) of request time range. If None then will be replaced with the current UTC time. Should be right-inclusive (value <= end), but inclusiveness is not currently guaranteed.
+  - **start** (​*datetime*​) – The start datetime (UTC) of request time range. Should be left-inclusive (start \<\= value), but inclusiveness is not currently guaranteed.
+  - **end** (_datetime_ _,_ ​*optional*​) – The end datetime (UTC) of request time range. If None then will be replaced with the current UTC time. Should be right-inclusive (value \<\= end), but inclusiveness is not currently guaranteed.
   - **limit** (_int_ _,_ ​*optional*​) – The limit on the amount of bars received.
   - **client_id** ([_ClientId_](https://nautilustrader.io/docs/latest/api_reference/model/identifiers#nautilus_trader.model.identifiers.ClientId) _,_ ​*optional*​) – The specific client ID for the command. If `None` then will be inferred from the venue in the instrument ID.
   - **callback** (_Callable_ _[_ _​[​_[_UUID4_](https://nautilustrader.io/docs/latest/api_reference/core#nautilus_trader.core.UUID4) _]_ _,_ _None_ _]_ _,_ ​*optional*​) – The registered callback, to be called with the request ID when the response has completed processing.
   - **update_catalog** (_bool_ _,_ ​*optional*​) – Whether to update a catalog with the received data.
-  - **params** (_dict_ \*[\**str* *,* *Any* *]\* _,_ ​*optional*​) – Additional parameters potentially used by a specific client.
+  - **params** (_dict_ \*[\*_str_ _,_ _Any_ *]\* _,_ ​*optional*​) – Additional parameters potentially used by a specific client.
 - **Returns:** The request_id for the request.
 - **Return type:** [UUID4](https://nautilustrader.io/docs/latest/api_reference/core#nautilus_trader.core.UUID4)
 - **Raises:**
@@ -4053,12 +4055,12 @@ If the request fails, then an error is logged.
 - **Parameters:**
   - **data_type** ([_DataType_](https://nautilustrader.io/docs/latest/api_reference/model/data#nautilus_trader.model.data.DataType)) – The data type for the request.
   - **client_id** ([_ClientId_](https://nautilustrader.io/docs/latest/api_reference/model/identifiers#nautilus_trader.model.identifiers.ClientId)) – The data client ID.
-  - **start** (​*datetime*​) – The start datetime (UTC) of request time range. Cannot be None. Should be left-inclusive (start <= value), but inclusiveness is not currently guaranteed.
-  - **end** (_datetime_ _,_ ​*optional*​) – The end datetime (UTC) of request time range. If None then will be replaced with the current UTC time. Should be right-inclusive (value <= end), but inclusiveness is not currently guaranteed.
+  - **start** (​*datetime*​) – The start datetime (UTC) of request time range. Cannot be None. Should be left-inclusive (start \<\= value), but inclusiveness is not currently guaranteed.
+  - **end** (_datetime_ _,_ ​*optional*​) – The end datetime (UTC) of request time range. If None then will be replaced with the current UTC time. Should be right-inclusive (value \<\= end), but inclusiveness is not currently guaranteed.
   - **limit** (_int_ _,_ ​*optional*​) – The limit on the amount of data points received.
   - **callback** (_Callable_ _[_ _​[​_[_UUID4_](https://nautilustrader.io/docs/latest/api_reference/core#nautilus_trader.core.UUID4) _]_ _,_ _None_ _]_ _,_ ​*optional*​) – The registered callback, to be called with the request ID when the response has completed processing.
   - **update_catalog** (_bool_ _,_ ​*optional*​) – Whether to update a catalog with the received data.
-  - **params** (_dict_ \*[\**str* *,* *Any* *]\* _,_ ​*optional*​) – Additional parameters potentially used by a specific client.
+  - **params** (_dict_ \*[\*_str_ _,_ _Any_ *]\* _,_ ​*optional*​) – Additional parameters potentially used by a specific client.
 - **Returns:** The request_id for the request.
 - **Return type:** [UUID4](https://nautilustrader.io/docs/latest/api_reference/core#nautilus_trader.core.UUID4)
 - **Raises:**
@@ -4085,7 +4087,7 @@ If the request fails, then an error is logged.
   - **client_id** ([_ClientId_](https://nautilustrader.io/docs/latest/api_reference/model/identifiers#nautilus_trader.model.identifiers.ClientId) _,_ ​*optional*​) – The specific client ID for the command. If `None` then will be inferred from the venue in the instrument ID.
   - **callback** (_Callable_ _[_ _​[​_[_UUID4_](https://nautilustrader.io/docs/latest/api_reference/core#nautilus_trader.core.UUID4) _]_ _,_ _None_ _]_ _,_ ​*optional*​) – The registered callback, to be called with the request ID when the response has completed processing.
   - **update_catalog** (_bool_ _,_ ​*optional*​) – Whether to update a catalog with the received data.
-  - **params** (_dict_ \*[\**str* *,* *Any* *]\* _,_ ​*optional*​) – Additional parameters potentially used by a specific client.
+  - **params** (_dict_ \*[\*_str_ _,_ _Any_ *]\* _,_ ​*optional*​) – Additional parameters potentially used by a specific client.
 - **Returns:** The request_id for the request.
 - **Return type:** [UUID4](https://nautilustrader.io/docs/latest/api_reference/core#nautilus_trader.core.UUID4)
 - **Raises:**
@@ -4111,7 +4113,7 @@ If the request fails, then an error is logged.
   - **client_id** ([_ClientId_](https://nautilustrader.io/docs/latest/api_reference/model/identifiers#nautilus_trader.model.identifiers.ClientId) _,_ ​*optional*​) – The specific client ID for the command. If `None` then will be inferred from the venue in the instrument ID.
   - **callback** (_Callable_ _[_ _​[​_[_UUID4_](https://nautilustrader.io/docs/latest/api_reference/core#nautilus_trader.core.UUID4) _]_ _,_ _None_ _]_ _,_ ​*optional*​) – The registered callback, to be called with the request ID when the response has completed processing.
   - **update_catalog** (_bool_ _,_ ​*optional*​) – Whether to update a catalog with the received data.
-  - **params** (_dict_ \*[\**str* *,* *Any* *]\* _,_ ​*optional*​) – Additional parameters potentially used by a specific client:
+  - **params** (_dict_ \*[\*_str_ _,_ _Any_ *]\* _,_ ​*optional*​) – Additional parameters potentially used by a specific client:
     - only_last (default True) retains only the latest instrument record per instrument_id, based on the most recent ts_init.
 - **Returns:** The request_id for the request.
 - **Return type:** [UUID4](https://nautilustrader.io/docs/latest/api_reference/core#nautilus_trader.core.UUID4)
@@ -4134,7 +4136,7 @@ If the request fails, then an error is logged.
   - **limit** (_int_ _,_ ​*optional*​) – The limit on the depth of the order book snapshot.
   - **client_id** ([_ClientId_](https://nautilustrader.io/docs/latest/api_reference/model/identifiers#nautilus_trader.model.identifiers.ClientId) _,_ ​*optional*​) – The specific client ID for the command. If None, it will be inferred from the venue in the instrument ID.
   - **callback** (_Callable_ _[_ _​[​_[_UUID4_](https://nautilustrader.io/docs/latest/api_reference/core#nautilus_trader.core.UUID4) _]_ _,_ _None_ _]_ _,_ ​*optional*​) – The registered callback, to be called with the request ID when the response has completed processing.
-  - **params** (_dict_ \*[\**str* *,* *Any* *]\* _,_ ​*optional*​) – Additional parameters potentially used by a specific client.
+  - **params** (_dict_ \*[\*_str_ _,_ _Any_ *]\* _,_ ​*optional*​) – Additional parameters potentially used by a specific client.
 - **Returns:** The request_id for the request.
 - **Return type:** [UUID4](https://nautilustrader.io/docs/latest/api_reference/core#nautilus_trader.core.UUID4)
 - **Raises:**
@@ -4153,13 +4155,13 @@ If the request fails, then an error is logged.
 
 - **Parameters:**
   - **instrument_id** ([_InstrumentId_](https://nautilustrader.io/docs/latest/api_reference/model/identifiers#nautilus_trader.model.identifiers.InstrumentId)) – The tick instrument ID for the request.
-  - **start** (​*datetime*​) – The start datetime (UTC) of request time range. Should be left-inclusive (start <= value), but inclusiveness is not currently guaranteed.
-  - **end** (_datetime_ _,_ ​*optional*​) – The end datetime (UTC) of request time range. If None then will be replaced with the current UTC time. Should be right-inclusive (value <= end), but inclusiveness is not currently guaranteed.
+  - **start** (​*datetime*​) – The start datetime (UTC) of request time range. Should be left-inclusive (start \<\= value), but inclusiveness is not currently guaranteed.
+  - **end** (_datetime_ _,_ ​*optional*​) – The end datetime (UTC) of request time range. If None then will be replaced with the current UTC time. Should be right-inclusive (value \<\= end), but inclusiveness is not currently guaranteed.
   - **limit** (_int_ _,_ ​*optional*​) – The limit on the amount of quote ticks received.
   - **client_id** ([_ClientId_](https://nautilustrader.io/docs/latest/api_reference/model/identifiers#nautilus_trader.model.identifiers.ClientId) _,_ ​*optional*​) – The specific client ID for the command. If `None` then will be inferred from the venue in the instrument ID.
   - **callback** (_Callable_ _[_ _​[​_[_UUID4_](https://nautilustrader.io/docs/latest/api_reference/core#nautilus_trader.core.UUID4) _]_ _,_ _None_ _]_ _,_ ​*optional*​) – The registered callback, to be called with the request ID when the response has completed processing.
   - **update_catalog** (_bool_ _,_ ​*optional*​) – Whether to update a catalog with the received data.
-  - **params** (_dict_ \*[\**str* *,* *Any* *]\* _,_ ​*optional*​) – Additional parameters potentially used by a specific client.
+  - **params** (_dict_ \*[\*_str_ _,_ _Any_ *]\* _,_ ​*optional*​) – Additional parameters potentially used by a specific client.
 - **Returns:** The request_id for the request.
 - **Return type:** [UUID4](https://nautilustrader.io/docs/latest/api_reference/core#nautilus_trader.core.UUID4)
 - **Raises:**
@@ -4181,13 +4183,13 @@ If the request fails, then an error is logged.
 
 - **Parameters:**
   - **instrument_id** ([_InstrumentId_](https://nautilustrader.io/docs/latest/api_reference/model/identifiers#nautilus_trader.model.identifiers.InstrumentId)) – The tick instrument ID for the request.
-  - **start** (​*datetime*​) – The start datetime (UTC) of request time range. Should be left-inclusive (start <= value), but inclusiveness is not currently guaranteed.
-  - **end** (_datetime_ _,_ ​*optional*​) – The end datetime (UTC) of request time range. If None then will be replaced with the current UTC time. Should be right-inclusive (value <= end), but inclusiveness is not currently guaranteed.
+  - **start** (​*datetime*​) – The start datetime (UTC) of request time range. Should be left-inclusive (start \<\= value), but inclusiveness is not currently guaranteed.
+  - **end** (_datetime_ _,_ ​*optional*​) – The end datetime (UTC) of request time range. If None then will be replaced with the current UTC time. Should be right-inclusive (value \<\= end), but inclusiveness is not currently guaranteed.
   - **limit** (_int_ _,_ ​*optional*​) – The limit on the amount of trade ticks received.
   - **client_id** ([_ClientId_](https://nautilustrader.io/docs/latest/api_reference/model/identifiers#nautilus_trader.model.identifiers.ClientId) _,_ ​*optional*​) – The specific client ID for the command. If `None` then will be inferred from the venue in the instrument ID.
   - **callback** (_Callable_ _[_ _​[​_[_UUID4_](https://nautilustrader.io/docs/latest/api_reference/core#nautilus_trader.core.UUID4) _]_ _,_ _None_ _]_ _,_ ​*optional*​) – The registered callback, to be called with the request ID when the response has completed processing.
   - **update_catalog** (_bool_ _,_ ​*optional*​) – Whether to update a catalog with the received data.
-  - **params** (_dict_ \*[\**str* *,* *Any* *]\* _,_ ​*optional*​) – Additional parameters potentially used by a specific client.
+  - **params** (_dict_ \*[\*_str_ _,_ _Any_ *]\* _,_ ​*optional*​) – Additional parameters potentially used by a specific client.
 - **Returns:** The request_id for the request.
 - **Return type:** [UUID4](https://nautilustrader.io/docs/latest/api_reference/core#nautilus_trader.core.UUID4)
 - **Raises:**
@@ -4288,7 +4290,7 @@ Once subscribed, any matching bar data published on the message bus is forwarded
   - **client_id** ([_ClientId_](https://nautilustrader.io/docs/latest/api_reference/model/identifiers#nautilus_trader.model.identifiers.ClientId) _,_ ​*optional*​) – The specific client ID for the command. If `None` then will be inferred from the venue in the instrument ID.
   - **await_partial** (_bool_ _,_ ​*default False*​) – If the bar aggregator should await the arrival of a historical partial bar prior to actively aggregating new bars.
   - **update_catalog** (_bool_ _,_ ​*optional*​) – Whether to update a catalog with the received data. Only useful when downloading data during a backtest.
-  - **params** (_dict_ \*[\**str* *,* *Any* *]\* _,_ ​*optional*​) – Additional parameters potentially used by a specific client.
+  - **params** (_dict_ \*[\*_str_ _,_ _Any_ *]\* _,_ ​*optional*​) – Additional parameters potentially used by a specific client.
 
 #### subscribe_data(self, DataType data_type, ClientId client_id=None, InstrumentId instrument_id=None, bool update_catalog=False, dict params=None) → void
 
@@ -4300,7 +4302,7 @@ Once subscribed, any matching data published on the message bus is forwarded to 
   - **data_type** ([_DataType_](https://nautilustrader.io/docs/latest/api_reference/model/data#nautilus_trader.model.data.DataType)) – The data type to subscribe to.
   - **client_id** ([_ClientId_](https://nautilustrader.io/docs/latest/api_reference/model/identifiers#nautilus_trader.model.identifiers.ClientId) _,_ ​*optional*​) – The data client ID. If supplied then a Subscribe command will be sent to the corresponding data client.
   - **update_catalog** (_bool_ _,_ ​*optional*​) – Whether to update a catalog with the received data. Only useful when downloading data during a backtest.
-  - **params** (_dict_ \*[\**str* *,* *Any* *]\* _,_ ​*optional*​) – Additional parameters potentially used by a specific client.
+  - **params** (_dict_ \*[\*_str_ _,_ _Any_ *]\* _,_ ​*optional*​) – Additional parameters potentially used by a specific client.
 
 #### subscribe_funding_rates(self, InstrumentId instrument_id, ClientId client_id=None, dict params=None) → void
 
@@ -4311,7 +4313,7 @@ Once subscribed, any matching funding rate updates published on the message bus 
 - **Parameters:**
   - **instrument_id** ([_InstrumentId_](https://nautilustrader.io/docs/latest/api_reference/model/identifiers#nautilus_trader.model.identifiers.InstrumentId)) – The instrument to subscribe to.
   - **client_id** ([_ClientId_](https://nautilustrader.io/docs/latest/api_reference/model/identifiers#nautilus_trader.model.identifiers.ClientId) _,_ ​*optional*​) – The specific client ID for the command. If `None` then will be inferred from the venue in the instrument ID.
-  - **params** (_dict_ \*[\**str* *,* *Any* *]\* _,_ ​*optional*​) – Additional parameters potentially used by a specific client.
+  - **params** (_dict_ \*[\*_str_ _,_ _Any_ *]\* _,_ ​*optional*​) – Additional parameters potentially used by a specific client.
 
 #### subscribe_index_prices(self, InstrumentId instrument_id, ClientId client_id=None, dict params=None) → void
 
@@ -4322,7 +4324,7 @@ Once subscribed, any matching index price updates published on the message bus a
 - **Parameters:**
   - **instrument_id** ([_InstrumentId_](https://nautilustrader.io/docs/latest/api_reference/model/identifiers#nautilus_trader.model.identifiers.InstrumentId)) – The instrument to subscribe to.
   - **client_id** ([_ClientId_](https://nautilustrader.io/docs/latest/api_reference/model/identifiers#nautilus_trader.model.identifiers.ClientId) _,_ ​*optional*​) – The specific client ID for the command. If `None` then will be inferred from the venue in the instrument ID.
-  - **params** (_dict_ \*[\**str* *,* *Any* *]\* _,_ ​*optional*​) – Additional parameters potentially used by a specific client.
+  - **params** (_dict_ \*[\*_str_ _,_ _Any_ *]\* _,_ ​*optional*​) – Additional parameters potentially used by a specific client.
 
 #### subscribe_instrument(self, InstrumentId instrument_id, ClientId client_id=None, dict params=None) → void
 
@@ -4333,7 +4335,7 @@ Once subscribed, any matching instrument data published on the message bus is fo
 - **Parameters:**
   - **instrument_id** ([_InstrumentId_](https://nautilustrader.io/docs/latest/api_reference/model/identifiers#nautilus_trader.model.identifiers.InstrumentId)) – The instrument ID for the subscription.
   - **client_id** ([_ClientId_](https://nautilustrader.io/docs/latest/api_reference/model/identifiers#nautilus_trader.model.identifiers.ClientId) _,_ ​*optional*​) – The specific client ID for the command. If `None` then will be inferred from the venue in the instrument ID.
-  - **params** (_dict_ \*[\**str* *,* *Any* *]\* _,_ ​*optional*​) – Additional parameters potentially used by a specific client.
+  - **params** (_dict_ \*[\*_str_ _,_ _Any_ *]\* _,_ ​*optional*​) – Additional parameters potentially used by a specific client.
 
 #### subscribe_instrument_close(self, InstrumentId instrument_id, ClientId client_id=None, dict params=None) → void
 
@@ -4344,7 +4346,7 @@ Once subscribed, any matching instrument close data published on the message bus
 - **Parameters:**
   - **instrument_id** ([_InstrumentId_](https://nautilustrader.io/docs/latest/api_reference/model/identifiers#nautilus_trader.model.identifiers.InstrumentId)) – The instrument to subscribe to status updates for.
   - **client_id** ([_ClientId_](https://nautilustrader.io/docs/latest/api_reference/model/identifiers#nautilus_trader.model.identifiers.ClientId) _,_ ​*optional*​) – The specific client ID for the command. If `None` then will be inferred from the venue in the instrument ID.
-  - **params** (_dict_ \*[\**str* *,* *Any* *]\* _,_ ​*optional*​) – Additional parameters potentially used by a specific client.
+  - **params** (_dict_ \*[\*_str_ _,_ _Any_ *]\* _,_ ​*optional*​) – Additional parameters potentially used by a specific client.
 
 #### subscribe_instrument_status(self, InstrumentId instrument_id, ClientId client_id=None, dict params=None) → void
 
@@ -4355,7 +4357,7 @@ Once subscribed, any matching instrument status data published on the message bu
 - **Parameters:**
   - **instrument_id** ([_InstrumentId_](https://nautilustrader.io/docs/latest/api_reference/model/identifiers#nautilus_trader.model.identifiers.InstrumentId)) – The instrument to subscribe to status updates for.
   - **client_id** ([_ClientId_](https://nautilustrader.io/docs/latest/api_reference/model/identifiers#nautilus_trader.model.identifiers.ClientId) _,_ ​*optional*​) – The specific client ID for the command. If `None` then will be inferred from the venue in the instrument ID.
-  - **params** (_dict_ \*[\**str* *,* *Any* *]\* _,_ ​*optional*​) – Additional parameters potentially used by a specific client.
+  - **params** (_dict_ \*[\*_str_ _,_ _Any_ *]\* _,_ ​*optional*​) – Additional parameters potentially used by a specific client.
 
 #### subscribe_instruments(self, Venue venue, ClientId client_id=None, dict params=None) → void
 
@@ -4366,7 +4368,7 @@ Once subscribed, any matching instrument data published on the message bus is fo
 - **Parameters:**
   - **venue** ([_Venue_](https://nautilustrader.io/docs/latest/api_reference/model/identifiers#nautilus_trader.model.identifiers.Venue)) – The venue for the subscription.
   - **client_id** ([_ClientId_](https://nautilustrader.io/docs/latest/api_reference/model/identifiers#nautilus_trader.model.identifiers.ClientId) _,_ ​*optional*​) – The specific client ID for the command. If `None` then will be inferred from the venue.
-  - **params** (_dict_ \*[\**str* *,* *Any* *]\* _,_ ​*optional*​) – Additional parameters potentially used by a specific client.
+  - **params** (_dict_ \*[\*_str_ _,_ _Any_ *]\* _,_ ​*optional*​) – Additional parameters potentially used by a specific client.
 
 #### subscribe_mark_prices(self, InstrumentId instrument_id, ClientId client_id=None, dict params=None) → void
 
@@ -4377,7 +4379,7 @@ Once subscribed, any matching mark price updates published on the message bus ar
 - **Parameters:**
   - **instrument_id** ([_InstrumentId_](https://nautilustrader.io/docs/latest/api_reference/model/identifiers#nautilus_trader.model.identifiers.InstrumentId)) – The instrument to subscribe to.
   - **client_id** ([_ClientId_](https://nautilustrader.io/docs/latest/api_reference/model/identifiers#nautilus_trader.model.identifiers.ClientId) _,_ ​*optional*​) – The specific client ID for the command. If `None` then will be inferred from the venue in the instrument ID.
-  - **params** (_dict_ \*[\**str* *,* *Any* *]\* _,_ ​*optional*​) – Additional parameters potentially used by a specific client.
+  - **params** (_dict_ \*[\*_str_ _,_ _Any_ *]\* _,_ ​*optional*​) – Additional parameters potentially used by a specific client.
 
 #### subscribe_order_book_at_interval(self, InstrumentId instrument_id, BookType book_type=BookType.L2_MBP, int depth=0, int interval_ms=1000, ClientId client_id=None, dict params=None) → void
 
@@ -4393,7 +4395,7 @@ The DataEngine will only maintain one order book for each instrument. Because of
   - **depth** (_int_ _,_ ​*optional*​) – The maximum depth for the order book. A depth of 0 is maximum depth.
   - **interval_ms** (_int_ _,_ ​*default 1000*​) – The order book snapshot interval (milliseconds).
   - **client_id** ([_ClientId_](https://nautilustrader.io/docs/latest/api_reference/model/identifiers#nautilus_trader.model.identifiers.ClientId) _,_ ​*optional*​) – The specific client ID for the command. If `None` then will be inferred from the venue in the instrument ID.
-  - **params** (_dict_ \*[\**str* *,* *Any* *]\* _,_ ​*optional*​) – Additional parameters potentially used by a specific client.
+  - **params** (_dict_ \*[\*_str_ _,_ _Any_ *]\* _,_ ​*optional*​) – Additional parameters potentially used by a specific client.
 - **Raises:**
   - **ValueError** – If depth is negative (< 0).
   - **ValueError** – If interval_ms is not positive (> 0).
@@ -4415,7 +4417,7 @@ Once subscribed, any matching order book data published on the message bus is fo
   - **client_id** ([_ClientId_](https://nautilustrader.io/docs/latest/api_reference/model/identifiers#nautilus_trader.model.identifiers.ClientId) _,_ ​*optional*​) – The specific client ID for the command. If `None` then will be inferred from the venue in the instrument ID.
   - **managed** (_bool_ _,_ ​*default True*​) – If an order book should be managed by the data engine based on the subscribed feed.
   - **pyo3_conversion** (_bool_ _,_ ​*default False*​) – If received deltas should be converted to nautilus_pyo3.OrderBookDeltas prior to being passed to the on_order_book_deltas handler.
-  - **params** (_dict_ \*[\**str* *,* *Any* *]\* _,_ ​*optional*​) – Additional parameters potentially used by a specific client.
+  - **params** (_dict_ \*[\*_str_ _,_ _Any_ *]\* _,_ ​*optional*​) – Additional parameters potentially used by a specific client.
 
 #### subscribe_order_book_depth(self, InstrumentId instrument_id, BookType book_type=BookType.L2_MBP, int depth=0, ClientId client_id=None, bool managed=True, bool pyo3_conversion=False, dict params=None) → void
 
@@ -4429,7 +4431,7 @@ Once subscribed, any matching order book data published on the message bus is fo
   - **client_id** ([_ClientId_](https://nautilustrader.io/docs/latest/api_reference/model/identifiers#nautilus_trader.model.identifiers.ClientId) _,_ ​*optional*​) – The specific client ID for the command. If `None` then will be inferred from the venue in the instrument ID.
   - **managed** (_bool_ _,_ ​*default True*​) – If an order book should be managed by the data engine based on the subscribed feed.
   - **pyo3_conversion** (_bool_ _,_ ​*default False*​) – If received deltas should be converted to nautilus_pyo3.OrderBookDepth prior to being passed to the on_order_book_depth handler.
-  - **params** (_dict_ \*[\**str* *,* *Any* *]\* _,_ ​*optional*​) – Additional parameters potentially used by a specific client.
+  - **params** (_dict_ \*[\*_str_ _,_ _Any_ *]\* _,_ ​*optional*​) – Additional parameters potentially used by a specific client.
 
 #### subscribe_quote_ticks(self, InstrumentId instrument_id, ClientId client_id=None, bool update_catalog=False, dict params=None) → void
 
@@ -4441,7 +4443,7 @@ Once subscribed, any matching quote tick data published on the message bus is fo
   - **instrument_id** ([_InstrumentId_](https://nautilustrader.io/docs/latest/api_reference/model/identifiers#nautilus_trader.model.identifiers.InstrumentId)) – The tick instrument to subscribe to.
   - **client_id** ([_ClientId_](https://nautilustrader.io/docs/latest/api_reference/model/identifiers#nautilus_trader.model.identifiers.ClientId) _,_ ​*optional*​) – The specific client ID for the command. If `None` then will be inferred from the venue in the instrument ID.
   - **update_catalog** (_bool_ _,_ ​*optional*​) – Whether to update a catalog with the received data. Only useful when downloading data during a backtest.
-  - **params** (_dict_ \*[\**str* *,* *Any* *]\* _,_ ​*optional*​) – Additional parameters potentially used by a specific client.
+  - **params** (_dict_ \*[\*_str_ _,_ _Any_ *]\* _,_ ​*optional*​) – Additional parameters potentially used by a specific client.
 
 #### subscribe_signal(self, str name='') → void
 
@@ -4461,7 +4463,7 @@ Once subscribed, any matching trade tick data published on the message bus is fo
   - **instrument_id** ([_InstrumentId_](https://nautilustrader.io/docs/latest/api_reference/model/identifiers#nautilus_trader.model.identifiers.InstrumentId)) – The tick instrument to subscribe to.
   - **client_id** ([_ClientId_](https://nautilustrader.io/docs/latest/api_reference/model/identifiers#nautilus_trader.model.identifiers.ClientId) _,_ ​*optional*​) – The specific client ID for the command. If `None` then will be inferred from the venue in the instrument ID.
   - **update_catalog** (_bool_ _,_ ​*optional*​) – Whether to update a catalog with the received data. Only useful when downloading data during a backtest.
-  - **params** (_dict_ \*[\**str* *,* *Any* *]\* _,_ ​*optional*​) – Additional parameters potentially used by a specific client.
+  - **params** (_dict_ \*[\*_str_ _,_ _Any_ *]\* _,_ ​*optional*​) – Additional parameters potentially used by a specific client.
 
 #### to_importable_config(self) → [ImportableActorConfig](https://nautilustrader.io/docs/latest/api_reference/config#nautilus_trader.common.config.ImportableActorConfig)
 
@@ -4488,7 +4490,7 @@ Unsubscribe from streaming Bar data for the given bar type.
 - **Parameters:**
   - **bar_type** ([_BarType_](https://nautilustrader.io/docs/latest/api_reference/model/data#nautilus_trader.model.data.BarType)) – The bar type to unsubscribe from.
   - **client_id** ([_ClientId_](https://nautilustrader.io/docs/latest/api_reference/model/identifiers#nautilus_trader.model.identifiers.ClientId) _,_ ​*optional*​) – The specific client ID for the command. If `None` then will be inferred from the venue in the instrument ID.
-  - **params** (_dict_ \*[\**str* *,* *Any* *]\* _,_ ​*optional*​) – Additional parameters potentially used by a specific client.
+  - **params** (_dict_ \*[\*_str_ _,_ _Any_ *]\* _,_ ​*optional*​) – Additional parameters potentially used by a specific client.
 
 #### unsubscribe_data(self, DataType data_type, ClientId client_id=None, InstrumentId instrument_id=None, dict params=None) → void
 
@@ -4497,7 +4499,7 @@ Unsubscribe from data of the given data type.
 - **Parameters:**
   - **data_type** ([_DataType_](https://nautilustrader.io/docs/latest/api_reference/model/data#nautilus_trader.model.data.DataType)) – The data type to unsubscribe from.
   - **client_id** ([_ClientId_](https://nautilustrader.io/docs/latest/api_reference/model/identifiers#nautilus_trader.model.identifiers.ClientId) _,_ ​*optional*​) – The data client ID. If supplied then an Unsubscribe command will be sent to the data client.
-  - **params** (_dict_ \*[\**str* *,* *Any* *]\* _,_ ​*optional*​) – Additional parameters potentially used by a specific client.
+  - **params** (_dict_ \*[\*_str_ _,_ _Any_ *]\* _,_ ​*optional*​) – Additional parameters potentially used by a specific client.
 
 #### unsubscribe_funding_rates(self, InstrumentId instrument_id, ClientId client_id=None, dict params=None) → void
 
@@ -4506,7 +4508,7 @@ Unsubscribe from streaming FundingRateUpdate data for the given instrument ID.
 - **Parameters:**
   - **instrument_id** ([_InstrumentId_](https://nautilustrader.io/docs/latest/api_reference/model/identifiers#nautilus_trader.model.identifiers.InstrumentId)) – The instrument to unsubscribe from.
   - **client_id** ([_ClientId_](https://nautilustrader.io/docs/latest/api_reference/model/identifiers#nautilus_trader.model.identifiers.ClientId) _,_ ​*optional*​) – The specific client ID for the command. If `None` then will be inferred from the venue in the instrument ID.
-  - **params** (_dict_ \*[\**str* *,* *Any* *]\* _,_ ​*optional*​) – Additional parameters potentially used by a specific client.
+  - **params** (_dict_ \*[\*_str_ _,_ _Any_ *]\* _,_ ​*optional*​) – Additional parameters potentially used by a specific client.
 
 #### unsubscribe_index_prices(self, InstrumentId instrument_id, ClientId client_id=None, dict params=None) → void
 
@@ -4515,7 +4517,7 @@ Unsubscribe from streaming IndexPriceUpdate data for the given instrument ID.
 - **Parameters:**
   - **instrument_id** ([_InstrumentId_](https://nautilustrader.io/docs/latest/api_reference/model/identifiers#nautilus_trader.model.identifiers.InstrumentId)) – The instrument to subscribe to.
   - **client_id** ([_ClientId_](https://nautilustrader.io/docs/latest/api_reference/model/identifiers#nautilus_trader.model.identifiers.ClientId) _,_ ​*optional*​) – The specific client ID for the command. If `None` then will be inferred from the venue in the instrument ID.
-  - **params** (_dict_ \*[\**str* *,* *Any* *]\* _,_ ​*optional*​) – Additional parameters potentially used by a specific client.
+  - **params** (_dict_ \*[\*_str_ _,_ _Any_ *]\* _,_ ​*optional*​) – Additional parameters potentially used by a specific client.
 
 #### unsubscribe_instrument(self, InstrumentId instrument_id, ClientId client_id=None, dict params=None) → void
 
@@ -4524,7 +4526,7 @@ Unsubscribe from update Instrument data for the given instrument ID.
 - **Parameters:**
   - **instrument_id** ([_InstrumentId_](https://nautilustrader.io/docs/latest/api_reference/model/identifiers#nautilus_trader.model.identifiers.InstrumentId)) – The instrument to unsubscribe from.
   - **client_id** ([_ClientId_](https://nautilustrader.io/docs/latest/api_reference/model/identifiers#nautilus_trader.model.identifiers.ClientId) _,_ ​*optional*​) – The specific client ID for the command. If `None` then will be inferred from the venue in the instrument ID.
-  - **params** (_dict_ \*[\**str* *,* *Any* *]\* _,_ ​*optional*​) – Additional parameters potentially used by a specific client.
+  - **params** (_dict_ \*[\*_str_ _,_ _Any_ *]\* _,_ ​*optional*​) – Additional parameters potentially used by a specific client.
 
 #### unsubscribe_instrument_status(self, InstrumentId instrument_id, ClientId client_id=None, dict params=None) → void
 
@@ -4533,7 +4535,7 @@ Unsubscribe to status updates of the given venue.
 - **Parameters:**
   - **instrument_id** ([_InstrumentId_](https://nautilustrader.io/docs/latest/api_reference/model/identifiers#nautilus_trader.model.identifiers.InstrumentId)) – The instrument to unsubscribe to status updates for.
   - **client_id** ([_ClientId_](https://nautilustrader.io/docs/latest/api_reference/model/identifiers#nautilus_trader.model.identifiers.ClientId) _,_ ​*optional*​) – The specific client ID for the command. If `None` then will be inferred from the venue.
-  - **params** (_dict_ \*[\**str* *,* *Any* *]\* _,_ ​*optional*​) – Additional parameters potentially used by a specific client.
+  - **params** (_dict_ \*[\*_str_ _,_ _Any_ *]\* _,_ ​*optional*​) – Additional parameters potentially used by a specific client.
 
 #### unsubscribe_instruments(self, Venue venue, ClientId client_id=None, dict params=None) → void
 
@@ -4542,7 +4544,7 @@ Unsubscribe from update Instrument data for the given venue.
 - **Parameters:**
   - **venue** ([_Venue_](https://nautilustrader.io/docs/latest/api_reference/model/identifiers#nautilus_trader.model.identifiers.Venue)) – The venue for the subscription.
   - **client_id** ([_ClientId_](https://nautilustrader.io/docs/latest/api_reference/model/identifiers#nautilus_trader.model.identifiers.ClientId) _,_ ​*optional*​) – The specific client ID for the command. If `None` then will be inferred from the venue.
-  - **params** (_dict_ \*[\**str* *,* *Any* *]\* _,_ ​*optional*​) – Additional parameters potentially used by a specific client.
+  - **params** (_dict_ \*[\*_str_ _,_ _Any_ *]\* _,_ ​*optional*​) – Additional parameters potentially used by a specific client.
 
 #### unsubscribe_mark_prices(self, InstrumentId instrument_id, ClientId client_id=None, dict params=None) → void
 
@@ -4551,7 +4553,7 @@ Unsubscribe from streaming MarkPriceUpdate data for the given instrument ID.
 - **Parameters:**
   - **instrument_id** ([_InstrumentId_](https://nautilustrader.io/docs/latest/api_reference/model/identifiers#nautilus_trader.model.identifiers.InstrumentId)) – The instrument to subscribe to.
   - **client_id** ([_ClientId_](https://nautilustrader.io/docs/latest/api_reference/model/identifiers#nautilus_trader.model.identifiers.ClientId) _,_ ​*optional*​) – The specific client ID for the command. If `None` then will be inferred from the venue in the instrument ID.
-  - **params** (_dict_ \*[\**str* *,* *Any* *]\* _,_ ​*optional*​) – Additional parameters potentially used by a specific client.
+  - **params** (_dict_ \*[\*_str_ _,_ _Any_ *]\* _,_ ​*optional*​) – Additional parameters potentially used by a specific client.
 
 #### unsubscribe_order_book_at_interval(self, InstrumentId instrument_id, int interval_ms=1000, ClientId client_id=None, dict params=None) → void
 
@@ -4563,7 +4565,7 @@ The interval must match the previously subscribed interval.
   - **instrument_id** ([_InstrumentId_](https://nautilustrader.io/docs/latest/api_reference/model/identifiers#nautilus_trader.model.identifiers.InstrumentId)) – The order book instrument to subscribe to.
   - **interval_ms** (_int_ _,_ ​*default 1000*​) – The order book snapshot interval (milliseconds).
   - **client_id** ([_ClientId_](https://nautilustrader.io/docs/latest/api_reference/model/identifiers#nautilus_trader.model.identifiers.ClientId) _,_ ​*optional*​) – The specific client ID for the command. If `None` then will be inferred from the venue in the instrument ID.
-  - **params** (_dict_ \*[\**str* *,* *Any* *]\* _,_ ​*optional*​) – Additional parameters potentially used by a specific client.
+  - **params** (_dict_ \*[\*_str_ _,_ _Any_ *]\* _,_ ​*optional*​) – Additional parameters potentially used by a specific client.
 
 #### unsubscribe_order_book_deltas(self, InstrumentId instrument_id, ClientId client_id=None, dict params=None) → void
 
@@ -4572,7 +4574,7 @@ Unsubscribe the order book deltas stream for the given instrument ID.
 - **Parameters:**
   - **instrument_id** ([_InstrumentId_](https://nautilustrader.io/docs/latest/api_reference/model/identifiers#nautilus_trader.model.identifiers.InstrumentId)) – The order book instrument to subscribe to.
   - **client_id** ([_ClientId_](https://nautilustrader.io/docs/latest/api_reference/model/identifiers#nautilus_trader.model.identifiers.ClientId) _,_ ​*optional*​) – The specific client ID for the command. If `None` then will be inferred from the venue in the instrument ID.
-  - **params** (_dict_ \*[\**str* *,* *Any* *]\* _,_ ​*optional*​) – Additional parameters potentially used by a specific client.
+  - **params** (_dict_ \*[\*_str_ _,_ _Any_ *]\* _,_ ​*optional*​) – Additional parameters potentially used by a specific client.
 
 #### unsubscribe_order_book_depth(self, InstrumentId instrument_id, ClientId client_id=None, dict params=None) → void
 
@@ -4581,7 +4583,7 @@ Unsubscribe the order book depth stream for the given instrument ID.
 - **Parameters:**
   - **instrument_id** ([_InstrumentId_](https://nautilustrader.io/docs/latest/api_reference/model/identifiers#nautilus_trader.model.identifiers.InstrumentId)) – The order book instrument to subscribe to.
   - **client_id** ([_ClientId_](https://nautilustrader.io/docs/latest/api_reference/model/identifiers#nautilus_trader.model.identifiers.ClientId) _,_ ​*optional*​) – The specific client ID for the command. If `None` then will be inferred from the venue in the instrument ID.
-  - **params** (_dict_ \*[\**str* *,* *Any* *]\* _,_ ​*optional*​) – Additional parameters potentially used by a specific client.
+  - **params** (_dict_ \*[\*_str_ _,_ _Any_ *]\* _,_ ​*optional*​) – Additional parameters potentially used by a specific client.
 
 #### unsubscribe_quote_ticks(self, InstrumentId instrument_id, ClientId client_id=None, dict params=None) → void
 
@@ -4590,7 +4592,7 @@ Unsubscribe from streaming QuoteTick data for the given instrument ID.
 - **Parameters:**
   - **instrument_id** ([_InstrumentId_](https://nautilustrader.io/docs/latest/api_reference/model/identifiers#nautilus_trader.model.identifiers.InstrumentId)) – The tick instrument to unsubscribe from.
   - **client_id** ([_ClientId_](https://nautilustrader.io/docs/latest/api_reference/model/identifiers#nautilus_trader.model.identifiers.ClientId) _,_ ​*optional*​) – The specific client ID for the command. If `None` then will be inferred from the venue in the instrument ID.
-  - **params** (_dict_ \*[\**str* *,* *Any* *]\* _,_ ​*optional*​) – Additional parameters potentially used by a specific client.
+  - **params** (_dict_ \*[\*_str_ _,_ _Any_ *]\* _,_ ​*optional*​) – Additional parameters potentially used by a specific client.
 
 #### unsubscribe_trade_ticks(self, InstrumentId instrument_id, ClientId client_id=None, dict params=None) → void
 
@@ -4599,7 +4601,7 @@ Unsubscribe from streaming TradeTick data for the given instrument ID.
 - **Parameters:**
   - **instrument_id** ([_InstrumentId_](https://nautilustrader.io/docs/latest/api_reference/model/identifiers#nautilus_trader.model.identifiers.InstrumentId)) – The tick instrument ID to unsubscribe from.
   - **client_id** ([_ClientId_](https://nautilustrader.io/docs/latest/api_reference/model/identifiers#nautilus_trader.model.identifiers.ClientId) _,_ ​*optional*​) – The specific client ID for the command. If `None` then will be inferred from the venue in the instrument ID.
-  - **params** (_dict_ \*[\**str* *,* *Any* *]\* _,_ ​*optional*​) – Additional parameters potentially used by a specific client.
+  - **params** (_dict_ \*[\*_str_ _,_ _Any_ *]\* _,_ ​*optional*​) – Additional parameters potentially used by a specific client.
 
 #### update_synthetic(self, SyntheticInstrument synthetic) → void
 
@@ -5059,7 +5061,7 @@ Load the actor/strategy state from the give state dictionary.
 
 Calls on_load and passes the state.
 
-- **Parameters:** **state** (_dict_ \*[\**str* *,* *bytes* ​*]\*​) – The strategy state to load.
+- **Parameters:** **state** (_dict_ \*[\*_str_ _,_ _bytes_ ​*]\*​) – The strategy state to load.
 
 #### WARNING
 
@@ -5209,7 +5211,7 @@ Actions to be performed when the actor state is loaded.
 
 Saved state values will be contained in the give state dictionary.
 
-- **Parameters:** **state** (_dict_ \*[\**str* *,* *bytes* ​*]\*​) – The strategy state to load.
+- **Parameters:** **state** (_dict_ \*[\*_str_ _,_ _bytes_ ​*]\*​) – The strategy state to load.
 
 #### WARNING
 
@@ -5472,15 +5474,15 @@ If the request fails, then an error is logged.
 
 - **Parameters:**
   - **bar_types** (_list_ _​[​_[_BarType_](https://nautilustrader.io/docs/latest/api_reference/model/data#nautilus_trader.model.data.BarType) ​*]*​) – The list of bar types for the request. Composite bars can also be used and need to figure in the list after a BarType on which it depends.
-  - **start** (​*datetime*​) – The start datetime (UTC) of request time range. Should be left-inclusive (start <= value), but inclusiveness is not currently guaranteed.
-  - **end** (_datetime_ _,_ ​*optional*​) – The end datetime (UTC) of request time range. If None then will be replaced with the current UTC time. Should be right-inclusive (value <= end), but inclusiveness is not currently guaranteed.
+  - **start** (​*datetime*​) – The start datetime (UTC) of request time range. Should be left-inclusive (start \<\= value), but inclusiveness is not currently guaranteed.
+  - **end** (_datetime_ _,_ ​*optional*​) – The end datetime (UTC) of request time range. If None then will be replaced with the current UTC time. Should be right-inclusive (value \<\= end), but inclusiveness is not currently guaranteed.
   - **limit** (_int_ _,_ ​*optional*​) – The limit on the amount of data received (quote ticks, trade ticks or bars).
   - **client_id** ([_ClientId_](https://nautilustrader.io/docs/latest/api_reference/model/identifiers#nautilus_trader.model.identifiers.ClientId) _,_ ​*optional*​) – The specific client ID for the command. If `None` then will be inferred from the venue in the instrument ID.
   - **callback** (_Callable_ _[_ _​[​_[_UUID4_](https://nautilustrader.io/docs/latest/api_reference/core#nautilus_trader.core.UUID4) _]_ _,_ _None_ _]_ _,_ ​*optional*​) – The registered callback, to be called with the request ID when the response has completed processing.
   - **include_external_data** (_bool_ _,_ ​*default False*​) – If True, includes the queried external data in the response.
   - **update_subscriptions** (_bool_ _,_ ​*default False*​) – If True, updates the aggregators of any existing or future subscription with the queried external data.
   - **update_catalog** (_bool_ _,_ ​*optional*​) – Whether to update a catalog with the received data.
-  - **params** (_dict_ \*[\**str* *,* *Any* *]\* _,_ ​*optional*​) – Additional parameters potentially used by a specific client.
+  - **params** (_dict_ \*[\*_str_ _,_ _Any_ *]\* _,_ ​*optional*​) – Additional parameters potentially used by a specific client.
 - **Returns:** The request_id for the request.
 - **Return type:** [UUID4](https://nautilustrader.io/docs/latest/api_reference/core#nautilus_trader.core.UUID4)
 - **Raises:**
@@ -5504,13 +5506,13 @@ If the request fails, then an error is logged.
 
 - **Parameters:**
   - **bar_type** ([_BarType_](https://nautilustrader.io/docs/latest/api_reference/model/data#nautilus_trader.model.data.BarType)) – The bar type for the request.
-  - **start** (​*datetime*​) – The start datetime (UTC) of request time range. Should be left-inclusive (start <= value), but inclusiveness is not currently guaranteed.
-  - **end** (_datetime_ _,_ ​*optional*​) – The end datetime (UTC) of request time range. If None then will be replaced with the current UTC time. Should be right-inclusive (value <= end), but inclusiveness is not currently guaranteed.
+  - **start** (​*datetime*​) – The start datetime (UTC) of request time range. Should be left-inclusive (start \<\= value), but inclusiveness is not currently guaranteed.
+  - **end** (_datetime_ _,_ ​*optional*​) – The end datetime (UTC) of request time range. If None then will be replaced with the current UTC time. Should be right-inclusive (value \<\= end), but inclusiveness is not currently guaranteed.
   - **limit** (_int_ _,_ ​*optional*​) – The limit on the amount of bars received.
   - **client_id** ([_ClientId_](https://nautilustrader.io/docs/latest/api_reference/model/identifiers#nautilus_trader.model.identifiers.ClientId) _,_ ​*optional*​) – The specific client ID for the command. If `None` then will be inferred from the venue in the instrument ID.
   - **callback** (_Callable_ _[_ _​[​_[_UUID4_](https://nautilustrader.io/docs/latest/api_reference/core#nautilus_trader.core.UUID4) _]_ _,_ _None_ _]_ _,_ ​*optional*​) – The registered callback, to be called with the request ID when the response has completed processing.
   - **update_catalog** (_bool_ _,_ ​*optional*​) – Whether to update a catalog with the received data.
-  - **params** (_dict_ \*[\**str* *,* *Any* *]\* _,_ ​*optional*​) – Additional parameters potentially used by a specific client.
+  - **params** (_dict_ \*[\*_str_ _,_ _Any_ *]\* _,_ ​*optional*​) – Additional parameters potentially used by a specific client.
 - **Returns:** The request_id for the request.
 - **Return type:** [UUID4](https://nautilustrader.io/docs/latest/api_reference/core#nautilus_trader.core.UUID4)
 - **Raises:**
@@ -5531,12 +5533,12 @@ If the request fails, then an error is logged.
 - **Parameters:**
   - **data_type** ([_DataType_](https://nautilustrader.io/docs/latest/api_reference/model/data#nautilus_trader.model.data.DataType)) – The data type for the request.
   - **client_id** ([_ClientId_](https://nautilustrader.io/docs/latest/api_reference/model/identifiers#nautilus_trader.model.identifiers.ClientId)) – The data client ID.
-  - **start** (​*datetime*​) – The start datetime (UTC) of request time range. Cannot be None. Should be left-inclusive (start <= value), but inclusiveness is not currently guaranteed.
-  - **end** (_datetime_ _,_ ​*optional*​) – The end datetime (UTC) of request time range. If None then will be replaced with the current UTC time. Should be right-inclusive (value <= end), but inclusiveness is not currently guaranteed.
+  - **start** (​*datetime*​) – The start datetime (UTC) of request time range. Cannot be None. Should be left-inclusive (start \<\= value), but inclusiveness is not currently guaranteed.
+  - **end** (_datetime_ _,_ ​*optional*​) – The end datetime (UTC) of request time range. If None then will be replaced with the current UTC time. Should be right-inclusive (value \<\= end), but inclusiveness is not currently guaranteed.
   - **limit** (_int_ _,_ ​*optional*​) – The limit on the amount of data points received.
   - **callback** (_Callable_ _[_ _​[​_[_UUID4_](https://nautilustrader.io/docs/latest/api_reference/core#nautilus_trader.core.UUID4) _]_ _,_ _None_ _]_ _,_ ​*optional*​) – The registered callback, to be called with the request ID when the response has completed processing.
   - **update_catalog** (_bool_ _,_ ​*optional*​) – Whether to update a catalog with the received data.
-  - **params** (_dict_ \*[\**str* *,* *Any* *]\* _,_ ​*optional*​) – Additional parameters potentially used by a specific client.
+  - **params** (_dict_ \*[\*_str_ _,_ _Any_ *]\* _,_ ​*optional*​) – Additional parameters potentially used by a specific client.
 - **Returns:** The request_id for the request.
 - **Return type:** [UUID4](https://nautilustrader.io/docs/latest/api_reference/core#nautilus_trader.core.UUID4)
 - **Raises:**
@@ -5563,7 +5565,7 @@ If the request fails, then an error is logged.
   - **client_id** ([_ClientId_](https://nautilustrader.io/docs/latest/api_reference/model/identifiers#nautilus_trader.model.identifiers.ClientId) _,_ ​*optional*​) – The specific client ID for the command. If `None` then will be inferred from the venue in the instrument ID.
   - **callback** (_Callable_ _[_ _​[​_[_UUID4_](https://nautilustrader.io/docs/latest/api_reference/core#nautilus_trader.core.UUID4) _]_ _,_ _None_ _]_ _,_ ​*optional*​) – The registered callback, to be called with the request ID when the response has completed processing.
   - **update_catalog** (_bool_ _,_ ​*optional*​) – Whether to update a catalog with the received data.
-  - **params** (_dict_ \*[\**str* *,* *Any* *]\* _,_ ​*optional*​) – Additional parameters potentially used by a specific client.
+  - **params** (_dict_ \*[\*_str_ _,_ _Any_ *]\* _,_ ​*optional*​) – Additional parameters potentially used by a specific client.
 - **Returns:** The request_id for the request.
 - **Return type:** [UUID4](https://nautilustrader.io/docs/latest/api_reference/core#nautilus_trader.core.UUID4)
 - **Raises:**
@@ -5589,7 +5591,7 @@ If the request fails, then an error is logged.
   - **client_id** ([_ClientId_](https://nautilustrader.io/docs/latest/api_reference/model/identifiers#nautilus_trader.model.identifiers.ClientId) _,_ ​*optional*​) – The specific client ID for the command. If `None` then will be inferred from the venue in the instrument ID.
   - **callback** (_Callable_ _[_ _​[​_[_UUID4_](https://nautilustrader.io/docs/latest/api_reference/core#nautilus_trader.core.UUID4) _]_ _,_ _None_ _]_ _,_ ​*optional*​) – The registered callback, to be called with the request ID when the response has completed processing.
   - **update_catalog** (_bool_ _,_ ​*optional*​) – Whether to update a catalog with the received data.
-  - **params** (_dict_ \*[\**str* *,* *Any* *]\* _,_ ​*optional*​) – Additional parameters potentially used by a specific client:
+  - **params** (_dict_ \*[\*_str_ _,_ _Any_ *]\* _,_ ​*optional*​) – Additional parameters potentially used by a specific client:
     - only_last (default True) retains only the latest instrument record per instrument_id, based on the most recent ts_init.
 - **Returns:** The request_id for the request.
 - **Return type:** [UUID4](https://nautilustrader.io/docs/latest/api_reference/core#nautilus_trader.core.UUID4)
@@ -5612,7 +5614,7 @@ If the request fails, then an error is logged.
   - **limit** (_int_ _,_ ​*optional*​) – The limit on the depth of the order book snapshot.
   - **client_id** ([_ClientId_](https://nautilustrader.io/docs/latest/api_reference/model/identifiers#nautilus_trader.model.identifiers.ClientId) _,_ ​*optional*​) – The specific client ID for the command. If None, it will be inferred from the venue in the instrument ID.
   - **callback** (_Callable_ _[_ _​[​_[_UUID4_](https://nautilustrader.io/docs/latest/api_reference/core#nautilus_trader.core.UUID4) _]_ _,_ _None_ _]_ _,_ ​*optional*​) – The registered callback, to be called with the request ID when the response has completed processing.
-  - **params** (_dict_ \*[\**str* *,* *Any* *]\* _,_ ​*optional*​) – Additional parameters potentially used by a specific client.
+  - **params** (_dict_ \*[\*_str_ _,_ _Any_ *]\* _,_ ​*optional*​) – Additional parameters potentially used by a specific client.
 - **Returns:** The request_id for the request.
 - **Return type:** [UUID4](https://nautilustrader.io/docs/latest/api_reference/core#nautilus_trader.core.UUID4)
 - **Raises:**
@@ -5631,13 +5633,13 @@ If the request fails, then an error is logged.
 
 - **Parameters:**
   - **instrument_id** ([_InstrumentId_](https://nautilustrader.io/docs/latest/api_reference/model/identifiers#nautilus_trader.model.identifiers.InstrumentId)) – The tick instrument ID for the request.
-  - **start** (​*datetime*​) – The start datetime (UTC) of request time range. Should be left-inclusive (start <= value), but inclusiveness is not currently guaranteed.
-  - **end** (_datetime_ _,_ ​*optional*​) – The end datetime (UTC) of request time range. If None then will be replaced with the current UTC time. Should be right-inclusive (value <= end), but inclusiveness is not currently guaranteed.
+  - **start** (​*datetime*​) – The start datetime (UTC) of request time range. Should be left-inclusive (start \<\= value), but inclusiveness is not currently guaranteed.
+  - **end** (_datetime_ _,_ ​*optional*​) – The end datetime (UTC) of request time range. If None then will be replaced with the current UTC time. Should be right-inclusive (value \<\= end), but inclusiveness is not currently guaranteed.
   - **limit** (_int_ _,_ ​*optional*​) – The limit on the amount of quote ticks received.
   - **client_id** ([_ClientId_](https://nautilustrader.io/docs/latest/api_reference/model/identifiers#nautilus_trader.model.identifiers.ClientId) _,_ ​*optional*​) – The specific client ID for the command. If `None` then will be inferred from the venue in the instrument ID.
   - **callback** (_Callable_ _[_ _​[​_[_UUID4_](https://nautilustrader.io/docs/latest/api_reference/core#nautilus_trader.core.UUID4) _]_ _,_ _None_ _]_ _,_ ​*optional*​) – The registered callback, to be called with the request ID when the response has completed processing.
   - **update_catalog** (_bool_ _,_ ​*optional*​) – Whether to update a catalog with the received data.
-  - **params** (_dict_ \*[\**str* *,* *Any* *]\* _,_ ​*optional*​) – Additional parameters potentially used by a specific client.
+  - **params** (_dict_ \*[\*_str_ _,_ _Any_ *]\* _,_ ​*optional*​) – Additional parameters potentially used by a specific client.
 - **Returns:** The request_id for the request.
 - **Return type:** [UUID4](https://nautilustrader.io/docs/latest/api_reference/core#nautilus_trader.core.UUID4)
 - **Raises:**
@@ -5659,13 +5661,13 @@ If the request fails, then an error is logged.
 
 - **Parameters:**
   - **instrument_id** ([_InstrumentId_](https://nautilustrader.io/docs/latest/api_reference/model/identifiers#nautilus_trader.model.identifiers.InstrumentId)) – The tick instrument ID for the request.
-  - **start** (​*datetime*​) – The start datetime (UTC) of request time range. Should be left-inclusive (start <= value), but inclusiveness is not currently guaranteed.
-  - **end** (_datetime_ _,_ ​*optional*​) – The end datetime (UTC) of request time range. If None then will be replaced with the current UTC time. Should be right-inclusive (value <= end), but inclusiveness is not currently guaranteed.
+  - **start** (​*datetime*​) – The start datetime (UTC) of request time range. Should be left-inclusive (start \<\= value), but inclusiveness is not currently guaranteed.
+  - **end** (_datetime_ _,_ ​*optional*​) – The end datetime (UTC) of request time range. If None then will be replaced with the current UTC time. Should be right-inclusive (value \<\= end), but inclusiveness is not currently guaranteed.
   - **limit** (_int_ _,_ ​*optional*​) – The limit on the amount of trade ticks received.
   - **client_id** ([_ClientId_](https://nautilustrader.io/docs/latest/api_reference/model/identifiers#nautilus_trader.model.identifiers.ClientId) _,_ ​*optional*​) – The specific client ID for the command. If `None` then will be inferred from the venue in the instrument ID.
   - **callback** (_Callable_ _[_ _​[​_[_UUID4_](https://nautilustrader.io/docs/latest/api_reference/core#nautilus_trader.core.UUID4) _]_ _,_ _None_ _]_ _,_ ​*optional*​) – The registered callback, to be called with the request ID when the response has completed processing.
   - **update_catalog** (_bool_ _,_ ​*optional*​) – Whether to update a catalog with the received data.
-  - **params** (_dict_ \*[\**str* *,* *Any* *]\* _,_ ​*optional*​) – Additional parameters potentially used by a specific client.
+  - **params** (_dict_ \*[\*_str_ _,_ _Any_ *]\* _,_ ​*optional*​) – Additional parameters potentially used by a specific client.
 - **Returns:** The request_id for the request.
 - **Return type:** [UUID4](https://nautilustrader.io/docs/latest/api_reference/core#nautilus_trader.core.UUID4)
 - **Raises:**
@@ -5768,7 +5770,7 @@ Once subscribed, any matching bar data published on the message bus is forwarded
   - **client_id** ([_ClientId_](https://nautilustrader.io/docs/latest/api_reference/model/identifiers#nautilus_trader.model.identifiers.ClientId) _,_ ​*optional*​) – The specific client ID for the command. If `None` then will be inferred from the venue in the instrument ID.
   - **await_partial** (_bool_ _,_ ​*default False*​) – If the bar aggregator should await the arrival of a historical partial bar prior to actively aggregating new bars.
   - **update_catalog** (_bool_ _,_ ​*optional*​) – Whether to update a catalog with the received data. Only useful when downloading data during a backtest.
-  - **params** (_dict_ \*[\**str* *,* *Any* *]\* _,_ ​*optional*​) – Additional parameters potentially used by a specific client.
+  - **params** (_dict_ \*[\*_str_ _,_ _Any_ *]\* _,_ ​*optional*​) – Additional parameters potentially used by a specific client.
 
 #### subscribe_data(self, DataType data_type, ClientId client_id=None, InstrumentId instrument_id=None, bool update_catalog=False, dict params=None) → void
 
@@ -5780,7 +5782,7 @@ Once subscribed, any matching data published on the message bus is forwarded to 
   - **data_type** ([_DataType_](https://nautilustrader.io/docs/latest/api_reference/model/data#nautilus_trader.model.data.DataType)) – The data type to subscribe to.
   - **client_id** ([_ClientId_](https://nautilustrader.io/docs/latest/api_reference/model/identifiers#nautilus_trader.model.identifiers.ClientId) _,_ ​*optional*​) – The data client ID. If supplied then a Subscribe command will be sent to the corresponding data client.
   - **update_catalog** (_bool_ _,_ ​*optional*​) – Whether to update a catalog with the received data. Only useful when downloading data during a backtest.
-  - **params** (_dict_ \*[\**str* *,* *Any* *]\* _,_ ​*optional*​) – Additional parameters potentially used by a specific client.
+  - **params** (_dict_ \*[\*_str_ _,_ _Any_ *]\* _,_ ​*optional*​) – Additional parameters potentially used by a specific client.
 
 #### subscribe_funding_rates(self, InstrumentId instrument_id, ClientId client_id=None, dict params=None) → void
 
@@ -5791,7 +5793,7 @@ Once subscribed, any matching funding rate updates published on the message bus 
 - **Parameters:**
   - **instrument_id** ([_InstrumentId_](https://nautilustrader.io/docs/latest/api_reference/model/identifiers#nautilus_trader.model.identifiers.InstrumentId)) – The instrument to subscribe to.
   - **client_id** ([_ClientId_](https://nautilustrader.io/docs/latest/api_reference/model/identifiers#nautilus_trader.model.identifiers.ClientId) _,_ ​*optional*​) – The specific client ID for the command. If `None` then will be inferred from the venue in the instrument ID.
-  - **params** (_dict_ \*[\**str* *,* *Any* *]\* _,_ ​*optional*​) – Additional parameters potentially used by a specific client.
+  - **params** (_dict_ \*[\*_str_ _,_ _Any_ *]\* _,_ ​*optional*​) – Additional parameters potentially used by a specific client.
 
 #### subscribe_index_prices(self, InstrumentId instrument_id, ClientId client_id=None, dict params=None) → void
 
@@ -5802,7 +5804,7 @@ Once subscribed, any matching index price updates published on the message bus a
 - **Parameters:**
   - **instrument_id** ([_InstrumentId_](https://nautilustrader.io/docs/latest/api_reference/model/identifiers#nautilus_trader.model.identifiers.InstrumentId)) – The instrument to subscribe to.
   - **client_id** ([_ClientId_](https://nautilustrader.io/docs/latest/api_reference/model/identifiers#nautilus_trader.model.identifiers.ClientId) _,_ ​*optional*​) – The specific client ID for the command. If `None` then will be inferred from the venue in the instrument ID.
-  - **params** (_dict_ \*[\**str* *,* *Any* *]\* _,_ ​*optional*​) – Additional parameters potentially used by a specific client.
+  - **params** (_dict_ \*[\*_str_ _,_ _Any_ *]\* _,_ ​*optional*​) – Additional parameters potentially used by a specific client.
 
 #### subscribe_instrument(self, InstrumentId instrument_id, ClientId client_id=None, dict params=None) → void
 
@@ -5813,7 +5815,7 @@ Once subscribed, any matching instrument data published on the message bus is fo
 - **Parameters:**
   - **instrument_id** ([_InstrumentId_](https://nautilustrader.io/docs/latest/api_reference/model/identifiers#nautilus_trader.model.identifiers.InstrumentId)) – The instrument ID for the subscription.
   - **client_id** ([_ClientId_](https://nautilustrader.io/docs/latest/api_reference/model/identifiers#nautilus_trader.model.identifiers.ClientId) _,_ ​*optional*​) – The specific client ID for the command. If `None` then will be inferred from the venue in the instrument ID.
-  - **params** (_dict_ \*[\**str* *,* *Any* *]\* _,_ ​*optional*​) – Additional parameters potentially used by a specific client.
+  - **params** (_dict_ \*[\*_str_ _,_ _Any_ *]\* _,_ ​*optional*​) – Additional parameters potentially used by a specific client.
 
 #### subscribe_instrument_close(self, InstrumentId instrument_id, ClientId client_id=None, dict params=None) → void
 
@@ -5824,7 +5826,7 @@ Once subscribed, any matching instrument close data published on the message bus
 - **Parameters:**
   - **instrument_id** ([_InstrumentId_](https://nautilustrader.io/docs/latest/api_reference/model/identifiers#nautilus_trader.model.identifiers.InstrumentId)) – The instrument to subscribe to status updates for.
   - **client_id** ([_ClientId_](https://nautilustrader.io/docs/latest/api_reference/model/identifiers#nautilus_trader.model.identifiers.ClientId) _,_ ​*optional*​) – The specific client ID for the command. If `None` then will be inferred from the venue in the instrument ID.
-  - **params** (_dict_ \*[\**str* *,* *Any* *]\* _,_ ​*optional*​) – Additional parameters potentially used by a specific client.
+  - **params** (_dict_ \*[\*_str_ _,_ _Any_ *]\* _,_ ​*optional*​) – Additional parameters potentially used by a specific client.
 
 #### subscribe_instrument_status(self, InstrumentId instrument_id, ClientId client_id=None, dict params=None) → void
 
@@ -5835,7 +5837,7 @@ Once subscribed, any matching instrument status data published on the message bu
 - **Parameters:**
   - **instrument_id** ([_InstrumentId_](https://nautilustrader.io/docs/latest/api_reference/model/identifiers#nautilus_trader.model.identifiers.InstrumentId)) – The instrument to subscribe to status updates for.
   - **client_id** ([_ClientId_](https://nautilustrader.io/docs/latest/api_reference/model/identifiers#nautilus_trader.model.identifiers.ClientId) _,_ ​*optional*​) – The specific client ID for the command. If `None` then will be inferred from the venue in the instrument ID.
-  - **params** (_dict_ \*[\**str* *,* *Any* *]\* _,_ ​*optional*​) – Additional parameters potentially used by a specific client.
+  - **params** (_dict_ \*[\*_str_ _,_ _Any_ *]\* _,_ ​*optional*​) – Additional parameters potentially used by a specific client.
 
 #### subscribe_instruments(self, Venue venue, ClientId client_id=None, dict params=None) → void
 
@@ -5846,7 +5848,7 @@ Once subscribed, any matching instrument data published on the message bus is fo
 - **Parameters:**
   - **venue** ([_Venue_](https://nautilustrader.io/docs/latest/api_reference/model/identifiers#nautilus_trader.model.identifiers.Venue)) – The venue for the subscription.
   - **client_id** ([_ClientId_](https://nautilustrader.io/docs/latest/api_reference/model/identifiers#nautilus_trader.model.identifiers.ClientId) _,_ ​*optional*​) – The specific client ID for the command. If `None` then will be inferred from the venue.
-  - **params** (_dict_ \*[\**str* *,* *Any* *]\* _,_ ​*optional*​) – Additional parameters potentially used by a specific client.
+  - **params** (_dict_ \*[\*_str_ _,_ _Any_ *]\* _,_ ​*optional*​) – Additional parameters potentially used by a specific client.
 
 #### subscribe_mark_prices(self, InstrumentId instrument_id, ClientId client_id=None, dict params=None) → void
 
@@ -5857,7 +5859,7 @@ Once subscribed, any matching mark price updates published on the message bus ar
 - **Parameters:**
   - **instrument_id** ([_InstrumentId_](https://nautilustrader.io/docs/latest/api_reference/model/identifiers#nautilus_trader.model.identifiers.InstrumentId)) – The instrument to subscribe to.
   - **client_id** ([_ClientId_](https://nautilustrader.io/docs/latest/api_reference/model/identifiers#nautilus_trader.model.identifiers.ClientId) _,_ ​*optional*​) – The specific client ID for the command. If `None` then will be inferred from the venue in the instrument ID.
-  - **params** (_dict_ \*[\**str* *,* *Any* *]\* _,_ ​*optional*​) – Additional parameters potentially used by a specific client.
+  - **params** (_dict_ \*[\*_str_ _,_ _Any_ *]\* _,_ ​*optional*​) – Additional parameters potentially used by a specific client.
 
 #### subscribe_order_book_at_interval(self, InstrumentId instrument_id, BookType book_type=BookType.L2_MBP, int depth=0, int interval_ms=1000, ClientId client_id=None, dict params=None) → void
 
@@ -5873,7 +5875,7 @@ The DataEngine will only maintain one order book for each instrument. Because of
   - **depth** (_int_ _,_ ​*optional*​) – The maximum depth for the order book. A depth of 0 is maximum depth.
   - **interval_ms** (_int_ _,_ ​*default 1000*​) – The order book snapshot interval (milliseconds).
   - **client_id** ([_ClientId_](https://nautilustrader.io/docs/latest/api_reference/model/identifiers#nautilus_trader.model.identifiers.ClientId) _,_ ​*optional*​) – The specific client ID for the command. If `None` then will be inferred from the venue in the instrument ID.
-  - **params** (_dict_ \*[\**str* *,* *Any* *]\* _,_ ​*optional*​) – Additional parameters potentially used by a specific client.
+  - **params** (_dict_ \*[\*_str_ _,_ _Any_ *]\* _,_ ​*optional*​) – Additional parameters potentially used by a specific client.
 - **Raises:**
   - **ValueError** – If depth is negative (< 0).
   - **ValueError** – If interval_ms is not positive (> 0).
@@ -5895,7 +5897,7 @@ Once subscribed, any matching order book data published on the message bus is fo
   - **client_id** ([_ClientId_](https://nautilustrader.io/docs/latest/api_reference/model/identifiers#nautilus_trader.model.identifiers.ClientId) _,_ ​*optional*​) – The specific client ID for the command. If `None` then will be inferred from the venue in the instrument ID.
   - **managed** (_bool_ _,_ ​*default True*​) – If an order book should be managed by the data engine based on the subscribed feed.
   - **pyo3_conversion** (_bool_ _,_ ​*default False*​) – If received deltas should be converted to nautilus_pyo3.OrderBookDeltas prior to being passed to the on_order_book_deltas handler.
-  - **params** (_dict_ \*[\**str* *,* *Any* *]\* _,_ ​*optional*​) – Additional parameters potentially used by a specific client.
+  - **params** (_dict_ \*[\*_str_ _,_ _Any_ *]\* _,_ ​*optional*​) – Additional parameters potentially used by a specific client.
 
 #### subscribe_order_book_depth(self, InstrumentId instrument_id, BookType book_type=BookType.L2_MBP, int depth=0, ClientId client_id=None, bool managed=True, bool pyo3_conversion=False, dict params=None) → void
 
@@ -5909,7 +5911,7 @@ Once subscribed, any matching order book data published on the message bus is fo
   - **client_id** ([_ClientId_](https://nautilustrader.io/docs/latest/api_reference/model/identifiers#nautilus_trader.model.identifiers.ClientId) _,_ ​*optional*​) – The specific client ID for the command. If `None` then will be inferred from the venue in the instrument ID.
   - **managed** (_bool_ _,_ ​*default True*​) – If an order book should be managed by the data engine based on the subscribed feed.
   - **pyo3_conversion** (_bool_ _,_ ​*default False*​) – If received deltas should be converted to nautilus_pyo3.OrderBookDepth prior to being passed to the on_order_book_depth handler.
-  - **params** (_dict_ \*[\**str* *,* *Any* *]\* _,_ ​*optional*​) – Additional parameters potentially used by a specific client.
+  - **params** (_dict_ \*[\*_str_ _,_ _Any_ *]\* _,_ ​*optional*​) – Additional parameters potentially used by a specific client.
 
 #### subscribe_quote_ticks(self, InstrumentId instrument_id, ClientId client_id=None, bool update_catalog=False, dict params=None) → void
 
@@ -5921,7 +5923,7 @@ Once subscribed, any matching quote tick data published on the message bus is fo
   - **instrument_id** ([_InstrumentId_](https://nautilustrader.io/docs/latest/api_reference/model/identifiers#nautilus_trader.model.identifiers.InstrumentId)) – The tick instrument to subscribe to.
   - **client_id** ([_ClientId_](https://nautilustrader.io/docs/latest/api_reference/model/identifiers#nautilus_trader.model.identifiers.ClientId) _,_ ​*optional*​) – The specific client ID for the command. If `None` then will be inferred from the venue in the instrument ID.
   - **update_catalog** (_bool_ _,_ ​*optional*​) – Whether to update a catalog with the received data. Only useful when downloading data during a backtest.
-  - **params** (_dict_ \*[\**str* *,* *Any* *]\* _,_ ​*optional*​) – Additional parameters potentially used by a specific client.
+  - **params** (_dict_ \*[\*_str_ _,_ _Any_ *]\* _,_ ​*optional*​) – Additional parameters potentially used by a specific client.
 
 #### subscribe_signal(self, str name='') → void
 
@@ -5941,7 +5943,7 @@ Once subscribed, any matching trade tick data published on the message bus is fo
   - **instrument_id** ([_InstrumentId_](https://nautilustrader.io/docs/latest/api_reference/model/identifiers#nautilus_trader.model.identifiers.InstrumentId)) – The tick instrument to subscribe to.
   - **client_id** ([_ClientId_](https://nautilustrader.io/docs/latest/api_reference/model/identifiers#nautilus_trader.model.identifiers.ClientId) _,_ ​*optional*​) – The specific client ID for the command. If `None` then will be inferred from the venue in the instrument ID.
   - **update_catalog** (_bool_ _,_ ​*optional*​) – Whether to update a catalog with the received data. Only useful when downloading data during a backtest.
-  - **params** (_dict_ \*[\**str* *,* *Any* *]\* _,_ ​*optional*​) – Additional parameters potentially used by a specific client.
+  - **params** (_dict_ \*[\*_str_ _,_ _Any_ *]\* _,_ ​*optional*​) – Additional parameters potentially used by a specific client.
 
 #### to_importable_config(self) → [ImportableActorConfig](https://nautilustrader.io/docs/latest/api_reference/config#nautilus_trader.common.config.ImportableActorConfig)
 
@@ -5968,7 +5970,7 @@ Unsubscribe from streaming Bar data for the given bar type.
 - **Parameters:**
   - **bar_type** ([_BarType_](https://nautilustrader.io/docs/latest/api_reference/model/data#nautilus_trader.model.data.BarType)) – The bar type to unsubscribe from.
   - **client_id** ([_ClientId_](https://nautilustrader.io/docs/latest/api_reference/model/identifiers#nautilus_trader.model.identifiers.ClientId) _,_ ​*optional*​) – The specific client ID for the command. If `None` then will be inferred from the venue in the instrument ID.
-  - **params** (_dict_ \*[\**str* *,* *Any* *]\* _,_ ​*optional*​) – Additional parameters potentially used by a specific client.
+  - **params** (_dict_ \*[\*_str_ _,_ _Any_ *]\* _,_ ​*optional*​) – Additional parameters potentially used by a specific client.
 
 #### unsubscribe_data(self, DataType data_type, ClientId client_id=None, InstrumentId instrument_id=None, dict params=None) → void
 
@@ -5977,7 +5979,7 @@ Unsubscribe from data of the given data type.
 - **Parameters:**
   - **data_type** ([_DataType_](https://nautilustrader.io/docs/latest/api_reference/model/data#nautilus_trader.model.data.DataType)) – The data type to unsubscribe from.
   - **client_id** ([_ClientId_](https://nautilustrader.io/docs/latest/api_reference/model/identifiers#nautilus_trader.model.identifiers.ClientId) _,_ ​*optional*​) – The data client ID. If supplied then an Unsubscribe command will be sent to the data client.
-  - **params** (_dict_ \*[\**str* *,* *Any* *]\* _,_ ​*optional*​) – Additional parameters potentially used by a specific client.
+  - **params** (_dict_ \*[\*_str_ _,_ _Any_ *]\* _,_ ​*optional*​) – Additional parameters potentially used by a specific client.
 
 #### unsubscribe_funding_rates(self, InstrumentId instrument_id, ClientId client_id=None, dict params=None) → void
 
@@ -5986,7 +5988,7 @@ Unsubscribe from streaming FundingRateUpdate data for the given instrument ID.
 - **Parameters:**
   - **instrument_id** ([_InstrumentId_](https://nautilustrader.io/docs/latest/api_reference/model/identifiers#nautilus_trader.model.identifiers.InstrumentId)) – The instrument to unsubscribe from.
   - **client_id** ([_ClientId_](https://nautilustrader.io/docs/latest/api_reference/model/identifiers#nautilus_trader.model.identifiers.ClientId) _,_ ​*optional*​) – The specific client ID for the command. If `None` then will be inferred from the venue in the instrument ID.
-  - **params** (_dict_ \*[\**str* *,* *Any* *]\* _,_ ​*optional*​) – Additional parameters potentially used by a specific client.
+  - **params** (_dict_ \*[\*_str_ _,_ _Any_ *]\* _,_ ​*optional*​) – Additional parameters potentially used by a specific client.
 
 #### unsubscribe_index_prices(self, InstrumentId instrument_id, ClientId client_id=None, dict params=None) → void
 
@@ -5995,7 +5997,7 @@ Unsubscribe from streaming IndexPriceUpdate data for the given instrument ID.
 - **Parameters:**
   - **instrument_id** ([_InstrumentId_](https://nautilustrader.io/docs/latest/api_reference/model/identifiers#nautilus_trader.model.identifiers.InstrumentId)) – The instrument to subscribe to.
   - **client_id** ([_ClientId_](https://nautilustrader.io/docs/latest/api_reference/model/identifiers#nautilus_trader.model.identifiers.ClientId) _,_ ​*optional*​) – The specific client ID for the command. If `None` then will be inferred from the venue in the instrument ID.
-  - **params** (_dict_ \*[\**str* *,* *Any* *]\* _,_ ​*optional*​) – Additional parameters potentially used by a specific client.
+  - **params** (_dict_ \*[\*_str_ _,_ _Any_ *]\* _,_ ​*optional*​) – Additional parameters potentially used by a specific client.
 
 #### unsubscribe_instrument(self, InstrumentId instrument_id, ClientId client_id=None, dict params=None) → void
 
@@ -6004,7 +6006,7 @@ Unsubscribe from update Instrument data for the given instrument ID.
 - **Parameters:**
   - **instrument_id** ([_InstrumentId_](https://nautilustrader.io/docs/latest/api_reference/model/identifiers#nautilus_trader.model.identifiers.InstrumentId)) – The instrument to unsubscribe from.
   - **client_id** ([_ClientId_](https://nautilustrader.io/docs/latest/api_reference/model/identifiers#nautilus_trader.model.identifiers.ClientId) _,_ ​*optional*​) – The specific client ID for the command. If `None` then will be inferred from the venue in the instrument ID.
-  - **params** (_dict_ \*[\**str* *,* *Any* *]\* _,_ ​*optional*​) – Additional parameters potentially used by a specific client.
+  - **params** (_dict_ \*[\*_str_ _,_ _Any_ *]\* _,_ ​*optional*​) – Additional parameters potentially used by a specific client.
 
 #### unsubscribe_instrument_status(self, InstrumentId instrument_id, ClientId client_id=None, dict params=None) → void
 
@@ -6013,7 +6015,7 @@ Unsubscribe to status updates of the given venue.
 - **Parameters:**
   - **instrument_id** ([_InstrumentId_](https://nautilustrader.io/docs/latest/api_reference/model/identifiers#nautilus_trader.model.identifiers.InstrumentId)) – The instrument to unsubscribe to status updates for.
   - **client_id** ([_ClientId_](https://nautilustrader.io/docs/latest/api_reference/model/identifiers#nautilus_trader.model.identifiers.ClientId) _,_ ​*optional*​) – The specific client ID for the command. If `None` then will be inferred from the venue.
-  - **params** (_dict_ \*[\**str* *,* *Any* *]\* _,_ ​*optional*​) – Additional parameters potentially used by a specific client.
+  - **params** (_dict_ \*[\*_str_ _,_ _Any_ *]\* _,_ ​*optional*​) – Additional parameters potentially used by a specific client.
 
 #### unsubscribe_instruments(self, Venue venue, ClientId client_id=None, dict params=None) → void
 
@@ -6022,7 +6024,7 @@ Unsubscribe from update Instrument data for the given venue.
 - **Parameters:**
   - **venue** ([_Venue_](https://nautilustrader.io/docs/latest/api_reference/model/identifiers#nautilus_trader.model.identifiers.Venue)) – The venue for the subscription.
   - **client_id** ([_ClientId_](https://nautilustrader.io/docs/latest/api_reference/model/identifiers#nautilus_trader.model.identifiers.ClientId) _,_ ​*optional*​) – The specific client ID for the command. If `None` then will be inferred from the venue.
-  - **params** (_dict_ \*[\**str* *,* *Any* *]\* _,_ ​*optional*​) – Additional parameters potentially used by a specific client.
+  - **params** (_dict_ \*[\*_str_ _,_ _Any_ *]\* _,_ ​*optional*​) – Additional parameters potentially used by a specific client.
 
 #### unsubscribe_mark_prices(self, InstrumentId instrument_id, ClientId client_id=None, dict params=None) → void
 
@@ -6031,7 +6033,7 @@ Unsubscribe from streaming MarkPriceUpdate data for the given instrument ID.
 - **Parameters:**
   - **instrument_id** ([_InstrumentId_](https://nautilustrader.io/docs/latest/api_reference/model/identifiers#nautilus_trader.model.identifiers.InstrumentId)) – The instrument to subscribe to.
   - **client_id** ([_ClientId_](https://nautilustrader.io/docs/latest/api_reference/model/identifiers#nautilus_trader.model.identifiers.ClientId) _,_ ​*optional*​) – The specific client ID for the command. If `None` then will be inferred from the venue in the instrument ID.
-  - **params** (_dict_ \*[\**str* *,* *Any* *]\* _,_ ​*optional*​) – Additional parameters potentially used by a specific client.
+  - **params** (_dict_ \*[\*_str_ _,_ _Any_ *]\* _,_ ​*optional*​) – Additional parameters potentially used by a specific client.
 
 #### unsubscribe_order_book_at_interval(self, InstrumentId instrument_id, int interval_ms=1000, ClientId client_id=None, dict params=None) → void
 
@@ -6043,7 +6045,7 @@ The interval must match the previously subscribed interval.
   - **instrument_id** ([_InstrumentId_](https://nautilustrader.io/docs/latest/api_reference/model/identifiers#nautilus_trader.model.identifiers.InstrumentId)) – The order book instrument to subscribe to.
   - **interval_ms** (_int_ _,_ ​*default 1000*​) – The order book snapshot interval (milliseconds).
   - **client_id** ([_ClientId_](https://nautilustrader.io/docs/latest/api_reference/model/identifiers#nautilus_trader.model.identifiers.ClientId) _,_ ​*optional*​) – The specific client ID for the command. If `None` then will be inferred from the venue in the instrument ID.
-  - **params** (_dict_ \*[\**str* *,* *Any* *]\* _,_ ​*optional*​) – Additional parameters potentially used by a specific client.
+  - **params** (_dict_ \*[\*_str_ _,_ _Any_ *]\* _,_ ​*optional*​) – Additional parameters potentially used by a specific client.
 
 #### unsubscribe_order_book_deltas(self, InstrumentId instrument_id, ClientId client_id=None, dict params=None) → void
 
@@ -6052,7 +6054,7 @@ Unsubscribe the order book deltas stream for the given instrument ID.
 - **Parameters:**
   - **instrument_id** ([_InstrumentId_](https://nautilustrader.io/docs/latest/api_reference/model/identifiers#nautilus_trader.model.identifiers.InstrumentId)) – The order book instrument to subscribe to.
   - **client_id** ([_ClientId_](https://nautilustrader.io/docs/latest/api_reference/model/identifiers#nautilus_trader.model.identifiers.ClientId) _,_ ​*optional*​) – The specific client ID for the command. If `None` then will be inferred from the venue in the instrument ID.
-  - **params** (_dict_ \*[\**str* *,* *Any* *]\* _,_ ​*optional*​) – Additional parameters potentially used by a specific client.
+  - **params** (_dict_ \*[\*_str_ _,_ _Any_ *]\* _,_ ​*optional*​) – Additional parameters potentially used by a specific client.
 
 #### unsubscribe_order_book_depth(self, InstrumentId instrument_id, ClientId client_id=None, dict params=None) → void
 
@@ -6061,7 +6063,7 @@ Unsubscribe the order book depth stream for the given instrument ID.
 - **Parameters:**
   - **instrument_id** ([_InstrumentId_](https://nautilustrader.io/docs/latest/api_reference/model/identifiers#nautilus_trader.model.identifiers.InstrumentId)) – The order book instrument to subscribe to.
   - **client_id** ([_ClientId_](https://nautilustrader.io/docs/latest/api_reference/model/identifiers#nautilus_trader.model.identifiers.ClientId) _,_ ​*optional*​) – The specific client ID for the command. If `None` then will be inferred from the venue in the instrument ID.
-  - **params** (_dict_ \*[\**str* *,* *Any* *]\* _,_ ​*optional*​) – Additional parameters potentially used by a specific client.
+  - **params** (_dict_ \*[\*_str_ _,_ _Any_ *]\* _,_ ​*optional*​) – Additional parameters potentially used by a specific client.
 
 #### unsubscribe_quote_ticks(self, InstrumentId instrument_id, ClientId client_id=None, dict params=None) → void
 
@@ -6070,7 +6072,7 @@ Unsubscribe from streaming QuoteTick data for the given instrument ID.
 - **Parameters:**
   - **instrument_id** ([_InstrumentId_](https://nautilustrader.io/docs/latest/api_reference/model/identifiers#nautilus_trader.model.identifiers.InstrumentId)) – The tick instrument to unsubscribe from.
   - **client_id** ([_ClientId_](https://nautilustrader.io/docs/latest/api_reference/model/identifiers#nautilus_trader.model.identifiers.ClientId) _,_ ​*optional*​) – The specific client ID for the command. If `None` then will be inferred from the venue in the instrument ID.
-  - **params** (_dict_ \*[\**str* *,* *Any* *]\* _,_ ​*optional*​) – Additional parameters potentially used by a specific client.
+  - **params** (_dict_ \*[\*_str_ _,_ _Any_ *]\* _,_ ​*optional*​) – Additional parameters potentially used by a specific client.
 
 #### unsubscribe_trade_ticks(self, InstrumentId instrument_id, ClientId client_id=None, dict params=None) → void
 
@@ -6079,7 +6081,7 @@ Unsubscribe from streaming TradeTick data for the given instrument ID.
 - **Parameters:**
   - **instrument_id** ([_InstrumentId_](https://nautilustrader.io/docs/latest/api_reference/model/identifiers#nautilus_trader.model.identifiers.InstrumentId)) – The tick instrument ID to unsubscribe from.
   - **client_id** ([_ClientId_](https://nautilustrader.io/docs/latest/api_reference/model/identifiers#nautilus_trader.model.identifiers.ClientId) _,_ ​*optional*​) – The specific client ID for the command. If `None` then will be inferred from the venue in the instrument ID.
-  - **params** (_dict_ \*[\**str* *,* *Any* *]\* _,_ ​*optional*​) – Additional parameters potentially used by a specific client.
+  - **params** (_dict_ \*[\*_str_ _,_ _Any_ *]\* _,_ ​*optional*​) – Additional parameters potentially used by a specific client.
 
 #### update_synthetic(self, SyntheticInstrument synthetic) → void
 
@@ -6134,7 +6136,7 @@ Add the given data client factory to the node.
 
 - **Parameters:**
   - **name** (​*str*​) – The name of the client factory.
-  - **factory** (_type_ \*[\**LiveDataClientFactory* ​*]\*​) – The factory class to add.
+  - **factory** (_type_ \*[\*_LiveDataClientFactory_ ​*]\*​) – The factory class to add.
 - **Raises:**
   - **ValueError** – If name is not a valid string.
   - **KeyError** – If name has already been added.
@@ -6212,37 +6214,37 @@ Bases: `object`
 
 Represents the results of a single complete backtest run.
 
-#### trader_id _: str_
+#### trader*id*: str\_
 
-#### machine_id _: str_
+#### machine*id*: str\_
 
-#### run_config_id _: str | None_
+#### run*config_id*: str | None\_
 
-#### instance_id _: str_
+#### instance*id*: str\_
 
-#### run_id _: str_
+#### run*id*: str\_
 
-#### run_started _: int | None_
+#### run*started*: int | None\_
 
-#### run_finished _: int | None_
+#### run*finished*: int | None\_
 
-#### backtest_start _: int | None_
+#### backtest*start*: int | None\_
 
-#### backtest_end _: int | None_
+#### backtest*end*: int | None\_
 
-#### elapsed_time _: float_
+#### elapsed*time*: float\_
 
 #### iterations _: int_
 
-#### total_events _: int_
+#### total*events*: int\_
 
-#### total_orders _: int_
+#### total*orders*: int\_
 
-#### total_positions _: int_
+#### total*positions*: int\_
 
-#### stats_pnls _: dict[str, dict[str, float]]_
+#### stats*pnls*: dict[str, dict[str, float]]\_
 
-#### stats_returns _: dict[str, float]_
+#### stats*returns*: dict[str, float]\_
 
 ### ensure_plotting(func)
 
