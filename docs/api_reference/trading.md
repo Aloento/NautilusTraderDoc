@@ -194,7 +194,7 @@ This class allows traders to implement their own customized trading strategies. 
 Strategy OMS (Order Management System) types: : - `UNSPECIFIED`: No specific type has been configured, will therefore default to the native OMS type for each venue.
 
 - `HEDGING`: A position ID will be assigned for each new position which is opened per instrument.
-- `NETTING`: There will only be a single position for the strategy per instrument. The position ID naming convention is {instrument_id}-{strategy_id}.
+- `NETTING`: There will only be a single position for the strategy per instrument. The position ID naming convention is `{instrument_id}-{strategy_id}`.
 - **Parameters:** **config** ([_StrategyConfig_](https://nautilustrader.io/docs/latest/api_reference/config#nautilus_trader.trading.config.StrategyConfig) _,_ ​*optional*​) – The trading strategy configuration.
 - **Raises:** **TypeError** – If config is not of type StrategyConfig.
 
@@ -836,7 +836,7 @@ Generate a positions report.
 
 - **Return type:** pd.DataFrame
 
-#### _property_ instance*id *: [UUID4](https://nautilustrader.io/docs/latest/api_reference/core#nautilus_trader.core.uuid.UUID4)\_
+#### _property_ instance*id*: [UUID4](https://nautilustrader.io/docs/latest/api_reference/core#nautilus_trader.core.uuid.UUID4)\_
 
 Return the traders instance ID.
 
@@ -2582,7 +2582,7 @@ Represents an economic news event.
 
 #### _property_ currency _: [Currency](https://nautilustrader.io/docs/latest/api_reference/model/objects#nautilus_trader.model.objects.Currency)_
 
-#### _property_ ts*event *: int\_
+#### _property_ ts*event*: int\_
 
 int
 
@@ -2591,7 +2591,7 @@ UNIX timestamp (nanoseconds) when the data event occurred.
 - **Return type:** int
 - **Type:** Data.ts_event
 
-#### _property_ ts*init *: int\_
+#### _property_ ts*init*: int\_
 
 int
 
@@ -2690,7 +2690,7 @@ This class allows traders to implement their own customized trading strategies. 
 Strategy OMS (Order Management System) types: : - `UNSPECIFIED`: No specific type has been configured, will therefore default to the native OMS type for each venue.
 
 - `HEDGING`: A position ID will be assigned for each new position which is opened per instrument.
-- `NETTING`: There will only be a single position for the strategy per instrument. The position ID naming convention is {instrument_id}-{strategy_id}.
+- `NETTING`: There will only be a single position for the strategy per instrument. The position ID naming convention is `{instrument_id}-{strategy_id}`.
 - **Parameters:** **config** ([_StrategyConfig_](https://nautilustrader.io/docs/latest/api_reference/config#nautilus_trader.trading.config.StrategyConfig) _,_ ​*optional*​) – The trading strategy configuration.
 - **Raises:** **TypeError** – If config is not of type StrategyConfig.
 
@@ -4596,7 +4596,7 @@ Provides a trader for managing a fleet of actors, execution algorithms and tradi
   - **ValueError** – If strategies is empty.
   - **TypeError** – If strategies contains a type other than Strategy.
 
-#### _property_ instance*id *: [UUID4](https://nautilustrader.io/docs/latest/api_reference/core#nautilus_trader.core.uuid.UUID4)\_
+#### _property_ instance*id*: [UUID4](https://nautilustrader.io/docs/latest/api_reference/core#nautilus_trader.core.uuid.UUID4)\_
 
 Return the traders instance ID.
 
