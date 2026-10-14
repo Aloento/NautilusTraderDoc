@@ -524,7 +524,7 @@ dYdX 支持每个钱包地址多个子账户，便于在单一钱包内隔离交
   - 抵押品余额
   - 保证金要求
 
-### 配置 {#configuration-1}
+### 配置 {#configuration}
 
 在执行客户端配置中指定子账户编号：
 
@@ -631,7 +631,7 @@ Python 构造函数自动选择默认主网端点，不暴露端点覆盖。
 | WebSocket | `wss://indexer.dydx.trade/v4/ws`                    |
 | gRPC      | `https://dydx-ops-grpc.kingnodes.com:443`（主）     |
 
-## 配置 {#configuration-2}
+## 配置 {#configuration-1}
 
 通过交易节点配置 dYdX 适配器。执行客户端支持凭据的环境变量回退；数据客户端使用公共端点，不需要钱包凭据。
 
