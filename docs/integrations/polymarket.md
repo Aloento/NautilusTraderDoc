@@ -839,553 +839,635 @@ false。策略定时器在声明的到期时间触发并提交撤单，不发
 的可成交订单也可能被拒，
 `invalid amount for a marketable BUY order … min size: $1`.
 
-The adapter leaves instrument
-`min_quantity` unset because quote-sized BUY quantities use pUSD while base-sized orders use
-shares. Submit still sends an undersized order for the venue to reject. Modify checks the cached
-share minimum before and after cancellation. See [Order modification](#order-modification).
+适配器不设置金融工具的
+`min_quantity`，因为按 quote 计量的 BUY 数量用 pUSD，而按 base
+计量的订单用份额。提交仍会把过小订单交给场所去拒。修改在撤单前后都检查缓存的份额
+最小值。见[订单修改](#order-modification)。
 
-### Advanced order features
+### 高级订单功能 {#advanced-order-features}
 
-| Feature            | Binary options | Notes                                                   |
-| ------------------ | -------------- | ------------------------------------------------------- |
-| Order modification | ✓              | Adapter-managed cancel-replace for open `LIMIT` orders. |
-| Bracket/OCO orders | -              | *Not supported by Polymarket.*                          |
-| Iceberg orders     | -              | *Not supported by Polymarket.*                          |
+| 功能         | 二元期权 | 说明                                                    |
+| ------------ | -------- | --------------------------------------------------------- |
+| 订单修改     | ✓        | 适配器为未结 `LIMIT` 订单管理的 cancel-replace。          |
+| 括号/OCO 单  | -        | *Polymarket 不支持*。                                     |
+| 冰山单       | -        | *Polymarket 不支持*。                                     |
 
-#### Order modification
+#### 订单修改 {#order-modification}
 
-Polymarket has no in-place modify endpoint. The execution client cancels the current venue order,
-reconciles its final confirmed fills, and signs a replacement for the remaining quantity.
+Polymarket 没有原地修改端点。执行客户端撤掉当前场所订单，对其最终确认的成交做
+对账，再就剩余数量签名一笔替换单。
 
-##### Replacement quantity and identity
+##### 替换数量与标识 {#replacement-quantity-and-identity}
 
-`ModifyOrder.quantity` sets the absolute target for the logical order, not the replacement leg.
-The replacement keeps the `ClientOrderId` and receives a new `VenueOrderId`.
+`ModifyOrder.quantity`
+设定的是逻辑订单的绝对目标值，不是替换腿的值。替换单保留原
+`ClientOrderId`，并获得新的 `VenueOrderId`。
 
-The logical quantity uses the exact signed base quantity after venue precision normalization,
-so it can be slightly lower than the requested target.
+逻辑数量使用场所精度归一化之后的确切签名 base
+数量，因此可能略低于请求的目标值。
 
-##### Size checks
+##### 规模检查 {#size-checks}
 
-Before canceling, the adapter subtracts filled quantity and quantity voided without reopening from
-the target. It rejects a replacement below 0.01 shares.
+撤单之前，适配器从目标值中减去已成交数量与已作废且不会重开的数量，并拒绝低于
+0.01 份的替换。
 
-When cached instrument `info["min_order_size"]` is present, the adapter also rejects the modify if:
+缓存金融工具的 `info["min_order_size"]`
+存在时，以下情形适配器也会拒绝修改：
 
-- The value is not a positive decimal string.
-- The signed replacement share quantity is below that minimum.
-- The signed amounts needed for the minimum check cannot be derived.
+- 该值不是正的小数字符串。
+- 签名的替换份额数量低于该最小值。
+- 无法推导出规模检查所需的最小签名金额。
 
-A missing key skips the market minimum check. For a `FAK` or `FOK` BUY, the check uses shares
-derived from the cent-truncated pUSD budget.
+键缺失时跳过市场最小值检查。对
+`FAK` 或 `FOK` 的
+BUY，检查使用由截断到分的 pUSD
+预算推导的份额。
 
-After cancellation, the adapter repeats the size checks on the remaining quantity. It uses the
-market minimum captured at modify start, without a fresh order-book read.
+撤单之后，适配器对剩余数量重复规模检查，使用修改开始时捕获的市场最小值，不重新读
+订单簿。
 
-Fills during cancellation can leave an undersized remainder. The adapter does not post it: the
-modify is rejected and the order closes as canceled. A marketable replacement can still be rejected
-below 1 pUSD after cancellation.
+撤单期间的成交可能留下规模不足的余量，适配器不会挂出它：修改被拒绝，订单以已取消
+收尾。撤单后仍可成交的替换单也可能因低于 1 pUSD 被拒。
 
-##### Ambiguous outcomes
+##### 含义不明的结果 {#ambiguous-outcomes}
 
-The adapter submits no replacement unless the cancel response, canceled order state, and confirmed
-trade totals agree.
+只有撤单响应、已取消订单状态与确认成交的合计三者一致，适配器才提交替换单。
 
-- **Ambiguous cancel**: Emits `OrderModifyRejected`.
-- **Ambiguous replacement**: Stays in flight under its deterministic signed order hash. A later
-  order update, fill, or reconciliation can establish it without a second `OrderAccepted`.
-  Later modify and cancel commands remain blocked until then.
+- **撤单含义不明**：发出 `OrderModifyRejected`。
+- **替换单含义不明**：按其确定性的签名订单哈希保持在途。后续的订单更新、成交或
+  对账可以确立它，不需要第二次
+  `OrderAccepted`。在此之前，后续的修改与撤单命令保持阻塞。
 
-Replacement recovery state does not persist across an execution-client process restart.
+替换恢复状态不跨执行客户端进程重启持久化。
 
-### Batch operations
+### 批量操作 {#batch-operations}
 
-| Operation    | Binary options | Notes                                                                                                                               |
-| ------------ | -------------- | ----------------------------------------------------------------------------------------------------------------------------------- |
-| Batch submit | ✓              | The adapter uses `POST /orders` for independent limit-order batches (max 15 orders per request). See [Batch submit](#batch-submit). |
-| Batch modify | -              | *Not supported by Polymarket*.                                                                                                      |
-| Batch cancel | ✓              | The adapter uses `DELETE /orders`. See [Batch cancel](#batch-cancel).                                                               |
+| 操作     | 二元期权 | 说明                                                                                                                                |
+| -------- | -------- | ------------------------------------------------------------------------------------------------------------------------------------- |
+| 批量提交 | ✓        | 适配器对独立的限价单批次使用 `POST /orders`（每次请求至多 15 单）。见[批量提交](#batch-submit)。                                      |
+| 批量修改 | -        | *Polymarket 不支持*。                                                                                                                 |
+| 批量撤单 | ✓        | 适配器使用 `DELETE /orders`。见[批量撤单](#batch-cancel)。                                                                            |
 
-#### Batch submit
+#### 批量提交 {#batch-submit}
 
-`SubmitOrderList` commands are routed to Polymarket's `POST /orders` endpoint. The endpoint accepts at most 15
-orders per request (`BATCH_ORDER_LIMIT`). Larger lists are split into sequential 15-order chunks.
+`SubmitOrderList`
+命令路由到 Polymarket 的
+`POST /orders`
+端点。该端点每次请求至多接受 15
+单（`BATCH_ORDER_LIMIT`），更长的列表拆成按序执行的 15
+单分块。
 
-- Only `LIMIT` orders are batched. `MARKET` orders inside the list are routed to the
-  single-order path, which signs a marketable order and submits it with `FAK` or `FOK`
-  based on Nautilus `time_in_force`.
-- `reduce_only` orders, quote-sized SELL orders, and `post_only` with market TIF (`IOC` or `FOK`)
-  are denied before submission.
-- A single eligible order falls through to `POST /order` so it keeps the single-order retry semantics. The
-  batch path deliberately disables retry because the venue does not expose an idempotency key.
-- If the batch response omits a leg, that order stays submitted for reconciliation. The adapter
-  registers the signed order's expected hash so later WebSocket events and cancels still resolve to
-  the local order. An omitted response cannot prove that the venue rejected the order.
+- 只有 `LIMIT` 订单参与批量。列表中的
+  `MARKET` 订单走单订单路径：签名可成交订单，并按 Nautilus
+  `time_in_force` 以 `FAK` 或 `FOK` 提交。
+- `reduce_only` 订单、按 quote
+  计量的 SELL 订单，以及配上市价有效期（`IOC` 或
+  `FOK`）的 `post_only` 在提交前被拒绝。
+- 只有一笔符合条件的订单时退回
+  `POST /order`，以保留单订单的重试语义。批量路径刻意禁用重试，
+  因为场所不暴露幂等键。
+- 批量响应漏掉某条腿时，该订单保持已提交状态等待对账。适配器登记该签名订单的预期
+  哈希，使后续的 WebSocket 事件与撤单仍能解析到本地订单。响应缺失不能证明场所
+  拒绝了该订单。
 
-#### Batch cancel
+#### 批量撤单 {#batch-cancel}
 
-`BatchCancelOrders` commands with resolved venue order IDs use Polymarket's
+已解析出场所订单 ID 的
+`BatchCancelOrders` 命令使用 Polymarket 的
 [`DELETE /orders`](https://docs.polymarket.com/api-reference/trade/cancel-multiple-orders)
-endpoint. The adapter sends sequential chunks and chooses each new chunk from the smaller of the
-endpoint's 1,000-ID limit and the signer's current cancellation burst. A signer starts with the
-Standard 120-token burst, and a tier reported by one response applies to the next new chunk.
+端点。适配器按序发送分块，每个新分块的大小取该端点 1,000
+个 ID 上限与签名方当前撤单突发额度中较小者。签名方从 Standard
+的 120
+令牌突发起步，某次响应报告的层级作用于下一个新分块。
 
-Each chunk retries independently with the same order IDs unless a lower reported tier requires smaller chunks
-before the retry. The adapter merges the completed responses and processes each requested order once after
-every chunk succeeds. If a later chunk exhausts its retries, earlier chunks may already have changed venue
-state. The adapter emits no partial per-order results. Reconciliation resolves the unknown overall outcome.
+每个分块用相同的订单 ID
+独立重试，除非响应报告的更低层级要求先缩小分块再重试。适配器合并已完成的响应，在
+所有分块都成功后对每个被请求的订单只处理一次。若后面的分块耗尽重试，先前的分块可能
+已改变场所状态。适配器不发出部分逐单结果，整体未知的结果由对账定案。
 
-`CancelAllOrders` selects its cancellation scope as follows:
+`CancelAllOrders` 按如下规则选择取消范围：
 
-| Mode    | Side filter     | Scope                                                            | Endpoint                       |
+| 模式    | 方向过滤        | 范围                                                             | 端点                           |
 | ------- | --------------- | ---------------------------------------------------------------- | ------------------------------ |
-| Owner   | None            | Selected outcome token across the execution account's strategies | `DELETE /cancel-market-orders` |
-| Owner   | `Buy` or `Sell` | Matching open orders in the local cache                          | Chunked `DELETE /orders`       |
-| Session | Any             | Matching open orders in the local cache                          | Chunked `DELETE /orders`       |
+| Owner   | 无              | 所选结果代币，跨执行账户下所有策略                               | `DELETE /cancel-market-orders` |
+| Owner   | `Buy` 或 `Sell` | 本地缓存中匹配的未结订单                                         | 分块 `DELETE /orders`          |
+| Session | 任意            | 本地缓存中匹配的未结订单                                         | 分块 `DELETE /orders`          |
 
-The owner path without a side filter sends the instrument's raw token ID as `asset_id` to
-[`DELETE /cancel-market-orders`](https://docs.polymarket.com/api-reference/trade/cancel-orders-for-a-market),
-even when the cache has no matches. The ID-based paths send no request without matching cached orders.
-A matching order awaiting its venue order ID retains a pending cancellation, which the adapter
-sends after submission resolves.
+owner 路径在没有方向过滤时，把金融工具的原始代币 ID 作为
+`asset_id` 发给
+[`DELETE /cancel-market-orders`](https://docs.polymarket.com/api-reference/trade/cancel-orders-for-a-market)，
+即便缓存中没有匹配。按 ID 的路径在没有匹配缓存订单时不发请求。已匹配但仍在等场所
+订单 ID 的订单会保留一个挂起撤单，适配器在提交定案后发出。
 
-### Submit response handling
+### 提交响应处理 {#submit-response-handling}
 
-Polymarket's public documentation describes successful
-[`POST /order`](https://docs.polymarket.com/api-reference/trade/post-a-new-order) responses
-with `success`, `orderID`, `status`, and `errorMsg`, and documents
-[API errors](https://docs.polymarket.com/resources/error-codes) as structured error responses.
-It does not document statusless client exceptions or transport failures as venue rejections.
+Polymarket 的公开文档把成功的
+[`POST /order`](https://docs.polymarket.com/api-reference/trade/post-a-new-order)
+响应描述为带 `success`、`orderID`、`status` 与
+`errorMsg`，并把
+[API 错误](https://docs.polymarket.com/resources/error-codes)
+记录为结构化错误响应。它没有把无 status 的客户端异常或传输失败记录为场所拒绝。
 
-#### Successful responses
+#### 成功响应 {#successful-responses}
 
-For a successful response with a non-empty `orderID`, the adapter uses `status` to choose the initial Nautilus
-state. For an order with `FOK` time-in-force, it also uses `status` to decide whether the five-second REST
-check is needed. The venue meanings follow Polymarket's
-[order lifecycle](https://docs.polymarket.com/concepts/order-lifecycle).
+对带非空 `orderID`
+的成功响应，适配器用 `status`
+选择 Nautilus 初始状态。对 `FOK`
+有效期的订单，它还用 `status`
+决定是否需要那次五秒 REST
+检查。场所含义遵循 Polymarket 的
+[订单生命周期](https://docs.polymarket.com/concepts/order-lifecycle)。
 
-| Submit `status` | Venue meaning                                | Initial Nautilus state                                         | `FOK` REST check     |
-| --------------- | -------------------------------------------- | -------------------------------------------------------------- | -------------------- |
-| `live`          | Resting on the book                          | `Accepted`                                                     | Kept                 |
-| `matched`       | Matched immediately                          | `Accepted`                                                     | Skipped              |
-| `delayed`       | Matching delay in progress                   | `Submitted` until WebSocket or REST activity proves acceptance | Kept                 |
-| `unmatched`     | Delay completed without a match; now resting | `Accepted`                                                     | Kept                 |
-| Absent or empty | No status supplied                           | `Accepted` unless a proven FOK/FAK error rejects it            | Kept unless rejected |
+| 提交 `status` | 场所含义                       | Nautilus 初始状态                                                | `FOK` REST 检查    |
+| ------------- | ------------------------------ | ---------------------------------------------------------------- | ------------------ |
+| `live`        | 挂在订单簿上                   | `Accepted`                                                       | 保留               |
+| `matched`     | 立即撮合                       | `Accepted`                                                       | 跳过               |
+| `delayed`     | 撮合延迟进行中                 | `Submitted`，直到 WebSocket 或 REST 活动证明接受                 | 保留               |
+| `unmatched`   | 延迟结束但未撮合，现已挂单     | `Accepted`                                                       | 保留               |
+| 缺失或为空    | 未提供 status                  | `Accepted`，除非有被证实的 FOK/FAK 错误使其拒绝                  | 保留，除非被拒绝   |
 
-Submit `status` describes the submission outcome. `delayed` is not a market configuration signal. The
-immediate match confirmed by `matched` makes the REST check unnecessary.
+提交的 `status`
+描述提交结果。`delayed`
+不是市场配置信号。`matched`
+确认的立即撮合使 REST 检查不再必要。
 
-An absent or empty status emits `OrderAccepted` for compatibility and keeps the REST check unless
-a proven unfilled `FOK` or no-match `FAK` response causes immediate rejection. For a successful
-response with a non-empty `orderID`, explicit `status` takes precedence over either error string.
+status 缺失或为空时，为兼容性发出
+`OrderAccepted`
+并保留 REST 检查，除非有被证实的未成交
+`FOK` 或无撮合
+`FAK` 响应导致立即拒绝。对带非空
+`orderID` 的成功响应，显式
+`status` 优先于任一错误字符串。
 
-#### Delayed responses
+#### 延迟响应 {#delayed-responses}
 
-A `delayed` response:
+`delayed` 响应会：
 
-- Registers the venue order identity and fill tracking immediately and retains them independently of
-  bounded replay caches. Later order queries, WebSocket events, and reconciliation reports can then
-  resolve the local `ClientOrderId`.
-- Leaves the order `Submitted` until a fill, order update, or REST result proves acceptance.
-- Emits `OrderAccepted` before any fill, cancellation, expiry, or filled status that proves
-  acceptance.
-- Resolves an unfilled `FOK` directly as `OrderRejected` when REST returns `UNMATCHED`.
+- 立即登记场所订单标识与成交跟踪，并独立于有界重放缓存保留它们。后续的订单查询、
+  WebSocket 事件与对账报告因此能解析到本地
+  `ClientOrderId`。
+- 让订单保持 `Submitted`，直到某笔成交、订单更新或 REST 结果证明接受。
+- 在任何证明接受的成交、撤单、到期或已成交状态之前发出
+  `OrderAccepted`。
+- REST 返回 `UNMATCHED` 时，把未成交的
+  `FOK` 直接定案为 `OrderRejected`。
 
-#### Definitive and ambiguous outcomes
+#### 确定结果与含义不明结果 {#definitive-and-ambiguous-outcomes}
 
-Polymarket applies the shared
-[command outcome policy](./../concepts/execution/policies.md#command-outcomes) and
-the adapter guide's
-[diagnostic and strategy reason boundary](./../developer_guide/adapters.md#separate-diagnostics-from-strategy-facing-reasons)
-at its execution boundary.
+Polymarket 在其执行边界应用共享的
+[命令结果策略](./../concepts/execution/policies.md#command-outcomes)，
+以及适配器指南中的
+[诊断与策略侧原因分界](./../developer_guide/adapters.md#separate-diagnostics-from-strategy-facing-reasons)。
 
-Ambiguous failures include:
+含义不明的失败包括：
 
-- Transport failures and timeouts.
-- Retry exhaustion after an attempt with an unknown outcome.
-- Response serialization or decoding failures.
-- Local I/O failures.
-- Server-side failures.
-- HTTP 425 responses.
-- HTTP 429 responses that lack CLOB signer-limiter headers.
+- 传输失败与超时。
+- 结果未知的尝试之后重试耗尽。
+- 响应序列化或解码失败。
+- 本地 I/O 失败。
+- 服务端失败。
+- HTTP 425 响应。
+- 缺少 CLOB 签名方限流器响应头的 HTTP 429 响应。
 
-| Outcome                                                                                   | Nautilus result             | Reason                                    |
+| 结果                                                                                      | Nautilus 结果               | 原因                                      |
 | ----------------------------------------------------------------------------------------- | --------------------------- | ----------------------------------------- |
-| `success=false`, a documented processing error, or another non-retryable client/API error | `OrderRejected`             | The response proves rejection.            |
-| Single or batch `FOK`: `success=true`, no status, and the unfilled error                  | Immediate `OrderRejected`   | The venue proves it killed the order.     |
-| Single or batch `IOC`/`FAK`: `success=true`, no status, and the exact no-match error      | Immediate `OrderRejected`   | The venue proves no quantity matched.     |
-| Batch leg: `success=true`, empty `orderID`, and a populated `errorMsg`                    | `OrderRejected` with reason | The venue proves it rejected that leg.    |
-| No `orderID` and no reason                                                                | Remains `Submitted`         | The response does not prove rejection.    |
-| Any ambiguous failure                                                                     | Remains `Submitted`         | The adapter cannot determine the outcome. |
-| Definitive retry error after an earlier ambiguous attempt                                 | Remains `Submitted`         | The earlier attempt may have succeeded.   |
-| Failure before `POST /order`, such as a failed pUSD balance lookup                        | `OrderDenied`               | The adapter did not submit the order.     |
+| `success=false`、有文档记录的处理错误，或其他不可重试的客户端/API 错误                    | `OrderRejected`             | 响应证明了拒绝。                          |
+| 单/批 `FOK`：`success=true`、无 status 且为未成交错误                                     | 立即 `OrderRejected`        | 场所证明它撤掉了该订单。                  |
+| 单/批 `IOC`/`FAK`：`success=true`、无 status 且为精确的无撮合错误                         | 立即 `OrderRejected`        | 场所证明没有数量撮合。                    |
+| 批量某腿：`success=true`、`orderID` 为空且 `errorMsg` 有值                                | 带原因的 `OrderRejected`    | 场所证明它拒绝了该腿。                    |
+| 无 `orderID` 也无原因                                                                     | 保持 `Submitted`            | 响应不能证明拒绝。                        |
+| 任何含义不明的失败                                                                        | 保持 `Submitted`            | 适配器无法判定结果。                      |
+| 早先含义不明尝试之后的确定性重试错误                                                      | 保持 `Submitted`            | 早先的尝试可能已成功。                    |
+| `POST /order` 之前的失败，例如 pUSD 余额查询失败                                          | `OrderDenied`               | 适配器没有提交该订单。                    |
 
-Local denials format the strategy-facing reason from `OrderDeniedReason`. The leading token is the
-stable code, such as `VALIDATION_FAILED` or `UNSUPPORTED_ORDER_TYPE`.
+本地拒绝用 `OrderDeniedReason`
+生成面向策略的原因，首个词元是稳定代码，例如
+`VALIDATION_FAILED` 或 `UNSUPPORTED_ORDER_TYPE`。
 
-The proven unfilled `FOK` and no-match `FAK` responses resolve as immediate rejections. The `FOK` response
-skips the REST check. After an ambiguous single-order attempt, a later HTTP error or decoded rejection does
-not prove that the first attempt failed. An accepted response carrying the matching valid order ID confirms
-the deterministic signed order. A rejection does not, even with a matching ID.
+被证实的未成交 `FOK`
+与无撮合 `FAK` 响应按立即拒绝定案。
+`FOK` 响应跳过 REST
+检查。含义不明的单订单尝试之后，后续的 HTTP
+错误或解码出的拒绝并不能证明第一次尝试失败。携带匹配有效订单
+ID 的已接受响应可以确认那笔确定性的签名订单；拒绝不行，即便 ID 匹配。
 
-#### Error reasons
+#### 错误原因 {#error-reasons}
 
-Diagnostic errors retain the HTTP status and transport or rate-limit context. Strategy-facing rejections use
-the venue reason for HTTP status, rate-limit, and exchange errors. Other failures use the bounded error
-description.
+诊断错误保留 HTTP
+状态与传输或限流上下文。面向策略的拒绝，在 HTTP
+状态、限流与交易所错误时使用场所原因，其他失败使用有界的错误描述。
 
-The adapter normalizes response reasons as follows:
+适配器按如下方式归一化响应原因：
 
-- Reads the first non-blank string from `error`, then `errorMsg`.
-- Collapses whitespace and control characters, decoding invalid UTF-8 lossily first.
-- Uses `empty response body` for an empty body and a bounded fallback for plain-text or malformed responses.
-- Uses an HTML title when available, or visible text otherwise.
+- 依次从 `error`、`errorMsg`
+  读取首个非空白字符串。
+- 先对无效 UTF-8 做有损解码，再折叠空白与控制字符。
+- 空响应体用 `empty response body`；纯文本或畸形响应用有界的回退。
+- 有 HTML 标题时用标题，否则用可见文本。
 
-Reasons are limited to 512 characters, including the literal `... [truncated]` marker and its
-preceding space.
+原因长度上限 512
+字符，含字面量 `... [truncated]`
+标记及其前的空格。
 
-On single and batch submit responses, the exact normalized reason `order_version_mismatch` becomes
-`Polymarket CLOB order version mismatch; adapter supports V2 only`. Other submit response reasons
-remain unchanged after normalization.
+在单订单与批量提交响应上，归一化后精确等于
+`order_version_mismatch`
+的原因会变成
+`Polymarket CLOB order version mismatch; adapter supports V2 only`。其他提交响应原因在归一化后
+保持不变。
 
-The venue reports a post-only crossing as `invalid post-only order: order crosses book`. Only that exact
-normalized reason sets `OrderRejected.due_post_only=true`. Other post-only errors remain ordinary rejections.
+场所把 post-only
+跨价报告为 `invalid post-only order: order crosses book`。只有这个精确的归一化原因会把
+`OrderRejected.due_post_only=true`。其他 post-only
+错误仍是普通拒绝。
 
-#### Retry classification
+#### 重试分类 {#retry-classification}
 
-Retry-managed single-order submit and cancel requests retry HTTP 425, 429, and 5xx responses with the
-configured backoff. After retries are exhausted, submit classification is:
+受重试管理的单订单提交与撤单请求，对 HTTP 425、429 与 5xx
+响应按配置的退避重试。重试耗尽后，提交的分类为：
 
-| HTTP status                          | Retried | Submit result       | Notes                                                                                                                                |
-| ------------------------------------ | ------- | ------------------- | ------------------------------------------------------------------------------------------------------------------------------------ |
-| 425                                  | Yes     | Remains `Submitted` | Too Early does not prove rejection.                                                                                                  |
-| 429 with CLOB signer-limiter headers | Yes     | `OrderRejected`     | Requires `Poly-RateLimit-Remaining`, `Poly-RateLimit-Reset`, or `Poly-RateLimit-Tier`. An earlier unknown attempt stays `Submitted`. |
-| 429 without those headers            | Yes     | Remains `Submitted` | Cloudflare or another hop may have seen the request.                                                                                 |
-| 5xx                                  | Yes     | Remains `Submitted` | The command may already have been applied.                                                                                           |
-| 400, 401, 403, 404                   | No      | `OrderRejected`     | Non-retryable client or API error.                                                                                                   |
+| HTTP 状态                            | 是否重试 | 提交结果            | 说明                                                                                                                                   |
+| ------------------------------------ | -------- | ------------------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
+| 425                                  | 是       | 保持 `Submitted`    | Too Early 不能证明拒绝。                                                                                                                 |
+| 429 且带 CLOB 签名方限流器头         | 是       | `OrderRejected`     | 需要 `Poly-RateLimit-Remaining`、`Poly-RateLimit-Reset` 或 `Poly-RateLimit-Tier`。更早的结果未知尝试仍保持 `Submitted`。                |
+| 429 且无上述头                       | 是       | 保持 `Submitted`    | 请求可能被 Cloudflare 或其他中间跳看到。                                                                                                 |
+| 5xx                                  | 是       | 保持 `Submitted`    | 命令可能已被应用。                                                                                                                       |
+| 400、401、403、404                   | 否       | `OrderRejected`     | 不可重试的客户端或 API 错误。                                                                                                            |
 
-A malformed successful submit response also remains unknown and enters reconciliation instead of
-becoming a terminal rejection.
+畸形的成功提交响应同样按未知处理并进入对账，而不是变成终局拒绝。
 
-Cancel classification uses the same evidence classes. A non-retryable client or API error after the
-cancel is sent, or a local failure that proves the cancel was never transmitted, emits
-`OrderCancelRejected`. HTTP 425, headerless 429, and 5xx leave the cancel in flight.
+撤单的分类使用同样的证据类别。撤单已发出之后出现不可重试的客户端或 API
+错误，或本地失败能证明撤单从未发出，都会发出
+`OrderCancelRejected`。HTTP 425、无头的 429 与 5xx
+让撤单保持在途。
 
-#### Unknown-outcome reconciliation
+#### 结果未知时的对账 {#unknown-outcome-reconciliation}
 
-For an unknown outcome, the adapter:
+对结果未知的情况，适配器：
 
-- Derives the expected Polymarket order hash from the signed EIP-712 order when possible and caches
-  it as the `VenueOrderId`. Later WebSocket events and reconciliation reports attach to the local
-  `ClientOrderId` instead of becoming external orders.
-- Applies the signed quote-to-base quantity update for a quote-quantity market BUY.
-- Defers a pending cancel until the expected venue order ID is known.
-- Registers fill tracking under that venue order ID.
+- 尽可能从签名的 EIP-712 订单推导预期的 Polymarket
+  订单哈希，并把它作为 `VenueOrderId`
+  缓存。后续的 WebSocket 事件与对账报告因此挂到本地
+  `ClientOrderId`，而不是变成外部订单。
+- 对以 quote 计量的市价 BUY，应用签名的 quote 到
+  base 数量更新。
+- 把挂起的撤单推迟到预期的场所订单 ID 已知。
+- 在该场所订单 ID 下登记成交跟踪。
 
-##### Order and trade reads
+##### 订单与成交读取 {#order-and-trade-reads}
 
-The adapter reads the order and its trades from REST, retrying with backoff capped at 30 seconds
-until the venue state is known. Terminal trades apply through the settlement records first, then the
-order status accepts the order and releases its fills. The status waits while any trade is still
-provisional or while confirmed trades do not yet cover the venue's matched quantity.
+适配器从 REST
+读取订单及其成交，用上限 30 秒的退避重试，直到场所状态已知。终局成交先经结算记录
+应用，随后订单状态接受该订单并释放其成交。只要任一成交仍是临时状态，或已确认成交
+尚不能覆盖场所的撮合数量，状态就等待。
 
-`QueryOrder` commands made while a signed submission awaits acknowledgement use the same settlement path.
-They apply venue trade IDs directly, so buffered WebSocket trades and the later submit response do
-not repeat acceptance or count the same fill twice.
+签名提交等待确认期间发出的
+`QueryOrder` 命令使用同一条结算路径。它们直接应用场所成交
+ID，因此缓冲的 WebSocket 成交与之后的提交响应不会重复接受，也不会把同一成交计
+两次。
 
-##### Report gating
+##### 报告门控 {#report-gating}
 
-Reports that cover the order or its instrument fail until that read applies or reading stops, so
-reconciliation does not infer fills from partial venue state.
+覆盖该订单或其金融工具的报告，在该读取应用或读取停止之前一律失败，避免对账从部分
+场所状态推断成交。
 
-##### Read timeout
+##### 读取超时 {#read-timeout}
 
-Reading stops after 10 minutes without applying the venue state. The adapter logs a warning, lifts
-the report gate, and leaves the order `Submitted`.
+10 分钟内未应用场所状态即停止读取。适配器记录警告、解除报告门控，并让订单保持
+`Submitted`。
 
-If the local order closes before recovery completes, the adapter cancels any venue order still
-reported as live or delayed. Recovery then requires a terminal order read and trade evidence covering
-its matched quantity. Cancellation alone does not establish that no fill occurred. Failed or empty
-reads and the 10-minute timeout do not end this recovery, even if a late fill reopens the local order.
+若本地订单在恢复完成前就收尾，适配器会撤掉仍被报告为
+live 或 delayed
+的场所订单。此后恢复需要一次终局订单读取，以及覆盖其撮合数量的成交证据。仅撤单不能
+证明没有发生成交。失败或空的读取与 10
+分钟超时都不会结束这项恢复，即便迟到的成交让本地订单重新打开。
 
 :::warning
-If the local order closes before submission recovery completes, an empty venue order lookup keeps its report
-gate closed indefinitely. This blocks reports for that order, its instrument, and the whole account while the
-venue keeps returning an empty lookup. Fills that the engine cannot apply remain visible through the
-settlement report gate.
+若本地订单在提交恢复完成前收尾，而场所持续返回空的订单查询，场所侧空查询会让该订单
+的报告门控一直关闭。这会阻塞该订单、其金融工具乃至整个账户的报告。引擎无法应用的
+成交，仍通过结算报告门控保持可见。
 :::
 
-### Position management
-
-| Feature              | Binary options | Notes                                                                       |
-| -------------------- | -------------- | --------------------------------------------------------------------------- |
-| Query positions      | ✓              | Data API user positions, excluding resolved balances.                       |
-| Split, merge, redeem | ✓              | Deposit Wallet operations; see [Position operations](#position-operations). |
-| Position mode        | -              | Binary outcome positions only.                                              |
-| Leverage control     | -              | No leverage available.                                                      |
-| Margin mode          | -              | No margin trading.                                                          |
-
-### Order querying
-
-| Feature              | Binary options | Notes                          |
-| -------------------- | -------------- | ------------------------------ |
-| Query open orders    | ✓              | Active orders only.            |
-| Query order history  | ✓              | Limited historical data.       |
-| Order status updates | ✓              | Real-time order state changes. |
-| Trade history        | ✓              | Execution and fill reports.    |
-
-### Contingent orders
-
-| Feature            | Binary options | Notes                                                                     |
-| ------------------ | -------------- | ------------------------------------------------------------------------- |
-| Order lists        | -              | Independent order batches exist, but linked contingency semantics do not. |
-| OCO orders         | -              | *Not supported by Polymarket*.                                            |
-| Bracket orders     | -              | *Not supported by Polymarket*.                                            |
-| Conditional orders | -              | *Not supported by Polymarket*.                                            |
-
-### Precision limits
-
-Polymarket enforces different precision constraints based on tick size and `orderType`.
-Every Polymarket `BinaryOption` uses a canonical `price_precision` of 4, independent of its active
-tick size. The instrument's `price_increment` carries the active tick, and order signing derives
-the venue tick decimals from that increment.
-
-Binary option instruments typically support up to six decimal places for amounts with a 0.0001 tick size.
-The signing rules also depend on the venue order type.
-
-#### Market order types: FAK and FOK
-
-The direct maker amount is limited to **two decimal places**. The computed taker amount uses the market tick
-decimals plus two size decimals. A limit order submitted with `FAK` or `FOK` must also satisfy this stricter
-market-order amount validation. The venue rejects values that are valid for a resting order but not for that
-market-order type.
-
-##### Base-sized limit BUY orders
-
-`quantity` is the nominal share quantity at the limit price. With `FAK` or `FOK`, Polymarket spends
-a pUSD maker budget, so price improvement can return more shares.
-
-When `quantity * price` is not an exact cent amount, the adapter truncates that budget to two
-decimal places. It signs the share quantity derived from that budget, rounded up to the market
-amount precision, so the signed ratio does not exceed the limit price. It updates the local order
-to that signed quantity before posting. This applies to single and batch submissions.
-
-A later fill can still raise the quantity to the actual matched size. A budget that truncates to
-zero is denied before signing.
-
-##### Collateral-sized limit BUY orders
-
-The adapter truncates the direct maker amount to cents. The computed share amount uses the market tick
-decimals plus two size decimals. The signed integer amounts must preserve the requested limit price
-exactly after this quantization.
-
-#### Resting limit order types: GTC and GTD
-
-Resting orders allow more flexible precision based on market tick size.
-
-### Tick size precision hierarchy
-
-| Tick size | Tick decimals | Size decimals | Amount decimals |
-| --------- | ------------- | ------------- | --------------- |
-| 0.1       | 1             | 2             | 3               |
-| 0.01      | 2             | 2             | 4               |
-| 0.005     | 3             | 2             | 5               |
-| 0.0025    | 4             | 2             | 6               |
-| 0.001     | 3             | 2             | 5               |
-| 0.0001    | 4             | 2             | 6               |
-
-#### Tick validation
-
-- The adapter validates tick size before signing. A base-sized limit `FAK` or `FOK` BUY whose cent
-  budget truncates to zero is denied before signing. See
-  [Base-sized limit BUY orders](#base-sized-limit-buy-orders).
-- The adapter requires instrument tick sizes to be exactly representable at four decimals. It rejects
-  instrument definitions and tick-size events that do not meet this requirement. A rejected event leaves the
-  current tick active.
-- Tick decimals control signing and amount precision. They do not change the instrument's canonical
-  four-decimal price precision.
-- Base-sized resting `GTC` and `GTD` limit orders and all SELL orders keep their tick-derived amount
-  precision. Collateral-sized limit BUYs use cents for the direct maker amount and tick-derived
-  precision for the computed share amount.
-- The adapter rejects limit prices outside the current market's `[tick_size, 1 - tick_size]`
-  interval before signing.
-- The published `BinaryOption` advertises `min_price` and `max_price` equal to `tick_size` and
-  `1 - tick_size`, so consumers that clamp to the instrument bounds stay within that accepted range.
-- Market-order precision limits include two decimals for the sell size plus tick-derived bounds
-  for the computed amount.
-- Tick sizes can change dynamically during market conditions, particularly when markets become one-sided.
-
-### Tick size change handling
-
-When a market's tick size changes (`tick_size_change` WebSocket event), old
-book levels can be invalid on the new grid (for example `0.505` fits a `0.001`
-tick but not a `0.01` tick). To keep old-grid prices out of the new epoch, the
-adapter treats the change as a book epoch transition:
-
-1. Publish the updated `BinaryOption` with the new `price_increment`, canonical four-decimal
-   `price_precision`, and tick-relative `min_price`/`max_price` bounds.
-1. Drop the local order book for the instrument.
-1. Gate incremental `price_change` book deltas on a fresh snapshot and request recovery.
-1. Resubscribe the market until the venue replays a snapshot.
-1. Reseed the book from the snapshot and resume normal processing.
-
-Trade ticks and the instrument update flow through unchanged. Quote handling follows
-`drop_quotes_missing_side`: when enabled, quote ticks require both bid and ask prices. When disabled, missing
-sides use Polymarket boundary prices with zero size. The adapter can keep quotes flowing during the gap by
-reading `best_bid` and `best_ask` from each `price_change`.
-
-Gamma instrument data supplies the active tick until the first `tick_size_change` for that token.
-The WebSocket tick then remains authoritative across later Gamma refreshes and instrument requests.
-The adapter ignores older tick-size events by venue timestamp. A data-client reset starts a new
-generation and allows Gamma to supply each token's tick again.
-
-## Trades
-
-Trades on Polymarket can have the following statuses:
-
-- `MATCHED_NOT_BROADCASTED`: The orders matched before an on-chain transaction was broadcast.
-- `MATCHED`: Trade has been matched and sent to the executor service. The executor submits it as
-  a transaction to the Exchange contract.
-- `MINED`: Trade is observed to be mined into the chain, and no finality threshold is established.
-- `CONFIRMED`: Trade has achieved strong probabilistic finality and was successful.
-- `RETRYING`: Trade transaction has failed (revert or reorg) and is being retried/resubmitted by the operator.
-- `FAILED`: Trade has failed and is not being retried.
-
-`CONFIRMED` and `FAILED` are terminal. The other statuses are provisional: the trade can still
-succeed or fail.
-
-### Settlement updates
-
-Once a trade is initially matched, subsequent status updates arrive through the user WebSocket. The execution
-adapter tracks each trade's venue settlement separately from whether the engine has applied each of the
-account's fills. It emits each fill and each correction at most once.
-
-For an order this client submitted in the current WebSocket session, the adapter emits one
-`OrderFilled` at the first provisional status it receives, usually `MATCHED`. It treats later
-provisional statuses as settlement updates without emitting another fill. `CONFIRMED` records
-finality and refreshes the account. Matched WebSocket fills retain the raw trade fields in the
-`info` field of the `OrderFilled` event.
-
-#### Failed trades and REST resolution
-
-A WebSocket `FAILED` update never voids a fill by itself. The adapter quarantines a trade and reads
-it by ID from the authenticated REST trades endpoint (`GET /data/trades`) when:
-
-- The WebSocket reports `FAILED`.
-- WebSocket evidence contradicts a fill the engine has not applied, such as changed fill values or a
-  missing owned order.
-- A trade message fails validation.
-
-The first read starts immediately. Until REST returns a terminal status, the adapter retries after
-500 ms, doubling the delay up to 30 seconds, so a long `RETRYING` period leaves the trade quarantined.
-
-The first terminal REST result is final. Another REST read starts for a contradictory WebSocket status or new
-or changed evidence for fills the engine has not applied. It never reverses the first result.
-
-##### REST `FAILED` result
-
-The adapter emits one `OrderFillVoided` for each fill the engine applied, including a fill the engine
-applies after the result arrives, and refreshes the account. Fills the adapter had not yet emitted
-are never emitted. The correction does not relist the failed quantity, but it preserves any
-maker-order remainder that was already working. An execution-complete order becomes `VOIDED`.
-
-##### REST `CONFIRMED` result
-
-The adapter emits any of the account's fills that the engine has not applied, using the REST trade
-values, and refreshes the account.
-
-#### Reconnects and restarts
-
-A provisional status applies a fill only when the trade and all of the account's orders in it
-belong to the current uninterrupted WebSocket session. The stream does not replay updates missed
-while disconnected, so after a reconnect the adapter reads from REST:
-
-- **New trades on existing orders**: the adapter quarantines them until REST reports `CONFIRMED` or
-  `FAILED`. This also applies after a restart to orders restored from the cache, so fills on a
-  resting order can lag the venue until on-chain confirmation.
-- **Provisionally applied trades**: the adapter reads each by ID. `CONFIRMED` keeps the fill and
-  `FAILED` voids it. Reports touching these trades fail until the read returns.
-- **Trades matched while disconnected**: the adapter reads each open order it submitted or restored from the
-  cache, and each order whose submit was in flight and succeeds after the reconnect. It reads the order and
-  the account's trades in its market. It applies each unseen trade exactly once with the REST values. It
-  leaves the order status to the WebSocket and reconciliation. Orders adopted from the venue are not read.
-  Their fills arrive through reconciliation.
-
-The adapter reads at most 10 orders per resolution pass, retrying each with backoff capped at 30
-seconds. Reports touching an order fail until none of its trades is provisional and confirmed trades
-cover the venue's matched quantity. Reading stops after 10 minutes without that evidence, which also
-lifts the report gate.
-
-On connect, the adapter rebuilds applied fills and voids from the cached order events, so a replayed
-trade does not produce a second fill. Those rebuilt fills are not read again.
-
-#### Settlement faults
-
-A trade enters a hard fault when its venue outcome and the engine's state cannot be reconciled:
-
-- A later terminal REST result differs from the first one.
-- The engine declines a fill the adapter emitted, unless REST already reported `FAILED`.
-- The engine declines a correction void, so the applied fill cannot be reversed.
-- REST `CONFIRMED` values contradict an applied fill, or the terminal REST result omits one of the
-  account's fills that the engine applied.
-
-##### Fills and reconciliation
-
-A hard-faulted trade admits no further fills or voids, except the one void owed for a fill applied
-after REST reported `FAILED`. The adapter logs the fault at error level, refreshes the account, and
-blocks reconciliation for the trade (see [settlement precedence](#settlement-precedence)) until the
-node restarts.
-
-##### Quantity and cancellation
-
-A hard fault withholds the quantity normalization and FAK remainder cancellation that confirmation would
-authorize, including the fully matched `associate_trades` update. The confirmed venue outcome stays in place,
-and an applied fill keeps its quantity, price, and commission apart from that owed void. A cancellation,
-expiry, or rejection that the venue reports still applies. One inferred from a `MATCHED` underfill does not.
-
-##### Settlement records
-
-The adapter keeps settlement records for the lifetime of the execution client. If more than 100,000
-records accumulate after connect, the client faults closed: it reports disconnected and refuses new
-commands until restart. Records rebuilt from the cache on connect do not count toward this limit.
-
-### Trade ID derivation
-
-Polymarket does not publish a trade ID on `last_trade_price` market-data events.
-The adapter derives a deterministic `TradeId` from the asset ID, side, price,
-size, and timestamp via the Rust `determine_trade_id` function using FNV-1a.
-
-Execution fills use the same IDs in REST reconciliation and the user WebSocket, so fills deduplicate
-across sources and replays:
-
-- **Taker fills**: Use the venue's trade `id`.
-- **Maker fills**: Combine the venue trade ID with the maker venue order ID, because one trade can
-  fill several of the user's resting orders.
-
-For historical Data API trades, the loader uses
-`{transaction_hash[-24:]}-{token_id[-4:]}-{seq:06d}` to distinguish fills in one transaction.
-
-## Instrument metadata
-
-`BinaryOption.event_id` contains the Gamma parent event ID. The provider's
-[event-based discovery](#instrument-provider-options) and `PolymarketDataLoader.from_event_slug` use the
-enclosing event. Direct market loading uses the unique ID in the market's `events` array. Missing or ambiguous
-relationships leave `event_id` unset. Both outcome instruments share the same event ID.
-
-### Live metadata
-
-Live instruments retain the complete received Gamma market JSON string in `info["gamma_market"]`, including
-unknown fields and nested events, tags, and series when returned by Gamma. Event-based discovery also
-retains the enclosing response in `info["gamma_event"]`, including its full `markets` array.
-
-This event snapshot repeats for each outcome instrument, so events with many markets increase metadata size.
-The existing normalized metadata keys remain available, including `token_id`, `condition_id`, `market_id`,
-and `event_id` when known.
-
-These strings contain the received JSON objects before enrichment. Tick-size updates preserve them. Use the
-instrument's typed price increment for the current tick size. The adapter does not fetch additional related
-resources solely to populate metadata. Storing the original JSON strings preserves unknown fields and numeric
-precision across serialization formats. Decode them when needed:
+### 持仓管理 {#position-management}
+
+| 功能             | 二元期权 | 说明                                                                        |
+| ---------------- | -------- | ----------------------------------------------------------------------------- |
+| 查询持仓         | ✓        | 数据 API 的用户持仓，不含已结算余额。                                         |
+| 拆分、合并、赎回 | ✓        | Deposit Wallet 操作；见[持仓操作](#position-operations)。                     |
+| 持仓模式         | -        | 仅二元结果持仓。                                                              |
+| 杠杆控制         | -        | 无杠杆可用。                                                                  |
+| 保证金模式       | -        | 无保证金交易。                                                                |
+
+### 订单查询 {#order-querying}
+
+| 功能             | 二元期权 | 说明                           |
+| ---------------- | -------- | -------------------------------- |
+| 查询未结订单     | ✓        | 仅活跃订单。                     |
+| 查询订单历史     | ✓        | 历史数据有限。                   |
+| 订单状态更新     | ✓        | 实时订单状态变化。               |
+| 成交历史         | ✓        | 执行与成交报告。                 |
+
+### 或有订单 {#contingent-orders}
+
+| 功能         | 二元期权 | 说明                                                                      |
+| ------------ | -------- | --------------------------------------------------------------------------- |
+| 订单列表     | -        | 存在独立的订单批次，但没有关联的或有语义。                                  |
+| OCO 订单     | -        | *Polymarket 不支持*。                                                       |
+| 括号订单     | -        | *Polymarket 不支持*。                                                       |
+| 条件订单     | -        | *Polymarket 不支持*。                                                       |
+
+### 精度限制 {#precision-limits}
+
+Polymarket 按 tick 尺寸与 `orderType`
+强制不同的精度约束。每个 Polymarket
+`BinaryOption` 的规范
+`price_precision` 固定为 4，与其当前生效的 tick
+尺寸无关。金融工具的 `price_increment`
+携带当前 tick，订单签名从该增量推导场所 tick 小数位。
+
+二元期权金融工具在 0.0001 tick
+尺寸下通常支持最多 6 位小数的金额。签名规则还取决于场所订单类型。
+
+#### 市价订单类型：FAK 与 FOK {#market-order-types-fak-and-fok}
+
+直接 maker 金额限定为 **2 位小数**。计算出的 taker
+金额使用市场 tick 小数位加 2
+位数量小数位。以 `FAK` 或 `FOK`
+提交的限价单同样必须满足这条更严格的市价单金额校验。场所会拒绝对挂单合法、但对该
+市价单类型不合法的值。
+
+##### 以 base 计量的限价 BUY 订单 {#base-sized-limit-buy-orders}
+
+`quantity`
+是限价下的名义份额数量。带 `FAK` 或
+`FOK` 时，Polymarket 花费的是
+pUSD maker 预算，因此价格改善可能带回更多份额。
+
+`quantity * price`
+不是精确到分的金额时，适配器把该预算截断到 2
+位小数，就该预算推导出的份额数量向上取整到市场数量精度后签名，使签名比例不超过
+限价，并在挂出前把本地订单更新为该签名数量。单订单与批量提交都适用。
+
+后续成交仍可能把数量提升到实际撮合规模。截断后为零的预算在签名前被拒绝。
+
+##### 以抵押品计量的限价 BUY 订单 {#collateral-sized-limit-buy-orders}
+
+适配器把直接 maker 金额截断到分。计算出的份额数量使用市场
+tick 小数位加 2 位数量小数位。经过这一量化后，
+签名的整数金额必须精确保住请求的限价。
+
+#### 挂单类订单类型：GTC 与 GTD {#resting-limit-order-types-gtc-and-gtd}
+
+挂单基于市场 tick 尺寸允许更宽松的精度。
+
+### Tick 尺寸精度层级 {#tick-size-precision-hierarchy}
+
+| Tick 尺寸 | Tick 小数位 | 数量小数位 | 金额小数位 |
+| --------- | ----------- | ---------- | ---------- |
+| 0.1       | 1           | 2          | 3          |
+| 0.01      | 2           | 2          | 4          |
+| 0.005     | 3           | 2          | 5          |
+| 0.0025    | 4           | 2          | 6          |
+| 0.001     | 3           | 2          | 5          |
+| 0.0001    | 4           | 2          | 6          |
+
+#### Tick 校验 {#tick-validation}
+
+- 适配器在签名前校验 tick 尺寸。以 base
+  计量的限价 `FAK` 或 `FOK`
+  BUY，其分预算截断为零时在签名前被拒绝。见[以 base
+  计量的限价 BUY 订单](#base-sized-limit-buy-orders)。
+- 适配器要求金融工具的 tick
+  尺寸能被 4 位小数精确表示，不满足的金融工具定义与
+  tick 尺寸事件一律拒绝。被拒的事件让当前 tick 继续生效。
+- Tick 小数位决定签名与金额精度，不改变金融工具规范的 4
+  位小数价格精度。
+- 以 base 计量的挂单 `GTC` 与
+  `GTD` 限价单，以及全部 SELL
+  订单，保持其按 tick 推导的金额精度。以抵押品计量的限价
+  BUY 的直接 maker 金额用分，计算出的份额数量用按
+  tick 推导的精度。
+- 适配器在签名前拒绝落在当前市场
+  `[tick_size, 1 - tick_size]`
+  区间之外的限价。
+- 发布的 `BinaryOption`
+  把 `min_price` 与
+  `max_price` 声称为 `tick_size` 与
+  `1 - tick_size`，因此按金融工具边界做钳制的消费者会留在
+  可接受范围内。
+- 市价单的精度限制包括卖出数量的 2
+  位小数，加上按 tick 推导的计算金额边界。
+- tick 尺寸会在行情条件中动态变化，市场单边化时尤其如此。
+
+### Tick 尺寸变更处理 {#tick-size-change-handling}
+
+市场的 tick 尺寸变更（`tick_size_change`
+WebSocket 事件）时，旧档位在新网格上可能无效（例如
+`0.505` 符合 `0.001` tick
+但不符合 `0.01` tick）。为了不让旧网格价格进入新纪元，适配器把该变更视为订单簿
+纪元切换：
+
+1. 发布更新后的 `BinaryOption`，带新的
+   `price_increment`、规范的 4 位小数
+   `price_precision`，以及随 tick 变化的
+   `min_price`/`max_price` 边界。
+1. 丢弃该金融工具的本地订单簿。
+1. 让增量的 `price_change`
+   订单簿增量等待一份新快照，并请求恢复。
+1. 反复重订阅该市场，直到场所重放出一份快照。
+1. 用该快照为订单簿重新播种，恢复正常处理。
+
+成交明细与金融工具更新照常流动。报价处理遵循
+`drop_quotes_missing_side`：开启时，报价明细需要同时具备买卖价格；关闭时，缺失的一侧用
+Polymarket 边界价格与零数量补齐。适配器通过每次
+`price_change` 里的
+`best_bid` 与
+`best_ask`，在缺口期间让报价持续流动。
+
+在出现该代币的首次
+`tick_size_change` 之前，Gamma
+金融工具数据提供当前 tick。此后
+WebSocket 的 tick 在后续 Gamma
+刷新与金融工具请求中都保持权威。适配器按场所时间戳忽略更旧的
+tick 尺寸事件。数据客户端重置会开启新世代，允许
+Gamma 重新为每个代币提供 tick。
+
+## 成交 {#trades}
+
+Polymarket 上的成交可能有以下状态：
+
+- `MATCHED_NOT_BROADCASTED`：订单在链上交易广播之前已撮合。
+- `MATCHED`：成交已撮合并送交执行服务，执行服务把它作为交易提交给
+  Exchange 合约。
+- `MINED`：观察到成交已挖入链上，但尚未确立最终性阈值。
+- `CONFIRMED`：成交已达到强概率最终性且成功。
+- `RETRYING`：成交交易失败（revert 或重组），正由运营方重试/重提交。
+- `FAILED`：成交已失败且不再重试。
+
+`CONFIRMED` 与
+`FAILED`
+是终态，其余状态都是临时的：成交仍可能成功或失败。
+
+### 结算更新 {#settlement-updates}
+
+成交首次撮合后，后续状态更新经用户 WebSocket
+送达。执行适配器把每笔成交的场所结算，与引擎是否已应用该账户的每笔成交，分开跟踪。
+每笔成交与每次更正最多发出一次。
+
+对本客户端在当前 WebSocket
+会话中提交的订单，适配器在收到第一个临时状态（通常是
+`MATCHED`）时发出一条
+`OrderFilled`，把之后的临时状态当作结算更新处理而不再发成交。
+`CONFIRMED` 记录最终性并刷新账户。经
+WebSocket 撮合的成交在
+`OrderFilled` 事件的
+`info` 字段保留原始成交字段。
+
+#### 失败成交与 REST 定案 {#failed-trades-and-rest-resolution}
+
+WebSocket 的
+`FAILED`
+更新本身从不作废成交。以下情形适配器会把成交隔离，并按 ID
+从带鉴权的 REST 成交端点（
+`GET /data/trades`）读取它：
+
+- WebSocket 报告 `FAILED`。
+- WebSocket 证据与引擎尚未应用的成交矛盾，例如成交值变化或订单缺失。
+- 成交消息校验失败。
+
+首次读取立即开始。REST 返回终态之前，适配器在
+500 ms 后重试并将延迟翻倍到上限 30
+秒，因此漫长的 `RETRYING`
+期间成交一直保持隔离。
+
+第一个终态 REST 结果即为最终结果。针对矛盾的
+WebSocket 状态，或引擎未应用成交的新证据/变更证据，会启动另一次
+REST 读取，但它绝不推翻第一次结果。
+
+##### REST `FAILED` 结果 {#rest-failed-result}
+
+对引擎已应用的每笔成交，包括结果到达之后引擎才应用的成交，适配器发出一次
+`OrderFillVoided` 并刷新账户。适配器尚未发出的成交永远不会
+发出。更正不会重新挂出失败的金额，但保留 maker
+订单已经在工作中的任何剩余部分。执行完毕的订单变为
+`VOIDED`。
+
+##### REST `CONFIRMED` 结果 {#rest-confirmed-result}
+
+对引擎尚未应用的该账户成交，适配器用 REST
+成交值发出它们，并刷新账户。
+
+#### 重连与重启 {#reconnects-and-restarts}
+
+临时状态只有在成交及其所涉及的全部该账户订单都属于当前不间断的
+WebSocket 会话时才应用成交。流不会重放断线期间错过的更新，因此重连之后适配器
+从 REST 读取：
+
+- **已有订单上的新成交**：隔离它们直到 REST
+  报告 `CONFIRMED` 或
+  `FAILED`。重启后对从缓存恢复的订单同样适用，因此挂单上的成交
+  可能落后于场所，直到链上确认。
+- **已临时应用的成交**：按 ID
+  逐笔读取。`CONFIRMED`
+  保留成交，`FAILED`
+  作废它。触及这些成交的报告在读取返回前失败。
+- **断线期间撮合的成交**：对每个由本方提交或从缓存恢复且仍未结的订单，以及提交
+   在途并在重连后成功的订单，逐单读取该订单与该账户在其市场中的成交，用 REST
+   值把每笔未见过的成交恰好应用一次。订单状态留给 WebSocket
+   与对账处理。从场所收养的订单不做读取，其成交经对账到达。
+
+每轮定案至多读取 10
+个订单，逐单用上限 30 秒的退避重试。只要订单还有任何成交处于临时状态，或已确认
+成交还不能覆盖场所的撮合数量，触及该订单的报告就失败。10
+分钟拿不到该证据即停止读取，同时解除报告门控。
+
+connect
+时，适配器从缓存的订单事件重建已应用成交与作废，因此重放的成交不会产生第二次
+成交。这些重建的成交不再重新读取。
+
+#### 结算故障 {#settlement-faults}
+
+成交的场所结果与引擎状态无法对账时，该成交进入硬故障：
+
+- 后续终态 REST 结果与第一次不同。
+- 引擎拒绝适配器已发出的成交，且 REST 并未报告
+  `FAILED`。
+- 引擎拒绝更正作废，导致已应用成交无法回退。
+- REST `CONFIRMED`
+  的值与已应用成交矛盾，或终态 REST
+  结果遗漏了引擎已应用的某笔该账户成交。
+
+##### 成交与对账 {#fills-and-reconciliation}
+
+硬故障的成交不再接纳任何成交或作废，唯一例外是 REST
+报告 `FAILED`
+之后才应用的成交所欠的那次作废。适配器按 error
+级别记录故障、刷新账户，并在节点重启之前阻塞该成交的对账（见[结算优先级](#settlement-precedence)）。
+
+##### 数量与撤单 {#quantity-and-cancellation}
+
+硬故障会扣押本应由确认授权的数量归一化与
+FAK
+余量撤单，包括完全撮合时的
+`associate_trades`
+更新。已确认的场所结果保持原样；除那次所欠作废外，已应用的成交保留其数量、价格与
+佣金。场所报告的撤单、到期或拒绝照常应用；从
+`MATCHED`
+欠成交推断出的则不应用。
+
+##### 结算记录 {#settlement-records}
+
+适配器在执行客户端的整个生命周期内保留结算记录。connect
+之后累计超过 100,000
+条记录时，客户端按失败关闭：报告断开连接并拒绝新命令，直到重启。connect
+时从缓存重建的记录不计入该限制。
+
+### 成交 ID 推导 {#trade-id-derivation}
+
+Polymarket 不在
+`last_trade_price`
+行情事件上发布成交 ID。适配器用 Rust 的
+`determine_trade_id`
+函数，以 FNV-1a
+从资产 ID、方向、价格、数量与时间戳推导确定性的
+`TradeId`。
+
+执行成交在 REST 对账与用户 WebSocket
+中使用相同 ID，因此成交在各数据源与重放之间都能去重：
+
+- **吃单成交**：用场所的成交 `id`。
+- **Maker 成交**：把场所成交 ID 与 maker 的场所订单 ID
+  组合，因为一笔成交可能同时吃掉用户多个挂单。
+
+对历史的 Data API
+成交，加载器用 `{transaction_hash[-24:]}-{token_id[-4:]}-{seq:06d}`
+区分同一笔交易内的多笔成交。
+
+## 金融工具元数据 {#instrument-metadata}
+
+`BinaryOption.event_id`
+包含 Gamma 父事件 ID。provider 的
+[基于事件的发现](#instrument-provider-options)与
+`PolymarketDataLoader.from_event_slug`
+使用其所属事件。直接加载市场时使用市场
+`events` 数组中的唯一 ID。关系缺失或有歧义时
+`event_id` 保持未设置。两个结果金融工具共享同一事件 ID。
+
+### 实时元数据 {#live-metadata}
+
+实时金融工具在 `info["gamma_market"]`
+中保留完整收到的 Gamma 市场
+JSON 字符串，包括 Gamma 返回时的未知字段与嵌套的 events、tags、series。基于事件的
+发现还在 `info["gamma_event"]`
+中保留所属响应，含其完整的 `markets` 数组。
+
+这份事件快照会为每个结果金融工具重复一次，因此市场众多的事件会增大元数据体积。
+既有的归一化元数据键仍然可用，包括已知时的 `token_id`、
+`condition_id`、`market_id` 与 `event_id`。
+
+这些字符串是增强处理之前收到的 JSON 对象。tick
+尺寸更新会保留它们。当前 tick
+尺寸请使用金融工具的类型化价格增量。适配器不会仅为填充元数据而额外拉取相关资源。
+存储原始 JSON 字符串能在不同序列化格式之间保留未知字段与数字精度。需要时这样解码：
 
 ```python
 import json
@@ -1394,110 +1476,121 @@ from decimal import Decimal
 market = json.loads(instrument.info["gamma_market"], parse_float=Decimal)
 ```
 
-### Historical metadata
+### 历史元数据 {#historical-metadata}
 
-The historical `PolymarketDataLoader` retains these JSON strings under `resolution_metadata["gamma_market"]`
-instead of `instrument.info`. For event loading, it also retains `resolution_metadata["gamma_event"]`. Fetched
-responses can contain terminal outcomes unknown during the historical period, so the loader keeps them in
-resolution metadata. Decode these strings with `json.loads` as above. They precede CLOB enrichment, so the raw
-token IDs and outcome labels can differ from the constructed instrument.
+历史
+`PolymarketDataLoader` 把这些 JSON
+字符串保留在 `resolution_metadata["gamma_market"]`
+下，而非 `instrument.info`。事件加载时还保留
+`resolution_metadata["gamma_event"]`。拉取的响应可能包含历史
+期间尚不可知的终局结果，因此加载器把它们留在结算元数据中。像上面那样用
+`json.loads` 解码这些字符串。它们先于 CLOB
+增强处理，因此原始代币 ID 与结果标签可能同构建出的金融工具不同。
 
-## Numeric precision
+## 数字精度 {#numeric-precision}
 
-Financial wire values are decoded directly as decimals. Values outside the supported decimal or
-domain-type range fail HTTP decoding or report construction. WebSocket and PolyBolt handlers log and
-skip invalid updates. Report construction does not substitute zero for an invalid price or quantity.
+金融线上值直接解码为小数。超出支持的小数或域类型范围的值会导致 HTTP
+解码失败或报告构建失败。WebSocket 与 PolyBolt
+处理函数记录并跳过无效更新。报告构建不会用零替代无效的价格或数量。
 
-## Fees
+## 费用 {#fees}
 
-The adapter reads each instrument's `fee_schedule` and applies its `rate` and `exponent` as:
+适配器读取每个金融工具的
+`fee_schedule`，把其
+`rate` 与 `exponent`
+按如下应用：
 
 ```text
 platform fee = shares * rate * (price * (1 - price)) ^ exponent
 ```
 
-The current public schedule uses exponent `1`, which is Polymarket's published
-`C * feeRate * p * (1 - p)` formula. Platform fees peak at `p = 0.50`, decrease
-symmetrically toward the extremes, and apply only to taker fills.
+当前的公开费率表使用指数
+`1`，即 Polymarket 公布的
+`C * feeRate * p * (1 - p)`
+公式。平台费在 `p = 0.50`
+处最高，向两端对称递减，且只适用于吃单成交。
 
-| Category        | Taker `feeRate` | Maker `feeRate` | Maker rebate |
-| --------------- | --------------- | --------------- | ------------ |
-| Crypto          | 0.07            | 0               | 20%          |
-| Sports          | 0.05            | 0               | 15%          |
-| Finance         | 0.04            | 0               | 25%          |
-| Politics        | 0.04            | 0               | 25%          |
-| Economics       | 0.05            | 0               | 25%          |
-| Culture         | 0.05            | 0               | 25%          |
-| Weather         | 0.05            | 0               | 25%          |
-| Other / General | 0.05            | 0               | 25%          |
-| Mentions        | 0.04            | 0               | 25%          |
-| Tech            | 0.04            | 0               | 25%          |
-| Geopolitics     | 0               | 0               | -            |
+| 类别          | 吃单 `feeRate` | Maker `feeRate` | Maker 返佣 |
+| ------------- | -------------- | --------------- | ---------- |
+| 加密          | 0.07           | 0               | 20%        |
+| 体育          | 0.05           | 0               | 15%        |
+| 金融          | 0.04           | 0               | 25%        |
+| 政治          | 0.04           | 0               | 25%        |
+| 经济          | 0.05           | 0               | 25%        |
+| 文化          | 0.05           | 0               | 25%        |
+| 天气          | 0.05           | 0               | 25%        |
+| 其他/通用     | 0.05           | 0               | 25%        |
+| Mentions      | 0.04           | 0               | 25%        |
+| 科技          | 0.04           | 0               | 25%        |
+| 地缘政治      | 0              | 0               | -          |
 
-Every order signed by the adapter carries the hard-coded Nautilus builder code. Its builder fee
-rate is fixed at zero and is not configurable.
+适配器签名的每笔订单都携带硬编码的 Nautilus builder
+代码。其 builder 费率固定为零，不可配置。
 
-### Fill commission handling
+### 成交佣金处理 {#fill-commission-handling}
 
-Instrument `fee_schedule` metadata stores decimal parameters as strings. Readers also accept legacy numeric
-metadata.
+金融工具的 `fee_schedule`
+元数据把小数参数存为字符串。读取方也接受旧版的数字元数据。
 
-For the latest public schedule, see Polymarket's
-[Fees](https://docs.polymarket.com/trading/fees) documentation.
+最新公开费率表见 Polymarket 的
+[费用](https://docs.polymarket.com/trading/fees)文档。
 
-The live fee curve uses exact decimal arithmetic, so the exponent must be a whole number. Negative
-rates, fractional or negative exponents, and arithmetic overflow return errors.
+实时费用曲线使用精确的小数运算，因此指数必须是整数。负费率、小数或负指数以及算术
+溢出都返回错误。
 
-`FillReport.commission` is denominated in pUSD. It floors the platform fee to five decimal places
-from the wire size and price, not a price snapped to instrument precision, matching the venue charge.
-The venue adds BUY taker fees to the pUSD spend and deducts SELL taker fees from the pUSD proceeds,
-so the position quantity equals the shares filled. Maker commission remains zero.
+`FillReport.commission`
+以 pUSD 计价。它把平台费按线上的数量与价格向下取整到 5
+位小数——而不是取整到金融工具精度后的价格——以匹配场所实际收取。场所把吃单费加到
+BUY 的 pUSD 支出上、从 SELL 的
+pUSD 收入中扣除，因此持仓数量等于成交份额。maker
+佣金保持为零。
 
-If the exact result cannot be represented as `Money`, the adapter returns an error instead of using
-zero or a generic commission. See the
-[commission failure contract](./../developer_guide/adapters.md#commission-failure-handling).
+若精确结果无法表示为 `Money`，适配器返回错误而不是使用零或泛化佣金。见
+[佣金失败契约](./../developer_guide/adapters.md#commission-failure-handling)。
 
-#### Fee basis across instrument updates
+#### 金融工具更新间的费用基准 {#fee-basis-across-instrument-updates}
 
-A taker fill first received on the user WebSocket or from a targeted REST read retains its fee rate and
-exponent for the execution client's lifetime. A client reset clears those records. A trade first received
-after a schedule refresh uses the refreshed schedule.
+首次在用户 WebSocket
+或定向 REST 读取上收到的吃单成交，其费率与指数在执行客户端的整个生命周期内保留。
+客户端重置会清掉这些记录。在费率表刷新之后才首次收到的成交，使用刷新后的费率表。
 
-Later confirmation and fill reports for a retained trade recompute commission from that basis and
-the incoming wire size and price. They do not use fee schedules loaded after admission.
+被保留成交后续的确认与成交报告，用该基准加进来的线上数量与价格重算佣金，不使用采纳
+之后加载的费率表。
 
-When venue evidence is otherwise unchanged, the applied fill keeps its original quantity, price,
-and commission. The trade is neither quarantined nor hard-faulted.
+场所证据在其他方面不变时，已应用的成交保留其原始数量、价格与佣金，该成交既不被隔离
+也不进硬故障。
 
-The retained basis is local instrument metadata, not a venue-reported fee. It does not prove the
-venue charged that amount. A schedule that was missing or wrong at first admission stays on that
-fill.
+保留的基准是本地金融工具元数据，不是场所报告的费用，不能证明场所收取了那个金额。首次
+采纳时缺失或错误的费率表会一直跟在该成交上。
 
 :::warning
-Fills applied from reconciliation reports, and fills rebuilt from the cache, have no retained
-basis. A later fee-schedule change can still conflict with their applied commission. The adapter
-does not store the basis in the cache.
+由对账报告应用的成交，以及从缓存重建的成交，没有保留的基准。之后的费率表变化仍可能与
+其已应用佣金冲突。适配器不把该基准存入缓存。
 :::
 
-#### Commission errors
+#### 佣金错误 {#commission-errors}
 
-A commission construction error fails a direct fill report request, terminal trade-history recovery,
-or complete mass status. Startup returns a mass-status error without applying that client's reports.
+佣金构建错误会让直接的成交报告请求、终局成交历史恢复或完整
+mass status 失败。启动时返回
+mass-status 错误，且不应用该客户端的报告。
 
-When an active order's trade-history request fails, the adapter logs the error and caps matched
-quantity to fills already applied in core. Reconciliation then defers any unsupported residual
-quantity. Commission construction and settlement validation errors instead fail the report request.
+活跃订单的成交历史请求失败时，适配器记录错误，并把撮合数量钳制到核心中已应用的成交，
+对账此后推迟任何无支撑的残余数量。佣金构建与结算校验错误则直接让报告请求失败。
 
-The adapter does not drop a failed fill while returning an order or position report that could
-recreate its quantity without the Polymarket commission.
+适配器不会一边丢弃失败的成交，一边返回可能在没有
+Polymarket 佣金的情况下重建其数量的订单或持仓报告。
 
-### Backtest fee model
+### 回测费用模型 {#backtest-fee-model}
 
-Use `PolymarketFeeModel` for backtests that include taker fees and maker rebates. The model reads `rate`,
-`rebateRate`, `exponent`, and `takerOnly` from each binary option instrument's `fee_schedule`. It requires a
-maker or taker liquidity side, a fill price in `[0, 1]`, and a taker-only schedule with exponent `1`.
-Unsupported instruments and invalid inputs return an error. An instrument without a fee schedule produces zero
-commission.
+包含吃单费与 maker
+返佣的回测请使用
+`PolymarketFeeModel`。该模型从每个二元期权金融工具的
+`fee_schedule` 读取
+`rate`、`rebateRate`、`exponent` 与
+`takerOnly`。它要求 maker 或 taker
+流动性侧、`[0,
+1]` 内的成交价、以及指数为 `1` 的仅吃单费率表。不支持的金融工具与无效输入返回错误。
+没有费率表的金融工具产出零佣金。
 
 ```rust tab="Rust"
 use nautilus_execution::models::fee::FeeModelHandle;
@@ -1512,507 +1605,573 @@ from nautilus_trader.adapters.polymarket import PolymarketFeeModel
 fee_model = PolymarketFeeModel()
 ```
 
-Pass the Rust handle through
-`nautilus_backtest::config::SimulatedVenueConfig::builder().fee_model(...)`. In Python, pass the model
-to `BacktestEngine.add_venue` as `fee_model` or set it on `BacktestVenueConfig.fee_model`.
+Rust 句柄经
+`nautilus_backtest::config::SimulatedVenueConfig::builder().fee_model(...)`
+传入。Python 中把模型作为 `fee_model`
+传给 `BacktestEngine.add_venue`，或设在
+`BacktestVenueConfig.fee_model` 上。
 
-#### Maker rebate approximation
+#### Maker 返佣近似 {#maker-rebate-approximation}
 
-For maker fills, `fee_equivalent` is the platform fee formula above using the schedule's taker
-`rate`. The model credits `fee_equivalent * rebateRate` as negative commission. This approximates
-Polymarket's daily pool allocation because a backtest does not know the total fee equivalent from
-other makers in that market.
+对 maker 成交，`fee_equivalent`
+是用费率表的吃单 `rate`
+代入上文平台费公式得到的值。模型把
+`fee_equivalent * rebateRate`
+作为负佣金计入。这是对 Polymarket
+每日池分配的近似，因为回测不知道该市场中其他
+maker 的总费用等值。
 
-Live maker fills have zero commission. Polymarket pays the actual pUSD rebate separately each day. The model
-does not represent that payment as a separate event, and it does not model competition between makers, daily
-aggregation, or the minimum payout threshold. See Polymarket's
-[Maker Rebates Program](https://docs.polymarket.com/programs/maker-rebates) for the venue formula.
+实时 maker 成交佣金为零，Polymarket
+每天另行支付实际的 pUSD
+返佣。模型不把这笔支付表示为独立事件，也不建模
+maker 之间的竞争、每日聚合或最低派发门槛。场所公式见
+Polymarket 的 [Maker Rebates
+Program](https://docs.polymarket.com/programs/maker-rebates)。
 
-## Reconciliation
+## 对账 {#reconciliation}
 
-The Polymarket API returns either all active (open) orders or specific orders when queried by
-the Polymarket order ID (`venue_order_id`). The execution reconciliation procedure for Polymarket
-is as follows:
+Polymarket API
+在被查询时，或返回全部活跃（未结）订单，或在按
+Polymarket 订单 ID（`venue_order_id`）查询时返回特定订单。Polymarket
+的执行对账流程如下：
 
-- Generate order reports for all instruments with active (open) orders, as reported by Polymarket.
-- Generate filled order reports from confirmed trades for orders that closed before startup and are not in the
-  cache, so their fills apply with the venue quantity and commission. For an instrument with a position
-  report, the fills must explain that position. See [report precision](#report-precision). Without a lookback
-  window, only those instruments qualify, because fills miss balance changes such as redemption. See
-  [missing reports](#missing-reports).
-- In owner mode, generate position reports from current user positions reported by Polymarket's Data API.
-  Session mode omits these wallet-wide positions. See [session keys](#session-keys).
-- Compare these reports with Nautilus execution state.
-- Generate missing orders to bring Nautilus execution state in line with positions reported by
-  Polymarket.
+- 为所有有活跃（未结）订单的金融工具生成订单报告，以 Polymarket 报告的为准。
+- 为在启动前已收尾、且不在缓存中的订单，从确认成交生成已成交订单报告，使其成交按场所
+  数量与佣金应用。对有持仓报告的金融工具，这些成交必须能解释该持仓。见[报告精度](#report-precision)。没有
+  回看窗口时，只有这些金融工具符合条件，因为成交会遗漏赎回这类余额变化。见[缺失报告](#missing-reports)。
+- 在 owner 模式下，从 Polymarket Data API
+  报告的当前用户持仓生成持仓报告。session
+  模式省略这些钱包级持仓。见[会话密钥](#session-keys)。
+- 把这些报告同 Nautilus 执行状态比较。
+- 生成缺失订单，让 Nautilus 执行状态与 Polymarket
+  报告的持仓对齐。
 
-### Position reports
+### 持仓报告 {#position-reports}
 
-#### Report precision
+#### 报告精度 {#report-precision}
 
-The Data API reports position size and average price to four decimal places. A position report
-instead uses the quantity and average entry price from confirmed mass-status fills when:
+Data API 把持仓规模与均价报告到 4
+位小数。满足下列条件时，持仓报告改用确认
+mass-status 成交的数量与平均开仓价：
 
-- The fills build one long position from zero without returning to flat.
-- Their quantity differs from the reported size by less than `0.0001`.
-- No buy and sell have the same match time, which would make their order ambiguous.
+- 这些成交从零构建一个多头持仓且未回到平仓。
+- 其数量与报告规模的差小于 `0.0001`。
+- 没有买单与卖单具有相同的撮合时间（那会使其顺序含混）。
 
-Startup applies qualifying fills without a synthetic rounding adjustment.
+启动时对符合条件的成交应用，不做合成的取整调整。
 
-Otherwise, including when the cache retains an open position that other trades built, the report
-keeps the Data API values, and the fills of closed orders in that instrument are not reported.
-These reports set `avg_px_open_precision` to 4, so a retained position whose fills fell outside a
-bounded lookback still passes the startup entry-price check against the truncated average. See [reported entry averages](./../concepts/execution/reconciliation.md#reported-entry-averages).
+否则，包括缓存保留了其他成交构建的未结持仓时，报告保留
+Data API 的值，且不报告该金融工具中已收尾订单的成交。这些报告把
+`avg_px_open_precision` 设为
+4，因此成交落在有界回看之外、被保留的持仓，仍能通过针对截断后均价的启动开仓价检查。见
+[报告的开仓均价](./../concepts/execution/reconciliation.md#reported-entry-averages)。
 
-#### Resolved balances
+#### 已结算余额 {#resolved-balances}
 
-Position reports omit resolved balances:
+持仓报告省略已结算余额：
 
-- A balance in an instrument that Nautilus settled from an `InstrumentClose` is always omitted, so
-  reconciliation cannot reopen settled exposure.
-- A balance that the Data API marks `redeemable` is omitted when the account has no open Nautilus
-  position in that instrument. While an open position still holds it, the balance stays reported
-  until settlement closes the position.
+- Nautilus 已从
+  `InstrumentClose` 结算的金融工具上的余额总是省略，因此对账无法
+  重开已结算的敞口。
+- Data API 标记为
+  `redeemable` 的余额，在账户于该金融工具上没有未结
+  Nautilus 持仓时省略。未结持仓仍持有它期间，余额保持报告直到结算平掉持仓。
 
-The adapter drops these balances before instrument mapping, so an expired instrument that is no
-longer loaded does not fail reconciliation. The outcome tokens stay in the wallet until redeemed.
+适配器在金融工具映射之前丢弃这些余额，因此已过期、不再加载的金融工具不会让对账
+失败。结果代币留在钱包中直到赎回。
 
-#### Missing reports
+#### 缺失报告 {#missing-reports}
 
-A missing position report is not evidence of a flat position. Redemption removes a balance from the Data API
-without a trade, and Polymarket can redeem winning tokens automatically shortly after resolution. Continuous
-position checks therefore never close a position that the Data API no longer reports. Open positions close
-through fills or settlement.
+缺失的持仓报告不是持仓归零的证据。赎回会在没有成交的情况下从
+Data API 移除余额，且
+Polymarket 可能在结果判定后不久自动赎回胜方代币。因此持续的持仓检查绝不平掉
+Data API
+不再报告的持仓。未结持仓只经成交或结算收尾。
 
-### Settlement precedence
+### 结算优先级 {#settlement-precedence}
 
-Order status, fill, position status, and mass-status reports fail instead of returning coverage
-that reconciliation could use to infer fills while:
+以下情形期间，订单状态、成交、持仓状态与
+mass-status
+报告一律失败，而不返回可能被对账用来推断成交的覆盖：
 
-- A trade is quarantined, hard-faulted, awaiting a REST read after a reconnect, or waiting for the
-  engine to apply a fill or void.
-- The adapter reads a submitted order with an unknown outcome, or the trades of an order that was
-  live during a WebSocket disconnect.
-- The adapter rebuilds its settlement records on connect.
+- 某成交被隔离、进硬故障、重连后等待 REST
+  读取，或在等引擎应用成交或作废。
+- 适配器正在读取一个结果未知的已提交订单，或某在 WebSocket
+  断线期间活跃的订单的成交。
+- 适配器在 connect 时重建其结算记录。
 
-Mass status checks the whole account. The other reports check the requested instrument or order. If a trade
-quarantined for message validation failure has no earlier admitted legs, it blocks every report. Otherwise the
-order and instrument scope of those legs applies. See [settlement updates](#settlement-updates) for how trades
-resolve.
+mass status
+检查整个账户，其余报告检查所请求的金融工具或订单。若为消息校验失败而隔离的成交没有更早
+被采纳的腿，它阻塞所有报告；否则适用这些腿的订单与金融工具作用域。成交如何定案见
+[结算更新](#settlement-updates)。
 
-`QueryOrder` checks settlement before and after its venue reads. If settlement evidence for the
-order remains unresolved, the query emits no status report and leaves the local order unchanged.
-Queries for an unacknowledged submission still use
-[unknown-outcome reconciliation](#unknown-outcome-reconciliation).
+`QueryOrder`
+在其场所读取前后都检查结算。若该订单的结算证据仍未定案，查询不发出状态报告并保持本地
+订单不变。针对未确认提交的查询仍走
+[结果未知时的对账](#unknown-outcome-reconciliation)。
 
-Fill-report generation checks retained settlement outcomes and rejects a `CONFIRMED` trade row that:
+成交报告生成会检查保留的结算结果，并拒绝下列 `CONFIRMED`
+成交行：
 
-- Belongs to a trade already settled as `FAILED`.
-- Contradicts a retained terminal leg.
-- Adds a leg to a retained terminal trade.
+- 属于已按 `FAILED` 结算的成交。
+- 与保留的终局腿矛盾。
+- 给保留的终局成交添加一条腿。
 
-Rejection fails the report request without creating a fill or changing the retained outcome. Scoped report
-evidence cannot establish a terminal outcome for the complete trade. Only the
-[targeted terminal REST read](#failed-trades-and-rest-resolution) can do that. Applied fill values take
-precedence over non-terminal REST copies.
+拒绝让报告请求失败，不创建成交也不改变保留的结果。作用域受限的报告证据无法为完整成交
+确立终局结果，只有
+[定向终局 REST 读取](#failed-trades-and-rest-resolution)
+能做到。已应用的成交值优先于非终局的 REST 副本。
 
-Order reports cap `filled_qty` using fills already applied in core and fill reports that pass
-settlement validation, counting each fill once. This cap applies with or without a lookback window.
+订单报告用核心中已应用的成交与通过结算校验的成交报告为
+`filled_qty` 设上限，每笔成交只计一次。无论有无回看窗口，该上限都适用。
 
-### Missing orders and API lag
+### 缺失订单与 API 滞后 {#missing-orders-and-api-lag}
 
-#### Open-order checks
+#### 未结订单检查 {#open-order-checks}
 
-Periodic open-order checks are disabled by default (`open_check_interval_secs=None`). Configure
-these checks on the node's `LiveExecutionEngineConfig`, separately from the Polymarket client.
-Startup reconciliation and WebSocket processing do not depend on enabling this timer.
+周期性未结订单检查默认关闭（`open_check_interval_secs=None`）。这些配置在节点的
+`LiveExecutionEngineConfig` 上，独立于 Polymarket 客户端设置。启动对账与
+WebSocket 处理不依赖该定时器是否开启。
 
-With the default `open_check_open_only=True`, absence from an open-order response does **not**
-advance the missing-order retry counter or close a cached order. An open-only response can omit
-an order that has just filled or been canceled. Enabling the interval alone therefore does not
-resolve every venue-side cancellation missed by the WebSocket.
+在默认的 `open_check_open_only=True` 下，未出现在未结订单响应中**不**会推进缺失订单
+重试计数，也不会收尾缓存中的订单。仅未结的响应可能漏掉刚刚成交或刚被撤的订单。因此
+单开这个间隔并不能解决 WebSocket 错过的每一笔场所侧撤单。
 
-With `open_check_open_only=False`, the missing-order path works as follows:
+`open_check_open_only=False` 时，缺失订单路径按如下工作：
 
-1. Defer action during recent local order activity. `open_check_threshold_ms=5000` is a settling
-   window since local activity, not simply a minimum age since submission.
-1. Count consecutive eligible misses from successful reports covering the responsible client.
-   A positive order report resets the counter. Orders outside a configured lookback and incomplete
-   client coverage do not establish that an order is missing.
-1. At `open_check_missing_retries=5`, schedule a targeted order-status query, subject to per-cycle
-   query limits and throttling. This is the fifth eligible miss, not five additional queries.
-1. Reconcile a returned report with its fills. A failed or incomplete targeted query defers
-   resolution. If complete targeted coverage returns no report, the engine retains unacknowledged
-   Polymarket submissions. It resolves `ACCEPTED` as `REJECTED`, and `PARTIALLY_FILLED` as `CANCELED`.
-   Pending update or cancel states remain in flight.
+1. 近期有本地订单活动时推迟动作。
+   `open_check_threshold_ms=5000`
+   是自本地活动起的稳定窗口，不只是自提交起的最小年龄。
+1. 从覆盖责任客户端的成功报告中统计连续的合格缺失次数。正的订单报告重置计数。落在
+   配置回看之外的订单，以及不完整的客户端覆盖，都不能证明订单缺失。
+1. 达到
+   `open_check_missing_retries=5`
+   时，安排一次定向订单状态查询，受每轮查询上限与限流约束。这是第
+   5 次合格缺失，不是额外 5 次查询。
+1. 把返回的报告与其成交对账。定向查询失败或不完整时推迟定案。若完整的定向覆盖没有返回
+   报告，引擎会保留未被确认的 Polymarket
+   提交，把 `ACCEPTED` 定案为
+   `REJECTED`，把 `PARTIALLY_FILLED` 定案为
+   `CANCELED`。待更新或待撤状态保持在途。
 
-Polymarket first attempts [single-order recovery from trades](#single-order-recovery-from-trades) when its
-order lookup is empty. For a previously accepted cached order, empty trade history produces a `CANCELED`
-report with `ORDER_NOT_FOUND_AT_VENUE`. An order that was never accepted remains unresolved. Pending trades
-instead preserve a non-terminal state.
-
-:::warning
-A successful empty order lookup plus empty trade history cannot distinguish venue cancellation from replica
-lag. The fallback can therefore close a previously accepted local order during sustained lag. The settling
-window and retry count reduce this risk. They do not prove that an order no longer exists.
-:::
-
-#### Position checks
-
-Position checks have their own `position_check_interval_secs`, also disabled by default. Open-order checks do
-not poll wallet positions. Owner-mode position reports come from the Data API and can reflect a different
-point in time from CLOB orders and trades. Session mode omits wallet-wide position reports.
-
-Treat an apparent position mismatch as requiring reconciliation, not as proof that a particular fill is false.
-A position the Data API no longer reports stays open until a fill or settlement closes it. See
-[missing reports](#missing-reports).
-
-### Mass-status reconciliation
-
-Mass-status reconciliation pairs each order report with its venue fill reports. It applies the real fills
-first to preserve trade IDs and commissions, then infers only any residual quantity needed to reach the
-venue-reported status.
-
-Mass status caps REST matched quantity using fills already applied in core and authenticated
-`CONFIRMED` fill reports that pass settlement validation, counting each fill once. This prevents
-pending settlement from creating an inferred fill, with or without a lookback window. Applied fills
-outside the lookback window still contribute to the cap.
-
-#### Recovering fills outside the lookback
-
-For a bounded lookback, the adapter recovers unapplied trades referenced by each in-scope open
-order's `associate_trades`:
-
-- Reuses trades returned within the window and fetches missing references by trade ID without a
-  time filter.
-- Validates the trade ID, order leg, ownership, instrument, and side before admitting a confirmed
-  fill. Duplicate references and overlapping history produce one fill per order leg and trade ID.
-- Skips lookups for references already applied to the cached venue order. Their quantities, trade
-  IDs, and commissions remain in its history and are not appended again. Applied fills returned
-  within the window still pass through position reconciliation.
-
-Missing uncached references require serial requests and can exceed the node's `timeout_reconciliation`
-(30 seconds by default), failing startup. Increase the timeout when restoring orders with many
-older references.
-
-Missing unapplied references, contradictory evidence, and request failures fail mass status rather
-than publish incomplete recovery.
-
-References require validation regardless of the matched counter. Before capping a bounded
-open-order report, the adapter rejects a matched quantity below its
-combined confirmed and cached fill evidence, counting each fill once.
-
-Recovery restores a resting BUY or SELL order's older partial fill with the same [trade ID as live
-fills](#trade-id-derivation), execution price, and reconstructed commission before later completion
-adds the remaining quantity. Wallet holdings do not establish which order filled. If the venue
-omits trade references, matched quantity stays capped to confirmed evidence and fills applied in core.
-
-Session mode uses the same recovery but omits wallet-wide positions. On an empty cache, startup
-restores historical order fills without opening a session position.
-
-Recovered taker fills use the loaded instrument fee schedule unless the execution client retains
-a basis from first admission on the user WebSocket or a targeted REST read. The loaded schedule
-does not prove that fees are unchanged since an older execution. Maker commission remains zero.
-See [Fill commission handling](#fill-commission-handling).
-
-#### Position alignment and cache history
-
-Position alignment first uses the combined window and recovered fills. If those fills do not align
-with a wallet position, the adapter tries the original window fills for that position. This preserves
-closed order reports, real trade IDs, and commissions supported by the bounded window. If incomplete
-position history requires a synthetic opening fill, realized PnL for reconstructed closed lifecycles
-is an estimate.
-
-For instruments without a retained open position, bounded mass status checks that default position
-reconciliation preserves every unapplied open-order fill, including fills within the window. It
-fails if the adjustment discards history, for example when other orders close one position and open another.
-
-Before retrying such a restart, restore a consistent cache containing the real order fills and
-their position history. Clearing the cache alone does not resolve discarded history. This check
-assumes default position reconciliation even if the node filters position reports or excludes the
-instrument from position reconciliation.
+订单查询为空时，Polymarket
+会先尝试[从成交做单订单恢复](#single-order-recovery-from-trades)。对先前已被接受的
+缓存订单，空的成交历史会产出一条带
+`ORDER_NOT_FOUND_AT_VENUE` 的
+`CANCELED` 报告。从未被接受的订单保持未定案。待处理的成交
+（pending trades）则保持非终局状态。
 
 :::warning
-This recovery does not migrate cached inferred fills into venue fills. Before reusing orders and
-positions containing such fills, start with a clean cache or migrate them with a custom script that
-preserves their history. The cache's in-session purge methods skip open orders and positions.
-[Cache database configuration](./../concepts/cache.md#database-configuration) describes restart settings:
-`CacheConfig.flush_on_start = true` clears all of the trader's cached state, including data for other adapters.
+一次成功的空订单查询加上空的成交历史，无法区分场所撤单与副本滞后。因此该回退可能在
+持续滞后期间收尾一个先前已被接受的本地订单。稳定窗口与重试次数能降低这一风险，但不能
+证明订单已不存在。
 :::
 
-#### Completeness checks
+#### 持仓检查 {#position-checks}
 
-A bounded mass status is complete only when:
+持仓检查有自己的
+`position_check_interval_secs`，同样默认关闭。未结订单检查不轮询钱包持仓。owner
+模式的持仓报告来自 Data API，反映的时点可能与 CLOB
+订单与成交不同。session 模式省略钱包级持仓报告。
 
-- Every in-scope historical fill maps to an instrument.
-- Every in-window confirmed maker trade has an owned maker order.
-- Every in-scope confirmed trade has an event time.
-- Every fill is backed by an order report or an eligible cached order.
+把表面的持仓不一致当作需要对账的信号，而不是某笔成交为假的证据。Data
+API 不再报告的持仓保持未结，直到成交或结算将其收尾。见
+[缺失报告](#missing-reports)。
 
-An eligible cached order must match the fill's account and instrument and carry its venue order ID.
-An earlier ID from an [order modification](#order-modification) counts only if the fill is already
-on that order. When `instrument_config.load_ids` is non-empty, the instrument must also be listed.
-Cached orders do not offset unmapped, unowned maker, or untimestamped trades.
+### Mass-status 对账 {#mass-status-reconciliation}
 
-For an incomplete window, the adapter logs a warning listing each failing condition before the
-engine logs its incomplete-report warning. It emits no additional report for a cached closed order, so
-reconciliation does not apply that order's quantity or commission again.
+mass-status
+对账把每份订单报告与其场所成交报告配对。它先应用真实成交以保留成交
+ID 与佣金，之后只推断达到场所报告状态所需的残余数量。
 
-#### Runtime checks and report failures
+mass status
+用核心中已应用的成交与通过结算校验的已认证
+`CONFIRMED`
+成交报告为 REST 撮合数量设上限，每笔成交只计一次。这避免了待结算成交产生推断成交，
+无论有无回看窗口。落在回看窗口之外、但已应用的成交仍计入该上限。
 
-Runtime order checks fetch confirmed trade history when the venue's matched quantity exceeds the
-local order's applied fill quantity. Unpaired fill reports retain the normal fill-only path.
+#### 恢复回看之外的成交 {#recovering-fills-outside-the-lookback}
 
-A commission construction error fails the complete REST report request. Startup returns the error without
-applying a mass status. Periodic and targeted reconciliation defer the affected work. The adapter does not
-drop the failed fill because an order or position report could then recreate its quantity without the
-Polymarket commission.
+有界回看时，适配器恢复每个范围内未结订单
+`associate_trades`
+引用的未应用成交：
 
-### Single-order recovery from trades
+- 复用窗口内已返回的成交，并按成交
+  ID 无时间过滤地补拉缺失的引用。
+- 采纳确认成交之前，先校验成交
+  ID、订单腿、归属、金融工具与方向。重复引用与重叠历史为每个订单腿与成交
+  ID 只产出一笔成交。
+- 对已应用于缓存场所订单的引用跳过查询。其数量、成交
+  ID 与佣金留在其历史中不再追加。窗口内返回的已应用成交仍会经过持仓对齐。
 
-`/data/order/{id}` can return live or terminal orders. When it returns no order for a known ID,
-`generate_order_status_report` falls back to `/data/trades` and filters the returned trades by the venue order
-ID. This recovers a cached order whose terminal WebSocket update was missed. It prevents the engine from
-resolving a local `ACCEPTED` order as `REJECTED`. That false rejection would discard fills that already
-happened at the venue.
+缺失的未缓存引用需要串行请求，可能超出节点的
+`timeout_reconciliation`（默认
+30 秒）导致启动失败。恢复带有许多较早引用的订单时请调大该超时。
 
-Only `CONFIRMED` trades contribute to recovered fills. Pending and failed settlement states do not.
+缺失的未应用引用、矛盾证据与请求失败都会让
+mass status 失败，而不是发布不完整的恢复。
 
-The cached order is resolved via `client_order_id`, falling back to the cache's `venue_order_id` index when
-only the venue ID is known. When the request supplies or resolves to a `client_order_id`, the cached order
-must be a base-denominated `LIMIT` order. Otherwise the request returns an error. An unassociated venue-order
-request without a cached order defers to the engine rather than synthesizing an external order from trade
-history alone:
+无论撮合计数如何，引用都需要校验。在为有界的未结订单报告设上限之前，适配器会拒绝低于
+其确认与缓存成交证据合计（每笔成交只计一次）的撮合数量。
 
-- Cached order + recovered fills covering the cached quantity: returns `Filled`. Non-IOC orders
-  also return `Filled` when the positive remainder is less than 0.01 shares.
-- Cached IOC/FAK order + any positive remainder, or another order with a remainder of at least
-  0.01 shares:
-  returns `Canceled` with the recovered `filled_qty`. Targeted reconciliation applies the associated
-  fill reports before closing the remainder. If terminal quantity is still unaccounted for, the
-  engine defers the terminal transition rather than discarding the missing fills.
-- Previously accepted cached order, no trades: returns `Canceled` with
-  `cancel_reason="ORDER_NOT_FOUND_AT_VENUE"`.
-- Cached order that was never accepted, no trades: returns `None`, preserving its unresolved state.
-- Cached order with any `MATCHED`, `MINED`, or `RETRYING` trade: a singular order query preserves
-  the locally applied matched quantity while terminal REST recovery waits for `CONFIRMED` or
-  `FAILED`.
-- No cached order and no known client association (regardless of trades): returns `None`. The engine's
-  not-found-at-venue path resolves the local entry.
+恢复会在后续完成补齐剩余数量之前，用与实时成交相同的[成交
+ID](#trade-id-derivation)、执行价格与重建的佣金，恢复挂着的
+BUY 或 SELL
+订单较早的部分成交。钱包持有量不能确定是哪笔订单成交。若场所遗漏成交引用，撮合数量
+仍以确认证据与核心中已应用的成交为上限。
 
-The bulk open-order response does not itself perform this per-order recovery. With
-`open_check_open_only=False`, the engine requests it after the missing-order retry threshold. With the default
-`True`, absent orders remain open for later reconciliation. See
-[missing orders and API lag](#missing-orders-and-api-lag).
+session 模式使用同样的恢复，但省略钱包级持仓。缓存为空时，启动恢复历史订单成交但
+不建立 session 持仓。
 
-### Ghost fills and cumulative quantities
+恢复的吃单成交使用已加载的金融工具费率表，除非执行客户端保留了首次经用户
+WebSocket 或定向 REST
+读取采纳时的基准。已加载的费率表不能证明较早执行以来费用未变。maker
+佣金保持为零。见[成交佣金处理](#fill-commission-handling)。
 
-Duplicate delivery, failed settlement, and delayed REST snapshots require different handling.
+#### 持仓对齐与缓存历史 {#position-alignment-and-cache-history}
 
-#### Duplicate fills
+持仓对齐先使用合并窗口与恢复的成交。若这些成交无法与钱包持仓对齐，适配器对该持仓改试
+原始窗口的成交，以保留有界窗口支撑的已收尾订单报告、真实成交
+ID 与佣金。若持仓历史不完整、需要合成的开仓成交，重建的已收尾生命周期其已实现盈亏
+只是估计值。
 
-The adapter tracks each venue trade ID and emits each of the account's fills at most once, so a
-replayed trade message does not emit again. Individual execution fills use the venue trade ID for
-takers and a composite of trade ID and maker order ID for makers. REST and WebSocket use the same
-fill identifiers, so replaying the same fill does not add its quantity again. See [trade ID
-derivation](#trade-id-derivation) and [fill recovery and
-deduplication](#fill-recovery-and-deduplication).
+对没有保留未结持仓的金融工具，有界
+mass status
+会检查默认持仓对账是否保留了每一笔未应用的未结订单成交（包括窗口内的成交）。若该调整
+丢弃了历史——例如其他订单平掉一个持仓又建立另一个——则失败。
 
-#### Failed settlement
+重试这类重启之前，先恢复一份含真实订单成交及其持仓历史的自洽缓存。仅清缓存不能解决
+被丢弃的历史。即便节点过滤持仓报告或把该金融工具排除在持仓对账之外，这项检查也假定
+使用默认持仓对账。
 
-For orders submitted in the current WebSocket session, `MATCHED` emits a fill before final settlement. `MINED`
-and `RETRYING` do not emit another fill. `CONFIRMED` can recover a fill whose earlier update was missed. A
-WebSocket `FAILED` quarantines the trade. Only a targeted REST `FAILED` result voids locally applied fills and
-suppresses buffered fills for that trade.
+:::warning
+这项恢复不会把缓存中的推断成交迁移为场所成交。要复用含此类成交的订单与持仓，请先用干净
+缓存启动，或用保留其历史的自定义脚本迁移。缓存的会话内清除方法会跳过未结订单与持仓。
+[缓存数据库配置](./../concepts/cache.md#database-configuration)
+说明了重启设置：`CacheConfig.flush_on_start
+= true` 会清除该 trader 的全部缓存状态，包括其他适配器的数据。
+:::
 
-Exposure can therefore change before finality: for current-session orders the adapter does not wait
-for confirmation. After a reconnect or restart, fills on existing orders wait for a terminal REST
-result. See [settlement updates](#settlement-updates).
+#### 完整性检查 {#completeness-checks}
 
-#### Cumulative reports
+有界 mass status 只有在下列条件全部满足时才算完整：
 
-`filled_qty` is an order total, not a position delta. Reconciliation applies unseen fills and, where
-permitted, infers only the remaining positive difference. For example, a total of 7 against 5 already
-applied contributes at most the missing 2, not 7.
+- 每个范围内的历史成交都能映射到金融工具。
+- 每个窗口内的确认 maker
+  成交都有归属的 maker 订单。
+- 每个范围内的确认成交都有事件时间。
+- 每笔成交都有订单报告或符合条件的缓存订单支撑。
 
-A lower continuous order report does not by itself reverse applied fills. Fill void events and startup
-snapshot reconciliation provide correction paths, so the local total is not an irreversible floor.
+符合条件的缓存订单必须匹配该成交的账户与金融工具，并携带其场所订单
+ID。来自[订单修改](#order-modification)的较早
+ID 只有在该成交已挂在该订单上时才算。
+`instrument_config.load_ids`
+非空时，金融工具还必须在列表中。缓存订单不能抵消未映射、无归属
+maker 或无时间戳的成交。
 
-#### REST evidence and cache state
+窗口不完整时，适配器在引擎记录其不完整报告警告之前，记录一条警告列出每条不满足的条件。
+对已收尾的缓存订单不再发出额外报告，因此对账不会重复应用该订单的数量或佣金。
 
-For runtime order checks, the adapter caps REST matched quantity at
-`min(venue_matched, max(local_applied, settlement_validated_quantity))`.
+#### 运行时检查与报告失败 {#runtime-checks-and-report-failures}
 
-The validated quantity combines effective fills in cached order history with fill reports that pass
-settlement validation:
+场所撮合数量超过本地订单已应用成交数量时，运行时订单检查会拉取确认的成交历史。未配对的
+成交报告仍走常规的仅成交路径。
 
-- Each venue fill ID counts once across applied fills and report rows.
-- Inferred core fills provide a floor rather than additional venue evidence. A later venue report
-  for the same quantity cannot inflate the total.
-- Cumulative fill voids remove only the corrected quantity. An older report cannot restore that
-  quantity through the cap.
+佣金构建错误会让完整的 REST
+报告请求失败。启动时返回该错误且不应用
+mass status；周期性与定向对账推迟受影响的工作。适配器不丢弃失败的成交，因为订单或
+持仓报告随后可能在缺少 Polymarket 佣金的情况下重建其数量。
 
-If core still retains quantity for a leg whose targeted REST settlement is `FAILED`, report generation
-fails closed rather than preserving that failed exposure through the cap.
+### 从成交做单订单恢复 {#single-order-recovery-from-trades}
 
-WebSocket fills awaiting core processing do not raise the local applied-fill floor. This prevents an
-unsupported increase in REST `size_matched` from becoming an inferred fill while preserving applied fills.
-Mass status uses the same validated quantity with or without a lookback window. See
-[mass-status reconciliation](#mass-status-reconciliation).
+`/data/order/{id}`
+可以返回活跃或终局订单。当它对已知 ID
+返回空订单时，`generate_order_status_report`
+回退到 `/data/trades`，并按场所订单 ID
+过滤返回的成交。这能恢复错过终局 WebSocket
+更新的缓存订单，避免引擎把本地 `ACCEPTED`
+订单定案为 `REJECTED`——那种误拒会丢弃场所上已经发生的成交。
 
-The cache retains order identity, applied fills, and correction history used for replay handling. It is
-not an unconditional override of venue state, and missing or lagging venue evidence cannot establish
-settlement finality.
+只有 `CONFIRMED`
+成交计入恢复的成交，待处理与失败的结算状态不计。
 
-## Fill quantity normalization
+缓存订单通过 `client_order_id`
+解析，只知道场所 ID 时回退到缓存的
+`venue_order_id` 索引。请求提供或解析出
+`client_order_id`
+时，缓存订单必须是以 base 计量的
+`LIMIT` 订单，否则请求返回错误。没有关联订单、也没有缓存订单的按场所订单
+ID 的请求会交给引擎处理，而不是仅凭成交历史合成外部订单：
 
-Polymarket wire amounts use six-decimal fixed-point mantissas. Market SELL signing truncates the
-share-denominated `makerAmount` to two decimal places, while market BUY quote conversion can leave a few
-microshares of drift between the registered and filled quantities. Every fill keeps the venue quantity.
-Truncation is fixed in absolute share terms, so for underfill the adapter uses
-`DUST_SNAP_THRESHOLD_DEC = 0.01` shares. A shortfall at or above that threshold remains a real partial fill.
+- 缓存订单 + 覆盖缓存数量的恢复成交：返回
+  `Filled`。非 IOC 订单在正余量小于 0.01 份时也返回
+  `Filled`。
+- 缓存的 IOC/FAK 订单 + 任意正余量，或其他余量至少
+  0.01 份的订单：返回带恢复
+  `filled_qty` 的
+  `Canceled`。定向对账在收尾余量之前先应用关联的成交报告。若终局数量仍有缺口，
+  引擎推迟终局转换而不是丢弃缺失的成交。
+- 先前已接受的缓存订单、无成交：返回带
+  `cancel_reason="ORDER_NOT_FOUND_AT_VENUE"` 的
+  `Canceled`。
+- 从未被接受的缓存订单、无成交：返回
+  `None`，保持其未定案状态。
+- 带任何 `MATCHED`、
+  `MINED` 或
+  `RETRYING` 成交的缓存订单：单订单查询在终局
+  REST 恢复等待 `CONFIRMED` 或
+  `FAILED` 期间，保留本地已应用的撮合数量。
+- 无缓存订单且无已知客户关联（无论有无成交）：返回
+  `None`。引擎的"场所查无此单"路径负责定案本地条目。
 
-| Direction | Source                                         | Adapter behavior                             |
-| --------- | ---------------------------------------------- | -------------------------------------------- |
-| Overfill  | BUY filled below its limit, or quote drift     | Raise the BUY order quantity to the fill     |
-| Underfill | Signed or venue quantity truncation (`< 0.01`) | Normalize atomic FOK; cancel a FAK remainder |
+批量未结订单响应本身不做这种逐单恢复。
+`open_check_open_only=False`
+时，引擎在缺失订单重试阈值之后发起该恢复。默认
+`True` 时，缺席的订单保持未结留待后续对账。见
+[缺失订单与 API 滞后](#missing-orders-and-api-lag)。
 
-A hard-faulted trade that touches the order withholds that normalization and the FAK remainder
-cancellation. See [Settlement faults](#settlement-faults).
+### 幽灵成交与累计数量 {#ghost-fills-and-cumulative-quantities}
 
-See [BUY overfills](#buy-overfills) for how a BUY can receive more shares than it signed.
+重复投递、结算失败与滞后的 REST 快照需要分别处理。
 
-### BUY overfills
+#### 重复成交 {#duplicate-fills}
 
-A Polymarket BUY is sized by the pUSD it spends, so it can receive more shares than it signed. A
-limit BUY is converted to signed shares before posting. A market BUY is posted in pUSD and updated
-to signed shares when the submit succeeds or its outcome is unknown. The adapter then keeps the
-venue fill quantity and raises the order to match. A SELL is sized in shares, and the venue does
-not credit more than signed.
+适配器跟踪每个场所成交 ID，该账户的每笔成交最多发出一次，因此重放的成交消息不会
+重复发出。单笔执行成交对吃单用场所成交 ID，对 maker
+用成交 ID 与 maker 订单 ID 的组合。REST 与
+WebSocket 使用相同的成交标识，因此重放同一成交不会再次累加其数量。见[成交
+ID 推导](#trade-id-derivation)与[成交恢复与去重](#fill-recovery-and-deduplication)。
+
+#### 结算失败 {#failed-settlement}
+
+对当前 WebSocket
+会话中提交的订单，`MATCHED`
+在最终结算之前就发出成交。`MINED` 与
+`RETRYING` 不再发第二次成交。
+`CONFIRMED`
+可以恢复某笔此前更新被错过的成交。WebSocket 的
+`FAILED` 把成交隔离，只有定向的 REST
+`FAILED` 结果才作废本地已应用的成交并抑制该成交的缓冲腿。
+
+因此敞口可能在最终性之前变化：当前会话的订单，适配器不等确认。重连或重启之后，已有
+订单上的成交要等终局 REST
+结果。见[结算更新](#settlement-updates)。
+
+#### 累计报告 {#cumulative-reports}
+
+`filled_qty`
+是订单总量，不是持仓增量。对账应用未见过的成交，并在允许的情况下只推断剩余的正差值。
+例如，总量 7 而本地已应用 5，最多贡献缺失的 2，而不是 7。
+
+较低的持续订单报告本身不会逆转已应用的成交。成交作废事件与启动快照对账提供纠正路径，
+因此本地总量不是不可逆的下限。
+
+#### REST 证据与缓存状态 {#rest-evidence-and-cache-state}
+
+运行时订单检查把 REST
+撮合数量钳制到
+`min(venue_matched, max(local_applied, settlement_validated_quantity))`。
+
+经校验的数量由缓存订单历史中的有效成交与通过结算校验的成交报告合并：
+
+- 每个场所成交 ID 在已应用成交与报告行之间只计一次。
+- 核心推断成交只提供下限，不是额外的场所证据。同数量的后续场所报告无法抬高总量。
+- 累计成交作废只移除被更正的数量。旧报告无法经由该上限把数量恢复回来。
+
+若核心仍保留某腿的数量、而其定向 REST 结算为
+`FAILED`，报告生成按失败关闭，而不是经由上限保留那份失败的敞口。
+
+等待核心处理的 WebSocket 成交不抬高本地已应用成交下限，防止
+REST `size_matched`
+无依据的增长在保留已应用成交的同时变成推断成交。mass
+status 无论有无回看窗口都使用同一经校验数量。见
+[mass-status 对账](#mass-status-reconciliation)。
+
+缓存保留处理重放所需的订单标识、已应用成交与更正历史。它对场所状态不是无条件的覆盖，
+缺失或滞后的场所证据无法确立结算最终性。
+
+## 成交数量归一化 {#fill-quantity-normalization}
+
+Polymarket 线上金额使用 6
+位小数的定点尾数。市价 SELL
+签名把份额计价的 `makerAmount`
+截断到 2 位小数，而市价 BUY
+的 quote 换算可能让登记数量与成交数量之间残留几微份额的漂移。每笔成交都保留场所
+数量。截断按绝对份额是固定的，因此欠成交时适配器使用
+`DUST_SNAP_THRESHOLD_DEC = 0.01`
+份。达到或超过该阈值的缺口仍是真实的欠成交。
+
+| 方向   | 来源                                        | 适配器行为                                 |
+| ------ | ------------------------------------------- | -------------------------------------------- |
+| 超成交 | BUY 以低于限价成交，或 quote 换算漂移       | 把 BUY 订单数量抬到成交数量                  |
+| 欠成交 | 签名或场所数量截断（`< 0.01`）              | 归一化原子 FOK；撤掉 FAK 余量                |
+
+触及订单的硬故障成交会同时扣押该归一化与 FAK
+余量撤单。见[结算故障](#settlement-faults)。
+
+BUY 为什么会收到比签名更多的份额，见[BUY 超成交](#buy-overfills)。
+
+### BUY 超成交 {#buy-overfills}
+
+Polymarket 的 BUY 按花费的 pUSD
+定规模，因此可能收到比签名更多的份额。限价 BUY
+在挂出前换算为签名份额；市价 BUY 以
+pUSD 挂出，在提交成功或结果未知时更新为签名份额。之后适配器保留场所成交数量并把订单
+抬到一致。SELL 按份额定规模，场所不会多付。
 
 :::info
-A BUY order's quantity can increase after submission, through an `OrderUpdated` event. Treat its
-filled quantity, or the position quantity, as the shares held.
+BUY 订单的数量可能在提交后经
+`OrderUpdated` 事件增加。请以其成交数量或持仓数量作为持有份额。
 :::
 
-#### Why a BUY receives extra shares
+#### BUY 为何多收份额 {#why-a-buy-receives-extra-shares}
 
-The signed order sets `makerAmount` (pUSD to spend) and `takerAmount` (shares to receive). The
-exchange guarantees at least that ratio of shares per pUSD for whatever part executes, then credits
-the shares actually delivered. A partial execution spends less and receives proportionally fewer
-shares. A full execution receives more than `takerAmount` in two cases:
+签名订单设定
+`makerAmount`（花费的 pUSD）与
+`takerAmount`（应收份额）。交易所保证对任何执行部分至少按该比率交付份额，随后记入
+实际交付的份额。部分执行花费更少、按比例收到更少份额。全部执行在两种情形下收到的份额
+超过 `takerAmount`：
 
-- Price improvement: a limit BUY of 9 shares at 0.58 commits 5.22 pUSD. Filled entirely at 0.56, it
-  receives 9.321429 shares.
-- Signing precision: a market BUY signs shares truncated to the tick's decimal places plus two,
-  while settlement uses six. A 5 pUSD market BUY at 0.66 signs 7.5757 shares and receives 7.575758.
+- 价格改善：按 0.58 买 9 份的限价 BUY
+  承诺 5.22 pUSD。若全部按 0.56 成交，收到
+  9.321429 份。
+- 签名精度：市价 BUY
+  签名的份额截断到 tick 小数位加两位，而结算用六位。按
+  0.66 的 5 pUSD 市价 BUY 签名
+  7.5757 份，实际收到 7.575758 份。
 
-#### How the adapter raises the order quantity
+#### 适配器如何抬升订单数量 {#how-the-adapter-raises-the-order-quantity}
 
-The execution engine rejects a fill past the order quantity by default, so the quantity rises
-first through an `OrderUpdated` event:
+执行引擎默认拒绝超过订单数量的成交，因此数量先经
+`OrderUpdated` 事件抬升：
 
-| Path                                                         | Raises when                                                                              | Quantity                                                                |
-| ------------------------------------------------------------ | ---------------------------------------------------------------------------------------- | ----------------------------------------------------------------------- |
-| WebSocket fill                                               | The adapter holds the order, including a trade found after a user-stream gap             | Cumulative filled quantity                                              |
-| REST report with fills, or an execution-engine status report | The filled quantity exceeds the local order, including during a pending cancel or modify | Evidence-capped filled quantity, plus quantity voided without reopening |
-| Standalone fill report                                       | The order is not already filled                                                          | Filled quantity plus that fill                                          |
+| 路径                                                         | 抬升时机                                                                                 | 数量                                                                    |
+| ------------------------------------------------------------ | ------------------------------------------------------------------------------------------ | ----------------------------------------------------------------------- |
+| WebSocket 成交                                               | 适配器持有该订单，包括用户流缺口后发现的成交                                             | 累计成交数量                                                            |
+| 带成交的 REST 报告，或执行引擎状态报告                       | 成交数量超过本地订单，包括待撤或待改期间                                                 | 证据上限内的成交数量，加上已作废且不会重开的数量                        |
+| 独立成交报告                                                 | 订单尚未全部成交                                                                         | 成交数量加该笔成交                                                      |
 
-A standalone fill keeps its trade ID and commission, and a replay does not apply it again. It
-covers a position-check fill and a fill reported with no captured order context. A status report
-for a modified order also includes quantity voided without reopening on earlier venue orders. A
-standalone report does not.
+独立成交保留其成交 ID 与佣金，重放不会重复应用。它覆盖持仓检查的成交，以及没有捕获到
+订单上下文的上报成交。被修改订单的状态报告还包含较早场所订单上已作废且不会重开的数量，
+独立报告则不包含。
 
-Commission uses the venue fill quantity. Leave `LiveExecutionEngineConfig.allow_overfills`
-disabled. Enabling it skips the standalone raise and applies that fill past the order quantity.
+佣金使用场所成交数量。`LiveExecutionEngineConfig.allow_overfills`
+保持关闭。开启它会跳过独立抬升，直接让该成交超过订单数量应用。
 
-#### Recovery limitations
+#### 恢复的限制 {#recovery-limitations}
 
-The engine rejects:
+引擎会拒绝：
 
-- A SELL fill past the signed quantity.
-- A BUY that is quote-sized locally.
-- A fill whose venue order ID is not one of the order's.
-- A later fill on an already filled order.
+- 超过签名数量的 SELL 成交。
+- 本地以 quote 计量的 BUY。
+- 场所订单 ID 不属于该订单的成交。
+- 已全成交订单上的后续成交。
 
-These fills are rejected without a quantity raise:
+下列成交被拒绝且不抬升数量：
 
-- A startup fill for a cached order with no matching order report. The live manager applies it as
-  an order fill.
-- A position-check fill for an earlier venue order ID of a modified order. The manager holds it
-  back because it does not match the order's current venue order ID.
-- A status-only report from the live manager.
-- A pending `Filled` report whose filled quantity does not exceed the local order. The fills apply
-  against the unchanged quantity.
+- 启动时属于缓存订单、但没有匹配订单报告的成交。实时管理器会把它作为订单成交应用。
+- 持仓检查中属于被修改订单较早场所订单 ID
+  的成交。管理器因其与订单当前场所订单 ID
+  不符而扣住。
+- 实时管理器的纯状态报告。
+- 成交数量未超过本地订单的挂起
+  `Filled` 报告。其成交按未变的数量应用。
 
-An unmatched fill in a runtime mass-status report sent to the execution engine uses the standalone
-raise.
+发送给执行引擎的运行时 mass-status
+报告中未匹配的成交走独立抬升。
 
-If the position check cannot apply a fill, it holds position reconciliation until
-`position_check_threshold_ms` passes. A later check then synthesizes a correcting fill, without the
-venue commission, when `generate_missing_orders` is enabled.
+持仓检查无法应用某笔成交时，它会把持仓对账扣押到
+`position_check_threshold_ms`
+超时。之后的检查若启用了
+`generate_missing_orders`，
+会合成一笔不含场所佣金的纠正成交。
 
-### Terminal order handling
+### 终局订单处理 {#terminal-order-handling}
 
-Terminal quantity normalization triggers from the `MATCHED` order update for resting maker
-orders, or directly on the confirming taker trade for atomic FOK orders. It emits a reconciliation
-`OrderUpdated` which lowers the order quantity to the cumulative venue fill. It does not emit a
-fill and does not change positions, balances, or commissions.
+终局数量归一化由挂单 maker
+订单的 `MATCHED`
+订单更新触发，或由原子 FOK
+订单确认的吃单成交直接触发。它发出一条对账用的
+`OrderUpdated`，把订单数量下调到累计场所成交量。它不发出成交，也不改变持仓、余额或
+佣金。
 
-IOC maps to venue FAK. Once a taker trade confirms, every positive difference between
-`original_size` and `size_matched` is an unfilled remainder which the venue has killed. The adapter
-therefore emits `OrderCanceled` after the real fills instead of normalizing quantity or leaving the
-order partially filled. REST reports apply the same rule when a `MATCHED` FAK has
-`size_matched < original_size`.
+IOC 映射为场所
+FAK。吃单成交确认后，
+`original_size` 与
+`size_matched`
+之间的每个正差值都是被场所杀掉的未成交余量。因此适配器在真实成交之后发出
+`OrderCanceled`，而不是归一化数量或让订单保持部分成交。REST
+报告中 `MATCHED` 的
+FAK 若
+`size_matched < original_size`
+应用同一规则。
 
-When a confirmed trade arrives before the submit response, the same handling runs after buffered
-fills drain. A buffered `Canceled`, `Expired`, or `Rejected` report takes precedence.
+确认成交先于提交响应到达时，同样的处理在缓冲成交排空后运行。缓冲的
+`Canceled`、`Expired` 或
+`Rejected` 报告优先。
 
-A hard-faulted trade that touches the order withholds this handling, including after buffered fills drain.
-Healthy confirmation emits the update or the cancellation once. A later drain or the same evidence does not
-emit it again. See [Settlement faults](#settlement-faults).
+触及订单的硬故障成交会扣押该处理，包括缓冲成交排空之后。健康确认只发一次更新或撤单，
+后续排空或相同证据不再重发。见[结算故障](#settlement-faults)。
 
-### Commissions and tracking scope
+### 佣金与跟踪范围 {#commissions-and-tracking-scope}
 
-`FillReport.commission` is computed from the venue-reported fill size, the same quantity the fill
-carries.
+`FillReport.commission`
+按场所报告的成交规模计算，即该成交携带的数量。
 
-The fill tracker is keyed by `venue_order_id`. It registers orders on accept and restores cached open orders
-on startup, so the WebSocket overfill raise applies only to orders it tracks. `DUST_SNAP_THRESHOLD_DEC` is not
-configurable per-strategy. It lives in `nautilus_polymarket::common::consts`.
+成交跟踪器以
+`venue_order_id`
+为键，在接受订单时登记、启动时恢复缓存的未结订单，因此
+WebSocket 的超成交抬升只作用于它跟踪的订单。
+`DUST_SNAP_THRESHOLD_DEC`
+不能按策略配置，它位于
+`nautilus_polymarket::common::consts`。
 
-### Order message size denomination
+### 订单消息的规模计价 {#order-message-size-denomination}
 
-The user channel reports `original_size` on an `order` message as the signed `makerAmount`. For a
-market order type (`FAK` or `FOK`) BUY that amount is the pUSD budget rather than a share count, so
-a BUY of 100 shares at 0.01 reports `1`. The adapter divides by the order price when it must express
-that venue amount as shares in an order status report. Locally submitted quote-sized limit BUYs use
-the share quantity derived during signing as their authoritative fill-tracker quantity.
+用户频道在
+`order`
+消息上把
+`original_size`
+报告为签名的
+`makerAmount`。对市价类型（`FAK` 或
+`FOK`）的 BUY，该金额是
+pUSD 预算而非份额数，因此按 0.01 买 100
+份的 BUY 报告为
+`1`。订单状态报告必须把该场所金额表达为份额时，适配器除以订单价格。本地提交的以
+quote 计量的限价 BUY
+以签名期间推导的份额数量作为其权威的成交跟踪数量。
 
-A SELL signs shares as its maker amount and needs no conversion. Resting types (`GTC` and `GTD`)
-pass through unchanged: their denomination is unconfirmed, and converting a share-denominated size
-would misreport every externally-managed resting order.
+SELL 以份额作为 maker
+金额签名，无需换算。挂单类型（`GTC` 与
+`GTD`）原样透传：其计价未获确认，把份额计量的规模做换算会错报所有外部管理的挂单。
 
-### Exec tester close residuals
+### Exec tester 收尾残量 {#exec-tester-close-residuals}
 
-`close_positions_qty_precision` is an `ExecTesterConfig` option. It defaults to `None`, which submits the full
-position quantity. The Rust and Python Polymarket examples set it to `2` because
-[market order maker amounts allow two decimals](#precision-limits). The examples also set
-`close_positions_time_in_force=IOC`. Custom configurations must use `IOC` or `FOK` because Polymarket rejects
-`GTC` market orders.
+`close_positions_qty_precision`
+是
+`ExecTesterConfig`
+的选项，默认 `None`，即提交全部持仓数量。Rust 与
+Python 的 Polymarket
+示例把它设为 `2`，因为
+[市价订单 maker 金额允许两位小数](#precision-limits)。示例还设置
+`close_positions_time_in_force=IOC`。自定义配置必须用
+`IOC` 或 `FOK`，因为 Polymarket
+拒绝 `GTC` 市价单。
 
-On stop, the tester truncates only the submitted market SELL quantity to the configured decimal
-precision and logs the exact difference at WARN level. It does not round the position state or
-create a synthetic fill.
+停机时，测试器只把提交的市价 SELL
+数量截断到配置的小数精度，并以 WARN
+级别记录精确差额。它不取整持仓状态，也不合成成交。
 
-A 5 pUSD BUY that fills 5.1975 shares therefore submits a 5.19-share close. After the venue fills
-that order, the position remains open at exactly 0.0075 shares.
+因此一笔成交 5.1975 份的 5
+pUSD 买单会提交 5.19
+份的收尾。场所成交该单后，持仓恰剩 0.0075
+份未平。
 
-- If the whole position is below 0.01 shares, the tester warns and submits no zero-quantity order.
-- A non-zero close must satisfy the venue's order constraints. Rejection leaves the full position open.
+- 若整个持仓不足 0.01 份，测试器告警且不提交零数量订单。
+- 非零收尾必须满足场所订单约束，被拒会让全部持仓保持未平。
 
-Treat close-on-stop as best-effort. Check the position and warning before assuming the account is
-flat. See the [position reporting limitation](#limitations-and-considerations) for sub-0.01-share venue reports.
+把停机收尾当作尽力而为，先检查持仓与告警再假定账户已平。不足 0.01
+份的场所报告见[持仓报告限制](#limitations-and-considerations)。
 
 ## WebSockets
 

@@ -1,137 +1,128 @@
 # Coinbase
 
-Coinbase was founded in 2012 and is one of the largest US-regulated cryptocurrency exchanges. Its Advanced
-Trade API offers spot, perpetual swap, and dated futures trading. This adapter supports live market data
-ingest and order execution on both spot (Cash) and CFM derivatives (Margin) accounts through a shared
-execution client, with the account type selected by the factory (see [Execution scope](#execution-scope)).
+Coinbase 成立于 2012 年，是美国监管下规模最大的加密货币交易所之一。其 Advanced Trade API
+提供现货、永续互换和到期期货交易。本适配器通过共享的执行客户端，支持现货（Cash）账户和
+CFM 衍生品（Margin）账户的实时行情接入与订单执行，账户类型由工厂选择（见[执行范围](#execution-scope)）。
 
-## Overview
+## 概览 {#overview}
 
-The Coinbase adapter is implemented in Rust and exposed to Python through configurations,
-factories, enums, and constants.
+Coinbase 适配器以 Rust 实现，通过配置、工厂、枚举和常量暴露给 Python。
 
-Components:
+组件：
 
-- `CoinbaseRawHttpClient`: Low-level REST client owning transport, JWT signing, and rate limits.
-- `CoinbaseHttpClient`: Domain REST client parsing venue responses into Nautilus types.
-- `CoinbaseWebSocketClient`: Low-level WebSocket connectivity with JWT subscribe auth.
-- `CoinbaseInstrumentProvider`: Instrument parsing and loading.
-- `CoinbaseDataClient`: Market data feed manager.
-- `CoinbaseDataClientFactory`: Data client factory.
-- `CoinbaseExecutionClient`: Execution client (spot or CFM derivatives; REST orders + WS streams).
-- `CoinbaseExecutionClientFactory`: Execution client factory. Spot vs CFM derivatives is selected by
-  `account_type` on the config.
+- `CoinbaseRawHttpClient`：底层 REST 客户端，负责传输、JWT 签名和速率限制。
+- `CoinbaseHttpClient`：领域 REST 客户端，把场所响应解析为 Nautilus 类型。
+- `CoinbaseWebSocketClient`：底层 WebSocket 连接，使用 JWT 订阅鉴权。
+- `CoinbaseInstrumentProvider`：金融工具解析与加载。
+- `CoinbaseDataClient`：行情数据源管理器。
+- `CoinbaseDataClientFactory`：数据客户端工厂。
+- `CoinbaseExecutionClient`：执行客户端（现货或 CFM 衍生品；REST 下单 + WS 数据流）。
+- `CoinbaseExecutionClientFactory`：执行客户端工厂。现货与 CFM 衍生品由配置上的
+  `account_type` 选择。
 
-Python surface available from `nautilus_trader.adapters.coinbase`:
+`nautilus_trader.adapters.coinbase` 提供的 Python 接口：
 
-- `CoinbaseDataClientConfig`, `CoinbaseExecutionClientConfig`
-- `CoinbaseDataClientFactory`, `CoinbaseExecutionClientFactory`
-- `CoinbaseEnvironment`, `CoinbaseMarginType`
-- `COINBASE`, `COINBASE_CLIENT_ID`, and `COINBASE_VENUE`
+- `CoinbaseDataClientConfig`、`CoinbaseExecutionClientConfig`
+- `CoinbaseDataClientFactory`、`CoinbaseExecutionClientFactory`
+- `CoinbaseEnvironment`、`CoinbaseMarginType`
+- `COINBASE`、`COINBASE_CLIENT_ID` 和 `COINBASE_VENUE`
 
-## Examples
+## 示例 {#examples}
 
-- [Python examples](https://github.com/nautechsystems/nautilus_trader/tree/develop/examples/live/coinbase/)
-- [Rust examples](https://github.com/nautechsystems/nautilus_trader/tree/develop/crates/adapters/coinbase/examples/)
+- [Python 示例](https://github.com/nautechsystems/nautilus_trader/tree/develop/examples/live/coinbase/)
+- [Rust 示例](https://github.com/nautechsystems/nautilus_trader/tree/develop/crates/adapters/coinbase/examples/)
 
-## Coinbase documentation
+## Coinbase 文档 {#coinbase-documentation}
 
-Coinbase provides documentation for the Advanced Trade API:
+Coinbase 为 Advanced Trade API 提供了文档：
 
-- [REST API reference](https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/introduction)
-- [Order management guide](https://docs.cdp.coinbase.com/coinbase-app/advanced-trade-apis/guides/orders)
-- [WebSocket channels](https://docs.cdp.coinbase.com/coinbase-app/advanced-trade-apis/websocket/websocket-channels)
-- [API key authentication](https://docs.cdp.coinbase.com/coinbase-app/authentication-authorization/api-key-authentication)
-- [Rate limiting](https://docs.cdp.coinbase.com/coinbase-app/api-architecture/rate-limiting)
+- [REST API 参考](https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/introduction)
+- [订单管理指南](https://docs.cdp.coinbase.com/coinbase-app/advanced-trade-apis/guides/orders)
+- [WebSocket 频道](https://docs.cdp.coinbase.com/coinbase-app/advanced-trade-apis/websocket/websocket-channels)
+- [API key 鉴权](https://docs.cdp.coinbase.com/coinbase-app/authentication-authorization/api-key-authentication)
+- [速率限制](https://docs.cdp.coinbase.com/coinbase-app/api-architecture/rate-limiting)
 
-Read the Coinbase documentation with this NautilusTrader integration guide.
+请结合本 NautilusTrader 集成指南阅读 Coinbase 文档。
 
 :::info
-This adapter targets the Coinbase Advanced Trade API. The separate
-[Coinbase International Exchange (INTX)](https://international.coinbase.com) venue is not covered. Its adapter
-was removed in NautilusTrader 1.224.0.
+本适配器面向 Coinbase Advanced Trade API。不覆盖独立的
+[Coinbase International Exchange（INTX）](https://international.coinbase.com)场所，其适配器在
+NautilusTrader 1.224.0 中已移除。
 :::
 
-## Products
+## 产品 {#products}
 
-A product is an umbrella term for a group of related instrument types.
+产品（product）是一组相关工具类型的统称。
 
-The following product types are supported:
+支持以下产品类型：
 
-| Product Type        | Supported | Notes                                             |
+| 产品类型            | 支持 | 说明                                              |
 | ------------------- | --------- | ------------------------------------------------- |
-| Spot                | ✓         | USD, USDC, and USDT-quoted spot pairs.            |
-| Perpetual contracts | ✓         | USD-margined perpetual swaps on the FCM venue.    |
-| Futures contracts   | ✓         | Dated delivery futures (nano BTC, nano ETH, etc). |
+| 现货                | ✓         | 以 USD、USDC、USDT 计价的现货对。                 |
+| 永续合约            | ✓         | FCM 场所上以 USD 保证金的永续互换。               |
+| 期货合约            | ✓         | 到期交割期货（nano BTC、nano ETH 等）。           |
 
-## Symbology
+## 符号体系 {#symbology}
 
-Coinbase uses the venue's native `product_id` field directly as the Nautilus
-symbol. The instrument ID is `{product_id}.COINBASE`.
+Coinbase 直接把场所原生的 `product_id` 字段用作 Nautilus symbol。金融工具 ID 为
+`{product_id}.COINBASE`。
 
-| Product      | Format                          | Examples                           |
+| 产品         | 格式                            | 示例                               |
 | ------------ | ------------------------------- | ---------------------------------- |
-| Spot         | `{base}-{quote}`                | `BTC-USD`, `ETH-USDC`, `SOL-USDT`. |
-| Perpetual    | `{contract_code}-{ddMMMyy}-CDE` | `BIP-20DEC30-CDE` (BTC PERP).      |
-| Dated future | `{contract_code}-{ddMMMyy}-CDE` | `BIT-24APR26-CDE` (BTC Apr 2026).  |
+| 现货         | `{base}-{quote}`                | `BTC-USD`、`ETH-USDC`、`SOL-USDT`。 |
+| 永续         | `{contract_code}-{ddMMMyy}-CDE` | `BIP-20DEC30-CDE`（BTC PERP）。    |
+| 到期期货     | `{contract_code}-{ddMMMyy}-CDE` | `BIT-24APR26-CDE`（BTC 2026 年 4 月）。 |
 
-The `-CDE` suffix denotes the Coinbase Derivatives Exchange (FCM venue).
-Perpetuals carry an exchange-assigned far-future expiry (e.g. `20DEC30`) but
-are classified as `CryptoPerpetual` based on the presence of an ongoing
-funding rate. Dated futures are classified as `CryptoFuture`.
+`-CDE` 后缀表示 Coinbase Derivatives Exchange（FCM 场所）。永续工具带有交易所指派的远期
+到期日（如 `20DEC30`），但依据是否存在持续 funding 费率被归类为 `CryptoPerpetual`。到期期货
+归类为 `CryptoFuture`。
 
-The adapter resolves the product type structurally from API metadata
-(`future_product_details.contract_expiry_type` and, when that is `EXPIRING`, the presence of a non-empty
-`future_product_details.funding_rate` as a perpetual-only structural signal). The fallback heuristic checks
-`display_name` for `PERP` or `Perpetual` substrings.
+适配器从 API 元数据以结构化方式解析产品类型
+（`future_product_details.contract_expiry_type`；当其值为 `EXPIRING` 时，以
+`future_product_details.funding_rate` 非空作为永续合约的独有结构信号）。回退启发式检查
+`display_name` 中是否含有 `PERP` 或 `Perpetual` 子串。
 
-Examples of full Nautilus instrument IDs:
+完整 Nautilus 金融工具 ID 示例：
 
-- `BTC-USD.COINBASE` (spot Bitcoin/USD).
-- `ETH-USDC.COINBASE` (spot Ether/USDC).
-- `BIP-20DEC30-CDE.COINBASE` (BTC perpetual swap).
-- `BIT-24APR26-CDE.COINBASE` (BTC dated future, Apr 2026).
+- `BTC-USD.COINBASE`（现货 Bitcoin/USD）。
+- `ETH-USDC.COINBASE`（现货 Ether/USDC）。
+- `BIP-20DEC30-CDE.COINBASE`（BTC 永续互换）。
+- `BIT-24APR26-CDE.COINBASE`（BTC 到期期货，2026 年 4 月）。
 
-### Aliased products (USDC and USD)
+### 别名产品（USDC 与 USD） {#aliased-products-usdc-and-usd}
 
-Coinbase consolidates USDC- and USD-quoted versions of the same pair into one matching-engine book.
-`GET /products` exposes this relationship through `alias` and `alias_to`:
+Coinbase 把同一交易对的 USDC 计价版本和 USD 计价版本合并到同一个撮合引擎簿。
+`GET /products` 通过 `alias` 和 `alias_to` 暴露这层关系：
 
 ```text
 BTC-USD :  alias=""        alias_to=["BTC-USDC"]   # canonical
 BTC-USDC:  alias="BTC-USD" alias_to=[]             # alias of BTC-USD
 ```
 
-When a caller subscribes or submits using the alias side, the venue rewrites
-the request to the canonical id on the wire. The adapter records the
-`product_id -> alias` map at instrument bootstrap and handles the rewrite
-transparently on both sides:
+当调用方使用别名一侧订阅或下单时，场所在线路上把请求改写为规范（canonical）ID。适配器在
+工具引导阶段记录 `product_id -> alias` 映射，并在两侧透明地处理改写：
 
-- Data subscriptions go out on the canonical id. The data WebSocket client
-  holds the reverse mapping and re-keys inbound messages back to the
-  caller-supplied id before parsing.
-- Orders are submitted on the caller's `product_id`. The execution client records that ID under the
-  `client_order_id` and re-keys the canonical ID echoed by the user channel. Thus, an alias-side order is
-  never reported against the canonical instrument.
+- 数据订阅使用规范 ID 发出。数据 WebSocket 客户端持有反向映射，在解析前把入站消息重新
+  键回调用方提供的 ID。
+- 订单以调用方的 `product_id` 提交。执行客户端把该 ID 记录在 `client_order_id` 下，并对
+  user 频道回显的规范 ID 重新键回。因此，别名一侧的订单永远不会被报告到规范工具上。
 
-A strategy holding only USDC can therefore trade `BTC-USDC.COINBASE` end to
-end without referencing the canonical `BTC-USD`. Settlement currency is
-determined by the submitted `product_id`, so an order placed on
-`BTC-USDC.COINBASE` always debits or credits the USDC wallet.
+因此，只持有 USDC 的策略可以端到端交易 `BTC-USDC.COINBASE`，无需引用规范的 `BTC-USD`。
+结算货币由提交的 `product_id` 决定，所以在 `BTC-USDC.COINBASE` 下的订单总是借记或贷记
+USDC 钱包。
 
-## Environments
+## 环境 {#environments}
 
-Coinbase provides two trading environments. Configure the appropriate
-environment using the `environment` field in your client configuration.
+Coinbase 提供两个交易环境。用客户端配置中的 `environment` 字段选择合适的环境。
 
-| Environment | `environment` value           | REST base URL                      |
-| ----------- | ----------------------------- | ---------------------------------- |
-| Live        | `CoinbaseEnvironment.LIVE`    | `https://api.coinbase.com`         |
-| Sandbox     | `CoinbaseEnvironment.SANDBOX` | `https://api-sandbox.coinbase.com` |
+| 环境      | `environment` 值              | REST 基础 URL                        |
+| --------- | ----------------------------- | ---------------------------------- |
+| 实盘      | `CoinbaseEnvironment.LIVE`    | `https://api.coinbase.com`         |
+| Sandbox   | `CoinbaseEnvironment.SANDBOX` | `https://api-sandbox.coinbase.com` |
 
-### Live (production)
+### Live（生产） {#live-production}
 
-The default environment for live trading with real funds.
+用真实资金实时交易的默认环境。
 
 ```python
 config = CoinbaseExecutionClientConfig(
@@ -141,12 +132,12 @@ config = CoinbaseExecutionClientConfig(
 )
 ```
 
-Environment variables: `COINBASE_API_KEY`, `COINBASE_API_SECRET`.
+环境变量：`COINBASE_API_KEY`、`COINBASE_API_SECRET`。
 
-### Sandbox
+### Sandbox {#sandbox}
 
-A static-mock test environment for integration plumbing, per the
-[Sandbox docs](https://docs.cdp.coinbase.com/coinbase-app/advanced-trade-apis/sandbox).
+按 [Sandbox 文档](https://docs.cdp.coinbase.com/coinbase-app/advanced-trade-apis/sandbox)的
+说明，这是一个静态 mock 测试环境，用于打通集成管线。
 
 ```python
 config = CoinbaseExecutionClientConfig(
@@ -156,73 +147,68 @@ config = CoinbaseExecutionClientConfig(
 )
 ```
 
-The sandbox venue does not enforce authentication. But `CoinbaseExecutionClient::new` requires both fields (or
-the matching environment variables) for construction.
+Sandbox 场所不强制鉴权，但 `CoinbaseExecutionClient::new` 在构造时要求两个字段（或对应的
+环境变量）都有值。
 
 :::warning
-**Sandbox is not a parallel trading venue**:
+**Sandbox 不是一个平行的交易场所**：
 
-- All responses are static and pre-defined. There is no live market or dynamic pricing.
-- Only Accounts and Orders endpoints are available. Other resources are not.
-- Authentication is not required (and not enforced).
-- A custom `X-Sandbox` request header can trigger predefined error scenarios.
+- 所有响应都是静态预定义的，没有实时行情和动态定价。
+- 只有 Accounts 和 Orders 端点可用，其他资源没有。
+- 不需要鉴权（也不强制）。
+- 自定义 `X-Sandbox` 请求头可以触发预定义的错误场景。
 
-Use sandbox to wire up your client and verify request/response shape. Use production (with real funds and
-care) for any realistic behavior testing.
+用 sandbox 打通客户端并验证请求/响应形态。任何贴近真实的行为测试都要在生产环境
+（用真实资金，谨慎操作）进行。
 :::
 
-## Authentication
+## 鉴权 {#authentication}
 
-Coinbase Advanced Trade uses ES256 JWT authentication. Each REST request and
-each WebSocket subscription generates a short-lived JWT signed with your EC
-private key. The adapter resolves credentials from environment variables or
-from the config fields.
+Coinbase Advanced Trade 使用 ES256 JWT 鉴权。每个 REST 请求和每个 WebSocket 订阅都会生成
+一个用你的 EC 私钥签名的短时效 JWT。适配器从环境变量或配置字段解析凭据。
 
-### Creating an API key
+### 创建 API key {#creating-an-api-key}
 
-Coinbase has several key types. The adapter requires a **Coinbase App Secret
-API key** with the **ECDSA** signature algorithm (not Ed25519).
+Coinbase 有多种 key 类型。适配器要求使用 **Coinbase App Secret
+API key**，签名算法为 **ECDSA**（不是 Ed25519）。
 
-1. Go to the CDP portal API keys page:
-   [portal.cdp.coinbase.com/projects/api-keys](https://portal.cdp.coinbase.com/projects/api-keys).
+1. 打开 CDP 门户的 API keys 页面：
+   [portal.cdp.coinbase.com/projects/api-keys](https://portal.cdp.coinbase.com/projects/api-keys)。
 
-2. Select the **Secret API Keys** tab and click **Create API key**.
+2. 选择 **Secret API Keys** 标签页，点击 **Create API key**。
 
-3. Enter a nickname (e.g. `nautilus-trading`).
+3. 输入昵称（如 `nautilus-trading`）。
 
-4. Expand **API restrictions** and set permissions to **View** and **Trade**.
+4. 展开 **API restrictions**，把权限设为 **View** 和 **Trade**。
 
-5. Expand **Advanced Settings** and change the signature algorithm from Ed25519
-   to **ECDSA**. This step is required: Ed25519 keys do not work with the
-   Advanced Trade API.
+5. 展开 **Advanced Settings**，把签名算法从 Ed25519 改为 **ECDSA**。这一步是必需的：
+   Ed25519 key 不能用于 Advanced Trade API。
 
-6. Click **Create API key**. Save the key name and private key from the modal.
-   The key name looks like `organizations/{org_id}/apiKeys/{key_id}`. The
-   private key is a PEM-encoded EC key (SEC1 format).
+6. 点击 **Create API key**。在弹窗中保存 key 名称和私钥。key 名称形如
+   `organizations/{org_id}/apiKeys/{key_id}`。私钥是 PEM 编码的 EC key（SEC1 格式）。
 
 :::warning
-Coinbase no longer auto-downloads the key file. Copy the values from the
-creation modal or click the download button before closing it. You cannot
-retrieve the private key afterward.
+Coinbase 不再自动下载 key 文件。请在关闭创建弹窗前复制其中的值或点击下载按钮。
+私钥事后无法再次获取。
 :::
 
 :::info
-Do not use expired legacy Coinbase App API keys. Create a CDP API key and select the ECDSA algorithm. The
-adapter signs requests with ES256. See Coinbase's
-[legacy key migration guide](https://docs.cdp.coinbase.com/coinbase-app/authentication-authorization/legacy-keys).
+不要使用已过期的旧版 Coinbase App API key。请创建 CDP API key 并选择 ECDSA 算法。适配器
+用 ES256 签名请求。见 Coinbase 的
+[旧版 key 迁移指南](https://docs.cdp.coinbase.com/coinbase-app/authentication-authorization/legacy-keys)。
 :::
 
-For full details see the Coinbase
-[API key authentication guide](https://docs.cdp.coinbase.com/coinbase-app/authentication-authorization/api-key-authentication).
+完整细节见 Coinbase
+[API key 鉴权指南](https://docs.cdp.coinbase.com/coinbase-app/authentication-authorization/api-key-authentication)。
 
-### Environment variables
+### 环境变量 {#environment-variables}
 
-| Variable              | Description                                           |
+| 变量                  | 说明                                                  |
 | --------------------- | ----------------------------------------------------- |
-| `COINBASE_API_KEY`    | Key name (`organizations/{org_id}/apiKeys/{key_id}`). |
-| `COINBASE_API_SECRET` | PEM-encoded EC private key (full multi-line string).  |
+| `COINBASE_API_KEY`    | key 名称（`organizations/{org_id}/apiKeys/{key_id}`）。 |
+| `COINBASE_API_SECRET` | PEM 编码的 EC 私钥（完整多行字符串）。                |
 
-Example:
+示例：
 
 ```bash
 export COINBASE_API_KEY="organizations/abc-123/apiKeys/def-456"
@@ -230,42 +216,40 @@ export COINBASE_API_SECRET="$(cat ~/path/to/cdp_api_key.pem)"
 ```
 
 :::tip
-We recommend using environment variables to manage your credentials.
+推荐用环境变量管理凭据。
 :::
 
-### JWT lifetime
+### JWT 有效期 {#jwt-lifetime}
 
-Coinbase JWTs expire after 120 seconds. Per the
-[WebSocket overview](https://docs.cdp.coinbase.com/coinbase-app/advanced-trade-apis/websocket/websocket-overview),
-a different JWT must be generated for each authenticated WebSocket message (i.e. for each subscribe). The
-adapter regenerates a fresh JWT for every signed REST request and for every authenticated subscribe message.
-No manual rotation is required.
+Coinbase JWT 在 120 秒后过期。按
+[WebSocket 概览](https://docs.cdp.coinbase.com/coinbase-app/advanced-trade-apis/websocket/websocket-overview)
+的说明，每条需要鉴权的 WebSocket 消息（即每次订阅）都必须生成不同的 JWT。适配器为每个签名
+REST 请求和每条鉴权订阅消息重新生成新鲜 JWT，无需手动轮换。
 
-## Portfolios
+## 投资组合 {#portfolios}
 
-A Coinbase account holds one or more **portfolios**. Each portfolio has its own wallets (USD, USDC, BTC,
-etc.), balances, and order scope. Every account has a `DEFAULT` portfolio. Users can create additional
-`CONSUMER` portfolios to segregate strategies, risk, or tax lots.
+Coinbase 账户持有一个或多个**投资组合（portfolio）**。每个投资组合有自己的钱包（USD、USDC、
+BTC 等）、余额和订单范围。每个账户都有一个 `DEFAULT` 投资组合。用户可以创建额外的 `CONSUMER`
+投资组合来隔离策略、风险或税则批次。
 
-A CDP API key is **bound to a single portfolio at creation time**. Every
-authenticated request (account lookup, order submission, cancel) operates
-against that portfolio unless a different one is explicitly specified.
+CDP API key 在**创建时绑定到单个投资组合**。每个鉴权请求（账户查询、下单、撤单）都作用于
+该投资组合，除非显式指定其他组合。
 
-### Finding your portfolio UUIDs
+### 查找投资组合 UUID {#finding-your-portfolio-uuids}
 
-Run the adapter's authenticated probe binary:
+运行适配器的鉴权探测二进制：
 
 ```bash
 cargo run --bin coinbase-http-private --package nautilus-coinbase
 ```
 
-It prints:
+它会打印：
 
-- The portfolios visible to your CDP key.
-- The account balances in the bound portfolio.
-- A few reference REST calls.
+- 你的 CDP key 可见的投资组合。
+- 所绑定投资组合中的账户余额。
+- 若干参考 REST 调用。
 
-Sample output:
+示例输出：
 
 ```text
 Found 1 portfolio(s)
@@ -276,25 +260,21 @@ Account has 3 balance(s)
   BTC total=0.00000000 BTC free=0.00000000 BTC locked=0.00000000 BTC
 ```
 
-Equivalent curl (you have to sign your own ES256 JWT with your CDP PEM
-key first):
+等价的 curl（你需要先用自己的 CDP PEM key 签发 ES256 JWT）：
 
 ```bash
 curl -H "Authorization: Bearer $JWT" \
   https://api.coinbase.com/api/v3/brokerage/portfolios
 ```
 
-### When `retail_portfolio_id` is required
+### 何时需要 `retail_portfolio_id` {#when-retail_portfolio_id-is-required}
 
-Coinbase's `POST /orders` endpoint routes to the key's bound portfolio by
-default, so a single-portfolio account does not need to set this field.
-Set it on [`CoinbaseExecutionClientConfig`](#execution-client-configuration-options)
-when either is true:
+Coinbase 的 `POST /orders` 端点默认路由到 key 绑定的投资组合，因此单投资组合账户不需要设置
+该字段。在 [`CoinbaseExecutionClientConfig`](#execution-client-configuration-options) 上设置它，
+当以下任一条件成立时：
 
-- The account holds multiple portfolios and you want to trade against one
-  that is not the key's default.
-- The venue rejects orders with `account is not available` and the wallet
-  diagnosis below has been ruled out.
+- 账户持有多个投资组合，而你想交易的那个不是 key 的默认组合。
+- 场所以下列信息拒单 `account is not available`，且已排除下文的钱包诊断。
 
 :::note
 Coinbase's [Create Order reference](https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/orders/create-order)
@@ -304,356 +284,319 @@ still sends the field when configured, so it remains available if the venue's
 default routing does not match your account layout.
 :::
 
-### Creating a new portfolio
+### 创建新投资组合 {#creating-a-new-portfolio}
 
-Most users do not need to create a portfolio. The account's default works without additional setup. Create one
-on [coinbase.com/portfolios](https://www.coinbase.com/portfolios) only if you want to:
+多数用户不需要创建投资组合，账户的默认组合开箱即用。仅当你想做到以下几点时，才在
+[coinbase.com/portfolios](https://www.coinbase.com/portfolios) 创建：
 
-- Segregate API-driven trading from manual retail activity.
-- Isolate risk or P&L between strategies.
-- Work around a restricted default (e.g. a Vault).
+- 把 API 驱动的交易与手动零售操作隔离。
+- 在策略之间隔离风险或盈亏。
+- 绕开受限的默认组合（例如 Vault）。
 
-After creating a portfolio, fund it (transfer from the default portfolio's
-wallet on coinbase.com) before sending any orders, otherwise the venue
-returns `account is not available` for the quote currency.
+创建投资组合后，先给它注资（在 coinbase.com 上从默认组合的钱包转入）再发订单，否则场所
+会对计价货币返回 `account is not available`。
 
-### Troubleshooting `account is not available`
+### 排查 `account is not available` {#troubleshooting-account-is-not-available}
 
-The venue returns this error for several distinct reasons. Diagnose by running the probe binary above and
-inspecting the portfolio wallet list.
+场所因几种不同原因返回该错误。用上面的探测二进制诊断，检查投资组合的钱包列表。
 
-| Symptom                                                              | Likely cause                                                                                                                                                                                  | Fix                                                                                                                                                                                                                                                                                      |
+| 症状                                                                 | 可能原因                                                                                                                                                                        | 解决办法                                                                                                                                                                                                                                            |
 | -------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Rejected only for a specific product (e.g. `BTC-USD` with only USDC) | Portfolio is missing a wallet for the product's quote currency. USD and USDC are separate on Coinbase, and the venue routes orders by the submitted `product_id`, not by the canonical alias. | Submit against the product whose quote currency you hold (e.g. `BTC-USDC` for USDC wallets). The adapter resolves the data-side alias internally; no config change needed. Funding the missing wallet via coinbase.com is also an option but unnecessary when only one currency is held. |
-| Every order rejected across all products                             | Key is bound to a non-default portfolio and `retail_portfolio_id` is unset.                                                                                                                   | Set `retail_portfolio_id` on `CoinbaseExecutionClientConfig` to the target portfolio UUID.                                                                                                                                                                                               |
-| Rejected for `*-USD` products on a non-US account                    | Jurisdictional restriction (e.g. AU accounts cannot trade USD-quoted pairs).                                                                                                                  | Use locally-available quotes (USDC, AUD, EUR, etc.) instead of USD.                                                                                                                                                                                                                      |
-| Rejected right after key rotation                                    | New key was created in a different portfolio than the previous one.                                                                                                                           | Update `retail_portfolio_id` to match the new key's portfolio, or move funds.                                                                                                                                                                                                            |
+| 仅特定产品被拒（如只有 USDC 却下 `BTC-USD`）                          | 投资组合缺少该产品计价货币的钱包。Coinbase 上 USD 与 USDC 是分开的，场所按提交的 `product_id` 路由订单，而不是按规范别名。   | 改下到你持有其计价货币的产品（USDC 钱包用 `BTC-USDC`）。适配器内部已处理数据侧别名解析，无需改配置。也可以在 coinbase.com 给缺失钱包注资，但只持有一种货币时没有必要。                                                                                                 |
+| 所有产品下的每笔订单都被拒                                            | key 绑定到了非默认投资组合，而 `retail_portfolio_id` 未设置。                                                                                                                                  | 把 `CoinbaseExecutionClientConfig` 的 `retail_portfolio_id` 设为目标投资组合 UUID。                                                                                                                                                                                                    |
+| 非美国账户在 `*-USD` 产品上被拒                                       | 司法辖区限制（如 AU 账户不能交易 USD 计价对）。                                                                                                                                                | 改用本地可用的计价货币（USDC、AUD、EUR 等），不要用 USD。                                                                                                                                                                                                                              |
+| 轮换 key 后立即被拒                                                   | 新 key 创建在与旧 key 不同的投资组合。                                                                                                                                                          | 把 `retail_portfolio_id` 更新为新 key 所在的组合，或转移资金。                                                                                                                                                                                                                          |
 
-## Market data
+## 行情数据 {#market-data}
 
-The data client serves everything except derivatives index and funding data
-from WebSocket channels. Coinbase Advanced Trade does not publish index
-prices or funding rates on any WebSocket channel, so those two streams are
-sourced from REST polling instead.
+除衍生品指数价与 funding 数据外，数据客户端的所有内容都来自 WebSocket 频道。Coinbase
+Advanced Trade 不在任何 WebSocket 频道上发布指数价或 funding 费率，这两路数据改用 REST 轮询
+获取。
 
-| Nautilus subscription | Source                      | Notes                                                                       |
-| --------------------- | --------------------------- | --------------------------------------------------------------------------- |
-| Book deltas           | `level2` channel            | `L2_MBP` only; other book types are rejected.                               |
-| Quotes                | `ticker` channel            | Top-of-book from the venue's ticker payload.                                |
-| Trades                | `market_trades` channel     | Also available as a REST request.                                           |
-| Bars                  | `candles` channel           | Fixed five-minute buckets; the venue accepts no granularity parameter.      |
-| Instrument status     | `status` channel            | See [Instrument status](#instrument-status).                                |
-| Index prices          | REST `/products/{id}` poll  | Derivatives only, at `derivatives_poll_interval_secs`.                      |
-| Funding rates         | REST `/products/{id}` poll  | Perpetuals only; see [Funding rates](#funding-rates).                       |
-| Mark prices           | *Not supported by Coinbase* | The subscription is rejected rather than synthesized from settlement price. |
+| Nautilus 订阅     | 数据源                      | 说明                                                                        |
+| ----------------- | --------------------------- | --------------------------------------------------------------------------- |
+| 订单簿 delta      | `level2` 频道               | 仅 `L2_MBP`；其他订单簿类型被拒绝。                                         |
+| 报价              | `ticker` 频道               | 来自场所 ticker 负载的最优买卖价。                                          |
+| 成交              | `market_trades` 频道        | 也可通过 REST 请求获取。                                                    |
+| K 线              | `candles` 频道              | 固定五分钟桶；场所不接受粒度参数。                                          |
+| 工具状态          | `status` 频道               | 见[工具状态](#instrument-status)。                                          |
+| 指数价            | REST `/products/{id}` 轮询  | 仅衍生品，按 `derivatives_poll_interval_secs` 轮询。                        |
+| Funding 费率      | REST `/products/{id}` 轮询  | 仅永续；见 [Funding 费率](#funding-rates)。                                 |
+| 标记价            | *Coinbase 不支持*           | 订阅会被拒绝，而不是用结算价合成。                                          |
 
-A `heartbeats` subscription is always sent on connect and replayed on every
-reconnect. It satisfies the venue's five-second subscribe deadline and keeps
-the connection alive when the subscribed product topics are quiet.
+连接时总会发送一个 `heartbeats` 订阅，并在每次重连时重放。它满足场所的五秒订阅时限，并在
+已订阅产品频道安静时保持连接活跃。
 
-### Bars
+### K 线 {#bars}
 
-Historical bar requests accept EXTERNAL aggregation at the granularities the
-adapter maps: 1m, 5m, 15m, 30m, 1h, 2h, 6h, and 1d. Any other step or
-aggregation is rejected. Coinbase's `/products/{id}/candles` endpoint also
-accepts `FOUR_HOUR`, which the adapter does not currently map.
+历史 K 线请求接受 EXTERNAL 聚合，粒度以适配器映射的为准：1m、5m、15m、30m、1h、2h、6h 和
+1d。其他步长或聚合一律拒绝。Coinbase 的 `/products/{id}/candles` 端点还支持 `FOUR_HOUR`，
+适配器目前未映射。
 
-Live bar subscriptions are different: the WebSocket `candles` channel takes no granularity parameter and
-publishes five-minute buckets only. The adapter stamps each received candle with the `BarType` registered for
-that product. Thus, other subscription specifications yield five-minute bars labeled with the requested type.
-Request a `5-MINUTE-LAST-EXTERNAL` bar type for live subscriptions, and use historical requests for the other
-granularities.
+实时 K 线订阅不同：WebSocket 的 `candles` 频道不接受粒度参数，只发布五分钟桶。适配器给每根
+收到的 K 线盖上该产品的工具所注册的 `BarType`。因此其他订阅规格得到的都是五分钟 K 线，只是
+标签为所请求的类型。实时订阅请请求 `5-MINUTE-LAST-EXTERNAL` K 线类型，其他粒度用历史请求。
 
-### Funding rates
+### Funding 费率 {#funding-rates}
 
-The adapter polls the REST `/products/{id}` endpoint at
-`derivatives_poll_interval_secs` (default 15 s) and emits a
-`FundingRateUpdate` from the FCM `future_product_details` payload when
-`funding_rate` is present. The funding interval is parsed from the
-`funding_interval` field (typically `"3600s"`, hourly funding) and the next
-funding timestamp from `funding_time`. Coinbase Advanced Trade does not
-publish `funding_rate` on the WebSocket `ticker` channel, so REST polling
-is the only live source.
+适配器按 `derivatives_poll_interval_secs`（默认 15 秒）轮询 REST `/products/{id}` 端点，当
+FCM `future_product_details` 负载中带有 `funding_rate` 时发出 `FundingRateUpdate`。funding
+间隔从 `funding_interval` 字段解析（通常为 `"3600s"`，即每小时 funding），下次 funding 时间戳
+取自 `funding_time`。Coinbase Advanced Trade 不在 WebSocket `ticker` 频道上发布
+`funding_rate`，因此 REST 轮询是唯一的实时来源。
 
-Historical funding rate requests are not implemented.
+历史 funding 费率请求尚未实现。
 
-### Instrument status
+### 工具状态 {#instrument-status}
 
-`subscribe_instrument_status` joins the Coinbase WebSocket `status` channel on first subscription (the venue
-publishes one status feed for all products). It filters incoming events to the subscribed instruments. It
-emits `InstrumentStatus` events with these actions:
+首次订阅时 `subscribe_instrument_status` 会加入 Coinbase 的 WebSocket `status` 频道（场所对
+所有产品只发布一条状态流）。它把入站事件过滤为已订阅的工具，并发出带以下动作的
+`InstrumentStatus` 事件：
 
-- `MarketStatusAction::Trading` for `online`.
-- `Halt` for `offline`.
-- `Close` for `delisted`.
+- `online` 对应 `MarketStatusAction::Trading`。
+- `offline` 对应 `Halt`。
+- `delisted` 对应 `Close`。
 
-Products reporting an unset status (futures) or a status the adapter does not model carry no information for
-the data engine and are skipped. The channel subscription is dropped when the last instrument unsubscribes.
+状态未设置（期货）或状态不在适配器建模范围内的产品不携带数据引擎需要的信息，直接跳过。
+最后一个工具退订时会释放该频道订阅。
 
-## Orders capability
+## 订单能力 {#orders-capability}
 
-The tables below describe the Coinbase **venue** order surface. The shipped
-[`CoinbaseExecutionClient`](#execution-scope) handles spot or CFM derivatives
-based on the configured `account_type`. Coinbase order capabilities differ
-between Spot and Derivatives (perpetuals and dated futures share the same
-FCM order surface).
+下表描述 Coinbase **场所**的订单界面。随包发行的
+[`CoinbaseExecutionClient`](#execution-scope) 依据配置的 `account_type` 处理现货或 CFM
+衍生品。Coinbase 的订单能力在现货与衍生品之间不同（永续与到期期货共享同一 FCM 订单界面）。
 
-### Execution scope
+### 执行范围 {#execution-scope}
 
-`CoinbaseExecutionClientFactory` produces a single `CoinbaseExecutionClient`
-type. The product family is selected by the `account_type` field on
-`CoinbaseExecutionClientConfig`:
+`CoinbaseExecutionClientFactory` 只产出一种 `CoinbaseExecutionClient` 类型。产品族由
+`CoinbaseExecutionClientConfig` 的 `account_type` 字段选择：
 
-| `account_type`        | Bootstrap instruments                         | Account state source                                                                                   |
+| `account_type`        | 引导加载的工具                                | 账户状态来源                                                                                             |
 | --------------------- | --------------------------------------------- | ------------------------------------------------------------------------------------------------------ |
-| `AccountType::Cash`   | `CoinbaseProductType::Spot` only.             | `/accounts` REST endpoint.                                                                             |
-| `AccountType::Margin` | `CoinbaseProductType::Future` (perp + dated). | CFM `balance_summary` REST + `futures_balance_summary` WS, plus position reports from `cfm/positions`. |
+| `AccountType::Cash`   | 仅 `CoinbaseProductType::Spot`。              | `/accounts` REST 端点。                                                                                  |
+| `AccountType::Margin` | `CoinbaseProductType::Future`（永续 + 到期）。 | CFM `balance_summary` REST + `futures_balance_summary` WS，外加来自 `cfm/positions` 的持仓报告。          |
 
-Other account types are rejected at factory creation. OMS is always
-`Netting` because the venue does not expose hedge mode.
+其他账户类型在工厂创建时被拒绝。OMS 永远是 `Netting`，因为场所不提供对冲模式。
 
-To prevent cross-account bleed-through:
+为防止跨账户串扰：
 
-1. Connect-time instrument bootstrap is limited to the configured product family. The other family's products
-   never enter the in-process cache.
-2. `submit_order` denies any order whose instrument is outside that cache.
-3. `generate_order_status_report(s)` and `generate_fill_reports` post-filter their output through the same
-   cache. Thus, a single client never exposes the other scope's reports, even for an account with both spot
-   and derivative activity.
+1. 连接时的工具引导加载只限于配置的产品族，另一族的产品绝不进入进程内缓存。
+2. `submit_order` 拒绝任何工具不在该缓存内的订单。
+3. `generate_order_status_report(s)` 与 `generate_fill_reports` 的输出经同一缓存后置过滤。
+   因此即使账户同时有现货与衍生品活动，单个客户端也从不暴露另一范围的报告。
 
-Run one execution client per scope. For both spot and CFM activity on the same trader, create two clients with
-distinct `account_type` values and `account_id`s. Configure an explicit `COINBASE` venue route or a default
-client (see [Execution client routing](./../concepts/live.md#execution-client-routing)). When submitting orders,
-pass the intended `client_id`.
+每个范围运行一个执行客户端。同一交易者要同时做现货和 CFM 时，创建两个客户端，使用不同的
+`account_type` 与 `account_id`。配置显式的 `COINBASE` 场所路由或默认客户端（见
+[执行客户端路由](./../concepts/live.md#execution-client-routing)）。提交订单时传入预期的
+`client_id`。
 
-### Order types
+### 订单类型 {#order-types}
 
-The matrix lists order types as exposed through the Nautilus model. The
-right column shows the corresponding `order_configuration` keys the adapter
-emits. Coinbase order types not in this table (TWAP, Bracket, Scaled, SOR
-LIMIT IOC) are documented under [Advanced order features](#advanced-order-features)
-and noted there as *Not currently implemented* by the adapter.
+下表按 Nautilus 模型暴露的形式列出订单类型。右列展示适配器发出的对应
+`order_configuration` 键。表中没有的 Coinbase 订单类型（TWAP、Bracket、Scaled、SOR LIMIT
+IOC）记录在[高级订单特性](#advanced-order-features)下，并在那里标注为适配器*尚未实现*。
 
-| Order Type             | Spot | Perpetual | Future | Wire shape                                                      |
+| 订单类型                 | 现货 | 永续 | 期货 | 线格式                                                            |
 | ---------------------- | ---- | --------- | ------ | --------------------------------------------------------------- |
-| `MARKET`               | ✓    | ✓         | ✓      | `market_market_ioc` (all products); `market_market_fok` (perps) |
+| `MARKET`               | ✓    | ✓         | ✓      | `market_market_ioc`（全部产品）；`market_market_fok`（永续）    |
 | `LIMIT`                | ✓    | ✓         | ✓      | `limit_limit_gtc` / `limit_limit_gtd` / `limit_limit_fok`       |
 | `STOP_LIMIT`           | ✓    | ✓         | ✓      | `stop_limit_stop_limit_gtc` / `stop_limit_stop_limit_gtd`       |
-| `STOP_MARKET`          | -    | -         | -      | *Not supported by Coinbase*.                                    |
-| `MARKET_IF_TOUCHED`    | -    | -         | -      | *Not supported by Coinbase*.                                    |
-| `LIMIT_IF_TOUCHED`     | -    | -         | -      | *Not supported by Coinbase*.                                    |
-| `TRAILING_STOP_MARKET` | -    | -         | -      | *Not supported by Coinbase*.                                    |
+| `STOP_MARKET`          | -    | -         | -      | *Coinbase 不支持*。                                             |
+| `MARKET_IF_TOUCHED`    | -    | -         | -      | *Coinbase 不支持*。                                             |
+| `LIMIT_IF_TOUCHED`     | -    | -         | -      | *Coinbase 不支持*。                                             |
+| `TRAILING_STOP_MARKET` | -    | -         | -      | *Coinbase 不支持*。                                             |
 
-### Execution instructions
+### 执行指示 {#execution-instructions}
 
-| Instruction   | Spot | Perpetual | Future | Notes                                                                         |
+| 指示          | 现货 | 永续 | 期货 | 说明                                                                          |
 | ------------- | ---- | --------- | ------ | ----------------------------------------------------------------------------- |
-| `post_only`   | ✓    | ✓         | ✓      | LIMIT GTC and LIMIT GTD only.                                                 |
-| `reduce_only` | -    | -         | -      | *Not supported by Coinbase*; see [Derivatives trading](#derivatives-trading). |
+| `post_only`   | ✓    | ✓         | ✓      | 仅限 LIMIT GTC 与 LIMIT GTD。                                                 |
+| `reduce_only` | -    | -         | -      | *Coinbase 不支持*；见[衍生品交易](#derivatives-trading)。                     |
 
-### Time in force
+### 有效期 {#time-in-force}
 
-The adapter accepts the values in this matrix. Combinations not listed are rejected at submit time with
-`"Unsupported TIF {tif} for {order_type}"`.
+适配器接受下表中的组合。未列出的组合在提交时以 `"Unsupported TIF {tif} for {order_type}"`
+拒绝。
 
-| Order type   | GTC | GTD | IOC | FOK | Notes                                                                                                                                           |
+| 订单类型       | GTC | GTD | IOC | FOK | 说明                                                                                                                                            |
 | ------------ | --- | --- | --- | --- | ----------------------------------------------------------------------------------------------------------------------------------------------- |
-| `MARKET`     | ✓   | -   | ✓   | (✓) | GTC is mapped to IOC; explicit IOC is honored. FOK builds `market_market_fok`, which Coinbase documents as perpetuals-only and rejects on spot. |
-| `LIMIT`      | ✓   | ✓   | -   | ✓   | GTD requires `expire_time`. LIMIT IOC *not currently implemented* (see [SOR LIMIT IOC](#advanced-order-features)).                              |
-| `STOP_LIMIT` | ✓   | ✓   | -   | -   | Requires `trigger_price`.                                                                                                                       |
+| `MARKET`     | ✓   | -   | ✓   | (✓) | GTC 映射为 IOC；显式 IOC 被尊重。FOK 构建 `market_market_fok`，Coinbase 文档注明仅限永续，现货上会被拒绝。                                       |
+| `LIMIT`      | ✓   | ✓   | -   | ✓   | GTD 需要 `expire_time`。LIMIT IOC *尚未实现*（见 [SOR LIMIT IOC](#advanced-order-features)）。                                                  |
+| `STOP_LIMIT` | ✓   | ✓   | -   | -   | 需要 `trigger_price`。                                                                                                                          |
 
-### Advanced order features
+### 高级订单特性 {#advanced-order-features}
 
-| Feature            | Spot | Perpetual | Future | Notes                                                                                          |
+| 特性             | 现货 | 永续 | 期货 | 说明                                                                                           |
 | ------------------ | ---- | --------- | ------ | ---------------------------------------------------------------------------------------------- |
-| Order Modification | ✓    | -         | -      | Open GTC variants only; Coinbase rejects futures-venue edits with `CANNOT_EDIT_FUTURES_ORDER`. |
-| Bracket Orders     | -    | -         | -      | *Not currently implemented*. Venue exposes `trigger_bracket_gtc` / `trigger_bracket_gtd`.      |
-| OCO Orders         | -    | -         | -      | *Not supported by Coinbase* as a distinct order type.                                          |
-| Iceberg Orders     | -    | -         | -      | *Not supported by Coinbase*.                                                                   |
-| TWAP Orders        | -    | -         | -      | *Not currently implemented*. Venue exposes `twap_limit_gtd`.                                   |
-| Scaled Orders      | -    | -         | -      | *Not currently implemented*. Venue exposes `scaled_limit_gtc`.                                 |
-| SOR LIMIT IOC      | -    | -         | -      | *Not currently implemented*. Venue exposes `sor_limit_ioc` for smart-order-routed LIMIT IOC.   |
+| 订单修改           | ✓    | -         | -      | 仅限未结的 GTC 变体；Coinbase 以 `CANNOT_EDIT_FUTURES_ORDER` 拒绝期货场所的修改。              |
+| 括号订单           | -    | -         | -      | *尚未实现*。场所提供 `trigger_bracket_gtc` / `trigger_bracket_gtd`。                           |
+| OCO 订单           | -    | -         | -      | *Coinbase 不支持*将其作为独立订单类型。                                                        |
+| 冰山订单           | -    | -         | -      | *Coinbase 不支持*。                                                                            |
+| TWAP 订单          | -    | -         | -      | *尚未实现*。场所提供 `twap_limit_gtd`。                                                        |
+| 分批订单（Scaled） | -    | -         | -      | *尚未实现*。场所提供 `scaled_limit_gtc`。                                                      |
+| SOR LIMIT IOC      | -    | -         | -      | *尚未实现*。场所提供 `sor_limit_ioc` 用于智能路由的 LIMIT IOC。                                |
 
-See the [Create Order reference](https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/orders/create-order)
-and [Edit Order reference](https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/orders/edit-order)
-for the underlying venue specification.
+场所底层规范见
+[Create Order 参考](https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/orders/create-order)
+和 [Edit Order 参考](https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/orders/edit-order)。
 
-### Position controls (derivatives)
+### 持仓控制（衍生品） {#position-controls-derivatives}
 
-| Control       | Notes                                       |
-| ------------- | ------------------------------------------- |
-| Leverage      | Set per order; default `1.0`.               |
-| Margin type   | Set per order: cross (default) or isolated. |
-| Position mode | One-way only; hedge mode is not exposed.    |
+| 控制项     | 说明                                        |
+| ---------- | ------------------------------------------- |
+| 杠杆       | 按订单设置；默认 `1.0`。                    |
+| 保证金类型 | 按订单设置：全仓（默认）或逐仓。            |
+| 持仓模式   | 仅单向；不开放对冲模式。                    |
 
-### Batch operations
+### 批量操作 {#batch-operations}
 
-| Operation    | Notes                                                                                                                                         |
-| ------------ | --------------------------------------------------------------------------------------------------------------------------------------------- |
-| Batch Submit | Not supported. Each order is one `Create Order` request.                                                                                      |
-| Batch Modify | Not supported. Each edit is one `Edit Order` request.                                                                                         |
-| Batch Cancel | `POST /api/v3/brokerage/orders/batch_cancel` accepts an `order_ids` array. No documented max size; per-order success/failure in the response. |
+| 操作     | 说明                                                                                                                                          |
+| -------- | --------------------------------------------------------------------------------------------------------------------------------------------- |
+| 批量下单 | 不支持。每笔订单一个 `Create Order` 请求。                                                                                                    |
+| 批量改单 | 不支持。每次修改一个 `Edit Order` 请求。                                                                                                      |
+| 批量撤单 | `POST /api/v3/brokerage/orders/batch_cancel` 接受 `order_ids` 数组。最大数量无文档说明；响应中逐单给出成功/失败。                             |
 
-### Order querying
+### 订单查询 {#order-querying}
 
-| Feature              | Spot | Perpetual | Future | Notes                                       |
-| -------------------- | ---- | --------- | ------ | ------------------------------------------- |
-| Query open orders    | ✓    | ✓         | ✓      | List all active orders.                     |
-| Query order history  | ✓    | ✓         | ✓      | Historical order data with cursor paging.   |
-| Order status updates | ✓    | ✓         | ✓      | Real-time state changes via `user` channel. |
-| Trade history        | ✓    | ✓         | ✓      | Execution and fill reports.                 |
+| 特性             | 现货 | 永续 | 期货 | 说明                                        |
+| ---------------- | ---- | --------- | ------ | ------------------------------------------- |
+| 查询未结订单     | ✓    | ✓         | ✓      | 列出全部活动订单。                          |
+| 查询订单历史     | ✓    | ✓         | ✓      | 带游标分页的历史订单数据。                  |
+| 订单状态更新     | ✓    | ✓         | ✓      | 通过 `user` 频道的实时状态变化。            |
+| 成交历史         | ✓    | ✓         | ✓      | 执行与成交报告。                            |
 
-### Spot trading limitations
+### 现货交易限制 {#spot-trading-limitations}
 
-- MARKET FOK is not accepted on spot. Coinbase documents `market_market_fok` as perpetuals-only and rejects it
-  with `UNSUPPORTED_ORDER_CONFIGURATION`.
-- Quote-denominated MARKET orders are supported. LIMIT orders are sized in base units.
+- 现货不接受 MARKET FOK。Coinbase 文档注明 `market_market_fok` 仅限永续，现货上以
+  `UNSUPPORTED_ORDER_CONFIGURATION` 拒绝。
+- 支持以计价货币计量的 MARKET 订单。LIMIT 订单以基础单位计量。
 
-### Derivatives trading
+### 衍生品交易 {#derivatives-trading}
 
-Coinbase derivatives trade through the FCM (Futures Commission Merchant) venue. The exec client submits orders
-through the same `POST /orders` endpoint used for spot. Per-order `leverage` and `margin_type` (`CROSS` or
-`ISOLATED`) defaults come from `CoinbaseExecutionClientConfig.default_leverage` and `default_margin_type`.
-Margin balances update from both the REST `cfm/balance_summary` endpoint (connect-time snapshot,
-`query_account`, and on WebSocket reconnect) and the authenticated `futures_balance_summary` WebSocket
-channel. Position reports come from the REST `cfm/positions` endpoints.
+Coinbase 衍生品通过 FCM（期货佣金商，Futures Commission Merchant）场所交易。执行客户端
+通过现货同用的 `POST /orders` 端点提交订单。逐单的 `leverage` 与 `margin_type`（`CROSS` 或
+`ISOLATED`）默认值来自 `CoinbaseExecutionClientConfig.default_leverage` 和
+`default_margin_type`。保证金余额从两处更新：REST `cfm/balance_summary` 端点（连接时快照、
+`query_account` 以及 WebSocket 重连时），以及鉴权的 `futures_balance_summary` WebSocket
+频道。持仓报告来自 REST `cfm/positions` 端点。
 
-Coinbase's Advanced Trade API does not document a `reduce_only` field on the create-order schema.
-The execution client rejects reduce-only orders before transport instead of submitting them without
-the instruction.
+Coinbase 的 Advanced Trade API 没有在下单 schema 中文档化 `reduce_only` 字段。执行客户端会在
+进入传输前拒绝只减仓订单，而不是不带该指示就提交。
 
-The adapter logs a warning for these conditions:
+适配器对以下情况记录警告：
 
-- A REST order status report describes a forced-close order.
-- The CFM balance summary reports a liquidation buffer below 20% of the liquidation threshold.
+- REST 订单状态报告描述的订单属于强平。
+- CFM 余额摘要显示的清算缓冲低于清算阈值的 20%。
 
-Coinbase does not flag auto-deleveraging separately from liquidation, so both surface through the same
-warning. The user channel carries no equivalent warning, so forced closes are visible from reconciliation
-rather than from the live stream.
+Coinbase 不单独标记自动减仓（auto-deleveraging），它与强平走同一条警告。user 频道没有对应的
+警告，因此强平只能从对账中看出，实时数据流里看不到。
 
-## Execution client behavior
+## 执行客户端行为 {#execution-client-behavior}
 
-This section documents how `CoinbaseExecutionClient` translates Nautilus
-order commands and Coinbase venue events into Nautilus execution events.
+本节记录 `CoinbaseExecutionClient` 如何把 Nautilus 订单命令和 Coinbase 场所事件翻译为
+Nautilus 执行事件。
 
-### Order submission
+### 订单提交 {#order-submission}
 
-`submit_order` builds the Coinbase `order_configuration` shape directly from
-Nautilus order fields:
+`submit_order` 直接从 Nautilus 订单字段构建 Coinbase 的 `order_configuration` 形态：
 
-- `MARKET` IOC and GTC (the Nautilus default) -> `market_market_ioc`. FOK -> `market_market_fok`. `Day` and
-  `Gtd` are rejected before the HTTP call so callers do not silently receive IOC semantics. A `MARKET` order
-  built with `Gtc` executes as IOC at the venue. Strategies that require strict backtest/live parity should
-  construct `MarketOrder` with `Ioc` explicitly.
-- `LIMIT` GTC -> `limit_limit_gtc`, GTD -> `limit_limit_gtd` (requires
-  `expire_time`), FOK -> `limit_limit_fok`.
-- `STOP_LIMIT` GTC -> `stop_limit_stop_limit_gtc`, GTD ->
-  `stop_limit_stop_limit_gtd`. Stop direction is derived from the order
-  side (`Buy` -> `STOP_DIRECTION_STOP_UP`, `Sell` -> `STOP_DIRECTION_STOP_DOWN`).
-- `STOP_MARKET`, `MARKET_IF_TOUCHED`, `LIMIT_IF_TOUCHED`, and trailing-stop
-  variants are not supported by Coinbase. They surface as `OrderRejected`
-  carrying the `build_order_configuration` error from the spawned submit
-  task (the order is emitted as `OrderSubmitted` first).
+- `MARKET` IOC 与 GTC（Nautilus 默认）-> `market_market_ioc`。FOK -> `market_market_fok`。
+  `Day` 与 `Gtd` 在 HTTP 调用之前就被拒绝，以免调用方在不知情的情况下拿到 IOC 语义。用
+  `Gtc` 构建的 `MARKET` 订单会在场所按 IOC 执行。要求严格回测/实时一致性的策略应显式用
+  `Ioc` 构建 `MarketOrder`。
+- `LIMIT` GTC -> `limit_limit_gtc`，GTD -> `limit_limit_gtd`（需要 `expire_time`），
+  FOK -> `limit_limit_fok`。
+- `STOP_LIMIT` GTC -> `stop_limit_stop_limit_gtc`，GTD ->
+  `stop_limit_stop_limit_gtd`。止损方向由订单方向推导（`Buy` -> `STOP_DIRECTION_STOP_UP`，
+  `Sell` -> `STOP_DIRECTION_STOP_DOWN`）。
+- `STOP_MARKET`、`MARKET_IF_TOUCHED`、`LIMIT_IF_TOUCHED` 及跟踪止损变体 Coinbase 不支持。
+  它们表现为 `OrderRejected`，携带派生的提交任务里 `build_order_configuration` 的错误
+  （订单会先发出 `OrderSubmitted`）。
 
-On a successful HTTP create, an `OrderAccepted` is emitted carrying the
-venue order ID returned in `success_response.order_id`. On a `success=false`
-response, `OrderRejected` is emitted with the formatted venue failure reason.
-Because any submit attempt may have reached Coinbase, a transport error,
-timeout, rate-limit response, decode failure, or HTTP 5xx does not prove
-rejection. The adapter leaves the order in flight and retains its submit
-metadata until the user channel or reconciliation resolves it.
+HTTP 创建成功时，发出 `OrderAccepted`，携带 `success_response.order_id` 返回的场所订单 ID。
+响应 `success=false` 时，发出 `OrderRejected`，携带格式化后的场所失败原因。由于任何提交尝试
+都可能已经到达 Coinbase，传输错误、超时、速率限制响应、解码失败或 HTTP 5xx 不能证明订单被
+拒绝。适配器让订单保持在途状态并保留其提交元数据，直到 user 频道或对账将其厘清。
 
-### Order modification
+### 订单修改 {#order-modification}
 
-`modify_order` posts to `/orders/edit` with the typed `EditOrderRequest`.
-Coinbase supports edits on open GTC variants only, and rejects edits on
-futures-venue orders with `CANNOT_EDIT_FUTURES_ORDER`, so modification is
-effectively spot-only. Other order types must use cancel-replace.
+`modify_order` 用类型化的 `EditOrderRequest` 向 `/orders/edit` 发 POST。Coinbase 只支持修改
+未结的 GTC 变体，并以 `CANNOT_EDIT_FUTURES_ORDER` 拒绝期货场所订单的修改，因此修改实际上
+仅限现货。其他订单类型必须用撤单重下。
 
-Coinbase's `/orders/edit` requires both `price` and `size` even when only one changes. It reads an omitted
-`size` as 0 and rejects it with `INVALID_EDITED_SIZE` or `CANNOT_EDIT_TO_BELOW_FILLED_SIZE`. The exec client
-auto-fills missing fields from the cached order, so strategies can call `modify_order(price=X)` without
-repeating the current quantity. Values from the `ModifyOrder` command win. Otherwise the cached order's
-current `price` and `quantity` are used.
+Coinbase 的 `/orders/edit` 即使只改一项也同时要求 `price` 和 `size`。它把省略的 `size` 读成
+0 并以 `INVALID_EDITED_SIZE` 或 `CANNOT_EDIT_TO_BELOW_FILLED_SIZE` 拒绝。执行客户端会从缓存
+订单自动补全缺失字段，策略可以只调用 `modify_order(price=X)` 而无需重复当前数量。
+`ModifyOrder` 命令中的值优先；否则使用缓存订单当前的 `price` 与 `quantity`。
 
-Venue edit failures emit `OrderModifyRejected` with the typed `EditOrderResponse`
-reason (preferring `edit_failure_reason`, falling back to `preview_failure_reason`).
-HTTP failures with unknown venue outcome leave the order in `PENDING_UPDATE` until
-an update, query result, or reconciliation resolves it.
+场所修改失败发出 `OrderModifyRejected`，携带类型化 `EditOrderResponse` 中的原因（优先取
+`edit_failure_reason`，回退到 `preview_failure_reason`）。场所结果未知的 HTTP 失败会让订单
+停留在 `PENDING_UPDATE`，直到某个更新、查询结果或对账将其厘清。
 
-### Cancellation
+### 撤单 {#cancellation}
 
-- `cancel_order` posts a single-id `batch_cancel`. An explicit per-order venue failure surfaces as
-  `OrderCancelRejected`. A whole-request transport failure with unknown venue outcome leaves the order in
-  `PENDING_CANCEL` for reconciliation.
-- `cancel_all_orders` lists open orders via REST without the `OPEN`-only filter (because Coinbase's `OPEN`
-  filter excludes `PENDING` and `QUEUED` orders that are still cancelable), filters locally to
-  `{Accepted, Triggered, PendingUpdate, PartiallyFilled}` and the requested side, then chunks `batch_cancel`
-  calls in groups of 100. Per-order venue failures emit `OrderCancelRejected`. Whole-request failures with
-  unknown venue outcome leave affected orders pending reconciliation.
-- `batch_cancel_orders` chunks the same way and surfaces explicit per-order
-  venue failures as `OrderCancelRejected`. Transport failures with unknown
-  venue outcome leave affected orders pending reconciliation.
+- `cancel_order` 提交只含单个 ID 的 `batch_cancel`。明确的逐单场所失败表现为
+  `OrderCancelRejected`。场所结果未知的整请求传输失败让订单停留在 `PENDING_CANCEL`，等待
+  对账。
+- `cancel_all_orders` 通过 REST 列出未结订单时不带 `OPEN` 过滤（因为 Coinbase 的 `OPEN`
+  过滤会排除仍可撤销的 `PENDING` 和 `QUEUED` 订单），然后在本地过滤为
+  `{Accepted, Triggered, PendingUpdate, PartiallyFilled}` 与所请求的方向，再把
+  `batch_cancel` 按每组 100 笔分块调用。逐单场所失败发出 `OrderCancelRejected`。场所结果
+  未知的整请求失败让受影响订单等待对账。
+- `batch_cancel_orders` 以相同方式分块，明确的逐单场所失败表现为
+  `OrderCancelRejected`。场所结果未知的传输失败让受影响订单等待对账。
 
-### User WebSocket channel
+### User WebSocket 频道 {#user-websocket-channel}
 
-`CoinbaseExecutionClient` subscribes to the `user` channel with no `product_ids` filter and a fresh JWT. It
-parses each event into an `OrderStatusReport` and sends it to the execution event stream. Coinbase reports
-cumulative state per order rather than per-trade fills, so the exec client synthesizes a `FillReport` from the
-cumulative delta. The per-fill price is derived as `(avg_now * qty_now - avg_prev * qty_prev) / delta_qty` so
-multi-fill orders carry the correct trade price, not the cumulative weighted average. The original quantity is
-restored on terminal updates (`CANCELLED`, `EXPIRED`, `FAILED`) where the venue zeroes `leaves_quantity`.
+`CoinbaseExecutionClient` 用全新 JWT 订阅 `user` 频道，不带 `product_ids` 过滤。它把每个
+事件解析为 `OrderStatusReport` 并发送到执行事件流。Coinbase 报告的是每单累计状态而非逐笔
+成交，因此执行客户端从累计增量合成 `FillReport`。逐笔成交按
+`(avg_now * qty_now - avg_prev * qty_prev) / delta_qty` 推导，使多次成交的订单携带正确的
+成交价，而不是累计加权均价。在终态更新（`CANCELLED`、`EXPIRED`、`FAILED`）中场所会把
+`leaves_quantity` 置零，此时恢复原始数量。
 
-The user channel does not echo `price`, `stop_price`, `trigger_type`, or
-maker/taker classification. The exec client caches these at submit time
-under the `client_order_id` and patches reports before emit, so the
-reconciler does not observe a `Some(price) -> None` divergence and
-`post_only` fills are correctly stamped `liquidity_side = Maker`. Order
-status `PENDING`, `QUEUED`, and `OPEN` all map to `OrderStatus::Accepted` to
-avoid spurious backwards-transition warnings when user-channel updates
-race the REST `OrderAccepted` event.
+user 频道不回显 `price`、`stop_price`、`trigger_type` 或 maker/taker 分类。执行客户端在提交
+时把这些信息缓存在 `client_order_id` 下，并在发出前修补报告，因此对账器不会观察到
+`Some(price) -> None` 的分叉，`post_only` 成交也能正确盖上
+`liquidity_side = Maker`。订单状态 `PENDING`、`QUEUED` 和 `OPEN` 全部映射为
+`OrderStatus::Accepted`，避免 user 频道更新与 REST 的 `OrderAccepted` 事件赛跑时产生虚假的
+状态倒退警告。
 
-A `submit_order` rejection carrying `INVALID_LIMIT_PRICE_POST_ONLY` (or the
-preview/new-order equivalent) is emitted with `due_post_only = true` so
-strategies can react to post-only crossings (typically by re-quoting against
-the new TOB).
+携带 `INVALID_LIMIT_PRICE_POST_ONLY`（或预览/下单时的等价错误）的 `submit_order` 拒绝会以
+`due_post_only = true` 发出，策略可以据此响应 post-only 交叉（通常是按新的最优买卖价重新
+报价）。
 
-On reconnect, account state is re-fetched via REST so balance changes during
-the disconnect window are recovered. Cumulative per-order tracking persists
-across reconnects so synthesized fill deltas remain correct.
+重连时通过 REST 重新拉取账户状态，断连窗口内的余额变化得以恢复。逐单累计跟踪跨重连保留，
+合成成交增量因此保持正确。
 
-### Fill deduplication
+### 成交去重 {#fill-deduplication}
 
-The user-channel WebSocket can replay events on reconnect. The execution client maintains a 10,000-entry FIFO
-dedup keyed on `(venue_order_id, trade_id)` and drops any fill whose synthesized trade ID matches a
-recently-seen one. The cumulative-state map is bounded with the same capacity to protect against orders that
-never receive a terminal event in this client's lifetime. After very long disconnections (beyond the in-memory
-dedup window) replayed fills may emit duplicate `FillReport` values. Strategies should rely on REST
-reconciliation to recover canonical state in that case.
+user 频道 WebSocket 可能在重连时重放事件。执行客户端维护一个以
+`(venue_order_id, trade_id)` 为键、容量 10,000 条的 FIFO 去重表，合成交易 ID 与近期见过的
+相同的成交会被丢弃。累计状态映射表以相同容量设界，防止在本客户端生命周期内从未收到终态
+事件的订单撑爆内存。极长断连（超出内存去重窗口）之后，重放的成交可能发出重复的
+`FillReport` 值。这种情况下策略应依赖 REST 对账恢复规范状态。
 
-### Position reconciliation
+### 持仓对账 {#position-reconciliation}
 
-For Cash (spot) accounts the client returns no position reports because
-Coinbase spot has no positions. For Margin accounts position reports come
-from the REST `cfm/positions` (list) and `cfm/positions/{product_id}`
-(single) endpoints and are post-filtered to the bootstrap instrument cache.
-Open orders and historical fills are reconciled from REST via
-`generate_order_status_report(s)` and `generate_fill_reports` on connect
-and on the standard reconciliation interval set by `LiveExecutionEngineConfig`.
+Cash（现货）账户的客户端不返回持仓报告，因为 Coinbase 现货没有持仓。Margin 账户的持仓报告
+来自 REST `cfm/positions`（列表）和 `cfm/positions/{product_id}`（单笔）端点，并后置过滤到
+引导加载的工具缓存。未结订单与历史成交在连接时以及 `LiveExecutionEngineConfig` 设定的标准
+对账周期，通过 `generate_order_status_report(s)` 和 `generate_fill_reports` 从 REST 对账。
 
-## Rate limiting
+## 速率限制 {#rate-limiting}
 
-Coinbase publishes the following limits for the Advanced Trade APIs:
+Coinbase 为 Advanced Trade API 公布以下限制：
 
-| Surface                        | Limit                                                                               | Source                               |
-| ------------------------------ | ----------------------------------------------------------------------------------- | ------------------------------------ |
-| WebSocket connections          | 8 per second per IP address                                                         | Advanced Trade WebSocket Rate Limits |
-| WebSocket unauthenticated msgs | 8 per second per IP address                                                         | Advanced Trade WebSocket Rate Limits |
-| WebSocket subscribe deadline   | First subscribe message must arrive within 5 s of connect or the server disconnects | Advanced Trade WebSocket Overview    |
-| Authenticated WebSocket JWT    | 120 s; a fresh JWT must be generated for every authenticated subscribe message      | Advanced Trade WebSocket Overview    |
-| REST per-key quota             | 10,000 requests per hour per API key (Coinbase App general policy)                  | Coinbase App Rate Limiting           |
+| 界面                         | 限制                                                                                | 来源                                 |
+| ---------------------------- | ----------------------------------------------------------------------------------- | ------------------------------------ |
+| WebSocket 连接               | 每个 IP 每秒 8 个                                                                   | Advanced Trade WebSocket Rate Limits |
+| WebSocket 未鉴权消息         | 每个 IP 每秒 8 条                                                                   | Advanced Trade WebSocket Rate Limits |
+| WebSocket 订阅时限           | 连接后 5 秒内必须送达首条订阅消息，否则服务器断开                                    | Advanced Trade WebSocket Overview    |
+| 鉴权 WebSocket JWT           | 120 秒；每条鉴权订阅消息都必须生成新 JWT                                             | Advanced Trade WebSocket Overview    |
+| REST 单 key 配额             | 每个 API key 每小时 10,000 次请求（Coinbase App 通用策略）                           | Coinbase App Rate Limiting           |
 
-When the REST limit is exceeded, Coinbase returns HTTP `429` with this body:
+超出 REST 限制时，Coinbase 返回 HTTP `429`，响应体为：
 
 ```json
 {
@@ -666,78 +609,73 @@ When the REST limit is exceeded, Coinbase returns HTTP `429` with this body:
 }
 ```
 
-The adapter also throttles all REST traffic client-side at 30 requests per second. It limits subscribe and
-unsubscribe messages to 8 per second. Thus, it shapes bursts before they reach the venue.
+适配器还在客户端把所有 REST 流量节流到每秒 30 次请求，订阅与退订消息限制在每秒 8 条，
+在突发到达场所之前就先行整形。
 
 :::info
-Coinbase's current Advanced Trade documentation publishes WebSocket limits but
-no Advanced Trade-specific REST quota (per-second ceilings, per-portfolio
-limits), so the Coinbase App per-hour quota above is the most specific
-documented value. References:
-[WebSocket rate limits](https://docs.cdp.coinbase.com/coinbase-app/advanced-trade-apis/websocket/websocket-rate-limits),
-[WebSocket overview](https://docs.cdp.coinbase.com/coinbase-app/advanced-trade-apis/websocket/websocket-overview),
-[Coinbase App rate limiting](https://docs.cdp.coinbase.com/coinbase-app/api-architecture/rate-limiting).
+Coinbase 当前的 Advanced Trade 文档公布了 WebSocket 限制，但没有 Advanced Trade 专属的
+REST 配额（每秒上限、按投资组合的限制），因此上面 Coinbase App 的每小时配额是最具体的
+有文档数值。参考：
+[WebSocket 速率限制](https://docs.cdp.coinbase.com/coinbase-app/advanced-trade-apis/websocket/websocket-rate-limits)、
+[WebSocket 概览](https://docs.cdp.coinbase.com/coinbase-app/advanced-trade-apis/websocket/websocket-overview)、
+[Coinbase App 速率限制](https://docs.cdp.coinbase.com/coinbase-app/api-architecture/rate-limiting)。
 :::
 
-## Reconnect and resubscribe
+## 重连与重新订阅 {#reconnect-and-resubscribe}
 
-The WebSocket client uses exponential backoff with a base of 250ms and a cap of 30s on reconnect. Retained
-subscriptions are replayed automatically after the handshake completes. Coinbase disconnects a client that
-sends no subscribe message within 5 seconds of connecting. Thus, replay always includes `heartbeats`. The
-client marks this topic before the first replay and keeps it for its lifetime.
+WebSocket 客户端重连使用指数退避，基数 250ms、上限 30s。握手完成后自动重放保留的订阅。
+Coinbase 会断开连接后 5 秒内不发订阅消息的客户端，因此重放总是包含 `heartbeats`。客户端在
+首次重放前标记该主题，并在其生命周期内一直保留。
 
-For authenticated channels (`user`, and `futures_balance_summary` on Margin clients), the adapter generates a
-fresh JWT for every subscribe message, as Coinbase requires a different JWT for each authenticated WebSocket
-message. If credentials are absent or JWT construction fails, the adapter skips topics that require
-authentication instead of sending them unsigned. The failure appears as an error on the client's message
-stream. Once a subscription is accepted the data flow continues for the lifetime of the WebSocket connection
-without further authentication.
+对鉴权频道（`user`，以及 Margin 客户端上的 `futures_balance_summary`），适配器为每条订阅
+消息生成新鲜 JWT，因为 Coinbase 要求每条鉴权 WebSocket 消息使用不同的 JWT。凭据缺失或 JWT
+构建失败时，适配器跳过需要鉴权的主题，而不是不签名就发送。该失败会出现在客户端消息流的
+错误里。订阅一旦被接受，数据流在 WebSocket 连接的生命周期内继续，无需再次鉴权。
 
-If a prior user WebSocket is still active or reconnecting when the execution client connects again, it closes
-that connection. It rebuilds the inner client instead of reusing the existing state machine. This guarantees a
-fresh command channel, output channel, and shutdown signal even when the previous session's `Disconnect`
-command lost a race with the shutdown signal.
+执行客户端重新连接时，若此前的 user WebSocket 仍处于活动或重连中，会先关闭那个连接。它
+重建内部客户端，而不是复用既有状态机。这保证即使上一会话的 `Disconnect` 命令与关闭信号
+赛跑失败，也能得到全新的命令通道、输出通道和关闭信号。
 
-## Configuration
+## 配置 {#configuration}
 
-### Data client configuration options
+### 数据客户端配置项 {#data-client-configuration-options}
 
-| Option                             | Default   | Description                                                                       |
+| 选项                               | 默认值    | 说明                                                                              |
 | ---------------------------------- | --------- | --------------------------------------------------------------------------------- |
-| `api_key`                          | `None`    | Falls back to `COINBASE_API_KEY` env var.                                         |
-| `api_secret`                       | `None`    | Falls back to `COINBASE_API_SECRET` env var.                                      |
-| `base_url_rest`                    | `None`    | Override for the REST base URL.                                                   |
-| `base_url_ws`                      | `None`    | Override for the WebSocket market data URL.                                       |
-| `proxy_url`                        | `None`    | Optional proxy URL for HTTP and WebSocket transports.                             |
-| `environment`                      | `Live`    | `Live` or `Sandbox`.                                                              |
-| `http_timeout_secs`                | `10`      | HTTP request timeout (seconds).                                                   |
-| `ws_timeout_secs`                  | `30`      | WebSocket timeout (seconds).                                                      |
-| `update_instruments_interval_mins` | `60`      | Interval between instrument catalog refreshes.                                    |
-| `derivatives_poll_interval_secs`   | `15`      | Interval between REST polls that emit `IndexPriceUpdate` and `FundingRateUpdate`. |
-| `transport_backend`                | `Sockudo` | WebSocket transport backend.                                                      |
+| `api_key`                          | `None`    | 回退到 `COINBASE_API_KEY` 环境变量。                                              |
+| `api_secret`                       | `None`    | 回退到 `COINBASE_API_SECRET` 环境变量。                                           |
+| `base_url_rest`                    | `None`    | REST 基础 URL 覆盖。                                                              |
+| `base_url_ws`                      | `None`    | WebSocket 行情 URL 覆盖。                                                         |
+| `proxy_url`                        | `None`    | HTTP 与 WebSocket 传输的可选代理 URL。                                            |
+| `environment`                      | `Live`    | `Live` 或 `Sandbox`。                                                             |
+| `http_timeout_secs`                | `10`      | HTTP 请求超时（秒）。                                                             |
+| `ws_timeout_secs`                  | `30`      | WebSocket 超时（秒）。                                                            |
+| `update_instruments_interval_mins` | `60`      | 工具目录刷新间隔。                                                                |
+| `derivatives_poll_interval_secs`   | `15`      | 发出 `IndexPriceUpdate` 与 `FundingRateUpdate` 的 REST 轮询间隔。                 |
+| `transport_backend`                | `Sockudo` | WebSocket 传输后端。                                                              |
 
-### Execution client configuration options
+### 执行客户端配置项 {#execution-client-configuration-options}
 
-| Option                   | Default   | Description                                                                                                                                |
+| 选项                     | 默认值    | 说明                                                                                                                                     |
 | ------------------------ | --------- | ------------------------------------------------------------------------------------------------------------------------------------------ |
-| `account_id`             | `Venue`   | Nautilus account identifier; defaults to `COINBASE-001`.                                                                                   |
-| `api_key`                | `None`    | Falls back to `COINBASE_API_KEY` env var.                                                                                                  |
-| `api_secret`             | `None`    | Falls back to `COINBASE_API_SECRET` env var.                                                                                               |
-| `base_url_rest`          | `None`    | Override for the REST base URL.                                                                                                            |
-| `base_url_ws`            | `None`    | Override for the user data WebSocket URL.                                                                                                  |
-| `proxy_url`              | `None`    | Optional proxy URL for HTTP and WebSocket transports.                                                                                      |
-| `environment`            | `Live`    | `Live` or `Sandbox`.                                                                                                                       |
-| `http_timeout_secs`      | `10`      | HTTP request timeout (seconds).                                                                                                            |
-| `max_retries`            | `3`       | Maximum retry attempts for HTTP requests.                                                                                                  |
-| `retry_delay_initial_ms` | `100`     | Initial retry delay (milliseconds).                                                                                                        |
-| `retry_delay_max_ms`     | `5,000`   | Maximum retry delay (milliseconds).                                                                                                        |
-| `account_type`           | `Cash`    | `Cash` for spot or `Margin` for CFM derivatives. See [Execution scope](#execution-scope).                                                  |
-| `default_margin_type`    | `None`    | Default `CoinbaseMarginType` (`Cross` or `Isolated`) applied to derivatives orders. Ignored on Cash.                                       |
-| `default_leverage`       | `None`    | Default leverage applied to derivatives orders. Ignored on Cash.                                                                           |
-| `retail_portfolio_id`    | `None`    | CDP retail portfolio UUID, sent on create-order when set. Coinbase marks the field deprecated for CDP keys. See [Portfolios](#portfolios). |
-| `transport_backend`      | `Sockudo` | WebSocket transport backend.                                                                                                               |
+| `account_id`             | `Venue`   | Nautilus 账户标识；默认 `COINBASE-001`。                                                                                                 |
+| `api_key`                | `None`    | 回退到 `COINBASE_API_KEY` 环境变量。                                                                                                     |
+| `api_secret`             | `None`    | 回退到 `COINBASE_API_SECRET` 环境变量。                                                                                                  |
+| `base_url_rest`          | `None`    | REST 基础 URL 覆盖。                                                                                                                     |
+| `base_url_ws`            | `None`    | user 数据 WebSocket URL 覆盖。                                                                                                           |
+| `proxy_url`              | `None`    | HTTP 与 WebSocket 传输的可选代理 URL。                                                                                                   |
+| `environment`            | `Live`    | `Live` 或 `Sandbox`。                                                                                                                    |
+| `http_timeout_secs`      | `10`      | HTTP 请求超时（秒）。                                                                                                                    |
+| `max_retries`            | `3`       | HTTP 请求最大重试次数。                                                                                                                  |
+| `retry_delay_initial_ms` | `100`     | 初始重试延迟（毫秒）。                                                                                                                   |
+| `retry_delay_max_ms`     | `5,000`   | 最大重试延迟（毫秒）。                                                                                                                   |
+| `account_type`           | `Cash`    | 现货用 `Cash`，CFM 衍生品用 `Margin`。见[执行范围](#execution-scope)。                                                                   |
+| `default_margin_type`    | `None`    | 应用于衍生品订单的默认 `CoinbaseMarginType`（`Cross` 或 `Isolated`）。Cash 下忽略。                                                      |
+| `default_leverage`       | `None`    | 应用于衍生品订单的默认杠杆。Cash 下忽略。                                                                                                |
+| `retail_portfolio_id`    | `None`    | CDP 零售投资组合 UUID，设置后随下单发送。Coinbase 已将该字段对 CDP key 标记为弃用。见[投资组合](#portfolios)。                            |
+| `transport_backend`      | `Sockudo` | WebSocket 传输后端。                                                                                                                     |
 
-Configurations are constructed from the adapter's public Python module:
+配置从适配器的公开 Python 模块构造：
 
 ```python
 from nautilus_trader.adapters.coinbase import CoinbaseDataClientConfig
@@ -759,84 +697,67 @@ exec_config = CoinbaseExecutionClientConfig(
 )
 ```
 
-The current Python examples show how to pair these configs with
-`CoinbaseDataClientFactory` and `CoinbaseExecutionClientFactory` in `LiveNode.builder(...)`.
+当前的 Python 示例展示了如何在 `LiveNode.builder(...)` 中把这些配置与
+`CoinbaseDataClientFactory` 和 `CoinbaseExecutionClientFactory` 配对。
 
-## Known limitations
+## 已知限制 {#known-limitations}
 
-### Venue-side
+### 场所侧 {#venue-side}
 
-- Order modification is restricted to open GTC orders and is rejected on futures-venue orders with
-  `CANNOT_EDIT_FUTURES_ORDER`. Everything else must use cancel-replace.
-- OCO orders are not exposed as a distinct order type.
-- Trailing stop, MARKET_IF_TOUCHED, LIMIT_IF_TOUCHED, and iceberg orders are
-  not supported by Coinbase.
-- Mark prices are not published on REST or WebSocket, so mark price
-  subscriptions are rejected.
-- Batch submit and batch modify are not available. Only batch cancel is.
-- Sandbox is a static-mock environment (Accounts and Orders endpoints only,
-  pre-defined responses, no real market data).
-- The user-channel WebSocket reports cumulative per-order state, not per-trade fills. The exec client derives
-  per-fill quantity, price, and commission from the cumulative delta. Per-trade `trade_id`s are synthesized
-  from `(venue_order_id, cumulative_quantity)`.
+- 订单修改仅限未结的 GTC 订单，期货场所订单以 `CANNOT_EDIT_FUTURES_ORDER` 拒绝。其余情况
+  必须用撤单重下。
+- OCO 订单不作为独立订单类型开放。
+- 跟踪止损、MARKET_IF_TOUCHED、LIMIT_IF_TOUCHED 和冰山订单 Coinbase 不支持。
+- 标记价在 REST 和 WebSocket 上都不发布，标记价订阅会被拒绝。
+- 批量下单与批量改单不可用，只有批量撤单可用。
+- Sandbox 是静态 mock 环境（只有 Accounts 和 Orders 端点、预定义响应、没有真实行情）。
+- user 频道 WebSocket 报告的是每单累计状态，不是逐笔成交。执行客户端从累计增量推导逐笔
+  数量、价格与手续费。逐笔 `trade_id` 由 `(venue_order_id, cumulative_quantity)` 合成。
 
-### Adapter-side
+### 适配器侧 {#adapter-side}
 
-- **Stable fill identity differs across live and REST paths.** The user
-  channel does not provide Coinbase's per-fill `trade_id`, so live
-  `FillReport` values use IDs synthesized from the venue order ID and
-  cumulative quantity. REST reconciliation uses the venue `trade_id`, so the identifiers can
-  differ across live processing and reconciliation.
-- **One product family per client.** Submission, modification, cancellation,
-  and report generation are filtered to the configured product family (spot
-  under `AccountType::Cash`; perp + dated futures under `AccountType::Margin`).
-  Orders whose instrument falls outside the bootstrapped cache are denied.
-  See [Execution scope](#execution-scope).
-- **Position reports are always empty for Cash accounts.** Coinbase spot has
-  no positions. Derivatives (CFM) position reports come from `cfm/positions`
-  and appear only on Margin clients.
-- **User-channel updates omit `price`, `stop_price`, and `trigger_type`.** For orders this client submitted,
-  the missing fields are patched from a cache populated at `submit_order` time. For external orders (submitted
-  by another process or via the Coinbase UI), the user-channel handler enriches the report on first sight by
-  fetching `/orders/historical/{venue_order_id}` and caching the result. The REST call adds latency to the
-  first user-channel update for an external order. Subsequent updates use the cached enrichment.
-- **Cancel-all and batch-cancel REST list failures are logged only.** If the list-open-orders REST call fails,
-  no per-order `OrderCancelRejected` is emitted. Orders remain in `PendingCancel` until the next
-  reconciliation recovers them. Mirrors the Bybit adapter pattern.
-- **Newly listed products require a reconnect to be tradeable.** The instrument cache is populated on connect.
-  Products listed after that are not in the cache and `submit_order` will deny them.
-- **MARKET orders default to IOC.** A `MarketOrder` constructed with the Nautilus default `TimeInForce::Gtc`
-  is mapped to `market_market_ioc` at the venue. Explicit `TimeInForce::Ioc` is honored. `TimeInForce::Fok`
-  routes to `market_market_fok`, which Coinbase documents as perpetuals-only and rejects at runtime on spot
-  with `UNSUPPORTED_ORDER_CONFIGURATION`. `Day` and `Gtd` are rejected at submit time.
-- **Historical funding rate requests are not implemented.** Funding rates
-  are available only as live updates from the derivatives REST poll.
-- **Live bar subscriptions ignore the requested granularity.** The venue's
-  `candles` channel publishes five-minute buckets and accepts no granularity
-  parameter, and `subscribe_bars` does not reject other bar specifications.
-  A subscription at any other step receives five-minute bars stamped with the
-  requested `BarType`. See [Bars](#bars).
+- **实时与 REST 路径的成交稳定标识不同。** user 频道不提供 Coinbase 的逐笔 `trade_id`，
+  实时 `FillReport` 使用由场所订单 ID 与累计数量合成的 ID。REST 对账使用场所
+  `trade_id`，因此实时处理与对账之间的标识符可能不同。
+- **每个客户端只服务一个产品族。** 提交、修改、撤销与报告生成都按配置的产品族过滤
+  （`AccountType::Cash` 下为现货；`AccountType::Margin` 下为永续 + 到期期货）。工具不在
+  引导缓存内的订单会被拒绝。见[执行范围](#execution-scope)。
+- **Cash 账户的持仓报告恒为空。** Coinbase 现货没有持仓。衍生品（CFM）持仓报告来自
+  `cfm/positions`，只出现在 Margin 客户端上。
+- **user 频道更新省略 `price`、`stop_price` 和 `trigger_type`。** 对本客户端提交的订单，
+  缺失字段从 `submit_order` 时填充的缓存修补。对外部订单（由其他进程或 Coinbase 界面提交），
+  user 频道处理器在首次见到时通过请求 `/orders/historical/{venue_order_id}` 并缓存结果来
+  丰富报告。该 REST 调用给外部订单的首条 user 频道更新增加延迟，后续更新使用缓存的丰富结果。
+- **cancel-all 与 batch-cancel 的 REST 列表失败只记日志。** 若列出未结订单的 REST 调用失败，
+  不会发出逐单 `OrderCancelRejected`。订单停留在 `PendingCancel`，直到下次对账恢复。与 Bybit
+  适配器的模式一致。
+- **新上市产品必须重连才可交易。** 工具缓存在连接时填充，之后上市的产品不在缓存中，
+  `submit_order` 会拒绝它们。
+- **MARKET 订单默认 IOC。** 用 Nautilus 默认 `TimeInForce::Gtc` 构建的 `MarketOrder` 在场所
+  被映射为 `market_market_ioc`。显式 `TimeInForce::Ioc` 被尊重。`TimeInForce::Fok` 路由到
+  `market_market_fok`，Coinbase 文档注明仅限永续，现货上运行时以
+  `UNSUPPORTED_ORDER_CONFIGURATION` 拒绝。`Day` 与 `Gtd` 在提交时被拒绝。
+- **历史 funding 费率请求未实现。** Funding 费率只能作为衍生品 REST 轮询的实时更新获得。
+- **实时 K 线订阅忽略所请求的粒度。** 场所的 `candles` 频道发布五分钟桶且不接受粒度参数，
+  `subscribe_bars` 也不拒绝其他 K 线规格。任何其他步长的订阅收到的都是盖着所请求
+  `BarType` 标签的五分钟 K 线。见 [K 线](#bars)。
 
-## Diagnostic binaries
+## 诊断二进制 {#diagnostic-binaries}
 
-Three binaries assist with connectivity checks, live verification, and
-account hygiene:
+三个二进制协助连通性检查、实盘验证和账户清理：
 
-- `coinbase-http-public` requests spot instruments, a product book, and
-  recent trades without credentials. Use it to confirm connectivity before
-  configuring an API key.
-- `coinbase-http-private` lists portfolios, prints wallet balances, runs
-  `/orders/preview` for `BTC-USD` and `BTC-USDC`, and surfaces per-product
-  gating flags. Recommended first stop when bringing a new account online.
-- `coinbase-cancel-all-open` cancels every open order on the authenticated
-  CDP key. Useful between test runs to clear resting orders.
+- `coinbase-http-public` 无需凭据请求现货工具、某个产品的订单簿和最近成交。用于在配置
+  API key 之前确认连通性。
+- `coinbase-http-private` 列出投资组合、打印钱包余额、对 `BTC-USD` 和 `BTC-USDC` 运行
+  `/orders/preview`，并显示逐产品的准入标志。新账户上线时的推荐首选。
+- `coinbase-cancel-all-open` 撤销所鉴权 CDP key 上的全部未结订单。测试轮次之间清空挂单
+  很有用。
 
-The two authenticated binaries read `COINBASE_API_KEY` and
-`COINBASE_API_SECRET` from the environment.
+两个需要鉴权的二进制从环境读取 `COINBASE_API_KEY` 和 `COINBASE_API_SECRET`。
 
-## Contributing
+## 参与贡献 {#contributing}
 
 :::info
-For additional features or to contribute to the Coinbase adapter, please see
-our [contributing guide](https://github.com/nautechsystems/nautilus_trader/blob/develop/CONTRIBUTING.md).
+要获取更多特性或为 Coinbase 适配器做贡献，请见我们的
+[贡献指南](https://github.com/nautechsystems/nautilus_trader/blob/develop/CONTRIBUTING.md)。
 :::

@@ -687,36 +687,36 @@ ExecTesterConfig::builder()
 测试止损与条件订单类型。这类订单在交易场所挂着，直到触发条件满足。支持交易场所原生条件单的适配器，
 还应验证未决触发单会出现在重启对账中，而不只是出现在普通的未决订单端点里。
 
-| TC     | Name                 | Description                                 | Skip when         |
+| TC | 名称 | 描述 | 跳过条件 |
 | ------ | -------------------- | ------------------------------------------- | ----------------- |
-| TC-E20 | StopMarket BUY       | Stop buy above ask, verify accepted.        | No `STOP_MARKET`. |
-| TC-E21 | StopMarket SELL      | Stop sell below bid, verify accepted.       | No `STOP_MARKET`. |
-| TC-E22 | StopLimit BUY        | Stop-limit buy with trigger + limit price.  | No `STOP_LIMIT`.  |
-| TC-E23 | StopLimit SELL       | Stop-limit sell with trigger + limit price. | No `STOP_LIMIT`.  |
-| TC-E24 | MarketIfTouched BUY  | MIT buy below bid.                          | No `MIT`.         |
-| TC-E25 | MarketIfTouched SELL | MIT sell above ask.                         | No `MIT`.         |
-| TC-E26 | LimitIfTouched BUY   | LIT buy with trigger + limit price.         | No `LIT`.         |
-| TC-E27 | LimitIfTouched SELL  | LIT sell with trigger + limit price.        | No `LIT`.         |
+| TC-E20 | StopMarket BUY | 在卖价上方挂止损买单，验证被确认。 | 不支持 `STOP_MARKET` |
+| TC-E21 | StopMarket SELL | 在买价下方挂止损卖单，验证被确认。 | 不支持 `STOP_MARKET` |
+| TC-E22 | StopLimit BUY | 带触发价 + 限价的止损限价买单。 | 不支持 `STOP_LIMIT` |
+| TC-E23 | StopLimit SELL | 带触发价 + 限价的止损限价卖单。 | 不支持 `STOP_LIMIT` |
+| TC-E24 | MarketIfTouched BUY | 在买价下方的 MIT 买单。 | 不支持 `MIT` |
+| TC-E25 | MarketIfTouched SELL | 在卖价上方的 MIT 卖单。 | 不支持 `MIT` |
+| TC-E26 | LimitIfTouched BUY | 带触发价 + 限价的 LIT 买单。 | 不支持 `LIT` |
+| TC-E27 | LimitIfTouched SELL | 带触发价 + 限价的 LIT 卖单。 | 不支持 `LIT` |
 
-### TC-E20: StopMarket BUY
+### TC-E20：StopMarket BUY {#tc-e20-stopmarket-buy}
 
 | 字段 | 值                                                                 |
 | ------------------ | --------------------------------------------------------------------- |
 | **前置条件** | 适配器已连接，金融工具已加载，报价正在流入。                 |
-| **操作**         | ExecTester places a stop-market buy above the current ask.            |
-| **事件序列** | `OrderInitialized` -> `OrderSubmitted` -> `OrderAccepted`.            |
-| **通过标准**  | Stop order accepted on venue with correct trigger price and side=BUY. |
-| **跳过条件**      | Adapter does not support `StopMarket` orders.                         |
+| **操作**         | ExecTester 在当前卖价上方挂止损市价买单。            |
+| **事件序列** | `OrderInitialized` -> `OrderSubmitted` -> `OrderAccepted`。            |
+| **通过标准**  | 止损单在交易场所被确认，触发价正确且 side=BUY。 |
+| **跳过条件**      | 适配器不支持 `StopMarket` 订单。                         |
 
 **注意事项**：
 
-- The trigger price should be above the current ask by `stop_offset_ticks`.
-- The order should NOT trigger immediately (trigger price is above market).
-- For venues with long-lived trigger signatures, check trigger-order signing expiry against the venue's
-  trigger-order window, rather than normal order expiry.
-- Verifying trigger and fill requires the market to move, which may not happen during the test.
-- After acceptance, restart or force reconciliation. If the venue keeps trigger orders in a separate endpoint,
-  check the open order reports. Make sure that the order still appears there.
+- 触发价应高于当前卖价 `stop_offset_ticks`。
+- 订单不应立即触发（触发价高于市场）。
+- 对触发单签名长效的交易场所，触发单的签名过期要对照交易场所的触发单窗口检查，
+  而不是普通订单的过期时间。
+- 验证触发与成交需要市场移动，测试期间未必会发生。
+- 确认后重启或强制对账。若交易场所把触发单放在独立端点，检查未决订单报告，
+  确保该订单仍然出现。
 
 **Python 配置**：
 
@@ -751,15 +751,15 @@ ExecTesterConfig::builder()
     .build()?
 ```
 
-### TC-E21: StopMarket SELL
+### TC-E21：StopMarket SELL {#tc-e21-stopmarket-sell}
 
 | 字段 | 值                                                                  |
 | ------------------ | ---------------------------------------------------------------------- |
 | **前置条件** | 适配器已连接，金融工具已加载，报价正在流入。                  |
-| **操作**         | ExecTester places a stop-market sell below the current bid.            |
-| **事件序列** | `OrderInitialized` -> `OrderSubmitted` -> `OrderAccepted`.             |
-| **通过标准**  | Stop order accepted on venue with correct trigger price and side=SELL. |
-| **跳过条件**      | Adapter does not support `StopMarket` orders.                          |
+| **操作**         | ExecTester 在当前买价下方挂止损市价卖单。                    |
+| **事件序列** | `OrderInitialized` -> `OrderSubmitted` -> `OrderAccepted`。             |
+| **通过标准**  | 止损单在交易场所被确认，触发价正确且 side=SELL。 |
+| **跳过条件**      | 适配器不支持 `StopMarket` 订单。                          |
 
 **Python 配置**：
 
@@ -794,19 +794,19 @@ ExecTesterConfig::builder()
     .build()?
 ```
 
-### TC-E22: StopLimit BUY
+### TC-E22：StopLimit BUY {#tc-e22-stoplimit-buy}
 
 | 字段 | 值                                                                             |
 | ------------------ | --------------------------------------------------------------------------------- |
 | **前置条件** | 适配器已连接，金融工具已加载，报价正在流入。                             |
-| **操作**         | ExecTester places a stop-limit buy with trigger price above ask and limit offset. |
-| **事件序列** | `OrderInitialized` -> `OrderSubmitted` -> `OrderAccepted`.                        |
-| **通过标准**  | Stop-limit order accepted with correct trigger price, limit price, and side=BUY.  |
-| **跳过条件**      | Adapter does not support `StopLimit` orders.                                      |
+| **操作**         | ExecTester 挂止损限价买单，触发价高于卖价并带限价偏移。 |
+| **事件序列** | `OrderInitialized` -> `OrderSubmitted` -> `OrderAccepted`。                        |
+| **通过标准**  | 止损限价单被确认，触发价、限价均正确且 side=BUY。  |
+| **跳过条件**      | 适配器不支持 `StopLimit` 订单。                                      |
 
 **注意事项**：
 
-- Requires `stop_limit_offset_ticks` to be set for the limit price offset from the trigger price.
+- 需要设置 `stop_limit_offset_ticks`，用于限价相对触发价的偏移。
 
 **Python 配置**：
 
@@ -843,15 +843,15 @@ ExecTesterConfig::builder()
     .build()?
 ```
 
-### TC-E23: StopLimit SELL
+### TC-E23：StopLimit SELL {#tc-e23-stoplimit-sell}
 
 | 字段 | 值                                                                             |
 | ------------------ | --------------------------------------------------------------------------------- |
 | **前置条件** | 适配器已连接，金融工具已加载，报价正在流入。                             |
-| **操作**         | ExecTester places a stop-limit sell with trigger price below bid.                 |
-| **事件序列** | `OrderInitialized` -> `OrderSubmitted` -> `OrderAccepted`.                        |
-| **通过标准**  | Stop-limit order accepted with correct trigger price, limit price, and side=SELL. |
-| **跳过条件**      | Adapter does not support `StopLimit` orders.                                      |
+| **操作**         | ExecTester 挂止损限价卖单，触发价低于买价。                 |
+| **事件序列** | `OrderInitialized` -> `OrderSubmitted` -> `OrderAccepted`。                        |
+| **通过标准**  | 止损限价单被确认，触发价、限价均正确且 side=SELL。 |
+| **跳过条件**      | 适配器不支持 `StopLimit` 订单。                                      |
 
 **Python 配置**：
 
@@ -888,88 +888,85 @@ ExecTesterConfig::builder()
     .build()?
 ```
 
-### TC-E24: MarketIfTouched BUY
+### TC-E24：MarketIfTouched BUY {#tc-e24-marketiftouched-buy}
 
 | 字段 | 值                                                      |
 | ------------------ | ---------------------------------------------------------- |
 | **前置条件** | 适配器已连接，金融工具已加载，报价正在流入。      |
-| **操作**         | Place MIT buy with trigger below current bid (buy on dip). |
-| **事件序列** | `OrderInitialized` -> `OrderSubmitted` -> `OrderAccepted`. |
-| **通过标准**  | MIT order accepted on venue with correct trigger price.    |
-| **跳过条件**      | Adapter does not support `MarketIfTouched` orders.         |
+| **操作**         | 挂 MIT 买单，触发价低于当前买价（逢低买入）。 |
+| **事件序列** | `OrderInitialized` -> `OrderSubmitted` -> `OrderAccepted`。 |
+| **通过标准**  | MIT 单在交易场所被确认，触发价正确。    |
+| **跳过条件**      | 适配器不支持 `MarketIfTouched` 订单。         |
 
-### TC-E25: MarketIfTouched SELL
-
-| 字段 | 值                                                          |
-| ------------------ | -------------------------------------------------------------- |
-| **前置条件** | 适配器已连接，金融工具已加载，报价正在流入。          |
-| **操作**         | Place MIT sell with trigger above current ask (sell on rally). |
-| **事件序列** | `OrderInitialized` -> `OrderSubmitted` -> `OrderAccepted`.     |
-| **通过标准**  | MIT order accepted on venue with correct trigger price.        |
-| **跳过条件**      | Adapter does not support `MarketIfTouched` orders.             |
-
-### TC-E26: LimitIfTouched BUY
+### TC-E25：MarketIfTouched SELL {#tc-e25-marketiftouched-sell}
 
 | 字段 | 值                                                          |
 | ------------------ | -------------------------------------------------------------- |
 | **前置条件** | 适配器已连接，金融工具已加载，报价正在流入。          |
-| **操作**         | Place LIT buy with trigger below bid and limit price offset.   |
-| **事件序列** | `OrderInitialized` -> `OrderSubmitted` -> `OrderAccepted`.     |
-| **通过标准**  | LIT order accepted with correct trigger price and limit price. |
-| **跳过条件**      | Adapter does not support `LimitIfTouched` orders.              |
+| **操作**         | 挂 MIT 卖单，触发价高于当前卖价（逢高卖出）。 |
+| **事件序列** | `OrderInitialized` -> `OrderSubmitted` -> `OrderAccepted`。     |
+| **通过标准**  | MIT 单在交易场所被确认，触发价正确。        |
+| **跳过条件**      | 适配器不支持 `MarketIfTouched` 订单。             |
 
-### TC-E27: LimitIfTouched SELL
+### TC-E26：LimitIfTouched BUY {#tc-e26-limitiftouched-buy}
 
 | 字段 | 值                                                          |
 | ------------------ | -------------------------------------------------------------- |
 | **前置条件** | 适配器已连接，金融工具已加载，报价正在流入。          |
-| **操作**         | Place LIT sell with trigger above ask and limit price offset.  |
-| **事件序列** | `OrderInitialized` -> `OrderSubmitted` -> `OrderAccepted`.     |
-| **通过标准**  | LIT order accepted with correct trigger price and limit price. |
-| **跳过条件**      | Adapter does not support `LimitIfTouched` orders.              |
+| **操作**         | 挂 LIT 买单，触发价低于买价并带限价偏移。   |
+| **事件序列** | `OrderInitialized` -> `OrderSubmitted` -> `OrderAccepted`。     |
+| **通过标准**  | LIT 单被确认，触发价与限价均正确。 |
+| **跳过条件**      | 适配器不支持 `LimitIfTouched` 订单。              |
+
+### TC-E27：LimitIfTouched SELL {#tc-e27-limitiftouched-sell}
+
+| 字段 | 值                                                          |
+| ------------------ | -------------------------------------------------------------- |
+| **前置条件** | 适配器已连接，金融工具已加载，报价正在流入。          |
+| **操作**         | 挂 LIT 卖单，触发价高于卖价并带限价偏移。  |
+| **事件序列** | `OrderInitialized` -> `OrderSubmitted` -> `OrderAccepted`。     |
+| **通过标准**  | LIT 单被确认，触发价与限价均正确。 |
+| **跳过条件**      | 适配器不支持 `LimitIfTouched` 订单。              |
 
 ---
 
-## Group 4: Order modification
+## 第 4 组：订单修改 {#group-4-order-modification}
 
-Test order modification (amend) and cancel-replace workflows.
+测试订单修改（amend）与撤单重提（cancel-replace）工作流。
 
-| TC     | Name                      | Description                                    | Skip when                |
+| TC | 名称 | 描述 | 跳过条件 |
 | ------ | ------------------------- | ---------------------------------------------- | ------------------------ |
-| TC-E30 | Modify limit BUY price    | Amend open limit buy to new price.             | No modify support.       |
-| TC-E31 | Modify limit SELL price   | Amend open limit sell to new price.            | No modify support.       |
-| TC-E32 | Cancel-replace limit BUY  | Cancel and resubmit limit buy at new price.    | Never.                   |
-| TC-E33 | Cancel-replace limit SELL | Cancel and resubmit limit sell at new price.   | Never.                   |
-| TC-E34 | Modify stop trigger price | Amend stop order trigger price.                | No modify or no stop.    |
-| TC-E35 | Cancel-replace stop order | Cancel and resubmit stop at new trigger price. | No stop orders.          |
-| TC-E36 | Modify rejected           | Modify on unsupported adapter.                 | Adapter supports modify. |
+| TC-E30 | 修改限价 BUY 价格 | 把未决限价买单改到新价格。 | 不支持 modify。 |
+| TC-E31 | 修改限价 SELL 价格 | 把未决限价卖单改到新价格。 | 不支持 modify。 |
+| TC-E32 | 撤单重提限价 BUY | 撤销并以新价格重新提交限价买单。 | 从不 |
+| TC-E33 | 撤单重提限价 SELL | 撤销并以新价格重新提交限价卖单。 | 从不 |
+| TC-E34 | 修改止损触发价 | 修改止损单的触发价。 | 不支持 modify 或不支持止损单。 |
+| TC-E35 | 撤单重提止损单 | 撤销并以新触发价重新提交止损单。 | 不支持止损单。 |
+| TC-E36 | 修改被拒绝 | 在不支持的适配器上执行 modify。 | 适配器支持 modify。 |
 
-`trigger_limit_order_maintenance_once=True` requires exactly one of the limit-order modify or
-cancel-replace modes and at least one enabled limit side. It is incompatible with bracket entries,
-`test_modify_rejected`, and two-sided batch limit submission. Configuration validation rejects these
-combinations.
+`trigger_limit_order_maintenance_once=True` 要求恰好选择限价单 modify 或撤单重提模式之一，
+且至少启用一侧限价。它与括号单入场、`test_modify_rejected` 和双边批量限价提交不兼容。
+配置校验会拒绝这些组合。
 
-### TC-E30: Modify limit BUY price
+### TC-E30：修改限价 BUY 价格 {#tc-e30-modify-limit-buy-price}
 
 | 字段 | 值                                                                        |
 | ------------------ | ---------------------------------------------------------------------------- |
-| **前置条件**   | Open GTC limit buy from TC-E10.                                              |
-| **操作**         | ExecTester modifies the open limit buy to a new price.                       |
-| **事件序列** | `OrderPendingUpdate` -> `OrderUpdated`.                                      |
-| **通过标准**  | `OrderUpdated` event logged with the new price. Order exits `PendingUpdate`. |
-| **跳过条件**      | Adapter does not support order modification.                                 |
+| **前置条件**   | 来自 TC-E10 的未决 GTC 限价买单。                                              |
+| **操作**         | ExecTester 把未决限价买单修改到新价格。                       |
+| **事件序列** | `OrderPendingUpdate` -> `OrderUpdated`。                                      |
+| **通过标准**  | `OrderUpdated` 事件记录新价格。订单退出 `PendingUpdate`。 |
+| **跳过条件**      | 适配器不支持订单修改。                                 |
 
 **注意事项**：
 
-- `trigger_limit_order_maintenance_once=True` amends to a different valid price directly from
-  the first `OrderAccepted`, preferring one tick more passive. A quiet book is not inconclusive.
-- After the one-shot workflow starts, it stops further limit maintenance for that side. Thus, the tester does
-  not immediately amend the order back to the TOB target.
-- Without that flag, the modify waits for the order price to drift from the target
-  TOB offset. No movement and no `OrderUpdated` is inconclusive, not a failure.
-- Verify the `OrderUpdated` log shows the expected price. If the event never
-  arrives after a forced or drift-triggered amend, the order stays in `PendingUpdate`
-  and the tester stops modifying it.
+- `trigger_limit_order_maintenance_once=True` 在收到第一个 `OrderAccepted` 后直接改到一个
+  不同的有效价格，倾向更被动一个 tick。盘口安静不算无定论。
+- 一次性工作流启动后，该侧不再继续限价维护。因此测试器不会立即把订单改回 TOB 目标。
+- 没有该标志时，modify 等待订单价格偏离目标 TOB 偏移。市场不动、没有
+  `OrderUpdated` 属于无定论，不是失败。
+- 验证 `OrderUpdated` 日志显示预期价格。强制或漂移触发的 amend 之后事件仍未到达时，
+  订单停留在 `PendingUpdate`，测试器停止对其修改。
 
 **Python 配置**：
 
@@ -1002,19 +999,19 @@ ExecTesterConfig::builder()
     .build()?
 ```
 
-### TC-E31: Modify limit SELL price
+### TC-E31：修改限价 SELL 价格 {#tc-e31-modify-limit-sell-price}
 
 | 字段 | 值                                                                        |
 | ------------------ | ---------------------------------------------------------------------------- |
-| **前置条件**   | Open GTC limit sell from TC-E11.                                             |
-| **操作**         | ExecTester modifies the open limit sell to a new price.                      |
-| **事件序列** | `OrderPendingUpdate` -> `OrderUpdated`.                                      |
-| **通过标准**  | `OrderUpdated` event logged with the new price. Order exits `PendingUpdate`. |
-| **跳过条件**      | Adapter does not support order modification.                                 |
+| **前置条件**   | 来自 TC-E11 的未决 GTC 限价卖单。                                             |
+| **操作**         | ExecTester 把未决限价卖单修改到新价格。                      |
+| **事件序列** | `OrderPendingUpdate` -> `OrderUpdated`。                                      |
+| **通过标准**  | `OrderUpdated` 事件记录新价格。订单退出 `PendingUpdate`。 |
+| **跳过条件**      | 适配器不支持订单修改。                                 |
 
 **注意事项**：
 
-- Same one-shot trigger and quiet-book guidance as TC-E30.
+- 一次性触发与盘口安静的判定指引同 TC-E30。
 
 **Python 配置**：
 
@@ -1047,24 +1044,24 @@ ExecTesterConfig::builder()
     .build()?
 ```
 
-### TC-E32: Cancel-replace limit BUY
+### TC-E32：撤单重提限价 BUY {#tc-e32-cancel-replace-limit-buy}
 
 | 字段 | 值                                                                                                 |
 | ------------------ | ----------------------------------------------------------------------------------------------------- |
-| **前置条件**   | Open GTC limit buy.                                                                                   |
-| **操作**         | ExecTester cancels and resubmits the limit buy at a new price.                                        |
-| **事件序列** | `OrderPendingCancel` -> `OrderCanceled` -> `OrderInitialized` -> `OrderSubmitted` -> `OrderAccepted`. |
-| **通过标准**  | Original order canceled, new order accepted at updated price.                                         |
-| **跳过条件**      | Never (cancel-replace is always available).                                                           |
+| **前置条件**   | 未决 GTC 限价买单。                                                                                   |
+| **操作**         | ExecTester 撤销限价买单并以新价格重新提交。                                        |
+| **事件序列** | `OrderPendingCancel` -> `OrderCanceled` -> `OrderInitialized` -> `OrderSubmitted` -> `OrderAccepted`。 |
+| **通过标准**  | 原订单被取消，新订单以更新后的价格被确认。                                         |
+| **跳过条件**      | 从不（撤单重提始终可用）。                                                           |
 
 **注意事项**：
 
-- This is the universal alternative when the adapter does not support native modify.
-- Two distinct orders in the cache: the canceled original and the new replacement.
-- `trigger_limit_order_maintenance_once=True` requests one cancel directly from the first
-  `OrderAccepted`, then submits the replacement only after `OrderCanceled`.
-- Without the one-shot trigger, cancel-replace waits for TOB drift. No movement and no replacement
-  is inconclusive, not a failure.
+- 适配器不支持原生 modify 时，这是通用的替代方案。
+- cache 中有两个不同订单：被取消的原单与新的替身单。
+- `trigger_limit_order_maintenance_once=True` 在收到第一个 `OrderAccepted` 后直接请求一次
+  撤单，且只在 `OrderCanceled` 之后提交替身单。
+- 没有一次性触发时，撤单重提等待 TOB 漂移。市场不动、没有替身单属于无定论，
+  不是失败。
 
 **Python 配置**：
 
@@ -1097,19 +1094,19 @@ ExecTesterConfig::builder()
     .build()?
 ```
 
-### TC-E33: Cancel-replace limit SELL
+### TC-E33：撤单重提限价 SELL {#tc-e33-cancel-replace-limit-sell}
 
 | 字段 | 值                                                                                                 |
 | ------------------ | ----------------------------------------------------------------------------------------------------- |
-| **前置条件**   | Open GTC limit sell.                                                                                  |
-| **操作**         | ExecTester cancels and resubmits the limit sell at a new price.                                       |
-| **事件序列** | `OrderPendingCancel` -> `OrderCanceled` -> `OrderInitialized` -> `OrderSubmitted` -> `OrderAccepted`. |
-| **通过标准**  | Original order canceled, new order accepted at updated price.                                         |
-| **跳过条件**      | Never.                                                                                                |
+| **前置条件**   | 未决 GTC 限价卖单。                                                                                  |
+| **操作**         | ExecTester 撤销限价卖单并以新价格重新提交。                                       |
+| **事件序列** | `OrderPendingCancel` -> `OrderCanceled` -> `OrderInitialized` -> `OrderSubmitted` -> `OrderAccepted`。 |
+| **通过标准**  | 原订单被取消，新订单以更新后的价格被确认。                                         |
+| **跳过条件**      | 从不。                                                                                                |
 
 **注意事项**：
 
-- Same one-shot trigger and quiet-book guidance as TC-E32.
+- 一次性触发与盘口安静的判定指引同 TC-E32。
 
 **Python 配置**：
 
@@ -1142,20 +1139,20 @@ ExecTesterConfig::builder()
     .build()?
 ```
 
-### TC-E34: Modify stop trigger price
+### TC-E34：修改止损触发价 {#tc-e34-modify-stop-trigger-price}
 
 | 字段 | 值                                                                                                  |
 | ------------------ | ------------------------------------------------------------------------------------------------------ |
-| **前置条件**   | Open stop order from TC-E20 or TC-E22.                                                                 |
-| **操作**         | ExecTester modifies stop trigger price as market moves (`modify_stop_orders_to_maintain_offset=True`). |
-| **事件序列** | `OrderPendingUpdate` -> `OrderUpdated`.                                                                |
-| **通过标准**  | `OrderUpdated` event logged with the new trigger price. Order exits `PendingUpdate`.                   |
-| **跳过条件**      | Adapter does not support native stop modify, or no stop order support.                                 |
+| **前置条件**   | 来自 TC-E20 或 TC-E22 的未决止损单。                                                                 |
+| **操作**         | 市场移动时 ExecTester 修改止损触发价（`modify_stop_orders_to_maintain_offset=True`）。 |
+| **事件序列** | `OrderPendingUpdate` -> `OrderUpdated`。                                                                |
+| **通过标准**  | `OrderUpdated` 事件记录新触发价。订单退出 `PendingUpdate`。                   |
+| **跳过条件**      | 适配器不支持原生止损 modify，或不支持止损单。                                 |
 
 **注意事项**：
 
-- Some venues allow limit-order modify but reject trigger-order replace. For those adapters,
-  skip TC-E34 and run TC-E35 instead.
+- 有些交易场所允许限价单 modify 但拒绝触发单 replace。这类适配器跳过
+  TC-E34，改跑 TC-E35。
 
 **Python 配置**：
 
@@ -1184,21 +1181,20 @@ ExecTesterConfig::builder()
     .build()?
 ```
 
-### TC-E35: Cancel-replace stop order
+### TC-E35：撤单重提止损单 {#tc-e35-cancel-replace-stop-order}
 
 | 字段 | 值                                                                                                 |
 | ------------------ | ----------------------------------------------------------------------------------------------------- |
-| **前置条件**   | Open stop order.                                                                                      |
-| **操作**         | ExecTester cancels and resubmits stop at new trigger price.                                           |
-| **事件序列** | `OrderPendingCancel` -> `OrderCanceled` -> `OrderInitialized` -> `OrderSubmitted` -> `OrderAccepted`. |
-| **通过标准**  | Original stop canceled, new stop accepted at updated trigger price.                                   |
-| **跳过条件**      | No stop order support.                                                                                |
+| **前置条件**   | 未决止损单。                                                                                      |
+| **操作**         | ExecTester 撤销止损单并以新触发价重新提交。                                           |
+| **事件序列** | `OrderPendingCancel` -> `OrderCanceled` -> `OrderInitialized` -> `OrderSubmitted` -> `OrderAccepted`。 |
+| **通过标准**  | 原止损单被取消，新止损单以更新后的触发价被确认。                                   |
+| **跳过条件**      | 不支持止损单。                                                                                |
 
 **注意事项**：
 
-- This is the required path for venues that do not support native trigger-order replace.
-- After the new stop is accepted, restart or force reconciliation and verify exactly one
-  current trigger order remains.
+- 对不支持原生触发单 replace 的交易场所，这是必需的路径。
+- 新止损单确认后，重启或强制对账，验证恰好只剩一个当前触发单。
 
 **Python 配置**：
 
@@ -1227,49 +1223,49 @@ ExecTesterConfig::builder()
     .build()?
 ```
 
-### TC-E36: Modify rejected
+### TC-E36：修改被拒绝 {#tc-e36-modify-rejected}
 
 | 字段 | 值                                                                                                |
 | ------------------ | ---------------------------------------------------------------------------------------------------- |
-| **前置条件**   | Open limit order, adapter does NOT support modify.                                                   |
-| **操作**         | Attempt to modify the order (programmatically, not via ExecTester auto-maintain).                    |
-| **事件序列** | `OrderModifyRejected`.                                                                               |
-| **通过标准**  | Modify attempt results in `OrderModifyRejected` event with reason. Original order remains unchanged. |
-| **跳过条件**      | Adapter supports order modification.                                                                 |
+| **前置条件**   | 未决限价单，且适配器明确不支持 modify。                                                   |
+| **操作**         | 尝试修改该订单（以编程方式，不通过 ExecTester 的自动维护）。                    |
+| **事件序列** | `OrderModifyRejected`。                                                                               |
+| **通过标准**  | 修改尝试产生带原因的 `OrderModifyRejected` 事件。原订单保持不变。 |
+| **跳过条件**      | 适配器支持订单修改。                                                                 |
 
 **注意事项**：
 
-- This tests the adapter's rejection path, not the ExecTester's cancel-replace logic.
-- The rejection reason should indicate that modification is not supported.
+- 该测试验证适配器的拒绝路径，不是 ExecTester 的撤单重提逻辑。
+- 拒绝原因应表明不支持修改。
 
 ---
 
-## Group 5: Order cancellation
+## 第 5 组：订单取消 {#group-5-order-cancellation}
 
-Test order cancellation workflows.
+测试订单取消工作流。
 
-| TC     | Name                       | Description                                       | Skip when        |
+| TC | 名称 | 描述 | 跳过条件 |
 | ------ | -------------------------- | ------------------------------------------------- | ---------------- |
-| TC-E40 | Cancel single limit order  | Cancel an open limit order.                       | Never.           |
-| TC-E41 | Cancel all on stop         | Strategy stop cancels all open orders (default).  | Never.           |
-| TC-E42 | Individual cancels on stop | Cancel orders one-by-one on stop.                 | Never.           |
-| TC-E43 | Batch cancel on stop       | Cancel orders via batch API on stop.              | No batch cancel. |
-| TC-E44 | Cancel already-canceled    | Verify documented rejection or idempotent result. | Never.           |
+| TC-E40 | 取消单个限价单 | 取消一个未决限价单。 | 从不 |
+| TC-E41 | 停止时全部取消 | 策略停止时取消所有未决订单（默认）。 | 从不 |
+| TC-E42 | 停止时逐个取消 | 停止时逐一取消订单。 | 从不 |
+| TC-E43 | 停止时批量取消 | 停止时通过批量 API 取消订单。 | 不支持批量取消 |
+| TC-E44 | 取消已取消订单 | 验证文档化的拒绝或幂等结果。 | 从不 |
 
-### TC-E40: Cancel single limit order
+### TC-E40：取消单个限价单 {#tc-e40-cancel-single-limit-order}
 
 | 字段 | 值                                                           |
 | ------------------ | --------------------------------------------------------------- |
-| **前置条件**   | Open GTC limit order from TC-E10 or TC-E11.                     |
-| **操作**         | Stop the strategy. ExecTester cancels the open limit order.     |
-| **事件序列** | `OrderPendingCancel` -> `OrderCanceled`.                        |
-| **通过标准**  | Order status transitions to CANCELED. No open orders remaining. |
-| **跳过条件**      | Never.                                                          |
+| **前置条件**   | 来自 TC-E10 或 TC-E11 的未决 GTC 限价单。                     |
+| **操作**         | 停止策略。ExecTester 取消未决限价单。     |
+| **事件序列** | `OrderPendingCancel` -> `OrderCanceled`。                        |
+| **通过标准**  | 订单状态转为 CANCELED。无剩余未决订单。 |
+| **跳过条件**      | 从不。                                                          |
 
 **注意事项**：
 
-- `cancel_orders_on_stop=True` (default) triggers cancellation when the strategy stops.
-- Verify the `OrderCanceled` event contains the correct `venue_order_id`.
+- `cancel_orders_on_stop=True`（默认）在策略停止时触发取消。
+- 验证 `OrderCanceled` 事件包含正确的 `venue_order_id`。
 
 **Python 配置**：
 
@@ -1300,21 +1296,21 @@ ExecTesterConfig::builder()
     .build()?
 ```
 
-### TC-E41: Cancel all on stop
+### TC-E41：停止时全部取消 {#tc-e41-cancel-all-on-stop}
 
 | 字段 | 值                                                          |
 | ------------------ | -------------------------------------------------------------- |
-| **前置条件**   | Multiple open orders (limit buy + limit sell from TC-E12).     |
-| **操作**         | Stop the strategy with `cancel_orders_on_stop=True` (default). |
-| **事件序列** | For each order: `OrderPendingCancel` -> `OrderCanceled`.       |
-| **通过标准**  | All open orders canceled. No open orders remaining.            |
-| **跳过条件**      | Never.                                                         |
+| **前置条件**   | 多个未决订单（来自 TC-E12 的限价买 + 限价卖）。     |
+| **操作**         | 以 `cancel_orders_on_stop=True`（默认）停止策略。 |
+| **事件序列** | 每个订单各自：`OrderPendingCancel` -> `OrderCanceled`。       |
+| **通过标准**  | 所有未决订单被取消。无剩余未决订单。            |
+| **跳过条件**      | 从不。                                                         |
 
 **注意事项**：
 
-- Default stop uses `cancel_all`. Some venues implement that as account-wide. Confirm
-  the adapter's `CancelAllOrders` scope before running beside other open orders.
-  Use `use_individual_cancels_on_stop` or `use_batch_cancel_on_stop` to isolate.
+- 默认的停止路径使用 `cancel_all`。有些交易场所将其实现为全账户范围。在其他
+  未决订单旁运行前，先确认适配器的 `CancelAllOrders` 作用域。
+  用 `use_individual_cancels_on_stop` 或 `use_batch_cancel_on_stop` 隔离影响。
 
 **Python 配置**：
 
@@ -1345,15 +1341,15 @@ ExecTesterConfig::builder()
     .build()?
 ```
 
-### TC-E42: Individual cancels on stop
+### TC-E42：停止时逐个取消 {#tc-e42-individual-cancels-on-stop}
 
 | 字段 | 值                                                               |
 | ------------------ | ------------------------------------------------------------------- |
-| **前置条件**   | Multiple open orders.                                               |
-| **操作**         | Stop with `use_individual_cancels_on_stop=True`.                    |
-| **事件序列** | Individual `OrderPendingCancel` -> `OrderCanceled` for each order.  |
-| **通过标准**  | Each order canceled individually. All orders reach CANCELED status. |
-| **跳过条件**      | Never.                                                              |
+| **前置条件**   | 多个未决订单。                                               |
+| **操作**         | 以 `use_individual_cancels_on_stop=True` 停止。                    |
+| **事件序列** | 每个订单各自一次 `OrderPendingCancel` -> `OrderCanceled`。  |
+| **通过标准**  | 每个订单被逐个取消。所有订单到达 CANCELED 状态。 |
+| **跳过条件**      | 从不。                                                              |
 
 **Python 配置**：
 
@@ -1384,15 +1380,15 @@ ExecTesterConfig::builder()
     .build()?
 ```
 
-### TC-E43: Batch cancel on stop
+### TC-E43：停止时批量取消 {#tc-e43-batch-cancel-on-stop}
 
 | 字段 | 值                                                                    |
 | ------------------ | ------------------------------------------------------------------------ |
-| **前置条件**   | Multiple open orders, adapter supports batch cancel.                     |
-| **操作**         | Stop with `use_batch_cancel_on_stop=True`.                               |
-| **事件序列** | Batch `OrderPendingCancel` -> `OrderCanceled` for all orders.            |
-| **通过标准**  | All orders canceled via single batch request. All reach CANCELED status. |
-| **跳过条件**      | Adapter does not support batch cancel.                                   |
+| **前置条件**   | 多个未决订单，适配器支持批量取消。                     |
+| **操作**         | 以 `use_batch_cancel_on_stop=True` 停止。                               |
+| **事件序列** | 所有订单批量 `OrderPendingCancel` -> `OrderCanceled`。            |
+| **通过标准**  | 所有订单经单个批量请求取消。全部到达 CANCELED 状态。 |
+| **跳过条件**      | 适配器不支持批量取消。                                   |
 
 **Python 配置**：
 
@@ -1423,49 +1419,46 @@ ExecTesterConfig::builder()
     .build()?
 ```
 
-### TC-E44: Cancel already-canceled order
+### TC-E44：取消已取消订单 {#tc-e44-cancel-already-canceled-order}
 
 | 字段 | 值                                                                                 |
 | ------------------ | ------------------------------------------------------------------------------------- |
-| **前置条件**   | A previously canceled order (from TC-E40).                                            |
-| **操作**         | Attempt to cancel the same order again.                                               |
-| **事件序列** | `OrderCancelRejected` by default, or no new event for a documented idempotent result. |
-| **通过标准**  | Result matches the adapter contract without a duplicate terminal event.               |
-| **跳过条件**      | Never.                                                                                |
+| **前置条件**   | 一个先前已取消的订单（来自 TC-E40）。                                            |
+| **操作**         | 再次尝试取消同一订单。                                               |
+| **事件序列** | 默认 `OrderCancelRejected`；若为文档化的幂等结果，则无新事件。 |
+| **通过标准**  | 结果符合适配器契约，且不产生重复的终态事件。               |
+| **跳过条件**      | 从不。                                                                                |
 
 **注意事项**：
 
-- The default contract tests the adapter's error handling for invalid cancel requests. The
-  rejection reason should indicate the order is not in a cancelable state.
-- `Strategy.cancel_order` and the order manager drop cancels for locally closed orders, so
-  `ExecTester` cannot reach the adapter after TC-E40. A second `cancel_order` that never
-  leaves the process is inconclusive.
-- A venue may treat an already-terminal cancel as idempotent. Document that disposition and use an
-  adapter-focused test that submits `CancelOrder` with the venue order ID after the order is
-  terminal.
+- 默认契约测试适配器对无效取消请求的错误处理。拒绝原因应表明订单不处于可取消状态。
+- `Strategy.cancel_order` 和订单管理器会丢弃本地已关闭订单的取消，因此 `ExecTester`
+  在 TC-E40 之后无法触达适配器。第二次 `cancel_order` 若从未离开进程，属于无定论。
+- 交易场所可能把对已终态订单的取消视为幂等。记录该处置方式，并用适配器专项测试：
+  在订单已终态后以交易场所订单 ID 提交 `CancelOrder`。
 
 ---
 
-## Group 6: Bracket orders
+## 第 6 组：括号单 {#group-6-bracket-orders}
 
-Test bracket order submission (entry + take-profit + stop-loss).
+测试括号单提交（入场 + 止盈 + 止损）。
 
-| TC     | Name                         | Description                                     | Skip when           |
+| TC | 名称 | 描述 | 跳过条件 |
 | ------ | ---------------------------- | ----------------------------------------------- | ------------------- |
-| TC-E50 | Bracket BUY                  | Entry limit buy + TP limit sell + SL stop sell. | No bracket support. |
-| TC-E51 | Bracket SELL                 | Entry limit sell + TP limit buy + SL stop buy.  | No bracket support. |
-| TC-E52 | Bracket entry fill activates | Verify TP/SL become active after entry fill.    | No bracket support. |
-| TC-E53 | Bracket with post-only entry | Entry order uses post-only flag.                | No bracket or PO.   |
+| TC-E50 | Bracket BUY | 入场限价买 + 止盈限价卖 + 止损卖。 | 不支持括号单 |
+| TC-E51 | Bracket SELL | 入场限价卖 + 止盈限价买 + 止损买。 | 不支持括号单 |
+| TC-E52 | 括号单入场成交激活 | 验证入场成交后止盈/止损被激活。 | 不支持括号单 |
+| TC-E53 | 带 post-only 入场的括号单 | 入场订单使用 post-only 标志。 | 不支持括号单或 PO |
 
-### TC-E50: Bracket BUY
+### TC-E50：Bracket BUY {#tc-e50-bracket-buy}
 
 | 字段 | 值                                                                                                                                   |
 | ------------------ | --------------------------------------------------------------------------------------------------------------------------------------- |
 | **前置条件** | 适配器已连接，金融工具已加载，报价正在流入。                                                                                   |
-| **操作**         | ExecTester submits a bracket order: limit buy entry + take-profit sell + stop-loss sell.                                                |
-| **事件序列** | Entry: `OrderInitialized` -> `OrderSubmitted` -> `OrderAccepted`. TP and SL: `OrderInitialized` -> `OrderSubmitted` -> `OrderAccepted`. |
-| **通过标准**  | Three orders created and accepted: entry below bid, TP above ask, SL below entry.                                                       |
-| **跳过条件**      | Adapter does not support bracket orders.                                                                                                |
+| **操作**         | ExecTester 提交括号单：限价买入场 + 止盈卖出 + 止损卖出。                                                |
+| **事件序列** | 入场：`OrderInitialized` -> `OrderSubmitted` -> `OrderAccepted`。止盈与止损：`OrderInitialized` -> `OrderSubmitted` -> `OrderAccepted`。 |
+| **通过标准**  | 创建并确认三个订单：入场低于买价，止盈高于卖价，止损低于入场价。                                                       |
+| **跳过条件**      | 适配器不支持括号单。                                                                                                |
 
 **Python 配置**：
 
@@ -1500,63 +1493,63 @@ ExecTesterConfig::builder()
     .build()?
 ```
 
-### TC-E51: Bracket SELL
+### TC-E51：Bracket SELL {#tc-e51-bracket-sell}
 
 | 字段 | 值                                                           |
 | ------------------ | --------------------------------------------------------------- |
 | **前置条件** | 适配器已连接，金融工具已加载，报价正在流入。           |
-| **操作**         | ExecTester submits bracket: limit sell entry + TP buy + SL buy. |
-| **事件序列** | Same pattern as TC-E50 but for sell side.                       |
-| **通过标准**  | Three orders created and accepted on sell side.                 |
-| **跳过条件**      | Adapter does not support bracket orders.                        |
+| **操作**         | ExecTester 提交括号单：限价卖入场 + 止盈买 + 止损买。 |
+| **事件序列** | 与 TC-E50 相同模式，方向为卖出。                       |
+| **通过标准**  | 卖出侧创建并确认三个订单。                 |
+| **跳过条件**      | 适配器不支持括号单。                        |
 
-### TC-E52: Bracket entry fill activates TP/SL
+### TC-E52：括号单入场成交激活止盈/止损 {#tc-e52-bracket-entry-fill-activates-tpsl}
 
 | 字段 | 值                                                                 |
 | ------------------ | --------------------------------------------------------------------- |
-| **前置条件**   | Bracket order from TC-E50 where entry order fills.                    |
-| **操作**         | Entry order fills. Verify contingent TP and SL orders activate.       |
-| **事件序列** | Entry: `OrderFilled`. TP and SL transition from contingent to active. |
-| **通过标准**  | After entry fill, TP and SL orders are live on the venue.             |
-| **跳过条件**      | Adapter does not support bracket orders.                              |
+| **前置条件**   | 来自 TC-E50 的括号单，且入场订单成交。                    |
+| **操作**         | 入场订单成交。验证或有止盈与止损订单被激活。       |
+| **事件序列** | 入场：`OrderFilled`。止盈与止损从或有状态转为激活。 |
+| **通过标准**  | 入场成交后，止盈与止损订单在交易场所生效。             |
+| **跳过条件**      | 适配器不支持括号单。                              |
 
 **注意事项**：
 
-- This requires the entry order to actually fill, which may need aggressive pricing.
-- The TP/SL activation mechanism varies by venue (some activate immediately, some are OCA groups).
+- 这需要入场订单真正成交，可能要激进定价。
+- 止盈/止损激活机制因交易场所而异（有的立即激活，有的是 OCA 组）。
 
-### TC-E53: Bracket with post-only entry
+### TC-E53：带 post-only 入场的括号单 {#tc-e53-bracket-with-post-only-entry}
 
 | 字段 | 值                                                                   |
 | ------------------ | ----------------------------------------------------------------------- |
-| **前置条件**   | Adapter supports brackets and post-only.                                |
-| **操作**         | Submit bracket with `use_post_only=True` (applied to entry and TP).     |
-| **事件序列** | Same as TC-E50 with post-only flag on entry.                            |
-| **通过标准**  | Entry and TP orders accepted as post-only (maker). SL is not post-only. |
-| **跳过条件**      | No bracket support or no post-only support.                             |
+| **前置条件**   | 适配器支持括号单与 post-only。                                |
+| **操作**         | 以 `use_post_only=True` 提交括号单（作用于入场与止盈）。     |
+| **事件序列** | 与 TC-E50 相同，入场带 post-only 标志。                            |
+| **通过标准**  | 入场与止盈订单以 post-only（maker）被确认。止损单不是 post-only。 |
+| **跳过条件**      | 不支持括号单或不支持 post-only。                             |
 
 ---
 
-## Group 7: Order flags
+## 第 7 组：订单标志 {#group-7-order-flags}
 
-Test order-level flags and special parameters.
+测试订单级标志与特殊参数。
 
-| TC     | Name                | Description                                  | Skip when            |
+| TC | 名称 | 描述 | 跳过条件 |
 | ------ | ------------------- | -------------------------------------------- | -------------------- |
-| TC-E60 | PostOnly accepted   | Limit with post-only, placed away from TOB.  | No post-only.        |
-| TC-E61 | ReduceOnly on close | Close position with reduce-only flag.        | No reduce-only.      |
-| TC-E62 | Display quantity    | Iceberg order with visible quantity < total. | No display quantity. |
-| TC-E63 | Custom order params | Adapter-specific params via `order_params`.  | N/A.                 |
+| TC-E60 | PostOnly 被确认 | 带 post-only 的限价单，挂远离 TOB。 | 不支持 post-only |
+| TC-E61 | 平仓时 ReduceOnly | 用 reduce-only 标志平仓。 | 不支持 reduce-only |
+| TC-E62 | 显示数量 | 显示数量小于总量的冰山单。 | 不支持显示数量 |
+| TC-E63 | 自定义订单参数 | 通过 `order_params` 传适配器特有参数。 | 不适用 |
 
-### TC-E60: PostOnly accepted
+### TC-E60：PostOnly 被确认 {#tc-e60-postonly-accepted}
 
 | 字段 | 值                                                                   |
 | ------------------ | ----------------------------------------------------------------------- |
 | **前置条件** | 适配器已连接，金融工具已加载，报价正在流入。                   |
-| **操作**         | ExecTester places limit buy with `use_post_only=True` at passive price. |
-| **事件序列** | `OrderInitialized` -> `OrderSubmitted` -> `OrderAccepted`.              |
-| **通过标准**  | Order accepted as a maker order. Post-only flag acknowledged by venue.  |
-| **跳过条件**      | Adapter does not support post-only flag.                                |
+| **操作**         | ExecTester 以被动价格挂 `use_post_only=True` 的限价买单。 |
+| **事件序列** | `OrderInitialized` -> `OrderSubmitted` -> `OrderAccepted`。              |
+| **通过标准**  | 订单作为 maker 单被确认。交易场所确认了 post-only 标志。  |
+| **跳过条件**      | 适配器不支持 post-only 标志。                                |
 
 **Python 配置**：
 
@@ -1587,15 +1580,15 @@ ExecTesterConfig::builder()
     .build()?
 ```
 
-### TC-E61: ReduceOnly on close
+### TC-E61：平仓时 ReduceOnly {#tc-e61-reduceonly-on-close}
 
 | 字段 | 值                                                                                          |
 | ------------------ | ---------------------------------------------------------------------------------------------- |
-| **前置条件**   | Open position (from TC-E01).                                                                   |
-| **操作**         | Stop strategy with `reduce_only_on_stop=True`. Closing order uses reduce-only flag.            |
-| **事件序列** | `OrderInitialized` -> `OrderSubmitted` -> `OrderAccepted` -> `OrderFilled` (with reduce-only). |
-| **通过标准**  | Closing order has reduce-only flag. Position fully closed.                                     |
-| **跳过条件**      | Adapter does not support reduce-only flag.                                                     |
+| **前置条件**   | 有持仓（来自 TC-E01）。                                                                   |
+| **操作**         | 以 `reduce_only_on_stop=True` 停止策略。平仓订单使用 reduce-only 标志。            |
+| **事件序列** | `OrderInitialized` -> `OrderSubmitted` -> `OrderAccepted` -> `OrderFilled`（带 reduce-only）。 |
+| **通过标准**  | 平仓订单带 reduce-only 标志。持仓完全平掉。                                     |
+| **跳过条件**      | 适配器不支持 reduce-only 标志。                                                     |
 
 **Python 配置**：
 
@@ -1630,15 +1623,15 @@ ExecTesterConfig::builder()
     .build()?
 ```
 
-### TC-E62: Display quantity (iceberg)
+### TC-E62：显示数量（冰山单） {#tc-e62-display-quantity-iceberg}
 
 | 字段 | 值                                                                           |
 | ------------------ | ------------------------------------------------------------------------------- |
-| **前置条件**   | Adapter connected, adapter supports display quantity.                           |
-| **操作**         | Place limit order with `order_display_qty` < `order_qty`.                       |
-| **事件序列** | `OrderInitialized` -> `OrderSubmitted` -> `OrderAccepted`.                      |
-| **通过标准**  | Order accepted with display quantity set. Only display qty visible on the book. |
-| **跳过条件**      | Adapter does not support display quantity / iceberg orders.                     |
+| **前置条件**   | 适配器已连接，支持显示数量。                           |
+| **操作**         | 挂 `order_display_qty` < `order_qty` 的限价单。                       |
+| **事件序列** | `OrderInitialized` -> `OrderSubmitted` -> `OrderAccepted`。                      |
+| **通过标准**  | 订单带显示数量被确认。盘面上只见显示数量。 |
+| **跳过条件**      | 适配器不支持显示数量 / 冰山订单。                     |
 
 **Python 配置**：
 
@@ -1669,85 +1662,81 @@ ExecTesterConfig::builder()
     .build()?
 ```
 
-### TC-E63: Custom order params
+### TC-E63：自定义订单参数 {#tc-e63-custom-order-params}
 
 | 字段 | 值                                                                        |
 | ------------------ | ---------------------------------------------------------------------------- |
-| **前置条件**   | Adapter connected, adapter accepts additional parameters.                    |
-| **操作**         | Place order with `order_params` dict containing adapter-specific parameters. |
-| **事件序列** | `OrderInitialized` -> `OrderSubmitted` -> `OrderAccepted`.                   |
-| **通过标准**  | Order accepted. Adapter-specific parameters passed through to venue.         |
-| **跳过条件**      | N/A (adapter-specific).                                                      |
+| **前置条件**   | 适配器已连接，且接受额外参数。                    |
+| **操作**         | 挂单时带上包含适配器特有参数的 `order_params` 字典。 |
+| **事件序列** | `OrderInitialized` -> `OrderSubmitted` -> `OrderAccepted`。                   |
+| **通过标准**  | 订单被确认。适配器特有参数透传给交易场所。         |
+| **跳过条件**      | 不适用（适配器特有）。                                                      |
 
 **注意事项**：
 
-- The `order_params` dict is opaque to the ExecTester and passed through to the adapter.
-- Consult the adapter's guide for supported parameters.
+- `order_params` 字典对 ExecTester 不透明，直接透传给适配器。
+- 支持的参数参见对应适配器指南。
 
 ---
 
-## Group 8: Rejection handling
+## 第 8 组：拒绝处理 {#group-8-rejection-handling}
 
-Test that the adapter correctly handles and reports order rejections.
+测试适配器正确处理并上报订单拒绝。
 
-| TC     | Name                   | Description                                      | Skip when       |
+| TC | 名称 | 描述 | 跳过条件 |
 | ------ | ---------------------- | ------------------------------------------------ | --------------- |
-| TC-E70 | PostOnly rejection     | Post-only order that would cross the spread.     | No post-only.   |
-| TC-E71 | ReduceOnly rejection   | Reduce-only order with no position to reduce.    | No reduce-only. |
-| TC-E72 | Unsupported order type | Submit order type not supported by adapter.      | Never.          |
-| TC-E73 | Unsupported TIF        | Submit order with unsupported time in force.     | Never.          |
-| TC-E74 | Ambiguous submit fail  | Transport, timeout, or send failure on submit.   | No mock path.   |
-| TC-E75 | Ambiguous cancel fail  | Transport, timeout, or send failure on cancel.   | No cancel.      |
-| TC-E76 | Ambiguous modify fail  | Transport, timeout, or send failure on modify.   | No modify.      |
-| TC-E77 | Ambiguous batch fail   | Whole-batch failure without per-order result.    | No batch.       |
-| TC-E78 | Per-order batch reject | Batch response has explicit per-order rejection. | No batch.       |
+| TC-E70 | PostOnly 拒绝 | 会穿越价差的 post-only 订单。 | 不支持 post-only |
+| TC-E71 | ReduceOnly 拒绝 | 无可减仓仓的 reduce-only 订单。 | 不支持 reduce-only |
+| TC-E72 | 不支持的订单类型 | 提交适配器不支持的订单类型。 | 从不 |
+| TC-E73 | 不支持的 TIF | 提交带不支持有效期的订单。 | 从不 |
+| TC-E74 | 提交结果不明失败 | 提交时传输、超时或发送失败。 | 无 mock 路径 |
+| TC-E75 | 取消结果不明失败 | 取消时传输、超时或发送失败。 | 不支持取消 |
+| TC-E76 | 修改结果不明失败 | 修改时传输、超时或发送失败。 | 不支持 modify |
+| TC-E77 | 整批结果不明失败 | 整批失败且无逐单结果。 | 不支持批量 |
+| TC-E78 | 逐单批量拒绝 | 批量响应带显式的逐单拒绝。 | 不支持批量 |
 
-TC-E74 through TC-E78 are specified collectively below because they usually require a mock HTTP or
-WebSocket boundary rather than a live venue.
+TC-E74 到 TC-E78 在下方合并说明，因为它们通常需要 mock 的 HTTP 或
+WebSocket 边界，而不是实时交易场所。
 
-### Ambiguous outcome failures
+### 结果不明的失败 {#ambiguous-outcome-failures}
 
-These cases prove that adapter request failures do not turn into terminal rejection events when the venue
-outcome is unknown. The pass criteria also define an exception for local prepare failures. The command must be
-known not to have been sent. The failure must be attributable to one cancel or modify command. If both
-conditions hold, the adapter can emit the matching rejection event.
+这些用例证明：交易场所结果未知时，适配器的请求失败不会变成终态拒绝事件。通过标准同时定义了本地准备失败的
+例外：必须能确定命令未被发送，且失败可归因于某一条取消或修改命令。两个条件都成立时，适配器可以发出匹配的
+拒绝事件。
 
 **通过标准**：
 
-- Submit failures from transport errors, timeouts, WebSocket send failures, retry exhaustion, or
-  response parse failures do not emit `OrderRejected`.
-- Cancel failures from transport errors, timeouts, WebSocket send failures, retry exhaustion, or
-  whole-request server failures do not emit `OrderCancelRejected`.
-- Modify failures from transport errors, timeouts, WebSocket send failures, retry exhaustion, or
-  whole-request server failures do not emit `OrderModifyRejected`.
-- Local cancel prepare failures that prove the command cannot be sent may emit
-  `OrderCancelRejected` when the adapter can attribute the failure to one cancel command.
-- Local modify prepare failures that prove the command cannot be sent may emit
-  `OrderModifyRejected` when the adapter can attribute the failure to one modify command.
-- Whole-batch request failures do not emit one rejection per order when the venue did not return
-  per-order results.
-- Explicit per-order venue rejections still emit the matching rejection event with the venue
-  reason.
+- 提交因传输错误、超时、WebSocket 发送失败、重试耗尽或响应解析失败而不发出
+  `OrderRejected`。
+- 取消因传输错误、超时、WebSocket 发送失败、重试耗尽或整请求服务失败而不发出
+  `OrderCancelRejected`。
+- 修改因传输错误、超时、WebSocket 发送失败、重试耗尽或整请求服务失败而不发出
+  `OrderModifyRejected`。
+- 能证明命令无法发送的本地取消准备失败，在适配器可把失败归因于单条取消命令时，
+  可以发出 `OrderCancelRejected`。
+- 能证明命令无法发送的本地修改准备失败，在适配器可把失败归因于单条修改命令时，
+  可以发出 `OrderModifyRejected`。
+- 整批请求失败且交易场所未返回逐单结果时，不逐单发出拒绝。
+- 显式的逐单交易场所拒绝仍带着交易场所原因发出对应的拒绝事件。
 
-The order remains in the appropriate in-flight state until a venue update, query result, or
-reconciliation pass resolves it.
+在交易场所更新、查询结果或对账确认解决之前，订单保持在合适的在途状态。
 
-### TC-E70: PostOnly rejection
+### TC-E70：PostOnly 拒绝 {#tc-e70-postonly-rejection}
 
 | 字段 | 值                                                                                                                           |
 | ------------------ | ------------------------------------------------------------------------------------------------------------------------------- |
 | **前置条件** | 适配器已连接，金融工具已加载，报价正在流入。                                                                           |
-| **操作**         | ExecTester places post-only order on the wrong side of the book (`test_reject_post_only=True`), causing it to cross the spread. |
-| **事件序列** | `OrderInitialized` -> `OrderSubmitted` -> `OrderRejected`.                                                                      |
-| **通过标准**  | Venue rejects order. `OrderRejected.due_post_only=true`. Reason names post-only violation.                                      |
-| **跳过条件**      | Adapter does not support post-only flag.                                                                                        |
+| **操作**         | ExecTester 把 post-only 订单挂到盘口错误的一侧（`test_reject_post_only=True`），使其穿越价差。 |
+| **事件序列** | `OrderInitialized` -> `OrderSubmitted` -> `OrderRejected`。                                                                      |
+| **通过标准**  | 交易场所拒绝订单。`OrderRejected.due_post_only=true`。原因指明 post-only 违规。                                      |
+| **跳过条件**      | 适配器不支持 post-only 标志。                                                                                        |
 
 **注意事项**：
 
-- The ExecTester's `test_reject_post_only` mode intentionally prices the order to cross.
-- Some venues may partially fill instead of rejecting. Behavior is venue-specific.
-- Adapters that emit `OrderRejected` for a post-only crossing reject should set
-  `due_post_only=true` so strategies can distinguish this from other venue rejections.
+- ExecTester 的 `test_reject_post_only` 模式故意把订单定价到穿越盘口。
+- 有些交易场所可能部分成交而非拒绝。行为因交易场所而异。
+- 对 post-only 穿越拒绝而发出 `OrderRejected` 的适配器应设置
+  `due_post_only=true`，让策略能把这与其他交易场所拒绝区分开。
 
 **Python 配置**：
 
@@ -1780,21 +1769,20 @@ ExecTesterConfig::builder()
     .build()?
 ```
 
-### TC-E71: ReduceOnly rejection
+### TC-E71：ReduceOnly 拒绝 {#tc-e71-reduceonly-rejection}
 
 | 字段 | 值                                                                                                                                                              |
 | ------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| **前置条件**   | Adapter connected, no open position for the instrument.                                                                                                            |
-| **操作**         | ExecTester opens a market position with `reduce_only=True` via `test_reject_reduce_only=True` and `open_position_on_start_qty`, when no position exists to reduce. |
-| **事件序列** | `OrderInitialized` -> `OrderSubmitted` -> `OrderRejected`.                                                                                                         |
-| **通过标准**  | Order rejected. `OrderRejected` event with reason indicating reduce-only violation.                                                                                |
-| **跳过条件**      | Adapter does not support reduce-only flag.                                                                                                                         |
+| **前置条件**   | 适配器已连接，该金融工具无未了结持仓。                                                                                                            |
+| **操作**         | 无仓可减时，ExecTester 通过 `test_reject_reduce_only=True` 与 `open_position_on_start_qty` 以 `reduce_only=True` 提交开仓市场单。 |
+| **事件序列** | `OrderInitialized` -> `OrderSubmitted` -> `OrderRejected`。                                                                                                         |
+| **通过标准**  | 订单被拒绝。`OrderRejected` 事件的原因指明 reduce-only 违规。                                                                                |
+| **跳过条件**      | 适配器不支持 reduce-only 标志。                                                                                                                         |
 
 **注意事项**：
 
-- The `test_reject_reduce_only` flag only applies to the opening market order submitted via
-  `open_position_on_start_qty`.
-- Verify no prior position exists for the instrument before running this test.
+- `test_reject_reduce_only` 标志只作用于经 `open_position_on_start_qty` 提交的开仓市场单。
+- 运行本测试前确认该金融工具没有既存持仓。
 
 **Python 配置**：
 
@@ -1827,70 +1815,69 @@ ExecTesterConfig::builder()
     .build()?
 ```
 
-### TC-E72: Unsupported order type
+### TC-E72：不支持的订单类型 {#tc-e72-unsupported-order-type}
 
 | 字段 | 值                                                                |
 | ------------------ | -------------------------------------------------------------------- |
-| **前置条件**   | Adapter connected, order type not in adapter's supported set.        |
-| **操作**         | Submit an order type the adapter does not support.                   |
-| **事件序列** | `OrderDenied` (pre-submission rejection by adapter).                 |
-| **通过标准**  | Order denied before reaching venue. `OrderDenied` event with reason. |
-| **跳过条件**      | Never (every adapter has unsupported order types to test).           |
+| **前置条件**   | 适配器已连接，订单类型不在适配器支持集合内。        |
+| **操作**         | 提交适配器不支持的订单类型。                   |
+| **事件序列** | `OrderDenied`（提交前被适配器拒绝）。                 |
+| **通过标准**  | 订单在到达交易场所前被拒绝。`OrderDenied` 事件带原因。 |
+| **跳过条件**      | 从不（每个适配器都有可测试的不支持订单类型）。           |
 
 **注意事项**：
 
-- `OrderDenied` occurs at the adapter level before the order reaches the venue.
-- This differs from the normal `OrderRejected` path, which follows a venue rejection. Reconciliation can also
-  synthesize `OrderRejected`. See [Terminal reconciliation
-  provenance](./../concepts/execution/policies.md#terminal-reconciliation-provenance).
-- Test by configuring a stop order type that the adapter does not support.
+- `OrderDenied` 发生在适配器层面，订单尚未到达交易场所。
+- 这与正常的 `OrderRejected` 路径不同，后者跟随一次交易场所拒绝。对账也可能合成
+  `OrderRejected`。见[终态对账来源](./../concepts/execution/policies.md#terminal-reconciliation-provenance)。
+- 用一个适配器不支持的止损订单类型来配置测试。
 
-### TC-E73: Unsupported TIF
+### TC-E73：不支持的 TIF {#tc-e73-unsupported-tif}
 
 | 字段 | 值                                                                |
 | ------------------ | -------------------------------------------------------------------- |
-| **前置条件**   | Adapter connected, TIF not in adapter's supported set.               |
-| **操作**         | Submit an order with a TIF the adapter does not support.             |
-| **事件序列** | `OrderDenied` (pre-submission rejection by adapter).                 |
-| **通过标准**  | Order denied before reaching venue. `OrderDenied` event with reason. |
-| **跳过条件**      | Never (every adapter has unsupported TIF options to test).           |
+| **前置条件**   | 适配器已连接，TIF 不在适配器支持集合内。               |
+| **操作**         | 提交带适配器不支持 TIF 的订单。             |
+| **事件序列** | `OrderDenied`（提交前被适配器拒绝）。                 |
+| **通过标准**  | 订单在到达交易场所前被拒绝。`OrderDenied` 事件带原因。 |
+| **跳过条件**      | 从不（每个适配器都有可测试的不支持 TIF 选项）。           |
 
 **注意事项**：
 
-- Similar to TC-E72 but for time-in-force options.
-- Test with TIF values from the Nautilus enum that the adapter does not map.
+- 与 TC-E72 类似，针对有效期选项。
+- 用 Nautilus 枚举中适配器不映射的 TIF 值测试。
 
 ---
 
-## Group 9: Lifecycle and reconciliation
+## 第 9 组：生命周期与对账 {#group-9-lifecycle-and-reconciliation}
 
-Test strategy lifecycle behavior and execution-state recovery on start, stop, and report failure.
+测试策略生命周期行为，以及启动、停止和报告失败时的执行状态恢复。
 
-TC-E88 and TC-E89 run offline as deterministic adapter unit or integration tests rather than through
-`ExecTester` against a venue.
+TC-E88 和 TC-E89 以确定性适配器单元或集成测试离线运行，而不是经
+`ExecTester` 对着交易场所跑。
 
-| TC     | Name                              | Description                                              | Skip when                                   |
+| TC | 名称 | 描述 | 跳过条件 |
 | ------ | --------------------------------- | -------------------------------------------------------- | ------------------------------------------- |
-| TC-E80 | Open position on start            | Open a position immediately when strategy starts.        | No market orders.                           |
-| TC-E81 | Cancel orders on stop             | Cancel all open orders when strategy stops.              | Never.                                      |
-| TC-E82 | Close positions on stop           | Close open positions when strategy stops.                | No market orders.                           |
-| TC-E83 | Unsubscribe on stop               | Unsubscribe from data feeds on strategy stop.            | No unsub support.                           |
-| TC-E84 | Reconcile open orders             | Reconcile existing open orders from a prior session.     | Never.                                      |
-| TC-E85 | Reconcile filled orders           | Reconcile previously filled orders from a prior session. | Never.                                      |
-| TC-E86 | Reconcile open long               | Reconcile existing open long position.                   | Never.                                      |
-| TC-E87 | Reconcile open short              | Reconcile existing open short position.                  | Never.                                      |
-| TC-E88 | Reconciliation commission failure | A required fill commission cannot be represented.        | No fill commission logic.                   |
-| TC-E89 | WebSocket commission failure      | A private fill commission cannot be represented.         | No private fill stream or commission logic. |
+| TC-E80 | 启动时开仓 | 策略启动时立即开仓。 | 不支持市场单 |
+| TC-E81 | 停止时取消订单 | 策略停止时取消所有未决订单。 | 从不 |
+| TC-E82 | 停止时平仓 | 策略停止时平掉持仓。 | 不支持市场单 |
+| TC-E83 | 停止时退订 | 策略停止时退订数据源。 | 不支持退订 |
+| TC-E84 | 对账未决订单 | 对账先前会话遗留的未决订单。 | 从不 |
+| TC-E85 | 对账已成交订单 | 对账先前会话中已成交的订单。 | 从不 |
+| TC-E86 | 对账多头持仓 | 对账既有多头持仓。 | 从不 |
+| TC-E87 | 对账空头持仓 | 对账既有空头持仓。 | 从不 |
+| TC-E88 | 对账手续费失败 | 必需的成交手续费无法表示。 | 无成交手续费逻辑 |
+| TC-E89 | WebSocket 手续费失败 | 私有成交手续费无法表示。 | 无私有成交流或手续费逻辑 |
 
-### TC-E80: Open position on start
+### TC-E80：启动时开仓 {#tc-e80-open-position-on-start}
 
 | 字段 | 值                                                                                              |
 | ------------------ | -------------------------------------------------------------------------------------------------- |
-| **前置条件**   | Adapter connected, instrument loaded, no existing position.                                        |
-| **操作**         | Strategy starts with `open_position_on_start_qty` set.                                             |
-| **事件序列** | `OrderInitialized` -> `OrderSubmitted` -> `OrderAccepted` -> `OrderFilled`.                        |
-| **通过标准**  | Position opened on start. Market order submitted and filled before limit order maintenance begins. |
-| **跳过条件**      | Adapter does not support market orders.                                                            |
+| **前置条件**   | 适配器已连接，金融工具已加载，无既存持仓。                                        |
+| **操作**         | 策略设置 `open_position_on_start_qty` 后启动。                                             |
+| **事件序列** | `OrderInitialized` -> `OrderSubmitted` -> `OrderAccepted` -> `OrderFilled`。                        |
+| **通过标准**  | 启动时建仓。市场单在限价维护开始前已提交并成交。 |
+| **跳过条件**      | 适配器不支持市场单。                                                            |
 
 **Python 配置**：
 
@@ -1917,35 +1904,35 @@ ExecTesterConfig::builder()
     .build()?
 ```
 
-### TC-E81: Cancel orders on stop
+### TC-E81：停止时取消订单 {#tc-e81-cancel-orders-on-stop}
 
 | 字段 | 值                                                          |
 | ------------------ | -------------------------------------------------------------- |
-| **前置条件**   | Open limit orders from the strategy session.                   |
-| **操作**         | Stop the strategy with `cancel_orders_on_stop=True` (default). |
-| **事件序列** | For each open order: `OrderPendingCancel` -> `OrderCanceled`.  |
-| **通过标准**  | All strategy-owned open orders canceled on stop.               |
-| **跳过条件**      | Never.                                                         |
+| **前置条件**   | 策略会话中有未决限价单。                   |
+| **操作**         | 以 `cancel_orders_on_stop=True`（默认）停止策略。 |
+| **事件序列** | 每个未决订单各自：`OrderPendingCancel` -> `OrderCanceled`。  |
+| **通过标准**  | 停止时策略拥有的所有未决订单被取消。               |
+| **跳过条件**      | 从不。                                                         |
 
-### TC-E82: Close positions on stop
+### TC-E82：停止时平仓 {#tc-e82-close-positions-on-stop}
 
 | 字段 | 值                                                                                      |
 | ------------------ | ------------------------------------------------------------------------------------------ |
-| **前置条件**   | Open position from the strategy session.                                                   |
-| **操作**         | Stop the strategy with `close_positions_on_stop=True` (default).                           |
-| **事件序列** | Closing order: `OrderInitialized` -> `OrderSubmitted` -> `OrderAccepted` -> `OrderFilled`. |
-| **通过标准**  | Positions closed, or only exact sub-precision residuals remain. No open orders remain.     |
-| **跳过条件**      | Adapter does not support market orders.                                                    |
+| **前置条件**   | 策略会话中有持仓。                                                   |
+| **操作**         | 以 `close_positions_on_stop=True`（默认）停止策略。                           |
+| **事件序列** | 平仓单：`OrderInitialized` -> `OrderSubmitted` -> `OrderAccepted` -> `OrderFilled`。 |
+| **通过标准**  | 持仓已平，或仅残留精确的亚精度余量。无未决订单。     |
+| **跳过条件**      | 适配器不支持市场单。                                                    |
 
-### TC-E83: Unsubscribe on stop
+### TC-E83：停止时退订 {#tc-e83-unsubscribe-on-stop}
 
 | 字段 | 值                                                            |
 | ------------------ | ---------------------------------------------------------------- |
-| **前置条件**   | Active data subscriptions (quotes, trades, book).                |
-| **操作**         | Stop the strategy with `can_unsubscribe=True` (default).         |
-| **事件序列** | Data subscriptions removed.                                      |
-| **通过标准**  | No further data events received after stop. Clean disconnection. |
-| **跳过条件**      | Adapter does not support unsubscribe.                            |
+| **前置条件**   | 有活跃的数据订阅（报价、成交、订单簿）。                |
+| **操作**         | 以 `can_unsubscribe=True`（默认）停止策略。         |
+| **事件序列** | 数据订阅被移除。                                      |
+| **通过标准**  | 停止后不再收到数据事件。干净断开。 |
+| **跳过条件**      | 适配器不支持退订。                            |
 
 **Python 配置**：
 
@@ -1972,151 +1959,144 @@ ExecTesterConfig::builder()
     .build()?
 ```
 
-### TC-E84: Reconcile open orders
+### TC-E84：对账未决订单 {#tc-e84-reconcile-open-orders}
 
 | 字段 | 值                                                                                                                           |
 | ------------------ | ------------------------------------------------------------------------------------------------------------------------------- |
-| **前置条件**   | One or more open limit orders on the venue from a prior session.                                                                |
-| **操作**         | Start the node with `reconciliation=True`.                                                                                      |
-| **事件序列** | `OrderStatusReport` generated for each open order.                                                                              |
-| **通过标准**  | Each open order is loaded into the cache with correct `venue_order_id`, status=ACCEPTED, price, quantity, side, and order type. |
-| **跳过条件**      | Never.                                                                                                                          |
+| **前置条件**   | 交易场所上有先前会话遗留的一个或多个未决限价单。                                                                |
+| **操作**         | 以 `reconciliation=True` 启动节点。                                                                                      |
+| **事件序列** | 每个未决订单生成 `OrderStatusReport`。                                                                              |
+| **通过标准**  | 每个未决订单以正确的 `venue_order_id`、status=ACCEPTED、价格、数量、方向和订单类型载入 cache。 |
+| **跳过条件**      | 从不。                                                                                                                          |
 
 **注意事项**：
 
-- Leave limit orders open from a prior test session (do not cancel on stop).
-- Configure `external_order_instrument_ids` so strategy registration creates the active claim used
-  to assign reconciled orders.
-- Verify that the reconciled order count matches the venue-reported count.
-- Mass-status may include historical terminal orders. Unclaimed ones appear as EXTERNAL.
-  Compare open-order counts against the venue open-order endpoint, not the full mass-status
-  length.
-- Report `ts_event` values must be Unix nanoseconds even when the venue only has second precision.
+- 从先前的测试会话留下未取消的限价单（停止时不取消）。
+- 配置 `external_order_instrument_ids`，让策略注册时建立用于分派对账订单的活跃声明。
+- 验证对账订单数量与交易场所报告的数量一致。
+- 全量状态可能包含历史的终态订单。未被认领的会以 EXTERNAL 出现。未决订单数量要对照
+  交易场所的未决订单端点比较，而不是全量状态的总长度。
+- 即使交易场所只有秒级精度，报告的 `ts_event` 也必须是 Unix 纳秒。
 
-### TC-E85: Reconcile filled orders
+### TC-E85：对账已成交订单 {#tc-e85-reconcile-filled-orders}
 
 | 字段 | 值                                                                                                                               |
 | ------------------ | ----------------------------------------------------------------------------------------------------------------------------------- |
-| **前置条件**   | One or more filled orders on the venue from a prior session.                                                                        |
-| **操作**         | Start the node with `reconciliation=True`.                                                                                          |
-| **事件序列** | `FillReport` generated for each historical fill.                                                                                    |
-| **通过标准**  | Each filled order is loaded into the cache with correct `venue_order_id`, status=FILLED, fill price, fill quantity, and commission. |
-| **跳过条件**      | Never.                                                                                                                              |
+| **前置条件**   | 交易场所上有先前会话成交的一个或多个订单。                                                                        |
+| **操作**         | 以 `reconciliation=True` 启动节点。                                                                                          |
+| **事件序列** | 每笔历史成交生成 `FillReport`。                                                                                    |
+| **通过标准**  | 每个已成交订单以正确的 `venue_order_id`、status=FILLED、成交价、成交量和手续费载入 cache。 |
+| **跳过条件**      | 从不。                                                                                                                              |
 
 **注意事项**：
 
-- Requires orders that filled in a prior session.
-- Verify fill price, quantity, and commission match the venue's reported values.
-- Some adapters may only report fills within a lookback window.
-- Historical fill replay can change a live zero commission to the REST fee. That flip is
-  expected when the stream omits fees and reconciliation supplies them.
-- Report `ts_event` values must be Unix nanoseconds even when the venue only has second precision.
+- 需要先前会话中成交的订单。
+- 验证成交价、数量和手续费与交易场所报告的值一致。
+- 有些适配器只报告回看窗口内的成交。
+- 历史成交回放可能把实时的零手续费改为 REST 手续费。数据流省略费用而对账提供费用时，
+  这一翻转是预期行为。
+- 即使交易场所只有秒级精度，报告的 `ts_event` 也必须是 Unix 纳秒。
 
-### TC-E86: Reconcile open long position
+### TC-E86：对账多头持仓 {#tc-e86-reconcile-open-long-position}
 
 | 字段 | 值                                                                                                        |
 | ------------------ | ------------------------------------------------------------------------------------------------------------ |
-| **前置条件**   | An open long position on the venue from a prior session.                                                     |
-| **操作**         | Start the node with `reconciliation=True`.                                                                   |
-| **事件序列** | `PositionStatusReport` generated for the long position.                                                      |
-| **通过标准**  | Position loaded into cache with correct instrument, side=LONG, quantity, and entry price matching the venue. |
-| **跳过条件**      | Never.                                                                                                       |
+| **前置条件**   | 交易场所上有先前会话遗留的多头持仓。                                                     |
+| **操作**         | 以 `reconciliation=True` 启动节点。                                                                   |
+| **事件序列** | 为多头持仓生成 `PositionStatusReport`。                                                      |
+| **通过标准**  | 持仓载入 cache，金融工具、side=LONG、数量与开仓均价均与交易场所一致。 |
+| **跳过条件**      | 从不。                                                                                                       |
 
 **注意事项**：
 
-- Open a long position in a prior session and stop the strategy without closing it
-  (`close_positions_on_stop=False`).
-- Verify the reconciled position quantity and average entry price match the venue.
-- After reconciliation, the strategy should be able to manage or close this position.
+- 在先前会话开多头，然后不平仓直接停止策略
+  （`close_positions_on_stop=False`）。
+- 验证对账后的持仓数量与开仓均价和交易场所一致。
+- 对账之后，策略应能管理或平掉该持仓。
 
-### TC-E87: Reconcile open short position
+### TC-E87：对账空头持仓 {#tc-e87-reconcile-open-short-position}
 
 | 字段 | 值                                                                                                         |
 | ------------------ | ------------------------------------------------------------------------------------------------------------- |
-| **前置条件**   | An open short position on the venue from a prior session.                                                     |
-| **操作**         | Start the node with `reconciliation=True`.                                                                    |
-| **事件序列** | `PositionStatusReport` generated for the short position.                                                      |
-| **通过标准**  | Position loaded into cache with correct instrument, side=SHORT, quantity, and entry price matching the venue. |
-| **跳过条件**      | Never.                                                                                                        |
+| **前置条件**   | 交易场所上有先前会话遗留的空头持仓。                                                     |
+| **操作**         | 以 `reconciliation=True` 启动节点。                                                                    |
+| **事件序列** | 为空头持仓生成 `PositionStatusReport`。                                                      |
+| **通过标准**  | 持仓载入 cache，金融工具、side=SHORT、数量与开仓均价均与交易场所一致。 |
+| **跳过条件**      | 从不。                                                                                                        |
 
 **注意事项**：
 
-- Open a short position in a prior session and stop the strategy without closing it
-  (`close_positions_on_stop=False`).
-- Verify the reconciled position quantity and average entry price match the venue.
-- After reconciliation, the strategy should be able to manage or close this position.
+- 在先前会话开空头，然后不平仓直接停止策略
+  （`close_positions_on_stop=False`）。
+- 验证对账后的持仓数量与开仓均价和交易场所一致。
+- 对账之后，策略应能管理或平掉该持仓。
 
-### TC-E88: Reconciliation commission failure
+### TC-E88：对账手续费失败 {#tc-e88-reconciliation-commission-failure}
 
 | 字段 | 值                                                                                                           |
 | ------------------ | --------------------------------------------------------------------------------------------------------------- |
-| **前置条件**   | A deterministic fixture produces an out-of-range commission for an owned, confirmed fill.                       |
-| **操作**         | Exercise direct fill, mass-status, targeted report, and inferred-fill commission paths with the fixture.        |
-| **事件序列** | Report requests return an error. Engine reconciliation logs a hook error and emits no fallback inferred fill.   |
-| **通过标准**  | The error is observable. Startup fails or inferred work defers. A later valid response reconciles exactly once. |
-| **跳过条件**      | The adapter does not calculate commission for fill reports.                                                     |
+| **前置条件**   | 确定性 fixture 为已拥有的已确认成交产生越界手续费。                       |
+| **操作**         | 用该 fixture 走直接成交、全量状态、定向报告和推断成交的手续费路径。        |
+| **事件序列** | 报告请求返回错误。引擎对账记录 hook 错误，不发出回退的推断成交。   |
+| **通过标准**  | 错误可观察。启动失败或推断工作被推迟。稍后有效响应恰好对账一次。 |
+| **跳过条件**      | 适配器不为成交报告计算手续费。                                                     |
 
 **注意事项**：
 
-- Assert that no zero or generic commission replaces the failed venue calculation.
-- Exercise the inferred-fill hook as well as direct `FillReport` construction.
-- Skip the inferred-fill portion when the adapter does not override the shared commission hook.
-- Assert that hook quantity, price, and liquidity inputs match the emitted inferred fill. Include the
-  back-solved price of an incremental residual after a prior fill.
-- Valid explicit fills may apply, but the residual quantity and dependent terminal transition stay
-  pending.
-- A position-only synthetic correction without trade evidence is not a commission calculation
-  failure.
+- 断言没有零手续费或通用手续费替换失败的交易场所计算。
+- 除直接构造 `FillReport` 外，也要走推断成交 hook。
+- 适配器不覆盖共享手续费 hook 时，跳过推断成交部分。
+- 断言 hook 的数量、价格与流动性输入与发出的推断成交一致。包含先前成交后增量残差的
+  反推价格。
+- 有效的显式成交可以生效，但残差数量与依赖它的终态转移保持待定。
+- 没有成交证据的仅持仓合成修正不属于手续费计算失败。
 
-### TC-E89: WebSocket commission failure
+### TC-E89：WebSocket 手续费失败 {#tc-e89-websocket-commission-failure}
 
 | 字段 | 值                                                                                                                |
 | ------------------ | -------------------------------------------------------------------------------------------------------------------- |
-| **前置条件**   | A private fill fixture produces an out-of-range commission and has a stable venue trade ID.                          |
-| **操作**         | Deliver the invalid trade, replace its commission with a valid value, then redeliver the same trade ID.              |
-| **事件序列** | The first delivery emits no fill and changes no fill, terminal, or deduplication state. The replay emits one fill.   |
-| **通过标准**  | No panic or fallback occurs. The valid replay applies exactly once. REST reconciliation can recover a missed replay. |
-| **跳过条件**      | The adapter has no private fill stream or does not calculate commission for private fills.                           |
+| **前置条件**   | 私有成交流产生越界手续费，且带稳定的交易场所成交 ID。                          |
+| **操作**         | 投递无效成交，把其手续费换成有效值，再以同一成交 ID 重投。              |
+| **事件序列** | 首次投递不发出成交，也不改动成交、终态或去重状态。重放恰好发出一次成交。   |
+| **通过标准**  | 无 panic、无回退。有效重放恰好生效一次。REST 对账可恢复漏掉的重放。 |
+| **跳过条件**      | 适配器无私有成交流，或不为私有成交计算手续费。                           |
 
 **注意事项**：
 
-- For a venue trade that fills several owned orders, make one report fail. Assert that the first delivery
-  emits none of those reports. This prevents a replay from duplicating reports built before the failure.
-- Assert that the adapter consumes the deduplication key only after all reports construct and route
-  successfully.
-- Assert that a failed trade does not confirm or terminalize its order.
+- 一笔交易场所成交填满多个自有订单时，让其中一个报告失败。断言首次投递这些报告一个
+  都不发出。这可防止重放复制失败之前已构造的报告。
+- 断言适配器只在所有报告构造并路由成功后才消耗去重键。
+- 断言失败的成交不确认、也不终态化其订单。
 
 ---
 
-## Group 10: Options trading
+## 第 10 组：期权交易 {#group-10-options-trading}
 
-Test options-specific execution behavior. Options instruments typically have different constraints from linear
-derivatives: venues may restrict order types, support alternative pricing modes, or disallow conditional
-orders. Exact restrictions vary by venue. Consult the adapter guide.
+测试期权特有的执行行为。期权金融工具通常与线性衍生品有不同的约束：交易场所可能限制订单类型、
+支持替代定价模式，或不允许条件单。具体限制因交易场所而异，参见适配器指南。
 
-These tests require a `CryptoOption` instrument. Use an OTM option with
-reasonable liquidity for fills.
+这些测试需要 `CryptoOption` 金融工具。选一个流动性尚可的虚值期权以便成交。
 
-| TC      | Name                          | Description                                                           | Skip when           |
+| TC | 名称 | 描述 | 跳过条件 |
 | ------- | ----------------------------- | --------------------------------------------------------------------- | ------------------- |
-| TC-E90  | Limit BUY option              | Place a limit buy on an option instrument.                            | No options support. |
-| TC-E91  | Limit SELL option             | Place a limit sell on an option instrument.                           | No options support. |
-| TC-E92  | Limit with alt pricing        | Place a limit order with adapter-specific pricing via `order_params`. | No alt pricing.     |
-| TC-E94  | Unsupported order type denied | Submit an order type the adapter rejects for options.                 | No options support. |
-| TC-E96  | Conditional order rejected    | Submit a stop/conditional order on an option. Expect rejection.       | No options support. |
-| TC-E99  | FOK limit option              | Place a FOK limit order on an option instrument.                      | No FOK options.     |
-| TC-E100 | Cancel option order           | Cancel an open limit order on an option instrument.                   | No options support. |
-| TC-E101 | Reconcile option position     | Reconcile an open option position from a prior session.               | No options support. |
+| TC-E90 | 期权 Limit BUY | 在期权金融工具上挂限价买单。 | 不支持期权 |
+| TC-E91 | 期权 Limit SELL | 在期权金融工具上挂限价卖单。 | 不支持期权 |
+| TC-E92 | 带替代定价的限价单 | 经 `order_params` 用适配器特有定价挂限价单。 | 不支持替代定价 |
+| TC-E94 | 不支持的订单类型被拒绝 | 提交适配器为期权拒绝的订单类型。 | 不支持期权 |
+| TC-E96 | 条件单为期权被拒绝 | 在期权上提交止损/条件单。预期被拒绝。 | 不支持期权 |
+| TC-E99 | 期权 FOK 限价单 | 在期权金融工具上挂 FOK 限价单。 | 期权不支持 FOK |
+| TC-E100 | 取消期权订单 | 取消期权上的未决限价单。 | 不支持期权 |
+| TC-E101 | 对账期权持仓 | 对账先前会话的期权持仓。 | 不支持期权 |
 
-### TC-E90: Limit BUY option
+### TC-E90：期权 Limit BUY {#tc-e90-limit-buy-option}
 
 | 字段 | 值                                                                       |
 | ------------------ | --------------------------------------------------------------------------- |
-| **前置条件**   | Adapter connected, option instrument loaded, quotes flowing.                |
-| **操作**         | ExecTester places a limit buy on the option at a passive price.             |
-| **事件序列** | `OrderInitialized` -> `OrderSubmitted` -> `OrderAccepted`.                  |
-| **通过标准**  | Order accepted by venue with correct instrument, side, price, and quantity. |
-| **跳过条件**      | Adapter does not support options trading.                                   |
+| **前置条件**   | 适配器已连接，期权金融工具已加载，报价正在流入。                |
+| **操作**         | ExecTester 在期权上以被动价格挂限价买单。             |
+| **事件序列** | `OrderInitialized` -> `OrderSubmitted` -> `OrderAccepted`。                  |
+| **通过标准**  | 订单被交易场所确认，金融工具、方向、价格、数量均正确。 |
+| **跳过条件**      | 适配器不支持期权交易。                                   |
 
 **Python 配置**：
 
@@ -2130,15 +2110,15 @@ ExecTesterConfig(
 )
 ```
 
-### TC-E91: Limit SELL option
+### TC-E91：期权 Limit SELL {#tc-e91-limit-sell-option}
 
 | 字段 | 值                                                                       |
 | ------------------ | --------------------------------------------------------------------------- |
-| **前置条件**   | Adapter connected, option instrument loaded, quotes flowing.                |
-| **操作**         | ExecTester places a limit sell on the option at a passive price.            |
-| **事件序列** | `OrderInitialized` -> `OrderSubmitted` -> `OrderAccepted`.                  |
-| **通过标准**  | Order accepted by venue with correct instrument, side, price, and quantity. |
-| **跳过条件**      | Adapter does not support options trading.                                   |
+| **前置条件**   | 适配器已连接，期权金融工具已加载，报价正在流入。                |
+| **操作**         | ExecTester 在期权上以被动价格挂限价卖单。            |
+| **事件序列** | `OrderInitialized` -> `OrderSubmitted` -> `OrderAccepted`。                  |
+| **通过标准**  | 订单被交易场所确认，金融工具、方向、价格、数量均正确。 |
+| **跳过条件**      | 适配器不支持期权交易。                                   |
 
 **Python 配置**：
 
@@ -2152,22 +2132,21 @@ ExecTesterConfig(
 )
 ```
 
-### TC-E92: Limit with alternative pricing
+### TC-E92：带替代定价的限价单 {#tc-e92-limit-with-alternative-pricing}
 
 | 字段 | 值                                                               |
 | ------------------ | ------------------------------------------------------------------- |
-| **前置条件**   | Adapter connected, option instrument loaded.                        |
-| **操作**         | Place limit order with adapter-specific pricing via `order_params`. |
-| **事件序列** | `OrderInitialized` -> `OrderSubmitted` -> `OrderAccepted`.          |
-| **通过标准**  | Order accepted. Venue acknowledges the alternative pricing mode.    |
-| **跳过条件**      | Adapter does not support alternative pricing modes for options.     |
+| **前置条件**   | 适配器已连接，期权金融工具已加载。                        |
+| **操作**         | 经 `order_params` 用适配器特有定价挂限价单。 |
+| **事件序列** | `OrderInitialized` -> `OrderSubmitted` -> `OrderAccepted`。          |
+| **通过标准**  | 订单被确认。交易场所确认了替代定价模式。    |
+| **跳过条件**      | 适配器不支持期权的替代定价模式。     |
 
 **注意事项**：
 
-- The `price` field on the order object may be a placeholder when alternative pricing
-  is active. Consult the adapter guide for supported parameter keys.
-- Example: OKX supports `px_usd` (USD price) and `px_vol` (implied volatility).
-- Verify in venue responses that the pricing mode is reflected correctly.
+- 替代定价生效时，订单对象上的 `price` 字段可能是占位值。支持的参数键参见适配器指南。
+- 例如：OKX 支持 `px_usd`（USD 价格）与 `px_vol`（隐含波动率）。
+- 在交易场所响应中验证定价模式被正确反映。
 
 **Python 配置**：
 
@@ -2181,102 +2160,100 @@ ExecTesterConfig(
 )
 ```
 
-### TC-E94: Unsupported order type denied for options
+### TC-E94：期权不支持的订单类型被拒绝 {#tc-e94-unsupported-order-type-denied-for-options}
 
 | 字段 | 值                                                                                                       |
 | ------------------ | ----------------------------------------------------------------------------------------------------------- |
-| **前置条件**   | Adapter connected, option instrument loaded.                                                                |
-| **操作**         | Submit an order type the venue does not support for options (e.g. market order).                            |
-| **事件序列** | Adapter-dependent: `OrderDenied` (pre-submission) or `OrderSubmitted` -> `OrderRejected` (post-submission). |
-| **通过标准**  | Order does not fill. Denial or rejection reason references the unsupported order type.                      |
-| **跳过条件**      | Adapter does not support options.                                                                           |
+| **前置条件**   | 适配器已连接，期权金融工具已加载。                                                                |
+| **操作**         | 提交交易场所对期权不支持的订单类型（如市场单）。                            |
+| **事件序列** | 依适配器而定：`OrderDenied`（提交前）或 `OrderSubmitted` -> `OrderRejected`（提交后）。 |
+| **通过标准**  | 订单不成交。拒绝或驳回原因提及不支持的订单类型。                      |
+| **跳过条件**      | 适配器不支持期权。                                                                           |
 
 **注意事项**：
 
-- The exact rejection point varies by adapter. Some adapters deny locally before submitting. Others submit and
-  relay the venue rejection.
-- ExecTester can trigger a market order via `open_position_on_start_qty` on an
-  option instrument. Some unsupported types (e.g. `MarketToLimit`) require
-  manual or programmatic submission.
-- Test each unsupported type the adapter documents.
+- 确切的拒绝点因适配器而异。有些适配器在提交前本地拒绝，有些提交后转达交易场所的拒绝。
+- ExecTester 可在期权金融工具上经 `open_position_on_start_qty` 触发市场单。
+  一些不支持的类型（如 `MarketToLimit`）需要手工或编程提交。
+- 对适配器文档中每个不支持的类型都要测试。
 
-### TC-E96: Conditional order rejected for options
+### TC-E96：期权条件单被拒绝 {#tc-e96-conditional-order-rejected-for-options}
 
 | 字段 | 值                                                                                                       |
 | ------------------ | ----------------------------------------------------------------------------------------------------------- |
-| **前置条件**   | Adapter connected, option instrument loaded.                                                                |
-| **操作**         | Submit a conditional order on an option instrument.                                                         |
-| **事件序列** | Adapter-dependent: `OrderDenied` (pre-submission) or `OrderSubmitted` -> `OrderRejected` (post-submission). |
-| **通过标准**  | Order does not fill. Reason references unsupported conditional order type.                                  |
-| **跳过条件**      | Adapter does not support options, or adapter supports conditionals for options.                             |
+| **前置条件**   | 适配器已连接，期权金融工具已加载。                                                                |
+| **操作**         | 在期权金融工具上提交条件单。                                                         |
+| **事件序列** | 依适配器而定：`OrderDenied`（提交前）或 `OrderSubmitted` -> `OrderRejected`（提交后）。 |
+| **通过标准**  | 订单不成交。原因提及不支持条件单类型。                                  |
+| **跳过条件**      | 适配器不支持期权，或适配器为期权支持条件单。                             |
 
 **注意事项**：
 
-- Test each conditional type the adapter documents as unsupported for options
-  (e.g. `STOP_MARKET`, `STOP_LIMIT`, `MARKET_IF_TOUCHED`, `LIMIT_IF_TOUCHED`,
-  `TRAILING_STOP_MARKET`).
-- ExecTester can trigger conditional orders via `enable_stop_buys`/`enable_stop_sells`
-  with `stop_order_type` on an option instrument.
+- 对适配器文档中每个为期权不支持的条件类型都要测试
+  （如 `STOP_MARKET`、`STOP_LIMIT`、`MARKET_IF_TOUCHED`、`LIMIT_IF_TOUCHED`、
+  `TRAILING_STOP_MARKET`）。
+- ExecTester 可在期权金融工具上经 `enable_stop_buys`/`enable_stop_sells`
+  配合 `stop_order_type` 触发条件单。
 
-### TC-E99: FOK limit option
+### TC-E99：期权 FOK 限价单 {#tc-e99-fok-limit-option}
 
 | 字段 | 值                                                                                          |
 | ------------------ | ---------------------------------------------------------------------------------------------- |
-| **前置条件**   | Adapter connected, option instrument loaded, sufficient book depth.                            |
-| **操作**         | Place a limit order with `TimeInForce::Fok` on an option instrument.                           |
-| **事件序列** | `OrderInitialized` -> `OrderSubmitted` -> `OrderAccepted` -> `OrderFilled` or `OrderCanceled`. |
-| **通过标准**  | Order fills completely or is canceled. No partial fills.                                       |
-| **跳过条件**      | Adapter does not support FOK for options.                                                      |
+| **前置条件**   | 适配器已连接，期权金融工具已加载，盘口深度充足。                            |
+| **操作**         | 在期权金融工具上挂 `TimeInForce::Fok` 限价单。                           |
+| **事件序列** | `OrderInitialized` -> `OrderSubmitted` -> `OrderAccepted` -> `OrderFilled` 或 `OrderCanceled`。 |
+| **通过标准**  | 订单全部成交或被取消。无部分成交。                                       |
+| **跳过条件**      | 期权不支持 FOK。                                                      |
 
 **注意事项**：
 
-- Some venues use a dedicated order type for options FOK orders (e.g. OKX uses
-  `op_fok`). The adapter handles this mapping transparently.
-- Use small quantities and aggressive pricing to get a fill for the positive case.
+- 有些交易场所为期权 FOK 订单使用专门的订单类型（如 OKX 用
+  `op_fok`）。适配器透明处理这一映射。
+- 正向用例要用小数量加激进定价来获得成交。
 
-### TC-E100: Cancel option order
+### TC-E100：取消期权订单 {#tc-e100-cancel-option-order}
 
 | 字段 | 值                                                          |
 | ------------------ | -------------------------------------------------------------- |
-| **前置条件**   | Open limit order from TC-E90 or TC-E91.                        |
-| **操作**         | Cancel the open limit order.                                   |
-| **事件序列** | `OrderPendingCancel` -> `OrderCanceled`.                       |
-| **通过标准**  | Order canceled. No longer appears in open orders on the venue. |
-| **跳过条件**      | Adapter does not support options.                              |
+| **前置条件**   | 来自 TC-E90 或 TC-E91 的未决限价单。                        |
+| **操作**         | 取消该未决限价单。                                   |
+| **事件序列** | `OrderPendingCancel` -> `OrderCanceled`。                       |
+| **通过标准**  | 订单被取消。不再出现在交易场所的未决订单中。 |
+| **跳过条件**      | 适配器不支持期权。                              |
 
-### TC-E101: Reconcile option position
+### TC-E101：对账期权持仓 {#tc-e101-reconcile-option-position}
 
 | 字段 | 值                                                                                |
 | ------------------ | ------------------------------------------------------------------------------------ |
-| **前置条件**   | Open option position from a prior session.                                           |
-| **操作**         | Start the node with `reconciliation=True`.                                           |
-| **事件序列** | `PositionStatusReport` generated for the option position.                            |
-| **通过标准**  | Position loaded into cache with correct instrument, side, quantity, and entry price. |
-| **跳过条件**      | Adapter does not support options.                                                    |
+| **前置条件**   | 先前会话的期权持仓。                                           |
+| **操作**         | 以 `reconciliation=True` 启动节点。                                           |
+| **事件序列** | 为期权持仓生成 `PositionStatusReport`。                            |
+| **通过标准**  | 持仓载入 cache，金融工具、方向、数量与开仓均价均正确。 |
+| **跳过条件**      | 适配器不支持期权。                                                    |
 
 **注意事项**：
 
-- Open an option position in a prior session and stop without closing
-  (`close_positions_on_stop=False`).
-- Verify the reconciled position matches the venue-reported state.
+- 在先前会话开期权持仓，然后不平仓直接停止
+  （`close_positions_on_stop=False`）。
+- 验证对账后的持仓与交易场所报告的状态一致。
 
 ---
 
-## ExecTester configuration reference
+## ExecTester 配置参考 {#exectester-configuration-reference}
 
-Quick reference for each Python `ExecTesterConfig` parameter. Defaults are resolved values after construction.
-The Rust builder uses equivalent defaults.
+Python `ExecTesterConfig` 各参数的快速参考。默认值是构造后解析得到的值。
+Rust builder 使用等价的默认值。
 
-| Parameter                                       | Type                  | Default                | Affects groups |
+| 参数 | 类型 | 默认值 | 影响分组 |
 | ----------------------------------------------- | --------------------- | ---------------------- | -------------- |
-| `strategy_id`                                   | `StrategyId?`         | `None`                 | All            |
-| `order_id_tag`                                  | `str?`                | `None`                 | All            |
-| `use_hyphens_in_client_order_ids`               | `bool`                | `True`                 | All            |
-| `use_uuid_client_order_ids`                     | `bool`                | `False`                | All            |
+| `strategy_id`                                   | `StrategyId?`         | `None`                 | 全部            |
+| `order_id_tag`                                  | `str?`                | `None`                 | 全部            |
+| `use_hyphens_in_client_order_ids`               | `bool`                | `True`                 | 全部            |
+| `use_uuid_client_order_ids`                     | `bool`                | `False`                | 全部            |
 | `external_order_instrument_ids`                 | `list[InstrumentId]?` | `None`                 | 9              |
-| `instrument_id`                                 | `InstrumentId`        | `BTCUSDT-PERP.BINANCE` | All            |
-| `client_id`                                     | `ClientId?`           | `None`                 | All            |
-| `order_qty`                                     | `Quantity`            | `0.001`                | All            |
+| `instrument_id`                                 | `InstrumentId`        | `BTCUSDT-PERP.BINANCE` | 全部            |
+| `client_id`                                     | `ClientId?`           | `None`                 | 全部            |
+| `order_qty`                                     | `Quantity`            | `0.001`                | 全部            |
 | `order_display_qty`                             | `Quantity?`           | `None`                 | 2, 7           |
 | `order_expire_time_delta_mins`                  | `PositiveInt?`        | `None`                 | 2              |
 | `order_params`                                  | `dict?`               | `None`                 | 7, 10          |
@@ -2330,5 +2307,5 @@ The Rust builder uses equivalent defaults.
 | `test_modify_rejected`                          | `bool`                | `False`                | 4              |
 | `can_unsubscribe`                               | `bool`                | `True`                 | 9              |
 | `clamp_to_instrument_price_range`               | `bool`                | `False`                | 1-8, 10        |
-| `log_events`                                    | `bool`                | `True`                 | All            |
-| `log_commands`                                  | `bool`                | `True`                 | All            |
+| `log_events`                                    | `bool`                | `True`                 | 全部            |
+| `log_commands`                                  | `bool`                | `True`                 | 全部            |

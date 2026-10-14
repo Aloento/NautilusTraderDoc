@@ -1,52 +1,41 @@
 # dYdX
 
-dYdX is one of the largest decentralized cryptocurrency exchanges for crypto derivative products.
-This integration supports live market data ingestion and order execution with dYdX v4, running on
-its own Cosmos SDK application-specific blockchain (dYdX Chain) with CometBFT consensus. The order
-book and matching engine run on-chain as part of the validator process. Orders are submitted as
-Cosmos transactions via gRPC and settled each block. An Indexer service exposes REST and WebSocket
-APIs for market data and account state.
+dYdX 是最大的去中心化加密货币交易所之一，主打加密货币衍生品。本集成支持基于 dYdX v4 的实时行情接入与订单执行。dYdX v4 运行在自己的 Cosmos SDK 应用链（dYdX Chain）上，采用 CometBFT 共识。订单簿与撮合引擎作为验证者进程的一部分运行在链上。订单通过 gRPC 以 Cosmos 交易提交，每个区块结算一次。Indexer 服务为行情数据和账户状态提供 REST 与 WebSocket API。
 
-## Installation
+## 安装 {#installation}
 
 :::note
-No additional installation extras are required. The adapter is implemented in Rust and
-compiled into the core `nautilus_trader` package automatically during the build.
+无需额外的安装选项。适配器以 Rust 实现，构建时自动编译进核心 `nautilus_trader` 包。
 :::
 
-## Examples
+## 示例 {#examples}
 
-- [Python examples](https://github.com/nautechsystems/nautilus_trader/tree/develop/examples/live/dydx/)
-- [Rust examples](https://github.com/nautechsystems/nautilus_trader/tree/develop/crates/adapters/dydx/examples/)
+- [Python 示例](https://github.com/nautechsystems/nautilus_trader/tree/develop/examples/live/dydx/)
+- [Rust 示例](https://github.com/nautechsystems/nautilus_trader/tree/develop/crates/adapters/dydx/examples/)
 
-## Overview
+## 概览 {#overview}
 
-This adapter is implemented in Rust with Python bindings via PyO3. It provides direct integration
-with dYdX's Indexer API (REST/WebSocket) for market data and gRPC for Cosmos SDK transaction
-submission, without requiring external client libraries.
+适配器以 Rust 实现，通过 PyO3 提供 Python 绑定。它直接对接 dYdX 的 Indexer API（REST/WebSocket）获取行情，通过 gRPC 提交 Cosmos SDK 交易，不依赖外部客户端库。
 
-### Product support
+### 产品支持 {#product-support}
 
-| Product Type      | Data Feed | Trading | Notes                                                      |
-| ----------------- | --------- | ------- | ---------------------------------------------------------- |
-| Perpetual Futures | ✓         | ✓       | All perpetuals are USDC-settled.                           |
-| Spot              | -         | -       | dYdX offers spot on Solana; not supported by this adapter. |
-| Options           | -         | -       | *Not available on dYdX*.                                   |
+| 产品类型     | 数据源 | 交易 | 说明                                                       |
+| ------------ | ------ | ---- | ---------------------------------------------------------- |
+| 永续期货     | ✓      | ✓    | 所有永续合约均以 USDC 结算。                               |
+| 现货         | -      | -    | dYdX 的现货在 Solana 上；本适配器不支持。                  |
+| 期权         | -      | -    | *dYdX 不提供*。                                            |
 
 :::note
-This adapter supports perpetual futures only. All markets are quoted in USD and settled in USDC.
+本适配器只支持永续期货。所有市场以 USD 计价、以 USDC 结算。
 :::
 
-## Chain architecture
+## 链架构 {#chain-architecture}
 
-Unlike centralized exchanges (CEXs) that expose a single REST/WebSocket API, dYdX v4 runs on its
-own **Cosmos SDK application-specific blockchain**. This means every trade is a Cosmos transaction
-that goes through consensus, and the adapter must manage sequences, gas, and block-height-based
-expiration.
+与暴露单一 REST/WebSocket API 的中心化交易所（CEX）不同，dYdX v4 运行在自己的 **Cosmos SDK 应用链**上。这意味着每笔交易都是走共识的 Cosmos 交易，适配器必须管理序列号（sequence）、gas 和基于区块高度的过期。
 
-### Transport layers
+### 传输层 {#transport-layers}
 
-The adapter communicates through three independent transport layers:
+适配器通过三个相互独立的传输层通信：
 
 ```
                          ┌─────────────────────────────────────────────┐
@@ -65,89 +54,78 @@ The adapter communicates through three independent transport layers:
                          └─────────────────────────────────────────────┘
 ```
 
-| Layer     | Target    | Direction | Purpose                                              |
-| --------- | --------- | --------- | ---------------------------------------------------- |
-| HTTP      | Indexer   | Read-only | Instrument metadata, historical data, account state. |
-| WebSocket | Indexer   | Read-only | Real-time market data, order/fill/position updates.  |
-| gRPC      | Validator | Write     | Order placement, cancellation, and batch operations. |
+| 层级      | 目标      | 方向   | 用途                                               |
+| --------- | --------- | ------ | -------------------------------------------------- |
+| HTTP      | Indexer   | 只读   | 工具元数据、历史数据、账户状态。                   |
+| WebSocket | Indexer   | 只读   | 实时行情、订单/成交/持仓更新。                     |
+| gRPC      | Validator | 写入   | 下单、撤单与批量操作。                             |
 
-### Block-based settlement
+### 按区块结算 {#block-based-settlement}
 
-Trades settle on block commit, and short-term orders expire by block height rather than wall-clock time. The
-adapter tracks WebSocket block heights and timestamps over a rolling 100-block window. It estimates
-`seconds_per_block` from this window. Then it uses the estimate to convert time-based order expiry into
-block-height offsets.
+交易在区块提交时结算，短期订单按区块高度而非挂钟时间过期。适配器在滚动 100 个区块的窗口内跟踪 WebSocket 的区块高度与时间戳，据此估算 `seconds_per_block`，再用该估算把基于时间的订单过期换算为区块高度偏移。
 
-Until five block samples have been collected, the estimate falls back to **500 ms** per block. Observed
-mainnet block times are closer to one second. Thus, the fallback understates the short-term window. It routes
-borderline orders to the long-term path rather than the reverse.
+样本不足五个区块时，估算回退到每块 **500 毫秒**。主网实测的出块时间更接近一秒，因此回退值会低估短期窗口——结果是边缘订单被路由到长期路径，而不是相反。
 
-## Architecture
+## 架构 {#architecture}
 
-The dYdX v4 adapter includes multiple components which can be used together or separately:
+dYdX v4 适配器包含多个组件，可组合使用也可单独使用：
 
-- `DydxHttpClient`: HTTP client for Indexer REST API queries.
-- `DydxWebSocketClient`: WebSocket client for Rust callers.
-- `DydxGrpcClient`: gRPC client for Cosmos SDK transaction submission.
-- `InstrumentCache`: Instrument parsing and loading, shared by the HTTP, WebSocket, and execution clients.
-- `DydxDataClient`: Market data feed manager.
-- `DydxExecutionClient`: Account management and trade execution gateway.
-- `DydxDataClientFactory`: Factory for dYdX v4 data clients (used by the trading node builder).
-- `DydxExecutionClientFactory`: Factory for dYdX v4 execution clients (used by the trading node builder).
+- `DydxHttpClient`：Indexer REST API 查询的 HTTP 客户端。
+- `DydxWebSocketClient`：供 Rust 调用方使用的 WebSocket 客户端。
+- `DydxGrpcClient`：提交 Cosmos SDK 交易的 gRPC 客户端。
+- `InstrumentCache`：工具解析与加载，HTTP、WebSocket 和执行客户端共用。
+- `DydxDataClient`：行情数据源管理器。
+- `DydxExecutionClient`：账户管理与交易执行网关。
+- `DydxDataClientFactory`：dYdX v4 数据客户端工厂（交易节点 builder 使用）。
+- `DydxExecutionClientFactory`：dYdX v4 执行客户端工厂（交易节点 builder 使用）。
 
 :::note
-Most users configure a live trading node as shown below. They do not need to use these lower-level components
-directly.
+多数用户按下文配置实时交易节点即可，不需要直接使用这些底层组件。
 :::
 
-:::warning[First-time account activation]
-A dYdX v4 trading account (sub-account 0) is created only after the wallet's first deposit or trade.
-Until then, gRPC and Indexer account queries return not-found, so `DydxExecutionClient.connect()`
-fails while initializing the transaction sequence.
+:::warning[首次账户激活]
+dYdX v4 交易账户（子账户 0）要等钱包首次入金或首笔交易之后才会创建。在此之前，gRPC 和 Indexer 的账户查询都返回 not-found，`DydxExecutionClient.connect()` 会在初始化交易序列号时失败。
 
-Before starting a `LiveNode`, send any positive amount of USDC or other supported collateral
-from the same wallet on the same network (mainnet/testnet). Once the transaction has finalized
-(a few blocks), restart the node and the client will connect cleanly.
+启动 `LiveNode` 之前，先用同一网络（主网/测试网）上的同一钱包发送任意正数 USDC 或其他支持的抵押品。交易确认（几个区块）后重启节点，客户端即可正常连接。
 :::
 
-## Troubleshooting
+## 故障排查 {#troubleshooting}
 
-### gRPC `NotFound` on connect
+### 连接时 gRPC `NotFound` {#grpc-notfound-on-connect}
 
-**Cause**: The wallet/sub-account has never been funded and therefore does not yet exist on-chain.
+**原因**：钱包/子账户从未入金，链上还不存在。
 
-**Fix**:
+**解决办法**：
 
-1. Deposit any positive amount of USDC to sub-account 0 on the correct network.
-2. Wait for finality (roughly 30 seconds on mainnet, longer on testnet).
-3. Restart the `LiveNode`. The connection should now succeed.
+1. 向正确网络的子账户 0 存入任意正数 USDC。
+2. 等待确认（主网约 30 秒，测试网更久）。
+3. 重启 `LiveNode`，连接应当成功。
 
 :::tip
-In unattended deployments, wrap the `connect()` call in an exponential-backoff loop so the
-client retries until the deposit appears.
+无人值守的部署中，把 `connect()` 包进指数退避循环，让客户端重试直到入金出现。
 :::
 
-## Symbology
+## 代码体系 {#symbology}
 
-dYdX uses specific symbol conventions for perpetual futures contracts.
+dYdX 对永续期货合约使用特定代码约定。
 
-### Symbol format
+### 代码格式 {#symbol-format}
 
-Format: `{Base}-USD-PERP`
+格式：`{Base}-USD-PERP`
 
-All perpetuals on dYdX are:
+dYdX 上所有永续合约都是：
 
-- Quoted in USD
-- Settled in USDC
-- Use the `.DYDX` venue suffix in Nautilus
+- 以 USD 计价
+- 以 USDC 结算
+- 在 Nautilus 中使用 `.DYDX` 场所后缀
 
-Examples:
+例如：
 
-- `BTC-USD-PERP.DYDX` - Bitcoin perpetual futures
-- `ETH-USD-PERP.DYDX` - Ethereum perpetual futures
-- `SOL-USD-PERP.DYDX` - Solana perpetual futures
+- `BTC-USD-PERP.DYDX` - 比特币永续期货
+- `ETH-USD-PERP.DYDX` - 以太坊永续期货
+- `SOL-USD-PERP.DYDX` - Solana 永续期货
 
-To subscribe in your strategy:
+在策略中订阅：
 
 ```python
 InstrumentId.from_str("BTC-USD-PERP.DYDX")
@@ -155,690 +133,228 @@ InstrumentId.from_str("ETH-USD-PERP.DYDX")
 ```
 
 :::info
-The dYdX Indexer ticker for a perpetual is `{Base}-USD` (for example `BTC-USD`). The adapter appends
-the `-PERP` suffix for consistency with other adapters and to leave room for other product types.
+dYdX Indexer 对永续合约的 ticker 是 `{Base}-USD`（如 `BTC-USD`）。适配器追加 `-PERP` 后缀，与其他适配器保持一致，也为未来其他产品类型留出空间。
 :::
 
-## Orders capability
+## 订单能力 {#orders-capability}
 
-dYdX supports perpetual futures trading with a full set of order types and execution
-features. The adapter automatically classifies each order as short-term, long-term, or conditional
-from its type, time-in-force, and expiry, so no manual tagging is needed.
+dYdX 支持一整套订单类型与执行特性。适配器根据订单类型、时效和过期时间，自动把每笔订单归类为短期、长期或有条件（conditional），无需手动标记。
 
-### Order types
+### 订单类型 {#order-types}
 
-| Order Type             | Perpetuals | Notes                                              |
-| ---------------------- | ---------- | -------------------------------------------------- |
-| `MARKET`               | ✓          | Immediate execution at best available price.       |
-| `LIMIT`                | ✓          |                                                    |
-| `STOP_MARKET`          | ✓          | Stop-loss conditional order, always stateful.      |
-| `STOP_LIMIT`           | ✓          | Conditional order, always stateful.                |
-| `MARKET_IF_TOUCHED`    | ✓          | Take-profit market order, triggers on price touch. |
-| `LIMIT_IF_TOUCHED`     | ✓          | Take-profit limit order, triggers on price touch.  |
-| `TRAILING_STOP_MARKET` | -          | *Not supported*.                                   |
-| `TRAILING_STOP_LIMIT`  | -          | *Not supported*.                                   |
+| 订单类型               | 永续合约 | 说明                                               |
+| ---------------------- | -------- | -------------------------------------------------- |
+| `MARKET`               | ✓        | 以当前最优价立即执行。                             |
+| `LIMIT`                | ✓        |                                                    |
+| `STOP_MARKET`          | ✓        | 止损条件单，始终为 stateful。                      |
+| `STOP_LIMIT`           | ✓        | 条件单，始终为 stateful。                          |
+| `MARKET_IF_TOUCHED`    | ✓        | 触及价格触发的止盈市价单。                         |
+| `LIMIT_IF_TOUCHED`     | ✓        | 触及价格触发的止盈限价单。                         |
+| `TRAILING_STOP_MARKET` | -        | *不支持*。                                         |
+| `TRAILING_STOP_LIMIT`  | -        | *不支持*。                                         |
 
-### Execution instructions
+### 执行指令 {#execution-instructions}
 
-| Instruction   | Perpetuals | Notes                                                                                                                                                                                          |
-| ------------- | ---------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `post_only`   | ✓          | Supported on LIMIT, STOP_LIMIT, and LIMIT_IF_TOUCHED orders. A post-only order priced to cross the spread is **accepted then immediately canceled** by the venue (not rejected with a reason). |
-| `reduce_only` | ✓          | Accepted by the chain **only on orders that execute immediately** (IOC). Anything else is rejected on-chain with `code=9003`, `Reduce-only is currently disabled for non-IOC orders`.          |
+| 指令          | 永续合约 | 说明                                                                                                                                                                                             |
+| ------------- | -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `post_only`   | ✓        | 支持 LIMIT、STOP_LIMIT 和 LIMIT_IF_TOUCHED 订单。post-only 订单若定价会穿越价差，会被交易场所**先接受再立即撤销**（不是带原因的拒绝）。                                                          |
+| `reduce_only` | ✓        | 链上**只接受立即可执行的订单（IOC）**带该标志。其他情况链上以 `code=9003` 拒绝：`Reduce-only is currently disabled for non-IOC orders`。                                                          |
 
-How the adapter handles the flag depends on the order type:
+适配器对该标志的处理因订单类型而异：
 
-| Order type                                | `reduce_only` behavior                                                         |
-| ----------------------------------------- | ------------------------------------------------------------------------------ |
-| `MARKET`                                  | Forwarded as an IOC order.                                                     |
-| `LIMIT`, `STOP_LIMIT`, `LIMIT_IF_TOUCHED` | Forwarded with your time in force. Use `IOC` or the chain rejects it.          |
-| `STOP_MARKET`, `MARKET_IF_TOUCHED`        | Forwarded, but these carry no time in force, so the chain always rejects them. |
+| 订单类型                                  | `reduce_only` 行为                                                              |
+| ----------------------------------------- | ------------------------------------------------------------------------------- |
+| `MARKET`                                  | 作为 IOC 订单转发。                                                             |
+| `LIMIT`、`STOP_LIMIT`、`LIMIT_IF_TOUCHED` | 按你的时效转发。必须用 `IOC`，否则链会拒绝。                                    |
+| `STOP_MARKET`、`MARKET_IF_TOUCHED`        | 会转发，但这两类没有时效，链总是拒绝。                                          |
 
-Set `reduce_only` on market orders or use it with `IOC` on the supported limit order types.
+市价单直接设 `reduce_only`；支持的限价类订单要搭配 `IOC` 使用。
 
-### Time in force options
+### 时效选项 {#time-in-force-options}
 
-| Time in force | Perpetuals | Notes                                                                                                                                                                |
-| ------------- | ---------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `GTC`         | ✓          | Good Till Canceled.                                                                                                                                                  |
-| `GTD`         | ✓          | Good Till Date. The venue reports expiry as a cancel event; the adapter maps this to `OrderExpired` (not `OrderCanceled`) when the order's `expire_time` has passed. |
-| `IOC`         | ✓          | Immediate or Cancel.                                                                                                                                                 |
-| `FOK`         | -          | *Deprecated by dYdX v4*. The chain rejects FOK orders with `code=48`; the adapter generates `OrderDenied` locally and does not broadcast.                            |
-| `DAY`         | -          | *Not supported*. The adapter generates `OrderDenied` locally and does not broadcast.                                                                                 |
+| 时效          | 永续合约 | 说明                                                                                                                                                                   |
+| ------------- | -------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `GTC`         | ✓        | 撤销前有效（Good Till Canceled）。                                                                                                                                     |
+| `GTD`         | ✓        | 到期前有效（Good Till Date）。场所把过期上报为撤销事件；订单 `expire_time` 已过时，适配器把它映射为 `OrderExpired`（而非 `OrderCanceled`）。                          |
+| `IOC`         | ✓        | 立即成交否则撤销（Immediate or Cancel）。                                                                                                                              |
+| `FOK`         | -        | *已被 dYdX v4 弃用*。链以 `code=48` 拒绝 FOK 订单；适配器在本地生成 `OrderDenied`，不广播。                                                                            |
+| `DAY`         | -        | *不支持*。适配器在本地生成 `OrderDenied`，不广播。                                                                                                                     |
 
-### Advanced order features
+### 高级订单特性 {#advanced-order-features}
 
-| Feature            | Perpetuals | Notes                                                                                                                                                                                     |
-| ------------------ | ---------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Order modification | -          | Not supported. dYdX supports short-term order [replacement](https://docs.dydx.xyz/concepts/trading/limit-orderbook#replacements) (same ID, higher GTB); not yet exposed as `ModifyOrder`. |
-| Bracket/OCO orders | -          | *Not supported*.                                                                                                                                                                          |
-| Iceberg orders     | -          | *Not supported*.                                                                                                                                                                          |
+| 特性             | 永续合约 | 说明                                                                                                                                                                                       |
+| ---------------- | -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| 订单修改         | -        | 不支持。dYdX 支持短期订单[替换](https://docs.dydx.xyz/concepts/trading/limit-orderbook#replacements)（同 ID、更高 GTB）；尚未以 `ModifyOrder` 暴露。                                       |
+| 括号/OCO 订单    | -        | *不支持*。                                                                                                                                                                                   |
+| 冰山订单         | -        | *不支持*。                                                                                                                                                                                   |
 
-### Batch operations
+### 批量操作 {#batch-operations}
 
-| Operation    | Perpetuals | Notes                                                                                                                  |
-| ------------ | ---------- | ---------------------------------------------------------------------------------------------------------------------- |
-| Batch submit | ✓          | Supported for long-term `LIMIT` orders. Short-term orders are submitted individually.                                  |
-| Batch modify | -          | *Not supported*.                                                                                                       |
-| Batch cancel | ✓          | Partitioned: short-term orders use `MsgBatchCancel` (single gRPC call), long-term orders use batched `MsgCancelOrder`. |
+| 操作     | 永续合约 | 说明                                                                                                                   |
+| -------- | -------- | ---------------------------------------------------------------------------------------------------------------------- |
+| 批量下单 | ✓        | 支持长期 `LIMIT` 订单。短期订单逐个提交。                                                                              |
+| 批量修改 | -        | *不支持*。                                                                                                             |
+| 批量撤单 | ✓        | 按生命周期分组：短期订单用 `MsgBatchCancel`（一次 gRPC 调用），长期订单用批量 `MsgCancelOrder`。                       |
 
-### Position management
+### 持仓管理 {#position-management}
 
-| Feature          | Perpetuals | Notes                                                           |
-| ---------------- | ---------- | --------------------------------------------------------------- |
-| Query positions  | ✓          | Real-time position updates.                                     |
-| Position mode    | -          | Netting only (see below).                                       |
-| Leverage control | -          | Set by each market's margin fractions; no per-account override. |
-| Margin mode      | -          | Cross margin only.                                              |
+| 特性         | 永续合约 | 说明                                                          |
+| ------------ | -------- | ------------------------------------------------------------- |
+| 查询持仓     | ✓        | 实时持仓更新。                                                |
+| 持仓模式     | -        | 仅净额结算（见下）。                                          |
+| 杠杆控制     | -        | 由各市场的保证金比例决定，无账户级覆盖。                      |
+| 保证金模式   | -        | 仅全仓（cross margin）。                                      |
 
 :::note
-dYdX nets positions (one position per instrument) at the venue level, so the adapter operates in
-`NETTING` mode only.
+dYdX 在场所层面对持仓做净额结算（每个工具一个持仓），因此适配器只以 `NETTING` 模式运行。
 :::
 
-### Order querying
+### 订单查询 {#order-querying}
 
-| Feature              | Perpetuals | Notes                          |
-| -------------------- | ---------- | ------------------------------ |
-| Query open orders    | ✓          | List all active orders.        |
-| Query order history  | ✓          | Historical order data.         |
-| Order status updates | ✓          | Real-time order state changes. |
-| Trade history        | ✓          | Execution and fill reports.    |
+| 特性             | 永续合约 | 说明                         |
+| ---------------- | -------- | ---------------------------- |
+| 查询挂单         | ✓        | 列出全部活动订单。           |
+| 查询订单历史     | ✓        | 历史订单数据。               |
+| 订单状态更新     | ✓        | 实时订单状态变更。           |
+| 成交历史         | ✓        | 执行与成交报告。             |
 
-### Contingent orders
+### 或有订单 {#contingent-orders}
 
-| Feature            | Perpetuals | Notes                                            |
-| ------------------ | ---------- | ------------------------------------------------ |
-| Order lists        | -          | *Not supported*.                                 |
-| OCO orders         | -          | *Not supported*.                                 |
-| Bracket orders     | -          | *Not supported*.                                 |
-| Conditional orders | ✓          | Stop, take-profit market, and take-profit limit. |
+| 特性         | 永续合约 | 说明                                             |
+| ------------ | -------- | ------------------------------------------------ |
+| 订单列表     | -        | *不支持*。                                       |
+| OCO 订单     | -        | *不支持*。                                       |
+| 括号订单     | -        | *不支持*。                                       |
+| 条件订单     | ✓        | 止损、止盈市价、止盈限价。                       |
 
-### Equity tier limit
+### 权益层级限额 {#equity-tier-limit}
 
-dYdX caps how many **stateful orders** (long-term and conditional) a subaccount may hold open at
-once, based on the subaccount's net collateral. Short-term orders are exempt from the cap.
-Submitting past the cap is rejected on-chain with `code=10001` and a log message of the form
-`Opening order would exceed equity tier limit of N`. Cancel existing stateful orders before placing
-more, or split strategies across subaccounts.
+dYdX 按子账户净抵押品限额其可持有的**stateful 订单**（长期与条件）数量上限，短期订单不受限。超限提交会被链以 `code=10001` 拒绝，日志形如 `Opening order would exceed equity tier limit of N`。请先撤销已有的 stateful 订单再下单，或把策略拆分到多个子账户。
 
-| Net collateral      | Maximum open stateful orders |
-| ------------------- | ---------------------------- |
-| Under $20           | 0                            |
-| $20 to $100         | 10                           |
-| $100 to $1,000      | 20                           |
-| $1,000 to $10,000   | 40                           |
-| $10,000 to $100,000 | 100                          |
-| $100,000 and above  | 200                          |
+| 净抵押品            | 最大在持 stateful 订单 |
+| ------------------- | ---------------------- |
+| 低于 $20            | 0                      |
+| $20 至 $100         | 10                     |
+| $100 至 $1,000      | 20                     |
+| $1,000 至 $10,000   | 40                     |
+| $10,000 至 $100,000 | 100                    |
+| $100,000 及以上     | 200                    |
 
-The tiers are governance-adjustable. Query the live values from a node's
-`/dydxprotocol/clob/equity_tier` endpoint, or see
-[equity tier limits](https://docs.dydx.xyz/concepts/trading/limits/equity-tier-limits).
+层级可由治理调整。实时值可查询节点的 `/dydxprotocol/clob/equity_tier` 端点，或见
+[权益层级限额](https://docs.dydx.xyz/concepts/trading/limits/equity-tier-limits)。
 
-### MIT and LIT round-tripping
+### MIT 与 LIT 的往返转换 {#mit-and-lit-round-tripping}
 
-dYdX's protocol uses a single `TAKE_PROFIT` order type with a price (`subticks`) and trigger price. Whether it
-behaves as market-on-trigger or limit-on-trigger is implicit in the price. The adapter submits Nautilus
-`MARKET_IF_TOUCHED` as a take-profit with the price set to the 5% pay-through worst-case, and
-`LIMIT_IF_TOUCHED` as a take-profit at the user's limit price. Both forms are returned by the Indexer as
-`"type":"TAKE_PROFIT"`.
+dYdX 协议用单一的 `TAKE_PROFIT` 订单类型，带价格（`subticks`）和触发价。它表现为"触发即市价"还是"触发即限价"隐含在价格里。适配器把 Nautilus 的 `MARKET_IF_TOUCHED` 提交为价格设为 5% 穿透最坏价的止盈单，把 `LIMIT_IF_TOUCHED` 提交为用户限价的止盈单。两种形式在 Indexer 返回时都是 `"type":"TAKE_PROFIT"`。
 
-On reconciliation, the adapter recovers the original Nautilus order type from how far the reported price sits
-from the trigger price. A drift of **2% or more** means the price came from the 5% pay-through buffer. Thus,
-the order is reconciled as `MARKET_IF_TOUCHED`. Anything closer is treated as a user-chosen limit and
-reconciled as `LIMIT_IF_TOUCHED`. The 2% threshold separates the pay-through band from typical take-profit
-limit offsets, which sit well under 1%.
+对账时，适配器按上报价格偏离触发价的幅度还原原始 Nautilus 订单类型：偏差**达到 2% 或以上**说明价格来自 5% 穿透缓冲，订单按 `MARKET_IF_TOUCHED` 对账；更近的按用户自选限价处理，对账为 `LIMIT_IF_TOUCHED`。2% 阈值能把穿透区间与通常的止盈限价偏移（远低于 1%）分开。
 
-### Liquidation and ADL (deleveraging) handling
+### 清算与 ADL（自动减仓）处理 {#liquidation-and-adl-deleveraging-handling}
 
-dYdX v4 applies two sequential risk mechanisms:
+dYdX v4 按顺序使用两层风险机制：
 
-1. **Liquidation** runs when an account drops below its maintenance margin.
-   Positions close against the insurance fund within a bounded spread from the
-   oracle price.
-2. **Deleveraging (ADL)** activates when either liquidation cannot fully
-   restore collateralisation, or when a large oracle jump drives an account
-   negative in a single step. Deleveraging closes the undercollateralised
-   position against randomly selected offsetting accounts.
+1. **清算（Liquidation）**：账户跌破维持保证金时启动。持仓在距预言机价格有界价差内与保险基金对敲平仓。
+2. **自动减仓（ADL）**：清算无法完全恢复偿付能力，或预言机价格大幅跳空使账户单步穿仓时启动。ADL 让资不抵债的持仓与随机挑选的对手方账户对敲平仓。
 
-The Indexer exposes the classification via the `type` field on each `Fill` record:
+Indexer 通过每条 `Fill` 记录的 `type` 字段暴露分类：
 
-| `type`        | Meaning                                            |
-| ------------- | -------------------------------------------------- |
-| `LIMIT`       | Normal fill.                                       |
-| `LIQUIDATED`  | Taker side of a liquidation (undercollateralised). |
-| `LIQUIDATION` | Maker side of a liquidation (insurance fund).      |
-| `DELEVERAGED` | Taker side of a deleveraging (ADL closure).        |
-| `OFFSETTING`  | Maker side of a deleveraging (offsetting account). |
+| `type`        | 含义                                            |
+| ------------- | ----------------------------------------------- |
+| `LIMIT`       | 普通成交。                                      |
+| `LIQUIDATED`  | 清算的吃单方（资不抵债的一方）。                |
+| `LIQUIDATION` | 清算的挂单方（保险基金）。                      |
+| `DELEVERAGED` | 自动减仓的吃单方（被减仓平仓）。                |
+| `OFFSETTING`  | 自动减仓的挂单方（被选中的对手账户）。          |
 
-Any other value the venue introduces is decoded as an unknown fill type and handled like a normal
-fill, so a new classification never drops the fill.
+场所未来引入的其他取值会解码为未知成交类型并按普通成交处理，新分类不会导致成交被丢弃。
 
-The adapter logs a warning with instrument, side, size, and price for each
-liquidation / deleveraging fill, then emits the `FillReport` through the
-normal path. A position the venue reports as `LIQUIDATED` is treated as closed,
-which closes out the corresponding position report.
+适配器对每笔清算/减仓成交记录一条警告（含工具、方向、数量、价格），然后按常规路径发出 `FillReport`。场所上报为 `LIQUIDATED` 的持仓按已平仓处理，对应的持仓报告就此收尾。
 
-Upstream references:
+上游参考：
 
-- [Liquidations](https://docs.dydx.xyz/concepts/trading/liquidations)
-- [Contract loss mechanisms (deleveraging)](https://help.dydx.trade/en/articles/166973-contract-loss-mechanisms-on-dydx-chain)
+- [清算](https://docs.dydx.xyz/concepts/trading/liquidations)
+- [合约损失机制（自动减仓）](https://help.dydx.trade/en/articles/166973-contract-loss-mechanisms-on-dydx-chain)
 
-### Order classification
+### 订单分类 {#order-classification}
 
-dYdX classifies every order into one of three on-chain categories. The adapter
-automatically determines the category based on time-in-force and expiry, so no manual
-configuration is required.
+dYdX 把每笔订单归入三种链上类别之一。适配器根据时效和过期时间自动判定类别，无需手动配置。
 
-| Category    | Placement | Expiry          | Typical use                                       |
-| ----------- | --------- | --------------- | ------------------------------------------------- |
-| Short-term  | In-memory | Block height    | IOC, or orders expiring within 40 blocks.         |
-| Long-term   | On-chain  | Timestamp (UTC) | GTC/GTD with expiry beyond the short-term window. |
-| Conditional | On-chain  | Timestamp (UTC) | Stop-loss and take-profit triggers.               |
+| 类别     | 存放位置 | 过期方式        | 典型用途                                          |
+| -------- | -------- | --------------- | ------------------------------------------------- |
+| 短期     | 内存     | 区块高度        | IOC，或 40 个区块内过期的订单。                   |
+| 长期     | 链上     | 时间戳（UTC）   | 过期超出短期窗口的 GTC/GTD。                      |
+| 有条件   | 链上     | 时间戳（UTC）   | 止损与止盈触发单。                                |
 
-At the protocol level, **all dYdX orders are limit orders**. The `MARKET` order type
-is a Nautilus convenience that the adapter implements as an aggressive IOC limit order
-priced well through the book. This means market orders follow the same
-`Submitted > Accepted > Filled` lifecycle as limit orders (an `OrderAccepted` event is
-expected before the fill).
+协议层面，**dYdX 的所有订单都是限价单**。`MARKET` 类型是 Nautilus 的便利抽象，适配器把它实现为定价深度穿透盘口的激进 IOC 限价单。因此市价单与限价单走同样的 `Submitted > Accepted > Filled` 生命周期（成交前会有 `OrderAccepted` 事件）。
 
-See the [dYdX order documentation](https://docs.dydx.xyz/concepts/trading/orders)
-for full protocol-level details on short-term vs stateful order mechanics.
+短期与 stateful 订单的完整协议机制见
+[dYdX 订单文档](https://docs.dydx.xyz/concepts/trading/orders)。
 
-#### Short-term orders
+#### 短期订单 {#short-term-orders}
 
-Short-term orders live **in validator memory only** and expire by block height. The protocol's
-`ShortBlockWindow` caps their lifetime at **40 blocks** past the current height. They are the
-fastest order type on dYdX because they skip on-chain storage.
+短期订单**只存在于验证者内存**中，按区块高度过期。协议的 `ShortBlockWindow` 把其寿命封顶为当前高度之后的 **40 个区块**。它们跳过链上存储，是 dYdX 上最快的订单类型。
 
-**Properties**:
+**特性**：
 
-- **IOC (and the deprecated FOK) are always short-term**, regardless of other parameters
-- **GTD orders** are automatically classified as short-term when the expiry falls within the
-  dynamic short-term window (`40 blocks × seconds_per_block`)
-- Use Good-Til-Block (GTB) for replay protection instead of Cosmos SDK sequences
-- Can be broadcast **concurrently** (no semaphore, cached sequence)
-- Expire without a cancel transaction. The indexer reports each expiry as a cancel, which the adapter emits as
-  `OrderCanceled`
-- Cannot be batched in a single transaction (one `MsgPlaceOrder` per tx)
+- **IOC（以及弃用的 FOK）永远是短期订单**，不管其他参数如何
+- **GTD 订单**过期落在动态短期窗口（`40 blocks × seconds_per_block`）内时自动归为短期
+- 防重放用 Good-Til-Block（GTB），不用 Cosmos SDK 序列号
+- 可以**并发**广播（无信号量，序列号用缓存值）
+- 过期不需要撤销交易。Indexer 把每次过期上报为撤销，适配器发出 `OrderCanceled`
+- 不能批量装进一笔交易（每笔交易一个 `MsgPlaceOrder`）
 
-#### Long-term orders
+#### 长期订单 {#long-term-orders}
 
-Long-term (stateful) orders are **stored on-chain** and expire by UTC timestamp. They generate
-explicit cancel events when they expire or are cancelled.
+长期（stateful）订单**存储在链上**，按 UTC 时间戳过期。过期或被撤销时会生成显式撤销事件。
 
-**Properties**:
+**特性**：
 
-- **GTC** orders default to 90-day expiration (protocol limit is 95 days)
-- **GTD** orders use the user-provided expiry timestamp
-- Require proper Cosmos SDK sequence management (serialized via semaphore)
-- Must be broadcast **serially** with incrementing sequence numbers
-- Can be batched in a single transaction
+- **GTC** 订单默认 90 天过期（协议上限 95 天）
+- **GTD** 订单使用用户提供的时间戳
+- 需要规范的 Cosmos SDK 序列号管理（信号量串行化）
+- 必须以递增序列号**串行**广播
+- 可以批量装进一笔交易
 
-#### Conditional orders
+#### 有条件订单 {#conditional-orders}
 
-Conditional orders (stop-loss, take-profit) are **always stored on-chain** and triggered by
-price conditions on the validator.
+有条件订单（止损、止盈）**始终存储在链上**，由验证者上的价格条件触发。
 
-**Properties**:
+**特性**：
 
-- Always use timestamp-based expiry (default 90 days for GTC, protocol limit 95 days)
-- Always use the long-term broadcast path (serialized with semaphore)
-- Include `StopMarket`, `StopLimit`, `TakeProfitMarket`, and `TakeProfitLimit`
+- 始终使用基于时间戳的过期（GTC 默认 90 天，协议上限 95 天）
+- 始终使用长期广播路径（信号量串行）
+- 包括 `StopMarket`、`StopLimit`、`TakeProfitMarket` 和 `TakeProfitLimit`
 
-#### Automatic routing
+#### 自动路由 {#automatic-routing}
 
-The adapter determines order lifetime automatically from the estimated block time:
+适配器根据估算的出块时间自动决定订单寿命：
 
 ```
 max_short_term_secs = 40 blocks (ShortBlockWindow) × seconds_per_block
 ```
 
-If the order's time until expiry is within `max_short_term_secs`, it is routed as short-term.
-Otherwise, it is routed as long-term. No manual configuration is needed.
+订单距过期不足 `max_short_term_secs` 时按短期路由，否则按长期路由。无需手动配置。
 
-#### MARKET order implementation
+#### MARKET 订单的实现 {#market-order-implementation}
 
-dYdX has no native market order type. The adapter implements `MARKET` orders as aggressive
-**IOC limit orders** priced at:
+dYdX 没有原生市价单类型。适配器把 `MARKET` 订单实现为激进的 **IOC 限价单**，定价为：
 
-- **Buy**: `oracle_price × (1 + 0.05)` (5% above oracle)
-- **Sell**: `oracle_price × (1 - 0.05)` (5% below oracle)
+- **买入**：`oracle_price × (1 + 0.05)`（高于预言机价 5%）
+- **卖出**：`oracle_price × (1 - 0.05)`（低于预言机价 5%）
 
-This 5% slippage buffer (`DEFAULT_MARKET_ORDER_SLIPPAGE = 0.05`) sets the worst-case price
-(the "pay-through price"). Because the order is IOC, unfilled slippage is not consumed. The
-buffer is intentionally wide to maximize fill probability across volatile conditions.
+这 5% 滑点缓冲（`DEFAULT_MARKET_ORDER_SLIPPAGE = 0.05`）设定最坏价格（"穿透价"）。订单是 IOC，未成交的滑点不会被消耗。缓冲有意设宽，以在剧烈行情下最大化成交概率。
 
-### Client order ID encoding
+### 客户订单 ID 编码 {#client-order-id-encoding}
 
-dYdX requires `u32` client IDs on-chain, but Nautilus uses string-based `ClientOrderId` values
-(e.g., `O-20260220-031943-001-000-51`). The adapter encodes these bidirectionally so that orders
-can be reconciled across restarts without persisted state.
+dYdX 链上要求 `u32` 客户端 ID，而 Nautilus 使用字符串型 `ClientOrderId`（如 `O-20260220-031943-001-000-51`）。适配器做双向编码，让订单在重启后无需持久化状态也能对账。
 
-For the standard O-format (`O-YYYYMMDD-HHMMSS-TTT-SSS-CCC`), the encoding is deterministic:
+对标准 O 格式（`O-YYYYMMDD-HHMMSS-TTT-SSS-CCC`），编码是确定性的：
 
-| dYdX field        | Bits | Contents                                           |
-| ----------------- | ---- | -------------------------------------------------- |
-| `client_id`       | 32   | `[trader:10][strategy:10][count:12]` (unique key). |
-| `client_metadata` | 32   | Seconds since 2020-01-01 UTC (timestamp).          |
+| dYdX 字段       | 位数 | 内容                                               |
+| --------------- | ---- | -------------------------------------------------- |
+| `client_id`     | 32   | `[trader:10][strategy:10][count:12]`（唯一键）。   |
+| `client_metadata` | 32 | 距 2020-01-01 UTC 的秒数（时间戳）。               |
 
-Because the encoding is deterministic, the adapter can decode any reconciled order back to its
-original `ClientOrderId` string without needing a database or mapping file.
+由于编码确定，适配器可以把任何对账回来的订单解码回原始 `ClientOrderId` 字符串，不需要数据库或映射文件。
 
-A `ClientOrderId` that is a plain number is also deterministic. The number becomes `client_id`, and
-`client_metadata` is set to a fixed marker. Thus, it also decodes across restarts. Any other format falls back
-to sequential allocation with an in-memory reverse map, and those IDs can only be decoded within the same
-session.
-
-#### Restart collision prevention
-
-On restart, Nautilus resets the internal order counter based on the number of reconciled orders,
-which may be lower than the highest counter value used in the previous session (e.g., if some
-orders have expired from the API response). This can cause a new order to produce the same
-`client_id` as a previous session's order, resulting in a duplicate venue order UUID.
-
-The adapter prevents this by registering every `client_id` seen during reconciliation. If a new
-O-format encoding produces a `client_id` that was already used, the encoder logs a warning and
-falls back to sequential allocation. Sequential allocation also skips any registered values.
-
-:::note
-This protection is automatic and requires no user configuration. The warning log
-`[ENCODER] client_id ... collides with reconciled order` is informational. The order will
-still be submitted successfully with an alternative ID.
-:::
-
-## Broadcasting and retry strategy
-
-### Short-term broadcast
-
-Short-term orders use Good-Til-Block (GTB) for replay protection. The chain's `ClobDecorator`
-ante handler skips Cosmos SDK sequence checking for short-term messages, so:
-
-- **No semaphore**: broadcasts are fully concurrent
-- **Cached sequence**: no increment or allocation needed
-- **No retry**: if the broadcast fails, it fails immediately
-- Benign cancel errors are treated as success (see below)
-
-### Long-term broadcast
-
-Long-term and conditional orders require proper Cosmos SDK sequence management:
-
-- **Semaphore** with 1 permit serializes all long-term broadcasts
-- **Exponential backoff**: 500ms -> 1s -> 2s -> 4s (max 5 retries)
-- **10-second total budget** prevents indefinite retry loops
-- On sequence mismatch, the sequence is **resynced from chain** before retry
-- Transient gRPC failures (unavailable, deadline exceeded, resource exhausted) also resync before
-  retry, so repeated timeouts cannot drift the local sequence ahead of the chain
-
-### Sequence mismatch detection
-
-| Error code | Source             | Meaning                                          |
-| ---------- | ------------------ | ------------------------------------------------ |
-| `code=32`  | Cosmos SDK         | Account sequence mismatch                        |
-| `code=104` | dYdX authenticator | Signature verification failed (sequence-related) |
-
-Both trigger automatic resync + retry via the `RetryManager`.
-
-### Benign cancel errors
-
-These errors during short-term cancel operations are treated as **success**:
-
-| Error code  | Meaning                                                           |
-| ----------- | ----------------------------------------------------------------- |
-| `code=19`   | Transaction already in mempool cache (duplicate tx)               |
-| `code=9`    | Cancel already exists in memclob with >= GoodTilBlock             |
-| `code=3006` | Order to cancel does not exist (already filled/expired/cancelled) |
-
-### Batch cancel partitioning
-
-When cancelling multiple orders, the adapter partitions them by lifetime:
-
-1. **Short-term orders**: single `MsgBatchCancel` via `broadcast_short_term()`
-2. **Long-term orders**: batched `MsgCancelOrder` messages via `broadcast_with_retry()`
-
-This ensures each group uses the appropriate broadcast strategy.
-
-## Funding rates
-
-dYdX perpetual futures use a fixed 1-hour funding interval. The adapter sets `interval`
-to `60` (minutes) on all `FundingRateUpdate` objects for both WebSocket and historical
-funding data.
-
-## Rate limiting
-
-### gRPC rate limiting
-
-The adapter rate-limits gRPC `broadcast_tx` calls to prevent `ResourceExhausted` (429) errors
-from validator nodes.
-
-| Setting                      | Default | Description                                                           |
-| ---------------------------- | ------- | --------------------------------------------------------------------- |
-| `grpc_rate_limit_per_second` | `4`     | Maximum gRPC broadcast requests per second. Set to `None` to disable. |
-
-This is a config-struct field, not a parameter of the Python `DydxExecutionClientConfig` constructor.
-
-### Provider limits
-
-Known rate limits for public gRPC providers:
-
-| Provider  | Limit                |
-| --------- | -------------------- |
-| Polkachu  | 300 req/min (~5/s)   |
-| KingNodes | 250 req/min (~4.2/s) |
-| AutoStake | 4 req/s              |
-
-The default of 4 req/s is conservative and works across all public providers.
-
-### Multiple gRPC URL fallback
-
-The adapter connects to the first reachable node in a list of gRPC URLs, falling back to the next
-one when a connection fails. This matters on a DEX, where individual public nodes go down without
-notice. The execution config resolves that list in order:
-
-1. `grpc_urls`, when non-empty.
-2. `grpc_endpoint`, as a single-URL list. Setting only this field gives up the fallback.
-3. The default public validator nodes for the selected network.
-
-Both fields belong to the config struct, but the Python `DydxExecutionClientConfig` constructor does not
-expose them. Thus, Python configs always use the network defaults with their built-in fallback.
-
-## Price and size quantization
-
-dYdX uses integer-based quantization for prices and sizes. The adapter handles all conversions
-automatically via `OrderMessageBuilder`, but understanding the parameters helps with debugging.
-
-### Market parameters
-
-| Parameter                     | Description                                             |
-| ----------------------------- | ------------------------------------------------------- |
-| `atomic_resolution`           | Exponent for converting human-readable size to quantums |
-| `quantum_conversion_exponent` | Exponent for converting quantums to tokens              |
-| `step_base_quantums`          | Minimum order size step in quantums                     |
-| `subticks_per_tick`           | Price granularity within each tick                      |
-
-### Market order pricing
-
-Orders submitted without an explicit price use the oracle price with a 5% slippage buffer (the
-"pay-through price"). This covers `MARKET`, `STOP_MARKET`, and `MARKET_IF_TOUCHED`:
-
-- **Buy**: `oracle_price × 1.05`
-- **Sell**: `oracle_price × 0.95`
-
-Order pricing reads the oracle price from the instrument cache. The Indexer populates this cache when the
-client connects and does not refresh it afterwards. Thus, the pay-through band stays anchored to the oracle
-price observed at connect time. The execution client separately tracks live oracle prices from the markets
-channel. It uses those prices to value account state and positions, not to price orders.
-
-### Automatic handling
-
-All price and size quantization is handled automatically by `OrderMessageBuilder`.
-No manual conversion is needed when submitting orders through Nautilus.
-
-## Data subscriptions
-
-The adapter supports the following data subscriptions:
-
-| Data type            | Subscription | Historical request | Notes                                            |
-| -------------------- | ------------ | ------------------ | ------------------------------------------------ |
-| Trade ticks          | ✓            | ✓                  |                                                  |
-| Quote ticks          | ✓            | -                  | Synthesized from order book top-of-book.         |
-| Order book deltas    | ✓            | -                  | L2 depth only.                                   |
-| Order book snapshots | -            | ✓                  | One-time snapshot via HTTP request.              |
-| Bars                 | ✓            | ✓                  | See supported resolutions below.                 |
-| Mark prices          | ✓            | -                  | Via markets channel.                             |
-| Index prices         | ✓            | -                  | Via markets channel.                             |
-| Funding rates        | ✓            | ✓                  | Real-time via markets channel, history via HTTP. |
-| Instrument status    | ✓            | -                  | Via markets channel.                             |
-
-### Supported bar resolutions
-
-| Resolution | dYdX candle |
-| ---------- | ----------- |
-| 1-MINUTE   | `1MIN`      |
-| 5-MINUTE   | `5MINS`     |
-| 15-MINUTE  | `15MINS`    |
-| 30-MINUTE  | `30MINS`    |
-| 1-HOUR     | `1HOUR`     |
-| 4-HOUR     | `4HOURS`    |
-| 1-DAY      | `1DAY`      |
-
-## Subaccounts
-
-dYdX supports multiple subaccounts per wallet address, allowing segregation of trading strategies
-and risk management within a single wallet.
-
-### Concepts
-
-- Each wallet address can have multiple numbered subaccounts (0, 1, 2, ..., 127). Numbers 128 and
-  above are the venue's isolated-margin child subaccounts, which this adapter does not support.
-- Subaccount 0 is the **default** and is automatically created on first deposit.
-- Each subaccount maintains its own:
-  - Positions
-  - Open orders
-  - Collateral balance
-  - Margin requirements
-
-### Configuration
-
-Specify the subaccount number in the execution client config:
-
-```python
-from nautilus_trader.adapters.dydx import DydxExecutionClientConfig
-from nautilus_trader.model import AccountId
-
-
-exec_config = DydxExecutionClientConfig(
-    account_id=AccountId.from_str("DYDX-001"),
-    subaccount_number=0,
-)
-```
-
-:::note
-Most users will use subaccount `0` (the default). Advanced users can configure multiple execution
-clients for different subaccounts to implement strategy segregation or risk isolation.
-:::
-
-## Testnet setup
-
-The dYdX testnet (`dydx-testnet-4`) is a full replica of mainnet for testing strategies
-without risking real funds. All default testnet endpoints are resolved automatically when
-`network=DydxNetwork.TESTNET`.
-
-### 1. Create a testnet wallet
-
-**Option A: Via the dYdX testnet web app (easiest)**
-
-1. Go to [v4.testnet.dydx.exchange](https://v4.testnet.dydx.exchange)
-2. Connect with MetaMask, Keplr, Phantom, or WalletConnect
-3. A dYdX account is generated automatically
-4. Export your secret phrase: click your address (top-right) and select "Export secret phrase"
-
-**Option B: Use an existing secp256k1 private key**
-
-Any 32-byte hex-encoded secp256k1 private key will work. The adapter derives the `dydx1...`
-address from the key automatically using Cosmos bech32 encoding.
-
-### 2. Fund the testnet account
-
-A subaccount must be funded before the adapter can connect (see [First-time account activation](#architecture)).
-
-**Via the testnet web app**:
-
-Click the deposit/recharge button on [v4.testnet.dydx.exchange](https://v4.testnet.dydx.exchange)
-to receive testnet USDC automatically.
-
-**Via the faucet API directly**:
-
-```bash
-# Fund subaccount 0 with 2000 USDC
-curl -X POST https://faucet.v4testnet.dydx.exchange/faucet/tokens \
-  -H "Content-Type: application/json" \
-  -d '{"address": "dydx1...", "subaccountNumber": 0, "amount": 2000}'
-
-# Fund native tokens (for gas fees)
-curl -X POST https://faucet.v4testnet.dydx.exchange/faucet/native-token \
-  -H "Content-Type: application/json" \
-  -d '{"address": "dydx1..."}'
-```
-
-### 3. Set environment variables
-
-```bash
-export DYDX_TESTNET_WALLET_ADDRESS="dydx1..."
-export DYDX_TESTNET_PRIVATE_KEY="0x..."  # hex-encoded, 0x prefix optional
-```
-
-### 4. Configure the trading node
-
-Set `network=DydxNetwork.TESTNET` on both data and execution clients:
-
-```python
-from nautilus_trader.adapters.dydx import DydxDataClientConfig
-from nautilus_trader.adapters.dydx import DydxExecutionClientConfig
-from nautilus_trader.adapters.dydx import DydxNetwork
-from nautilus_trader.model import AccountId
-
-
-data_config = DydxDataClientConfig(network=DydxNetwork.TESTNET)
-
-exec_config = DydxExecutionClientConfig(
-    account_id=AccountId.from_str("DYDX-001"),
-    network=DydxNetwork.TESTNET,
-    wallet_address=None,  # Falls back to DYDX_TESTNET_WALLET_ADDRESS
-    private_key=None,  # Falls back to DYDX_TESTNET_PRIVATE_KEY
-    subaccount_number=0,
-)
-```
-
-### Testnet endpoints
-
-The Python constructors select the default testnet endpoints automatically and do not expose
-endpoint overrides.
-
-| Service   | Default URL                                          |
-| --------- | ---------------------------------------------------- |
-| HTTP      | `https://indexer.v4testnet.dydx.exchange`            |
-| WebSocket | `wss://indexer.v4testnet.dydx.exchange/v4/ws`        |
-| gRPC      | `https://test-dydx-grpc.kingnodes.com:443` (primary) |
-| Faucet    | `https://faucet.v4testnet.dydx.exchange`             |
-| Web app   | `https://v4.testnet.dydx.exchange`                   |
-
-### Mainnet endpoints
-
-The Python constructors select the default mainnet endpoints automatically and do not expose
-endpoint overrides.
-
-| Service   | Default URL                                         |
-| --------- | --------------------------------------------------- |
-| HTTP      | `https://indexer.dydx.trade`                        |
-| WebSocket | `wss://indexer.dydx.trade/v4/ws`                    |
-| gRPC      | `https://dydx-ops-grpc.kingnodes.com:443` (primary) |
-
-## Configuration
-
-Configure the dYdX adapter through the trading node configuration. Execution clients support
-environment variable fallbacks for credentials. Data clients use public endpoints and do not require
-wallet credentials.
-
-### Data client configuration options
-
-| Option      | Default   | Description                                     |
-| ----------- | --------- | ----------------------------------------------- |
-| `network`   | `MAINNET` | `DydxNetwork.MAINNET` or `DydxNetwork.TESTNET`. |
-| `proxy_url` | `None`    | Optional proxy URL for HTTP and WebSocket use.  |
-
-### Execution client configuration options
-
-| Option              | Default   | Description                                                                       |
-| ------------------- | --------- | --------------------------------------------------------------------------------- |
-| `account_id`        | Required  | Nautilus account ID for the client.                                               |
-| `network`           | `MAINNET` | `DydxNetwork.MAINNET` or `DydxNetwork.TESTNET`.                                   |
-| `private_key`       | `None`    | Hex-encoded signing key; falls back to the network-specific environment variable. |
-| `wallet_address`    | `None`    | dYdX wallet address; falls back to the network-specific environment variable.     |
-| `subaccount_number` | `0`       | Subaccount number from `0` through `127`.                                         |
-| `proxy_url`         | `None`    | Optional proxy URL for HTTP and WebSocket use.                                    |
-
-### Basic setup
-
-Register `DydxDataClientConfig` with `DydxDataClientFactory` and `DydxExecutionClientConfig` with
-`DydxExecutionClientFactory` on the node builder. The
-[Python examples](https://github.com/nautechsystems/nautilus_trader/tree/develop/examples/live/dydx/)
-show the complete `LiveNode.builder(...)` wiring for both clients.
-
-### API credentials
-
-Credentials can be passed directly via the Python config (`wallet_address`, `private_key`) or
-resolved automatically from environment variables based on the configured `network`.
-
-#### Environment variables
-
-| Variable                      | Network | Description                                    |
-| ----------------------------- | ------- | ---------------------------------------------- |
-| `DYDX_WALLET_ADDRESS`         | Mainnet | Bech32-encoded wallet address (`dydx1...`).    |
-| `DYDX_PRIVATE_KEY`            | Mainnet | Hex-encoded secp256k1 private key for signing. |
-| `DYDX_TESTNET_WALLET_ADDRESS` | Testnet | Testnet wallet address (`dydx1...`).           |
-| `DYDX_TESTNET_PRIVATE_KEY`    | Testnet | Testnet private key.                           |
-
-#### Resolution priority
-
-1. Value passed in the Python config (if non-empty)
-2. Environment variable selected by `network`
-
-### Permissioned key trading
-
-#### What are API Trading Keys
-
-API Trading Keys let you delegate trading to a separate signing key without sharing your main
-wallet's seed phrase. The API key can place trades using all available margin in the owner's
-cross-margin account, but cannot withdraw funds or transfer assets.
-
-#### Creating an API key
-
-1. In the dYdX web app, navigate to **More > API Trading Keys**
-2. Click **Generate New API Key**
-3. Save the **API Wallet Address** and **Private Key** (shown once, not stored by dYdX)
-4. Click **Authorize API Key** (this registers the key on-chain as an authenticator)
-5. The key is now active and can be used for trading
-
-See the [dYdX permissioned keys documentation](https://docs.dydx.xyz/interaction/permissioned-keys)
-for the authenticator model, and the
-[front-end walkthrough](https://help.dydx.trade/en/articles/267486-api-trading-keys-creating-a-new-key-on-the-front-end)
-for creating and managing keys in the web app.
-
-#### Adapter configuration
-
-Set the API key's private key as `DYDX_PRIVATE_KEY` and the
-owner's wallet address as `DYDX_WALLET_ADDRESS`. The adapter detects the mismatch during connect
-and automatically queries the chain for matching authenticator IDs.
-
-```python
-from nautilus_trader.adapters.dydx import DydxExecutionClientConfig
-from nautilus_trader.model import AccountId
-
-
-config = DydxExecutionClientConfig(
-    account_id=AccountId.from_str("DYDX-001"),
-    wallet_address="dydx1owner...",  # Owner account (holds margin)
-    private_key="0xapikey...",  # API Trading Key private key
-)
-```
-
-The public Python config does not accept manual authenticator IDs.
-
-:::note
-API Trading Keys only work with **cross-margin** accounts and cross markets. Isolated margin
-is not supported.
-:::
-
-## Order books
-
-Order books can be maintained at full depth or top-of-book quotes depending on the subscription.
-The venue does not provide quotes directly. Instead, the adapter subscribes to order book deltas
-and synthesizes quotes for the `DataEngine` when there is a top-of-book price or size change.
-Only L2 (MBP) book type is supported.
-
-## Contributing
-
-:::info
-For additional features or to contribute to the dYdX adapter, please see our
-[contributing guide](https://github.com/nautechsystems/nautilus_trader/blob/develop/CONTRIBUTING.md).
-:::
+纯数字的 `ClientOrderId` 同样是确定性的：数字直接作为 `client_id`，`client_metadata` 置固定标记，跨重启也能解码。其他格式退化为顺序分配加内存反向映射，这类 ID 只能在当次会话内解码。

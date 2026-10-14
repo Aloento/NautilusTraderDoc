@@ -1,381 +1,268 @@
 # CoinAPI
 
-[CoinAPI](https://www.coinapi.io/products/market-data-api?ref=nautilus)
-by [API Bricks](https://www.apibricks.io/?ref=nautilus) provides real-time and historical cryptocurrency
-market data across multiple exchanges. Its REST and WebSocket APIs expose trades, quotes, order
-books, and OHLCV bars through a common data format.
+[API Bricks](https://www.apibricks.io/?ref=nautilus) 旗下的 [CoinAPI](https://www.coinapi.io/products/market-data-api?ref=nautilus) 提供跨多家交易所的实时与历史加密货币行情数据。其 REST 和 WebSocket API 以统一的数据格式暴露成交、报价、订单簿和 OHLCV bar。
 
-The NautilusTrader adapter supports live market data, historical requests, and loading downloaded
-flat files. It has no execution client, account management, or order routing.
+NautilusTrader 适配器支持实时行情、历史请求，以及加载已下载的扁平文件（flat file）。它没有执行客户端、账户管理或订单路由。
 
-## Overview
+## 概览 {#overview}
 
-The adapter is implemented in Rust with Python bindings and does not require an external CoinAPI
-client library. Configure it through a live node with these Python components:
+适配器以 Rust 实现并提供 Python 绑定，不需要外部 CoinAPI 客户端库。通过实时节点配置，使用以下 Python 组件：
 
-- `CoinApiDataClientConfig`: Live data client configuration.
-- `CoinApiInstrumentSelection`: Exchanges, instruments, and metadata filters to load.
-- `CoinApiDataClientFactory`: Factory registered with the node builder.
+- `CoinApiDataClientConfig`：实时数据客户端配置。
+- `CoinApiInstrumentSelection`：要加载的交易所、金融工具和元数据过滤器。
+- `CoinApiDataClientFactory`：注册到节点 builder 的工厂。
 
-The Rust crate also exposes `CoinApiHttpClient` and `CoinApiWebSocketClient` for direct API access.
+Rust crate 还暴露 `CoinApiHttpClient` 和 `CoinApiWebSocketClient`，供直接访问 API。
 
-## Examples
+## 示例 {#examples}
 
-- [Python examples](https://github.com/nautechsystems/nautilus_trader/tree/develop/examples/live/coinapi/)
-- [Rust examples](https://github.com/nautechsystems/nautilus_trader/tree/develop/crates/adapters/coinapi/examples/)
+- [Python 示例](https://github.com/nautechsystems/nautilus_trader/tree/develop/examples/live/coinapi/)
+- [Rust 示例](https://github.com/nautechsystems/nautilus_trader/tree/develop/crates/adapters/coinapi/examples/)
 
-The examples load Coinbase BTC/USD, stream quotes, trades, and one-minute bars, and request recent
-bars. They use a 10-credit REST budget and a price precision override of 3. Edit the instrument and
-subscription settings for your feed, and update the precision override when changing instruments.
-Historical data can lag the live feed, so a request for recent bars may return no records.
+示例加载 Coinbase 的 BTC/USD，流式接收报价、成交和一分钟 bar，并请求近期 bar。它们使用 10 点信用额度的 REST 预算和精度 3 的价格覆盖。请按你的数据源修改工具和订阅设置，更换工具时同步更新精度覆盖。历史数据可能落后于实时数据流，因此请求近期 bar 可能返回空记录。
 
-## CoinAPI documentation
+## CoinAPI 文档 {#coinapi-documentation}
 
-- [Market Data REST API](https://www.coinapi.io/products/market-data-api/docs/rest-api?ref=nautilus).
-- [WebSocket V1 API](https://www.coinapi.io/products/market-data-api/docs/websocket?ref=nautilus).
-- [Flat Files](https://www.coinapi.io/products/flat-files?ref=nautilus).
+- [Market Data REST API](https://www.coinapi.io/products/market-data-api/docs/rest-api?ref=nautilus)。
+- [WebSocket V1 API](https://www.coinapi.io/products/market-data-api/docs/websocket?ref=nautilus)。
+- [Flat Files](https://www.coinapi.io/products/flat-files?ref=nautilus)。
 
-## Supported capabilities
+## 支持的能力 {#supported-capabilities}
 
-| Capability                               | Interface                     | Status                                               |
-| ---------------------------------------- | ----------------------------- | ---------------------------------------------------- |
-| Spot, perpetual, and futures instruments | REST metadata                 | Native venue instrument IDs.                         |
-| Order book deltas                        | WebSocket                     | L2 (`book`) and L3 (`book_l3`) with gap recovery.    |
-| Fixed-depth book snapshots               | WebSocket                     | L2 at up to 50 levels (`book5`, `book20`, `book50`). |
-| Current book snapshots                   | REST                          | L2 snapshot requests.                                |
-| Historical book snapshots                | REST                          | Not supported.                                       |
-| Quote ticks                              | WebSocket and historical REST | Live streams and historical requests.                |
-| Trade ticks                              | WebSocket and historical REST | Live streams and historical requests.                |
-| OHLCV bars                               | WebSocket and historical REST | Live streams and historical requests.                |
-| Downloaded flat files                    | S3 CSV exports                | Rust and Python loaders.                             |
-| Execution, orders, and account reports   | None                          | Out of scope.                                        |
+| 能力                                       | 接口                          | 状态                                                 |
+| ------------------------------------------ | ----------------------------- | ---------------------------------------------------- |
+| 现货、永续、期货金融工具                   | REST 元数据                   | 原生场所工具 ID。                                    |
+| 订单簿 delta                               | WebSocket                     | L2（`book`）与 L3（`book_l3`），带缺口恢复。         |
+| 固定深度订单簿快照                         | WebSocket                     | 最多 50 档的 L2（`book5`、`book20`、`book50`）。     |
+| 当前订单簿快照                             | REST                          | L2 快照请求。                                        |
+| 历史订单簿快照                             | REST                          | 不支持。                                             |
+| 报价 tick                                  | WebSocket 与历史 REST         | 实时数据流与历史请求。                               |
+| 成交 tick                                  | WebSocket 与历史 REST         | 实时数据流与历史请求。                               |
+| OHLCV bar                                  | WebSocket 与历史 REST         | 实时数据流与历史请求。                               |
+| 已下载的扁平文件                           | S3 CSV 导出                   | Rust 与 Python 加载器。                              |
+| 执行、订单与账户报告                       | 无                            | 超出范围。                                           |
 
-Book types:
+订单簿类型：
 
-- L2 market-by-price (MBP): aggregate sizes by price level.
-- L3 market-by-order (MBO): individual orders where the source and protocol expose them.
+- L2 market-by-price（MBP）：按价格档位聚合数量。
+- L3 market-by-order（MBO）：数据源和协议提供时的逐笔订单。
 
-Fixed-depth subscriptions use the smallest channel that covers the requested depth. L3 requires
-individual order IDs: an aggregated `book_l3` entry without an ID fails conversion and starts
-recovery. An L3 book never syncs for a source that reports only aggregated levels.
+固定深度订阅使用能覆盖请求深度的最小通道。L3 要求逐笔订单 ID：聚合的 `book_l3` 条目若没有 ID，转换失败并启动恢复。对只上报聚合档位的来源，L3 订单簿永远不会同步。
 
-Options, funding and open-interest metrics, FIX, flat file downloads, Hyperliquid L4 data, and
-tokenized stocks are outside this adapter's scope. CoinAPI EMS execution is a separate product.
+期权、资金费率与未平仓量指标、FIX、扁平文件下载、Hyperliquid L4 数据和代币化股票都在此适配器范围之外。CoinAPI EMS 执行是独立产品。
 
-## Integrator attribution
+## 集成方署名 {#integrator-attribution}
 
-REST requests and WebSocket connections include the fixed referral header `X-Referrer: nautilus`,
-including retries and reconnects. It has no configuration override and carries no credential or
-account data.
+REST 请求和 WebSocket 连接都携带固定推荐头 `X-Referrer: nautilus`，重试和重连同样如此。它没有配置覆盖，也不携带任何凭据或账户数据。
 
-To refer a new account to NautilusTrader, sign up through the
-[API Bricks console](https://console.apibricks.io/?ref=nautilus). Signup referrals and API request referrals
-are separate mechanisms. See the
-[API Bricks referral documentation](https://www.apibricks.io/platform/docs/general/referral?ref=nautilus).
+要把新账户推荐到 NautilusTrader，请通过
+[API Bricks console](https://console.apibricks.io/?ref=nautilus) 注册。注册推荐与 API 请求推荐是两套独立机制，见
+[API Bricks 推荐文档](https://www.apibricks.io/platform/docs/general/referral?ref=nautilus)。
 
-## Authentication and environments
+## 认证与环境 {#authentication-and-environments}
 
-Set `api_key` in the data client config, or leave it unset to read `COINAPI_API_KEY`. Construction rejects
-missing keys and keys containing characters outside visible ASCII. REST requests and WebSocket upgrades
-authenticate with `X-CoinAPI-Key`. `hello` frames carry no credential. Credentials remain redacted in logs and
-errors. Importing the Python package neither reads credentials nor connects.
+在数据客户端配置中设置 `api_key`，或不设置以读取 `COINAPI_API_KEY`。构造时拒绝缺失的键，以及含可见 ASCII 之外字符的键。REST 请求与 WebSocket 升级用 `X-CoinAPI-Key` 认证。`hello` 帧不携带凭据。凭据在日志和错误中始终保持脱敏。导入 Python 包既不读取凭据也不发起连接。
 
-Production uses encrypted REST and WebSocket endpoints. Sandbox access is not verified. Use a production
-Market Data API key. No execution account configuration is required.
+生产环境使用加密的 REST 和 WebSocket 端点。Sandbox 访问未经确认。请使用生产环境 Market Data API 密钥。无需配置执行账户。
 
-| Interface    | Production endpoint               | Role                        |
+| 接口         | 生产端点                        | 角色                        |
 | ------------ | --------------------------------- | --------------------------- |
-| REST         | `https://rest.coinapi.io/v1/`     | Primary GeoDNS endpoint.    |
-| REST         | `https://api-emea.coinapi.io/v1/` | Optional regional endpoint. |
-| REST         | `https://api-apac.coinapi.io/v1/` | Optional regional endpoint. |
-| REST         | `https://api-ncsa.coinapi.io/v1/` | Optional regional endpoint. |
-| WebSocket V1 | `wss://ws.coinapi.io/v1/`         | Primary streaming endpoint. |
+| REST         | `https://rest.coinapi.io/v1/`     | 主 GeoDNS 端点。            |
+| REST         | `https://api-emea.coinapi.io/v1/` | 可选区域端点。              |
+| REST         | `https://api-apac.coinapi.io/v1/` | 可选区域端点。              |
+| REST         | `https://api-ncsa.coinapi.io/v1/` | 可选区域端点。              |
+| WebSocket V1 | `wss://ws.coinapi.io/v1/`         | 主流式数据端点。            |
 
-REST defaults to GeoDNS. Set `base_url_http` to select a regional endpoint. The adapter does not switch
-regions automatically. See CoinAPI's
-[REST availability guide](https://www.coinapi.io/products/market-data-api/docs/rest-api/rest-high-availability?ref=nautilus)
-and
-[WebSocket endpoints](https://www.coinapi.io/products/market-data-api/docs/websocket/endpoints?ref=nautilus).
+REST 默认使用 GeoDNS。设置 `base_url_http` 可选定区域端点。适配器不会自动切换区域。见 CoinAPI 的
+[REST 可用性指南](https://www.coinapi.io/products/market-data-api/docs/rest-api/rest-high-availability?ref=nautilus)和
+[WebSocket 端点](https://www.coinapi.io/products/market-data-api/docs/websocket/endpoints?ref=nautilus)。
 
-## Using CoinAPI with native adapters
+## 与原生适配器共用 CoinAPI {#using-coinapi-with-native-adapters}
 
-CoinAPI uses native venue instrument IDs, such as `BTCUSDT.BINANCE`, and the data client ID `COINAPI`. Use
-`client_id=COINAPI_CLIENT_ID` for CoinAPI requests and subscriptions when your node has multiple data clients.
-Requests without an explicit client ID use venue or default routing. CoinAPI can be the default data client.
+CoinAPI 使用原生场所工具 ID，如 `BTCUSDT.BINANCE`，数据客户端 ID 为 `COINAPI`。节点有多个数据客户端时，CoinAPI 的请求与订阅要传 `client_id=COINAPI_CLIENT_ID`。未显式传客户端 ID 的请求走场所或默认路由。CoinAPI 可以作为默认数据客户端。
 
 :::warning
-Each instrument must have one definition source per node. Configure CoinAPI and native adapters
-with disjoint instrument sets, including startup loads and refreshes. Sharing an instrument is
-unsupported even when definitions match. Separate client IDs do not isolate definitions or feeds
-for the same instrument, and the adapter does not detect or resolve these conflicts automatically.
+每个金融工具在每个节点只能有一个定义来源。CoinAPI 与原生适配器要配置互不相交的工具集合，包括启动加载和刷新。即便定义一致，共享同一工具也不受支持。不同的客户端 ID 不能为同一工具隔离定义或数据流，适配器也不会自动检测或解决这类冲突。
 :::
 
-Check native instrument-loading defaults before combining providers. For example, Binance defaults to
-`load_all=True`. Set it to `False` and provide non-overlapping `load_ids`. Keep the native adapter's venue
-route for its other instruments.
+组合多个提供商前，先检查原生工具的加载默认值。例如 Binance 默认 `load_all=True`，要改为 `False` 并提供不重叠的 `load_ids`。原生适配器的场所路由保留给其余工具。
 
-CoinAPI's price and size resolutions describe its data and can differ from venue trading increments.
-Ticks of `0.1` and `0.5` both use one decimal place but admit different prices. Native definitions
-also carry trading constraints, including quantity and notional limits. Do not replace those
-constraints with CoinAPI metadata.
+CoinAPI 的价格与数量分辨率描述的是它自己的数据，可能与场所的交易增量不同。`0.1` 和 `0.5` 两个 tick 都用一位小数，但允许的价格不同。原生定义还携带交易约束，包括数量与名义金额限制。不要用 CoinAPI 元数据替换这些约束。
 
-## Instruments and symbology
+## 金融工具与代码体系 {#instruments-and-symbology}
 
-### Supported instruments
+### 支持的金融工具 {#supported-instruments}
 
-The data client loads spot, perpetual, and dated futures instruments from the exchanges listed
-below. Spot instruments become `CurrencyPair`, cryptocurrency perpetuals become `CryptoPerpetual`,
-and cryptocurrency futures become `CryptoFuture` instruments. Binance USD-M commodity and equity
-perpetuals, such as `XAUUSDT`, become `PerpetualContract` instruments.
+数据客户端从下列交易所加载现货、永续和到期期货工具。现货工具成为 `CurrencyPair`，加密货币永续成为 `CryptoPerpetual`，加密货币期货成为 `CryptoFuture`。Binance USD-M 的商品与股票永续（如 `XAUUSDT`）成为 `PerpetualContract`。
 
-Invalid, unsupported, or ambiguous definitions are skipped. If multiple definitions map
-to the same native instrument ID, all of them are skipped. Selecting an instrument that cannot be
-loaded causes the connection to fail.
+无效、不支持或有歧义的定义会被跳过。多个定义映射到同一原生工具 ID 时，全部跳过。选定的工具无法加载会导致连接失败。
 
-### Metadata
+### 元数据 {#metadata}
 
-CoinAPI's `price_precision` and `size_precision` metadata values are price and size increments,
-not decimal-place counts or guaranteed venue trading increments. The adapter derives precision
-from these resolutions, with optional [price precision overrides](#price-precision-overrides).
+CoinAPI 的 `price_precision` 和 `size_precision` 元数据值是价格和数量增量，不是小数位数，也不保证等于场所交易增量。适配器从这些分辨率推导精度，支持可选的[价格精度覆盖](#price-precision-overrides)。
 
-Base and quote currencies use CoinAPI's normalized asset codes. The multiplier comes from
-`future_contract_unit`, and futures expiry comes from `future_delivery_time`. Activation uses
-CoinAPI's `data_start` coverage date, which is not the venue listing time. Currency codes and
-instrument classes can differ from a native adapter's definitions.
+基础与计价货币使用 CoinAPI 规范化的资产代码。乘数来自 `future_contract_unit`，期货到期时间来自 `future_delivery_time`。激活时间用 CoinAPI 的 `data_start` 覆盖日期，那不是场所上架时间。货币代码和工具类别可能与原生适配器的定义不同。
 
-### Symbol mappings
+### 代码映射 {#symbol-mappings}
 
-Use the native `InstrumentId` forms below when configuring selections. Inverse contracts settle in the base
-currency. Linear contracts settle in the quote currency. The adapter determines these properties from the
-venue's product convention rather than CoinAPI's inverse flag.
+配置选择时请使用下面的原生 `InstrumentId` 形式。反向合约以基础货币结算，线性合约以计价货币结算。适配器根据场所的产品惯例判定这些属性，而不是 CoinAPI 的 inverse 标志。
 
-| CoinAPI exchange | Symbol type | Exchange symbol form | Native `InstrumentId`          | Contract                     |
+| CoinAPI 交易所   | 代码类型    | 场所代码形式         | 原生 `InstrumentId`            | 合约                         |
 | ---------------- | ----------- | -------------------- | ------------------------------ | ---------------------------- |
-| `BINANCE`        | `SPOT`      | `BTCUSDT`            | `BTCUSDT.BINANCE`              | Spot                         |
-| `BINANCEFTS`     | `PERPETUAL` | `BTCUSDT`            | `BTCUSDT-PERP.BINANCE`         | Linear                       |
-| `BINANCEFTS`     | `FUTURES`   | `BTCUSDT_261225`     | `BTCUSDT_261225.BINANCE`       | Linear                       |
-| `BYBITSPOT`      | `SPOT`      | `BTCUSDT`            | `BTCUSDT-SPOT.BYBIT`           | Spot                         |
-| `BYBIT`          | `PERPETUAL` | `BTCUSDT`            | `BTCUSDT-LINEAR.BYBIT`         | Linear                       |
-| `BYBIT`          | `FUTURES`   | `BTCUSDT-30OCT26`    | `BTCUSDT-30OCT26-LINEAR.BYBIT` | Linear                       |
-| `BYBITINVERSE`   | `PERPETUAL` | `BTCUSD`             | `BTCUSD-INVERSE.BYBIT`         | Inverse                      |
-| `BYBITINVERSE`   | `FUTURES`   | `BTCUSDZ26`          | `BTCUSDZ26-INVERSE.BYBIT`      | Inverse                      |
-| `OKEX`           | `SPOT`      | `BTC-USDT`           | `BTC-USDT.OKX`                 | Spot                         |
-| `OKEX`           | `PERPETUAL` | `BTC-USD-SWAP`       | `BTC-USD-SWAP.OKX`             | Inverse for USD, else linear |
-| `OKEX`           | `FUTURES`   | `BTC-USD-261225`     | `BTC-USD-261225.OKX`           | Inverse for USD, else linear |
-| `COINBASE`       | `SPOT`      | `BTC-USD`            | `BTC-USD.COINBASE`             | Spot                         |
-| `KRAKEN`         | `SPOT`      | `XBT/USD`            | `BTC/USD.KRAKEN`               | Spot                         |
-| `KRAKENFTS`      | `PERPETUAL` | `PI_XBTUSD`          | `PI_XBTUSD.KRAKEN`             | `PI_` inverse, `PF_` linear  |
+| `BINANCE`        | `SPOT`      | `BTCUSDT`            | `BTCUSDT.BINANCE`              | 现货                         |
+| `BINANCEFTS`     | `PERPETUAL` | `BTCUSDT`            | `BTCUSDT-PERP.BINANCE`         | 线性                         |
+| `BINANCEFTS`     | `FUTURES`   | `BTCUSDT_261225`     | `BTCUSDT_261225.BINANCE`       | 线性                         |
+| `BYBITSPOT`      | `SPOT`      | `BTCUSDT`            | `BTCUSDT-SPOT.BYBIT`           | 现货                         |
+| `BYBIT`          | `PERPETUAL` | `BTCUSDT`            | `BTCUSDT-LINEAR.BYBIT`         | 线性                         |
+| `BYBIT`          | `FUTURES`   | `BTCUSDT-30OCT26`    | `BTCUSDT-30OCT26-LINEAR.BYBIT` | 线性                         |
+| `BYBITINVERSE`   | `PERPETUAL` | `BTCUSD`             | `BTCUSD-INVERSE.BYBIT`         | 反向                         |
+| `BYBITINVERSE`   | `FUTURES`   | `BTCUSDZ26`          | `BTCUSDZ26-INVERSE.BYBIT`      | 反向                         |
+| `OKEX`           | `SPOT`      | `BTC-USDT`           | `BTC-USDT.OKX`                 | 现货                         |
+| `OKEX`           | `PERPETUAL` | `BTC-USD-SWAP`       | `BTC-USD-SWAP.OKX`             | USD 为反向，其余线性         |
+| `OKEX`           | `FUTURES`   | `BTC-USD-261225`     | `BTC-USD-261225.OKX`           | USD 为反向，其余线性         |
+| `COINBASE`       | `SPOT`      | `BTC-USD`            | `BTC-USD.COINBASE`             | 现货                         |
+| `KRAKEN`         | `SPOT`      | `XBT/USD`            | `BTC/USD.KRAKEN`               | 现货                         |
+| `KRAKENFTS`      | `PERPETUAL` | `PI_XBTUSD`          | `PI_XBTUSD.KRAKEN`             | `PI_` 反向，`PF_` 线性       |
 
-Only the listed exchange and product forms are supported. Native symbols must match the provider's
-asset and expiry metadata. For Kraken spot, `XBT` maps to `BTC` and `XDG` maps to `DOGE`.
-The adapter retains the full CoinAPI `symbol_id`, including any disambiguating suffix, for data
-requests and subscriptions.
+仅支持表中列出的交易所与产品形式。原生代码必须与提供商的资产和到期元数据一致。Kraken 现货中，`XBT` 映射为 `BTC`，`XDG` 映射为 `DOGE`。适配器保留完整的 CoinAPI `symbol_id`（含消歧后缀），用于数据请求与订阅。
 
-### Unsupported contracts
+### 不支持的合约 {#unsupported-contracts}
 
-Other exchanges and symbol types are unsupported. This includes Binance COIN-M (`BINANCEFTSC`):
-CoinAPI reports a one-coin contract unit for `BTCUSD_PERP`, while the native Binance contract is
-100 USD.
+其他交易所和代码类型不支持，包括 Binance COIN-M（`BINANCEFTSC`）：CoinAPI 把 `BTCUSD_PERP` 报为一张币的合约单位，而原生 Binance 合约是 100 USD。
 
-Kraken dated futures (`KRAKENFTS` `FUTURES`) are also unsupported. CoinAPI reports midnight UTC on the
-delivery date. Kraken's last trading time varies by product: 08:00 UTC for `FF_`, for example. For `FI_`
-contracts, it is 15:00 or 16:00 UTC.
+Kraken 到期期货（`KRAKENFTS` 的 `FUTURES`）同样不支持。CoinAPI 上报交割日午夜 UTC，而 Kraken 的最后交易时间随产品而异：`FF_` 为 08:00 UTC，`FI_` 合约为 15:00 或 16:00 UTC。
 
-Other rejected forms include Bybit USDC contracts, OKX USD-margined futures such as
-`BTC-USD_UM-261225`, and ambiguous Binance delivery IDs with a `USD` quote, such as
-`BTCUSD_261225.BINANCE`. A symbol that resembles a supported native ID does not by itself establish
-that its product is supported.
+其他被拒绝的形式包括 Bybit USDC 合约、OKX 以 USD 保证金的期货（如 `BTC-USD_UM-261225`），以及计价货币为 `USD` 且有歧义的 Binance 交割 ID（如 `BTCUSD_261225.BINANCE`）。代码形似受支持的原生 ID，本身并不能证明该产品受支持。
 
-## Data subscriptions
+## 数据订阅 {#data-subscriptions}
 
-Subscribing requires a connected client and a loaded instrument, and uses the `symbol_id` loaded by
-`connect`. All subscriptions share the single WebSocket connection described in
-[Raw WebSocket streams](#raw-websocket-streams).
+订阅要求客户端已连接、工具已加载，并使用 `connect` 载入的 `symbol_id`。所有订阅共用[原生 WebSocket 数据流](#raw-websocket-streams)一节描述的单一 WebSocket 连接。
 
-| Subscription   | CoinAPI type                | Event             | `ts_event`        | `ts_init`                   |
-| -------------- | --------------------------- | ----------------- | ----------------- | --------------------------- |
-| L2 book deltas | `book`                      | `OrderBookDeltas` | `time_exchange`   | `time_coinapi`              |
-| L3 book deltas | `book_l3`                   | `OrderBookDeltas` | `time_exchange`   | `time_coinapi`              |
-| Book depth     | `book5`, `book20`, `book50` | `OrderBookDepth`  | `time_exchange`   | `time_coinapi`              |
-| Quotes         | `quote`                     | `QuoteTick`       | `time_exchange`   | `time_coinapi`              |
-| Trades         | `trade`                     | `TradeTick`       | `time_exchange`   | `time_coinapi`              |
-| Bars           | `ohlcv`                     | `Bar`             | `time_period_end` | Adapter clock when emitted. |
+| 订阅         | CoinAPI 类型                  | 事件              | `ts_event`        | `ts_init`                   |
+| ------------ | ----------------------------- | ----------------- | ----------------- | --------------------------- |
+| L2 簿 delta  | `book`                        | `OrderBookDeltas` | `time_exchange`   | `time_coinapi`              |
+| L3 簿 delta  | `book_l3`                     | `OrderBookDeltas` | `time_exchange`   | `time_coinapi`              |
+| 簿深度       | `book5`、`book20`、`book50`   | `OrderBookDepth`  | `time_exchange`   | `time_coinapi`              |
+| 报价         | `quote`                       | `QuoteTick`       | `time_exchange`   | `time_coinapi`              |
+| 成交         | `trade`                       | `TradeTick`       | `time_exchange`   | `time_coinapi`              |
+| Bar          | `ohlcv`                       | `Bar`             | `time_period_end` | 发出时用适配器时钟。        |
 
-### Trade aggressor sides
+### 成交主动方 {#trade-aggressor-sides}
 
-A trade's aggressor side is `BUY` or `SELL` only when the exchange reported it. CoinAPI's
-`BUY_ESTIMATED` and `SELL_ESTIMATED` values are its own inferences, so they map to `NoAggressor`
-together with `UNKNOWN` and unrecognized values.
+只有交易所上报了主动方向时，成交的 aggressor side 才是 `BUY` 或 `SELL`。CoinAPI 的 `BUY_ESTIMATED` 和 `SELL_ESTIMATED` 是它自己的推断，因此与 `UNKNOWN` 和无法识别的值一起映射为 `NoAggressor`。
 
-### Bars
+### Bar {#bars}
 
-Bar subscriptions accept external last-price bar types with these CoinAPI streaming periods:
+Bar 订阅接受外部收盘价 bar 类型，CoinAPI 流式周期支持：
 
-- 1, 2, 3, 4, 5, 6, 10, 15, 20, or 30 seconds or minutes.
-- 1, 2, 3, 4, 6, 8, or 12 hours.
-- One day.
+- 1、2、3、4、5、6、10、15、20、30 秒或分钟。
+- 1、2、3、4、6、8、12 小时。
+- 1 天。
 
-The client rejects internal aggregation and other specifications.
+客户端拒绝内部聚合及其他规格。
 
-CoinAPI sends running OHLCV totals when it sees a timestamp in the next period. It also sends them every five
-seconds during period updates. These totals carry no closed flag. The client retains the latest update for
-each period and emits a bar when an update for a later period arrives. It discards retained periods on
-reconnect, since missed updates can leave them incomplete, and when a bar subscription starts.
+CoinAPI 在看到一个属于下一周期的时间戳时发送当期累计 OHLCV，且在周期更新期间每五秒发送一次。这些累计值不带收盘标志。客户端为每个周期保留最新一次更新，收到更晚周期的更新时发出该周期的 bar。重连时丢弃保留的周期——错过的更新可能让其不完整——bar 订阅开始时同样丢弃。
 
-### Subscription changes
+### 订阅变更 {#subscription-changes}
 
-Subscription changes apply in call order and share one WebSocket connection. CoinAPI does not acknowledge
-scope changes. The first matching data confirms that a subscription is active.
+订阅变更按调用顺序执行，共用一条 WebSocket 连接。CoinAPI 不确认范围变更。首个匹配的数据到达即确认订阅生效。
 
-Changes are paced at least two seconds apart to meet CoinAPI's subscription limits. Queued changes and book
-recovery can delay them further. Unsubscribing from all streams closes the connection. A later subscription
-opens a new one and retains this pacing.
+变更之间至少间隔两秒，以满足 CoinAPI 的订阅限额。排队变更和订单簿恢复会进一步推迟。退订全部数据流会关闭连接。之后的订阅会新建连接并保留该节奏。
 
-A failed connection attempt retries after one second, doubling to at most 30 seconds until success or
-disconnect. Later subscription changes wait behind the pending batch. A transport reconnect restores
-subscriptions automatically. A CoinAPI `error` ends the streams without resubscribing. The next subscription
-opens a new connection.
+连接失败一秒后重试，间隔翻倍、最多 30 秒，直到成功或断开。后续订阅变更排在待处理批次之后。传输重连会自动恢复订阅。CoinAPI `error` 会终止数据流且不再重订阅，下一次订阅将新建连接。
 
-## Order books
+## 订单簿 {#order-books}
 
-### Channels and depths
+### 通道与深度 {#channels-and-depths}
 
-`L2_MBP` delta subscriptions stream CoinAPI `book` and `L3_MBO` subscriptions stream `book_l3`. `L1_MBP` is
-rejected. Both channels send the whole book, so a delta subscription ignores `depth`.
+`L2_MBP` delta 订阅流式接收 CoinAPI `book`，`L3_MBO` 订阅流式接收 `book_l3`。`L1_MBP` 被拒绝。两个通道都发送完整订单簿，因此 delta 订阅忽略 `depth`。
 
-Depth subscriptions accept only `L2_MBP`. They use the smallest of `book5`, `book20`, and `book50` that covers
-the requested depth (default 10 levels). A depth above 50 is rejected. Each depth message lists complete top
-levels, is flagged `F_SNAPSHOT`, and carries zero order counts, since CoinAPI reports none.
+深度订阅只接受 `L2_MBP`，使用 `book5`、`book20`、`book50` 中能覆盖请求深度（默认 10 档）的最小通道。深度超过 50 被拒绝。每条深度消息列出完整的顶部档位、带 `F_SNAPSHOT` 标志，且订单计数为零，因为 CoinAPI 不报告该值。
 
-### Channel conflicts
+### 通道冲突 {#channel-conflicts}
 
-CoinAPI allows one book type per connection, so every book subscription on a client must use the same channel.
-A second subscription fails if it needs another channel, such as L3 beside L2 deltas or depth 5 beside depth
-20. A second subscription for the same instrument with a different depth also fails. Unsubscribe the active
-books first to switch channels.
+CoinAPI 每条连接只允许一种订单簿类型，因此同一客户端上的所有订单簿订阅必须使用同一通道。需要另一通道的第二个订阅会失败，例如 L3 与 L2 delta 并存，或深度 5 与深度 20 并存。同一工具的第二个订阅若深度不同也会失败。要切换通道，先退订当前订单簿。
 
-### Snapshot and delta events
+### 快照与 delta 事件 {#snapshot-and-delta-events}
 
-A delta stream starts with a snapshot: a `Clear` followed by an `Add` per level, all flagged
-`F_SNAPSHOT`, with `F_LAST` on the final delta. Each update becomes one `OrderBookDeltas` event
-ending in `F_LAST`. For L3 books, CoinAPI reports `SUBTRACT` and `MATCH` sizes as the amount
-removed, so the client tracks each order's remaining size and deletes an order once it is
-exhausted.
+delta 流以快照开始：一个 `Clear` 后每档一个 `Add`，全部带 `F_SNAPSHOT` 标志，最后一个 delta 带 `F_LAST`。每次更新变成一个以 `F_LAST` 结尾的 `OrderBookDeltas` 事件。对 L3 订单簿，CoinAPI 的 `SUBTRACT` 和 `MATCH` 数量表示被移除的量，因此客户端跟踪每笔订单的剩余数量，数量耗尽即删除该订单。
 
-### Sequence numbers
+### 序号 {#sequence-numbers}
 
-CoinAPI numbers each book stream from one per connection and restarts that numbering whenever it
-restarts the stream. The data client keeps emitted sequence numbers
-increasing across restarts and reconnects, so a managed `OrderBook` can consume the stream directly.
+CoinAPI 每条连接从 1 开始为订单簿数据流编号，每次重启数据流都重新开始编号。数据客户端让对外发出的序号在重启与重连之间保持递增，因此受管 `OrderBook` 可以直接消费该数据流。
 
-### Recovery
+### 恢复 {#recovery}
 
-Recovery applies to delta subscriptions. A sequence gap, an update before the first snapshot, or
-an invalid level stops book output until the client receives a valid replacement snapshot.
-Updates received while waiting for that snapshot are discarded.
+恢复只适用于 delta 订阅。序号缺口、首个快照之前到达的更新、或无效档位，都会停止订单簿输出，直到客户端收到有效的替代快照。等待期间收到的更新被丢弃。
 
-Depth subscriptions receive complete snapshots. The client drops an invalid depth message with a warning. The
-next valid message replaces it, without a recovery attempt or snapshot deadline.
+深度订阅收到的都是完整快照。客户端丢弃无效的深度消息并告警，下一条有效消息直接替换，不做恢复尝试，也没有快照期限。
 
-### Snapshot deadlines and retry limits
+### 快照期限与重试上限 {#snapshot-deadlines-and-retry-limits}
 
-`book_snapshot_timeout_secs` sets the wait for a snapshot after subscribing, reconnecting, or starting
-recovery. It defaults to 10 seconds. `0` disables the deadline. A missing snapshot starts or retries recovery.
-Unsubscribing cancels recovery, and a CoinAPI `error` ends all book streams.
+`book_snapshot_timeout_secs` 设置订阅、重连或开始恢复后等待快照的时长，默认 10 秒，`0` 表示禁用期限。快照缺失会启动或重试恢复。退订会取消恢复，CoinAPI `error` 会终止全部订单簿数据流。
 
-Book restarts are at least five seconds apart, and other subscription changes wait while a restart is pending.
-Recovery makes up to eight attempts within 180 seconds, with backoff and jitter. It then retries until it
-accepts a snapshot. The retry interval doubles from one minute to fifteen minutes. Reconnecting waits for
-fresh book snapshots before output resumes.
+订单簿重启至少间隔五秒，重启待处理期间其他订阅变更排队等待。恢复在 180 秒内最多尝试八次，带退避与抖动；此后持续重试直到接受一个快照，重试间隔从一分钟翻倍到十五分钟。重连后等新的订单簿快照到达才恢复输出。
 
-### Effects on other streams
+### 对其他数据流的影响 {#effects-on-other-streams}
 
-When other instruments are subscribed, recovering a book pauses every stream for the affected
-instrument for about two seconds. Any retained OHLCV period spanning the pause is discarded to
-avoid publishing an incomplete bar.
+订阅了其他工具时，恢复某个订单簿会把受影响工具的所有数据流暂停约两秒。跨越暂停区间的保留 OHLCV 周期会被丢弃，以免发布不完整的 bar。
 
-When the affected instrument is the only subscribed instrument, its quotes, trades, and bars
-continue during book recovery. If the book is the only subscription, recovery keeps the connection
-open without publishing an additional trade stream.
+当受影响工具是唯一订阅的工具时，其报价、成交和 bar 在订单簿恢复期间继续输出。若订单簿是唯一订阅，恢复保持连接打开，不额外发布成交数据流。
 
-## Historical requests
+## 历史请求 {#historical-requests}
 
-Historical requests require a connected client and a loaded instrument and use its stored `symbol_id`.
-Responses preserve the correlation ID, requested client ID, instrument or bar type, `start`, `end`, and
-`params`. An absent client ID defaults to the adapter's ID. An absent `end` stays absent.
+历史请求需要已连接的客户端和已加载的工具，并使用其存储的 `symbol_id`。响应保留 correlation ID、请求的客户端 ID、工具或 bar 类型、`start`、`end` 和 `params`。缺省的客户端 ID 取适配器 ID，缺省的 `end` 保持缺省。
 
-| Request       | CoinAPI endpoint                  | Response       | `ts_event`        | `ts_init`         |
-| ------------- | --------------------------------- | -------------- | ----------------- | ----------------- |
-| Trades        | `/trades/{symbol_id}/history`     | `TradeTick`s   | `time_exchange`   | `time_exchange`   |
-| Quotes        | `/quotes/{symbol_id}/history`     | `QuoteTick`s   | `time_exchange`   | `time_exchange`   |
-| Bars          | `/ohlcv/{symbol_id}/history`      | `Bar`s         | `time_period_end` | `time_period_end` |
-| Book snapshot | `/orderbooks/{symbol_id}/current` | L2 `OrderBook` | `time_exchange`   | Not applicable.   |
+| 请求        | CoinAPI 端点                        | 响应           | `ts_event`        | `ts_init`       |
+| ----------- | ----------------------------------- | -------------- | ----------------- | --------------- |
+| 成交        | `/trades/{symbol_id}/history`       | `TradeTick`    | `time_exchange`   | `time_exchange` |
+| 报价        | `/quotes/{symbol_id}/history`       | `QuoteTick`    | `time_exchange`   | `time_exchange` |
+| Bar         | `/ohlcv/{symbol_id}/history`        | `Bar`          | `time_period_end` | `time_period_end` |
+| 订单簿快照  | `/orderbooks/{symbol_id}/current`   | L2 `OrderBook` | `time_exchange`   | 不适用。        |
 
-Historical quotes, trades, and bars use their event time for `ts_init` as well as `ts_event`,
-so response filtering preserves the requested exchange-time window.
+历史报价、成交和 bar 的 `ts_init` 与 `ts_event` 都用事件时间，因此响应过滤保留请求的场所时间窗口。
 
-### Time windows and limits
+### 时间窗口与限额 {#time-windows-and-limits}
 
-Trade, quote, and bar requests require `start` and page through [`start`, `end`), using now when
-`end` is absent. `limit` caps the records returned, counting from `start`. Paging follows
-[Raw HTTP requests](#raw-http-requests), and the client logs a warning when the credit budget
-truncates a response.
+成交、报价和 bar 请求要求 `start`，按 [`start`, `end`) 翻页，`end` 缺省时取当前时间。`limit` 从 `start` 起计数，封顶返回的记录数。翻页规则见
+[原生 HTTP 请求](#raw-http-requests)，信用额度预算截断响应时客户端记录警告。
 
-Request bounds are rounded up to CoinAPI's 100-nanosecond timestamp resolution, preserving the
-selection of records on that time grid.
+请求边界向上取整到 CoinAPI 的 100 纳秒时间戳分辨率，保持对该时间网格上记录的选取不变。
 
-### History lag
+### 历史延迟 {#history-lag}
 
-CoinAPI's history endpoints lag the live feed. A recent time window can return no records or an
-incomplete result even when the live stream is active. If this happens, request an earlier window,
-such as the previous day. The adapter uses historical endpoints without falling back to latest-data
-endpoints.
+CoinAPI 的历史端点落后于实时数据流。即使实时流正常，最近的时间窗口也可能返回空记录或不完整结果。遇到这种情况就请求更早的窗口，例如前一天。适配器只使用历史端点，不回退到最新数据端点。
 
-### Closed bars
+### 已收盘 bar {#closed-bars}
 
-Bar requests accept the same bar types as bar subscriptions. A response includes only periods that closed by
-`end` and by the time the response arrives. A period still in progress is never returned as a bar. `limit`
-counts CoinAPI periods before that exclusion.
+Bar 请求接受与 bar 订阅相同的 bar 类型。响应只包含在 `end` 之前、且在响应到达时已经收盘的周期。进行中的周期绝不会作为 bar 返回。`limit` 在剔除之前按 CoinAPI 周期计数。
 
-### Current book snapshots
+### 当前订单簿快照 {#current-book-snapshots}
 
-Book snapshot requests pass `depth` as `limit_levels`, or omit it to use CoinAPI's default depth.
-A level finer than the instrument precision rejects the whole snapshot rather than returning a
-partial book.
+订单簿快照请求把 `depth` 作为 `limit_levels` 传入，或省略以使用 CoinAPI 默认深度。比工具精度更细的档位会导致整个快照被拒绝，而不是返回残缺订单簿。
 
-### Failed requests
+### 失败请求 {#failed-requests}
 
-A failed request logs the error and sends no response.
+失败的请求记录错误，不发送响应。
 
-## Precision
+## 精度 {#precision}
 
-The client converts prices and sizes at the instrument's price and size precision. These come from
-CoinAPI data resolutions, which can lag the stream, so a value with more decimal places is dropped
-with a warning rather than rounded. Trailing zeros do not count as decimal places. Historical
-responses apply the same rule to each record and log one warning with the dropped count.
+客户端按工具的价格与数量精度转换价格和数量。这些精度来自 CoinAPI 的数据分辨率，可能落后于数据流，因此小数位更多的值会被丢弃并告警，而不是四舍五入。末尾零不计入小数位。历史响应对每条记录应用同样规则，并把丢弃条数汇总为一条警告。
 
-OHLCV volume has a bounded exception for small numeric tails. The client rounds it half to even at the
-instrument's size precision only if the adjustment meets both limits:
+OHLCV 成交量对微小数值尾巴有一个有界例外。仅当调整同时满足以下两条上限时，客户端才按工具的数量精度做四舍六入五成双（half to even）：
 
-- At most `1e-15` times the reported volume.
-- At most `1e-6` times one unit at that precision.
+- 不超过上报成交量的 `1e-15` 倍。
+- 不超过该精度下一个最小单位的 `1e-6` 倍。
 
-For size precision 8, the absolute cap is `0.00000000000001`. Negative volumes and larger precision mismatches
-are rejected. Prices keep the exact-conversion rule.
+数量精度为 8 时，绝对上限是 `0.00000000000001`。负成交量和更大的精度失配会被拒绝。价格保持精确转换规则。
 
-The absolute cap stays fixed as volume grows, so larger aggregate volumes can still be rejected
-even when their tails meet the relative bound.
+绝对上限不随成交量增长而放宽，因此更大的聚合成交量即便尾巴满足相对上限，仍可能被拒绝。
 
-A book level finer than the configured precision rejects the whole message. A delta subscription starts
-recovery. A depth subscription drops the message. If CoinAPI's price resolution is too coarse for the feed,
-set a [price precision override](#price-precision-overrides). Size precision has no override.
+比配置精度更细的订单簿档位会拒绝整条消息。delta 订阅启动恢复，深度订阅丢弃该消息。若 CoinAPI 的价格分辨率对数据流太粗，设置[价格精度覆盖](#price-precision-overrides)。数量精度没有覆盖项。
 
-### Price precision overrides
+### 价格精度覆盖 {#price-precision-overrides}
 
-Set `price_precisions` to replace the price precision for a selected instrument. The client
-applies it when it builds the instrument, so the definition, streams, and historical responses all
-use it. An override for an instrument outside the selections, or above the maximum Nautilus
-precision, fails at construction. Size precision has no override.
+用 `price_precisions` 替换所选工具的价格精度。客户端在构建工具时应用它，因此定义、数据流和历史响应都使用该精度。为选择范围之外的工具、或超过 Nautilus 最大精度设置覆盖，会在构造时报错。数量精度没有覆盖项。
 
 ```python
 data_config = CoinApiDataClientConfig(
@@ -390,188 +277,124 @@ data_config = CoinApiDataClientConfig(
 )
 ```
 
-In Rust, pass the same map to `CoinApiDataClientConfig::builder().price_precisions(...)`.
+Rust 中，把同样的映射传给 `CoinApiDataClientConfig::builder().price_precisions(...)`。
 
-### OHLCV precision warnings
-
-:::warning
-CoinAPI OHLCV prices can carry more decimal places than instrument metadata allows, even when
-trade prices fit. For example, a BTC/USD OHLCV price of `84761.955` does not fit a `0.01` resolution.
-Set a suitable `price_precisions` override to avoid missing bars.
-
-Historical OHLCV volumes can also contain small numeric tails, such as `1.2582318399999999` for `1.25823184`.
-The client accepts them within the [bounded tolerance](#precision). Larger mismatches still drop the bar.
-:::
-
-## Connection lifecycle
-
-`disconnect` cancels pending subscriptions and requests before closing the connection. Queued
-subscriptions cannot reopen it, and canceled requests send no response. A later `connect` reloads
-instruments and allows new subscriptions and requests. `stop`, `reset`, and `dispose` cancel pending
-work and drop the connection without waiting.
-
-## Usage and access constraints
-
-### Account limits
-
-REST usage is subject to concurrency limits and data credits. WebSocket usage is metered by data transfer.
-Check your account's entitlements, connection allowance, and
-[current pricing](https://www.coinapi.io/products/market-data-api/pricing?ref=nautilus) before choosing feeds.
-A plan's transfer allowance does not guarantee access to every channel or source.
-
-The pricing page lists these daily allowances as of October 2026. Check the linked page for changes
-and overage charges.
-
-| Plan          | REST credits | Tier 1 transfer | Tier 2 transfer |
-| ------------- | ------------ | --------------- | --------------- |
-| Pay As You Go | Metered      | Metered         | Metered         |
-| Startup       | 1,000        | 32 GiB          | Metered         |
-| Streamer      | 10,000       | 128 GiB         | 1 GiB           |
-| Pro           | 100,000      | 512 GiB         | 64 GiB          |
-| Enterprise    | Custom       | Custom          | Custom          |
-
-CoinAPI classifies trades, quotes, and L2 books as Tier 1, and OHLCV as Tier 2. See the
-[usage FAQ](https://www.coinapi.io/products/market-data-api/faq?ref=nautilus). Its
-[L3 pricing guide](https://www.coinapi.io/blog/tier-1-vs-tier-2-market-data-level-3-order-book?ref=nautilus)
-classifies continuous L3 streams as Tier 2. Confirm billing and access for your chosen feeds.
-
-Each client uses one WebSocket connection. Other nodes or clients using the same account can occupy
-its available connection slots and cause HTTP 429 responses. Reduce concurrent connections to fit
-your account limit. Exhausting a hard-limited REST quota also returns HTTP 429.
+### OHLCV 精度警告 {#ohlcv-precision-warnings}
 
 :::warning
-CoinAPI combines the session's data types, symbols, and bar periods. Trades for ten symbols plus a
-book for one symbol can therefore transfer books for all ten. The adapter filters out unrequested
-pairs, but their transfer is still billable. Consider this when combining feeds on one client.
+CoinAPI 的 OHLCV 价格可能比工具元数据允许的小数位更多，即便成交价格能装下。例如 `84761.955` 这个 BTC/USD OHLCV 价格装不进 `0.01` 分辨率。设置合适的 `price_precisions` 覆盖，避免丢失 bar。
+
+历史 OHLCV 成交量也可能带微小数值尾巴，如 `1.2582318399999999` 对应 `1.25823184`。客户端在[有界容差](#precision)内接受它们，更大的失配仍会丢弃该 bar。
 :::
 
-### Local credit budget
+## 连接生命周期 {#connection-lifecycle}
 
-The data client's `credit_budget` caps the credits one client instance may spend and defaults to
-100. Each symbol-metadata attempt costs one local credit, regardless of response size. Use `filter_symbol_id`
-     to reduce transfer and parsing work. Allow for all historical requests: a range request stops at the
-     budget and returns a truncated response. For bulk history, downloaded [flat files](#flat-files) avoid
-     repeated REST requests. Compare their transfer cost with REST credits.
+`disconnect` 先取消待处理的订阅与请求，再关闭连接。排队的订阅无法重新打开连接，被取消的请求不发送响应。之后 `connect` 会重新加载工具并允许新的订阅与请求。`stop`、`reset` 和 `dispose` 取消待处理工作并直接丢弃连接，不做等待。
 
-`max_concurrent_requests` bounds simultaneous REST requests. The local credit budget applies throughout the
-client's lifetime and is separate from CoinAPI billing. Each attempt reserves `ceil(limit / 100)` credits for
-historical requests, or one credit for requests without a record limit.
+## 使用与访问限制 {#usage-and-access-constraints}
 
-CoinAPI bills historical requests per 100 returned records. Thus, a successful historical page refunds the
-unused reservation above `ceil(records / 100)`. The local minimum charge is one credit. Failed, retried, and
-canceled attempts are not refunded. The client backs off on HTTP 429 and fails promptly on HTTP 403. See the
-[API limits reference](https://www.coinapi.io/products/market-data-api/docs/api-limits-and-billing-metrics?ref=nautilus).
+### 账户限额 {#account-limits}
 
-### Backfills
+REST 用量受并发限制和数据信用额度约束，WebSocket 用量按数据传输量计量。选择数据源前，先确认账户的权益、连接配额和
+[当前定价](https://www.coinapi.io/products/market-data-api/pricing?ref=nautilus)。套餐的传输额度不保证能访问每个通道或来源。
 
-Set an explicit record limit and time window for historical requests. Without a record limit, one
-request can reserve the remaining credit budget for its first page and leave none for other
-requests. Each historical page has its own REST retry budget.
+下表是截至 2026 年 10 月定价页列出的每日额度，变化与超额费用以链接页面为准。
 
-For bulk history, compare REST credit costs with downloaded [flat files](#flat-files). Fewer HTTP calls do not
-necessarily mean fewer billable credits. Download files separately before loading them. The adapter does not
-list or download S3 objects.
+| 套餐          | REST 信用额度 | Tier 1 传输 | Tier 2 传输 |
+| ------------- | ------------- | ----------- | ----------- |
+| Pay As You Go | 按量计费      | 按量计费    | 按量计费    |
+| Startup       | 1,000         | 32 GiB      | 按量计费    |
+| Streamer      | 10,000        | 128 GiB     | 1 GiB       |
+| Pro           | 100,000       | 512 GiB     | 64 GiB      |
+| Enterprise    | 定制          | 定制        | 定制        |
 
-## Raw HTTP requests
+CoinAPI 把成交、报价和 L2 订单簿归为 Tier 1，OHLCV 归为 Tier 2，见
+[用量 FAQ](https://www.coinapi.io/products/market-data-api/faq?ref=nautilus)。其
+[L3 定价指南](https://www.coinapi.io/blog/tier-1-vs-tier-2-market-data-level-3-order-book?ref=nautilus)把持续 L3 数据流归为 Tier 2。请针对所选数据源确认计费与访问权限。
 
-For direct Rust access, `CoinApiHttpClient` accepts a `SecretString` API key and `CoinApiHttpConfig`. The base
-URL includes `/v1/`. Authentication uses `X-CoinAPI-Key`. Redirects are rejected. The client ignores system
-proxy environment variables and connects directly unless `proxy_url` is set.
+每个客户端使用一条 WebSocket 连接。同一账户上的其他节点或客户端可能占用其可用连接槽，导致 HTTP 429。请减少并发连接以适配账户限额。耗尽硬限额的 REST 配额同样返回 HTTP 429。
 
-The raw client exposes exchange and active-symbol metadata, historical trades, quotes, and OHLCV, and
-single-symbol current L2 and L3 books. Financial values retain their exact decimal representation. Values
-outside `Decimal` precision fail parsing instead of rounding.
+:::warning
+CoinAPI 会把会话内的数据类型、交易代码和 bar 周期做组合。十个工具的成交加一个工具的订单簿，可能传输全部十个工具的订单簿。适配器会过滤掉未请求的组合，但它们的传输仍会计费。在同一客户端上组合数据源时请考虑这一点。
+:::
 
-### Single pages and ranges
+### 本地信用额度预算 {#local-credit-budget}
 
-The `get_trades`, `get_quotes`, and `get_ohlcv` methods return one page for an explicit time window and record
-limit in `[1, 100000]`. A full page does not mean the window is complete. The `get_trades_range`,
-`get_quotes_range`, and `get_ohlcv_range` methods page through a whole `HistoryRange`, whose optional limit
-caps the total records and can exceed 100,000.
+数据客户端的 `credit_budget` 限制单个客户端实例可消耗的信用额度，默认 100。每次工具元数据尝试无论响应大小都消耗 1 点本地信用。用 `filter_symbol_id` 减少传输与解析开销。规划要为全部历史请求留出额度：区间请求到预算上限即停止，返回截断的响应。批量历史请用下载的[扁平文件](#flat-files)避免重复 REST 请求，并比较其传输成本与 REST 信用。
 
-### Time boundaries
+`max_concurrent_requests` 限制并发 REST 请求数。本地信用预算作用于客户端整个生命周期，与 CoinAPI 计费相互独立。每次尝试为历史请求预留 `ceil(limit / 100)` 点信用，无记录上限的请求预留 1 点。
 
-Trade and quote ranges select `[time_start, time_end)` by exchange time. OHLCV ranges select periods by their
-start time. The data client also excludes periods that have not closed. Records outside the requested window
-are filtered out.
+CoinAPI 按每 100 条返回记录对历史请求计费。因此成功的历史页会退回超出 `ceil(records / 100)` 的未用预留。本地最低计费为 1 点。失败、重试和被取消的尝试不予退回。客户端在 HTTP 429 时退避，在 HTTP 403 时快速失败。见
+[API 限额与计费参考](https://www.coinapi.io/products/market-data-api/docs/api-limits-and-billing-metrics?ref=nautilus)。
 
-### Pagination
+### 历史回填 {#backfills}
 
-#### Page sizes and completion
+历史请求要设置明确的记录上限和时间窗口。没有记录上限时，一个请求的首屏就可能预留剩余的全部信用预算，让其他请求无额度可用。每个历史页都有自己的 REST 重试预算。
 
-Each page requests the largest limit that fits the remaining request limit, the 100,000-record
-maximum, and the remaining credit budget. A short page, or a full page reaching the request limit,
-completes the range. With the default 100-credit budget, a page holds at most 10,000 records, so
-continuation beyond one page needs a larger budget.
+批量历史请比较 REST 信用成本与下载的[扁平文件](#flat-files)。HTTP 调用更少未必意味着计费信用更少。文件需另行下载后再加载，适配器不会列出或下载 S3 对象。
 
-#### Records sharing a timestamp
+## 原生 HTTP 请求 {#raw-http-requests}
 
-Pagination avoids duplicate records at page boundaries by rereading a trailing timestamp group
-when a full page needs continuation. Paging fails if records at one timestamp fill a whole page,
-preventing cursor advancement, or if a page is not in ascending order.
+直接访问 Rust 时，`CoinApiHttpClient` 接受 `SecretString` API 密钥和 `CoinApiHttpConfig`。基础 URL 含 `/v1/`。认证用 `X-CoinAPI-Key`。拒绝重定向。客户端忽略系统代理环境变量，除非设置 `proxy_url`，否则直连。
 
-#### Records outside the window
+原生客户端暴露交易所与活跃工具元数据、历史成交/报价/OHLCV，以及单工具当前 L2 和 L3 订单簿。金融数值保持精确的十进制表示，超出 `Decimal` 精度的值解析失败而不是舍入。
 
-Records outside the window are dropped. CoinAPI returns nearby OHLCV periods from the same UTC
-date when the window has no trades, and a page holding only such periods completes the range.
+### 单页与区间 {#single-pages-and-ranges}
 
-#### Credit exhaustion and concurrent ranges
+`get_trades`、`get_quotes` 和 `get_ohlcv` 对一个明确的时间窗口和 `[1, 100000]` 内的记录上限返回一页。满页不代表窗口已取完。`get_trades_range`、`get_quotes_range` 和 `get_ohlcv_range` 对整个 `HistoryRange` 翻页，其可选上限限制总记录数，可以超过 100,000。
 
-If the credit budget cannot fund the next page, the result carries the records gathered so far and sets
-`is_truncated=true`. The budget can be insufficient after a failed attempt keeps its reservation. Without
-affordable credit for the first page, the request fails. Range requests on one client run one at a time, so
-each sizes its pages after earlier ranges have settled their credits.
+### 时间边界 {#time-boundaries}
 
-## Raw WebSocket streams
+成交与报价区间按场所时间选取 `[time_start, time_end)`。OHLCV 区间按周期起始时间选取周期。数据客户端还会剔除未收盘的周期。窗口之外的记录会被过滤。
 
-For direct Rust access, `CoinApiWebSocketClient` takes an API key and `CoinApiWebSocketConfig` and
-returns a message receiver. Its default endpoint is `wss://ws.coinapi.io/v1/`. A `Subscription`
-names a data type, an exact full CoinAPI `symbol_id`, and an OHLCV period where required.
+### 翻页 {#pagination}
 
-The client decodes `trade`, `quote`, `book`, `book5`, `book20`, `book50`, `book_l3`, and `ohlcv`. It preserves
-decimal values, logs and drops malformed frames, and ignores metadata feeds. Subscription changes return when
-queued. Receiving matching data confirms the subscription. The [subscription pacing](#subscription-changes),
-[book channel limits](#channel-conflicts), and [billable combined scope](#account-limits) apply to this client
-too.
+#### 页大小与完成条件 {#page-sizes-and-completion}
 
-### Reconnects and errors
+每页请求剩余请求上限、100,000 条最大值和剩余信用预算中能装下的最大 limit。短页、或达到请求上限的满页都会结束区间。默认 100 点信用预算下每页最多 10,000 条，因此跨页续取需要更大的预算。
 
-Five seconds without a message triggers a reconnect. The first attempt is immediate. Later attempts back off
-from one second to 30 seconds, doubling with up to 500 milliseconds of jitter. On an account with one
-connection slot, reconnects can receive HTTP 429 until CoinAPI releases the old connection.
+#### 共享时间戳的记录 {#records-sharing-a-timestamp}
 
-Reconnection restores the scope and emits `CoinApiWsMessage::Reconnected`. Raw book sequences
-restart per connection, so clear your book state after reconnecting. The data client handles book
-state and sequence continuity automatically.
+满页需要续取时，翻页会重读页尾的时间戳分组以避免页边界重复记录。若同一时间戳的记录占满整页导致游标无法推进，或某页不是升序，翻页失败。
 
-A server `reconnect` notice does not interrupt streaming. The client reconnects when the server closes. A
-CoinAPI `error` emits `CoinApiWsMessage::Error`, clears all subscriptions, and ends the connection without
-reconnecting. The next subscription opens a new connection. Authentication errors can arrive after a
-successful WebSocket upgrade. Closing or dropping the client closes its connection.
+#### 窗口之外的记录 {#records-outside-the-window}
 
-## Flat files
+窗口之外的记录被丢弃。窗口内没有成交时，CoinAPI 的 OHLCV 会返回同一 UTC 日的邻近周期；只含这类周期的一页即结束区间。
 
-CoinAPI [Flat Files](https://www.coinapi.io/products/flat-files?ref=nautilus) are daily or hourly `.csv.gz`
-exports served over an S3-compatible API. The adapter loads downloaded files into Nautilus data. It does not
-list or download them. The loaders follow the Tardis CSV loaders. Each `load_*` function returns a whole file,
-and each `stream_*` function yields it in chunks. Both take optional price and size precisions and a record
-`limit`.
+#### 信用耗尽与并发区间 {#credit-exhaustion-and-concurrent-ranges}
 
-| Schema                        | Load                           | Stream                  | Output           |
-| ----------------------------- | ------------------------------ | ----------------------- | ---------------- |
-| `T-TRADES`                    | `load_coinapi_trades`          | `stream_coinapi_trades` | `TradeTick`      |
-| `T-QUOTES`                    | `load_coinapi_quotes`          | `stream_coinapi_quotes` | `QuoteTick`      |
-| `T-LIMITBOOK_FULL`            | `load_coinapi_deltas`          | `stream_coinapi_deltas` | `OrderBookDelta` |
-| `T-OHLCV_ACTIVE_CONSOLIDATED` | `CoinApiOhlcvLoader.load_bars` | None                    | `Bar`            |
+信用预算不够支付下一页时，结果携带已收集的记录并置 `is_truncated=true`。失败的尝试保留其预留后，预算可能不足。首屏就没有足够信用时请求失败。同一客户端上的区间请求逐个执行，因此每个请求在先前区间结清信用之后再确定自己的页大小。
 
-In Rust, the same functions are `nautilus_coinapi::csv::{load_trades, stream_trades, ...}` and
-`CoinApiOhlcvLoader::load_bars`.
+## 原生 WebSocket 数据流 {#raw-websocket-streams}
 
-### Order book example
+直接访问 Rust 时，`CoinApiWebSocketClient` 接受 API 密钥和 `CoinApiWebSocketConfig`，返回消息接收端。默认端点为 `wss://ws.coinapi.io/v1/`。`Subscription` 指定数据类型、精确完整的 CoinAPI `symbol_id`，以及需要时的 OHLCV 周期。
 
-The load call derives the date from `D-20250901`. The stream reads a renamed file, so it passes
-`date` explicitly and sets precisions for the instrument's increments instead of inferring them.
-These precisions must fit every value: finer values fail the stream rather than being rounded.
+客户端解码 `trade`、`quote`、`book`、`book5`、`book20`、`book50`、`book_l3` 和 `ohlcv`。它保留十进制值，记录并丢弃畸形帧，忽略元数据流。订阅变更在入队后即返回，收到匹配数据即确认订阅。[订阅节奏](#subscription-changes)、[订单簿通道限制](#channel-conflicts)和[会计费的组合范围](#account-limits)同样适用于该客户端。
+
+### 重连与错误 {#reconnects-and-errors}
+
+五秒没有消息即触发重连。第一次尝试立即进行，之后从一秒退避到 30 秒、逐步翻倍并附加最多 500 毫秒抖动。只有一个连接槽的账户，重连可能持续收到 HTTP 429，直到 CoinAPI 释放旧连接。
+
+重连恢复订阅范围并发出 `CoinApiWsMessage::Reconnected`。原生订单簿序号按连接重新开始编号，重连后要清空订单簿状态。数据客户端会自动处理订单簿状态与序号连续性。
+
+服务端 `reconnect` 通知不打断数据流，客户端在服务端关闭时才重连。CoinAPI `error` 发出 `CoinApiWsMessage::Error`、清空全部订阅并结束连接且不重连，下一次订阅新建连接。认证错误可能在 WebSocket 升级成功之后才到达。关闭或丢弃客户端会关闭其连接。
+
+## 扁平文件 {#flat-files}
+
+CoinAPI [Flat Files](https://www.coinapi.io/products/flat-files?ref=nautilus) 是经 S3 兼容 API 提供的按天或按小时的 `.csv.gz` 导出。适配器把已下载的文件加载为 Nautilus 数据，不负责列出或下载。加载器沿用 Tardis CSV 加载器的模式：每个 `load_*` 函数返回整个文件，每个 `stream_*` 函数分块产出。两者都接受可选的价格与数量精度以及记录 `limit`。
+
+| 模式                          | 加载                         | 流式                    | 输出             |
+| ----------------------------- | ---------------------------- | ----------------------- | ---------------- |
+| `T-TRADES`                    | `load_coinapi_trades`        | `stream_coinapi_trades` | `TradeTick`      |
+| `T-QUOTES`                    | `load_coinapi_quotes`        | `stream_coinapi_quotes` | `QuoteTick`      |
+| `T-LIMITBOOK_FULL`            | `load_coinapi_deltas`        | `stream_coinapi_deltas` | `OrderBookDelta` |
+| `T-OHLCV_ACTIVE_CONSOLIDATED` | `CoinApiOhlcvLoader.load_bars` | 无                    | `Bar`            |
+
+Rust 中对应 `nautilus_coinapi::csv::{load_trades, stream_trades, ...}` 和 `CoinApiOhlcvLoader::load_bars`。
+
+### 订单簿示例 {#order-book-example}
+
+load 调用从 `D-20250901` 推导日期。stream 读取的是重命名后的文件，所以要显式传 `date`，并为工具的增量设置精度而不是推断。这些精度必须容纳每一个值：更细的值会让流失败，而不是被舍入。
 
 ```rust tab="Rust"
 use jiff::civil::date;
@@ -620,11 +443,9 @@ for chunk in stream_coinapi_deltas(
     ...
 ```
 
-### Bars example
+### Bar 示例 {#bars-example}
 
-`CoinApiOhlcvLoader` maps numeric `symbol_id` values to instruments. `27576` is the REST `symbol_id_int` of
-`COINBASE_SPOT_BTC_USD`. It reads the period from `TP-1MIN` and skips unmapped symbols. Rust also provides
-`CoinApiOhlcvLoader::from_symbols` to build the map from metadata.
+`CoinApiOhlcvLoader` 把数字 `symbol_id` 映射到工具。`27576` 是 `COINBASE_SPOT_BTC_USD` 的 REST `symbol_id_int`。它从 `TP-1MIN` 读取周期，跳过未映射的代码。Rust 还提供 `CoinApiOhlcvLoader::from_symbols`，从元数据构建映射。
 
 ```rust tab="Rust"
 use nautilus_coinapi::csv::CoinApiOhlcvLoader;
@@ -646,122 +467,78 @@ loader = CoinApiOhlcvLoader({27576: InstrumentId.from_str("BTC-USD.COINBASE")})
 bars = loader.load_bars("T-OHLCV_ACTIVE_CONSOLIDATED/D-20250911/E-COINBASE/TP-1MIN.csv.gz")
 ```
 
-### File layout
+### 文件布局 {#file-layout}
 
-#### Symbol files
+#### 工具文件 {#symbol-files}
 
-The loaders accept semicolon-delimited files with a header row. Trade, quote, and book files
-hold one symbol under
-`T-{SCHEMA}/D-{YYYYMMDD|YYYYMMDDHH}/E-{EXCHANGE}/IDDI-{ID}+SC-{SYMBOL_ID}+S-{EXCHANGE_SYMBOL}.csv.gz`.
-Pass an explicit `instrument_id` for each file.
+加载器接受带表头的分号分隔文件。成交、报价和订单簿文件每个只含一个工具，路径形如
+`T-{SCHEMA}/D-{YYYYMMDD|YYYYMMDDHH}/E-{EXCHANGE}/IDDI-{ID}+SC-{SYMBOL_ID}+S-{EXCHANGE_SYMBOL}.csv.gz`。
+每个文件要传入显式的 `instrument_id`。
 
-CoinAPI also documents export variants with comma delimiters, full date-time book timestamps, or numeric book
-update types. These loaders require semicolon delimiters, time-of-day book timestamps, and named book updates
-such as `SNAPSHOT`, `ADD`, and `SET`. Convert other layouts before loading them. See the
-[full-book dataset guide](https://www.coinapi.io/products/flat-files/docs/datasets/limitbook?ref=nautilus).
+CoinAPI 还记载了逗号分隔、订单簿时间戳为完整日期时间、或订单簿更新类型为数字的导出变体。这些加载器要求分号分隔、订单簿时间戳为时分秒、更新类型为 `SNAPSHOT`、`ADD`、`SET` 这类名称。其他布局请先转换再加载，见
+[完整订单簿数据集指南](https://www.coinapi.io/products/flat-files/docs/datasets/limitbook?ref=nautilus)。
 
-#### Buckets and retention
+#### 存储桶与保留 {#buckets-and-retention}
 
-The `coinapi` bucket holds historical data: daily partitions before 2026-06-09 and hourly
-trade, quote, and full-book partitions from that date. The `coinapi-daily-tail` bucket holds only
-the previous day's daily trade, quote, and full-book files, retained for 24 hours. It is not an
-archive and contains no OHLCV. See the
-[file structure](https://www.coinapi.io/products/flat-files/docs/datasets?ref=nautilus).
+`coinapi` 桶存放历史数据：2026-06-09 之前按天分区，该日期起成交、报价和完整订单簿按小时分区。`coinapi-daily-tail` 桶只存放前一天的按天成交、报价和完整订单簿文件，保留 24 小时。它不是归档，也不含 OHLCV。见
+[文件结构](https://www.coinapi.io/products/flat-files/docs/datasets?ref=nautilus)。
 
-#### OHLCV files
+#### OHLCV 文件 {#ohlcv-files}
 
-The [OHLCV dataset guide](https://www.coinapi.io/products/flat-files/docs/datasets/ohlcv?ref=nautilus)
-documents exchange-wide daily files in the `coinapi` bucket under
-`T-OHLCV_ACTIVE_CONSOLIDATED/D-{YYYYMMDD}/E-{EXCHANGE}/TP-{PERIOD}.csv.gz`, one file per period of `1SEC`,
-`1MIN`, `1HRS`, or `1DAY`. Each row's numeric `symbol_id` is the REST `symbol_id_int`. The loader maps it to
-an instrument, skips unmapped rows, and reads the period from `TP-` unless `period_id` is given. The general
-file-structure page also lists hourly OHLCV paths. Confirm available objects when downloading. The loader
-reads the timestamps from the rows for either layout.
+[OHLCV 数据集指南](https://www.coinapi.io/products/flat-files/docs/datasets/ohlcv?ref=nautilus)记载 `coinapi` 桶中的全交易所按天文件，路径为
+`T-OHLCV_ACTIVE_CONSOLIDATED/D-{YYYYMMDD}/E-{EXCHANGE}/TP-{PERIOD}.csv.gz`，每个周期一个文件，周期取 `1SEC`、`1MIN`、`1HRS` 或 `1DAY`。每行的数字 `symbol_id` 就是 REST `symbol_id_int`。加载器把它映射到工具、跳过未映射的行，并在未传 `period_id` 时从 `TP-` 读取周期。通用文件结构页还列出按小时的 OHLCV 路径，下载时请确认实际存在的对象。两种布局都由加载器从行内读取时间戳。
 
-### Order book data
+### 订单簿数据 {#order-book-data}
 
-Book files with order IDs produce L3 market-by-order deltas. Files without them produce L2 market-by-price
-deltas. For example, Coinbase spot files contain order IDs, while Binance spot files describe price levels.
-Use the corresponding `BookType` when applying the deltas.
+含订单 ID 的订单簿文件产出 L3 market-by-order delta，不含的产出 L2 market-by-price delta。例如 Coinbase 现货文件含订单 ID，Binance 现货文件只描述价格档位。应用 delta 时请使用对应的 `BookType`。
 
-The initial snapshot emits a `Clear` followed by `Add` deltas, all flagged `F_SNAPSHOT`. Subsequent updates at
-one exchange timestamp form one event ending in `F_LAST`. Streaming chunks normally end at event boundaries
-and can exceed `chunk_size`. A record `limit` can cut the final event short. Its last delta still carries
-`F_LAST`, so a limited load can leave an incomplete book.
+初始快照发出一个 `Clear` 后跟一串 `Add` delta，全部带 `F_SNAPSHOT`。同一场所时间戳的后续更新构成一个以 `F_LAST` 结尾的事件。流式分块通常在事件边界结束，可能超过 `chunk_size`。记录 `limit` 可能把最后一个事件截短——其最后一个 delta 仍带 `F_LAST`，因此设了 limit 的加载可能留下不完整的订单簿。
 
-L3 fill updates reduce an order's remaining size and remove it at zero. A later add can reuse an
-order ID after deletion. Updates to unknown orders, other than deletes, are logged and skipped.
+L3 成交更新会削减订单剩余数量，归零即删除。删除后的订单 ID 可能被后续 add 复用。对未知订单的其他更新（删除除外）记录日志并跳过。
 
-### Timestamps
+### 时间戳 {#timestamps}
 
-Trade, quote, and OHLCV rows carry zone-less UTC date-times such as `2025-09-01T00:00:00.1780000`. Book rows
-carry only a time of day, such as `00:00:00.0140000`. Thus, the book loaders date each row from the file's
-`D-` partition. For a file outside a `D-` partition, they use `date`. A snapshot stamped later than the first
-update carries the previous day's closing time and moves back one day. A `time_coinapi` more than half a day
-below its `time_exchange` falls after midnight and moves forward one day.
+成交、报价和 OHLCV 行携带不带时区的 UTC 日期时间，如 `2025-09-01T00:00:00.1780000`。订单簿行只有时分秒，如 `00:00:00.0140000`。因此订单簿加载器用文件的 `D-` 分区为每行定日期；文件不在 `D-` 分区下时用 `date`。快照时间戳晚于首个更新时，它携带的是前一天的收盘时刻，日期要回退一天。`time_coinapi` 比 `time_exchange` 小超过半天时，说明它落在午夜之后，日期要前移一天。
 
-`ts_event` is `time_exchange` and `ts_init` is `time_coinapi`. Bars take `time_period_end` for
-both.
+`ts_event` 取 `time_exchange`，`ts_init` 取 `time_coinapi`。bar 两者都取 `time_period_end`。
 
-### Precision
+### 精度 {#precision-1}
 
-Prices and sizes convert exactly from text. `load_*` infers unspecified precisions from all rows read,
-stopping at `limit` if set. `stream_*` samples the first 10,000 rows and raises if a later value needs
-rounding. Pass explicit precisions when the file's precision is unknown. The OHLCV loader infers precisions
-per instrument, with the volume exception below.
+价格和数量从文本精确转换。`load_*` 从读取的全部行推断未指定的精度，设了 `limit` 时以它为界。`stream_*` 采样前一万行，后续值需要舍入时抛错。文件精度未知时请显式传入精度。OHLCV 加载器按工具推断精度，成交量有下述例外。
 
-CoinAPI uses [high-precision mode](./../getting_started/installation.md#precision-mode) by default: 16 decimal
-places rather than 9, to fit cryptocurrency sizes and CoinAPI volumes. OHLCV `sx_sum` can carry numeric tails
-consistent with floating-point noise, such as `689.5507347100003`. The loader rounds volumes half to even at
-the build's maximum precision, changing only values that exceed it, such as this example in a
-standard-precision build. It rejects negative source volumes and positive volumes that round to zero. Zero
-source volumes remain valid.
+CoinAPI 默认使用[高精度模式](./../getting_started/installation.md#precision-mode)：16 位小数而非 9 位，以容纳加密货币数量和 CoinAPI 成交量。OHLCV 的 `sx_sum` 可能带与浮点噪声一致的数值尾巴，如 `689.5507347100003`。加载器按构建版本的最大精度对成交量做四舍六入五成双，只改动超出该精度的值，例如标准精度构建下的本例。它拒绝负的源成交量和舍入后归零的正成交量。源值为零的成交量保持有效。
 
-## Configuration
+## 配置 {#configuration}
 
-Register `CoinApiDataClientFactory` and `CoinApiDataClientConfig` with the node builder. The default client ID
-is `COINAPI`. A custom client name becomes its client ID.
+把 `CoinApiDataClientFactory` 和 `CoinApiDataClientConfig` 注册到节点 builder。默认客户端 ID 是 `COINAPI`，自定义客户端名会用作其客户端 ID。
 
-| Field                        | Default   | Purpose                                                     |
+| 字段                         | 默认值    | 用途                                                        |
 | ---------------------------- | --------- | ----------------------------------------------------------- |
-| `api_key`                    | `None`    | API key; `None` reads `COINAPI_API_KEY`.                    |
-| `base_url_http`              | `None`    | REST URL override, including `/v1/`.                        |
-| `base_url_ws`                | `None`    | WebSocket URL override.                                     |
-| `proxy_url`                  | `None`    | Explicit HTTP(S) proxy for REST and WebSocket.              |
-| `instruments`                | Empty     | Instrument selections loaded on connect.                    |
-| `credit_budget`              | `100`     | Local lifetime REST credit allowance for this client.       |
-| `max_retries`                | `3`       | Maximum retries for a failed REST request.                  |
-| `http_timeout_secs`          | `30`      | Per-attempt REST timeout, including concurrency admission.  |
-| `max_concurrent_requests`    | `1`       | Maximum simultaneous REST requests.                         |
-| `retry_delay_initial_ms`     | 1,000     | Initial REST retry delay.                                   |
-| `retry_delay_max_ms`         | 10,000    | Maximum REST backoff; provider retry delays can exceed it.  |
-| `retry_max_elapsed_ms`       | 120,000   | Total budget per REST GET, including admission and retries. |
-| `transport_backend`          | `Sockudo` | Shared WebSocket backend; `Tungstenite` is also available.  |
-| `book_snapshot_timeout_secs` | `10`      | Seconds to wait for a book snapshot; `0` disables.          |
-| `price_precisions`           | Empty     | Price precision overrides by instrument ID.                 |
+| `api_key`                    | `None`    | API 密钥；`None` 读取 `COINAPI_API_KEY`。                   |
+| `base_url_http`              | `None`    | REST URL 覆盖，含 `/v1/`。                                  |
+| `base_url_ws`                | `None`    | WebSocket URL 覆盖。                                        |
+| `proxy_url`                  | `None`    | REST 与 WebSocket 的显式 HTTP(S) 代理。                     |
+| `instruments`                | 空        | 连接时加载的工具选择。                                      |
+| `credit_budget`              | `100`     | 该客户端的本地生命周期 REST 信用额度。                      |
+| `max_retries`                | `3`       | 失败 REST 请求的最大重试次数。                              |
+| `http_timeout_secs`          | `30`      | 单次尝试的 REST 超时，含并发准入。                          |
+| `max_concurrent_requests`    | `1`       | 最大并发 REST 请求数。                                      |
+| `retry_delay_initial_ms`     | 1,000     | 初始 REST 重试延迟。                                        |
+| `retry_delay_max_ms`         | 10,000    | REST 退避上限；提供商的重试延迟可能超过它。                 |
+| `retry_max_elapsed_ms`       | 120,000   | 每次 REST GET 的总预算，含准入与重试。                      |
+| `transport_backend`          | `Sockudo` | 共享 WebSocket 后端，也可选 `Tungstenite`。                 |
+| `book_snapshot_timeout_secs` | `10`      | 等待订单簿快照的秒数，`0` 禁用。                            |
+| `price_precisions`           | 空        | 按工具 ID 的价格精度覆盖。                                  |
 
-Configuration rejects unknown fields. Unset URL overrides use the production endpoints. Sockudo is the default
-WebSocket backend. Set `transport_backend=TransportBackend.TUNGSTENITE` to use Tungstenite instead, importing
-`TransportBackend` from `nautilus_trader.network`.
+配置拒绝未知字段。不设置 URL 覆盖时使用生产端点。Sockudo 是默认 WebSocket 后端，设 `transport_backend=TransportBackend.TUNGSTENITE` 改用 Tungstenite，`TransportBackend` 从 `nautilus_trader.network` 导入。
 
-`proxy_url` routes both transports through an explicit HTTP(S) proxy. Ambient system proxies remain disabled.
-The URL must include `http://` or `https://`. SOCKS URLs fail at client construction. Proxy credentials stay
-redacted in Rust debug output and are not exposed by Python getters. The Python `has_proxy_url` property
-reports whether an explicit proxy is configured.
+`proxy_url` 让两种传输都走显式 HTTP(S) 代理，系统环境代理仍然禁用。URL 必须包含 `http://` 或 `https://`。SOCKS URL 在客户端构造时报错。代理凭据在 Rust debug 输出中保持脱敏，Python getter 也不暴露它。Python 的 `has_proxy_url` 属性报告是否配置了显式代理。
 
-`credit_budget`, `max_concurrent_requests`, `retry_max_elapsed_ms`, and `http_timeout_secs` must be positive.
-Each historical page has its own REST retry budget. The initial retry delay must be positive, and the maximum
-must be at least the initial delay. Invalid backoff settings fail at client construction. The per-attempt
-timeout includes waiting for concurrency admission and does not include retry delays. The total elapsed budget
-includes both.
+`credit_budget`、`max_concurrent_requests`、`retry_max_elapsed_ms` 和 `http_timeout_secs` 必须为正。每个历史页有自己的 REST 重试预算。初始重试延迟必须为正，且最大值不得低于初始延迟。无效的退避设置在客户端构造时报错。单次尝试超时包含等待并发准入的时间，但不含重试延迟；总时长预算两者都包含。
 
-### Python configuration
+### Python 配置 {#python-configuration}
 
-The `nautilus_trader.adapters.coinapi` package exports `CoinApiDataClientConfig`,
-`CoinApiInstrumentSelection`, `CoinApiDataClientFactory`, and the `COINAPI` and `COINAPI_CLIENT_ID` constants.
-The config takes the fields above as keyword arguments. It exposes each field except `api_key` and `proxy_url`
-as a read-only property. Its representation omits every value. A selection takes the exchange, the instrument
-IDs, and the optional `filter_symbol_id` and `filter_asset_id` filters.
+`nautilus_trader.adapters.coinapi` 包导出 `CoinApiDataClientConfig`、`CoinApiInstrumentSelection`、`CoinApiDataClientFactory` 以及 `COINAPI` 和 `COINAPI_CLIENT_ID` 常量。配置以关键字参数接收上述字段，并把除 `api_key` 和 `proxy_url` 外的每个字段暴露为只读属性。其字符串表示省略所有值。工具选择接收交易所、工具 ID 列表，以及可选的 `filter_symbol_id` 和 `filter_asset_id` 过滤器。
 
 ```python
 from nautilus_trader.adapters.coinapi import CoinApiDataClientConfig
@@ -792,60 +569,46 @@ node = (
 )
 ```
 
-The factory creates the client during `build`, where invalid credentials, endpoint or proxy URLs, zero
-concurrency, elapsed budgets, or attempt timeouts, and invalid retry backoff settings raise an error. The
-example reads its key from `COINAPI_API_KEY`. It overrides BTC/USD price precision to admit three-decimal
-OHLCV prices. See [Precision](#precision). For general node setup, see
-[Configure live trading](./../how_to/configure_live_trading.md).
+工厂在 `build` 期间创建客户端，无效的凭据、端点或代理 URL、零并发数、时长预算或单次超时、无效的退避设置都会在此报错。示例从 `COINAPI_API_KEY` 读取密钥，并把 BTC/USD 价格精度覆盖为 3 以容纳三位小数的 OHLCV 价格，见[精度](#precision)。通用节点搭建见
+[配置实时交易](./../how_to/configure_live_trading.md)。
 
-### Instrument selections
+### 工具选择 {#instrument-selections}
 
-Each `CoinApiInstrumentSelection` names a CoinAPI exchange, the native instrument IDs to load, and optional
-`filter_symbol_id` and `filter_asset_id` metadata filters. Construction rejects empty ID lists, IDs mapped to
-another CoinAPI exchange, and IDs selected more than once. Use `filter_symbol_id` to limit metadata transfer
-and parsing. Each request attempt costs one local credit regardless of response size.
+每个 `CoinApiInstrumentSelection` 指定一个 CoinAPI 交易所、要加载的原生工具 ID，以及可选的 `filter_symbol_id` 和 `filter_asset_id` 元数据过滤器。构造时拒绝空 ID 列表、映射到其他 CoinAPI 交易所的 ID，以及被选择多次的 ID。用 `filter_symbol_id` 限制元数据的传输与解析量。每次请求尝试无论响应大小都消耗 1 点本地信用。
 
-Connecting loads each selection once and fails if any selected instrument is missing. Only selected
-instruments are published. Use explicit selections to keep CoinAPI and native adapters
-[disjoint](#using-coinapi-with-native-adapters).
+连接时每个选择加载一次，任何选定工具缺失都会导致失败。只有选定的工具会被发布。用显式选择保持 CoinAPI 与原生适配器的[互不相交](#using-coinapi-with-native-adapters)。
 
-Instrument requests always fetch from CoinAPI and refresh the definitions used for stream conversion
-and the `symbol_id` values used for REST requests. Subscriptions retain the IDs loaded by `connect`,
-including after a transport reconnect. Disconnect and reconnect the data client to use refreshed
-IDs for subscriptions.
+工具请求始终从 CoinAPI 获取，并刷新用于流转换的定义和用于 REST 请求的 `symbol_id`。订阅沿用 `connect` 加载的 ID，传输重连后也一样。要让订阅使用刷新的 ID，需要断开并重连数据客户端。
 
-- `request_instrument` accepts only a configured ID and returns an error for any other.
-- `request_instruments` returns the configured instruments for the requested venue. If the request names no
-  venue, it returns all configured instruments. A response without a requested venue carries the `COINAPI`
-  venue.
-- A request for a venue without configured instruments returns an empty response without a REST
-  call.
+- `request_instrument` 只接受配置过的 ID，其他 ID 返回错误。
+- `request_instruments` 返回所请求场所的已配置工具；请求未指明场所时返回全部已配置工具。响应中未被请求的场所带 `COINAPI` 场所。
+- 请求没有配置工具的场所时，直接返回空响应，不发起 REST 调用。
 
-## Troubleshooting
+## 故障排查 {#troubleshooting}
 
-| Symptom                                              | Likely cause                                                                                         | Action                                                                                        |
-| ---------------------------------------------------- | ---------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------- |
-| `CoinAPI API key not configured` at build            | Neither `api_key` nor `COINAPI_API_KEY` is set.                                                      | Set one of them.                                                                              |
-| `subscription change failed, retrying` with HTTP 429 | Another client or node holds the account's only connection.                                          | Stop the other connection; the client retries until CoinAPI frees the slot.                   |
-| `WsHelloPerIp` error, then no data                   | Too many `hello` messages from this IP, including other clients.                                     | Reduce subscription churn on the IP; the next subscription reconnects.                        |
-| `Conflicting CoinAPI book subscription`              | The instrument already streams another book channel or depth.                                        | Unsubscribe its book first, or request the same channel and depth.                            |
-| `CoinAPI streams one book channel per connection`    | Another instrument streams a different book channel.                                                 | Use the active channel, or unsubscribe every book first.                                      |
-| Repeated `Invalid book message` warnings             | Book levels exceed instrument precision, or L3 entries lack order IDs.                               | Override price precision if needed, or use L2 for a source without order IDs.                 |
-| `Dropping CoinAPI` quote, trade, or bar warnings     | Prices or sizes exceed the instrument's precision; OHLCV volume needs rounding beyond its tolerance. | Override price precision if needed; size precision and the volume tolerance have no override. |
-| Historical request for the last hour returns empty   | History can lag live data; recent history may not be available yet.                                  | Request an earlier window.                                                                    |
-| `credit budget truncated` history warning            | The credit budget ran out partway through a range request.                                           | Raise `credit_budget` or narrow the window.                                                   |
+| 症状                                                 | 可能原因                                                                                     | 处理措施                                                                                    |
+| ---------------------------------------------------- | -------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------- |
+| 构建时报 `CoinAPI API key not configured`            | `api_key` 与 `COINAPI_API_KEY` 都未设置。                                                    | 设置其中之一。                                                                              |
+| `subscription change failed, retrying` 伴随 HTTP 429 | 账户唯一连接被其他客户端或节点占用。                                                         | 停掉另一路连接；客户端会重试直到 CoinAPI 释放连接槽。                                       |
+| `WsHelloPerIp` 错误后无数据                          | 该 IP 发出的 `hello` 消息过多（含其他客户端）。                                              | 降低该 IP 的订阅变更频率；下一次订阅会重连。                                                |
+| `Conflicting CoinAPI book subscription`              | 该工具已在流式另一订单簿通道或深度。                                                         | 先退订其订单簿，或改用相同的通道与深度。                                                    |
+| `CoinAPI streams one book channel per connection`    | 另一工具在流式不同的订单簿通道。                                                             | 改用当前通道，或先退订全部订单簿。                                                          |
+| 反复出现 `Invalid book message` 警告                 | 订单簿档位超出工具精度，或 L3 条目缺少订单 ID。                                              | 必要时覆盖价格精度；对没有订单 ID 的数据源改用 L2。                                         |
+| `Dropping CoinAPI` 报价/成交/bar 警告                | 价格或数量超出工具精度；OHLCV 成交量需要的舍入超出容差。                                     | 必要时覆盖价格精度；数量精度与成交量容差没有覆盖项。                                        |
+| 请求最近一小时的历史返回空                           | 历史可能落后于实时数据，近期历史可能尚未可用。                                               | 请求更早的窗口。                                                                            |
+| `credit budget truncated` 历史警告                   | 区间请求进行到一半时信用预算耗尽。                                                           | 调大 `credit_budget` 或缩小时间窗口。                                                       |
 
-## Limitations
+## 局限 {#limitations}
 
-- Historical book snapshots and automatic regional REST failover are not supported.
-- Sandbox access is not verified.
-- Size precision comes only from CoinAPI metadata and has no override.
-- Automatic instrument updates, status events, metrics, and options are not supported.
-- The adapter loads downloaded flat files but does not list or download them from S3.
+- 不支持历史订单簿快照和自动区域 REST 故障切换。
+- Sandbox 访问未经确认。
+- 数量精度只来自 CoinAPI 元数据，没有覆盖项。
+- 不支持自动工具更新、状态事件、指标和期权。
+- 适配器加载已下载的扁平文件，但不会列出或下载 S3 对象。
 
-## Contributing
+## 参与贡献 {#contributing}
 
 :::info
-To contribute to the CoinAPI adapter, see the
-[contributing guide](https://github.com/nautechsystems/nautilus_trader/blob/develop/CONTRIBUTING.md).
+为 CoinAPI 适配器做贡献，见
+[贡献指南](https://github.com/nautechsystems/nautilus_trader/blob/develop/CONTRIBUTING.md)。
 :::
