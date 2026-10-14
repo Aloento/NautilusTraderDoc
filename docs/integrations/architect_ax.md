@@ -1,97 +1,77 @@
 # AX Exchange
 
-[AX Exchange](https://architect.exchange) is a centralized and regulated derivatives exchange for traditional
-underlying asset classes. Architect Bermuda Ltd. operates AX under a license from the
-[Bermuda Monetary Authority (BMA)](https://www.bma.bm). AX lists perpetual and dated futures contracts in both
-its production and sandbox catalogs.
+[AX Exchange](https://architect.exchange) 是一家受监管的中心化衍生品交易所，标的为传统资产类别。Architect Bermuda Ltd. 持有 [Bermuda Monetary Authority（BMA）](https://www.bma.bm)牌照运营 AX。AX 的生产与 sandbox 目录都上架永续和到期期货合约。
 
-This integration supports live market data ingest and order execution with AX Exchange.
+本集成支持基于 AX Exchange 的实时行情接入与订单执行。
 
-## Overview
+## 概览 {#overview}
 
-This adapter is implemented in Rust and exposed to Python through PyO3 bindings. It does not
-require external AX client libraries.
+适配器以 Rust 实现，通过 PyO3 绑定暴露给 Python，不需要外部 AX 客户端库。
 
-This guide assumes a trader is setting up for both live market data feeds, and trade execution.
-The AX Exchange adapter includes multiple components, which can be used together or separately
-depending on the use case.
+本指南假定读者要同时配置实时行情与交易执行。AX Exchange 适配器包含多个组件，按用途可组合使用也可单独使用：
 
-- `AxHttpClient`: Low-level HTTP API connectivity.
-- `AxMdWebSocketClient` and `AxOrdersWebSocketClient`: Low-level WebSocket connectivity for Rust
-  callers.
-- `AxDataClient`: A market data feed manager.
-- `AxExecutionClient`: An account management and trade execution gateway.
-- `AxDataClientFactory`: Factory for AX data clients.
-- `AxExecutionClientFactory`: Factory for AX execution clients.
+- `AxHttpClient`：低层 HTTP API 连接。
+- `AxMdWebSocketClient` 与 `AxOrdersWebSocketClient`：供 Rust 调用方使用的低层 WebSocket 连接。
+- `AxDataClient`：行情数据源管理器。
+- `AxExecutionClient`：账户管理与交易执行网关。
+- `AxDataClientFactory`：AX 数据客户端工厂。
+- `AxExecutionClientFactory`：AX 执行客户端工厂。
 
 :::note
-Most users configure a live trading node as shown below. They do not need to use these lower-level components
-directly.
+多数用户按下文配置实时交易节点即可，不需要直接使用这些底层组件。
 :::
 
-## Examples
+## 示例 {#examples}
 
-- [Python examples](https://github.com/nautechsystems/nautilus_trader/tree/develop/examples/live/architect_ax/)
-- [Rust examples](https://github.com/nautechsystems/nautilus_trader/tree/develop/crates/adapters/architect_ax/examples/)
+- [Python 示例](https://github.com/nautechsystems/nautilus_trader/tree/develop/examples/live/architect_ax/)
+- [Rust 示例](https://github.com/nautechsystems/nautilus_trader/tree/develop/crates/adapters/architect_ax/examples/)
 
-## AX Exchange documentation
+## AX Exchange 文档 {#ax-exchange-documentation}
 
-AX Exchange provides documentation for users at the
-[Architect documentation site](https://docs.architect.exchange/).
-Refer to the AX Exchange documentation in conjunction with this NautilusTrader integration guide.
+AX Exchange 在 [Architect 文档站](https://docs.architect.exchange/) 提供用户文档。请与本 NautilusTrader 集成指南配合阅读。
 
-## Products
+## 产品 {#products}
 
-The production catalog lists perpetual and dated futures contracts in these venue categories:
+生产目录按以下场所类别上架永续和到期期货合约：
 
-| Venue category   | Examples                     | Nautilus asset class |
-| ---------------- | ---------------------------- | -------------------- |
-| Foreign exchange | `EURUSD-PERP`, `JPYUSD-PERP` | FX                   |
-| Equities         | `AAPL-PERP`, `NVDA-PERP`     | Equity               |
-| Metals           | `XAU-PERP`, `XAU-2026-DEC`   | Commodity            |
-| Energy           | `WTIOIL-PERP`                | Commodity            |
-| Treasuries       | `UST10Y-PERP`                | Debt                 |
-| Compute          | `NVDA-H100-2027-MAR`         | Alternative          |
+| 场所类别   | 示例                         | Nautilus 资产类别 |
+| ---------- | ---------------------------- | ----------------- |
+| 外汇       | `EURUSD-PERP`、`JPYUSD-PERP` | FX                |
+| 股票       | `AAPL-PERP`、`NVDA-PERP`     | Equity            |
+| 金属       | `XAU-PERP`、`XAU-2026-DEC`   | Commodity         |
+| 能源       | `WTIOIL-PERP`                | Commodity         |
+| 国债       | `UST10Y-PERP`                | Debt              |
+| 算力       | `NVDA-H100-2027-MAR`         | Alternative       |
 
-The sandbox catalog differs. It also lists `energy_etfs` contracts such as `USO-PERP` and
-`UNG-PERP`, which map to the Equity asset class, and compute perpetuals such as `OCPI-H100-PERP`.
+sandbox 目录有所不同：它还上架 `energy_etfs` 合约（如 `USO-PERP`、`UNG-PERP`，映射到 Equity 资产类别），以及算力永续（如 `OCPI-H100-PERP`）。
 
-The adapter maps a `crypto` venue category to the `CRYPTOCURRENCY` asset class, and any category it
-does not recognize to `ALTERNATIVE`.
+适配器把 `crypto` 场所类别映射为 `CRYPTOCURRENCY` 资产类别，无法识别的类别一律映射为 `ALTERNATIVE`。
 
-### Perpetual contracts
+### 永续合约 {#perpetual-contracts}
 
-A perpetual contract (perpetual swap) is a derivative that tracks the price of an underlying
-asset without expiring. Unlike standard futures, there is no settlement date, which eliminates
-rollover costs and simplifies position management. A funding rate mechanism keeps the contract
-price aligned with the underlying index price through periodic payments between long and short
-holders. See the [Architect documentation](https://docs.architect.exchange/) for details on
-funding rate mechanics and contract specifications.
+永续合约（永续互换）是跟踪标的资产价格、没有到期日的衍生品。与标准期货不同，它没有结算日，因此没有展期成本，持仓管理也更简单。资金费率机制通过多空持有者之间的周期性支付，使合约价格与标的指数价格保持一致。资金费率机制与合约规格的细节见 [Architect 文档](https://docs.architect.exchange/)。
 
-Characteristics of AX perpetual contracts:
+AX 永续合约的特征：
 
-- **Cash-settled in USD**: No physical delivery. All profit and loss is settled in USD.
-- **Funding rates**: Periodic payments keep the contract price aligned with the underlying.
-- **Multiplier of 1**: Each contract represents one unit of exposure to the underlying.
-- **Whole contracts only**: Fractional quantities are not supported.
-- **Margin**: A position requires initial margin to open and maintenance margin to stay open.
+- **以 USD 现金结算**：无实物交割，全部盈亏以 USD 结算。
+- **资金费率**：周期性支付使合约价格与标的一致。
+- **乘数为 1**：每张合约代表一单位标的暴露。
+- **只支持整数张合约**：不支持小数数量。
+- **保证金**：开仓需要初始保证金，维持持仓需要维持保证金。
 
-The adapter represents an AX instrument without an expiration as `PerpetualContract` and an
-instrument with an expiration as `FuturesContract`. The venue category determines the Nautilus
-asset class. The adapter uses `MARGIN` account type and `NETTING` order management.
+适配器把无到期日的 AX 工具表示为 `PerpetualContract`，有到期日的表示为 `FuturesContract`。场所类别决定 Nautilus 资产类别。适配器使用 `MARGIN` 账户类型和 `NETTING` 订单管理。
 
-## Symbology
+## 代码体系 {#symbology}
 
-The adapter preserves each AX symbol and appends the Nautilus venue identifier `.AX`. Perpetual
-symbols use the `-PERP` suffix. Dated symbols include their year and contract month.
+适配器保留每个 AX 代码原样，并追加 Nautilus 场所标识 `.AX`。永续代码使用 `-PERP` 后缀，到期代码包含年份和合约月份。
 
-| Contract     | AX Symbol      | Nautilus InstrumentId |
+| 合约         | AX 代码        | Nautilus InstrumentId |
 | ------------ | -------------- | --------------------- |
-| EUR/USD perp | `EURUSD-PERP`  | `EURUSD-PERP.AX`      |
-| Gold perp    | `XAU-PERP`     | `XAU-PERP.AX`         |
-| Dated gold   | `XAU-2026-DEC` | `XAU-2026-DEC.AX`     |
+| EUR/USD 永续 | `EURUSD-PERP`  | `EURUSD-PERP.AX`      |
+| 黄金永续     | `XAU-PERP`     | `XAU-PERP.AX`         |
+| 黄金到期合约 | `XAU-2026-DEC` | `XAU-2026-DEC.AX`     |
 
-The venue identifier is `AX`. To construct a Nautilus `InstrumentId`:
+场所标识是 `AX`。构造 Nautilus `InstrumentId`：
 
 ```python
 from nautilus_trader.model import InstrumentId
@@ -99,47 +79,42 @@ from nautilus_trader.model import InstrumentId
 instrument_id = InstrumentId.from_str("EURUSD-PERP.AX")
 ```
 
-## Environments
+## 环境 {#environments}
 
-AX Exchange provides two trading environments. Configure the appropriate environment using the
-`environment` parameter in your client configuration.
+AX Exchange 提供两种交易环境，用客户端配置中的 `environment` 参数选择。
 
-| Environment    | Config                                 | Description                            |
-| -------------- | -------------------------------------- | -------------------------------------- |
-| **Sandbox**    | `environment=AxEnvironment.SANDBOX`    | Test environment with simulated funds. |
-| **Production** | `environment=AxEnvironment.PRODUCTION` | Live trading with real funds.          |
+| 环境         | 配置                                   | 说明                             |
+| ------------ | -------------------------------------- | -------------------------------- |
+| **Sandbox**  | `environment=AxEnvironment.SANDBOX`    | 模拟资金的测试环境。             |
+| **Production** | `environment=AxEnvironment.PRODUCTION` | 真实资金的实盘交易。             |
 
-### Sandbox
+### Sandbox {#sandbox}
 
-The default environment for development and testing with simulated funds.
-All sandbox endpoints are resolved automatically when `environment=AxEnvironment.SANDBOX`.
+开发与测试的默认环境，使用模拟资金。设置 `environment=AxEnvironment.SANDBOX` 后所有 sandbox 端点自动解析。
 
-#### 1. Create a sandbox account
+#### 1. 创建 sandbox 账户 {#1-create-a-sandbox-account}
 
-Follow the [Architect documentation](https://docs.architect.exchange/) to create a sandbox
-account. An invite code is required during registration.
+按 [Architect 文档](https://docs.architect.exchange/) 创建 sandbox 账户。注册时需要邀请码。
 
-#### 2. Create API keys and fund the account
+#### 2. 创建 API 密钥并为账户注资 {#2-create-api-keys-and-fund-the-account}
 
-Use the AX sandbox UI to generate API keys and deposit simulated funds into your account.
-Store the `api_key` and `api_secret` securely.
+用 AX sandbox UI 生成 API 密钥并向账户存入模拟资金。妥善保存 `api_key` 和 `api_secret`。
 
-#### 3. Set environment variables
+#### 3. 设置环境变量 {#3-set-environment-variables}
 
 ```bash
 export AX_API_KEY="your-sandbox-api-key"
 export AX_API_SECRET="your-sandbox-api-secret"
 ```
 
-#### 4. Configure the live node
+#### 4. 配置交易节点 {#4-configure-the-live-node}
 
-Set `environment=AxEnvironment.SANDBOX` on the data and execution client configs. See the
-[Python examples](https://github.com/nautechsystems/nautilus_trader/tree/develop/examples/live/architect_ax/)
-for complete `LiveNode` setup.
+在数据与执行客户端配置上设置 `environment=AxEnvironment.SANDBOX`。完整的 `LiveNode` 搭建见
+[Python 示例](https://github.com/nautechsystems/nautilus_trader/tree/develop/examples/live/architect_ax/)。
 
-### Production
+### 生产环境 {#production}
 
-For live trading with real funds. Requires a verified AX Exchange account.
+用于真实资金实盘交易，需要已完成认证的 AX Exchange 账户。
 
 ```python
 config = AxExecutionClientConfig(
@@ -148,514 +123,358 @@ config = AxExecutionClientConfig(
 ```
 
 :::warning
-Ensure you are using the correct environment before placing orders.
-Sandbox is the default to prevent accidental live trading.
+下单前务必确认环境正确。默认是 Sandbox，以防误入实盘。
 :::
 
-## Market data
+## 行情数据 {#market-data}
 
-The adapter provides real-time market data via WebSocket subscriptions, with HTTP endpoints
-for historical data backfill.
+适配器经 WebSocket 订阅提供实时行情，并提供 HTTP 端点做历史数据回填。
 
-### Data types
+### 数据类型 {#data-types}
 
-| AX Data           | Nautilus Data Type  | Notes                                                          |
-| ----------------- | ------------------- | -------------------------------------------------------------- |
-| Order book (L1)   | `QuoteTick`         | Best bid/ask top-of-book from L1 book subscription.            |
-| Order book (L2)   | `OrderBookDelta`    | Aggregated price levels.                                       |
-| Order book (L3)   | `OrderBookDelta`    | Per-snapshot order quantities with synthetic IDs.              |
-| Trades            | `TradeTick`         | Real-time trade events from trade-only WebSocket subscription. |
-| Mark price        | `MarkPriceUpdate`   | Extracted from L1 ticker subscription.                         |
-| Bars/candles      | `Bar`               | OHLCV data (total volume only, no buy/sell breakdown).         |
-| Funding rates     | `FundingRateUpdate` | Polled via HTTP; interval configurable.                        |
-| Instrument status | `InstrumentStatus`  | State changes from L1 ticker subscription.                     |
+| AX 数据          | Nautilus 数据类型   | 说明                                                           |
+| ---------------- | ------------------- | -------------------------------------------------------------- |
+| 订单簿（L1）     | `QuoteTick`         | 来自 L1 簿订阅的最优买卖价 top-of-book。                       |
+| 订单簿（L2）     | `OrderBookDelta`    | 按价格档位聚合。                                               |
+| 订单簿（L3）     | `OrderBookDelta`    | 每次快照的逐单数量，使用合成 ID。                              |
+| 成交             | `TradeTick`         | 仅成交 WebSocket 订阅的实时成交事件。                          |
+| Mark 价格        | `MarkPriceUpdate`   | 从 L1 ticker 订阅提取。                                        |
+| Bar/candle       | `Bar`               | OHLCV 数据（只有总量，无买卖拆分）。                           |
+| 资金费率         | `FundingRateUpdate` | 经 HTTP 轮询；间隔可配置。                                     |
+| 工具状态         | `InstrumentStatus`  | 来自 L1 ticker 订阅的状态变更。                                |
 
-AX instrument states map to `MarketStatusAction` as follows:
+AX 工具状态到 `MarketStatusAction` 的映射：
 
-| AX state                            | `MarketStatusAction`        |
-| ----------------------------------- | --------------------------- |
-| Pre-open                            | `PRE_OPEN`                  |
-| Open                                | `TRADING`                   |
-| Closed, closed-frozen               | `CLOSE`                     |
-| Halted                              | `HALT`                      |
-| Match-and-close auction             | `CROSS`                     |
-| Suspended                           | `SUSPEND`                   |
-| Delisted, or any unrecognized state | `NOT_AVAILABLE_FOR_TRADING` |
+| AX 状态                          | `MarketStatusAction`          |
+| -------------------------------- | ----------------------------- |
+| 开盘前                           | `PRE_OPEN`                    |
+| 开盘                             | `TRADING`                     |
+| 收盘、收盘冻结                   | `CLOSE`                       |
+| 暂停交易（halted）               | `HALT`                        |
+| 收盘集合竞价                     | `CROSS`                       |
+| 停牌（suspended）                | `SUSPEND`                     |
+| 退市，或任何无法识别的状态       | `NOT_AVAILABLE_FOR_TRADING`   |
 
 :::note
-Historical quote tick requests are not supported by AX Exchange. Only real-time quote
-data is available via WebSocket L1 book subscriptions. The adapter does not expose AX index prices
-or instrument close events, so those subscriptions log a warning and yield no data.
+AX Exchange 不支持历史报价 tick 请求。报价数据只能通过 WebSocket L1 簿订阅实时获取。适配器不暴露 AX 的指数价格和工具收盘事件，这两类订阅会记录警告且不产出数据。
 :::
 
 :::note
-AX L3 snapshots contain per-order quantities but no venue order IDs. The adapter assigns synthetic
-IDs within each snapshot. It cannot track the same individual order across snapshots.
-L2 and L3 processing requires full snapshots (`st: true`). The adapter rejects incremental
-frames (`st: false`) to avoid clearing unchanged book levels.
+AX 的 L3 快照含逐单数量但没有场所订单 ID，适配器在每次快照内分配合成 ID，无法跨快照跟踪同一笔订单。L2 与 L3 处理要求完整快照（`st: true`），适配器拒绝增量帧（`st: false`），以免清掉未变的簿档位。
 :::
 
 :::note
-AX publishes no trade identifier for market data. Thus, the adapter derives `TradeTick.trade_id` from the
-trade's timestamp, price, size, and aggressor side. REST and WebSocket agree on the same trade whenever both
-report its aggressor side. Prints that AX reports identically share an ID. This affects only consumers that
-deduplicate market data on `trade_id`, because fills carry the venue's own trade IDs.
+AX 不为行情数据发布成交标识。因此适配器的 `TradeTick.trade_id` 由成交的时间戳、价格、数量和主动方推导。只要 REST 与 WebSocket 都上报该成交的主动方，两者对同一成交给出一致 ID；AX 上报完全相同的成交共享同一 ID。这只影响按 `trade_id` 对行情去重的消费者——成交报告携带的是场所自己的成交 ID。
 :::
 
-### WebSocket subscription behavior
+### WebSocket 订阅行为 {#websocket-subscription-behavior}
 
-AX market data WebSocket subscriptions use one active stream per symbol. The adapter selects the
-smallest stream that covers the active Nautilus subscriptions:
+AX 行情 WebSocket 订阅每个代码只有一条活动流。适配器选择能覆盖当前 Nautilus 订阅的最小流：
 
-- A trades-only subscription uses AX `level: "TRADES"`, which delivers trade prints only.
-- Book-only and quote-only subscriptions set AX `trades: false` and `ticker: false` to suppress
-  unrequested trade and ticker events.
-- Mark price and instrument status subscriptions require AX ticker events. Thus, the adapter enables ticker
-  delivery on the active book stream. If no book subscription exists, it opens an L1 stream.
-- Book deltas subscribe at the AX level matching the Nautilus book type. `L1_MBP` has no
-  delta-capable AX equivalent, so the adapter logs a warning and subscribes at L2 instead.
-- If multiple Nautilus data types are active for a symbol, the adapter resubscribes only for these changes:
+- 仅成交订阅使用 AX `level: "TRADES"`，只投递成交。
+- 仅订单簿和仅报价订阅设置 AX `trades: false` 和 `ticker: false`，抑制未请求的成交与 ticker 事件。
+- Mark 价格与工具状态订阅需要 AX ticker 事件，因此适配器在活动簿流上启用 ticker 投递；没有订单簿订阅时另开一条 L1 流。
+- 订单簿 delta 按 Nautilus 簿类型对应的 AX 层级订阅。`L1_MBP` 没有支持 delta 的 AX 等价层级，适配器记录警告后改订 L2。
+- 某代码同时有多个 Nautilus 数据类型活动时，只在以下变化发生时重新订阅：
 
-  - The required AX level or delivery flags change.
-  - An order book needs a fresh snapshot (see [Order book recovery](#order-book-recovery)).
-- Subscription changes reach AX in the order the data engine issues them, so an unsubscribe
-  followed by a resubscribe leaves the stream subscribed.
+  - 所需的 AX 层级或投递标志发生变化。
+  - 订单簿需要新的快照（见[订单簿恢复](#order-book-recovery)）。
+- 订阅变更按数据引擎发出的顺序到达 AX，因此"先退订再重订"的结果是流保持订阅。
 
-AX documents estimated funding rates on ticker events and an estimated-funding request on the orders
-WebSocket. Ticker models retain estimated-funding metadata. Nautilus exposes settled funding-rate updates
-through HTTP polling. The adapter does not emit a separate estimated-funding data type or request standalone
-estimates.
+AX 在 ticker 事件上发布估算资金费率，并在订单 WebSocket 上提供估算资金费率请求。ticker 模型保留估算资金费率元数据。Nautilus 通过 HTTP 轮询暴露已结算的资金费率更新。适配器不单独发布估算资金费率数据类型，也不请求独立估算值。
 
-### Order book recovery
+### 订单簿恢复 {#order-book-recovery}
 
-The data client tracks each order book delta subscription with the
-[shared book recovery machinery](./../developer_guide/adapters.md#order-book-recovery-ownership). AX L2 and L3
-messages carry a full snapshot and no sequence number. AX sends one immediately after each subscribe
-acknowledgement, including for an empty or unchanged book. The client accepts every message as a snapshot. It
-suppresses book output while a subscription write is in flight and drops frames for a book that is no longer
-subscribed.
+数据客户端用[共享的订单簿恢复机制](../developer_guide/adapters.md#order-book-recovery-ownership)管理每个订单簿 delta 订阅。AX 的 L2、L3 消息携带完整快照且没有序号。AX 在每次订阅确认后立即发送一个快照，空簿或无变化的簿也不例外。客户端把每条消息都当作快照接受。订阅写入进行期间会抑制该簿的输出，已退订订单簿的帧直接丢弃。
 
-Recovery replaces the symbol's subscription with an unsubscribe and a subscribe on the same connection. The
-replacement retains its current level and trade and ticker flags. AX carries all market data for a symbol on
-one stream, so trades, quotes, mark prices, and instrument status for that symbol pause while the replacement
-runs. Recovery starts when:
+恢复在同一连接上用"退订 + 订阅"替换该代码的订阅，替换保留当前的层级与成交、ticker 标志。AX 把一个代码的全部行情放在一条流上，替换进行期间该代码的成交、报价、mark 价格和工具状态都会暂停。恢复在以下情况启动：
 
-- An initial subscription write fails.
-- No snapshot arrives within `book_snapshot_timeout_secs` (default 10 seconds) after the initial
-  subscription write completes or the connection is re-established. A data client `connect` after
-  `disconnect` counts too: the client keeps its books, and the WebSocket client replays their
-  subscriptions.
-- An L2 or L3 frame cannot be converted, such as an incremental (`st: false`) frame. The book stops
-  emitting until a replacement snapshot arrives, and a running recovery's current attempt fails
-  without waiting for its snapshot deadline.
+- 初始订阅写入失败。
+- 初始订阅写入完成或连接重建后，`book_snapshot_timeout_secs`（默认 10 秒）内没有快照到达。`disconnect` 之后的数据客户端 `connect` 同样适用：客户端保留订单簿，WebSocket 客户端会重放它们的订阅。
+- L2 或 L3 帧无法转换，例如增量帧（`st: false`）。订单簿停止输出直到替代快照到达；进行中的恢复当前尝试直接失败，不再等它的快照期限。
 
-A subscription AX rejects delivers no snapshot, so its snapshot deadline starts recovery. A
-subscription the client cannot queue because the WebSocket handler has stopped starts no recovery,
-and its book emits nothing. Subscribing to deltas for a book whose stream is already open replaces
-the stream, so the book starts from a fresh snapshot.
+被 AX 拒绝的订阅不会送来快照，其快照期限会启动恢复。WebSocket handler 已停止导致无法入队的订阅不启动恢复，其订单簿也不输出任何东西。对已开流的订单簿再订阅 delta 会替换该流，订单簿因此从新快照开始。
 
-Each recovery makes up to eight attempts within 180 seconds, with exponential backoff. It then retries until
-it accepts a snapshot. The retry interval doubles from one minute to fifteen minutes. A running recovery
-continues across reconnects with its remaining budget, and unsubscribe or shutdown cancels it. A recovery
-waiting between attempts after its budget retries at once on the new connection. Recovery never ends in a
-failed state.
+每次恢复在 180 秒内最多尝试八次，指数退避；此后持续重试直到接受一个快照，重试间隔从一分钟翻倍到十五分钟。进行中的恢复带着剩余预算跨重连继续，退订或关闭会取消它。预算重试后、正处在尝试间隔等待中的恢复，在新连接上立即重试。恢复永远不会以失败状态结束。
 
-The client does not correlate subscription acknowledgements with recovery attempts. A snapshot
-queued before a replacement can complete recovery once the replacement write finishes. AX sends no
-frames while a book is unchanged, so the client does not treat a silent book as stale.
+客户端不把订阅确认与恢复尝试做关联。替换写入完成之后，替换前就已入队的快照仍能让恢复成功。订单簿无变化时 AX 不发帧，因此客户端不会把静默的订单簿当作过期。
 
-Setting `book_snapshot_timeout_secs` to `0` disables snapshot deadlines. Recovery then starts only from a
-failed initial write or an invalid frame. Within the retry budget, a replacement that delivers no snapshot
-waits until one of these events:
+`book_snapshot_timeout_secs` 设为 `0` 会禁用快照期限，恢复只从失败的初始写入或无效帧启动。在重试预算内，没有送达快照的替换会一直等待，直到以下事件之一：
 
-- The client accepts a snapshot.
-- An invalid frame fails the attempt.
-- Recovery is cancelled.
-- The 180-second initial budget ends.
+- 客户端接受了一个快照。
+- 无效帧使当前尝试失败。
+- 恢复被取消。
+- 180 秒初始预算结束。
 
-### Live recovery validation
+### 实时恢复验证 {#live-recovery-validation}
 
-The `ax-book-stress` harness is a development tool for changes to book synchronization and recovery. It uses
-AX sandbox market data and submits no orders. It checks five perpetual books against the book stream contract
-and each relayed raw L2 frame.
+`ax-book-stress` 压力工具是订单簿同步与恢复代码变更时的开发工具。它使用 AX sandbox 行情，不提交任何订单，按订单簿数据流契约和每条转发的原生 L2 帧校验五个永续订单簿。
 
-The AX market data stream requires authentication, so the harness reads sandbox API credentials
-from `AX_API_KEY` and `AX_API_SECRET` and runs without `scripts/strip-adapter-env.bash`. From the
-repository root, run:
+AX 行情流要求认证，因此该工具从 `AX_API_KEY` 和 `AX_API_SECRET` 读取 sandbox API 凭据，不经 `scripts/strip-adapter-env.bash` 运行。在仓库根目录运行：
 
 ```bash
 CARGO_BUILD_JOBS=16 cargo test -p nautilus-architect-ax --features examples --test ax-book-stress -- --timeout 10 --rounds 14
 ```
 
-`--scenario` selects the run:
+`--scenario` 选择运行内容：
 
-- `churn` (default): rotates through these conditions:
+- `churn`（默认）：轮流验证这些情形：
 
-  - Invalid frames that each book recovers without a reconnect.
-  - Snapshots held past their deadlines after a reconnect.
-  - Late snapshots after a reconnect.
-  - A rejected replacement.
-  - Reconnects cut before their snapshots.
-  - A restart during recovery.
-  - A 40-second traffic freeze that closes no socket.
-- `initial`: drops each book's first snapshot and silences its stream, in a fresh session per
-  round. With `--timeout 0`, the books stay dark until a reconnect replays their subscriptions.
-- `turnover`: unsubscribes and resubscribes a recovering book just after recovery starts, after its
-  replacement reaches the venue, or after a rejected replacement's deadline. The new subscription
-  must keep streaming once the venue settles, with no further replacement.
-- `boundaries`: rejects every attempt in the retry budget, then checks the retry ceiling, a
-  reconnect that ends the ceiling wait, unsubscribe during recovery, and shutdown during a
-  reconnect. It requires a nonzero `--timeout`, since snapshot deadlines end each rejected attempt,
-  and at least three `--symbols`.
+  - 无效帧，每个订单簿无需重连即可恢复。
+  - 重连后快照被扣住超过期限。
+  - 重连后迟到的快照。
+  - 被拒绝的替换。
+  - 快照之前被切断的重连。
+  - 恢复期间的重启。
+  - 不关闭 socket 的 40 秒流量冻结。
+- `initial`：在每轮的新会话中丢弃每个订单簿的首个快照并使其数据流静默。`--timeout 0` 时，订单簿保持无数据直到重连重放订阅。
+- `turnover`：在恢复刚启动、替换到达场所之后、或被拒替换超期之后，对一个恢复中的订单簿执行退订加重订阅。场所处理稳定后，新订阅必须继续流式且不再有新的替换。
+- `boundaries`：让重试预算内的每次尝试都被拒绝，然后校验重试上限、结束上限等待的重连、恢复期间的退订、重连期间的关闭。它要求非零 `--timeout`（每个被拒尝试由快照期限收尾），且 `--symbols` 至少三个。
 
-`--timeout` sets the snapshot timeout in seconds, where `0` disables snapshot deadlines, and
-`--rounds` sets the number of rounds (14 by default). `--symbols` takes a comma-separated list of
-symbols to check. The sandbox market maker quotes only some instruments, and a book that stops
-streaming fails the run, so choose books that stream.
+`--timeout` 设置快照超时秒数（`0` 禁用快照期限），`--rounds` 设置轮数（默认 14）。`--symbols` 接收逗号分隔的代码列表。sandbox 做市商只对部分工具报价，而停止流式的订单簿会使运行失败，请挑选会流式的订单簿。
 
-The harness requires the sandbox market data WebSocket and REST API. See
-[Stress harnesses](./../developer_guide/spec_data_testing.md#stress-harnesses) for the shared flags
-and output format.
+该工具需要 sandbox 行情 WebSocket 和 REST API。共享参数与输出格式见
+[压力测试工具](../developer_guide/spec_data_testing.md#stress-harnesses)。
 
-### HTTP API behavior
+### HTTP API 行为 {#http-api-behavior}
 
-- `GET /tickers` returns limit/offset page metadata and supports `limit`, `offset`, and `sort`
-  query parameters.
-- `GET /ticker` returns the ticker under a top-level `ticker` response field.
-- `GET /open-orders` uses limit/offset pagination. Open-order reconciliation traverses all pages
-  and validates totals, offsets, duplicates, and completeness so detected response drift fails the
-  request.
-- `GET /fills` and `GET /funding-rates` use cursor pagination. The adapter traverses each cursor chain as a
-  best-effort historical read. AX corrections during traversal are not an atomic snapshot.
-- `GET /orders` exposes cursor metadata and supports `order_id`, `order_ids`, `account_id`, and
-  optional timestamp filters. Startup mass-status reconciliation traverses its cursor chain,
-  accepts partial pages, and rejects repeated cursors or duplicate order IDs.
-- Open-order, historical-order, fill, and position report requests resolve an uncached symbol
-  through `GET /instrument` and cache the result. An instrument request or parse failure fails that
-  entire report request instead of dropping venue state.
-- `GET /transactions` requires `start_timestamp_ns` and `end_timestamp_ns` with a range no wider
-  than 7 days. The low-level client exposes its cursor and account selectors.
-- `GET /order-status` can include `reject_reason` and `reject_message` for rejected orders.
-- When an account selector is omitted, AX uses the primary account. The high-level execution client owns one
-  primary account. Low-level request models expose documented account selectors.
+- `GET /tickers` 返回 limit/offset 分页元数据，支持 `limit`、`offset`、`sort` 查询参数。
+- `GET /ticker` 在响应顶层 `ticker` 字段下返回 ticker。
+- `GET /open-orders` 使用 limit/offset 分页。挂单对账遍历全部分页并校验总数、偏移、重复和完整性，检测到的响应偏差会使请求失败。
+- `GET /fills` 和 `GET /funding-rates` 使用游标分页。适配器把每条游标链当作尽力而为的历史读取遍历；遍历期间 AX 侧的更正不构成原子快照。
+- `GET /orders` 暴露游标元数据，支持 `order_id`、`order_ids`、`account_id` 和可选时间戳过滤。启动时的全量状态对账遍历其游标链，接受不完整分页，拒绝重复游标和重复订单 ID。
+- 挂单、历史订单、成交和持仓报告请求遇到未缓存代码时经 `GET /instrument` 解析并缓存结果。工具请求或解析失败会使整个报告请求失败，而不是丢弃场所状态。
+- `GET /transactions` 要求 `start_timestamp_ns` 和 `end_timestamp_ns`，跨度不超过 7 天。低层客户端暴露其游标与账户选择器。
+- `GET /order-status` 对被拒订单可以带上 `reject_reason` 和 `reject_message`。
+- 省略账户选择器时，AX 使用主账户。高层执行客户端只拥有一个主账户。低层请求模型暴露文档化的账户选择器。
 
-### Bar intervals
+### Bar 周期 {#bar-intervals}
 
-| Interval | Description |
-| -------- | ----------- |
-| `1s`     | 1-second    |
-| `5s`     | 5-second    |
-| `1m`     | 1-minute    |
-| `5m`     | 5-minute    |
-| `15m`    | 15-minute   |
-| `1h`     | 1-hour      |
-| `1d`     | 1-day       |
+| 周期     | 说明       |
+| -------- | ---------- |
+| `1s`     | 一秒       |
+| `5s`     | 五秒       |
+| `1m`     | 一分钟     |
+| `5m`     | 五分钟     |
+| `15m`    | 十五分钟   |
+| `1h`     | 一小时     |
+| `1d`     | 一天       |
 
-## Orders capability
+## 订单能力 {#orders-capability}
 
-The AX order-entry API has no order-type selector. Its single native order shape requires a price,
-which the adapter maps to a Nautilus `LIMIT` order. The adapter simulates a Nautilus `MARKET` order
-by previewing an aggressive price and submitting that priced shape with IOC.
+AX 的下单 API 没有订单类型选项，其唯一的原生订单形态要求价格，适配器把它映射为 Nautilus 的 `LIMIT` 订单。适配器的 Nautilus `MARKET` 订单是模拟的：先预览一个激进价格，再以该价格带 IOC 提交上述形态。
 
-The official [REST place-order](https://docs.architect.exchange/api-reference/order-management/place-order)
-and [orders WebSocket](https://docs.architect.exchange/api-reference/order-management/orders-ws) request
-schemas contain no `order_type` or `trigger_price` field. Sandbox stop-limit submissions with unbreached
-triggers executed immediately at the active limit price. With conditional execution unconfirmed, the adapter
-rejects venue-native stop-limit orders before sending them.
+官方
+[REST place-order](https://docs.architect.exchange/api-reference/order-management/place-order)
+和
+[orders WebSocket](https://docs.architect.exchange/api-reference/order-management/orders-ws)
+的请求 schema 都不含 `order_type` 或 `trigger_price` 字段。sandbox 中触发价未越过的止损限价提交会以当前限价立即成交。条件执行未获确认，因此适配器在发送前拒绝场所原生的止损限价订单。
 
-Nautilus can still emulate a stop-limit order locally. The common order emulator waits for the
-configured trigger, then sends a plain limit order to this adapter.
+Nautilus 仍可在本地模拟止损限价订单：通用订单模拟器等待配置的触发条件，然后向本适配器发送普通限价订单。
 
-### Order types
+### 订单类型 {#order-types}
 
-| Order Type             | Supported | Notes                                           |
-| ---------------------- | --------- | ----------------------------------------------- |
-| `MARKET`               | ✓         | Adapter-simulated with an aggressive IOC price. |
-| `LIMIT`                | ✓         | Maps to the native AX priced order shape.       |
-| `STOP_LIMIT`           | -         | *Not supported by AX Exchange*.                 |
-| `LIMIT_IF_TOUCHED`     | -         | *Not supported by AX Exchange*.                 |
-| `STOP_MARKET`          | -         | *Not supported by AX Exchange*.                 |
-| `MARKET_IF_TOUCHED`    | -         | *Not supported by AX Exchange*.                 |
-| `TRAILING_STOP_MARKET` | -         | *Not supported by AX Exchange*.                 |
+| 订单类型               | 支持 | 说明                                          |
+| ---------------------- | ---- | --------------------------------------------- |
+| `MARKET`               | ✓    | 适配器用激进 IOC 价格模拟。                   |
+| `LIMIT`                | ✓    | 映射到 AX 原生带价订单形态。                  |
+| `STOP_LIMIT`           | -    | *AX Exchange 不支持*。                        |
+| `LIMIT_IF_TOUCHED`     | -    | *AX Exchange 不支持*。                        |
+| `STOP_MARKET`          | -    | *AX Exchange 不支持*。                        |
+| `MARKET_IF_TOUCHED`    | -    | *AX Exchange 不支持*。                        |
+| `TRAILING_STOP_MARKET` | -    | *AX Exchange 不支持*。                        |
 
-### Execution instructions
+### 执行指令 {#execution-instructions}
 
-| Instruction      | Supported | Notes                                                         |
-| ---------------- | --------- | ------------------------------------------------------------- |
-| `post_only`      | ✓         | Maker-only; rejected if the order would take.                 |
-| `reduce_only`    | -         | Rejected locally; AX exposes no reduce-only field.            |
-| `quote_quantity` | -         | Rejected locally; the adapter wire path encodes base only.    |
-| `display_qty`    | -         | Rejected locally; the adapter wire path has no display field. |
+| 指令             | 支持 | 说明                                                          |
+| ---------------- | ---- | ------------------------------------------------------------- |
+| `post_only`      | ✓    | 仅限挂单方；订单若会成为吃单方则被拒绝。                      |
+| `reduce_only`    | -    | 本地拒绝；AX 没有 reduce-only 字段。                          |
+| `quote_quantity` | -    | 本地拒绝；适配器传输路径只编码基础货币。                      |
+| `display_qty`    | -    | 本地拒绝；适配器传输路径没有显示数量字段。                    |
 
-The adapter omits `rb` on place and replace requests, using AX's default `rej` behavior for
-post-only orders. Selecting `bo` (back off one tick from the opposite side) or `tbl` (best price on
-the same side) is not supported. See the [AX changelog](https://docs.architect.exchange/changelog).
+适配器在下单和替换请求上省略 `rb`，post-only 订单使用 AX 默认的 `rej` 行为。不支持选择 `bo`（从对侧回撤一档）或 `tbl`（本侧最优价）。见
+[AX changelog](https://docs.architect.exchange/changelog)。
 
-Order-history, open-order, and WebSocket order responses retain `rb` as optional typed adapter metadata on
-`AxOrderDetail`, `AxOpenOrder`, and `AxWsOrder`. It describes the latest place or replace request and takes
-effect only when that request has `po: true`. Missing or null values remain absent. Unrecognized strings map
-to `Unknown`, not `Reject`. `OrderStatusReport` does not expose this metadata, so reconciliation reports
-cannot distinguish these repricing policies for externally placed or replaced orders.
+订单历史、挂单和 WebSocket 订单响应在 `AxOrderDetail`、`AxOpenOrder` 和 `AxWsOrder` 上把 `rb` 保留为可选的类型化适配器元数据。它描述最近一次下单或替换请求，且只在该请求 `po: true` 时生效。缺失或为 null 的值保持缺失，无法识别的字符串映射为 `Unknown` 而不是 `Reject`。`OrderStatusReport` 不暴露该元数据，因此对账报告无法区分外部下单或替换订单所采用的重新定价策略。
 
-The reduce-only boundary matters because AX has no reduce-only field. In sandbox, the venue accepted and
-filled an order as ordinary after its reduce-only instruction was dropped from the wire payload. Such an order
-can open or increase exposure instead of closing it. Production behavior was not verified. The adapter
-therefore denies reduce-only orders before submission rather than sending an instruction the venue cannot
-honor.
+reduce-only 边界之所以重要，是因为 AX 没有 reduce-only 字段。sandbox 中，场所曾在 reduce-only 指令被从传输负载中剥掉之后，把订单当普通订单接受并成交——这类订单可能开仓或加仓而不是减仓。生产环境行为未经验证。因此适配器在提交前直接拒绝 reduce-only 订单，而不是发送场所无法兑现的指令。
 
-The adapter also rejects quote-quantity and display-quantity instructions because its AX wire path
-cannot encode those semantics. This is an adapter boundary, not a claim that AX Exchange rejects
-equivalent venue-native features.
+适配器同样拒绝按计价货币数量和显示数量指令，因为其 AX 传输路径无法编码这些语义。这是适配器边界，不代表 AX Exchange 拒绝场所原生的等价功能。
 
-### Time in force
+### 时效 {#time-in-force}
 
-| Time in Force  | Supported | Notes                            |
-| -------------- | --------- | -------------------------------- |
-| `GTC`          | ✓         | Good Till Canceled.              |
-| `GTD`          | -         | Rejected locally by the adapter. |
-| `DAY`          | ✓         | Valid until end of trading day.  |
-| `IOC`          | ✓         | Immediate or Cancel.             |
-| `FOK`          | -         | Rejected locally by the adapter. |
-| `AT_THE_OPEN`  | -         | Rejected locally by the adapter. |
-| `AT_THE_CLOSE` | -         | Rejected locally by the adapter. |
+| 时效           | 支持 | 说明                       |
+| -------------- | ---- | -------------------------- |
+| `GTC`          | ✓    | 撤销前有效。               |
+| `GTD`          | -    | 适配器本地拒绝。           |
+| `DAY`          | ✓    | 当日有效。                 |
+| `IOC`          | ✓    | 立即成交否则撤销。         |
+| `FOK`          | -    | 适配器本地拒绝。           |
+| `AT_THE_OPEN`  | -    | 适配器本地拒绝。           |
+| `AT_THE_CLOSE` | -    | 适配器本地拒绝。           |
 
-The venue deprecates `DAY` and recommends `GTC` instead.
+场所已弃用 `DAY`，建议改用 `GTC`。
 
-### Advanced order features
+### 高级订单特性 {#advanced-order-features}
 
-| Feature            | Supported | Notes                                                              |
-| ------------------ | --------- | ------------------------------------------------------------------ |
-| Order modification | ✓         | Atomic replace; AX returns a new venue order ID.                   |
-| Cancel order       | ✓         | Single order cancellation.                                         |
-| Cancel all orders  | ✓         | Cancel all open orders for an instrument.                          |
-| Batch cancel       | -         | The adapter sends individual cancels.                              |
-| Order lists        | ✓         | Sequential submission (orders submitted individually, non-atomic). |
+| 特性             | 支持 | 说明                                                                 |
+| ---------------- | ---- | -------------------------------------------------------------------- |
+| 订单修改         | ✓    | 原子替换；AX 返回新的场所订单 ID。                                   |
+| 撤销订单         | ✓    | 单笔订单撤销。                                                       |
+| 撤销全部订单     | ✓    | 撤销某工具的全部挂单。                                               |
+| 批量撤单         | -    | 适配器逐个发送撤销。                                                 |
+| 订单列表         | ✓    | 顺序提交（订单逐个提交，非原子）。                                   |
 
-A cancel that already has a venue order ID is forwarded, including a second cancel of a
-terminal order. A strategy does not send that second cancel after the local order is already
-closed or pending cancel. The adapter emits `OrderCancelRejected` only when AX sends
-`CancelRejected`. Sandbox answers a resend of an already canceled order with WebSocket error
-`404` (`order not found`). The adapter logs that error and does not turn it into
-`OrderCancelRejected`.
+已有场所订单 ID 的撤销会被转发，包括对终态订单的第二次撤销。本地订单已关闭或待撤销后，策略不会再发这第二次撤销。适配器只在 AX 发来 `CancelRejected` 时才发出 `OrderCancelRejected`。sandbox 对已撤销订单的重发会以 WebSocket 错误 `404`（`order not found`）回应，适配器记录该错误但不把它转成 `OrderCancelRejected`。
 
-**Side filter**: AX cancel-all has no side parameter. Thus, a `CancelAllOrders` command with `order_side` set
-sends individual cancel requests. It cancels only open orders on that side for the instrument. A side-filtered
-request selects from open orders only, so an inflight (`SUBMITTED`) order not yet acknowledged by AX survives
-one.
+**方向过滤**：AX 的撤销全部没有方向参数。因此带 `order_side` 的 `CancelAllOrders` 命令会改为发送逐个撤销请求，只撤销该工具该方向的挂单。按方向过滤的请求只在挂单中选取，尚未被 AX 确认的在途（`SUBMITTED`）订单会在这种操作中存活。
 
-### Position management
+### 持仓管理 {#position-management}
 
-| Feature         | Supported | Notes                                |
-| --------------- | --------- | ------------------------------------ |
-| Query positions | ✓         | Real-time position updates.          |
-| Position mode   | -         | Netting mode only.                   |
-| Cross margin    | ✓         | Cross-margin across all instruments. |
+| 特性         | 支持 | 说明                             |
+| ------------ | ---- | -------------------------------- |
+| 查询持仓     | ✓    | 实时持仓更新。                   |
+| 持仓模式     | -    | 仅净额结算模式。                 |
+| 全仓保证金   | ✓    | 跨全部工具的全仓保证金。         |
 
-### Order querying
+### 订单查询 {#order-querying}
 
-| Feature              | Supported | Notes                                                   |
-| -------------------- | --------- | ------------------------------------------------------- |
-| Query open orders    | ✓         | List all active orders.                                 |
-| Query single order   | ✓         | By venue order ID or client order ID (any order state). |
-| Order status reports | ✓         | Open-order checks and historical startup mass status.   |
-| Fill reports         | ✓         | Execution and fill history.                             |
+| 特性             | 支持 | 说明                                                    |
+| ---------------- | ---- | ------------------------------------------------------- |
+| 查询挂单         | ✓    | 列出全部活动订单。                                      |
+| 查询单个订单     | ✓    | 按场所订单 ID 或客户订单 ID（任意订单状态）。           |
+| 订单状态报告     | ✓    | 挂单检查与启动时的历史全量状态。                        |
+| 成交报告         | ✓    | 执行与成交历史。                                        |
 
 :::note
-Bulk open-order checks use `/open-orders` when `open_check_open_only` is enabled, which is the
-default. Otherwise, they use `/orders`. Startup mass-status reconciliation uses `/orders`, so its
-snapshot includes historical terminal orders such as filled and canceled orders. Single-order
-queries via `query_order` use the dedicated `/order-status` endpoint, which works for any order
-state.
+挂单批量检查在 `open_check_open_only` 启用（默认）时使用 `/open-orders`，否则使用 `/orders`。启动全量状态对账使用 `/orders`，因此其快照包含已成交、已撤销这类历史终态订单。经 `query_order` 的单订单查询使用专门的 `/order-status` 端点，任意订单状态都适用。
 
-AX open and historical order payloads do not expose a stop order type or trigger price.
-REST-derived reconciliation therefore reports every visible external order as a limit order. The
-adapter does not submit venue-native conditional orders.
+AX 的挂单与历史订单负载不暴露止损订单类型或触发价，因此 REST 来源的对账把每个可见的外部订单都报告为限价订单。适配器不提交场所原生的条件订单。
 
-Historical order reports carry the venue reject reason (`r`, falling back to `txt`), so reconciled
-`OrderRejected` events keep the same reason strings as their real-time counterparts. Reconciled
-`OrderCanceled` events can also carry the venue reason where a live cancel carries none. Reports retain the
-venue's post-only flag and subsecond timestamp.
+历史订单报告携带场所拒绝原因（`r`，回退到 `txt`），因此对账出的 `OrderRejected` 事件与实时事件保持同样的原因字符串。实时撤销不带原因时，对账出的 `OrderCanceled` 事件可以带上场所原因。报告保留场所的 post-only 标志和亚秒时间戳。
 
-Replaced historical order IDs are terminal. Day-complete orders expire, and expired IOC orders cancel,
-matching the WebSocket event path. An unknown order state fails the reconciliation request instead of omitting
-an order from the snapshot. A fill with an unknown sibling order state still reaches execution.
+被替换的历史订单 ID 是终态。当日结束订单过期，未成交 IOC 订单撤销，与 WebSocket 事件路径一致。未知的订单状态会使对账请求失败，而不是从快照中悄悄漏掉订单。兄弟订单状态未知的成交仍会送达执行。
 
-Startup mass-status reconciliation bounds its `/orders` and `/fills` requests by
-`reconciliation_lookback_mins`, and positions are always reported as a current snapshot. A lookback longer
-than seven days still yields only seven days of fills, and the declared window is floored at that cap. With a
-bounded window, fills for instruments that reconcile flat apply to their orders without materializing
-positions. Thus, round trips completed inside the window do not open phantom positions on restart. Without a
-bound, every historical order on the account is fetched and reconciled at startup.
+启动全量状态对账用 `reconciliation_lookback_mins` 限定 `/orders` 和 `/fills` 请求范围，持仓始终按当前快照上报。超过七天的回看实际也只取到七天成交，声明的窗口会向下取整到该上限。有界窗口下，对账后为平的工具的成交只作用于其订单，不物化出持仓——窗口内完成的往返开平不会在重启后产生幻影持仓。不设界时，启动会拉取并核对账户上的每一笔历史订单。
 :::
 
 :::warning
-After a restart without cached replacement history, reconciliation can apply an older order's state or fields
-to its replacement. This can make a working order appear canceled locally. Recovery remains incomplete. Check
-replaced orders against AX before resuming trading.
+重启后没有缓存的替换历史时，对账可能把旧订单的状态或字段套用到其替换单上，让一笔活动订单在本地显示为已撤销，恢复保持不完整。恢复交易前，请对照 AX 检查被替换的订单。
 :::
 
-### Account state
+### 账户状态 {#account-state}
 
-The `/balances` endpoint carries no margin data, so account state also requests `/risk-snapshot`. Its USD
-`initial_margin_required_total` populates the USD balance's locked funds, capped at the USD balance. A USD
-`MarginBalance` entry pairs initial with maintenance margin. When `/risk-snapshot` fails, account state falls
-back to balances-only with zero locked margin and a warning.
+`/balances` 端点不带保证金数据，因此账户状态还要请求 `/risk-snapshot`。其 USD `initial_margin_required_total` 填充 USD 余额的锁定资金，以 USD 余额为上限。USD 的 `MarginBalance` 条目把初始保证金与维持保证金配对。`/risk-snapshot` 失败时，账户状态退回只有余额、锁定保证金为零，并记录警告。
 
-## Authentication
+## 认证 {#authentication}
 
-AX Exchange uses bearer token authentication:
+AX Exchange 使用 bearer token 认证：
 
-1. API key and secret obtain a session token via `/authenticate`.
-2. The session token is used as a bearer token for subsequent REST and WebSocket requests.
-3. The adapter requests one-hour session tokens and refreshes them every 30 minutes.
-4. A refresh updates REST authentication and the token used by the next WebSocket reconnect without
-   interrupting the active connection.
+1. 用 API key 与 secret 经 `/authenticate` 换取会话 token。
+2. 会话 token 作为后续 REST 与 WebSocket 请求的 bearer token。
+3. 适配器申请一小时有效期的会话 token，每 30 分钟刷新一次。
+4. 刷新会更新 REST 认证和下一次 WebSocket 重连使用的 token，不打断当前连接。
 
-## Configuration
+## 配置 {#configuration}
 
-### Environments and endpoints
+### 环境与端点 {#environments-and-endpoints}
 
-| Environment | HTTP API                                         | HTTP API (orders)                                   | Market Data WS                                   | Orders WS                                            |
-| ----------- | ------------------------------------------------ | --------------------------------------------------- | ------------------------------------------------ | ---------------------------------------------------- |
-| Sandbox     | `https://gateway.sandbox.architect.exchange/api` | `https://gateway.sandbox.architect.exchange/orders` | `wss://gateway.sandbox.architect.exchange/md/ws` | `wss://gateway.sandbox.architect.exchange/orders/ws` |
-| Production  | `https://gateway.architect.exchange/api`         | `https://gateway.architect.exchange/orders`         | `wss://gateway.architect.exchange/md/ws`         | `wss://gateway.architect.exchange/orders/ws`         |
+| 环境       | HTTP API                                           | HTTP API（订单）                                   | 行情 WS                                            | 订单 WS                                                |
+| ---------- | -------------------------------------------------- | -------------------------------------------------- | -------------------------------------------------- | ------------------------------------------------------ |
+| Sandbox    | `https://gateway.sandbox.architect.exchange/api`   | `https://gateway.sandbox.architect.exchange/orders`| `wss://gateway.sandbox.architect.exchange/md/ws`   | `wss://gateway.sandbox.architect.exchange/orders/ws`   |
+| Production | `https://gateway.architect.exchange/api`           | `https://gateway.architect.exchange/orders`        | `wss://gateway.architect.exchange/md/ws`           | `wss://gateway.architect.exchange/orders/ws`           |
 
 :::info
-Order management endpoints (place, cancel, replace, cancel-all, order status, open orders,
-historical orders, and initial margin requirement) use the orders base URL. Every other REST
-endpoint, including authentication, account state, fills, transactions, and market data, uses the
-API base URL. The adapter resolves both from the configured environment.
+订单管理端点（下单、撤单、替换、撤销全部、订单状态、挂单、历史订单和初始保证金要求）使用 orders 基础 URL。其余 REST 端点——包括认证、账户状态、成交、交易和行情——使用 API 基础 URL。两个 URL 都由适配器按配置的环境解析。
 :::
 
-### Data client configuration options
+### 数据客户端配置选项 {#data-client-configuration-options}
 
-| Option                             | Default   | Description                                                                     |
+| 选项                               | 默认值    | 说明                                                                            |
 | ---------------------------------- | --------- | ------------------------------------------------------------------------------- |
-| `api_key`                          | `None`    | API key; loaded from `AX_API_KEY` env var when omitted.                         |
-| `api_secret`                       | `None`    | API secret; loaded from `AX_API_SECRET` env var when omitted.                   |
-| `environment`                      | `SANDBOX` | Trading environment (`SANDBOX` or `PRODUCTION`).                                |
-| `base_url_http`                    | `None`    | Override for the REST base URL.                                                 |
-| `base_url_ws_public`               | `None`    | Override for the market data WebSocket URL.                                     |
-| `base_url_ws_private`              | `None`    | Override for the private orders WebSocket URL.                                  |
-| `proxy_url`                        | `None`    | Optional proxy URL for HTTP and WebSocket transports.                           |
-| `http_timeout_secs`                | `60`      | Timeout (seconds) for REST requests.                                            |
-| `max_retries`                      | `3`       | Maximum retry attempts for idempotent REST requests (`GET`, `HEAD`, `OPTIONS`). |
-| `retry_delay_initial_ms`           | `1,000`   | Initial delay (milliseconds) between retries.                                   |
-| `retry_delay_max_ms`               | `10,000`  | Maximum delay (milliseconds) between retries (exponential backoff).             |
-| `heartbeat_interval_secs`          | `20`      | Heartbeat interval (seconds) for WebSocket connections.                         |
-| `recv_window_ms`                   | `5,000`   | Reserved; AX uses bearer tokens and the adapter sends no window.                |
-| `update_instruments_interval_mins` | `60`      | Interval (minutes) between instrument catalog refreshes.                        |
-| `funding_rate_poll_interval_mins`  | `15`      | Interval (minutes) between funding rate poll requests.                          |
-| `book_snapshot_timeout_secs`       | `10`      | Initial, reconnect, and recovery book snapshot wait; `0` disables.              |
-| `transport_backend`                | `Sockudo` | WebSocket transport backend.                                                    |
+| `api_key`                          | `None`    | API 密钥；缺省时从 `AX_API_KEY` 环境变量读取。                                  |
+| `api_secret`                       | `None`    | API secret；缺省时从 `AX_API_SECRET` 环境变量读取。                             |
+| `environment`                      | `SANDBOX` | 交易环境（`SANDBOX` 或 `PRODUCTION`）。                                         |
+| `base_url_http`                    | `None`    | REST 基础 URL 覆盖。                                                            |
+| `base_url_ws_public`               | `None`    | 行情 WebSocket URL 覆盖。                                                       |
+| `base_url_ws_private`              | `None`    | 私有订单 WebSocket URL 覆盖。                                                   |
+| `proxy_url`                        | `None`    | HTTP 与 WebSocket 传输的可选代理 URL。                                          |
+| `http_timeout_secs`                | `60`      | REST 请求超时（秒）。                                                           |
+| `max_retries`                      | `3`       | 幂等 REST 请求（`GET`、`HEAD`、`OPTIONS`）的最大重试次数。                      |
+| `retry_delay_initial_ms`           | `1,000`   | 重试初始延迟（毫秒）。                                                          |
+| `retry_delay_max_ms`               | `10,000`  | 重试最大延迟（毫秒，指数退避）。                                                |
+| `heartbeat_interval_secs`          | `20`      | WebSocket 连接心跳间隔（秒）。                                                  |
+| `recv_window_ms`                   | `5,000`   | 保留字段；AX 使用 bearer token，适配器不发送窗口。                              |
+| `update_instruments_interval_mins` | `60`      | 工具目录刷新间隔（分钟）。                                                      |
+| `funding_rate_poll_interval_mins`  | `15`      | 资金费率轮询间隔（分钟）。                                                      |
+| `book_snapshot_timeout_secs`       | `10`      | 初始、重连与恢复时等待订单簿快照的时长；`0` 禁用。                              |
+| `transport_backend`                | `Sockudo` | WebSocket 传输后端。                                                            |
 
-### Execution client configuration options
+### 执行客户端配置选项 {#execution-client-configuration-options}
 
-| Option                    | Default   | Description                                                                     |
+| 选项                      | 默认值    | 说明                                                                            |
 | ------------------------- | --------- | ------------------------------------------------------------------------------- |
-| `account_id`              | `AX-001`  | Account ID for the execution client.                                            |
-| `api_key`                 | `None`    | API key; loaded from `AX_API_KEY` env var when omitted.                         |
-| `api_secret`              | `None`    | API secret; loaded from `AX_API_SECRET` env var when omitted.                   |
-| `environment`             | `SANDBOX` | Trading environment (`SANDBOX` or `PRODUCTION`).                                |
-| `base_url_http`           | `None`    | Override for the API REST base URL.                                             |
-| `base_url_orders`         | `None`    | Override for the orders REST base URL.                                          |
-| `base_url_ws_private`     | `None`    | Override for the orders WebSocket URL.                                          |
-| `proxy_url`               | `None`    | Optional proxy URL for HTTP and WebSocket transports.                           |
-| `http_timeout_secs`       | `60`      | Timeout (seconds) for REST requests.                                            |
-| `max_retries`             | `3`       | Maximum retry attempts for idempotent REST requests (`GET`, `HEAD`, `OPTIONS`). |
-| `retry_delay_initial_ms`  | `1,000`   | Initial delay (milliseconds) between retries.                                   |
-| `retry_delay_max_ms`      | `10,000`  | Maximum delay (milliseconds) between retries (exponential backoff).             |
-| `heartbeat_interval_secs` | `30`      | Heartbeat interval (seconds) for WebSocket connections.                         |
-| `recv_window_ms`          | `5,000`   | Reserved; AX uses bearer tokens and the adapter sends no window.                |
-| `cancel_on_disconnect`    | `False`   | Cancel this WebSocket session's open orders on disconnect.                      |
-| `transport_backend`       | `Sockudo` | WebSocket transport backend.                                                    |
+| `account_id`              | `AX-001`  | 执行客户端的账户 ID。                                                           |
+| `api_key`                 | `None`    | API 密钥；缺省时从 `AX_API_KEY` 环境变量读取。                                  |
+| `api_secret`              | `None`    | API secret；缺省时从 `AX_API_SECRET` 环境变量读取。                             |
+| `environment`             | `SANDBOX` | 交易环境（`SANDBOX` 或 `PRODUCTION`）。                                         |
+| `base_url_http`           | `None`    | API REST 基础 URL 覆盖。                                                        |
+| `base_url_orders`         | `None`    | 订单 REST 基础 URL 覆盖。                                                       |
+| `base_url_ws_private`     | `None`    | 订单 WebSocket URL 覆盖。                                                       |
+| `proxy_url`               | `None`    | HTTP 与 WebSocket 传输的可选代理 URL。                                          |
+| `http_timeout_secs`       | `60`      | REST 请求超时（秒）。                                                           |
+| `max_retries`             | `3`       | 幂等 REST 请求（`GET`、`HEAD`、`OPTIONS`）的最大重试次数。                      |
+| `retry_delay_initial_ms`  | `1,000`   | 重试初始延迟（毫秒）。                                                          |
+| `retry_delay_max_ms`      | `10,000`  | 重试最大延迟（毫秒，指数退避）。                                                |
+| `heartbeat_interval_secs` | `30`      | WebSocket 连接心跳间隔（秒）。                                                  |
+| `recv_window_ms`          | `5,000`   | 保留字段；AX 使用 bearer token，适配器不发送窗口。                              |
+| `cancel_on_disconnect`    | `False`   | 断开时撤销本 WebSocket 会话的挂单。                                             |
+| `transport_backend`       | `Sockudo` | WebSocket 传输后端。                                                            |
 
-When `transport_backend=None`, the compiled Rust default selects Sockudo when the
-`transport-sockudo` Cargo feature is enabled and Tungstenite otherwise.
+`transport_backend=None` 时，编译后的 Rust 默认值在启用 `transport-sockudo` Cargo feature 时选 Sockudo，否则选 Tungstenite。
 
-Use `AxDataClientConfig` with `AxDataClientFactory` and `AxExecutionClientConfig` with
-`AxExecutionClientFactory`. The Python examples show the complete `LiveNode.builder(...)`
-configuration for data and execution clients.
+`AxDataClientConfig` 与 `AxDataClientFactory` 搭配，`AxExecutionClientConfig` 与 `AxExecutionClientFactory` 搭配。数据与执行客户端完整的 `LiveNode.builder(...)` 配置见 Python 示例。
 
-### API credentials
+### API 凭据 {#api-credentials}
 
-There are two options for supplying your credentials to the AX Exchange clients.
-Either pass the corresponding `api_key` and `api_secret` values to the configuration objects, or
-set the following environment variables:
+向 AX Exchange 客户端提供凭据有两种方式：把 `api_key` 和 `api_secret` 传入配置对象，或设置以下环境变量：
 
 - `AX_API_KEY`
 - `AX_API_SECRET`
 
 :::tip
-We recommend using environment variables to manage your credentials.
+建议用环境变量管理凭据。
 :::
 
-When starting the trading node, you'll receive immediate confirmation of whether your
-credentials are valid and have trading permissions.
+启动交易节点时，凭据是否有效、有无交易权限会立即得到确认。
 
-## Implementation notes
+## 实现说明 {#implementation-notes}
 
-- **Whole contracts only**: AX uses integer contract quantities. The adapter models a one-contract
-  size increment and lot size, while enforcing each instrument's separate `minimum_order_size`.
-  Fractional quantities generate `OrderDenied` locally.
-- **Dated futures activation**: AX publishes expiration but not activation timestamps. The adapter
-  uses zero for the unknown activation time and preserves that limitation in instrument metadata.
-- **Rate limiting**: The adapter applies a conservative rate limit of 10 requests/second with
-  automatic exponential backoff on rate limit responses.
-- **Market orders**: AX does not support native market orders. The adapter uses a preview endpoint
-  to determine the take-through price and submits an aggressive IOC limit order. Because the book
-  can move between the preview and the submission, a simulated market order may fill partially.
-- **Stop-limit orders**: The adapter rejects venue-native stop-limit submissions because sandbox
-  testing did not confirm conditional semantics. Use local order emulation when a strategy
-  requires a stop-limit order.
-- **Order modification**: AX supports atomic order replacement via `POST /replace-order`. The execution client
-  maps `modify_order` to this endpoint and records the new venue order ID it returns. The adapter rejects a
-  modification locally if it carries a trigger price, because AX has no field for one. It also rejects a
-  modification if the order has no venue order ID yet.
-- **Funding rate polling**: The data client polls `GET /funding-rates` for each subscribed instrument at
-  `funding_rate_poll_interval_mins`. It requests a seven-day lookback to find a rate across weekends and
-  holidays. It emits the latest rate only when it differs from the last one emitted.
-- **Cancel on disconnect**: Set `cancel_on_disconnect=True` in the execution client config
-  to have the exchange cancel all open orders if the orders WebSocket disconnects.
-- **Account fee rates**: Instruments do not carry maker or taker fee rates. An
-  authenticated client resolves account rates from `GET /whoami` and fails to connect
-  if that lookup fails. The execution client caches rates per AX account, apart from
-  instruments, and refreshes them each time it connects. Automatic WebSocket reconnects
-  keep the cached rates.
-- **Fill commissions**: Real-time fill events from the WebSocket do not include fee data. The adapter
-  estimates commission for both tracked fill events and untracked fill reports using the fill quantity,
-  absolute fill price, contract multiplier, and account's maker or taker rate. It uses the trade's account ID,
-  then the order's account ID if absent, or the first `/whoami` account if neither ID is present. It keeps the
-  calculation in decimal arithmetic and rounds only the final fee into USD `Money`, whose precision is 2.
+- **只支持整数张合约**：AX 使用整数合约数量。适配器把每手规模增量和批量大小建模为 1 张，同时强制执行每个工具各自的 `minimum_order_size`。小数数量在本地产生 `OrderDenied`。
+- **到期期货的激活时间**：AX 发布到期时间但不发布激活时间。适配器对未知的激活时间使用零值，并在工具元数据中保留这一限制。
+- **限流**：适配器施加保守的 10 请求/秒限流，收到限流响应时自动指数退避。
+- **市价单**：AX 不支持原生市价单。适配器用预览端点确定穿透价，然后提交一个激进 IOC 限价单。预览与提交之间盘口可能移动，因此模拟市价单可能只部分成交。
+- **止损限价订单**：sandbox 测试未能确认条件语义，适配器拒绝场所原生的止损限价提交。策略需要止损限价订单时使用本地订单模拟。
+- **订单修改**：AX 经 `POST /replace-order` 支持原子替换。执行客户端把 `modify_order` 映射到该端点，并记录其返回的新场所订单 ID。修改携带触发价时（AX 没有对应字段）适配器在本地拒绝；订单还没有场所订单 ID 时同样拒绝。
+- **资金费率轮询**：数据客户端按 `funding_rate_poll_interval_mins` 对每个订阅工具轮询 `GET /funding-rates`，请求七天回看以在周末和假期也能取到费率。仅当最新费率与上次发出的不同时才发出。
+- **断开即撤单**：在执行客户端配置中设置 `cancel_on_disconnect=True`，订单 WebSocket 断开时让交易所撤销全部挂单。
+- **账户费率**：工具不携带挂单/吃单费率。认证客户端从 `GET /whoami` 解析账户费率，查询失败则连接失败。执行客户端把费率按 AX 账户缓存（与工具无关），每次连接时刷新；自动 WebSocket 重连沿用缓存的费率。
+- **成交佣金**：WebSocket 的实时成交事件不含费用数据。适配器用成交数量、成交价绝对值、合约乘数和账户的挂单/吃单费率，为跟踪的成交事件和未跟踪的成交报告估算佣金。账户归属依次取成交的账户 ID、订单的账户 ID，两者都没有时用 `/whoami` 的第一个账户。计算保持十进制运算，只在最后一步把费用舍入进精度为 2 的 USD `Money`。
 
-  A fill whose instrument or complete account fee schedule is not cached, or whose commission cannot be
-  represented, is logged and skipped. Tracked order metadata remains available for reconciliation. Recovery
-  depends on configured reconciliation checks or an explicit order query. Skipped fills do not trigger an
-  immediate REST request.
+  工具或完整账户费率表未缓存、或佣金无法表示的成交，会被记录并跳过。被跟踪订单的元数据仍可用于对账，恢复依赖配置的对账检查或显式订单查询。跳过的成交不会触发立即的 REST 请求。
 
-  Reconciliation does not replace an applied commission, so a streamed estimate remains even when the
-  venue-reported `/fills` fee differs. That endpoint supplies the fee for a fill that was not already applied
-  from the stream. The adapter converts it with `Money::from_decimal` into USD, so a sub-cent fee such as
-  `0.012188` is stored as `0.01`. An unrepresentable REST fee fails the fill-report request and mass status.
-  During startup, that error prevents the node from starting.
-- **Fill reconciliation window**: The `/fills` endpoint requires a bounded time range and caps the span at
-  seven days. Reconciliation requests the most recent seven days of fills. Fills older than that are not
-  reconciled.
-- **Fill order identity**: AX can omit `order_id` for block trades and final settlement fills. The
-  adapter derives a deterministic reconciliation order ID from `trade_id` for those classified
-  records. Classification fields are optional for regular fills with a valid `order_id`. The adapter
-  rejects rows with neither an order ID nor explicit special-fill classification, and rejects
-  inconsistent classification.
-- **Unfilled IOC/FOK**: AX reports an unfilled immediate order as an expiry. The adapter maps it to
-  `OrderCanceled` to match NautilusTrader semantics.
-- **One-tick quotes**: Example testers place post-only limits one tick from top of book.
-  Those quotes can still fill. Flatten leftovers with
-  `cargo run --bin ax-flatten -p nautilus-architect-ax` (`AX_IS_SANDBOX` defaults to true).
-  That binary cancels all open orders on the account, then closes every position.
+  对账不会替换已应用的佣金，因此流式估算即便与场所 `/fills` 上报的佣金不同也会保留。`/fills` 端点只为未从流中应用的成交提供佣金，适配器用 `Money::from_decimal` 转成 USD，`0.012188` 这类分以下费用会存为 `0.01`。无法表示的 REST 佣金会使成交报告请求与全量状态失败；启动期间该错误会阻止节点启动。
+- **成交对账窗口**：`/fills` 端点要求有界时间范围且跨度上限七天。对账请求最近七天的成交，更早的成交不参与对账。
+- **成交的订单归属**：AX 对大宗交易和最终结算成交可能省略 `order_id`。适配器对这些被分类的记录用 `trade_id` 推导确定性的对账订单 ID。对有有效 `order_id` 的普通成交，分类字段是可选的。适配器拒绝既无订单 ID 也无显式特殊成交分类的行，也拒绝自相矛盾的分类。
+- **未成交的 IOC/FOK**：AX 把未成交的即时订单报告为过期，适配器映射为 `OrderCanceled` 以匹配 NautilusTrader 语义。
+- **一档报价**：示例测试器会在 top-of-book 一档之外挂 post-only 限价单，这些报价仍可能成交。残余订单用
+  `cargo run --bin ax-flatten -p nautilus-architect-ax` 清掉（`AX_IS_SANDBOX` 默认为 true）。
+  该程序先撤销账户上全部挂单，再平掉所有持仓。
 
-## Contributing
+## 参与贡献 {#contributing}
 
 :::info
-For additional features or to contribute to the AX Exchange adapter, please see our
-[contributing guide](https://github.com/nautechsystems/nautilus_trader/blob/develop/CONTRIBUTING.md).
+需要更多功能或想为 AX Exchange 适配器做贡献，见我们的
+[贡献指南](https://github.com/nautechsystems/nautilus_trader/blob/develop/CONTRIBUTING.md)。
 :::

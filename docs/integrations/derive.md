@@ -1,196 +1,161 @@
 # Derive
 
-Derive (formerly Lyra) is a decentralized derivatives venue offering European-style options
-and cash-settled perpetual swaps, and one of the largest on-chain options markets. Trading
-runs against subaccounts owned by the user's EOA or multisig, so collateral stays in the
-user's custody while orders match through the venue's orderbook.
+Derive（前身是 Lyra）是一个去中心化衍生品场所，提供欧式期权与现金结算（以 USDC）的永续互换，也是最大的链上期权市场之一。交易运行在由用户 EOA 或多签账户拥有的子账户上，抵押物留在用户自托管中，订单则通过场所的订单簿撮合。
 
-The v3 API batches operations for settlement on Ethereum. Orders match off chain and settle on chain, pairing
-orderbook execution with self-custody. Orders use EIP-712 typed-data signatures from a session key scoped to a
-subaccount. This keeps the signing key separate from the wallet owner. Users can rotate or revoke access
-without moving funds.
+v3 API 把操作打包成批，以便在以太坊上结算。订单链下撮合、链上结算，把订单簿执行与自托管结合在一起。订单使用 EIP-712 typed-data 签名，签名密钥是限定到某个子账户的 session key。这样签名密钥与钱包所有者保持分离，用户可以轮换或吊销访问权限而无需转移资金。
 
-## Overview
+## 概览 {#overview}
 
-The Derive adapter is implemented in Rust under `crates/adapters/derive`. It exposes:
+Derive adapter 用 Rust 实现，位于 `crates/adapters/derive`。它提供：
 
-- `DeriveHttpClient`: Low-level REST connectivity to `api.derive.xyz/v3` (mainnet) or
-  `testnet.api.derive.xyz/v3` (testnet).
-- `DeriveWebSocketClient`: JSON-RPC WebSocket transport with subscription tracking, reconnect, and signed order entry.
-- `DeriveInstrumentProvider`: Per-currency instrument fetch and caching.
-- `DeriveDataClient`: Live market data client.
-- `DeriveDataClientFactory`: Data client factory for the live node builder.
-- `DeriveExecutionClient`: Live execution client for signed order, cancel, query, and report flows.
-- `DeriveExecutionClientFactory`: Execution client factory for the live node builder.
+- `DeriveHttpClient`：到 `api.derive.xyz/v3`（主网）或 `testnet.api.derive.xyz/v3`（测试网）的低层 REST 连接。
+- `DeriveWebSocketClient`：带订阅跟踪、重连与签名下单的 JSON-RPC WebSocket 传输。
+- `DeriveInstrumentProvider`：按币种拉取并缓存金融工具。
+- `DeriveDataClient`：实时行情客户端。
+- `DeriveDataClientFactory`：供 live node builder 使用的数据客户端工厂。
+- `DeriveExecutionClient`：负责签名下单、撤单、查询与报告流程的实时执行客户端。
+- `DeriveExecutionClientFactory`：供 live node builder 使用的执行客户端工厂。
 
-Execution flows use EIP-712 typed-data signing against the venue's per-action module contracts.
+执行流程针对场所的按动作模块合约（per-action module contracts）使用 EIP-712 typed-data 签名。
 
-Python surface available from `nautilus_trader.adapters.derive`:
+`nautilus_trader.adapters.derive` 提供的 Python 接口：
 
-- `DeriveDataClientConfig`, `DeriveExecutionClientConfig`
-- `DeriveDataClientFactory`, `DeriveExecutionClientFactory`
+- `DeriveDataClientConfig`、`DeriveExecutionClientConfig`
+- `DeriveDataClientFactory`、`DeriveExecutionClientFactory`
 - `DeriveEnvironment`
-- `DERIVE`, `DERIVE_CLIENT_ID`, and `DERIVE_VENUE`
+- `DERIVE`、`DERIVE_CLIENT_ID` 与 `DERIVE_VENUE`
 
-## Examples
+## 示例 {#examples}
 
-- [Python examples](https://github.com/nautechsystems/nautilus_trader/tree/develop/examples/live/derive/)
-- [Rust examples](https://github.com/nautechsystems/nautilus_trader/tree/develop/crates/adapters/derive/examples/)
+- [Python 示例](https://github.com/nautechsystems/nautilus_trader/tree/develop/examples/live/derive/)
+- [Rust 示例](https://github.com/nautechsystems/nautilus_trader/tree/develop/crates/adapters/derive/examples/)
 
-## Derive documentation
+## Derive 文档 {#derive-documentation}
 
-Derive publishes API documentation at [docs.derive.xyz](https://docs.derive.xyz). Refer to it
-alongside this guide for additional details.
+Derive 在 [docs.derive.xyz](https://docs.derive.xyz) 发布 API 文档。除本指南外，细节以它为准。
 
-### V3 deployment and migration
+### V3 部署与迁移 {#v3-deployment-and-migration}
 
-Derive's [migration completion announcement](https://x.com/DeriveXYZ/status/2107605164131852434)
-announces completion of the v3 migration on October 6, 2026. The
-[migration proposal](https://forums.derive.xyz/t/dip-launch-derive-v3/322) describes winding
-down Derive Chain afterward. These sources do not specify an exact v2 API retirement date
-or establish that v2 remains available as a fallback.
+Derive 的[迁移完成公告](https://x.com/DeriveXYZ/status/2107605164131852434)宣布 v3 迁移已于 2026 年 10 月 6 日完成。
+[迁移提案](https://forums.derive.xyz/t/dip-launch-derive-v3/322)描述了此后关停 Derive Chain 的安排。这些来源没有给出 v2 API 的确切退役日期，也没有说明 v2 仍可作为回退。
 
-Verify the migrated owner, funded subaccount, and session-key permissions before starting execution. V3 uses
-the ultimate owner EOA or Ethereum multisig as `wallet_address`, replacing the intermediate Derive Wallet. The
-migration proposal splits standard-margin subaccounts by risk universe. Thus, confirm the v3 `subaccount_id`.
-Do not assume the v2 ID selects the intended balances and positions. Portfolio-margin subaccounts migrate one
-to one.
+启动执行前，先确认迁移后的 owner、已注资的子账户与 session key 权限。V3 使用最终 owner 的 EOA 或以太坊多签作为 `wallet_address`，取代中间的 Derive Wallet。迁移提案按风险 universe 拆分标准保证金子账户，因此要确认 v3 的 `subaccount_id`：不要假设 v2 的 ID 选中的就是预期的余额与持仓。组合保证金子账户一对一迁移。
 
-Migrated v2 admin keys receive trading, same-owner transfer, withdrawal, and liquidation scopes,
-with expiry capped to 28 days after genesis, the v3 launch state. They do not receive `admin`,
-`set_session_key`, or different-owner transfer permissions. V2 read-only and account keys migrate
-without protocol scopes and cannot trade.
-Check the key's current expiry, scopes, and permitted subaccounts through `private/session_keys`.
-The owner must provision a scoped v3 key when the migrated key does not meet execution requirements:
-an EOA calls `private/set_session_key`, and a contract owner submits the on-chain Set Session Key
-action. See [Testnet onboarding](#testnet-onboarding) and [Mainnet onboarding](#mainnet-onboarding).
+迁移过来的 v2 admin key 获得 trading、同 owner 转账、withdrawal 与 liquidation 范围，有效期上限为 genesis（即 v3 启动状态）之后 28 天；它们不会获得 `admin`、`set_session_key` 或跨 owner 转账权限。V2 只读与账户 key 迁移时不带协议范围，无法交易。通过 `private/session_keys` 检查 key 当前的有效期、范围与被许可的子账户。迁移的 key 不满足执行要求时，owner 要自行签发带范围的 v3 key：EOA 调用 `private/set_session_key`，合约 owner 提交链上的 Set Session Key 动作。见 [Testnet 接入](#testnet-onboarding) 与 [Mainnet 接入](#mainnet-onboarding)。
 
-## Products
+## 产品 {#products}
 
-| Product type           | Supported | Notes                                                                                    |
+| 产品类型               | 支持      | 备注                                                                                     |
 | ---------------------- | --------- | ---------------------------------------------------------------------------------------- |
-| ERC-20 spot            | ✓         | USDC-quoted `CurrencyPair`; see [Spot behavior](#spot-behavior) for live v3 limitations. |
-| Perpetual swaps        | ✓         | Cash-settled in USDC, with per-currency listings such as `ETH-PERP`.                     |
-| Options (calls / puts) | ✓         | European-style options using `{CURRENCY}-{EXPIRY}-{STRIKE}-{C\|P}`.                      |
+| ERC-20 现货            | ✓         | USDC 计价的 `CurrencyPair`；实时 v3 限制见[现货行为](#spot-behavior)。                    |
+| 永续互换               | ✓         | 以 USDC 现金结算，按币种上市，例如 `ETH-PERP`。                                           |
+| 期权（看涨 / 看跌）    | ✓         | 欧式期权，符号形如 `{CURRENCY}-{EXPIRY}-{STRIKE}-{C\|P}`。                                |
 
-## Symbology
+## 符号体系 {#symbology}
 
-Derive instruments use the native venue symbol with the venue suffix `.DERIVE`:
+Derive 金融工具使用场所原生符号加 `.DERIVE` 后缀：
 
-- Spot: `ETH-USDC.DERIVE` (base currency, quote currency).
-- Perpetual: `ETH-PERP.DERIVE`, `BTC-PERP.DERIVE`.
-- Option: `ETH-20260626-3000-C.DERIVE` (currency, expiry, strike, kind).
+- 现货：`ETH-USDC.DERIVE`（基础货币，计价货币）。
+- 永续：`ETH-PERP.DERIVE`、`BTC-PERP.DERIVE`。
+- 期权：`ETH-20260626-3000-C.DERIVE`（币种、到期日、行权价、类型）。
 
-The first hyphen-separated segment of the symbol is the underlying currency. The provider
-fetches every page of `public/get_all_instruments` for each product type and configured currency.
-Subscribing to a new currency triggers a lazy REST fetch when `auto_load_missing_instruments`
-is enabled (the default).
+符号中第一个连字符分隔的段是基础货币。provider 会为每种产品类型和配置的币种翻完
+`public/get_all_instruments` 的每一页。启用 `auto_load_missing_instruments`（默认）时，订阅
+新币种会触发一次惰性 REST 拉取。
 
-With `include_expired`, the provider merges live and expired option listings by instrument name.
-It keeps the live definition when both listings contain the same option near expiry. Perpetual
-and spot listings ignore this setting.
+设置 `include_expired` 后，provider 按金融工具名称合并期权的活动与过期挂牌，同一期权在两种
+挂牌中都存在（临近到期）时保留活动定义。永续与现货挂牌忽略该设置。
 
-The adapter routes on the venue `instrument_type` (`perp`, `option`, `erc20`), not on the symbol suffix. Thus,
-spot pairs need no special symbology parsing. Spot reuses the same Trade-module signing path as perps and
-options. Fixtures under `crates/adapters/derive/test_data/spot/` capture spot instrument, order book, ticker,
-and trade field shapes. These fixtures pin the parser and execution paths to those shapes.
+adapter 按场所的 `instrument_type`（`perp`、`option`、`erc20`）路由，而不是按符号后缀，因此
+现货对没有特殊的符号解析。现货复用与永续、期权相同的 Trade 模块签名路径。
+`crates/adapters/derive/test_data/spot/` 下的 fixture 记录了现货金融工具、订单簿、ticker 与
+成交的字段形态，把解析器与执行路径钉在这些形态上。
 
-### Spot behavior
+### 现货行为 {#spot-behavior}
 
 :::warning
-V3 testnet accepts and cancels passive `ETH-USDC` limit orders. Public spot trade frames, tracked
-fill commissions, and spot restart reconciliation remain unverified on v3. Mainnet place/cancel
-was exercised manually before the v3 migration. The current `ETH-USDC` minimum amount is `0.1 ETH`.
-An empty spot book does not provide a bounded way to close a minimum-size fill.
+V3 测试网可以接受并撤销被动挂单的 `ETH-USDC` 限价单。公共现货成交帧、被跟踪的成交手续费，
+以及现货重启后的对账在 v3 上仍未验证。主网的下单/撤单在 v3 迁移前做过手工验证。当前
+`ETH-USDC` 的最小数量是 `0.1 ETH`。空的现货簿无法有界地成交最小数量。
 :::
 
-- **Sparse trades**: public spot trade channels (`trades.erc20.ETH`, `trades.ETH-USDC`) subscribe
-  successfully but can be low-volume, so expect sparse trade frames.
-- **Empty books**: the venue still broadcasts ticker and order book frames with a zeroed top of book. The
-  adapter emits no quote when either side has zero price or size. See [Quotes](#quotes). Trade frames are
-  match-driven and independent of book state, so a trade that empties the book still emits an event.
-- **Standard Margin**: spot orders are margined by initial margin fraction, not full notional.
+- **成交稀疏**：公共现货成交频道（`trades.erc20.ETH`、`trades.ETH-USDC`）能成功订阅，但
+  成交量可能很低，成交帧会稀疏。
+- **簿为空**：场所仍会广播 ticker 与订单簿帧，但最优档为零。任一侧价格或数量为零时，adapter
+  不发报价。见[报价](#quotes)。成交帧由撮合驱动、与簿状态无关，因此把簿打空的成交仍会发事件。
+- **Standard Margin**：现货订单按初始保证金比例计保证金，不是全额名义价值。
 
-## Environments
+## 环境 {#environments}
 
-Configure the environment with the `DeriveEnvironment` enum on either client config.
+在任一客户端配置上用 `DeriveEnvironment` 枚举设置环境。
 
-| Environment | Config                       | REST                                | WebSocket                            |
-| ----------- | ---------------------------- | ----------------------------------- | ------------------------------------ |
-| Mainnet     | `DeriveEnvironment::Mainnet` | `https://api.derive.xyz/v3`         | `wss://api.derive.xyz/v3/ws`         |
-| Testnet     | `DeriveEnvironment::Testnet` | `https://testnet.api.derive.xyz/v3` | `wss://testnet.api.derive.xyz/v3/ws` |
+| 环境   | 配置                           | REST                                | WebSocket                            |
+| ------ | ------------------------------ | ----------------------------------- | ------------------------------------ |
+| 主网   | `DeriveEnvironment::Mainnet`   | `https://api.derive.xyz/v3`         | `wss://api.derive.xyz/v3/ws`         |
+| 测试网 | `DeriveEnvironment::Testnet`   | `https://testnet.api.derive.xyz/v3` | `wss://testnet.api.derive.xyz/v3/ws` |
 
 :::important
-Testnet uses Ethereum Sepolia with its own session keys and balances. **Mainnet and testnet API
-keys are not interchangeable.**
+测试网使用以太坊 Sepolia，有独立的 session key 和余额。**主网与测试网的 API key 不能互换。**
 :::
 
-Public market data (book, ticker, trades) does not require credentials.
+公共行情数据（簿、ticker、成交）不需要凭据。
 
-When upgrading from v2, replace the old Derive Wallet address in `wallet_address` or the wallet
-environment variable with the owner's EOA or multisig address. See
-[V3 deployment and migration](#v3-deployment-and-migration).
+从 v2 升级时，把 `wallet_address` 或钱包环境变量里旧的 Derive Wallet 地址换成 owner 的 EOA
+或多签地址。见 [V3 部署与迁移](#v3-deployment-and-migration)。
 
-The EIP-712 domain separators, Action typehash, and Trade module addresses for both networks are shipped in
-`crates/adapters/derive/src/common/consts.rs` and tracked against Derive's
-[v3 action-signing reference](https://docs.derive.xyz/authentication/action-signing). Mainnet uses Ethereum
-chain 1, and testnet uses Sepolia chain 11155111. Both use the same Trade module address. The owner is the EOA
-or multisig. The session key supplies the signer address. `DeriveExecutionClientConfig::domain_separator`,
-`action_typehash`, and `trade_module_address` accept per-instance overrides that take precedence over the
-shipped values.
+两条网络的 EIP-712 domain separator、Action typehash 与 Trade 模块地址都内置在
+`crates/adapters/derive/src/common/consts.rs`，并对照 Derive 的
+[v3 动作签名参考](https://docs.derive.xyz/authentication/action-signing)跟踪更新。主网用以太坊
+chain 1，测试网用 Sepolia chain 11155111，两者共用同一 Trade 模块地址。owner 是 EOA 或多签，
+session key 提供签名者地址。`DeriveExecutionClientConfig::domain_separator`、`action_typehash`
+与 `trade_module_address` 接受按实例的覆盖，优先于内置值。
 
-Order, trigger-order, and replace requests sign the seven-word Trade ABI with 1e18 fixed-point scaling.
-Financial inputs must fit 12 fractional digits, including trailing zeros. Excess precision raises an error
-instead of truncating the signed value. The request sends the same decimal values used to build the signature.
+订单、触发订单与替换请求按 1e18 定点缩放对七个词的 Trade ABI 签名。金融输入（含末尾的零）
+必须不超过 12 位小数。超出精度会报错，而不是截断被签名的值。请求发送的就是构造签名时使用的
+同一组十进制值。
 
-Action nonces use UNIX nanoseconds and travel as decimal strings in requests and responses.
-The allocator shares a monotonic stream per wallet and subaccount across client instances in the
-same process, regardless of wallet lettercase. Clock rollback advances the last nonce only while
-it remains within one hour of local time. The adapter applies the inclusive order window
-[local time minus 90 days, local time plus 1 hour], a conservative lookback within the venue's
-documented 120-day window. Local time
-approximates the server clock, so clock skew can still cause venue rejection. Login timestamps use
-milliseconds, and signature expiry uses seconds.
+动作 nonce 使用 UNIX 纳秒，在请求与响应中以十进制字符串传输。分配器在同一进程内按钱包与
+子账户共享一条单调递增流，跨客户端实例生效，与钱包大小写无关。时钟回拨时，只要最后一个 nonce
+仍在本地时间一小时之内，就把它前移。adapter 采用闭区间订单窗口
+[本地时间减 90 天，本地时间加 1 小时]，这是场所文档化 120 天窗口内保守的回看幅度。本地时间
+近似服务器时钟，因此时钟偏差仍可能导致场所拒绝。登录时间戳用毫秒，签名有效期用秒。
 
-### Switch an existing deployment to v3
+### 把现有部署切换到 v3 {#switch-an-existing-deployment-to-v3}
 
-1. Stop submitting orders and reconcile existing orders, fills, balances, and positions.
-1. Verify the v3 owner address, funded subaccount, session-key expiry and scopes, and environment.
-1. Connect with the v3 defaults and confirm public market data and authenticated account reads.
-1. Validate minimum-size execution with explicit price, fee, and exposure bounds on testnet and
-   mainnet before enabling the strategy.
+1. 停止提交订单，对账现有订单、成交、余额与持仓。
+1. 确认 v3 的 owner 地址、已注资的子账户、session key 的有效期与范围，以及环境。
+1. 用 v3 默认值连接，确认公共行情与认证后的账户读取正常。
+1. 在启用策略前，于测试网与主网用显式的价格、手续费与敞口边界验证最小数量执行。
 
-If account reads or signing fail, stop execution and check the owner, subaccount, key permissions,
-and signing constants against the selected environment. Reconcile venue state after reconnecting
-before resuming orders. Changing only the URL to v2 is not a recovery procedure: this adapter uses
-v3 request schemas, nanosecond nonces, and v3 signatures. It does not support the v2 API.
+账户读取或签名失败时，停止执行，对照所选环境检查 owner、子账户、key 权限与签名常量。重连后
+先对账场所状态，再恢复下单。只把 URL 改回 v2 不是恢复手段：本 adapter 使用 v3 请求模式、
+纳秒 nonce 与 v3 签名，不支持 v2 API。
 
-V2 trigger and TWAP orders did not carry over to v3. Check venue state before recreating intended
-trigger orders. This adapter does not submit TWAP orders.
+V2 的触发订单与 TWAP 订单不会延续到 v3。重建预期的触发订单前先检查场所状态。本 adapter
+不提交 TWAP 订单。
 
-## Testnet onboarding
+## Testnet 接入 {#testnet-onboarding}
 
-Steps to reach a position where the execution client can submit a signed order:
+达到执行客户端可提交签名订单这一步所需的步骤：
 
-1. **Sign in to the testnet dashboard.** Open
-   [testnet.app.derive.xyz](https://testnet.app.derive.xyz/) and connect the owner EOA or multisig.
-1. **Copy the owner wallet address.** Use your EOA or multisig address as `wallet_address`. The client sends
-   it in the `X-DeriveWallet` header. V3 has no separate Derive Wallet address.
-1. **Fund a subaccount.** Follow Derive's [deposit guide](https://docs.derive.xyz/getting-started/depositing)
-   to mint test collateral and deposit on Sepolia. The first deposit creates the account and subaccounts. Copy
-   the funded subaccount's integer ID as `subaccount_id`. Orders require enough collateral to cover their
-   margin.
-1. **Generate a session key.** Follow Derive's
-   [session-key guide](https://docs.derive.xyz/authentication/session-keys) to register a key with protocol
-   scope `trade:orderbook:all`, or narrower product scopes, restricted to the funded subaccount. The separate
-   off-chain `account_info` capability does not grant trading. Choose an expiry and verify the record through
-   `private/session_keys`. Copy the raw secp256k1 private key as `session_key`. It stays local and is redacted
-   from `Debug` output.
+1. **登录测试网控制台。** 打开
+   [testnet.app.derive.xyz](https://testnet.app.derive.xyz/) 并连接 owner 的 EOA 或多签。
+1. **复制 owner 钱包地址。** 用你的 EOA 或多签地址作为 `wallet_address`，客户端通过
+   `X-DeriveWallet` 头发送它。V3 没有单独的 Derive Wallet 地址。
+1. **为子账户注资。** 按 Derive 的
+   [充值指南](https://docs.derive.xyz/getting-started/depositing)在 Sepolia 上铸造测试抵押物并
+   充值。首笔充值会创建账户与子账户。把已注资子账户的整数 ID 复制为 `subaccount_id`。订单
+   需要足够的抵押物覆盖其保证金。
+1. **生成 session key。** 按 Derive 的
+   [session key 指南](https://docs.derive.xyz/authentication/session-keys)注册一个协议范围为
+   `trade:orderbook:all`（或更窄的产品范围）、限定到该已注资子账户的 key。单独的链下
+   `account_info` 能力不授予交易权限。选择有效期并通过 `private/session_keys` 核对记录。
+   把原始 secp256k1 私钥复制为 `session_key`。它只留在本地，并在 `Debug` 输出中被打码。
 
-   To retire a key, re-register it with a past or zero expiry. Revocation has a minimum cooldown of [5, 15]
-   minutes. It does not take effect immediately.
-1. **Set the environment variables.** Export the three values the client reads in testnet
-   mode (or pass them on `DeriveExecutionClientConfig`, where the config field wins):
+   要吊销一个 key，用过去或零有效期重新注册它。吊销有 [5, 15] 分钟的最小冷却期，不会立即
+   生效。
+1. **设置环境变量。** 导出测试网模式下客户端读取的三个值（或直接在
+   `DeriveExecutionClientConfig` 上传入，此时配置字段优先）：
 
    ```bash
    export DERIVE_TESTNET_WALLET_ADDRESS="0x..."  # owner EOA or multisig
@@ -198,75 +163,69 @@ Steps to reach a position where the execution client can submit a signed order:
    export DERIVE_TESTNET_SUBACCOUNT_ID="12345"  # integer subaccount id
    ```
 
-EOA owners register keys through `private/set_session_key`. A multisig or contract owner must
-first fund the account, then submit the Set Session Key action from the owner contract on Sepolia
-or Ethereum. An on-chain registration is ignored when the account does not exist. Follow the
-venue's [multisig guide](https://docs.derive.xyz/authentication/contract-owned-accounts).
+EOA owner 通过 `private/set_session_key` 注册 key。多签或合约 owner 必须先给账户注资，再从
+owner 合约在 Sepolia 或以太坊上提交 Set Session Key 动作。账户不存在时，链上注册会被忽略。
+按场所的[多签指南](https://docs.derive.xyz/authentication/contract-owned-accounts)操作。
 
-### Minimum funding
+### 最小注资 {#minimum-funding}
 
-Funding must cover the venue's initial-margin requirement and pending-order reservations.
-Order acceptance also depends on the venue's price, quantity, and execution rules.
-Use the venue's margin figures to size funding for the smallest viable test:
+注资必须覆盖场所的初始保证金要求与挂单占用。订单能否被接受还取决于场所的价格、数量与执行
+规则。按场所的保证金数值来估算最小可行测试所需的注资：
 
-- **Smoke test (submit and cancel, no fills)**: fund enough to cover the margin required
-  for a passive order at the instrument's `minimum_amount`.
-- **Options**: size the deposit to cover the venue's margin requirement for the passive order.
-  `public/get_instrument` provides contract details but does not report initial-margin requirements.
+- **冒烟测试（提交并撤销，不成交）**：注资至少要覆盖按金融工具 `minimum_amount` 挂被动单
+  所需的保证金。
+- **期权**：按场所对该被动单的保证金要求估算充值额度。`public/get_instrument` 提供合约细节
+  但不报告初始保证金要求。
 
-For a fill round-trip, cover the venue's margin requirement, fees, and a bounded price move. Use current
-executable quotes, the smallest viable quantity, `max_fee_per_contract`, and a limit price or bounded
-`market_order_slippage_bps`. Close observed perpetual or option exposure with a reduce-only market or
-`IOC`/`FOK` order. Close spot exposure with an opposite-side order. Confirm no open orders or positions
-remain.
+要做成交往返，需覆盖场所的保证金要求、手续费和一段有界的价格波动。使用当前可成交报价、最小
+可行数量、`max_fee_per_contract`，以及限价或有界的 `market_order_slippage_bps`。用
+reduce-only 市价单或 `IOC`/`FOK` 订单平掉观察到的永续或期权敞口，现货敞口用反向订单平掉，
+并确认没有留下挂单或持仓。
 
-For order-size limits and taker exceptions, see [Instrument loading](#instrument-loading).
+订单规模上限与 taker 例外见[金融工具加载](#instrument-loading)。
 
-### Check account health
+### 检查账户健康 {#check-account-health}
 
-Use `private/get_subaccount` after funding to confirm `initial_margin` stays positive once the
-intended exposure's initial margin is applied. Both health fields include collateral credit
-and position mark-to-market value after the venue's risk charges:
+注资后用 `private/get_subaccount` 确认：计入目标敞口的初始保证金后，`initial_margin` 仍为
+正。两个健康字段都在场所的风险扣减之后计入抵押物授信与持仓盯市价值：
 
-| Venue field          | Meaning                              | Consequence when negative                                                 |
-| -------------------- | ------------------------------------ | ------------------------------------------------------------------------- |
-| `initial_margin`     | Signed net initial-margin health     | Venue rejects risk-increasing orders that would make this value negative. |
-| `maintenance_margin` | Signed net maintenance-margin health | Subaccount is exposed to liquidation.                                     |
+| 场所字段             | 含义                             | 为负的后果                                                                   |
+| -------------------- | -------------------------------- | ---------------------------------------------------------------------------- |
+| `initial_margin`     | 带符号的净初始保证金健康度       | 场所会拒绝会让该值变负的增加风险的订单。                                      |
+| `maintenance_margin` | 带符号的净维持保证金健康度       | 子账户面临强平风险。                                                          |
 
-The adapter's `query_account` command emits this snapshot as an `AccountState` event so the strategy layer can
-inspect current health. These net-health values exclude pending open-order reservations. A positive value
-alone does not prove that another order can be accepted. The venue's `private/order_quote` returns pre/post
-initial-margin health for a proposed order. Actual order acceptance remains authoritative. See
-[Account state](#account-state) for the mapping.
+adapter 的 `query_account` 命令把这份快照作为 `AccountState` 事件发出，策略层可据此检查当前
+健康度。这些净健康度数值不含挂单占用，为正并不能证明还能接受另一笔订单。场所的
+`private/order_quote` 会对拟定订单返回前后初始保证金健康度；实际的订单接受仍是权威。映射见
+[账户状态](#account-state)。
 
-## Mainnet onboarding
+## Mainnet 接入 {#mainnet-onboarding}
 
-Mainnet onboarding mirrors testnet against the production dashboard. Use real funds.
+主网接入与测试网步骤相同，只是换成生产控制台，并使用真实资金。
 
-1. **Sign in to the mainnet dashboard.** Open [app.derive.xyz](https://app.derive.xyz/) and connect
-   the owner's EOA or multisig wallet.
-1. **Copy the owner wallet address.** Use the EOA or multisig address as `wallet_address`. The client uses it
-   for authentication and as the signed action's owner.
-1. **Fund or pick a subaccount.** Follow Derive's
-   [deposit guide](https://docs.derive.xyz/getting-started/depositing) to deposit USDC or supported collateral
-   on Ethereum. A first deposit creates the account and subaccounts. Copy the funded subaccount's integer ID
-   as `subaccount_id`. Confirm via `private/get_subaccount` that the deposit appears in the collateral
-   balances. The adapter's `query_account` exposes modeled rows in `AccountState.info.collaterals`.
+1. **登录主网控制台。** 打开 [app.derive.xyz](https://app.derive.xyz/) 并连接 owner 的 EOA
+   或多签钱包。
+1. **复制 owner 钱包地址。** 用 EOA 或多签地址作为 `wallet_address`，客户端用它认证，它也
+   是签名动作的 owner。
+1. **注资或选择子账户。** 按 Derive 的
+   [充值指南](https://docs.derive.xyz/getting-started/depositing)在以太坊上充值 USDC 或受支持
+   的抵押物。首笔充值会创建账户与子账户。把已注资子账户的整数 ID 复制为 `subaccount_id`，
+   并通过 `private/get_subaccount` 确认充值已计入抵押物余额。adapter 的 `query_account` 会在
+   `AccountState.info.collaterals` 中暴露建模后的行。
 
-   Check `net_initial_margin` and `net_maintenance_margin` in the emitted metadata as described in
-   [Check account health](#check-account-health). Positive net health alone does not prove that an order can
-   be accepted.
-1. **Generate a mainnet session key.** Follow Derive's
-   [session-key guide](https://docs.derive.xyz/authentication/session-keys) to register a key with protocol
-   scope `trade:orderbook:all`, or narrower product scopes, restricted to the subaccount. Verify its scopes
-   and expiry through `private/session_keys`. Contract owners use the on-chain registration described in
-   [Testnet onboarding](#testnet-onboarding), on Ethereum for mainnet. Copy the raw secp256k1 private key.
-   Prefer short-lived keys for exploratory tester runs.
+   按[检查账户健康](#check-account-health)所述，检查发出元数据中的 `net_initial_margin` 与
+   `net_maintenance_margin`。净健康度为正并不能证明订单会被接受。
+1. **生成主网 session key。** 按 Derive 的
+   [session key 指南](https://docs.derive.xyz/authentication/session-keys)注册一个协议范围为
+   `trade:orderbook:all`（或更窄的产品范围）、限定到该子账户的 key，并通过
+   `private/session_keys` 核对其范围与有效期。合约 owner 使用
+   [Testnet 接入](#testnet-onboarding)描述的链上注册（主网在以太坊上）。复制原始 secp256k1
+   私钥。探索性测试运行优先用短有效期 key。
 
-   To retire a key, re-register it with a past or zero expiry. Revocation has a minimum cooldown of [5, 15]
-   minutes. It does not take effect immediately.
-1. **Set the environment variables.** Export the three mainnet values (or pass them on
-   `DeriveExecutionClientConfig`, where the config field wins):
+   要吊销一个 key，用过去或零有效期重新注册它。吊销有 [5, 15] 分钟的最小冷却期，不会立即
+   生效。
+1. **设置环境变量。** 导出三个主网值（或直接在 `DeriveExecutionClientConfig` 上传入，此时
+   配置字段优先）：
 
    ```bash
    export DERIVE_WALLET_ADDRESS="0x..."  # owner EOA or multisig
@@ -274,739 +233,663 @@ Mainnet onboarding mirrors testnet against the production dashboard. Use real fu
    export DERIVE_SUBACCOUNT_ID="12345"  # integer subaccount id
    ```
 
-### Select the example network
+### 选择示例网络 {#select-the-example-network}
 
 :::warning
-Each Rust example (`node_data_tester`, `node_exec_tester`, `node_delta_neutral`) pins the network with a
-`const DERIVE_ENVIRONMENT: DeriveEnvironment` literal near the top of the file. **Check that constant before
-every run** and edit it to switch networks. The examples do not read the network from the environment.
+每个 Rust 示例（`node_data_tester`、`node_exec_tester`、`node_delta_neutral`）都在文件开头附近
+用 `const DERIVE_ENVIRONMENT: DeriveEnvironment` 字面量固定网络。**每次运行前都要检查这个
+常量**，切换网络时要改它。示例不从环境读取网络。
 :::
 
-Production deployments select the network via `DeriveDataClientConfig::environment` /
-`DeriveExecutionClientConfig::environment`.
+生产部署通过 `DeriveDataClientConfig::environment` / `DeriveExecutionClientConfig::environment`
+选择网络。
 
-## Referral code attribution
+## 推荐码归因 {#referral-code-attribution}
 
-Every signed order, replace, and trigger order carries the hard-coded NautilusTrader referral
-code. Derive funds the referral program from its own revenue, so attribution adds no trading cost,
-needs no approval, and is not configurable. This helps us gauge real usage of the integration
-and prioritize ongoing maintenance.
+每笔签名的订单、替换与触发订单都携带硬编码的 NautilusTrader 推荐码。Derive 用自身收入为推荐
+计划出资，因此归因不增加交易成本、无需审批、也不可配置。这帮助我们了解该集成的真实用量，
+并安排后续维护的优先级。
 
-## Capabilities
+## 能力 {#capabilities}
 
-### Market data
+### 行情数据 {#market-data}
 
-| Capability                     | Supported | Notes                                                                   |
-| ------------------------------ | --------- | ----------------------------------------------------------------------- |
-| Request instrument (REST)      | ✓         | `public/get_instrument`; loads one instrument into the local cache.     |
-| Request all instruments (REST) | ✓         | Paginated `public/get_all_instruments` for each currency.               |
-| Instrument subscription        | -         | *Not supported.* Use the configured REST refresh interval.              |
-| Order book deltas (L2_MBP)     | ✓         | Channel: `orderbook.{instrument}.{group}.{depth}`.                      |
-| Order book depth (L2_MBP)      | ✓         | Same order book channel with `depth=10`.                                |
-| Order book at interval         | -         | *Not supported.* Maintain interval books from deltas locally.           |
-| Order book snapshot (REST)     | -         | *Not supported.* The venue has no book snapshot endpoint.               |
-| Historical book deltas (REST)  | -         | *Not supported.* The venue has no historical book endpoint.             |
-| Quotes (`ticker_slim`)         | ✓         | Channel: `ticker_slim.{instrument}.{interval}`.                         |
-| Quote snapshot (REST)          | ✓         | One-shot `public/get_tickers`; emits a single `QuoteTick`.              |
-| Historical quotes (REST)       | -         | *Not supported.* The venue exposes ticker snapshots only.               |
-| Trades                         | ✓         | Channel: `trades.{instrument_type}.{currency}`.                         |
-| Historical trades (REST)       | ✓         | Chronological and deduplicated; `limit` retains the newest trades.      |
-| Bars / OHLC (REST)             | ✓         | Closed minute, hour, day, and week bars stamped at bucket close.        |
-| Bars / OHLC (WS)               | -         | *Not supported.* The venue has no candle subscription channel.          |
-| Mark price stream              | ✓         | Derived from `ticker_slim`; shares the quote subscription.              |
-| Index price stream             | ✓         | Derived from `ticker_slim`; shares the quote subscription.              |
-| Funding rate stream            | ✓         | Derived from the funding rate field on perp tickers.                    |
-| Funding rate history (REST)    | ✓         | Chronological for perpetuals; `limit` retains the newest valid rows.    |
-| Instrument status              | -         | *Not supported.* The instrument definition carries `is_active`.         |
-| Instrument close               | -         | *Not supported.* The venue publishes option settlement over REST only.  |
-| Option greeks                  | ✓         | Derived from `option_pricing` on option tickers.                        |
-| Option chain                   | ✓         | Aggregated from quotes and greeks; `public/get_tickers` bootstraps ATM. |
+| 能力                         | 支持      | 备注                                                                     |
+| ---------------------------- | --------- | ------------------------------------------------------------------------ |
+| 请求金融工具（REST）         | ✓         | `public/get_instrument`；加载单个金融工具到本地缓存。                     |
+| 请求全部金融工具（REST）     | ✓         | 按币种分页调用 `public/get_all_instruments`。                             |
+| 金融工具订阅                 | -         | *不支持。*使用配置的 REST 刷新间隔。                                      |
+| 订单簿增量（L2_MBP）         | ✓         | 频道：`orderbook.{instrument}.{group}.{depth}`。                          |
+| 订单簿深度（L2_MBP）         | ✓         | 同一订单簿频道，`depth=10`。                                              |
+| 定时订单簿                   | -         | *不支持。*在本地由增量维护定时簿。                                        |
+| 订单簿快照（REST）           | -         | *不支持。*场所没有簿快照端点。                                            |
+| 历史簿增量（REST）           | -         | *不支持。*场所没有历史簿端点。                                            |
+| 报价（`ticker_slim`）        | ✓         | 频道：`ticker_slim.{instrument}.{interval}`。                             |
+| 报价快照（REST）             | ✓         | 一次性 `public/get_tickers`；发出单个 `QuoteTick`。                       |
+| 历史报价（REST）             | -         | *不支持。*场所只提供 ticker 快照。                                        |
+| 成交                         | ✓         | 频道：`trades.{instrument_type}.{currency}`。                             |
+| 历史成交（REST）             | ✓         | 按时间顺序并去重；`limit` 保留最新的成交。                                |
+| K 线 / OHLC（REST）          | ✓         | 已收盘的分钟、小时、日、周 K 线，时间戳为桶收盘时刻。                     |
+| K 线 / OHLC（WS）            | -         | *不支持。*场所没有 candle 订阅频道。                                      |
+| 标记价流                     | ✓         | 由 `ticker_slim` 派生；与报价共用订阅。                                   |
+| 指数价流                     | ✓         | 由 `ticker_slim` 派生；与报价共用订阅。                                   |
+| 资金费率流                   | ✓         | 由永续 ticker 的资金费率字段派生。                                        |
+| 资金费率历史（REST）         | ✓         | 按永续的时间顺序；`limit` 保留最新的有效行。                              |
+| 金融工具状态                 | -         | *不支持。*金融工具定义携带 `is_active`。                                  |
+| 金融工具收市                 | -         | *不支持。*场所仅通过 REST 发布期权结算。                                  |
+| 期权 Greeks                  | ✓         | 由期权 ticker 的 `option_pricing` 派生。                                  |
+| 期权链                       | ✓         | 由报价与 Greeks 聚合；`public/get_tickers` 用于 ATM 引导。                |
 
-#### Quotes
+#### 报价 {#quotes}
 
-WebSocket tickers report complete snapshots for perpetuals, options, and spot. If either side has
-zero price or size, the adapter clears that instrument's internal quote state and emits no
-`QuoteTick` (logged at DEBUG). Quotes resume when a snapshot supplies both sides with nonzero
-prices and sizes.
+WebSocket ticker 为永续、期权与现货报告完整快照。任一侧价格或数量为零时，adapter 清空该
+金融工具的内部报价状态，不发 `QuoteTick`（以 DEBUG 记录）。快照两侧都给出非零价格与数量时
+恢复报价。
 
-The last published quote remains in the Nautilus cache with its original timestamps. Suppressing
-quote output does not withdraw that cached quote. Other subscribed ticker fields, including mark
-and index prices, funding rates, and option greeks, continue to emit independently.
+最后发出的报价仍以原时间戳留在 Nautilus 缓存中。抑制报价输出不会撤回缓存中的那份报价。其他
+已订阅的 ticker 字段——包括标记价与指数价、资金费率与期权 Greeks——继续独立发出。
 
-#### Instrument loading
+#### 金融工具加载 {#instrument-loading}
 
-`request_instrument` calls `public/get_instrument` for the requested `InstrumentId` and
-caches the returned definition before emitting the response. The cached instrument carries
-the precision and increment fields used by later quote, trade, book, and bar parsing.
+`request_instrument` 对所请求的 `InstrumentId` 调用 `public/get_instrument`，在发出响应前先
+缓存返回的定义。缓存的金融工具携带后续报价、成交、簿与 K 线解析所用的精度与增量字段。
 
-The quantity fields map as follows for perpetuals, options, and spot:
+永续、期权与现货的数量字段映射如下：
 
-| Derive field     | Nautilus field           | Handling                                                |
-| ---------------- | ------------------------ | ------------------------------------------------------- |
-| `minimum_amount` | `info["minimum_amount"]` | Retained as venue metadata; `min_quantity` stays unset. |
-| `amount_step`    | `size_increment`         | Order quantity increment.                               |
-| `maximum_amount` | `max_quantity`           | Maximum order quantity.                                 |
+| Derive 字段        | Nautilus 字段              | 处理方式                                                  |
+| ------------------ | -------------------------- | --------------------------------------------------------- |
+| `minimum_amount`   | `info["minimum_amount"]`   | 作为场所元数据保留；`min_quantity` 保持未设置。             |
+| `amount_step`      | `size_increment`           | 订单数量增量。                                              |
+| `maximum_amount`   | `max_quantity`             | 最大订单数量。                                              |
 
 :::important
-Derive can fill taker orders below `minimum_amount`, while orders that would rest on the book
-can be rejected with `11012: Invalid amount`. **Derive decides whether a sub-minimum order is valid.**
+Derive 可以让 taker 订单以低于 `minimum_amount` 的数量成交，而会挂在簿上的订单可能被
+`11012: Invalid amount` 拒绝。**低于最小数量的订单是否有效由 Derive 判定。**
 :::
 
-Instrument loading treats venue error `12001` as an empty result for the affected product type. Thus, a
-missing perp, option, or spot listing for a currency does not block its other products. Rows that fail to
-parse into domain instruments are logged and skipped while valid rows continue to load. Malformed response
-fields fail that currency's fetch. A fetch error during initial loading also fails the connection.
+金融工具加载把场所错误码 `12001` 视为该产品类型的空结果，因此某个币种缺少永续、期权或现货
+挂牌不会阻塞它的其他产品。无法解析为领域金融工具的行会记日志并跳过，有效的行继续加载。响应
+字段畸形会让该币种的拉取整体失败。初始加载期间的拉取错误也会导致连接失败。
 
-#### Historical data
+#### 历史数据 {#historical-data}
 
-| Data          | REST endpoint                       |
-| ------------- | ----------------------------------- |
-| Trades        | `public/get_trade_history`          |
-| Bars          | `public/get_tradingview_chart_data` |
-| Funding rates | `public/get_funding_rate_history`   |
+| 数据       | REST 端点                             |
+| ---------- | ------------------------------------- |
+| 成交       | `public/get_trade_history`            |
+| K 线       | `public/get_tradingview_chart_data`   |
+| 资金费率   | `public/get_funding_rate_history`     |
 
-##### Trade direction and deduplication
+##### 成交方向与去重 {#trade-direction-and-deduplication}
 
-Public REST history and WebSocket trades can return maker and taker rows under the same
-`trade_id`. Each row's `direction` is that participant's side. The adapter uses the taker's
-side as the aggressor direction and inverts a maker row's direction, independent of row order.
-Live v3 maker WebSocket row mapping remains unverified.
-For rows with an absent or unrecognized `liquidity_role`, the adapter treats `direction` as
-the taker's side.
+公共 REST 历史与 WebSocket 成交可能在同一 `trade_id` 下返回 maker 行与 taker 行，每行的
+`direction` 是该参与方的方向。adapter 取 taker 的方向作为主动方方向，并把 maker 行的方向
+取反，与行的先后无关。实时 v3 maker WebSocket 行的映射仍未验证。`liquidity_role` 缺失或
+无法识别时，adapter 把 `direction` 当作 taker 的方向。
 
-Historical trade requests emit one `TradeTick` per trade ID within the request. The live feed suppresses
-paired rows and reconnect replays while their IDs remain in a cache of the latest 4,096 trades. Automatic
-reconnect retains this cache. Explicit disconnect or reset clears it.
+历史成交请求在单次请求内按成交 ID 各发出一个 `TradeTick`。实时馈送会在 ID 仍留在最近 4,096
+笔成交缓存内时抑制成对的行与重连回放。自动重连保留这份缓存；显式断开或重置会清空它。
 
-##### Bar requirements and time bounds
+##### K 线要求与时间边界 {#bar-requirements-and-time-bounds}
 
-- **Aggregation and price**: bars require `EXTERNAL` aggregation and `PriceType::Last`, since
-  Derive candles are trade-based.
-- **Periods**: the venue supports 1, 5, 15, and 30 minute, 1, 4, and 8 hour, 1 day, and 1 week
-  steps. Any other bar specification is rejected before the request goes out.
-- **Time bounds**: the bar `end` bound selects buckets by their start time at the venue. Responses
-  omit any bucket whose close is after the request time, including the still-forming bucket
-  returned by the venue.
+- **聚合与价格**：K 线要求 `EXTERNAL` 聚合与 `PriceType::Last`，因为 Derive 的 candle 基于
+  成交。
+- **周期**：场所支持 1、5、15、30 分钟，1、4、8 小时，1 天与 1 周的步长。其他 K 线规格在
+  请求发出前就被拒绝。
+- **时间边界**：K 线的 `end` 边界在场所侧按桶的起始时间筛选。响应会省略收盘时刻晚于请求时刻
+  的桶，包括场所返回的尚未收盘的那个桶。
 
-#### Order book feeds
+#### 订单簿馈送 {#order-book-feeds}
 
-Derive exposes book deltas and depth snapshots through the same
-`orderbook.{instrument}.{group}.{depth}` channel family. `subscribe_book_deltas` publishes
-snapshot deltas as `OrderBookDeltas`, while `subscribe_book_depth` fixes `depth=10` and
-publishes `OrderBookDepth` snapshots.
+Derive 通过同一个 `orderbook.{instrument}.{group}.{depth}` 频道家族提供簿增量与深度快照。
+`subscribe_book_deltas` 把快照 delta 作为 `OrderBookDeltas` 发出，`subscribe_book_depth` 固定
+`depth=10` 并发出 `OrderBookDepth` 快照。
 
-Each grouped [book update](https://docs.derive.xyz/subscriptions) is a full snapshot.
-Delta and depth consumers with matching channel arguments share a subscription and recovery state.
-The channel stays active until its last consumer unsubscribes.
+每个分组的[簿更新](https://docs.derive.xyz/subscriptions)都是完整快照。频道参数一致的 delta
+与 depth 消费者共享订阅与恢复状态，频道保持活跃直到最后一个消费者退订。
 
-The feed has no change ID, so the adapter uses its millisecond timestamp as the output sequence:
+该馈送没有变更 ID，因此 adapter 用其毫秒时间戳作为输出序列：
 
-- The adapter accepts only timestamps strictly newer than the last accepted timestamp, including across reconnects.
-- An advancing empty snapshot clears the book and counts as an update.
+- adapter 只接受严格新于最后接受时间戳的时间戳，跨重连同样如此。
+- 递进的空快照会清空簿，并计为一次更新。
 
-Derive documents no timestamp ordering guarantee. `publish_id` can restart after resubscription.
+Derive 文档没有承诺时间戳有序。`publish_id` 在重新订阅后可能重新开始。
 
-### Execution
+### 执行 {#execution}
 
-Derive uses the configured session key for authenticated execution:
+Derive 使用配置的 session key 做认证执行：
 
-- Order submission and replacement requests carry locally generated EIP-712 signatures.
-- The live execution client sends order writes over the authenticated WebSocket and receives
-  account, order, trade, and balance updates through private channels.
-- Report generation, account refreshes, and instrument lookups use REST.
+- 订单提交与替换请求携带本地生成的 EIP-712 签名。
+- 实时执行客户端通过认证 WebSocket 发送订单写操作，并通过私有频道接收账户、订单、成交与
+  余额更新。
+- 报告生成、账户刷新与金融工具查询使用 REST。
 
-#### Fills and settlement
+#### 成交与结算 {#fills-and-settlement}
 
-The adapter ingests live and historical fills using `trade_id` and `order_id` as execution identities.
-Quantity, price, and fee decode as `Decimal`. Commission rounds to USDC's Nautilus precision.
+adapter 以 `trade_id` 与 `order_id` 作为执行身份吸收实时与历史成交。数量、价格与手续费按
+`Decimal` 解码。手续费按 USDC 的 Nautilus 精度取整。
 
-Order status and private fill reports use the optional order label as `client_order_id` when it is a valid
-Nautilus identifier. The adapter omits unrepresentable labels with a warning and retains venue identities and
-financial values. Reconciliation can resolve these fills by venue order ID.
+订单状态与私有成交报告在订单标签是有效的 Nautilus 标识时把它用作 `client_order_id`。无法
+表示的标签会被 adapter 连同 warning 一起省略，保留场所身份与金融数值。对账可以按场所订单
+ID 解析这些成交。
 
-Null, empty, or missing required financial values fail decoding. Private trade arrays skip malformed rows with
-a warning. Invalid financial wire values reject a public WebSocket frame or public REST page. Unrepresentable
-required trade or order IDs fail per-row parsing. The adapter warns and continues with the remaining rows.
+必需金融数值为 null、空或缺失时解码失败。私有成交数组跳过畸形行并记 warning。非法的金融
+wire 值会让整条公共 WebSocket 帧或整个公共 REST 页被拒。无法表示的必需成交或订单 ID 会让
+该行解析失败，adapter 记 warning 并继续处理其余行。
 
-Settlement metadata does not gate a fill. `batch_status` and the Ethereum L1 batch `tx_hash`
-can be null when execution first arrives. The adapter also accepts absent `op_uuid` metadata,
-although the private-trade schema requires it. Published batch stages and their matching
-`Error` states describe settlement progress or failure of a batch stage. The adapter does not
-reverse or void a fill when a batch stage reports an error.
-See the venue's [API changelog](https://docs.derive.xyz/changelog).
+结算元数据不会阻止成交生效。执行首次到达时，`batch_status` 与以太坊 L1 batch 的 `tx_hash`
+可能为 null。私有成交模式要求 `op_uuid`，adapter 也接受它缺失。已发布的 batch 阶段及其
+对应的 `Error` 状态描述的是某个 batch 阶段的结算进展或失败。batch 阶段报错时，adapter
+不会冲销或作废成交。参见场所的 [API changelog](https://docs.derive.xyz/changelog)。
 
-Private self-trade ID uniqueness and whether `trade_fee` includes a nonzero external order
-`extra_fee` remain unverified. Private fills deduplicate by `trade_id`, so complete self-trade
-accounting depends on the venue assigning distinct IDs to both legs. The adapter does not submit
-`extra_fee`.
+私有自成交 ID 的唯一性，以及 `trade_fee` 是否包含非零的外部订单 `extra_fee`，都未经验证。
+私有成交按 `trade_id` 去重，因此完整的自成交核算依赖场所给两条腿分配不同的 ID。adapter 不
+提交 `extra_fee`。
 
-Trade channels have no settlement-status filter: the adapter subscribes to
-`trades.{instrument_type}.{currency}` and `{subaccount_id}.trades`. Fill-report queries skip IDs
-already in the live emitted-trade cache and deduplicate repeated IDs within a page and across
-pages of the same query. Querying a trade does not record it as emitted. Core reconciliation uses
-persisted order trade IDs to reject repeated fill application after replay or restart.
+成交频道没有结算状态过滤：adapter 订阅 `trades.{instrument_type}.{currency}` 与
+`{subaccount_id}.trades`。成交报告查询会跳过实时已发出成交缓存中的 ID，并在同一查询的页内
+与页间对重复 ID 去重。查询某笔成交不会把它记为已发出。核心对账使用持久化的订单成交 ID，
+以拒绝回放或重启后重复应用成交。
 
-Live dispatch constructs the fill report and commission before changing order state. A commission conversion
-failure leaves the trade unprocessed so a replay can retry it. The adapter records the trade ID as emitted
-only after delivery succeeds. Failed delivery retains the native trade record.
+实时分派在改变订单状态之前先构造成交报告与手续费。手续费转换失败会让该成交保持未处理，以便
+回放重试。只有在投递成功后，adapter 才把该成交 ID 记为已发出。投递失败会保留原生成交记录。
 
-For a tracked order, a native fill can establish its first venue binding before an acknowledgement arrives.
-The adapter emits `OrderAccepted` before `OrderFilled`. A fill whose side conflicts with the tracked order
-remains deferred, including after that order reaches a terminal state.
+对被跟踪的订单，原生成交可能先于确认到达，从而建立其首个场所绑定。adapter 会先发
+`OrderAccepted` 再发 `OrderFilled`。方向与被跟踪订单冲突的成交会一直保持待定，即使该订单
+之后进入终态。
 
-Private trade updates can arrive before REST history or position reads reflect them.
-Settlement progress does not trigger extra history polling in the adapter.
+私有成交更新可能早于 REST 历史或持仓读取反映的时间到达。结算进展不会在 adapter 中触发额外
+的历史轮询。
 
 :::note
-`DeriveHttpClient` also exposes HTTP order-entry methods for tooling and tests.
+`DeriveHttpClient` 也暴露用于工具与测试的 HTTP 下单方法。
 :::
 
-Perpetuals, options, and ERC-20 spot pairs all use the Derive Trade module. Spot has no
-separate signing path, and reconciliation treats spot instruments like other instrument
-classes except for the reduce-only guard described below.
+永续、期权与 ERC-20 现货对都使用 Derive Trade 模块。现货没有单独的签名路径，除下文的
+reduce-only 保护外，对账把现货金融工具与其他金融工具类别同等对待。
 
-The adapter supports ordinary `private/order` requests: `LIMIT` and `MARKET` orders with
-`GTC`, `IOC`, or `FOK` time-in-force values. It also supports Derive trigger orders for the
-Nautilus-native stop and if-touched order types listed below. Unsupported Nautilus order
-types are denied locally with `OrderDenied` before submission, so they cannot fill at the venue.
+adapter 支持常规的 `private/order` 请求：`GTC`、`IOC` 或 `FOK` 有效期的 `LIMIT` 与
+`MARKET` 订单；也支持把 Derive 触发订单用于下述 Nautilus 原生的止损与 if-touched 订单类型。
+不支持的 Nautilus 订单类型会在提交前于本地以 `OrderDenied` 拒绝，因此不可能在场所成交。
 
 :::important
-**Market orders require a cached quote before submission.** Without one, the adapter emits
-`OrderDenied` and never signs.
+**市价单提交前必须有缓存的报价。**没有报价时 adapter 发出 `OrderDenied`，绝不做签名。
 :::
 
-After the async submit task resolves the instrument, it refreshes the current ticker snapshot
-and derives the signed slippage-bound `limit_price` from that refreshed quote.
+异步提交任务解析出金融工具后，会刷新当前 ticker 快照，并从刷新后的报价推导出带滑点边界的
+签名 `limit_price`。
 
-#### Replacing regular orders
+#### 替换普通订单 {#replacing-regular-orders}
 
-Derive implements regular order modification as cancel-replace. The adapter keeps one client order
-identity across the native venue order IDs and emits `OrderUpdated` before routing child fills.
-Commands use the current venue binding while delayed fills retain their original venue order IDs.
+Derive 把普通订单的修改实现为撤销-替换（cancel-replace）。adapter 在多个原生场所订单 ID
+之间保持同一个 client order 身份，并在路由子成交之前发出 `OrderUpdated`。命令使用当前的
+场所绑定，而延迟到达的成交保留其原本的场所订单 ID。
 
-Replacement quantity is the requested gross quantity less all proven prior fills. For example,
-replacing an order that has filled `0.3` with a gross target of `1.5` signs a child amount of `1.2`.
-The request also sets `expected_filled_amount` to the observed current-leg fill ceiling. Derive's
-[replace guard](https://docs.derive.xyz/trading/order-types#replace-atomic-cancel-+-replace) rejects
-the replace when the target's filled amount moves past that value. Logical
-order reports include cumulative fills, a quantity-weighted average when all required native
-averages are available, and the earliest native creation timestamp as the acceptance time.
+替换数量是请求的毛数量减去全部已证实的先前成交。例如，替换一笔已成交 `0.3`、毛目标为 `1.5`
+的订单，子单签名数量为 `1.2`。请求还会把 `expected_filled_amount` 设为观察到的当前腿成交
+上限。若目标的已成交量超过该值，Derive 的
+[replace 保护](https://docs.derive.xyz/trading/order-types#replace-atomic-cancel-+-replace)
+会拒绝该 replace。逻辑订单报告包含累计成交、全部所需原生平均值齐备时的数量加权均价，以及
+最早的原生创建时间戳作为接受时刻。
 
-#### Startup reconciliation
+#### 启动对账 {#startup-reconciliation}
 
-Before private streaming starts, the execution client publishes account state. It loads instrument definitions
-required by the native portfolio and cached active orders. It waits for the engine cache to observe those
-definitions before private streaming starts. It restores owned active order context from cached order events,
-including known venue IDs and processed trade IDs, then verifies active orders against native open orders and
-history for their instruments. Historical metadata gaps do not prevent this binding check.
+私有流开始之前，执行客户端先发布账户状态；加载原生组合与缓存活动订单所需的金融工具定义；
+等待引擎缓存观察到这些定义后才开始私有流；从缓存的订单事件恢复所持有的活动订单上下文
+（包括已知的场所 ID 与已处理的成交 ID）；再针对这些金融工具的原生挂单与历史校验活动订单。
+历史元数据的缺口不会妨碍这一绑定检查。
 
-After private subscription confirmation, it refreshes account state and required instrument definitions again
-before processing stream updates. This closes the interval between the initial portfolio snapshot and
-subscription confirmation.
+私有订阅确认后，处理流更新之前，它会再次刷新账户状态与所需金融工具定义，以闭合初始组合
+快照与订阅确认之间的时间窗。
 
-When `private/get_order` returns `11006` for a known venue ID, the adapter searches paginated
-`private/get_order_history` for that exact ID. It does not infer an unproved replacement binding
-from an order label. An unresolved successor blocks startup or report generation. It also rejects
-individual cancel and modify commands and returns an error for batch cancel and `cancel_all_orders`
-before transmission. Ambiguous state-changing requests remain unreplayed.
+`private/get_order` 对已知场所 ID 返回 `11006` 时，adapter 会在分页的
+`private/get_order_history` 中查找该确切 ID，不会从订单标签推断未经证实的替换绑定。未决的
+后继订单会阻塞启动或报告生成；也会拒绝单笔撤销与修改命令，并在发送前让批量撤销与
+`cancel_all_orders` 返回错误。状态变更类的歧义请求保持不重放。
 
-While the process retains a replacement's signing nonce and target, a native REST row can resolve
-it using the same parent-ID and nonce checks as a WebSocket row. Replacement history reads start
-one hour before the retained nonce timestamp, allowing for the venue's accepted future nonce window.
-An absent successor does not prove that the replacement failed. After a process restart, cached
-`PendingUpdate` events do not retain enough evidence to resolve an ambiguous replacement automatically.
+进程仍保留替换所用的 nonce 与目标时，原生 REST 行可以用与 WebSocket 行相同的父 ID 与 nonce
+检查来解析它。替换历史读取从保留 nonce 时间戳前一小时开始，以容纳场所接受的未来 nonce
+窗口。后继订单缺失并不能证明替换失败。进程重启后，缓存的 `PendingUpdate` 事件不含足够
+证据来自动解析有歧义的替换。
 
-If an unresolved replacement prevents startup:
+若未决的替换阻止了启动：
 
-1. Stop the trading node and preserve its cache and order event history.
-1. Inspect the subaccount's native orders, trades, and positions through the venue's account tools. Match
-   owned orders by their native IDs and replacement ancestry. A matching label alone does not establish
-   ownership of a successor.
-1. Resolve the outstanding venue orders and reconcile the cached order state against confirmed native records
-   before resuming trading. The adapter provides no automatic cache repair for this case. Clearing
-   `PendingUpdate` alone does not establish the replacement's outcome.
+1. 停止交易节点，保留其缓存与订单事件历史。
+1. 通过场所的账户工具检查该子账户的原生订单、成交与持仓，按原生 ID 与替换谱系匹配自有订单。
+   标签匹配本身不能确立对后继订单的所有权。
+1. 处理掉未决的场所订单，并在恢复交易前把缓存订单状态与已确认的原生记录对账。adapter 不为
+   这种情况提供自动缓存修复。只清掉 `PendingUpdate` 不能确立替换的结果。
 
-Mass status retains native replacement legs and fills. For an uncached replacement chain, startup
-reconciliation restores the proven live successor with cumulative fills and native venue order IDs. Recovered
-replacement successors support queries, modification, and cancellation. Reconnect snapshots leave uncached
-replacement reports native. They do not reconstruct these chains.
+Mass status 保留原生替换腿与成交。对未缓存的替换链，启动对账会恢复已证实的实时后继订单，
+连同累计成交与原生场所订单 ID。恢复出的替换后继订单支持查询、修改与撤销。重连快照让未缓存的
+替换报告保持原生形态，不重建这些链。
 
-When an uncached replacement chain starts before a bounded lookback, mass status extends the full history
-window to its first leg.
-Mass status fetches fill companions absent from history and open orders by exact venue ID, including uncached
-orders, and retains them outside the lookback window.
+若未缓存的替换链开始在有界回看起点之前，mass status 会把完整历史窗口延伸到其首腿。mass
+status 会按确切场所 ID 拉取历史与挂单中缺失的成交伴生记录（包括未缓存订单），并把它们保留在
+回看窗口之外。
 
-Cached legs retain identity and replacement checks. Uncached orders and fills with reused labels outside one
-replacement chain omit client order IDs. This check uses history and open-order ancestry. Active open orders
-keep their IDs.
+已缓存的腿保留身份与替换检查。历史与挂单谱系显示标签在一条替换链之外被复用的未缓存订单与
+成交会省略 client order ID。该检查使用历史与挂单的谱系。活动挂单保留其 ID。
 
-**Recovery limits**:
+**恢复限制**：
 
-- Startup validates all labeled uncached replacement chains on the subaccount before engine filters apply,
-  including other bots' chains. Invalid chains can prevent startup. Long chains extend history reads and can
-  exceed the reconciliation timeout.
-- Do not let another process replace orders adopted by this node. Startup registers all adopted open orders
-  for tracking. An external replacement without a local pending modify leaves the binding unresolved. It
-  blocks reports and commands until the native state is reconciled and the node restarts.
-- Bounded snapshots mark coverage incomplete if history fails or an uncached companion remains missing
-  after fallback. Failed history skips companion lookups.
-- Startup recovery of an uncached replacement chain requires complete order, fill, and position sources, with
-  native fills matching each previous leg and the cumulative filled quantity. Otherwise the request fails.
-- Contradictory identities or invalid replacement ancestry fail requests, including bounded snapshots.
-  With history available, unavailable cached companions or lookup errors other than `11006` also fail requests.
+- 启动会校验子账户上全部带标签的未缓存替换链（在引擎过滤器生效之前），包括其他机器人的
+  链。无效的链可能阻止启动。长链会拉长历史读取，可能超出对账超时。
+- 不要让其他进程替换本节点已收养的订单。启动会为跟踪登记所有已收养的挂单。没有本地待处理
+  修改的外部替换会让绑定保持未决，阻塞报告与命令，直到原生状态对账完毕且节点重启。
+- 有界快照在历史失败、或回退后仍缺少未缓存伴生记录时，把覆盖范围标记为不完整。历史失败会
+  跳过伴生查找。
+- 启动恢复未缓存的替换链需要完整的订单、成交与持仓来源，且原生成交须与每条前腿及累计成交
+  数量相符，否则请求失败。
+- 身份矛盾或替换谱系非法会使请求失败，包括有界快照。历史可用时，缓存伴生记录不可用、或
+  除 `11006` 以外的查找错误同样会使请求失败。
 
-Open-only requests return active orders. Requests for known replaced legs return the current logical order.
-Single-order and bulk queries return native reports for uncached replacement chains. Startup reconciliation
-restores the chain.
+仅挂单的请求返回活动订单。对已知被替换腿的请求返回当前逻辑订单。单笔与批量查询对未缓存的
+替换链返回原生报告，启动对账会恢复该链。
 
-Unbounded reconnect snapshots fail if a source fails, records are lost, or a fill has no matching
-order report. Retained historical rows with inferred precision do not fail these snapshots. Bounded
-snapshots retain valid reports and mark metadata gaps or lost records as incomplete coverage. If the
-venue changes a private history's record or page count during pagination, the adapter discards the scan and restarts it
-at most twice. Further count changes fail the request.
+无界重连快照在某个来源失败、记录丢失、或成交没有匹配的订单报告时失败。带推断精度的保留历史
+行不会让快照失败。有界快照保留有效的报告，把元数据缺口或丢失记录标记为覆盖不完整。若场所
+在分页期间改变私有历史的记录数或页数，adapter 丢弃本次扫描并最多重启两次；再次出现数量变化
+则请求失败。
 
-#### Margin model selection
+#### 保证金模型选择 {#margin-model-selection}
 
-Set `DeriveExecutionClientConfig.subaccount_id` to an existing Standard Margin (`SM`) or Portfolio Margin
-(`PM2`) subaccount. Each subaccount is bound to the manager chosen at creation and its risk universe. The
-adapter reads those identities from `private/get_subaccount`. The same account query, order, position-report,
-and reconnect paths serve both models. Configure data-client currencies for the products supported by that
-manager.
+把 `DeriveExecutionClientConfig.subaccount_id` 设为现有的 Standard Margin（`SM`）或 Portfolio
+Margin（`PM2`）子账户。每个子账户绑定其创建时选定的 manager 与风险 universe，adapter 从
+`private/get_subaccount` 读取这些标识。同一套账户查询、订单、持仓报告与重连路径服务于两种
+模型。按该 manager 支持的产品配置数据客户端的币种。
 
-Create or fund subaccounts through the venue's account tools before connecting. The adapter does
-not change their margin model or reproduce the venue's portfolio risk engine. See Derive's
-[managers and risk universes](https://docs.derive.xyz/trading/managers-and-risk-universes)
-for supported collateral and instruments.
+连接前先通过场所的账户工具创建或注资子账户。adapter 不改变它们的保证金模型，也不复刻场所的
+组合风险引擎。受支持的抵押物与金融工具见 Derive 的
+[manager 与风险 universe](https://docs.derive.xyz/trading/managers-and-risk-universes)。
 
-The default native risk engine checks per-instrument initial margin against free balance in the
-required currency. It does not use Derive's PM2 net-health metadata for order admission or portfolio
-sizing. Positive venue PM2 health therefore does not establish native admission with collateral in
-another currency. Live behavior with cross-currency collateral and nonzero maintenance-margin
-credits (`mm_credits`) remains unverified.
+默认的原生风险引擎按金融工具用所需货币对照可用余额检查初始保证金，不使用 Derive 的 PM2
+净健康度元数据做订单准入或组合规模计算。因此场所 PM2 健康度为正，并不能确立用另一种货币
+的抵押物可做原生准入。跨货币抵押物与非零维持保证金授信（`mm_credits`）下的实时行为仍未
+验证。
 
-#### Account state
+#### 账户状态 {#account-state}
 
-Derive holds margin at the subaccount level. `AccountState` separates collateral balances,
-margin requirements, and net account health.
+Derive 在子账户层面持有保证金。`AccountState` 把抵押物余额、保证金要求与净账户健康度分
+开设：
 
-##### Collateral balances
+##### 抵押物余额 {#collateral-balances}
 
-- `total` is the collateral `amount` (for example USDC or ETH), rounded to the registered currency precision.
-- `locked` is zero. The adapter keeps pending vault-deposit holds in metadata.
-- `free` equals the rounded `total`.
-- `AccountState.info.collaterals` preserves a subset of each collateral row, with exact decimal strings.
-- `collaterals[].initial_margin` is USD credit contributed by that collateral, not locked funds.
+- `total` 是抵押物 `amount`（例如 USDC 或 ETH），按注册货币的精度取整。
+- `locked` 为零。待处理的 vault 存款冻结由 adapter 保留在元数据中。
+- `free` 等于取整后的 `total`。
+- `AccountState.info.collaterals` 保留每条抵押物行的子集，以精确小数字符串表示。
+- `collaterals[].initial_margin` 是该抵押物贡献的美元授信，不是锁定资金。
 
-##### Margin requirements
+##### 保证金要求 {#margin-requirements}
 
-The adapter emits one account-wide `MarginBalance`:
+adapter 发出一个账户级的 `MarginBalance`：
 
-| Nautilus field | Derived USD requirement                                           |
-| -------------- | ----------------------------------------------------------------- |
-| `initial`      | `positions_value - positions_initial_margin - open_orders_margin` |
-| `maintenance`  | `positions_value - positions_maintenance_margin`                  |
+| Nautilus 字段   | 派生的美元需求                                                        |
+| --------------- | --------------------------------------------------------------------- |
+| `initial`       | `positions_value - positions_initial_margin - open_orders_margin`     |
+| `maintenance`   | `positions_value - positions_maintenance_margin`                      |
 
-The source `positions_*_margin` fields are signed health contributions that include position
-mark-to-market value. Subtracting them from `positions_value` extracts the corresponding risk
-requirement. `open_orders_margin` is a signed deduction for pending order reservations, so it
-increases the extracted initial requirement. The adapter uses subaccount aggregates, which
-retain venue portfolio offsets, and emits no per-instrument margin balances.
+来源的 `positions_*_margin` 字段是带符号的健康度贡献，已含持仓盯市价值；从 `positions_value`
+中减去它们即得到对应的风险需求。`open_orders_margin` 是挂单占用的带符号扣减，因此会增大
+提取出的初始需求。adapter 使用子账户聚合值（保留场所的组合抵消），不发出按金融工具的保证金
+余额。
 
-The emitted requirements round to native USD precision (two decimal places, with ties rounded to even). The
-subaccount's `currency` array does not determine their denomination. Modeled source values remain in
-`AccountState.info`. The adapter does not calculate collateral haircuts or apply another adjustment for
-`mm_credits`.
+发出的需求按原生 USD 精度取整（两位小数，逢半向偶数取整）。子账户的 `currency` 数组不决定
+其计价单位。建模的来源值保留在 `AccountState.info` 中。adapter 不计算抵押物折扣，也不对
+`mm_credits` 另做调整。
 
 :::warning
-`net_initial_margin` and `net_maintenance_margin` in `AccountState.info` report current net health, including
-position mark-to-market value. They exclude pending open-order reservations. Use the venue's order quote for
-pre/post initial-margin health. Actual order acceptance determines whether an additional order can execute.
+`AccountState.info` 中的 `net_initial_margin` 与 `net_maintenance_margin` 报告当前净健康度
+（含持仓盯市价值），不含挂单占用。前后初始保证金健康度要用场所的订单报价查询。额外订单能否
+执行，以实际的订单接受结果为准。
 :::
 
-##### Account metadata
+##### 账户元数据 {#account-metadata}
 
-`AccountState.info` carries account identities, signed net health, and exact risk values:
+`AccountState.info` 携带账户标识、带符号的净健康度与精确风险值：
 
-- `net_initial_margin` and `net_maintenance_margin` carry net health.
-- `positions_value` carries the aggregate position mark-to-market value.
-- `positions_initial_margin` and `positions_maintenance_margin` carry signed position-health contributions.
-- `open_orders_margin` carries the signed initial-health deduction for pending order reservations.
-- `margin_type` and `manager_id` identify the margin model. `risk_universe_id` identifies its risk universe.
-- `currency` preserves the venue's currency array.
-- `collaterals` preserves a subset of each collateral row, with exact decimal strings.
-- `mm_credits` carries maintenance-margin credits from risk-universe loss socialization.
-- `projected_margin_change` preserves the projected change in `net_maintenance_margin` one minute
-  after the next option expiry.
-- `vault_deposit_holds` preserves pending reservations, including native amounts and target vault IDs.
-- `is_under_liquidation` carries liquidation status.
+- `net_initial_margin` 与 `net_maintenance_margin` 是净健康度。
+- `positions_value` 是持仓盯市总值。
+- `positions_initial_margin` 与 `positions_maintenance_margin` 是带符号的持仓健康度贡献。
+- `open_orders_margin` 是挂单占用对初始健康度的带符号扣减。
+- `margin_type` 与 `manager_id` 标识保证金模型；`risk_universe_id` 标识其风险 universe。
+- `currency` 保留场所的货币数组。
+- `collaterals` 保留每条抵押物行的子集，以精确小数字符串表示。
+- `mm_credits` 是风险 universe 损失社会化带来的维持保证金授信。
+- `projected_margin_change` 保留下一次期权到期一分钟后 `net_maintenance_margin` 的预计变化。
+- `vault_deposit_holds` 保留待处理的冻结，包括原生数量与目标 vault ID。
+- `is_under_liquidation` 是强平状态。
 
-Modeled decimals are JSON strings, exact within `Decimal` range and its maximum scale of 28. Source values
-beyond that scale round during decoding. Native balances can also round amounts smaller than their currency's
-precision to zero. Use the collateral metadata when that precision matters. The venue does not specify whether
-pending vault holds are included in collateral amounts, so the adapter neither subtracts them from nor adds
-them to balances.
+建模的小数以 JSON 字符串表示，在 `Decimal` 范围与其 28 位最大标度内精确；超出该标度的来源
+值在解码时取整。原生余额也会把小于其货币精度的数量取整为零。在意这种精度时使用抵押物
+元数据。场所没有说明待处理的 vault 冻结是否计入抵押物数量，因此 adapter 既不从中扣除，也
+不额外加上。
 
-A snapshot marked `failed_to_fetch` or missing required fields emits no `AccountState`, fails initial
-connection, and skips post-reconnect mass status. Invalid nested rows, including positions outside native
-`Quantity` precision or range, fail the whole account snapshot. Position-report requests additionally require
-amounts to fit the cached instrument's size precision. A position conversion failure rejects the whole mass
-status, including its order and fill reports. This preserves cached positions instead of treating a missing
-position report as flat.
+快照被标记为 `failed_to_fetch` 或缺少必需字段时，不发 `AccountState`、初始连接失败，并跳过
+重连后的 mass status。畸形的嵌套行——包括超出原生 `Quantity` 精度或范围的持仓——会让整个
+账户快照失败。持仓报告请求还要求数量适配缓存金融工具的数量精度。单个持仓转换失败会拒掉整个
+mass status，包括其中的订单与成交报告，以保留缓存持仓，避免把缺失的持仓报告当成平仓。
 
-Position reports preserve the venue's average entry price. For perpetuals, this price includes opening fees
-and can differ from the average reconstructed from real fill prices. The adapter uses
-[`AvgPxReconciliation::OpeningOnly`](./../concepts/execution/reconciliation.md#reported-entry-averages) for
-perpetuals: a matching position quantity does not require the fill-derived average to equal the reported
-average. Real fill prices, quantities, and commissions remain intact. Nautilus keeps commissions out of the
-position's average entry price and deducts them from realized PnL. Other instrument types retain the default
-average-price reconciliation.
+持仓报告保留场所的均价开仓价。对永续，该价格包含开仓手续费，可能与按真实成交价重建的均价
+不同。adapter 对永续使用
+[`AvgPxReconciliation::OpeningOnly`](./../concepts/execution/reconciliation.md#reported-entry-averages)：
+持仓数量相符时，不要求成交推导的均价等于报告的均价。真实成交价、数量与手续费保持不变。
+Nautilus 不把手续费计入持仓均价，而是从已实现盈亏中扣除。其他金融工具类型保持默认的均价
+对账。
 
-When fill history is absent, recovery opens a synthetic position at the reported average,
-rounded to the instrument's price precision. With partial history, synthetic recovery can
-produce an approximate cost basis. Set the reconciliation lookback to cover the current
-position's opening fills when exact fill-based accounting is required.
+成交历史缺失时，恢复流程按报告的均价开一个合成持仓，按金融工具价格精度取整。历史不完整时，
+合成恢复可能给出近似的成本基础。需要精确的按成交核算时，把对账回看设置得足以覆盖当前持仓的
+开仓成交。
 
-#### Conditional orders
+#### 条件订单 {#conditional-orders}
 
-Derive trigger orders use `private/order` with trigger fields. The venue assigns the order id
-and stores them with `order_status=untriggered` until its
-trigger worker submits the signed child order. Reconciliation therefore reads both
-`private/get_open_orders` and `private/get_trigger_orders`.
+Derive 触发订单使用带触发字段的 `private/order`。场所为其分配订单 id 并以
+`order_status=untriggered` 保存，直到其触发工作进程提交签名的子订单。因此对账同时读取
+`private/get_open_orders` 与 `private/get_trigger_orders`。
 
-Live v3 trigger firing and missed-update recovery with delayed history or position views remain
-unverified. A successful reconnect or restart does not establish those cases.
+实时 v3 触发器的执行、以及历史或持仓视图滞后时的漏更新恢复仍未验证。重连或重启成功并不能
+证明这些场景。
 
-##### Signature expiry
+##### 签名有效期 {#signature-expiry}
 
-API v3 accepts order signatures with lifetimes in [10 seconds, 120 days]. MMP orders have a 15-minute maximum.
-The adapter leaves MMP disabled and signs trigger orders with a fixed 31-day expiry. `signature_expiry_secs`
-controls ordinary orders and replacements, and must exceed 10 seconds to allow signing latency, with a maximum
-of 120 days. See [action signing](https://docs.derive.xyz/authentication/action-signing).
+API v3 接受生命周期在 [10 秒, 120 天] 内的订单签名。MMP 订单最长 15 分钟。adapter 保持
+MMP 关闭，触发订单用固定 31 天有效期签名。`signature_expiry_secs` 控制普通订单与替换，
+必须大于 10 秒以容纳签名延迟，上限 120 天。参见
+[动作签名](https://docs.derive.xyz/authentication/action-signing)。
 
-##### Supported types
+##### 支持的类型 {#supported-types}
 
-| Nautilus order type | Supported | Derive `order_type` | Derive `trigger_type` | Notes                          |
-| ------------------- | --------- | ------------------- | --------------------- | ------------------------------ |
-| `StopMarket`        | ✓         | `market`            | `stoploss`            | Uses trigger price as bound.   |
-| `StopLimit`         | ✓         | `limit`             | `stoploss`            | Sends limit and trigger price. |
-| `MarketIfTouched`   | ✓         | `market`            | `takeprofit`          | Uses trigger price as bound.   |
-| `LimitIfTouched`    | ✓         | `limit`             | `takeprofit`          | Sends limit and trigger price. |
-| `MarketToLimit`     | -         | -                   | -                     | *Not supported by Derive*.     |
-| Trailing stops      | -         | -                   | -                     | *Not supported by Derive*.     |
-| TWAP / algo / RFQ   | -         | -                   | -                     | *Not exposed by this adapter*. |
+| Nautilus 订单类型     | 支持      | Derive `order_type` | Derive `trigger_type` | 备注                           |
+| --------------------- | --------- | ------------------- | --------------------- | ------------------------------ |
+| `StopMarket`          | ✓         | `market`            | `stoploss`            | 以触发价作为边界。              |
+| `StopLimit`           | ✓         | `limit`             | `stoploss`            | 发送限价与触发价。              |
+| `MarketIfTouched`     | ✓         | `market`            | `takeprofit`          | 以触发价作为边界。              |
+| `LimitIfTouched`      | ✓         | `limit`             | `takeprofit`          | 发送限价与触发价。              |
+| `MarketToLimit`       | -         | -                   | -                     | *Derive 不支持*。               |
+| 移动止损              | -         | -                   | -                     | *Derive 不支持*。               |
+| TWAP / algo / RFQ     | -         | -                   | -                     | *本 adapter 不暴露*。           |
 
-The adapter maps Nautilus `TriggerType::Default` and `TriggerType::MarkPrice` to Derive
-`trigger_price_type=mark`. Derive's error-code reference states that index and last-trade trigger price types
-are unsupported. Thus, the adapter denies `IndexPrice`, `LastPrice`, `BidAsk`, and other trigger price types
-locally with `OrderDenied` before submission.
+adapter 把 Nautilus 的 `TriggerType::Default` 与 `TriggerType::MarkPrice` 映射到 Derive 的
+`trigger_price_type=mark`。Derive 的错误码文档说明指数价与最新成交价触发类型不受支持，因此
+adapter 对 `IndexPrice`、`LastPrice`、`BidAsk` 及其他触发价类型在提交前本地以
+`OrderDenied` 拒绝。
 
-##### Updating a trigger
+##### 更新触发单 {#updating-a-trigger}
 
-Derive error `11054` states that trigger orders cannot replace or be replaced. The adapter therefore rejects
-Nautilus modify requests for trigger orders with an `OrderModifyRejected` event. Cancel and resubmit for
-trigger updates.
+Derive 错误码 `11054` 说明触发订单不能替换别的订单、也不能被替换。因此 adapter 以
+`OrderModifyRejected` 事件拒绝针对触发订单的 Nautilus 修改请求。要更新触发单，请撤销后
+重新提交。
 
-##### Trigger price offsets
+##### 触发价偏移 {#trigger-price-offsets}
 
-Derive validates the trigger price side and rejects a trigger that does not sit beyond the current price in
-the expected direction with error `11051`. The trigger price is fixed when the order is signed. Thus, a tight
-offset on a fast-moving or high-priced instrument can drift onto the wrong side before venue receipt.
+Derive 会校验触发价的方向：触发价没有按预期方向位于当前价格之外时，以错误码 `11051` 拒绝。
+触发价在订单签名时即固定，因此快市或高价金融工具上过小的偏移，可能在场所收到前漂移到错误的
+一侧。
 
 :::warning
-Size the trigger offset to comfortably exceed expected price movement during submission
-(for `ETH-PERP`, tens of dollars rather than a few cents). A too-tight offset produces
-spurious `11051` rejections.
+触发偏移要留出足以覆盖提交期间预期价格波动的幅度（对 `ETH-PERP` 而言是几十美元，而不是
+几美分）。偏移过小会产生无谓的 `11051` 拒绝。
 :::
 
-#### Bulk cancellation
+#### 批量撤单 {#bulk-cancellation}
 
-##### Selection and routing
+##### 选择与路由 {#selection-and-routing}
 
-Derive supports both multi-order cancellation methods exposed by `Strategy`.
+Derive 支持 `Strategy` 暴露的两种多订单撤销方式。
 
-| Strategy method          | Supported | Parameters                                                            | Notes                                      |
+| Strategy 方法          | 支持      | 参数                                                                  | 备注                                       |
 | ------------------------ | --------- | --------------------------------------------------------------------- | ------------------------------------------ |
-| `cancel_orders(...)`     | ✓         | `client_order_ids`, `client_id`, `params`                             | All orders must use the same instrument.   |
-| `cancel_all_orders(...)` | ✓         | `instrument_id`, `order_side`, `client_id`, `strategy_only`, `params` | Defaults to the calling strategy's orders. |
+| `cancel_orders(...)`     | ✓         | `client_order_ids`、`client_id`、`params`                              | 所有订单必须使用同一金融工具。               |
+| `cancel_all_orders(...)` | ✓         | `instrument_id`、`order_side`、`client_id`、`strategy_only`、`params`  | 默认只作用于调用策略的订单。                  |
 
-The Derive execution client applies these methods as follows:
+Derive 执行客户端按如下方式应用这些方法：
 
-- **Explicit orders**: `cancel_orders` cancels each requested regular or trigger order individually.
-- **Strategy-only**: `cancel_all_orders` with `strategy_only=True` expands cached matches into
-  individual cancels.
-- **Side-filtered**: `cancel_all_orders` with `strategy_only=False` and a Buy or Sell filter selects
-  open regular and trigger orders from the cache for the configured execution client, account,
-  exact instrument, and side, then cancels each match. It never widens to both sides.
-- **Both sides**: `cancel_all_orders` with `strategy_only=False` and no side filter selects matching
-  open triggers from the same execution client, account, and instrument scope and cancels them
-  individually, then sends `private/cancel_by_instrument` for regular orders. It never sends
-  `private/cancel_all`.
+- **显式订单**：`cancel_orders` 逐个撤销请求的普通或触发订单。
+- **仅本策略**：`strategy_only=True` 的 `cancel_all_orders` 把缓存中匹配的结果展开为逐个撤销。
+- **按方向过滤**：`strategy_only=False` 且带 Buy 或 Sell 过滤时，`cancel_all_orders` 从缓存中
+  选出配置的执行客户端、账户、精确金融工具与该方向的普通与触发挂单，然后逐个撤销。它从不扩大
+  到双向。
+- **双向**：`strategy_only=False` 且无方向过滤时，`cancel_all_orders` 从同一执行客户端、账户与
+  金融工具范围选出匹配的挂起触发单并逐个撤销，再对普通订单发送 `private/cancel_by_instrument`。
+  它从不发送 `private/cancel_all`。
 
-`cancel_all_orders` selects eligible orders from the cache without refreshing venue state. For each selected
-order, the execution client's current venue binding takes precedence over the cached ID. Pending triggers use
-`private/cancel_trigger_order`. Individual cancellation of an activated trigger uses `private/cancel`.
-Both-sides mode leaves already activated triggers to `private/cancel_by_instrument`. The client checks
-activation again after pacing and routes a trigger that activated during the wait through `private/cancel`
-before enqueueing the request.
+`cancel_all_orders` 直接从缓存选取符合条件的订单，不刷新场所状态。对每个选中的订单，执行
+客户端当前的场所绑定优先于缓存的 ID。待触发的触发单使用 `private/cancel_trigger_order`；
+已激活触发单的逐个撤销使用 `private/cancel`。双向模式把已激活的触发单留给
+`private/cancel_by_instrument`。客户端在限速之后再次检查激活状态，把等待期间才激活的触发单
+先经 `private/cancel` 路由，再入队请求。
 
-##### Failure handling
+##### 失败处理 {#failure-handling}
 
-With `strategy_only=False`, `cancel_all_orders` fails closed if a selected order has neither a current binding
-nor a cached venue order ID. The whole command logs a warning, sends no cancellation request, and emits no
-order event.
+`strategy_only=False` 时，若选中的订单既没有当前绑定也没有缓存的场所订单 ID，
+`cancel_all_orders` 保守失败：整条命令记 warning，不发送任何撤销请求，也不发出订单事件。
 
-`private/cancel_by_instrument` cancels regular open orders only. A successful request with
-`cancelled_orders == 0` is an expected no-op and logs at debug level.
+`private/cancel_by_instrument` 只撤销普通挂单。成功响应且 `cancelled_orders == 0` 是预期的
+空操作，以 debug 级别记录。
 
-A failed trigger cancellation logs a warning but does not suppress the regular instrument cancellation. A
-failed bulk request has no per-order outcome to emit. Private channel updates and later reconciliation remain
-responsible for observed order state.
+触发单撤销失败会记 warning，但不妨碍随后的按金融工具普通撤单。批量请求失败时没有可发出的
+逐单结果，观测到的订单状态仍由私有频道更新与后续对账负责。
 
-#### Execution instructions
+#### 执行指令 {#execution-instructions}
 
-| Instruction   | Supported | Derive value  | Notes                                                       |
-| ------------- | --------- | ------------- | ----------------------------------------------------------- |
-| `post_only`   | ✓         | `post_only`   | Requires `GTC`; rejects if the order would take liquidity.  |
-| `reduce_only` | ✓         | `reduce_only` | Perps and options, market or `IOC`/`FOK` only; spot denied. |
+| 指令          | 支持      | Derive 取值     | 备注                                                          |
+| ------------- | --------- | --------------- | ------------------------------------------------------------- |
+| `post_only`   | ✓         | `post_only`     | 要求 `GTC`；会吃流动性时被拒。                                 |
+| `reduce_only` | ✓         | `reduce_only`   | 永续与期权，仅限市价或 `IOC`/`FOK`；现货拒绝。                 |
 
-#### Time in force
+#### 有效期 {#time-in-force}
 
-Derive documents `gtc`, `post_only`, `fok`, and `ioc` as its `time_in_force` values. Nautilus
-values with no Derive equivalent are denied locally with `OrderDenied` before submission. Derive
-exposes post-only as a `time_in_force` value, so `post_only` cannot combine with `IOC` or `FOK`.
+Derive 文档把 `gtc`、`post_only`、`fok` 与 `ioc` 列为其 `time_in_force` 取值。没有 Derive 对应
+项的 Nautilus 取值在提交前本地以 `OrderDenied` 拒绝。Derive 把 post-only 作为一种
+`time_in_force` 取值暴露，因此 `post_only` 不能与 `IOC` 或 `FOK` 组合。
 
-| Time in force  | Supported | Derive value | Notes                      |
-| -------------- | --------- | ------------ | -------------------------- |
-| `GTC`          | ✓         | `gtc`        | Good Till Canceled.        |
-| `IOC`          | ✓         | `ioc`        | Immediate or Cancel.       |
-| `FOK`          | ✓         | `fok`        | Fill or Kill.              |
-| `GTD`          | -         | -            | *Not supported by Derive*. |
-| `DAY`          | -         | -            | *Not supported by Derive*. |
-| `AT_THE_OPEN`  | -         | -            | *Not supported by Derive*. |
-| `AT_THE_CLOSE` | -         | -            | *Not supported by Derive*. |
+| 有效期         | 支持      | Derive 取值    | 备注                         |
+| -------------- | --------- | -------------- | ---------------------------- |
+| `GTC`          | ✓         | `gtc`          | 撤销前有效。                  |
+| `IOC`          | ✓         | `ioc`          | 立即成交其余撤销。            |
+| `FOK`          | ✓         | `fok`          | 全部成交或撤销。              |
+| `GTD`          | -         | -              | *Derive 不支持*。             |
+| `DAY`          | -         | -              | *Derive 不支持*。             |
+| `AT_THE_OPEN`  | -         | -              | *Derive 不支持*。             |
+| `AT_THE_CLOSE` | -         | -              | *Derive 不支持*。             |
 
-#### Spot reduce-only orders
+#### 现货 reduce-only 订单 {#spot-reduce-only-orders}
 
-Derive spot has no position concept, so a reduce-only spot order can never reduce anything. The venue always
-rejects it with error `11025`. The adapter avoids that round-trip when it knows the instrument is spot. Cached
-spot instruments are denied with `OrderDenied`. Lazily resolved spot instruments are rejected with
-`OrderRejected` during submit.
+Derive 现货没有持仓概念，因此 reduce-only 的现货订单永远减不了任何东西。场所总会以错误码
+`11025` 拒绝它。adapter 在已知金融工具是现货时会避免这次往返：已缓存的现货金融工具以
+`OrderDenied` 拒绝；惰性解析出的现货金融工具在提交时以 `OrderRejected` 拒绝。
 
-Reduce-only orders for perpetuals and options still reach the venue, where the outcome
-depends on the subaccount's position state. The `derive-flatten` bin closes derivative
-positions only and never spot, since flattening a spot balance would dump the base asset
-into a different quote.
+永续与期权的 reduce-only 订单仍会送到场所，其结果取决于子账户的持仓状态。`derive-flatten`
+可执行程序只平衍生品持仓、绝不碰现货，因为平掉现货余额会把基础资产倒进另一种计价货币。
 
-##### Reduce-only time-in-force limits
+##### reduce-only 的有效期限制 {#reduce-only-time-in-force-limits}
 
-Derive only honors `reduce_only` on market orders or non-resting limits (`IOC`/`FOK`). A
-resting `GTC` or post-only limit with `reduce_only` is denied locally before submission.
-Direct venue submissions fail with `11024 Reduce only not supported with this time in force`.
+Derive 只在市价单或不挂簿的限价单（`IOC`/`FOK`）上遵守 `reduce_only`。带 `reduce_only` 的
+`GTC` 或 post-only 挂单会在提交前本地拒绝。直接对场所提交则以
+`11024 Reduce only not supported with this time in force` 失败。
 
 :::warning
-A Nautilus bracket whose take-profit leg is a reduce-only `GTC` limit cannot rest on Derive:
-the entry and stop-loss legs submit, but the adapter denies the take-profit locally. Use a reduce-only
-`IOC`/`FOK` close or a non-reduce-only take-profit when targeting Derive.
+止盈腿是 reduce-only `GTC` 限价单的 Nautilus 括号单无法挂在 Derive 上：入场腿与止损腿能提交，
+但 adapter 会在本地拒绝止盈腿。目标是 Derive 时，请改用 reduce-only 的 `IOC`/`FOK` 平仓单或
+非 reduce-only 的止盈单。
 :::
 
-#### Order rejection semantics
+#### 订单拒绝语义 {#order-rejection-semantics}
 
-State-changing writes (`submit_order`, `modify_order`, `cancel_order`) are sent once over the
-WebSocket and **are not replayed**. The WebSocket request outcome determines whether the
-adapter emits a terminal rejection or waits for reconciliation.
+状态变更类写操作（`submit_order`、`modify_order`、`cancel_order`）通过 WebSocket 发送一次，
+**不会重放**。WebSocket 请求的结果决定 adapter 是发出终态拒绝，还是等待对账。
 
-##### Definitive failures
+##### 确定性失败 {#definitive-failures}
 
-The adapter emits a terminal rejection event (`OrderRejected`, `OrderModifyRejected`,
-`OrderCancelRejected`) for definitive venue failures:
+对确定性的场所失败，adapter 发出终态拒绝事件（`OrderRejected`、`OrderModifyRejected`、
+`OrderCancelRejected`）：
 
-- Signed-action rejections such as invalid params, insufficient margin, or unknown orders.
-- Venue business codes such as `11009 Zero liquidity`.
-- Post-only crossing rejections (`11008 Post only order cannot cross the market`), reported
-  as `OrderRejected` with `due_post_only=true`.
-- Rate-limit responses (`-32000 Rate limit exceeded`), where the gateway rejects the request
-  before the matching engine sees it.
-- A successful `private/cancel_by_label` response with `cancelled_orders == 0`, which means
-  no open order matched the client order ID label.
+- 签名动作类拒绝，例如参数非法、保证金不足或订单未知。
+- 场所业务码，例如 `11009 Zero liquidity`。
+- post-only 穿越拒绝（`11008 Post only order cannot cross the market`），以
+  `due_post_only=true` 的 `OrderRejected` 报告。
+- 限流响应（`-32000 Rate limit exceeded`）：网关在撮合引擎看到之前就拒绝请求。
+- `private/cancel_by_label` 成功响应且 `cancelled_orders == 0`，表示没有挂单匹配该 client
+  order ID 标签。
 
-An unscoped `private/cancel_by_label` response with `cancelled_orders == -1` acknowledges the request.
-Positive counts also wait for private order updates. Neither response produces an `OrderCanceled` event
-without confirmed order state. `query_order` uses the shared order-status lookup for reconciliation.
+`cancelled_orders == -1` 的无范围 `private/cancel_by_label` 响应表示请求已被确认。计数为正
+时同样要等待私有订单更新。两种响应在没有确认订单状态前都不产生 `OrderCanceled` 事件。
+`query_order` 使用共享的订单状态查找做对账。
 
-##### Post-only classification
+##### post-only 分类 {#post-only-classification}
 
-For post-only orders that reach the venue, Derive rejects a crossing order with JSON-RPC `11008` and message
-`Post only order cannot cross the market`. The adapter marks that terminal rejection with
-`due_post_only=true`. If a WebSocket/order-report rejection carries the same reason, the tracked order path
-applies the same classification. Local denials for unsupported post-only IOC/FOK combinations are
-`OrderDenied` events without `due_post_only`, because they do not represent a venue crossing rejection.
+对已到达场所的 post-only 订单，Derive 以 JSON-RPC `11008`、消息
+`Post only order cannot cross the market` 拒绝穿越的订单。adapter 给该终态拒绝标记
+`due_post_only=true`。若 WebSocket/订单报告的拒绝携带相同原因，被跟踪订单的路径套用同一
+分类。不支持的 post-only IOC/FOK 组合在本地产生的 `OrderDenied` 事件不带 `due_post_only`，
+因为它们不是场所的穿越拒绝。
 
-Strategy-facing rejection reasons strip markup and control characters, normalize whitespace,
-and contain at most 256 characters. JSON-RPC reasons retain the native error code and message
-without the exception prefix or structured diagnostic payload. Logs retain the original errors.
+面向策略的拒绝原因会剥掉标记与控制字符、归一化空白，并最多保留 256 个字符。JSON-RPC 原因
+保留原生错误码与消息，但不含异常前缀与结构化诊断负载。日志保留原始错误。
 
-##### Ambiguous outcomes
+##### 结果不明确的情况 {#ambiguous-outcomes}
 
-For ambiguous write outcomes, the adapter emits no terminal event and lets WebSocket
-reconciliation or later status reports settle the state. The ambiguous set is deliberately
-narrow:
+写操作结果不明确时，adapter 不发终态事件，交由 WebSocket 对账或后续状态报告定论。不明确
+集合刻意保持很窄：
 
-- `-32603`, a generic JSON-RPC internal error.
-- `9000` and `9001`, confirmation timeouts that require querying order state before resubmission.
-- A response that cannot be decoded (the action may have been processed).
-- A successful response whose venue order ID cannot be represented. The adapter retains the known command
-  identity and pending replacement state for reconciliation. If that ID remains unrepresentable, status and
-  fill reports cannot track the venue order. Inspect venue state using the logged command identity.
-- Request timeouts, dropped responses on reconnect, and transport errors.
+- `-32603`，通用的 JSON-RPC 内部错误。
+- `9000` 与 `9001`，确认超时，需先查询订单状态再重新提交。
+- 无法解码的响应（动作可能已被处理）。
+- 响应成功但其场所订单 ID 无法表示。adapter 保留已知的命令身份与待处理替换状态供对账使用；
+  若该 ID 始终无法表示，状态与成交报告就无法跟踪该场所订单，请用日志中记录的命令身份去检查
+  场所状态。
+- 请求超时、重连时丢失的响应，以及传输错误。
 
-This distinction protects both sides of the order lifecycle. A false terminal rejection can make the engine
-treat a live order as rejected. A false ambiguous outcome can leave an unplaced order hanging in `Submitted`
-forever because no WebSocket frame will arrive.
+这一区分保护订单生命周期的两侧：错误的终态拒绝会让引擎把活动订单当成已拒绝；错误地判为不明
+确，则会让从未挂出的订单永远停在 `Submitted`，因为不会再有 WebSocket 帧到达。
 
-## Rate limiting
+## 限流 {#rate-limiting}
 
-### Budget scopes and refill
+### 配额范围与补充 {#budget-scopes-and-refill}
 
-Derive v3 applies [two tiers of rate limits](https://docs.derive.xyz/rate-limits). Request budgets use fixed
-five-second windows. Instrument order budgets refill continuously, with capacity equal to five seconds of
-their configured refill rate. An exhausted instrument bucket gains one token after one second at the default
-rate. A window boundary does not replenish its entire capacity.
+Derive v3 应用[两层限流](https://docs.derive.xyz/rate-limits)。请求配额使用固定的五秒窗口。
+金融工具订单配额持续补充，容量等于其配置的补充速率五秒的量。耗尽的金融工具桶在默认速率下
+一秒获得一个令牌。窗口边界不会把整个容量补满。
 
-Authenticated HTTP and WebSocket clients on the same API host share wallet budgets across session keys and
-subaccounts. Public requests, including WebSocket login, share a separate process-local budget per API host.
-This conservatively assumes one source IP. Clients behind separate proxies still share that allowance. Clients
-in separate processes must coordinate their combined traffic. Custom URLs with different API hosts use
-separate limiter state.
+同一 API 主机上认证的 HTTP 与 WebSocket 客户端，在多个 session key 与子账户之间共享钱包
+配额。公共请求（包括 WebSocket 登录）按 API 主机共享一份独立的进程内配额，这里保守地假设
+只有一个源 IP。走不同代理的客户端仍共享该额度，不同进程中的客户端必须自行协调总流量。
+API 主机不同的自定义 URL 使用独立的限流状态。
 
-Request windows align to the creation of the shared limiter because the venue's window phase is not
-observable. Bursts on either side of a local boundary can arrive within one venue window, especially when
-transport queues delay departure. The venue rejects excess traffic with `-32000 Rate limit exceeded`. The
-adapter surfaces this as a definitive rejection (see [order rejection semantics](#order-rejection-semantics)).
+请求窗口对齐到共享限流器的创建时刻，因为场所的窗口相位不可观测。本地边界两侧的突发可能落进
+同一个场所窗口，传输队列延迟发出时尤其如此。超出配额的流量会被场所以
+`-32000 Rate limit exceeded` 拒绝，adapter 把它呈现为确定性拒绝（见
+[订单拒绝语义](#order-rejection-semantics)）。
 
-### Request buckets
+### 请求桶 {#request-buckets}
 
-The table gives reference defaults and the adapter's label-cancel allowance. Deployment values and negotiated
-allowances can differ. Read live request budgets with `public/getRateLimits`. The endpoint does not report
-instrument budgets. On testnet, the HTTP endpoint reports the public IP allowance even with authentication
-headers, while an authenticated WebSocket reports wallet allowances.
+下表给出参考默认值与 adapter 的按标签撤销额度。部署取值与协商后的额度可能不同。实时请求
+配额可用 `public/getRateLimits` 读取，该端点不报告金融工具配额。测试网上，HTTP 端点即使带
+认证头也报告公共 IP 额度，而认证的 WebSocket 报告钱包额度。
 
-| Bucket                             | Scope                 | Reference allowance             |
+| 桶                                 | 范围                  | 参考额度                        |
 | ---------------------------------- | --------------------- | ------------------------------- |
-| Matching                           | Wallet                | 5 requests per 5-second window  |
-| Non-matching, authenticated        | Wallet                | 25 requests per 5-second window |
-| Public requests                    | IP                    | 25 requests per 5-second window |
-| `private/cancel_all`               | Wallet and method     | 5 requests per 5-second window  |
-| `private/cancel_by_label` endpoint | Wallet and method     | Adapter: 50 requests per window |
-| Instrument orders, perpetuals/spot | Wallet and instrument | 1 token/second, capacity 5      |
-| Instrument orders, options         | Wallet and instrument | 1 token/second, capacity 5      |
+| 撮合类                             | 钱包                  | 5 秒窗口 5 次请求               |
+| 非撮合类（已认证）                 | 钱包                  | 5 秒窗口 25 次请求              |
+| 公共请求                           | IP                    | 5 秒窗口 25 次请求              |
+| `private/cancel_all`               | 钱包与方法            | 5 秒窗口 5 次请求               |
+| `private/cancel_by_label` 端点     | 钱包与方法            | adapter：每窗口 50 次请求       |
+| 金融工具订单（永续/现货）          | 钱包与金融工具        | 1 令牌/秒，容量 5               |
+| 金融工具订单（期权）               | 钱包与金融工具        | 1 令牌/秒，容量 5               |
 
-The venue also limits concurrent WebSocket connections per IP. Its published reference is four
-connections, but deployment values differ.
+场所还限制每个 IP 的并发 WebSocket 连接数，公布的参考值是四条连接，但部署取值各有不同。
 
-The [integrator reference](https://docs.derive.xyz/integrators/trading/rate-limits) publishes 10 TPS for
-unscoped label cancellation. The canonical reference does not give a numeric endpoint allowance. The adapter
-retains 10 TPS for its label-cancel endpoint budget.
+[集成方参考](https://docs.derive.xyz/integrators/trading/rate-limits)给无范围标签撤销公布的是
+10 TPS，规范参考文档没有给出该端点的数字额度，adapter 为其标签撤销端点预算保留 10 TPS。
 
-#### Matching write allocation
+#### 撮合类写操作的配额 {#matching-write-allocation}
 
-Order, replace, cancel, cancel-by-nonce, and cancel-by-instrument requests consume the matching
-request budget and the supplied instrument's token bucket. The per-instrument configuration
-applies to perpetuals, spot, and options and stays independent of the wallet matching allowance.
+订单、替换、撤销、按 nonce 撤销与按金融工具撤销请求同时消耗撮合类请求配额与所给金融工具的
+令牌桶。按金融工具的配置适用于永续、现货与期权，与钱包的撮合额度相互独立。
 
-The adapter paces `cancel_by_label` against both matching and endpoint budgets, following the canonical
-rate-limit reference. Raw HTTP requests whose body includes `instrument_name` also consume instrument credit.
-The typed label-cancel parameters currently support unscoped calls only. Testnet currently charges the
-matching budget for scoped label cancels only. The adapter retains the stricter documented rule for unscoped
-calls. `cancel_all` uses its endpoint budget alone.
+adapter 按规范限流参考，对 `cancel_by_label` 同时按撮合与端点两种配额限速。请求体包含
+`instrument_name` 的原始 HTTP 请求同样消耗金融工具额度。类型化的标签撤销参数目前只支持无
+范围调用。测试网当前只对带范围的标签撤销收取撮合配额，adapter 对无范围调用保留更严格的
+文档规则。`cancel_all` 只使用它的端点配额。
 
-`cancel_trigger_order` and trigger-order reads use the non-matching budget. Trigger creation
-uses `private/order` and reserves matching quota before signing.
+`cancel_trigger_order` 与触发单读取使用非撮合配额。触发单创建走 `private/order`，并在签名
+之前预约撮合配额。
 
-The first explicit wallet and instrument settings apply to the shared limiter. A later constructor
-with unset options preserves them. The limiter ignores conflicting explicit settings and logs a
-warning. Shared budget debt survives reconnects and client recreation.
+首次显式给出的钱包与金融工具设置作用于共享限流器，之后构造时未设置的选项会沿用它们；冲突的
+显式设置会被限流器忽略并记 warning。共享配额的欠账跨重连与客户端重建保留。
 
-### Signing and venue responses
+### 签名与场所响应 {#signing-and-venue-responses}
 
-HTTP authentication headers and WebSocket login timestamps are signed after pacing waits.
-The execution client reserves WebSocket order creation and replacement quota before generating
-nonces and EIP-712 signatures. Held reservations occupy instrument capacity until dispatch, and
-an abandoned reservation refunds its unused request and instrument credit.
+HTTP 认证头与 WebSocket 登录时间戳在限速等待之后才签名。执行客户端在生成 nonce 与 EIP-712
+签名之前，先预约 WebSocket 的订单创建与替换配额。持有中的预约占用金融工具容量直到实际发送，
+被放弃的预约会退回其未使用的请求与金融工具额度。
 
-Reserved WebSocket dispatch does not wait again after signing. If a reservation crosses a
-request-window boundary, the adapter charges the current request window immediately. If that window is full, it returns a
-definitive local throttling error before enqueueing the write. Instrument credit is charged once.
+已预约的 WebSocket 发送在签名后不再二次等待。若一次预约跨越了请求窗口边界，adapter 立即
+从当前请求窗口扣减；该窗口已满时，在把写操作入队之前返回确定性的本地限流错误。金融工具额度
+只扣减一次。
 
-HTTP order methods and direct WebSocket signed-order methods accept already-signed bodies.
-Callers must account for pacing delays within those signatures' validity periods.
+HTTP 下单方法与直接的 WebSocket 签名下单方法接受已签名的请求体。调用方必须把限速延迟计入
+这些签名的有效期内。
 
-Venue throttling remains a definitive rejection. Transport failures, timeouts, and ambiguous write outcomes
-require reconciliation. The adapter does not blindly retry signed writes.
+场所限流仍是确定性拒绝。传输失败、超时与结果不明确的写操作要靠对账解决。adapter 不会盲目
+重试签名写操作。
 
-## WebSocket recovery
+## WebSocket 恢复 {#websocket-recovery}
 
-The data and execution clients reconnect automatically after a peer close, transport error, or heartbeat
-timeout. The adapter sends protocol Ping frames every 30 seconds and treats 60 seconds without any inbound
-frame as a dead connection. The selected transport can report a missed Pong sooner. The transport retries
-connections with exponential backoff and jitter.
+数据与执行客户端在对端关闭、传输错误或心跳超时后自动重连。adapter 每 30 秒发送一次协议
+Ping 帧，并把 60 秒内没有任何入站帧视为连接已死。所选传输可能更早报告 Pong 丢失。传输层
+以指数退避加抖动重试连接。
 
-Recovery completes in this order:
+恢复按这个顺序完成：
 
-1. The transport reconnects. If another disconnect occurs, recovery follows the latest connection.
-1. Credentialed sessions log in again, then every session replays its confirmed and pending subscriptions
-   in channel order. Pending and acknowledged unsubscriptions are not replayed.
-1. The execution client captures current owned order context on the runner thread, refreshes account state,
-   then generates mass status for orders, fills, and positions. A rejected account snapshot skips mass status.
-   A position conversion failure rejects the whole mass status.
+1. 传输重连。若再次断开，恢复跟随最新的连接。
+1. 带凭据的会话重新登录，然后每个会话按频道顺序回放其已确认与待处理的订阅；待处理与已确认
+   的退订不回放。
+1. 执行客户端在 runner 线程上捕获当前自有订单上下文，刷新账户状态，然后为订单、成交与持仓
+   生成 mass status。账户快照被拒时跳过 mass status；持仓转换失败会拒掉整个 mass status。
 
-Custom hosts must process the runner's time-event messages to refresh cached order context on
-reconnect. The refresh uses the configured `ws_timeout_secs` deadline. Without a time-event sender,
-the client retains its initial context and refuses reconciliation after terminal binding eviction.
+自定义主机必须处理 runner 的时间事件消息，以便在重连时刷新缓存的订单上下文。刷新使用配置的
+`ws_timeout_secs` 期限。没有时间事件发送器时，客户端保留其初始上下文，并在终态绑定被逐出后
+拒绝做对账。
 
-State-changing requests follow the [order rejection semantics](#order-rejection-semantics): the
-adapter sends them once and never replays them. After three failed login or subscription recovery
-attempts, the client logs the error, marks itself disconnected, and stops that WebSocket session.
+状态变更请求遵循[订单拒绝语义](#order-rejection-semantics)：adapter 只发送一次，从不重放。
+登录或订阅恢复连续三次失败后，客户端记录错误、把自己标记为已断开，并停止该 WebSocket 会话。
 
-`ws_timeout_secs` applies to individual WebSocket operations and reconnect cache refresh, not
-heartbeat detection or reconnect backoff.
+`ws_timeout_secs` 作用于单个 WebSocket 操作与重连后的缓存刷新，不作用于心跳检测与重连退避。
 
-### Order book recovery
+### 订单簿恢复 {#order-book-recovery}
 
-Order books recover independently of session recovery. Recovery starts after:
+订单簿的恢复独立于会话恢复。以下情形之后恢复启动：
 
-- `book_snapshot_timeout_secs` (default `10` seconds) without an initial or post-reconnect snapshot.
-- `book_stale_threshold_secs` (default `120` seconds) without receiving an advancing snapshot.
+- `book_snapshot_timeout_secs`（默认 `10` 秒）内没有初始或重连后的快照。
+- `book_stale_threshold_secs`（默认 `120` 秒）内没有收到递进的快照。
 
-Set either option to `0` to disable that timer. Choose the stale threshold for the expected update frequency:
-duplicate timestamps do not refresh freshness. Advancing empty snapshots do.
+把任一选项设为 `0` 即禁用对应计时器。按预期的更新频率选择陈旧阈值：重复的时间戳不会刷新
+新鲜度，递进的空快照会。
 
-Null or empty required prices or amounts cause decoding to fail and start recovery. These snapshots
-publish no deltas or depth, do not refresh freshness or advance the accepted timestamp, and cannot
-complete recovery.
+必需的价格或数量字段为 null 或空时解码失败并启动恢复。这类快照不发布 delta 也不发布深度，
+不刷新新鲜度也不推进已接受的时间戳，无法完成恢复。
 
-Recovery unsubscribes and resubscribes the affected channel, accepting snapshots only after its
-subscription acknowledgement. It follows the
-[shared retry budget and ceiling](./../developer_guide/adapters.md#recovery-state-and-retry-budgets)
-until a snapshot is accepted or the channel is removed.
+恢复会退订并重新订阅受影响的频道，只在收到其订阅确认之后才接受快照。它遵循
+[共享重试预算与上限](./../developer_guide/adapters.md#recovery-state-and-retry-budgets)，
+直到快照被接受或频道被移除。
 
-- Reconnects preserve the recovery episode and its budget.
-- The last consumer's unsubscribe or client shutdown cancels recovery and pending writes.
-- With snapshot deadlines disabled, the initial retry budget remains capped at 180 seconds and each
-  later attempt at 60 seconds. `ws_timeout_secs` still bounds each RPC.
+- 重连保留恢复事件及其预算。
+- 最后一个消费者退订或客户端关闭会取消恢复与待处理写操作。
+- 禁用快照期限时，初始重试预算仍封顶在 180 秒，后续每次尝试封顶 60 秒。`ws_timeout_secs`
+  仍然约束每次 RPC。
 
 :::warning
-Derive notifications have no subscription generation. The adapter rejects obsolete locally queued frames
-and non-increasing timestamps, but cannot identify an earlier subscription's delayed notification if its
-timestamp exceeds the last accepted timestamp.
+Derive 的通知没有订阅代次。adapter 会拒绝本地队列中已过期的帧与非递增时间戳，但无法识别
+时间戳超过最后接受时间戳的旧订阅的延迟通知。
 :::
 
-### Live recovery validation
+### 实时恢复验证 {#live-recovery-validation}
 
-`derive-book-stress` checks public Derive testnet data without submitting orders. It validates depth-10
-`ETH-PERP` and `ETH-USDC` books against the book stream contract and an independent reconstruction of each
-relayed venue snapshot, including empty spot snapshots.
+`derive-book-stress` 检查 Derive 测试网的公共数据，不提交订单。它按簿流契约校验 depth-10 的
+`ETH-PERP` 与 `ETH-USDC` 簿，并与每份中继场所快照的独立重建结果比对，包括空的现货快照。
 
-The testnet WebSocket stream and public instrument REST API must be reachable. From the repository root, run:
+测试网 WebSocket 流与公共金融工具 REST API 必须可达。在仓库根目录运行：
 
 ```bash
 CARGO_BUILD_JOBS=4 bash scripts/strip-adapter-env.bash \
@@ -1014,223 +897,213 @@ CARGO_BUILD_JOBS=4 bash scripts/strip-adapter-env.bash \
   --scenario initial --timeout 2 --rounds 60
 ```
 
-| `--scenario` | Options       | Checks                                                                                                |
+| `--scenario` | 参数          | 检查内容                                                                                              |
 | ------------ | ------------- | ----------------------------------------------------------------------------------------------------- |
-| `churn`      | Default       | Stale books, delayed frames, reconnects during recovery, unsubscribe/resubscribe, and bad timestamps. |
-| `initial`    | `--timeout 2` | Drops both initial snapshots, then runs `churn`.                                                      |
-| `disabled`   | `--timeout 0` | Quiet books across forced reconnects with both timers disabled.                                       |
-| `edges`      | `--timeout 1` | Exhausted eight-attempt budget, late snapshot acceptance, and retry after permanent rejection.        |
+| `churn`      | 默认          | 陈旧簿、延迟帧、恢复期间重连、退订/重订，以及非法时间戳。                                              |
+| `initial`    | `--timeout 2` | 丢弃两个初始快照，然后运行 `churn`。                                                                   |
+| `disabled`   | `--timeout 0` | 两个计时器都禁用时，安静簿跨强制重连的表现。                                                           |
+| `edges`      | `--timeout 1` | 耗尽八次尝试预算、迟到快照的接受，以及永久拒绝后的重试。                                               |
 
-- `--timeout` sets the snapshot timeout in seconds. `0` disables deadlines. The stale threshold is four
-  seconds except in `disabled`, which disables both timers.
-- `--rounds` sets churn or disabled rounds (default `20`). `edges` runs once.
+- `--timeout` 设置快照超时秒数，`0` 禁用期限。除 `disabled`（两个计时器都禁用）外，陈旧
+  阈值都是四秒。
+- `--rounds` 设置 churn 或 disabled 的轮数（默认 `20`）；`edges` 只运行一次。
 
-Every scenario checks bounded shutdown. All except `disabled` start shutdown during recovery. See
-[Stress harnesses](./../developer_guide/spec_data_testing.md#stress-harnesses) for shared flags and output.
+每个场景都检查有界关闭；除 `disabled` 外，所有场景都会在恢复期间启动关闭。共享参数与输出见
+[压力测试工具](./../developer_guide/spec_data_testing.md#stress-harnesses)。
 
-## Deterministic simulation testing
+## 确定性仿真测试 {#deterministic-simulation-testing}
 
-The Rust adapter supports `simulation` with `cfg(madsim)` through the shared clock, task, retry,
-and transport seams. Configure controlled `http://` and `ws://` endpoints and select
-`TransportBackend::Tungstenite`. Fixed synthetic credentials support private local-peer tests.
+Rust adapter 通过共享的时钟、任务、重试与传输缝，以 `cfg(madsim)` 支持 `simulation`。配置
+受控的 `http://` 与 `ws://` 端点，并选择 `TransportBackend::Tungstenite`。固定的合成凭据支持
+私有本地 peer 测试。
 
-The audited runtime slices cover these paths:
+受审的运行时切片覆盖这些路径：
 
-- Public single-instrument lookup (`public/get_instrument`) through domain construction.
-- Public ticker subscriptions through complete quote construction.
-- Book and trade subscription requests.
-- Private login and cancel requests.
-- Reconnect subscription replay, command/frame scheduling, and shutdown.
+- 公共单金融工具查询（`public/get_instrument`）到领域构造。
+- 公共 ticker 订阅到完整的报价构造。
+- 簿与成交的订阅请求。
+- 私有登录与撤销请求。
+- 重连时的订阅回放、命令/帧调度与关闭。
 
-The integration tests in `crates/adapters/derive/tests/integration/dst.rs` pin wire bytes, login signatures,
-and domain fields, including the ticker interval. They emit `DST_TRACE` and `DST_DOMAIN` records for
-downstream comparison across fresh processes with equal seeds, configuration, and peer scripts.
-`cargo-test-sim` runs the in-repository assertions. Fresh-process comparison stays in the downstream DST
-harness, as specified by the [adapter DST contract](./../concepts/dst.md#adapter-dst-contract).
+`crates/adapters/derive/tests/integration/dst.rs` 中的集成测试钉住 wire 字节、登录签名与领域
+字段（含 ticker 间隔），并输出 `DST_TRACE` 与 `DST_DOMAIN` 记录，供下游在相同种子、配置与
+peer 脚本下跨新鲜进程比对。`cargo-test-sim` 运行仓库内的断言；新鲜进程比对留在下游 DST
+工具链，按[适配器 DST 契约](./../concepts/dst.md#adapter-dst-contract)的规定。
 
-The static gate covers these production paths under `crates/adapters/derive/src/`:
+静态闸门覆盖 `crates/adapters/derive/src/` 下这些生产路径：
 
-- `book/recovery.rs` and `book/sync.rs`.
-- `common/parse.rs`, `common/rate_limit.rs`, `config.rs`, `data.rs`, `execution.rs`, and `providers.rs`.
-- `http/client.rs`, `http/models.rs`, `http/query.rs`, and `http/parse.rs`.
-- `signing/encoding.rs`, `signing/nonce.rs`, `signing/auth.rs`, `signing/eip712.rs`, and
-  `signing/modules/trade.rs`.
-- `websocket/client.rs`, `websocket/dispatch.rs`, `websocket/handler.rs`, `websocket/messages.rs`,
-  and `websocket/parse.rs`.
+- `book/recovery.rs` 与 `book/sync.rs`。
+- `common/parse.rs`、`common/rate_limit.rs`、`config.rs`、`data.rs`、`execution.rs` 与
+  `providers.rs`。
+- `http/client.rs`、`http/models.rs`、`http/query.rs` 与 `http/parse.rs`。
+- `signing/encoding.rs`、`signing/nonce.rs`、`signing/auth.rs`、`signing/eip712.rs` 与
+  `signing/modules/trade.rs`。
+- `websocket/client.rs`、`websocket/dispatch.rs`、`websocket/handler.rs`、`websocket/messages.rs`
+  与 `websocket/parse.rs`。
 
-Constants, enums, errors, endpoint defaults, module declarations, construction-only factories, retry
-classifiers, credential and signing-context resolution, and the WebSocket context container stay outside the
-static path list. These files introduce no independent async, clock, or randomness boundary. Credential
-resolution uses supplied configuration or declared environment inputs. Python and FFI, TLS, live venue state,
-full data/execution-client lifecycles, signed order submission and replacement, trigger firing, and other
-unaudited runtime slices remain outside this simulation claim. Static coverage does not establish runtime
-proof for those slices.
+常量、枚举、错误、端点默认值、模块声明、仅做构造的工厂、重试分类器、凭据与签名上下文解析，
+以及 WebSocket 上下文容器保持在静态路径清单之外。这些文件不引入独立的异步、时钟或随机性
+边界。凭据解析只使用传入的配置或声明的环境输入。Python 与 FFI、TLS、实盘场所状态、完整的
+数据/执行客户端生命周期、签名下单与替换、触发执行，以及其他未审计的运行时切片，都在这份
+仿真声明之外。静态覆盖不为这些切片确立运行时证明。
 
-## Subscription parameters
+## 订阅参数 {#subscription-parameters}
 
-`subscribe_book_deltas` and `subscribe_book_depth` accept these `subscribe_params` keys:
+`subscribe_book_deltas` 与 `subscribe_book_depth` 接受这些 `subscribe_params` 键：
 
-| Key     | Type   | Default | Allowed                        |
+| 键      | 类型   | 默认值  | 允许取值                       |
 | ------- | ------ | ------- | ------------------------------ |
-| `group` | string | `"1"`   | `"1"`, `"10"`, `"100"`         |
-| `depth` | string | `"10"`  | `"1"`, `"10"`, `"20"`, `"100"` |
+| `group` | string | `"1"`   | `"1"`、`"10"`、`"100"`         |
+| `depth` | string | `"10"`  | `"1"`、`"10"`、`"20"`、`"100"` |
 
-`subscribe_quotes` accepts:
+`subscribe_quotes` 接受：
 
-| Key        | Type   | Default  | Allowed           |
-| ---------- | ------ | -------- | ----------------- |
-| `interval` | string | `"1000"` | `"100"`, `"1000"` |
+| 键         | 类型   | 默认值   | 允许取值            |
+| ---------- | ------ | -------- | ------------------- |
+| `interval` | string | `"1000"` | `"100"`、`"1000"`   |
 
-Unknown values are rejected at subscribe time.
+未知取值在订阅时即被拒绝。
 
-### Shared ticker subscription
+### 共享 ticker 订阅 {#shared-ticker-subscription}
 
-Quotes, mark prices, index prices, funding rates, and option greeks are all derived from the
-same `ticker_slim.{instrument}.{interval}` WebSocket subscription. The adapter reference-counts
-the underlying WS subscribe call:
+报价、标记价、指数价、资金费率与期权 Greeks 都派生自同一个
+`ticker_slim.{instrument}.{interval}` WebSocket 订阅。adapter 对底层 WS 订阅调用做引用计数：
 
-- The first feed subscribed for an instrument opens the channel.
-- The last unsubscribe closes it.
+- 该金融工具第一个订阅的馈送打开频道。
+- 最后一个退订关闭它。
 
 :::note
-**The first subscription's `interval` wins.** Subsequent feeds subscribing with a different
-interval share the existing channel.
+**以第一个订阅的 `interval` 为准。**之后用不同 interval 订阅的馈送共用已存在的频道。
 :::
 
-#### Ticker fields
+#### ticker 字段 {#ticker-fields}
 
-Mark prices, index prices, funding rates, and option greeks read fields from the ticker payload.
-Both the full ticker shape and the compact `ticker_slim` shape carry these fields, so derived
-feeds work on either:
+标记价、指数价、资金费率与期权 Greeks 都读取 ticker 负载中的字段。完整 ticker 形态与紧凑的
+`ticker_slim` 形态都携带这些字段，因此派生馈送在两种形态上都能工作：
 
-| Fields                      | Presence                  | Feed behavior                                                              |
-| --------------------------- | ------------------------- | -------------------------------------------------------------------------- |
-| `mark_price`, `index_price` | Required                  | A missing field fails deserialization and is logged, not silently dropped. |
-| `funding_rate`              | Optional; perpetuals only | Supplies funding-rate events.                                              |
-| `option_pricing`            | Optional; options only    | Supplies option greeks.                                                    |
-| Bid/ask                     | Present in both shapes    | Quote feed works with either shape.                                        |
+| 字段                        | 存在性                    | 馈送行为                                                                    |
+| --------------------------- | ------------------------- | --------------------------------------------------------------------------- |
+| `mark_price`、`index_price` | 必需                      | 字段缺失会使反序列化失败并记日志，不会静默丢弃。                             |
+| `funding_rate`              | 可选；仅永续              | 为资金费率事件提供数据。                                                     |
+| `option_pricing`            | 可选；仅期权              | 为期权 Greeks 提供数据。                                                     |
+| 买价/卖价                   | 两种形态都有              | 报价馈送两种形态都能工作。                                                   |
 
-#### Instrument class restrictions
+#### 金融工具类别限制 {#instrument-class-restrictions}
 
-Funding rates are only meaningful for perpetuals, and option greeks only for options. The adapter accepts a
-subscription to the wrong feed for an instrument's class (e.g. funding rates for an option). The WebSocket
-subscription opens, but the parser returns no events for that feed. The venue payload omits the funding rate
-field for non-perps and `option_pricing` for non-options. Verify the instrument class before subscribing to
-derivative-specific feeds.
+资金费率只对永续有意义，期权 Greeks 只对期权有意义。订阅与金融工具类别不匹配的馈送（例如给
+期权订阅资金费率）时，adapter 接受该订阅：WebSocket 订阅会打开，但解析器对该馈送不返回任何
+事件。场所负载对非永续省略资金费率字段，对非期权省略 `option_pricing`。订阅衍生品专属馈送前
+先确认金融工具类别。
 
-## Configuration
+## 配置 {#configuration}
 
-### Data client configuration options
+### 数据客户端配置项 {#data-client-configuration-options}
 
-Class/struct: `DeriveDataClientConfig`.
+类/结构体：`DeriveDataClientConfig`。
 
-| Option                             | Default   | Description                                                                                 |
-| ---------------------------------- | --------- | ------------------------------------------------------------------------------------------- |
-| `base_url_rest`                    | `None`    | Override for the REST base URL.                                                             |
-| `base_url_ws`                      | `None`    | Override for the WebSocket base URL.                                                        |
-| `proxy_url`                        | `None`    | Optional proxy URL for HTTP and WebSocket transports.                                       |
-| `environment`                      | `Mainnet` | Network selector (`MAINNET` or `TESTNET` in Python).                                        |
-| `http_timeout_secs`                | `10`      | REST request timeout in seconds.                                                            |
-| `ws_timeout_secs`                  | `None`    | Per-operation WebSocket timeout (login, subscribe, read, write) in seconds. Unset uses 10s. |
-| `book_snapshot_timeout_secs`       | `10`      | Snapshot wait in seconds; `0` disables deadlines.                                           |
-| `book_stale_threshold_secs`        | `120`     | Seconds without an advancing snapshot before recovery; `0` disables this timer.             |
-| `update_instruments_interval_mins` | `60`      | Interval in minutes between instrument refreshes.                                           |
-| `currencies`                       | `[]`      | Currencies to bulk-load on connect. Empty means lazy-load on demand.                        |
-| `include_expired`                  | `false`   | Merge live and expired option listings from `public/get_all_instruments`.                   |
-| `auto_load_missing_instruments`    | `true`    | Lazy-load an unknown instrument before sending a subscribe request.                         |
-| `transport_backend`                | `Sockudo` | WebSocket transport when `transport-sockudo` is enabled.                                    |
+| 配置项                             | 默认值    | 说明                                                                                          |
+| ---------------------------------- | --------- | --------------------------------------------------------------------------------------------- |
+| `base_url_rest`                    | `None`    | REST 基准 URL 覆盖。                                                                           |
+| `base_url_ws`                      | `None`    | WebSocket 基准 URL 覆盖。                                                                      |
+| `proxy_url`                        | `None`    | HTTP 与 WebSocket 传输的可选代理 URL。                                                          |
+| `environment`                      | `Mainnet` | 网络选择（Python 中为 `MAINNET` 或 `TESTNET`）。                                                |
+| `http_timeout_secs`                | `10`      | REST 请求超时（秒）。                                                                           |
+| `ws_timeout_secs`                  | `None`    | 按操作的 WebSocket 超时（登录、订阅、读、写），单位秒；未设置时用 10 秒。                        |
+| `book_snapshot_timeout_secs`       | `10`      | 快照等待（秒）；`0` 禁用期限。                                                                  |
+| `book_stale_threshold_secs`        | `120`     | 多久没有递进快照就启动恢复（秒）；`0` 禁用该计时器。                                            |
+| `update_instruments_interval_mins` | `60`      | 金融工具刷新间隔（分钟）。                                                                       |
+| `currencies`                       | `[]`      | 连接时批量加载的币种；为空表示按需惰性加载。                                                     |
+| `include_expired`                  | `false`   | 从 `public/get_all_instruments` 合并期权的活动与过期挂牌。                                       |
+| `auto_load_missing_instruments`    | `true`    | 发送订阅请求前惰性加载未知的金融工具。                                                           |
+| `transport_backend`                | `Sockudo` | 启用 `transport-sockudo` 时使用的 WebSocket 传输。                                               |
 
 :::important
-**`auto_load_missing_instruments` covers subscribe commands only.** Before requesting quotes,
-trades, bars, or funding rates, bulk-load the instrument's currency or subscribe first.
+**`auto_load_missing_instruments` 只覆盖订阅命令。**请求报价、成交、K 线或资金费率之前，
+先批量加载该金融工具的币种，或先订阅。
 :::
 
-- `request_quotes`, `request_trades`, `request_bars`, and `request_funding_rates` fail when the
-  instrument is not already cached.
-- `request_instrument` is the exception: it always fetches `public/get_instrument`.
-- Option-chain subscriptions require a cached option from the series to fetch the initial reference price.
+- 金融工具尚未缓存时，`request_quotes`、`request_trades`、`request_bars` 与
+  `request_funding_rates` 会失败。
+- `request_instrument` 是例外：它总会拉取 `public/get_instrument`。
+- 期权链订阅需要该系列中已缓存的期权，用来获取初始参考价。
 
-### Execution client configuration options
+### 执行客户端配置项 {#execution-client-configuration-options}
 
-Class/struct: `DeriveExecutionClientConfig`.
+类/结构体：`DeriveExecutionClientConfig`。
 
-#### Account and credentials
+#### 账户与凭据 {#account-and-credentials}
 
-| Option           | Default      | Description                                                      |
-| ---------------- | ------------ | ---------------------------------------------------------------- |
-| `account_id`     | `DERIVE-001` | Nautilus account identifier.                                     |
-| `wallet_address` | `None`       | Owner EOA or multisig address. Falls back to env vars below.     |
-| `session_key`    | `None`       | secp256k1 session-key private key. Falls back to env vars below. |
-| `subaccount_id`  | `None`       | Derive subaccount id. Falls back to env vars below.              |
+| 配置项           | 默认值        | 说明                                                              |
+| ---------------- | ------------- | ----------------------------------------------------------------- |
+| `account_id`     | `DERIVE-001`  | Nautilus 账户标识。                                                 |
+| `wallet_address` | `None`        | owner 的 EOA 或多签地址；未设置时回退到下列环境变量。                |
+| `session_key`    | `None`        | secp256k1 session key 私钥；未设置时回退到下列环境变量。             |
+| `subaccount_id`  | `None`        | Derive 子账户 id；未设置时回退到下列环境变量。                       |
 
-#### Connectivity and retries
+#### 连接与重试 {#connectivity-and-retries}
 
-| Option                   | Default   | Description                                                                                 |
-| ------------------------ | --------- | ------------------------------------------------------------------------------------------- |
-| `base_url_rest`          | `None`    | Override for the REST base URL.                                                             |
-| `base_url_ws`            | `None`    | Override for the WebSocket base URL.                                                        |
-| `proxy_url`              | `None`    | Optional proxy URL for HTTP and WebSocket transports.                                       |
-| `environment`            | `Mainnet` | Network selector (`MAINNET` or `TESTNET` in Python).                                        |
-| `http_timeout_secs`      | `10`      | REST request timeout in seconds.                                                            |
-| `ws_timeout_secs`        | `None`    | Per-operation WebSocket timeout (login, subscribe, read, write) in seconds. Unset uses 10s. |
-| `transport_backend`      | `Sockudo` | WebSocket transport when `transport-sockudo` is enabled.                                    |
-| `max_retries`            | `3`       | Retry attempts for idempotent REST reads. Order writes are sent once and never replayed.    |
-| `retry_delay_initial_ms` | `100`     | Initial retry delay in milliseconds.                                                        |
-| `retry_delay_max_ms`     | `5,000`   | Maximum backoff delay in milliseconds.                                                      |
+| 配置项                   | 默认值    | 说明                                                                                          |
+| ------------------------ | --------- | --------------------------------------------------------------------------------------------- |
+| `base_url_rest`          | `None`    | REST 基准 URL 覆盖。                                                                           |
+| `base_url_ws`            | `None`    | WebSocket 基准 URL 覆盖。                                                                      |
+| `proxy_url`              | `None`    | HTTP 与 WebSocket 传输的可选代理 URL。                                                          |
+| `environment`            | `Mainnet` | 网络选择（Python 中为 `MAINNET` 或 `TESTNET`）。                                                |
+| `http_timeout_secs`      | `10`      | REST 请求超时（秒）。                                                                           |
+| `ws_timeout_secs`        | `None`    | 按操作的 WebSocket 超时（登录、订阅、读、写），单位秒；未设置时用 10 秒。                        |
+| `transport_backend`      | `Sockudo` | 启用 `transport-sockudo` 时使用的 WebSocket 传输。                                              |
+| `max_retries`            | `3`       | 幂等 REST 读取的重试次数。订单写操作只发一次，永不重放。                                        |
+| `retry_delay_initial_ms` | `100`     | 初始重试延迟（毫秒）。                                                                          |
+| `retry_delay_max_ms`     | `5,000`   | 退避的最大延迟（毫秒）。                                                                        |
 
-The default transport falls back to `Tungstenite` when the build disables the
-`transport-sockudo` feature.
+构建禁用了 `transport-sockudo` feature 时，默认传输回退到 `Tungstenite`。
 
-For HTTP reads, `Retry-After` sets a minimum delay that can exceed `retry_delay_max_ms`.
-If that delay does not fit within the remaining 180-second retry budget, the client returns the
-original error without retrying.
+HTTP 读取时，`Retry-After` 设定的最小延迟可能超过 `retry_delay_max_ms`。若该延迟放不进剩余
+的 180 秒重试预算，客户端不重试，直接返回原始错误。
 
-#### Order signing and pricing
+#### 订单签名与定价 {#order-signing-and-pricing}
 
 :::important
-`max_fee_per_contract` is required and must be greater than zero. Execution-client construction
-fails before creating venue clients when the field is missing or non-positive.
+`max_fee_per_contract` 必填且必须大于零。该字段缺失或非正时，执行客户端的构造在创建场所
+客户端之前就会失败。
 :::
 
-| Option                      | Default  | Description                                                                 |
-| --------------------------- | -------- | --------------------------------------------------------------------------- |
-| `max_fee_per_contract`      | Required | Positive per-contract USDC fee cap signed into each order.                  |
-| `domain_separator`          | `None`   | Optional EIP-712 domain separator override.                                 |
-| `action_typehash`           | `None`   | Optional EIP-712 action typehash override.                                  |
-| `trade_module_address`      | `None`   | Optional Trade module contract address override.                            |
-| `signature_expiry_secs`     | `600`    | Order/replace TTL; must be >10s and at most 120 days. Triggers use 31 days. |
-| `market_order_slippage_bps` | `50`     | Slippage bound for market-order limit prices.                               |
+| 配置项                        | 默认值   | 说明                                                                          |
+| ----------------------------- | -------- | ----------------------------------------------------------------------------- |
+| `max_fee_per_contract`        | 必填     | 签入每笔订单的正值单合约 USDC 手续费上限。                                      |
+| `domain_separator`            | `None`   | 可选的 EIP-712 domain separator 覆盖。                                          |
+| `action_typehash`             | `None`   | 可选的 EIP-712 action typehash 覆盖。                                           |
+| `trade_module_address`        | `None`   | 可选的 Trade 模块合约地址覆盖。                                                 |
+| `signature_expiry_secs`       | `600`    | 订单/替换的 TTL；必须大于 10 秒且不超过 120 天。触发单固定用 31 天。            |
+| `market_order_slippage_bps`   | `50`     | 市价单限价价的滑点边界。                                                        |
 
-#### Matching request limits
+#### 撮合类请求限制 {#matching-request-limits}
 
-Both limits default to **1 request per second** when unset. Set negotiated values independently:
-the wallet allowance uses fixed windows, and instrument credit refills continuously. Clients for
-the same wallet on the same API host share the first explicit settings. Verify live request budgets
-before raising the wallet allowance. Instrument budgets are not discoverable with `public/getRateLimits`.
+两个限制未设置时默认为**每秒 1 次请求**。协商到的取值要分别设置：钱包额度用固定窗口，金融
+工具额度持续补充。同一 API 主机上同一钱包的客户端共享首次显式设置的值。调高钱包额度前先
+核实实时请求配额；金融工具配额无法通过 `public/getRateLimits` 查到。
 
-| Option                                            | Default | Description                                         |
+| 配置项                                            | 默认值  | 说明                                                |
 | ------------------------------------------------- | ------- | --------------------------------------------------- |
-| `max_matching_requests_per_second`                | `None`  | Wallet matching requests per second.                |
-| `max_per_instrument_matching_requests_per_second` | `None`  | Per-wallet/instrument token refill rate per second. |
+| `max_matching_requests_per_second`                | `None`  | 钱包撮合类请求每秒次数。                             |
+| `max_per_instrument_matching_requests_per_second` | `None`  | 每钱包/金融工具的令牌补充速率（每秒）。              |
 
-#### Credential environment variables
+#### 凭据环境变量 {#credential-environment-variables}
 
-The `wallet_address`, `session_key`, and `subaccount_id` fall back to environment variables when
-unset:
+`wallet_address`、`session_key` 与 `subaccount_id` 未设置时回退到环境变量：
 
-| Field            | Mainnet variable             | Testnet variable                     |
-| ---------------- | ---------------------------- | ------------------------------------ |
-| `wallet_address` | `DERIVE_WALLET_ADDRESS`      | `DERIVE_TESTNET_WALLET_ADDRESS`      |
-| `session_key`    | `DERIVE_SESSION_PRIVATE_KEY` | `DERIVE_TESTNET_SESSION_PRIVATE_KEY` |
-| `subaccount_id`  | `DERIVE_SUBACCOUNT_ID`       | `DERIVE_TESTNET_SUBACCOUNT_ID`       |
+| 字段             | 主网变量                       | 测试网变量                             |
+| ---------------- | ------------------------------ | -------------------------------------- |
+| `wallet_address` | `DERIVE_WALLET_ADDRESS`        | `DERIVE_TESTNET_WALLET_ADDRESS`        |
+| `session_key`    | `DERIVE_SESSION_PRIVATE_KEY`   | `DERIVE_TESTNET_SESSION_PRIVATE_KEY`   |
+| `subaccount_id`  | `DERIVE_SUBACCOUNT_ID`         | `DERIVE_TESTNET_SUBACCOUNT_ID`         |
 
-The session key is the secp256k1 private key registered on the wallet for API signing. The
-`session_key` field is redacted in `Debug` output and Python `repr`.
+session key 是注册到钱包上用于 API 签名的 secp256k1 私钥。`session_key` 字段在 `Debug` 输出
+与 Python `repr` 中被打码。
 
-### Python live node
+### Python live node {#python-live-node}
 
-Python nodes use `LiveNode.builder(...)` and pass concrete factory instances. The node supplies the
-trader identifier, while `DeriveExecutionClientConfig` supplies the account identifier.
+Python 节点使用 `LiveNode.builder(...)` 并传入具体的工厂实例。节点提供 trader 标识，
+`DeriveExecutionClientConfig` 提供账户标识。
 
 ```python
 from decimal import Decimal
@@ -1266,7 +1139,7 @@ node = (
 )
 ```
 
-### Rust data client
+### Rust 数据客户端 {#rust-data-client}
 
 ```rust
 use nautilus_derive::{
@@ -1281,7 +1154,7 @@ let config = DeriveDataClientConfig {
 };
 ```
 
-### Rust execution client
+### Rust 执行客户端 {#rust-execution-client}
 
 ```rust
 use nautilus_derive::{
@@ -1300,15 +1173,12 @@ let config = DeriveExecutionClientConfig {
 };
 ```
 
-## Known limitations
+## 已知限制 {#known-limitations}
 
-- `request_instruments` requires at least one configured currency in `DeriveDataClientConfig::currencies`. The
-  adapter filters `public/get_all_instruments` by each configured currency and does not enumerate the currency
-  universe.
-- The venue does not push instrument status, instrument close, or candle subscriptions. The instrument
-  definition carries `is_active` and the scheduled activation/deactivation timestamps, and bars are REST-only.
-- The book snapshot REST endpoint and historical book deltas / historical quote endpoints
-  are not exposed by the venue. See the capabilities table above.
-- Derive's official REST docs mark `public/get_ticker` as deprecated in favor of
-  `public/get_tickers` as of December 1, 2025. The adapter uses `public/get_tickers`
-  for quote snapshots and option-chain reference-price bootstrap.
+- `request_instruments` 要求 `DeriveDataClientConfig::currencies` 中至少配置一个币种。adapter
+  按每个配置的币种过滤 `public/get_all_instruments`，不枚举币种全集。
+- 场所不推送金融工具状态、金融工具收市或 candle 订阅。金融工具定义携带 `is_active` 与计划的
+  启用/停用时间戳，K 线只能通过 REST 获取。
+- 场所没有暴露簿快照 REST 端点，也没有历史簿增量与历史报价端点。见上文能力表。
+- Derive 官方 REST 文档自 2025 年 12 月 1 日起把 `public/get_ticker` 标记为废弃，改用
+  `public/get_tickers`。adapter 用 `public/get_tickers` 做报价快照与期权链参考价引导。

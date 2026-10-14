@@ -385,137 +385,125 @@ GTD 订单在 IB 订单中包含其 Nautilus 到期时间。
 | 提交订单       | 是      | 单笔订单与通用价差。                                         |
 | 提交订单列表   | 是      | 包含括号订单与关联订单。                                     |
 | 修改订单       | 是      | 数量、价格、触发价与 IB 参数更新。                           |
-| Cancel order      | Yes     | Uses tracked venue order state.                              |
-| Cancel all orders | Yes     | Scoped through the execution client.                         |
-| Query order       | Yes     | Checks open orders, then executions before inferring cancel. |
-| Mass status       | Yes     | Orders, fills, and positions.                                |
+| 撤销订单       | 是      | 使用已跟踪的场所订单状态。                                   |
+| 撤销全部订单   | 是      | 通过执行客户端限定范围。                                     |
+| 查询订单       | 是      | 先查未结订单，再查成交，然后才推断撤销。                     |
+| 批量状态       | 是      | 订单、成交与持仓。                                           |
 
-Pass `params={"exchange": "IEX"}` to submit, submit-list, or modify commands to override the
-cached contract exchange for that command. An omitted or empty value retains the cached exchange.
+给 submit、submit-list 或 modify 命令传 `params={"exchange": "IEX"}` 可针对该命令覆盖缓存的
+合约交易所。省略或传空值则保留缓存的交易所。
 
-IB accepts a new trailing stop price only together with a new trailing amount (error 10067). A
-modify that sets a trailing stop's trigger must pass `params={"trailing_offset": <offset>}` in the
-order's offset units: a price amount for `PRICE` offsets, or basis points for `BASIS_POINTS`
-offsets. An offset equal to the current one is rejected by IB, and a trigger modify without the
-parameter is rejected before it is sent.
+IB 只接受连同新的跟踪金额一起提交的新跟踪止损价（错误 10067）。要给跟踪止损设置触发价的
+修改必须传 `params={"trailing_offset": <offset>}`，单位为该订单的偏移单位：`PRICE` 偏移用价格
+金额，`BASIS_POINTS` 偏移用基点。与当前值相等的偏移会被 IB 拒绝，不带该参数的触发价修改在
+发出之前就被拒绝。
 
-IB-specific order fields use a tag prefixed with `IBOrderTags:` followed by a JSON object. Keys use
-the `ibapi` order field names in snake case or lower camel case. Unknown fields fail the order
-conversion. The adapter normalizes `order_type`, `tif` or `timeInForce`, `action`, `oca_type`,
-`trigger_method`, `origin`, `short_sale_slot`, `volatility_type`,
-`reference_price_type`, `rule_80_a`, `open_close`, and `NonGuaranteed`. Active, stop, cancel, manual,
-and good-till timestamps use `%Y%m%d %H:%M:%S UTC`.
+IB 专属的订单字段使用以 `IBOrderTags:` 为前缀、后跟一个 JSON 对象的标签。键使用 `ibapi` 订单
+字段名的 snake case 或 lower camel case。未知字段会导致订单转换失败。适配器会规范化
+`order_type`、`tif` 或 `timeInForce`、`action`、`oca_type`、
+`trigger_method`、`origin`、`short_sale_slot`、`volatility_type`、
+`reference_price_type`、`rule_80_a`、`open_close` 和 `NonGuaranteed`。Active、stop、cancel、
+manual 和 good-till 时间戳使用 `%Y%m%d %H:%M:%S UTC`。
 
-The adapter tracks each order by its IB order ID and reference, and checks each execution against the order
-side. Thus, tags cannot set `orderId`, `clientId`, `permId`, `orderRef`, `totalQuantity`, `cashQty`,
-`parentId`, or `transmit`. A tagged `action` must keep the order side: a SELL order may use `SSHORT` or
-`SLONG`, but not `BUY`. Such a tag fails the order conversion.
+适配器按 IB 订单 ID 与引用跟踪每个订单，并把每笔成交与订单方向核对。因此标签不能设置
+`orderId`、`clientId`、`permId`、`orderRef`、`totalQuantity`、`cashQty`、`parentId` 或
+`transmit`。带标签的 `action` 必须保持订单方向：SELL 订单可以用 `SSHORT` 或 `SLONG`，但不能
+用 `BUY`。这样的标签会使订单转换失败。
 
-The optional `conditions` array accepts these shapes:
+可选的 `conditions` 数组接受以下形态：
 
-| Condition        | Required fields | Optional fields and defaults                                                |
+| 条件             | 必填字段      | 可选字段与默认值                                                          |
 | ---------------- | --------------- | --------------------------------------------------------------------------- |
-| `price`          | None            | `conId=0`, `exchange="SMART"`, `price=0`, `isMore=True`, `triggerMethod=0`. |
-| `time`           | None            | `time=""`, `isMore=True`.                                                   |
-| `margin`         | None            | `percent=0`, `isMore=True`.                                                 |
-| `execution`      | `symbol`        | `secType="STK"`, `exchange="SMART"`.                                        |
-| `volume`         | None            | `conId=0`, `exchange="SMART"`, `volume=0`, `isMore=True`.                   |
-| `percent_change` | None            | `conId=0`, `exchange="SMART"`, `changePercent=0`, `isMore=True`.            |
+| `price`          | 无              | `conId=0`、`exchange="SMART"`、`price=0`、`isMore=True`、`triggerMethod=0`。 |
+| `time`           | 无              | `time=""`、`isMore=True`。                                                  |
+| `margin`         | 无              | `percent=0`、`isMore=True`。                                                |
+| `execution`      | `symbol`        | `secType="STK"`、`exchange="SMART"`。                                       |
+| `volume`         | 无              | `conId=0`、`exchange="SMART"`、`volume=0`、`isMore=True`。                  |
+| `percent_change` | 无              | `conId=0`、`exchange="SMART"`、`changePercent=0`、`isMore=True`。           |
 
-Every condition accepts `conjunction="and"` or `"or"`. The default is `"and"`.
+每个条件都接受 `conjunction="and"` 或 `"or"`，默认为 `"and"`。
 
-### Account state
+### 账户状态 {#account-state}
 
-On connect and on each account query, the execution client reads one `reqAccountSummary`
-snapshot for the configured account and maps its tags to typed balances and margins. It then
-reads one `reqAccountUpdates` snapshot for the same account and cancels that stream once IB
-signals the download end. Every raw tag and key from both snapshots lands in `AccountState.info`
-under its IB name, so values IB publishes only on `updateAccountValue` (for example
-`PostExpirationExcess` and `PostExpirationMargin`) are readable from Python alongside the summary
-tags such as `TotalCashValue`. A key reported once per currency keeps the last value IB sends.
+连接时以及每次账户查询时，执行客户端为配置的账户读取一份 `reqAccountSummary` 快照，把它的
+标签映射为类型化的余额与保证金。随后为同一账户读取一份 `reqAccountUpdates` 快照，并在 IB
+发出下载结束信号后取消该频道。两份快照的每个原始标签与键都以其 IB 名称落在
+`AccountState.info` 下，因此 IB 只在 `updateAccountValue` 上发布的值（例如
+`PostExpirationExcess` 和 `PostExpirationMargin`）能与 `TotalCashValue` 这类汇总标签一起在
+Python 中读取。每种货币只上报一次的键，保留 IB 最后发送的值。
 
-## Reconciliation
+## 对账 {#reconciliation}
 
-Mass status requests query three independent IB sources:
+批量状态请求查询三个相互独立的 IB 来源：
 
-- Open and completed orders produce order status reports.
-- Executions paired with commission reports produce fill reports.
-- Account positions produce position status reports.
+- 未结与已完成订单产生订单状态报告。
+- 成交与手续费报告配对后产生成交报告。
+- 账户持仓产生持仓状态报告。
 
-Position updates do not create synthetic order status reports. If IB returns a position without
-matching order or fill history, the execution engine can adopt the position from the position report
-alone by creating its internal reconciliation fill. This preserves the report boundary: the adapter
-reports venue state, while the engine owns inferred state needed to reconcile its cache.
+持仓更新不会创建合成的订单状态报告。若 IB 返回一个没有匹配订单或成交历史的持仓，执行引擎
+可以仅凭持仓报告采用该持仓，方法是创建其内部的对账成交。这守住了报告的边界：适配器报告
+场所状态，而引擎掌管厘清其缓存所需的推断状态。
 
-IB's position average cost includes commissions, while a position rebuilt from fills averages their prices.
-The adapter replays an instrument's fills, including the leg executions of combo orders, from the quantity
-held before the fill window. When the replay passes through flat or flips, the position report carries the
-average price of the fills after the last crossing, so a position held across a restart reconciles.
+IB 的持仓均价包含手续费，而依据成交重建的持仓对成交价取平均。适配器从成交窗口之前持有的
+数量开始，重放某工具的成交，包括组合订单各腿的成交。当重放经过平仓或换向时，持仓报告携带
+最后一次换向之后成交的均价，因此跨重启持有的持仓能够对账。
 
-Fills that share a timestamp have no known execution order. If such a group mixes sides or flips, the entry
-price stays unknown until a later fill opens from flat or flips.
+共享同一时间戳的成交没有已知的执行顺序。若这样一组混合方向或发生换向，入场价将保持未知，
+直到之后某笔成交从平仓开仓或换向。
 
-The replay infers the quantity held before the window, so a missing execution would change the result. The
-report carries the replayed entry price only when both conditions hold:
+重放推断窗口之前持有的数量，因此一笔缺失的成交会改变结果。只有当两个条件同时成立时，报告
+才携带重放出的入场价：
 
-- Every execution of the instrument was parsed.
-- The price reproduces IB's average cost.
+- 该工具的每笔成交都被解析。
+- 该价格能复现 IB 的均价。
 
-For this check, the expected average cost is the entry price plus opening commissions per unit for a long. For
-a short, it is the entry price minus those commissions. A lot opened by a flip carries no commission.
+对此检查，预期均价对多头而言是入场价加上每单位开仓手续费；对空头则是入场价减去这些手续费。
+由换向开的批次不带手续费。
 
-Otherwise the report keeps IB's average cost, which the engine's reconciliation fill uses.
+否则报告保留 IB 的均价，供引擎的对账成交使用。
 
-On connect, the execution client resolves the instrument of every open position in the account. It publishes
-any instrument absent from the cache. Thus, a position in a contract outside the provider's `load_ids` still
-recovers at startup instead of aborting the node.
+连接时，执行客户端解析账户中每个未结持仓的金融工具，并发布缓存中缺失的任何工具。因此，
+即便持仓位于 provider `load_ids` 之外的合约上，启动时也能恢复，而不会中断节点。
 
-For a pending-cancel order missing from the open-orders snapshot, the adapter checks execution
-history before emitting a canceled event. Replayed executions are deduplicated after terminal order
-state is evicted, including generated spread-leg fills.
+对于待撤销订单，若它不在未结订单快照中，适配器在发出已撤销事件之前先检查成交历史。终态
+订单状态被逐出后，重放的成交会被去重，包括生成的价差腿成交。
 
-Set `track_option_exercise_from_position_update=True` only when position changes should drive option
-exercise tracking. This setting does not restore synthetic position-derived order reports.
+仅当持仓变化应当驱动期权行权跟踪时，才设置
+`track_option_exercise_from_position_update=True`。该设置不会恢复合成的持仓派生订单报告。
 
-After a restart, orders a previous session left working return as open external orders. IB's `PreSubmitted`
-status, used for example while an order waits for its `goodAfterTime`, maps to `ACCEPTED`. The execution
-client resolves each restored order's IB order ID from its `PERM-` venue order ID and tracks it, so later IB
-status updates, fills, and cancels reach the owning strategy. Filled orders from the previous session
-reconcile from their real executions. The adapter reports no price for market-type orders, so reconciliation
-never infers a fill at price 0.
+重启后，上一会话留在途的订单会作为未结外部订单返回。IB 的 `PreSubmitted` 状态（例如订单
+等待其 `goodAfterTime` 时所用）映射为 `ACCEPTED`。执行客户端从每个恢复订单的 `PERM-` 场所
+订单 ID 解析出其 IB 订单 ID 并跟踪它，因此后续的 IB 状态更新、成交与撤销都能到达所属策略。
+上一会话已成交的订单从其真实成交对账。适配器对市场类订单不报告价格，因此对账绝不会推断出
+价格为 0 的成交。
 
-Replies to execution queries (`reqExecutions`) also arrive on IB's order update stream. The adapter
-treats only unsolicited execution details there as live fills, so startup and periodic execution
-queries do not apply the same fills again.
+执行查询（`reqExecutions`）的响应也到达 IB 的订单更新频道。适配器在那里只把非主动推送的
+成交详情当作实时成交，因此启动与周期性的执行查询不会重复应用同一批成交。
 
-## Symbology and instruments
+## 符号体系与金融工具 {#symbology-and-instruments}
 
-`InteractiveBrokersInstrumentProviderConfig.symbology_method` selects one of two public methods:
+`InteractiveBrokersInstrumentProviderConfig.symbology_method` 从两种公开方法中选一种：
 
-| Method                       | Use                                                       |
+| 方法                         | 用途                                                    |
 | ---------------------------- | --------------------------------------------------------- |
-| `SymbologyMethod.SIMPLIFIED` | Readable IDs for normal instrument lookup and examples.   |
-| `SymbologyMethod.RAW`        | IDs that retain the IB security type for explicit lookup. |
+| `SymbologyMethod.SIMPLIFIED` | 面向常规工具查找与示例的可读 ID。                       |
+| `SymbologyMethod.RAW`        | 保留 IB 证券类型、供显式查找的 ID。                     |
 
-One symbology value built from this setting drives every mapping site in the adapter, so data,
-execution, and provider paths always resolve identical IDs. Raw symbology
-(`AAPL=STK.SMART`) is the lossless escape hatch: it preserves the IB local symbol and security
-type for instruments the simplified format rules cannot express, such as complex international
-listings.
+由此设置构建的单个符号值驱动适配器里每一处映射站点，因此数据、执行与 provider 路径总是
+解析出完全一致的 ID。原始符号（`AAPL=STK.SMART`）是无损的逃生舱：它保留 IB 本地符号与证券
+类型，用于简化格式规则无法表达的工具，例如复杂的国际上市品种。
 
-Futures and futures-option IDs carry the local symbol reported by IB, such as `YMM6.XCBT` and
-`YMM6 C45000.XCBT`. The adapter does not rewrite the contract year, so identifiers stay stable
-across catalogs and caches.
+期货与期货期权的 ID 携带 IB 报告的本地符号，如 `YMM6.XCBT` 和 `YMM6 C45000.XCBT`。适配器
+不重写合约年份，因此标识符跨目录与缓存保持稳定。
 
-The symbology method controls symbol conversion. Venue selection is a separate step with this
-precedence:
+符号方法控制符号转换。场所选择是独立的一步，按以下优先级：
 
-1. CFD and commodity contracts use the adapter pseudo-venues `IBCFD` and `IBCMDTY`.
-1. A matching `symbol_to_mic_venue` prefix wins for other security types.
-1. Stock primary exchange and a compatible cached venue take precedence over SMART routing.
-1. Contract details can supply a non-SMART valid exchange.
-1. `convert_exchange_to_mic_venue=True` converts a known exchange to its MIC.
-1. The remaining IB exchange value becomes the venue.
+1. CFD 与商品合约使用适配器伪场所 `IBCFD` 和 `IBCMDTY`。
+1. 其他证券类型中，匹配的 `symbol_to_mic_venue` 前缀胜出。
+1. 股票的主要交易所与兼容的缓存场所优先于 SMART 路由。
+1. 合约详情可以提供一个非 SMART 的有效交易所。
+1. `convert_exchange_to_mic_venue=True` 把已知交易所转换为其 MIC。
+1. 剩余的 IB 交易所值成为场所。
 
 ```mermaid
 flowchart TD
@@ -531,34 +519,32 @@ flowchart TD
     F -- no --> H[Remaining IB exchange value]
 ```
 
-The pseudo-venues are part of the adapter namespace under both symbology methods. For example, simplified
-symbology can produce `IBDE30.IBCFD` or `XAUUSD.IBCMDTY`, while raw symbology adds the security type to the
-symbol. These venues take precedence over `symbol_to_mic_venue` and `convert_exchange_to_mic_venue`. They do
-not describe a separate IB routing mechanism.
+两种符号方法下，伪场所都属于适配器的命名空间。例如简化符号可以产生 `IBDE30.IBCFD` 或
+`XAUUSD.IBCMDTY`，而原始符号会把证券类型加进符号。这些场所优先于 `symbol_to_mic_venue` 和
+`convert_exchange_to_mic_venue`。它们并不描述一个单独的 IB 路由机制。
 
-Use the same provider config for data and execution clients so both resolve identical IDs. Startup
-`load_ids` and `load_contracts` are required entries: client initialization fails if a configured
-instrument cannot be resolved.
+数据与执行客户端使用同一份 provider 配置，使两者解析出完全一致的 ID。启动时的 `load_ids`
+和 `load_contracts` 是必填项：若配置的工具无法解析，客户端初始化会失败。
 
-### Provider configuration
+### Provider 配置 {#provider-configuration}
 
-| Option                          | Default      | Purpose                                                 |
+| 选项                            | 默认值       | 用途                                                    |
 | ------------------------------- | ------------ | ------------------------------------------------------- |
-| `symbology_method`              | `SIMPLIFIED` | Select simplified or raw symbol conversion.             |
-| `load_ids`                      | Empty        | Load Nautilus instrument IDs at startup.                |
-| `load_contracts`                | Empty        | Load IB contract dictionaries at startup.               |
-| `min_expiry_days`               | `None`       | Minimum relative expiry for chain loading.              |
-| `max_expiry_days`               | `None`       | Maximum relative expiry for chain loading.              |
-| `build_options_chain`           | `None`       | Override option chain construction.                     |
-| `build_futures_chain`           | `None`       | Override futures chain construction.                    |
-| `cache_validity_days`           | `None`       | Lifetime of persisted instrument data.                  |
-| `convert_exchange_to_mic_venue` | `False`      | Convert known IB exchanges to MIC venues.               |
-| `symbol_to_mic_venue`           | Empty        | Override venues for matching symbol prefixes.           |
-| `filter_sec_types`              | Empty        | Exclude selected IB security types.                     |
-| `filter_callable`               | `None`       | Apply a Python callable by fully qualified import path. |
-| `cache_path`                    | `None`       | Persist the instrument cache at the selected path.      |
+| `symbology_method`              | `SIMPLIFIED` | 选择简化或原始符号转换。                                |
+| `load_ids`                      | 空           | 启动时加载 Nautilus 金融工具 ID。                       |
+| `load_contracts`                | 空           | 启动时加载 IB 合约字典。                                |
+| `min_expiry_days`               | `None`       | 链条加载的最小相对到期。                                |
+| `max_expiry_days`               | `None`       | 链条加载的最大相对到期。                                |
+| `build_options_chain`           | `None`       | 覆盖期权链构建。                                        |
+| `build_futures_chain`           | `None`       | 覆盖期货链构建。                                        |
+| `cache_validity_days`           | `None`       | 持久化工具数据的有效期。                                |
+| `convert_exchange_to_mic_venue` | `False`      | 把已知 IB 交易所转换为 MIC 场所。                       |
+| `symbol_to_mic_venue`           | 空           | 为匹配符号前缀覆盖场所。                                |
+| `filter_sec_types`              | 空           | 排除选定的 IB 证券类型。                                |
+| `filter_callable`               | `None`       | 按完全限定的导入路径应用一个 Python 可调用对象。        |
+| `cache_path`                    | `None`       | 在选定路径持久化工具缓存。                              |
 
-Contract dictionaries use IB field names. Chain bounds are days from the request date:
+合约字典使用 IB 字段名。链条边界是距请求日的天数：
 
 ```python
 from nautilus_trader.adapters import interactive_brokers as ib
@@ -587,13 +573,13 @@ provider_config = ib.InteractiveBrokersInstrumentProviderConfig(
 )
 ```
 
-Without a chain flag, `CONTFUT` represents IB's continuous future. IB limits continuous futures to historical
-data. They do not support live subscriptions or orders.
+不带链条标志时，`CONTFUT` 表示 IB 的连续期货。IB 把连续期货限制为历史数据，它们不支持
+实时订阅或订单。
 
-### Generic spreads
+### 通用价差 {#generic-spreads}
 
-Build spread IDs with `new_generic_spread_id`. Do not format their leg grammar by hand. All legs must use the
-same venue, and the ratio sign selects the IB leg action:
+用 `new_generic_spread_id` 构建价差 ID，不要手工拼写其腿语法。所有腿必须使用同一场所，
+比例符号决定 IB 的腿动作：
 
 ```python
 from nautilus_trader.model import new_generic_spread_id
@@ -607,154 +593,146 @@ spread_id = new_generic_spread_id(
 )
 ```
 
-Load the leg instruments before requesting the spread. The provider qualifies each leg, constructs
-the IB BAG contract, and caches the resulting spread instrument before data subscription or order
-submission.
+在请求价差之前先加载各腿工具。provider 对每条腿做资格确认，构建 IB 的 BAG 合约，并在数据
+订阅或订单提交之前缓存所得的价差工具。
 
-Spread executions come back from IB as a combo-level fill for the spread order and one execution per leg. Each
-leg execution becomes an `OrderFilled` event on the leg instrument under the spread order's strategy. It has a
-`-LEG-` client order ID. The execution engine applies it to the leg position without an order of its own. IB
-sends commission reports for the leg executions only, so the combo-level fill carries zero commission.
+价差成交从 IB 返回时，是价差订单的一个组合级成交加每条腿一笔成交。每条腿成交成为腿工具上
+归属价差订单策略的一个 `OrderFilled` 事件，带 `-LEG-` 客户端订单 ID。执行引擎把它作用于腿
+持仓，而无需一条自己的订单。IB 只为各腿成交发送手续费报告，因此组合级成交的手续费为零。
 
-On connect, the execution client loads and publishes the spread and leg instruments of every open or completed
-combo order, so startup reconciliation restores those orders even when the node does not load the spread
-itself. Startup fill reports hold each combo order's combo-level fills. Its leg executions are left out, and
-the leg positions reconcile from IB's position reports.
+连接时，执行客户端加载并发布每个未结或已完成组合订单的价差与腿工具，因此即使节点本身不
+加载该价差，启动对账也能恢复这些订单。启动时的成交报告持有每个组合订单的组合级成交，
+其腿成交被排除在外，腿持仓从 IB 的持仓报告对账。
 
-## Configuration reference
+## 配置参考 {#configuration-reference}
 
-### Data client
+### 数据客户端 {#data-client}
 
-| Option                           | Default                   | Purpose                                                                     |
+| 选项                             | 默认值                    | 用途                                                                        |
 | -------------------------------- | ------------------------- | --------------------------------------------------------------------------- |
-| `host`                           | `127.0.0.1`               | TWS or IB Gateway host.                                                     |
-| `port`                           | `4002`                    | TWS or IB Gateway socket port.                                              |
-| `client_id`                      | `1`                       | IB API client ID.                                                           |
-| `use_regular_trading_hours`      | `True`                    | Restrict requests to regular trading hours.                                 |
-| `market_data_type`               | `MarketDataType.REALTIME` | Select real-time, frozen, delayed, or delayed-frozen data.                  |
-| `ignore_quote_tick_size_updates` | `False`                   | Filter quote changes that update only size.                                 |
-| `connection_timeout`             | `300` seconds             | Set the socket connection timeout.                                          |
-| `request_timeout`                | `60` seconds              | Set the IB request timeout.                                                 |
-| `handle_revised_bars`            | `False`                   | Publish every revision of an open bar instead of each completed bar once.   |
-| `batch_quotes`                   | `True`                    | Prefer `reqMktData` for quote subscriptions.                                |
-| `all_last_trades`                | `True`                    | Include AllLast trades; set `False` to request Last trades only.            |
-| `subscription_idle_timeout_secs` | `None`                    | Emit a custom-data event after this many seconds without subscription data. |
-| `instrument_provider`            | Default provider config   | Configure contract and instrument loading.                                  |
-| `dockerized_gateway`             | `None`                    | Reserved and rejected; start the gateway separately.                        |
+| `host`                           | `127.0.0.1`               | TWS 或 IB Gateway 主机。                                                    |
+| `port`                           | `4002`                    | TWS 或 IB Gateway socket 端口。                                             |
+| `client_id`                      | `1`                       | IB API 客户端 ID。                                                          |
+| `use_regular_trading_hours`      | `True`                    | 把请求限制在常规交易时段。                                                  |
+| `market_data_type`               | `MarketDataType.REALTIME` | 选择实时、冻结、延迟或延迟冻结数据。                                        |
+| `ignore_quote_tick_size_updates` | `False`                   | 过滤只更新数量的报价变化。                                                  |
+| `connection_timeout`             | `300` 秒                  | 设置 socket 连接超时。                                                      |
+| `request_timeout`                | `60` 秒                   | 设置 IB 请求超时。                                                          |
+| `handle_revised_bars`            | `False`                   | 发布未完成 K 线的每次修订，而不是每根完成 K 线发布一次。                    |
+| `batch_quotes`                   | `True`                    | 报价订阅优先使用 `reqMktData`。                                             |
+| `all_last_trades`                | `True`                    | 包含 AllLast 成交；设为 `False` 则只请求 Last 成交。                        |
+| `subscription_idle_timeout_secs` | `None`                    | 订阅无数据达这么多秒后发出一个自定义数据事件。                              |
+| `instrument_provider`            | 默认 provider 配置        | 配置合约与工具加载。                                                        |
+| `dockerized_gateway`             | `None`                    | 保留且会被拒绝；请单独启动 gateway。                                        |
 
-With `handle_revised_bars=False`, a bar IB keeps up to date is published once it completes. IB
-revises the open bar every 5 seconds and sends its final values about half a second after the bar
-closes, so the bar is published when that update arrives. If none arrives, because the last 5
-seconds had no trades, the bar is published 2 seconds after its close or on the next bar's first
-update, whichever comes first.
+`handle_revised_bars=False` 时，IB 持续更新的 K 线在完成时才发布一次。IB 每 5 秒修订一次
+未完成的 K 线，并在 K 线收盘后约半秒发送其最终值，K 线在该更新到达时发布。若没有更新到达
+（因为最后 5 秒没有成交），K 线在收盘 2 秒后、或下一根 K 线首次更新时发布，以先到者为准。
 
-When `subscription_idle_timeout_secs` is set, each live subscription emits
-`InteractiveBrokersSubscriptionIdle` once per interval of inactivity. A new market-data update rearms the
-notification. Subscribe to `DataType("InteractiveBrokersSubscriptionIdle")` through the message bus to receive
-these events in `on_data`. Each event identifies the data client, instrument, subscription, timeout, and last
-local data receipt time. A quiet instrument or closed market can also trigger an event. Inactivity alone does
-not restart a subscription.
+设置 `subscription_idle_timeout_secs` 后，每个实时订阅每经过一段不活跃时间发出一次
+`InteractiveBrokersSubscriptionIdle`。新的行情数据更新会重新武装该通知。通过消息总线订阅
+`DataType("InteractiveBrokersSubscriptionIdle")` 即可在 `on_data` 中收到这些事件。每个事件
+标识数据客户端、工具、订阅、超时和最近一次本地数据接收时间。安静的工具或休市的市场也可能
+触发事件。仅有不活跃不会重启订阅。
 
-### Execution client
+### 执行客户端 {#execution-client}
 
-| Option                                       | Default                 | Purpose                                              |
+| 选项                                         | 默认值                  | 用途                                                 |
 | -------------------------------------------- | ----------------------- | ---------------------------------------------------- |
-| `host`                                       | `127.0.0.1`             | TWS or IB Gateway host.                              |
-| `port`                                       | `4002`                  | TWS or IB Gateway socket port.                       |
-| `client_id`                                  | `1`                     | IB API client ID.                                    |
-| `account_id`                                 | `None`                  | Raw IB account code such as `DU123456`.              |
-| `connection_timeout`                         | `300` seconds           | Set the socket connection timeout.                   |
-| `request_timeout`                            | `60` seconds            | Set the IB request timeout.                          |
-| `fetch_all_open_orders`                      | `False`                 | Request all open orders visible to the session.      |
-| `track_option_exercise_from_position_update` | `False`                 | Track option exercise through position updates.      |
-| `instrument_provider`                        | Default provider config | Configure contract and instrument loading.           |
-| `dockerized_gateway`                         | `None`                  | Reserved and rejected; start the gateway separately. |
+| `host`                                       | `127.0.0.1`             | TWS 或 IB Gateway 主机。                             |
+| `port`                                       | `4002`                  | TWS 或 IB Gateway socket 端口。                      |
+| `client_id`                                  | `1`                     | IB API 客户端 ID。                                   |
+| `account_id`                                 | `None`                  | 原始 IB 账户代码，如 `DU123456`。                    |
+| `connection_timeout`                         | `300` 秒                | 设置 socket 连接超时。                               |
+| `request_timeout`                            | `60` 秒                 | 设置 IB 请求超时。                                   |
+| `fetch_all_open_orders`                      | `False`                 | 请求会话可见的全部未结订单。                         |
+| `track_option_exercise_from_position_update` | `False`                 | 通过持仓更新跟踪期权行权。                           |
+| `instrument_provider`                        | 默认 provider 配置      | 配置合约与工具加载。                                 |
+| `dockerized_gateway`                         | `None`                  | 保留且会被拒绝；请单独启动 gateway。                 |
 
-### Dockerized gateway
+### Docker 化 gateway {#dockerized-gateway}
 
-| Option            | Default                            | Purpose                                                              |
-| ----------------- | ---------------------------------- | -------------------------------------------------------------------- |
-| `username`        | `TWS_USERNAME`                     | Set the IB login username.                                           |
-| `password`        | `TWS_PASSWORD`                     | Set the IB login password; debug output and serialization redact it. |
-| `trading_mode`    | `TradingMode.PAPER`                | Select paper or live login and port mapping.                         |
-| `read_only_api`   | `True`                             | Disable order entry through the Gateway API.                         |
-| `timeout`         | `300` seconds                      | Bound startup readiness; valid values are `1` through `3600`.        |
-| `container_image` | `ghcr.io/gnzsnz/ib-gateway:stable` | Select the container image reference.                                |
-| `vnc_port`        | `None`                             | Expose VNC on a port from `5900` through `5999`; `None` disables it. |
+| 选项            | 默认值                             | 用途                                                                 |
+| --------------- | ---------------------------------- | -------------------------------------------------------------------- |
+| `username`      | `TWS_USERNAME`                     | 设置 IB 登录用户名。                                                 |
+| `password`      | `TWS_PASSWORD`                     | 设置 IB 登录密码；调试输出与序列化会隐去它。                         |
+| `trading_mode`  | `TradingMode.PAPER`                | 选择模拟或实盘登录与端口映射。                                       |
+| `read_only_api` | `True`                             | 禁用通过 Gateway API 录入订单。                                      |
+| `timeout`       | `300` 秒                           | 限定启动就绪时间；有效值 `1` 到 `3600`。                             |
+| `container_image` | `ghcr.io/gnzsnz/ib-gateway:stable` | 选择容器镜像引用。                                                 |
+| `vnc_port`      | `None`                             | 在 `5900` 到 `5999` 之间的端口暴露 VNC；`None` 表示禁用。            |
 
-`DockerizedIBGateway` exposes asynchronous and blocking `start`, `safe_start`, and `stop` methods,
-plus `container_status`. The safe start variants reuse a ready container and replace an unhealthy
-one.
+`DockerizedIBGateway` 暴露异步与阻塞的 `start`、`safe_start` 和 `stop` 方法，以及
+`container_status`。safe start 变体会复用就绪的容器，并替换不健康的容器。
 
-## Python enum reference
+## Python 枚举参考 {#python-enum-reference}
 
-All public Python enum names use `SCREAMING_SNAKE_CASE`. IB conversion enums expose `as_str()` or
-`as_i32()` when callers need the corresponding wire value.
+所有公开的 Python 枚举名使用 `SCREAMING_SNAKE_CASE`。IB 转换枚举在调用方需要对应线值时暴露
+`as_str()` 或 `as_i32()`。
 
-### Connection, contracts, and instruments
+### 连接、合约与金融工具 {#connection-contracts-and-instruments}
 
-| Enum                                | Purpose and key members                                                                                                                                |
+| 枚举                                | 用途与主要成员                                                                                                                                     |
 | ----------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `ContainerStatus`                   | Gateway lifecycle: `NO_CONTAINER`, `CONTAINER_CREATED`, `CONTAINER_STARTING`, `CONTAINER_STOPPED`, `NOT_LOGGED_IN`, `READY`, or `UNKNOWN`.             |
-| `MarketDataType`                    | Subscription mode: `REALTIME`, `FROZEN`, `DELAYED`, or `DELAYED_FROZEN`.                                                                               |
-| `SymbologyMethod`                   | Instrument ID mapping: `SIMPLIFIED` or `RAW`.                                                                                                          |
-| `TradingMode`                       | Gateway login mode: `PAPER` or `LIVE`.                                                                                                                 |
-| `IbSecurityType`                    | IB contract types: stock, option, future, continuous future, index, futures option, FX, spread, warrant, bond, commodity, news, fund, crypto, and CFD. |
-| `IbOptionRight`                     | Option side: `CALL` or `PUT`.                                                                                                                          |
-| `IbBondIdentifierKind`              | Bond identifier: `CUSIP` or `ISIN`.                                                                                                                    |
-| `IbFundAssetType`                   | Fund asset classification: none, other, money market, fixed income, multi-asset, equity, sector, guaranteed, or alternative.                           |
-| `IbFundDistributionPolicyIndicator` | Fund distribution policy: `NONE`, `ACCUMULATION_FUND`, or `INCOME_FUND`.                                                                               |
+| `ContainerStatus`                   | Gateway 生命周期：`NO_CONTAINER`、`CONTAINER_CREATED`、`CONTAINER_STARTING`、`CONTAINER_STOPPED`、`NOT_LOGGED_IN`、`READY` 或 `UNKNOWN`。             |
+| `MarketDataType`                    | 订阅模式：`REALTIME`、`FROZEN`、`DELAYED` 或 `DELAYED_FROZEN`。                                                                                       |
+| `SymbologyMethod`                   | 工具 ID 映射：`SIMPLIFIED` 或 `RAW`。                                                                                                                |
+| `TradingMode`                       | Gateway 登录模式：`PAPER` 或 `LIVE`。                                                                                                                |
+| `IbSecurityType`                    | IB 合约类型：股票、期权、期货、连续期货、指数、期货期权、外汇、价差、认股权证、债券、商品、新闻、基金、加密货币和 CFD。                             |
+| `IbOptionRight`                     | 期权方向：`CALL` 或 `PUT`。                                                                                                                          |
+| `IbBondIdentifierKind`              | 债券标识符：`CUSIP` 或 `ISIN`。                                                                                                                      |
+| `IbFundAssetType`                   | 基金资产分类：无、其他、货币市场、固定收益、多资产、股票、行业、保证型或另类。                                                                       |
+| `IbFundDistributionPolicyIndicator` | 基金分配策略：`NONE`、`ACCUMULATION_FUND` 或 `INCOME_FUND`。                                                                                         |
 
-### Market and historical data
+### 行情与历史数据 {#market-and-historical-data}
 
-| Enum                     | Purpose and key members                                                                                                 |
+| 枚举                     | 用途与主要成员                                                                                                            |
 | ------------------------ | ----------------------------------------------------------------------------------------------------------------------- |
-| `IbHistoricalBarSize`    | Historical bar intervals from one second through one month.                                                             |
-| `IbHistoricalTickType`   | Historical ticks: `TRADES` or `BID_ASK`.                                                                                |
-| `IbHistoricalWhatToShow` | Historical source such as trades, midpoint, bid, ask, volatility, fee rate, schedule, or adjusted last.                 |
-| `IbRealtimeBarSize`      | IB real-time bar size; IB supports `SEC5`.                                                                              |
-| `IbRealtimeWhatToShow`   | Real-time bar source: `TRADES`, `MIDPOINT`, `BID`, or `ASK`.                                                            |
-| `IbTradingHours`         | Regular or extended trading hours.                                                                                      |
-| `IbTickType`             | The full IB numeric tick-field set, including live and delayed prices, sizes, option values, yields, NAVs, and volumes. |
+| `IbHistoricalBarSize`    | 从一秒到一月的历史 K 线间隔。                                                                                           |
+| `IbHistoricalTickType`   | 历史 tick：`TRADES` 或 `BID_ASK`。                                                                                      |
+| `IbHistoricalWhatToShow` | 历史数据源，如成交、中间价、买价、卖价、波动率、费率、时间表或调整后最新价。                                             |
+| `IbRealtimeBarSize`      | IB 实时 K 线大小；IB 支持 `SEC5`。                                                                                      |
+| `IbRealtimeWhatToShow`   | 实时 K 线来源：`TRADES`、`MIDPOINT`、`BID` 或 `ASK`。                                                                   |
+| `IbTradingHours`         | 常规或延长交易时段。                                                                                                    |
+| `IbTickType`             | 完整的 IB 数值 tick 字段集，包括实时与延迟价格、数量、期权值、收益率、净值和成交量。                                     |
 
-### Orders and conditions
+### 订单与条件 {#orders-and-conditions}
 
-| Enum                     | Purpose and key members                                                                                                  |
+| 枚举                     | 用途与主要成员                                                                                                              |
 | ------------------------ | ------------------------------------------------------------------------------------------------------------------------ |
-| `IbAction`               | Order action and execution side: buy, sell, bought, sold, sell short, or sell long.                                      |
-| `IbOrderType`            | Native IB order types used by conversion and `IBOrderTags`; direct Nautilus support is limited to the order table above. |
-| `IbOrderStatus`          | Native lifecycle status from API pending through submitted, pending cancel, canceled, filled, or inactive.               |
-| `IbTimeInForce`          | IB time in force values used for order conversion.                                                                       |
-| `IbBuilderTimeInForce`   | Time in force values accepted by IB order builders, including good-till-crossing and opening auction.                    |
-| `IbOrderOpenClose`       | Open or close designation.                                                                                               |
-| `IbOrderOrigin`          | Customer or firm origin.                                                                                                 |
-| `IbShortSaleSlot`        | No short-sale slot, broker, or third party.                                                                              |
-| `IbAuctionStrategy`      | Match, improvement, or transparent auction strategy.                                                                     |
-| `IbAuctionType`          | Opening, closing, or volatility auction.                                                                                 |
-| `IbReferencePriceType`   | Average of NBBO or NBBO.                                                                                                 |
-| `IbVolatilityType`       | Daily or annual volatility.                                                                                              |
-| `IbRule80A`              | IB Rule 80A account and agency classifications.                                                                          |
-| `IbOcaType`              | No OCA, cancel with block, reduce with block, or reduce without block.                                                   |
-| `IbTriggerMethod`        | Default, double bid/ask, last, double last, bid/ask, last or bid/ask, or midpoint.                                       |
-| `IbLiquidity`            | None, added, removed, routed out, or explicitly unknown liquidity.                                                       |
-| `IbComboLegOpenClose`    | Same, open, close, or unknown combo-leg designation.                                                                     |
-| `IbLegAction`            | Buy or sell combo-leg action.                                                                                            |
-| `IbConditionKind`        | Price, time, margin, execution, volume, or percent-change condition.                                                     |
-| `IbConditionConjunction` | `AND` or `OR`.                                                                                                           |
-| `IbExerciseAction`       | Exercise or lapse an option.                                                                                             |
-| `IbTwapStrategyType`     | Marketable, matching midpoint, matching same side, or matching last.                                                     |
-| `IbRiskAversion`         | Get done, aggressive, neutral, or passive.                                                                               |
-| `IbArticleType`          | Text or binary news article.                                                                                             |
+| `IbAction`               | 订单动作与成交方向：买入、卖出、已买、已卖、卖空或卖多。                                                                 |
+| `IbOrderType`            | 转换与 `IBOrderTags` 使用的原生 IB 订单类型；Nautilus 直接支持仅限上面的订单表。                                          |
+| `IbOrderStatus`          | 从 API pending 到 submitted、pending cancel、canceled、filled 或 inactive 的原生生命周期状态。                             |
+| `IbTimeInForce`          | 订单转换使用的 IB 有效期值。                                                                                              |
+| `IbBuilderTimeInForce`   | IB 订单构建器接受的有效期值，包括 good-till-crossing 和开盘集合竞价。                                                     |
+| `IbOrderOpenClose`       | 开仓或平仓标记。                                                                                                          |
+| `IbOrderOrigin`          | 客户或自营来源。                                                                                                          |
+| `IbShortSaleSlot`        | 无卖空槽位、券商或第三方。                                                                                                |
+| `IbAuctionStrategy`      | Match、improvement 或 transparent 集合竞价策略。                                                                          |
+| `IbAuctionType`          | 开盘、收盘或波动率集合竞价。                                                                                              |
+| `IbReferencePriceType`   | NBBO 均值或 NBBO。                                                                                                        |
+| `IbVolatilityType`       | 日波动率或年波动率。                                                                                                      |
+| `IbRule80A`              | IB Rule 80A 账户与代理分类。                                                                                              |
+| `IbOcaType`              | 无 OCA、连带撤销、连带减仓或不连带减仓。                                                                                  |
+| `IbTriggerMethod`        | 默认、双买卖价、最新价、双最新价、买卖价或最新价、或中间价。                                                              |
+| `IbLiquidity`            | 无、增加、移除、路由出或显式未知的流动性。                                                                                |
+| `IbComboLegOpenClose`    | 相同、开仓、平仓或未知的组合腿标记。                                                                                      |
+| `IbLegAction`            | 买入或卖出的组合腿动作。                                                                                                  |
+| `IbConditionKind`        | 价格、时间、保证金、执行、成交量或百分比变化条件。                                                                        |
+| `IbConditionConjunction` | `AND` 或 `OR`。                                                                                                           |
+| `IbExerciseAction`       | 行权或放弃期权。                                                                                                          |
+| `IbTwapStrategyType`     | 可成交、匹配中间价、匹配同方向或匹配最新价。                                                                              |
+| `IbRiskAversion`         | 务必成交、激进、中性或被动。                                                                                              |
+| `IbArticleType`          | 文本或二进制新闻文章。                                                                                                    |
 
-## Test the adapter
+## 测试适配器 {#test-the-adapter}
 
-For market data, `examples/live/interactive_brokers/data_tester.py` streams the configured
-instrument with the built-in `DataTester` actor, and the Rust equivalent runs with
-`cargo run --example ib-data-tester --package nautilus-interactive-brokers --features examples`.
-Both connect to a locally running TWS or IB Gateway and place no orders.
+行情方面，`examples/live/interactive_brokers/data_tester.py` 用内置的 `DataTester` Actor 接收
+配置工具的实时数据，Rust 版通过
+`cargo run --example ib-data-tester --package nautilus-interactive-brokers --features examples`
+运行。两者都连接本地运行的 TWS 或 IB Gateway，不下任何订单。
 
-The Python examples construct offline by default. Their run flags separate connection from order
-submission. The Rust execution tester uses the same boundary:
+Python 示例默认离线构建。它们的运行标志把连接与下单分开。Rust 执行测试器使用同样的边界：
 
 ```bash
 # Construct the tester without connecting.
@@ -779,18 +757,18 @@ cargo run --example ib-exec-tester \
   --features examples
 ```
 
-Available execution profiles are `lifecycle`, `cancel-modify`, `rejection`, `options`, `stop`,
-`stop-limit`, `trailing`, `bracket`, and `unsupported-flags`. Run live tests only against an account
-and instruments intended for the selected profile.
+可用的执行配置文件有 `lifecycle`、`cancel-modify`、`rejection`、`options`、`stop`、
+`stop-limit`、`trailing`、`bracket` 和 `unsupported-flags`。只在为所选配置文件准备的账户和
+工具上运行实盘测试。
 
-## Troubleshooting
+## 故障排查 {#troubleshooting}
 
-- Confirm TWS or IB Gateway is running, logged in, and configured for socket API access.
-- Confirm the port matches the application and trading mode.
-- Confirm no other process uses the same IB API client ID.
-- Confirm the account has permission for the requested market data type and instrument.
-- Run the ignored connection smoke explicitly when a paper session is available:
-  `cargo test -p nautilus-interactive-brokers --test connection -- --ignored`.
+- 确认 TWS 或 IB Gateway 正在运行、已登录并配置了 socket API 访问。
+- 确认端口与应用及交易模式匹配。
+- 确认没有其他进程使用相同的 IB API 客户端 ID。
+- 确认账户对所请求的行情数据类型和工具有权限。
+- 有可用的模拟会话时，显式运行被忽略的连接冒烟测试：
+  `cargo test -p nautilus-interactive-brokers --test connection -- --ignored`。
 
-For IB error codes, pacing, and connection settings, see the
-[official TWS API reference](https://ibkrcampus.com/campus/ibkr-api-page/twsapi-doc/).
+IB 错误码、节流与连接设置见
+[官方 TWS API 参考](https://ibkrcampus.com/campus/ibkr-api-page/twsapi-doc/)。

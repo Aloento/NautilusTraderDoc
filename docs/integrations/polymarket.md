@@ -2343,50 +2343,70 @@ CARGO_BUILD_JOBS=16 bash scripts/strip-adapter-env.bash \
 6 个结果代币 ID（来自
 6 个不同的开放、接受订单的市场）来替代成交最活跃的市场，因为清淡的订单簿可能错过恢复等待。
 
-Two venue behaviors limit what the harness can force:
+两种场所行为限制了该工具能强制的场景：
 
-- Polymarket never rejects a subscription, and an unverifiable `book` event can complete recovery
-  before a corrupted replacement arrives, so the harness withholds replacement snapshots instead.
-- Reconnect replay also resubscribes a recovering book, so the ceiling reconnect check shows prompt
-  recovery without isolating the ceiling wake.
+- Polymarket
+  从不拒绝订阅，且一份无法校验的
+  `book`
+  事件可能在损坏的替身快照到达之前就完成恢复，因此该工具改为扣押替身快照。
+- 重连重放也会为重恢复中的订单簿重新订阅，因此上限处重连的检查会显示恢复及时，除非隔离
+  上限唤醒。
 
-The harness requires the market WebSocket channel, the Gamma markets API, and the CLOB API. See
-[Stress harnesses](./../developer_guide/spec_data_testing.md#stress-harnesses) for the shared flags
-and output format.
+该工具需要市场
+WebSocket
+频道、Gamma 市场
+API 与 CLOB
+API。共享参数与输出格式见
+[压力测试工具集](./../developer_guide/spec_data_testing.md#stress-harnesses)。
 
-#### Effective deltas
+#### 有效增量 {#effective-deltas}
 
-`compute_effective_deltas` defaults to `false`. Enable it to trade extra processing for smaller
-snapshot batches (see [Data client options](#data-client-options)):
+`compute_effective_deltas` 默认为
+`false`。开启它是以额外处理换取更小的快照批次（见[数据客户端选项](#data-client-options)）：
 
-- A full book snapshot with prior local state emits only net level changes: `ADD` for new levels,
-  `UPDATE` for resized levels, and `DELETE` with the last known size for removed levels. No-op
-  snapshots emit nothing, and the final record carries `F_LAST`.
-- Without prior state, such as after a [tick size change](#tick-size-change-handling), the snapshot
-  passes through unchanged to seed the new book epoch.
-- Incremental `price_change` batches follow [price change bursts](#price-change-bursts) handling
-  and update the local comparison state.
-- When book deltas are subscribed, the maintained comparison book can supply matching sizes to
-  `best_bid_ask` quote ticks. This can change those quote sizes and their unchanged-quote
-  suppression, and the carried sizes can affect later `price_change` quotes. Trades are unchanged.
+- 有本地先前状态时，完整订单簿快照只发出净档位变化：新档位用
+  `ADD`，改数量的档位用
+  `UPDATE`，被移除档位用最后已知数量的
+  `DELETE`。空操作快照什么都不发，最后一条记录携带
+  `F_LAST`。
+- 没有先前状态时，例如[
+  tick 尺寸变更](#tick-size-change-handling)之后，快照原样通过，为新订单簿纪元播种。
+- 增量的 `price_change`
+  批次遵循[价格变动突发](#price-change-bursts)的处理并更新本地比较状态。
+- 订阅了订单簿增量时，维护中的比较订单簿可以为
+  `best_bid_ask`
+  报价明细提供一致的数量。这可能改变这些报价的数量及其"报价未变"抑制，携带的数量也会影响
+  后续的 `price_change`
+  报价。成交不受影响。
 
-#### PolyBolt reference prices
+#### PolyBolt 参考价格 {#polybolt-reference-prices}
 
-The data client also supports Polymarket's PolyBolt reference-price channels: crypto spot
-(`price.crypto`), 60-second Chainlink crypto TWAP (`price.crypto.twap`), and equity, ETF, forex,
-metal, and commodity prices (`price.equity`). PolyBolt replaced the legacy RTDS price topics in
-October 2026.
+数据客户端还支持
+Polymarket 的 PolyBolt
+参考价格频道：加密现货（
+`price.crypto`）、60 秒
+Chainlink 加密
+TWAP（`price.crypto.twap`），以及股票、ETF、外汇、金属与大宗商品价格
+（`price.equity`）。PolyBolt
+于 2026 年 10 月取代了旧版
+RTDS 价格主题。
 
-PolyBolt requires CLOB L2 API credentials. Set `api_key`, `api_secret`, and `passphrase` on
-`PolymarketDataClientConfig`, or export `POLYMARKET_API_KEY`, `POLYMARKET_API_SECRET`, and
-`POLYMARKET_PASSPHRASE`. Credentials are optional when no price subscriptions are used.
+PolyBolt 需要
+CLOB L2 API 凭据。在
+`PolymarketDataClientConfig` 上设置
+`api_key`、`api_secret` 与
+`passphrase`，或导出
+`POLYMARKET_API_KEY`、`POLYMARKET_API_SECRET` 与
+`POLYMARKET_PASSPHRASE`。不使用价格订阅时凭据可选。
 
-Explicit credentials and a complete environment set are validated when the data client is constructed.
-Malformed credentials fail construction. A partial environment set is ignored with a warning. A price
-subscription without credentials is rejected with a configuration error.
+显式凭据与完整的环境变量集在构造数据客户端时校验。畸形凭据让构造失败。环境变量的部分
+集合被忽略并告警。没有凭据的价格订阅以配置错误被拒绝。
 
-Subscribe through generic custom data with a required, non-empty `symbol` metadata value. TWAP
-subscriptions also require `window_seconds` equal to `60`, the only window PolyBolt serves:
+通过通用自定义数据订阅，要求携带非空的
+`symbol`
+元数据值。TWAP 订阅还要求
+`window_seconds` 为
+`60`——PolyBolt 只提供这一种窗口：
 
 ```python
 from nautilus_trader.adapters.polymarket import POLYMARKET_CLIENT_ID
