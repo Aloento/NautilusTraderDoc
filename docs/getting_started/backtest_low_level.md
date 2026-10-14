@@ -1,19 +1,17 @@
-# Backtest (Low-Level API)
+# 回测（低层 API）
 
-Use `BacktestEngine` for direct component access: load market data, wire up
-strategies and execution algorithms, and run backtests with full control over
-every step. This tutorial backtests an EMA cross strategy with a TWAP execution
-algorithm on a simulated Binance Spot exchange using historical trade tick data.
+`BacktestEngine` 提供对组件的直接访问：加载行情、接入策略与执行算法，
+每一步都完全可控。本教程在模拟的 Binance Spot 交易所上，用历史逐笔成交数据
+回测一个带 TWAP 执行算法的 EMA 交叉策略。
 
-[View source on GitHub](https://github.com/nautechsystems/nautilus_trader/blob/develop/docs/getting_started/backtest_low_level.py).
+[在 GitHub 查看源码](https://github.com/nautechsystems/nautilus_trader/blob/develop/docs/getting_started/backtest_low_level.py)。
 
-## Prerequisites
+## 前置条件 {#prerequisites}
 - Python 3.13-3.14
-- [NautilusTrader](https://pypi.org/project/nautilus_trader/) 2.x installed
-  (`pip install -U --pre nautilus_trader`). The `--pre` flag is required while 2.x
-  ships as `2.0.0rcN`.
-- pandas (`pip install pandas`), used by the reports at the end. The wheel
-  declares no runtime dependencies.
+- 已安装 [NautilusTrader](https://pypi.org/project/nautilus_trader/) 2.x
+  （`pip install -U --pre nautilus_trader`）。2.x 目前以 `2.0.0rcN` 发布，
+  `--pre` 必不可少。
+- pandas（`pip install pandas`），文末的报告会用到。wheel 没有声明运行时依赖。
 
 ```python
 from decimal import Decimal
@@ -42,12 +40,12 @@ from nautilus_trader.testkit.providers import TestInstrumentProvider
 from nautilus_trader.trading import Strategy
 ```
 
-## Load data
+## 加载数据 {#load-data}
 
-Load sample test data (ETHUSDT trades from Binance), initialize the matching
-instrument, and build Nautilus `TradeTick` objects from the CSV. `TestDataProvider`
-reads the CSV from the local `test_data/` directory in a source checkout and
-downloads it from GitHub otherwise, so a wheel install needs network access.
+加载示例测试数据（Binance 的 ETHUSDT 成交），初始化与之匹配的金融工具，
+并从 CSV 构建 Nautilus 的 `TradeTick` 对象。`TestDataProvider` 在源码检出目录下
+会读取本地 `test_data/` 中的 CSV，其他情况则从 GitHub 下载，因此 wheel 安装
+需要联网。
 
 ```python
 # Initialize the instrument which matches the data
@@ -60,12 +58,11 @@ ticks = TestDataProvider.trades_from_binance_csv(
 )
 ```
 
-See the [Data](./../concepts/data/index.md) concept guide for details on the data processing pipeline.
+数据处理管道的细节见[数据](./../concepts/data/index.md)概念指南。
 
-## Initialize the engine
+## 初始化引擎 {#initialize-the-engine}
 
-Pass a `BacktestEngineConfig` to configure the engine. Here we set a custom
-`trader_id` to show the pattern.
+传入 `BacktestEngineConfig` 配置引擎。这里设置了自定义 `trader_id` 来演示这一模式。
 
 ```python
 # Configure backtest engine
@@ -78,10 +75,9 @@ config = BacktestEngineConfig(
 engine = BacktestEngine(config=config)
 ```
 
-## Add a venue
+## 添加场所 {#add-a-venue}
 
-Set up a simulated venue that matches the market data. Here we configure a
-Binance Spot exchange with a cash account.
+配置一个与行情数据匹配的模拟场所。这里配置带现金账户的 Binance Spot 交易所。
 
 ```python
 # Add a trading venue (multiple venues possible)
@@ -115,15 +111,14 @@ engine.add_data(ticks)
 ```
 
 :::note
-You can add multiple data types (including custom types) and backtest across multiple venues.
+可以添加多种数据类型（包括自定义类型），也可以跨多个场所回测。
 :::
 
-## Add strategies
+## 添加策略 {#add-strategies}
 
-The strategy extends `Strategy` and trades an EMA crossover on 250-tick bars,
-which the engine aggregates internally from the trade ticks. Entries are
-submitted with an `exec_algorithm_id` so the engine routes them to the TWAP
-execution algorithm for slicing.
+策略继承 `Strategy`，在 250-tick bar 上做 EMA 交叉交易，这些 bar 由引擎
+从逐笔成交数据内部聚合而成。下单时带上 `exec_algorithm_id`，
+引擎会把订单交给 TWAP 执行算法拆分。
 
 ```python
 class EMACrossTWAPConfig(StrategyConfig):
@@ -219,13 +214,11 @@ strategy = EMACrossTWAP(config=strategy_config)
 engine.add_strategy(strategy=strategy)
 ```
 
-The strategy config carries the TWAP parameters, but the execution algorithm
-itself is a separate component.
+策略配置里带了 TWAP 参数，但执行算法本身是独立的组件。
 
-## Add execution algorithms
+## 添加执行算法 {#add-execution-algorithms}
 
-Register the built-in TWAP execution algorithm under the `TWAP` identifier the
-strategy references.
+注册内置的 TWAP 执行算法，标识符为策略引用的 `TWAP`。
 
 ```python
 # Add the native TWAP execution algorithm
@@ -235,22 +228,19 @@ engine.add_native_exec_algorithm(
 )
 ```
 
-## Run the backtest
+## 运行回测 {#run-the-backtest}
 
-Call `.run()` to process all available data. The engine replays events in
-timestamp order with deterministic execution semantics.
+调用 `.run()` 处理全部数据。引擎按时间戳顺序重放事件，执行语义是确定性的。
 
 ```python
 # Run the engine (from start to end of data)
 engine.run()
 ```
 
-## Post-run analysis
+## 运行后分析 {#post-run-analysis}
 
-The engine retains data and execution objects in memory for generating reports.
-It also logs a tearsheet with default statistics; see the
-[Portfolio statistics](./../concepts/portfolio.md#portfolio-statistics) guide for
-custom statistics.
+引擎在内存中保留数据与执行对象用于生成报告，同时输出带默认统计的
+tearsheet；自定义统计见[组合统计](./../concepts/portfolio.md#portfolio-statistics)指南。
 
 ```python
 engine.generate_account_report(BINANCE)
@@ -264,10 +254,10 @@ engine.generate_order_fills_report()
 engine.generate_positions_report()
 ```
 
-## Repeated runs
+## 重复运行 {#repeated-runs}
 
-Reset the engine for repeated runs. Instruments, data, and loaded components
-persist across resets; loaded components have their internal state reset.
+重复运行时重置引擎。金融工具、数据与已加载的组件跨重置保留，
+已加载组件的内部状态会被重置。
 
 ```python
 # For repeated backtest runs, reset the engine
@@ -276,9 +266,9 @@ engine.reset()
 # Clear loaded components before adding replacements.
 ```
 
-Clear and add components (actors, strategies, execution algorithms) as required.
+按需清除并添加组件（actors、策略、执行算法）。
 
-See the [BacktestEngine](./../api_reference/backtest.md) API reference for the add and clear methods.
+add 与 clear 方法见 [BacktestEngine](./../api_reference/backtest.md) API 参考。
 
 ```python
 # Once done, good practice to dispose of the object if the script continues

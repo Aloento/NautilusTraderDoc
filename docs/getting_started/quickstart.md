@@ -1,28 +1,26 @@
-# Quickstart
+# 快速上手
 
-Run your first backtest in under five minutes.
+五分钟内跑通第一个回测。
 
-[View source on GitHub](https://github.com/nautechsystems/nautilus_trader/blob/develop/docs/getting_started/quickstart.py).
+[在 GitHub 查看源码](https://github.com/nautechsystems/nautilus_trader/blob/develop/docs/getting_started/quickstart.py)。
 
-## Prerequisites
+## 前置条件 {#prerequisites}
 
 - Python 3.13-3.14
-- NautilusTrader 2.x installed (`pip install -U --pre nautilus_trader`). The `--pre`
-  flag is required while 2.x ships as `2.0.0rcN`; without it pip installs the 1.x
-  line, whose Python API differs and cannot run this page.
-- NumPy and pandas (`pip install numpy pandas`). The wheel declares no runtime
-  dependencies, so it does not pull them in.
+- 已安装 NautilusTrader 2.x（`pip install -U --pre nautilus_trader`）。2.x 目前以
+  `2.0.0rcN` 发布，`--pre` 必不可少；不加的话 pip 会装 1.x 版本线，其 Python API
+  不同，无法运行本页代码。
+- NumPy 与 pandas（`pip install numpy pandas`）。wheel 没有声明运行时依赖，
+  不会自动带上它们。
 
-## Write a strategy
+## 编写策略 {#write-a-strategy}
 
-A strategy extends the `Strategy` base class and overrides event handlers to
-react to market data. This one trades an EMA crossover: buy when a fast
-exponential moving average crosses above a slow one, sell when it crosses below.
+策略继承 `Strategy` 基类，覆写事件处理器来响应行情。这里的策略做 EMA 交叉交易：
+快指数移动平均线上穿慢线时买入，下穿时卖出。
 
-Its parameters live on a `StrategyConfig` subclass. Declare your own fields as
-keyword-only arguments and absorb the rest in `**_kwargs`: the base config
-reads its own fields (`strategy_id`, `oms_type`, and so on) from the same call
-and ignores the ones it does not recognize.
+策略参数放在 `StrategyConfig` 子类上。自定义字段声明为仅关键字参数，其余交给
+`**_kwargs` 吸收：基类配置会从同一次调用中读取自己的字段（`strategy_id`、
+`oms_type` 等），并忽略不认识的字段。
 
 ```python
 from decimal import Decimal
@@ -105,15 +103,13 @@ class EMACross(Strategy):
         self.close_all_positions(self.config.instrument_id)
 ```
 
-`on_start` registers the two EMA indicators so the engine updates them
-automatically with each new bar. `on_bar` waits for the indicators to warm up,
-then enters or reverses a position based on the crossover signal.
+`on_start` 注册两个 EMA 指标，引擎会随每根新 bar 自动更新它们。
+`on_bar` 先等指标预热完成，再根据交叉信号开仓或反向持仓。
 
-## Generate synthetic data
+## 生成合成数据 {#generate-synthetic-data}
 
-To keep the quickstart self-contained, we generate 10,000 synthetic EUR/USD
-1-minute bars using a random walk. In practice you would load real market data
-from a vendor or the Parquet data catalog.
+为了让快速上手不依赖外部数据，这里用随机游走生成 10,000 根合成的 EUR/USD
+1 分钟 bar。实际工作中，应从数据商或 Parquet 数据目录加载真实行情。
 
 ```python
 import numpy as np
@@ -187,14 +183,13 @@ bars = [
 ]
 ```
 
-Each row becomes a `Bar` with the instrument's price precision. The bar type
-string encodes the instrument, aggregation period, price source, and data origin.
+每一行数据变成一根 `Bar`，价格精度取自金融工具的定义。bar 类型字符串
+编码了金融工具、聚合周期、价格来源与数据来源。
 
-## Configure and run the engine
+## 配置并运行引擎 {#configure-and-run-the-engine}
 
-Create a `BacktestEngine`, add a simulated FX venue with a margin account, wire
-up the instrument, data, and strategy, then run. The engine processes all bars
-in timestamp order with deterministic execution semantics.
+创建 `BacktestEngine`，添加一个带保证金账户的模拟 FX 场所，接入金融工具、
+数据和策略，然后运行。引擎按时间戳顺序处理所有 bar，执行语义是确定性的。
 
 ```python
 engine = BacktestEngine(
