@@ -874,7 +874,7 @@ Binance 在检测到缺口的同一步骤认领：未同步订单簿的每个 di
   在连接时重放订阅。
 - **Derive**：只有时间戳前进的完整快照才被接受，且该下限跨重连保留。时间戳前进的空快照计为更新。替换走现有
   socket 上的退订/订阅一对操作。定时器默认值和通知关联限制见
-  [Derive order book recovery](./../integrations/derive.md#order-book-recovery)。
+  [Derive 订单簿恢复](./../integrations/derive.md#order-book-recovery)。
 
 适配器分两个恢复家族，决定压力测试装置可用哪种 oracle：
 
