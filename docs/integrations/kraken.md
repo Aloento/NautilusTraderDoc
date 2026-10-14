@@ -137,8 +137,8 @@ Kraken 在部分现货响应中还用 `XDG` 表示狗狗币。适配器把它规
 配置接受任一拼写。例如 `spot_positions_quote_currency="ZEUR"` 与 `"EUR"` 都匹配欧元计价的
 工具。
 
-费用在可用时使用场所上报的货币。期货成交保留场所的 `fee_currency`。现货 `TradesHistory`
-只报告费用金额，因此这些佣金使用工具的报价货币。
+费用在可用时使用场所上报的货币。期货成交可以携带费用货币，在反向合约上那是基础货币而不是
+报价货币。现货 `TradesHistory` 只报告费用金额，因此这些佣金使用工具的报价货币。
 
 #### 从早先的货币代码迁移 {#migration-from-earlier-currency-codes}
 
@@ -437,10 +437,10 @@ config = KrakenDataClientConfig(
 
 ### 订单修改 {#order-modification}
 
-修改中的数量是订单新的总量（含已成交部分），这正是 Kraken 现货改单接受 `order_qty` 的语义。
-Kraken 期货把裸 `edit` 的 `size` 读作未结数量，因此凡是改变订单大小的期货改单（无论单笔还是
-批量），适配器都发送 `qtyMode=ABSOLUTE`。Kraken 没有文档说明总量小于等于已成交数量时它的
-答复。
+A modify's quantity 是订单新的总量（含已成交部分），这正是 Kraken
+现货改单接受 `order_qty` 的语义。Kraken 期货把裸改单的 `size` 读作未结数量，因此凡是改变
+订单大小的期货改单（无论单笔还是批量），适配器都发送 `qtyMode=ABSOLUTE`。Kraken 没有文档
+说明总量小于等于已成交数量时它的答复。
 
 ### 持仓管理 {#position-management}
 
