@@ -6,7 +6,7 @@ v3 API 把操作打包成批，以便在以太坊上结算。订单链下撮合�
 
 ## 概览 {#overview}
 
-Derive adapter 用 Rust 实现，位于 `crates/adapters/derive`。它提供：
+Derive 适配器（adapter）用 Rust 实现，位于 `crates/adapters/derive`。它提供：
 
 - `DeriveHttpClient`：到 `api.derive.xyz/v3`（主网）或 `testnet.api.derive.xyz/v3`（测试网）的低层 REST 连接。
 - `DeriveWebSocketClient`：带订阅跟踪、重连与签名下单的 JSON-RPC WebSocket 传输。
@@ -66,7 +66,7 @@ Derive 金融工具使用场所原生符号加 `.DERIVE` 后缀：
 设置 `include_expired` 后，provider 按金融工具名称合并期权的活动与过期挂牌，同一期权在两种
 挂牌中都存在（临近到期）时保留活动定义。永续与现货挂牌忽略该设置。
 
-adapter 按场所的 `instrument_type`（`perp`、`option`、`erc20`）路由，而不是按符号后缀，因此
+适配器按场所的 `instrument_type`（`perp`、`option`、`erc20`）路由，而不是按符号后缀，因此
 现货对没有特殊的符号解析。现货复用与永续、期权相同的 Trade 模块签名路径。
 `crates/adapters/derive/test_data/spot/` 下的 fixture 记录了现货金融工具、订单簿、ticker 与
 成交的字段形态，把解析器与执行路径钉在这些形态上。
@@ -81,7 +81,7 @@ V3 测试网可以接受并撤销被动挂单的 `ETH-USDC` 限价单。公共�
 
 - **成交稀疏**：公共现货成交频道（`trades.erc20.ETH`、`trades.ETH-USDC`）能成功订阅，但
   成交量可能很低，成交帧会稀疏。
-- **簿为空**：场所仍会广播 ticker 与订单簿帧，但最优档为零。任一侧价格或数量为零时，adapter
+- **簿为空**：场所仍会广播 ticker 与订单簿帧，但最优档为零。任一侧价格或数量为零时，适配器
   不发报价。见[报价](#quotes)。成交帧由撮合驱动、与簿状态无关，因此把簿打空的成交仍会发事件。
 - **Standard Margin**：现货订单按初始保证金比例计保证金，不是全额名义价值。
 
@@ -116,7 +116,7 @@ session key 提供签名者地址。`DeriveExecutionClientConfig::domain_separat
 
 动作 nonce 使用 UNIX 纳秒，在请求与响应中以十进制字符串传输。分配器在同一进程内按钱包与
 子账户共享一条单调递增流，跨客户端实例生效，与钱包大小写无关。时钟回拨时，只要最后一个 nonce
-仍在本地时间一小时之内，就把它前移。adapter 采用闭区间订单窗口
+仍在本地时间一小时之内，就把它前移。适配器采用闭区间订单窗口
 [本地时间减 90 天，本地时间加 1 小时]，这是场所文档化 120 天窗口内保守的回看幅度。本地时间
 近似服务器时钟，因此时钟偏差仍可能导致场所拒绝。登录时间戳用毫秒，签名有效期用秒。
 
@@ -128,10 +128,10 @@ session key 提供签名者地址。`DeriveExecutionClientConfig::domain_separat
 1. 在启用策略前，于测试网与主网用显式的价格、手续费与敞口边界验证最小数量执行。
 
 账户读取或签名失败时，停止执行，对照所选环境检查 owner、子账户、key 权限与签名常量。重连后
-先对账场所状态，再恢复下单。只把 URL 改回 v2 不是恢复手段：本 adapter 使用 v3 请求模式、
+先对账场所状态，再恢复下单。只把 URL 改回 v2 不是恢复手段：本适配器使用 v3 请求模式、
 纳秒 nonce 与 v3 签名，不支持 v2 API。
 
-V2 的触发订单与 TWAP 订单不会延续到 v3。重建预期的触发订单前先检查场所状态。本 adapter
+V2 的触发订单与 TWAP 订单不会延续到 v3。重建预期的触发订单前先检查场所状态。本适配器
 不提交 TWAP 订单。
 
 ## Testnet 接入 {#testnet-onboarding}
@@ -194,7 +194,7 @@ reduce-only 市价单或 `IOC`/`FOK` 订单平掉观察到的永续或期权敞�
 | `initial_margin`     | 带符号的净初始保证金健康度       | 场所会拒绝会让该值变负的增加风险的订单。                                      |
 | `maintenance_margin` | 带符号的净维持保证金健康度       | 子账户面临强平风险。                                                          |
 
-adapter 的 `query_account` 命令把这份快照作为 `AccountState` 事件发出，策略层可据此检查当前
+适配器的 `query_account` 命令把这份快照作为 `AccountState` 事件发出，策略层可据此检查当前
 健康度。这些净健康度数值不含挂单占用，为正并不能证明还能接受另一笔订单。场所的
 `private/order_quote` 会对拟定订单返回前后初始保证金健康度；实际的订单接受仍是权威。映射见
 [账户状态](#account-state)。
@@ -210,7 +210,7 @@ adapter 的 `query_account` 命令把这份快照作为 `AccountState` 事件发
 1. **注资或选择子账户。** 按 Derive 的
    [充值指南](https://docs.derive.xyz/getting-started/depositing)在以太坊上充值 USDC 或受支持
    的抵押物。首笔充值会创建账户与子账户。把已注资子账户的整数 ID 复制为 `subaccount_id`，
-   并通过 `private/get_subaccount` 确认充值已计入抵押物余额。adapter 的 `query_account` 会在
+   并通过 `private/get_subaccount` 确认充值已计入抵押物余额。适配器的 `query_account` 会在
    `AccountState.info.collaterals` 中暴露建模后的行。
 
    按[检查账户健康](#check-account-health)所述，检查发出元数据中的 `net_initial_margin` 与
@@ -282,7 +282,7 @@ adapter 的 `query_account` 命令把这份快照作为 `AccountState` 事件发
 
 #### 报价 {#quotes}
 
-WebSocket ticker 为永续、期权与现货报告完整快照。任一侧价格或数量为零时，adapter 清空该
+WebSocket ticker 为永续、期权与现货报告完整快照。任一侧价格或数量为零时，适配器清空该
 金融工具的内部报价状态，不发 `QuoteTick`（以 DEBUG 记录）。快照两侧都给出非零价格与数量时
 恢复报价。
 
@@ -322,9 +322,9 @@ Derive 可以让 taker 订单以低于 `minimum_amount` 的数量成交，而会
 ##### 成交方向与去重 {#trade-direction-and-deduplication}
 
 公共 REST 历史与 WebSocket 成交可能在同一 `trade_id` 下返回 maker 行与 taker 行，每行的
-`direction` 是该参与方的方向。adapter 取 taker 的方向作为主动方方向，并把 maker 行的方向
+`direction` 是该参与方的方向。适配器取 taker 的方向作为主动方方向，并把 maker 行的方向
 取反，与行的先后无关。实时 v3 maker WebSocket 行的映射仍未验证。`liquidity_role` 缺失或
-无法识别时，adapter 把 `direction` 当作 taker 的方向。
+无法识别时，适配器把 `direction` 当作 taker 的方向。
 
 历史成交请求在单次请求内按成交 ID 各发出一个 `TradeTick`。实时馈送会在 ID 仍留在最近 4,096
 笔成交缓存内时抑制成对的行与重连回放。自动重连保留这份缓存；显式断开或重置会清空它。
@@ -347,9 +347,9 @@ Derive 通过同一个 `orderbook.{instrument}.{group}.{depth}` 频道家族提�
 每个分组的[簿更新](https://docs.derive.xyz/subscriptions)都是完整快照。频道参数一致的 delta
 与 depth 消费者共享订阅与恢复状态，频道保持活跃直到最后一个消费者退订。
 
-该馈送没有变更 ID，因此 adapter 用其毫秒时间戳作为输出序列：
+该馈送没有变更 ID，因此适配器用其毫秒时间戳作为输出序列：
 
-- adapter 只接受严格新于最后接受时间戳的时间戳，跨重连同样如此。
+-适配器只接受严格新于最后接受时间戳的时间戳，跨重连同样如此。
 - 递进的空快照会清空簿，并计为一次更新。
 
 Derive 文档没有承诺时间戳有序。`publish_id` 在重新订阅后可能重新开始。
@@ -365,39 +365,39 @@ Derive 使用配置的 session key 做认证执行：
 
 #### 成交与结算 {#fills-and-settlement}
 
-adapter 以 `trade_id` 与 `order_id` 作为执行身份吸收实时与历史成交。数量、价格与手续费按
+适配器以 `trade_id` 与 `order_id` 作为执行身份吸收实时与历史成交。数量、价格与手续费按
 `Decimal` 解码。手续费按 USDC 的 Nautilus 精度取整。
 
 订单状态与私有成交报告在订单标签是有效的 Nautilus 标识时把它用作 `client_order_id`。无法
-表示的标签会被 adapter 连同 warning 一起省略，保留场所身份与金融数值。对账可以按场所订单
+表示的标签会被适配器连同 warning 一起省略，保留场所身份与金融数值。对账可以按场所订单
 ID 解析这些成交。
 
 必需金融数值为 null、空或缺失时解码失败。私有成交数组跳过畸形行并记 warning。非法的金融
 wire 值会让整条公共 WebSocket 帧或整个公共 REST 页被拒。无法表示的必需成交或订单 ID 会让
-该行解析失败，adapter 记 warning 并继续处理其余行。
+该行解析失败，适配器记 warning 并继续处理其余行。
 
 结算元数据不会阻止成交生效。执行首次到达时，`batch_status` 与以太坊 L1 batch 的 `tx_hash`
-可能为 null。私有成交模式要求 `op_uuid`，adapter 也接受它缺失。已发布的 batch 阶段及其
-对应的 `Error` 状态描述的是某个 batch 阶段的结算进展或失败。batch 阶段报错时，adapter
+可能为 null。私有成交模式要求 `op_uuid`，适配器也接受它缺失。已发布的 batch 阶段及其
+对应的 `Error` 状态描述的是某个 batch 阶段的结算进展或失败。batch 阶段报错时，适配器
 不会冲销或作废成交。参见场所的 [API changelog](https://docs.derive.xyz/changelog)。
 
 私有自成交 ID 的唯一性，以及 `trade_fee` 是否包含非零的外部订单 `extra_fee`，都未经验证。
-私有成交按 `trade_id` 去重，因此完整的自成交核算依赖场所给两条腿分配不同的 ID。adapter 不
+私有成交按 `trade_id` 去重，因此完整的自成交核算依赖场所给两条腿分配不同的 ID。适配器不
 提交 `extra_fee`。
 
-成交频道没有结算状态过滤：adapter 订阅 `trades.{instrument_type}.{currency}` 与
+成交频道没有结算状态过滤：适配器订阅 `trades.{instrument_type}.{currency}` 与
 `{subaccount_id}.trades`。成交报告查询会跳过实时已发出成交缓存中的 ID，并在同一查询的页内
 与页间对重复 ID 去重。查询某笔成交不会把它记为已发出。核心对账使用持久化的订单成交 ID，
 以拒绝回放或重启后重复应用成交。
 
 实时分派在改变订单状态之前先构造成交报告与手续费。手续费转换失败会让该成交保持未处理，以便
-回放重试。只有在投递成功后，adapter 才把该成交 ID 记为已发出。投递失败会保留原生成交记录。
+回放重试。只有在投递成功后，适配器才把该成交 ID 记为已发出。投递失败会保留原生成交记录。
 
-对被跟踪的订单，原生成交可能先于确认到达，从而建立其首个场所绑定。adapter 会先发
+对被跟踪的订单，原生成交可能先于确认到达，从而建立其首个场所绑定。适配器会先发
 `OrderAccepted` 再发 `OrderFilled`。方向与被跟踪订单冲突的成交会一直保持待定，即使该订单
 之后进入终态。
 
-私有成交更新可能早于 REST 历史或持仓读取反映的时间到达。结算进展不会在 adapter 中触发额外
+私有成交更新可能早于 REST 历史或持仓读取反映的时间到达。结算进展不会在适配器中触发额外
 的历史轮询。
 
 :::note
@@ -407,12 +407,12 @@ wire 值会让整条公共 WebSocket 帧或整个公共 REST 页被拒。无法�
 永续、期权与 ERC-20 现货对都使用 Derive Trade 模块。现货没有单独的签名路径，除下文的
 reduce-only 保护外，对账把现货金融工具与其他金融工具类别同等对待。
 
-adapter 支持常规的 `private/order` 请求：`GTC`、`IOC` 或 `FOK` 有效期的 `LIMIT` 与
+适配器支持常规的 `private/order` 请求：`GTC`、`IOC` 或 `FOK` 有效期的 `LIMIT` 与
 `MARKET` 订单；也支持把 Derive 触发订单用于下述 Nautilus 原生的止损与 if-touched 订单类型。
 不支持的 Nautilus 订单类型会在提交前于本地以 `OrderDenied` 拒绝，因此不可能在场所成交。
 
 :::important
-**市价单提交前必须有缓存的报价。**没有报价时 adapter 发出 `OrderDenied`，绝不做签名。
+**市价单提交前必须有缓存的报价。**没有报价时适配器发出 `OrderDenied`，绝不做签名。
 :::
 
 异步提交任务解析出金融工具后，会刷新当前 ticker 快照，并从刷新后的报价推导出带滑点边界的
@@ -420,7 +420,7 @@ adapter 支持常规的 `private/order` 请求：`GTC`、`IOC` 或 `FOK` 有效�
 
 #### 替换普通订单 {#replacing-regular-orders}
 
-Derive 把普通订单的修改实现为撤销-替换（cancel-replace）。adapter 在多个原生场所订单 ID
+Derive 把普通订单的修改实现为撤销-替换（cancel-replace）。适配器在多个原生场所订单 ID
 之间保持同一个 client order 身份，并在路由子成交之前发出 `OrderUpdated`。命令使用当前的
 场所绑定，而延迟到达的成交保留其原本的场所订单 ID。
 
@@ -441,7 +441,7 @@ Derive 把普通订单的修改实现为撤销-替换（cancel-replace）。adap
 私有订阅确认后，处理流更新之前，它会再次刷新账户状态与所需金融工具定义，以闭合初始组合
 快照与订阅确认之间的时间窗。
 
-`private/get_order` 对已知场所 ID 返回 `11006` 时，adapter 会在分页的
+`private/get_order` 对已知场所 ID 返回 `11006` 时，适配器会在分页的
 `private/get_order_history` 中查找该确切 ID，不会从订单标签推断未经证实的替换绑定。未决的
 后继订单会阻塞启动或报告生成；也会拒绝单笔撤销与修改命令，并在发送前让批量撤销与
 `cancel_all_orders` 返回错误。状态变更类的歧义请求保持不重放。
@@ -456,7 +456,7 @@ Derive 把普通订单的修改实现为撤销-替换（cancel-replace）。adap
 1. 停止交易节点，保留其缓存与订单事件历史。
 1. 通过场所的账户工具检查该子账户的原生订单、成交与持仓，按原生 ID 与替换谱系匹配自有订单。
    标签匹配本身不能确立对后继订单的所有权。
-1. 处理掉未决的场所订单，并在恢复交易前把缓存订单状态与已确认的原生记录对账。adapter 不为
+1. 处理掉未决的场所订单，并在恢复交易前把缓存订单状态与已确认的原生记录对账。适配器不为
    这种情况提供自动缓存修复。只清掉 `PendingUpdate` 不能确立替换的结果。
 
 Mass status 保留原生替换腿与成交。对未缓存的替换链，启动对账会恢复已证实的实时后继订单，
@@ -488,17 +488,17 @@ status 会按确切场所 ID 拉取历史与挂单中缺失的成交伴生记录
 
 无界重连快照在某个来源失败、记录丢失、或成交没有匹配的订单报告时失败。带推断精度的保留历史
 行不会让快照失败。有界快照保留有效的报告，把元数据缺口或丢失记录标记为覆盖不完整。若场所
-在分页期间改变私有历史的记录数或页数，adapter 丢弃本次扫描并最多重启两次；再次出现数量变化
+在分页期间改变私有历史的记录数或页数，适配器丢弃本次扫描并最多重启两次；再次出现数量变化
 则请求失败。
 
 #### 保证金模型选择 {#margin-model-selection}
 
 把 `DeriveExecutionClientConfig.subaccount_id` 设为现有的 Standard Margin（`SM`）或 Portfolio
-Margin（`PM2`）子账户。每个子账户绑定其创建时选定的 manager 与风险 universe，adapter 从
+Margin（`PM2`）子账户。每个子账户绑定其创建时选定的 manager 与风险 universe，适配器从
 `private/get_subaccount` 读取这些标识。同一套账户查询、订单、持仓报告与重连路径服务于两种
 模型。按该 manager 支持的产品配置数据客户端的币种。
 
-连接前先通过场所的账户工具创建或注资子账户。adapter 不改变它们的保证金模型，也不复刻场所的
+连接前先通过场所的账户工具创建或注资子账户。适配器不改变它们的保证金模型，也不复刻场所的
 组合风险引擎。受支持的抵押物与金融工具见 Derive 的
 [manager 与风险 universe](https://docs.derive.xyz/trading/managers-and-risk-universes)。
 
@@ -515,14 +515,14 @@ Derive 在子账户层面持有保证金。`AccountState` 把抵押物余额、�
 ##### 抵押物余额 {#collateral-balances}
 
 - `total` 是抵押物 `amount`（例如 USDC 或 ETH），按注册货币的精度取整。
-- `locked` 为零。待处理的 vault 存款冻结由 adapter 保留在元数据中。
+- `locked` 为零。待处理的 vault 存款冻结由适配器保留在元数据中。
 - `free` 等于取整后的 `total`。
 - `AccountState.info.collaterals` 保留每条抵押物行的子集，以精确小数字符串表示。
 - `collaterals[].initial_margin` 是该抵押物贡献的美元授信，不是锁定资金。
 
 ##### 保证金要求 {#margin-requirements}
 
-adapter 发出一个账户级的 `MarginBalance`：
+适配器发出一个账户级的 `MarginBalance`：
 
 | Nautilus 字段   | 派生的美元需求                                                        |
 | --------------- | --------------------------------------------------------------------- |
@@ -531,11 +531,11 @@ adapter 发出一个账户级的 `MarginBalance`：
 
 来源的 `positions_*_margin` 字段是带符号的健康度贡献，已含持仓盯市价值；从 `positions_value`
 中减去它们即得到对应的风险需求。`open_orders_margin` 是挂单占用的带符号扣减，因此会增大
-提取出的初始需求。adapter 使用子账户聚合值（保留场所的组合抵消），不发出按金融工具的保证金
+提取出的初始需求。适配器使用子账户聚合值（保留场所的组合抵消），不发出按金融工具的保证金
 余额。
 
 发出的需求按原生 USD 精度取整（两位小数，逢半向偶数取整）。子账户的 `currency` 数组不决定
-其计价单位。建模的来源值保留在 `AccountState.info` 中。adapter 不计算抵押物折扣，也不对
+其计价单位。建模的来源值保留在 `AccountState.info` 中。适配器不计算抵押物折扣，也不对
 `mm_credits` 另做调整。
 
 :::warning
@@ -562,7 +562,7 @@ adapter 发出一个账户级的 `MarginBalance`：
 
 建模的小数以 JSON 字符串表示，在 `Decimal` 范围与其 28 位最大标度内精确；超出该标度的来源
 值在解码时取整。原生余额也会把小于其货币精度的数量取整为零。在意这种精度时使用抵押物
-元数据。场所没有说明待处理的 vault 冻结是否计入抵押物数量，因此 adapter 既不从中扣除，也
+元数据。场所没有说明待处理的 vault 冻结是否计入抵押物数量，因此适配器既不从中扣除，也
 不额外加上。
 
 快照被标记为 `failed_to_fetch` 或缺少必需字段时，不发 `AccountState`、初始连接失败，并跳过
@@ -571,7 +571,7 @@ adapter 发出一个账户级的 `MarginBalance`：
 mass status，包括其中的订单与成交报告，以保留缓存持仓，避免把缺失的持仓报告当成平仓。
 
 持仓报告保留场所的均价开仓价。对永续，该价格包含开仓手续费，可能与按真实成交价重建的均价
-不同。adapter 对永续使用
+不同。适配器对永续使用
 [`AvgPxReconciliation::OpeningOnly`](./../concepts/execution/reconciliation.md#reported-entry-averages)：
 持仓数量相符时，不要求成交推导的均价等于报告的均价。真实成交价、数量与手续费保持不变。
 Nautilus 不把手续费计入持仓均价，而是从已实现盈亏中扣除。其他金融工具类型保持默认的均价
@@ -592,7 +592,7 @@ Derive 触发订单使用带触发字段的 `private/order`。场所为其分配
 
 ##### 签名有效期 {#signature-expiry}
 
-API v3 接受生命周期在 [10 秒, 120 天] 内的订单签名。MMP 订单最长 15 分钟。adapter 保持
+API v3 接受生命周期在 [10 秒, 120 天] 内的订单签名。MMP 订单最长 15 分钟。适配器保持
 MMP 关闭，触发订单用固定 31 天有效期签名。`signature_expiry_secs` 控制普通订单与替换，
 必须大于 10 秒以容纳签名延迟，上限 120 天。参见
 [动作签名](https://docs.derive.xyz/authentication/action-signing)。
@@ -607,16 +607,16 @@ MMP 关闭，触发订单用固定 31 天有效期签名。`signature_expiry_sec
 | `LimitIfTouched`      | ✓         | `limit`             | `takeprofit`          | 发送限价与触发价。              |
 | `MarketToLimit`       | -         | -                   | -                     | *Derive 不支持*。               |
 | 移动止损              | -         | -                   | -                     | *Derive 不支持*。               |
-| TWAP / algo / RFQ     | -         | -                   | -                     | *本 adapter 不暴露*。           |
+| TWAP / algo / RFQ     | -         | -                   | -                     | *本适配器不暴露*。           |
 
-adapter 把 Nautilus 的 `TriggerType::Default` 与 `TriggerType::MarkPrice` 映射到 Derive 的
+适配器把 Nautilus 的 `TriggerType::Default` 与 `TriggerType::MarkPrice` 映射到 Derive 的
 `trigger_price_type=mark`。Derive 的错误码文档说明指数价与最新成交价触发类型不受支持，因此
-adapter 对 `IndexPrice`、`LastPrice`、`BidAsk` 及其他触发价类型在提交前本地以
+适配器对 `IndexPrice`、`LastPrice`、`BidAsk` 及其他触发价类型在提交前本地以
 `OrderDenied` 拒绝。
 
 ##### 更新触发单 {#updating-a-trigger}
 
-Derive 错误码 `11054` 说明触发订单不能替换别的订单、也不能被替换。因此 adapter 以
+Derive 错误码 `11054` 说明触发订单不能替换别的订单、也不能被替换。因此适配器以
 `OrderModifyRejected` 事件拒绝针对触发订单的 Nautilus 修改请求。要更新触发单，请撤销后
 重新提交。
 
@@ -696,7 +696,7 @@ Derive 文档把 `gtc`、`post_only`、`fok` 与 `ioc` 列为其 `time_in_force`
 #### 现货 reduce-only 订单 {#spot-reduce-only-orders}
 
 Derive 现货没有持仓概念，因此 reduce-only 的现货订单永远减不了任何东西。场所总会以错误码
-`11025` 拒绝它。adapter 在已知金融工具是现货时会避免这次往返：已缓存的现货金融工具以
+`11025` 拒绝它。适配器在已知金融工具是现货时会避免这次往返：已缓存的现货金融工具以
 `OrderDenied` 拒绝；惰性解析出的现货金融工具在提交时以 `OrderRejected` 拒绝。
 
 永续与期权的 reduce-only 订单仍会送到场所，其结果取决于子账户的持仓状态。`derive-flatten`
@@ -710,18 +710,18 @@ Derive 只在市价单或不挂簿的限价单（`IOC`/`FOK`）上遵守 `reduce
 
 :::warning
 止盈腿是 reduce-only `GTC` 限价单的 Nautilus 括号单无法挂在 Derive 上：入场腿与止损腿能提交，
-但 adapter 会在本地拒绝止盈腿。目标是 Derive 时，请改用 reduce-only 的 `IOC`/`FOK` 平仓单或
+但适配器会在本地拒绝止盈腿。目标是 Derive 时，请改用 reduce-only 的 `IOC`/`FOK` 平仓单或
 非 reduce-only 的止盈单。
 :::
 
 #### 订单拒绝语义 {#order-rejection-semantics}
 
 状态变更类写操作（`submit_order`、`modify_order`、`cancel_order`）通过 WebSocket 发送一次，
-**不会重放**。WebSocket 请求的结果决定 adapter 是发出终态拒绝，还是等待对账。
+**不会重放**。WebSocket 请求的结果决定适配器是发出终态拒绝，还是等待对账。
 
 ##### 确定性失败 {#definitive-failures}
 
-对确定性的场所失败，adapter 发出终态拒绝事件（`OrderRejected`、`OrderModifyRejected`、
+对确定性的场所失败，适配器发出终态拒绝事件（`OrderRejected`、`OrderModifyRejected`、
 `OrderCancelRejected`）：
 
 - 签名动作类拒绝，例如参数非法、保证金不足或订单未知。
@@ -739,7 +739,7 @@ Derive 只在市价单或不挂簿的限价单（`IOC`/`FOK`）上遵守 `reduce
 ##### post-only 分类 {#post-only-classification}
 
 对已到达场所的 post-only 订单，Derive 以 JSON-RPC `11008`、消息
-`Post only order cannot cross the market` 拒绝穿越的订单。adapter 给该终态拒绝标记
+`Post only order cannot cross the market` 拒绝穿越的订单。适配器给该终态拒绝标记
 `due_post_only=true`。若 WebSocket/订单报告的拒绝携带相同原因，被跟踪订单的路径套用同一
 分类。不支持的 post-only IOC/FOK 组合在本地产生的 `OrderDenied` 事件不带 `due_post_only`，
 因为它们不是场所的穿越拒绝。
@@ -749,13 +749,13 @@ Derive 只在市价单或不挂簿的限价单（`IOC`/`FOK`）上遵守 `reduce
 
 ##### 结果不明确的情况 {#ambiguous-outcomes}
 
-写操作结果不明确时，adapter 不发终态事件，交由 WebSocket 对账或后续状态报告定论。不明确
+写操作结果不明确时，适配器不发终态事件，交由 WebSocket 对账或后续状态报告定论。不明确
 集合刻意保持很窄：
 
 - `-32603`，通用的 JSON-RPC 内部错误。
 - `9000` 与 `9001`，确认超时，需先查询订单状态再重新提交。
 - 无法解码的响应（动作可能已被处理）。
-- 响应成功但其场所订单 ID 无法表示。adapter 保留已知的命令身份与待处理替换状态供对账使用；
+- 响应成功但其场所订单 ID 无法表示。适配器保留已知的命令身份与待处理替换状态供对账使用；
   若该 ID 始终无法表示，状态与成交报告就无法跟踪该场所订单，请用日志中记录的命令身份去检查
   场所状态。
 - 请求超时、重连时丢失的响应，以及传输错误。
@@ -778,12 +778,12 @@ API 主机不同的自定义 URL 使用独立的限流状态。
 
 请求窗口对齐到共享限流器的创建时刻，因为场所的窗口相位不可观测。本地边界两侧的突发可能落进
 同一个场所窗口，传输队列延迟发出时尤其如此。超出配额的流量会被场所以
-`-32000 Rate limit exceeded` 拒绝，adapter 把它呈现为确定性拒绝（见
+`-32000 Rate limit exceeded` 拒绝，适配器把它呈现为确定性拒绝（见
 [订单拒绝语义](#order-rejection-semantics)）。
 
 ### 请求桶 {#request-buckets}
 
-下表给出参考默认值与 adapter 的按标签撤销额度。部署取值与协商后的额度可能不同。实时请求
+下表给出参考默认值与适配器的按标签撤销额度。部署取值与协商后的额度可能不同。实时请求
 配额可用 `public/getRateLimits` 读取，该端点不报告金融工具配额。测试网上，HTTP 端点即使带
 认证头也报告公共 IP 额度，而认证的 WebSocket 报告钱包额度。
 
@@ -793,23 +793,23 @@ API 主机不同的自定义 URL 使用独立的限流状态。
 | 非撮合类（已认证）                 | 钱包                  | 5 秒窗口 25 次请求              |
 | 公共请求                           | IP                    | 5 秒窗口 25 次请求              |
 | `private/cancel_all`               | 钱包与方法            | 5 秒窗口 5 次请求               |
-| `private/cancel_by_label` 端点     | 钱包与方法            | adapter：每窗口 50 次请求       |
+| `private/cancel_by_label` 端点     | 钱包与方法            | 适配器：每窗口 50 次请求       |
 | 金融工具订单（永续/现货）          | 钱包与金融工具        | 1 令牌/秒，容量 5               |
 | 金融工具订单（期权）               | 钱包与金融工具        | 1 令牌/秒，容量 5               |
 
 场所还限制每个 IP 的并发 WebSocket 连接数，公布的参考值是四条连接，但部署取值各有不同。
 
 [集成方参考](https://docs.derive.xyz/integrators/trading/rate-limits)给无范围标签撤销公布的是
-10 TPS，规范参考文档没有给出该端点的数字额度，adapter 为其标签撤销端点预算保留 10 TPS。
+10 TPS，规范参考文档没有给出该端点的数字额度，适配器为其标签撤销端点预算保留 10 TPS。
 
 #### 撮合类写操作的配额 {#matching-write-allocation}
 
 订单、替换、撤销、按 nonce 撤销与按金融工具撤销请求同时消耗撮合类请求配额与所给金融工具的
 令牌桶。按金融工具的配置适用于永续、现货与期权，与钱包的撮合额度相互独立。
 
-adapter 按规范限流参考，对 `cancel_by_label` 同时按撮合与端点两种配额限速。请求体包含
+适配器按规范限流参考，对 `cancel_by_label` 同时按撮合与端点两种配额限速。请求体包含
 `instrument_name` 的原始 HTTP 请求同样消耗金融工具额度。类型化的标签撤销参数目前只支持无
-范围调用。测试网当前只对带范围的标签撤销收取撮合配额，adapter 对无范围调用保留更严格的
+范围调用。测试网当前只对带范围的标签撤销收取撮合配额，适配器对无范围调用保留更严格的
 文档规则。`cancel_all` 只使用它的端点配额。
 
 `cancel_trigger_order` 与触发单读取使用非撮合配额。触发单创建走 `private/order`，并在签名
@@ -824,19 +824,19 @@ HTTP 认证头与 WebSocket 登录时间戳在限速等待之后才签名。执�
 签名之前，先预约 WebSocket 的订单创建与替换配额。持有中的预约占用金融工具容量直到实际发送，
 被放弃的预约会退回其未使用的请求与金融工具额度。
 
-已预约的 WebSocket 发送在签名后不再二次等待。若一次预约跨越了请求窗口边界，adapter 立即
+已预约的 WebSocket 发送在签名后不再二次等待。若一次预约跨越了请求窗口边界，适配器立即
 从当前请求窗口扣减；该窗口已满时，在把写操作入队之前返回确定性的本地限流错误。金融工具额度
 只扣减一次。
 
 HTTP 下单方法与直接的 WebSocket 签名下单方法接受已签名的请求体。调用方必须把限速延迟计入
 这些签名的有效期内。
 
-场所限流仍是确定性拒绝。传输失败、超时与结果不明确的写操作要靠对账解决。adapter 不会盲目
+场所限流仍是确定性拒绝。传输失败、超时与结果不明确的写操作要靠对账解决。适配器不会盲目
 重试签名写操作。
 
 ## WebSocket 恢复 {#websocket-recovery}
 
-数据与执行客户端在对端关闭、传输错误或心跳超时后自动重连。adapter 每 30 秒发送一次协议
+数据与执行客户端在对端关闭、传输错误或心跳超时后自动重连。适配器每 30 秒发送一次协议
 Ping 帧，并把 60 秒内没有任何入站帧视为连接已死。所选传输可能更早报告 Pong 丢失。传输层
 以指数退避加抖动重试连接。
 
@@ -852,7 +852,7 @@ Ping 帧，并把 60 秒内没有任何入站帧视为连接已死。所选传�
 `ws_timeout_secs` 期限。没有时间事件发送器时，客户端保留其初始上下文，并在终态绑定被逐出后
 拒绝做对账。
 
-状态变更请求遵循[订单拒绝语义](#order-rejection-semantics)：adapter 只发送一次，从不重放。
+状态变更请求遵循[订单拒绝语义](#order-rejection-semantics)：适配器只发送一次，从不重放。
 登录或订阅恢复连续三次失败后，客户端记录错误、把自己标记为已断开，并停止该 WebSocket 会话。
 
 `ws_timeout_secs` 作用于单个 WebSocket 操作与重连后的缓存刷新，不作用于心跳检测与重连退避。
@@ -880,7 +880,7 @@ Ping 帧，并把 60 秒内没有任何入站帧视为连接已死。所选传�
   仍然约束每次 RPC。
 
 :::warning
-Derive 的通知没有订阅代次。adapter 会拒绝本地队列中已过期的帧与非递增时间戳，但无法识别
+Derive 的通知没有订阅代次。适配器会拒绝本地队列中已过期的帧与非递增时间戳，但无法识别
 时间戳超过最后接受时间戳的旧订阅的延迟通知。
 :::
 
@@ -913,7 +913,7 @@ CARGO_BUILD_JOBS=4 bash scripts/strip-adapter-env.bash \
 
 ## 确定性仿真测试 {#deterministic-simulation-testing}
 
-Rust adapter 通过共享的时钟、任务、重试与传输缝，以 `cfg(madsim)` 支持 `simulation`。配置
+Rust 适配器通过共享的时钟、任务、重试与传输缝，以 `cfg(madsim)` 支持 `simulation`。配置
 受控的 `http://` 与 `ws://` 端点，并选择 `TransportBackend::Tungstenite`。固定的合成凭据支持
 私有本地 peer 测试。
 
@@ -967,7 +967,7 @@ peer 脚本下跨新鲜进程比对。`cargo-test-sim` 运行仓库内的断言�
 ### 共享 ticker 订阅 {#shared-ticker-subscription}
 
 报价、标记价、指数价、资金费率与期权 Greeks 都派生自同一个
-`ticker_slim.{instrument}.{interval}` WebSocket 订阅。adapter 对底层 WS 订阅调用做引用计数：
+`ticker_slim.{instrument}.{interval}` WebSocket 订阅。适配器对底层 WS 订阅调用做引用计数：
 
 - 该金融工具第一个订阅的馈送打开频道。
 - 最后一个退订关闭它。
@@ -991,7 +991,7 @@ peer 脚本下跨新鲜进程比对。`cargo-test-sim` 运行仓库内的断言�
 #### 金融工具类别限制 {#instrument-class-restrictions}
 
 资金费率只对永续有意义，期权 Greeks 只对期权有意义。订阅与金融工具类别不匹配的馈送（例如给
-期权订阅资金费率）时，adapter 接受该订阅：WebSocket 订阅会打开，但解析器对该馈送不返回任何
+期权订阅资金费率）时，适配器接受该订阅：WebSocket 订阅会打开，但解析器对该馈送不返回任何
 事件。场所负载对非永续省略资金费率字段，对非期权省略 `option_pricing`。订阅衍生品专属馈送前
 先确认金融工具类别。
 
@@ -1175,10 +1175,10 @@ let config = DeriveExecutionClientConfig {
 
 ## 已知限制 {#known-limitations}
 
-- `request_instruments` 要求 `DeriveDataClientConfig::currencies` 中至少配置一个币种。adapter
+- `request_instruments` 要求 `DeriveDataClientConfig::currencies` 中至少配置一个币种。适配器
   按每个配置的币种过滤 `public/get_all_instruments`，不枚举币种全集。
 - 场所不推送金融工具状态、金融工具收市或 candle 订阅。金融工具定义携带 `is_active` 与计划的
   启用/停用时间戳，K 线只能通过 REST 获取。
 - 场所没有暴露簿快照 REST 端点，也没有历史簿增量与历史报价端点。见上文能力表。
 - Derive 官方 REST 文档自 2025 年 12 月 1 日起把 `public/get_ticker` 标记为废弃，改用
-  `public/get_tickers`。adapter 用 `public/get_tickers` 做报价快照与期权链参考价引导。
+  `public/get_tickers`。适配器用 `public/get_tickers` 做报价快照与期权链参考价引导。

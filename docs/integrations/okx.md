@@ -5,9 +5,9 @@ OKX 创立于 2017 年，是一家提供现货、保证金、永续互换、期�
 
 ## 概览 {#overview}
 
-该 adapter 以 Rust 实现，通过 PyO3 绑定暴露给 Python，不依赖外部 OKX 客户端库。
+该适配器（adapter）以 Rust 实现，通过 PyO3 绑定暴露给 Python，不依赖外部 OKX 客户端库。
 
-OKX adapter 包含多个组件，可单独或组合使用：
+OKX 适配器包含多个组件，可单独或组合使用：
 
 - `OKXHttpClient`：底层 HTTP API 连接。
 - `OKXWebSocketClient`：面向 Rust 调用方的底层 WebSocket API 连接。
@@ -46,7 +46,7 @@ OKX adapter 包含多个组件，可单独或组合使用：
 - [Event contract series](https://www.okx.com/docs-v5/en/#public-data-rest-api-get-series)。
 
 :::note
-**期权支持**：adapter 支持期权行情数据、场所提供的 Greeks（`subscribe_option_greeks`），以及
+**期权支持**：适配器支持期权行情数据、场所提供的 Greeks（`subscribe_option_greeks`），以及
 期权金融工具的订单执行。细节见下文[期权交易](#options-trading)一节，订阅模式见
 [Options](./../concepts/options.md) 指南。
 :::
@@ -58,17 +58,17 @@ OKX adapter 包含多个组件，可单独或组合使用：
 
 :::info
 **价格限制**：OKX 在 `public/instruments` 上为现货、保证金、互换与期货金融工具暴露
-`initPxLmtPct`、`floatPxLmtPct` 与 `maxPxLmtPct`。adapter 把非空值保留在金融工具 `info`
+`initPxLmtPct`、`floatPxLmtPct` 与 `maxPxLmtPct`。适配器把非空值保留在金融工具 `info`
 字段中，键为 `okx_init_px_lmt_pct`、`okx_float_px_lmt_pct` 和 `okx_max_px_lmt_pct`。这些字段
 描述的是交易所的价格带百分比，不会被解析为 Nautilus 静态的 `min_price` 或 `max_price`。
 
 需要 OKX `GET /api/v5/public/price-limit` 端点计算出的当前买卖限价时，调用
 `OKXHttpClient.request_price_limit(instrument_id)`。OKX 文档说明期权与事件合约的百分比字段
-为空，adapter 对它们的金融工具 `info` 不做改动。
+为空，适配器对它们的金融工具 `info` 不做改动。
 :::
 
 :::note
-`/api/v5/finance/okusd/*` 等 OKX 金融产品端点不在 OKX 交易 adapter 的范围内。
+`/api/v5/finance/okusd/*` 等 OKX 金融产品端点不在 OKX 交易适配器的范围内。
 :::
 
 ## 金融工具更新 {#instrument-updates}
@@ -105,7 +105,7 @@ Rust 与 Python v2 对 L2 market-by-price（`L2_MBP`）订单簿支持以下订�
 
 `subscribe_book_depth` 使用 OKX 原生 `books5` 快照，变化时按 100 ms 节奏发布。`depth=None`
 默认五档。`[1, 5]` 内的请求从每个快照中选取最优的若干档。更大的请求和 `rpi=True` 会被拒绝。
-价格、数量与场所订单数直接取自每个快照，adapter 不用增量数据重建深度快照。
+价格、数量与场所订单数直接取自每个快照，适配器不用增量数据重建深度快照。
 
 增量与间隔订阅沿用现有的频道选择逻辑：`[1, 50]` 内的请求在配置的 VIP 等级允许时选 50 档频道，
 否则选公共 400 档 `books` 频道；其他深度选 400 档频道。`rpi` 参数为 true 时选 `books-rpi`。
@@ -154,7 +154,7 @@ Rust 与 Python v2 对 L2 market-by-price（`L2_MBP`）订单簿支持以下订�
 
 ### 重试循环与限制 {#retry-loop-and-limits}
 
-adapter 使用[共享簿恢复机制](./../developer_guide/adapters.md#order-book-recovery-ownership)。
+适配器使用[共享簿恢复机制](./../developer_guide/adapters.md#order-book-recovery-ownership)。
 每个金融工具一个恢复循环，直到新快照被接受，或退订与关闭将其取消。恢复不会以失败状态结束。
 
 ```mermaid
@@ -292,7 +292,7 @@ InstrumentId.from_str("BTC-USDC.OKX")  # For USDC-quoted spot
 - `ETH-USD-261225` - 2026 年 12 月 25 日到期的以太坊期货
 - `BTC-USD-270326` - 2027 年 3 月 26 日到期的比特币期货
 
-期货可以是线性或反向。adapter 依据 OKX 的 `ctType` 字段推导。
+期货可以是线性或反向。适配器依据 OKX 的 `ctType` 字段推导。
 
 #### SPREADS（价差） {#spreads}
 
@@ -305,7 +305,7 @@ InstrumentId.from_str("BTC-USDC.OKX")  # For USDC-quoted spot
 
 在数据客户端上设置 `load_spreads=True`，即可从 OKX 的
 [Get Spreads (Public)](https://www.okx.com/docs-v5/en/#spread-trading-rest-api-get-spreads-public)
-端点加载实时 OKX 价差金融工具。adapter 把每个 OKX `sprdId` 映射为带 `.OKX` 场所后缀的
+端点加载实时 OKX 价差金融工具。适配器把每个 OKX `sprdId` 映射为带 `.OKX` 场所后缀的
 Nautilus 价差金融工具 ID。
 
 价差金融工具说明：
@@ -333,7 +333,7 @@ Nautilus 价差金融工具 ID。
 
 #### EVENTS（事件合约） {#events}
 
-OKX 事件合约的金融工具 ID 使用 OKX instruments API 返回的市场 ID。adapter 把这些市场表示为
+OKX 事件合约的金融工具 ID 使用 OKX instruments API 返回的市场 ID。适配器把这些市场表示为
 Nautilus `BinaryOption` 金融工具。
 
 示例：
@@ -344,7 +344,7 @@ Nautilus `BinaryOption` 金融工具。
 
 **问：如何知道该用哪种合约类型？**
 答：线性与反向金融工具的符号不同。公共 Python 配置不暴露合约类型过滤器，因此所选衍生品类型下
-adapter 会把两者都加载。
+适配器会把两者都加载。
 
 **问：如何加载事件合约？**
 答：使用 `OKXInstrumentType.EVENTS`。公共 Python 配置会加载全部可发现的事件合约系列，
@@ -358,7 +358,7 @@ adapter 会把两者都加载。
 - 挂出 RPI maker 订单。
 - 让标准订单吃掉 RPI 流动性。
 
-adapter 把这些特性映射到 Nautilus 现有的订单簿、订单与生命周期类型上。RPI 路由是选择加入的，
+适配器把这些特性映射到 Nautilus 现有的订单簿、订单与生命周期类型上。RPI 路由是选择加入的，
 标准订阅与订单保持原样。
 
 ### RPI 行情数据 {#rpi-market-data}
@@ -383,7 +383,7 @@ WebSocket 快照与更新保留 `seqId` 与 `prevSeqId`。发出的 delta 以 `s
 客户端将每条更新的 `prevSeqId` 与最后接受的 `seqId` 比对，两者不要求递增一。不匹配即启动
 [订单簿恢复](#order-book-recovery)。发出在 `prevSeqId: -1` 的快照被接受后恢复。
 
-标准 OKX 增量簿频道带 `prevSeqId` 时，adapter 应用同样的衔接规则。`books-rpi` 没有校验和。
+标准 OKX 增量簿频道带 `prevSeqId` 时，适配器应用同样的衔接规则。`books-rpi` 没有校验和。
 
 WebSocket 订阅中 `rpi=True` 直接选择 `books-rpi`，跳过深度或 VIP 频道选择。REST 快照中请求
 深度作为 `sz` 传入。OKX 默认每侧一档，最多接受 400 档。
@@ -401,7 +401,7 @@ WebSocket 订阅中 `rpi=True` 直接选择 `books-rpi`，跳过深度或 VIP �
 | `rpiMinPxBand` | `Option<Decimal>` | `okx_rpi_min_px_band` |
 
 `rpiMinLevel` 统计自然价位数量，`rpiMinPxBand` 以基点度量与对手侧自然最优价的距离。`info`
-映射以精确小数字符串存储价格带。adapter 不会依据这些值拒绝或取整订单，因为 OKX 才是金融工具
+映射以精确小数字符串存储价格带。适配器不会依据这些值拒绝或取整订单，因为 OKX 才是金融工具
 与账户规则的权威执行方。使用 `rpi_px_round` 或处理场所的拒绝。
 
 ### RPI 执行 {#rpi-execution}
@@ -461,7 +461,7 @@ RPI maker 订单必须同时满足金融工具的 `minSz` 和
 `OrderRejected`。
 
 改单只要包含 `newSz`，无论是否带 `newPx`，OKX 都会重新检查。被拒绝的改单使原订单继续有效。
-adapter 发出 `OrderModifyRejected`，并停止将该改单视为待处理。仅改价的改单不触发该检查。
+适配器发出 `OrderModifyRejected`，并停止将该改单视为待处理。仅改价的改单不触发该检查。
 批量下单或批量改单中的每个子订单独立检查。
 
 该规则于 2026 年 8 月 18 日在生产环境生效时已挂在簿上的订单被豁免（老人老办法）。非 RPI
@@ -471,7 +471,7 @@ adapter 发出 `OrderModifyRejected`，并停止将该改单视为待处理。�
 ### RPI 响应与生命周期 {#rpi-responses-and-lifecycle}
 
 私有订单消息同时解析 `ordType: rpi` 与迁移别名 `ordType: elp`。未成交的 RPI 下单可能在私有
-订单频道上首次出现时就是 `state: canceled`，且 `accFillSz` 为零或空。此时 adapter 直接发出
+订单频道上首次出现时就是 `state: canceled`，且 `accFillSz` 为零或空。此时适配器直接发出
 post-only 订单拒绝，不先发接受事件。回退原因写作 `RPI order canceled before acceptance`。
 RPI 价格未通过间距规则且 `rpiPxRound` 为 false 时，OKX 可能走这条路径。订单报告中 RPI 订单
 表示为 `post_only=True` 的 Nautilus `LIMIT` 订单。
@@ -485,13 +485,13 @@ RPI 价格未通过间距规则且 `rpiPxRound` 为 false 时，OKX 可能走这
 公共金融工具端点不返回账户权限。原始费率响应以可选 `Decimal` 暴露 `rpiMaker`。空值表示 RPI
 不适用。
 
-过渡期内响应可能同时包含 RPI 与 ELP 字段名。adapter 优先读取 `rpi` 与 `rpiMaker`，把 `elp`
+过渡期内响应可能同时包含 RPI 与 ELP 字段名。适配器优先读取 `rpi` 与 `rpiMaker`，把 `elp`
 与 `elpMaker` 作为响应别名读取，发送时只使用 RPI 名称。原始成交消息中 `source: "1"` 表示
 RPI 订单。
 
 ### RPI 排除项 {#rpi-exclusions}
 
-adapter 有意排除以下事项：
+适配器有意排除以下事项：
 
 - 不暴露废弃的 `books-elp` 订阅，也不发出 `ordType: elp`。
 - 不把公开的 RPI 间距阈值当作权威客户端校验依据。
@@ -510,7 +510,7 @@ adapter 有意排除以下事项：
 ### WebSocket 订单标识 {#websocket-order-identification}
 
 OKX WebSocket 订单操作使用 `instIdCode`（数字金融工具标识），而不是字符串 `instId` 参数。
-adapter 从启动时获取的金融工具定义中解析 `instIdCode`，并在会话期内缓存。所需 `instIdCode`
+适配器从启动时获取的金融工具定义中解析 `instIdCode`，并在会话期内缓存。所需 `instIdCode`
 不在缓存中时，订单提交以明确的错误失败。
 
 首次执行连接要求每个请求的金融工具类型或 family 都有可用金融工具。请求失败，或某个范围内没有
@@ -536,7 +536,7 @@ OKX 正在合并 USD 与 USDC 现货簿。这是场所的破坏性变更。受�
 | ------------- | -------------- |
 | `BTC-USD.OKX` | `BTC-USDC.OKX` |
 
-OKX 不会把旧的 USD `instId` 或 `instIdCode` 映射到新的 USDC 金融工具。adapter 也不会重写
+OKX 不会把旧的 USD `instId` 或 `instIdCode` 映射到新的 USDC 金融工具。适配器也不会重写
 金融工具或 `instIdCode` 缓存中的 USD 键。退市后仍使用 USD ID 的请求与订阅可能失败或返回
 空数据。
 
@@ -552,9 +552,9 @@ OKX 不会把旧的 USD `instId` 或 `instIdCode` 映射到新的 USDC 金融工
 | 未设置（`None`）       | 省略该字段；OKX 使用 `instId` 中的计价货币（`Crypto-USDC` 上为 USDC）。           |
 | `"USD"`                | 在 `Crypto-USDC` 金融工具上继续以 USD 交易。                                      |
 
-adapter 在常规 REST 与 WebSocket 现货订单上发送 `tradeQuoteCcy`，不在 algo 或条件订单上发送。
+适配器在常规 REST 与 WebSocket 现货订单上发送 `tradeQuoteCcy`，不在 algo 或条件订单上发送。
 
-出现以下情况时 adapter 本地拒绝订单：
+出现以下情况时适配器本地拒绝订单：
 
 - 配置的值不在该金融工具的 `tradeQuoteCcyList` 中。
 - 该列表未知。
@@ -567,7 +567,7 @@ adapter 在常规 REST 与 WebSocket 现货订单上发送 `tradeQuoteCcy`，不
 :::warning
 仅当 OKX 以错误码 `54109` 拒绝 `Crypto-USDC` 订单后，才调用
 `OKXHttpClient.activate_feature("1")` 启用 USDC 订单簿交易，然后重新提交订单。
-激活在主账户与其子账户之间共享，任一账户成功一次即可覆盖全部。adapter 从不隐式激活账户。
+激活在主账户与其子账户之间共享，任一账户成功一次即可覆盖全部。适配器从不隐式激活账户。
 
 `activate_feature` 返回错误码 `51773` 表示 OKX 不支持该账户的激活，并不表示无法交易 USDC。
 订单成功即确认账户可以交易该金融工具。
@@ -610,12 +610,12 @@ algo 订单 API（`move_order_stop`），撤单需要 `cancel-advance-algos` 端
 OKX 价差金融工具使用独立的价差交易订单簿与 API 家族。执行客户端按价差金融工具 ID（例如
 `ETH-USD-SWAP_ETH-USD-261225.OKX`）把价差订单路由到 HTTP `/api/v5/sprd/*` 端点。
 
-adapter 使用 OKX 价差 REST 端点进行提交、撤单、批量撤单、订单状态与成交报告，并订阅 OKX 业务
+适配器使用 OKX 价差 REST 端点进行提交、撤单、批量撤单、订单状态与成交报告，并订阅 OKX 业务
 WebSocket 的
 [`sprd-orders` 频道](https://www.okx.com/docs-v5/en/#spread-trading-websocket-private-channel-order-channel)
 获取实时价差订单更新。
 
-OKX `sprd-orders` WebSocket 更新不包含手续费字段。adapter 采取保守失败策略，丢弃整条更新，
+OKX `sprd-orders` WebSocket 更新不包含手续费字段。适配器采取保守失败策略，丢弃整条更新，
 既不发成交事件也不发订单状态更新。启动对账通过 REST 恢复该订单。设置
 `open_check_interval_secs` 可持续轮询挂单。来自 REST
 [`sprd/trades` 端点](https://www.okx.com/docs-v5/en/#spread-trading-rest-api-get-trades)的历史
@@ -643,7 +643,7 @@ OKX 价差交易 API 路径不支持价差订单列表、条件订单、FOK 有�
 | `reduce_only` | ✓                     | 产品与持仓模式限制见下文。                             |
 
 对 `isolated` 或 `cross` 交易模式下的保证金订单，以及 `net` 持仓模式下的期货或互换订单，
-adapter 发送 OKX 的字面 `reduceOnly` 字段。`long/short` 持仓模式下 OKX 不接受该字段，adapter
+适配器发送 OKX 的字面 `reduceOnly` 字段。`long/short` 持仓模式下 OKX 不接受该字段，适配器
 改用平仓方向的 `side` 与 `posSide` 组合作为实际生效的场所指令。现金、期权与事件产品的
 reduce-only 订单会被拒绝；会增大所选方向的 long/short 组合也会被拒绝。参见 OKX 的
 [下单文档](https://www.okx.com/docs-v5/en/#order-book-trading-trade-post-place-order)。
@@ -677,7 +677,7 @@ reduce-only 订单会被拒绝；会增大所选方向的 long/short 组合也�
 `Strategy.cancel_all_orders` 在仅本策略模式和跨策略模式下都支持 `order_side`。策略范围见
 [撤销全部的路由](./../concepts/execution/index.md#cancel-all-routing)。
 
-`strategy_only=False` 且带 `order_side` 时，adapter 跨策略从缓存中选出匹配的挂单：普通订单
+`strategy_only=False` 且带 `order_side` 时，适配器跨策略从缓存中选出匹配的挂单：普通订单
 走批量撤销，条件订单与价差订单走各自的单笔撤销 API。这绕过了场所的批量撤销，Rust 配置项
 `use_mm_mass_cancel` 为 `true` 时也一样。
 
@@ -692,7 +692,7 @@ OKX 以错误码拒绝订单、改单或撤单请求时，`OrderRejected`、`Ord
 `OKX error <code>`；带 `subCode` 的追加 `(subCode=<code>)`。已被接受但随后失败的条件订单
 只报告代码，例如 `OKX error 51008`，因为 OKX 只发送 `failCode`。
 
-adapter 在联系 OKX 之前发出的拒绝，例如本地校验失败，携带 adapter 自己的消息，不带 OKX 错误码。
+适配器在联系 OKX 之前发出的拒绝，例如本地校验失败，携带适配器自己的消息，不带 OKX 错误码。
 
 ### 持仓管理 {#position-management}
 
@@ -713,7 +713,7 @@ OKX 的衍生品交易支持两种持仓模式：
 
 :::note
 持仓模式作用于整个账户。通过 OKX 网页或 App 界面设置，或调用 `OKXHttpClient.set_position_mode`。
-客户端配置不负责设置它。两种模式下 adapter 都会报告持仓：净额模式按带符号数量推导持仓方向，
+客户端配置不负责设置它。两种模式下适配器都会报告持仓：净额模式按带符号数量推导持仓方向，
 多空模式使用 OKX 报告的 `posSide`。
 :::
 
@@ -753,7 +753,7 @@ exec_config = OKXExecutionClientConfig(
 `margin_mode` 只作用于衍生品。
 
 :::warning
-**手动覆盖交易模式**：可以用 `params={"td_mode": "..."}` 按订单覆盖交易模式。这会绕过 adapter
+**手动覆盖交易模式**：可以用 `params={"td_mode": "..."}` 按订单覆盖交易模式。这会绕过适配器
 的选择，当取值与金融工具类型不匹配时（例如对现货金融工具用 `isolated`）可能导致订单被拒。
 
 只有在配置无法满足需求时才使用手动覆盖。
@@ -792,7 +792,7 @@ exec_config = OKXExecutionClientConfig(
 触发生成的子单成为权威订单后，撤销与修改使用它的订单 ID 和常规 WebSocket 路由。Nautilus
 订单标识保持不变。
 
-`orders-algo` 频道只发更新，`algo-advance` 在订阅时还会发一份快照。adapter 在传输重连之间
+`orders-algo` 频道只发更新，`algo-advance` 在订阅时还会发一份快照。适配器在传输重连之间
 保留已跟踪订单的上下文，并对回放的 advance-algo 快照去重。冷启动与漏更新的恢复仍由 REST
 对账负责。
 
@@ -849,15 +849,15 @@ strategy.submit_order(stop_order)
 
 ### 强平与 ADL 事件处理 {#liquidation-and-adl-event-handling}
 
-OKX adapter 能识别交易所发起的风险管理事件：
+OKX 适配器能识别交易所发起的风险管理事件：
 
 - **强平预警**：`instrument_types` 包含 `MARGIN`、`SWAP`、`FUTURES` 或 `OPTION` 时，执行
   客户端以 `instType=ANY` 订阅 `liquidation-warning`。OKX 报告有持仓临近强平时记 warning。
-  这只是早期预警：消息到达时持仓可能已被强平，且 adapter 只把它呈现为日志消息，不是面向策略
+  这只是早期预警：消息到达时持仓可能已被强平，且适配器只把它呈现为日志消息，不是面向策略
   的事件。
-- **强平订单**：交易所强平持仓时，adapter 识别强平类别，并带订单详情记 warning。这些订单继续
+- **强平订单**：交易所强平持仓时，适配器识别强平类别，并带订单详情记 warning。这些订单继续
   走正常的订单与成交管道。
-- **自动减仓（ADL）**：OKX 为对冲对手方强平而平掉你的持仓时，adapter 识别 ADL 事件，并带持仓
+- **自动减仓（ADL）**：OKX 为对冲对手方强平而平掉你的持仓时，适配器识别 ADL 事件，并带持仓
   详情记日志。
 
 强平订单与 ADL 的识别依据订单记录的 `category` 字段。可识别的取值：
@@ -879,7 +879,7 @@ OKX adapter 能识别交易所发起的风险管理事件：
 **强平与 ADL 事件以 WARNING 级别记录**，详情包括订单 ID、金融工具与状态。强平预警则记录持仓
 方向、大小、保证金率、标记价格与保证金模式。把这些日志纳入风险管理流程监控。
 
-adapter 把这些交易所生成的订单以 `OrderStatusReport` 与 `FillReport` 消息转发，持仓更新以
+适配器把这些交易所生成的订单以 `OrderStatusReport` 与 `FillReport` 消息转发，持仓更新以
 `PositionStatusReport` 消息发送。由于分派时这些订单未被跟踪，该路径不会直接发出归属于策略的
 订单事件。
 :::
@@ -893,7 +893,7 @@ adapter 把这些交易所生成的订单以 `OrderStatusReport` 与 `FillReport
 
 ## 期权交易 {#options-trading}
 
-OKX adapter 支持交易期权（`OPTION` 金融工具类型），与其他衍生品有些差异。OKX 期权是以标的
+OKX 适配器支持交易期权（`OPTION` 金融工具类型），与其他衍生品有些差异。OKX 期权是以标的
 加密货币结算的反向合约。完整 API 细节见
 [OKX 期权交易文档](https://www.okx.com/docs-v5/en/#order-book-trading-trade-post-place-order)。
 
@@ -904,10 +904,10 @@ OKX adapter 支持交易期权（`OPTION` 金融工具类型），与其他衍�
 | 订单类型          | 支持      | 备注                                             |
 | ----------------- | --------- | ------------------------------------------------ |
 | `LIMIT`           | ✓         | 标准限价单。                                     |
-| `MARKET`          | -         | 在到达 API 之前被 adapter 拒绝。                  |
-| `MARKET_TO_LIMIT` | -         | 在到达 API 之前被 adapter 拒绝。                  |
+| `MARKET`          | -         | 在到达 API 之前被适配器拒绝。                  |
+| `MARKET_TO_LIMIT` | -         | 在到达 API 之前被适配器拒绝。                  |
 
-期权支持 FOK 与 IOC 有效期。OKX 为期权 FOK 订单使用专门的 `op_fok` 订单类型，adapter 自动
+期权支持 FOK 与 IOC 有效期。OKX 为期权 FOK 订单使用专门的 `op_fok` 订单类型，适配器自动
 处理这一映射。
 
 期权不支持条件/algo 订单（`STOP_MARKET`、`STOP_LIMIT`、`MARKET_IF_TOUCHED`、
@@ -949,11 +949,11 @@ order = strategy.order_factory.limit(
 
 OKX 在 `opt-summary` 频道上并行发布两套 Greeks：
 
-- **Black-Scholes（`BLACK_SCHOLES`）**：以美元计价的 Greeks。与 Deribit 和 Bybit adapter
+- **Black-Scholes（`BLACK_SCHOLES`）**：以美元计价的 Greeks。与 Deribit 和 Bybit 适配器
   使用的惯例一致。
 - **价格调整（`PRICE_ADJUSTED`）**：以标的币单位计价的 Greeks。与 OKX 原生合约惯例一致。
 
-默认情况下，adapter 在每个 `opt-summary` tick 上发出两套。每个发出的 `OptionGreeks` 带
+默认情况下，适配器在每个 `opt-summary` tick 上发出两套。每个发出的 `OptionGreeks` 带
 `convention` 字段，取 `GreeksConvention.BLACK_SCHOLES` 或 `GreeksConvention.PRICE_ADJUSTED`，
 接收方可以按消息分支处理。
 
@@ -961,9 +961,9 @@ OKX 在 `opt-summary` 频道上并行发布两套 Greeks：
 
 - 单个字符串：`"BLACK_SCHOLES"` 或 `"PRICE_ADJUSTED"`（不区分大小写）。
 - 字符串列表：`["BLACK_SCHOLES", "PRICE_ADJUSTED"]`。
-- 省略：adapter 发出两套。
+- 省略：适配器发出两套。
 
-未知条目记 warning 后跳过。若请求的条目全部未知，adapter 回退为发出两套。
+未知条目记 warning 后跳过。若请求的条目全部未知，适配器回退为发出两套。
 
 ```python
 # Default (both conventions, receiver branches)
@@ -995,7 +995,7 @@ self.subscribe_option_greeks(
 
 :::note
 数据引擎按 `instrument_id` 对期权 Greeks 订阅去重。同一节点上两个 actor 以不同的单一 convention
-订阅同一金融工具时，只有第一个订阅到达 adapter，第二个 actor 得到第一个 actor 的 convention
+订阅同一金融工具时，只有第一个订阅到达适配器，第二个 actor 得到第一个 actor 的 convention
 集合。变通办法：任一 actor 不带 `params`（或带完整列表）订阅，接收两路数据后按
 `greeks.convention` 本地过滤。
 :::
@@ -1003,12 +1003,12 @@ self.subscribe_option_greeks(
 ### 持仓 Greeks {#position-greeks}
 
 OKX 持仓负载包含持仓级 Black-Scholes Greeks（`delta_bs`、`gamma_bs`、`theta_bs` 与
-`vega_bs`）。adapter 的标准 `PositionStatusReport` 不暴露这些字段。上文描述的 `opt-summary`
-流提供 adapter 暴露的按金融工具 Greeks。
+`vega_bs`）。适配器的标准 `PositionStatusReport` 不暴露这些字段。上文描述的 `opt-summary`
+流提供适配器暴露的按金融工具 Greeks。
 
 ### 限制 {#restrictions}
 
-- 期权的 reduce-only 订单被 adapter 拒绝，因为 OKX 对期权不支持该指令。
+- 期权的 reduce-only 订单被适配器拒绝，因为 OKX 对期权不支持该指令。
 - 持仓方向默认 `Net`。
 
 ### 配置 {#configuration}
@@ -1021,13 +1021,13 @@ OKX 持仓负载包含持仓级 Black-Scholes Greeks（`delta_bs`、`gamma_bs`�
 
 ## 事件合约 {#event-contracts}
 
-OKX 通过 `instType=EVENTS` 提供预测市场合约。adapter 把这些金融工具加载为 Nautilus
+OKX 通过 `instType=EVENTS` 提供预测市场合约。适配器把这些金融工具加载为 Nautilus
 `BinaryOption`，并在金融工具 `info` 字段中以 `series_id`、`inst_category`、`inst_id_code`、
 `state` 和 `rule_type` 键保留 OKX 元数据。
 
 ### 加载事件合约金融工具 {#loading-event-contract-instruments}
 
-在数据或执行客户端配置中使用 `OKXInstrumentType.EVENTS`。adapter 先请求事件合约系列列表，
+在数据或执行客户端配置中使用 `OKXInstrumentType.EVENTS`。适配器先请求事件合约系列列表，
 再按系列逐个请求金融工具。
 
 ```python
@@ -1048,7 +1048,7 @@ data_config = OKXDataClientConfig(instrument_types=[OKXInstrumentType.EVENTS])
 
 底层 WebSocket 客户端通过 `subscribe_event_contract_markets` 与
 `unsubscribe_event_contract_markets` 支持 `event-contract-markets` 频道。该频道发布市场状态
-与下限行权价生成更新，没有初始快照，也不带 `instId`，因此 adapter 以场所原始 JSON 转发。
+与下限行权价生成更新，没有初始快照，也不带 `instId`，因此适配器以场所原始 JSON 转发。
 
 :::note
 OKX 标准行情端点对 `EVENTS` 返回 YES 侧数据。策略需要两个结果时，从 YES 侧价格推导 NO 侧
@@ -1070,10 +1070,10 @@ order = strategy.order_factory.limit(
 strategy.submit_order(order)
 ```
 
-OKX 要求 `EVENTS` 订单携带 `outcome`，adapter 在发送前校验。OKX 已忽略废弃的 `speedBump`
-请求参数，adapter 不再发送它。请把 `speed_bump` 从既有客户端调用与订单 `params` 中移除。
+OKX 要求 `EVENTS` 订单携带 `outcome`，适配器在发送前校验。OKX 已忽略废弃的 `speedBump`
+请求参数，适配器不再发送它。请把 `speed_bump` 从既有客户端调用与订单 `params` 中移除。
 
-结算成交以 OKX 订单类别 `delivery` 到达。adapter 在实时订单更新与对账期间解析该类别。
+结算成交以 OKX 订单类别 `delivery` 到达。适配器在实时订单更新与对账期间解析该类别。
 
 上游参考：
 
@@ -1084,7 +1084,7 @@ OKX 要求 `EVENTS` 订单携带 `outcome`，adapter 在发送前校验。OKX �
 
 ## 认证 {#authentication}
 
-使用 OKX adapter 前，先在 OKX 账户中创建 API 凭据：
+使用 OKX 适配器前，先在 OKX 账户中创建 API 凭据：
 
 1. 登录 OKX 账户，进入 API 管理页面。
 2. 创建新的 API key，按需授予交易与数据访问权限。
@@ -1170,18 +1170,18 @@ data_config = OKXDataClientConfig(region=OKXRegion.EEA)
 
 ## 资金费率 {#funding-rates}
 
-adapter 从
+适配器从
 [Funding Rate Channel](https://www.okx.com/docs-v5/en/#public-data-websocket-funding-rate-channel)
 WebSocket 流接收资金费率数据。OKX 在每条消息中同时提供 `fundingTime` 与 `nextFundingTime`，
-adapter 将两者之差计算为 `interval`。
+适配器将两者之差计算为 `interval`。
 
-历史资金费率请求的 interval，由 adapter 根据
+历史资金费率请求的 interval，由适配器根据
 [Get Funding Rate History](https://www.okx.com/docs-v5/en/#public-data-rest-api-get-funding-rate-history)
 端点返回的相邻资金时间戳计算。
 
 ## 限流 {#rate-limiting}
 
-adapter 执行 OKX 的按端点配额，同时为 REST 与 WebSocket 调用保留合理的默认值。
+适配器执行 OKX 的按端点配额，同时为 REST 与 WebSocket 调用保留合理的默认值。
 
 :::warning
 OKX 按端点与账户执行配额。被限流的请求返回 OKX 错误码 `50011`。重试前先降低对应 key 的请求
@@ -1195,7 +1195,7 @@ OKX 公布的限额一致。
 
 | 键 / 端点                                   | 限额（请求/秒） | 备注                                       |
 | ------------------------------------------- | --------------- | ------------------------------------------ |
-| `okx:global`                                | 250             | adapter 级共享桶。                          |
+| `okx:global`                                | 250             | 适配器级共享桶。                          |
 | `/api/v5/account/set-position-mode`         | 2               | OKX 5 请求/2 秒，向下取整。                 |
 | `/api/v5/account/activate-feature`          | 2               | OKX 5 请求/2 秒，向下取整。                 |
 | `/api/v5/account/balance`                   | 5               | OKX 10 请求/2 秒。                          |
@@ -1215,7 +1215,7 @@ OKX 公布的限额一致。
 | `/api/v5/public/funding-rate-history`       | 5               | OKX 10 请求/2 秒。                          |
 | `/api/v5/market/index-tickers`              | 10              | OKX 20 请求/2 秒。                          |
 | `/api/v5/market/books`                      | 20              | OKX 40 请求/2 秒。                          |
-| `/api/v5/market/books-rpi`                  | 20              | adapter 桶；OKX 公布 20/2 秒。              |
+| `/api/v5/market/books-rpi`                  | 20              | 适配器桶；OKX 公布 20/2 秒。              |
 | `/api/v5/market/candles`                    | 20              | OKX 40 请求/2 秒。                          |
 | `/api/v5/market/history-candles`            | 10              | OKX 20 请求/2 秒。                          |
 | `/api/v5/market/history-trades`             | 10              | OKX 20 请求/2 秒。                          |
@@ -1244,12 +1244,12 @@ OKX 公布的限额一致。
 所有键都包含 `okx:global` 桶。限流前 URL 会去掉查询串做归一化，因此过滤条件不同的请求共享同一
 配额。
 
-adapter 的 `/api/v5/market/books-rpi` 桶是 20 请求/秒，而 OKX 公布的是 20 请求/2 秒。场所限额
+适配器的 `/api/v5/market/books-rpi` 桶是 20 请求/秒，而 OKX 公布的是 20 请求/2 秒。场所限额
 才是权威，调用方应把 RPI 簿快照流量控制在公布配额之内。
 
-对按订单数计的批量配额，adapter 使用假设满批的请求级桶：普通批量请求按每批 20 个订单计，algo
+对按订单数计的批量配额，适配器使用假设满批的请求级桶：普通批量请求按每批 20 个订单计，algo
 撤销请求按 10 个计。OKX 公开文档没有给出 `/api/v5/trade/cancel-advance-algos` 的速率限制，
-adapter 对其应用保守桶。HTTP 客户端调用该端点撤销 advance algo 订单，例如移动止损。
+适配器对其应用保守桶。HTTP 客户端调用该端点撤销 advance algo 订单，例如移动止损。
 
 ### WebSocket 限额 {#websocket-limits}
 
@@ -1276,7 +1276,7 @@ adapter 对其应用保守桶。HTTP 客户端调用该端点撤销 advance algo
 
 ## 对账 {#reconciliation}
 
-OKX adapter 对场所当前状态与终态历史采用不同的对账策略：
+OKX 适配器对场所当前状态与终态历史采用不同的对账策略：
 
 | 数据                        | 未设回看窗口        | 显式回看窗口          | OKX 来源                        |
 | --------------------------- | ------------------- | --------------------- | ------------------------------- |
@@ -1297,7 +1297,7 @@ REST 订单状态报告通过 `closeOrderAlgo` 使用 OKX 关联到该订单的�
 ### 未确认的提交 {#unacknowledged-submissions}
 
 OKX 把 `50004` 与 `51149` 定义为[未知请求结果](https://my.okx.com/docs-v5/en/#error-code)。
-adapter 让这些提交保持未决，但对账检查耗尽后，默认执行策略仍可本地裁决它们。OKX 不会自动启用
+适配器让这些提交保持未决，但对账检查耗尽后，默认执行策略仍可本地裁决它们。OKX 不会自动启用
 提交保留。
 
 要保留未确认的提交（包括没有任何响应的），在构造节点时选择现有的引擎策略：
@@ -1414,7 +1414,7 @@ OKX 执行客户端提供以下 Python 配置项。
 对于 WebSocket 字段，把同一行的基准与路径拼接起来。
 
 数据客户端配置用 `base_url_ws_public`，执行客户端配置用 `base_url_ws_private`。覆盖任一
-WebSocket URL 时，也要设置 `base_url_ws_business`，因为 adapter 不会从其他覆盖推导自定义的
+WebSocket URL 时，也要设置 `base_url_ws_business`，因为适配器不会从其他覆盖推导自定义的
 业务 WebSocket URL。
 
 当前官方端点列表见 [OKX EEA API 文档](https://my.okx.com/docs-v5/en/)。
@@ -1491,6 +1491,6 @@ OKX 是[适配器 DST 契约](./../concepts/dst.md#adapter-dst-contract)的参�
 ## 贡献 {#contributing}
 
 :::info
-需要更多特性或想为 OKX adapter 做贡献，请参见我们的
+需要更多特性或想为 OKX 适配器做贡献，请参见我们的
 [贡献指南](https://github.com/nautechsystems/nautilus_trader/blob/develop/CONTRIBUTING.md)。
 :::

@@ -2,7 +2,7 @@
 
 Binance 创立于 2017 年，按日交易量和加密资产及衍生品未平仓合约计，是全球最大的加密货币交易所之一。
 
-NautilusTrader 提供 Binance 集成，用于实时行情数据与实时交易。adapter 以 Rust 实现，并通过相同的
+NautilusTrader 提供 Binance 集成，用于实时行情数据与实时交易。适配器（adapter）以 Rust 实现，并通过相同的
 公开配置、工厂和数据类型暴露给 Python。
 
 支持的产品：
@@ -19,7 +19,7 @@ NautilusTrader 提供 Binance 集成，用于实时行情数据与实时交易�
 
 ## 概览 {#overview}
 
-adapter 暴露以下公开组件：
+适配器暴露以下公开组件：
 
 - `BinanceDataClientConfig` 与 `BinanceExecutionClientConfig`：实时客户端配置。
 - `BinanceInstrumentProviderConfig`：金融工具选择、过滤与警告策略。
@@ -120,7 +120,7 @@ Nautilus 在 USD-M 永续符号后追加 `-PERP`。例如 Binance USD-M 的 `BTC
 `BTCUSDT-PERP`。USD-M 的 `TRADIFI_PERPETUAL` 上架合约使用相同后缀，`XAUUSDT` 变为
 `XAUUSDT-PERP`。
 
-adapter 将 `TRADIFI_PERPETUAL` 上架合约映射为 `PerpetualContract`，并从 Binance 的
+适配器将 `TRADIFI_PERPETUAL` 上架合约映射为 `PerpetualContract`，并从 Binance 的
 `underlyingType` 推导其资产类别：
 
 | Binance `underlyingType`                                     | Nautilus 资产类别        |
@@ -180,8 +180,8 @@ PostgreSQL 在恢复金融工具时会保留金融工具元数据。升级现有
 | `LIMIT_IF_TOUCHED`     | ✓    | ✓            | ✓            | Spot 发送 Binance `TAKE_PROFIT_LIMIT`。  |
 | `TRAILING_STOP_MARKET` | -    | ✓            | ✓            | 仅 Futures。                             |
 
-Binance Spot 在 `exchangeInfo` 中按 symbol 发布受支持的订单类型集合。adapter 不按该集合过滤，
-因此带该 symbol 不支持类型的 Spot 条件单会被交易所拒绝，而不是被 adapter 本地拒绝。
+Binance Spot 在 `exchangeInfo` 中按 symbol 发布受支持的订单类型集合。适配器不按该集合过滤，
+因此带该 symbol 不支持类型的 Spot 条件单会被交易所拒绝，而不是被适配器本地拒绝。
 
 ### 执行指令 {#execution-instructions}
 
@@ -190,8 +190,8 @@ Binance Spot 在 `exchangeInfo` 中按 symbol 发布受支持的订单类型集�
 | `post_only`   | ✓    | ✓            | ✓            | 限制见下文。                                               |
 | `reduce_only` | -    | ✓            | ✓            | 仅 Futures；对冲模式下转换为 `positionSide`。               |
 
-One-way 模式下 adapter 发送 Binance 的 `reduceOnly` 字段。Binance 在对冲模式下不接受该字段，
-因此 adapter 改为选择平仓方向的 `positionSide`。这让订单留在已标识的一侧，防止打开相反方向的
+One-way 模式下适配器发送 Binance 的 `reduceOnly` 字段。Binance 在对冲模式下不接受该字段，
+因此适配器改为选择平仓方向的 `positionSide`。这让订单留在已标识的一侧，防止打开相反方向的
 持仓。网络层限制见 Binance 的 [New Order API](https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/New-Order)。
 
 #### Post-only 限制 {#post-only-restrictions}
@@ -217,10 +217,10 @@ One-way 模式下 adapter 发送 Binance 的 `reduceOnly` 字段。Binance 在�
 [Binance Spot 的有效期取值](https://github.com/binance/binance-spot-api-docs/blob/master/enums.md)
 只有 `GTC`、`IOC` 与 `FOK`。Spot 没有原生 `GTD` 或 `goodTillDate`。
 
-USD-M 对 `LIMIT` 以及 `STOP` 和 `TAKE_PROFIT` 的限价形式支持原生 `GTD`。adapter 将普通订单
+USD-M 对 `LIMIT` 以及 `STOP` 和 `TAKE_PROFIT` 的限价形式支持原生 `GTD`。适配器将普通订单
 经 HTTP 或 WebSocket 交易通道发出，独立批次经 HTTP `batchOrders`，条件 algo 订单经 HTTP
 `algoOrder`。Binance 的 WebSocket algo schema 包含 `goodTillDate`，但其 `timeInForce` 枚举
-不含 `GTD`，因此 adapter 不通过该端点路由 GTD algo 订单。
+不含 `GTD`，因此适配器不通过该端点路由 GTD algo 订单。
 
 COIN-M 文档中的订单 API 没有原生 `GTD` 值或 `goodTillDate` 参数。参见官方
 [USD-M 交易 API](https://developers.binance.com/en/docs/catalog/core-trading-derivatives-trading-usd-s-m-futures/api/rest-api/trade)
@@ -232,7 +232,7 @@ USD-M 的 `goodTillDate` 是毫秒级 epoch 时间戳，Binance 会忽略其中�
 小于 `253402300799000`。原生 GTD 还会拒绝市价单、post-only 订单，以及任何没有过期时间的订单。
 
 `use_gtd=True` 是默认值：使用原生 USD-M GTD，并在 Spot 和 COIN-M 上拒绝原生 GTD。仅当提交订单
-的策略设置了 `manage_gtd_expiry=True` 时才将 `use_gtd` 设为 `False`。此时 adapter 发出警告并
+的策略设置了 `manage_gtd_expiry=True` 时才将 `use_gtd` 设为 `False`。此时适配器发出警告并
 发送 `GTC`，由 Nautilus 在本地过期时刻撤单。
 
 ### 高级订单特性 {#advanced-order-features}
@@ -255,10 +255,10 @@ USD-M 的 `goodTillDate` 是毫秒级 epoch 时间戳，Binance 会忽略其中�
 #### 撤销全部订单的行为 {#cancel-all-orders-behavior}
 
 默认情况下，`Strategy.cancel_all_orders()` 对该策略关联的订单逐笔发送撤销。使用
-`strategy_only=False` 时，策略向 adapter 发送一条范围更大的 `CancelAllOrders` 命令。adapter
+`strategy_only=False` 时，策略向适配器发送一条范围更大的 `CancelAllOrders` 命令。适配器
 会同时纳入 open 和 inflight（SUBMITTED）状态的订单，因此也会撤销 Binance 尚未确认的订单。
 
-**多策略安全**：多个策略交易同一金融工具时，adapter 将发起策略关联的订单与该金融工具的全部
+**多策略安全**：多个策略交易同一金融工具时，适配器将发起策略关联的订单与该金融工具的全部
 订单比对。若全部订单都属于该策略，则使用一次 cancel-all API 调用；否则按策略分别发送撤销
 （普通订单用批量，algo 订单逐笔），避免影响其他策略。
 
@@ -268,7 +268,7 @@ Spot 对每笔匹配的订单各发一笔撤销；Futures 将普通订单批量�
 要覆盖这类订单，需使用不带方向的 cancel-all。
 
 **Futures algo 订单**：条件订单类型（`STOP_MARKET`、`STOP_LIMIT`、`TAKE_PROFIT`、
-`TAKE_PROFIT_MARKET`、`TRAILING_STOP_MARKET`）需要使用不同的撤销端点。adapter 会自动路由到
+`TAKE_PROFIT_MARKET`、`TRAILING_STOP_MARKET`）需要使用不同的撤销端点。适配器会自动路由到
 正确端点。algo 订单触发并转为普通订单后，改用标准撤销端点。
 
 **使用的端点**：
@@ -287,7 +287,7 @@ Spot 对每笔匹配的订单各发一笔撤销；Futures 将普通订单批量�
 - 本地提交校验失败在发送前发出 `OrderDenied`。本地修改校验失败发出 `OrderModifyRejected`。
   交易所的明确拒绝发出对应的拒绝事件。
 - 传输结果不明确时订单保持 inflight 状态，由私有流或 REST 对账确定结果。交易所结果未知期间，
-  adapter 不会发出虚假的拒绝事件。
+  适配器不会发出虚假的拒绝事件。
 - Futures algo 撤单可能从触发前的 algo 端点回退到普通订单端点。这是订单触发后的端点切换，
   不会向同一端点重复发送同一条撤单。
 - 命令结果不明确期间，策略代码不得重新提交。等待对账，或按 client order ID 查询订单。
@@ -331,7 +331,7 @@ Binance Futures 会针对风险事件生成交易所订单：
 - **保险基金**：保险基金承接时使用 `NEW_INSURANCE` 状态（公开 changelog 已弃用，但线上流量
   中仍可见）。
 
-adapter 通过 client ID 模式识别这些特殊订单类型（先于执行类型判断），随后：
+适配器通过 client ID 模式识别这些特殊订单类型（先于执行类型判断），随后：
 
 1. 记录带订单详情的 warning 日志，便于监控。
 2. 生成含正确成交明细、流动性方向为 TAKER 的 `FillReport`。
@@ -354,7 +354,7 @@ adapter 通过 client ID 模式识别这些特殊订单类型（先于执行类�
 
 #### 手续费估算 {#commission-estimation}
 
-Binance 的成交事件省略手续费字段（`N`/`n`）时，adapter 按计价货币以
+Binance 的成交事件省略手续费字段（`N`/`n`）时，适配器按计价货币以
 `default_taker_fee * qty * price` 估算手续费。这只适用于 USD-M 线性合约。COIN-M 反向合约
 以零手续费作为回退，因为线性公式未考虑合约大小。在 `BinanceExecutionClientConfig` 上配置
 `default_taker_fee` 以匹配你的费率档位（默认：0.0004 / 0.04%）。
@@ -371,7 +371,7 @@ Binance 的成交事件省略手续费字段（`N`/`n`）时，adapter 按计价
 #### Futures 成交历史保留期 {#futures-trade-history-retention}
 
 Binance 保留 USD-M 与 COIN-M 最近三个月的账户成交记录，但未说明这是自然月还是固定时长，
-因此 adapter 以最近 88 天作为完整的 Futures 成交历史窗口。
+因此适配器以最近 88 天作为完整的 Futures 成交历史窗口。
 
 `generate_fill_reports` 拒绝早于该窗口的显式起点。边界取命令的 `ts_init`，并限制其最多落后
 当前客户端时间 12 小时。指定结束时间时必须同时提供开始时间。
@@ -509,7 +509,7 @@ Binance Futures 的条件订单支持 `closePosition`，触发时平掉整个持
 
 在 Nautilus 的 `StopMarket` 或 `MarketIfTouched` 订单上设置 `reduce_only=true`，再在其
 `params` 中传入 `close_position=true`。reduce-only 标志记录订单的平仓意图，交易状态为
-`REDUCING` 时它是订单通过校验的必要条件。adapter 把这一组合翻译为 Binance 的全平指令，并
+`REDUCING` 时它是订单通过校验的必要条件。适配器把这一组合翻译为 Binance 的全平指令，并
 拒绝在订单列表中使用 `close_position`。
 
 在风险引擎配置中允许 Binance 的整仓退出：
@@ -541,7 +541,7 @@ strategy.submit_order(
 
 :::info
 Nautilus 订单必须设置 `reduce_only=true`，但 Binance 不允许 `closePosition=true` 与其
-`reduceOnly` 字段同时使用。因此 adapter 发送 `closePosition=true`，同时在 Binance 请求中
+`reduceOnly` 字段同时使用。因此适配器发送 `closePosition=true`，同时在 Binance 请求中
 省略 `quantity` 和 `reduceOnly`。对冲模式下还会发送平仓方向的 `positionSide`。
 
 对已列入允许列表的场所，风险引擎仍会校验数量精度与正数、触发价、订单形态与方向，以及关联的
@@ -559,7 +559,7 @@ Nautilus 订单必须设置 `reduce_only=true`，但 Binance 不允许 `closePos
 
 - 用 `activation_price`（可选）指定移动机制的激活时刻。
 - 省略时，Binance 以提交时的当前市场价为准。
-- 回撤比率用 `trailing_offset`，配 `TrailingOffsetType.BASIS_POINTS`。adapter 拒绝其他偏移
+- 回撤比率用 `trailing_offset`，配 `TrailingOffsetType.BASIS_POINTS`。适配器拒绝其他偏移
   类型，也拒绝超出 Binance 0.1% 至 10% 范围的回撤比率。
 
 :::warning
@@ -568,11 +568,11 @@ Nautilus 订单必须设置 `reduce_only=true`，但 Binance 不允许 `closePos
 
 ## Link & Trade {#link--trade}
 
-adapter 为支持的 client order ID 加上 NautilusTrader 集成 ID 前缀，以适配 Binance 的
+适配器为支持的 client order ID 加上 NautilusTrader 集成 ID 前缀，以适配 Binance 的
 [Link and Trade](https://www.binance.com/en/support/faq/detail/a78a065d0c4846aaa1af474d8e712ab9)
 计划。无需用户做任何配置。
 
-adapter 会压缩外发的 `ClientOrderId` 以适配 Binance 的 36 字符上限，并在事件到达策略前解码
+适配器会压缩外发的 `ClientOrderId` 以适配 Binance 的 36 字符上限，并在事件到达策略前解码
 入站事件。支持的格式包括数字工厂 ID、UUID，以及带短字母数字交易者/策略标签的连字符工厂 ID，
 例如 `O-20260922-160119-V2-000-8`。
 
@@ -580,13 +580,13 @@ adapter 会压缩外发的 `ClientOrderId` 以适配 Binance 的 36 字符上限
 值并至少补零到三位。计数支持 `[0, 4194303]` 且不含前导零，时间戳范围为 UTC
 `[2020-01-01 00:00:00, 2156-02-07 06:28:15]`。`use_uuid_client_order_ids` 可选项。
 
-不超过 24 字节的自定义 ID 无需压缩。更长且不支持的 ID，adapter 记录 warning 并原样发送不带
+不超过 24 字节的自定义 ID 无需压缩。更长且不支持的 ID，适配器记录 warning 并原样发送不带
 前缀的 ID。Binance 的长度与字符限制仍然适用。
 
 ### 升级后的存量订单 {#existing-orders-after-an-upgrade}
 
 现有的数字、UUID 和原始前缀编码保持不变。解码器同时接受历史的无前缀 ID。对带短标签 ID 但
-没有交易所订单 ID 的存量订单操作，adapter 会同时查询其编码形式与历史无前缀形式。若两者分别
+没有交易所订单 ID 的存量订单操作，适配器会同时查询其编码形式与历史无前缀形式。若两者分别
 指向不同订单，该操作会被判为歧义并拒绝。
 
 修改与撤单使用找回的交易所订单 ID。Spot 的撤销-替换（cancel-replace）在替换同一逻辑订单时
@@ -618,7 +618,7 @@ original_futures = decode_binance_futures_client_order_id(encoded_futures)
 不带 broker 前缀的字符串原样返回，因此对任意 `clientOrderId` 值调用都是安全的。
 
 :::note
-凡返回 `OrderStatusReport` 这类 Nautilus 类型的地方，adapter 都会自动解码。只有在 adapter
+凡返回 `OrderStatusReport` 这类 Nautilus 类型的地方，适配器都会自动解码。只有在适配器
 之外工作时才需要手动解码：直接 REST 查询、Binance 网页 UI 或原始交易所报文。
 :::
 
@@ -785,7 +785,7 @@ CARGO_BUILD_JOBS=16 bash scripts/strip-adapter-env.bash \
 ## 盘口时间戳 {#quote-timestamps}
 
 `QuoteTick` 的 `ts_event` 字段随传输方式不同。Spot SBE 使用微秒级事件时间戳。Spot 公共 JSON 的
-`bookTicker` 消息可能缺少事件时间戳，此时 adapter 使用 `ts_init`。Futures 使用成交时间。
+`bookTicker` 消息可能缺少事件时间戳，此时适配器使用 `ts_init`。Futures 使用成交时间。
 
 ## K 线与历史行情数据 {#bars-and-historical-market-data}
 
@@ -835,7 +835,7 @@ self.subscribe_data(
 )
 ```
 
-adapter 订阅该金融工具的 `@ticker` 流。SBE 模式会拒绝此订阅，因为 Binance Spot SBE 不提供
+适配器订阅该金融工具的 `@ticker` 流。SBE 模式会拒绝此订阅，因为 Binance Spot SBE 不提供
 该流。
 
 ### `BinanceFuturesTicker` {#binancefuturesticker}
@@ -858,7 +858,7 @@ self.subscribe_data(
 )
 ```
 
-adapter 订阅该金融工具的 `@ticker` 流，并发出带
+适配器订阅该金融工具的 `@ticker` 流，并发出带
 `metadata={"instrument_id": "<instrument_id>"}` 的 `BinanceFuturesTicker` 自定义数据。ticker
 自定义数据必须带 `instrument_id`，不支持全市场 ticker 订阅。
 
@@ -932,7 +932,7 @@ self.subscribe_data(
 按金融工具订阅时，`CustomData.data_type` 带
 `metadata={"instrument_id": "<instrument_id>"}`。全市场订阅的数据类型不带元数据。
 
-两种方式同时订阅时，全市场优先。全市场处于活动状态期间，adapter 暂停按 symbol 的强平流；
+两种方式同时订阅时，全市场优先。全市场处于活动状态期间，适配器暂停按 symbol 的强平流；
 退订全市场后再恢复原先活跃的按 symbol 流。
 
 ### Futures 未平仓合约 {#futures-open-interest}
@@ -973,7 +973,7 @@ self.request_data(
 
 ## 资金费率 {#funding-rates}
 
-adapter 通过 `subscribe_funding_rates` 将 `FundingRateUpdate` 作为一等数据类型发出。数据来自
+适配器通过 `subscribe_funding_rates` 将 `FundingRateUpdate` 作为一等数据类型发出。数据来自
 [Mark Price Stream](https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/Mark-Price-Stream)
 WebSocket 端点，它随标记价格与指数价格一并提供当前资金费率和下次结算时间。三个订阅
 （`subscribe_mark_prices`、`subscribe_index_prices`、`subscribe_funding_rates`）通过引用计数
@@ -985,26 +985,26 @@ REST 端点（USD-M 为 `GET /fapi/v1/fundingRate`，COIN-M 为 `GET /dapi/v1/fu
 每行历史记录映射为一个 `FundingRateUpdate`，`ts_event` 设为资金费结算时间。历史记录行的
 `next_funding_ns` 字段为 `None`，因为端点不提供该值。
 
-adapter 还通过 `BinanceFuturesMarkPriceUpdate` 自定义数据订阅暴露场所报文
+适配器还通过 `BinanceFuturesMarkPriceUpdate` 自定义数据订阅暴露场所报文
 （见 [Binance 专有数据](#binance-specific-data)）。
 
 对 Binance 而言，`FundingRateUpdate.interval` 为 `None`。Mark Price Stream 与资金费率历史
 端点都不包含资金费率周期字段。Binance 通过
 [Get Funding Rate Info](https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Get-Funding-Rate-Info)
-REST 端点暴露 `fundingIntervalHours`，但 adapter 不消费它。
+REST 端点暴露 `fundingIntervalHours`，但适配器不消费它。
 
 ## 金融工具状态轮询 {#instrument-status-polling}
 
 数据客户端定期轮询 Binance `exchangeInfo`，检测金融工具交易状态的变化。当某个 symbol 在不同
-状态间切换（例如从 Trading 到 Halt，或临近到期的期货合约从 Trading 进入 Delivering），adapter
+状态间切换（例如从 Trading 到 Halt，或临近到期的期货合约从 Trading 进入 Delivering），适配器
 发出 `InstrumentStatus` 事件。
 
 轮询间隔默认 3,600 秒（60 分钟），可在数据客户端配置中用 `instrument_status_poll_secs` 调整。
 设为 `0` 可完全禁用轮询。
 
-初次连接时，adapter 用 exchange info 响应为状态缓存播种，不发事件。之后的轮询检测到状态变化
+初次连接时，适配器用 exchange info 响应为状态缓存播种，不发事件。之后的轮询检测到状态变化
 才发出 `InstrumentStatus` 事件。若某 symbol 从 exchange info 中消失（例如退市或合约到期后），
-adapter 发出 `NotAvailableForTrading`。
+适配器发出 `NotAvailableForTrading`。
 
 状态轮询不会重新加载金融工具定义。独立的 `instrument_refresh_interval_secs` 任务执行完整的
 带过滤目录加载：原子替换数据客户端与 WebSocket 查找表，然后把刷新后的金融工具发给数据引擎
@@ -1107,7 +1107,7 @@ Binance 对每类请求收取的权重：
 | `/fapi/v1/depth`          | 2+     | 随 `limit` 增长；1000 档时为 20。       |
 
 USD-M Futures 的 `POST /fapi/v1/algoOrder` 同时从 `X-MBX-ORDER-COUNT-10S` 与
-`X-MBX-ORDER-COUNT-1M` 各扣 `1`，且不消耗 IP 请求权重。adapter 出于本地限速模型的考虑，
+`X-MBX-ORDER-COUNT-1M` 各扣 `1`，且不消耗 IP 请求权重。适配器出于本地限速模型的考虑，
 仍把它排入全局桶。
 
 ### WebSocket API 限额 {#websocket-api-limits}
@@ -1120,9 +1120,9 @@ WebSocket API（用于下单与用户数据流）与 REST API 共享同一权重
 | 握手             | 5      | 每次连接尝试的权重开销。                |
 | Ping/pong 帧     | 5/秒   | ping/pong 最大速率。                    |
 
-### adapter 限速 {#adapter-pacing}
+### 适配器限速 {#adapter-pacing}
 
-adapter 在场所计量之前运行自己的令牌桶限流器。每个 HTTP 请求从按产品划分的请求桶取一个令牌，
+适配器在场所计量之前运行自己的令牌桶限流器。每个 HTTP 请求从按产品划分的请求桶取一个令牌，
 每个订单操作额外从订单计数桶取一个令牌：
 
 | 产品                       | 请求         | 订单操作                       |
@@ -1221,7 +1221,7 @@ listen-key 的 keepalive，只消耗请求桶。
 Binance Futures Credits Trading Mode 是面向欧盟监管的模式。USD-M 期货钱包、保证金、盈亏与费用
 全部以 `BNFCR` 计价。这种内部记账单位替代稳定币余额，与美元 1:1 锚定。
 
-`BNFCR` 不是可交易资产，因此 adapter 将其映射到执行配置中的 `bnfcr_currency`（默认 `USDT`），
+`BNFCR` 不是可交易资产，因此适配器将其映射到执行配置中的 `bnfcr_currency`（默认 `USDT`），
 使账户余额与佣金按所交易合约的结算稳定币对账。交易 USDC 本位永续时将 `bnfcr_currency` 设为
 `USDC`。其他无法识别的期货资产会注册为通用加密货币，而不是报错。
 
@@ -1247,7 +1247,7 @@ Python 侧以 `nautilus_trader.adapters.binance` 下的 `BinanceSpotMarketDataMo
 
 ### 密钥类型 {#key-types}
 
-adapter 使用 **Ed25519** 或 **HMAC-SHA256** 签名，并根据 API secret 的格式自动识别密钥类型，
+适配器使用 **Ed25519** 或 **HMAC-SHA256** 签名，并根据 API secret 的格式自动识别密钥类型，
 无需配置。能解析为 PKCS#8 Ed25519 私钥的 secret 用 Ed25519 签名，其余一律按 HMAC secret 处理。
 
 **强烈推荐使用 Ed25519。** Binance 推荐 Ed25519，因其性能与安全性更好。未来版本的
@@ -1445,7 +1445,7 @@ config = BinanceExecutionClientConfig(
 
 1. 访问 [testnet.binance.vision](https://testnet.binance.vision/)。
 2. 用 GitHub 登录。
-3. 生成 Ed25519 或 HMAC API key（adapter 不支持 RSA 密钥）。
+3. 生成 Ed25519 或 HMAC API key（适配器不支持 RSA 密钥）。
 
 **Futures 测试网**：已有 `BinanceEnvironment.TESTNET` 配置仍可工作，但新的 Futures 测试应
 改用 `BinanceEnvironment.DEMO`。
@@ -1489,7 +1489,7 @@ instrument_provider = BinanceInstrumentProviderConfig(
 
 `load_all=False` 时只选择 `load_ids`，场所过滤器再按交集生效。支持的过滤器有 `symbols`、
 `bases`、`quotes`，Futures 另有 `contract_types`。取值为字符串或非空字符串列表，匹配不区分
-大小写。adapter 拒绝 `filter_callable`，请使用支持的声明式过滤器。
+大小写。适配器拒绝 `filter_callable`，请使用支持的声明式过滤器。
 
 解析出的金融工具不携带 maker 或 taker 费率。`query_commission_rates` 不会把账户佣金复制到
 金融工具上。
@@ -1524,7 +1524,7 @@ Binance Futures 对冲模式允许同一金融工具同时持有多空两个方�
 
 One-way 模式的 `BOTH` 持仓、订单与成交保持无键，使用净额对账。只有为 `OmsType.HEDGING`
 的虚拟持仓（持仓标识由引擎管理）才把 `use_position_ids` 设为 false。`use_position_ids=True`
-时，若提交的自定义持仓 ID 与 Binance 对冲腿的规范 ID 不同，adapter 会在发送订单前拒绝。
+时，若提交的自定义持仓 ID 与 Binance 对冲腿的规范 ID 不同，适配器会在发送订单前拒绝。
 
 使用对冲模式需先在 Binance 侧开启，然后在 `BinanceExecutionClientConfig` 上设置
 `oms_type=OmsType.HEDGING`，并保持 `use_position_ids=True` 以跟踪场所的两侧持仓：
@@ -1545,14 +1545,14 @@ config = BinanceExecutionClientConfig(
 
 启动对账要分别保留 `LONG` 与 `SHORT` 腿，必须使用这一配置。
 
-若缓存中某笔开仓的 Binance 对冲持仓带有不同的本地生成 ID，adapter 会拒绝该持仓行，并同时
-报告缓存 ID 与期望 ID。请先修正缓存状态，再重试启动。adapter 不会为旧 ID 做别名，也不会
+若缓存中某笔开仓的 Binance 对冲持仓带有不同的本地生成 ID，适配器会拒绝该持仓行，并同时
+报告缓存 ID 与期望 ID。请先修正缓存状态，再重试启动。适配器不会为旧 ID 做别名，也不会
 创建重复的场所持仓。
 
 ### COIN-M / USD-M 架构 {#coin-m--usd-m-architecture}
 
 Binance COIN-M Futures（CM / DAPI）与 USD-M Futures（UM / FAPI）共享统一架构。本节说明
-这对 adapter 的影响。
+这对适配器的影响。
 
 完整细节见
 [Important CM-UM Integration Notice](https://developers.binance.com/docs/derivatives/coin-margined-futures/Important-CM-UM-Integration-Notice)。
@@ -1565,18 +1565,18 @@ Binance COIN-M Futures（CM / DAPI）与 USD-M Futures（UM / FAPI）共享统�
 `<symbol>@depth<levels>`、`<symbol>@miniTicker` 和 `<symbol>@rpiDepth` 上还带 `ps`
 （pair symbol）。
 
-adapter 用 `serde` 解码 JSON，默认忽略未知字段，因此这些字段被静默丢弃。
+适配器用 `serde` 解码 JSON，默认忽略未知字段，因此这些字段被静默丢弃。
 
 全市场数组流（`!ticker@arr`、`!miniTicker@arr`、`!bookTicker`、`!forceOrder@arr`、
 `!contractInfo`）在 `fstream` 和 `dstream` 上传递 UM + CM 合并后的内容。
 
 #### REST 与 WebSocket API {#rest-and-websocket-api}
 
-- 下单与改单的确认响应不包含 `avgPrice` / `cumQuote` / `cumBase`。adapter 从用户数据流获取
+- 下单与改单的确认响应不包含 `avgPrice` / `cumQuote` / `cumBase`。适配器从用户数据流获取
   成交。查询端点（`GET /{f,d}api/v1/order`、`userTrades`）仍返回这些字段。
-- `PUT /dapi/v1/order`（COIN-M 改单）要求同时提供 `price` 和 `quantity`。adapter 总是两个
+- `PUT /dapi/v1/order`（COIN-M 改单）要求同时提供 `price` 和 `quantity`。适配器总是两个
   字段都发，修改命令省略的那个回退为缓存订单的值。
-- COIN-M 条件订单（STOP、TAKE_PROFIT 等）使用 `/dapi/v1/algoOrder` 端点。adapter 将所有
+- COIN-M 条件订单（STOP、TAKE_PROFIT 等）使用 `/dapi/v1/algoOrder` 端点。适配器将所有
   futures 条件订单路由到 algo order API。
 - `GET /dapi/v1/openOrders` 传入非法 symbol 时返回错误 `-1121`。
 
@@ -1598,6 +1598,6 @@ UM 与 CM 共享同一个 `dualSidePosition` 设置，任何一侧的修改都�
 ## 贡献 {#contributing}
 
 :::info
-要为 Binance adapter 做贡献，参见
+要为 Binance 适配器做贡献，参见
 [贡献指南](https://github.com/nautechsystems/nautilus_trader/blob/develop/CONTRIBUTING.md)。
 :::

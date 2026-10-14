@@ -2,7 +2,7 @@
 
 [Lighter](https://lighter.xyz) 是面向现货与永续合约的 decentralized central-limit-order-book
 交易所（去中心化中央限价订单簿），采用以太坊零知识 rollup 结算，撮合与排序在链下完成。
-adapter 同时支持 Lighter 及其 Robinhood Chain 部署。
+适配器（adapter）同时支持 Lighter 及其 Robinhood Chain 部署。
 
 `nautilus-lighter` crate 提供 Rust 数据与执行客户端、类型化的 REST 与 WebSocket 模型，以及一个
 内置的 L2 签名器，使用 ECgFp5 上的 Schnorr 签名。本页介绍部署配置、能力与运行限制。
@@ -74,8 +74,8 @@ cargo run --example lighter-exec-tester --package nautilus-lighter --features ex
 
 ## 产品支持 {#product-support}
 
-能力矩阵描述的是 adapter 的支持情况。*Not supported by Lighter* 表示场所 API 的限制；
-*Not currently implemented* 表示 adapter 尚未实现。
+能力矩阵描述的是适配器的支持情况。*Not supported by Lighter* 表示场所 API 的限制；
+*Not currently implemented* 表示适配器尚未实现。
 
 | 产品类型     | 数据馈送 | 交易      | 备注                                                      |
 | ------------ | -------- | --------- | --------------------------------------------------------- |
@@ -91,7 +91,7 @@ cargo run --example lighter-exec-tester --package nautilus-lighter --features ex
 - 非或有订单列表、批量修改与显式批量撤销，会把支持的子单自动拆分为每批最多 15 个交易的
   WebSocket 批次。原生或有列表使用一个组合交易。
 - `CancelAllOrders` 在该客户端账户上跨策略撤销缓存的挂单，保留各订单所属策略，并按金融工具与
-  可选的 `order_side` 过滤。它按每批最多 15 笔逐单撤销。adapter 的原生 cancel-all 模式是账户级
+  可选的 `order_side` 过滤。它按每批最多 15 笔逐单撤销。适配器的原生 cancel-all 模式是账户级
   的。Lighter 的
   [新版签名器](https://apidocs.lighter.xyz/docs/wasm-signer#signcancelallorders)增加了市场过滤，
   但没有方向过滤。
@@ -106,7 +106,7 @@ Lighter 使用 64 位 `market_index`。既有市场保留其按区间划分的 I
 [Robinhood 随后的升级](https://t.me/lighter_api_updates/184)之后，新的现货与永续市场取 `4095`
 及以上的第一个空闲索引。
 
-产品类型永远取自 `market_type`，绝不从索引推断。adapter 从 `GET /api/v1/orderBookDetails` 加载
+产品类型永远取自 `market_type`，绝不从索引推断。适配器从 `GET /api/v1/orderBookDetails` 加载
 映射，并把场所符号转换为 Nautilus `InstrumentId`。
 
 | 部署侧产品        | Nautilus 符号格式                       | 示例                               | 备注                     |
@@ -132,7 +132,7 @@ Lighter 使用 64 位 `market_index`。既有市场保留其按区间划分的 I
 
 选择 `LighterDeployment::Lighter` 或 `Robinhood`，以及 `LighterEnvironment::Mainnet` 或
 `Testnet`。两者一起决定默认 URL、链 ID、结算货币、场所与归因策略。两个测试网都用链 ID 300，
-因此 adapter 从不按数字 ID 推断部署行为。
+因此适配器从不按数字 ID 推断部署行为。
 
 为私有网关或本地测试 fixture 覆盖 URL 只改变传输端点，部署签名、结算货币与归因保持不变。
 
@@ -228,12 +228,12 @@ Lighter Testnet 与两个 Robinhood 环境把 `L2TxAttributes` 留空，并在�
 归因跟随类型化的部署与环境，与自定义场所名无关。
 
 maker-only 的 Lighter Mainnet key 无法提交 `ApproveIntegrator`，会跳过自动批准。这类 key 要
-通过 adapter 交易，同一账户上必须先由一个非 maker-only 的 key 批准该集成方：批准作用于账户
+通过适配器交易，同一账户上必须先由一个非 maker-only 的 key 批准该集成方：批准作用于账户
 范围。
 
 ### 吊销批准 {#revoking-the-approval}
 
-离开该 adapter 时要吊销 Lighter Mainnet 的批准，用 `approval_expiry = 0` 与零最大费用发送
+离开该适配器时要吊销 Lighter Mainnet 的批准，用 `approval_expiry = 0` 与零最大费用发送
 `ApproveIntegrator`。下次用非 maker-only key 启动执行客户端时，会在所有 Lighter Mainnet 层级
 重新续期零费用批准。
 
@@ -277,7 +277,7 @@ Rust 命令会显示该动作并等待回车后才签名或发送。摘要不对
 
 簿增量与深度订阅在订阅前会拒绝 `BookType::L2_MBP` 之外的类型。
 
-只有 `subscribed/order_book` 会初始化 WebSocket 簿。在它到达之前，adapter 丢弃
+只有 `subscribed/order_book` 会初始化 WebSocket 簿。在它到达之前，适配器丢弃
 `update/order_book` 帧且不发出簿数据，因为增量消息不含未变化的档位。
 
 深度与增量共用 WebSocket 的 `order_book` 流。每个被接受的快照或增量更新都会刷新一份前 10 档
@@ -286,10 +286,10 @@ Rust 命令会显示该动作并等待回车后才签名或发送。摘要不对
 ### K 线 {#bars}
 
 K 线订阅使用 `candle/{market_id}/{resolution}`。Lighter 大约每 500 毫秒批量推送未收盘 K 线的
-更新。adapter 只在 candle 起始时间戳前进时，为每个已收盘周期发出一个 `Bar`。重连与退订会
+更新。适配器只在 candle 起始时间戳前进时，为每个已收盘周期发出一个 `Bar`。重连与退订会
 清空进行中的缓存。
 
-REST 与 WebSocket 支持 `1m`、`5m`、`15m`、`30m`、`1h`、`4h`、`12h` 与 `1d`。adapter 对 REST
+REST 与 WebSocket 支持 `1m`、`5m`、`15m`、`30m`、`1h`、`4h`、`12h` 与 `1d`。适配器对 REST
 请求接受 `1w`，但 Lighter Mainnet 会以 `20001 invalid param` 拒绝该分辨率，
 [REST 模式](https://apidocs.lighter.xyz/reference/candles)也未列出它。周 K 线订阅会在本地返回
 错误。要得到周数据，请聚合更短的 K 线。
@@ -302,14 +302,14 @@ REST 历史会跳过 OHLC 缺失、为 null 或非正的缺口行：它们无法
 金融工具状态订阅会重放缓存的 `orderBookDetails` 状态，或拉取一份 REST 快照。Lighter 没有
 WebSocket 的状态变更流。
 
-成交订阅使用公共 WebSocket 流。历史使用公共 `/api/v1/recentTrades`，无需凭据。adapter 把最多
+成交订阅使用公共 WebSocket 流。历史使用公共 `/api/v1/recentTrades`，无需凭据。适配器把最多
 100 笔成交过滤到请求的时间区间内，不分页。
 
 实时与历史资金费率的语义见[资金费率](#funding-rates)。
 
 ### 不支持的数据请求 {#unsupported-data-requests}
 
-`request_quotes` 未实现：adapter 用到的 REST 端点没有带时间戳的报价快照或历史，无法安全映射到
+`request_quotes` 未实现：适配器用到的 REST 端点没有带时间戳的报价快照或历史，无法安全映射到
 `QuoteTick`。要获取实时最优买卖价，请订阅 WebSocket 的 `ticker` 流。
 
 `request_book_depth` 未实现：REST 簿端点没有可用于 `OrderBookDepth.ts_event` 的场所事件时间戳。
@@ -319,7 +319,7 @@ WebSocket 的状态变更流。
 
 ### 序列校验 {#sequence-validation}
 
-adapter 把每条增量更新的 `begin_nonce` 与上一份簿的 `nonce` 比对。不匹配时抑制簿输出，并启动
+适配器把每条增量更新的 `begin_nonce` 与上一份簿的 `nonce` 比对。不匹配时抑制簿输出，并启动
 一次退订/订阅替换。
 
 场所的 `offset` 不是连续性计数器：它可能跳号，重连后也可能因服务器不同而变化。参见
@@ -357,7 +357,7 @@ adapter 把每条增量更新的 `begin_nonce` 与上一份簿的 `nonce` 比对
 除限流以外的场所订阅失败，会让正在等待的初始 subscribe 调用失败，即使恢复已经启动。此后
 恢复只在还有其他消费者时继续。后续的 subscribe 会重新开始，其他市场各自独立恢复。
 
-共享的恢复机制与 adapter 职责见
+共享的恢复机制与适配器职责见
 [订单簿恢复的归属](./../developer_guide/adapters.md#order-book-recovery-ownership)。
 
 ### 实时恢复验证 {#live-recovery-validation}
@@ -389,7 +389,7 @@ CARGO_BUILD_JOBS=16 bash scripts/strip-adapter-env.bash \
 
 ### 订单标识 {#order-identification}
 
-Lighter 使用数字场所订单索引与调用方提供的 `client_order_index`。adapter 从 Nautilus
+Lighter 使用数字场所订单索引与调用方提供的 `client_order_index`。适配器从 Nautilus
 `ClientOrderId` 派生一个 31 位索引，冲突时向后探测。
 
 探测出的值在重启后无法重新推导。转换订单与成交报告之前，对账会通过核心缓存解析每个场所订单
@@ -416,7 +416,7 @@ ID，并恢复其真实的 client 索引：缓存中的活动订单回到活动�
 | `TRAILING_STOP_LIMIT`    | -         | -         | *Lighter 不支持*。                                        |
 | `TWAP`                   | -         | -         | *尚未实现*；没有 Nautilus 映射。                          |
 
-条件订单必须有 `trigger_price`。adapter 会拒绝缺失触发价、在金融工具价格精度下截断为 `0` 个
+条件订单必须有 `trigger_price`。适配器会拒绝缺失触发价、在金融工具价格精度下截断为 `0` 个
 tick 的触发价，以及全部现货条件订单。
 
 Lighter 要求市价类订单给出可接受的最差 `price`。上限从以下起点推导：
@@ -424,7 +424,7 @@ Lighter 要求市价类订单给出可接受的最差 `price`。上限从以下�
 - `MARKET`：买单用缓存 ask，卖单用 bid。没有缓存的 `QuoteTick` 时订单被拒。
 - `STOP_MARKET` 与 `MARKET_IF_TOUCHED`：`trigger_price`。
 
-随后 adapter 应用 `market_order_slippage_bps`（默认 50 bps），再按金融工具价格精度取整：买单
+随后适配器应用 `market_order_slippage_bps`（默认 50 bps），再按金融工具价格精度取整：买单
 向上、卖单向下。用 `SubmitOrder.params["market_order_slippage_bps"]` 覆盖滑点。
 
 ### 或有订单 {#contingent-orders}
@@ -442,7 +442,7 @@ Lighter 要求市价类订单给出可接受的最差 `price`。上限从以下�
 | 括号订单               | ✓         | -         | OTO 父单加 OCO 关联的条件退出腿。                            |
 | `CreateGroupedOrders`  | ✓         | -         | 组合内每条腿共用一个签名交易与 nonce。                       |
 
-用 `submit_order_list` 提交原生组合。adapter 把 Lighter 的
+用 `submit_order_list` 提交原生组合。适配器把 Lighter 的
 [`CreateGroupedOrders`](https://apidocs.lighter.xyz/docs/trading#stop-loss-and-take-profit)
 关系映射为 Nautilus 的父子与兄弟关系：
 
@@ -453,7 +453,7 @@ Lighter 要求市价类订单给出可接受的最差 `price`。上限从以下�
 | OTOCO        | 3        | `OTO`         | 两个引用父单的子单，彼此作为 `OCO` 互相关联。                      |
 
 Nautilus 没有单独的 OTOCO 类型。由于 Lighter 的 OTO 与 OCO 数字代码和 Nautilus 的代码不同，
-adapter 显式映射这些关系。
+适配器显式映射这些关系。
 
 #### 组合要求 {#group-requirements}
 
@@ -473,10 +473,10 @@ adapter 显式映射这些关系。
 一致。
 
 wire 形态遵循 [Go SDK 的校验](https://github.com/elliottech/lighter-go/blob/9d38261d1a4cc5c7211b383ba07a4d6e41604708/types/txtypes/create_grouped_orders.go)。
-adapter 额外要求 OTO 子单是 reduce-only 且请求数量相符，以保持 Nautilus 的退出语义。
+适配器额外要求 OTO 子单是 reduce-only 且请求数量相符，以保持 Nautilus 的退出语义。
 
-要做原生括号单，请选择 `OCO` 退出腿与条件止盈。adapter 会拒绝默认的
-`OrderFactory.bracket`——它使用 `OUO` 退出腿与普通 `LIMIT` 止盈。adapter 不会用撤销代替数量
+要做原生括号单，请选择 `OCO` 退出腿与条件止盈。适配器会拒绝默认的
+`OrderFactory.bracket`——它使用 `OUO` 退出腿与普通 `LIMIT` 止盈。适配器不会用撤销代替数量
 更新，也不会把挂着的限价单转换成触发的止盈。
 
 #### 子单激活与规模 {#child-activation-and-sizing}
@@ -484,12 +484,12 @@ adapter 额外要求 OTO 子单是 reduce-only 且请求数量相符，以保持
 Lighter 根据父单的执行来激活 OTO/OTOCO 子单并确定其规模。在此之前，其 wire 基础数量为零。
 由 Nautilus 提交、处于挂起状态的子单的报告保留请求数量，场所侧数量变化会产生 `OrderUpdated`。
 
-场所数量为零的挂起子单不能被修改。adapter 既不提供了结放量控制，也不提供独立的按比例缩放。
+场所数量为零的挂起子单不能被修改。适配器既不提供了结放量控制，也不提供独立的按比例缩放。
 
 #### 撤销行为 {#cancellation-behavior}
 
 Lighter 的 OCO 在止损/止盈订单**触发**时就撤销兄弟订单，即使尚未成交；而 Nautilus 的 OCO 在
-成交或撤销时才请求对端撤销。adapter 保留场所的触发即撤销行为，不重建兄弟订单。事件顺序可能
+成交或撤销时才请求对端撤销。适配器保留场所的触发即撤销行为，不重建兄弟订单。事件顺序可能
 延迟撤销的送达。见
 [原生子单成交与持仓对账](#native-child-fills-and-position-reconciliation)。
 
@@ -529,7 +529,7 @@ Nautilus 的 client、parent 与 linked ID。全新启动的客户端在处理�
 | `quote_quantity` | -         | -         | *Lighter 不支持*；请提交基础数量。                                         |
 | `display_qty`    | -         | -         | *Lighter 不支持*；没有冰山显示数量字段。                                   |
 
-### adapter 订单参数 {#adapter-order-params}
+### 适配器订单参数 {#adapter-order-params}
 
 | 参数                                       | 永续      | 现货      | 备注                                                |
 | ------------------------------------------ | --------- | --------- | --------------------------------------------------- |
@@ -549,11 +549,11 @@ Nautilus 的 client、parent 与 linked ID。全新启动的客户端在处理�
 | `AT_THE_OPEN`  | -         | -         | *Lighter 不支持*。                                                              |
 | `AT_THE_CLOSE` | -         | -         | *Lighter 不支持*。                                                              |
 
-adapter 把 `MARKET`、`STOP_MARKET` 与 `MARKET_IF_TOUCHED` 作为 `ImmediateOrCancel` 发送：
+适配器把 `MARKET`、`STOP_MARKET` 与 `MARKET_IF_TOUCHED` 作为 `ImmediateOrCancel` 发送：
 Lighter 拒绝市价类的 `GoodTillTime`。有效期与 Nautilus `IOC` 的支持情况因订单类型而异：
 
 - 普通 `MARKET` 使用 `OrderExpiry = 0`。
-- 条件市价单在触发前保持正的有效期。adapter 拒绝对其使用 Nautilus `IOC`，因为 Lighter 把
+- 条件市价单在触发前保持正的有效期。适配器拒绝对其使用 Nautilus `IOC`，因为 Lighter 把
   IOC 保留给触发后的执行。
 - 条件限价单接受 Nautilus `IOC`：触发单以正有效期挂着，随后子单以 `ImmediateOrCancel` 执行。
 
@@ -562,7 +562,7 @@ Lighter 拒绝市价类的 `GoodTillTime`。有效期与 Nautilus `IOC` 的支�
 
 #### GTD 策略 {#gtd-policy}
 
-在默认的 `use_gtd = true` 下，策略的 `expire_time` 成为场所的 `GoodTillTime` 有效期。adapter
+在默认的 `use_gtd = true` 下，策略的 `expire_time` 成为场所的 `GoodTillTime` 有效期。适配器
 接受 [5 分钟 + 1 秒, 30 天] 的生命周期，额外的一秒用于容纳签名与传输。
 
 需要更短的生命周期时，把 `use_gtd = false` 与提交策略上的 `manage_gtd_expiry = true` 同时
@@ -582,7 +582,7 @@ wire 层的有效期仍是 `GoodTillTime`：Lighter 没有 `GoodTillCancel`，�
 | `post_only`   | ✓         | ✓         | 覆盖有效期并发送 Lighter 的 `PostOnly`。                   |
 | `reduce_only` | ✓         | -         | 针对已有衍生品持仓的减仓标志。                              |
 
-`post_only` 用于限价类订单。adapter 不会合成 maker 专属的市价单。
+`post_only` 用于限价类订单。适配器不会合成 maker 专属的市价单。
 
 Lighter 主网测试确认 `reduce_only=true` 能平掉永续持仓。非法的 reduce-only 开仓可能被直接丢弃、
 没有场所订单报告，并以 `INFLIGHT_TIMEOUT` 对账，且不附带场所拒绝原因。
@@ -606,7 +606,7 @@ Lighter 主网测试确认 `reduce_only=true` 能平掉永续持仓。非法的 
 Lighter 的
 [`CancelAllOrders`](https://apidocs.lighter.xyz/docs/wasm-signer#signcancelallorders)
 支持立即与计划撤销。执行客户端使用逐单撤销；`lighter-flatten` 使用立即的原生账户级撤销。
-adapter 不调度、也不续期撤销期限。
+适配器不调度、也不续期撤销期限。
 
 场所的
 [追踪限价订单与原子篮子](https://docs.lighter.xyz/trading/order-types-and-matching#advanced-orders)
@@ -640,7 +640,7 @@ adapter 不调度、也不续期撤销期限。
 
 每个批次使用独立的限流令牌与确认。拒绝只影响其自身的子单。
 
-签名下一批之前，adapter 最多等待 10 秒以收取当前批的确认。超时后继续派发，并保留未确认的
+签名下一批之前，适配器最多等待 10 秒以收取当前批的确认。超时后继续派发，并保留未确认的
 条目供对账。
 
 `CancelAllOrders` 走同一批处理路径，保留任何方向过滤。场所的
@@ -652,13 +652,13 @@ adapter 不调度、也不续期撤销期限。
 
 Lighter 的[交易指南](https://apidocs.lighter.xyz/docs/trading#batch)给出的上限是 50，而其
 [WebSocket 参考](https://apidocs.lighter.xyz/docs/websocket-reference#send-batch-tx)写的是 15。
-adapter 采用较低的那个文档值。
+适配器采用较低的那个文档值。
 
 #### Nonce 分配与交易准入 {#nonce-allocation-and-transaction-admission}
 
 每个批次使用同一个账户与 API key，在 Lighter 的
 [nonce 契约](https://apidocs.lighter.xyz/docs/core-concepts#nonce)下取连续 nonce。
-`skip_nonce=0` 时，adapter 必须保持 nonce 顺序。
+`skip_nonce=0` 时，适配器必须保持 nonce 顺序。
 
 本地窗口允许每个 key 有 16 个未确认的分配，不是乱序的场所交易。未签名的子单会等待容量或
 nonce 恢复，不会被丢弃。关闭会停止派发并丢弃队列中剩余的工作。
@@ -674,7 +674,7 @@ nonce 恢复，不会被丢弃。关闭会停止派发并丢弃队列中剩余�
 参见
 [nonce 消耗](https://apidocs.lighter.xyz/docs/core-concepts#when-a-rejected-transaction-consumes-its-nonce)。
 
-投递结果不明确时，adapter 保留待处理状态供对账，不重发该批。
+投递结果不明确时，适配器保留待处理状态供对账，不重发该批。
 
 #### 修改确认 {#modification-confirmation}
 
@@ -684,7 +684,7 @@ nonce 恢复，不会被丢弃。关闭会停止派发并丢弃队列中剩余�
 待处理的撤销会拒绝修改。待处理的修改期间，撤销仍可用，但其结果要等修改裁决之后。
 
 确认需要一次交易查找，并与当前场所订单形态匹配。受影响的 WebSocket 订单帧与成交会一直等待，
-直到 adapter 发出 `OrderUpdated` 或 `OrderModifyRejected`。可能应用该修改或成交的 HTTP 报告，
+直到适配器发出 `OrderUpdated` 或 `OrderModifyRejected`。可能应用该修改或成交的 HTTP 报告，
 要等缓存应用该事件之后才处理。
 
 | 请求                       | 修改待处理期间的行为                                     |
@@ -698,7 +698,7 @@ nonce 恢复，不会被丢弃。关闭会停止派发并丢弃队列中剩余�
 #### 原生子单成交与持仓对账 {#native-child-fills-and-position-reconciliation}
 
 对原生 OTO/OTOCO 子单，真实成交要等到终态场所订单与完整的真实成交覆盖确立有效数量之后才发出。
-adapter 先发布该数量，再发布成交，随后对账终态状态。
+适配器先发布该数量，再发布成交，随后对账终态状态。
 
 挂起的子单在其修改裁决之后才发布触发事件。
 
@@ -725,7 +725,7 @@ adapter 先发布该数量，再发布成交，随后对账终态状态。
 
 :::warning
 若有界查找无法确认某次修改，它可能在本次会话剩余时间内保持未决，从而暂扣后续订单事件与
-成交，并拒绝再次修改。adapter 既不假设成功，也不重发。要再次管理该订单，请先重启并对账
+成交，并拒绝再次修改。适配器既不假设成功，也不重发。要再次管理该订单，请先重启并对账
 场所状态。
 :::
 
@@ -778,7 +778,7 @@ adapter 先发布该数量，再发布成交，随后对账终态状态。
 超出可用的成交。分页从最新的成交往回走。只有找到早于回看起点的成交才能证明覆盖完整：
 
 - 有早于起点的成交：报告集保持完整。
-- 先耗尽游标：adapter 记录未覆盖的区间，并把报告集标记为不完整。
+- 先耗尽游标：适配器记录未覆盖的区间，并把报告集标记为不完整。
 - 没有保留任何成交：不可能有内容被截断，报告集保持完整。
 
 游标耗尽无法区分"被截断"和"确实没有更早的成交"：新账户可能在什么都没缺的情况下报告不完整。
@@ -786,7 +786,7 @@ adapter 先发布该数量，再发布成交，随后对账终态状态。
 
 更早的成交可以通过场所的
 [历史数据导出](https://apidocs.lighter.xyz/docs/historical-data)获取，最多 12 个月的账户成交。
-adapter 不读取 `export` 端点。
+适配器不读取 `export` 端点。
 
 #### 启动时的持仓检查 {#startup-position-checks}
 
@@ -803,7 +803,7 @@ adapter 不读取 `export` 端点。
 - `account_all_assets`：按资产的余额快照（现货余额加永续抵押物）。
 - `user_stats`：永续账户的保证金汇总（抵押物与可用余额）。
 
-adapter 只在 `account_all_assets` 与 `user_stats` 的首帧都到达之后，才发出二者的合并状态。
+适配器只在 `account_all_assets` 与 `user_stats` 的首帧都到达之后，才发出二者的合并状态。
 
 构造允许凭据缺失；`connect()` 要求已解析的 `private_key`、`account_index` 与
 `api_key_index`。私有账户流与 nonce 刷新是必需的。
@@ -836,8 +836,8 @@ adapter 只在 `account_all_assets` 与 `user_stats` 的首帧都到达之后，
 
 Lighter 的
 [多资产保证金](https://docs.lighter.xyz/trading/multi-asset-margin)支持非 USDC 的永续抵押物。
-其文档描述了现货的用途，但上线时不含现货。adapter 既不暴露现货借币，也不提供抵押物模式变更。
-现货保证金这一行描述的是 adapter 的缺口，不是场所的限制。
+其文档描述了现货的用途，但上线时不含现货。适配器既不暴露现货借币，也不提供抵押物模式变更。
+现货保证金这一行描述的是适配器的缺口，不是场所的限制。
 
 ## 强平与 ADL 处理 {#liquidation-and-adl-handling}
 
@@ -852,7 +852,7 @@ Lighter 的持仓负载包含 `liquidation_price`。其认证的
 [`notification` 流](https://apidocs.lighter.xyz/docs/websocket-reference#notification)会发布
 强平与减仓通知。
 
-adapter 在原始负载中解析强平价，但不在 Nautilus 持仓报告中暴露它，也不订阅通知。强平与减仓
+适配器在原始负载中解析强平价，但不在 Nautilus 持仓报告中暴露它，也不订阅通知。强平与减仓
 成交走普通的成交报告路径。
 
 ## 资金费率 {#funding-rates}
@@ -870,7 +870,7 @@ adapter 在原始负载中解析强平价，但不在 Nautilus 持仓报告中�
 
 - `1h` 分辨率设 `interval=60`。
 - `direction=long` 保持正值，`short` 取负。
-- 分页覆盖请求的区间，直到 adapter 的
+- 分页覆盖请求的区间，直到适配器的
   [页上限](#historical-request-limits)，并受显式 `limit` 约束。
 
 ## 账户层级 {#account-tiers}
@@ -912,9 +912,9 @@ Lighter 同时限制 IP 与 L1 地址。数据与执行客户端各有独立的 
 ### 请求桶与端点权重 {#request-buckets-and-endpoint-weights}
 
 场所对每个 L1 地址在 HTTP 与 WebSocket 之间共享一个交易桶。一次 WebSocket `sendTxBatch` 计为
-一次，最多携带 15 个 adapter 交易。
+一次，最多携带 15 个适配器交易。
 
-Standard 账户的读与交易共享 60 请求/分钟。Plus 与 Premium 使用分开的场所桶。adapter 在所有
+Standard 账户的读与交易共享 60 请求/分钟。Plus 与 Premium 使用分开的场所桶。适配器在所有
 层级都分开本地的读取与交易限流器，因此 Standard 用户必须把合计流量（包括 nonce 与对账的读取）
 一起规划。
 
@@ -946,9 +946,9 @@ Lighter 主网测试中，每次报价漂移都改价的报价策略，在一分
 要是有界地测试 Standard，每分钟 15 次交易请求与 5 次 REST 调用可以给独立的账户检查留出空间。
 
 无法关联的 WebSocket `23000` 响应只记日志，不会判定某一笔交易失败。它可能来自非交易流量，
-因此 adapter 不猜测是哪个订单或批次失败。未决的结果要靠对账解决，不要盲目重发。
+因此适配器不猜测是哪个订单或批次失败。未决的结果要靠对账解决，不要盲目重发。
 
-### 共享的 adapter 限流器 {#shared-adapter-limiters}
+### 共享的适配器限流器 {#shared-adapter-limiters}
 
 一个执行限流器在 WebSocket 的 `sendTx` 与 `sendTxBatch`（提交、修改与撤销），以及启动集成方
 批准所用的 HTTP `sendTx` 上统一执行 `sendtx_quota_per_min`。原始调用在配置了该值时使用它，
@@ -965,7 +965,7 @@ inflight 上限。
 下表中的层级限制针对
 [Lighter Mainnet](https://apidocs.lighter.xyz/docs/rate-limits)。
 
-| 范围                                   | 场所限制                 | adapter 行为                                           |
+| 范围                                   | 场所限制                 | 适配器行为                                           |
 | -------------------------------------- | ------------------------ | ------------------------------------------------------ |
 | REST，Standard 账户                    | 60 请求/分钟             | 默认；设 `rest_quota_per_min` 覆盖。                    |
 | REST，Premium 账户                     | 24,000 加权请求/分钟     | 需要本地覆盖；适用场所归因。                             |
@@ -989,7 +989,7 @@ Lighter 的
 | Premium    | 1,500        | 1,000        | 1,000        | 100          |
 
 活动订单指挂在簿上的订单。场所侧的挂起订单包括未触发的止盈、止损与 TWAP，与 Nautilus 的
-`PendingCancel` 或未确认请求不同。adapter 不会预先统计它们，请为已有订单留出余量。本地配额
+`PendingCancel` 或未确认请求不同。适配器不会预先统计它们，请为已有订单留出余量。本地配额
 不会提高场所上限。
 
 ### 端点权重与传输限制 {#endpoint-weights-and-transport-limits}
@@ -997,25 +997,25 @@ Lighter 的
 来自
 [Lighter Mainnet 限流](https://apidocs.lighter.xyz/docs/rate-limits)的常见 REST 权重：
 
-| 端点组                                                            | 权重   | adapter 行为                                      |
+| 端点组                                                            | 权重   | 适配器行为                                      |
 | ----------------------------------------------------------------- | ------ | ------------------------------------------------- |
 | `sendTx`、`sendTxBatch`、`nextNonce`                              | 6      | 交易调用用交易限流器；`nextNonce` 用 REST。        |
-| `accountInactiveOrders`、`accountActiveOrders`、`accountOrders`   | 100    | adapter 每次 HTTP 调用计一个 REST 令牌。           |
-| `apikeys`                                                         | 150    | adapter 每次 HTTP 调用计一个 REST 令牌。           |
-| `trades`                                                          | 200    | adapter 每次 HTTP 调用计一个 REST 令牌。           |
-| `recentTrades`                                                    | 600    | adapter 每次 HTTP 调用计一个 REST 令牌。           |
-| 没有显式场所权重的端点                                            | 300    | adapter 每次 HTTP 调用计一个 REST 令牌。           |
+| `accountInactiveOrders`、`accountActiveOrders`、`accountOrders`   | 100    | 适配器每次 HTTP 调用计一个 REST 令牌。           |
+| `apikeys`                                                         | 150    | 适配器每次 HTTP 调用计一个 REST 令牌。           |
+| `trades`                                                          | 200    | 适配器每次 HTTP 调用计一个 REST 令牌。           |
+| `recentTrades`                                                    | 600    | 适配器每次 HTTP 调用计一个 REST 令牌。           |
+| 没有显式场所权重的端点                                            | 300    | 适配器每次 HTTP 调用计一个 REST 令牌。           |
 
 其他具名端点各有不同权重，规划调用量前先查官方表。Robinhood 的权重可能不同，见
 [Robinhood 限流](https://apidocs.lighter.xyz/docs/lighter-rh#rate-limits)。
 
 | 端点或传输                             | 限制                | 备注                                                             |
 | -------------------------------------- | ------------------- | ---------------------------------------------------------------- |
-| `/api/v1/trades`                       | 100 行              | adapter 按该上限分页做对账。                                      |
-| `/api/v1/accountInactiveOrders`        | 100 行              | adapter 按该上限跟随 `next_cursor`。                              |
-| `/api/v1/orderBookOrders`              | 每侧 250 个订单     | adapter 把这些订单聚合为 L2 价位。                                |
-| `/api/v1/candles`                      | 500 行              | adapter 按该场所最大值封顶 REST K 线分页。                        |
-| `/api/v1/fundings`                     | 750 行              | 场所上限；adapter 每页请求 100 行。                               |
+| `/api/v1/trades`                       | 100 行              | 适配器按该上限分页做对账。                                      |
+| `/api/v1/accountInactiveOrders`        | 100 行              | 适配器按该上限跟随 `next_cursor`。                              |
+| `/api/v1/orderBookOrders`              | 每侧 250 个订单     | 适配器把这些订单聚合为 L2 价位。                                |
+| `/api/v1/candles`                      | 500 行              | 适配器按该场所最大值封顶 REST K 线分页。                        |
+| `/api/v1/fundings`                     | 750 行              | 场所上限；适配器每页请求 100 行。                               |
 | WebSocket 连接                         | 255 / IP            | 场所限制。                                                        |
 | 每连接 WebSocket 订阅数                | 500                 | 场所限制。                                                        |
 | 每 IP WebSocket 订阅数                 | 5,000               | 场所限制。                                                        |
@@ -1024,8 +1024,8 @@ Lighter 的
 | 每分钟 WebSocket 连接数                | 255                 | 场所限制。                                                        |
 | 每分钟 WebSocket 客户端消息            | 200                 | 为非交易帧限速；心跳 ping 不受其约束。                            |
 | WebSocket inflight 消息                | 50 / IP             | 订阅闸门允许每条连接 35 个未决请求。                              |
-| WebSocket `sendTxBatch` 批量大小       | 15 个交易           | adapter 的单请求上限；更大的命令会拆批。                          |
-| WebSocket keepalive                    | 2 分钟              | adapter 每 30 秒发一次心跳。                                      |
+| WebSocket `sendTxBatch` 批量大小       | 15 个交易           | 适配器的单请求上限；更大的命令会拆批。                          |
+| WebSocket keepalive                    | 2 分钟              | 适配器每 30 秒发一次心跳。                                      |
 | WebSocket 出站命令队列                 | 不封顶              | 写入前限速；无队列深度上限。                                      |
 
 ### 历史请求限制 {#historical-request-limits}
@@ -1045,7 +1045,7 @@ Plus 与 Premium 账户，在同一 L1 地址下的子账户之间共享：
   每个符合条件的批量交易分别消耗。单笔订单撤销不消耗。
 - 已完成的交易量与免费额度会为其补充。
 
-adapter 不检查剩余配额。当前规则与数值见所链接的场所文档。
+适配器不检查剩余配额。当前规则与数值见所链接的场所文档。
 
 反复刷新却不成交的报价可能耗尽这一配额，即使 WebSocket 与 `sendTx` 限流器工作正常。实时测试
 请优先用更慢的单边报价、更宽的刷新阈值、测试网，或有界的、能通过成交赚回配额的策略。
@@ -1059,7 +1059,7 @@ WebSocket 客户端每 30 秒发送一次心跳，并按 [250 毫秒, 30 秒] �
 
 ### 私有认证 {#private-authentication}
 
-私有认证令牌的有效期最长 8 小时。adapter 签发 7 小时的令牌，每 6 小时轮换并重新订阅。透明的
+私有认证令牌的有效期最长 8 小时。适配器签发 7 小时的令牌，每 6 小时轮换并重新订阅。透明的
 重连会签发新令牌，并在被跟踪的订阅开始回放之后重新订阅账户流。
 
 ### Nonce 恢复 {#nonce-recovery}
@@ -1212,6 +1212,6 @@ let robinhood_exec_config = LighterExecutionClientConfig::builder()
 ## 贡献 {#contributing}
 
 :::info
-想为 Lighter adapter 做贡献或提出特性需求，见
+想为 Lighter 适配器做贡献或提出特性需求，见
 [贡献指南](https://github.com/nautechsystems/nautilus_trader/blob/develop/CONTRIBUTING.md)。
 :::

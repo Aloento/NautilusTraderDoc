@@ -1,6 +1,6 @@
 # 集成 {#integrations}
 
-NautilusTrader 通过模块化的 *adapter* 连接交易场所和数据提供商。adapter 将原始 API 转换为统一接口和
+NautilusTrader 通过模块化的 *适配器（adapter）* 连接交易场所和数据提供商。适配器将原始 API 转换为统一接口和
 规范化的领域模型。
 
 目前已提供或计划提供以下集成：
@@ -29,7 +29,7 @@ NautilusTrader 通过模块化的 *adapter* 连接交易场所和数据提供商
 | [Polymarket](https://polymarket.com)                       | `POLYMARKET`          | 预测市场（DEX）         | ![status](https://img.shields.io/badge/stable-green)      | [指南](./polymarket.md)          |
 | [Tardis](https://tardis.dev)                               | `TARDIS`              | 加密数据提供商          | ![status](https://img.shields.io/badge/stable-green)      | [指南](./tardis.md)              |
 
-- **ID**：集成 adapter 客户端的默认客户端 ID。
+- **ID**：集成适配器客户端的默认客户端 ID。
 - **类型**：集成的类型（通常对应交易场所的类型）。
 
 Lighter on Robinhood 使用 `LIGHTER_ROBINHOOD` 作为交易场所，注册时也必须显式使用该客户端 ID。

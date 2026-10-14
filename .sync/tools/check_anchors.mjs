@@ -75,6 +75,9 @@ for (const rel of walk(EN)) {
 // Collect all internal fragments
 const problems = [];
 const linkRe = /\]\((?!https?:|mailto:)([^)\s#]+)#([^)\s]+)\)/g;
+function percentDecode(frag) {
+  try { return decodeURIComponent(frag); } catch { return frag; }
+}
 for (const rel of walk(DOCS)) {
   const abs = path.join(DOCS, rel);
   const text = readFileSync(abs, 'utf8');
@@ -82,7 +85,7 @@ for (const rel of walk(DOCS)) {
   let m;
   while ((m = linkRe.exec(text))) {
     const targetRaw = m[1];
-    const frag = m[2];
+    const frag = percentDecode(m[2]); // Docusaurus matches hrefs percent-decoded
     let joined = path.posix.normalize(path.posix.join(dirOf, targetRaw));
     if (joined.startsWith('..')) continue; // external github url rewrite happened already
     // normalize to docs file
