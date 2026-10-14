@@ -361,21 +361,21 @@ Deribit 只发布 L2（market-by-price）订单簿数据，因此 `subscribe_boo
 - 未鉴权的默认间隔：100ms。
 - 每条消息都是完整的、限定深度的快照，因此每次更新替换整个订单簿，而不是打补丁。
 
-### Subscription parameters
+### 订阅参数 {#subscription-parameters}
 
-The Nautilus adapter supports both feed types via subscription parameters:
+Nautilus 适配器通过订阅参数支持两类数据源：
 
-| Parameter  | Values                 | Notes                                                                     |
+| 参数       | 取值                   | 说明                                                                      |
 | ---------- | ---------------------- | ------------------------------------------------------------------------- |
-| `interval` | `raw`, `100ms`, `agg2` | `agg2` batches at about 1 second intervals. `raw` requires auth.          |
-| `group`    | `none`, price group    | Default: `none`. Applies only to grouped non-raw book channels.           |
-| `depth`    | `1`, `10`, `20`        | Default: `10`. Number of price levels per side for grouped book channels. |
+| `interval` | `raw`、`100ms`、`agg2` | `agg2` 以约 1 秒间隔批量发出。`raw` 需要鉴权。                            |
+| `group`    | `none`、价格分组       | 默认 `none`。只作用于分组的非 raw 订单簿频道。                            |
+| `depth`    | `1`、`10`、`20`        | 默认 `10`。分组订单簿频道每边的价格档位数。                               |
 
-The data client chooses the order book interval as follows:
+数据客户端按如下规则选择订单簿间隔：
 
-1. Uses `params["interval"]` when supplied.
-2. Uses `raw` when the WebSocket connection is authenticated and no interval is supplied.
-3. Uses Deribit's public `100ms` grouped feed when the connection is not authenticated.
+1. 提供了 `params["interval"]` 时优先使用它。
+2. WebSocket 连接已鉴权且未提供间隔时使用 `raw`。
+3. 连接未鉴权时使用 Deribit 公开的 `100ms` 分组数据源。
 
 ```python
 from nautilus_trader.model import BookType
@@ -402,64 +402,57 @@ strategy.subscribe_book_deltas(
 ```
 
 :::note
-Raw order book feeds require an authenticated WebSocket connection. Ensure API credentials are
-configured before subscribing to raw feeds.
+原始订单簿数据源需要已鉴权的 WebSocket 连接。订阅原始数据源之前，请确认已配置 API 凭据。
 :::
 
 :::tip
-For most strategies, the 100ms aggregated feed provides sufficient granularity with lower message
-overhead. Set `params={"interval": "100ms"}` when you provide credentials but do not need raw
-tick-by-tick book updates.
+对多数策略而言，100ms 聚合数据源以更低的消息开销提供足够的粒度。已提供凭据但不需要原始
+逐笔订单簿更新时，设置 `params={"interval": "100ms"}`。
 :::
 
-### Sequence gap recovery
+### 序列缺口恢复 {#sequence-gap-recovery}
 
-The adapter records the `change_id` of every book message it applies and checks the `prev_change_id` of each
-incremental update against it. Only raw-channel updates carry `prev_change_id`. Aggregated messages are
-self-contained snapshots and need no sequence check.
+适配器记录它应用的每条订单簿消息的 `change_id`，并用每个增量更新的 `prev_change_id` 与之
+核对。只有原始频道的更新携带 `prev_change_id`。聚合消息是自包含的快照，无需序列检查。
 
-When a gap is detected (a missed message), or a level in a book message fails conversion to `Price`
-or `Quantity` (for example, a value beyond their range), the adapter automatically:
+检测到缺口（漏掉消息），或订单簿消息中某个档位无法转换为 `Price` 或 `Quantity`（例如数值
+超出其范围）时，适配器会自动：
 
-1. Drops that message, and every further delta for the affected instrument.
-2. Unsubscribes from that instrument's delta book channels.
-3. Resubscribes once the unsubscribe is acknowledged, to obtain a fresh snapshot.
-4. Resumes normal processing once each resubscribed channel delivers a snapshot that converts,
-   reseeding the sequence from it.
+1. 丢弃该消息，以及受影响工具的后续所有 delta。
+2. 退订该工具的 delta 订单簿频道。
+3. 退订得到确认后重新订阅，以获得新快照。
+4. 每个重订频道投递出可成功转换的快照后恢复正常处理，并以其重播序列种子。
 
-During resync, the strategy will not receive stale or incomplete book updates. A user-initiated
-unsubscribe while a resync is pending cancels the resubscribe instead of reopening the channel.
+重同步期间，策略不会收到过期或不完整的订单簿更新。重同步待定时用户主动退订，会取消重订阅
+而不是重开频道。
 
-A grouped book channel (`book.{instrument}.{group}.{depth}.{interval}`) sends a full snapshot every interval,
-so the adapter never resyncs it. It drops a snapshot that fails conversion. The next snapshot replaces the
-book.
+分组订单簿频道（`book.{instrument}.{group}.{depth}.{interval}`）每个间隔都发送完整快照，
+因此适配器从不重同步它。转换失败的快照会被丢弃，下一条快照替换整个订单簿。
 
-:::warning[Subscribe each instrument to one delta book channel]
-Book channels for the same instrument share one sequence and resync state. An instrument can have multiple
-delta book channels (for example `raw` and `100ms`). If a resync starts while one still awaits its initial
-snapshot, that channel can stay unsubscribed until the next reconnect.
+:::warning[每个工具只订阅一个 delta 订单簿频道]
+同一工具的订单簿频道共享一套序列与重同步状态。一个工具可以有多个 delta 订单簿频道（例如
+`raw` 与 `100ms`）。若重同步开始时其中一个仍在等初始快照，该频道可能一直处于退订状态，
+直到下次重连。
 :::
 
-The adapter logs a warning and skips a malformed level, including a value that does not parse as a
-decimal. A level whose amount rounds to zero at the instrument's size precision is treated as
-absent: snapshots skip it, incremental updates delete it, and the adapter logs a warning.
+档位格式错误（包括无法解析为小数的值）时，适配器记一条警告并跳过该档位。金额按工具的
+数量精度舍入后为零的档位按不存在处理：快照跳过它，增量更新删除它，适配器记一条警告。
 
-## Funding rates
+## Funding 费率 {#funding-rates}
 
-Deribit exchanges funding continuously (every few seconds) rather than at fixed intervals
-like most other exchanges. The `interval` field on `FundingRateUpdate` is `None` for
-Deribit because this continuous model does not map to a discrete period.
+Deribit 持续结算 funding（每几秒一次），而不是像多数交易所那样按固定间隔。因此 Deribit 的
+`FundingRateUpdate` 上 `interval` 字段为 `None`——这种连续模型无法映射为离散周期。
 
-## Deribit specific data
+## Deribit 专属数据 {#deribit-specific-data}
 
-### Book summaries
+### 订单簿汇总 {#book-summaries}
 
-Request `DeribitBookSummary` custom data to fetch one bulk snapshot filtered by currency and product
-kind. Each response item includes the Nautilus instrument ID, implied volatility, open interest,
-prices, volume, and other fields returned by `public/get_book_summary_by_currency`.
+请求 `DeribitBookSummary` 自定义数据，可按货币与产品类别过滤，拉取一份批量快照。响应的每
+一项包含 Nautilus 工具 ID、隐含波动率、未平仓合约量、价格、成交量，以及
+`public/get_book_summary_by_currency` 返回的其他字段。
 
-The actor or strategy receives the complete response through one `on_historical_data` callback.
-Each item is a `CustomData` wrapper containing a `DeribitBookSummary` in its `data` field:
+Actor 或策略通过一次 `on_historical_data` 回调收到完整响应。每一项是 `CustomData` 包装，
+其 `data` 字段内含一个 `DeribitBookSummary`：
 
 ```python
 from nautilus_trader.adapters.deribit import DERIBIT_CLIENT_ID
@@ -488,27 +481,25 @@ def on_historical_data(self, data: list[CustomData]) -> None:
             )
 ```
 
-The `currency` metadata field is required. The optional `kind` field defaults to `option`.
-Decimal-backed venue fields, such as `mark_iv` and `open_interest`, are exposed to Python as strings
-or `None`. An empty response invokes `on_historical_data` once with an empty list. A failed venue
-request also invokes the callback with an empty list after logging an error. A request rejected
-before it reaches the venue, such as one missing `currency`, produces no callback.
+元数据字段 `currency` 是必需的。可选的 `kind` 字段默认为 `option`。由 Decimal 支撑的场所
+字段（如 `mark_iv` 与 `open_interest`）在 Python 侧以字符串或 `None` 暴露。空响应会以空
+列表调用一次 `on_historical_data`。场所请求失败时，记完错误后同样以空列表调用该回调。尚未
+到达场所就被拒绝的请求（例如缺少 `currency`）不会产生回调。
 
-### Volatility index
+### 波动率指数 {#volatility-index}
 
-The adapter emits `DeribitVolatilityIndex` custom data from Deribit's
-`deribit_volatility_index.{index_name}` WebSocket channel. Deribit provides
-volatility index streams such as `btc_usd` and `eth_usd`.
+适配器从 Deribit 的 `deribit_volatility_index.{index_name}` WebSocket 频道发出
+`DeribitVolatilityIndex` 自定义数据。Deribit 提供 `btc_usd`、`eth_usd` 等波动率指数流。
 
-| Field        | Type    | Description                                              |
+| 字段         | 类型    | 说明                                                     |
 | ------------ | ------- | -------------------------------------------------------- |
-| `index_name` | `str`   | Deribit volatility index name, for example `btc_usd`.    |
-| `volatility` | `float` | Current volatility index value.                          |
-| `ts_event`   | `int`   | UNIX timestamp in nanoseconds when the update occurred.  |
-| `ts_init`    | `int`   | UNIX timestamp in nanoseconds when the object was built. |
+| `index_name` | `str`   | Deribit 波动率指数名称，例如 `btc_usd`。                 |
+| `volatility` | `float` | 当前波动率指数值。                                       |
+| `ts_event`   | `int`   | 更新发生时刻的 UNIX 纳秒时间戳。                         |
+| `ts_init`    | `int`   | 对象构建时刻的 UNIX 纳秒时间戳。                         |
 
-Subscribe from an actor or strategy with `DataType(DeribitVolatilityIndex.__name__)`.
-The `index_name` metadata key is required:
+Actor 或策略用 `DataType(DeribitVolatilityIndex.__name__)` 订阅，`index_name` 元数据键是
+必需的：
 
 ```python
 from nautilus_trader.adapters.deribit import DeribitVolatilityIndex
@@ -521,63 +512,62 @@ self.subscribe_data(
 )
 ```
 
-## Orders capability
+## 订单能力 {#orders-capability}
 
-Below are the order types, execution instructions, and time-in-force options supported on Deribit.
+下面是 Deribit 支持的订单类型、执行指示与有效期选项。
 
-### Order types
+### 订单类型 {#order-types}
 
-| Nautilus order type    | Deribit order type | Supported | Notes                                   |
-| ---------------------- | ------------------ | --------- | --------------------------------------- |
-| `MARKET`               | `market`           | ✓         | Immediate execution at market price.    |
-| `LIMIT`                | `limit`            | ✓         | Execution at specified price or better. |
-| `STOP_MARKET`          | `stop_market`      | ✓         | Conditional market order on trigger.    |
-| `STOP_LIMIT`           | `stop_limit`       | ✓         | Conditional limit order on trigger.     |
-| `MARKET_IF_TOUCHED`    | `take_market`      | ✓         | Take-profit style market order.         |
-| `LIMIT_IF_TOUCHED`     | `take_limit`       | ✓         | Take-profit style limit order.          |
-| `TRAILING_STOP_MARKET` | `trailing_stop`    | -         | *Not currently implemented*.            |
-| `TRAILING_STOP_LIMIT`  | N/A                | -         | *Not supported by Deribit*.             |
-| `MARKET_TO_LIMIT`      | `market_limit`     | -         | *Not currently implemented*.            |
+| Nautilus 订单类型        | Deribit 订单类型   | 支持      | 说明                                     |
+| ------------------------ | ------------------ | --------- | ---------------------------------------- |
+| `MARKET`                 | `market`           | ✓         | 按市价立即成交。                         |
+| `LIMIT`                  | `limit`            | ✓         | 按指定价或更优价成交。                   |
+| `STOP_MARKET`            | `stop_market`      | ✓         | 触发后的条件市价单。                     |
+| `STOP_LIMIT`             | `stop_limit`       | ✓         | 触发后的条件限价单。                     |
+| `MARKET_IF_TOUCHED`      | `take_market`      | ✓         | 止盈风格的市价单。                       |
+| `LIMIT_IF_TOUCHED`       | `take_limit`       | ✓         | 止盈风格的限价单。                       |
+| `TRAILING_STOP_MARKET`   | `trailing_stop`    | -         | *目前未实现*。                           |
+| `TRAILING_STOP_LIMIT`    | N/A                | -         | *Deribit 不支持*。                       |
+| `MARKET_TO_LIMIT`        | `market_limit`     | -         | *目前未实现*。                           |
 
-### Execution instructions
+### 执行指示 {#execution-instructions}
 
-| Instruction   | Supported | Notes                                                                            |
-| ------------- | --------- | -------------------------------------------------------------------------------- |
-| `post_only`   | ✓         | Order will be rejected if it would take liquidity. Uses `reject_post_only=true`. |
-| `reduce_only` | ✓         | Order can only reduce an existing position.                                      |
+| 指示          | 支持      | 说明                                                                               |
+| ------------- | --------- | ---------------------------------------------------------------------------------- |
+| `post_only`   | ✓         | 若订单会吃掉流动性则拒绝该订单。使用 `reject_post_only=true`。                     |
+| `reduce_only` | ✓         | 订单只能减少已有持仓。                                                             |
 
-### Time in force
+### 有效期 {#time-in-force}
 
-| Time in force | Supported | Notes                                                |
-| ------------- | --------- | ---------------------------------------------------- |
-| `GTC`         | ✓         | Good till canceled (`good_til_cancelled`).           |
-| `GTD`         | ✓         | Good till day. Expires at 8:00 UTC (`good_til_day`). |
-| `IOC`         | ✓         | Immediate or cancel (`immediate_or_cancel`).         |
-| `FOK`         | ✓         | Fill or kill (`fill_or_kill`).                       |
+| 有效期        | 支持      | 说明                                                   |
+| ------------- | --------- | ------------------------------------------------------ |
+| `GTC`         | ✓         | 撤销前有效（`good_til_cancelled`）。                   |
+| `GTD`         | ✓         | 当日有效。UTC 8:00 到期（`good_til_day`）。            |
+| `IOC`         | ✓         | 立即成交否则撤销（`immediate_or_cancel`）。            |
+| `FOK`         | ✓         | 全部成交否则撤销（`fill_or_kill`）。                   |
 
-Deribit applies time in force to limit-style orders. The adapter omits `time_in_force`
-for `MARKET`, `STOP_MARKET`, and `MARKET_IF_TOUCHED` orders because Deribit rejects that
-parameter on market-style order types.
+Deribit 只对限价风格的订单应用有效期。适配器对 `MARKET`、`STOP_MARKET` 和
+`MARKET_IF_TOUCHED` 订单省略 `time_in_force`，因为 Deribit 在市价风格的订单类型上会拒绝该
+参数。
 
 :::note
-**GTD on Deribit**: Unlike other exchanges where GTD accepts an arbitrary expiry time,
-Deribit's `good_til_day` always expires at 8:00 UTC the same or next day. Custom expiry times
-will be logged as warnings and the order will use the exchange's fixed expiry behavior.
+**Deribit 上的 GTD**：与其他接受任意到期时间的交易所不同，
+Deribit 的 `good_til_day` 总是在当日或次日的 UTC 8:00 到期。自定义到期时间会被记为警告，
+订单将采用交易所固定的到期行为。
 :::
 
-### Trigger types
+### 触发类型 {#trigger-types}
 
-Conditional orders (stop orders) support different trigger price sources:
+条件订单（止损单）支持多种触发价来源：
 
-| Trigger type  | Supported | Notes                                                |
+| 触发类型      | 支持      | 说明                                                 |
 | ------------- | --------- | ---------------------------------------------------- |
-| `last_price`  | ✓         | Uses the last traded price. Also used for `DEFAULT`. |
-| `mark_price`  | ✓         | Uses the mark price.                                 |
-| `index_price` | ✓         | Uses the underlying index price.                     |
+| `last_price`  | ✓         | 使用最新成交价。`DEFAULT` 也用它。                   |
+| `mark_price`  | ✓         | 使用标记价格。                                       |
+| `index_price` | ✓         | 使用标的指数价格。                                   |
 
-Any other Nautilus trigger type is dropped from the request rather than mapped. Deribit requires
-`trigger` on stop-loss and take-profit orders, so use one of the three above for conditional
-orders.
+其他任何 Nautilus 触发类型都会从请求中丢弃而不是做映射。Deribit 要求止损与止盈订单必须带
+`trigger`，因此条件订单请使用上述三种之一。
 
 ```python
 # Example: Stop loss using mark price trigger
@@ -591,287 +581,271 @@ stop_order = order_factory.stop_market(
 strategy.submit_order(stop_order)
 ```
 
-### Batch operations
+### 批量操作 {#batch-operations}
 
-| Operation                | Supported | Notes                                                                    |
+| 操作                     | 支持      | 说明                                                                     |
 | ------------------------ | --------- | ------------------------------------------------------------------------ |
-| Submit order list        | ✓         | Sends each order as an individual Deribit order. No atomic venue batch.  |
-| Batch cancel by order ID | ✓         | Sends individual `private/cancel` requests for each venue order ID.      |
-| Cancel all by instrument | ✓         | Uses `private/cancel_all_by_instrument` when no side filter is supplied. |
-| Side-filtered cancel all | ✓         | Filters cached open orders locally, then cancels each matching order.    |
-| Batch modify             | -         | *Not currently implemented*: single order modify is supported.           |
+| 提交订单列表             | ✓         | 每笔订单作为独立的 Deribit 订单发送。场所层没有原子批量。                |
+| 按订单 ID 批量撤销       | ✓         | 对每个场所订单 ID 分别发送 `private/cancel` 请求。                       |
+| 按工具撤销全部           | ✓         | 未提供方向过滤时使用 `private/cancel_all_by_instrument`。                |
+| 按方向过滤的撤销全部     | ✓         | 先在本地过滤缓存的未结订单，再逐一撤销匹配的订单。                       |
+| 批量修改                 | -         | *目前未实现*：支持单笔订单修改。                                         |
 
-### Post-only behavior
+### Post-only 行为 {#post-only-behavior}
 
-Deribit offers two post-only modes:
+Deribit 提供两种 post-only 模式：
 
-1. **Price adjustment (Deribit default)**: If a post-only order would cross the spread and execute,
-   Deribit automatically adjusts the price to one tick inside the spread.
-2. **Reject mode**: Order is immediately rejected if it would cross the spread.
+1. **价格调整（Deribit 默认）**：若 post-only 订单会跨过价差成交，Deribit 自动把价格调整到
+   价差内一个 tick。
+2. **拒绝模式**：订单若会跨过价差则立即拒绝。
 
-The Nautilus adapter uses **reject mode** (`reject_post_only=true`) for deterministic behavior.
-If a post-only order would take liquidity, it is rejected with error code `11054`, and an `OrderRejected`
-event is emitted with the `due_post_only` flag set to `true`.
+Nautilus 适配器使用**拒绝模式**（`reject_post_only=true`）以获得确定性行为。post-only 订单
+若会吃掉流动性，会以错误码 `11054` 被拒绝，并发出 `OrderRejected` 事件，其
+`due_post_only` 标志置为 `true`。
 
-This allows strategies to differentiate between:
+这让策略可以区分：
 
-- Orders rejected due to post-only violation (attempted to take liquidity).
-- Orders rejected for other reasons (insufficient margin, invalid price, etc.).
+- 因违反 post-only（试图吃掉流动性）而被拒的订单。
+- 因其他原因（保证金不足、价格无效等）被拒的订单。
 
-### Order modification
+### 订单修改 {#order-modification}
 
-The adapter uses Deribit's native `private/edit` endpoint rather than cancel-and-replace.
-This provides several advantages:
+适配器使用 Deribit 原生的 `private/edit` 端点，而不是撤销加重下。这带来若干好处：
 
-| Benefit                     | Description                                                       |
-| --------------------------- | ----------------------------------------------------------------- |
-| Single request              | Faster execution, lower latency than cancel + new order.          |
-| Queue priority preservation | Keeps position when only reducing quantity or keeping same price. |
-| Fill history maintained     | Partial fills remain linked to the same order ID.                 |
+| 好处                   | 说明                                                              |
+| ---------------------- | ----------------------------------------------------------------- |
+| 单次请求               | 比撤销 + 新下单更快、延迟更低。                                   |
+| 保留队列优先级         | 只减少数量或保持同价时保住队列位置。                              |
+| 保持成交历史           | 部分成交仍关联同一个订单 ID。                                     |
 
-**Queue priority rules**:
+**队列优先级规则**：
 
-- **Decreasing quantity only**: Keeps queue position.
-- **Same price**: Keeps queue position.
-- **Increasing quantity or changing price**: Loses queue position (treated as new order).
+- **只减少数量**：保留队列位置。
+- **价格不变**：保留队列位置。
+- **增加数量或改变价格**：失去队列位置（按新订单处理）。
 
-A modify command must carry the venue order ID and a price. If either is missing, the adapter rejects the
-command locally without reaching Deribit. Quantity is optional and falls back to the cached order's current
-quantity.
+修改命令必须携带场所订单 ID 和一个价格。缺少任一项时，适配器在本地拒绝该命令，不会到达
+Deribit。数量是可选的，缺省回退到缓存订单的当前数量。
 
-### Position management
+### 持仓管理 {#position-management}
 
-| Feature          | Supported | Notes                                                              |
+| 特性             | 支持      | 说明                                                               |
 | ---------------- | --------- | ------------------------------------------------------------------ |
-| Query positions  | ✓         | Fetched from `private/get_positions` for reconciliation.           |
-| Position mode    | -         | *Not supported by Deribit*: net position mode only.                |
-| Leverage control | -         | *Not supported by Deribit*: no direct leverage setting.            |
-| Margin mode      | -         | *Not currently implemented*: Deribit exposes account margin modes. |
+| 查询持仓         | ✓         | 为对账从 `private/get_positions` 拉取。                            |
+| 持仓模式         | -         | *Deribit 不支持*：仅净持仓模式。                                   |
+| 杠杆控制         | -         | *Deribit 不支持*：没有直接的杠杆设置。                             |
+| 保证金模式       | -         | *目前未实现*：Deribit 暴露账户保证金模式。                         |
 
-The execution client subscribes to `user.orders`, `user.trades`, and `user.portfolio` (balance and
-margin), not to Deribit's combined `user.changes` channel, so no position push reaches the adapter.
-Live position state is maintained by Nautilus from the fills on `user.trades`, and
-`private/get_positions` supplies the venue snapshot that reconciliation compares against.
+执行客户端订阅 `user.orders`、`user.trades` 和 `user.portfolio`（余额与保证金），而不是
+Deribit 的合并频道 `user.changes`，因此没有持仓推送到达适配器。实时持仓状态由 Nautilus 根据
+`user.trades` 上的成交维护，`private/get_positions` 提供对账比对用的场所快照。
 
-### Order querying
+### 订单查询 {#order-querying}
 
-| Feature              | Supported | Notes                          |
-| -------------------- | --------- | ------------------------------ |
-| Query open orders    | ✓         | List all active orders.        |
-| Query order history  | ✓         | Historical order data.         |
-| Order status updates | ✓         | Real-time order state changes. |
-| Trade history        | ✓         | Execution and fill reports.    |
+| 特性             | 支持      | 说明                           |
+| ---------------- | --------- | ------------------------------ |
+| 查询未结订单     | ✓         | 列出全部活动订单。             |
+| 查询订单历史     | ✓         | 历史订单数据。                 |
+| 订单状态更新     | ✓         | 实时订单状态变化。             |
+| 成交历史         | ✓         | 执行与成交报告。               |
 
-### Contingent orders
+### 条件关联订单 {#contingent-orders}
 
-| Feature                        | Supported | Notes                                                                          |
+| 特性                           | 支持      | 说明                                                                           |
 | ------------------------------ | --------- | ------------------------------------------------------------------------------ |
-| Order lists                    | ✓         | Submitted sequentially as independent orders; there is no atomic venue list.   |
-| Native linked orders           | -         | *Not currently implemented*: Deribit exposes `linked_order_type`.              |
-| OCO orders                     | -         | *Not currently implemented*: Deribit exposes `one_cancels_other`.              |
-| Bracket orders                 | -         | *Not currently implemented*: Deribit exposes `one_triggers_one_cancels_other`. |
-| Conditional stop orders        | ✓         | Stop market and stop limit orders.                                             |
-| Conditional take-profit orders | ✓         | Market-if-touched and limit-if-touched orders.                                 |
+| 订单列表                       | ✓         | 作为独立订单依次提交；场所层没有原子列表。                                     |
+| 原生关联订单                   | -         | *目前未实现*：Deribit 暴露 `linked_order_type`。                               |
+| OCO 订单                       | -         | *目前未实现*：Deribit 暴露 `one_cancels_other`。                               |
+| 括弧订单（bracket）            | -         | *目前未实现*：Deribit 暴露 `one_triggers_one_cancels_other`。                  |
+| 条件止损单                     | ✓         | 止损市价与止损限价订单。                                                       |
+| 条件止盈单                     | ✓         | 触价市价（MARKET_IF_TOUCHED）与触价限价（LIMIT_IF_TOUCHED）订单。              |
 
-### Liquidation handling
+### 强平处理 {#liquidation-handling}
 
-Deribit tags any trade that was triggered by a liquidation. On the
-`user.trades` stream and `private/get_user_trades_*` endpoints, the optional
-`liquidation` field indicates which side was being liquidated:
+Deribit 为任何由强平触发的成交打标签。在 `user.trades` 流和 `private/get_user_trades_*`
+端点上，可选的 `liquidation` 字段指出被强平的是哪一边：
 
-| Value  | Meaning                       |
-| ------ | ----------------------------- |
-| `"M"`  | Maker side was liquidated.    |
-| `"T"`  | Taker side was liquidated.    |
-| `"MT"` | Both sides were liquidated.   |
-| absent | Normal non-liquidation trade. |
+| 取值   | 含义                           |
+| ------ | ------------------------------ |
+| `"M"`  | 挂单方（maker）被强平。        |
+| `"T"`  | 吃单方（taker）被强平。        |
+| `"MT"` | 双方都被强平。                 |
+| 缺失   | 普通非强平成交。               |
 
-For each liquidation-tagged fill, the adapter logs a warning with the instrument, trade ID, order ID, and
-liquidation side. Then it emits the `FillReport` through the normal pipeline. Deribit does not operate an ADL
-mechanism distinct from the liquidation + insurance-fund / portfolio margin process, so there is no separate
-ADL signal to surface.
+对每一笔带强平标签的成交，适配器记一条警告，附上工具、成交 ID、订单 ID 与强平方向，然后
+通过正常管线发出 `FillReport`。Deribit 不运营独立于「强平 + 保险基金 / 组合保证金」流程的
+ADL 机制，因此没有单独的 ADL 信号需要呈现。
 
-Upstream references:
+上游参考：
 
-- [`user.trades.{instrument_name}.{interval}` channel](https://docs.deribit.com/subscriptions/user/usertradesinstrument_nameinterval)
-- [Liquidation documentation](https://support.deribit.com/hc/en-us/articles/25944769313309-Liquidations)
+- [`user.trades.{instrument_name}.{interval}` 频道](https://docs.deribit.com/subscriptions/user/usertradesinstrument_nameinterval)
+- [强平文档](https://support.deribit.com/hc/en-us/articles/25944769313309-Liquidations)
 
-## Rate limiting
+## 速率限制 {#rate-limiting}
 
-Deribit uses credit-based and endpoint-specific rate limits. The official Deribit limits are
-authoritative, and they can vary by endpoint, account tier, and current venue policy. The adapter
-adds local token buckets to reduce avoidable throttling, but it does not replace Deribit's own
-server-side checks.
+Deribit 使用基于信用（credit）的、按端点区分的速率限制。Deribit 官方的限制是权威的，且会
+因端点、账户层级和当前场所策略而异。适配器增加本地令牌桶以减少可避免的限流，但不取代
+Deribit 自己的服务端检查。
 
-### HTTP limits
+### HTTP 限制 {#http-limits}
 
-Every HTTP request consumes the global bucket and a per-method bucket keyed `deribit:{method}` that uses the
-global quota. If the JSON-RPC method belongs to the order or account category, it also consumes that bucket.
+每个 HTTP 请求消耗全局桶，以及一个以 `deribit:{method}` 为键、使用全局限额的按方法桶。若
+JSON-RPC 方法属于订单或账户类别，它还会消耗对应的桶。
 
-| Bucket / key       | Adapter bucket        | Notes                                                          |
-| ------------------ | --------------------- | -------------------------------------------------------------- |
-| `deribit:global`   | 20 req/sec, 100 burst | Applied to every HTTP request.                                 |
-| `deribit:orders`   | 5 req/sec, 20 burst   | Matching-engine methods when driving the HTTP client directly. |
-| `deribit:account`  | 5 req/sec, 5 burst    | Account, position, order state, and user trade endpoints.      |
-| `deribit:{method}` | 20 req/sec, 100 burst | Per-method bucket; falls back to the global quota.             |
+| 桶 / 键            | 适配器桶              | 说明                                                         |
+| ------------------ | --------------------- | ------------------------------------------------------------ |
+| `deribit:global`   | 20 请求/秒，突发 100  | 应用于每个 HTTP 请求。                                       |
+| `deribit:orders`   | 5 请求/秒，突发 20    | 直接驱动 HTTP 客户端时的撮合引擎方法。                       |
+| `deribit:account`  | 5 请求/秒，突发 5     | 账户、持仓、订单状态与用户成交端点。                         |
+| `deribit:{method}` | 20 请求/秒，突发 100  | 按方法桶；回退到全局限额。                                   |
 
-### WebSocket limits
+### WebSocket 限制 {#websocket-limits}
 
-| Operation             | Adapter bucket      | Notes                                                          |
-| --------------------- | ------------------- | -------------------------------------------------------------- |
-| Subscribe/unsubscribe | 3 req/sec, 10 burst | Also the default bucket for every non-order WebSocket request. |
-| Order operations      | 5 req/sec, 20 burst | Buy, sell, edit, and cancel via WebSocket.                     |
+| 操作                | 适配器桶            | 说明                                                         |
+| ------------------- | ------------------- | ------------------------------------------------------------ |
+| 订阅/退订           | 3 请求/秒，突发 10  | 也是所有非订单 WebSocket 请求的默认桶。                      |
+| 订单操作            | 5 请求/秒，突发 20  | 通过 WebSocket 的买入、卖出、编辑与撤销。                    |
 
 :::note
-The Nautilus adapter uses WebSocket for order submission (not HTTP) for lower latency.
-Order operations are rate-limited by `DERIBIT_WS_ORDER_QUOTA` (5 req/sec, 20 burst).
+Nautilus 适配器使用 WebSocket（而非 HTTP）提交订单以降低延迟。订单操作受
+`DERIBIT_WS_ORDER_QUOTA`（5 请求/秒，突发 20）限制。
 :::
 
-### Credit-based system details
+### 信用制体系的细节 {#credit-based-system-details}
 
-Deribit replenishes non-matching-engine credits continuously. Current public documentation lists
-the default non-matching-engine pool as follows:
+Deribit 持续补充非撮合引擎信用。当前公开文档列出的默认非撮合引擎池如下：
 
-**Non-matching engine requests**:
+**非撮合引擎请求**：
 
-| Parameter        | Value              | Notes                           |
-| ---------------- | ------------------ | ------------------------------- |
-| Cost per request | 500 credits        | Each API call consumes credits. |
-| Maximum pool     | 50,000 credits     | Allows 100 request burst.       |
-| Refill rate      | 10,000 credits/sec | ~20 sustained requests/second.  |
+| 参数           | 取值               | 说明                          |
+| -------------- | ------------------ | ----------------------------- |
+| 每请求成本     | 500 信用           | 每次 API 调用消耗信用。       |
+| 池上限         | 50,000 信用        | 允许 100 次请求的突发。       |
+| 补充速率       | 10,000 信用/秒     | 约 20 次/秒的持续请求速率。   |
 
-**Matching engine requests (default tier)**:
+**撮合引擎请求（默认层级）**：
 
-| Parameter      | Value          | Notes                            |
-| -------------- | -------------- | -------------------------------- |
-| Sustained rate | 5 requests/sec | Continuous rate limit.           |
-| Burst capacity | 20 requests    | Maximum burst before throttling. |
+| 参数         | 取值           | 说明                             |
+| ------------ | -------------- | -------------------------------- |
+| 持续速率     | 5 请求/秒      | 连续速率限制。                   |
+| 突发容量     | 20 次请求      | 触发限流前的最大突发。           |
 
-Higher matching-engine limits are available for market makers and high-volume traders based on
-7-day trading volume tiers.
+做市商与高交易量交易者可以按 7 天交易量层级获得更高的撮合引擎限额。
 
-Some Deribit endpoints have stricter method-specific limits. For example, current venue docs list
-`public/get_instruments` at 1 request per second with a 50 request burst, and subscription methods
-at about 3.3 requests per second with a 10 request burst. Keep `product_types` scoped to the
-families you need and avoid repeated full instrument reloads in live systems.
+Deribit 的某些端点有更严格的方法级限制。例如当前场所文档列出
+`public/get_instruments` 为 1 请求/秒、突发 50 次，订阅方法约为 3.3 请求/秒、突发 10 次。
+请把 `product_types` 限定在你需要的产品族内，并避免在实盘系统中反复全量重载工具。
 
-The Nautilus adapter implements broad token bucket rate limiters configured as:
+Nautilus 适配器实现了覆盖面较广的令牌桶限流器，配置如下：
 
-- `DERIBIT_HTTP_REST_QUOTA`: 20 req/sec with 100 burst (global and per-method HTTP)
-- `DERIBIT_HTTP_ORDER_QUOTA`: 5 req/sec with 20 burst (matching-engine HTTP)
-- `DERIBIT_HTTP_ACCOUNT_QUOTA`: 5 req/sec with 5 burst (account HTTP)
-- `DERIBIT_WS_ORDER_QUOTA`: 5 req/sec with 20 burst (matching-engine WebSocket)
-- `DERIBIT_WS_SUBSCRIPTION_QUOTA`: 3 req/sec with 10 burst (subscribe, unsubscribe, and other non-order requests)
+- `DERIBIT_HTTP_REST_QUOTA`：20 请求/秒，突发 100（全局与按方法的 HTTP）
+- `DERIBIT_HTTP_ORDER_QUOTA`：5 请求/秒，突发 20（撮合引擎 HTTP）
+- `DERIBIT_HTTP_ACCOUNT_QUOTA`：5 请求/秒，突发 5（账户 HTTP）
+- `DERIBIT_WS_ORDER_QUOTA`：5 请求/秒，突发 20（撮合引擎 WebSocket）
+- `DERIBIT_WS_SUBSCRIPTION_QUOTA`：3 请求/秒，突发 10（订阅、退订及其他非订单请求）
 
-For more details, see the
-[Rate limits article](https://docs.deribit.com/articles/rate-limits).
+更多细节见[速率限制文章](https://docs.deribit.com/articles/rate-limits)。
 
 :::warning
-Deribit returns error code `10028` (too_many_requests) when you exceed the allowed quota.
-Repeated violations may result in temporary throttling.
+超出允许的配额时，Deribit 返回错误码 `10028`（too_many_requests）。反复违规可能导致临时
+限流。
 :::
 
-## Connection management
+## 连接管理 {#connection-management}
 
-### Platform limits
+### 平台限制 {#platform-limits}
 
-| Limit                                            | Current Deribit guidance |
-| ------------------------------------------------ | ------------------------ |
-| Active sessions per API key or login             | 16                       |
-| Session and connection-scoped connections per IP | 32                       |
-| Web app connections per browser session          | 2                        |
+| 限制                                               | Deribit 当前指引 |
+| -------------------------------------------------- | ---------------- |
+| 每个 API key 或登录的活动会话数                    | 16               |
+| 每 IP 的会话与连接级连接数                         | 32               |
+| 每个浏览器会话的 Web 应用连接数                    | 2                |
 
-### Session-based authentication
+### 基于会话的鉴权 {#session-based-authentication}
 
-The adapter uses **separate WebSocket sessions** for data and execution clients, each with its own
-authentication scope:
+适配器为数据与执行客户端使用**相互独立的 WebSocket 会话**，各自带自己的鉴权范围：
 
-| Client           | Session Name         | Purpose                                             |
-| ---------------- | -------------------- | --------------------------------------------------- |
-| Data client      | `nautilus-data`      | Market data subscriptions (raw feeds require auth). |
-| Execution client | `nautilus-execution` | Order operations (buy, sell, edit, cancel).         |
+| 客户端         | 会话名称             | 用途                                                |
+| -------------- | -------------------- | --------------------------------------------------- |
+| 数据客户端     | `nautilus-data`      | 行情数据订阅（原始数据源需要鉴权）。                |
+| 执行客户端     | `nautilus-execution` | 订单操作（买入、卖出、编辑、撤销）。                |
 
-**Authentication flow**:
+**鉴权流程**：
 
-1. WebSocket connects to Deribit.
-2. Client authenticates using `client_signature` grant type with session scope.
-3. Tokens are refreshed before expiry.
-4. On reconnection, re-authentication is retried with exponential backoff (up to 3 attempts).
-   If all attempts fail, only public channel subscriptions are restored.
+1. WebSocket 连接到 Deribit。
+2. 客户端使用带会话范围的 `client_signature` 授权类型完成鉴权。
+3. 令牌在过期前刷新。
+4. 重连时以指数退避重试重新鉴权（至多 3 次）。全部尝试失败时，只恢复公开频道的订阅。
 
-This session-based approach allows:
+这种基于会话的方式带来：
 
-- Independent token management per client type.
-- Isolated failure domains (data auth failure does not affect execution).
-- Clear audit trail in Deribit's session logs.
+- 按客户端类型独立管理令牌。
+- 隔离故障域（数据侧鉴权失败不影响执行）。
+- 在 Deribit 会话日志中有清晰的审计线索。
 
-### Best practices
+### 最佳实践 {#best-practices}
 
-The adapter follows Deribit's
-[recommended connection practices](https://docs.deribit.com/articles/connection-management-best-practices):
+适配器遵循 Deribit 的
+[推荐连接实践](https://docs.deribit.com/articles/connection-management-best-practices)：
 
-1. **Uses WebSocket subscriptions** for real-time data instead of REST polling, resulting in fewer requests,
-   lower latency, and reduced rate limit consumption.
-2. **Authenticates all connections** when credentials are provided. Authenticated users benefit
-   from higher rate limits and are less likely to be IP rate-limited.
-3. **Implements heartbeats** (30 second interval by default) to maintain connection health and detect
-   disconnections early.
-4. **Handles reconnection** automatically with re-authentication and subscription recovery.
+1. **使用 WebSocket 订阅**获取实时数据而非 REST 轮询，请求更少、延迟更低、速率限制消耗
+   更少。
+2. **对所有连接做鉴权**（在提供了凭据时）。已鉴权用户享有更高速率限制，也更不容易被按 IP
+   限流。
+3. **实现心跳**（默认 30 秒间隔）以维持连接健康、尽早发现断连。
+4. **自动处理重连**，包括重新鉴权与订阅恢复。
 
 :::tip
-Always provide API credentials even for public data access. Authenticated connections have higher
-rate limits, and Deribit contacts authenticated clients before applying restrictions during
-high-load periods.
+即使只访问公开数据也请提供 API 凭据。已鉴权连接拥有更高限额，且高负载期间 Deribit 会先
+联系已鉴权客户端再施加限制。
 :::
 
 :::note
-The adapter uses a 30 second heartbeat interval by default. Deribit requires WebSocket heartbeat
-intervals to be at least 10 seconds.
+适配器默认使用 30 秒心跳间隔。Deribit 要求 WebSocket 心跳间隔至少 10 秒。
 :::
 
-## Authentication
+## 鉴权 {#authentication}
 
-Deribit uses API key authentication with HMAC-SHA256 signatures for private endpoints.
+Deribit 对私有端点使用带 HMAC-SHA256 签名的 API key 鉴权。
 
-To create API credentials:
+创建 API 凭据的步骤：
 
-1. Log into your Deribit account at [deribit.com](https://www.deribit.com)
-   (or [test.deribit.com](https://test.deribit.com) for testnet).
-2. Navigate to **Account** -> **API**.
-3. Click **Add new key** and configure permissions:
-   - Enable **read** for market data access
-   - Enable **trade** for order execution
-   - Enable **wallet** if you need account balance access
-4. Note down your **Client ID** (API key) and **Client Secret** (API secret).
+1. 登录你的 Deribit 账户：[deribit.com](https://www.deribit.com)
+   （testnet 用 [test.deribit.com](https://test.deribit.com)）。
+2. 进入 **Account** -> **API**。
+3. 点击 **Add new key** 并配置权限：
+   - 启用 **read** 以访问行情数据
+   - 启用 **trade** 以执行订单
+   - 需要访问账户余额时启用 **wallet**
+4. 记下你的 **Client ID**（API key）与 **Client Secret**（API secret）。
 
 :::warning
-Keep your API secret secure. Never share it or commit it to version control.
+妥善保管 API secret。绝不外传，也绝不提交进版本控制。
 :::
 
-### API key scopes
+### API key 范围 {#api-key-scopes}
 
-Each API key on Deribit is assigned a default access scope, which defines the maximum permissions.
-Configure appropriate permissions when
-[creating your API key](https://docs.deribit.com/articles/creating-api-key):
+Deribit 上每个 API key 都被分配一个默认访问范围，它定义最大权限。
+[创建 API key](https://docs.deribit.com/articles/creating-api-key)时请配置合适的权限：
 
-| Scope              | Required For                           |
-| ------------------ | -------------------------------------- |
-| `account:read`     | Account information, portfolio data.   |
-| `trade:read`       | View orders and positions.             |
-| `trade:read_write` | Place, modify, and cancel orders.      |
-| `wallet:read`      | View balances and transaction history. |
+| 范围               | 用于                                 |
+| ------------------ | ------------------------------------ |
+| `account:read`     | 账户信息、组合数据。                 |
+| `trade:read`       | 查看订单与持仓。                     |
+| `trade:read_write` | 下单、改单与撤单。                   |
+| `wallet:read`      | 查看余额与交易历史。                 |
 
-**Recommended minimum for trading**: `account:read`, `trade:read_write`, `wallet:read`
+**交易的建议最小集合**：`account:read`、`trade:read_write`、`wallet:read`
 
 :::tip
-Follow the principle of least privilege. For data-only access (market data, no trading),
-create a read-only key without `trade:read_write`.
+遵循最小权限原则。只做数据访问（行情数据、不交易）时，创建不含 `trade:read_write` 的
+只读 key。
 :::
 
-## Testnet
+## 测试网 {#testnet}
 
-Deribit provides a testnet environment for testing strategies without real funds.
-To use the testnet, set `environment=DeribitEnvironment.TESTNET` in your client configuration:
+Deribit 提供测试网环境，可以在没有真实资金的情况下测试策略。使用测试网时，在客户端配置中
+设置 `environment=DeribitEnvironment.TESTNET`：
 
 ```python
 from nautilus_trader.adapters.deribit import DeribitDataClientConfig
@@ -895,77 +869,76 @@ exec_config = DeribitExecutionClientConfig(
 )
 ```
 
-When testnet mode is enabled:
+启用测试网模式时：
 
-- HTTP requests use `https://test.deribit.com`.
-- WebSocket connections use `wss://test.deribit.com/ws/api/v2`.
-- Loads credentials from `DERIBIT_TESTNET_API_KEY` and `DERIBIT_TESTNET_API_SECRET` environment variables.
+- HTTP 请求使用 `https://test.deribit.com`。
+- WebSocket 连接使用 `wss://test.deribit.com/ws/api/v2`。
+- 凭据从 `DERIBIT_TESTNET_API_KEY` 与 `DERIBIT_TESTNET_API_SECRET` 环境变量加载。
 
 :::note
-Testnet API keys are separate from production keys. Create API keys specifically
-for the testnet through the testnet interface at [test.deribit.com](https://test.deribit.com).
+测试网 API key 与生产环境的 key 是分开的。请通过 [test.deribit.com](https://test.deribit.com)
+的测试网界面专门为测试网创建 API key。
 :::
 
-## Configuration
+## 配置 {#configuration}
 
-### Data client configuration options
+### 数据客户端配置选项 {#data-client-configuration-options}
 
-| Option                             | Default    | Description                                                        |
+| 选项                               | 默认值     | 说明                                                               |
 | ---------------------------------- | ---------- | ------------------------------------------------------------------ |
-| `api_key`                          | `None`     | Deribit API key. Loads from environment variables when omitted.    |
-| `api_secret`                       | `None`     | Deribit API secret. Loads from environment variables when omitted. |
-| `product_types`                    | `[FUTURE]` | Product types to load.                                             |
-| `environment`                      | `MAINNET`  | Environment enum (`MAINNET` or `TESTNET`).                         |
-| `base_url_http`                    | `None`     | Override for the HTTP JSON-RPC base URL.                           |
-| `base_url_ws`                      | `None`     | Override for the WebSocket base URL.                               |
-| `proxy_url`                        | `None`     | Optional proxy URL for HTTP and WebSocket transports.              |
-| `http_timeout_secs`                | `60`       | Request timeout in seconds for HTTP calls.                         |
-| `max_retries`                      | `3`        | Maximum retry attempts for recoverable errors.                     |
-| `retry_delay_initial_ms`           | `1,000`    | Initial delay in milliseconds before retrying.                     |
-| `retry_delay_max_ms`               | `10,000`   | Maximum delay in milliseconds between retries.                     |
-| `heartbeat_interval_secs`          | `30`       | WebSocket heartbeat interval.                                      |
-| `auth_timeout_secs`                | `None`     | Seconds to await the WebSocket auth result; unset means 30.        |
-| `update_instruments_interval_mins` | `60`       | Accepted but not yet acted on; instruments load once on connect.   |
-| `auto_load_missing_instruments`    | `False`    | Lazy-load uncached instruments on subscribe.                       |
-| `transport_backend`                | `Sockudo`  | WebSocket transport backend.                                       |
+| `api_key`                          | `None`     | Deribit API key。省略时从环境变量加载。                             |
+| `api_secret`                       | `None`     | Deribit API secret。省略时从环境变量加载。                          |
+| `product_types`                    | `[FUTURE]` | 要加载的产品类型。                                                  |
+| `environment`                      | `MAINNET`  | 环境枚举（`MAINNET` 或 `TESTNET`）。                               |
+| `base_url_http`                    | `None`     | HTTP JSON-RPC 基础 URL 的覆盖值。                                   |
+| `base_url_ws`                      | `None`     | WebSocket 基础 URL 的覆盖值。                                       |
+| `proxy_url`                        | `None`     | HTTP 与 WebSocket 传输的可选代理 URL。                              |
+| `http_timeout_secs`                | `60`       | HTTP 调用的请求超时（秒）。                                         |
+| `max_retries`                      | `3`        | 可恢复错误的最大重试次数。                                          |
+| `retry_delay_initial_ms`           | `1,000`    | 重试前的初始延迟（毫秒）。                                          |
+| `retry_delay_max_ms`               | `10,000`   | 重试之间的最大延迟（毫秒）。                                        |
+| `heartbeat_interval_secs`          | `30`       | WebSocket 心跳间隔。                                                |
+| `auth_timeout_secs`                | `None`     | 等待 WebSocket 鉴权结果的秒数；未设置表示 30。                      |
+| `update_instruments_interval_mins` | `60`       | 接受该参数但尚未生效；工具只在连接时加载一次。                      |
+| `auto_load_missing_instruments`    | `False`    | 订阅时懒加载未缓存的工具。                                          |
+| `transport_backend`                | `Sockudo`  | WebSocket 传输后端。                                                |
 
-#### Lazy-load on subscribe
+#### 订阅时懒加载 {#lazy-load-on-subscribe}
 
-`subscribe_*` commands look up the instrument in the local cache before sending the WebSocket subscribe so the
-handler can parse the inbound frames. With `auto_load_missing_instruments = False` (the default), a
-subscription returns an error if its instrument was not preloaded by the configured `product_types`. It does
-not silently succeed and then drop subsequent frames at the handler.
+`subscribe_*` 命令在发送 WebSocket 订阅之前先查本地缓存中的工具，处理器才能解析入站帧。
+`auto_load_missing_instruments = False`（默认值）时，若订阅的工具没有被配置的
+`product_types` 预加载，该订阅返回错误。它不会先静默成功、再在处理器处丢弃后续帧。
 
-To load missing instruments on first subscribe, set `auto_load_missing_instruments = True`. The client fetches
-the instrument over HTTP, seeds the WebSocket handler cache, and then forwards the subscribe. HTTP failures
-are logged and the WebSocket subscribe is skipped.
+要在首次订阅时加载缺失的工具，设置 `auto_load_missing_instruments = True`。客户端通过
+HTTP 拉取该工具、为 WebSocket 处理器缓存做种子，然后转发订阅。HTTP 失败会被记日志，
+WebSocket 订阅会被跳过。
 
-### Execution client configuration options
+### 执行客户端配置选项 {#execution-client-configuration-options}
 
-| Option                   | Default    | Description                                                        |
+| 选项                     | 默认值     | 说明                                                               |
 | ------------------------ | ---------- | ------------------------------------------------------------------ |
-| `account_id`             | Required   | Nautilus account ID for generated reports and events.              |
-| `api_key`                | `None`     | Deribit API key. Loads from environment variables when omitted.    |
-| `api_secret`             | `None`     | Deribit API secret. Loads from environment variables when omitted. |
-| `product_types`          | `[FUTURE]` | Product types to load.                                             |
-| `environment`            | `MAINNET`  | Environment enum (`MAINNET` or `TESTNET`).                         |
-| `base_url_http`          | `None`     | Override for the HTTP JSON-RPC base URL.                           |
-| `base_url_ws`            | `None`     | Override for the WebSocket base URL.                               |
-| `proxy_url`              | `None`     | Optional proxy URL for HTTP and WebSocket transports.              |
-| `http_timeout_secs`      | `60`       | Request timeout in seconds for HTTP calls.                         |
-| `max_retries`            | `3`        | Maximum retry attempts for recoverable errors.                     |
-| `retry_delay_initial_ms` | `1,000`    | Initial delay in milliseconds before retrying.                     |
-| `retry_delay_max_ms`     | `10,000`   | Maximum delay in milliseconds between retries.                     |
-| `auth_timeout_secs`      | `None`     | Seconds to await the WebSocket auth result; unset means 30.        |
-| `transport_backend`      | `Sockudo`  | WebSocket transport backend.                                       |
+| `account_id`             | 必需       | 生成报告与事件所用的 Nautilus 账户 ID。                             |
+| `api_key`                | `None`     | Deribit API key。省略时从环境变量加载。                             |
+| `api_secret`             | `None`     | Deribit API secret。省略时从环境变量加载。                          |
+| `product_types`          | `[FUTURE]` | 要加载的产品类型。                                                  |
+| `environment`            | `MAINNET`  | 环境枚举（`MAINNET` 或 `TESTNET`）。                               |
+| `base_url_http`          | `None`     | HTTP JSON-RPC 基础 URL 的覆盖值。                                   |
+| `base_url_ws`            | `None`     | WebSocket 基础 URL 的覆盖值。                                       |
+| `proxy_url`              | `None`     | HTTP 与 WebSocket 传输的可选代理 URL。                              |
+| `http_timeout_secs`      | `60`       | HTTP 调用的请求超时（秒）。                                         |
+| `max_retries`            | `3`        | 可恢复错误的最大重试次数。                                          |
+| `retry_delay_initial_ms` | `1,000`    | 重试前的初始延迟（毫秒）。                                          |
+| `retry_delay_max_ms`     | `10,000`   | 重试之间的最大延迟（毫秒）。                                        |
+| `auth_timeout_secs`      | `None`     | 等待 WebSocket 鉴权结果的秒数；未设置表示 30。                      |
+| `transport_backend`      | `Sockudo`  | WebSocket 传输后端。                                                |
 
-`transport_backend` selects between the `Sockudo` and `Tungstenite` WebSocket transports. The default is
-`Sockudo` when the `transport-sockudo` Cargo feature is enabled, as in published Python wheels. A Rust build
-without that feature defaults to `Tungstenite`.
+`transport_backend` 在 `Sockudo` 与 `Tungstenite` 两种 WebSocket 传输之间选择。启用了
+`transport-sockudo` Cargo feature 时默认是 `Sockudo`，已发布的 Python wheel 即如此。没有该
+feature 的 Rust 构建默认使用 `Tungstenite`。
 
-### Production configuration
+### 生产环境配置 {#production-configuration}
 
-Below is an example live node using Deribit data and execution clients:
+下面是一个使用 Deribit 数据与执行客户端的实盘节点示例：
 
 ```python
 from nautilus_trader.adapters.deribit import DeribitDataClientConfig
@@ -1010,38 +983,35 @@ node = (
 )
 ```
 
-### API credentials
+### API 凭据 {#api-credentials}
 
-There are multiple options for supplying your credentials to the Deribit clients.
-Either pass the corresponding values to the configuration objects, or
-set the following environment variables:
+向 Deribit 客户端提供凭据有多种方式。或者把对应值传入配置对象，或者设置以下环境变量：
 
-For Deribit live (production) clients:
+Deribit 实盘（生产）客户端：
 
 - `DERIBIT_API_KEY`
 - `DERIBIT_API_SECRET`
 
-For Deribit testnet clients:
+Deribit 测试网客户端：
 
 - `DERIBIT_TESTNET_API_KEY`
 - `DERIBIT_TESTNET_API_SECRET`
 
 :::tip
-We recommend using environment variables to manage your credentials.
+推荐使用环境变量管理凭据。
 :::
 
-### Product types
+### 产品类型 {#product-types}
 
-The `product_types` configuration option controls which Deribit product families are loaded.
-Available options via the `DeribitProductType` enum:
+`product_types` 配置项控制加载哪些 Deribit 产品族。`DeribitProductType` 枚举可用的选项：
 
-- `DeribitProductType.FUTURE` - Perpetual and dated futures.
-- `DeribitProductType.OPTION` - Call and put options.
-- `DeribitProductType.SPOT` - Spot trading pairs.
-- `DeribitProductType.FUTURE_COMBO` - Future spread instruments.
-- `DeribitProductType.OPTION_COMBO` - Option spread instruments.
+- `DeribitProductType.FUTURE` —— 永续与到期期货。
+- `DeribitProductType.OPTION` —— 买权与卖权期权。
+- `DeribitProductType.SPOT` —— 现货交易对。
+- `DeribitProductType.FUTURE_COMBO` —— 期货价差工具。
+- `DeribitProductType.OPTION_COMBO` —— 期权价差工具。
 
-Example loading multiple product types:
+加载多个产品类型的示例：
 
 ```python
 from nautilus_trader.adapters.deribit import DeribitDataClientConfig
@@ -1056,30 +1026,29 @@ config = DeribitDataClientConfig(
 )
 ```
 
-### Base URLs
+### 基础 URL {#base-urls}
 
-The `environment` option selects these defaults. Set `base_url_http` or `base_url_ws` to point
-either transport somewhere else, such as a local proxy or a capture harness.
+`environment` 选项选择以下默认值。设置 `base_url_http` 或 `base_url_ws` 可把对应传输指向
+别处，例如本地代理或抓包工具。
 
-| Environment | HTTP URL                   | WebSocket URL                      |
-| ----------- | -------------------------- | ---------------------------------- |
-| Production  | `https://www.deribit.com`  | `wss://www.deribit.com/ws/api/v2`  |
-| Testnet     | `https://test.deribit.com` | `wss://test.deribit.com/ws/api/v2` |
+| 环境       | HTTP URL                   | WebSocket URL                      |
+| ---------- | -------------------------- | ---------------------------------- |
+| 生产环境   | `https://www.deribit.com`  | `wss://www.deribit.com/ws/api/v2`  |
+| 测试网     | `https://test.deribit.com` | `wss://test.deribit.com/ws/api/v2` |
 
-## Server infrastructure
+## 服务器基础设施 {#server-infrastructure}
 
-Deribit's matching engine is located in **Equinix LD4, Slough, UK**. For latency-sensitive strategies,
-consider hosting in or near London. Colocation and cross-connect options are available directly
-from Deribit for institutional clients.
+Deribit 的撮合引擎位于**英国斯劳的 Equinix LD4**。对延迟敏感的策略，考虑部署在伦敦或邻近
+地区。机构客户可直接从 Deribit 获得托管与交叉连接选项。
 
-For most users connecting via internet, the adapter's built-in retry logic, heartbeat monitoring,
-and automatic reconnection handling provide reliable connectivity.
+对多数通过互联网连接的用户，适配器内置的重试逻辑、心跳监控与自动重连处理足以提供可靠的
+连接。
 
-For more details, see the [Server Infrastructure article](https://support.deribit.com/hc/en-us/articles/25944617582877-Server-Infrastructure).
+更多细节见[服务器基础设施文章](https://support.deribit.com/hc/en-us/articles/25944617582877-Server-Infrastructure)。
 
-## Contributing
+## 参与贡献 {#contributing}
 
 :::info
-For additional features or to contribute to the Deribit adapter, please see our
-[contributing guide](https://github.com/nautechsystems/nautilus_trader/blob/develop/CONTRIBUTING.md).
+要获取更多特性或为 Deribit 适配器做贡献，请见我们的
+[贡献指南](https://github.com/nautechsystems/nautilus_trader/blob/develop/CONTRIBUTING.md)。
 :::

@@ -287,7 +287,7 @@ Python 依赖由 [uv](https://docs.astral.sh/uv) 管理。`python/pyproject.toml
 ### 绕过冷静期 {#bypassing-the-cooldown}
 
 安全补丁或关键缺陷修复可能需要立即更新。遇到这种情况，先评审该发布，
-再为这一次 lock 操作覆盖 `exclude-newer`。Prefer 按包粒度的覆盖，让无关的包
+再为这一次 lock 操作覆盖 `exclude-newer`。优先按包粒度的覆盖，让无关的包
 仍受 7 天默认值约束。不要把持久的按包覆盖写进 `python/pyproject.toml`。
 
 各种形式都接受时间戳、友好时长或 ISO 时长；按包的覆盖还额外接受 `false`，

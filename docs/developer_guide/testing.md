@@ -68,7 +68,7 @@
 - 只在测试能到达的地方加 `debug_assert!`。release 构建会剔除该检查，
   没被触及的断言产生不了任何信号。针对性的单元测试算一种 harness，
   proptest 或 fuzz harness 会放大信号。
-- 不变式横跨一整类输入时，Prefer proptest 而不是手写的边界用例测试。
+- 不变式横跨一整类输入时，优先用 proptest 而不是手写的边界用例测试。
   针对已知场所怪癖与收缩后反例的回归复现，定向单元测试仍然有效。
 - 不要把实时规格验收卡复制一份做成集成测试，链接过去即可。
 - 不要用只断言语言或框架保证的测试凑覆盖率
@@ -248,7 +248,7 @@ make cargo-test-crate-nautilus-serialization FEATURES="capnp"
 
 - 每个测试写成独立的 `def test_*()` 函数。
 - 共享准备（工具、引擎实例、数据）用 `@pytest.fixture`。
-  需要清理时（例如 `engine.dispose()`）Prefer `yield` fixture。
+  需要清理时（例如 `engine.dispose()`）优先用 `yield` fixture。
 - 用 `@pytest.mark.parametrize` 覆盖多个输入，不复制测试体。
 - 模型类型从 `nautilus_trader.model` import，不从
   `nautilus_trader._libnautilus` import。
@@ -264,7 +264,7 @@ Rust 专属的测试约定（模块结构、`#[rstest]`、参数化）见
 
 ## 等待异步效果 {#waiting-for-asynchronous-effects}
 
-Rust 测试中，Prefer 通知通道或测试自有的其他事件，而不是反复求值条件：
+Rust 测试中，优先用通知通道或测试自有的其他事件，而不是反复求值条件：
 
 1. 先订阅，再读取权威状态。
 1. 每次收到通知后重新检查，以免错过读取与 await 之间的状态转换。
@@ -275,7 +275,7 @@ Rust 测试中，Prefer 通知通道或测试自有的其他事件，而不是�
 
 ## Mock {#mocks}
 
-Prefer 返回固定值的手写 stub，而不是 mocking 框架。`MagicMock` 只用于断言
+优先用返回固定值的手写 stub，而不是 mocking 框架。`MagicMock` 只用于断言
 调用次数或参数，或模拟复杂的状态变化。避免 mock 你正在测试的对象。
 
 ## 代码覆盖率 {#code-coverage}

@@ -163,7 +163,7 @@ NautilusTrader 无法再分发的数据集：
 1. 需要时在 `crates/testkit/src/common.rs` 添加共享的测试数据路径函数。
 1. 编写使用该数据集的测试。
 
-用户自取数据 Prefer 采用这种布局：
+用户自取数据优先采用这种布局：
 
 ```text
 test_data/<source>/<slug>/
@@ -202,14 +202,14 @@ test_data/<source>/<slug>/
 - 除非用户显式启用，否则不访问网络。
 - 复用稳定的本地缓存路径，让每台机器只获取一次。
 
-基于 pytest 的测试 Prefer 这样的守卫：
+基于 pytest 的测试优先用这样的守卫：
 
 ```python
 if not filepath.exists():
     pytest.skip(f"User-fetched test data not found: {filepath}")
 ```
 
-默认 CI 不预期运行、需手工准备数据集的 Rust 测试，Prefer 用 `#[ignore]`。
+默认 CI 不预期运行、需手工准备数据集的 Rust 测试，优先用 `#[ignore]`。
 
 ## 重新生成数据集 {#regenerating-datasets}
 

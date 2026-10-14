@@ -1169,9 +1169,9 @@ resting orders`。适配器把这一场所拒绝保留为 `OrderRejected`，不�
 检测并作为外部订单跟踪，出现在订单状态报告与持仓对账中。
 :::
 
-### 修改即 cancel-replace {#modify-as-cancel-replace}
+### 修改即撤销-替换（cancel-replace） {#modify-as-cancel-replace}
 
-Hyperliquid 把订单修改实现为 **cancel-replace**。
+Hyperliquid 把订单修改实现为**撤销-替换（cancel-replace）**。
 [交易所端点](https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#modify-an-order)
 的 `modify` 动作撤掉原订单（旧 `oid`）并挂出一个带新
 `oid` 的替换单。两条腿共享同一客户订单 ID（`cloid`）。
@@ -1456,7 +1456,7 @@ Hyperliquid 通过 `userEvents` 订阅上的三个面发出场所发起平仓的
   平仓。它不带 `liquidation` 对象，适配器仅凭方向识别，并按 warning
   级别记录金融工具、订单 ID、价格与数量。
 
-适配器为上述每笔成交发出标准 `FillReport`。清算或递延减仓的细节与成交一并
+适配器为上述每笔成交发出标准 `FillReport`。清算或减仓（deleveraging）的细节与成交一并
 记录，便于你把平仓与场所侧事件对应起来。策略侧无需改动，既有的风控与对账逻辑
 会像处理任何 TAKER 成交一样处理它们。
 
@@ -1519,7 +1519,7 @@ WebSocket 断开时，适配器以指数退避自动重连（从 250ms 起，上
 `book_snapshot_timeout_secs` 获取快照，超时即启动[恢复](#order-book-recovery)。
 无需人工干预。
 
-每 30 秒发送一次心跳 ping 以保活连接（Hyperliquid 会在 60 秒空闲后关闭连接）。
+每 30 秒发送一次 heartbeat ping 以保活连接（Hyperliquid 会在 60 秒空闲后关闭连接）。
 共享传输层把 90 秒没有任何入站帧视为对端失联，并走同一条重连路径。
 
 实时数据与执行客户端在 `hyperliquid-data-streams` 与
@@ -1735,7 +1735,7 @@ Hyperliquid 按 IP 地址与用户地址施加限制。适配器使用
 
 | 限额           |   上限 | 适用于                                                          |
 | -------------- | -----: | ---------------------------------------------------------------- |
-| 外发消息       | 2,000/分钟 | 订阅、退订、post、心跳与 pong。                              |
+| 外发消息       | 2,000/分钟 | 订阅、退订、post、heartbeat 与 pong。                        |
 | 在途 post      |    100 | 并发 post 请求。                                                 |
 | 连接数         |     10 | 并发连接。                                                       |
 | 新建连接       | 30/分钟 | 初次连接与重连尝试。                                             |
