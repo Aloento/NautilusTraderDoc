@@ -1,320 +1,340 @@
 # Polymarket
 
-Founded in 2020, Polymarket is a decentralized prediction market platform where traders speculate
-on event outcomes by buying and selling outcome tokens.
+Polymarket 创立于 2020 年，是一个去中心化预测市场平台，交易者通过买卖结果代币
+对事件结果进行押注。
 
-NautilusTrader provides a venue integration for data and execution via Polymarket's Central Limit
-Order Book (CLOB) API.
+NautilusTrader 通过 Polymarket 的中心限价订单簿（CLOB）API 提供数据与执行的
+交易场所集成。
 
-The adapter is implemented in Rust and exposed to Python at `nautilus_trader.adapters.polymarket`. Thus, data,
-execution, signing, and WebSocket operations have the same behavior from Rust and Python.
+适配器以 Rust 实现，并在 `nautilus_trader.adapters.polymarket`
+暴露给 Python，因此数据、执行、签名与 WebSocket 操作在 Rust 与 Python 下行为
+一致。
 
-The adapter handles order preparation and signing for several wallet configurations. This guide
-covers market data, trade execution, session key administration, and Deposit Wallet position operations.
+适配器为多种钱包配置处理订单准备与签名。本指南涵盖行情数据、交易执行、会话密钥
+管理，以及 Deposit Wallet 的持仓操作。
 
-## Installation
+## 安装 {#installation}
 
-The Python package includes the Polymarket adapter. No adapter-specific extra is required.
+Python 包已包含 Polymarket 适配器，不需要额外的适配器专用 extra。
 
-To install the latest pre-release build:
+安装最新的预发布构建：
 
 ```bash
 uv pip install --pre nautilus_trader
 ```
 
-To build the Python package from source, run from the repository root:
+要从源码构建 Python 包，在仓库根目录运行：
 
 ```bash
 make build-debug
 ```
 
-For development wheels and source-build prerequisites, see the
-[installation guide](./../getting_started/installation.md).
+开发用 wheel 与源码构建的前置条件见
+[安装指南](./../getting_started/installation.md)。
 
-## Examples
+## 示例 {#examples}
 
-The maintained examples are available in
-[`crates/adapters/polymarket/examples`](https://github.com/nautechsystems/nautilus_trader/tree/develop/crates/adapters/polymarket/examples)
-for Rust. For Python, use the Rust-native [data tester](https://github.com/nautechsystems/nautilus_trader/blob/develop/examples/live/polymarket/data_tester.py),
-[execution tester](https://github.com/nautechsystems/nautilus_trader/blob/develop/examples/live/polymarket/exec_tester.py),
-or [Up/Down smoke tester](https://github.com/nautechsystems/nautilus_trader/blob/develop/examples/live/polymarket/updown_smoke_tester.py).
-The exec tester configurations apply the
-[close precision](#exec-tester-close-residuals) needed for Polymarket market SELL orders.
+Rust 的维护中示例位于
+[`crates/adapters/polymarket/examples`](https://github.com/nautechsystems/nautilus_trader/tree/develop/crates/adapters/polymarket/examples)。
+Python 请使用 Rust 原生的
+[数据测试器](https://github.com/nautechsystems/nautilus_trader/blob/develop/examples/live/polymarket/data_tester.py)、
+[执行测试器](https://github.com/nautechsystems/nautilus_trader/blob/develop/examples/live/polymarket/exec_tester.py)
+或 [Up/Down 冒烟测试器](https://github.com/nautechsystems/nautilus_trader/blob/develop/examples/live/polymarket/updown_smoke_tester.py)。
+执行测试器的配置应用了 Polymarket 市价卖单所需的
+[收尾精度](#exec-tester-close-residuals)。
 
-## Binary options
+## 二元期权 {#binary-options}
 
-A [binary option](https://en.wikipedia.org/wiki/Binary_option) is a type of financial exotic option contract
-in which traders bet on the outcome of a yes-or-no proposition. If the prediction is correct, the trader
-receives a fixed payout. Otherwise, they receive nothing. NautilusTrader represents Polymarket outcome tokens
-as `BinaryOption` instruments.
+[二元期权](https://en.wikipedia.org/wiki/Binary_option)
+是一种奇异期权合约，交易者就一个是或否的命题结果下注。预测正确则获得固定赔付，
+否则一无所获。NautilusTrader 把 Polymarket 的结果代币表示为
+`BinaryOption` 金融工具。
 
-Polymarket uses [pUSD](#pusd) as the collateral token for trading.
+Polymarket 使用 [pUSD](#pusd) 作为交易抵押代币。
 
-## Polymarket documentation
+## Polymarket 文档 {#polymarket-documentation}
 
-Use these Polymarket resources:
+可用的 Polymarket 资源：
 
-- [Polymarket Learn](https://learn.polymarket.com/): User guides to the platform.
-- [Polymarket CLOB API](https://docs.polymarket.com/getting-started/api): Technical
-  documentation for developers interacting with the Polymarket CLOB API.
+- [Polymarket Learn](https://learn.polymarket.com/)：平台用户指南。
+- [Polymarket CLOB API](https://docs.polymarket.com/getting-started/api)：与
+  Polymarket CLOB API 交互的开发者技术文档。
 
-## Overview
+## 概览 {#overview}
 
-Use these Rust components together or separately for live market data and trade execution:
+下列 Rust 组件可组合或单独使用，实现实时行情与交易执行：
 
-- `PolymarketWebSocketClient`: Low-level WebSocket API connectivity built on the Nautilus Rust
-  `WebSocketClient`.
-- `PolymarketInstrumentProvider`: Parsing and loading of `BinaryOption` instruments.
-- `PolymarketDataClient`: A market data feed manager.
-- `PolymarketExecutionClient`: A trade execution gateway.
-- `PolymarketDataClientFactory`: Factory for Polymarket data clients (used by the live node
-  builder).
-- `PolymarketExecutionClientFactory`: Factory for Polymarket execution clients (used by the live
-  node builder).
-- `PolymarketPositionClient`: Deposit Wallet split, merge, and redeem operations.
-- `PolymarketSessionKeyClient`: Owner-operated session authorization, listing, and revocation.
+- `PolymarketWebSocketClient`：基于 Nautilus Rust
+  `WebSocketClient` 的底层 WebSocket API 连接。
+- `PolymarketInstrumentProvider`：`BinaryOption`
+  金融工具的解析与加载。
+- `PolymarketDataClient`：行情数据流管理器。
+- `PolymarketExecutionClient`：交易执行网关。
+- `PolymarketDataClientFactory`：Polymarket
+  数据客户端工厂（由实时节点构建器使用）。
+- `PolymarketExecutionClientFactory`：Polymarket
+  执行客户端工厂（由实时节点构建器使用）。
+- `PolymarketPositionClient`：Deposit Wallet
+  的分拆、合并与赎回操作。
+- `PolymarketSessionKeyClient`：由所有者操作的会话授权、列出与撤销。
 
 :::note
-Python users configure live nodes through the exported configuration and factory classes, and call
-position operations through `PolymarketPositionClient` and session administration through
-`PolymarketSessionKeyClient`. The direct WebSocket, provider, data client, and execution client types
-are Rust-only implementation components.
+Python 用户通过导出的配置与工厂类配置实时节点，通过
+`PolymarketPositionClient`
+调用持仓操作、通过 `PolymarketSessionKeyClient`
+做会话管理。直接的 WebSocket、provider、数据客户端与执行客户端类型是仅 Rust
+的实现组件。
 :::
 
-## pUSD
+## pUSD {#pusd}
 
-**pUSD** is the collateral token used for trading on Polymarket. It is a standard ERC-20 token on
-Polygon, backed by USDC.
+**pUSD** 是 Polymarket 交易使用的抵押代币，是 Polygon 上由 USDC
+背书的标准 ERC-20 代币。
 
-The proxy contract address is
-[0xC011a7E12a19f7B1f670d46F03B03f3342E82DFB](https://polygonscan.com/address/0xC011a7E12a19f7B1f670d46F03B03f3342E82DFB)
-on Polygon. Direct on-chain funding wraps Polygon USDC.e (bridged USDC) into pUSD
-through the [CollateralOnramp](https://docs.polymarket.com/resources/contracts).
-The Bridge API can also deposit supported assets from other chains and credit pUSD
-after conversion.
+代理合约地址为 Polygon 上的
+[0xC011a7E12a19f7B1f670d46F03B03f3342E82DFB](https://polygonscan.com/address/0xC011a7E12a19f7B1f670d46F03B03f3342E82DFB)。
+直接的链上注资通过
+[CollateralOnramp](https://docs.polymarket.com/resources/contracts)
+把 Polygon USDC.e（跨链桥接的 USDC）包装为 pUSD。Bridge
+API 也能从其他链存入受支持资产，转换后记入 pUSD。
 
-## Wallets and accounts
+## 钱包与账户 {#wallets-and-accounts}
 
-To trade on Polymarket via NautilusTrader, use a Polygon-compatible wallet, such as MetaMask.
+要通过 NautilusTrader 在 Polymarket 交易，需使用 Polygon 兼容钱包，例如
+MetaMask。
 
-### Signature types
+### 签名类型 {#signature-types}
 
-Polymarket supports multiple signature types for order signing and verification:
+Polymarket 为订单签名与校验支持多种签名类型：
 
-| Signature type | Wallet type                    | Description                                                               | Use case                                                                                       |
-| -------------- | ------------------------------ | ------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------- |
-| `0`            | EOA (externally owned account) | Standard EIP-712 signatures from wallets with direct private key control. | **Adapter default.** Allowlisted EOA trading where the funder and signer are the same address. |
-| `1`            | Proxy Wallet                   | Legacy smart contract wallet created through email or social login.       | Requires the Proxy Wallet `funder` address.                                                    |
-| `2`            | Safe Wallet                    | Legacy Gnosis Safe wallet created with an external browser wallet.        | Requires the Safe Wallet `funder` address.                                                     |
-| `3`            | Deposit Wallet                 | ERC-1271 smart wallet used for new Polymarket account wallets.            | Requires the Deposit Wallet `funder`; API credentials stay bound to the signer.                |
+| 签名类型     | 钱包类型                     | 说明                                                                      | 使用场景                                                                                     |
+| ------------ | ---------------------------- | ------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------- |
+| `0`          | EOA（外部拥有账户）          | 由直接掌握私钥的钱包产生标准 EIP-712 签名。                               | **适配器默认。** 出资方与签名方同一地址、且 EOA 在允许列表内的交易。                           |
+| `1`          | Proxy Wallet                 | 通过邮箱或社交登录创建的旧版智能合约钱包。                                | 需要 Proxy Wallet 的 `funder` 地址。                                                           |
+| `2`          | Safe Wallet                  | 用外部浏览器钱包创建的旧版 Gnosis Safe 钱包。                             | 需要 Safe Wallet 的 `funder` 地址。                                                            |
+| `3`          | Deposit Wallet               | 新版 Polymarket 账户钱包使用的 ERC-1271 智能钱包。                        | 需要 Deposit Wallet 的 `funder`；API 凭据仍绑定在签名方上。                                   |
 
 :::info
-Polymarket uses Deposit Wallets for account wallets deployed on or after May 4, 2026. Direct EOA
-trading requires an allowlisted EOA. See the Polymarket
-[wallet and authentication guide](https://docs.polymarket.com/trading/wallets-auth) for the account
-types and setup flows.
+2026 年 5 月 4 日及之后部署的账户钱包，Polymarket 使用 Deposit
+Wallet。直接 EOA 交易要求在允许列表内的 EOA。账户类型与设置流程见
+Polymarket 的[钱包与鉴权指南](https://docs.polymarket.com/trading/wallets-auth)。
 :::
 
-NautilusTrader defaults to signature type 0 (EOA). Set `signature_type` to use another supported
-wallet type. Proxy signature clients fail during construction unless `funder` is present and differs
-from the signing address.
+NautilusTrader 默认使用签名类型 0（EOA）。要用其他受支持的钱包类型，设置
+`signature_type`。代理签名客户端在构造时若 `funder`
+缺失或等于签名地址，会直接失败。
 
-Environment variables supply a single wallet address per trader instance. To use multiple wallets,
-configure separate execution client instances.
+环境变量为每个 trader 实例提供单一钱包地址。要用多个钱包，请配置独立的执行客户端
+实例。
 
-Fund your wallet with pUSD before submitting orders. An unfunded wallet produces the
-"not enough balance or allowance" API error.
+提交订单前先为钱包注入 pUSD。未注资的钱包会产生 "not enough balance or
+allowance" API 错误。
 
-### Setting EOA allowances
+### 设置 EOA 授权 {#setting-eoa-allowances}
 
-The adapter includes a direct on-chain allowance command for EOA accounts. Use it only when the
-funding wallet is the signer (`PolymarketSignatureType::Eoa`). Fund the EOA with POL for gas, set
-`POLYMARKET_PK`, and run:
+适配器为 EOA 账户提供一条直接的链上授权命令。仅当出资钱包就是签名方
+（`PolymarketSignatureType::Eoa`）时使用。给 EOA 注入 POL
+作为 gas，设置 `POLYMARKET_PK`，然后运行：
 
 ```bash
 cargo run -p nautilus-polymarket --bin polymarket-set-allowances
 ```
 
-The command grants maximum pUSD and CTF approvals to the CTF Exchange, Neg Risk CTF Exchange, and
-`NegRiskCtfCollateralAdapter`. It uses `https://polygon.drpc.org` by default. Set `POLYGON_RPC_URL` to use
-another Polygon RPC endpoint. Run it again if Polymarket changes the required contracts.
+该命令为 CTF Exchange、Neg Risk CTF Exchange 与
+`NegRiskCtfCollateralAdapter`
+授予 pUSD 与 CTF 的最大授权。默认使用
+`https://polygon.drpc.org`；要改用其他 Polygon RPC
+端点，设置 `POLYGON_RPC_URL`。Polymarket
+变更所需合约后请重新运行。
 
-The command grants approvals only. It does not revoke approvals for contracts that are no longer targets.
-Treat revocation as a separate on-chain operation. Before submitting it, confirm that no remaining redemption
-or settlement flow needs the legacy approval.
+该命令只做授予，不撤销已不再是目标的合约上的既有授权。撤销要作为独立的链上操作
+处理。提交撤销前，确认没有任何仍在进行的赎回或结算流程还需要那份旧授权。
 
-### Setting smart-wallet allowances
+### 设置智能钱包授权 {#setting-smart-wallet-allowances}
 
-Do not run the EOA command for a proxy, Safe, or Deposit Wallet funder. It signs transactions from
-the EOA key and cannot grant approvals from a smart contract wallet.
+不要为 proxy、Safe 或 Deposit Wallet 出资方运行 EOA
+命令。它用 EOA 私钥签名交易，无法从智能合约钱包授予授权。
 
-Use Polymarket's [wallet and authentication flow](https://docs.polymarket.com/trading/wallets-auth)
-to submit the approvals from the account wallet. Deposit Wallet approvals use an ordered `WALLET`
-batch authorized by the signer and submitted through the Relayer. Safe and Proxy Wallet approvals
-need their wallet-specific SDK payloads.
+用 Polymarket 的
+[钱包与鉴权流程](https://docs.polymarket.com/trading/wallets-auth)
+从账户钱包提交授权。Deposit Wallet
+的授权使用由签名方授权、经 Relayer 提交的有序
+`WALLET` 批次。Safe 与 Proxy Wallet 的授权需要各自钱包专用
+SDK 载荷。
 
-### Refreshing and verifying allowances
+### 刷新与校验授权 {#refreshing-and-verifying-allowances}
 
-After the approval transaction confirms, refresh the CLOB cache. Rust callers can use
-`PolymarketClobHttpClient::update_balance_allowance` with `AssetType::Collateral` for pUSD. Use
-`AssetType::Conditional` with a conditional token ID for a conditional-token allowance. Both forms
-also need the account's signature type. The authenticated request maps to
-`GET /balance-allowance/update`. Use `PolymarketSignatureType::Poly1271` for a Deposit Wallet.
+授权交易确认后，刷新 CLOB
+缓存。Rust 调用方可对 pUSD 用
+`PolymarketClobHttpClient::update_balance_allowance`
+配 `AssetType::Collateral`；条件代币授权则用
+`AssetType::Conditional` 加条件代币
+ID。两种形式都需要账户的签名类型。该带鉴权的请求映射到
+`GET /balance-allowance/update`。Deposit Wallet
+使用 `PolymarketSignatureType::Poly1271`。
 
-The balance-allowance endpoint has two decoding paths:
+balance-allowance 端点有两条解码路径：
 
-| Path                                              | Used for                                             | Allowance handling                                                                                                                                                             | Meaning of success                                                                 |
-| ------------------------------------------------- | ---------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ---------------------------------------------------------------------------------- |
-| `PolymarketClobHttpClient::get_balance_allowance` | Reading spender allowance evidence.                  | Requires the plural `allowances` map; rejects a missing map, a non-null legacy singular value, malformed or non-canonical keys, and semantic duplicates such as case variants. | Balance plus an unambiguous map; required targets and amounts still need checking. |
-| Internal balance-only projection                  | Account state refresh and market-buy fee adjustment. | Ignores allowance fields; its return type cannot expose or grant approval authority.                                                                                           | Balance only; required CLOB spender approvals remain unproven.                     |
+| 路径                                              | 用途                                                 | 授权处理                                                                                                                                                                       | 成功含义                                                                           |
+| ------------------------------------------------- | ---------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------ |
+| `PolymarketClobHttpClient::get_balance_allowance` | 读取支出方授权证据。                                 | 要求复数 `allowances` 映射；拒绝缺失的映射、非空的旧版单数字段、畸形或非规范键，以及大小写变体这类语义重复。                                                                   | 余额加一份无歧义的映射；必需的目标与金额仍需检查。                                   |
+| 内部仅余额投影                                    | 账户状态刷新与市价买单费用调整。                     | 忽略授权字段；其返回类型无法暴露或授予批准权限。                                                                                                                               | 仅余额；必需的 CLOB 支出方授权仍未证实。                                             |
 
-Use the strict path whenever a decision depends on allowance evidence so ambiguous wire data cannot
-become approval authority.
+凡决策依赖授权证据，就走严格路径，避免含混的线上数据变成批准权限。
 
-### Account balances
+### 账户余额 {#account-balances}
 
-#### Balance calculation
+#### 余额计算 {#balance-calculation}
 
-Balance refreshes use the venue-reported pUSD total and derive locked collateral from the
-execution client's local state:
+余额刷新使用交易场所报告的 pUSD
+总额，锁定抵押品从执行客户端的本地状态推导：
 
-- Open BUY order reservations for its account, using cached limit prices and remaining quantities.
-- Its BUY fill notional and commission that the venue total may still include.
+- 该账户未结 BUY 订单的预占，用缓存的限价与剩余数量计算。
+- 其 BUY
+  成交的名义价值与佣金——场所总额可能仍包含它们。
 
-Reservations exclude submitted orders awaiting acceptance and orders absent from the execution cache.
-SELL orders reserve outcome tokens rather than pUSD and do not contribute to locked collateral.
+预占不含已提交但尚未被接受的订单，也不不含不在执行缓存中的订单。SELL
+订单预占的是结果代币而非 pUSD，不计入锁定抵押品。
 
-**Unsettled BUY spend**: The next refresh after a known BUY fill subtracts its notional plus commission from
-free balance. It also subtracts other unsettled BUY spend measured against the same snapshot.
+**未结算的 BUY 支出**：已知
+BUY 成交之后的下一次刷新，从其名义价值加佣金中扣减自由余额，同时扣减按同一快照
+计量的其他未结算 BUY 支出。
 
-These amounts release together when the venue total has fallen by at least the combined amount since that
-snapshot. Thus, a drained total is not subtracted again. Until then, locked unsettled spend is only the part
-of the open spend that the decrease has not covered. A refresh whose venue total is unchanged keeps the open
-spend locked.
+当场所总额自该快照起下降至少达到合计金额时，这些金额一起释放，因此已被扣减的
+总额不会被二次扣减。在那之前，锁定的未结算支出只是尚未被下降覆盖的那部分未结
+支出。若刷新的场所总额没有变化，未结支出继续保持锁定。
 
-**Voids**: A void removes that fill's spend from locked collateral immediately. Later void revisions
-are cumulative, so only the increase is removed. The voided amount still counts toward the decrease
-required to release other open spend. A void of a fill that was never locked does not raise that
-threshold. When no open spend remains, the next refresh releases the voided amount and moves the
-snapshot.
+**作废（void）**：一次作废立即从锁定抵押品中移除该笔成交的支出。后续的作废修订
+是累计的，因此只移除增量。被作废的金额仍计入释放其他未结支出所要求的下降量。对
+从未锁定的成交做作废，不会抬高该门槛。当不再有未结支出时，下一次刷新释放被作废
+的金额并推进快照。
 
-The adapter does not lock these BUY fills:
+适配器不锁定以下 BUY 成交：
 
-- A fill first applied from terminal REST evidence, including a confirmed fill report, because that
-  evidence is admitted only after the trade is confirmed.
-- A reconciled fill more than 15 seconds older than the snapshot, or received before any snapshot.
+- 首次由终局 REST
+  证据应用的成交，包括已确认的成交报告，因为这类证据只在交易确认后才被采纳。
+- 比快照旧 15 秒以上的对账成交，或在任何快照之前收到的成交。
 
-Locked collateral is capped at the reported total, with free balance equal to total minus locked,
-following the [balance model](./../concepts/accounting.md#balance-model).
+锁定抵押品以报告总额为上限，自由余额等于总额减锁定，遵循[余额模型](./../concepts/accounting.md#balance-model)。
 
-#### Refresh timing
+#### 刷新时机 {#refresh-timing}
 
-The adapter seeds reservations from the execution cache at connect. It updates reservations and unsettled BUY
-spend as the core processes order events, including reconciled events. A transport reconnect keeps unsettled
-BUY spend. Reset clears it. The initial balance refresh precedes startup reconciliation. Orders discovered
-during reconciliation affect balances on the next refresh.
+适配器在 connect
+时从执行缓存为预占播种，并随核心处理订单事件（含对账事件）更新预占与未结算
+BUY 支出。传输层重连保留未结算 BUY 支出，重置则清空它。首次余额刷新早于启动
+对账，对账期间发现的订单在下一次刷新时影响余额。
 
-Refreshes occur at connect, on account queries, after finalized trade updates, and on user WebSocket
-reconnect. A balance response that arrives after a newer refresh, after an execution-client reconnect, or
-after the client resets, is not applied. A user WebSocket reconnect does not discard an in-flight refresh. A
-newer refresh still wins. Account balances do not change on each order event. Balance refreshes do not request
-open orders.
+刷新发生在 connect
+时、账户查询后、已最终化的成交更新后，以及用户
+WebSocket 重连时。若余额响应晚于更新的刷新、晚于执行客户端重连或晚于客户端重置到达，
+则不予应用。用户 WebSocket
+重连不会丢弃在途刷新，更新的刷新仍然优先。账户余额不随每个订单事件变化，余额刷新
+不请求未结订单。
 
 :::warning
-**These balances are estimates.** HTTP balance responses and order events can reflect different
-points in time. They do not guarantee funds are reserved before submission.
+**这些余额是估计值。** HTTP
+余额响应与订单事件可能反映不同时刻，它们不保证资金在提交前已被预留。
 
-Timing effects include:
+时间效应包括：
 
-- A collateral credit, including own SELL settlement, can leave unsettled BUY spend locked after
-  the venue total already reflects the drain. That hold is limited to the amount the decrease has
-  not covered.
-- An unrelated debit can release that spend before the fill has drained.
-- A void whose amount never leaves the venue total can keep that uncovered shortfall locked while
-  other unsettled spend is still open.
-- A confirmation still inside the drain window can report terminal REST BUY spend as free until a
-  later refresh.
-- A refresh that applies before a queued fill is processed can leave that fill locked after the
-  total has already drained.
+- 抵押品入账（包括自有 SELL
+  的结算）可能在场所总额已反映扣减之后，仍让未结算 BUY 支出保持锁定。该占用仅限
+  尚未被下降覆盖的部分。
+- 一笔无关的扣减可能在该成交真正扣减之前就释放这笔支出。
+- 金额从未离开场所总额的作废，可能让那笔未覆盖的缺口在其他未结算支出仍未结期间
+  保持锁定。
+- 仍在扣减窗口内的确认，可能把终局 REST 的
+  BUY 支出报告为自由余额，直到后续某次刷新。
+- 在排队的成交被处理之前应用的刷新，可能让该成交在总额已扣减后仍保持锁定。
 
-The adapter does not lock matched spend from another client on the same funder, or from a fill it
-has not yet received.
+适配器不会锁定同一出资方上其他客户端的成交支出，也不会锁定它尚未收到的成交。
 :::
 
-## API keys
+## API 密钥 {#api-keys}
 
-### CLOB credentials
+### CLOB 凭据 {#clob-credentials}
 
-The execution client requires CLOB L2 credentials. Create or derive them with Polymarket's
-[API authentication flow](https://docs.polymarket.com/getting-started/api#authentication). The
-adapter provides a command that reads `POLYMARKET_PK` and prints the created or derived credentials:
+执行客户端需要 CLOB L2
+凭据。用 Polymarket 的
+[API 鉴权流程](https://docs.polymarket.com/getting-started/api#authentication)
+创建或推导它们。适配器提供一条命令，读取
+`POLYMARKET_PK`
+并打印创建或推导出的凭据：
 
 ```bash
 cargo run -p nautilus-polymarket --bin polymarket-create-api-key
 ```
 
-Set the returned values as:
+把返回的值设为：
 
 - `POLYMARKET_API_KEY`
 - `POLYMARKET_API_SECRET`
 - `POLYMARKET_PASSPHRASE`
 
-The credentials authenticate the private-key signer, not a proxy or Deposit Wallet funder. The data
-client requires them only for [PolyBolt reference-price subscriptions](#polybolt-reference-prices).
+这些凭据为私钥签名方鉴权，不是为
+proxy 或 Deposit Wallet 出资方。数据客户端只在
+[PolyBolt 参考价订阅](#polybolt-reference-prices)中需要它们。
 
-### Relayer credentials
+### Relayer 凭据 {#relayer-credentials}
 
-Deposit Wallet split, merge, and redeem operations also require a Relayer API key. Create one under
-Settings > API Keys > Relayer API Keys, as described in
-[Connect your account](https://docs.polymarket.com/trading/wallets-auth#connect-your-account), then set:
+Deposit Wallet 的分拆、合并与赎回操作还需要
+Relayer API 密钥。按
+[连接你的账户](https://docs.polymarket.com/trading/wallets-auth#connect-your-account)
+的说明在 Settings > API Keys > Relayer API Keys
+下创建，然后设置：
 
 - `POLYMARKET_RELAYER_API_KEY`
 - `POLYMARKET_RELAYER_SIGNER_ADDRESS`
 
-`POLYMARKET_RELAYER_SIGNER_ADDRESS` is the signer address shown when the Relayer key is created.
-The position client also reads `POLYMARKET_PK` and `POLYMARKET_FUNDER`.
+`POLYMARKET_RELAYER_SIGNER_ADDRESS`
+是创建 Relayer 密钥时显示的签名方地址。持仓客户端还会读取
+`POLYMARKET_PK` 与 `POLYMARKET_FUNDER`。
 
-### Builder credentials
+### Builder 凭据 {#builder-credentials}
 
-Session authorization and revocation require Builder credentials approved for the session-key API.
-These are separate from the Relayer API key used for position operations. Follow Polymarket's
-[session-key requirements](https://docs.polymarket.com/trading/session-keys), and keep these values
-in the owner's administration environment:
+会话授权与撤销需要为 session-key API
+批准的 Builder 凭据，与持仓操作用的 Relayer API
+密钥相互独立。按 Polymarket 的
+[session-key 要求](https://docs.polymarket.com/trading/session-keys)操作，并把这些值
+保存在所有者的管理环境中：
 
 - `POLYMARKET_BUILDER_API_KEY`
 - `POLYMARKET_BUILDER_API_SECRET`
 - `POLYMARKET_BUILDER_PASSPHRASE`
 
-### Deposit Wallet verification
+### Deposit Wallet 校验 {#deposit-wallet-verification}
 
-Construction fails when the funder equals the signing address. Before signing, the position client:
+出资方等于签名地址时构造失败。签名之前，持仓客户端：
 
-- Checks the current and legacy Deposit Wallet addresses predicted by the canonical Polygon factory.
-- Requires deployed wallet code and verifies that the signer owns the wallet.
-- Reads the signed nonce from the wallet's on-chain counter.
+- 检查规范 Polygon
+  工厂预测的当前与旧版 Deposit Wallet 地址。
+- 要求钱包已部署合约代码，并校验签名方拥有该钱包。
+- 从钱包的链上计数器读取签名 nonce。
 
-Polygon RPC defaults to `https://polygon.drpc.org`. Pass `base_url_rpc` to the
-`PolymarketPositionClient` constructor to use another trusted Polygon endpoint.
+Polygon RPC 默认
+`https://polygon.drpc.org`。要改用其他受信任的 Polygon
+端点，向 `PolymarketPositionClient`
+构造函数传入 `base_url_rpc`。
 
-## Session keys
+## 会话密钥 {#session-keys}
 
-Session keys let a separate signer trade for a Deposit Wallet without giving the trading runtime
-its owner's private key. The adapter supports CLOB-scoped authorization. See Polymarket's
-[session-key documentation](https://docs.polymarket.com/trading/session-keys) for venue eligibility
-and Builder approval requirements.
+会话密钥让独立的签名方为 Deposit Wallet
+交易，而不把其所有者的私钥交给交易运行时。适配器支持
+CLOB 作用域的授权。场所准入与 Builder
+批准要求见 Polymarket 的
+[session-key 文档](https://docs.polymarket.com/trading/session-keys)。
 
-### Administer access
+### 管理访问 {#administer-access}
 
-Run `PolymarketSessionKeyClient` in the **owner's administration environment**, using a single
-administration process per wallet. Before authorizing a session:
+在**所有者的管理环境**中运行
+`PolymarketSessionKeyClient`，每个钱包只用一个管理进程。授权会话之前：
 
-- Supply the owner private key, owner CLOB credentials, Builder credentials, and Deposit Wallet address
-  explicitly. The client does not read environment variables itself.
-- Generate and securely store the session keypair separately. Pass only its public address to the
-  authorization method.
+- 显式提供所有者私钥、所有者 CLOB
+  凭据、Builder 凭据与 Deposit Wallet
+  地址。客户端自身不读取环境变量。
+- 另行生成并安全保存会话密钥对，只把其公开地址传给授权方法。
 
-The Python example reads credentials from the administration process's environment and passes them
-into the client:
+Python 示例从管理进程的环境读取凭据并传入客户端：
 
 ```python
 import os
@@ -343,62 +363,64 @@ key = await admin.authorize_session_key(session_address)
 keys = await admin.list_session_keys()
 ```
 
-Optional configuration:
+可选配置：
 
-- `base_url_http` overrides the production CLOB endpoint.
-- `base_url_relayer` overrides the production Relayer endpoint.
-- `proxy_url` configures an HTTP or HTTPS proxy for both clients.
+- `base_url_http` 覆盖生产 CLOB 端点。
+- `base_url_relayer` 覆盖生产 Relayer 端点。
+- `proxy_url` 为两个客户端配置 HTTP 或 HTTPS 代理。
 
-The Rust example provides the same authorization and listing operations:
+Rust 示例提供同样的授权与列出操作：
 
 ```bash
 cargo run -p nautilus-polymarket --example polymarket-session-keys -- authorize "$SESSION_ADDRESS"
 cargo run -p nautilus-polymarket --example polymarket-session-keys -- list
 ```
 
-Each administration method has a specific completion condition:
+每个管理方法各有明确的完成条件：
 
-| Method                  | Successful return requires                                                      |
-| ----------------------- | ------------------------------------------------------------------------------- |
-| `authorize_session_key` | On-chain confirmation; registry matches the address, CLOB scope, and expiration |
-| `list_session_keys`     | Validated active, unexpired registry entries                                    |
-| `revoke_session_key`    | On-chain confirmation; key absent from the active registry                      |
+| 方法                    | 成功返回要求                                                                |
+| ----------------------- | ---------------------------------------------------------------------------- |
+| `authorize_session_key` | 链上确认；注册表与地址、CLOB 作用域及到期时间匹配                            |
+| `list_session_keys`     | 校验通过的活跃、未过期注册表条目                                             |
+| `revoke_session_key`    | 链上确认；密钥已不在活跃注册表中                                             |
 
-#### Expiration
+#### 到期 {#expiration}
 
-Authorizations expire after 4,315 hours, matching the official SDK's wire value. Polymarket describes
-this period as 180 days, but its raw example and SDK use a value five hours shorter. The returned
-`valid_until` is the exact expiration in Unix seconds.
+授权在 4,315 小时后到期，与官方 SDK 的线上取值一致。Polymarket 把该周期描述为
+180 天，但其原始示例与 SDK 用的值短了 5 小时。返回的
+`valid_until` 是 Unix 秒计的精确到期时间。
 
-#### Recover an interrupted operation
+#### 恢复被中断的操作 {#recover-an-interrupted-operation}
 
-After an authorization or revocation times out, encounters a transport failure, or is cancelled,
-retry with the **same operation, same address, and same client**. The client retains the signed
-request and idempotency key and rejects a different mutation until the pending operation resolves.
+授权或撤销超时、遇到传输失败或被取消后，用**同一操作、同一地址、同一客户端**
+重试。客户端保留已签名的请求与幂等键，并在挂起操作定案之前拒绝其他变更。
 
-Keep the client alive until the operation resolves: pending requests are held in memory.
-Unresolved-outcome errors include the idempotency key and any known transaction ID for diagnosis.
+保持客户端存活直到操作定案：挂起请求保存在内存中。结果未知的错误包含幂等键与
+任何已知交易 ID，便于诊断。
 
 :::warning
-Signed batches have a **600-second deadline**. If an unaccepted request expires, retrying cannot
-create a fresh batch, and the client remains blocked. Reconcile the registry and Relayer outcome
-before creating a new client. The same reconciliation is required after a process restart.
+已签名批次有 **600 秒期限**。未被接受的请求过期后，重试无法创建新批次，客户端
+保持阻塞。先对账注册表与 Relayer
+结果，再创建新客户端。进程重启后同样需要这份对账。
 :::
 
-### Configure session trading
+### 配置会话交易 {#configure-session-trading}
 
-Create or derive CLOB credentials with the **session private key**, using the existing
-[CLOB credential workflow](#clob-credentials). Session mode requires:
+用**会话私钥**创建或推导 CLOB
+凭据，走既有的 [CLOB
+凭据流程](#clob-credentials)。会话模式要求：
 
-- Explicit session credentials and `funder`. It does not fall back to owner credentials from the environment.
-- `PolymarketSignatureType.Poly1271`. Other wallet signature types are rejected.
+- 显式的会话凭据与 `funder`，不回退到环境中的所有者凭据。
+- `PolymarketSignatureType.Poly1271`，其他钱包签名类型一律拒绝。
 
 :::info
-Keep owner and Builder credentials outside the trading runtime.
+把所有者与 Builder 凭据留在交易运行时之外。
 :::
 
-In this example, `session_private_key` is the separately stored session key, and
-`session_api_key`, `session_api_secret`, and `session_passphrase` are its returned CLOB credentials:
+下例中 `session_private_key`
+是另行保存的会话密钥，`session_api_key`、
+`session_api_secret` 与
+`session_passphrase` 是其返回的 CLOB 凭据：
 
 ```python
 from nautilus_trader.adapters.polymarket import PolymarketExecutionClientConfig
@@ -416,80 +438,85 @@ execution = PolymarketExecutionClientConfig(
 )
 ```
 
-Existing configurations default to `PolymarketSignerType.Owner`.
+既有配置默认 `PolymarketSignerType.Owner`。
 
-#### Reconciliation and restarts
+#### 对账与重启 {#reconciliation-and-restarts}
 
-Orders, trades, and notifications are scoped to the session's activity. Reconciliation requires the session
-API key to match order ownership. A shared wallet address alone does not establish ownership.
+订单、成交与通知的作用域是会话的活动。对账要求会话 API
+密钥与订单归属匹配，仅共享钱包地址不构成归属。
 
-Session cancel-all cancels known order IDs rather than using wallet-wide market cancellation.
-Mass status contains session orders and fills but omits wallet-wide positions. Direct position queries
-return an error because wallet holdings cannot establish a session's position.
+会话的 cancel-all
+取消已知订单 ID，不使用钱包级的全市场取消。mass status
+包含会话的订单与成交，但不含钱包级持仓。直接持仓查询返回错误，因为钱包持有量
+无法确定会话的持仓。
 
-Configure the node accordingly:
+据此配置节点：
 
-- **Position checks**: Set `LiveExecutionEngineConfig.position_check_interval_secs=None` to disable
-  periodic position checks for the node.
-- **History across restarts**: Configure [cache database persistence](./../concepts/cache.md#database-configuration)
-  and keep `load_cache=True` to retain order and fill history.
+- **持仓检查**：把
+  `LiveExecutionEngineConfig.position_check_interval_secs=None`
+  关闭节点的周期持仓检查。
+- **跨重启的历史**：配置[缓存数据库持久化](./../concepts/cache.md#database-configuration)
+  并保持 `load_cache=True`，保留订单与成交历史。
 
-### Revoke or rotate access
+### 撤销或轮换访问 {#revoke-or-rotate-access}
 
-Rotate keys from the administration environment. Coordinate outstanding orders and reconciliation
-before switching credentials: **a new session does not inherit visibility into an old session's orders**.
+在管理环境中轮换密钥。切换凭据前先协调好未结订单与对账：**新会话不会继承对旧
+会话订单的可见性**。
 
-To revoke a key, use the administration client created above, from an async function:
+要撤销密钥，用上面创建的管理客户端，在 async 函数中调用：
 
 ```python
 await admin.revoke_session_key(session_address)
 ```
 
-Or run the Rust example:
+或运行 Rust 示例：
 
 ```bash
 cargo run -p nautilus-polymarket --example polymarket-session-keys -- revoke "$SESSION_ADDRESS"
 ```
 
 :::warning
-Expired or revoked permissions cause venue rejections. A live transport connection does not prove
-that authorization remains active.
+过期或被撤销的权限会导致场所拒单。实时传输连接仍在，并不能证明授权仍然有效。
 :::
 
-## Position operations
+## 持仓操作 {#position-operations}
 
-`PolymarketPositionClient` splits pUSD into complete outcome-token sets, merges complete sets back
-to pUSD, and redeems resolved positions. The client supports Deposit Wallet (`PolymarketSignatureType::Poly1271`)
-only. Safe, Proxy, and EOA paths are not available. The client does not deploy wallets, batch
-unrelated calls, size a merge to `"max"`, or redeem positions automatically.
+`PolymarketPositionClient`
+把 pUSD 拆分为完整的结果代币组，把完整组合并回
+pUSD，并赎回已结算的持仓。该客户端仅支持 Deposit Wallet
+（`PolymarketSignatureType::Poly1271`），Safe、Proxy
+与 EOA 路径不可用。它不部署钱包、不合并无关调用批量提交、不支持把合并数量设为
+`"max"`，也不自动赎回持仓。
 
-### Inputs and approvals
+### 输入与授权 {#inputs-and-approvals}
 
-Each operation looks up the market on the public CLOB by condition ID and errors if `neg_risk` is
-absent. It then selects the canonical pUSD token and the standard or negative-risk collateral
-adapter. Callers pass a 0x-prefixed 32-byte condition ID and do not supply contract addresses.
+每个操作先按条件 ID
+在公共 CLOB 上查找市场，`neg_risk`
+缺失即报错，随后选定规范 pUSD 代币与标准或负风险抵押品适配器。调用方传入带
+0x 前缀的 32 字节条件 ID，不需要提供合约地址。
 
-- **Split and merge amounts**: Positive pUSD decimals exactly representable at six decimal places, with no
-  rounding. Amounts use pUSD units, never base units. `"max"` is not accepted.
-- **Redemption**: No amount argument. Redeems both binary index sets `[1, 2]`.
+- **拆分与合并数量**：正的 pUSD 小数，必须能被 6
+  位小数精确表示，不做舍入。数量用 pUSD 单位而非最小单位，不接受 `"max"`。
+- **赎回**：无数量参数，赎回两个二元索引组 `[1, 2]`。
 
-**Approvals are not submitted automatically.** Grant them from the Deposit Wallet before submitting:
+**授权不会自动提交。** 提交操作前先在 Deposit Wallet 上完成授权：
 
-| Operation       | Required approval for the market's collateral adapter |
-| --------------- | ----------------------------------------------------- |
-| Split           | Spend the wallet's pUSD                               |
-| Merge or redeem | Act as a Conditional Tokens operator                  |
+| 操作         | 市场抵押品适配器所需授权             |
+| ------------ | ------------------------------------ |
+| 拆分         | 花费钱包的 pUSD                      |
+| 合并或赎回   | 以 Conditional Tokens 运营者身份操作 |
 
-The standard collateral adapter is absent from the approval plan in `polymarket-set-allowances`. The
-negative-risk adapter is included. That command signs approvals from the EOA, so it cannot grant either
-approval for a Deposit Wallet. Use Polymarket's
-[wallet and authentication flow](https://docs.polymarket.com/trading/wallets-auth) to grant the
-position-operation approvals from the Deposit Wallet.
+`polymarket-set-allowances`
+的授权计划中没有标准抵押品适配器，负风险适配器在其中。该命令用 EOA
+签名授权，无法为 Deposit Wallet
+授予任何一项。请用 Polymarket 的
+[钱包与鉴权流程](https://docs.polymarket.com/trading/wallets-auth)
+从 Deposit Wallet 授予持仓操作所需授权。
 
-### Submit and wait
+### 提交与等待 {#submit-and-wait}
 
-The following example shows a split submission. Replace the illustrative condition ID with the
-market's actual condition ID before running it.
+下面的示例展示一次拆分提交。运行前把示意性的条件 ID
+换成市场真实的条件 ID。
 
 ```python
 from decimal import Decimal
@@ -502,207 +529,220 @@ transaction = await client.split_position(condition_id, Decimal("1"))
 outcome = await transaction.wait()
 ```
 
-`split_position` and `merge_positions` take the condition ID and a positive pUSD `Decimal`.
-`redeem_positions` takes only the condition ID. Each method returns a
-`PolymarketPositionTransaction` after Relayer submission. Call `wait()` once to poll until a
-`PolymarketPositionOutcome` is available. A second `wait()` on the same Python handle raises. The
-handle retains its `transaction_id` after waiting starts, including after cancellation or an error.
+`split_position` 与
+`merge_positions`
+接受条件 ID 和一个正的 pUSD
+`Decimal`；`redeem_positions`
+只接受条件 ID。每个方法在 Relayer
+提交后返回 `PolymarketPositionTransaction`。
+调用一次 `wait()` 轮询直到拿到
+`PolymarketPositionOutcome`。同一个
+Python 句柄上第二次 `wait()`
+会抛出异常。句柄在开始等待后保留其
+`transaction_id`，取消或出错之后也保留。
 
-### Outcomes and errors
+### 结果与错误 {#outcomes-and-errors}
 
-| `PolymarketPositionOutcome.status` | Meaning                             |
+| `PolymarketPositionOutcome.status` | 含义                                |
 | ---------------------------------- | ----------------------------------- |
-| `confirmed`                        | Relayer reported `STATE_CONFIRMED`. |
-| `failed`                           | Relayer reported `STATE_FAILED`.    |
-| `invalid`                          | Relayer reported `STATE_INVALID`.   |
+| `confirmed`                        | Relayer 报告 `STATE_CONFIRMED`。    |
+| `failed`                           | Relayer 报告 `STATE_FAILED`。       |
+| `invalid`                          | Relayer 报告 `STATE_INVALID`。      |
 
-Every outcome exposes `transaction_id`. Confirmed and failed outcomes expose `transaction_hash` when the
-Relayer supplies one. Invalid outcomes always return `None`. Failed and invalid outcomes also expose
-`error_msg` when the Relayer supplies one.
+每个结果都暴露 `transaction_id`。confirmed 与 failed
+结果在 Relayer 提供时暴露
+`transaction_hash`；invalid 结果始终返回
+`None`。failed 与 invalid
+结果在 Relayer 提供时还暴露 `error_msg`。
 
-#### Submit errors
+#### 提交错误 {#submit-errors}
 
-An HTTP rejection raises before a transaction handle exists. A timed-out submit or a success response with no
-`transaction_id` also raises. The on-chain outcome is unknown.
+HTTP 拒绝发生在交易句柄存在之前。超时的提交，或没有
+`transaction_id` 的成功响应，同样抛异常。链上结果未知。
 
-The client **does not retry submissions**.
+客户端**不重试提交**。
 
-#### Wait timeout
+#### 等待超时 {#wait-timeout}
 
-The default is 120 seconds, checked between polling requests. An in-flight request or polling delay can extend
-the elapsed time. A timeout raises an error naming the Relayer transaction ID. The terminal state remains
-unknown. Python does not expose the Rust wait-timeout or poll-interval setters.
+默认 120 秒，在轮询请求之间检查。在途请求或轮询延迟会让实际耗时超过该值。超时
+抛出的错误会带 Relayer 交易 ID，终态仍未知。Python
+不暴露 Rust 的等待超时与轮询间隔设置方法。
 
-#### Response validation
+#### 响应校验 {#response-validation}
 
-Relayer redirects are rejected, and polling rejects a response whose transaction ID differs from the
-submitted ID.
+Relayer 重定向会被拒绝；轮询会拒绝交易 ID
+与提交 ID 不一致的响应。
 
-### Submission coordination
+### 提交协调 {#submission-coordination}
 
-Clients in the same process share submission state for each wallet. A later operation requires a matching
-terminal Relayer result and an advanced wallet nonce. A failed or invalid operation that does not advance
-the nonce remains blocked.
+同一进程内的客户端为每个钱包共享提交状态。后续操作要求匹配的终局 Relayer
+结果与已推进的钱包 nonce。未推进
+nonce 的失败或无效操作会一直处于阻塞。
 
-After signing, the client records a reservation before sending the batch. An HTTP rejection, timeout,
-cancellation, or response without a transaction ID then blocks further operations for that wallet, even
-if the client is recreated. Failures before that reservation, such as invalid amounts or failed wallet
-verification, do not create a new block. An HTTP status alone does not prove that a signed batch cannot
-execute.
-
-:::warning
-Do not restart and blindly retry an unknown submission. A process restart clears local submission state but
-does not cancel a signed transaction. Use a single submitting process per wallet. Coordination does not extend
-across processes or external wallet tools.
-:::
-
-### Recover an unknown submission
-
-#### Retain the submission record
-
-Enable and retain INFO logs before submitting position operations. Before each submit request, the
-client emits a `Deposit Wallet submission` record containing:
-
-- Wallet address, reserved nonce, and signed deadline (Unix seconds).
-- Operation, target contract, and value.
-- Unsigned calldata identifying the condition and, for split or merge, the amount.
-
-The record excludes signatures and credentials, but contains trading intent. Restrict access to retained logs.
-Keep the transaction ID from the returned handle when available.
+签名后，客户端在发送批次之前先记录一条预留。随后发生 HTTP
+拒绝、超时、取消或无交易 ID 的响应时，即便重建客户端，该钱包的后续操作仍被阻塞。
+预留之前的失败——例如非法数量或钱包校验失败——不会造成新的阻塞。仅凭 HTTP
+状态无法证明已签名批次不会执行。
 
 :::warning
-Logging is not a durable transaction journal. Disabled logging or a process crash can leave no
-retained record, preventing safe recovery without further evidence.
+不要重启后盲目重试一次结果未知的提交。进程重启清掉本地提交状态，但不会取消一笔
+已签名的交易。每个钱包只用一个提交进程。协调不跨进程，也不覆盖外部钱包工具。
 :::
 
-#### Reconcile before retrying
+### 恢复结果未知的提交 {#recover-an-unknown-submission}
 
-1. **Stop submissions.** Include other processes and external wallet tools using the wallet.
-1. **Establish whether the operation executed.** Find the submission record and any Relayer
-   transaction ID. Match the intended wallet, target, and calldata against finalized on-chain
-   transaction receipts and effects. A successful HTTP response, a Relayer failure, or an advanced
-   nonce alone does not establish whether the intended operation executed. If it executed, do not
-   repeat it.
-1. **Keep the wallet blocked while execution remains unknown.** To reconcile by expiry, perform all
-   the [expiry checks](#expiry-checks) below. If the nonce advanced, inspect the transaction that
-   consumed it instead of assuming failure.
-1. **Prove that retrying is safe before restarting.** Establish that the intended operation did not execute.
-   Also establish that the original signed batch can no longer execute. If the record is missing, the RPC
-   cannot provide consistent finalized state, or contract behavior is unverified, resolve the uncertainty with
-   Polymarket before retrying.
+#### 保留提交记录 {#retain-the-submission-record}
 
-#### Expiry checks
+提交持仓操作之前开启并保留 INFO
+日志。每次提交请求之前，客户端会输出一条
+`Deposit Wallet submission`
+记录，包含：
 
-The signed deadline is 1,800 seconds after signing by default. Rust callers can change this with
-`with_deadline_secs`. Longer deadlines delay expiry-based recovery. A `wait()` timeout does not shorten the
-signed deadline or cancel the batch.
+- 钱包地址、预留 nonce 与签名期限（Unix 秒）。
+- 操作、目标合约与 value。
+- 标识条件的未签名 calldata，拆分或合并时还含数量。
 
-First verify that the deployed wallet contract enforces the signed deadline and consumes its nonce
-when a batch executes. Then read the wallet's `nonce()` with `eth_call` at a finalized Polygon block
-and obtain that same block's timestamp. Require both:
+该记录不含签名与凭据，但含交易意图。请限制对保留日志的访问。返回句柄带交易 ID
+时务必留存。
 
-- The nonce is unchanged from the reserved nonce.
-- The block timestamp is strictly after the signed deadline.
+:::warning
+日志不是持久化的交易日记。日志关闭或进程崩溃可能不留任何记录，导致没有进一步
+证据就无法安全恢复。
+:::
 
-Elapsed local time is insufficient. An advanced nonce requires inspection of the transaction that consumed it.
-It does not establish failure.
+#### 重试之前先对账 {#reconcile-before-retrying}
 
-The client does not perform these recovery checks or release a reservation automatically. Consult
-the [Polymarket contract registry](https://docs.polymarket.com/resources/contracts) when identifying
-the deployed contracts and the [JSON-RPC reference](https://ethereum.org/en/developers/docs/apis/json-rpc/)
-for block-specific calls.
+1. **停止提交。** 包括使用该钱包的其他进程与外部钱包工具。
+1. **确认操作是否已执行。** 找到提交记录与任何 Relayer
+   交易 ID，把预定的钱包、目标与 calldata
+   同最终化的链上交易回执及其效果做匹配。仅凭成功的 HTTP
+   响应、Relayer 失败或已推进的 nonce，都不能确定预定操作是否执行。若已执行，
+   不要重复。
+1. **执行未知期间让钱包保持阻塞。** 要按到期对账，完成下面全部[到期检查](#expiry-checks)。
+   若 nonce 已推进，检查消耗它的那笔交易，而不是假定失败。
+1. **重启之前先证明重试是安全的。** 既要确定预定操作未执行，也要确定原签名批次
+   已无法执行。若记录缺失、RPC
+   无法提供一致的最终化状态，或合约行为未经验证，先与 Polymarket
+   澄清不确定性再重试。
 
-## Configuration
+#### 到期检查 {#expiry-checks}
 
-Configure signing and authentication through these parameters or their environment-variable fallbacks:
+签名期限默认为签名后 1,800 秒。Rust
+调用方可用 `with_deadline_secs`
+修改。更长的期限会推迟基于到期的恢复。
+`wait()` 超时既不缩短签名期限，也不取消批次。
 
-| Parameter     | Environment variable    | Purpose                                                      |
-| ------------- | ----------------------- | ------------------------------------------------------------ |
-| `private_key` | `POLYMARKET_PK`         | Wallet key used to sign orders according to `signature_type` |
-| `funder`      | `POLYMARKET_FUNDER`     | pUSD funding wallet address                                  |
-| `api_key`     | `POLYMARKET_API_KEY`    | CLOB L2 API key                                              |
+先验证部署的钱包合约确实强制签名期限、并在批次执行时消耗其
+nonce。然后用 `eth_call`
+在 Polygon 的某个最终化区块读取钱包的
+`nonce()`，并取得同一区块的时间戳。两者都要满足：
+
+- nonce 相对预留值未变。
+- 区块时间戳严格晚于签名期限。
+
+本地经过的时间不足以作证明。nonce
+已推进时必须检查消耗它的那笔交易，它不能证明失败。
+
+客户端不会自动执行这些恢复检查或释放预留。识别部署合约时查
+[Polymarket 合约注册表](https://docs.polymarket.com/resources/contracts)，按区块调用查
+[JSON-RPC 参考](https://ethereum.org/en/developers/docs/apis/json-rpc/)。
+
+## 配置 {#configuration}
+
+通过下列参数或其环境变量回退配置签名与鉴权：
+
+| 参数          | 环境变量                | 用途                                                         |
+| ------------- | ----------------------- | -------------------------------------------------------------- |
+| `private_key` | `POLYMARKET_PK`         | 按 `signature_type` 为订单签名的钱包密钥                     |
+| `funder`      | `POLYMARKET_FUNDER`     | pUSD 出资钱包地址                                            |
+| `api_key`     | `POLYMARKET_API_KEY`    | CLOB L2 API 密钥                                             |
 | `api_secret`  | `POLYMARKET_API_SECRET` | CLOB L2 API secret                                           |
-| `passphrase`  | `POLYMARKET_PASSPHRASE` | CLOB L2 API passphrase                                       |
+| `passphrase`  | `POLYMARKET_PASSPHRASE` | CLOB L2 API 口令                                             |
 
-In owner mode, when a parameter is not supplied explicitly, the client reads its environment variable. Session
-mode requires explicit credentials and a funder. CLOB L2 credentials authenticate the private-key signer. For
-`POLY_1271`, the Deposit Wallet remains the `funder`. It is not the L2 authentication address.
-
-:::tip
-Use environment variables to supply credentials without embedding them in client configuration code.
-:::
-
-Instrument loading also has two common controls:
-
-- `auto_load_missing_instruments` (default `True`): Subscribe and request commands for uncached
-  instruments trigger an ad-hoc Gamma API load. When disabled, subscribing to an uncached instrument
-  returns an error. See [Runtime instrument loading](#runtime-instrument-loading).
-- `auto_load_debounce_ms` (default `100`): Window in milliseconds for coalescing concurrent auto-load
-  requests into a single batched Gamma call.
-
-## Data capability
-
-Polymarket supports live `L2_MBP` order book deltas, quotes, trades, and resolution
-`InstrumentStatus`/`InstrumentClose` events. Instrument definitions are published by bootstrap,
-configured refreshes, on-demand loading, single-instrument requests, new-market discovery, and
-tick-size changes.
-
-## Orders capability
-
-Polymarket supports the order types and instructions below.
+owner 模式下，参数未显式提供时客户端读取其环境变量。会话模式要求显式凭据与
+funder。CLOB L2 凭据为私钥签名方鉴权。`POLY_1271`
+下 Deposit Wallet 仍是 `funder`，但不是 L2 鉴权地址。
 
 :::tip
-For Polymarket live execution, set both the disconnection timeout and post-stop delay to 30
-seconds with `with_timeout_disconnection_secs(30)` and `with_delay_post_stop_secs(30)`. The delay
-allows residual order and cancellation events to arrive before disconnection. Execution disconnect
-finishes inside that timeout and does not wait out the HTTP timeout for an in-flight command.
+用环境变量提供凭据，避免把凭据嵌进客户端配置代码。
 :::
 
-A cancel that is still in flight when disconnect finishes leaves the order `PENDING_CANCEL`. The
-adapter emits neither `OrderCanceled` nor `OrderCancelRejected`. The venue may or may not have
-applied the cancel. Startup reconciliation on the next run resolves it. A strategy cancel does not,
-because the order is already pending cancel. Other in-flight submit and modify commands stop on the
-same bound, and an unconfirmed one stays unresolved.
+金融工具加载还有两个常用开关：
 
-### Order types
+- `auto_load_missing_instruments`（默认
+  `True`）：对未缓存金融工具的订阅与请求命令会触发一次临时
+  Gamma API 加载。关闭时，订阅未缓存的金融工具直接返回错误。见[运行时金融工具加载](#runtime-instrument-loading)。
+- `auto_load_debounce_ms`（默认 `100`）：把并发自动加载请求合并为单次批量
+  Gamma 调用的窗口（毫秒）。
 
-| Order type             | Binary options | Notes                                                                     |
-| ---------------------- | -------------- | ------------------------------------------------------------------------- |
-| `MARKET`               | ✓              | **BUY orders require quote quantity**, SELL orders require base quantity. |
-| `LIMIT`                | ✓              | BUY orders accept base or quote quantity; SELL orders require base.       |
-| `STOP_MARKET`          | -              | *Not supported by Polymarket*.                                            |
-| `STOP_LIMIT`           | -              | *Not supported by Polymarket*.                                            |
-| `MARKET_IF_TOUCHED`    | -              | *Not supported by Polymarket*.                                            |
-| `LIMIT_IF_TOUCHED`     | -              | *Not supported by Polymarket*.                                            |
-| `TRAILING_STOP_MARKET` | -              | *Not supported by Polymarket*.                                            |
+## 数据能力 {#data-capability}
 
-### Quantity semantics
+Polymarket 支持实时 `L2_MBP`
+订单簿增量、报价、成交，以及结算的
+`InstrumentStatus`/`InstrumentClose`
+事件。金融工具定义由引导加载、配置刷新、按需加载、单工具请求、新市场发现与
+tick 尺寸变更发布。
 
-Polymarket interprets order quantities differently depending on the order type, side, and
-`quote_quantity` setting:
+## 订单能力 {#orders-capability}
 
-- **Limit orders with `quote_quantity=False`** interpret `quantity` as the number of conditional
-  tokens (base units).
-- **Limit BUY orders with `quote_quantity=True`** interpret `quantity` as pUSD collateral.
-- **Market BUY** orders interpret `quantity` as quote notional in **pUSD**.
-- **Market SELL** orders use base-unit quantities.
+Polymarket 支持下列订单类型与指令。
 
-Quote-sized limit SELL orders are not supported. The adapter denies them before submission. It also
-denies any limit order whose base or quote quantity truncates to zero at the two-decimal signing
-boundary.
+:::tip
+Polymarket 实时执行请把断连超时与停机后延迟都设为 30
+秒：`with_timeout_disconnection_secs(30)` 与
+`with_delay_post_stop_secs(30)`。延迟让残余的订单与撤单事件在断连前到达。执行
+断连在该超时内完成，不会等完在途命令的 HTTP 超时。
+:::
 
-#### Limit BUY example
+断连收尾时仍在途的撤单会让订单停留在
+`PENDING_CANCEL`，适配器既不发
+`OrderCanceled` 也不发
+`OrderCancelRejected`，场所可能应用了也可能没应用该撤单。下一次运行的启动
+对账会将其定案。策略侧的撤单不会这样处理，因为订单已在待撤状态。其他在途的提交与
+修改命令受同一界限约束，未确认的会保持未定案。
 
-For limit BUY orders with `quote_quantity=True`:
+### 订单类型 {#order-types}
 
-- The adapter truncates collateral to cents, signs it as the maker amount, and derives shares at
-  the market's amount precision.
-- It updates the local order to the signed share quantity before processing the venue response.
-- The signed amounts must preserve the limit price exactly. Otherwise, the adapter rejects the
-  order before HTTP. For example, 10.00 pUSD at 0.33 is not representable, while 9.90 pUSD at
-  0.33 produces exactly 30 shares.
+| 订单类型               | 二元期权 | 说明                                                                      |
+| ---------------------- | -------- | --------------------------------------------------------------------------- |
+| `MARKET`               | ✓        | **BUY 订单必须用 quote 数量**，SELL 订单必须用 base 数量。                  |
+| `LIMIT`                | ✓        | BUY 可接受 base 或 quote 数量；SELL 必须用 base。                           |
+| `STOP_MARKET`          | -        | *Polymarket 不支持*。                                                       |
+| `STOP_LIMIT`           | -        | *Polymarket 不支持*。                                                       |
+| `MARKET_IF_TOUCHED`    | -        | *Polymarket 不支持*。                                                       |
+| `LIMIT_IF_TOUCHED`     | -        | *Polymarket 不支持*。                                                       |
+| `TRAILING_STOP_MARKET` | -        | *Polymarket 不支持*。                                                       |
 
-To cap a limit BUY by collateral, set `quote_quantity=True`:
+### 数量语义 {#quantity-semantics}
+
+Polymarket 按订单类型、方向与
+`quote_quantity` 设置不同地解释订单数量：
+
+- **`quote_quantity=False` 的限价单**把
+  `quantity` 解释为条件代币数量（base 单位）。
+- **`quote_quantity=True` 的限价 BUY**把
+  `quantity` 解释为 pUSD 抵押品。
+- **市价 BUY** 把 `quantity` 解释为
+  **pUSD** 的 quote 名义价值。
+- **市价 SELL** 使用 base 单位数量。
+
+不支持以 quote 计量的限价 SELL
+订单，适配器在提交前拒绝。它也拒绝任何在两位小数的签名界限上 base 或 quote
+数量被截断为零的限价单。
+
+#### 限价 BUY 示例 {#limit-buy-example}
+
+对 `quote_quantity=True` 的限价 BUY：
+
+- 适配器把抵押品截断到分，签名为其 maker
+  金额，并按市场的数量精度推导份额数。
+- 在处理场所响应之前，把本地订单更新为签名的份额数量。
+- 签名金额必须精确保住限价。否则适配器在 HTTP
+  之前就拒绝订单。例如 10.00 pUSD 按
+  0.33 无法表示，而 9.90 pUSD 按 0.33
+  恰好产出 30 份。
+
+要用抵押品上限约束限价 BUY，设置 `quote_quantity=True`：
 
 ```python
 # Limit BUY with quote quantity (spend $10 pUSD at a limit price of 0.50)
@@ -717,13 +757,13 @@ order = strategy.order_factory.limit(
 strategy.submit_order(order)
 ```
 
-#### Market BUY example
+#### 市价 BUY 示例 {#market-buy-example}
 
-For market BUY orders, **quote quantity is required**: set `quote_quantity=True`. The adapter converts
-the quote amount (pUSD) to the signed base-unit share amount before posting to the CLOB. The
-Polymarket execution client denies base-denominated market buys to
-prevent unintended fills. A market BUY submitted with a base-denominated quantity can execute far
-more size than intended.
+市价 BUY **必须用 quote 数量**：设置
+`quote_quantity=True`。适配器在提交到 CLOB
+之前把 quote 金额（pUSD）换算为签名的 base 单位份额数。Polymarket
+执行客户端拒绝以 base 计价的市价买，以防意外成交。以
+base 计价数量提交的市价 BUY 可能执行远超预期的规模。
 
 ```python
 # Market BUY with quote quantity (spend $10 pUSD)
@@ -737,54 +777,66 @@ order = strategy.order_factory.market(
 strategy.submit_order(order)
 ```
 
-### Execution instructions
+### 执行指令 {#execution-instructions}
 
-| Instruction   | Binary options | Notes                                                |
-| ------------- | -------------- | ---------------------------------------------------- |
-| `post_only`   | ✓              | Supported for limit orders with `GTC` or `GTD` only. |
-| `reduce_only` | -              | *Not supported by Polymarket*.                       |
+| 指令          | 二元期权 | 说明                                                 |
+| ------------- | -------- | ------------------------------------------------------ |
+| `post_only`   | ✓        | 仅对 `GTC` 或 `GTD` 的限价单支持。                     |
+| `reduce_only` | -        | *Polymarket 不支持*。                                  |
 
-### Time-in-force options
+### 有效期选项 {#time-in-force-options}
 
-Polymarket calls the `POST /order` field `orderType`. In NautilusTrader, this maps to
-`TimeInForce`. The valid combinations depend on the Nautilus order type:
+Polymarket 把 `POST /order`
+的该字段称为 `orderType`，在 NautilusTrader
+中映射到 `TimeInForce`。合法组合取决于 Nautilus
+订单类型：
 
-| Nautilus TIF | Polymarket `orderType` | Nautilus order scope | Notes                                                     |
-| ------------ | ---------------------- | -------------------- | --------------------------------------------------------- |
-| `GTC`        | `GTC`                  | `LIMIT` only         | Good-Til-Cancelled; rests on the book.                    |
-| `GTD`        | `GTD`                  | `LIMIT` only         | Good-Til-Date; rests until expiration, fill, or cancel.   |
-| `FOK`        | `FOK`                  | `LIMIT` or `MARKET`  | Fill the full size immediately or cancel the whole order. |
-| `IOC`        | `FAK`                  | `LIMIT` or `MARKET`  | Fill available size immediately and cancel the remainder. |
+| Nautilus TIF | Polymarket `orderType` | Nautilus 订单范围      | 说明                                                      |
+| ------------ | ---------------------- | ---------------------- | ----------------------------------------------------------- |
+| `GTC`        | `GTC`                  | 仅 `LIMIT`             | Good-Til-Cancelled；挂在订单簿上。                          |
+| `GTD`        | `GTD`                  | 仅 `LIMIT`             | Good-Til-Date；挂到到期、成交或撤单。                       |
+| `FOK`        | `FOK`                  | `LIMIT` 或 `MARKET`    | 立即全量成交，否则整单取消。                                |
+| `IOC`        | `FAK`                  | `LIMIT` 或 `MARKET`    | 立即成交可得数量并取消剩余。                                |
 
-Polymarket uses `FAK` (Fill-And-Kill) for the semantics NautilusTrader calls `IOC` (Immediate or Cancel).
-Polymarket docs classify `FOK` and `FAK` as market order types, while `GTC` and `GTD` are limit order types.
-For Nautilus `MARKET` orders, the adapter accepts only `IOC` and `FOK`. `GTC` and `GTD` are valid for resting
-`LIMIT` orders only.
+Polymarket 对 NautilusTrader 称为
+`IOC`（Immediate or Cancel）的语义使用
+`FAK`（Fill-And-Kill）。Polymarket
+文档把 `FOK` 与 `FAK`
+归为市价订单类型，`GTC` 与 `GTD`
+归为限价订单类型。对 Nautilus 的
+`MARKET` 订单，适配器只接受
+`IOC` 与 `FOK`；`GTC` 与
+`GTD` 只对挂单的 `LIMIT` 订单有效。
 
-#### GTD expiry
+#### GTD 到期 {#gtd-expiry}
 
-Set `GTD` expiry at least three minutes after submission. The adapter denies a shorter expiry
-before signing. It uses whole Unix seconds and accepts the exact three-minute boundary.
+`GTD` 到期时间至少要设在提交后三分钟。更短的到期适配器在签名前拒绝。它使用整
+Unix 秒，接受恰好三分钟的边界。
 
-Polymarket reports both a user cancel and a GTD expiry as `CANCELED`. It expires the order one
-minute before the supplied expiration, so the minimum effective lifetime is about two minutes. To
-request an effective lifetime of N seconds, supply `now + 60 + N`, still subject to the
-three-minute minimum.
+Polymarket 把用户撤单与 GTD
+到期都报告为 `CANCELED`。它比你给的到期时间提前一分钟过期，因此最短有效寿命约
+两分钟。要获得 N 秒的有效寿命，提交
+`now + 60 + N`，且仍受三分钟下限约束。
 
-On the user channel, a `CANCELED` event at or after that one-minute mark becomes `OrderExpired`.
-An earlier cancel stays `OrderCanceled`. A REST-recovered cancel also stays `OrderCanceled`. The
-open-order payload has an expiration, but no cancel time.
+用户频道上，发生在那一分钟标记及之后的
+`CANCELED` 事件会变成
+`OrderExpired`；更早的撤单保持
+`OrderCanceled`；经 REST
+恢复的撤单也保持 `OrderCanceled`。未结订单载荷带到期时间，但没有撤单时间。
 
-Leave `manage_gtd_expiry` false. The strategy timer fires at the stated expiration and submits a cancel. It
-does not emit `OrderExpired`. A user-channel expiry already clears that timer.
+`manage_gtd_expiry` 保持
+false。策略定时器在声明的到期时间触发并提交撤单，不发
+`OrderExpired`。用户频道的到期已经会清掉该定时器。
 
-If the expiry message was missed, the late cancel does not close the order. Reconciliation still has to. See
-[GTD orders](https://docs.polymarket.com/trading/place-orders#limit-orders).
+若错过了到期消息，迟到的撤单不会收尾订单，仍需靠对账处理。见
+[GTD 订单](https://docs.polymarket.com/trading/place-orders#limit-orders)。
 
-### Minimum order size
+### 最小订单规模 {#minimum-order-size}
 
-Read each market's `min_order_size` from its order book. Active markets commonly report five shares.
-Marketable orders can also be rejected below **1 pUSD** in notional value with
+从各市场的订单簿读取其
+`min_order_size`，活跃市场通常报告 5
+份。名义价值低于 **1 pUSD**
+的可成交订单也可能被拒，
 `invalid amount for a marketable BUY order … min size: $1`.
 
 The adapter leaves instrument

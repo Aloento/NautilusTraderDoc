@@ -1,32 +1,30 @@
-# Callback Dispatch Contract
+# 回调派发契约
 
-This page defines the ownership, ordering, and progress requirements for queued actor and strategy
-callbacks. The [design principles](./design_principles.md#queued-callback-dispatch-requirements) explain
-the policy.
+本页定义排队（queued）的 actor 与策略回调的所有权、顺序与进展要求。策略层面的
+说明见[设计原则](./design_principles.md#queued-callback-dispatch-requirements)。
 
 :::info Queued delivery is not yet active
-These requirements are design constraints for queued actor and strategy callback delivery, not
-guarantees of the existing synchronous dispatch paths.
-Support for synchronous message-bus reentry does not activate queued actor or strategy callbacks.
+这些要求是排队 actor 与策略回调投递的设计约束，不是对既有同步派发路径的保证。
+支持消息总线同步重入，并不会启用排队的 actor 或策略回调。
 :::
 
-Read this page by purpose:
+按目的阅读本页：
 
-- **Normative contract**: [Ordering](#ordering-and-reentrancy), observable state, bounded progress,
-  and [drain boundary design](#drain-boundary-design) define requirements for activation.
-- **Current implementation**: [Implementation limits](#implementation-limits) and
-  [runtime integration](#runtime-integration) distinguish existing machinery from activation gaps.
-  [Runtime Conformance Contract](./runtime_conformance.md) maps source and representative checks.
-- **Private implementation details**: [Dispatch primitives](#private-dispatch-primitives), command
-  transports, and storage accounting describe how the machinery enforces those requirements.
+- **规范性契约**：[顺序](#ordering-and-reentrancy)、可观察状态、有界进展与
+  [排空边界设计](#drain-boundary-design)定义了启用（activation）的要求。
+- **当前实现**：[实现限度](#implementation-limits)与
+  [运行时集成](#runtime-integration)区分既有机制与启用缺口。
+  [运行时一致性契约](./runtime_conformance.md)把源码与代表性检查映射到各要求。
+- **私有实现细节**：[派发原语](#private-dispatch-primitives)、命令传输与
+  存储记账说明机制如何强制执行这些要求。
 
-For failure messages and corrective action, see [reentrancy and dispatch diagnostics](#reentrancy-and-dispatch-diagnostics).
+失败消息与纠正动作见[重入与派发诊断](#reentrancy-and-dispatch-diagnostics)。
 
-## Worked callback sequence
+## 回调序列示例 {#worked-callback-sequence}
 
-This example illustrates the queued contract. Production canonical callbacks stay synchronous. Assume event A
-has two eligible recipients, strategies S1 and S2, and event B has recipient S3. There is no unrelated pending
-work, and all required access is available at each drain boundary.
+这个例子演示排队的契约。生产环境的规范回调仍是同步的。假设事件 A 有两个合格
+接收者——策略 S1 与 S2，事件 B 的接收者是 S3；没有无关的待处理工作，且每个排空
+边界上所需访问都可用。
 
 ```text
 Publication A
@@ -61,706 +59,670 @@ When the runtime processes C (timing depends on the runtime):
   C itself consumes no callback delivery budget
 ```
 
-Nested publication B waits behind A's pending recipient. Callbacks and the command retain root R.
+嵌套的发布 B 排在 A 的待处理接收者之后。回调与命令都保留根 R。
 
-The callback order above does not specify when C executes relative to S2(A) and S3(B).
-[Backtest settlement and live scheduling](#runtime-integration) determine command processing between
-callback passes. R stays alive while C or other retained descendants own it. Yielding does not reset its
-budget. Sending from a foreign thread or an unrelated task does not inherit R automatically.
+上述回调顺序并不规定 C 相对于 S2(A) 与 S3(B) 何时执行。回调遍历之间的命令处理
+由[回测结算与实时调度](#runtime-integration)决定。只要 C 或其他被保留的后代
+持有 R，R 就存活。让出不会重置其预算。从外部线程或无关任务发送不会自动继承 R。
 
-## Terminology
+## 术语 {#terminology}
 
-| Term          | Meaning                                                                                       |
+| 术语          | 含义                                                                                       |
 | ------------- | --------------------------------------------------------------------------------------------- |
-| Publication   | One event publication whose ordinal is reserved before synchronous subscriber work.           |
-| Admission     | Reservation of callback count, known storage, and queue position before capture construction. |
-| Slot          | One ordered queue entry, whether reserved, ready, or cancelled.                               |
-| Capture       | Owned values retained for a callback or invocation.                                           |
-| Root          | Causal ownership and cumulative delivery accounting shared by descendant work. No rollback.   |
-| Retained work | Queued or suspended work that keeps its root alive beyond the current call or drain.          |
-| Drain         | One bounded pass over callback slots in order.                                                |
-| Safe boundary | Runtime-owned point where enclosing borrows have ended and callback invocation is permitted.  |
+| Publication（发布）   | 一次事件发布，其序号在同步订阅者工作之前预留。           |
+| Admission（准入）     | 在构造捕获之前预留回调计数、已知存储与队列位置。 |
+| Slot（槽位）          | 队列中一个有序条目，无论处于预留、就绪还是已取消状态。                               |
+| Capture（捕获）       | 为回调或调用保留的所有权值。                                           |
+| Root（根）            | 后代工作共享的因果所有权与累计投递记账。不回滚。   |
+| Retained work（保留工作） | 队列中或挂起的工作，使其根在当前调用或排空之后仍存活。          |
+| Drain（排空）         | 按序对回调槽位的一次有界遍历。                                                |
+| Safe boundary（安全边界） | 运行时拥有的时刻：外围借用已结束，允许调用回调。  |
 
-## Implementation limits
+## 实现限度 {#implementation-limits}
 
-| Area                                                  | Implemented                                                   | Limit                                                                   |
+| 领域                                                  | 已实现                                                   | 限度                                                                   |
 | ----------------------------------------------------- | ------------------------------------------------------------- | ----------------------------------------------------------------------- |
-| Actor delivery                                        | Private ordered-delivery primitives                           | Queued actor and strategy delivery inactive                             |
-| [Root propagation](#callback-roots-and-budgets)       | Causal roots through retained work and command/event channels | Owner-thread ancestry. Independent scheduled firings                    |
-| [Drain safety](#draining-and-progress)                | Backtest and live running-loop boundaries                     | Live lifecycle integration and activation incomplete                    |
-| [Progress budgets](#callback-roots-and-budgets)       | Completed callback deliveries charged per root                | No bound on callback duration or command-only loops                     |
-| [Memory accounting](#storage-limits)                  | Retained-unit and known-storage limits                        | Not a total-process memory cap. No user configuration                   |
-| [Failure handling](#failure-cleanup)                  | Unwind restoration and guarded teardown                       | Fatal errors stop all roots. No rollback of completed effects           |
-| [Access and backends](#backend-compatibility)         | Private checked-access guards                                 | Unchecked access and native/Python/dynamic parity outside the guarantee |
-| [Observable state](#maintenance-and-observable-state) | Synchronous cache and facade effects                          | Current cache state, not an event-time snapshot                         |
+| Actor 投递                                        | 私有的有序投递原语                           | 排队的 actor 与策略投递未启用                             |
+| [根传播](#callback-roots-and-budgets)       | 经保留工作与命令/事件通道的因果根 | 所有者线程的祖先关系。相互独立的定时触发 |
+| [排空安全性](#draining-and-progress)                | 回测与实时运行循环的边界                     | 实时生命周期集成与启用尚未完成                    |
+| [进展预算](#callback-roots-and-budgets)       | 按根累计已完成回调投递的计费                | 不约束回调耗时或纯命令循环                     |
+| [内存记账](#storage-limits)                  | 保留单元与已知存储限制                        | 不是进程总内存上限。无用户配置                   |
+| [失败处理](#failure-cleanup)                  | unwind 恢复与受守卫的拆除                       | 致命错误停止所有根。已完成的效果不回滚           |
+| [访问与后端](#backend-compatibility)         | 私有的受检访问守卫                                 | 未检查的访问，以及 native/Python/dynamic 的一致性在保障之外 |
+| [可观察状态](#maintenance-and-observable-state) | 同步的缓存与门面效果                          | 当前缓存状态，不是按事件时间的快照                         |
 
-## Ordering and reentrancy
+## 顺序与重入 {#ordering-and-reentrancy}
 
 :::tip What is reentrancy?
-Reentrancy occurs when code is entered again before an earlier call to that code returns. For example, a
-message-bus subscriber publishes another message, causing nested delivery before the original publication
-finishes. This can happen on one thread. It does not require parallel execution.
+重入指代码在其较早一次调用返回之前再次被进入。例如消息总线的订阅者又发布了
+另一条消息，导致嵌套投递先于原来的发布完成。这发生在单个线程上，不需要并行执行。
 :::
 
-Within one runtime thread, canonical actor and strategy callbacks must preserve **publication order**
-across components and topics. The rule applies equally to idle and active components. A nested
-publication must not overtake an earlier publication's pending deliveries, including all recipients
-of the earlier publication. Independent nodes have no shared global ordering guarantee.
+在同一运行时线程内，规范的 actor 与策略回调必须跨组件、跨 topic 保持
+**发布顺序**。该规则对空闲与活跃的组件同样适用。嵌套发布不得超越更早发布的
+待处理投递，包括更早发布的全部接收者。相互独立的节点之间没有共享的全局顺序保证。
 
-Callbacks require **exclusive access** to their component and a delivery boundary at which enclosing
-mutable runtime borrows have ended. Native and Python components must follow the same ordering
-contract.
+回调要求其组件的**独占访问**，以及一个外围可变运行时借用已结束的投递边界。
+native 与 Python 组件必须遵循同样的顺序契约。
 
-### Raw Python subscribers
+### 原始 Python 订阅者 {#raw-python-subscribers}
 
-Raw Python [topic messaging](./../concepts/message_bus.md) delivers the original object synchronously to
-subscribed callables, including during nested publication. It shares the runtime bus and topic space with
-canonical custom-data subscriptions. The queued ordering requirement applies to canonical callbacks. Raw
-callables stay synchronous. A nested publication from a raw callable must still preserve the publication order
-of pending canonical deliveries.
+原始的 Python [topic 消息](./../concepts/message_bus.md)把原始对象同步投递给
+订阅的可调用对象，包括在嵌套发布期间。它与规范的自定义数据订阅共享运行时总线
+与 topic 空间。排队的顺序要求适用于规范回调，原始可调用对象保持同步。
+原始可调用对象内部的嵌套发布，仍必须保持待处理规范投递的发布顺序。
 
-## Maintenance and observable state
+## 维护与可观察状态 {#maintenance-and-observable-state}
 
-Component maintenance runs with each queued event, **before that event's author callbacks**. This includes:
+组件维护随每个排队事件运行，**在该事件的作者回调之前**。包括：
 
-- Indicator updates.
-- Timer cleanup.
-- Contingent-order handling.
+- 指标更新。
+- 定时器清理。
+- 条件单处理。
 
-Maintenance retains its applicable lifecycle rules when author callbacks are suppressed. Events
-emitted by maintenance enter the same ordered dispatch mechanism.
+作者回调被抑制时，维护仍执行其适用的生命周期规则。维护发出的事件进入同一套
+有序派发机制。
 
-### Cache state and eligibility
+### 缓存状态与资格 {#cache-state-and-eligibility}
 
-Engine [cache](./../concepts/architecture.md#cache) mutations and direct facade effects stay synchronous.
-Callbacks observe **current cache state**. Ordered delivery does not provide an event-time cache snapshot. The
-immutable event payload records the event, while the cache may already reflect later changes. Keeping
-indicator updates with event delivery preserves their ordering relative to the corresponding callbacks.
+引擎[缓存](./../concepts/architecture.md#cache)的变更与直接的门面效果保持同步。
+回调观察到的是**当前缓存状态**。有序投递不提供按事件时间的缓存快照。不可变的
+事件载荷记录着事件本身，而缓存可能已经反映了后续变化。把指标更新与事件投递
+放在一起，保持了它们与相应回调之间的顺序。
 
-For example, the engine can apply order update E1, queue its callback, and apply E2 before
-that callback drains. The E1 callback receives E1's immutable payload, but a cache lookup can return
-the order state after E2. Use the payload for facts about E1 and the cache for current runtime state.
+例如，引擎可以应用订单更新 E1，把其回调排队，并在该回调排空之前应用 E2。
+E1 的回调收到 E1 的不可变载荷，但缓存查询可能返回 E2 之后的订单状态。
+关于 E1 的事实看载荷，当前运行时状态看缓存。
 
-Author callbacks require eligibility at **both event arrival and delivery**. Stop, reset, or retirement
-must not carry old callbacks into a new registration or [lifecycle](./../concepts/actors.md#lifecycle) generation.
+作者回调在**事件到达与投递两个时刻**都要求具备资格。停止、重置或退役不得把
+旧回调带进新的注册或[生命周期](./../concepts/actors.md#lifecycle)世代。
 
-## Bounded progress
+## 有界进展 {#bounded-progress}
 
-A **drain** processes queued callbacks in order, attempting delivery when permitted. Pending callbacks
-participate in the runtime's drain condition. Live execution uses bounded drain batches and yields
-between them. Backtests finish pending work before advancing simulated time.
-Runaway callback chains produce an explicit fault.
+**排空**按序处理队列中的回调，在允许时尝试投递。待处理回调参与运行时的排空
+条件。实时执行使用有界的排空批次，并在批次之间让出。回测在推进模拟时间之前
+完成待处理工作。失控的回调链会产生显式故障。
 
-Queue overflow records a fatal error and halts execution at a safe boundary. It must neither
-silently discard callbacks nor interrupt an operation midway through its synchronous effects.
-Already completed effects are not rolled back by callback dispatch.
+队列溢出记录致命错误，并在安全边界停止执行。它既不能静默丢弃回调，也不能在
+某个操作的同步效果中途打断它。已完成的效果不会被回调派发回滚。
 
-## Drain boundary design
+## 排空边界设计 {#drain-boundary-design}
 
-Runtime integration must concentrate callback draining at a small set of explicit ownership boundaries. **The
-runtime owns drain scheduling**. Individual dispatch and flush methods must not each acquire their own
-draining policy. This keeps borrow release, callback ordering, and failure handling in a small number of
-places and limits repeated drain calls, async propagation, and error plumbing.
+运行时集成必须把回调排空集中在少数几个显式的所有权边界上。**排空调度归运行时
+所有**。各个派发与 flush 方法不得各自持有自己的排空策略。这能把借用的释放、
+回调顺序与失败处理保持在少数几处，并限制重复的排空调用、异步传播与错误管道。
 
-Each boundary must identify:
+每个边界必须指明：
 
-- Which component, engine, and cache borrows have ended.
-- Which callbacks may run next.
-- Which existing lifecycle path handles failure.
+- 哪些组件、引擎与缓存借用已经结束。
+- 接下来可以运行哪些回调。
+- 失败由哪条现有生命周期路径处理。
 
-Keep shutdown and ownership cleanup under that lifecycle owner. Callback dispatch must not introduce
-a parallel lifecycle or recovery state machine. On failure, stop further dispatch, preserve the error,
-and release retained ownership in the order required by the cleanup contract.
+关停与所有权清理保持在该生命周期所有者之下。回调派发不得引入平行的生命周期或
+恢复状态机。失败时停止后续派发、保留错误，并按清理契约要求的顺序释放保留的
+所有权。
 
-Use the smallest set of boundaries that satisfies ordering, progress, and ownership requirements. Moving a
-drain outward is valid only when it preserves those requirements. Verify boundary placement with exact
-callback sequence tests, including continuation across bounded drain passes. Fewer drain sites alone do not
-establish correctness. In the synchronous core and backtesting, deterministic callback order stays a required
-activation criterion.
+用满足顺序、进展与所有权要求的最小边界集合。只有在外移排空仍保留这些要求时
+才外移。用精确的回调序列测试验证边界的位置，包括跨有界排空遍历的续作。
+仅仅减少排空位置并不能确立正确性。在同步核心与回测中，确定性的回调顺序仍是
+必须满足的启用准则。
 
-### Scheduling and ownership boundaries
+### 调度与所有权边界 {#scheduling-and-ownership-boundaries}
 
-Keep `actor::drain_callbacks(budget)` as the common operation: it processes a bounded batch and
-returns whether callbacks remain or dispatch failed. Backtest settlement and live scheduling own
-the repetition around that operation. Prefer these small runtime-specific loops over a shared
-scheduler with runtime modes, lifecycle state, or policy objects. Share more code only when doing
-so removes duplication without adding those mechanisms.
+`actor::drain_callbacks(budget)` 保持为公共操作：处理一个有界批次，返回是否
+仍有回调剩余或派发是否失败。回测结算与实时调度负责该操作外围的重复。
+Prefer 这些按运行时编写的小循环，而不是带运行模式、生命周期状态或策略对象的
+共享调度器。只有当共享能消除重复、又不引入那些机制时，才共享更多代码。
 
-The boundary map separates existing integration and ownership rules from evidence required for
-queued callback activation. The last column states test requirements, not completed validation.
+下面的边界图把既有的集成与所有权规则，同排队回调启用所需的证据分开。最后一列
+写的是测试要求，不是已完成的验证。
 
-| Runtime and boundary            | Existing integration                                                                    | Retained ownership and release                                                            | Required activation evidence                                                                                |
+| 运行时与边界            | 既有集成                                                                    | 保留的所有权与释放                                                            | 启用所需的证据                                                                                |
 | ------------------------------- | --------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------- |
-| Backtest startup                | Settles data commands and callbacks. Leaves trading commands queued                     | Startup engine borrows end before settlement                                              | Startup callback sequence before the first input. Trading commands remain queued                            |
-| Backtest event settlement       | `drain_command_queues` after engine work and each timer handler                         | Enclosing engine and venue borrows end before settlement                                  | Callback-generated commands settle before the next timer or time advance                                    |
-| Backtest normal stop            | Settles due work, stops trader, settles stop-generated commands, then stops engines     | Trader and engine borrows end before callback delivery                                    | Exact stop-generated command and callback sequence                                                          |
-| Backtest failure and teardown   | Abort cleanup and guarded callback clearing                                             | Owned synchronous work releases before captures are cleared                               | Fatal-abort discard and rejection while external roots remain                                               |
-| Live startup                    | First running-loop drain after successful startup                                       | Connection and mass-status futures retain engine borrows until completion or cancellation | Instruments precede execution connection. Native and Python callbacks run after enclosing borrows end       |
-| Live event settlement           | Bounded running-loop passes with yield and stop checks                                  | Synchronous event-handler borrows end before the next drain                               | Exact callback sequence, batch continuation, stop eligibility, and unchanged channel-only scheduling        |
-| Live report requests            | Serializes report families. Commands use shared client access. Instrument updates defer | Shared client borrows span loop iterations and end before deferred instruments flush      | Hold a report pending while exercising the real callback route. Prove access safety and subsequent progress |
-| Live normal stop                | Residual deadline and final buffered dispatch. Standalone runner retains channels       | Report futures drop before deferred-instrument flush and client disconnection             | Pending-report completion, timeout, and shutdown cancellation preserve ordering                             |
-| Live fatal failure and disposal | Existing shutdown handles failure. Disposal clears without delivery                     | Kernel disposal precedes retained-runner release and guarded clearing                     | Stop-generated work is discarded. External roots still reject clearing                                      |
-| Live hosted-run abandonment     | Dropping the run future can leave shutdown incomplete                                   | Report futures drop before the node returns. Later disposal attempts cleanup              | Distinguish awaited cancellation from abandonment. Verify capture release and guarded cleanup               |
+| 回测启动                | 结算数据命令与回调，交易命令留在队列里                     | 结算前启动阶段的引擎借用已结束                                              | 首个输入之前的启动回调序列。交易命令仍在队列中                            |
+| 回测事件结算       | 引擎工作与每个定时器处理器之后调用 `drain_command_queues`                         | 结算前外围引擎与场所借用已结束                                  | 回调生成的命令在下一个定时器或时间推进之前结算                                    |
+| 回测正常停止            | 结算到期工作、停止 trader、结算停止产生的命令，然后停止引擎     | 回调投递前 trader 与引擎借用已结束                                    | 精确的停止产生命令与回调序列                                                          |
+| 回测失败与拆除   | 中止清理与受守卫的回调清除                                             | 清除捕获之前，所有权的同步工作先释放                               | 中止时的丢弃，以及外部根仍在时的拒绝                                               |
+| 实时启动                    | 成功启动后首次运行循环排空                                       | 连接与批量状态 future 持有引擎借用直到完成或取消 | 工具先于执行连接。native 与 Python 回调在外围借用结束之后运行       |
+| 实时事件结算           | 有界的运行循环遍历，带让出与停止检查                                  | 下一次排空前，同步事件处理器的借用已结束                               | 精确的回调序列、批次续作、停止资格，以及不变的纯通道调度        |
+| 实时报告请求            | 报告家族串行化。命令使用共享客户端访问。工具更新延后 | 共享客户端借用跨循环迭代，并在延后的工具 flush 之前结束      | 保持一个报告挂起的同时走真实回调路由。证明访问安全与随后的进展 |
+| 实时正常停止                | 残余时间窗与最后的缓冲派发。独立 runner 保留通道       | 报告 future 在延后工具 flush 与客户端断开之前 drop             | 待处理报告的完成、超时与关停取消都保持顺序                             |
+| 实时致命失败与处置 | 现有关停处理失败。处置只清除不投递                     | 内核处置先于保留 runner 的释放与受守卫的清除                     | 停止产生的工作被丢弃。外部根仍然拒绝清除                                      |
+| 实时宿主运行的遗弃     | 丢弃 run future 可能让关停未完成                                   | 报告 future 在节点返回前 drop。后续处置尝试清理              | 区分被 await 的取消与遗弃。验证捕获释放与受守卫的清理               |
 
-Live ownership is implemented by the [execution-client facade](https://github.com/nautechsystems/nautilus_trader/blob/develop/crates/live/src/execution/client.rs),
-[report-task lifecycle](https://github.com/nautechsystems/nautilus_trader/blob/develop/crates/live/src/node/reconciliation.rs),
-[node lifecycle](https://github.com/nautechsystems/nautilus_trader/blob/develop/crates/live/src/node/mod.rs), and
-[Python hosted-run owner](https://github.com/nautechsystems/nautilus_trader/blob/develop/crates/live/src/python/node.rs).
+实时的所有权由
+[执行客户端门面](https://github.com/nautechsystems/nautilus_trader/blob/develop/crates/live/src/execution/client.rs)、
+[报告任务生命周期](https://github.com/nautechsystems/nautilus_trader/blob/develop/crates/live/src/node/reconciliation.rs)、
+[节点生命周期](https://github.com/nautechsystems/nautilus_trader/blob/develop/crates/live/src/node/mod.rs)与
+[Python 宿主运行所有者](https://github.com/nautechsystems/nautilus_trader/blob/develop/crates/live/src/python/node.rs)实现。
 
-### Backtest boundaries
+### 回测边界 {#backtest-boundaries}
 
-Backtest settlement is the reference for concentrated scheduling, not a single end-of-timestamp drain. Timer
-handlers settle their work before the next handler, including at the same timestamp. Venue processing releases
-its borrow before settlement. Moving all drains to the outermost loop would change these boundaries. Startup's
-data-command and callback pass also cannot use unrestricted settlement without changing when trading commands
-execute.
+回测结算集中调度的参照，但不是"每个时间戳结束时排空一次"。定时器处理器在下一个
+处理器之前结算自己的工作，即使在同一时间戳。场所处理在结算之前释放其借用。
+把所有排空移到最外层循环会改变这些边界。启动阶段的数据命令与回调遍历也不能
+使用无限制的结算，否则交易命令的执行时机就会改变。
 
-### Live startup and standalone lifecycle
+### 实时启动与独立生命周期 {#live-startup-and-standalone-lifecycle}
 
-#### Startup ordering
+#### 启动顺序 {#startup-ordering}
 
-Preserve startup ordering: instrument events reach the cache before execution clients connect and
-before subscription commands are handled.
+保持启动顺序：工具事件先到达缓存，之后执行客户端才连接、订阅命令才被处理。
 
-After successful live startup, `run_with_mode` reaches its first running-loop drain after trader
-start, plug-in start, and startup system dispatch, before selecting another channel message. Use
-that existing boundary unless an identified producer and ordering requirement establish a need for
-an earlier drain.
+实时启动成功后，`run_with_mode` 在 trader 启动、plug-in 启动与启动期系统派发
+之后，抵达首次运行循环排空，然后才选取下一条通道消息。就用这个既有边界，
+除非某个已识别的生产者与顺序要求证明确需更早的排空。
 
-Connection futures hold mutable engine borrows across their awaits, as does the
-mass-status request during startup reconciliation. Their completion alone does not justify another
-drain site. Replay and startup failures take separate exits and require their own ownership proof.
+连接 future 在 await 期间持有引擎的可变借用，启动对账期间的批量状态请求也是。
+它们完成本身并不构成再加一个排空位置的理由。重放与启动失败走各自的出口，
+需要各自的所有权证明。
 
-#### Standalone lifecycle restrictions
+#### 独立生命周期的限制 {#standalone-lifecycle-restrictions}
 
-Standalone calls to `LiveNode::start` and `stop` do not run a continuous event loop. `start` returns with the
-runner retained. Stop or abort processes the runner's pending messages. This path stays supported as a
-building block for tests and embedding, with its existing synchronous callbacks. A lone drain in
-`finish_startup_trader` cannot provide queued callback continuation.
+独立调用 `LiveNode::start` 与 `stop` 不运行连续的事件循环。`start` 返回时
+保留 runner，stop 或 abort 会处理 runner 的待处理消息。这条路径作为测试与
+嵌入的积木继续受支持，保持其现有的同步回调。`finish_startup_trader` 里
+孤零零一次排空无法提供排队回调的续作。
 
-Initial queued callback activation for `LiveNode` is restricted to Rust `run`/`run_with_mode` and Python
-`run`/`run_async`, which own the node's event loop. Queued delivery through standalone `start`/`stop` is
-deferred. Before callback admission, activation must reject queued delivery with standalone startup and give a
-clear error. It must not silently fall back to synchronous delivery. It must not leave callbacks undelivered.
-This restriction concerns standalone startup, not a stop request through the handle of a node running its
-event loop.
+`LiveNode` 的初始排队回调启用仅限于拥有节点事件循环的 Rust
+`run`/`run_with_mode` 与 Python `run`/`run_async`。经由独立
+`start`/`stop` 的排队投递暂缓。在回调准入之前，启用必须先拒绝"独立启动 +
+排队投递"并给出清晰错误；不得静默回退到同步投递，也不得让回调停留在未投递
+状态。这一限制针对独立启动，不针对通过正在运行事件循环的节点的 handle 发出
+停止请求。
 
-Queued actor delivery and this rejection are not implemented. Enforcing the lifecycle restriction is an
-activation requirement. It does not change the existing standalone APIs.
+排队 actor 投递与这一拒绝都尚未实现。强制执行该生命周期限制是一项启用要求，
+它不改变现有的独立 API。
 
-#### Hosted-run cancellation and abandonment
+#### 宿主运行的取消与遗弃 {#hosted-run-cancellation-and-abandonment}
 
-Awaited cancellation of a hosted run drives graceful shutdown. Discarding that run while the host loop is
-running can instead drop its future before shutdown completes. Callback delivery is not guaranteed on that
-path. Activation coverage must verify ownership release and guarded disposal cleanup after abandonment
-separately from graceful shutdown.
+被 await 的宿主运行取消会驱动优雅关停。而在宿主循环仍在运行时丢弃该运行，
+可能在关停完成之前就 drop 掉其 future。该路径上不保证回调投递。启用覆盖必须
+把遗弃之后的所有权释放与受守卫的处置清理，同优雅关停分开验证。
 
-When the run future drops, it releases report borrows but does not itself run report-task cancellation
-cleanup. It does not flush deferred instrument updates or remove targeted-query markers.
+run future drop 时会释放报告借用，但本身不运行报告任务的取消清理，也不 flush
+延后的工具更新或移除定向查询标记。
 
-### Live stop and terminal cleanup
+### 实时停止与终态清理 {#live-stop-and-terminal-cleanup}
 
-`LiveNode::finalize_stop` cannot alone own callback teardown: callers still hold channel receivers
-and normal shutdown processes buffered events afterward. The `start`/`stop` path retains its runner,
-whereas `run_with_mode` owns receivers locally. The terminal cleanup owner is `LiveNode::dispose`,
-not normal stop or the end of the running loop.
+`LiveNode::finalize_stop` 无法独自拥有回调拆除：调用方仍持有通道接收端，
+且正常关停在此之后还处理缓冲事件。`start`/`stop` 路径保留其 runner，而
+`run_with_mode` 在本地拥有接收端。终态清理的所有者是 `LiveNode::dispose`，
+不是正常停止，也不是运行循环的末尾。
 
 :::info Terminal ownership cleanup
-`LiveNode::dispose` performs callback cleanup in this order:
+`LiveNode::dispose` 按此顺序执行回调清理：
 
-1. Dispose the kernel. Ensure no engine or component borrow remains before releasing the runner.
-1. Release the retained runner and discard its pending messages, including work queued by stop
-   callbacks during disposal.
-1. Log any latched callback failure, then attempt to clear callback state. Log cleanup rejection
-   without forcing a reset.
+1. 处置内核。确保没有任何引擎或组件借用残留，然后才释放 runner。
+1. 释放保留的 runner 并丢弃其待处理消息，包括处置期间 stop 回调排入的队列工作。
+1. 记录任何已闭锁的回调失败，然后尝试清除回调状态。清理被拒绝要记日志，
+   但不强制重置。
 
-Disposal must not become another callback delivery loop. Preserve normal stop and runner reuse. Do not close
-channels in normal stop or at the end of the running loop to make clearing succeed. Disposal owns release of
-the retained runner.
+处置不得变成又一个回调投递循环。保留正常停止与 runner 复用。不要为了让清除
+成功而在正常停止或运行循环末尾关闭通道。保留 runner 的释放归处置所有。
 :::
 
-Dropping the runner does not prove that all roots are released. Clearing must still reject active scopes or
-externally retained roots and report failure without forcing a reset. A rejected clear leaves callback state
-intact. Disposal can be retried after the blocking ownership is released. Verify that:
+丢弃 runner 不能证明所有根都已释放。清除仍必须拒绝活动作用域或外部保留的根，
+并报告失败而不强制重置。被拒绝的清除让回调状态保持原样。阻塞的所有权释放后
+可以重试处置。需要验证：
 
-- A rooted message in the retained runner blocks clearing before disposal and is released by disposal.
-- Stop-generated rooted messages are discarded by disposal without callback delivery.
-- A fatal running-loop latch clears on disposal when ownership permits.
-- External ownership continues to block clearing.
+- 保留 runner 中带根的消息在处置之前阻止清除，并被处置释放。
+- stop 产生的带根消息被处置丢弃，不进行回调投递。
+- 所有权允许时，致命运行循环闭锁在处置时清除。
+- 外部所有权持续阻止清除。
 
-### Required boundary verification
+### 必需的边界验证 {#required-boundary-verification}
 
-#### Sequence requirements
+#### 序列要求 {#sequence-requirements}
 
-Boundary changes require exact sequence assertions for:
+边界变更需要针对下列各项的精确序列断言：
 
-- Backtest startup data commands and callbacks before the first input, with trading commands queued.
-- Live instrument processing before execution connection, plus any ordering required by an activated route.
-- Same-timestamp timers and callback-generated commands before the next timer or time advance.
-- Continuation across bounded passes, live stop eligibility, and unchanged channel-only scheduling.
-- Normal stop-generated work versus fatal-abort discard, plus cleanup rejection while roots remain.
-- Rejection of queued delivery with standalone live startup before callback admission, while
-  preserving synchronous standalone behavior and handle-driven shutdown of a running node.
+- 回测启动的数据命令与回调先于首个输入，交易命令留在队列中。
+- 实时工具处理先于执行连接，以及被启用路由所要求的任何顺序。
+- 同一时间戳的定时器与回调生成的命令，先于下一个定时器或时间推进。
+- 跨有界遍历的续作、实时停止资格，以及不变的纯通道调度。
+- 正常停止产生的工作对致命中止丢弃的区分，加上根仍存在时的清理拒绝。
+- 在回调准入之前拒绝"排队投递 + 独立实时启动"，同时保留同步的独立行为
+  与运行中节点经 handle 驱动的关停。
 
-These sequence checks are activation requirements, not evidence of implemented live queued delivery.
-Exercise activated routes through real native and Python components. Private dispatcher tests alone
-do not establish that runtime borrows end at the selected boundary.
+这些序列检查是启用要求，不是实时排队投递已实现的证据。要通过真实的 native 与
+Python 组件走被启用的路由。仅靠私有派发器的测试，证明不了运行时借用恰好在
+选定边界结束。
 
-#### Access enforcement
+#### 访问强制 {#access-enforcement}
 
-For each activated route, reserve through the existing admission mechanism and acquire checked component
-access for invocation. Identify each engine, client, and cache access the callback can reach: the actor
-allocation guard does not protect those separate borrows or unchecked handles. The implementation must
-establish compatible access before invoking the callback. A successful actor guard alone is insufficient.
+对每条被启用的路由，经由现有准入机制预留，并为调用获取受检的组件访问。
+逐一识别回调能够触及的引擎、客户端与缓存访问：actor 分配守卫保护不了那些
+独立的借用或未检查的句柄。实现必须在调用回调之前确立兼容的访问。仅靠成功的
+actor 守卫并不充分。
 
-#### Pending-report tests
+#### 待处理报告测试 {#pending-report-tests}
 
-Use an explicit test synchronization point to hold a report request pending. Exercise the real callback route.
-Assert its exact event and command sequence before and after you release the report. Cover successful
-completion, timeout, shutdown cancellation, and hosted-run abandonment where the route is reachable.
+用显式的测试同步点把报告请求保持在挂起状态。走真实的回调路由，在释放报告
+前后断言其精确的事件与命令序列。路由可达时，覆盖成功完成、超时、关停取消
+与宿主运行遗弃。
 
-Shared command access can proceed while the report is pending. Mutable client access must wait until
-conflicting borrows end. Preserve publication order and report-future progress if the route needs deferral. Do
-not turn a busy head at a declared safe drain boundary into an unbounded retry. The [fatal stalled-delivery
-rule](#draining-and-progress) still applies.
+报告挂起期间，共享的命令访问可以继续。客户端的可变访问必须等到冲突借用结束。
+路由需要延后时保持发布顺序与报告 future 的进展。不要把已声明安全排空边界上
+忙碌的队头变成无界重试。[致命停滞投递规则](#draining-and-progress)仍然适用。
 
-Existing [live-node tests](https://github.com/nautechsystems/nautilus_trader/blob/develop/crates/live/tests/integration/node.rs) cover report serialization,
-deferred instrument updates, and timeout and shutdown cleanup. They do not exercise production queued
-actor delivery and cannot substitute for these route-specific activation tests.
+现有的[实时节点测试](https://github.com/nautechsystems/nautilus_trader/blob/develop/crates/live/tests/integration/node.rs)覆盖报告串行化、
+延后工具更新、超时与关停清理。它们不走生产环境的排队 actor 投递，不能替代
+这些按路由的启用测试。
 
-## Runtime integration
+## 运行时集成 {#runtime-integration}
 
-The [root propagation tests](https://github.com/nautechsystems/nautilus_trader/blob/develop/crates/common/src/actor/dispatch.rs) cover retained continuations
-and data and trading commands in synchronous and live runtimes, including deferred trading children.
-Live data and execution event channels also preserve roots through mixed channel hops and
-[startup buffering](https://github.com/nautechsystems/nautilus_trader/blob/develop/crates/live/src/node/mod.rs).
+[根传播测试](https://github.com/nautechsystems/nautilus_trader/blob/develop/crates/common/src/actor/dispatch.rs)覆盖同步与实时运行时中的保留续作、
+数据与交易命令，包括延后的交易子命令。实时数据与执行事件通道也在混合通道
+跳转与[启动缓冲](https://github.com/nautechsystems/nautilus_trader/blob/develop/crates/live/src/node/mod.rs)中保留根。
 
-### Backtests
+### 回测 {#backtests}
 
-Backtests call the boundary drain after startup data-command batches, command and execution-event settlement,
-and timer handlers. Each callback pass processes a bounded number of slots. Settlement continues while
-callbacks or synchronous commands are pending before simulated time advances. Retained roots alone do not keep
-settlement running. Startup continues to leave trading commands queued until normal settlement.
+回测在启动数据命令批次、命令与执行事件结算、定时器处理器之后调用边界排空。
+每次回调遍历处理有限数量的槽位。模拟时间推进之前，只要还有回调或同步命令
+待处理，结算就继续。仅有保留的根并不能让结算保持运行。启动照旧把交易命令
+留在队列里，直到正常结算。
 
-Dispatch errors propagate out of backtest execution and trigger abort cleanup. Failed trader startup also
-stops the engines and discards pending synchronous commands. Abort (`abort_run`), reset, and disposal release
-synchronous command batches before clearing callback captures. Externally retained work can still prevent
-callback cleanup. A normal end (`end_impl`) drains residual work before clearing the dispatcher.
+派发错误从回测执行中传播出来并触发中止清理。trader 启动失败也会停止引擎、
+丢弃待处理的同步命令。中止（`abort_run`）、重置与处置在清除回调捕获之前先
+释放同步命令批次。外部保留的工作仍可能阻止回调清理。正常结束（`end_impl`）
+在清除派发器之前排空残余工作。
 
-### Live running loops
+### 实时运行循环 {#live-running-loops}
 
-Live running loops drain one bounded callback batch before selecting the next event and yield when callbacks
-are pending. Pending callbacks resume without another channel message. Stop signals stay eligible between
-batches. Existing channel priorities and channel-only yielding stay unchanged.
+实时运行循环在选取下一个事件之前排空一个有界的回调批次，并在有回调待处理时
+让出。待处理回调无需另一条通道消息即可恢复。停止信号在批次之间保持有资格。
+现有的通道优先级与纯通道让出保持不变。
 
-On callback failure:
+回调失败时：
 
-- **Standalone runner**: Return the error without closing channels or discarding their messages.
-- **Live node**: Trigger existing shutdown and skip both the residual event window and final buffered
-  dispatch. Discard pending channel messages, including commands queued by stop callbacks, when the
-  receivers drop.
+- **独立 runner**：返回错误，不关闭通道、不丢弃其消息。
+- **实时节点**：触发现有关停，跳过残余事件时间窗与最终缓冲派发。接收端
+  drop 时丢弃待处理的通道消息，包括 stop 回调排入的命令。
 
-Both paths retain the fatal callback latch. They do not clear callback ownership.
+两条路径都保留致命回调闭锁，都不清除回调所有权。
 
-Startup and residual flushes do not integrate callback drains. Disposal releases owned work before
-attempting callback cleanup, without delivering callbacks. Activation still requires explicit
-scheduling and ownership coverage for live lifecycle paths, without assuming that each lifecycle
-method needs a drain.
+启动与残余 flush 不集成回调排空。处置在尝试回调清理之前先释放自有的工作，
+且不投递回调。启用仍需要为实时生命周期路径提供显式的调度与所有权覆盖，
+同时不假定每个生命周期方法都需要一次排空。
 
-Live report futures can retain shared client borrows across loop iterations. A loop-top drain alone does not
-establish safety for callbacks that require mutable client access. Queued callback activation must account for
-those retained borrows.
+实时报告 future 会跨循环迭代持有共享客户端借用。仅在循环顶部的排空，证明不了
+需要客户端可变访问的回调的安全性。排队回调启用必须把这些保留的借用计算在内。
 
-### Activation requirements
+### 启用要求 {#activation-requirements}
 
-These boundaries do not activate queued actor delivery. Before activation, runtime integration must:
+这些边界并不启用排队 actor 投递。启用之前，运行时集成必须：
 
-- Preserve the [independent ingress boundaries](#sender-types-and-ingress) when activating additional callback routes or
-  introducing reusable invocation storage.
-- Complete live lifecycle drain boundaries and ownership coverage outside terminal disposal.
-- Enforce the [live lifecycle restriction](#live-startup-and-standalone-lifecycle) before admitting queued callbacks.
-- Establish native and Python ownership safety for every activated callback route.
-- Validate queued callbacks through complete backtest and live runtime lifecycles.
-- Prove deterministic callback sequences through native and Python components in the synchronous core and
-  backtests. Include nested publication, fan-out, callback-generated commands, same-timestamp work, and
-  continuation across drain batches. Final counts and balances alone do not prove ordering.
+- 在启用更多回调路由或引入可复用的调用存储时，保持
+  [相互独立的入口边界](#sender-types-and-ingress)。
+- 完成终态处置之外的实时生命周期排空边界与所有权覆盖。
+- 在准入排队回调之前，强制执行
+  [实时生命周期限制](#live-startup-and-standalone-lifecycle)。
+- 为每条被启用的回调路由确立 native 与 Python 的所有权安全。
+- 经由完整的回测与实时运行时生命周期验证排队回调。
+- 在同步核心与回测中，通过 native 与 Python 组件证明确定性的回调序列。
+  覆盖嵌套发布、扇出、回调生成的命令、同一时间戳的工作，以及跨排空批次的
+  续作。仅凭最终的计数与余额无法证明顺序。
 
-Public trading messages and their direct `dispatch()` path carry no callback context across threads. The
-synchronous queue owns its contexts privately. Live command channels use the envelopes described below.
-Runtime drains alone do not establish complete live lifecycle integration or backend parity.
+公开的交易消息及其直接的 `dispatch()` 路径不携带跨线程的回调上下文。
+同步队列私有地拥有其上下文。实时命令通道使用下文描述的信封。仅靠运行时
+排空，证明不了完整的实时生命周期集成或后端一致性。
 
-## Private dispatch primitives
+## 私有派发原语 {#private-dispatch-primitives}
 
-The actor module contains private access, admission, publication, invocation, and storage primitives.
-Data and trading commands preserve [callback roots](#callback-roots-and-budgets) in synchronous and
-live runtimes. Locally emitted live data, execution, and system messages and time events preserve
-roots through their channels.
+actor 模块包含私有的访问、准入、发布、调用与存储原语。数据与交易命令在同步
+与实时运行时中保留[回调根](#callback-roots-and-budgets)。本地发出的实时数据、
+执行、系统消息与时间事件经由其通道保留根。
 
-Production actor lookups, component access, and message-bus routes do not use queued callback delivery. To
-activate that delivery, runtime boundaries need native and Python ownership support. The primitives and
-runtime drains alone do not establish runtime ownership safety. They do not establish native, direct, and
-dynamic callback parity.
+生产环境的 actor 查找、组件访问与消息总线路由都不使用排队回调投递。要启用
+该投递，运行时边界需要 native 与 Python 的所有权支持。仅靠原语与运行时排空
+证明不了运行时所有权安全，也证明不了 native、direct 与 dynamic 回调的一致性。
 
-### Publication and admission
+### 发布与准入 {#publication-and-admission}
 
-A publication scope reserves an **ordinal** (a sequence number) before synchronous subscribers run. Callback reservations
-sort by publication ordinal and then admission ordinal, so nested publications follow every pending
-recipient of their enclosing publication.
+发布作用域在同步订阅者运行之前预留一个**序号**（ordinal）。回调预留按发布
+序号排序，再按准入序号排序，因此嵌套发布排在其外围发布的每个待处理接收者之后。
 
-Scopes nest and drop in stack order. Dropping a scope restores publication state without delivering
-callbacks. A publication unwind latches a fatal error.
+作用域按栈顺序嵌套与 drop。drop 一个作用域会恢复发布状态而不投递回调。
+发布过程中的 unwind 会闭锁一个致命错误。
 
-`publish_any` and the shared typed publication path enter a scope before the bus tap and synchronous
-subscribers run. `try_publish_any` does the same after its initial bus-access check. Scopes preserve
-reservation order across nested typed and `Any` publications. Unwinding through these paths latches
-a fatal dispatch error even when no callbacks are queued or the caller subsequently catches the panic.
+`publish_any` 与共享的类型化发布路径在进入总线 tap 与同步订阅者运行之前进入
+作用域。`try_publish_any` 在初始的总线访问检查之后做同样的事。作用域在嵌套
+的类型化与 `Any` 发布之间保持预留顺序。经由这些路径 unwind 会闭锁致命派发
+错误，即使没有回调被排队、或调用方随后捕获了 panic。
 
-Publication scopes order reservations but do not admit canonical callbacks or drain them.
+发布作用域给预留排序，但不准入规范回调，也不排空它们。
 
-Admission reserves count, known storage, and a queue slot **before the caller constructs owned
-captures**:
+准入**在调用方构造所有权捕获之前**预留计数、已知存储与队列槽位：
 
-- A successful reservation accepts its capture even if another operation subsequently latches a failure.
-- An unfinished reservation blocks later deliveries and teardown.
-- Cancellation leaves a slot that an explicit drain or teardown releases.
-- Actor reservations retain registration identity, so replacement or re-registration of the same
-  allocation skips the stale handler. The skipped delivery still counts as completed against its root's budget.
+- 成功的预留接受其捕获，即使另一个操作随后闭锁了失败。
+- 未完成的预留会阻塞后续投递与拆除。
+- 取消留下一个槽位，由显式排空或拆除释放。
+- actor 预留保留注册身份，因此替换或重新注册同一分配会跳过过期的处理器。
+  被跳过的投递仍按完成计入其根的预算。
 
-### Draining and progress
+### 排空与进展 {#draining-and-progress}
 
-A drain processes at most its supplied **slot budget**, including cancelled slots. The queue has a **busy
-head** when its first callback cannot acquire exclusive access to its component. This blocks later delivery.
+一次排空最多处理它得到的**槽位预算**，包括已取消的槽位。队列的第一个回调
+无法获得其组件的独占访问时，队列处于**忙碌队头**状态，这会阻塞后续投递。
 
-The private boundary drain adds a stricter contract to an explicit drain. Its caller must establish
-a safe delivery point:
+私有边界排空在显式排空之上加了更严格的契约：调用方必须确立一个安全的投递
+时刻。
 
-| Explicit drain outcome      | Meaning                                                                  | Boundary drain behavior                    |
+| 显式排空的结果      | 含义                                                                  | 边界排空的行为                    |
 | --------------------------- | ------------------------------------------------------------------------ | ------------------------------------------ |
-| Empty queue                 | No queued slots remain                                                   | Return normally                            |
-| Exhausted slot budget       | Slots remain after the pass                                              | Return normally. Not a stall               |
-| Deferred entry              | Publication, recursive drain, teardown, or checked access prevents entry | Report active work. Do not latch a failure |
-| Unfinished head reservation | The first reservation has no capture yet                                 | Report active work. Do not latch a failure |
-| Busy head                   | Exclusive component access is unavailable                                | Latch a fatal stalled-delivery error       |
+| 队列为空                 | 没有剩余槽位                                                   | 正常返回                            |
+| 槽位预算耗尽       | 遍历之后仍有槽位剩余                                              | 正常返回。不算停滞               |
+| 进入被延后              | 发布、递归排空、拆除或受检访问阻止进入 | 报告有活跃工作。不闭锁失败 |
+| 未完成的队头预留 | 第一个预留还没有捕获                                 | 报告有活跃工作。不闭锁失败 |
+| 忙碌队头                   | 组件独占访问不可用                                | 闭锁致命的停滞投递错误       |
 
-Deferred entry does no work. An unfinished head reservation or busy head can occur after earlier
-deliveries in the same pass. **Error results do not return a delivery count.** A busy head at a
-boundary is fatal even if earlier callbacks made progress. Exhausting a slot budget, including on
-cancelled slots, is not stalled delivery.
+进入被延后时不做任何工作。未完成的队头预留或忙碌队头，可能出现在同一次遍历
+已有若干投递完成之后。**错误结果不返回投递计数。**边界上的忙碌队头是致命的，
+即使前面的回调已经取得进展。耗尽槽位预算（包括耗在已取消槽位上）不是停滞投递。
 
-An empty queue does not imply that all retained roots have released. Ownership accounting alone is
-not a reason to keep draining. The boundary drain preserves the first fatal error and leaves queued
-captures owned until explicit teardown.
+队列为空并不意味着所有保留的根都已释放。仅凭所有权记账不是继续排空的理由。
+边界排空保留第一个致命错误，并把队列中的捕获留到显式拆除时再释放其所有权。
 
 :::warning Release enclosing borrows before draining
-Guard destruction only releases access. It does not drain callbacks. The caller must also end enclosing
-engine, cache, and other untracked borrows before draining.
+守卫的销毁只释放访问，不排空回调。调用方还必须在排空之前结束外围的引擎、
+缓存及其他未跟踪的借用。
 :::
 
-#### Draining during unwind
+#### unwind 期间的排空 {#draining-during-unwind}
 
-An otherwise successful drain entered during panic unwinding latches a fatal delivery failure on exit, even
-when its queue is empty. Its returned result stays successful. The failure is available through the callback
-failure check and stops the next boundary drain.
+在 panic unwind 期间进入的、本来会成功的排空，在退出时闭锁致命的投递失败，
+即使其队列为空。它返回的结果仍是成功的。该失败可通过回调失败检查获知，
+并会停止下一次边界排空。
 
-### Callback roots and budgets
+### 回调根与预算 {#callback-roots-and-budgets}
 
-A **root** owns the delivery budget for an incoming publication or reservation and all callback work
-it causes. Publication order does not depend on which root owns the work.
+**根**拥有一个进入的发布或预留的投递预算，以及它引发的全部回调工作。
+发布顺序不依赖于工作归哪个根所有。
 
-- Nested publications and reservations inherit the active root.
-- A publication with no active root starts one on its first callback admission or command send.
-  An empty scope allocates none.
-- Outside a publication scope, each admission starts a separate root unless a root is already active.
+- 嵌套的发布与预留继承活动中的根。
+- 没有活动根的发布，在其首次回调准入或命令发送时启动一个根。
+  空作用域不分配根。
+- 发布作用域之外，若尚无活动根，每次准入各自启动一个根。
 
-#### Delivery budget versus slot budget
+#### 投递预算对槽位预算 {#delivery-budget-versus-slot-budget}
 
-Each completed delivery counts once against its root's budget. Busy attempts and cancelled slots do
-not count, though cancelled slots still consume the drain's slot budget.
+每次完成的投递按其根的预算计费一次。忙碌的尝试与已取消的槽位不计费，
+尽管已取消的槽位仍消耗排空的槽位预算。
 
-At the chain limit, dispatch latches a fatal runaway error before running another ready callback.
-The blocked callback stays queued for explicit teardown. **A fatal error halts the whole dispatcher**,
-even though roots have separate budgets.
+到达链路上限时，派发在运行下一个就绪回调之前闭锁致命的失控错误。
+被阻塞的回调留在队列中等待显式拆除。**致命错误会停掉整个派发器**，
+尽管各根有各自独立的预算。
 
-### Retained work and cleanup
+### 保留工作与清理 {#retained-work-and-cleanup}
 
-Queued slots, active scopes, and retained invocation work keep their root alive. **An empty queue
-does not reset a surviving root's budget.** Retained storage captures the active root, or starts one
-when none is active. Growing that storage preserves its root.
+队列槽位、活动作用域与保留的调用工作都让其根存活。**队列为空不会重置
+幸存根的预算。**保留的存储捕获当前活动的根，没有活动根时启动一个。
+该存储增长时保留其根。
 
-#### Resumption and storage reuse
+#### 恢复与存储复用 {#resumption-and-storage-reuse}
 
-Resuming retained work through `with_chain` makes its root active for the call. Return or unwind restores the
-enclosing root. Invocation batches use this mechanism for each retained value. Resuming work does not itself
-count as a delivery. Each invocation batch is local to one preparation and invocation call. Its backing
-allocation does not choose the roots of later values: each value captures the context active at its own
-admission.
+经由 `with_chain` 恢复保留的工作，会让其根在该调用期间变为活动。返回或
+unwind 时恢复外围的根。调用批次对每个保留的值使用该机制。恢复工作本身
+不算一次投递。每个调用批次局部于一次准备与调用；其底层分配不决定后续
+值的根——每个值捕获其自身准入时刻活动的上下文。
 
-#### Independent timer firings
+#### 相互独立的定时器触发 {#independent-timer-firings}
 
-Callback registration and causal ownership have separate lifetimes. Reusing a registered timer callback does
-not reuse a firing's budget. Each independent live time-event envelope establishes its own scope before
-callback lookup and invocation, even when delivery occurs inside another active scope. Retained continuations
-keep their original root. Storage reuse alone does not make an unrelated event a continuation.
+回调注册与因果所有权有各自的生命周期。复用已注册的定时器回调不会复用
+某次触发的预算。每个独立的实时时间事件信封都在回调查找与调用之前建立
+自己的作用域，即使投递发生在另一个活动作用域内部。保留的续作保持其
+原始根。仅靠存储复用不会让无关事件变成续作。
 
-#### Destruction and release
+#### 销毁与释放 {#destruction-and-release}
 
-A delivered capture's destructor runs with the delivery's root active, including during unwind.
-Uninvoked batch values also restore their root when destroyed.
+已投递捕获的析构函数在该投递的根活动状态下运行，包括 unwind 期间。
+未被调用的批内值销毁时同样恢复其根。
 
-The root and its storage charge release when the last owner drops. Cancellation, failed batches,
-and explicit teardown use the same ownership cleanup as other retained storage. Retained work
-prevents teardown until released.
+根及其存储的计费在最后一个所有者 drop 时释放。取消、失败的批次与显式
+拆除使用与其他保留存储相同的所有权清理。保留的工作在释放之前阻止拆除。
 
-### Failure cleanup
+### 失败清理 {#failure-cleanup}
 
-Overflow latches the first fatal failure and rejects further reservations without constructing
-captures. Synchronous facade effects can finish before the runtime reports the failure at a safe
-boundary. Queued slots remain owned for explicit teardown. Failed invocation batches release their
-captures after preparation exits and its guards release.
+溢出闭锁第一个致命失败，并在不构造捕获的情况下拒绝后续预留。同步的门面
+效果可以在运行时于安全边界报告失败之前完成。队列槽位仍为所有权保留，
+等待显式拆除。失败的调用批次在准备退出、其守卫释放之后释放捕获。
 
-The teardown order is mandatory:
+拆除顺序是强制的：
 
-1. Report the fatal error before clearing resets the latch. This is the caller's responsibility.
-1. End all active publication, reservation, invocation, chain, drain, and access scopes before
-   teardown begins. Clearing rejects active scopes and externally retained roots.
-1. Detach storage before releasing captures.
-1. Release captures.
+1. 在清除重置闭锁之前报告致命错误。这是调用方的责任。
+1. 拆除开始之前结束所有活动的发布、预留、调用、链、排空与访问作用域。
+   清除会拒绝活动作用域与外部保留的根。
+1. 先摘除存储，再释放捕获。
+1. 释放捕获。
 
-Teardown rejects destructor-driven admission throughout clearing.
+拆除在整个清除期间拒绝由析构函数驱动的准入。
 
-#### Preparation and destructor safety
+#### 准备与析构安全 {#preparation-and-destructor-safety}
 
-Invocation preparation keeps the batch owner outside the call that acquires guards. On rejection or
-unwind, previously transferred captures survive until those guards release. The caller reserves
-before constructing each capture and acquires preparation guards inside that call. The primitives
-cannot control arbitrary locals that author code constructs or explicitly destroys while holding a
-borrow. Destructors must not panic during an existing unwind.
+调用准备把批次所有者留在获取守卫的调用之外。被拒绝或 unwind 时，先前
+转移的捕获会存活到那些守卫释放。调用方在构造每个捕获之前预留，并在该
+调用内部获取准备守卫。原语管不了作者代码持有借用期间构造或显式销毁的
+任意局部变量。析构函数不得在既有 unwind 期间 panic。
 
-## Reentrancy and dispatch diagnostics
+## 重入与派发诊断 {#reentrancy-and-dispatch-diagnostics}
 
-### Component access conflicts
+### 组件访问冲突 {#component-access-conflicts}
 
-[ComponentAccessError](https://github.com/nautechsystems/nautilus_trader/blob/develop/crates/common/src/component.rs) describes the resource and attempted
-operation when checked component-state access fails. These diagnostics already apply to synchronous paths.
-They do not imply queued delivery is active. A conflict can result from callback reentry or from an ordinary
-borrow held too long. The message does not identify the holder or its call stack.
+受检的组件状态访问失败时，
+[ComponentAccessError](https://github.com/nautechsystems/nautilus_trader/blob/develop/crates/common/src/component.rs)
+会描述资源与尝试的操作。这些诊断已经适用于同步路径，并不代表排队投递已启用。
+冲突可能来自回调重入，也可能来自一个持有过久的普通借用。消息不会指明持有者
+及其调用栈。
 
-| Variant         | Message prefix                                                              | Meaning and action                                                                |
+| 变体         | 消息前缀                                                              | 含义与动作                                                                |
 | --------------- | --------------------------------------------------------------------------- | --------------------------------------------------------------------------------- |
-| `NotRegistered` | `Cannot access {resource} during {operation}: the actor is not registered`  | Registration has not supplied the resource. Register the component before access. |
-| `ReadConflict`  | `Cannot read {resource} during {operation}: it is already mutably borrowed` | Release the existing exclusive borrow before reading.                             |
-| `WriteConflict` | `Cannot modify {resource} during {operation}: it is already borrowed`       | Release existing shared or exclusive borrows before mutation.                     |
+| `NotRegistered` | `Cannot access {resource} during {operation}: the actor is not registered`  | 注册尚未提供该资源。访问前先注册组件。 |
+| `ReadConflict`  | `Cannot read {resource} during {operation}: it is already mutably borrowed` | 读取之前先释放已有的独占借用。                             |
+| `WriteConflict` | `Cannot modify {resource} during {operation}: it is already borrowed`       | 修改之前先释放已有的共享或独占借用。                     |
 
-Native `try_cache_ref()` and `try_clock_mut()` return these errors. Their `cache_ref()` and
-`clock_mut()` counterparts panic with the same diagnostic. See the
-[native access methods](./../concepts/rust.md#dataactornative-methods).
+native 的 `try_cache_ref()` 与 `try_clock_mut()` 返回这些错误。对应的
+`cache_ref()` 与 `clock_mut()` 带同样的诊断 panic。见
+[native 访问方法](./../concepts/rust.md#dataactornative-methods)。
 
-The portable Rust facades also report access conflicts:
+可移植的 Rust 门面同样报告访问冲突：
 
-- [CacheApi](https://github.com/nautechsystems/nautilus_trader/blob/develop/crates/common/src/cache/api.rs) infallible read methods panic with `ReadConflict` and
-  operation `cache read`. `get()` returns the conflict through `anyhow::Result` with operation `get`. Fallible
-  `try_*` lookups return it through the lookup error's `Access` variant, with the method name as the
-  operation, such as `try_position`.
-- [ClockApi](https://github.com/nautechsystems/nautilus_trader/blob/develop/crates/common/src/clock/api.rs), with native backing, panics with `ReadConflict` on
-  conflicting reads. Timer and alert setters return `WriteConflict` through `anyhow::Result`. `cancel_timer()`
-  and `cancel_timers()` panic on that conflict. Clock diagnostics name the attempted method. Handler-backed
-  clocks delegate to their handlers instead of these native borrow checks.
+- [CacheApi](https://github.com/nautechsystems/nautilus_trader/blob/develop/crates/common/src/cache/api.rs)
+  不可失败的读方法带 `ReadConflict` 与操作名 `cache read` 的诊断 panic。
+  `get()` 经 `anyhow::Result` 返回该冲突，操作名为 `get`。可失败的 `try_*`
+  查找经查找错误的 `Access` 变体返回它，操作名是方法名，如 `try_position`。
+- [ClockApi](https://github.com/nautechsystems/nautilus_trader/blob/develop/crates/common/src/clock/api.rs)
+  在 native 支撑下，冲突的读带 `ReadConflict` panic。定时器与告警的设置方法
+  经 `anyhow::Result` 返回 `WriteConflict`；`cancel_timer()` 与
+  `cancel_timers()` 在该冲突上 panic。时钟的诊断会点明尝试的方法。
+  由处理器支撑的时钟委托给其处理器，而不是这些 native 借用检查。
 
-Python actor signal subscription and unsubscription map a conflicting actor borrow to `RuntimeError`,
-with resource `Python actor` and operation `subscribe_signal` or `unsubscribe_signal`.
-This does not cover every Python or native access path.
+Python actor 的信号订阅与退订，会把冲突的 actor 借用映射为 `RuntimeError`，
+资源名为 `Python actor`，操作名为 `subscribe_signal` 或
+`unsubscribe_signal`。这并未覆盖所有 Python 或 native 的访问路径。
 
-To diagnose a conflict:
+诊断冲突的方法：
 
-1. Locate the attempted operation in the traceback.
-1. Trace the enclosing borrow through any synchronous publication, command dispatch, or lifecycle call.
-1. End that borrow before code can reenter the same resource. In native code, read or copy the
-   required state in a short scope, release the guard, then publish or dispatch.
+1. 在 traceback 中定位被尝试的操作。
+1. 沿着外围借用追溯，穿过任何同步发布、命令派发或生命周期调用。
+1. 在代码能重入同一资源之前结束该借用。native 代码中，用一个短作用域读取或
+   复制所需状态，释放守卫，然后再发布或派发。
 
-Do not bypass borrow checks or repeatedly retry while the conflicting scope is active. Moving
-callback drains requires the ownership and sequence proof in [drain boundary design](#drain-boundary-design).
+不要绕过借用检查，也不要在冲突作用域仍活动时反复重试。移动回调排空需要
+[排空边界设计](#drain-boundary-design)中的所有权与序列证明。
 
-Component lifecycle registry operations separately reject overlapping access with
-`Component '{id}' is already mutably borrowed`. That ID-based check is distinct from both resource borrows and
-the private callback allocation guards. None establishes safety for unchecked access.
+组件生命周期注册表操作另有独立的拒绝机制，重叠访问时报
+`Component '{id}' is already mutably borrowed`。这一基于 ID 的检查与资源借用、
+私有的回调分配守卫都不同。三者都证明不了未检查访问的安全性。
 
-### Callback dispatcher failures
+### 回调派发器失败 {#callback-dispatcher-failures}
 
-[CallbackDispatchError](https://github.com/nautechsystems/nautilus_trader/blob/develop/crates/common/src/actor/dispatch.rs) exposes the following diagnostics.
-`InvalidDestination`, `Stalled`, and `Runaway` describe queued-delivery failures. Current production routes do
-not admit those callbacks, so these variants stay private integration and test behavior. Other diagnostics can
-already occur through publication scopes, command-root accounting, runtime drains, or cleanup while queued
-actor delivery is inactive.
+[CallbackDispatchError](https://github.com/nautechsystems/nautilus_trader/blob/develop/crates/common/src/actor/dispatch.rs)
+暴露下列诊断。`InvalidDestination`、`Stalled` 与 `Runaway` 描述排队投递的
+失败。当前生产路由不准入那些回调，因此这几个变体仍是私有集成与测试行为。
+其他诊断在排队 actor 投递未启用时，就可能经由发布作用域、命令根记账、运行时
+排空或清理出现。
 
-The dispatcher retains the first fatal failure. Later boundary drains report it without delivering more
-callbacks. Completed synchronous effects and callback effects are not rolled back.
+派发器保留第一个致命失败。后续边界排空会报告它而不投递更多回调。已完成的
+同步效果与回调效果都不回滚。
 
-| Variant              | Message                                        | Meaning and action                                                                                                                   |
+| 变体              | 消息                                        | 含义与动作                                                                                                                   |
 | -------------------- | ---------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------ |
-| `Overflow`           | `Callback storage limit exceeded`              | Callback admission, retained storage, or command-root allocation exceeds capacity. Inspect captures and retained work.               |
-| `InvalidDestination` | `Invalid callback destination`                 | Checked actor delivery finds a type mismatch. Verify the registered actor type and handler destination.                              |
-| `SequenceExhausted`  | `Callback publication sequence exhausted`      | The ordering counter cannot advance. Stop dispatch and follow teardown.                                                              |
-| `PublicationUnwound` | `Callback publication unwound`                 | A publication scope unwinds. Inspect the original panic, even if a caller catches it.                                                |
-| `DeliveryUnwound`    | `Callback delivery unwound`                    | A drain scope exits during unwind. Inspect the original panic.                                                                       |
-| `Runaway`            | `Callback chain delivery limit exceeded`       | One root exhausts its cumulative delivery budget. Inspect feedback loops across callbacks and commands.                              |
-| `Stalled`            | `Callback delivery stalled at a safe boundary` | The queue head cannot run at a declared safe boundary. Correct access ownership or boundary placement.                               |
-| `Active`             | `Callback work or access is still active`      | Drain entry, an unfinished reservation, or teardown ownership prevents the operation. Release the blocking scopes or retained roots. |
+| `Overflow`           | `Callback storage limit exceeded`              | 回调准入、保留存储或命令根分配超出容量。检查捕获与保留的工作。               |
+| `InvalidDestination` | `Invalid callback destination`                 | 受检的 actor 投递发现类型不匹配。核对已注册的 actor 类型与处理器目标。                              |
+| `SequenceExhausted`  | `Callback publication sequence exhausted`      | 顺序计数器无法前进。停止派发并按拆除流程处理。                                                              |
+| `PublicationUnwound` | `Callback publication unwound`                 | 发布作用域发生 unwind。检查原始 panic，即使调用方捕获了它。                                                |
+| `DeliveryUnwound`    | `Callback delivery unwound`                    | 排空作用域在 unwind 期间退出。检查原始 panic。                                                                       |
+| `Runaway`            | `Callback chain delivery limit exceeded`       | 单个根耗尽累计投递预算。检查回调与命令之间的反馈回路。                              |
+| `Stalled`            | `Callback delivery stalled at a safe boundary` | 队头在已声明的安全边界上无法运行。纠正访问所有权或边界位置。                               |
+| `Active`             | `Callback work or access is still active`      | 排空进入、未完成的预留或拆除所有权阻止该操作。释放阻塞的作用域或保留的根。 |
 
-`Active` is an operation rejection and does not itself latch a fatal failure. The live running loops still
-exit on this drain error. The node initiates shutdown if it is running. A busy head at a safe boundary does
-latch `Stalled`. Repeated draining is not a recovery strategy. An unfinished reservation can reject a drain
-after earlier callbacks have run, and error results carry no delivery count.
+`Active` 是一次操作拒绝，本身不闭锁致命失败。实时运行循环遇到这一排空错误
+仍会退出；节点若在运行会发起关停。安全边界上的忙碌队头确实会闭锁 `Stalled`。
+反复排空不是恢复策略。未完成的预留可能在前面若干回调已运行之后拒绝排空，
+且错误结果不携带投递计数。
 
-Preserve the original failure before following [failure cleanup](#failure-cleanup). During live disposal,
-`Callback dispatch failed before disposal cleanup: ...` reports the existing latch.
-`Failed to clear callback dispatch during disposal: ...` reports cleanup rejection. Release externally
-retained work before retrying disposal. Do not force-clear ownership or treat cleanup as rollback.
+在走[失败清理](#failure-cleanup)之前保留原始失败。实时处置期间，
+`Callback dispatch failed before disposal cleanup: ...` 报告既有的闭锁，
+`Failed to clear callback dispatch during disposal: ...` 报告清理被拒绝。
+外部保留的工作先释放，再重试处置。不要强制清除所有权，也不要把清理当作回滚。
 
-## Synchronous commands
+## 同步命令 {#synchronous-commands}
 
-Command ancestry depends on the context at send time:
+命令的祖先关系取决于发送时刻的上下文：
 
-- With an active root, commands capture it, including during callback delivery and retained-work resumption.
-- Inside a publication or command-processing scope, a send starts that scope's root if needed.
-- Outside those scopes and without an active root, a send carries no root. Processing then creates
-  an independent root when it first admits callback work or sends a nested command.
+- 有活动根时，命令捕获它，包括在回调投递与保留工作恢复期间。
+- 处于发布或命令处理作用域内时，发送会在需要时启动该作用域的根。
+- 在这些作用域之外且没有活动根时，发送不带根。处理它时，在首次准入回调工作
+  或发送嵌套命令时创建一个独立的根。
 
-Commands in the same drain batch do not share a root merely because they run together. Processing
-and destruction restore the enclosing root on return or unwind.
+同一次排空批次中的命令，不会因为一起运行就共享一个根。处理与销毁在返回或
+unwind 时恢复外围的根。
 
-### Batch and child ordering
+### 批次与子命令顺序 {#batch-and-child-ordering}
 
-A command drain processes the batch collected at entry, in order. Commands enqueued through a synchronous
-sender by its handlers remain queued for a subsequent drain. Trading handlers can also capture deferred
-children: these run depth-first, in capture order, before the next command in the collected batch. Each
-child captures the root active at capture time, including a temporary nested context, rather than using
-the parent's context after its handler returns. Direct endpoint routing stays unchanged.
+一次命令排空按序处理进入时收集的批次。处理器经由同步发送端排入的命令，
+留到下一次排空。交易处理器也可以捕获延后的子命令：它们深度优先执行，
+按捕获顺序，先于所收集批次中的下一条命令。每个子命令捕获其捕获时刻活动的
+根（包括临时的嵌套上下文），而不是在父处理器返回后改用父上下文。
+端点的直接路由保持不变。
 
-Queue and dispatch-frame borrows end before handlers run or abandoned commands are destroyed. Command
-processing does not count as callback delivery and does not automatically drain callbacks.
+队列与派发栈帧的借用处理器运行之前、被遗弃的命令销毁之前都会结束。命令处理
+不算回调投递，也不会自动排空回调。
 
-### Panic and overflow
+### Panic 与溢出 {#panic-and-overflow}
 
-If a handler panics, the panic propagates. Unprocessed commands in the collected batch and pending deferred
-children are destroyed under their own contexts. Newly enqueued commands stay queued. Captured roots keep
-callback accounting alive and prevent explicit dispatcher teardown until those commands release them.
-Abandoned commands also release their captured ownership at thread teardown.
+处理器 panic 时，panic 向外传播。所收集批次中未处理的命令与待处理的延后
+子命令，在各自的上下文下销毁。新排入的命令留在队列里。捕获的根让回调记账
+保持存活，并在这些命令释放之前阻止显式的派发器拆除。被遗弃的命令也在线程
+拆除时释放其捕获的所有权。
 
-Callback storage limits do not reject command sends. If a send needs a root and its allocation exceeds
-those limits, it latches callback overflow while the command is still queued. Command entries do not
-consume the callback retained-unit limit, and command payloads and queue capacity are excluded from
-known callback storage. Each root allocation is charged once.
+回调存储限制不会拒绝命令发送。若某次发送需要根、而其分配超出这些限制，
+会在命令仍在队列中时闭锁回调溢出。命令条目不消耗回调保留单元限制，命令
+载荷与队列容量也不计入已知回调存储。每个根的分配只计费一次。
 
 :::warning Command transport is not callback budgeting
-These limits do not bound command-queue memory or loops that generate only commands.
+这些限制不约束命令队列内存，也不约束只生成命令的循环。
 :::
 
-## Live command and event channels
+## 实时命令与事件通道 {#live-command-and-event-channels}
 
-Live data and trading command senders capture roots only on the thread where the sender is constructed.
-Construct senders on the runtime thread. Sends from other threads are independent ingress, even when another
-runtime has an active root there. Dispatch envelopes carry send-safe tokens. Callback roots and accounting
-stay thread-local. Processing a rooted envelope on another thread panics before dispatch.
+实时数据与交易命令的发送端只在构造它的那个线程上捕获根。发送端必须在运行时
+线程上构造。来自其他线程的发送属于独立入口，即使另一个运行时在那边有活动根。
+派发信封携带 send-safe 的令牌。回调根与记账保持线程局部。在另一个线程上处理
+带根的信封会在派发之前 panic。
 
-### Dispatch and buffering
+### 派发与缓冲 {#dispatch-and-buffering}
 
-Envelopes retain ancestry through startup buffers, runner polling, and shutdown drains. Trading children
-capture their own active roots and retain depth-first order. On the node's polled command path, the
-execution observer runs before each matching endpoint dispatch, including children. Processing an
-unrooted envelope starts an independent, lazy root scope.
-This does not activate queued callbacks or drain them automatically.
+信封经由启动缓冲、runner 轮询与关停排空保留其祖先关系。交易子命令捕获自己
+活动的根，保持深度优先顺序。在节点轮询的命令路径上，执行观察者在每次匹配的
+端点派发之前运行，子命令亦然。处理不带根的信封会启动一个独立的惰性根作用域，
+这不启用排队回调，也不自动排空它们。
 
-Startup buffering preserves each event's root when splitting execution batches into individual orders.
-Independent batches remain independent until dispatch. Reports still drain before buffered order events,
-and account events still process immediately. Node execution observation and fill bookkeeping run under
-the received event's context. Event transport does not itself consume the callback delivery budget.
+启动缓冲在把执行批次拆成单笔订单时，保留每个事件的根。相互独立的批次保持
+独立，直到派发。报告仍在缓冲的订单事件之前排空，账户事件仍立即处理。节点执行
+观察与成交簿记在收到事件的上下文下运行。事件传输本身不消耗回调投递预算。
 
-### Sender types and ingress
+### 发送端类型与入口 {#sender-types-and-ingress}
 
-Live data, execution, and system event senders use `EventSender<T>`, an alias for `DispatchSender<T>`, with
-the same `DispatchMessage<T>` envelope as commands. System commands and time events also use this sender.
-Runtime binding establishes the owner thread. Events emitted synchronously on that thread inherit the active
-root. Foreign-thread sends and sends without an active scope stay independent. Context does not propagate
-across arbitrary spawned tasks or await points.
+实时数据、执行与系统事件的发送端使用 `EventSender<T>`（`DispatchSender<T>`
+的别名），与命令共用同一种 `DispatchMessage<T>` 信封。系统命令与时间事件
+也使用该发送端。运行时绑定确立所有者线程。在该线程上同步发出的事件继承活动
+根；外部线程的发送与无活动作用域的发送保持独立。上下文不会跨任意 spawn 的
+任务或 await 点传播。
 
-### System and time events
+### 系统与时间事件 {#system-and-time-events}
 
-System events and commands retain their envelopes through startup buffering, polling, and shutdown. Time event
-delivery restores the envelope context before resolving and invoking the callback. Timer registration does not
-capture a root: scheduled firings enter independently, and reusing a callback does not share budgets between
-firings. A time event sent synchronously from an active callback scope inherits that scope instead. Callback
-leases, cancellation, and cleanup retain their existing behavior. Callback transport does not itself consume
-the delivery budget.
+系统事件与命令经由启动缓冲、轮询与关停保留其信封。时间事件投递在解析并调用
+回调之前恢复信封上下文。定时器注册不捕获根：定时触发独立进入，复用回调不会
+在各次触发之间共享预算。从活动回调作用域同步发出的时间事件则继承该作用域。
+回调租约、取消与清理保持既有行为。回调传输本身不消耗投递预算。
 
-### Standalone senders
+### 独立发送端 {#standalone-senders}
 
-Standalone clients can convert a plain Tokio sender into `EventSender<T>` to keep direct domain-event
-receivers. That mode carries no callback context and is not used by the live runner's channel binding.
-Event payloads and channel capacity remain outside callback storage accounting, as do command payloads and queues.
+独立客户端可以把普通的 Tokio sender 转成 `EventSender<T>`，以保留直接的
+领域事件接收端。该模式不携带回调上下文，实时 runner 的通道绑定也不使用它。
+事件载荷与通道容量留在回调存储记账之外，命令载荷与队列同样如此。
 
-### Destruction across threads
+### 跨线程销毁 {#destruction-across-threads}
 
-| Destruction thread | Payload context                                       | Root release                                                                |
+| 销毁线程 | 载荷上下文                                       | 根释放                                                                |
 | ------------------ | ----------------------------------------------------- | --------------------------------------------------------------------------- |
-| Owner thread       | Restore the message's root while dropping its payload | Release ownership on the owner thread                                       |
-| Foreign thread     | Cannot resume the owner-thread context                | Release a token through a cleanup queue without accessing the owner's roots |
+| 所有者线程       | 销毁其载荷时恢复该消息的根 | 在所有者线程上释放所有权                                       |
+| 外部线程     | 无法恢复所有者线程的上下文                | 经由清理队列释放令牌，不访问所有者的根 |
 
-The owner reclaims foreign-thread releases at its next channel capture or dispatch, callback
-quiescence check, or dispatcher clear. Thread teardown also releases them. Dispatch envelopes,
-thread-local context registry capacity, and cleanup-queue storage remain outside callback storage limits.
+所有者在其下一次通道捕获或派发、回调静止检查或派发器清除时，收回外部线程的
+释放。线程拆除也会释放它们。派发信封、线程局部上下文注册表容量与清理队列
+存储都留在回调存储限制之外。
 
-## Storage limits
+## 存储限制 {#storage-limits}
 
-The private limits are:
+私有限制是：
 
-- **Retained units**: At most 65,536. Invocation captures and batch-capacity reservations share the
-  count with queued callbacks, so the count can conservatively exceed the number of callbacks.
-- **Known storage**: At most 64 MiB.
-- **Callback chain**: At most 1,048,576 completed deliveries per root.
+- **保留单元**：最多 65,536。调用捕获与批容量预留和队列中的回调共享该计数，
+  因此计数可能保守地高于回调数量。
+- **已知存储**：最多 64 MiB。
+- **回调链**：每个根最多 1,048,576 次完成的投递。
 
-These limits are defensive safety fuses, not workload-sizing recommendations. They stop excessive retention or
-callback chains. They do not establish a sustainable event rate or safe process-memory budget. The limits are
-internal and expose no user configuration.
+这些限制是防御性的保险丝，不是负载规模的建议值。它们阻止过度的保留或回调链，
+并不确立可持续的事件速率或安全的进程内存预算。限制是内部的，不对外提供配置。
 
-### Included storage
+### 计入的存储 {#included-storage}
 
-Known storage includes:
+已知存储包括：
 
-- Callback values, queue slots, and visible queue capacity.
-- Chain allocations and invocation vector capacity.
-- The caller-supplied heap charge.
+- 回调值、队列槽位与可见的队列容量。
+- 链分配与调用向量的容量。
+- 调用方提供的堆开销计费。
 
-Payload measurements cover accessible string and vector capacities, recursive JSON contents,
-metadata entries, order-event collections, visible book entries, and option-chain entries. With
-`defi`, they also cover directly owned blockchain strings.
+载荷测量覆盖可访问的字符串与向量容量、递归的 JSON 内容、元数据条目、
+订单事件集合、可见的订单簿条目与期权链条目。启用 `defi` 时，还覆盖直接
+所有的区块链字符串。
 
-Shared payload storage may be charged more than once. Data-type names, topics, and identifiers expose
-string slices, so their charges cover lengths and exclude inaccessible spare capacity. Charges remain
-held while delivery is in flight and while batches retain captures.
+共享的载荷存储可能被计费多次。数据类型名、topic 与标识符暴露字符串切片，
+因此它们的计费按长度计，不含无法访问的空余容量。投递在途以及批次保留捕获
+期间，计费一直保持。
 
 :::warning Not a total-process memory cap
-This accounting is not a bound on total process memory. It excludes:
+这份记账不是进程总内存的界。它不包括：
 
-- Allocator bookkeeping.
-- Collection internals whose capacity is not exposed by these measurements.
-- Intern-pool storage and registered actor allocations.
-- Opaque custom-data payloads.
-- Python object graphs and dynamic-module storage.
+- 分配器自身的管理开销。
+- 容量未被这些测量暴露的集合内部结构。
+- 驻留池存储与已注册的 actor 分配。
+- 不透明的自定义数据载荷。
+- Python 对象图与动态模块存储。
 :::
 
-Callers must supply the known heap charge for their capture type. The generic reservation cannot inspect
-arbitrary owned fields.
+调用方必须为其捕获类型提供已知的堆开销计费。泛型预留无法检查任意的所有权字段。
 
-## Backend compatibility
+## 后端兼容性 {#backend-compatibility}
 
-Private allocation guards reject overlapping checked access. **Unchecked access and enclosing
-engine/cache borrows remain outside those guards.** Native, Python, and dynamic-backend parity is
-not established.
+私有的分配守卫拒绝重叠的受检访问。**未检查的访问与外围的引擎/缓存借用
+仍在这些守卫之外。**native、Python 与 dynamic 后端之间的一致性尚未确立。
 
-Direct and dynamic backends must preserve the same callback ordering, exclusive component access,
-and lifecycle eligibility requirements. Facade effects remain synchronous. The
-[plug-in boundary rules](./plugins.md#boundary-rules) apply to all values crossing a dynamic-library
-boundary. Callback dispatch does not implicitly transfer allocation ownership across that boundary.
+direct 与 dynamic 后端必须保持同样的回调顺序、组件独占访问与生命周期资格
+要求。门面效果保持同步。[plug-in 边界规则](./plugins.md#boundary-rules)适用于
+跨越动态库边界的所有值。回调派发不会隐式跨该边界转移分配的所有权。
 
-Admission tickets and cleanup scopes stay framework machinery. Author fields, callback signatures, and
-canonical facade APIs do not expose them.
+准入票据与清理作用域始终是框架机制。作者字段、回调签名与规范的门面 API
+都不暴露它们。

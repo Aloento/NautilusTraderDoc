@@ -313,10 +313,10 @@ curl -s -X POST https://api.hyperliquid.xyz/info \
 股票（TSLA、NVDA、AAPL）、大宗商品（黄金、原油）、指数（S&P 500）与 pre-IPO
 代币（SpaceX、OpenAI）。
 
-In a `LiveNode`, HIP-3 perpetuals load automatically alongside standard perpetuals at connect: the adapter
-fetches every perp dex (standard and builder-deployed) from `allPerpMetas`, so no additional client
-configuration is required. The data client exposes no per-dex filter. Strategies select the markets they trade
-by `instrument_id`.
+在 `LiveNode` 中，HIP-3 永续在 connect 时与标准永续一起自动加载：适配器从
+`allPerpMetas` 拉取每个 perp dex（标准的与 builder 部署的），因此不需要额外
+客户端配置。数据客户端不提供按 dex 的过滤器，策略按
+`instrument_id` 选择要交易的市场。
 
 直接使用 `HyperliquidHttpClient` 时，除非通过
 `load_instrument_definitions` 显式开启，否则不加载 HIP-3 perp dex：
@@ -800,14 +800,14 @@ self.subscribe_data(
 )
 ```
 
-`HyperliquidOpenInterest` reuses the same single underlying
-`activeAssetCtx` venue subscription that already backs mark prices, index
-prices, and funding rates for the same coin. Adding OI does not open a second
-parallel `activeAssetCtx` subscription.
+`HyperliquidOpenInterest` 复用同一条底层的
+`activeAssetCtx` 场所订阅——它已经为同一代币支撑着标记价格、指数价格与资金费
+率。增加 OI 不会另开一条平行的 `activeAssetCtx` 订阅。
 
-`HyperliquidPublicTrade` is an opt-in alternative to generic `TradeTick` for
-公共订单流研究。它带 `instrument_id`、`price`、`size`、
-`aggressor_side`、`trade_id`、`buyer`、`seller`、`hash`、`ts_event` 与
+`HyperliquidPublicTrade`
+是通用 `TradeTick` 之外需显式开启的替代，用于公共订单流研究。它带
+`instrument_id`、`price`、`size`、`aggressor_side`、
+`trade_id`、`buyer`、`seller`、`hash`、`ts_event` 与
 `ts_init`。用相同的规范金融工具元数据订阅：
 
 ```python
@@ -1206,20 +1206,20 @@ Nautilus 省略动作级的
 之后可能跟着 `OrderCanceled`。在决定是否再下一单之前，先核对该订单的场所状态。
 :::
 
-The modify HTTP response only confirms success. The
-[`orderUpdates` WebSocket subscription](https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/websocket/subscriptions)
-then delivers an `ACCEPTED(new_oid)` status report, followed by a `CANCELED(old_oid)` for the
-original leg.
+modify 的 HTTP 响应只确认成功。随后
+[`orderUpdates` WebSocket 订阅](https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/websocket/subscriptions)
+送达 `ACCEPTED(new_oid)` 状态报告，接着是原腿的 `CANCELED(old_oid)`。
 
-`HyperliquidExecutionClient` runs detection, deduplication, and event promotion through the
+`HyperliquidExecutionClient` 通过它自有的
 [`WsDispatchState`](https://github.com/nautechsystems/nautilus_trader/tree/develop/crates/adapters/hyperliquid/src/websocket/dispatch.rs)
-it owns, so strategies never see the replacement as a new order. On submission the client registers an
-`OrderContext` keyed by `client_order_id`, using its strategy, instrument, side, type, quantity, and
-last-known price. Each inbound status report or fill is routed through the dispatch: tracked orders emit typed
-`OrderEventAny::*` events via `ExecutionEventEmitter::send_order_event`. External orders fall back to the raw
-`OrderStatusReport` / `FillReport` so the engine can reconcile. The dispatch compares the report's
-`venue_order_id` against the last cached value for the `cloid`. When they differ it promotes the `ACCEPTED` to
-`OrderUpdated` and suppresses the paired stale cancel:
+完成检测、去重与事件升级，策略永远不会把替换单看成新订单。提交时，客户端以
+`client_order_id` 为键注册 `OrderContext`，记录其策略、金融工具、方向、类型、
+数量与最近已知价格。每条入站状态报告或成交都经过分发层：被跟踪的订单经
+`ExecutionEventEmitter::send_order_event` 发出类型化的
+`OrderEventAny::*` 事件；外部订单回退为原始
+`OrderStatusReport` / `FillReport`，供引擎对账。分发层把报告的
+`venue_order_id` 与该 `cloid` 的最后缓存值比较，不一致时把
+`ACCEPTED` 升级为 `OrderUpdated` 并抑制配对的过期撤单：
 
 ```mermaid
 sequenceDiagram
@@ -1242,464 +1242,452 @@ sequenceDiagram
     Dispatch->>Dispatch: cached_voi != old_oid -> Skip (stale cancel)
 ```
 
-Modify happy path: the strategy sees one `OrderUpdated` carrying the new `oid`, and the venue's
-paired cancel of the old leg never reaches it.
+modify 的正常路径：策略只看到一条携带新 `oid` 的
+`OrderUpdated`，场所对旧腿的配对撤单永远不会到达策略。
 
-#### Early cancel before the replacement
+#### 替换单到达前的提前撤单 {#early-cancel-before-the-replacement}
 
-If `CANCELED(old_oid)` precedes `ACCEPTED(new_oid)` for an in-flight modify, the pending-modify intent lets
-the dispatch hold the old leg's cancel. It still routes the subsequent `ACCEPTED` through the `OrderUpdated`
-path. That path discards the held cancel. The intent is queued before the HTTP call, so an early cancel is
-held even while the request is still in flight.
+若进行中的 modify 出现 `CANCELED(old_oid)`
+先于 `ACCEPTED(new_oid)`，挂起的 modify 意图让分发层扣住旧腿的撤单，随后仍把
+`ACCEPTED` 走 `OrderUpdated` 路径处理，该路径会丢弃扣住的撤单。意图在
+HTTP 调用前就已排队，因此请求仍在途时提前到达的撤单同样会被扣住。
 
-If the request fails before dispatch, or the venue rejects it, the adapter emits `OrderModifyRejected` and
-clears its own intent. A failure after dispatch with an unknown venue outcome keeps the intent. Thus, a modify
-that reaches the venue despite a client-side timeout still holds the early `CANCELED(old_oid)`. It promotes
-the eventual `ACCEPTED(new_oid)` to `OrderUpdated`. Otherwise, detection falls back to the cached
-`venue_order_id`, which the late `ACCEPTED` no longer matches. See
-[GH-3827](https://github.com/nautechsystems/nautilus_trader/issues/3827).
+请求在分发前失败或被场所拒绝时，适配器发出
+`OrderModifyRejected` 并清除自己的意图。分发后失败且场所结果未知时保留意图。
+因此，即使客户端超时、modify 仍到达了场所，提前的
+`CANCELED(old_oid)` 依然被扣住，最终把
+`ACCEPTED(new_oid)` 升级为 `OrderUpdated`。否则检测只能回退到缓存的
+`venue_order_id`，而迟到的 `ACCEPTED` 已与之不符。见
+[GH-3827](https://github.com/nautechsystems/nautilus_trader/issues/3827)。
 
-A cancel from elsewhere, such as a user cancel or a reduce-only cancel by the venue, arrives the
-same way while a modify of that leg is in flight, and it makes the modify fail. Once no modify or
-corrective reduce still targets the leg, the adapter applies the held cancel as `OrderCanceled`
-through the stream path, so bracket handling runs as for any other cancel. A cancel held behind a
-request whose outcome is unknown waits until the in-flight check settles the order.
+来自别处的撤单——例如用户撤单或场所的 reduce-only 撤单——在该腿有 modify
+在途时以相同方式到达，并会使该 modify 失败。一旦不再有针对该腿的 modify
+或纠正性 reduce，适配器就通过流路径把扣住的撤单以
+`OrderCanceled` 应用，bracket 处理与任何普通撤单一致地运行。扣在结果未知
+请求之后的撤单，会等在途检查为订单定案之后。
 
-#### Chained modifies
+#### 链式修改 {#chained-modifies}
 
-Rapid repeated modifies under the same `cloid` queue as a chain of in-flight intents rather than
-a single marker. A later modify does not overwrite an earlier intent's old-leg suppression, and a
-failed modify clears only its own attempt, leaving newer queued modifies intact. Each replacement
-`ACCEPTED` promotes the oldest queued intent and advances the next intent's old leg to the promoted
-replacement, so every leg's stale cancel is suppressed and each `OrderUpdated` carries its own
-target quantity. Hyperliquid assigns venue order IDs in increasing order, so an `ACCEPTED` or fill
-for a leg older than the bound one, such as a replay after a reconnect, never moves the binding
-back.
+同一 `cloid` 下快速连续的 modify 排成一串在途意图，而不是单个标记。后一次
+modify 不会覆盖先前意图对旧腿的撤单抑制；失败的 modify 只清除自己那次尝试，
+队列中更新的 modify 保持原样。每个替换的
+`ACCEPTED` 升级队首最旧的意图，并把下一个意图的旧腿推进到刚升级的替换单，
+于是每条腿的过期撤单都被抑制，每条 `OrderUpdated` 携带各自的目标数量。
+Hyperliquid 按递增顺序分配场所订单 ID，因此比绑定腿更旧的腿（如重连后的重放）
+的 `ACCEPTED` 或成交，永远不会把绑定回退。
 
-The same chain guards the inflight query and single-order reconcile paths. While a modify is in
-flight, `query_order` drops a `Canceled` for the superseded leg. `generate_order_status_report`
-returns an error for that report so reconciliation defers resolution rather than treating it as
-proof of absence. A modify whose venue outcome is unknown keeps its intent, so the old-leg cancel
-stays deferred until that intent clears. These cancel guards prevent a status probe for the old
-leg from terminating the live order.
+同一条链也守护在途查询与单订单对账路径。modify 在途期间，`query_order`
+会丢弃已被取代腿的 `Canceled`。`generate_order_status_report`
+为该报告返回错误，让对账延后定案，而不是把它当作不存在的证明。场所结果未知的
+modify 保留其意图，旧腿撤单因此持续延后，直到该意图清除。这些撤单防护避免了对
+旧腿的状态探测终止活跃订单。
 
-`generate_order_status_report` also defers `Accepted` and `Triggered` reports whenever their `oid`
-is older than the bound one, including when no modify is pending. These checks keep single-order
-reconciliation from applying an older leg's state or promoting the binding back to that leg.
-After promotion, `Canceled` reports for historical legs reach shared reconciliation, which
-suppresses the old cancellation while recovering missing fills. Late `Filled` reports also remain
-available for recovery.
+`generate_order_status_report` 还会在其 `oid`
+比绑定腿更旧时推迟 `Accepted` 与
+`Triggered` 报告，包括没有 modify 挂起的情况。这些检查避免单订单对账
+套用更旧腿的状态，或把绑定升级回该腿。升级之后，历史腿的
+`Canceled` 报告会到达共享对账层，后者在找回缺失成交的同时抑制旧取消。迟到的
+`Filled` 报告同样保持可被恢复。
 
-#### Dropped replacement acceptance
+#### 替换单接受通知丢失 {#dropped-replacement-acceptance}
 
-The inflight query and single-order reconcile paths also promote the replacement. Hyperliquid lists the
-replacement under the same `cloid` with a new `oid` in `frontendOpenOrders`. If the WebSocket dropped
-`ACCEPTED(new_oid)` and no fill has arrived, the query resolves the replacement by `cloid`. It promotes it
-directly to `OrderUpdated` (rebinding the `cloid` to `new_oid` and advancing the modify chain). The order is
-therefore not left bound to the canceled leg, and subsequent modifies and cancels target the live replacement.
-See [GH-4270](https://github.com/nautechsystems/nautilus_trader/issues/4270).
+在途查询与单订单对账路径同样会升级替换单。Hyperliquid 在
+`frontendOpenOrders` 中以同一 `cloid`、新
+`oid` 列出替换单。若 WebSocket 丢失了
+`ACCEPTED(new_oid)` 且尚无成交到达，查询会按
+`cloid` 解析出替换单，直接升级为 `OrderUpdated`
+（把 `cloid` 重绑到 `new_oid` 并推进 modify
+链）。订单因此不会停留在已撤销的腿上，后续 modify 与撤单都指向活跃替换单。见
+[GH-4270](https://github.com/nautechsystems/nautilus_trader/issues/4270)。
 
-#### Fills racing the replacement
+#### 与替换单赛跑的成交 {#fills-racing-the-replacement}
 
-A `FillReport` for the replacement leg can also race ahead of `ACCEPTED(new_oid)`. When the
-pending-modify marker is set and the report's `oid` does not match the cached value, the dispatch
-promotes the binding directly from the fill (`OrderUpdated` then `OrderFilled`) using the modify
-target price. If no price is available to promote with, it buffers the fill instead and drains it
-on the matching `ACCEPTED`, so `OrderFilled` always follows the promoting `OrderUpdated` against
-up-to-date state. See [GH-3972](https://github.com/nautechsystems/nautilus_trader/issues/3972).
-
-:::note
-A chained-modify edge case is deferred: if a delayed fill from a *prior* leg arrives during a
-*new* in-flight modify and that new modify then fails, the buffered fill is stranded until
-terminal cleanup. Reconciliation (`request_fill_reports`) recovers it. Fully closing this
-requires additional design work (retired-VOI tracking or drain on modify-failure paths).
-:::
-
-## Order books
-
-Order books are maintained via L2 WebSocket subscription. Each message delivers a snapshot of up to
-20 price levels per side (clear + rebuild), not incremental deltas. The adapter emits each snapshot
-as one event group: a `Clear` followed by `Add` deltas, all flagged `F_SNAPSHOT`, with `F_LAST` on
-the final delta.
+替换腿的 `FillReport` 也可能抢在
+`ACCEPTED(new_oid)` 之前。挂起 modify
+标记已置位且报告的 `oid` 与缓存值不符时，分发层用 modify
+目标价格直接从该成交升级绑定（先 `OrderUpdated` 再
+`OrderFilled`）。没有可用来升级的价格时，改为缓冲该成交，在匹配的
+`ACCEPTED`
+到达时释放，从而保证 `OrderFilled`
+总是在升级用的 `OrderUpdated` 之后、针对最新状态派发。见
+[GH-3972](https://github.com/nautechsystems/nautilus_trader/issues/3972)。
 
 :::note
-A trader instance maintains one order book per instrument, so all subscribers to an instrument
-share the same book and the same venue-side precision options.
+链式修改有一个边界情形被搁置：若来自*先前*腿的迟到成交在*新的*在途
+modify 期间到达、且该新 modify 随后失败，缓冲的成交会滞留到终局清理。对账
+（`request_fill_reports`）能找回它。彻底闭合需要额外设计（退役
+VOI 跟踪，或在 modify 失败路径上释放缓冲）。
 :::
 
-### Order book recovery
+## 订单簿 {#order-books}
 
-The data client tracks each order book delta subscription with the
-[shared book recovery machinery](./../developer_guide/adapters.md#order-book-recovery-ownership).
-`l2Book` messages carry no sequence numbers, so the client accepts every message as a snapshot. It
-suppresses book output while a subscription write is in flight and resumes on the next snapshot.
+订单簿通过 L2 WebSocket 订阅维护。每条消息送达每侧至多 20 个价位的全量快照
+（清空 + 重建），而非增量。适配器把每个快照作为一个事件组发出：一条
+`Clear` 后接 `Add` 增量，全部标记 `F_SNAPSHOT`，最后一条增量带
+`F_LAST`。
 
-Recovery replaces the `l2Book` subscription with an unsubscribe and a subscribe on the same
-connection, echoing the stream's precision options. It starts when:
+:::note
+一个 trader 实例为每个金融工具只维护一个订单簿，因此同一金融工具的所有订阅者
+共用同一个订单簿和同一套场所侧精度选项。
+:::
 
-- An initial subscription write fails.
-- No snapshot arrives within `book_snapshot_timeout_secs` (default 10 seconds) after the initial
-  subscription write completes or the connection reconnects.
-- A decoded `l2Book` frame is invalid because its prices, sizes, or timestamp cannot be converted.
-  The book stops emitting until a replacement snapshot arrives, and a running recovery's current
-  attempt fails without waiting for its snapshot deadline. A message that fails JSON decoding names
-  no book, so the client logs and drops it.
-- The stream health monitor reports the book stale while `stale_stream_recovery_enabled` is set.
-  See [Stream health and recovery](#stream-health-and-recovery).
+### 订单簿恢复 {#order-book-recovery}
 
-A rejected subscription delivers no snapshot, so its snapshot deadline starts recovery. A
-subscription the client rejects before sending, such as one beyond the 1,000-subscription limit,
-starts no recovery, and its book emits nothing.
+数据客户端用[共享的订单簿恢复机制](./../developer_guide/adapters.md#order-book-recovery-ownership)
+跟踪每个订单簿增量订阅。`l2Book`
+消息不带序列号，因此客户端把每条消息都当作快照接受。订阅写入在途期间客户端
+暂停订单簿输出，下一份快照到达后恢复。
 
-Each recovery makes up to eight attempts within 180 seconds, with exponential backoff. It then retries until
-it accepts a snapshot. The retry interval doubles from one minute to fifteen minutes. A running recovery
-continues across reconnects with its remaining budget, and unsubscribe or shutdown cancels it. A recovery
-waiting between attempts after its budget retries at once on the new connection. Recovery never ends in a
-failed state.
+恢复在同一条连接上以"退订 + 重订阅"替换
+`l2Book` 订阅，并回显该流的精度选项。以下情形触发恢复：
 
-Deltas and depth for an instrument share one `l2Book` stream, so recovering the delta book also
-refreshes depth snapshots. Subscribing to deltas while depth already holds the stream replaces the
-stream, so the book starts from a fresh snapshot. A depth-only stream emits no deltas.
+- 初始订阅写入失败。
+- 初始订阅写入完成或连接重连后，`book_snapshot_timeout_secs`（默认
+  10 秒）内没有快照到达。
+- 解码出的 `l2Book`
+  帧无效——价格、数量或时间戳无法转换。订单簿停止发出任何内容，直到替换快照
+  到达；进行中的恢复的当前尝试直接失败，不再等它的快照期限。JSON
+  解码失败的消息指不出是哪个订单簿，客户端记录后丢弃。
+- `stale_stream_recovery_enabled`
+  置位时流健康监测报告订单簿已过期。见[流健康监测与恢复](#stream-health-and-recovery)。
 
-The client does not correlate subscription acknowledgements with recovery attempts. A snapshot
-queued before a replacement can complete recovery once the replacement write finishes.
+被拒绝的订阅不会有快照送达，其快照期限会启动恢复。客户端在发送前就拒绝的订阅
+——例如超出 1,000 订阅上限的——不启动恢复，其订单簿也不发出任何内容。
 
-Setting `book_snapshot_timeout_secs` to `0` disables snapshot deadlines. Recovery then starts only from a
-failed initial write, an invalid frame, or a stale-stream report. Within the retry budget, a replacement that
-delivers no snapshot waits until one of these events:
+每次恢复在 180 秒内至多尝试 8 次，指数退避；此后一直重试直到接受到一份快照，
+重试间隔从 1 分钟翻倍到 15 分钟。进行中的恢复带着剩余预算跨重连继续，退订或
+关停会取消它。在尝试间隔中等待的恢复，一旦新连接建立就立即重试。恢复永远不会
+以失败状态结束。
 
-- The client accepts a snapshot.
-- An invalid frame fails the attempt.
-- Recovery is cancelled.
-- The 180-second initial budget ends.
+同一金融工具的增量与深度共用一条 `l2Book` 流，因此恢复增量订单簿也会刷新深度
+快照。深度已占用该流时再订阅增量会替换该流，订单簿从新快照重新开始。仅深度的
+流不发出增量。
 
-### Live recovery validation
+客户端不把订阅确认与恢复尝试做关联。在替换写入完成之前就已排队的快照，一旦替换
+写入完成即可让恢复收尾。
 
-The `hyperliquid-book-stress` harness is a development tool for changes to book synchronization and recovery.
-It uses Hyperliquid mainnet public market data and submits no orders. It checks six perpetual books against
-the book stream contract. It also compares the best 20 levels per side with each relayed raw `l2Book` frame.
+把 `book_snapshot_timeout_secs` 设为 `0`
+会禁用快照期限。恢复此后只由失败的首次写入、无效帧或过期流报告启动。在重试预算
+内，未送达快照的替换要等下列事件之一：
 
-From the repository root, run:
+- 客户端接受到一份快照。
+- 无效帧使该次尝试失败。
+- 恢复被取消。
+- 180 秒的初始预算耗尽。
+
+### 实时恢复验证 {#live-recovery-validation}
+
+`hyperliquid-book-stress`
+测试台是面向订单簿同步与恢复改动的开发工具。它使用 Hyperliquid
+主网公共行情，不提交任何订单。它按订单簿流契约检查六个永续订单簿，并把每侧前
+20 档与每个转发的原始 `l2Book` 帧做比对。
+
+在仓库根目录运行：
 
 ```bash
 CARGO_BUILD_JOBS=16 bash scripts/strip-adapter-env.bash \
   cargo test -p nautilus-hyperliquid --features examples --test hyperliquid-book-stress -- --timeout 10 --rounds 12
 ```
 
-`--scenario` selects the run:
+`--scenario` 选择运行内容：
 
-- `churn` (default): checks recovery from invalid frames without reconnects, then rotates dead
-  streams that the stale monitor recovers, dropped and delayed snapshots, rejected replacements,
-  reconnects, and a restart during recovery.
-- `initial`: drops each book's first snapshot and silences its stream, in a fresh session per
-  round.
-- `boundaries`: rejects every attempt in the retry budget, then checks the retry ceiling, a
-  reconnect that ends the ceiling wait, unsubscribe during recovery, and shutdown during a
-  reconnect. It requires a nonzero `--timeout`, since snapshot deadlines end each rejected attempt.
+- `churn`（默认）：检查无重连下由无效帧触发的恢复，然后轮换由过期监测恢复的
+  死流、丢失与延迟的快照、被拒的替换、重连，以及恢复期间的重启。
+- `initial`：每轮全新会话中丢弃每个订单簿的首个快照并使其流静默。
+- `boundaries`：让重试预算内的每次尝试都被拒绝，然后检查重试上限、结束上限
+  等待的重连、恢复期间退订、重连期间关停。它要求非零
+  `--timeout`，因为快照期限会终结每次被拒的尝试。
 
-`--timeout` sets the snapshot timeout in seconds, where `0` disables snapshot deadlines, and
-`--rounds` sets the number of rounds (12 by default). The harness enables stale stream recovery
-with a 20-second threshold, since the venue pushes `l2Book` about every five seconds.
+`--timeout` 以秒设定快照超时，`0` 禁用快照期限；
+`--rounds` 设定轮数（默认 12）。交易场所约每五秒推送一次
+`l2Book`，因此测试台以 20 秒阈值开启过期流恢复。
 
-The harness requires the mainnet WebSocket stream and the public info API. See
-[Stress harnesses](./../developer_guide/spec_data_testing.md#stress-harnesses) for the shared flags
-and output format.
+测试台需要主网 WebSocket 流与公共 info API。共享参数与输出格式见
+[压力测试台](./../developer_guide/spec_data_testing.md#stress-harnesses)。
 
-## Account and position management
+## 账户与持仓管理 {#account-and-position-management}
 
-`AccountState` merges perp margin and spot balances. The adapter reads the account mode
-from the `userAbstraction` info request, and the mode decides where balances and margin
-come from.
+`AccountState` 合并永续保证金与现货余额。适配器从
+`userAbstraction` 信息请求读取账户模式，模式决定余额与保证金的来源。
 
-Unified and portfolio margin accounts report every balance and hold in
-`spotClearinghouseState`, so balances come from spot alone and spot USDC `hold` is the
-account-wide margin.
+统一模式与组合保证金账户在 `spotClearinghouseState`
+中报告全部余额与持有，因此余额只来自现货，现货 USDC 的
+`hold` 即全账户保证金。
 
-In the other modes, perp margin and cross-margin usage come from `clearinghouseState`, and non-zero spot
-tokens (USDC, USDH, HYPE, vault tokens, HIP-4 outcome side tokens, etc.) come from `spotClearinghouseState`.
-USDC comes from the perp summary when it reflects non-zero collateral, margin, or withdrawable balance. When
-the perp summary is absent or zeroed, spot USDC is used instead. A mode the adapter does not recognize is
-logged as a warning and handled the same way.
+其余模式下，永续保证金与全仓保证金占用来自
+`clearinghouseState`，非零现货代币（USDC、USDH、HYPE、vault
+代币、HIP-4 结果 side token 等）来自
+`spotClearinghouseState`。当永续汇总反映出非零抵押品、保证金或可提取余额时，
+USDC 取自永续汇总；永续汇总缺失或为零时改用现货 USDC。适配器无法识别的模式会
+记录警告并按同样方式处理。
 
-Spot tokens that `spotClearinghouseState` lists at zero are reported at zero, so a sold-out or withdrawn token
-clears its previous balance. USDC is reported at zero when the account has no USDC balance. Outside unified
-and portfolio margin both need a perp summary in the response. Without one the previous balances are kept.
+`spotClearinghouseState` 中列为零的现货代币按零报告，因此已卖光或已提取的代币
+会清掉其先前余额。账户没有 USDC 余额时 USDC 也按零报告。统一与组合保证金之外的
+模式都需要响应中包含永续汇总，缺失时保留先前余额。
 
-If the account mode cannot be fetched or read, the account state request fails, and so
-does connect.
+账户模式无法获取或读取时，账户状态请求失败，connect 也随之失败。
 
-Standard perps default to cross margin. HIP-3 perps default to isolated. On connect, the execution client
-reconciles orders, fills, and positions against Hyperliquid's clearinghouse state. Spot positions are
-reconstructed from held balances (long-only). HIP-4 side tokens reconcile against their matching
-`BinaryOption` instruments. See [HIP-3 reconciliation](#open-order-and-position-reconciliation) for per-dex
-open-order and position fan-out.
+标准永续默认全仓保证金，HIP-3 永续默认隔离。connect
+时，执行客户端对照 Hyperliquid 清算所状态对账订单、成交与持仓。现货持仓由持有
+余额重建（仅多头）。HIP-4 side token 对照其匹配的
+`BinaryOption` 金融工具对账。按 dex 的未结订单与持仓扇出见
+[HIP-3 对账](#open-order-and-position-reconciliation)。
 
 :::note
-Leverage is managed directly through the Hyperliquid web UI or API, not through the adapter.
-Set your desired leverage per instrument on Hyperliquid before trading.
+杠杆直接通过 Hyperliquid 网页 UI 或 API 管理，不经适配器。交易前请先在
+Hyperliquid 上为每个金融工具设好目标杠杆。
 :::
 
-## Liquidation and ADL handling
+## 清算与 ADL 处理 {#liquidation-and-adl-handling}
 
-Hyperliquid signals venue-initiated closures through three surfaces on the
-`userEvents` subscription:
+Hyperliquid 通过 `userEvents` 订阅上的三个面发出场所发起平仓的信号：
 
-- **`liquidation` event**: emitted when an account is liquidated. Carries a
-  `liquidation ID`, liquidator address, liquidated user, liquidated notional
-  position, and liquidated account value. The adapter logs these at warning
-  level for operator visibility.
-- **Fill-level `liquidation` metadata**: each entry in the `fills` array can
-  carry an optional `liquidation` object with `method`, `markPx`, and
-  `liquidatedUser`. The `method` value is either `market` (liquidated into
-  the book) or `backstop` (closed against the backstop vault, the equivalent
-  of an ADL close when the insurance mechanism steps in).
-- **`Auto-Deleveraging` fill direction**: a fill whose `dir` is
-  `Auto-Deleveraging` is an ADL closure taken against a counterparty position.
-  It carries no `liquidation` object, so the adapter recognizes it from the
-  direction alone and logs it at warning level with the instrument, order ID,
-  price, and size.
+- **`liquidation` 事件**：账户被清算时发出。携带
+  `liquidation ID`、清算执行方地址、被清算用户、被清算的名义持仓与被清算的
+  账户价值。适配器按 warning 级别记录，便于运营方查看。
+- **成交级 `liquidation` 元数据**：`fills`
+  数组中的每个条目可携带可选的 `liquidation`
+  对象，含 `method`、`markPx` 与
+  `liquidatedUser`。`method` 取值为
+  `market`（清算进订单簿）或 `backstop`（与 backstop vault
+  对平，即保险机制介入时相当于 ADL 平仓）。
+- **`Auto-Deleveraging` 成交方向**：`dir` 为
+  `Auto-Deleveraging` 的成交是针对对手方持仓执行的 ADL
+  平仓。它不带 `liquidation` 对象，适配器仅凭方向识别，并按 warning
+  级别记录金融工具、订单 ID、价格与数量。
 
-The adapter emits the standard `FillReport` for each of these fills. The liquidation or deleveraging detail is
-logged alongside the fill so you can correlate closures to venue-side events. No strategy-side changes are
-required. Existing risk and reconciliation logic runs over these fills as for any other TAKER fill.
+适配器为上述每笔成交发出标准 `FillReport`。清算或递延减仓的细节与成交一并
+记录，便于你把平仓与场所侧事件对应起来。策略侧无需改动，既有的风控与对账逻辑
+会像处理任何 TAKER 成交一样处理它们。
 
-Upstream references:
+上游参考：
 
-- [WebSocket `userEvents` (`liquidation` and `FillLiquidation`)](https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/websocket/subscriptions)
-- [Liquidation mechanics](https://hyperliquid.gitbook.io/hyperliquid-docs/trading/liquidations)
+- [WebSocket `userEvents`（`liquidation` 与 `FillLiquidation`）](https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/websocket/subscriptions)
+- [清算机制](https://hyperliquid.gitbook.io/hyperliquid-docs/trading/liquidations)
 
-## Order fill recovery
+## 订单成交恢复 {#order-fill-recovery}
 
-`QueryOrder` recovers missed venue fills before forwarding a fully filled order's status report.
+`QueryOrder` 在转发已全部成交订单的状态报告之前，先找回错过的场所成交。
 
-### Eligible orders
+### 符合条件的订单 {#eligible-orders}
 
-Recovery requires all of these conditions:
+恢复要求同时满足以下条件：
 
-- The order is a cached ordinary limit order sized in base currency and tracked by this client
-  since submission, without reduce-only behavior or contingent relationships.
-- At query start, it has one venue order ID, no modification history or pending modify, and no
-  applied fills.
-- The venue reports the same order as `Filled`, with quantity and filled quantity equal to its
-  cached quantity.
+- 订单是缓存的、以 base 货币计量的普通限价单，自提交起由本客户端跟踪，没有
+  reduce-only 行为或条件关联。
+- 查询开始时，它只有一个场所订单 ID，无修改历史与挂起 modify，也没有已应用
+  成交。
+- 交易场所把同一订单报告为 `Filled`，且数量与已成交数量都等于其缓存数量。
 
-### Recovery and fallback
+### 恢复与回退 {#recovery-and-fallback}
 
-After the status lookup, the adapter reads `userFills` once with `aggregateByTime=false`. It validates fill
-identities and complete unique trade coverage, rejecting matching fills whose quantity, price, or fee loses
-precision in its domain type. Identical records count once. Conflicting records for a trade ID reject
-recovery. Complete coverage allows recovery even at the 2,000-fill response cap.
+状态查询之后，适配器以
+`aggregateByTime=false` 读取一次 `userFills`。它校验成交身份与完整的唯一
+成交覆盖，拒绝数量、价格或费用在其域类型中丢失精度的匹配成交。完全相同的记录
+只计一次；同一成交 ID 的冲突记录会拒绝恢复。覆盖完整时，即使到达 2,000
+笔成交的响应上限也允许恢复。
 
-The adapter emits validated fills in chronological order, then the ordinary status report. It discards them
-if the binding or order terms change during the history read, or a modify is pending afterward.
-Engine deduplication handles live fills arriving during the request.
+适配器按时间顺序发出校验通过的成交，然后再发普通状态报告。若历史读取期间绑定或
+订单条款发生变化，或之后有 modify 挂起，则丢弃这些成交。请求期间到达的实时
+成交由引擎去重处理。
 
-Unavailable history, incomplete coverage, or any row that cannot be decoded, resolved to an instrument, or
-converted into a report yields no recovery fills. This validation includes other orders' fills. Ordinary
-status reconciliation continues. Any inferred fill has no commission (see
-[Inferred-fill commissions](#inferred-fill-commissions)).
+历史不可得、覆盖不完整，或任何无法解码、无法解析为金融工具、无法转换为报告的
+行，都会导致恢复不产出成交。该校验也覆盖其他订单的成交。普通状态对账继续运行。
+任何推断成交都不带佣金（见[推断成交的佣金](#inferred-fill-commissions)）。
 
-### Fees
+### 费用 {#fees}
 
-Recovery preserves zero fees, negative rebates, and supported fee currencies. `fee` includes `builderFee`.
-Zero fees in unregistered or outcome side tokens use the instrument's quote currency. Nonzero fees in either
-reject recovery.
+恢复保留零费用、负返佣与受支持的费用货币。`fee` 包含
+`builderFee`。未注册代币或结果 side token
+上的零费用使用金融工具的 quote 货币；两者中出现非零费用都会拒绝恢复。
 
-### Limits
+### 限制 {#limits}
 
-`GenerateOrderStatusReport` and mass-status collection do not trigger this recovery. It does not
-cover partial or canceled orders, replacement chains, unknown external orders, or orders reloaded
-after a restart.
+`GenerateOrderStatusReport` 与 mass status
+收集不触发该恢复。恢复不覆盖部分成交或已取消的订单、替换链、身份未知的外部
+订单，或重启后重新加载的订单。
 
-Status and history reads are separate venue requests. Recovery cannot replace an execution inferred by another
-reconciliation before recovered fills apply, or repair its commission. It adds no pagination or retry loop.
-Existing HTTP timeouts, retries, and rate-limit waits apply.
+状态读取与历史读取是两次独立的场所请求。恢复不能替代另一轮对账在恢复成交应用
+之前已推断出的执行，也不能修复其佣金。恢复不新增分页或重试循环，沿用现有的
+HTTP 超时、重试与限速等待。
 
-## Connection management
+## 连接管理 {#connection-management}
 
-The adapter automatically reconnects on WebSocket disconnection using exponential backoff
-(starting at 250ms, up to 5s). On reconnect, all active subscriptions are resubscribed
-automatically, order book snapshots are rebuilt, and a `Reconnected` event is forwarded after
-those resubscription commands are queued. Each order book then waits up to
-`book_snapshot_timeout_secs` for its snapshot before [recovery](#order-book-recovery) starts. No
-manual intervention is required.
+WebSocket 断开时，适配器以指数退避自动重连（从 250ms 起，上限
+5s）。重连后，所有活跃订阅自动重新订阅，订单簿快照重建，并且这些重订阅命令
+排队后会转发一个 `Reconnected` 事件。随后每个订单簿至多等待
+`book_snapshot_timeout_secs` 获取快照，超时即启动[恢复](#order-book-recovery)。
+无需人工干预。
 
-A heartbeat ping is sent every 30 seconds to keep the connection alive (Hyperliquid closes
-idle connections after 60 seconds). The shared transport treats 90 seconds without any inbound
-frame as a dead peer and starts the same reconnect path.
+每 30 秒发送一次心跳 ping 以保活连接（Hyperliquid 会在 60 秒空闲后关闭连接）。
+共享传输层把 90 秒没有任何入站帧视为对端失联，并走同一条重连路径。
 
-Live data and execution clients publish `SocketStateChanged` on `hyperliquid-data-streams` and
-`hyperliquid-user-streams`. Both endpoints register a reconnect handle, so `reconnect_socket` can
-target them without cycling the containing client.
+实时数据与执行客户端在 `hyperliquid-data-streams` 与
+`hyperliquid-user-streams` 上发布 `SocketStateChanged`。两个端点都注册了
+重连句柄，因此 `reconnect_socket` 可以直接作用于它们，而不必重启所在的
+客户端。
 
-### Execution recovery after reconnect
+### 重连后的执行恢复 {#execution-recovery-after-reconnect}
 
-Hyperliquid sends no snapshot when the execution client resubscribes to `orderUpdates` and `userEvents`. Thus,
-fills and order updates from the outage never arrive on the stream. After a reconnect, the execution client
-waits for the venue to confirm both subscriptions, then reads the account's `historicalOrders` and then its
-`userFills` over REST.
+执行客户端重新订阅 `orderUpdates` 与
+`userEvents` 时，Hyperliquid 不发送快照。因此断线期间的成交与订单更新永远不会
+经流送达。重连后，执行客户端等交易场所确认两个订阅，然后经 REST
+读取账户的 `historicalOrders`，再读
+`userFills`。
 
-The recovery window starts at the venue time of the last report delivered by the stream, less a 30-second
-margin. Before any report, it uses the stream start with the same margin. It processes fills and the latest
-status of each venue order oldest first, through the same path as stream updates. Stream updates that arrive
-after the reconnect wait until this recovery finishes, so recovered events apply before any newer update.
+恢复窗口从流送达的最后一份报告的场所时间减去 30
+秒裕量开始；尚无任何报告时，用流启动时刻同样减裕量。它按从旧到新处理成交与每个
+场所订单的最新状态，走与流更新相同的路径。重连等待期间到达的流更新会推迟到恢复
+完成之后，保证恢复出的事件先于任何更新的更新应用。
 
-The history endpoints can lag the venue's live state by several seconds, so an event shortly before the
-reconnect can be missing from that first read. Five seconds after the first read, the client reads the same
-history window again and processes it the same way. It applies events missed by the first read and skips
-events already applied. Stream updates do not wait for this second read, so it can apply an event after a
-newer stream update for the same order. A fill it finds for an order that a newer update has already closed
-reaches reconciliation as an external fill report.
+历史端点可能滞后场所实时状态数秒，重连前不久的一个事件可能不在首次读取中。首次
+读取 5 秒后，客户端再次读取同一历史窗口并按同样方式处理：补上首次读取漏掉的事件，
+跳过已应用的事件。流更新不等这第二次读取，因此它可能把某个事件应用在针对同一
+订单的更晚流更新之后。若为已被更晚更新关闭的订单找到成交，该成交以外部成交报告
+进入对账。
 
-- The client skips fills it already emitted and status-only `filled` updates, whose state the
-  recovered fills carry. The engine deduplicates any other fill it already applied by trade ID.
-- Updates for orders this client submitted resolve to their client order IDs through the venue
-  CLOID. Updates for other orders reach reconciliation as external reports, as they do on the
-  stream.
-- A modify gives the order a new venue order ID, so an order modified while disconnected spans
-  several venue orders. Recovery opens each one the client has not seen in placement order, so the
-  order rebinds to each in turn with `OrderUpdated` and each one's fills apply after it. Recovery
-  drops the cancels of the replaced venue orders and applies only the newest one's status.
-- A modify or corrective reduce still pending against the newest venue order holds back that
-  venue order's close until the venue resolves the request, as described in
-  [Early cancel before the replacement](#early-cancel-before-the-replacement). A read that shows
-  the close before the replacement appears therefore cannot end an order the modify replaced.
-- If the venue does not confirm the subscriptions within 10 seconds, the client logs a warning
-  and reads the history anyway.
-- If a history request fails, the client logs an error and resumes the stream without the missed
-  events until the second read retries it. If that read fails too, a later reconnect recovers only
-  from the last report the stream has delivered by then, so in-flight checks and, when configured,
-  open-order checks (`open_check_interval_secs`) are the fallback.
+- 客户端跳过已发出的成交与纯状态型的
+  `filled` 更新——恢复出的成交已携带其状态。引擎按成交 ID
+  去重其他已应用的成交。
+- 本客户端提交的订单的更新，经场所 CLOID 解析到其客户订单
+  ID。其他订单的更新与流上一样，以外部报告进入对账。
+- modify 会给订单新的场所订单 ID，因此断线期间被修改的订单横跨多个场所
+  订单。恢复按下单顺序打开客户端尚未见过的每一个，订单以
+  `OrderUpdated` 依次重绑到每一个，各自的成交在其后应用。恢复丢弃被替换场所
+  订单的撤单，只应用最新一个的状态。
+- 针对最新场所订单仍有挂起的 modify 或纠正性
+  reduce 时，该场所订单的收尾会推迟到场所解决该请求，机制见[替换单到达前的
+  提前撤单](#early-cancel-before-the-replacement)。因此，在替换出现之前就看到
+  收尾的那次读取，无法终止被 modify 替换掉的订单。
+- 场所 10 秒内不确认订阅时，客户端记录警告并照常读取历史。
+- 历史请求失败时，客户端记录错误并在没有缺失事件的情况下恢复流，等第二次读取
+  重试。若第二次读取也失败，之后的重连只能从流当时送达的最后一份报告恢复，
+  此时在途检查与（配置了的）未结订单检查（`open_check_interval_secs`）
+  是兜底。
 
-Each history endpoint returns only the account's 2,000 most recent records, so recovery cannot
-reach events older than those.
+每个历史端点只返回账户最近 2,000 条记录，恢复无法触达更早的事件。
 
-### Stream health and recovery
+### 流健康监测与恢复 {#stream-health-and-recovery}
 
-The data client tracks receive freshness for order book deltas, depth-10 snapshots, and BBO
-quotes:
+数据客户端跟踪订单簿增量、深度 10 快照与 BBO 报价的接收新鲜度：
 
-- `stale_stream_receive_timeout_secs` sets the stale threshold.
-- `stale_stream_warning_cooldown_secs` controls repeat warnings.
-- A fresh BBO stream for the same instrument changes stale book warnings to relative-staleness
-  warnings. BBO quotes are only a freshness reference, not order book input.
+- `stale_stream_receive_timeout_secs` 设定过期阈值。
+- `stale_stream_warning_cooldown_secs` 控制重复警告。
+- 同一金融工具有新鲜 BBO 流时，订单簿的过期警告改为相对过期警告。BBO
+  报价只是新鲜度参照，不是订单簿输入。
 
-Recovery is off by default. When `stale_stream_recovery_enabled` is set:
+恢复默认关闭。设置 `stale_stream_recovery_enabled` 后：
 
-- The first stale check always warns.
-- A still-stale stream is acted on once per `stale_stream_recovery_cooldown_secs`.
-- A stale order book delta stream, or a depth stream that shares one, starts
-  [order book recovery](#order-book-recovery), which resubscribes until a fresh snapshot arrives
-  and never requests a reconnect.
-- A stale depth-only or BBO stream receives a targeted resubscribe. `l2Book` resubscribes preserve
-  the original precision options.
-- After `stale_stream_max_targeted_resubscribes` targeted resubscribes of a depth-only or BBO
-  stream, the client requests a full WebSocket reconnect.
-- Fresh data resets the stream's recovery ladder.
+- 首次过期检查必定告警。
+- 仍然过期的流每 `stale_stream_recovery_cooldown_secs` 才被处置一次。
+- 过期的订单簿增量流，或与其共用一条流的深度流，启动[订单簿恢复](#order-book-recovery)：
+  持续重订阅直到新快照到达，从不请求重连。
+- 仅深度或 BBO 的过期流获得一次定向重订阅。`l2Book`
+  重订阅保留原精度选项。
+- 仅深度或 BBO 流的定向重订阅达到
+  `stale_stream_max_targeted_resubscribes` 次后，客户端请求完整的
+  WebSocket 重连。
+- 新鲜数据会重置该流的恢复阶梯。
 
-## API credentials
+## API 凭据 {#api-credentials}
 
-There are two options for supplying your credentials to the Hyperliquid clients.
-Either pass the corresponding values to the configuration objects, or
-set the following environment variables:
+向 Hyperliquid 客户端提供凭据有两种方式：把对应的值传入配置对象，或设置下列
+环境变量：
 
-| Environment                     | Variables                                                                       |
-| ------------------------------- | ------------------------------------------------------------------------------- |
-| Mainnet                         | `HYPERLIQUID_PK`; `HYPERLIQUID_VAULT` (optional, for vault trading)             |
-| Testnet                         | `HYPERLIQUID_TESTNET_PK`; `HYPERLIQUID_TESTNET_VAULT` (optional, vault trading) |
-| Either, for agent (API) wallets | `HYPERLIQUID_ACCOUNT_ADDRESS` (master account address; shared by both)          |
+| 环境                     | 变量                                                                            |
+| ------------------------ | ------------------------------------------------------------------------------- |
+| 主网                     | `HYPERLIQUID_PK`；`HYPERLIQUID_VAULT`（可选，vault 交易）                       |
+| Testnet                  | `HYPERLIQUID_TESTNET_PK`；`HYPERLIQUID_TESTNET_VAULT`（可选，vault 交易）       |
+| 任一环境，agent（API）钱包 | `HYPERLIQUID_ACCOUNT_ADDRESS`（主账户地址；两个环境共用）                       |
 
 :::tip
-We recommend using environment variables to manage your credentials.
+建议用环境变量管理凭据。
 :::
 
-## Agent wallets
+## Agent 钱包 {#agent-wallets}
 
-Hyperliquid lets a master account approve an
-[agent wallet](https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/nonces-and-api-wallets)
-(also called an API wallet or sub-key) that signs orders on the master's behalf.
-Orders signed by the agent belong to the master account, not to the agent's address.
+Hyperliquid 允许主账户批准一个
+[agent 钱包](https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/nonces-and-api-wallets)
+（也称 API 钱包或子密钥）代表主账户为订单签名。agent 签名的订单归属主账户，
+不属于 agent 地址。
 
-If your `HYPERLIQUID_PK` (or `HYPERLIQUID_TESTNET_PK`) is an agent wallet, you
-must also set `account_address` (or the `HYPERLIQUID_ACCOUNT_ADDRESS`
-environment variable) to the master account address. Otherwise the adapter
-queries the agent's address for balances, orders, and WebSocket events, which
-owns nothing, and submitted orders will never reconcile (no
-`OrderStatusReport`, no fills surfaced).
+若你的 `HYPERLIQUID_PK`（或
+`HYPERLIQUID_TESTNET_PK`）是 agent 钱包，还必须把
+`account_address`（或环境变量
+`HYPERLIQUID_ACCOUNT_ADDRESS`）设为主账户地址。否则适配器会去查询 agent
+自己的余额、订单与 WebSocket 事件——那里什么都没有，提交的订单永远无法对账
+（没有 `OrderStatusReport`，也没有成交浮出）。
 
-The execution factory resolves one account address and passes that same value
-to REST account queries and WebSocket user subscriptions. Signing still uses
-the configured private key, and vault trading still sends `vaultAddress` in the
-signed exchange payload when `vault_address` is set.
+执行工厂解析出一个账户地址，并把同一个值同时传给 REST
+账户查询与 WebSocket 用户订阅。签名仍使用配置的私钥；设置了
+`vault_address` 时，vault 交易仍会在签名的交易所载荷中携带
+`vaultAddress`。
 
-Explicit config values take precedence over environment variables. Environment
-variables fill only omitted config values.
+显式配置值优先于环境变量，环境变量只填补未设置的配置值。
 
-Resolution order for the execution account address used by info queries and
-WebSocket subscriptions:
+info 查询与 WebSocket 订阅所用执行账户地址的解析顺序：
 
-1. `account_address` (master account when using an agent wallet).
-2. `vault_address` (vault sub-account).
-3. `HYPERLIQUID_ACCOUNT_ADDRESS`.
-4. `HYPERLIQUID_VAULT` or `HYPERLIQUID_TESTNET_VAULT`.
-5. The address derived from the private key (the wallet itself).
+1. `account_address`（使用 agent 钱包时的主账户）。
+2. `vault_address`（vault 子账户）。
+3. `HYPERLIQUID_ACCOUNT_ADDRESS`。
+4. `HYPERLIQUID_VAULT` 或 `HYPERLIQUID_TESTNET_VAULT`。
+5. 由私钥推导的地址（钱包本身）。
 
 :::note
-`HYPERLIQUID_ACCOUNT_ADDRESS` is a single env var shared by both mainnet and
-testnet (unlike `HYPERLIQUID_PK` / `HYPERLIQUID_TESTNET_PK`). If your agent
-wallet is approved under the same master address on both environments, one
-value covers both.
+`HYPERLIQUID_ACCOUNT_ADDRESS`
+是主网与 testnet 共用的单个环境变量（不像
+`HYPERLIQUID_PK` / `HYPERLIQUID_TESTNET_PK`）。若你的 agent
+钱包在两个环境都批准在同一主账户下，一个值即可覆盖两边。
 :::
 
 :::tip
-Email-login wallets generate different addresses for mainnet and testnet, so
-the master address may differ. In that case, prefer setting `account_address`
-explicitly in `HyperliquidExecutionClientConfig` per environment rather than
-relying on the shared environment variable.
+邮箱登录钱包在主网与 testnet 生成不同地址，主账户地址可能不同。这种情况下，
+建议在 `HyperliquidExecutionClientConfig` 中按环境显式设置
+`account_address`，不要依赖共享的环境变量。
 :::
 
-## Vault trading
+## Vault 交易 {#vault-trading}
 
-Hyperliquid supports
-[vault trading](https://hyperliquid.gitbook.io/hyperliquid-docs/trading/vaults), where a wallet
-operates on behalf of a vault (sub-account). Orders are signed with the wallet's private key
-but include the vault address in the signature payload.
+Hyperliquid 支持
+[vault 交易](https://hyperliquid.gitbook.io/hyperliquid-docs/trading/vaults)：钱包代表
+vault（子账户）操作。订单用钱包私钥签名，但签名载荷中包含 vault 地址。
 
-To trade via a vault, set the `vault_address` in your execution client config (or set the
-`HYPERLIQUID_VAULT` / `HYPERLIQUID_TESTNET_VAULT` environment variable).
+要通过 vault 交易，在执行客户端配置中设置
+`vault_address`（或设置
+`HYPERLIQUID_VAULT` / `HYPERLIQUID_TESTNET_VAULT` 环境变量）。
 
 :::warning
-For normal vault trading, leave `account_address` unset so `vault_address`
-becomes the account address used for REST queries and WebSocket user
-subscriptions. If both `account_address` and `vault_address` are set,
-`account_address` wins for queries and subscriptions, while `vault_address`
-still goes into the signed exchange payload.
+常规 vault 交易请让 `account_address`
+保持未设置，这样 `vault_address`
+就成为 REST 查询与 WebSocket 用户订阅使用的账户地址。两者都设置时，查询与订阅
+以 `account_address` 为准，而 `vault_address`
+仍进入签名的交易所载荷。
 :::
 
-## Funding rates
+## 资金费率 {#funding-rates}
 
-Hyperliquid perpetual futures use a fixed 1-hour funding interval. The adapter sets
-`interval` to `60` (minutes) on all `FundingRateUpdate` objects.
+Hyperliquid 永续期货使用固定的 1 小时资金费周期。适配器在所有
+`FundingRateUpdate` 对象上把 `interval` 设为
+`60`（分钟）。
 
-## Rate limiting
+## 速率限制 {#rate-limiting}
 
-Hyperliquid applies limits by IP address and user address. The adapter uses the fixed venue limits
-from the [Hyperliquid rate limits documentation](https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/rate-limits-and-user-limits).
-It does not expose higher overrides.
+Hyperliquid 按 IP 地址与用户地址施加限制。适配器使用
+[Hyperliquid 速率限制文档](https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/rate-limits-and-user-limits)
+中的固定场所限额，不暴露更高的覆盖值。
 
-### REST limits
+### REST 限制 {#rest-limits}
 
-#### Sharing scope
+#### 共享范围 {#sharing-scope}
 
-The adapter shares one 1,200-weight-per-minute token bucket among clients in the same process when
-their environment, HTTP endpoint origin, and proxy route match. The `/info` and `/exchange` paths
-on one origin consume the same bucket.
+环境、HTTP 端点来源与代理路由都匹配的客户端，在同一进程内共享一个每分钟
+1,200 权重的令牌桶。同一来源上的 `/info` 与
+`/exchange` 路径消耗同一个桶。
 
-Separate processes, programs, proxy routes, and HTTP clients outside this adapter do not coordinate
-through the in-memory bucket. Deployments that share an egress IP must leave capacity for that
-traffic.
+独立进程、其他程序、代理路由，以及本适配器之外的 HTTP 客户端不通过这个内存桶
+协调。共用同一出口 IP 的部署必须为该流量留足容量。
 
-#### Request weights
+#### 请求权重 {#request-weights}
 
 | Endpoint    | Request                  | Base weight                    |
 | ----------- | ------------------------ | -----------------------------: |
@@ -1713,167 +1701,167 @@ traffic.
 | `/info`     | `userRole`               |                             60 |
 | `/info`     | All other requests       |                             20 |
 
-An order or cancel batch counts as one IP request. Some `/info` responses add weight based on the
-number of returned items:
+一个订单或撤单批次计为一次 IP 请求。部分 `/info`
+响应会按返回条目数追加权重：
 
-| Data                      | Requests                                                        | Added weight             |
-| ------------------------- | --------------------------------------------------------------- | -----------------------: |
-| Candles                   | `candleSnapshot`                                                | +1 per 60 returned items |
-| Trades and orders         | `recentTrades`, `historicalOrders`                              | +1 per 20 returned items |
-| Fills                     | `userFills`, `userFillsByTime`                                  | +1 per 20 returned items |
-| Funding                   | `fundingHistory`, `userFunding`, `nonUserFundingUpdates`        | +1 per 20 returned items |
-| TWAP                      | `twapHistory`, `userTwapSliceFills`, `userTwapSliceFillsByTime` | +1 per 20 returned items |
-| Delegators and validators | `delegatorHistory`, `delegatorRewards`, `validatorStats`        | +1 per 20 returned items |
+| 数据                      | 请求                                                            | 追加权重               |
+| ------------------------- | --------------------------------------------------------------- | ---------------------: |
+| K 线                      | `candleSnapshot`                                                | 每 60 个返回条目 +1    |
+| 成交与订单                | `recentTrades`、`historicalOrders`                              | 每 20 个返回条目 +1    |
+| 成交记录                  | `userFills`、`userFillsByTime`                                  | 每 20 个返回条目 +1    |
+| 资金费                    | `fundingHistory`、`userFunding`、`nonUserFundingUpdates`        | 每 20 个返回条目 +1    |
+| TWAP                      | `twapHistory`、`userTwapSliceFills`、`userTwapSliceFillsByTime` | 每 20 个返回条目 +1    |
+| 委托者与验证节点          | `delegatorHistory`、`delegatorRewards`、`validatorStats`        | 每 20 个返回条目 +1    |
 
-#### Retries
+#### 重试 {#retries}
 
-Each HTTP attempt consumes its full request weight.
+每次 HTTP 尝试都消耗其完整请求权重。
 
-| Request or response                         | Behavior                                |
-| ------------------------------------------- | --------------------------------------- |
-| HTTP 408, 429, or 5xx from `/info`          | Retry up to three times.                |
-| HTTP 429 with integer-seconds `Retry-After` | Use the header value as the delay.      |
-| Retryable response without a valid delay    | Use capped full-jitter backoff.         |
-| Response failure from `/exchange`           | No retry; venue outcome may be unknown. |
+| 请求或响应                              | 行为                                    |
+| --------------------------------------- | --------------------------------------- |
+| `/info` 返回 HTTP 408、429 或 5xx       | 至多重试三次。                          |
+| HTTP 429 且 `Retry-After` 为整数秒      | 用该头的值作延迟。                      |
+| 可重试响应没有有效延迟                  | 使用带上限的全抖动退避。                |
+| `/exchange` 响应失败                    | 不重试；场所结果可能未知。              |
 
-### WebSocket limits
+### WebSocket 限制 {#websocket-limits}
 
-#### Sharing scope
+#### 共享范围 {#sharing-scope-1}
 
-Clients in the same process share WebSocket limits when their environment, WebSocket endpoint
-origin, and proxy route match.
+环境、WebSocket 端点来源与代理路由匹配的客户端，在同一进程内共享 WebSocket
+限额。
 
-#### Enforced limits
+#### 强制限额 {#enforced-limits}
 
-| Limit             | Maximum      | Applies to                                                       |
-| ----------------- | -----------: | ---------------------------------------------------------------- |
-| Outbound messages | 2,000/minute | Subscriptions, unsubscriptions, posts, heartbeats, and pongs.    |
-| In-flight posts   |          100 | Simultaneous post requests.                                      |
-| Connections       |           10 | Simultaneous connections.                                        |
-| New connections   |    30/minute | Initial connections and reconnect attempts.                      |
-| Subscriptions     |        1,000 | Active and pending subscriptions.                                |
-| Unique users      |           10 | User-specific subscriptions; addresses match case-insensitively. |
+| 限额           |   上限 | 适用于                                                          |
+| -------------- | -----: | ---------------------------------------------------------------- |
+| 外发消息       | 2,000/分钟 | 订阅、退订、post、心跳与 pong。                              |
+| 在途 post      |    100 | 并发 post 请求。                                                 |
+| 连接数         |     10 | 并发连接。                                                       |
+| 新建连接       | 30/分钟 | 初次连接与重连尝试。                                             |
+| 订阅数         |  1,000 | 活跃与挂起订阅。                                                 |
+| 独立用户数     |     10 | 用户级订阅；地址按大小写不敏感匹配。                             |
 
-#### Reconnects and releases
+#### 重连与释放 {#reconnects-and-releases}
 
-Automatic reconnects retain the logical connection slot and active subscription reservations.
-They still consume the new-connection rate. A confirmed unsubscribe, explicit client disconnect,
-or terminal handler exit releases the corresponding subscription reservations.
+自动重连保留逻辑连接槽位与活跃订阅预留，但仍消耗新建连接速率。确认的退订、显式
+客户端断开或终局处理函数退出，会释放相应的订阅预留。
 
-#### Post deadlines and retries
+#### Post 期限与重试 {#post-deadlines-and-retries}
 
-WebSocket post requests use one caller deadline while waiting for an in-flight slot, the command
-channel, the outbound-message quota, the active connection, and the response. The client retries a
-post send only when the network layer proves that writing did not start. A write timeout or broken
-connection after writing starts has an unknown venue outcome, so the adapter returns the error and
-does not resend the action.
+WebSocket post 请求共用一个调用方期限，覆盖等待在途槽位、命令通道、外发消息
+配额、活跃连接与响应的全过程。只有网络层确证写入尚未开始时，客户端才重试 post
+发送。写入已开始后的写超时或断连属于场所结果未知，适配器返回错误且不重发动作。
 
-### Address and exchange limits
+### 地址与交易所限制 {#address-and-exchange-limits}
 
-Hyperliquid also enforces server-side limits that one adapter process cannot calculate reliably.
+Hyperliquid 还在服务端施加单个适配器进程无法可靠计算的限额。
 
-#### Action limits
+#### 动作限额 {#action-limits}
 
-Each address starts with 10,000 action requests and accrues one request per cumulative USDC traded.
-Once limited, the address may send one request every 10 seconds. Subaccounts have independent
-limits.
+每个地址从 10,000 个动作请求起步，累计每交易 1 USDC 追加一个请求。受限后，
+该地址每 10 秒可发送一个请求。子账户有独立的限额。
 
-#### Cancel allowance
+#### 撤单配额 {#cancel-allowance}
 
-Cancels receive `min(action limit + 100,000, action limit * 2)` requests. A batch of `n` actions
-consumes one IP request but `n` address requests.
+撤单配额为 `min(action limit + 100,000, action limit * 2)` 个请求。`n`
+个动作的批次消耗一次 IP 请求、`n` 个地址请求。
 
-#### Open-order limits
+#### 未结订单限额 {#open-order-limits}
 
-Each address starts with 1,000 open orders, gains one additional order per $5 million of cumulative
-volume, and is capped at 5,000. Hyperliquid rejects a new reduce-only or trigger order when the
-address already has at least 1,000 other open orders.
+每个地址从 1,000 笔未结订单起步，累计每 500 万美元成交量追加一笔，上限
+5,000。地址已有至少 1,000 笔其他未结订单时，Hyperliquid
+会拒绝新的 reduce-only 或触发订单。
 
-#### Congestion
+#### 拥堵 {#congestion}
 
-During congestion, an address's prior UTC-day maker share and the asset's fee tier determine its
-block-space allowance. Do not resend a cancel after Hyperliquid returns a response.
+拥堵期间，地址当日（UTC）的 maker
+份额与资产的费率层级决定其区块空间配额。Hyperliquid
+已返回响应后，不要重发该撤单。
 
-#### Enforcement boundary
+#### 强制执行边界 {#enforcement-boundary}
 
-Hyperliquid remains authoritative for these limits because volume, open orders, and requests can
-come from other processes and clients. Venue rejections are returned to the caller.
+成交量、未结订单与请求可能来自其他进程与客户端，因此这些限额仍以
+Hyperliquid 为权威，场所拒绝会返回给调用方。
 
-The adapter does not use Hyperliquid's explorer API or the official EVM JSON-RPC endpoint. Their
-separate weights and request limits therefore remain outside this adapter's limiter.
+适配器不使用 Hyperliquid 的 explorer API 或官方 EVM JSON-RPC
+端点，它们各自的权重与请求限额因此不在本适配器限流器范围内。
 
-## Configuration
+## 配置 {#configuration}
 
-### Data client configuration options
+### 数据客户端配置选项 {#data-client-configuration-options}
 
-| Option                                   | Default   | Description                                                                                                                                     |
-| ---------------------------------------- | --------- | ----------------------------------------------------------------------------------------------------------------------------------------------- |
-| `private_key`                            | `None`    | Optional EVM private key for authenticated endpoints.                                                                                           |
-| `base_url_ws`                            | `None`    | Override for the WebSocket base URL.                                                                                                            |
-| `base_url_http`                          | `None`    | Override for the HTTP info URL.                                                                                                                 |
-| `proxy_url`                              | `None`    | Optional proxy URL for HTTP and WebSocket transports.                                                                                           |
-| `environment`                            | `None`    | Environment enum (`MAINNET` or `TESTNET`); resolves to `MAINNET` when unset.                                                                    |
-| `http_timeout_secs`                      | `60`      | Timeout (seconds) applied to REST calls.                                                                                                        |
-| `ws_timeout_secs`                        | `30`      | Timeout (seconds) applied to WebSocket connections.                                                                                             |
-| `stale_stream_receive_timeout_secs`      | `120`     | Receive age threshold (seconds) for stale market data stream warnings. Set to `0` to disable the stream health monitor.                         |
-| `stream_health_check_interval_secs`      | `15`      | Interval (seconds) between market data stream health checks. Set to `0` to disable the stream health monitor.                                   |
-| `stale_stream_warning_cooldown_secs`     | `60`      | Cooldown (seconds) between stale warnings for the same market data stream.                                                                      |
-| `stale_stream_recovery_enabled`          | `False`   | Enable automated recovery of stale market data streams (book recovery for deltas; targeted resubscribe, then reconnect for depth-only and BBO). |
-| `stale_stream_recovery_cooldown_secs`    | `120`     | Cooldown (seconds) between recovery actions for the same market data stream. Must be positive for recovery to run.                              |
-| `stale_stream_max_targeted_resubscribes` | `3`       | Targeted resubscribe attempts for a stale depth-only or BBO stream before escalating to a full WebSocket reconnect.                             |
-| `book_snapshot_timeout_secs`             | `10`      | Initial, reconnect, and recovery order book snapshot wait (seconds). Set to `0` to disable snapshot deadlines.                                  |
-| `update_instruments_interval_mins`       | `60`      | Interval (minutes) between instrument catalog refreshes. Set to `0` to disable the refresh.                                                     |
-| `transport_backend`                      | `Sockudo` | WebSocket transport backend.                                                                                                                    |
+| 选项                                     | 默认值    | 说明                                                                                                                                            |
+| ---------------------------------------- | --------- | ------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `private_key`                            | `None`    | 可选的 EVM 私钥，用于需鉴权的端点。                                                                                                             |
+| `base_url_ws`                            | `None`    | WebSocket 基础 URL 覆盖。                                                                                                                       |
+| `base_url_http`                          | `None`    | HTTP info URL 覆盖。                                                                                                                            |
+| `proxy_url`                              | `None`    | HTTP 与 WebSocket 传输的可选代理 URL。                                                                                                          |
+| `environment`                            | `None`    | 环境枚举（`MAINNET` 或 `TESTNET`）；未设置时解析为 `MAINNET`。                                                                                  |
+| `http_timeout_secs`                      | `60`      | REST 调用超时（秒）。                                                                                                                           |
+| `ws_timeout_secs`                        | `30`      | WebSocket 连接超时（秒）。                                                                                                                      |
+| `stale_stream_receive_timeout_secs`      | `120`     | 行情流过期警告的接收年龄阈值（秒）。设为 `0` 禁用流健康监测。                                                                                   |
+| `stream_health_check_interval_secs`      | `15`      | 行情流健康检查间隔（秒）。设为 `0` 禁用流健康监测。                                                                                             |
+| `stale_stream_warning_cooldown_secs`     | `60`      | 同一行情流过期警告之间的冷却（秒）。                                                                                                            |
+| `stale_stream_recovery_enabled`          | `False`   | 开启过期行情流自动恢复（增量流走订单簿恢复；仅深度与 BBO 先定向重订阅，再重连）。                                                               |
+| `stale_stream_recovery_cooldown_secs`    | `120`     | 同一行情流恢复动作之间的冷却（秒）。必须为正，恢复才会运行。                                                                                    |
+| `stale_stream_max_targeted_resubscribes` | `3`       | 仅深度或 BBO 过期流升级到完整 WebSocket 重连之前的定向重订阅次数。                                                                              |
+| `book_snapshot_timeout_secs`             | `10`      | 初始、重连与恢复时的订单簿快照等待（秒）。设为 `0` 禁用快照期限。                                                                               |
+| `update_instruments_interval_mins`       | `60`      | 金融工具目录刷新间隔（分钟）。设为 `0` 禁用刷新。                                                                                               |
+| `transport_backend`                      | `Sockudo` | WebSocket 传输后端。                                                                                                                            |
 
-### Execution client configuration options
+### 执行客户端配置选项 {#execution-client-configuration-options}
 
-| Option                         | Default   | Description                                                                                                                                      |
-| ------------------------------ | --------- | ------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `account_id`                   | `Venue`   | Nautilus account identifier; defaults to `HYPERLIQUID-001`.                                                                                      |
-| `private_key`                  | `None`    | EVM private key; loaded from `HYPERLIQUID_PK` or `HYPERLIQUID_TESTNET_PK` when omitted.                                                          |
-| `vault_address`                | `None`    | Vault address; loaded from `HYPERLIQUID_VAULT` or `HYPERLIQUID_TESTNET_VAULT` if omitted.                                                        |
-| `account_address`              | `None`    | Main account address for agent wallet trading; loaded from `HYPERLIQUID_ACCOUNT_ADDRESS`.                                                        |
-| `environment`                  | `None`    | Environment enum (`MAINNET` or `TESTNET`); resolves to `MAINNET` when unset.                                                                     |
-| `base_url_ws`                  | `None`    | Override for the WebSocket base URL.                                                                                                             |
-| `base_url_http`                | `None`    | Override for the HTTP info base URL.                                                                                                             |
-| `base_url_exchange`            | `None`    | Override for the exchange API base URL.                                                                                                          |
-| `max_retries`                  | `3`       | Maximum retry attempts for submit, cancel, or modify order requests.                                                                             |
-| `retry_delay_initial_ms`       | `100`     | Initial delay (milliseconds) between retries.                                                                                                    |
-| `retry_delay_max_ms`           | `5,000`   | Maximum delay (milliseconds) between retries.                                                                                                    |
-| `http_timeout_secs`            | `60`      | Timeout (seconds) applied to REST calls.                                                                                                         |
-| `ws_post_timeout_secs`         | `10`      | Timeout (seconds) applied to WebSocket post trading requests.                                                                                    |
-| `normalize_prices`             | `True`    | Normalize order prices to 5 significant figures before submission.                                                                               |
-| `include_builder_attribution`  | `True`    | Include zero-fee Nautilus builder attribution on eligible mainnet orders.                                                                        |
-| `market_order_slippage_bps`    | `50`      | Slippage buffer (bps) applied to MARKET and stop trigger derivations. Overridable per-order via `SubmitOrder.params`.                            |
-| `outcome_settlement_poll_secs` | `0`       | HIP-4 `outcomeMeta` settlement poll interval (seconds). Rust-only; venue `Settlement` fills cover settlement, so polling is disabled by default. |
-| `proxy_url`                    | `None`    | Optional proxy URL for HTTP and WebSocket transports.                                                                                            |
-| `transport_backend`            | `Sockudo` | WebSocket transport backend.                                                                                                                     |
+| 选项                           | 默认值    | 说明                                                                                                                                             |
+| ------------------------------ | --------- | -------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `account_id`                   | `Venue`   | Nautilus 账户标识；默认 `HYPERLIQUID-001`。                                                                                                       |
+| `private_key`                  | `None`    | EVM 私钥；省略时从 `HYPERLIQUID_PK` 或 `HYPERLIQUID_TESTNET_PK` 加载。                                                                            |
+| `vault_address`                | `None`    | Vault 地址；省略时从 `HYPERLIQUID_VAULT` 或 `HYPERLIQUID_TESTNET_VAULT` 加载。                                                                    |
+| `account_address`              | `None`    | agent 钱包交易用的主账户地址；从 `HYPERLIQUID_ACCOUNT_ADDRESS` 加载。                                                                             |
+| `environment`                  | `None`    | 环境枚举（`MAINNET` 或 `TESTNET`）；未设置时解析为 `MAINNET`。                                                                                    |
+| `base_url_ws`                  | `None`    | WebSocket 基础 URL 覆盖。                                                                                                                         |
+| `base_url_http`                | `None`    | HTTP info 基础 URL 覆盖。                                                                                                                         |
+| `base_url_exchange`            | `None`    | 交易所 API 基础 URL 覆盖。                                                                                                                        |
+| `max_retries`                  | `3`       | 提交、撤单或修改订单请求的最大重试次数。                                                                                                          |
+| `retry_delay_initial_ms`       | `100`     | 重试之间的初始延迟（毫秒）。                                                                                                                      |
+| `retry_delay_max_ms`           | `5,000`   | 重试之间的最大延迟（毫秒）。                                                                                                                      |
+| `http_timeout_secs`            | `60`      | REST 调用超时（秒）。                                                                                                                             |
+| `ws_post_timeout_secs`         | `10`      | WebSocket post 交易请求超时（秒）。                                                                                                               |
+| `normalize_prices`             | `True`    | 提交前把订单价格归一化到 5 位有效数字。                                                                                                           |
+| `include_builder_attribution`  | `True`    | 在符合条件的主网订单上携带零费 Nautilus builder 归属。                                                                                            |
+| `market_order_slippage_bps`    | `50`      | 应用于 MARKET 与止损触发推导的滑点缓冲（bps）。可经 `SubmitOrder.params` 逐单覆盖。                                                              |
+| `outcome_settlement_poll_secs` | `0`       | HIP-4 `outcomeMeta` 结算轮询间隔（秒）。仅 Rust；场所 `Settlement` 成交已覆盖结算，因此轮询默认关闭。                                            |
+| `proxy_url`                    | `None`    | HTTP 与 WebSocket 传输的可选代理 URL。                                                                                                            |
+| `transport_backend`            | `Sockudo` | WebSocket 传输后端。                                                                                                                              |
 
 :::note
-`outcome_settlement_poll_secs` is the only Rust-only option: it is not exposed on the
-`HyperliquidExecutionClientConfig` Python constructor and always uses its default. The
-`max_retries`, `retry_delay_initial_ms`, and `retry_delay_max_ms` fields are accepted on
-both the Rust and Python config but are not yet consumed by the execution client (its HTTP
-client is constructed with only the request timeout and proxy). These fields do not change the
-bounded read-only REST retries or the pre-write-only WebSocket post retries described in
-[Rate limiting](#rate-limiting).
+`outcome_settlement_poll_secs`
+是唯一的仅 Rust 选项：它不在
+`HyperliquidExecutionClientConfig` 的 Python 构造函数上暴露，始终使用默认值。
+`max_retries`、`retry_delay_initial_ms` 与
+`retry_delay_max_ms` 在 Rust 与 Python 配置上都被接受，但尚未被执行客户端
+消费（其 HTTP 客户端构造时只带请求超时与代理）。这些字段不改变[速率限制](#rate-limiting)
+所述有界只读 REST 重试，也不改变仅限写入前重发的 WebSocket post 重试。
 :::
 
-### Live node configuration
+### 实时节点配置 {#live-node-configuration}
 
-Register `HyperliquidDataClientConfig` with `HyperliquidDataClientFactory` on the node builder.
-Register `HyperliquidExecutionClientConfig` directly with `HyperliquidExecutionClientFactory`.
-The node supplies the `TraderId`, while the execution client config supplies the `AccountId`. The
-[Python examples](https://github.com/nautechsystems/nautilus_trader/tree/develop/examples/live/hyperliquid/)
-show the complete `LiveNode.builder(...)` wiring for both clients.
+在节点构建器上为 `HyperliquidDataClientConfig`
+注册 `HyperliquidDataClientFactory`，为
+`HyperliquidExecutionClientConfig` 直接注册
+`HyperliquidExecutionClientFactory`。节点提供
+`TraderId`，执行客户端配置提供
+`AccountId`。两个客户端完整的
+`LiveNode.builder(...)` 接线见
+[Python 示例](https://github.com/nautechsystems/nautilus_trader/tree/develop/examples/live/hyperliquid/)。
 
-When `environment=HyperliquidEnvironment.TESTNET`, the adapter uses
-`HYPERLIQUID_TESTNET_PK` and `HYPERLIQUID_TESTNET_VAULT` instead of the mainnet environment
-variables.
+`environment=HyperliquidEnvironment.TESTNET`
+时，适配器使用 `HYPERLIQUID_TESTNET_PK` 与
+`HYPERLIQUID_TESTNET_VAULT`，取代对应的主网环境变量。
 
-## Contributing
+## 贡献 {#contributing}
 
 :::info
-For additional features or to contribute to the Hyperliquid adapter, please see our
-[contributing guide](https://github.com/nautechsystems/nautilus_trader/blob/develop/CONTRIBUTING.md).
+要添加更多功能或为 Hyperliquid 适配器做贡献，请参考我们的
+[贡献指南](https://github.com/nautechsystems/nautilus_trader/blob/develop/CONTRIBUTING.md)。
 :::

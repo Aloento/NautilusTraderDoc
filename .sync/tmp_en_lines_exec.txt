@@ -1,0 +1,413 @@
+﻿136|---
+141|---
+241|### TC-E03: Market order with IOC TIF
+253|- Some adapters simulate market orders as aggressive limit IOC. An unfilled simulated
+254|  market maps to `OrderCanceled`, not `OrderRejected`.
+287|### TC-E04: Market order with FOK TIF
+299|- FOK requires the entire quantity to be fillable immediately or the order is canceled.
+300|- Use small test quantities so book depth is sufficient for a complete fill.
+333|### TC-E05: Market order with quote quantity
+374|### TC-E06: Close position via market order on stop
+386|- This test naturally follows TC-E01 or TC-E02 as part of the same session.
+387|- `close_positions_on_stop=True` is the default.
+388|- The closing order should be on the opposite side of the position.
+389|- Set `close_positions_qty_precision` when the venue accepts fewer size decimals than the
+390|  instrument. The tester closes only that venue-fillable quantity and logs any exact residual.
+423|---
+425|## Group 2: Limit orders
+427|Test limit order submission, acceptance, and behavior across time-in-force options.
+429|| TC     | Name                      | Description                                      | Skip when |
+431|| TC-E10 | Limit BUY GTC             | Place GTC limit buy below TOB, verify accepted.  | Never.    |
+432|| TC-E11 | Limit SELL GTC            | Place GTC limit sell above TOB, verify accepted. | Never.    |
+433|| TC-E12 | Limit BUY and SELL pair   | Both sides simultaneously, verify both accepted. | Never.    |
+434|| TC-E13 | Limit IOC aggressive fill | Limit IOC at aggressive price, expect fill.      | No IOC.   |
+435|| TC-E14 | Limit IOC passive no fill | Limit IOC away from market, expect cancel.       | No IOC.   |
+436|| TC-E15 | Limit FOK fill            | Limit FOK at aggressive price, expect fill.      | No FOK.   |
+437|| TC-E16 | Limit FOK no fill         | Limit FOK away from market, expect cancel.       | No FOK.   |
+438|| TC-E17 | Limit GTD                 | Limit with expiry time, verify accepted.         | No GTD.   |
+439|| TC-E18 | Limit GTD expiry          | Verify documented terminal event at expiry.      | No GTD.   |
+440|| TC-E19 | Limit DAY                 | Limit with DAY TIF, verify accepted.             | No DAY.   |
+442|### TC-E10: Limit BUY GTC - submit and accept
+454|- The `tob_offset_ticks` (default 500) places the order well away from the market to avoid accidental fills.
+455|- Verify the order appears in the cache with `OrderStatus.ACCEPTED`.
+456|- The order should remain open until explicitly canceled.
+485|### TC-E11: Limit SELL GTC - submit and accept
+522|### TC-E12: Limit BUY and SELL pair
+559|### TC-E13: Limit IOC aggressive fill
+571|- This test requires manual order creation or adapter-specific configuration, as the ExecTester's
+572|  default limit order placement uses GTC TIF.
+573|- The venue cancels IOC orders that do not fill immediately.
+575|### TC-E14: Limit IOC passive - no fill
+587|- The venue should cancel the unfilled IOC order. Verify `OrderCanceled` (not `OrderExpired` or
+588|  `OrderRejected`).
+590|### TC-E15: Limit FOK fill
+602|- FOK requires the entire quantity to be fillable. Use small quantities so book depth is sufficient.
+604|### TC-E16: Limit FOK no fill
+614|### TC-E17: Limit GTD - submit and accept
+653|### TC-E18: Limit GTD expiry
+665|- Use the shortest expiry accepted by the venue. Do not assume one or two minutes is valid.
+666|- Some venues report GTD expiry as a cancel. Preserve and verify the documented adapter mapping
+667|  instead of normalizing every venue to `OrderExpired`.
+669|### TC-E19: Limit DAY - submit and accept
+681|- DAY orders may behave differently on 24/7 crypto venues vs traditional markets.
+682|- Verify behavior when submitted outside trading hours (if applicable).
+684|---
+686|## Group 3: Stop and conditional orders
+688|Test stop and conditional order types. These orders rest on the venue until a trigger condition is met.
+689|Adapters that support venue-native conditional orders should also verify that open trigger
+690|orders appear in restart reconciliation, not only in the normal open-order endpoint.
+692|| TC     | Name                 | Description                                 | Skip when         |
+694|| TC-E20 | StopMarket BUY       | Stop buy above ask, verify accepted.        | No `STOP_MARKET`. |
+695|| TC-E21 | StopMarket SELL      | Stop sell below bid, verify accepted.       | No `STOP_MARKET`. |
+696|| TC-E22 | StopLimit BUY        | Stop-limit buy with trigger + limit price.  | No `STOP_LIMIT`.  |
+697|| TC-E23 | StopLimit SELL       | Stop-limit sell with trigger + limit price. | No `STOP_LIMIT`.  |
+698|| TC-E24 | MarketIfTouched BUY  | MIT buy below bid.                          | No `MIT`.         |
+699|| TC-E25 | MarketIfTouched SELL | MIT sell above ask.                         | No `MIT`.         |
+700|| TC-E26 | LimitIfTouched BUY   | LIT buy with trigger + limit price.         | No `LIT`.         |
+701|| TC-E27 | LimitIfTouched SELL  | LIT sell with trigger + limit price.        | No `LIT`.         |
+703|### TC-E20: StopMarket BUY
+715|- The trigger price should be above the current ask by `stop_offset_ticks`.
+716|- The order should NOT trigger immediately (trigger price is above market).
+717|- For venues with long-lived trigger signatures, check trigger-order signing expiry against the venue's
+718|  trigger-order window, rather than normal order expiry.
+719|- Verifying trigger and fill requires the market to move, which may not happen during the test.
+720|- After acceptance, restart or force reconciliation. If the venue keeps trigger orders in a separate endpoint,
+721|  check the open order reports. Make sure that the order still appears there.
+756|### TC-E21: StopMarket SELL
+799|### TC-E22: StopLimit BUY
+811|- Requires `stop_limit_offset_ticks` to be set for the limit price offset from the trigger price.
+848|### TC-E23: StopLimit SELL
+893|### TC-E24: MarketIfTouched BUY
+903|### TC-E25: MarketIfTouched SELL
+913|### TC-E26: LimitIfTouched BUY
+923|### TC-E27: LimitIfTouched SELL
+933|---
+935|## Group 4: Order modification
+937|Test order modification (amend) and cancel-replace workflows.
+939|| TC     | Name                      | Description                                    | Skip when                |
+941|| TC-E30 | Modify limit BUY price    | Amend open limit buy to new price.             | No modify support.       |
+942|| TC-E31 | Modify limit SELL price   | Amend open limit sell to new price.            | No modify support.       |
+943|| TC-E32 | Cancel-replace limit BUY  | Cancel and resubmit limit buy at new price.    | Never.                   |
+944|| TC-E33 | Cancel-replace limit SELL | Cancel and resubmit limit sell at new price.   | Never.                   |
+945|| TC-E34 | Modify stop trigger price | Amend stop order trigger price.                | No modify or no stop.    |
+946|| TC-E35 | Cancel-replace stop order | Cancel and resubmit stop at new trigger price. | No stop orders.          |
+947|| TC-E36 | Modify rejected           | Modify on unsupported adapter.                 | Adapter supports modify. |
+949|`trigger_limit_order_maintenance_once=True` requires exactly one of the limit-order modify or
+950|cancel-replace modes and at least one enabled limit side. It is incompatible with bracket entries,
+951|`test_modify_rejected`, and two-sided batch limit submission. Configuration validation rejects these
+952|combinations.
+954|### TC-E30: Modify limit BUY price
+966|- `trigger_limit_order_maintenance_once=True` amends to a different valid price directly from
+967|  the first `OrderAccepted`, preferring one tick more passive. A quiet book is not inconclusive.
+968|- After the one-shot workflow starts, it stops further limit maintenance for that side. Thus, the tester does
+969|  not immediately amend the order back to the TOB target.
+970|- Without that flag, the modify waits for the order price to drift from the target
+971|  TOB offset. No movement and no `OrderUpdated` is inconclusive, not a failure.
+972|- Verify the `OrderUpdated` log shows the expected price. If the event never
+973|  arrives after a forced or drift-triggered amend, the order stays in `PendingUpdate`
+974|  and the tester stops modifying it.
+1007|### TC-E31: Modify limit SELL price
+1019|- Same one-shot trigger and quiet-book guidance as TC-E30.
+1052|### TC-E32: Cancel-replace limit BUY
+1064|- This is the universal alternative when the adapter does not support native modify.
+1065|- Two distinct orders in the cache: the canceled original and the new replacement.
+1066|- `trigger_limit_order_maintenance_once=True` requests one cancel directly from the first
+1067|  `OrderAccepted`, then submits the replacement only after `OrderCanceled`.
+1068|- Without the one-shot trigger, cancel-replace waits for TOB drift. No movement and no replacement
+1069|  is inconclusive, not a failure.
+1102|### TC-E33: Cancel-replace limit SELL
+1114|- Same one-shot trigger and quiet-book guidance as TC-E32.
+1147|### TC-E34: Modify stop trigger price
+1159|- Some venues allow limit-order modify but reject trigger-order replace. For those adapters,
+1160|  skip TC-E34 and run TC-E35 instead.
+1189|### TC-E35: Cancel-replace stop order
+1201|- This is the required path for venues that do not support native trigger-order replace.
+1202|- After the new stop is accepted, restart or force reconciliation and verify exactly one
+1203|  current trigger order remains.
+1232|### TC-E36: Modify rejected
+1244|- This tests the adapter's rejection path, not the ExecTester's cancel-replace logic.
+1245|- The rejection reason should indicate that modification is not supported.
+1247|---
+1249|## Group 5: Order cancellation
+1251|Test order cancellation workflows.
+1253|| TC     | Name                       | Description                                       | Skip when        |
+1255|| TC-E40 | Cancel single limit order  | Cancel an open limit order.                       | Never.           |
+1256|| TC-E41 | Cancel all on stop         | Strategy stop cancels all open orders (default).  | Never.           |
+1257|| TC-E42 | Individual cancels on stop | Cancel orders one-by-one on stop.                 | Never.           |
+1258|| TC-E43 | Batch cancel on stop       | Cancel orders via batch API on stop.              | No batch cancel. |
+1259|| TC-E44 | Cancel already-canceled    | Verify documented rejection or idempotent result. | Never.           |
+1261|### TC-E40: Cancel single limit order
+1273|- `cancel_orders_on_stop=True` (default) triggers cancellation when the strategy stops.
+1274|- Verify the `OrderCanceled` event contains the correct `venue_order_id`.
+1305|### TC-E41: Cancel all on stop
+1317|- Default stop uses `cancel_all`. Some venues implement that as account-wide. Confirm
+1318|  the adapter's `CancelAllOrders` scope before running beside other open orders.
+1319|  Use `use_individual_cancels_on_stop` or `use_batch_cancel_on_stop` to isolate.
+1350|### TC-E42: Individual cancels on stop
+1389|### TC-E43: Batch cancel on stop
+1428|### TC-E44: Cancel already-canceled order
+1440|- The default contract tests the adapter's error handling for invalid cancel requests. The
+1441|  rejection reason should indicate the order is not in a cancelable state.
+1442|- `Strategy.cancel_order` and the order manager drop cancels for locally closed orders, so
+1443|  `ExecTester` cannot reach the adapter after TC-E40. A second `cancel_order` that never
+1444|  leaves the process is inconclusive.
+1445|- A venue may treat an already-terminal cancel as idempotent. Document that disposition and use an
+1446|  adapter-focused test that submits `CancelOrder` with the venue order ID after the order is
+1447|  terminal.
+1449|---
+1451|## Group 6: Bracket orders
+1453|Test bracket order submission (entry + take-profit + stop-loss).
+1455|| TC     | Name                         | Description                                     | Skip when           |
+1457|| TC-E50 | Bracket BUY                  | Entry limit buy + TP limit sell + SL stop sell. | No bracket support. |
+1458|| TC-E51 | Bracket SELL                 | Entry limit sell + TP limit buy + SL stop buy.  | No bracket support. |
+1459|| TC-E52 | Bracket entry fill activates | Verify TP/SL become active after entry fill.    | No bracket support. |
+1460|| TC-E53 | Bracket with post-only entry | Entry order uses post-only flag.                | No bracket or PO.   |
+1462|### TC-E50: Bracket BUY
+1505|### TC-E51: Bracket SELL
+1515|### TC-E52: Bracket entry fill activates TP/SL
+1527|- This requires the entry order to actually fill, which may need aggressive pricing.
+1528|- The TP/SL activation mechanism varies by venue (some activate immediately, some are OCA groups).
+1530|### TC-E53: Bracket with post-only entry
+1540|---
+1542|## Group 7: Order flags
+1544|Test order-level flags and special parameters.
+1546|| TC     | Name                | Description                                  | Skip when            |
+1548|| TC-E60 | PostOnly accepted   | Limit with post-only, placed away from TOB.  | No post-only.        |
+1549|| TC-E61 | ReduceOnly on close | Close position with reduce-only flag.        | No reduce-only.      |
+1550|| TC-E62 | Display quantity    | Iceberg order with visible quantity < total. | No display quantity. |
+1551|| TC-E63 | Custom order params | Adapter-specific params via `order_params`.  | N/A.                 |
+1553|### TC-E60: PostOnly accepted
+1592|### TC-E61: ReduceOnly on close
+1635|### TC-E62: Display quantity (iceberg)
+1674|### TC-E63: Custom order params
+1686|- The `order_params` dict is opaque to the ExecTester and passed through to the adapter.
+1687|- Consult the adapter's guide for supported parameters.
+1689|---
+1691|## Group 8: Rejection handling
+1693|Test that the adapter correctly handles and reports order rejections.
+1695|| TC     | Name                   | Description                                      | Skip when       |
+1697|| TC-E70 | PostOnly rejection     | Post-only order that would cross the spread.     | No post-only.   |
+1698|| TC-E71 | ReduceOnly rejection   | Reduce-only order with no position to reduce.    | No reduce-only. |
+1699|| TC-E72 | Unsupported order type | Submit order type not supported by adapter.      | Never.          |
+1700|| TC-E73 | Unsupported TIF        | Submit order with unsupported time in force.     | Never.          |
+1701|| TC-E74 | Ambiguous submit fail  | Transport, timeout, or send failure on submit.   | No mock path.   |
+1702|| TC-E75 | Ambiguous cancel fail  | Transport, timeout, or send failure on cancel.   | No cancel.      |
+1703|| TC-E76 | Ambiguous modify fail  | Transport, timeout, or send failure on modify.   | No modify.      |
+1704|| TC-E77 | Ambiguous batch fail   | Whole-batch failure without per-order result.    | No batch.       |
+1705|| TC-E78 | Per-order batch reject | Batch response has explicit per-order rejection. | No batch.       |
+1707|TC-E74 through TC-E78 are specified collectively below because they usually require a mock HTTP or
+1708|WebSocket boundary rather than a live venue.
+1710|### Ambiguous outcome failures
+1712|These cases prove that adapter request failures do not turn into terminal rejection events when the venue
+1713|outcome is unknown. The pass criteria also define an exception for local prepare failures. The command must be
+1714|known not to have been sent. The failure must be attributable to one cancel or modify command. If both
+1715|conditions hold, the adapter can emit the matching rejection event.
+1719|- Submit failures from transport errors, timeouts, WebSocket send failures, retry exhaustion, or
+1720|  response parse failures do not emit `OrderRejected`.
+1721|- Cancel failures from transport errors, timeouts, WebSocket send failures, retry exhaustion, or
+1722|  whole-request server failures do not emit `OrderCancelRejected`.
+1723|- Modify failures from transport errors, timeouts, WebSocket send failures, retry exhaustion, or
+1724|  whole-request server failures do not emit `OrderModifyRejected`.
+1725|- Local cancel prepare failures that prove the command cannot be sent may emit
+1726|  `OrderCancelRejected` when the adapter can attribute the failure to one cancel command.
+1727|- Local modify prepare failures that prove the command cannot be sent may emit
+1728|  `OrderModifyRejected` when the adapter can attribute the failure to one modify command.
+1729|- Whole-batch request failures do not emit one rejection per order when the venue did not return
+1730|  per-order results.
+1731|- Explicit per-order venue rejections still emit the matching rejection event with the venue
+1732|  reason.
+1734|The order remains in the appropriate in-flight state until a venue update, query result, or
+1735|reconciliation pass resolves it.
+1737|### TC-E70: PostOnly rejection
+1749|- The ExecTester's `test_reject_post_only` mode intentionally prices the order to cross.
+1750|- Some venues may partially fill instead of rejecting. Behavior is venue-specific.
+1751|- Adapters that emit `OrderRejected` for a post-only crossing reject should set
+1752|  `due_post_only=true` so strategies can distinguish this from other venue rejections.
+1785|### TC-E71: ReduceOnly rejection
+1797|- The `test_reject_reduce_only` flag only applies to the opening market order submitted via
+1798|  `open_position_on_start_qty`.
+1799|- Verify no prior position exists for the instrument before running this test.
+1832|### TC-E72: Unsupported order type
+1844|- `OrderDenied` occurs at the adapter level before the order reaches the venue.
+1845|- This differs from the normal `OrderRejected` path, which follows a venue rejection. Reconciliation can also
+1846|  synthesize `OrderRejected`. See [Terminal reconciliation
+1847|  provenance](./../concepts/execution/policies.md#terminal-reconciliation-provenance).
+1848|- Test by configuring a stop order type that the adapter does not support.
+1850|### TC-E73: Unsupported TIF
+1862|- Similar to TC-E72 but for time-in-force options.
+1863|- Test with TIF values from the Nautilus enum that the adapter does not map.
+1865|---
+1867|## Group 9: Lifecycle and reconciliation
+1869|Test strategy lifecycle behavior and execution-state recovery on start, stop, and report failure.
+1871|TC-E88 and TC-E89 run offline as deterministic adapter unit or integration tests rather than through
+1872|`ExecTester` against a venue.
+1874|| TC     | Name                              | Description                                              | Skip when                                   |
+1876|| TC-E80 | Open position on start            | Open a position immediately when strategy starts.        | No market orders.                           |
+1877|| TC-E81 | Cancel orders on stop             | Cancel all open orders when strategy stops.              | Never.                                      |
+1878|| TC-E82 | Close positions on stop           | Close open positions when strategy stops.                | No market orders.                           |
+1879|| TC-E83 | Unsubscribe on stop               | Unsubscribe from data feeds on strategy stop.            | No unsub support.                           |
+1880|| TC-E84 | Reconcile open orders             | Reconcile existing open orders from a prior session.     | Never.                                      |
+1881|| TC-E85 | Reconcile filled orders           | Reconcile previously filled orders from a prior session. | Never.                                      |
+1882|| TC-E86 | Reconcile open long               | Reconcile existing open long position.                   | Never.                                      |
+1883|| TC-E87 | Reconcile open short              | Reconcile existing open short position.                  | Never.                                      |
+1884|| TC-E88 | Reconciliation commission failure | A required fill commission cannot be represented.        | No fill commission logic.                   |
+1885|| TC-E89 | WebSocket commission failure      | A private fill commission cannot be represented.         | No private fill stream or commission logic. |
+1887|### TC-E80: Open position on start
+1922|### TC-E81: Cancel orders on stop
+1932|### TC-E82: Close positions on stop
+1942|### TC-E83: Unsubscribe on stop
+1977|### TC-E84: Reconcile open orders
+1989|- Leave limit orders open from a prior test session (do not cancel on stop).
+1990|- Configure `external_order_instrument_ids` so strategy registration creates the active claim used
+1991|  to assign reconciled orders.
+1992|- Verify that the reconciled order count matches the venue-reported count.
+1993|- Mass-status may include historical terminal orders. Unclaimed ones appear as EXTERNAL.
+1994|  Compare open-order counts against the venue open-order endpoint, not the full mass-status
+1995|  length.
+1996|- Report `ts_event` values must be Unix nanoseconds even when the venue only has second precision.
+1998|### TC-E85: Reconcile filled orders
+2010|- Requires orders that filled in a prior session.
+2011|- Verify fill price, quantity, and commission match the venue's reported values.
+2012|- Some adapters may only report fills within a lookback window.
+2013|- Historical fill replay can change a live zero commission to the REST fee. That flip is
+2014|  expected when the stream omits fees and reconciliation supplies them.
+2015|- Report `ts_event` values must be Unix nanoseconds even when the venue only has second precision.
+2017|### TC-E86: Reconcile open long position
+2029|- Open a long position in a prior session and stop the strategy without closing it
+2030|  (`close_positions_on_stop=False`).
+2031|- Verify the reconciled position quantity and average entry price match the venue.
+2032|- After reconciliation, the strategy should be able to manage or close this position.
+2034|### TC-E87: Reconcile open short position
+2046|- Open a short position in a prior session and stop the strategy without closing it
+2047|  (`close_positions_on_stop=False`).
+2048|- Verify the reconciled position quantity and average entry price match the venue.
+2049|- After reconciliation, the strategy should be able to manage or close this position.
+2051|### TC-E88: Reconciliation commission failure
+2063|- Assert that no zero or generic commission replaces the failed venue calculation.
+2064|- Exercise the inferred-fill hook as well as direct `FillReport` construction.
+2065|- Skip the inferred-fill portion when the adapter does not override the shared commission hook.
+2066|- Assert that hook quantity, price, and liquidity inputs match the emitted inferred fill. Include the
+2067|  back-solved price of an incremental residual after a prior fill.
+2068|- Valid explicit fills may apply, but the residual quantity and dependent terminal transition stay
+2069|  pending.
+2070|- A position-only synthetic correction without trade evidence is not a commission calculation
+2071|  failure.
+2073|### TC-E89: WebSocket commission failure
+2085|- For a venue trade that fills several owned orders, make one report fail. Assert that the first delivery
+2086|  emits none of those reports. This prevents a replay from duplicating reports built before the failure.
+2087|- Assert that the adapter consumes the deduplication key only after all reports construct and route
+2088|  successfully.
+2089|- Assert that a failed trade does not confirm or terminalize its order.
+2091|---
+2093|## Group 10: Options trading
+2095|Test options-specific execution behavior. Options instruments typically have different constraints from linear
+2096|derivatives: venues may restrict order types, support alternative pricing modes, or disallow conditional
+2097|orders. Exact restrictions vary by venue. Consult the adapter guide.
+2099|These tests require a `CryptoOption` instrument. Use an OTM option with
+2100|reasonable liquidity for fills.
+2102|| TC      | Name                          | Description                                                           | Skip when           |
+2104|| TC-E90  | Limit BUY option              | Place a limit buy on an option instrument.                            | No options support. |
+2105|| TC-E91  | Limit SELL option             | Place a limit sell on an option instrument.                           | No options support. |
+2106|| TC-E92  | Limit with alt pricing        | Place a limit order with adapter-specific pricing via `order_params`. | No alt pricing.     |
+2107|| TC-E94  | Unsupported order type denied | Submit an order type the adapter rejects for options.                 | No options support. |
+2108|| TC-E96  | Conditional order rejected    | Submit a stop/conditional order on an option. Expect rejection.       | No options support. |
+2109|| TC-E99  | FOK limit option              | Place a FOK limit order on an option instrument.                      | No FOK options.     |
+2110|| TC-E100 | Cancel option order           | Cancel an open limit order on an option instrument.                   | No options support. |
+2111|| TC-E101 | Reconcile option position     | Reconcile an open option position from a prior session.               | No options support. |
+2113|### TC-E90: Limit BUY option
+2135|### TC-E91: Limit SELL option
+2157|### TC-E92: Limit with alternative pricing
+2169|- The `price` field on the order object may be a placeholder when alternative pricing
+2170|  is active. Consult the adapter guide for supported parameter keys.
+2171|- Example: OKX supports `px_usd` (USD price) and `px_vol` (implied volatility).
+2172|- Verify in venue responses that the pricing mode is reflected correctly.
+2186|### TC-E94: Unsupported order type denied for options
+2198|- The exact rejection point varies by adapter. Some adapters deny locally before submitting. Others submit and
+2199|  relay the venue rejection.
+2200|- ExecTester can trigger a market order via `open_position_on_start_qty` on an
+2201|  option instrument. Some unsupported types (e.g. `MarketToLimit`) require
+2202|  manual or programmatic submission.
+2203|- Test each unsupported type the adapter documents.
+2205|### TC-E96: Conditional order rejected for options
+2217|- Test each conditional type the adapter documents as unsupported for options
+2218|  (e.g. `STOP_MARKET`, `STOP_LIMIT`, `MARKET_IF_TOUCHED`, `LIMIT_IF_TOUCHED`,
+2219|  `TRAILING_STOP_MARKET`).
+2220|- ExecTester can trigger conditional orders via `enable_stop_buys`/`enable_stop_sells`
+2221|  with `stop_order_type` on an option instrument.
+2223|### TC-E99: FOK limit option
+2235|- Some venues use a dedicated order type for options FOK orders (e.g. OKX uses
+2236|  `op_fok`). The adapter handles this mapping transparently.
+2237|- Use small quantities and aggressive pricing to get a fill for the positive case.
+2239|### TC-E100: Cancel option order
+2249|### TC-E101: Reconcile option position
+2261|- Open an option position in a prior session and stop without closing
+2262|  (`close_positions_on_stop=False`).
+2263|- Verify the reconciled position matches the venue-reported state.
+2265|---
+2267|## ExecTester configuration reference
+2269|Quick reference for each Python `ExecTesterConfig` parameter. Defaults are resolved values after construction.
+2270|The Rust builder uses equivalent defaults.
+2272|| Parameter                                       | Type                  | Default                | Affects groups |
+2274|| `strategy_id`                                   | `StrategyId?`         | `None`                 | All            |
+2275|| `order_id_tag`                                  | `str?`                | `None`                 | All            |
+2276|| `use_hyphens_in_client_order_ids`               | `bool`                | `True`                 | All            |
+2277|| `use_uuid_client_order_ids`                     | `bool`                | `False`                | All            |
+2278|| `external_order_instrument_ids`                 | `list[InstrumentId]?` | `None`                 | 9              |
+2279|| `instrument_id`                                 | `InstrumentId`        | `BTCUSDT-PERP.BINANCE` | All            |
+2280|| `client_id`                                     | `ClientId?`           | `None`                 | All            |
+2281|| `order_qty`                                     | `Quantity`            | `0.001`                | All            |
+2282|| `order_display_qty`                             | `Quantity?`           | `None`                 | 2, 7           |
+2283|| `order_expire_time_delta_mins`                  | `PositiveInt?`        | `None`                 | 2              |
+2284|| `order_params`                                  | `dict?`               | `None`                 | 7, 10          |
+2285|| `subscribe_book`                                | `bool`                | `False`                |                |
+2286|| `subscribe_quotes`                              | `bool`                | `True`                 |                |
+2287|| `subscribe_trades`                              | `bool`                | `True`                 |                |
+2288|| `book_type`                                     | `BookType`            | `L2_MBP`               |                |
+2289|| `book_depth`                                    | `PositiveInt?`        | `None`                 |                |
+2290|| `book_interval_ms`                              | `PositiveInt`         | `1000`                 |                |
+2291|| `book_levels_to_print`                          | `PositiveInt`         | `10`                   |                |
+2292|| `open_position_on_start_qty`                    | `Decimal?`            | `None`                 | 1, 9           |
+2293|| `open_position_on_first_quote`                  | `bool`                | `False`                | 1              |
+2294|| `open_position_time_in_force`                   | `TimeInForce`         | `GTC`                  | 1              |
+2295|| `enable_limit_buys`                             | `bool`                | `True`                 | 2, 4, 5, 6     |
+2296|| `enable_limit_sells`                            | `bool`                | `True`                 | 2, 4, 5, 6     |
+2297|| `enable_stop_buys`                              | `bool`                | `False`                | 3, 4           |
+2298|| `enable_stop_sells`                             | `bool`                | `False`                | 3, 4           |
+2299|| `tob_offset_ticks`                              | `PositiveInt`         | `500`                  | 2, 4           |
+2300|| `limit_time_in_force`                           | `TimeInForce?`        | `None`                 | 2, 6           |
+2301|| `stop_order_type`                               | `OrderType`           | `STOP_MARKET`          | 3              |
+2302|| `stop_offset_ticks`                             | `PositiveInt`         | `100`                  | 3              |
+2303|| `stop_limit_offset_ticks`                       | `PositiveInt?`        | `None`                 | 3              |
+2304|| `stop_trigger_type`                             | `TriggerType`         | `DEFAULT`              | 3              |
+2305|| `stop_time_in_force`                            | `TimeInForce?`        | `None`                 | 3              |
+2306|| `trailing_offset`                               | `Decimal?`            | `None`                 | 3              |
+2307|| `trailing_offset_type`                          | `TrailingOffsetType`  | `BASIS_POINTS`         | 3              |
+2308|| `enable_brackets`                               | `bool`                | `False`                | 6              |
+2309|| `batch_submit_limit_pair`                       | `bool`                | `False`                | 2, 5           |
+2310|| `bracket_entry_order_type`                      | `OrderType`           | `LIMIT`                | 6              |
+2311|| `bracket_offset_ticks`                          | `PositiveInt`         | `500`                  | 6              |
+2312|| `modify_orders_to_maintain_tob_offset`          | `bool`                | `False`                | 4              |
+2313|| `modify_stop_orders_to_maintain_offset`         | `bool`                | `False`                | 4              |
+2314|| `cancel_replace_orders_to_maintain_tob_offset`  | `bool`                | `False`                | 4              |
+2315|| `cancel_replace_stop_orders_to_maintain_offset` | `bool`                | `False`                | 4              |
+2316|| `trigger_limit_order_maintenance_once`          | `bool`                | `False`                | 4              |
+2317|| `use_post_only`                                 | `bool`                | `False`                | 2, 6, 7, 8     |
+2318|| `limit_aggressive`                              | `bool`                | `False`                | 2              |
+2319|| `use_quote_quantity`                            | `bool`                | `False`                | 1, 7           |
+2320|| `emulation_trigger`                             | `TriggerType?`        | `None`                 | 2, 3           |
+2321|| `use_individual_cancels_on_stop`                | `bool`                | `False`                | 5              |
+2322|| `cancel_orders_on_stop`                         | `bool`                | `True`                 | 5, 9           |
+2323|| `close_positions_on_stop`                       | `bool`                | `True`                 | 9              |
+2324|| `close_positions_qty_precision`                 | `int?`                | `None`                 | 9              |
+2325|| `close_positions_time_in_force`                 | `TimeInForce?`        | `None`                 | 9              |
+2326|| `reduce_only_on_stop`                           | `bool`                | `True`                 | 7, 9           |
+2327|| `use_batch_cancel_on_stop`                      | `bool`                | `False`                | 5              |
+2328|| `dry_run`                                       | `bool`                | `False`                |                |
+2329|| `log_data`                                      | `bool`                | `True`                 |                |
+2330|| `test_reject_post_only`                         | `bool`                | `False`                | 8              |
+2331|| `test_reject_reduce_only`                       | `bool`                | `False`                | 8              |
+2332|| `test_modify_rejected`                          | `bool`                | `False`                | 4              |
+2333|| `can_unsubscribe`                               | `bool`                | `True`                 | 9              |
+2334|| `clamp_to_instrument_price_range`               | `bool`                | `False`                | 1-8, 10        |
+2335|| `log_events`                                    | `bool`                | `True`                 | All            |
+2336|| `log_commands`                                  | `bool`                | `True`                 | All            |

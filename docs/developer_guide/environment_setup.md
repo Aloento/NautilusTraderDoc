@@ -349,8 +349,7 @@ Make 的编译目标还传 `--locked`，让 Cargo 在遇到检查未曾见过的
 信任；数据库缺失的版本到 crates.io 查询，注册表不可达时按失败处理
 （fail closed）。干净的 Git diff 证明不了依赖足够旧。
 
-分支可能在新引入版本旁添加一条日期回填的数据库条目。`trusted-base =
-"origin/develop"` 设置补上这个缺口：对 `origin/develop` 缺少的每个数据库条目，
+分支可能在新引入版本旁添加一条日期回填的数据库条目。`trusted-base = "origin/develop"` 设置补上这个缺口：对 `origin/develop` 缺少的每个数据库条目，
 检查都会对 crates.io 重新验证，然后缓存通过结果。分支只有在自己或
 `origin/develop` 变化时才重复这些请求，不是每次构建都发。
 
