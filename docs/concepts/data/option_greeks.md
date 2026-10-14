@@ -7,7 +7,7 @@
 | 字段               | Rust 类型           | Python 类型        | 必填/默认值 | 说明                                      |
 | ------------------ | ------------------- | ------------------ | ---------------- | ------------------------------------------ |
 | `instrument_id`    | `InstrumentId`      | `InstrumentId`     | 必填         | 希腊字母对应的期权工具。          |
-| `convention`       | `GreeksConvention`  | `GreeksConvention` | 默认值          | 数值的计价单位（numeraire）约定。       |
+| `convention`       | `GreeksConvention`  | `GreeksConvention` | 默认值          | 数值的计价基准（numeraire）约定。       |
 | `greeks`           | `OptionGreekValues` | 多个独立 float    | 必填         | Delta、gamma、vega、theta 和 rho。        |
 | `mark_iv`          | `Option<f64>`       | `float \| None`    | `None`           | 标记隐含波动率。                   |
 | `bid_iv`           | `Option<f64>`       | `float \| None`    | `None`           | 买价隐含波动率。                    |

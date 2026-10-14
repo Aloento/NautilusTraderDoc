@@ -1,121 +1,111 @@
 # Tardis
 
-Tardis provides granular cryptocurrency market data, including tick-by-tick order book snapshots and
-updates, trades, open interest, funding rates, option summaries, and liquidations.
+Tardis 提供细粒度的加密货币行情数据，包括逐笔订单簿快照与增量、成交、未平仓合约量、资金费率、期权摘要
+和平仓数据。
 
-NautilusTrader integrates with the Tardis API, Tardis Machine WebSocket server, and Tardis CSV
-formats. The capabilities of this adapter include:
+NautilusTrader 集成了 Tardis API、Tardis Machine WebSocket 服务器和 Tardis CSV 格式。该适配器的能力包括：
 
-- CSV loading and streaming functions read Tardis-format files into Nautilus data in bulk or
-  bounded chunks.
-- `run_tardis_machine_replay` replays historical data and writes Nautilus Parquet catalog files.
-- `TardisDataClientConfig` and `TardisDataClientFactory` connect a Nautilus node to a configured
-  historical replay or real-time Tardis Machine stream.
-- Python and Rust expose `TardisMachineClient` and `TardisHttpClient` for lower-level access to
-  normalized streams and instrument metadata.
+- CSV 加载与流式函数把 Tardis 格式的文件批量或有界分块地读入为 Nautilus 数据。
+- `run_tardis_machine_replay` 回放历史数据并写出 Nautilus Parquet catalog 文件。
+- `TardisDataClientConfig` 与 `TardisDataClientFactory` 把 Nautilus 节点连接到配置好的历史回放或
+  实时 Tardis Machine 数据流。
+- Python 与 Rust 均暴露 `TardisMachineClient` 和 `TardisHttpClient`，用于更底层地访问归一化数据流
+  与金融工具元数据。
 
 :::info
-A `TARDIS_API_KEY` is required for Nautilus instrument metadata calls. Tardis Machine uses
-`TM_API_KEY` for historical dates outside the free first day of each month. See also
-[environment variables](#environment-variables).
+Nautilus 的金融工具元数据调用需要 `TARDIS_API_KEY`。Tardis Machine 在访问每月免费首日之外的历史日期时
+使用 `TM_API_KEY`。另见[环境变量](#environment-variables)。
 :::
 
-## Overview
+## 概览 {#overview}
 
-The adapter is implemented in Rust with optional Python bindings. Its components are compiled into
-NautilusTrader, so it does not require a separate Tardis client library installation. Consult the
-[Tardis documentation](https://docs.tardis.dev/) for the upstream APIs, formats, and server.
+该适配器用 Rust 实现，附带可选的 Python 绑定。其组件编译进 NautilusTrader，因此无需单独安装 Tardis
+客户端库。上游 API、格式与服务器请查阅 [Tardis 文档](https://docs.tardis.dev/)。
 
-The minimum tested Tardis Node version used by Tardis Machine is **18.2.2**. This release fixes
-Deribit order book normalization when queued updates already covered by a snapshot arrive after it.
-NautilusTrader does not pin the version in your Tardis Machine deployment.
+Tardis Machine 使用的最低已测试 Tardis Node 版本为 **18.2.2**。该版本修复了 Deribit 订单簿归一化中的
+一个问题：已被快照覆盖的排队增量在快照之后到达时的处理。NautilusTrader 不会在你的 Tardis Machine
+部署中锁定版本。
 
-## Supported formats
+## 支持的格式 {#supported-formats}
 
-Tardis provides *normalized* market data, a unified format consistent across supported exchanges.
-This normalization lets one parser handle data from any [Tardis-supported exchange](#venues).
-NautilusTrader does not support exchange-native Tardis market data formats in this adapter.
+Tardis 提供*归一化*行情数据，一种在各支持交易所间统一的格式。这一归一化让同一个解析器能处理来自任何
+[Tardis 支持的交易所](#venues)的数据。本适配器不支持交易所原生格式的 Tardis 行情数据。
 
-The following normalized Tardis Machine formats are supported by NautilusTrader. See the official
-[Tardis data type reference](https://docs.tardis.dev/tardis-machine/data-types) for field schemas.
+NautilusTrader 支持下列归一化的 Tardis Machine 格式。字段 schema 见官方
+[Tardis 数据类型参考](https://docs.tardis.dev/tardis-machine/data-types)。
 
-| Tardis format       | Nautilus data type                                            |
+| Tardis 格式 | Nautilus 数据类型 |
 | :------------------ | :------------------------------------------------------------ |
 | `book_change`       | `OrderBookDeltas`                                             |
-| `book_snapshot_*`   | `OrderBookDepth` or `OrderBookDeltas`                         |
+| `book_snapshot_*`   | `OrderBookDepth` 或 `OrderBookDeltas`                         |
 | `quote`             | `QuoteTick`                                                   |
 | `quote_10s`         | `QuoteTick`                                                   |
 | `trade`             | `TradeTick`                                                   |
 | `trade_bar_*`       | `Bar`                                                         |
-| `derivative_ticker` | `FundingRateUpdate`, `MarkPriceUpdate`, or `IndexPriceUpdate` |
-| `option_summary`    | `OptionGreeks`; optional `QuoteTick` from BBO fields          |
-| `disconnect`        | Ignored                                                       |
+| `derivative_ticker` | `FundingRateUpdate`、`MarkPriceUpdate` 或 `IndexPriceUpdate` |
+| `option_summary`    | `OptionGreeks`；可由 BBO 字段产生可选的 `QuoteTick`          |
+| `disconnect`        | 忽略                                                          |
 
-**Notes**:
+**说明**：
 
-- Tardis documents `quote` as an alias for `book_snapshot_1_0ms`.
-- Tardis documents `quote_10s` as an alias for `book_snapshot_1_10s`.
-- `quote`, `quote_10s`, and one-level snapshots are parsed as `QuoteTick`.
-- The data client emits funding rate, mark price, and index price updates from `derivative_ticker`
-  messages only when their values change. The catalog replay pipeline does not write these updates.
-- Tardis `option_summary` messages include best bid/offer fields. Nautilus always maps this feed to
-  `OptionGreeks`. Set `extract_bbo_as_quotes` to `true` to also emit `QuoteTick` from those BBO fields.
-- The adapter does not parse the Tardis `book_ticker`, `liquidation`, or `error` normalized formats.
+- Tardis 文档把 `quote` 记为 `book_snapshot_1_0ms` 的别名。
+- Tardis 文档把 `quote_10s` 记为 `book_snapshot_1_10s` 的别名。
+- `quote`、`quote_10s` 和单档快照按 `QuoteTick` 解析。
+- 数据客户端只在数值变化时，才从 `derivative_ticker` 消息发出资金费率、标记价格与指数价格更新。
+  catalog 回放流水线不写这些更新。
+- Tardis 的 `option_summary` 消息包含最优买卖价字段。Nautilus 总是把该数据流映射为
+  `OptionGreeks`。设 `extract_bbo_as_quotes` 为 `true` 可同时从这些 BBO 字段发出 `QuoteTick`。
+- 适配器不解析 Tardis 的 `book_ticker`、`liquidation` 或 `error` 归一化格式。
 
 :::info
-See also the Tardis [Tardis Machine quickstart](https://docs.tardis.dev/tardis-machine/quickstart).
+另见 Tardis 的 [Tardis Machine 快速上手](https://docs.tardis.dev/tardis-machine/quickstart)。
 :::
 
-## Bars
+## K 线 {#bars}
 
-The adapter converts Tardis trade bar intervals and suffixes to Nautilus `BarType`s.
-This includes the following:
+适配器把 Tardis 成交 K 线的间隔与后缀转换为 Nautilus `BarType`，包括下列对应关系：
 
-| Tardis suffix | Meaning         | Nautilus bar aggregation   |
+| Tardis 后缀 | 含义 | Nautilus K 线聚合 |
 | :------------ | :-------------- | :------------------------- |
-| `ms`          | Milliseconds    | `MILLISECOND`              |
-| `s`           | Seconds         | `SECOND`                   |
-| `m`           | Minutes         | `MINUTE`, `HOUR`, or `DAY` |
-| `ticks`       | Number of ticks | `TICK`                     |
-| `vol`         | Volume size     | `VOLUME`                   |
+| `ms`          | 毫秒            | `MILLISECOND`              |
+| `s`           | 秒              | `SECOND`                   |
+| `m`           | 分钟            | `MINUTE`、`HOUR` 或 `DAY`  |
+| `ticks`       | 笔数            | `TICK`                     |
+| `vol`         | 成交量规模      | `VOLUME`                   |
 
-Minute intervals that divide evenly into hours or days use the canonical Nautilus `HOUR` or `DAY`
-aggregation.
+能整除小时或天的分钟间隔使用规范的 Nautilus `HOUR` 或 `DAY` 聚合。
 
-## Symbology and normalization
+## 符号与归一化 {#symbology-and-normalization}
 
-The Tardis integration normalizes symbols consistently for compatibility with NautilusTrader's crypto exchange
-adapters. NautilusTrader usually uses the native exchange names supplied by Tardis. For some exchanges, it
-adjusts raw symbols to match Nautilus symbology, as shown below:
+Tardis 集成以与 NautilusTrader 加密交易所适配器兼容的方式归一化符号。NautilusTrader 通常使用 Tardis
+提供的交易所原生名称。对某些交易所，它会把原始符号调整为 Nautilus 符号，如下所示：
 
-### Common rules
+### 通用规则 {#common-rules}
 
-- All symbols are converted to uppercase.
-- Market type suffixes are appended with a hyphen for some exchanges.
-- Original exchange symbols are preserved in the Nautilus instrument definitions `raw_symbol` field.
+- 所有符号都转为大写。
+- 部分交易所的市场类型后缀用连字符追加。
+- 原始交易所符号保留在 Nautilus 金融工具定义的 `raw_symbol` 字段中。
 
-### Exchange-specific normalizations
+### 各交易所特有的归一化 {#exchange-specific-normalizations}
 
-- **Binance**: Nautilus appends the suffix `-PERP` to perpetual symbols from `binance`,
-  `binance-futures`, `binance-us`, `binance-dex`, and `binance-jersey`.
-- **Bybit**: Nautilus uses product category suffixes, including `-SPOT`, `-LINEAR`,
-  `-INVERSE`, and `-OPTION`.
-- **dYdX v3**: Nautilus appends the suffix `-PERP` to perpetual symbols from `dydx`.
-- **Gate.io**: Nautilus appends the suffix `-PERP` to perpetual symbols from `gate-io-futures`.
-- **MEXC**: Nautilus appends the suffix `-PERP` to perpetual symbols from `mexc-futures`.
+- **Binance**：Nautilus 给 `binance`、`binance-futures`、`binance-us`、`binance-dex` 和
+  `binance-jersey` 的永续符号追加后缀 `-PERP`。
+- **Bybit**：Nautilus 使用产品类别后缀，包括 `-SPOT`、`-LINEAR`、`-INVERSE` 和 `-OPTION`。
+- **dYdX v3**：Nautilus 给 `dydx` 的永续符号追加后缀 `-PERP`。
+- **Gate.io**：Nautilus 给 `gate-io-futures` 的永续符号追加后缀 `-PERP`。
+- **MEXC**：Nautilus 给 `mexc-futures` 的永续符号追加后缀 `-PERP`。
 
-For detailed symbology documentation per exchange:
+各交易所的详细符号文档：
 
-- [Binance symbology](./binance.md#symbology)
-- [Bybit symbology](./bybit.md#symbology)
-- [dYdX symbology](./dydx.md#symbology)
+- [Binance 符号](./binance.md#symbology)
+- [Bybit 符号](./bybit.md#symbology)
+- [dYdX 符号](./dydx.md#symbology)
 
-## Venues
+## 交易场所 {#venues}
 
-Some exchanges on Tardis are partitioned into multiple venues.
-The table below outlines the mappings between Nautilus venues and corresponding Tardis exchanges:
+Tardis 上的部分交易所被划分为多个交易场所。下表列出 Nautilus 交易场所与对应 Tardis 交易所之间的映射：
 
-| Nautilus venue     | Tardis exchange(s)                                                                                           |
+| Nautilus 交易场所 | Tardis 交易所 |
 | :----------------- | :----------------------------------------------------------------------------------------------------------- |
 | `ASCENDEX`         | `ascendex`                                                                                                   |
 | `BINANCE`          | `binance`, `binance-dex`, `binance-european-options`, `binance-futures`, `binance-jersey`, `binance-options` |
@@ -159,93 +149,79 @@ The table below outlines the mappings between Nautilus venues and corresponding 
 | `UPBIT`            | `upbit`                                                                                                      |
 | `WOO_X`            | `woo-x`                                                                                                      |
 
-Some exchange IDs represent delisted venues retained for historical data. Consult the official
-[historical data details](https://docs.tardis.dev/historical-data-details) for availability and
-delisting status.
+部分交易所 ID 代表为保留历史数据而保留的下架交易场所。可用性与下架状态见官方
+[历史数据详情](https://docs.tardis.dev/historical-data-details)。
 
-Tardis Node [18.2.3](https://github.com/tardis-dev/tardis-node/releases/tag/18.2.3) removes BitMEX
-real-time streaming. Historical BitMEX replay, channels, and normalization remain supported.
+Tardis Node [18.2.3](https://github.com/tardis-dev/tardis-node/releases/tag/18.2.3) 移除了 BitMEX
+的实时数据流。BitMEX 的历史回放、通道与归一化仍然支持。
 
-## Environment variables
+## 环境变量 {#environment-variables}
 
-The following environment variables are used by Tardis and NautilusTrader.
+Tardis 与 NautilusTrader 使用以下环境变量。
 
-- `TM_API_KEY`: API key passed to the Tardis Machine process for historical data access.
-- `TARDIS_API_KEY`: API key for Nautilus instrument metadata requests.
-- `TARDIS_MACHINE_WS_URL` (optional): Tardis Machine WebSocket base URL.
-- `NAUTILUS_PATH` (optional): Parent directory containing the `catalog/` subdirectory for
-  replay output.
+- `TM_API_KEY`：传给 Tardis Machine 进程、用于访问历史数据的 API key。
+- `TARDIS_API_KEY`：Nautilus 金融工具元数据请求用的 API key。
+- `TARDIS_MACHINE_WS_URL`（可选）：Tardis Machine WebSocket 基础 URL。
+- `NAUTILUS_PATH`（可选）：包含回放输出用 `catalog/` 子目录的父目录。
 
-The Tardis instruments metadata API requires bearer-token authorization and is available to active
-pro and business Tardis subscriptions.
+Tardis 金融工具元数据 API 需要 bearer token 鉴权，仅对有效的 pro 与 business Tardis 订阅开放。
 
-## Running Tardis Machine historical replays
+## 运行 Tardis Machine 历史回放 {#running-tardis-machine-historical-replays}
 
-The [Tardis Machine Server](https://docs.tardis.dev/tardis-machine/quickstart) is a locally
-runnable server with built-in data caching. It provides tick-level historical and consolidated
-real-time cryptocurrency market data through HTTP and WebSocket APIs.
+[Tardis Machine Server](https://docs.tardis.dev/tardis-machine/quickstart) 是一个可本地运行、
+内置数据缓存的服务器。它通过 HTTP 与 WebSocket API 提供 tick 级的历史与合并后的实时加密货币行情数据。
 
 :::warning
-If you cancel a historical WebSocket replay before completion, Tardis Machine 18.2.2 can terminate. This
-occurs with Tardis Node 18.2.3 on Node.js 26.7.0. The replay can leave a cached-file handle open, causing an
-`ERR_INVALID_STATE` error when garbage collection closes it. The server exit also interrupts other connected
-clients.
+若在完成之前取消历史 WebSocket 回放，Tardis Machine 18.2.2 可能终止。该问题出现在
+Node.js 26.7.0 上运行的 Tardis Node 18.2.3。回放可能留着缓存文件句柄不关闭，垃圾回收关闭它时
+引发 `ERR_INVALID_STATE` 错误。服务器退出还会中断其他已连接的客户端。
 
-Let replays finish where practical. The same server on Node.js 24.19.0 avoids the observed crash, but still
-produces a `DEP0137` warning. It does not fix the upstream file-handle leak.
+尽可能让回放自然结束。同一服务器跑在 Node.js 24.19.0 上可避开观测到的崩溃，但仍会产生
+`DEP0137` 警告。这并没有修复上游的文件句柄泄漏。
 :::
 
-You can run complete Tardis Machine WebSocket replays from Python or Rust and write the results in
-Nautilus Parquet format. Both interfaces call the same Rust replay implementation.
+你可以从 Python 或 Rust 运行完整的 Tardis Machine WebSocket 回放，并以 Nautilus Parquet 格式写出
+结果。两种接口调用的是同一个 Rust 回放实现。
 
-The end-to-end `run_tardis_machine_replay` data pipeline function uses a specified
-[configuration](#configuration) to execute the following steps:
+端到端的数据流水线函数 `run_tardis_machine_replay` 按指定的[配置](#configuration)执行以下步骤：
 
-- Connect to the Tardis Machine server.
-- Request and parse all instrument definitions for the configured exchanges from the Tardis
-  instruments metadata API.
-- Stream all requested instruments and data types for the specified time ranges from Tardis Machine.
-- For each data type and date (UTC), write catalog-compatible `.parquet` files by instrument or
-  bar type.
-- Finish the stream and flush the remaining data to disk.
+- 连接 Tardis Machine 服务器。
+- 从 Tardis 金融工具元数据 API 请求并解析所配置交易所的全部金融工具定义。
+- 从 Tardis Machine 按指定时间范围流式获取所有请求的金融工具与数据类型。
+- 按数据类型与日期（UTC），以金融工具或 bar type 写出与 catalog 兼容的 `.parquet` 文件。
+- 结束数据流并把剩余数据刷写到磁盘。
 
-### Output files
+### 输出文件 {#output-files}
 
-Files are written one per UTC day and instrument, or per bar type, using ISO 8601 timestamp ranges:
+文件按 UTC 每个交易日、每个金融工具一个（或按 bar type 一个）写出，文件名用 ISO 8601 时间戳范围：
 
-- **Format**: `{start_timestamp}_{end_timestamp}.parquet`
-- **Example**: `2023-10-01T00-00-00-000000000Z_2023-10-01T23-59-59-999999999Z.parquet`
-- **Relative path**: `{data_type}/{instrument_id}/{filename}`, or `bars/{bar_type}/{filename}` for
-  bars.
+- **格式**：`{start_timestamp}_{end_timestamp}.parquet`
+- **示例**：`2023-10-01T00-00-00-000000000Z_2023-10-01T23-59-59-999999999Z.parquet`
+- **相对路径**：`{data_type}/{instrument_id}/{filename}`；K 线则为 `bars/{bar_type}/{filename}`。
 
-This format is compatible with Nautilus data catalog queries, consolidation, and management.
+该格式与 Nautilus 数据 catalog 的查询、合并与管理兼容。
 
 :::note
-You can request data for the first day of each month without a Tardis Machine API key. Other
-dates require `TM_API_KEY`.
+每月第一天的数据无需 Tardis Machine API key 即可请求。其他日期需要 `TM_API_KEY`。
 :::
 
-This process is optimized for direct output to a Nautilus Parquet data catalog.
-Set `NAUTILUS_PATH` to the parent directory that contains the `catalog/` subdirectory. Parquet
-files are written under `<NAUTILUS_PATH>/catalog/data/` in subdirectories by data type and
-instrument or bar type.
+该流程针对直接输出到 Nautilus Parquet 数据 catalog 做了优化。
+把 `NAUTILUS_PATH` 设为包含 `catalog/` 子目录的父目录。Parquet 文件写入
+`<NAUTILUS_PATH>/catalog/data/` 下，按数据类型与金融工具或 bar type 分子目录。
 
-If no `output_path` is specified and `NAUTILUS_PATH` is unset, output defaults to the current
-working directory.
+若既未指定 `output_path` 也未设置 `NAUTILUS_PATH`，输出默认为当前工作目录。
 
-### Procedure
+### 步骤 {#procedure}
 
 :::warning
-Do not publish Tardis Machine ports on the host address `0.0.0.0`. Docker
-[publishes ports on all host interfaces by default](https://docs.docker.com/engine/network/port-publishing/)
-when a mapping omits the host address. On Linux, Docker
-[diverts published container traffic before `ufw` applies its rules](https://docs.docker.com/engine/network/packet-filtering-firewalls/#docker-and-ufw),
-which can bypass the expected firewall restrictions. Bind both ports to `127.0.0.1` unless you
-require and separately secure remote access.
+不要把 Tardis Machine 端口发布到主机地址 `0.0.0.0`。端口映射省略主机地址时，Docker
+[默认在所有主机接口上发布端口](https://docs.docker.com/engine/network/port-publishing/)。
+在 Linux 上，Docker [会在 `ufw` 应用规则之前转移已发布的容器流量](https://docs.docker.com/engine/network/packet-filtering-firewalls/#docker-and-ufw)，
+可能绕过预期的防火墙限制。除非确实需要并另行加固了远程访问，两个端口都应绑定 `127.0.0.1`。
 :::
 
-For dates outside the free first day of each month, set `TM_API_KEY` in the host environment. Then
-start the `tardis-machine` Docker container:
+对于每月免费首日之外的日期，先在主机环境中设置 `TM_API_KEY`，再启动
+`tardis-machine` Docker 容器：
 
 ```bash
 docker run \
@@ -255,32 +231,32 @@ docker run \
   -d tardisdev/tardis-machine
 ```
 
-This command starts the `tardis-machine` server without a persistent local cache, which may affect
-performance. For better replay performance, run it with a persistent volume.
+该命令启动的 `tardis-machine` 服务器没有持久化本地缓存，可能影响性能。要获得更好的回放性能，
+请配合持久卷运行。
 
-### Configuration
+### 配置 {#configuration}
 
-Next, ensure you have a configuration JSON file available.
+接下来，确保手边有一份配置 JSON 文件。
 
-**Configuration JSON fields**
+**配置 JSON 字段**
 
-- `tardis_ws_url` (`str | null`): Tardis Machine WebSocket URL. Defaults to
-  `TARDIS_MACHINE_WS_URL`.
-- `tardis_http_url` (`str | null`): Tardis HTTP API base URL. Defaults to
-  `https://api.tardis.dev/v1`.
-- `normalize_symbols` (`bool | null`): applies Nautilus symbol normalization. Defaults to `true`.
-- `output_path` (`str | null`): output directory for Parquet data. When unset, uses
-  `<NAUTILUS_PATH>/catalog/data` if `NAUTILUS_PATH` is set, then the current working directory.
-- `book_snapshot_output` (`"deltas" | "depth" | null`): output format for snapshots. Defaults
-  to `"deltas"`.
-- `extract_bbo_as_quotes` (`bool | null`): also writes `QuoteTick` data from best bid/offer fields
-  in Tardis Machine `option_summary` messages. Defaults to `false`.
-- `compression` (`"zstd" | "snappy" | "uncompressed" | null`): Parquet compression codec.
-  Defaults to `"zstd"` level 3.
-- `proxy_url` (`str | null`): proxy URL for Tardis HTTP requests. Defaults to no proxy.
-- `options` (`JSON[]`): required replay request option objects.
+- `tardis_ws_url`（`str | null`）：Tardis Machine WebSocket URL。默认为
+  `TARDIS_MACHINE_WS_URL`。
+- `tardis_http_url`（`str | null`）：Tardis HTTP API 基础 URL。默认为
+  `https://api.tardis.dev/v1`。
+- `normalize_symbols`（`bool | null`）：应用 Nautilus 符号归一化。默认为 `true`。
+- `output_path`（`str | null`）：Parquet 数据的输出目录。未设置时，若 `NAUTILUS_PATH`
+  已设则用 `<NAUTILUS_PATH>/catalog/data`，否则用当前工作目录。
+- `book_snapshot_output`（`"deltas" | "depth" | null`）：快照的输出格式。默认
+  `"deltas"`。
+- `extract_bbo_as_quotes`（`bool | null`）：同时从 Tardis Machine `option_summary` 消息的
+  最优买卖价字段写出 `QuoteTick` 数据。默认为 `false`。
+- `compression`（`"zstd" | "snappy" | "uncompressed" | null`）：Parquet 压缩编解码器。
+  默认为 `"zstd"` 3 级。
+- `proxy_url`（`str | null`）：Tardis HTTP 请求的代理 URL。默认不使用代理。
+- `options`（`JSON[]`）：必需的回放请求选项对象。
 
-An example configuration file is available at `crates/adapters/tardis/bin/example_config.json`:
+示例配置文件位于 `crates/adapters/tardis/bin/example_config.json`：
 
 ```json
 {
@@ -303,30 +279,28 @@ An example configuration file is available at `crates/adapters/tardis/bin/exampl
 }
 ```
 
-### Book snapshot output
+### 订单簿快照输出 {#book-snapshot-output}
 
-The `book_snapshot_output` configuration option controls how Tardis `book_snapshot_*` messages are
-converted and stored.
+配置项 `book_snapshot_output` 控制 Tardis `book_snapshot_*` 消息如何转换与存储。
 
-| Value    | Nautilus type     | Output directory     | Description                             |
+| 值 | Nautilus 类型 | 输出目录 | 说明 |
 | :------- | :---------------- | :------------------- | :-------------------------------------- |
-| `deltas` | `OrderBookDeltas` | `order_book_deltas/` | Clear and add deltas for each snapshot. |
-| `depth`  | `OrderBookDepth`  | `order_book_depths/` | Snapshots with all price levels.        |
+| `deltas` | `OrderBookDeltas` | `order_book_deltas/` | 每个快照转为清空加逐档新增增量。 |
+| `depth`  | `OrderBookDepth`  | `order_book_depths/` | 含全部价位档的快照。 |
 
-**When to use each format**:
+**各格式的适用场景**：
 
-- **`deltas` (default)**: use when you need to reconstruct book state or combine snapshots with
-  `book_change` data. Each snapshot becomes a clear delta followed by an add delta for each level.
-- **`depth`**: use when a strategy needs periodic depth snapshots. Each snapshot is a single
-  record with all price levels from the venue message.
+- **`deltas`（默认）**：需要重建订单簿状态、或把快照与 `book_change` 数据合并时使用。
+  每个快照变成一个清空增量，随后每档一个新增增量。
+- **`depth`**：策略需要周期性深度快照时使用。每个快照是包含交易场所消息中全部价位档的
+  单条记录。
 
-**Avoiding file overwrites**:
+**避免文件覆盖**：
 
-When downloading both `book_snapshot_*` and `book_change` data for the same instrument and date
-range, `depth` writes snapshots to `order_book_depths/` and avoids overwriting
-`order_book_deltas/`.
+对同一金融工具、同一日期范围同时下载 `book_snapshot_*` 与 `book_change` 数据时，
+`depth` 把快照写到 `order_book_depths/`，避免覆盖 `order_book_deltas/`。
 
-Example configuration with explicit format:
+显式指定格式的示例配置：
 
 ```json
 {
@@ -344,15 +318,14 @@ Example configuration with explicit format:
 }
 ```
 
-### Option summary BBO extraction
+### 期权摘要 BBO 提取 {#option-summary-bbo-extraction}
 
-Set `extract_bbo_as_quotes` to `true` when requesting Tardis Machine `option_summary` data and the
-backtest also needs option BBO quotes. Nautilus still writes `OptionGreeks` from every
-`option_summary` message. When all best bid/offer fields are present and sizes are valid, it also
-writes a `QuoteTick` for the same instrument and timestamps.
+请求 Tardis Machine 的 `option_summary` 数据且回测同时需要期权 BBO 报价时，把
+`extract_bbo_as_quotes` 设为 `true`。Nautilus 仍会为每条 `option_summary` 消息写出
+`OptionGreeks`。当最优买卖价字段齐全且数量有效时，还会为同一金融工具与时间戳写出一个
+`QuoteTick`。
 
-This option only applies to Tardis Machine `option_summary` replay and stream messages. It does not
-change Tardis CSV loading.
+该选项只作用于 Tardis Machine 的 `option_summary` 回放与流式消息，不改变 Tardis CSV 加载。
 
 ```json
 {
@@ -370,9 +343,9 @@ change Tardis CSV loading.
 }
 ```
 
-### Python replays
+### Python 回放 {#python-replays}
 
-To run a replay in Python, create a script similar to the following:
+在 Python 中运行回放，创建一个类似下面的脚本：
 
 ```python
 import asyncio
@@ -390,10 +363,9 @@ if __name__ == "__main__":
     asyncio.run(run())
 ```
 
-### Rust replays
+### Rust 回放 {#rust-replays}
 
-To run a replay in Rust, enable the `nautilus-tardis` `replay` feature flag and create a binary
-similar to the following:
+在 Rust 中运行回放，启用 `nautilus-tardis` 的 `replay` feature flag，并创建一个类似下面的二进制：
 
 ```rust
 use std::path::PathBuf;
@@ -410,69 +382,62 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 }
 ```
 
-Logging defaults to INFO level. To enable debug logging, export the following environment variable:
+日志默认为 INFO 级别。要启用调试日志，导出以下环境变量：
 
 ```bash
 export NAUTILUS_LOG=debug
 ```
 
-A working example binary is available at `crates/adapters/tardis/bin/example_replay.rs`.
+一个可运行的示例二进制位于 `crates/adapters/tardis/bin/example_replay.rs`。
 
-This can also be run using cargo:
+也可以用 cargo 运行：
 
 ```bash
 cargo run -p nautilus-tardis --features replay --bin tardis-replay <path_to_your_config>
 ```
 
-### Option-chain backtest catalog
+### 期权链回测 catalog {#option-chain-backtest-catalog}
 
-An option-chain backtest starts after the Tardis replay has written data to the Nautilus
-catalog. The backtest loader does not request missing Tardis data during a run, so the
-catalog must contain:
+期权链回测在 Tardis 回放把数据写入 Nautilus catalog 之后才能开始。回测加载器不会在运行期间
+请求补齐缺失的 Tardis 数据，因此 catalog 必须包含：
 
-- Option instruments from the Tardis instrument metadata API.
-- `QuoteTick` data from one-level option book snapshots, quote data, or `option_summary` BBO
-  extraction.
-- `OptionGreeks` data from Tardis `option_summary` messages.
+- 来自 Tardis 金融工具元数据 API 的期权金融工具。
+- 来自单层期权订单簿快照、报价数据或 `option_summary` BBO 提取的 `QuoteTick` 数据。
+- 来自 Tardis `option_summary` 消息的 `OptionGreeks` 数据。
 
-Use both `QuoteTick` and `OptionGreeks` in the `BacktestDataConfig` list for the same
-option instrument IDs. The option-chain manager aggregates the replayed BBO and Greeks
-into `OptionChainSlice` snapshots. Use `snapshot_interval_ms=None` for raw publishing,
-or set an interval in milliseconds to publish thinned snapshots.
+对同一批期权金融工具 ID，在 `BacktestDataConfig` 列表中同时使用 `QuoteTick` 与
+`OptionGreeks`。期权链管理器把回放的 BBO 与 Greeks 聚合为 `OptionChainSlice` 快照。
+原始发布用 `snapshot_interval_ms=None`；设置毫秒级间隔则发布抽稀后的快照。
 
-Strategies can select contracts by moneyness with ATM-relative or ATM-percent strike ranges, by delta with
-`StrikeRange.delta(target, tolerance)`, or by fixed strike with `StrikeRange.fixed([...])`. Option order
-matching in backtests is quote-driven. Marketable orders fill as takers against the opposing BBO. Passive
-limits can fill as makers when later BBO updates trade through the limit.
+策略可以用 ATM 相对或 ATM 百分比行权价区间按价内程度选合约，用 `StrikeRange.delta(target, tolerance)`
+按 delta 选，或用 `StrikeRange.fixed([...])` 按固定行权价选。回测中的期权订单撮合是报价驱动的：
+可成交订单作为 taker 对着对手方 BBO 成交；当后续 BBO 更新穿过限价时，被动限价单可以作为 maker 成交。
 
-Configure option fees explicitly on the simulated venue with structural fee models such
-as `CappedOptionFeeModel` or `TieredNotionalOptionFeeModel`. There is no automatic
-Tardis exchange to fee model mapping.
+在模拟交易场所上用结构化费用模型（如 `CappedOptionFeeModel` 或 `TieredNotionalOptionFeeModel`）
+显式配置期权费用。不存在从 Tardis 交易所到费用模型的自动映射。
 
-### Option-chain CSV catalog conversion
+### 期权链 CSV catalog 转换 {#option-chain-csv-catalog-conversion}
 
-For historical option chains from downloadable Tardis CSV files, use `convert_tardis_options_chain_csv(...)`
-to convert `options_chain` rows into Nautilus catalog data. This path calls neither Tardis Machine nor the
-instrument metadata API. Use it with existing Tardis CSV files or to bootstrap a catalog from downloaded data
-without an API key.
+对于来自可下载 Tardis CSV 文件的历史期权链，用 `convert_tardis_options_chain_csv(...)`
+把 `options_chain` 行转换为 Nautilus catalog 数据。这条路径既不调用 Tardis Machine，也不调用
+金融工具元数据 API。可配合已有的 Tardis CSV 文件使用，或在没有 API key 时从下载的数据引导
+建立 catalog。
 
-The converter writes `OptionGreeks` for every selected row. With the default `extract_bbo_as_quotes=True`,
-complete best bid/offer rows also write `QuoteTick`. Keep this enabled for option-chain backtests. Greeks-only
-catalogs do not provide quotes. Thus, the chain manager cannot publish populated `OptionChainSlice` snapshots
-for strikes without BBO data.
+转换器为每个选中的行写出 `OptionGreeks`。默认 `extract_bbo_as_quotes=True` 时，最优买卖价
+完整的行还会写出 `QuoteTick`。期权链回测请保持该选项开启。仅含 Greeks 的 catalog 不提供报价，
+因此对没有 BBO 数据的行权价，链管理器无法发布内容完整的 `OptionChainSlice` 快照。
 
-Instrument derivation supports only Deribit options. For other option venues, set `write_instruments=False`
-before conversion and load the instruments through another source before backtesting. Leaving it enabled for a
-non-Deribit file can fail after data files have been written to the catalog.
+金融工具推导目前仅支持 Deribit 期权。对其他期权交易场所，转换前先设 `write_instruments=False`，
+并在回测前通过其他来源加载金融工具。对非 Deribit 文件保持该选项开启时，可能在数据文件已写入
+catalog 之后才失败。
 
-Pass daily `options_chain` CSV paths in chronological order. The `underlyings` filter matches symbol prefixes
-such as `["BTC-"]`. To keep the last row per instrument per interval within each input file, set
-`snapshot_interval_ms`. Alternatively, use `None` to write every selected row. Rows must be ordered by
-`local_timestamp` within each file when thinning.
+按时间顺序传入逐日的 `options_chain` CSV 路径。`underlyings` 过滤器匹配符号前缀，
+如 `["BTC-"]`。要在每个输入文件内按间隔保留每个金融工具的最后一行，设置
+`snapshot_interval_ms`；或设为 `None` 写出每个选中行。抽稀时文件内的行必须按
+`local_timestamp` 排序。
 
-Provide explicit `price_precision` and `size_precision` for deterministic quote
-metadata. Inferred precision can increase as later rows are read, so data written earlier in a
-file can keep lower precision metadata.
+显式提供 `price_precision` 与 `size_precision` 以获得确定性的报价元数据。推断出的精度
+会随着后续行被读取而升高，因此文件前部写入的数据可能保留较低精度的元数据。
 
 ```python
 from pathlib import Path
@@ -490,37 +455,31 @@ convert_tardis_options_chain_csv(
 )
 ```
 
-## Loading Tardis CSV data
+## 加载 Tardis CSV 数据 {#loading-tardis-csv-data}
 
-Tardis-format CSV data can be loaded using either Python or Rust. The loader reads the CSV text data
-from disk and parses it into Nautilus data. Both interfaces call the same Rust loader.
+Tardis 格式的 CSV 数据可以用 Python 或 Rust 加载。加载器从磁盘读取 CSV 文本数据并解析为
+Nautilus 数据。两种接口调用同一个 Rust 加载器。
 
-You can also specify a `limit` parameter for the `load_*` functions to control the maximum number
-of rows loaded.
+`load_*` 函数还可以指定 `limit` 参数来控制加载的最大行数。
 
-The delta loaders and streamers skip any rows before the first snapshot row in the file, per the
-[Tardis FAQ](https://docs.tardis.dev/faq/order-books). A CSV that has been trimmed or split so it
-no longer starts with a snapshot row will produce zero deltas.
+按 [Tardis FAQ](https://docs.tardis.dev/faq/order-books)，增量加载器与流式函数会跳过文件中
+第一个快照行之前的所有行。被裁剪或拆分过、不再以快照行开头的 CSV 会产生零个增量。
 
 :::note
-Loading mixed-instrument CSV files is challenging due to precision requirements and is not
-recommended. Use single-instrument CSV files instead.
+由于精度要求，加载混合金融工具的 CSV 文件很有挑战，不推荐这样做。请改用单金融工具的 CSV 文件。
 
-The `load_tardis_options_chain`, `stream_tardis_options_chain`, and
-`convert_tardis_options_chain_csv` functions are the exception: Tardis `options_chain` files are
-mixed-instrument chain files, and these paths track precision per instrument. Explicit precisions
-are still recommended for deterministic output.
+`load_tardis_options_chain`、`stream_tardis_options_chain` 和
+`convert_tardis_options_chain_csv` 函数是例外：Tardis 的 `options_chain` 文件本身就是混合
+金融工具的链文件，这些路径会按金融工具分别跟踪精度。为获得确定性输出，仍推荐显式精度。
 :::
 
-### Loading CSV data in Python
+### 在 Python 中加载 CSV 数据 {#loading-csv-data-in-python}
 
-You can load Tardis-format CSV data in Python using the module-level `load_tardis_*` functions.
-When loading data, you can optionally specify the instrument ID, price precision, and size
-precision. Providing the instrument ID improves loading performance. Price and size precision are
-inferred from the CSV when omitted, but explicit values are recommended for deterministic output,
-especially with large files.
+在 Python 中可用模块级的 `load_tardis_*` 函数加载 Tardis 格式的 CSV 数据。加载数据时可以选择
+指定金融工具 ID、价格精度和数量精度。提供金融工具 ID 能提升加载性能。省略精度时从 CSV 推断，
+但推荐显式指定以获得确定性输出，尤其是大文件。
 
-To load the data, create a script similar to the following:
+要加载数据，创建一个类似下面的脚本：
 
 ```python
 from pathlib import Path
@@ -538,17 +497,15 @@ deltas = load_tardis_deltas(
 )
 ```
 
-### Loading CSV data in Rust
+### 在 Rust 中加载 CSV 数据 {#loading-csv-data-in-rust}
 
-You can load Tardis-format CSV data in Rust using the loading functions in
-`crates/adapters/tardis/src/csv/mod.rs`. When loading data, you can optionally specify the
-instrument ID, price precision, and size precision. Providing the instrument ID improves loading
-performance. Price and size precision are inferred from the CSV when omitted, but explicit values
-are recommended for deterministic output.
+在 Rust 中可用 `crates/adapters/tardis/src/csv/mod.rs` 里的加载函数加载 Tardis 格式的 CSV 数据。
+加载时可以选择指定金融工具 ID、价格精度和数量精度。提供金融工具 ID 能提升加载性能。省略精度时
+从 CSV 推断，但推荐显式指定以获得确定性输出。
 
-For a complete example, see `crates/adapters/tardis/bin/example_csv.rs`.
+完整示例见 `crates/adapters/tardis/bin/example_csv.rs`。
 
-To load the data, you can use code similar to the following:
+加载数据可以用类似下面的代码：
 
 ```rust
 use std::path::Path;
@@ -577,27 +534,27 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 }
 ```
 
-## Streaming Tardis CSV data
+## 流式读取 Tardis CSV 数据 {#streaming-tardis-csv-data}
 
-The Tardis integration can load and process large CSV files in configurable chunks. This lets you process
-multi-gigabyte files without loading whole files into memory or exhausting system memory.
+Tardis 集成可以按可配置的分块加载并处理大型 CSV 文件。这样无需把整个文件载入内存或耗尽系统内存，
+就能处理数 GB 的文件。
 
-Python provides streaming functions for the following CSV data:
+Python 为下列 CSV 数据提供流式函数：
 
-- Order book deltas (`stream_tardis_deltas` and `stream_tardis_batched_deltas`).
-- Order book depth snapshots (`stream_tardis_depth_from_snapshot5` and
-  `stream_tardis_depth_from_snapshot25`).
-- Quote ticks (`stream_tardis_quotes`).
-- Trade ticks (`stream_tardis_trades`).
-- Funding rates (`stream_tardis_funding_rates`).
-- Options chain rows (`stream_tardis_options_chain`).
+- 订单簿增量（`stream_tardis_deltas` 与 `stream_tardis_batched_deltas`）。
+- 订单簿深度快照（`stream_tardis_depth_from_snapshot5` 与
+  `stream_tardis_depth_from_snapshot25`）。
+- 报价 tick（`stream_tardis_quotes`）。
+- 成交 tick（`stream_tardis_trades`）。
+- 资金费率（`stream_tardis_funding_rates`）。
+- 期权链行（`stream_tardis_options_chain`）。
 
-Rust exposes the equivalent `stream_*` functions.
+Rust 暴露等价的 `stream_*` 函数。
 
-### Streaming CSV data in Python
+### 在 Python 中流式读取 CSV 数据 {#streaming-csv-data-in-python}
 
-The module-level `stream_tardis_*` functions return iterators of bounded chunks. The `chunk_size`
-parameter accepts values in `[1, 1_000_000]` and controls how many records are read per chunk:
+模块级的 `stream_tardis_*` 函数返回有界分块的迭代器。`chunk_size` 参数接受
+`[1, 1_000_000]` 内的值，控制每块读取的记录数：
 
 ```python
 from pathlib import Path
@@ -625,9 +582,9 @@ for chunk in trades:
         pass
 ```
 
-### Streaming order book data
+### 流式读取订单簿数据 {#streaming-order-book-data}
 
-For order book data, streaming is available for both deltas and depth snapshots:
+订单簿数据的流式读取对增量和深度快照都可用：
 
 ```python
 from pathlib import Path
@@ -649,9 +606,9 @@ for chunk in stream_tardis_depth_from_snapshot5(filepath):
     # Process depth chunk
 ```
 
-### Streaming quote data
+### 流式读取报价数据 {#streaming-quote-data}
 
-Quote data can be streamed similarly:
+报价数据的流式读取方式类似：
 
 ```python
 from pathlib import Path
@@ -667,25 +624,24 @@ for chunk in stream_tardis_quotes(filepath):
     # Process quote chunk
 ```
 
-### Memory use
+### 内存使用 {#memory-use}
 
-Streaming bounds the number of parsed records retained at one time:
+流式读取限制了同一时刻保留的已解析记录数：
 
-- **Controlled memory use**: Only one chunk is loaded in memory at a time.
-- **Large file processing**: The iterator can process files larger than available RAM.
-- **Configurable chunk sizes**: Tune `chunk_size` within `[1, 1_000_000]` based on your system's
-  memory and performance requirements (default 100,000).
+- **内存占用可控**：同一时刻只把一个分块载入内存。
+- **大文件处理**：迭代器可以处理大于可用 RAM 的文件。
+- **分块大小可配置**：根据系统的内存与性能需求在 `[1, 1_000_000]` 内调节
+  `chunk_size`（默认 100,000）。
 
 :::warning
-When using streaming with precision inference, the inferred precision may differ from bulk loading
-the entire file. Precision inference works within chunk boundaries, and different chunks may contain
-values with different precision requirements. For deterministic precision behavior, provide
-explicit `price_precision` and `size_precision` parameters.
+使用流式读取并依赖精度推断时，推断出的精度可能与整体加载整个文件不同。精度推断只在分块
+边界内起作用，不同分块可能包含精度要求不同的值。要获得确定性的精度行为，请显式提供
+`price_precision` 与 `size_precision` 参数。
 :::
 
-### Streaming CSV data in Rust
+### 在 Rust 中流式读取 CSV 数据 {#streaming-csv-data-in-rust}
 
-The underlying streaming functionality is implemented in Rust and can be used directly:
+底层流式功能用 Rust 实现，可直接使用：
 
 ```rust
 use std::path::Path;
@@ -719,25 +675,23 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 }
 ```
 
-## Instrument metadata
+## 金融工具元数据 {#instrument-metadata}
 
-The replay pipeline and data client request metadata for every exchange in their configured Tardis
-options before connecting to Tardis Machine. They use the
-[Tardis instruments metadata API](https://docs.tardis.dev/api/instruments-metadata-api) to parse
-instrument metadata into Nautilus definitions. The data client also publishes those definitions to
-the Nautilus data engine.
+回放流水线与数据客户端在连接 Tardis Machine 之前，会为所配置 Tardis options 中的每个交易所请求
+元数据。它们使用
+[Tardis 金融工具元数据 API](https://docs.tardis.dev/api/instruments-metadata-api)
+把金融工具元数据解析为 Nautilus 定义。数据客户端还会把这些定义发布到 Nautilus 数据引擎。
 
 :::note
-A `TARDIS_API_KEY` for an active Tardis pro or business subscription is required. The automatic
-bootstrap requests all instrument metadata for each configured Tardis exchange.
+需要有效 Tardis pro 或 business 订阅的 `TARDIS_API_KEY`。自动引导会为每个配置的 Tardis 交易所
+请求全部金融工具元数据。
 :::
 
-Python and Rust users can also request instrument definitions directly with `TardisHttpClient`.
-The client accepts optional `api_key`, `base_url`, `timeout_secs`, `normalize_symbols`, and
-`proxy_url` arguments. It can retrieve one symbol or all instruments for an exchange. Use Tardis
-lower-kebab exchange IDs such as `binance-futures`.
+Python 与 Rust 用户也可以直接用 `TardisHttpClient` 请求金融工具定义。该客户端接受可选的
+`api_key`、`base_url`、`timeout_secs`、`normalize_symbols` 和 `proxy_url` 参数。它可以获取
+单个符号或某交易所的全部金融工具。请使用 Tardis 的小写连字符交易所 ID，如 `binance-futures`。
 
-### Requesting instruments in Python
+### 在 Python 中请求金融工具 {#requesting-instruments-in-python}
 
 ```python
 import asyncio
@@ -759,9 +713,9 @@ if __name__ == "__main__":
     asyncio.run(run())
 ```
 
-### Requesting instruments in Rust
+### 在 Rust 中请求金融工具 {#requesting-instruments-in-rust}
 
-For a complete example, see `crates/adapters/tardis/bin/example_http.rs`.
+完整示例见 `crates/adapters/tardis/bin/example_http.rs`。
 
 ```rust
 use nautilus_tardis::{

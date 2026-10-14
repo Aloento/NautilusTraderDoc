@@ -2433,111 +2433,132 @@ strategy.subscribe_data(equity_type, client_id=POLYMARKET_CLIENT_ID)
 strategy.subscribe_data(twap_type, client_id=POLYMARKET_CLIENT_ID)
 ```
 
-##### Symbols and values
+##### 代码与取值 {#symbols-and-values}
 
-Symbols are lowercase and USD-quoted, for example `btcusd`, `ethusd`, `aapl`, `eurusd`, or `xauusd`. Matching
-is case-insensitive and published symbols are lowercase. At subscription time, the adapter rejects legacy RTDS
-spellings `btcusdt` (Binance, USDT-quoted) and `btc/usd` with a hint. PolyBolt would silently serve nothing
-for them, and `usdt` would change the quote currency. Crypto spot now defaults to Chainlink USD prices rather
-than Binance USDT.
+代码为小写、以美元计价，例如
+`btcusd`、`ethusd`、`aapl`、`eurusd` 或
+`xauusd`。匹配不区分大小写，发布的代码为小写。订阅时适配器拒绝旧版
+RTDS 写法
+`btcusdt`（Binance，USDT
+计价）与 `btc/usd`
+并给出提示：PolyBolt
+对它们会静默地什么都不提供，而
+`usdt` 还会改变计价货币。加密现货现在默认用
+Chainlink 的 USD 价格而非
+Binance USDT。
 
-Reference prices use Rust `Decimal` because the venue's exact `full_accuracy_value` can carry up to 18
-fractional digits, beyond `Price` precision. Python receives the exact decimal string. Convert it with
-`decimal.Decimal`. Spot channels use the display `value` only when the exact field is absent. TWAP never falls
-back.
+参考价格使用
+Rust 的
+`Decimal`，因为场所精确的
+`full_accuracy_value` 最多可带
+18 位小数，超出
+`Price` 的精度。Python
+收到精确的小数字符串，用
+`decimal.Decimal` 转换。现货频道只在精确字段缺失时才用展示的
+`value`。TWAP 从不回退。
 
-Each sample also carries:
+每个采样点还携带：
 
-- `source`: The served provider, `chainlink` or `pyth` for crypto. `pyth`, `massive`, or `chainlink` for
-  equities.
-- `message_timestamp_ms`: The PolyBolt envelope time.
+- `source`：提供数据的提供方，加密为
+  `chainlink` 或
+  `pyth`，股票为
+  `pyth`、`massive` 或
+  `chainlink`。
+- `message_timestamp_ms`：PolyBolt
+  信封时间。
 
-Equity snapshot points omit venue receipt and carried-forward metadata. The adapter sets `received_at_ms=None`
-and `is_carried_forward=False`. These defaults do not imply a fresh value.
+股票快照点省略场所接收时间与结转元数据，适配器设
+`received_at_ms=None` 与
+`is_carried_forward=False`。这些默认值不意味着值是新近产生的。
 
-##### Subscriptions, snapshots, and reconnects
+##### 订阅、快照与重连 {#subscriptions-snapshots-and-reconnects}
 
-The feed authenticates once per connection, waits for the venue's `authed` acknowledgement, and only then
-sends one subscription per `(channel, symbol)`. Every new subscription first receives a two-minute snapshot,
-emitted point by point in order, and then live updates. PolyBolt allows 64 subscriptions per connection. The
-65th distinct `(channel, symbol)` is rejected with an error.
+数据源每条连接只鉴权一次，等待场所的
+`authed` 确认后，才按每个
+`(channel, symbol)`
+发送一条订阅。每个新订阅先收到一份两分钟的快照，按顺序逐点发出，随后是实时更新。PolyBolt
+每条连接允许 64
+个订阅，第 65 个不同的
+`(channel, symbol)` 以错误被拒绝。
 
-##### Reconnect replay
+##### 重连重放 {#reconnect-replay}
 
-After reconnecting, the feed re-authenticates and replays retained subscriptions. A fresh snapshot
-can backfill the disconnect interval within its two-minute history. Consumers may receive a burst
-with original event timestamps (`ts_event`) and current initialization timestamps (`ts_init`).
+重连后数据源重新鉴权并重放保留的订阅。新快照可在其两分钟历史内回填断线区间。消费者可能收到
+一批带原始事件时间戳（`ts_event`）与当前初始化时间戳（`ts_init`）的突发。
 
-Recovery is bounded by snapshot history and replay-admission rules. It does not guarantee lossless history.
-Points at or before the last emitted timestamp are suppressed, preventing duplicate emission.
+恢复受快照历史与重放接纳规则约束，不保证历史无损。不晚于最后发出时间戳的点被抑制，防止重复
+发出。
 
-The TWAP replay guard survives reconnects:
+TWAP 的重放守卫跨重连保持有效：
 
-- Suppresses repeated and older observations.
-- Rejects a different value at the same observation timestamp and logs the channel, symbol,
-  timestamp, prior value, and received value at error level.
-- Keeps the prior observation authoritative and resumes emission at a newer observation in a subsequent frame.
+- 抑制重复与更旧的观测。
+- 拒绝同一观测时间戳上的不同取值，并以 error
+  级别记录频道、代码、时间戳、先前值与收到的值。
+- 保持先前观测为权威，并在后续帧中更新的观测处恢复发出。
 
-TWAP snapshot processing stops at the first conflicting or invalid point and discards the rest of that frame.
+TWAP 快照处理在第一个冲突或无效点停止，丢弃该帧剩余部分。
 
-##### Authentication failures
+##### 鉴权失败 {#authentication-failures}
 
-| Venue error                      | Adapter response                                                    |
-| -------------------------------- | ------------------------------------------------------------------- |
-| `auth_invalid` or `auth_expired` | Log an error, stop auth frames, and reject the handshake.           |
-| `auth_unavailable`               | Retry after a short delay, including during data-client connection. |
-| `auth_attempts`                  | Move to a fresh connection.                                         |
+| 场所错误                         | 适配器响应                                              |
+| -------------------------------- | --------------------------------------------------------- |
+| `auth_invalid` 或 `auth_expired` | 记录错误、停止鉴权帧并拒绝握手。                        |
+| `auth_unavailable`               | 短暂延迟后重试，包括在数据客户端连接期间。              |
+| `auth_attempts`                  | 切换到一条新连接。                                      |
 
-A credential rejection during connect fails the connection and tears down the partial session,
-including its market socket. Credentials are resolved once at construction: recreate the client
-with corrected credentials, because reconnecting the same client retries the rejected ones.
+connect
+期间的凭据被拒会让连接失败并拆除半成品会话，包括其市场
+socket。凭据在构造时解析一次：请用修正后的凭据重建客户端，因为重连同一客户端只会重试被拒的
+凭据。
 
-A transient auth outage never takes down the market data socket. The venue allows eight auth frames
-per connection, so a prolonged outage moves to a fresh connection before the ninth frame.
+短暂的鉴权故障绝不会拖垮行情
+socket。场所每条连接允许
+8 个鉴权帧，因此长时间故障会在第
+9 帧之前切换到新连接。
 
-##### Sequence gap recovery
+##### 序号缺口恢复 {#sequence-gap-recovery}
 
-Every envelope carries a dense per-channel `seq` that resets on each connection. A gap,
-regression, or positive `dropped` count triggers a warning and a fresh snapshot: every subscription
-on that channel is unsubscribed and subscribed again. This also applies to a positive `dropped`
-count on the first envelope, before a previous sequence is known.
+每个信封都携带按频道密集的
+`seq`，在每条连接上重置。缺口、回退或正的
+`dropped`
+计数都会触发警告与一次新快照：该频道上的每个订阅都先退订再重新订阅。首个信封上就有正
+`dropped`
+计数时同样如此，即便此前不知道序号。
 
-The adapter resets sequence tracking on every reconnect.
+适配器在每次重连时重置序号跟踪。
 
-The replay guard keeps backfill free of duplicates. The live envelope revealing a gap is still
-emitted, so missing points at or before that symbol's newly emitted timestamp are suppressed.
-The fresh snapshot can backfill other symbols whose timestamps have not advanced past the missing points.
+重放守卫让回填不含重复。暴露缺口的实时信封仍会发出，因此不晚于该代码新近发出时间戳的缺失点被
+抑制。新快照可以回填时间戳尚未越过缺失点的其他代码。
 
-##### Request pacing and close codes
+##### 请求节拍与关闭码 {#request-pacing-and-close-codes}
 
-Subscription and unsubscription requests share a quota that admits one frame every 53 ms,
-leaving room under the venue's combined 20-frame-per-second limit. The feed batches recovery for
-all affected channels. Multiple pending gaps on a channel coalesce into one resubscription.
-Gaps detected during an in-flight resubscription, including its quota wait, queue a follow-up
-resubscription for the affected channel.
+订阅与退订请求共用一份配额，每
+53 ms
+放行一帧，为场所合计每秒 20
+帧的上限留出余量。数据源会合并所有受影响频道的恢复。同一频道上多个待处理缺口合并为一次重订阅。
+重订阅进行中（包括其配额等待）发现的缺口，为该频道排队一次后续重订阅。
 
-Shutdown interrupts the server-drain reconnect delay, recovery retry delays, and quota waits.
+停机可打断服务端排空的重连延迟、恢复重试延迟与配额等待。
 
-The venue's close codes follow their documented recovery policies:
+场所的关闭码遵循其文档记录的恢复策略：
 
-- `4001` (authentication failed) stops automatic reconnects. Recreate the data client with
-  corrected CLOB API credentials.
-- `4002` (slow consumer) uses the shared client's reconnect policy: the first retry after a stable session is
-  immediate. Repeated unstable reconnects use exponential backoff and jitter.
-- `4003` (server draining) pauses recovery and reconnects once after a uniform random delay in
-  `[0, 10]` seconds.
-- `4008` (policy violation) logs an error and stops automatic reconnects. The adapter enforces
-  auth and subscription limits, so this close can indicate an adapter fault. Investigate and
-  correct the rejected request or limit violation before explicitly reconnecting the data client.
+- `4001`（鉴权失败）停止自动重连。请用修正后的
+  CLOB API 凭据重建数据客户端。
+- `4002`（消费者过慢）使用共享客户端的重连策略：稳定会话后的第一次重试立即执行，反复不稳定的
+  重连使用指数退避与抖动。
+- `4003`（服务端排空）暂停恢复，并在
+  `[0, 10]` 秒的均匀随机延迟后重连一次。
+- `4008`（策略违规）记录错误并停止自动重连。适配器会强制执行鉴权与订阅上限，因此该关闭可能
+  表示适配器缺陷。请先排查并纠正被拒的请求或上限违规，再显式重连数据客户端。
 
-Other close codes reconnect with the shared client's backoff.
+其他关闭码按共享客户端的退避重连。
 
-##### Migrating from RTDS
+##### 从 RTDS 迁移 {#migrating-from-rtds}
 
-The RTDS price transport and its public types were removed without compatibility aliases. Update
-code and serialized configurations to the new names:
+RTDS
+价格传输及其公开类型已移除，且没有兼容性别名。请更新代码与序列化的配置到新名称：
 
-| Previous name               | New name                      |
+| 旧名称                      | 新名称                        |
 | --------------------------- | ----------------------------- |
 | `PolymarketRtdsCryptoPrice` | `PolymarketCryptoPrice`       |
 | `PolymarketRtdsCryptoTwap`  | `PolymarketCryptoTwap`        |
@@ -2545,42 +2566,55 @@ code and serialized configurations to the new names:
 | `base_url_rtds`             | `base_url_reference_prices`   |
 | `polymarket-rtds-streams`   | `polymarket-polybolt-streams` |
 
-Behavioral changes to account for:
+需要注意的行为变化：
 
-- Reference-price subscriptions now require CLOB L2 credentials (`api_key`, `api_secret`, `passphrase`, or the
-  `POLYMARKET_*` environment variables). Explicit fields are validated strictly. Environment variables apply
-  only when all three are set. A partial set is ignored with a warning. Thus, clients that never subscribe to
-  reference prices still start.
-- Crypto symbols are lowercase USD pairs such as `btcusd`. `btcusdt` and `btc/usd` are rejected. Crypto spot
-  defaults to Chainlink USD prices rather than Binance USDT, and every sample carries the serving `source`.
-- The 30-second TWAP window was removed. `window_seconds` must be `60`. `30` is rejected rather than mapped.
-- `value` uses Rust `Decimal` in place of `Price` on crypto and equity samples. Python exposes a decimal
-  string on all three types. Equity no longer carries a separate `full_accuracy_value`.
+- 参考价格订阅现在需要 CLOB L2
+  凭据（`api_key`、`api_secret`、`passphrase`，或
+  `POLYMARKET_*` 环境变量）。显式字段严格校验；环境变量只在三者都设置时生效，部分集合被忽略并
+  告警。因此从不订阅参考价格的客户端仍能启动。
+- 加密代码是形如
+  `btcusd` 的小写美元对，`btcusdt` 与
+  `btc/usd` 被拒绝。加密现货默认用
+  Chainlink USD 价格而非 Binance USDT，且每个样本都携带提供数据的
+  `source`。
+- 30 秒 TWAP
+  窗口已移除。`window_seconds` 必须是
+  `60`；传 `30`
+  直接拒绝而不是映射。
+- 加密与股票样本上的
+  `value` 用 Rust
+  `Decimal` 取代了
+  `Price`。Python
+  在全部三种类型上暴露小数字符串。股票不再单独携带
+  `full_accuracy_value`。
 
-### Runtime instrument loading
+### 运行时金融工具加载 {#runtime-instrument-loading}
 
-Polymarket lists thousands of active markets and new markets appear throughout the day, so preloading
-the full universe at startup is rarely practical. The data adapter auto-loads missing instruments on
-demand so that strategies can subscribe to markets that are not in the cache:
+Polymarket
+列出的活跃市场有成千上万个，且全天都有新市场出现，因此启动时预加载全部标的往往不切实际。
+数据适配器按需自动加载缺失的金融工具，让策略能订阅缓存中没有的市场：
 
-- For an uncached instrument, these strategy calls register a request with the adapter:
+- 对未缓存的金融工具，下列策略调用会向适配器登记一个请求：
 
-  - `subscribe_quotes`, `subscribe_trades`, and `subscribe_book_deltas`.
-  - `subscribe_instrument_status` and `subscribe_instrument_close`.
-  - `request_instrument`.
+  - `subscribe_quotes`、`subscribe_trades` 与 `subscribe_book_deltas`。
+  - `subscribe_instrument_status` 与 `subscribe_instrument_close`。
+  - `request_instrument`。
 
-  The adapter waits `auto_load_debounce_ms` (default 100 ms) so concurrent requests coalesce.
-- It then issues a single batched Gamma API call. Batches larger than the Gamma `condition_ids`
-  query ceiling (about 100) are split across multiple calls and merged.
-- Once the instruments are loaded, they are published to the data engine (populating the cache)
-  and the deferred subscriptions open their WebSocket subscriptions atomically. A strategy that
-  unsubscribes while the auto-load is in flight does not see a spurious subscription opened.
+  适配器等待
+  `auto_load_debounce_ms`（默认 100 ms）以便合并并发请求。
+- 随后发出一次批量的 Gamma API
+  调用。超过 Gamma
+  `condition_ids` 查询上限（约 100）的批次拆成多次调用再合并。
+- 金融工具加载完成后发布到数据引擎（填充缓存），被推迟的订阅原子地打开其
+  WebSocket 订阅。在自动加载进行中已退订的策略不会看到凭空打开的订阅。
 
-#### Loading configuration
+#### 加载配置 {#loading-configuration}
 
-The feature is enabled by default. Disable it by setting `auto_load_missing_instruments=False` on
-`PolymarketDataClientConfig`. To preload a known set of markets at startup instead, supply any of
-these on `PolymarketInstrumentProviderConfig`:
+该特性默认启用。在
+`PolymarketDataClientConfig`
+上设置 `auto_load_missing_instruments=False`
+可禁用。若要改为在启动时预加载一组已知市场，在
+`PolymarketInstrumentProviderConfig` 上提供以下任一项：
 
 - `load_ids`
 - `filters`
@@ -2589,58 +2623,63 @@ these on `PolymarketInstrumentProviderConfig`:
 - `event_slug_builder`
 - `series_ids`
 
-These scopes compose rather than override each other: filter-driven queries run alongside any
-explicit slug or series scope, and `load_ids` loads additively on top. Only the unfiltered
-full-universe fetch is suppressed once an explicit scope is present.
+这些作用域相互叠加而不是覆盖：过滤驱动的查询与任何显式的
+slug 或系列作用域并行执行，`load_ids`
+再额外叠加加载。只有存在显式作用域时，才会抑制无过滤的全标的拉取。
 
-The same composition applies to periodic refreshes driven by `update_instruments_interval_mins`.
-Scopes configured at startup keep refreshing for the client's lifetime, so bootstrap and refresh
-universes match.
+`update_instruments_interval_mins`
+驱动的周期刷新适用同样的叠加规则。启动时配置的作用域在客户端整个生命周期内持续刷新，因此
+引导与刷新的标的一致。
 
-#### Markets awaiting CLOB metadata
+#### 等待 CLOB 元数据的市场 {#markets-awaiting-clob-metadata}
 
-Gamma can report a newly listed market before usable `clob_token_ids` are available, or omit it from a
-lookup. Auto-load retries these Gamma results and fetch failures with bounded exponential backoff plus
-jitter. It does not query CLOB `GET /markets/{cid}` to classify hydration.
+Gamma
+可能在可用的
+`clob_token_ids`
+就绪之前就列出新上架市场，或在查询中把它省略。自动加载会以有界指数退避加抖动重试这些
+Gamma 结果与请求失败。它不查询 CLOB
+`GET /markets/{cid}` 来判断水合情况。
 
-Tune the cadence with `auto_load_max_retries` (default 12), `auto_load_retry_delay_initial_secs` (default
-5.0), and `auto_load_retry_delay_max_secs` (default 15.0). The default retry delays total approximately three
-minutes. HTTP requests and rate-limit waits add to elapsed time. Set `auto_load_max_retries=0` to disable
-retry.
+用
+`auto_load_max_retries`（默认
+12）、`auto_load_retry_delay_initial_secs`（默认
+5.0）与
+`auto_load_retry_delay_max_secs`（默认
+15.0）调节节奏。默认重试延迟合计约三分钟，HTTP
+请求与限流等待另外计入耗时。设
+`auto_load_max_retries=0` 禁用重试。
 
-Five-minute markets, such as Up/Down crypto markets, can expire before the venue supplies usable
-CLOB metadata. Account for that delay or raise the retry cap. After the retry budget is exhausted,
-the adapter logs a condition still missing on Gamma as a terminal miss. Resubscribe after the
-market becomes available.
+5
+分钟市场（例如加密的
+Up/Down 市场）可能在场所提供可用 CLOB
+元数据之前就已到期。请考虑这段延迟或调高重试上限。重试预算耗尽后，适配器把
+Gamma 上仍缺失的条件记录为终局未命中。市场可用后再重新订阅。
 
-### Market resolution events
+### 市场结算事件 {#market-resolution-events}
 
-The Rust data client tracks Polymarket exposure by `condition_id` so both YES and NO legs
-close together when the venue resolves the market. Position events add open Polymarket binary
-option instruments to an internal watchlist. Data clients can also watch an instrument without a
-position by subscribing to `InstrumentStatus`, `InstrumentClose`, or both.
+Rust
+数据客户端按
+`condition_id`
+跟踪 Polymarket
+敞口，因此场所结算该市场时 YES 与
+NO 两条腿一起收尾。持仓事件会把未平的
+Polymarket
+二元期权金融工具加入内部观察列表。数据客户端也可以在没有持仓的情况下观察某金融工具，方法是订阅
+`InstrumentStatus`、`InstrumentClose` 或两者。
 
-The subscriptions are independent: a status subscription emits only the status close, while a close
-subscription emits only the settlement price. Unsubscribing from one does not remove the other.
+这些订阅彼此独立：状态订阅只发出状态收尾，结算订阅只发出结算价。退订其中一个不会移除另一个。
 
-#### Subscription ownership and pending instruments
+#### 订阅归属与待处理金融工具 {#subscription-ownership-and-pending-instruments}
 
-Cached instruments establish a watch when the subscription is accepted. Missing instruments first pass through
-auto-loading and the configured instrument filters. Unsubscribing removes only that data owner. Open positions
-retain their independent ownership. If loading cannot produce usable metadata, no automatic watch is created.
-An accepted unresolved intent can still be checked with an explicit manual resolution selector.
+已缓存的金融工具在订阅被接受时建立观察。缺失的金融工具先经过自动加载与配置的金融工具过滤。
+退订只移除该数据属主，未平持仓保留其独立的归属。若加载无法产出可用元数据，则不创建自动观察。
+已接受的未定案意图仍可用显式的手动结算选择器检查。
 
-If an outcome arrives while a subscribed instrument is still loading, the client retains that outcome until
-its metadata passes the configured filters. Already admitted data and position owners settle immediately. A
-pending sibling does not delay them. Completing the pending subscription emits only its requested events and
-does not reopen ordinary market-data streams. Unsubscribing its last event type or rejecting its instrument
-filter discards the retained outcome.
+若某已订阅金融工具仍在加载时结果到达，客户端保留该结果直到其元数据通过配置的过滤。已被接纳的
+数据与持仓属主立即结算，待处理的兄弟项不拖延它们。完成待处理订阅只发出其请求的事件，不重开
+普通行情流。退订其最后一类事件，或其金融工具过滤被拒绝，都会丢弃保留的结果。
 
-#### Automatic resolution paths
-
-Once a watched condition expires, the data client waits `resolve_poll_grace_secs`, then polls Gamma
-every `resolve_poll_interval_secs` until the condition resolves or
-`resolve_poll_max_wait_secs` elapses.
+#### 自动结算路径 {#automatic-resolution-paths}
 
 | Delivery path         | Configuration and eligibility                                         | Release                                                      |
 | --------------------- | --------------------------------------------------------------------- | ------------------------------------------------------------ |
@@ -2814,136 +2853,164 @@ terminal REST read settles it as described in
 [Failed trades and REST resolution](#failed-trades-and-rest-resolution). Replayed WebSocket updates do
 not retry a quarantined trade.
 
-#### Terminal quantity normalization
+#### 终局数量归一化 {#terminal-quantity-normalization}
 
-For a fully matched order, terminal quantity normalization waits for every trade ID in the order's
-`associate_trades` list to confirm before lowering the order quantity to its actual fills. A hard-faulted
-trade in that list does not release it. See [Settlement faults](#settlement-faults).
+对完全撮合的订单，终局数量归一化要等该订单
+`associate_trades`
+列表中的每个成交 ID
+都确认之后，才把订单数量下调到实际成交。列表中的硬故障成交不会放行它。见[结算故障](#settlement-faults)。
 
-REST recovery of a confirmed trade after a WebSocket gap applies the same order-only normalization.
-If a `MATCHED` WebSocket update omits `associate_trades`, the adapter does not infer finality. The
-next REST reconciliation recovers the residual after the trade reaches `CONFIRMED`.
+WebSocket
+缺口之后对确认成交的 REST
+恢复，应用同样的仅订单归一化。若某条
+`MATCHED` WebSocket
+更新省略了
+`associate_trades`，适配器不推断终局，下一次
+REST 对账会在该成交达到
+`CONFIRMED` 后恢复残量。
 
-### Subscription limits
+### 订阅上限 {#subscription-limits}
 
-Polymarket does not publish a WebSocket subscription cap in its current rate-limit documentation.
-`ws_max_subscriptions` (default 200) is therefore a conservative, self-chosen per-connection
-reliability bound rather than a venue-enforced limit: high per-connection subscription counts have
-been observed to silently stall a connection.
+Polymarket
+当前的限流文档没有公布
+WebSocket 订阅上限。因此
+`ws_max_subscriptions`（默认
+200）是自选的保守单连接可靠性边界，而非场所强制的限制：已观察到单连接订阅数过高会让连接
+静默停滞。
 
-The adapter enforces the bound by sharding asset subscriptions across a pool of market connections. It opens a
-connection only when the existing ones are full. It closes a secondary connection once it owns no assets.
+适配器把资产订阅分片到市场连接池来执行该边界。只有现有连接都满了才打开新连接，次级连接不再
+持有任何资产后即关闭。
 
-## Rate limiting
+## 限流 {#rate-limiting}
 
-Polymarket applies Cloudflare IP limits to its APIs and separate per-signer token buckets to CLOB
-order and cancellation requests. The adapter enforces the signer limits in process. All clients
-for one signer use the same limiter, which has independent order and cancellation buckets.
+Polymarket
+对其各
+API
+施加 Cloudflare IP
+限制，并对 CLOB
+下单与撤单请求施加独立的按签名方令牌桶。适配器在进程内强制执行签名方限制。同一签名方的所有客户端共用同一个限流器，它含独立的下单与撤单桶。
 
-### Per-signer CLOB trading limits
+### 按签名方的 CLOB 交易限制 {#per-signer-clob-trading-limits}
 
-The adapter starts each signer at the Standard tier. Polymarket determines tier eligibility from
-the maker wallet's cumulative 30-day trading volume, even when the maker differs from the signer,
-and refreshes assignments every three hours. The adapter does not calculate eligibility: a
-recognized `Poly-RateLimit-Tier` response header selects one of these encoded profiles and updates
-both buckets, while an unknown tier is logged and ignored.
+适配器把每个签名方按 Standard
+层级起步。Polymarket
+依据 maker 钱包累计的 30
+日交易量决定层级资格——即便 maker 与签名方不同——并每三小时刷新一次分配。适配器不计算资格：被识别的
+`Poly-RateLimit-Tier`
+响应头选定下面某个编码档并更新两个桶，未知层级记录后忽略。
 
-| Tier     | 30-day maker volume | Order rate (tokens/s) | Order burst | Cancel rate (tokens/s) | Cancel burst | Negative cancel balance |
-| -------- | ------------------- | --------------------: | ----------: | ---------------------: | -----------: | ----------------------- |
-| Standard | -                   |                    40 |          60 |                     80 |          120 | Yes                     |
-| Copper   | $30,000+            |                    60 |          90 |                    120 |          180 | Yes                     |
-| Bronze   | $50,000+            |                    80 |         120 |                    160 |          240 | Yes                     |
-| Silver   | $100,000+           |                   200 |         300 |                    400 |          600 | Yes                     |
-| Gold     | $500,000+           |                   400 |         600 |                    800 |        1,200 | Yes                     |
-| Platinum | $2.5M+              |                   450 |         675 |                    900 |        1,350 | No                      |
-| Diamond  | $5M+                |                   525 |         787 |                  1,050 |        1,575 | No                      |
-| Elite    | $10M+               |                   600 |         900 |                  1,200 |        1,800 | No                      |
+| 层级     | 30 日 maker 交易量 | 下单速率（令牌/秒） | 下单突发 | 撤单速率（令牌/秒） | 撤单突发 | 撤单余额可为负 |
+| -------- | ------------------ | ------------------: | -------: | ------------------: | -------: | -------------- |
+| Standard | -                  |                  40 |       60 |                  80 |      120 | 是             |
+| Copper   | $30,000+           |                  60 |       90 |                 120 |      180 | 是             |
+| Bronze   | $50,000+           |                  80 |      120 |                 160 |      240 | 是             |
+| Silver   | $100,000+          |                 200 |      300 |                 400 |      600 | 是             |
+| Gold     | $500,000+          |                 400 |      600 |                 800 |    1,200 | 是             |
+| Platinum | $2.5M+             |                 450 |      675 |                 900 |    1,350 | 否             |
+| Diamond  | $5M+               |                 525 |      787 |               1,050 |    1,575 | 否             |
+| Elite    | $10M+              |                 600 |      900 |               1,200 |    1,800 | 否             |
 
-#### Request token costs
+#### 请求令牌成本 {#request-token-costs}
 
-Covered requests consume:
+被覆盖的请求消耗：
 
-| Bucket       | Request                        | Token cost                               |
-| ------------ | ------------------------------ | ---------------------------------------- |
-| Order        | `POST /order`                  | 1                                        |
-| Order        | `POST /orders`                 | Number of orders                         |
-| Cancellation | `DELETE /order`                | 1                                        |
-| Cancellation | `DELETE /orders`               | Number of submitted order IDs            |
-| Cancellation | `DELETE /cancel-all`           | 1 plus successful cancellations          |
-| Cancellation | `DELETE /cancel-market-orders` | 1 plus successful matching cancellations |
+| 桶     | 请求                             | 令牌成本                          |
+| ------ | -------------------------------- | --------------------------------- |
+| 下单   | `POST /order`                    | 1                                 |
+| 下单   | `POST /orders`                   | 订单数                            |
+| 撤单   | `DELETE /order`                  | 1                                 |
+| 撤单   | `DELETE /orders`                 | 提交的订单 ID 数                  |
+| 撤单   | `DELETE /cancel-all`             | 1 加上成功撤单数                  |
+| 撤单   | `DELETE /cancel-market-orders`   | 1 加上成功匹配撤单数              |
 
-A request waits for its full token cost. The adapter rejects it locally only if that cost exceeds
-the current tier's burst.
+请求等待其完整令牌成本。只有该成本超过当前层级突发时，适配器才在本地拒绝。
 
-- Before each new `DELETE /orders` chunk, the adapter caps its size at the smaller of 1,000 IDs and
-  the current tier's burst.
-- Cancel-all and cancel-market requests debit one token before the request, then each successful cancellation
-  after the response. Standard through Gold tiers can enter cancellation debt. Platinum through Elite tiers
-  floor the balance at zero.
+- 每个新的 `DELETE /orders`
+  分块之前，适配器把其规模钳制到 1,000 个 ID
+  与当前层级突发中的较小者。
+- cancel-all 与
+  cancel-market 请求在请求前扣一个令牌，响应后再逐个扣成功撤单的令牌。Standard 到
+  Gold 层级可以进入撤单负债；Platinum 到
+  Elite 层级把余额下限设为零。
 
-#### Rate-limit responses
+#### 限流响应 {#rate-limit-responses}
 
-`Poly-RateLimit-Remaining` can lower the local balance, and `Poly-RateLimit-Reset` extends a rejected
-or indebted bucket's wait. The adapter logs `Poly-RateLimit-Warning` responses with the endpoint,
-token cost, tier, remaining balance, and reset time.
+`Poly-RateLimit-Remaining`
+可以下调本地余额，
+`Poly-RateLimit-Reset`
+延长被拒或负债桶的等待。适配器收到
+`Poly-RateLimit-Warning`
+时记录端点、令牌成本、层级、剩余余额与重置时间。
 
-A `429 Too Many Requests` response with `Retry-After` blocks the applicable bucket for at least that
-delay before retry. Without `Retry-After`, the retry manager uses its configured exponential
-backoff. Submit classification of 425 and 429 is in
-[Definitive and ambiguous outcomes](#definitive-and-ambiguous-outcomes).
+带 `Retry-After`
+的 `429 Too Many
+Requests`
+响应会把相应桶至少阻塞那么久再重试。没有
+`Retry-After` 时重试管理器使用其配置的指数退避。425 与
+429 的提交分类见[确定结果与含义不明结果](#definitive-and-ambiguous-outcomes)。
 
-### Selected IP-based REST limits
+### 节选的基于 IP 的 REST 限制 {#selected-ip-based-rest-limits}
 
-Polymarket changes these quotas over time. As of 2026-08-04, the official limits are:
+Polymarket
+会随时间调整这些配额。截至 2026-08-04，官方限制为：
 
-| Endpoint                            | Burst (10s) | Sustained (10 min) | Notes                                       |
-| ----------------------------------- | ----------- | ------------------ | ------------------------------------------- |
-| General rate limiting               | 15,000      | -                  | Global documented rate limit.               |
-| Health check (`/ok`)                | 100         | -                  | Health endpoint.                            |
-| CLOB general                        | 9,000       | -                  | Aggregate across CLOB endpoints.            |
-| CLOB `POST /order`                  | 5,000       | 120,000            | Single-order submit.                        |
-| CLOB `POST /orders`                 | 2,000       | 21,000             | Batch submit (up to 15 orders per request). |
-| CLOB `DELETE /order`                | 5,000       | 120,000            | Single-order cancel.                        |
-| CLOB `DELETE /orders`               | 2,000       | 15,000             | Batch cancel.                               |
-| CLOB `DELETE /cancel-all`           | 250         | 6,000              | Cancel all orders.                          |
-| CLOB `DELETE /cancel-market-orders` | 1,500       | 21,000             | Cancel orders for one market.               |
-| CLOB `GET /balance-allowance`       | 200         | -                  | Balance and allowance queries.              |
-| CLOB API key endpoints              | 100         | -                  | Key management.                             |
-| Gamma general                       | 4,000       | -                  | Aggregate across Gamma endpoints.           |
-| Gamma `/markets`                    | 300         | -                  | Market metadata.                            |
-| Gamma `/events`                     | 500         | -                  | Event metadata.                             |
-| Data general                        | 1,000       | -                  | Aggregate across Data API endpoints.        |
-| Data `/trades`                      | 200         | -                  | Trade history.                              |
-| Data `/positions`                   | 150         | -                  | Current positions.                          |
+| 端点                                | 突发（10 秒） | 持续（10 分钟） | 说明                                        |
+| ----------------------------------- | ------------- | --------------- | --------------------------------------------- |
+| 通用限流                            | 15,000        | -               | 全局文档记录的限流。                          |
+| 健康检查（`/ok`）                   | 100           | -               | 健康端点。                                    |
+| CLOB 通用                           | 9,000         | -               | CLOB 各端点的合计。                           |
+| CLOB `POST /order`                  | 5,000         | 120,000         | 单订单提交。                                  |
+| CLOB `POST /orders`                 | 2,000         | 21,000          | 批量提交（每请求至多 15 单）。                |
+| CLOB `DELETE /order`                | 5,000         | 120,000         | 单订单撤单。                                  |
+| CLOB `DELETE /orders`               | 2,000         | 15,000          | 批量撤单。                                    |
+| CLOB `DELETE /cancel-all`           | 250           | 6,000           | 撤销全部订单。                                |
+| CLOB `DELETE /cancel-market-orders` | 1,500         | 21,000          | 撤销单个市场的订单。                          |
+| CLOB `GET /balance-allowance`       | 200           | -               | 余额与授权查询。                              |
+| CLOB API 密钥端点                   | 100           | -               | 密钥管理。                                    |
+| Gamma 通用                          | 4,000         | -               | Gamma 各端点的合计。                          |
+| Gamma `/markets`                    | 300           | -               | 市场元数据。                                  |
+| Gamma `/events`                     | 500           | -               | 事件元数据。                                  |
+| Data 通用                           | 1,000         | -               | Data API 各端点的合计。                       |
+| Data `/trades`                      | 200           | -               | 成交历史。                                    |
+| Data `/positions`                   | 150           | -               | 当前持仓。                                    |
 
-### WebSocket limits
+### WebSocket 限制 {#websocket-limits}
 
-The WebSocket quotas are not part of the published REST rate-limits table. The adapter enforces
-`ws_max_subscriptions` (default 200) by sharding subscriptions across a pool of market connections. The
-adapter also paces PolyBolt subscription and unsubscription requests under a shared quota. See
-[Subscriptions, snapshots, and reconnects](#subscriptions-snapshots-and-reconnects).
+WebSocket
+配额不在公开的 REST
+限流表中。适配器通过把订阅分片到市场连接池执行
+`ws_max_subscriptions`（默认
+200），并以共享配额为
+PolyBolt
+的订阅与退订请求节拍。见[订阅、快照与重连](#subscriptions-snapshots-and-reconnects)。
 
 :::warning
-Exceeding the IP-based limits triggers Cloudflare throttling. Requests are queued using sliding
-windows rather than rejected immediately, but sustained overshoot can result in HTTP 429 responses
-or temporary blocking.
+超出基于 IP
+的限制会触发 Cloudflare
+限流。请求使用滑动窗口排队而不是立即被拒，但持续超额可能导致 HTTP 429
+响应或临时封禁。
 :::
 
-For the latest limits, see the official Polymarket
-[CLOB trading rate limits](https://docs.polymarket.com/api-reference/trading-rate-limits) and
-[general rate limits](https://docs.polymarket.com/api-reference/rate-limits).
+最新限制见 Polymarket 官方的
+[CLOB
+交易限流](https://docs.polymarket.com/api-reference/trading-rate-limits)与
+[通用限流](https://docs.polymarket.com/api-reference/rate-limits)。
 
-## Limitations and considerations
+## 限制与注意事项 {#limitations-and-considerations}
 
-- Reduce-only orders are not supported.
-- Batch submit (`POST /orders`) accepts at most 15 orders per request. The adapter splits larger
-  `SubmitOrderList` commands into sequential 15-order chunks.
-- Batch cancel (`DELETE /orders`) accepts at most 1,000 order IDs per request. The adapter also limits each
-  new chunk to the signer's current cancellation burst. It recomputes that limit before each chunk.
-- Position reports omit balances below 0.01 shares. Do not treat an omitted report as proof that a dust
-  position is flat. A sub-minimum residual cannot be exited through the market's minimum order size. Active
-  markets commonly report a minimum of five shares. Position reconciliation therefore tolerates differences
-  through 0.009999 shares and reconciles differences of 0.01 shares or more.
+- 不支持 reduce-only 订单。
+- 批量提交（`POST /orders`）每请求至多
+  15 单。适配器把更大的
+  `SubmitOrderList` 命令拆成按序的 15
+  单分块。
+- 批量撤单（`DELETE /orders`）每请求至多
+  1,000 个订单 ID。适配器还把每个新分块限制在签名方当前的撤单突发内，并在每个分块前重新计算该限制。
+- 持仓报告省略低于 0.01
+  份的余额。不要把被省略的报告当作尘埃持仓已平
+  的证据。低于最小值的残量无法按市场最小订单规模经市场退出。活跃市场通常报告最小
+  5 份。因此持仓对账容忍 0.009999
+  份以内的差异，并对 0.01
+  份及以上的差异做对账。
 
 ## Client configuration
 

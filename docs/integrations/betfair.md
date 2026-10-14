@@ -1,57 +1,55 @@
 # Betfair
 
-Founded in 2000, Betfair operates the world's largest online betting exchange. This integration
-supports instrument discovery, live market data, account state, order management, and execution
-updates through the Betfair Betting, Accounts, and Exchange Streaming APIs.
+Betfair 成立于 2000 年，运营着全球最大的在线博彩交易所。本集成通过 Betfair Betting、Accounts
+和 Exchange Streaming 三套 API 支持工具发现、实时行情、账户状态、订单管理与执行更新。
 
-The adapter is implemented in Rust and exposed to Python at `nautilus_trader.adapters.betfair`, so
-data and execution have the same behavior from either language.
+适配器以 Rust 实现，在 `nautilus_trader.adapters.betfair` 暴露给 Python，因此数据与执行在
+两种语言下行为一致。
 
-## Overview
+## 概览 {#overview}
 
-The adapter includes several components, which can be used separately or together:
+适配器包含若干组件，可单独或组合使用：
 
-- `BetfairHttpClient`: Low-level Betting and Accounts API connectivity.
-- `BetfairStreamClient`: Low-level Exchange Streaming API connectivity for the market and order streams.
-- `BetfairRaceStreamClient`: Low-level connectivity for the race and cricket data streams.
-- `BetfairInstrumentProvider`: Loads Betfair markets and converts them into Nautilus instruments.
-- `BetfairDataClient`: Market data feed manager.
-- `BetfairExecutionClient`: Account management and bet execution gateway.
-- `BetfairDataClientFactory`: Factory for Betfair data clients.
-- `BetfairExecutionClientFactory`: Factory for Betfair execution clients.
+- `BetfairHttpClient`：底层 Betting 与 Accounts API 连接。
+- `BetfairStreamClient`：底层 Exchange Streaming API 连接，用于市场与订单频道。
+- `BetfairRaceStreamClient`：底层赛马与板球数据频道连接。
+- `BetfairInstrumentProvider`：加载 Betfair 市场（market）并转换为 Nautilus 金融工具。
+- `BetfairDataClient`：行情数据源管理器。
+- `BetfairExecutionClient`：账户管理与下注执行网关。
+- `BetfairDataClientFactory`：Betfair 数据客户端工厂。
+- `BetfairExecutionClientFactory`：Betfair 执行客户端工厂。
 
 :::note
-Most users configure a live trading node and do not need to use these lower-level components directly. The
-Python examples show a complete `LiveNode.builder(...)` configuration for data and execution clients.
+多数用户配置实时交易节点即可，无需直接使用这些底层组件。Python 示例展示了数据与执行客户端
+完整的 `LiveNode.builder(...)` 配置。
 :::
 
-## Installation
+## 安装 {#installation}
 
-Install NautilusTrader using the [installation guide](./../getting_started/installation.md). The Betfair adapter
-is included in the Python package. No adapter-specific extra is required.
+按[安装指南](./../getting_started/installation.md)安装 NautilusTrader。Betfair 适配器已包含在
+Python 包中，无需适配器专属的额外依赖。
 
-## Examples
+## 示例 {#examples}
 
-- [Python examples](https://github.com/nautechsystems/nautilus_trader/tree/develop/examples/live/betfair/)
-- [Rust examples](https://github.com/nautechsystems/nautilus_trader/tree/develop/crates/adapters/betfair/examples/)
-- [Book imbalance backtest tutorial](./../tutorials/backtest_book_imbalance_betfair.md)
+- [Python 示例](https://github.com/nautechsystems/nautilus_trader/tree/develop/examples/live/betfair/)
+- [Rust 示例](https://github.com/nautechsystems/nautilus_trader/tree/develop/crates/adapters/betfair/examples/)
+- [订单簿失衡回测教程](./../tutorials/backtest_book_imbalance_betfair.md)
 
-## Betfair documentation
+## Betfair 文档 {#betfair-documentation}
 
 - [Betfair Developer Program](https://developer.betfair.com/)
 - [Exchange API Guide](https://developer.betfair.com/exchange-api/)
 - [Application keys](https://betfair-developer-docs.atlassian.net/wiki/spaces/1smk3cen4v3lu3yomq5qye0ni/pages/2687105/Application+Keys)
 - [Interactive login](https://betfair-developer-docs.atlassian.net/wiki/spaces/1smk3cen4v3lu3yomq5qye0ni/pages/2687772/Interactive+Login+-+API+Endpoint)
 
-## Credentials
+## 凭据 {#credentials}
 
-Betfair requires an application key to authenticate API requests. After registering and funding your
-account, obtain your key with the
-[API-NG Developer AppKeys Tool](https://apps.betfair.com/visualisers/api-ng-account-operations/).
-Betfair assigns two keys per account: a **Live** key, which requires a one-time activation fee, and
-a **Delayed** key for development and testing.
+Betfair 要求用 application key 对 API 请求鉴权。注册并注资账户后，用
+[API-NG Developer AppKeys Tool](https://apps.betfair.com/visualisers/api-ng-account-operations/)
+获取 key。Betfair 为每个账户分配两个 key：**Live** key 需要一次性激活费，**Delayed** key
+用于开发和测试。
 
-Supply the account credentials through configuration or environment variables:
+通过配置或环境变量提供账户凭据：
 
 ```bash
 export BETFAIR_USERNAME=<your_username>
@@ -59,408 +57,363 @@ export BETFAIR_PASSWORD=<your_password>
 export BETFAIR_APP_KEY=<your_app_key>
 ```
 
-The adapter uses Betfair's interactive login endpoint. It does not use client certificates.
+适配器使用 Betfair 的 interactive login 端点，不使用客户端证书。
 
-## Timestamp policy
+## 时间戳策略 {#timestamp-policy}
 
-The adapter keeps venue event time separate from local initialization time:
+适配器把场所事件时间与本地初始化时间分开：
 
-- `ts_event` records when Betfair says the event occurred.
-- `ts_init` records when the live adapter received the containing stream message.
+- `ts_event` 记录 Betfair 声称事件发生的时间。
+- `ts_init` 记录实时适配器收到包含该事件的流消息的时间。
 
-Each live stream callback reads the real-time atomic clock once, before decoding the message. Every
-output decoded from that message shares the same `ts_init`.
+每个实时流回调在解码消息之前读取一次实时原子时钟。由该消息解码出的每个输出共享同一个
+`ts_init`。
 
-| Input                  | `ts_event` source                                                                                                                                                                                                     | `ts_init` source                                                              |
-| ---------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------- |
-| Market change (`mcm`)  | Message publish time (`pt`).                                                                                                                                                                                          | Local receipt time.                                                           |
-| Race change (`rcm`)    | Runner or race feed time (`ft`), falling back to the message publish time (`pt`) when `ft` is absent.                                                                                                                 | Local receipt time.                                                           |
-| Cricket change (`ccm`) | Message publish time (`pt`).                                                                                                                                                                                          | Local receipt time.                                                           |
-| Order change (`ocm`)   | The relevant order lifecycle time. Acceptance uses `pd`; fills use `md`, falling back to `pt`; status and cancel events use the latest of `md`, `cd`, or `ld`, falling back to `pt`. OCM-level custom data uses `pt`. | Local receipt time.                                                           |
-| Historical data loader | The same feed-time rules as live data.                                                                                                                                                                                | Message publish time (`pt`), because recorded data has no local receipt time. |
+| 输入                 | `ts_event` 来源                                                                                                                                                                                                       | `ts_init` 来源                                                                |
+| -------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------- |
+| 市场变化（`mcm`）    | 消息发布时间（`pt`）。                                                                                                                                                                                                  | 本地接收时间。                                                                |
+| 赛马变化（`rcm`）    | 赛马（runner）或赛马数据流时间（`ft`），`ft` 缺失时回退到消息发布时间（`pt`）。                                                                                                                                         | 本地接收时间。                                                                |
+| 板球变化（`ccm`）    | 消息发布时间（`pt`）。                                                                                                                                                                                                  | 本地接收时间。                                                                |
+| 订单变化（`ocm`）    | 相关的订单生命周期时间。接受用 `pd`；成交用 `md`、缺失时回退 `pt`；状态与撤销事件取 `md`、`cd`、`ld` 中最新者、缺失时回退 `pt`。OCM 级自定义数据用 `pt`。                                                              | 本地接收时间。                                                                |
+| 历史数据加载器       | 与实时数据相同的 feed 时间规则。                                                                                                                                                                                        | 消息发布时间（`pt`），因为录制数据没有本地接收时间。                          |
 
-When an OCM arrives during post-reconnect reconciliation, the adapter buffers the message together
-with its captured `ts_init`. Draining the buffer preserves the original receipt time instead of using
-the later replay time.
+OCM 在重连后对账期间到达时，适配器把消息连同其捕获的 `ts_init` 一起缓冲。排空缓冲区时保留
+原始接收时间，而不是使用更晚的重放时间。
 
-## Order book recovery
+## 订单簿恢复 {#order-book-recovery}
 
-### Market images
+### 市场快照 {#market-images}
 
-The data client streams every subscribed market on one market subscription per connection.
-Subscribing another market rewrites the subscription with every subscribed market, so Betfair
-images all of them again. The client queues each write at once, so subscriptions reach Betfair in
-command order and the latest carries every market.
+数据客户端在每条连接上用单个市场订阅流式传输所有已订阅市场。订阅另一个市场会用全部已订阅
+市场重写订阅，因此 Betfair 会为它们全部重新发送快照（image）。客户端即时排队每次写入，因此
+订阅按命令顺序到达 Betfair，最后一次写入携带全部市场。
 
-Betfair images whole markets. A market change with `img` set replaces the books of every runner in the market.
-Thus, the adapter tracks book synchronization per market. A market emits no book deltas until its image
-arrives after the subscription write is queued. A market change that reaches a market before its image, or a
-runner change the adapter cannot parse, suppresses the market's book output and requests a fresh image. A
-request starts recovery only when no running recovery already owns the market.
+Betfair 按整个市场发快照。带 `img` 的市场变化会替换该市场所有 runner 的订单簿。因此适配器
+按市场跟踪订单簿同步。市场在订阅写入排队之后的快照到达之前不发出任何订单簿 delta。先于快照
+到达某市场的市场变化，或适配器无法解析的 runner 变化，会抑制该市场的订单簿输出并请求新的
+快照。只有在没有进行中的恢复流程占用该市场时，请求才会启动恢复。
 
-Each image replaces the book of every runner it carries. A runner that the image's market
-definition lists but the image omits receives an empty snapshot, since an image carries all of the
-market's prices. Betfair change messages carry no per-market sequence, so the stream connection's
-ordering stands in for gap detection. A market whose definition reports `CLOSED` stops tracking,
-since Betfair sends it no further changes or images.
+每个快照替换其所带每个 runner 的订单簿。市场定义列出而快照未包含的 runner 会收到空快照，
+因为快照携带该市场的全部价格。Betfair 变化消息不带按市场的序号，因此以流连接的到达顺序代替
+缺口检测。市场定义报告 `CLOSED` 后停止跟踪，因为 Betfair 不会再为它发送变化或快照。
 
-Book subscriptions last until the client disconnects: unsubscribing does not change the market
-subscription.
+订单簿订阅持续到客户端断开：退订不会改变市场订阅。
 
-### Snapshot deadlines
+### 快照时限 {#snapshot-deadlines}
 
-Initial and recovery subscriptions wait up to `book_snapshot_timeout_secs` (default **10 seconds**)
-for each market's image after the subscription write is queued. A missing image starts or retries
-recovery.
+初始订阅与恢复订阅在订阅写入排队后，为每个市场的快照最多等待
+`book_snapshot_timeout_secs`（默认 **10 秒**）。快照缺失会启动或重试恢复。
 
-Set `book_snapshot_timeout_secs` to `0` to disable snapshot deadlines. A market change before an image still
-starts recovery. If its image never arrives, the recovery attempt waits until the 180-second retry budget
-ends. Each later attempt at the retry ceiling waits up to one minute.
+把 `book_snapshot_timeout_secs` 设为 `0` 可禁用快照时限。快照之前的市场变化仍会启动恢复。
+若其快照始终未到，本次恢复尝试会等到 180 秒重试预算耗尽。之后的每次尝试在重试上限内最多
+等待一分钟。
 
-### Retry limits and reconnects
+### 重试上限与重连 {#retry-limits-and-reconnects}
 
-Recovery reissues the market subscription without clocks under a new ID. Each subscription replaces the last,
-so Betfair answers with a fresh image of every subscribed market. A recovery joins a subscription written
-within the snapshot timeout whose image has not started instead of writing another, so markets that need
-recovery together share one image. With snapshot deadlines disabled, every attempt writes.
+恢复会以新 ID 重发不带时钟的市场订阅。每次订阅都替换上一次，因此 Betfair 用全部已订阅市场的
+新鲜快照响应。若某次订阅在快照时限内刚写入、其快照尚未开始，新的恢复会并入它而不是再写一次，
+因此同时需要恢复的市场共享一个快照。禁用快照时限时，每次尝试都会写入。
 
-Each recovery episode makes **up to eight attempts within 180 seconds**, with exponential backoff and jitter.
-It then retries until it accepts an image. The retry interval doubles from one minute to fifteen minutes.
-Recovery never ends in a failed state. Disconnect and shutdown cancel it. A venue rejection of a
-resubscription is logged, and the attempt retries once its snapshot deadline passes.
+每个恢复事件**在 180 秒内最多尝试八次**，采用指数退避加抖动。之后它会持续重试直到接受一个
+快照。重试间隔从一分钟翻倍到十五分钟。恢复绝不会以失败状态结束。断开与关闭会取消它。
+场所拒绝重新订阅会记入日志，本次尝试在其快照时限过后重试。
 
-A reconnect replays the market subscription with its latest `clk` and `initialClk`. Thus, Betfair patches
-synced books in place with `RESUB_DELTA` changes. It images any market it cannot patch. Synced books stay
-synced across the reconnect. A replayed subscription without clocks, such as a recovery subscription whose
-image has not arrived or one cleared after `INVALID_CLOCK`, receives a full image instead. A running recovery
-keeps its remaining budget, and one waiting between attempts after its budget retries at once on the new
-connection.
+重连会用最新的 `clk` 和 `initialClk` 重放市场订阅。因此 Betfair 用 `RESUB_DELTA` 变化就地
+修补已同步的订单簿，对无法修补的市场发送快照。已同步的订单簿跨重连保持同步。不带时钟的
+重放订阅——例如快照未到的恢复订阅，或在 `INVALID_CLOCK` 后被清除的订阅——会收到完整快照。
+进行中的恢复保留其剩余预算；处于尝试间等待的恢复在新连接上立即重试。
 
-See [Order book recovery ownership](./../developer_guide/adapters.md#order-book-recovery-ownership)
-for the shared recovery machinery and adapter responsibilities.
+共享的恢复机制与适配器职责见
+[订单簿恢复归属](./../developer_guide/adapters.md#order-book-recovery-ownership)。
 
-### Live recovery validation
+### 实时恢复验证 {#live-recovery-validation}
 
-The `betfair-book-stress` harness is a development tool for changes to book synchronization and
-recovery. It connects to Betfair mainnet market data with account credentials and submits no orders.
-It subscribes every runner of the four most traded match odds markets that start between one hour
-ago and twelve hours ahead. It checks each runner's book against the book stream contract and
-against an independent reconstruction of its best 10 levels from the raw stream lines. The harness
-proxy relays the stream as CRLF-delimited lines, over plain TCP to the adapter and TLS to Betfair.
+`betfair-book-stress` 测试台是用于订单簿同步与恢复改动的开发工具。它用账户凭据连接 Betfair
+主网行情数据，不提交任何订单。它订阅在过去一小时到未来十二小时之间开赛的四个成交最活跃
+胜平负赔率（match odds）市场的所有 runner。它对照订单簿流约定、以及从原始流行独立重建的
+最优 10 档，校验每个 runner 的订单簿。测试台代理以 CRLF 分隔的行中继数据流：到适配器走
+明文 TCP，到 Betfair 走 TLS。
 
-From the repository root, with `BETFAIR_USERNAME`, `BETFAIR_PASSWORD`, and `BETFAIR_APP_KEY` set for
-a live application key, run:
+在仓库根目录，为 live application key 设置好 `BETFAIR_USERNAME`、`BETFAIR_PASSWORD` 和
+`BETFAIR_APP_KEY` 后运行：
 
 ```bash
 CARGO_BUILD_JOBS=16 cargo test -p nautilus-betfair --features examples \
   --test betfair-book-stress -- --timeout 10 --rounds 10
 ```
 
-A delayed application key conflates the stream to three-minute updates, which outlast the
-harness's recovery limits.
+Delayed application key 会把数据流合并成三分钟一次的更新，超过测试台的恢复时限。
 
-`--scenario` selects the run:
+`--scenario` 选择运行内容：
 
-- `churn` (default): rotates unparsable runner changes, rejected resubscriptions, resumed
-  reconnects, a reconnect during recovery, and either a 25-second traffic freeze or a connection
-  cut.
-- `boundaries`: probes retry exhaustion into the retry ceiling and shutdown during reconnects.
+- `churn`（默认）：轮换不可解析的 runner 变化、被拒的重新订阅、恢复的重连、恢复期间的重连，
+  以及 25 秒流量冻结或断线之一。
+- `boundaries`：探测重试预算耗尽进入重试上限，以及重连期间关闭。
 
-`--timeout` sets the snapshot timeout in seconds, where `0` disables snapshot deadlines and the
-rejected-resubscription phase. `--rounds` sets the number of `churn` rounds (10 by default). `boundaries` runs
-its sequence once. `--markets` takes comma-separated open market IDs to test instead.
+`--timeout` 以秒设置快照超时，`0` 表示禁用快照时限和被拒重新订阅阶段。`--rounds` 设置
+`churn` 轮数（默认 10）。`boundaries` 其序列只跑一次。`--markets` 接受逗号分隔的未结市场
+ID 作为替代测试对象。
 
-The harness requires the Exchange Stream API and the Identity, Navigation, and Betting APIs, which
-log in, load the markets' instruments, and select the markets. See [Stress harnesses](./../developer_guide/spec_data_testing.md#stress-harnesses) for
-the shared flags and output format.
+测试台需要 Exchange Stream API 以及 Identity、Navigation 和 Betting API，它们负责登录、加载
+市场的金融工具并挑选市场。共享标志与输出格式见
+[压力测试台](./../developer_guide/spec_data_testing.md#stress-harnesses)。
 
-## Orders capability
+## 订单能力 {#orders-capability}
 
-Betfair is a betting exchange, so several concepts from traditional financial venues do not apply.
+Betfair 是博彩交易所，传统金融场所的若干概念在此并不适用。
 
-### Order types
+### 订单类型 {#order-types}
 
-| Order Type             | Supported | Notes                                                             |
-| ---------------------- | --------- | ----------------------------------------------------------------- |
-| `MARKET`               | ✓*        | Supports `AT_THE_CLOSE`, which maps to Betfair `MARKET_ON_CLOSE`. |
-| `LIMIT`                | ✓         | Supports regular limit orders and BSP on-close limit orders.      |
-| `STOP_MARKET`          | -         | Not supported.                                                    |
-| `STOP_LIMIT`           | -         | Not supported.                                                    |
-| `MARKET_IF_TOUCHED`    | -         | Not supported.                                                    |
-| `LIMIT_IF_TOUCHED`     | -         | Not supported.                                                    |
-| `TRAILING_STOP_MARKET` | -         | Not supported.                                                    |
+| 订单类型                 | 支持 | 说明                                                              |
+| ------------------------ | ---- | ----------------------------------------------------------------- |
+| `MARKET`                 | ✓*   | 支持 `AT_THE_CLOSE`，映射为 Betfair `MARKET_ON_CLOSE`。           |
+| `LIMIT`                  | ✓    | 支持普通限价订单与 BSP 收盘限价订单。                             |
+| `STOP_MARKET`            | -    | 不支持。                                                          |
+| `STOP_LIMIT`             | -    | 不支持。                                                          |
+| `MARKET_IF_TOUCHED`      | -    | 不支持。                                                          |
+| `LIMIT_IF_TOUCHED`       | -    | 不支持。                                                          |
+| `TRAILING_STOP_MARKET`   | -    | 不支持。                                                          |
 
-Submitting a `MARKET` order with any time in force other than `AT_THE_CLOSE` is rejected, because
-Betfair has no immediate market order.
+提交任何非 `AT_THE_CLOSE` 有效期的 `MARKET` 订单都会被拒绝，因为 Betfair 没有即时市价单。
 
 :::warning
-BSP on-close instructions carry a **liability**, not a stake. For `MARKET_ON_CLOSE` and
-`LIMIT_ON_CLOSE` orders, the adapter sends the order quantity as the Betfair liability. Size a BSP
-order by the amount you are prepared to lose, not by the stake you want matched.
+BSP 收盘指示携带的是**责任额（liability）**，不是本金（stake）。`MARKET_ON_CLOSE` 和
+`LIMIT_ON_CLOSE` 订单，适配器把订单数量作为 Betfair 责任额发送。给 BSP 订单定量请按你准备
+损失的金额，而不是期望成交的本金。
 :::
 
-BSP bets are irrevocable: once placed, the venue refuses cancel requests for them. While a BSP bet rests, both
-the stream and `listCurrentOrders` report it as `EXECUTION_COMPLETE`. They report zero matched, remaining,
-cancelled, lapsed, and voided sizes, and carry the liability separately. The adapter keeps such a bet
-`ACCEPTED` until BSP reconciliation, where a matched bet resolves `FILLED` and a lapsed bet resolves
-`CANCELED`. An explicit `CancelOrder` or `BatchCancelOrders` on a BSP bet emits `OrderCancelRejected` with the
-venue's `BET_TAKEN_OR_LAPSED` reason rather than closing the order. `CancelAllOrders` emits no per-order
-events, as described under [Cancel all orders](#cancel-all-orders).
+BSP 投注不可撤回：一旦下单，场所会拒绝其撤销请求。BSP 投注挂单期间，数据流和
+`listCurrentOrders` 都报告它为 `EXECUTION_COMPLETE`，成交、剩余、已撤、失效与作废数量全为
+零，责任额单独携带。适配器让这样的投注保持 `ACCEPTED` 直到 BSP 对账：成交的投注落定为
+`FILLED`，失效的投注落定为 `CANCELED`。对 BSP 投注显式发出 `CancelOrder` 或
+`BatchCancelOrders` 会发出 `OrderCancelRejected`，携带场所的 `BET_TAKEN_OR_LAPSED` 原因，而
+不会关闭订单。`CancelAllOrders` 不发出逐单事件，见[撤销全部订单](#cancel-all-orders)。
 
-### Time in force
+### 有效期 {#time-in-force}
 
-| Time in force  | Supported | Notes                                                        |
-| -------------- | --------- | ------------------------------------------------------------ |
-| `GTC`          | ✓         | Maps to Betfair `PERSIST`.                                   |
-| `DAY`          | ✓         | Maps to Betfair `LAPSE`.                                     |
-| `FOK`          | ✓         | Maps to Betfair `FILL_OR_KILL`.                              |
-| `IOC`          | ✓         | Maps to `FILL_OR_KILL` with `min_fill_size=0`.               |
-| `AT_THE_CLOSE` | ✓         | Used for Betfair BSP `LIMIT_ON_CLOSE` and `MARKET_ON_CLOSE`. |
-| `GTD`          | -         | Not supported; the expiry is ignored and maps to `LAPSE`.    |
+| 有效期         | 支持 | 说明                                                         |
+| -------------- | ---- | ------------------------------------------------------------ |
+| `GTC`          | ✓    | 映射为 Betfair `PERSIST`。                                   |
+| `DAY`          | ✓    | 映射为 Betfair `LAPSE`。                                     |
+| `FOK`          | ✓    | 映射为 Betfair `FILL_OR_KILL`。                              |
+| `IOC`          | ✓    | 映射为 `FILL_OR_KILL` 且 `min_fill_size=0`。                 |
+| `AT_THE_CLOSE` | ✓    | 用于 Betfair BSP 的 `LIMIT_ON_CLOSE` 与 `MARKET_ON_CLOSE`。  |
+| `GTD`          | -    | 不支持；到期时间被忽略并映射为 `LAPSE`。                     |
 
-A `LIMIT` order in `AT_THE_OPEN` mode also routes to `LIMIT_ON_CLOSE`, because Betfair has no
-at-the-open instruction.
+`AT_THE_OPEN` 模式的 `LIMIT` 订单也路由到 `LIMIT_ON_CLOSE`，因为 Betfair 没有开盘指示。
 
-### Execution instructions
+### 执行指示 {#execution-instructions}
 
-| Instruction   | Supported | Notes                                 |
-| ------------- | --------- | ------------------------------------- |
-| `post_only`   | -         | Not applicable to a betting exchange. |
-| `reduce_only` | -         | Not applicable to a betting exchange. |
+| 指示          | 支持 | 说明                                 |
+| ------------- | ---- | ------------------------------------ |
+| `post_only`   | -    | 不适用于博彩交易所。                 |
+| `reduce_only` | -    | 不适用于博彩交易所。                 |
 
-### Advanced order features
+### 高级订单特性 {#advanced-order-features}
 
-| Feature            | Supported | Notes                             |
-| ------------------ | --------- | --------------------------------- |
-| Order Modification | ✓         | Price and size change separately. |
-| Bracket/OCO Orders | -         | Not supported.                    |
-| Iceberg Orders     | -         | Not supported.                    |
+| 特性             | 支持 | 说明                              |
+| ---------------- | ---- | --------------------------------- |
+| 订单修改         | ✓    | 价格与数量分别修改。              |
+| 括号/OCO 订单    | -    | 不支持。                          |
+| 冰山订单         | -    | 不支持。                          |
 
-### Batch operations
+### 批量操作 {#batch-operations}
 
-| Operation    | Supported | Notes                                    |
-| ------------ | --------- | ---------------------------------------- |
-| Batch Submit | ✓         | Implemented through `SubmitOrderList`.   |
-| Batch Modify | -         | Not supported.                           |
-| Batch Cancel | ✓         | Implemented through `BatchCancelOrders`. |
+| 操作     | 支持 | 说明                                     |
+| -------- | ---- | ---------------------------------------- |
+| 批量下单 | ✓    | 通过 `SubmitOrderList` 实现。            |
+| 批量改单 | -    | 不支持。                                 |
+| 批量撤单 | ✓    | 通过 `BatchCancelOrders` 实现。          |
 
-### Cancel all orders
+### 撤销全部订单 {#cancel-all-orders}
 
-Without an order side, `CancelAllOrders` sends one market-wide request and cancels orders for every
-selection in that market.
+不带订单方向时，`CancelAllOrders` 发送一个市场级请求，撤销该市场每个选项（selection）的
+订单。
 
-With an order side, the command selects open cached orders for the exact instrument and side, regardless of
-strategy. These orders must belong to the current execution client and account. This includes reconciled
-external orders assigned to that client and excludes orders with no client assignment. The command uses the
-venue order IDs already held in cache and does not refresh order state first. If any otherwise eligible order
-lacks a cached venue order ID, the command sends no requests. Otherwise, it sends per-bet cancel instructions
-in batches of at most 60.
+带订单方向时，命令按精确的工具与方向选出缓存中的未结订单，不论策略。这些订单必须属于当前
+执行客户端与账户，包括分配给该客户端的对账外部订单，不含未分配客户端的订单。命令使用缓存中
+已有的场所订单 ID，不会先刷新订单状态。若任何本应符合条件的订单缺少缓存的场所订单 ID，
+命令不发送任何请求。否则按每批至多 60 笔发送逐注撤销指示。
 
-`CancelAllOrders` does not create per-order cancel commands, so request and instruction failures
-emit no order events. OCM and mass-status reconciliation provide the final order state.
+`CancelAllOrders` 不创建逐单撤销命令，因此请求与指示失败不会发出订单事件。OCM 与批量状态
+对账提供最终订单状态。
 
-### Position management
+### 持仓管理 {#position-management}
 
-| Feature          | Supported | Notes                                          |
-| ---------------- | --------- | ---------------------------------------------- |
-| Query positions  | -         | Exposure is tracked per bet, not per position. |
-| Position mode    | -         | Not applicable to a betting exchange.          |
-| Leverage control | -         | No leverage on a betting exchange.             |
-| Margin mode      | -         | No margin on a betting exchange.               |
+| 特性         | 支持 | 说明                                           |
+| ------------ | ---- | ---------------------------------------------- |
+| 查询持仓     | -    | 敞口按投注跟踪，不按持仓。                     |
+| 持仓模式     | -    | 不适用于博彩交易所。                           |
+| 杠杆控制     | -    | 博彩交易所没有杠杆。                           |
+| 保证金模式   | -    | 博彩交易所没有保证金。                         |
 
-Set `position_check_interval_secs=None` on `LiveExecutionEngineConfig`, because Betfair reports no
-venue-side positions to check against.
+在 `LiveExecutionEngineConfig` 上设置 `position_check_interval_secs=None`，因为 Betfair 不
+报告可供核对的场所侧持仓。
 
-### Order querying
+### 订单查询 {#order-querying}
 
-| Feature               | Supported | Notes                                              |
-| --------------------- | --------- | -------------------------------------------------- |
-| Query open orders     | ✓         | Built from `listCurrentOrders`.                    |
-| Order status updates  | ✓         | Real-time bet state changes from the order stream. |
-| Fill reports          | ✓         | Matched sizes and prices from `listCurrentOrders`. |
-| Cleared order history | -         | The adapter does not request settlement history.   |
+| 特性             | 支持 | 说明                                               |
+| ---------------- | ---- | -------------------------------------------------- |
+| 查询未结订单     | ✓    | 由 `listCurrentOrders` 构建。                      |
+| 订单状态更新     | ✓    | 订单频道上的实时投注状态变化。                     |
+| 成交报告         | ✓    | 来自 `listCurrentOrders` 的成交数量与价格。        |
+| 已结算订单历史   | -    | 适配器不请求结算历史。                             |
 
-`LiveNode` fetches bulk order and fill reports over HTTP on workers. Then, before reconciliation, its main
-thread resolves identities and incremental fills against current OCM state. Startup and post-reconnect mass
-status bypass these hooks.
+`LiveNode` 在 worker 上通过 HTTP 获取批量订单与成交报告，然后在主线程于对账前用当前 OCM
+状态解析身份与增量成交。启动与重连后的批量状态查询绕过这些钩子。
 
-- Single-order reports return unsupported errors and cannot confirm the absence of cached open orders missing
-  from bulk checks. Missing-order resolution is deferred. OCM updates and mass status remain available.
-  `QueryOrder` still supports inflight checks.
-- Position reports return unsupported errors. [Disable position checks](#position-management).
+- 单笔订单报告返回 unsupported 错误，无法确认批量检查中缺失的缓存未结订单确实不存在。
+  缺失订单的厘清被推迟。OCM 更新与批量状态仍可用。`QueryOrder` 仍支持在途检查。
+- 持仓报告返回 unsupported 错误。请[禁用持仓检查](#position-management)。
 
-## Execution control flow
+## 执行控制流 {#execution-control-flow}
 
-Startup:
+启动：
 
-1. Connect the HTTP client and fetch initial account funds.
-2. Seed OCM state from cached orders.
-3. Connect the Betfair execution stream and subscribe to order updates.
-4. Generate order and fill reports from the same `listCurrentOrders` observations.
-5. Reconcile order and fill reports into the execution engine.
+1. 连接 HTTP 客户端并获取初始账户资金。
+2. 用缓存订单为 OCM 状态预置数据。
+3. 连接 Betfair 执行流并订阅订单更新。
+4. 从同一批 `listCurrentOrders` 观测生成订单与成交报告。
+5. 把订单与成交报告对账进执行引擎。
 
-Cached open orders with venue identity are restored as already accepted. The adapter also restores
-retained identity for up to 10,000 recent closed cached orders. Neither path emits another
-`OrderAccepted`.
+带场所有关身份的缓存未结订单会按已接受状态恢复。适配器还会为至多 10,000 笔近期已关闭的
+缓存订单恢复其保留的身份。两条路径都不会再发出 `OrderAccepted`。
 
-On every stream reconnect, the adapter repeats the order-and-fill mass-status fetch over a recent
-window. It halts new-order submissions after transport loss or a server `connectionClosed` status
-until the latest recovery generation dispatches its mass status.
+每次流重连时，适配器会在最近的时间窗口上重复订单与成交的批量状态获取。在传输丢失或服务端
+`connectionClosed` 状态之后，它会暂停新订单提交，直到最新一代恢复流程发出其批量状态。
 
-For the full transition sequence, see
-[post-reconnect reconciliation](#post-reconnect-reconciliation).
+完整转换序列见[重连后对账](#post-reconnect-reconciliation)。
 
-Reconciliation behavior:
+对账行为：
 
-- `stream_market_ids_filter` filters live OCM updates.
-- Reconciliation uses `reconcile_market_ids` only when `reconcile_market_ids_only=True` and
-  `reconcile_market_ids` is set.
-- In every other case, including `reconcile_market_ids_only=True` with no `reconcile_market_ids`,
-  the adapter falls back to `stream_market_ids_filter` for reconciliation scope.
-- `ignore_external_orders=True` skips OCM updates with no `rfo`.
+- `stream_market_ids_filter` 过滤实时 OCM 更新。
+- 仅当 `reconcile_market_ids_only=True` 且设置了 `reconcile_market_ids` 时，对账才使用
+  `reconcile_market_ids`。
+- 其他所有情况——包括 `reconcile_market_ids_only=True` 但没有 `reconcile_market_ids`——
+  对账范围都回退到 `stream_market_ids_filter`。
+- `ignore_external_orders=True` 跳过不带 `rfo` 的 OCM 更新。
 
-## Session management and reconnection
+## 会话管理与重连 {#session-management-and-reconnection}
 
-Betfair expires session tokens, so the adapter renews them rather than waiting for a failure. It
-handles renewal and recovery through four mechanisms:
+Betfair 的会话令牌会过期，适配器主动续期而不坐等失败。它通过四种机制处理续期与恢复：
 
-| Mechanism            | Trigger                                       | Action                                                                                               |
-| -------------------- | --------------------------------------------- | ---------------------------------------------------------------------------------------------------- |
-| Periodic keep-alive  | Every 10 hours (36,000 seconds).              | Renew the session token and update retained stream authentication without reconnecting.              |
-| Keep-alive fallback  | Keep-alive returns `LoginFailed`.             | Re-login, update all active stream authentication, then request replacement stream transports.       |
-| Stream reconnect     | Current order image after transport recovery. | Try keep-alive. `LoginFailed` triggers full re-login; other failures retain the existing session.    |
-| HTTP report recovery | A report query returns a session error.       | Try keep-alive and retry once; any keep-alive failure falls back to full re-login before that retry. |
+| 机制               | 触发条件                                      | 动作                                                                                                 |
+| ------------------ | --------------------------------------------- | ---------------------------------------------------------------------------------------------------- |
+| 周期性 keep-alive  | 每 10 小时（36,000 秒）。                     | 续期会话令牌，并更新保留的流鉴权，无需重连。                                                         |
+| keep-alive 回退    | keep-alive 返回 `LoginFailed`。               | 重新登录，更新全部活动流的鉴权，然后请求替换流传输。                                                 |
+| 流重连             | 传输恢复后的当前订单快照。                    | 先试 keep-alive。`LoginFailed` 触发完全重新登录；其他失败保留现有会话。                              |
+| HTTP 报告恢复      | 报告查询返回会话错误。                        | 先试 keep-alive 并重试一次；任何 keep-alive 失败都在该重试前回退为完全重新登录。                     |
 
-The periodic keep-alive tasks and data stream reconnect handler log and skip transient keep-alive
-errors such as network timeouts and 5xx responses. The execution reconnect handler also preserves
-the existing session token, but continues report reconciliation. At the periodic or handler-level
-keep-alive step, only `LoginFailed` triggers full re-login. HTTP report recovery differs: after a
-session error, any keep-alive failure falls back to full re-login before the report-level retry.
+周期性 keep-alive 任务与数据流重连处理器会对瞬时 keep-alive 错误（如网络超时和 5xx 响应）
+记日志并跳过。执行重连处理器同样保留现有会话令牌，但继续报告对账。在周期性或处理器级的
+keep-alive 步骤上，只有 `LoginFailed` 触发完全重新登录。HTTP 报告恢复不同：会话错误之后，
+任何 keep-alive 失败都会在报告级重试之前回退为完全重新登录。
 
-Both the data and execution clients use the same session-renewal policy. Each spawns:
+数据与执行客户端使用同一会话续期策略，各自派生：
 
-- A **keep-alive task** that periodically attempts renewal. An ordinary successful keep-alive
-  updates retained authentication without replacing the transport.
-- A **reconnect handler** that waits for the replacement order subscription to become current, then
-  attempts to refresh the session.
+- 一个 **keep-alive 任务**，周期性地尝试续期。普通成功的 keep-alive 只更新保留的鉴权，
+  不替换传输。
+- 一个**重连处理器**，等待替换订单订阅成为当前状态，然后尝试刷新会话。
 
-After a full re-login, the adapter updates authentication for every affected active stream before it
-requests any reconnect. Each replacement connection sends the latest authentication before retained
-subscriptions or traffic buffered during the reconnect. Market and order streams retain their
-subscription IDs and `clk`/`initialClk` resume values. Correlated status responses keep socket
-availability, authentication, pending subscriptions, current subscriptions, rejected requests, and
-degraded streams distinct.
+完全重新登录后，适配器先更新所有受影响的活动流的鉴权，再请求任何重连。每个替换连接在发送
+保留的订阅或重连期间缓冲的流量之前，先发送最新鉴权。市场与订单流保留其订阅 ID 和
+`clk`/`initialClk` 恢复值。相关的状态响应会区分：socket 可用性、鉴权、待处理订阅、当前
+订阅、被拒请求与降级流。
 
-The data client applies the same update to active market, race, and cricket streams. A periodic keep-alive
-fallback requests replacement transports immediately after updating authentication. An HTTP report recovery
-requests an execution stream replacement after the query finishes.
+数据客户端对活动的市场、赛马和板球流应用同样的更新。周期性 keep-alive 回退会在更新鉴权后
+立即请求替换传输。HTTP 报告恢复会在查询结束后请求执行流的替换。
 
-When full re-login occurs inside the execution stream reconnect handler, that handler first fetches and
-dispatches mass status, then requests a replacement execution stream. The replacement stream's `Connection`
-message starts another handler iteration. A successful keep-alive updates retained authentication without
-requesting another replacement. This ordering prevents a reconnect loop.
+若完全重新登录发生在执行流重连处理器内部，该处理器先获取并分派批量状态，再请求替换执行流。
+替换流的 `Connection` 消息会启动处理器的下一轮迭代。成功的 keep-alive 只更新保留鉴权，不再
+请求新的替换。这个顺序避免了重连循环。
 
-## Post-reconnect reconciliation
+## 重连后对账 {#post-reconnect-reconciliation}
 
-After the initial handshake, a Betfair execution transport loss immediately halts new-order
-submissions. This applies to automatic network reconnects and replacements requested after a full
-re-login. The adapter assumes the cache may have diverged while the previous transport was
-unavailable. In particular, fills can complete and roll off the unmatched book before the
-post-reconnect stream image arrives. The adapter therefore fetches and dispatches a mass status over
-a recent window before allowing new submissions.
+初始握手之后，Betfair 执行传输一旦丢失就立即暂停新订单提交。这既适用于自动网络重连，也
+适用于完全重新登录后请求的替换。适配器假设缓存在前一传输不可用期间可能已经出现偏差。尤其
+是，成交可能在重连后流快照到达之前完成并滑出未匹配簿。因此适配器在允许新提交之前，会围绕
+最近的时间窗口获取并分派一次批量状态。
 
-| Step | Trigger                                               | Action                                                                                                               |
+| 步骤 | 触发条件                                              | 动作                                                                                                                 |
 | ---- | ----------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------- |
-| 1    | Transport loss or a server `connectionClosed` status. | Advances the reconciliation generation and halts new submissions immediately.                                        |
-| 2    | Replacement `Connection` message.                     | Marks authentication and retained subscriptions pending and raises `pending_resync`.                                 |
-| 3    | Complete `SUB_IMAGE` or `RESUB_DELTA`.                | Queues the current generation once. OCMs remain buffered until recovery completes.                                   |
-| 4    | Reconnect task receives the generation.               | Refreshes the session, requests `getAccountFunds`, then fetches one order snapshot with up to four bounded attempts. |
-| 5    | All snapshot pages succeed.                           | Dispatches the complete mass status, commits fill deduplication, and reopens submissions under one generation check. |
+| 1    | 传输丢失或服务端 `connectionClosed` 状态。            | 推进对账代号，并立即暂停新提交。                                                                                     |
+| 2    | 替换的 `Connection` 消息。                            | 把鉴权与保留订阅标记为待定，并升起 `pending_resync`。                                                                |
+| 3    | 完整的 `SUB_IMAGE` 或 `RESUB_DELTA`。                 | 为当前代号排队一次。OCM 保持缓冲直到恢复完成。                                                                       |
+| 4    | 重连任务收到该代号。                                  | 刷新会话，请求 `getAccountFunds`，然后以至多四次有界尝试获取一份订单快照。                                           |
+| 5    | 快照全部分页成功。                                    | 在单次代号检查下发出完整批量状态、提交成交去重，并重新开放提交。                                                     |
 
-The account-state refresh is best effort: a request or parse failure is logged but does not prevent
-mass-status dispatch or reopening the gate. A keep-alive failure other than `LoginFailed` continues
-with the retained session because the report queries retain their own retry and session-recovery
-logic. Read-only mass-status recovery retries four times with exponential backoff. Exhausted retries,
-a failed full re-login, or a failed report dispatch leave the gate halted until a later reconnect
-succeeds or the client disconnects. A newer transport loss, reconnect, disconnect, or shutdown
-cancels stale recovery work. This fail-closed behavior also covers an active socket whose
-authentication or order subscription is not current.
+账户状态刷新是尽力而为：请求或解析失败会记日志，但不会阻止批量状态分派或重新开放闸门。
+非 `LoginFailed` 的 keep-alive 失败会沿用保留的会话继续，因为报告查询自带重试与会话恢复
+逻辑。只读的批量状态恢复以指数退避重试四次。重试耗尽、完全重新登录失败或报告分派失败，
+都会让闸门保持暂停，直到某次后续重连成功或客户端断开。更新的传输丢失、重连、断开或关闭
+会取消过期的恢复工作。这一 fail-closed 行为同样覆盖鉴权或订单订阅非当前状态的活跃 socket。
 
-Mass-status dispatch and fill-deduplication commit form the completion boundary for the handled
-generation. A failed or stale recovery does not advance fill deduplication. The gate does not wait
-for a separate acknowledgement that the execution engine has applied the report to its cache.
+批量状态分派与成交去重提交构成所处理代号的完成边界。失败或过期的恢复不会推进成交去重。
+闸门不等待执行引擎已把报告应用到缓存的单独确认。
 
-While the execution stream is unavailable or reconciliation is in progress:
+执行流不可用或对账进行期间：
 
-- `submit_order` and `submit_order_list` emit `OrderDenied` with reason
-  `STREAM_RECONCILING: execution stream unavailable or recovering, retry after recovery`.
-- `cancel_order`, `batch_cancel_orders`, and `modify_order` pass through unchanged.
-- `pending_resync` buffers OCMs received after the replacement `Connection` message. Connectivity
-  polling and command or report entry points invoke `process_pending_resync` on the engine thread,
-  which synchronizes OCM state from the cache and drains the buffer.
+- `submit_order` 与 `submit_order_list` 发出 `OrderDenied`，原因为
+  `STREAM_RECONCILING: execution stream unavailable or recovering, retry after recovery`。
+- `cancel_order`、`batch_cancel_orders` 与 `modify_order` 原样通过。
+- `pending_resync` 缓冲替换 `Connection` 消息之后收到的 OCM。连通性轮询以及命令或报告入口
+  会在引擎线程上调用 `process_pending_resync`，它从缓存同步 OCM 状态并排空缓冲。
 
-If the client disconnects while a reconciliation is still in flight, `clear_resync_state` clears
-the active halt so a subsequent connect/submit cycle starts clean.
+若对账仍在途时客户端断开，`clear_resync_state` 会清除当前的暂停状态，让随后的
+连接/提交周期干净地开始。
 
-The lookback window for the mass-status fetch is `stream_gap_recovery_lookback_mins` (default `10`). Order and
-fill reports use the same `OrderProjection::All` observations from one paginated `listCurrentOrders`
-traversal. With a market filter, requests use batches of up to 250 market IDs. If pages repeat a Bet ID, both
-reports use its last observation.
+批量状态获取的回看窗口是 `stream_gap_recovery_lookback_mins`（默认 `10`）。订单与成交报告
+使用同一次分页 `listCurrentOrders` 遍历的 `OrderProjection::All` 观测。带市场过滤时，请求
+按每批至多 250 个市场 ID。若分页中重复出现某个 Bet ID，两份报告都使用其最后一次观测。
 
-Fill recovery selects orders locally by `matchedDate`, including both window bounds, and sorts them by match
-time. An order placed before the lookback remains eligible when it matched during the gap, including
-execution-complete and settled orders still returned by `listCurrentOrders`. Orders outside the fill window
-still contribute status and replacement history without advancing fill deduplication.
+成交恢复在本地按 `matchedDate`（含两端）选择订单，并按成交时间排序。缺口期间成交过的
+更早下单的订单仍在候选之列，包括 `listCurrentOrders` 仍返回的执行完成与已结算订单。成交
+窗口之外的订单仍会贡献状态与替换历史，但不推进成交去重。
 
-Normal mass-status generation uses the caller's optional `lookback_mins` for its lower
-bound, with no upper bound. When no lookback is supplied, every order with a `matchedDate` is eligible.
-Normal generation commits deduplication only when the complete report is ready to return.
+常规批量状态生成用调用方可选的 `lookback_mins` 作为下界，不设上界。未提供回看时长时，
+任何带 `matchedDate` 的订单都在候选之列。常规生成只有在完整报告准备好返回时才提交去重。
 
-## Open-only order discovery
+## 仅未结订单发现 {#open-only-order-discovery}
 
-Open-only reconciliation discovers executable bets and all orders in BSP-enabled markets.
+仅未结对账用于发现可执行的投注，以及所有开启 BSP 的市场中的订单。
 
-### Replacement history
+### 替换历史 {#replacement-history}
 
-The adapter queries known replacement Bet IDs for discovered orders and unresolved modifications.
-These extra lookups recover cumulative fills and confirmed quantities:
+适配器就发现到的订单与未决修改查询已知的替换 Bet ID。这些额外查询找回累计成交与已确认
+数量：
 
-- If required replacement or pending-modification Bet IDs remain missing after the extra queries,
-  the scan fails rather than treating their fills as zero.
-- A cached open order absent from venue discovery does not by itself cause this failure.
+- 若额外查询之后仍缺少必需的替换或待定修改 Bet ID，扫描以失败告终，而不是把它们的成交
+  当作零。
+- 缓存中某笔未结订单未出现在场所发现结果中，本身不会触发该失败。
 
-### Market scope
+### 市场范围 {#market-scope}
 
-Discovery queries use the [configured reconciliation market scope](#execution-control-flow). A
-command for a specific instrument narrows discovery to that instrument's market and returns no
-reports when the market is outside the configured scope.
+发现查询使用[配置的对账市场范围](#execution-control-flow)。针对特定工具的命令会把发现
+范围收窄到该工具所在的市场；市场不在配置范围内时不返回任何报告。
 
-Extra lookups by Bet ID and `customerOrderRef` are not market-filtered. They also query unresolved
-modifications for tracked orders outside the discovery scope. Those rows are excluded from reports,
-but missing required history still fails the scan.
+按 Bet ID 与 `customerOrderRef` 的额外查询不受市场过滤。它们还会为发现范围之外的已跟踪
+订单查询未决修改。这些行会被排除在报告之外，但缺失的必需历史仍会使扫描失败。
 
-### Resting BSP bets
+### 挂起的 BSP 投注 {#resting-bsp-bets}
 
-To recover resting [BSP bets](#order-types), including bets the adapter does not track, the adapter
-also discovers BSP-enabled markets containing execution-complete account orders. It queries these
-markets with `listCurrentOrders` using `ALL` and reports resting BSP bets as `ACCEPTED`.
+为找回挂起的 [BSP 投注](#order-types)（包括适配器未跟踪的投注），适配器还会发现含有
+执行完成账户订单的 BSP 开启市场，用 `ALL` 对这些市场执行 `listCurrentOrders` 查询，并把
+挂起的 BSP 投注报告为 `ACCEPTED`。
 
-BSP market discovery depends on the query scope:
+BSP 市场发现依赖查询范围：
 
-- **Account-wide**: `listEvents` finds events, then `listMarketCatalogue` queries each event with
-  `maxResults=1000`. If an event returns 1,000 markets, the scan fails rather than risking an
-  incomplete set of open orders.
-- **Market-scoped**: each catalog request contains at most 250 market IDs.
+- **账户级**：`listEvents` 找到事件，然后 `listMarketCatalogue` 以 `maxResults=1000` 查询
+  每个事件。若某事件返回 1,000 个市场，扫描以失败告终，而不是冒险拿到不完整的未结订单集。
+- **市场级**：每个 catalog 请求至多包含 250 个市场 ID。
 
-Markets without BSP are not scanned for unrelated order history. Historical orders within discovered
-BSP-enabled markets, including ordinary limit bets, can still add required replacement history and
-increase scan work.
+不带 BSP 的市场不会被扫描无关的订单历史。已发现 BSP 开启市场内的历史订单（包括普通限价
+投注）仍可能增加必需的替换历史，加大扫描工作量。
 
-## Tick scheme and pricing
+## tick 方案与定价 {#tick-scheme-and-pricing}
 
-Betfair uses a tiered tick scheme with varying increments across price ranges:
+Betfair 使用分层 tick 方案，不同价格区间采用不同递增步长：
 
-| Price range      | Tick size |
+| 价格区间         | tick 大小 |
 | ---------------- | --------- |
 | 1.01 - 2.00      | 0.01      |
 | 2.00 - 3.00      | 0.02      |
@@ -473,142 +426,126 @@ Betfair uses a tiered tick scheme with varying increments across price ranges:
 | 50.00 - 100.00   | 5.00      |
 | 100.00 - 1000.00 | 10.00     |
 
-Minimum price is 1.01, maximum is 1000.00.
+最低价格 1.01，最高 1000.00。
 
-## Order modification
+## 订单修改 {#order-modification}
 
-- Price and size cannot change atomically. These require separate operations.
-- Price modification uses `ReplaceOrders` (cancel + new order at new price).
-- Size reduction uses `CancelOrders` with a `size_reduction` parameter.
-- Size increase is not supported. Submit a new order instead.
+- 价格与数量不能原子地同时修改，需要分开操作。
+- 价格修改使用 `ReplaceOrders`（撤销旧单 + 以新价下新单）。
+- 数量减少使用带 `size_reduction` 参数的 `CancelOrders`。
+- 不支持增加数量，请改为提交新订单。
 
-A successful price replacement remains the same logical Nautilus order. The adapter maps the old and new Bet
-IDs to the same `client_order_id`. It suppresses the old bet's cancel and emits exactly one `OrderUpdated`
-with the new Bet ID. This holds whether the REST response or order change message (OCM) arrives first. If the
-replacement OCM already contains a fill, `OrderUpdated` precedes `OrderFilled`.
+成功的价格替换在逻辑上仍是同一个 Nautilus 订单。适配器把新旧 Bet ID 映射到同一个
+`client_order_id`，抑制旧注的撤销，并恰好发出一个携带新 Bet ID 的 `OrderUpdated`。无论 REST
+响应还是订单变化消息（OCM）先到都成立。若替换的 OCM 已包含成交，`OrderUpdated` 先于
+`OrderFilled`。
 
-Betfair can return `CANCELLED_NOT_PLACED` when the replace operation cancels the old bet but fails to
-place its replacement. The adapter then emits `OrderCanceled` for the logical order instead of
-`OrderModifyRejected`. A late fill for the canceled Bet ID is still applied once, after which the
-order remains `CANCELED`. The same terminal outcome applies when the old-bet cancel OCM arrives
-while a replacement is pending and the REST call later returns any definitive replace failure.
+当 replace 操作撤销了旧注但未能挂出其替换单时，Betfair 会返回 `CANCELLED_NOT_PLACED`。
+适配器此时为逻辑订单发出 `OrderCanceled`，而不是 `OrderModifyRejected`。被撤销 Bet ID 的
+迟到成交仍会被应用一次，之后订单保持 `CANCELED`。当旧注撤销的 OCM 在替换待定期间到达、
+REST 调用随后返回任何确定性 replace 失败时，得到同样的终态结果。
 
-### Recovering an ambiguous modification
+### 厘清有歧义的修改 {#recovering-an-ambiguous-modification}
 
-When the REST response is lost or ambiguous, the adapter resolves the modification from the OCM
-stream or from a confirming `listCurrentOrders` result. Only a fully paginated reconciliation can
-prove that the original order remained unchanged or closed without a replacement:
+REST 响应丢失或有歧义时，适配器从 OCM 流或确证的 `listCurrentOrders` 结果厘清该修改。只有
+完整分页的对账才能证明原订单保持不变，或无替换地关闭：
 
-- A bet listed under the same `customerOrderRef` with a different Bet ID promotes the pending
-  replace. Both active and closed listings emit `OrderUpdated` carrying the new Bet ID, its price,
-  and the original size. An active listing is then withheld from the resolving report set, while a
-  closed listing follows the update through its terminal order status report.
-- A bet whose active size has fallen to at least the requested size but below the original
-  confirms the reduction. The active size is matched plus remaining plus voided (`sizeVoided`,
-  or `sv` on the stream), and includes the matched and voided size of any replaced bets, so a
-  void does not lower it. An active listing emits `OrderUpdated` carrying the reduced size, while
-  a closed listing carries the confirmed size in its terminal report without an `OrderUpdated`. A
-  smaller active size is a lapse rather than the requested reduction, and an unchanged one means
-  Betfair has not applied the reduction yet, so both leave the command in flight.
+- 以同一 `customerOrderRef`、不同 Bet ID 列出的投注会提升待定的 replace。活动与已关闭的
+  列出都会发出携带新 Bet ID、其价格与原始数量的 `OrderUpdated`。活动的列出随后被从厘清
+  报告集中剔除；已关闭的列出则通过其终态订单状态报告跟随该更新。
+- 活动数量已降至不低于请求数量但低于原始数量的投注，确认这次减少。活动数量等于成交加
+  剩余加作废（`sizeVoided`，流上为 `sv`），并计入被替换投注的成交与作废数量，因此作废
+  不会使其降低。活动的列出发出携带减少后数量的 `OrderUpdated`；已关闭的列出在终态报告中
+  携带确认后的数量而没有 `OrderUpdated`。更小的活动数量意味着失效而非所请求的减少，未变
+  的数量意味着 Betfair 尚未应用该减少——两者都让命令保持在途。
 
-Whichever channel resolves the modification first wins, and the others become no-ops. Thus, a size reduction
-confirmed by the stream is not repeated when its REST response returns.
+哪个通道先厘清修改哪个就生效，其余变为无操作。因此流确认的数量减少不会在其 REST 响应
+返回时重复执行。
 
-While the REST request may still be running, a listing with only the original bet proves nothing. Thus, the
-order stays `PENDING_UPDATE`. After the REST result becomes ambiguous, a fully paginated reconciliation that
-shows the original Bet ID still executable emits `OrderModifyRejected`, retains its active report, and clears
-the pending replacement. If `customerOrderRef` uniquely resolves to the pending order, the same reconciliation
-with a closed original Bet ID and no replacement clears the pending state and lets the terminal report carry
-the cancellation. If `customerOrderRef` does not resolve uniquely, the adapter cannot identify a possible new
-Bet ID, so the replacement remains pending. A definitive modification failure also clears the pending state,
-so a later lapse cannot be mistaken for the requested reduction.
+REST 请求可能仍在运行时，只列出原始注的结果证明不了任何事，订单因此保持 `PENDING_UPDATE`。
+REST 结果变为有歧义之后，若完整分页对账显示原 Bet ID 仍可执行，则发出
+`OrderModifyRejected`、保留其活动报告并清除待定替换。若 `customerOrderRef` 唯一解析到待定
+订单，同样的对账中原 Bet ID 已关闭且无替换时，会清除待定状态并让终态报告携带撤销。若
+`customerOrderRef` 无法唯一解析，适配器无法确定可能的新 Bet ID，替换保持待定。确定性的
+修改失败同样会清除待定状态，使之后的失效不会被误认为所请求的减少。
 
-Reconciliation withholds order status reports that would duplicate or contradict the resolved state:
+对账会剔除会重复或抵触已厘清状态的订单状态报告：
 
-- The superseded replace leg on the resolving pass, whether the replacement is active or terminal,
-  because its `CANCELED` report would otherwise cancel the logical order.
-- The active report that produced `OrderUpdated`, because the order is still pending locally while
-  reconciliation runs.
+- 厘清那一趟上被取代的 replace 支路——无论替换处于活动还是终态——因为它的 `CANCELED`
+  报告否则会把逻辑订单撤掉。
+- 产生 `OrderUpdated` 的那条活动报告，因为对账进行时订单在本地仍属待定。
 
-Reports retained alongside `OrderModifyRejected` and terminal reports follow the normal report path. A
-terminal replacement report follows its `OrderUpdated` into the retained terminal lifecycle. A terminal
-reduction resolves without `OrderUpdated`. That report and later reports carry the confirmed size rather than
-Betfair's original stake.
+与 `OrderModifyRejected` 一起保留的报告和终态报告走正常报告路径。终态的替换报告在其
+`OrderUpdated` 之后进入保留的终态生命周期。终态的减少在没有 `OrderUpdated` 的情况下厘清；
+该报告及其后的报告携带确认后的数量，而不是 Betfair 的原始本金。
 
-The resolving pass suppresses a historical Bet ID as described above. Once the logical replacement
-order is terminal, later explicit and mass-status queries retain order status reports for its
-historical Bet IDs.
+厘清那一趟会如上所述抑制历史 Bet ID。逻辑替换订单进入终态后，后续的显式查询与批量状态
+查询会为其历史 Bet ID 保留订单状态报告。
 
-## Order command failures and retries
+## 订单命令失败与重试 {#order-command-failures-and-retries}
 
-### Request correlation
+### 请求关联 {#request-correlation}
 
-Betfair provides separate values for logical order correlation and request deduplication:
+Betfair 为逻辑订单关联与请求去重提供两个独立的值：
 
-| Field              | Scope             | Adapter behavior                                                                                                             |
-| ------------------ | ----------------- | ---------------------------------------------------------------------------------------------------------------------------- |
-| `customerOrderRef` | One logical order | Derived from `client_order_id`, returned as OCM `rfo`, and retained across replacement Bet IDs.                              |
-| `customerRef`      | One REST command  | Generated for each place, replace, or cancel request and reused unchanged for every retry, including batches and reductions. |
+| 字段               | 作用范围          | 适配器行为                                                                                                                 |
+| ------------------ | ----------------- | -------------------------------------------------------------------------------------------------------------------------- |
+| `customerOrderRef` | 一个逻辑订单      | 由 `client_order_id` 派生，作为 OCM 的 `rfo` 返回，并跨替换 Bet ID 保留。                                                  |
+| `customerRef`      | 一条 REST 命令    | 每个 place、replace 或 cancel 请求各生成一个，每次重试原样复用，包括批量与数量减少。                                       |
 
 :::warning
-Client order IDs longer than 32 characters use their last 32 characters as `customerOrderRef`. Keep those
-suffixes distinct across tracked orders. A new submission whose reference matches another tracked order emits
-`OrderDenied` before `OrderSubmitted` or HTTP dispatch with
-`VALIDATION_FAILED: customerOrderRef <ref> collides with another tracked order`. In an order list, only the
-colliding leg is denied.
+超过 32 个字符的客户端订单 ID 取其后 32 个字符作为 `customerOrderRef`。请保持被跟踪订单
+的这些后缀互不相同。新提交若其引用与另一笔被跟踪订单相同，会在 `OrderSubmitted` 或 HTTP
+派发之前发出 `OrderDenied`，原因为
+`VALIDATION_FAILED: customerOrderRef <ref> collides with another tracked order`。订单列表中
+只拒绝发生冲突的那条腿。
 :::
 
-When OCM state is synchronized from cached orders, the adapter also recognizes the legacy
-first-32-character format. If either truncation identifies more than one tracked order, OCM and
-reconciliation order status and fill reports omit `client_order_id` and retain the Bet ID so
-reconciliation can match by venue identity.
+从缓存订单同步 OCM 状态时，适配器也识别旧式取前 32 个字符的格式。若任一截断能对应多笔
+被跟踪订单，OCM 与对账的订单状态、成交报告会省略 `client_order_id` 并保留 Bet ID，让对账
+按场所身份匹配。
 
-### Retry and ambiguity
+### 重试与歧义 {#retry-and-ambiguity}
 
-State-changing order calls use up to three retries by default within a 45-second total budget. The
-elapsed-time limit keeps every retry within Betfair's 60-second `customerRef` deduplication window.
-The adapter handles failures as follows:
+改变状态的订单调用默认在 45 秒总预算内至多重试三次。这个耗时上限保证每次重试都落在
+Betfair 60 秒的 `customerRef` 去重窗口内。适配器按如下方式处理失败：
 
-| Failure or response                                                           | Order command handling                                                                     |
-| ----------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------ |
-| Transport failure, client timeout, malformed success response, or HTTP 5xx    | Mark the attempt ambiguous and retry with the same `customerRef`.                          |
-| HTTP 429, `TOO_MANY_REQUESTS`, or `SERVICE_BUSY`                              | Retry with the same `customerRef`.                                                         |
-| `UNEXPECTED_ERROR`                                                            | Mark the attempt ambiguous and retry with the same `customerRef`.                          |
-| `TIMEOUT_ERROR` or an adapter cancellation                                    | Leave the command ambiguous without retrying it.                                           |
-| `TIMEOUT` report or `BET_IN_PROGRESS`                                         | Leave the command ambiguous for OCM or reconciliation.                                     |
-| Incomplete or contradictory report                                            | Leave the command ambiguous unless a definitive top-level error proves rejection.          |
-| Known validation, authentication, permission, or other definitive venue error | Reject the affected command without retrying it.                                           |
-| Missing, malformed, or unknown nested API error under a server error          | Leave the command ambiguous without retrying it until its meaning is explicitly supported. |
+| 失败或响应                                                                        | 订单命令处理                                                                             |
+| --------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------ |
+| 传输失败、客户端超时、畸形的成功响应或 HTTP 5xx                                   | 将本次尝试标记为有歧义，用同一 `customerRef` 重试。                                      |
+| HTTP 429、`TOO_MANY_REQUESTS` 或 `SERVICE_BUSY`                                   | 用同一 `customerRef` 重试。                                                              |
+| `UNEXPECTED_ERROR`                                                                | 将本次尝试标记为有歧义，用同一 `customerRef` 重试。                                      |
+| `TIMEOUT_ERROR` 或适配器主动取消                                                  | 让命令保持有歧义，不再重试。                                                             |
+| `TIMEOUT` 报告或 `BET_IN_PROGRESS`                                                | 让命令保持有歧义，交给 OCM 或对账。                                                      |
+| 不完整或自相矛盾的报告                                                            | 让命令保持有歧义，除非确定性的顶层错误能证明被拒。                                       |
+| 已知的校验、鉴权、权限或其他确定性场所错误                                        | 拒绝受影响的命令，不再重试。                                                             |
+| 服务端错误下缺失、畸形或未知的嵌套 API 错误                                       | 让命令保持有歧义且不重试，直到其含义被显式支持。                                         |
 
-An ambiguous placement remains `SUBMITTED`, an ambiguous replacement remains `PENDING_UPDATE`, and
-an ambiguous cancellation remains `PENDING_CANCEL` until OCM or reconciliation resolves it. The
-adapter does not emit a rejection because Betfair may have applied the request. Once a dispatched
-attempt has an unknown outcome, a later failed attempt cannot make the overall result definitive.
+有歧义的下单保持 `SUBMITTED`，有歧义的替换保持 `PENDING_UPDATE`，有歧义的撤销保持
+`PENDING_CANCEL`，直到 OCM 或对账厘清。适配器不发出拒绝，因为 Betfair 可能已经应用了请求。
+已派发的尝试一旦结果未知，后续失败的尝试也无法让整体结果变为确定。
 
-Definitive placement, cancellation, and modification failures normally emit `OrderRejected`,
-`OrderCancelRejected`, and `OrderModifyRejected`, respectively. A definitive price replacement
-failure instead emits `OrderCanceled` once the old-bet cancel has arrived because that bet is no
-longer executable. `BET_TAKEN_OR_LAPSED` completes a cancellation for the same terminal reason,
-except on BSP bets, where the venue has not applied the cancel: there it emits
-`OrderCancelRejected` and the bet stays open until BSP reconciliation.
+确定性的下单、撤销与修改失败通常分别发出 `OrderRejected`、`OrderCancelRejected` 和
+`OrderModifyRejected`。旧注撤销已到达后的确定性价格替换失败改发 `OrderCanceled`，因为那张
+注已不可执行。`BET_TAKEN_OR_LAPSED` 以同样的终态原因完成撤销，BSP 投注除外——场所并没有
+应用该撤销：那里发出 `OrderCancelRejected`，投注保持未结直到 BSP 对账。
 
-### JSON-RPC errors
+### JSON-RPC 错误 {#json-rpc-errors}
 
-Betfair JSON-RPC errors contain an outer numeric `code` and `message` and can also contain a nested API
-`errorCode` and `errorDetails`. The outer values describe the JSON-RPC envelope. Betfair commonly uses
-`-32099` with an actionable API error stored in the object named by `data.exceptionname`, such as
-`APINGException` or `AccountAPINGException`. The adapter preserves the outer and nested fields and uses the
-nested API error when available. Unknown, missing, or malformed nested data remains visible through the outer
-code and message and receives the conservative order handling shown above. Read-only calls retain their
-broader retry policy and can retry `TIMEOUT_ERROR` or a generic retryable outer error.
+Betfair 的 JSON-RPC 错误包含外层的数字 `code` 与 `message`，还可能包含嵌套的 API
+`errorCode` 与 `errorDetails`。外层值描述 JSON-RPC 信封。Betfair 常用 `-32099`，把可操作的
+API 错误存放在 `data.exceptionname` 所指名的对象里，如 `APINGException` 或
+`APINGException`/`AccountAPINGException`。适配器保留外层与嵌套字段，可用时采用嵌套 API
+错误。未知、缺失或畸形的嵌套数据通过外层 code 与 message 仍然可见，并接受上述保守的订单
+处理。只读调用保留其更宽松的重试策略，可以重试 `TIMEOUT_ERROR` 或可重试的泛型外层错误。
 
-## Order stream fill handling
+## 订单流成交处理 {#order-stream-fill-handling}
 
-The execution client processes order updates from the Betfair Exchange Streaming API.
-Two configuration options control how updates are filtered:
+执行客户端处理来自 Betfair Exchange Streaming API 的订单更新。两个配置项控制更新的过滤
+方式：
 
-- `stream_market_ids_filter`: filters at the market level (early exit, silent skip).
-- `ignore_external_orders`: filters at the order level (skips OCM updates with no `rfo`).
+- `stream_market_ids_filter`：在市场层过滤（提前退出、静默跳过）。
+- `ignore_external_orders`：在订单层过滤（跳过无 `rfo` 的 OCM 更新）。
 
 ```mermaid
 flowchart TD
@@ -619,37 +556,33 @@ flowchart TD
     D -->|No| F[Process applicable order status,<br/>fill, or void changes]
 ```
 
-After both filters pass, the adapter emits only the outputs that apply to the update. Market-level
-filtering exits before any per-runner work, and neither filter logs a warning.
+两道过滤都通过后，适配器只发出适用于该更新的输出。市场级过滤在任何逐 runner 工作之前
+退出，两道过滤都不记警告。
 
 :::warning
-If you set `stream_market_ids_filter`, ensure it includes every market you trade. Orders placed on
-markets excluded from the filter miss live fill and cancel updates from the stream.
+如果设置了 `stream_market_ids_filter`，请确保它包含你交易的每一个市场。被过滤排除的市场
+上的订单会错过流上的实时成交与撤销更新。
 :::
 
-### Fill handling
+### 成交处理 {#fill-handling}
 
-The adapter handles several edge cases when processing fills from the stream:
+适配器在处理流上的成交时会处理若干边缘情况：
 
-- **Incremental fills**: Betfair reports cumulative matched sizes per Bet ID. The adapter tracks a
-  separate fill cursor for every current or historical Bet ID and restores those cursors from
-  cached events during reconciliation.
-- **Overfill protection**: fills that would exceed the order quantity are rejected.
-- **Race conditions**: when stream fills arrive before the HTTP order response, the adapter
-  caches the venue order ID immediately to ensure correct order matching.
-- **Replacement fills**: a fill reported against an old Bet ID updates the same logical order once
-  without replacing its current Bet ID. A partial fill received while an order is `PENDING_UPDATE`
-  or `PENDING_CANCEL` updates its filled quantity while preserving the pending command state.
-- **Price restatements**: a Rule 4 withdrawal republishes a matched Bet with a reduced average matched price
-  and unchanged matched size. The adapter emits the new price as a fill carrying the Bet's trade ID, which
-  restates the order and open position averages without changing quantity. A restatement applies when exactly
-  one fill lot survives on the Bet. An update where more than one lot survives, or a void and a new average
-  arrive together, emits nothing.
+- **增量成交**：Betfair 按 Bet ID 报告累计成交数量。适配器为每个当前或历史 Bet ID 维护
+  独立的成交游标，并在对账期间从缓存事件恢复这些游标。
+- **超成交保护**：会使成交量超过订单数量的成交会被拒绝。
+- **竞态**：流上的成交先于 HTTP 订单响应到达时，适配器立即缓存场所订单 ID，保证正确
+  匹配订单。
+- **替换成交**：报告在旧 Bet ID 上的成交只更新同一逻辑订单一次，不替换其当前 Bet ID。
+  订单处于 `PENDING_UPDATE` 或 `PENDING_CANCEL` 时收到的部分成交会更新其已成交量，同时
+  保留待定的命令状态。
+- **价格重述**：Rule 4  withdrawals 会以更低的平均成交价、不变的成交数量重新发布已成交的
+  注。适配器把新价格作为携带该注交易 ID 的成交发出，重述订单与未平仓位的均价，数量不变。
+  只有恰好一个成交批次在该注上存活时重述才适用。存活批次多于一批的更新，或作废与新均价
+  一起到达时，什么都不发。
 
-  Restating a closing fill corrects the order average only. Position close accounting keeps its original
-  values. Restating an opening fill after a partial close updates the open average only. Realized PnL for
-  already-closed quantity keeps its original value. A restatement on a canceled Bet does not emit another
-  cancel.
+  重述平仓成交只纠正订单均价。持仓平仓核算保持原值。部分平仓之后重述开仓成交只更新未平
+  均价。已平仓数量的已实现盈亏保持原值。被撤销注上的重述不再发出第二次撤销。
 - **Late terminal corrections**: the adapter retains correlation and per-Bet fill and void state for
   the 10,000 most recent terminal identities, including identities restored from closed cached
   orders. Locally owned identities and external terminal Bet IDs share this bound. Delayed fills and
