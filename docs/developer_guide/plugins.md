@@ -1,4 +1,4 @@
-# 插件
+# 插件 {#plugins}
 
 `nautilus-plugin` crate 定义了 NautilusTrader 插件的产物契约。插件是一个独立编译的
 Rust `cdylib`，通过带版本的清单表明身份，并经由 C-ABI 边界交换值。

@@ -1,4 +1,4 @@
-# 设计原则
+# 设计原则 {#design-principles}
 
 本页定义指导 NautilusTrader 设计、实现与评审的原则、策略与取舍。
 [架构](./../concepts/architecture.md)描述的是组件与运行时结构。

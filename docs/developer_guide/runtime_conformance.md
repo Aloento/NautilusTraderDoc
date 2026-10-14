@@ -1,4 +1,4 @@
-# 运行时一致性契约
+# 运行时一致性契约 {#runtime-conformance-contract}
 
 需要定位选定[设计原则](./design_principles.md)的实现边界与代表性检查时，查阅本参考。
 

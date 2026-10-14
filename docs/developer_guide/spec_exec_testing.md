@@ -1,4 +1,4 @@
-# 执行测试规范
+# 执行测试规范 {#execution-testing-spec}
 
 使用这份测试矩阵，配合 Rust 的 `ExecTester` 策略验证适配器的执行功能。Python 将其作为内置策略暴露，通过
 `nautilus_trader.testkit.ExecTesterConfig` 配置；Rust 代码从 `nautilus_testkit::testers` 导入。用例使用带前缀的

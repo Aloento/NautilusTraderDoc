@@ -1,4 +1,4 @@
-# Python 适配器接口
+# Python 适配器接口 {#python-adapter-interface}
 
 要在独立的 Python 包中实现自定义实时适配器，使用本指南。该包可以拥有自己的
 Rust/PyO3 扩展。本指南涵盖客户端接口、注册与运行时契约。平台总览见

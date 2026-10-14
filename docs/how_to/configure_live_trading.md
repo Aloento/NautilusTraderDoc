@@ -1,4 +1,4 @@
-# 配置实时交易节点
+# 配置实时交易节点 {#configure-a-live-trading-node}
 
 设置 `LiveNode` 以建立实时市场连接。节点生命周期见[实时交易](./../concepts/live.md)。
 命令结果见[执行政策](./../concepts/execution/policies.md#command-outcomes)。状态恢复见

@@ -1,4 +1,4 @@
-# 环境搭建
+# 环境搭建 {#environment-setup}
 
 使用对 Rust 与 Python 都有良好语言支持的编辑器，例如 PyCharm 或 Visual Studio Code。
 

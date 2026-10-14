@@ -1,108 +1,101 @@
 # Bybit
 
-Founded in 2018, Bybit is one of the largest cryptocurrency exchanges in terms
-of daily trading volume and open interest of crypto assets and crypto
-derivative products.
+Bybit 成立于 2018 年，是按日交易量与加密资产及加密衍生品未平仓合约量计最大的加密货币
+交易所之一。
 
-NautilusTrader provides Bybit integration for live market data and execution. The adapter is
-implemented in Rust and exposed to Python through the same public configurations, factories, and
-data types.
+NautilusTrader 提供 Bybit 集成，用于实时行情数据与执行。适配器以 Rust 实现，通过相同的
+公开配置、工厂与数据类型暴露给 Python。
 
-## Examples
+## 示例 {#examples}
 
-- [Python examples](https://github.com/nautechsystems/nautilus_trader/tree/develop/examples/live/bybit/)
-- [Rust examples](https://github.com/nautechsystems/nautilus_trader/tree/develop/crates/adapters/bybit/examples/)
+- [Python 示例](https://github.com/nautechsystems/nautilus_trader/tree/develop/examples/live/bybit/)
+- [Rust 示例](https://github.com/nautechsystems/nautilus_trader/tree/develop/crates/adapters/bybit/examples/)
 
-## Overview
+## 概览 {#overview}
 
-This guide assumes a trader is setting up for both live market data feeds and trade execution.
-The Bybit adapter includes multiple components, which can be used together or separately depending
-on the use case.
+本指南假设交易者同时配置实时行情数据源与交易执行。Bybit 适配器包含多个组件，按用例不同
+可以一起用，也可以单独用。
 
-- `BybitDataClientConfig` and `BybitExecutionClientConfig`: Live client configuration.
-- `BybitDataClientFactory` and `BybitExecutionClientFactory`: Trading node client factories.
-- `BybitDataClient`: A market data feed manager, built by the data client factory.
-- `BybitExecutionClient`: An account management and trade execution gateway, built by the execution
-  client factory.
-- `BybitHttpClient`: Low-level HTTP API connectivity.
-- `BybitWebSocketClient`: Low-level WebSocket API connectivity for Rust callers.
-- `BybitLiquidation`: Custom data for public liquidations on linear and inverse contracts, see
-  [Liquidations](#liquidations).
-- `BYBIT`, `BYBIT_CLIENT_ID`, `BYBIT_VENUE`: Public identifiers.
-- `BybitEnvironment`, `BybitProductType`, `BybitMarginMode`, `BybitPositionIdx`,
-  `BybitPositionMode`: Public enums used by the configurations and order params.
+- `BybitDataClientConfig` 与 `BybitExecutionClientConfig`：实盘客户端配置。
+- `BybitDataClientFactory` 与 `BybitExecutionClientFactory`：交易节点客户端工厂。
+- `BybitDataClient`：行情数据源管理器，由数据客户端工厂构建。
+- `BybitExecutionClient`：账户管理与交易执行网关，由执行客户端工厂构建。
+- `BybitHttpClient`：底层 HTTP API 连接。
+- `BybitWebSocketClient`：面向 Rust 调用方的底层 WebSocket API 连接。
+- `BybitLiquidation`：线性与反向合约公开强平的自定义数据，见[强平](#liquidations)。
+- `BYBIT`、`BYBIT_CLIENT_ID`、`BYBIT_VENUE`：公开标识符。
+- `BybitEnvironment`、`BybitProductType`、`BybitMarginMode`、`BybitPositionIdx`、
+  `BybitPositionMode`：配置与订单参数使用的公开枚举。
 
 :::note
-Most users configure a live trading node as shown below. They do not need to use the lower-level components
-directly.
+多数用户按下面的方式配置实盘交易节点即可，无需直接使用底层组件。
 :::
 
-## Bybit documentation
+## Bybit 文档 {#bybit-documentation}
 
-Read the [Bybit help center](https://www.bybit.com/en/help-center) with this NautilusTrader integration guide.
+请结合本 NautilusTrader 集成指南阅读
+[Bybit 帮助中心](https://www.bybit.com/en/help-center)。
 
-## Products
+## 产品 {#products}
 
-A product is an umbrella term for a group of related instrument types.
+产品（product）是一组相关工具类型的统称。
 
 :::note
-Product is also referred to as `category` in the Bybit v5 API.
+产品在 Bybit v5 API 中也被称为 `category`。
 :::
 
-The following product types are supported on Bybit:
+Bybit 支持以下产品类型：
 
-| Product Type                | Supported | Notes                                     |
-| --------------------------- | --------- | ----------------------------------------- |
-| Spot cryptocurrencies       | ✓         | Native spot markets with margin support.  |
-| Linear perpetual contracts  | ✓         | USDT/USDC margined perpetual swaps.       |
-| Linear futures contracts    | ✓         | Delivery-settled linear futures.          |
-| Inverse perpetual contracts | ✓         | Coin-margined perpetual swaps.            |
-| Inverse futures contracts   | ✓         | Coin-margined delivery futures.           |
-| Option contracts            | ✓         | European options settled in USDT or USDC. |
+| 产品类型                  | 支持      | 说明                                      |
+| ------------------------- | --------- | ----------------------------------------- |
+| 现货加密货币              | ✓         | 支持保证金的原生现货市场。                |
+| 线性永续合约              | ✓         | USDT/USDC 保证金的永续互换。              |
+| 线性期货合约              | ✓         | 实物交割结算的线性期货。                  |
+| 反向永续合约              | ✓         | 币本位保证金的永续互换。                  |
+| 反向期货合约              | ✓         | 币本位保证金的交割期货。                  |
+| 期权合约                  | ✓         | 以 USDT 或 USDC 结算的欧式期权。          |
 
-## Symbology
+## 符号体系 {#symbology}
 
-To distinguish between different product types on Bybit, Nautilus uses specific product category suffixes for symbols:
+为区分 Bybit 上不同的产品类型，Nautilus 为 symbol 使用特定的产品类别后缀：
 
-- `-SPOT`: Spot cryptocurrencies
-- `-LINEAR`: Perpetual and futures contracts
-- `-INVERSE`: Inverse perpetual and inverse futures contracts
-- `-OPTION`: Option contracts
+- `-SPOT`：现货加密货币
+- `-LINEAR`：永续与期货合约
+- `-INVERSE`：反向永续与反向期货合约
+- `-OPTION`：期权合约
 
-These suffixes must be appended to the Bybit raw symbol string to identify the specific product type
-for the instrument ID. For example:
+这些后缀必须拼接到 Bybit 原始 symbol 字符串之后，才能确定工具 ID 对应的具体产品类型。
+例如：
 
-- The Ether/Tether spot currency pair is identified with `-SPOT`, such as `ETHUSDT-SPOT`.
-- The BTCUSDT perpetual futures contract is identified with `-LINEAR`, such as `BTCUSDT-LINEAR`.
-- The BTCUSD inverse perpetual futures contract is identified with `-INVERSE`, such as `BTCUSD-INVERSE`.
-- A BTC USDT-settled put option: `BTC-27MAR26-70000-P-USDT-OPTION`.
-- A ETH USDC-settled call option: `ETH-28FEB25-2800-C-OPTION`.
+- Ether/Tether 现货货币对用 `-SPOT` 标识，如 `ETHUSDT-SPOT`。
+- BTCUSDT 永续期货合约用 `-LINEAR` 标识，如 `BTCUSDT-LINEAR`。
+- BTCUSD 反向永续期货合约用 `-INVERSE` 标识，如 `BTCUSD-INVERSE`。
+- 一只 BTC USDT 结算的卖权期权：`BTC-27MAR26-70000-P-USDT-OPTION`。
+- 一只 ETH USDC 结算的买权期权：`ETH-28FEB25-2800-C-OPTION`。
 
-Bybit's option symbols include the settlement currency for USDT-settled
-contracts (e.g. `BTC-27MAR26-70000-P-USDT`) but omit it for USDC-settled
-contracts (e.g. `ETH-28FEB25-2800-C`). The adapter appends `-OPTION` to
-whatever symbol the API returns.
+Bybit 的期权 symbol 对 USDT 结算合约包含结算货币（例如
+`BTC-27MAR26-70000-P-USDT`），但对 USDC 结算合约省略它（例如
+`ETH-28FEB25-2800-C`）。适配器在 API 返回的任何 symbol 后追加 `-OPTION`。
 
-## Instrument loading
+## 工具加载 {#instrument-loading}
 
-The data and execution clients load all instruments for their configured `product_types` when they
-connect. The default is `LINEAR`. Include each product type required by your subscriptions or
-orders.
+数据与执行客户端在连接时加载其配置 `product_types` 的全部工具。默认是 `LINEAR`。请把订阅
+或订单需要的每个产品类型都包含进去。
 
-## Environments
+## 环境 {#environments}
 
-Bybit provides three trading environments. Configure the appropriate
-environment with the `environment` enum on your client configuration.
+Bybit 提供三种交易环境。用客户端配置上的 `environment` 枚举选择合适的
+环境。
 
-| Environment | Config                     | Description                                                      |
+| 环境        | 配置                       | 说明                                                             |
 | ----------- | -------------------------- | ---------------------------------------------------------------- |
-| **Mainnet** | `BybitEnvironment.MAINNET` | Production trading with real funds.                              |
-| **Demo**    | `BybitEnvironment.DEMO`    | Practice trading with simulated funds on mainnet infrastructure. |
-| **Testnet** | `BybitEnvironment.TESTNET` | Separate test network for development and integration testing.   |
+| **主网**    | `BybitEnvironment.MAINNET` | 用真实资金的生产交易。                                           |
+| **Demo**    | `BybitEnvironment.DEMO`    | 在主网基础设施上用模拟资金练习交易。                             |
+| **测试网**  | `BybitEnvironment.TESTNET` | 用于开发与集成测试的独立测试网络。                               |
 
-### Mainnet (Production)
+### 主网（生产环境） {#mainnet-production}
 
-The default environment for live trading with real funds.
+用真实资金做实盘交易时的默认环境。
 
 ```python
 from nautilus_trader.adapters.bybit import BybitEnvironment
@@ -115,13 +108,12 @@ config = BybitExecutionClientConfig(
 )
 ```
 
-Environment variables: `BYBIT_API_KEY`, `BYBIT_API_SECRET`
+环境变量：`BYBIT_API_KEY`、`BYBIT_API_SECRET`
 
-### Demo trading
+### Demo 交易 {#demo-trading}
 
-Demo trading uses Bybit's mainnet infrastructure with simulated funds.
-Create demo API keys from the
-[Bybit demo trading page](https://www.bybit.com/en/demo-trading).
+Demo 交易在 Bybit 的主网基础设施上使用模拟资金。请在
+[Bybit demo 交易页面](https://www.bybit.com/en/demo-trading)创建 demo API key。
 
 ```python
 from nautilus_trader.adapters.bybit import BybitEnvironment
@@ -134,22 +126,24 @@ config = BybitExecutionClientConfig(
 )
 ```
 
-Environment variables: `BYBIT_DEMO_API_KEY`, `BYBIT_DEMO_API_SECRET`
+环境变量：`BYBIT_DEMO_API_KEY`、`BYBIT_DEMO_API_SECRET`
 
 :::warning
-**Demo environment limitations**:
+**Demo 环境的限制**：
 
-- The WebSocket Trade API is **not supported** for demo trading. NautilusTrader automatically uses the HTTP REST API for order operations in demo mode, including order lists and batch cancels, which are sent as individual requests.
-- Native TP/SL and option params (`order_iv`, `mmp`) on new orders work in demo via the HTTP create-order endpoint.
-- The custom TP/SL trigger prices `tp_trigger_price` and `sl_trigger_price` are not supported in demo (orders
-  setting them are denied). The create-order endpoint cannot carry them.
-- Demo private streams use `wss://stream-demo.bybit.com`, but public market data uses Bybit's mainnet public stream `wss://stream.bybit.com`.
+- Demo 交易**不支持** WebSocket Trade API。NautilusTrader 在 demo 模式自动改用 HTTP REST
+  API 做订单操作，包括订单列表与批量撤销——它们以独立请求发送。
+- 新订单上的原生 TP/SL 与期权参数（`order_iv`、`mmp`）在 demo 中经由 HTTP 下单端点可用。
+- 自定义 TP/SL 触发价 `tp_trigger_price` 与 `sl_trigger_price` 在 demo 中不支持（设置了
+  它们的订单会被拒绝）。下单端点无法携带它们。
+- Demo 私有流使用 `wss://stream-demo.bybit.com`，但公开行情使用 Bybit 主网的公开流
+  `wss://stream.bybit.com`。
 
 :::
 
-### Testnet
+### 测试网 {#testnet}
 
-A separate test network for development and integration testing.
+用于开发与集成测试的独立测试网络。
 
 ```python
 from nautilus_trader.adapters.bybit import BybitEnvironment
@@ -162,181 +156,166 @@ config = BybitExecutionClientConfig(
 )
 ```
 
-Environment variables: `BYBIT_TESTNET_API_KEY`, `BYBIT_TESTNET_API_SECRET`
+环境变量：`BYBIT_TESTNET_API_KEY`、`BYBIT_TESTNET_API_SECRET`
 
 :::note
-Testnet supports all trading features including the WebSocket Trade API.
-It uses completely separate infrastructure from mainnet, so market data
-and liquidity differ significantly from production.
+测试网支持全部交易特性，包括 WebSocket Trade API。它与主网使用完全独立的基础设施，
+因此行情数据与流动性与生产环境差异很大。
 :::
 
-When `environment=BybitEnvironment.TESTNET`, the adapter resolves Bybit's
-documented testnet endpoints automatically:
+设置 `environment=BybitEnvironment.TESTNET` 时，适配器自动解析 Bybit 文档中的测试网端点：
 
-- REST API: `https://api-testnet.bybit.com`
-- Public WebSocket: `wss://stream-testnet.bybit.com/v5/public/{spot|linear|inverse|option}`
-- Private WebSocket: `wss://stream-testnet.bybit.com/v5/private`
-- Trade WebSocket: `wss://stream-testnet.bybit.com/v5/trade`
+- REST API：`https://api-testnet.bybit.com`
+- 公开 WebSocket：`wss://stream-testnet.bybit.com/v5/public/{spot|linear|inverse|option}`
+- 私有 WebSocket：`wss://stream-testnet.bybit.com/v5/private`
+- Trade WebSocket：`wss://stream-testnet.bybit.com/v5/trade`
 
-### Testnet setup
+### 测试网设置 {#testnet-setup}
 
-To set up a Bybit testnet account and credentials:
+设置 Bybit 测试网账户与凭据的步骤：
 
-1. Open [testnet.bybit.com](https://testnet.bybit.com) in a desktop browser.
-2. Create a separate testnet account or sign in to your existing testnet account.
-3. Request test coins from **Assets -> Assets Overview -> Request Test Coins**
-   so the account has balances for testing.
-4. Open **API Management** at
-   [testnet.bybit.com/app/user/api-management](https://testnet.bybit.com/app/user/api-management).
-5. Click **Create New Key**.
-6. Select the required permissions for your use case.
-7. Complete the 2FA prompt and copy the API key and secret.
-8. Export the credentials in your shell:
+1. 在桌面浏览器中打开 [testnet.bybit.com](https://testnet.bybit.com)。
+2. 新建一个测试网账户，或登录你已有的测试网账户。
+3. 从 **Assets -> Assets Overview -> Request Test Coins** 申领测试币，让账户有余额可测。
+4. 打开 [testnet.bybit.com/app/user/api-management](https://testnet.bybit.com/app/user/api-management)
+   的 **API Management**。
+5. 点击 **Create New Key**。
+6. 按你的用例勾选所需权限。
+7. 完成 2FA 提示并复制 API key 与 secret。
+8. 在 shell 中导出凭据：
 
    ```bash
    export BYBIT_TESTNET_API_KEY="YOUR_TESTNET_API_KEY"
    export BYBIT_TESTNET_API_SECRET="YOUR_TESTNET_API_SECRET"
    ```
 
-Bybit's current testnet guidance also notes:
+Bybit 当前的测试网指引还说明：
 
-- API keys are created on the website, not in the mobile app.
-- New users may be unable to create API keys for the first 48 hours after
-  registration.
-- Testnet is separate from mainnet. Do not deposit real funds into a testnet
-  account.
-- Bybit currently documents testnet account setup through a desktop browser.
+- API key 在网站上创建，不能在移动应用里创建。
+- 新用户在注册后的头 48 小时内可能无法创建 API key。
+- 测试网与主网是分离的，不要向测试网账户存入真实资金。
+- Bybit 目前只文档化了通过桌面浏览器进行的测试网账户设置。
 
-## Quotes and order books
+## 报价与订单簿 {#quotes-and-order-books}
 
-For SPOT, LINEAR, and INVERSE products, quote subscriptions use Bybit's depth-1 order book
-snapshots. This feed provides best bid/ask prices and sizes at a documented 10 ms push frequency.
-OPTION quotes use the ticker feed. See the [Bybit order book specification](https://bybit-exchange.github.io/docs/v5/websocket/public/orderbook).
+对 SPOT、LINEAR 和 INVERSE 产品，报价订阅使用 Bybit 深度为 1 的订单簿快照。该数据源以
+文档记载的 10ms 推送频率提供最优买卖价与数量。见
+[Bybit 订单簿规范](https://bybit-exchange.github.io/docs/v5/websocket/public/orderbook)。
+OPTION 报价使用 ticker 流。
 
-Quotes and depth-1 book subscriptions share one WebSocket topic. Unsubscribing from one leaves the topic
-active while the other is still subscribed. A deeper book subscription uses its own topic alongside the
-depth-1 quote feed, so adding book deltas does not change the quote source. Book deltas only come from the
-requested depth. Subscribe to one book depth per instrument. Unsubscribe from the existing book before
-selecting another depth.
+报价与深度 1 订单簿订阅共用同一个 WebSocket 主题。退订其中一个时，只要另一个仍订阅着，
+主题就保持活跃。更深度的订单簿订阅使用自己的主题，与深度 1 报价流并存，因此增加订单簿
+delta 不会改变报价来源。订单簿 delta 只来自所请求的深度。每个工具只订阅一个订单簿深度，
+换选另一个深度之前先退订现有订单簿。
 
-## Order book recovery
+## 订单簿恢复 {#order-book-recovery}
 
-### Sequence validation
+### 序列校验 {#sequence-validation}
 
-Each delta must carry the update ID `u` that follows the book's last accepted frame. Any other delta
-suppresses book output and requests recovery. So does a delta that reaches a book before its first snapshot.
-For example, an update sent before a quick resubscribe can reach the new subscription. A request starts
-recovery only when neither a running recovery nor a snapshot deadline already owns the book.
+每个 delta 必须携带紧跟订单簿最后接受帧之后的更新 ID `u`。任何其他 delta 都会抑制订单簿
+输出并请求恢复。在首个快照之前就到达产销簿的 delta 同样如此——例如快重订阅之前发出的更新
+可能先到达新订阅。只有当既没有进行中的恢复、也没有快照死线占用该订单簿时，请求才会启动
+恢复。
 
-Every snapshot replaces the book, as the
-[Bybit order book contract](https://bybit-exchange.github.io/docs/v5/websocket/public/orderbook) requires. The
-venue sends one after each subscribe and after a service restart, which can reset `u` to 1, and pushes only
-snapshots at depth 1. A replacement snapshot can carry an update ID below the book's last delta, since the
-venue serves it from an earlier state. Deltas then continue from it. A snapshot that arrives while the book's
-subscription or replacement write is still in flight is discarded.
+每个快照都替换整个订单簿，这是
+[Bybit 订单簿约定](https://bybit-exchange.github.io/docs/v5/websocket/public/orderbook)
+要求的。场所会在每次订阅后和服务重启后各发送一个快照——服务重启可能把 `u` 重置为 1——
+而深度 1 只推送快照。替换快照携带的更新 ID 可能低于订单簿最后一个 delta，因为场所从更早
+的状态服务它。之后 delta 从该快照继续。在订单簿的订阅或替换写入仍在途时到达的快照会被
+丢弃。
 
-### Snapshot deadlines
+### 快照死线 {#snapshot-deadlines}
 
-Initial and recovery subscriptions wait up to `book_snapshot_timeout_secs` (default **10 seconds**)
-for a snapshot after the subscription write completes. Books on a reconnected socket wait the same
-time from the reconnect. A missing snapshot starts or retries recovery.
+初始与恢复订阅在订阅写入完成后，最多等待 `book_snapshot_timeout_secs`（默认 **10 秒**）
+获取快照。重连 socket 上的订单簿从重连时刻起等待同样时长。快照缺失会启动或重试恢复。
 
-Set `book_snapshot_timeout_secs` to `0` to disable snapshot deadlines. A gap still starts recovery,
-but a recovery attempt whose snapshot never arrives then waits until the 180-second retry budget
-ends.
+把 `book_snapshot_timeout_secs` 设为 `0` 可禁用快照死线。缺口仍会启动恢复，但若某次恢复
+尝试的快照始终不到，它会一直等到 180 秒重试预算耗尽。
 
-A depth-1 book shares its topic with quotes. When quotes already hold the topic, subscribing the book
-sends nothing, and the next depth-1 snapshot synchronizes it.
+深度 1 订单簿与报价共享主题。报价已占用该主题时，订阅订单簿什么都不发送，下一次深度 1
+快照会把它同步。
 
-### Retry limits and reconnects
+### 重试上限与重连 {#retry-limits-and-reconnects}
 
-Recovery unsubscribes and resubscribes the book's topic on the same connection, and the venue answers with a
-fresh snapshot. Each recovery episode makes **up to eight attempts within 180 seconds**, with exponential
-backoff and jitter. It then retries until it accepts a snapshot. The retry interval doubles from one minute to
-fifteen minutes. Recovery never ends in a failed state. Unsubscribe and shutdown cancel it.
+恢复在同一连接上退订并重新订阅订单簿的主题，场所会以新快照回应。每个恢复事件在 **180 秒
+内至多八次尝试**，带指数退避与抖动。之后它会一直重试直到接受一个快照。重试间隔从 1 分钟
+翻倍到 15 分钟。恢复不会以失败状态结束。退订与关闭会取消它。
 
-Recovering a depth-1 book also pauses quotes on the shared topic until the replacement snapshot
-arrives. A venue rejection of a replacement subscription is logged, and the attempt retries once
-its snapshot deadline passes.
+恢复深度 1 订单簿还会暂停共享主题上的报价，直到替换快照到达。替换订阅被场所拒绝时会记
+日志，并在其快照死线过后重试该次尝试。
 
-A reconnect resynchronizes every book on the reconnected product type's socket from the snapshot of its
-replayed subscription. It keeps a running recovery with its remaining budget. A recovery waiting between
-attempts after its budget retries at once on the new connection.
+重连会从重放订阅的快照出发，重新同步重连的 product type 的 socket 上的每个订单簿。进行
+中的恢复连同剩余预算一起保留。预算耗尽后正在间隔等待的恢复会在新连接上立即重试。
 
-If the client cannot queue the initial subscription, it logs an error and releases the book instead of
-recovering it. For example, the subscription can exceed the option connection's topic limit. A queued initial
-subscription whose write fails starts recovery at once.
+客户端无法把初始订阅排队时，会记录错误并释放该订单簿，而不是恢复它。例如订阅可能超出
+期权连接的 topic 上限。已排队的初始订阅写入失败时，立即启动恢复。
 
-See [Order book recovery ownership](./../developer_guide/adapters.md#order-book-recovery-ownership)
-for the shared recovery machinery and adapter responsibilities.
+共享的恢复机制与适配器职责见
+[订单簿恢复归属](./../developer_guide/adapters.md#order-book-recovery-ownership)。
 
-### Live recovery validation
+### 实盘恢复验证 {#live-recovery-validation}
 
-The `bybit-book-stress` harness is a development tool for changes to book synchronization and recovery. It
-connects to Bybit mainnet public market data and submits no orders. It checks six linear books at the default
-depth of 50 against the book stream contract. These checks include rising sequences within each snapshot
-episode. It also checks against an independent reconstruction of the venue feed's best 50 levels.
+`bybit-book-stress` 工具是订单簿同步与恢复改动用的开发工具。它连接 Bybit 主网公开行情，
+不提交任何订单。它以默认深度 50 对照订单簿流约定检查六个 linear 订单簿，这些检查包括每个
+快照事件内序列递增。它还与场所流前 50 档的独立重建结果做比对。
 
-From the repository root, run:
+在仓库根目录运行：
 
 ```bash
 CARGO_BUILD_JOBS=16 bash scripts/strip-adapter-env.bash \
   cargo test -p nautilus-bybit --features examples --test bybit-book-stress -- --timeout 10 --rounds 21
 ```
 
-`--scenario` selects the run:
+`--scenario` 选择运行内容：
 
-- `churn` (default): checks recovery without reconnects, then rotates update ID gaps, dropped and
-  delayed snapshots, reconnects cut before their snapshots, unsubscribe during recovery, a restart
-  during recovery, and a 40-second traffic freeze.
-- `initial`: drops each book's first snapshot, once per round in a fresh session.
-- `turnover`: unsubscribes and resubscribes books during recovery.
-- `boundaries`: probes replacement cuts, retry exhaustion into the retry ceiling, and shutdown
-  during a reconnect. With a nonzero timeout, it also rejects a replacement and a replayed
-  subscription.
+- `churn`（默认）：先检查无重连的恢复，然后轮换更新 ID 缺口、丢弃与延迟的快照、在快照前
+  切断的重连、恢复期间退订、恢复期间重启，以及 40 秒的流量冻结。
+- `initial`：丢弃每个订单簿的首个快照，在全新会话中每轮一次。
+- `turnover`：在恢复期间退订并重新订阅订单簿。
+- `boundaries`：探测替换切断、重试耗尽进入重试上限，以及重连期间的关闭。超时非零时，还
+  会拒绝一次替换与一次重放订阅。
 
-`--timeout` sets the snapshot timeout in seconds, where `0` disables snapshot deadlines. `--rounds` sets the
-number of rounds (21 by default) for `churn`, `initial`, and `turnover`. `boundaries` runs its sequence once.
+`--timeout` 设置快照超时秒数，`0` 表示禁用快照死线。`--rounds` 设置 `churn`、`initial`
+和 `turnover` 的轮数（默认 21）。`boundaries` 只跑一遍它的序列。
 
-The harness requires the mainnet linear WebSocket stream and the public `instruments-info` REST API.
-See [Stress harnesses](./../developer_guide/spec_data_testing.md#stress-harnesses) for the shared
-flags and output format.
+该工具需要主网 linear WebSocket 流与公开的 `instruments-info` REST API。共享的旗标与输出
+格式见[压力测试工具](./../developer_guide/spec_data_testing.md#stress-harnesses)。
 
-## Orders capability
+## 订单能力 {#orders-capability}
 
-Bybit offers a flexible combination of trigger types, enabling a broader range of Nautilus orders.
-All the order types listed below can be used as *either* entries or exits.
+Bybit 提供触发类型的灵活组合，能覆盖更多样的 Nautilus 订单。下面列出的所有订单类型
+*既可以*用作开仓*也可以*用作平仓。
 
-### Order types
+### 订单类型 {#order-types}
 
-| Order Type             | Spot | Linear | Inverse | Option | Notes                                  |
-| ---------------------- | ---- | ------ | ------- | ------ | -------------------------------------- |
-| `MARKET`               | ✓    | ✓      | ✓       | ✓      | Quote quantity: Spot only.             |
-| `LIMIT`                | ✓    | ✓      | ✓       | ✓      |                                        |
-| `STOP_MARKET`          | ✓    | ✓      | ✓       | -      | *Not supported for Options*.           |
-| `STOP_LIMIT`           | ✓    | ✓      | ✓       | -      | *Not supported for Options*.           |
-| `MARKET_IF_TOUCHED`    | ✓    | ✓      | ✓       | -      | *Not supported for Options*.           |
-| `LIMIT_IF_TOUCHED`     | ✓    | ✓      | ✓       | -      | *Not supported for Options*.           |
-| `TRAILING_STOP_MARKET` | -    | -      | -       | -      | See [Trailing stops](#trailing-stops). |
+| 订单类型               | 现货   | 线性   | 反向   | 期权   | 说明                                   |
+| ---------------------- | ----   | ------ | ------ | ------ | -------------------------------------- |
+| `MARKET`               | ✓      | ✓      | ✓      | ✓      | 报价数量：仅现货。                     |
+| `LIMIT`                | ✓      | ✓      | ✓      | ✓      |                                        |
+| `STOP_MARKET`          | ✓      | ✓      | ✓      | -      | *期权不支持*。                         |
+| `STOP_LIMIT`           | ✓      | ✓      | ✓      | -      | *期权不支持*。                         |
+| `MARKET_IF_TOUCHED`    | ✓      | ✓      | ✓      | -      | *期权不支持*。                         |
+| `LIMIT_IF_TOUCHED`     | ✓      | ✓      | ✓      | -      | *期权不支持*。                         |
+| `TRAILING_STOP_MARKET` | -      | -      | -      | -      | 见[移动止损](#trailing-stops)。        |
 
-At submission, the adapter denies an unsupported order type locally with an `UNSUPPORTED_ORDER_TYPE` reason.
-It does not send the order to the venue.
+提交时，适配器会在本地以 `UNSUPPORTED_ORDER_TYPE` 原因拒绝不受支持的订单类型，不会把订单
+发往场所。
 
-### Execution instructions
+### 执行指示 {#execution-instructions}
 
-| Instruction   | Spot | Linear | Inverse | Option | Notes                                                             |
-| ------------- | ---- | ------ | ------- | ------ | ----------------------------------------------------------------- |
-| `post_only`   | ✓    | ✓      | ✓       | ✓      | Limit order types only; sent as Bybit's `PostOnly` time in force. |
-| `reduce_only` | -    | ✓      | ✓       | ✓      | *Not supported for Spot*.                                         |
+| 指示          | 现货   | 线性   | 反向   | 期权   | 说明                                                               |
+| ------------- | ----   | ------ | ------ | ------ | ------------------------------------------------------------------ |
+| `post_only`   | ✓      | ✓      | ✓      | ✓      | 仅限限价类订单；以 Bybit 的 `PostOnly` 有效期发送。                |
+| `reduce_only` | -      | ✓      | ✓      | ✓      | *现货不支持*。                                                     |
 
-### Time in force
+### 有效期 {#time-in-force}
 
-| Time in force | Spot | Linear | Inverse | Option | Notes                           |
-| ------------- | ---- | ------ | ------- | ------ | ------------------------------- |
-| `GTC`         | ✓    | ✓      | ✓       | ✓      | Good Till Canceled.             |
-| `GTD`         | -    | -      | -       | -      | *Not supported*; sent as `GTC`. |
-| `FOK`         | ✓    | ✓      | ✓       | ✓      | Fill or Kill.                   |
-| `IOC`         | ✓    | ✓      | ✓       | ✓      | Immediate or Cancel.            |
+| 有效期        | 现货   | 线性   | 反向   | 期权   | 说明                              |
+| ------------- | ----   | ------ | ------ | ------ | --------------------------------- |
+| `GTC`         | ✓      | ✓      | ✓      | ✓      | 撤销前有效（Good Till Canceled）。  |
+| `GTD`         | -      | -      | -      | -      | *不支持*；按 `GTC` 发送。         |
+| `FOK`         | ✓      | ✓      | ✓      | ✓      | 全部成交否则撤销（Fill or Kill）。  |
+| `IOC`         | ✓      | ✓      | ✓      | ✓      | 立即成交否则撤销（Immediate or Cancel）。 |
 
 ### Advanced order features
 

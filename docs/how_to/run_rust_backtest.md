@@ -1,4 +1,4 @@
-# 运行回测（Rust）
+# 运行回测（Rust） {#run-a-backtest-rust}
 
 Nautilus 提供两套 Rust 回测 API：`BacktestEngine`（底层）和 `BacktestNode`（高层，支持
 数据目录流式加载）。本指南两者都讲。

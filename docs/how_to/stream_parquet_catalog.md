@@ -1,4 +1,4 @@
-# 向 Parquet 目录流式写入数据
+# 向 Parquet 目录流式写入数据 {#stream-data-into-a-parquet-catalog}
 
 使用 Parquet 流式写入器把实时或回测记录暂存为 Feather 文件，再提升（promote）为可查询的目录
 文件。直接调用 `ParquetDataCatalog.write_*` 写入目录数据，不走这套暂存生命周期。

@@ -1,4 +1,4 @@
-# FFI 内存契约
+# FFI 内存契约 {#ffi-memory-contract}
 
 NautilusTrader 只从 `nautilus-core` 与 `nautilus-model` 暴露 C 外部函数接口（FFI）。
 两个 crate 都用各自的 `ffi` Cargo feature 门控该接口，导出模块分别位于

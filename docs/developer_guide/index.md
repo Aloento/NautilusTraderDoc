@@ -1,4 +1,4 @@
-# 开发者指南
+# 开发者指南 {#developer-guide}
 
 关于开发、扩展 NautilusTrader，或向项目回馈贡献的指导。
 

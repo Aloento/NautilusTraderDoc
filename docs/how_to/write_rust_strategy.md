@@ -1,4 +1,4 @@
-# 编写策略（Rust）
+# 编写策略（Rust） {#write-a-strategy-rust}
 
 策略在 Actor 之上增加订单管理。本指南带你构建一个最小策略：订阅报价并提交市价订单。请先阅读
 [编写 Actor（Rust）](./write_rust_actor.md)。

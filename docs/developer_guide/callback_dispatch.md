@@ -1,4 +1,4 @@
-# 回调派发契约
+# 回调派发契约 {#callback-dispatch-contract}
 
 本页定义排队（queued）的 actor 与策略回调的所有权、顺序与进展要求。策略层面的
 说明见[设计原则](./design_principles.md#queued-callback-dispatch-requirements)。

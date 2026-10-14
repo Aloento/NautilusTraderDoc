@@ -185,7 +185,7 @@ AX 在 ticker 事件上发布估算资金费率，并在订单 WebSocket 上提�
 
 ### 订单簿恢复 {#order-book-recovery}
 
-数据客户端用[共享的订单簿恢复机制](../developer_guide/adapters.md#order-book-recovery-ownership)管理每个订单簿 delta 订阅。AX 的 L2、L3 消息携带完整快照且没有序号。AX 在每次订阅确认后立即发送一个快照，空簿或无变化的簿也不例外。客户端把每条消息都当作快照接受。订阅写入进行期间会抑制该簿的输出，已退订订单簿的帧直接丢弃。
+数据客户端用[共享的订单簿恢复机制](./../developer_guide/adapters.md#order-book-recovery-ownership)管理每个订单簿 delta 订阅。AX 的 L2、L3 消息携带完整快照且没有序号。AX 在每次订阅确认后立即发送一个快照，空簿或无变化的簿也不例外。客户端把每条消息都当作快照接受。订阅写入进行期间会抑制该簿的输出，已退订订单簿的帧直接丢弃。
 
 恢复在同一连接上用"退订 + 订阅"替换该代码的订阅，替换保留当前的层级与成交、ticker 标志。AX 把一个代码的全部行情放在一条流上，替换进行期间该代码的成交、报价、mark 价格和工具状态都会暂停。恢复在以下情况启动：
 
@@ -234,7 +234,7 @@ CARGO_BUILD_JOBS=16 cargo test -p nautilus-architect-ax --features examples --te
 `--timeout` 设置快照超时秒数（`0` 禁用快照期限），`--rounds` 设置轮数（默认 14）。`--symbols` 接收逗号分隔的代码列表。sandbox 做市商只对部分工具报价，而停止流式的订单簿会使运行失败，请挑选会流式的订单簿。
 
 该工具需要 sandbox 行情 WebSocket 和 REST API。共享参数与输出格式见
-[压力测试工具](../developer_guide/spec_data_testing.md#stress-harnesses)。
+[压力测试工具](./../developer_guide/spec_data_testing.md#stress-harnesses)。
 
 ### HTTP API 行为 {#http-api-behavior}
 

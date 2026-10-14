@@ -1,4 +1,4 @@
-# Lighter 快速上手
+# Lighter 快速上手 {#get-started-with-lighter}
 
 Lighter 通过 Rust 引擎提供。你可以在纯 Rust 项目中使用，也可以在 Python 中通过 PyO3 绑定
 使用——绑定把同一套 Rust 数据与执行客户端暴露给 Python 的 `LiveNode`。

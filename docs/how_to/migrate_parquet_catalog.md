@@ -1,4 +1,4 @@
-# 迁移 Parquet 目录
+# 迁移 Parquet 目录 {#migrate-a-parquet-catalog}
 
 用 `nautilus catalog migrate-parquet` 把已有的 Nautilus Parquet 目录重写为当前 Arrow 格式。
 该命令读取源目录并写入一个独立的目标目录，目标必须是新的或空的，且不能与源重叠。两个位置

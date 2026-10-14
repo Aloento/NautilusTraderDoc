@@ -1,4 +1,4 @@
-# Shell 脚本
+# Shell 脚本 {#shell-scripts}
 
 本页定义何时创建 shell 脚本，以及如何命名、编写、调用与测试它。默认使用 Bash。
 只有当受支持的调用方确实无法依赖系统装有 Bash 时，才用 POSIX `sh`。

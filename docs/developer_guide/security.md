@@ -1,4 +1,4 @@
-# 安全架构
+# 安全架构 {#security-architecture}
 
 本页描述 NautilusTrader 发布流水线的安全模型，说明发布产物如何被构建、发布、
 证明（attest）与验证。

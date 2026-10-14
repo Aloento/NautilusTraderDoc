@@ -1,4 +1,4 @@
-# 编写 Actor（Rust）
+# 编写 Actor（Rust） {#write-an-actor-rust}
 
 Actor 接收行情数据、自定义数据/信号和系统事件，但不管理订单。本指南带你构建一个
 `SpreadMonitor`，它订阅报价并记录买卖价差。

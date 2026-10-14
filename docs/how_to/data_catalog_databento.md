@@ -1,4 +1,4 @@
-# 用 Databento 建数据目录
+# 用 Databento 建数据目录 {#data-catalog-with-databento}
 
 用 Databento 的行情数据搭建 Nautilus 的 Parquet 数据目录。数据目录为回测和研究提供高效的
 存储与查询。

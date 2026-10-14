@@ -1,4 +1,4 @@
-# 运行实时交易（Rust）
+# 运行实时交易（Rust） {#run-live-trading-rust}
 
 `LiveNode` 通过适配器客户端连接真实交易场所和数据源。本指南以 OKX 为例，走一遍完整的实时
 交易设置。

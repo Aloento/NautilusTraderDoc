@@ -1,4 +1,4 @@
-# 编码规范
+# 编码规范 {#coding-standards}
 
 ## 代码风格 {#code-style}
 

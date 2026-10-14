@@ -1,4 +1,4 @@
-# 文档风格
+# 文档风格 {#docs-style}
 
 本指南说明 NautilusTrader 文档的风格与写作实践。
 
