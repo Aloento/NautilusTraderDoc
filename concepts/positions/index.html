@@ -1,263 +1,403 @@
-<!doctype html>
-<html lang="zh" dir="ltr" class="docs-wrapper plugin-docs plugin-id-default docs-version-current docs-doc-page docs-doc-id-concepts/positions" data-has-hydrated="false">
-<head>
-<meta charset="UTF-8">
-<meta name="generator" content="Docusaurus v3.9.1">
-<title data-rh="true">持仓 | NautilusTrader 文档</title><meta data-rh="true" name="viewport" content="width=device-width,initial-scale=1"><meta data-rh="true" name="twitter:card" content="summary_large_image"><meta data-rh="true" property="og:url" content="https://nautilus.aloen.to/concepts/positions"><meta data-rh="true" property="og:locale" content="zh"><meta data-rh="true" name="docusaurus_locale" content="zh"><meta data-rh="true" name="docsearch:language" content="zh"><meta data-rh="true" name="docusaurus_version" content="current"><meta data-rh="true" name="docusaurus_tag" content="docs-default-current"><meta data-rh="true" name="docsearch:version" content="current"><meta data-rh="true" name="docsearch:docusaurus_tag" content="docs-default-current"><meta data-rh="true" property="og:title" content="持仓 | NautilusTrader 文档"><meta data-rh="true" name="description" content="本文档介绍 NautilusTrader 中持仓的工作原理，包括持仓生命周期、从成交（fills）聚合、盈亏（PnL）计算，以及在 NETTING 类型 OMS 配置下用于保留历史状态的重要机制——持仓快照（position snapshotting）。"><meta data-rh="true" property="og:description" content="本文档介绍 NautilusTrader 中持仓的工作原理，包括持仓生命周期、从成交（fills）聚合、盈亏（PnL）计算，以及在 NETTING 类型 OMS 配置下用于保留历史状态的重要机制——持仓快照（position snapshotting）。"><link data-rh="true" rel="icon" href="/logo.png"><link data-rh="true" rel="canonical" href="https://nautilus.aloen.to/concepts/positions"><link data-rh="true" rel="alternate" href="https://nautilus.aloen.to/concepts/positions" hreflang="zh"><link data-rh="true" rel="alternate" href="https://nautilus.aloen.to/concepts/positions" hreflang="x-default"><script data-rh="true" type="application/ld+json">{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"概念","item":"https://nautilus.aloen.to/concepts/"},{"@type":"ListItem","position":2,"name":"持仓","item":"https://nautilus.aloen.to/concepts/positions"}]}</script><link rel="stylesheet" href="/assets/css/styles.33db920f.css">
-<script src="/assets/js/runtime~main.7f15ce23.js" defer="defer"></script>
-<script src="/assets/js/main.7a54437b.js" defer="defer"></script>
-</head>
-<body class="navigation-with-keyboard">
-<svg style="display: none;"><defs>
-<symbol id="theme-svg-external-link" viewBox="0 0 24 24"><path fill="currentColor" d="M21 13v10h-21v-19h12v2h-10v15h17v-8h2zm3-12h-10.988l4.035 4-6.977 7.07 2.828 2.828 6.977-7.07 4.125 4.172v-11z"/></symbol>
+<!doctype html><html lang=zh dir=ltr class="docs-wrapper plugin-docs plugin-id-default docs-version-current docs-doc-page docs-doc-id-concepts/positions" data-has-hydrated=false><head><meta charset=UTF-8><meta name=generator content="Docusaurus v3.10.2"><title data-rh=true>持仓 | NautilusTrader 文档</title><meta data-rh=true name=viewport content="width=device-width, initial-scale=1.0"/><meta data-rh=true name=twitter:card content=summary_large_image /><meta data-rh=true property=og:url content=https://nautilus.aloen.to/concepts/positions /><meta data-rh=true property=og:locale content=zh /><meta data-rh=true name=docusaurus_locale content=zh /><meta data-rh=true name=docsearch:language content=zh /><meta data-rh=true name=docusaurus_version content=current /><meta data-rh=true name=docusaurus_tag content=docs-default-current /><meta data-rh=true name=docsearch:version content=current /><meta data-rh=true name=docsearch:docusaurus_tag content=docs-default-current /><meta data-rh=true property=og:title content="持仓 | NautilusTrader 文档"/><meta data-rh=true name=description content=positions} /><meta data-rh=true property=og:description content=positions} /><link data-rh=true rel=icon href=/logo.png /><link data-rh=true rel=canonical href=https://nautilus.aloen.to/concepts/positions /><link data-rh=true rel=alternate href=https://nautilus.aloen.to/concepts/positions hreflang=zh /><link data-rh=true rel=alternate href=https://nautilus.aloen.to/concepts/positions hreflang=x-default /><script data-rh=true type=application/ld+json>{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","item":"https://nautilus.aloen.to/concepts/","name":"核心概念","position":1},{"@type":"ListItem","item":"https://nautilus.aloen.to/concepts/positions","name":"持仓","position":2}]}</script><link rel=stylesheet href=/assets/css/styles.adb7ea18.css /><script src=/assets/js/runtime~main.71ac0794.js defer></script><script src=/assets/js/main.d978d0f2.js defer></script></head><body><svg style="display: none;"><defs>
+<symbol id=theme-svg-external-link viewBox="0 0 24 24"><path fill=currentColor d="M21 13v10h-21v-19h12v2h-10v15h17v-8h2zm3-12h-10.988l4.035 4-6.977 7.07 2.828 2.828 6.977-7.07 4.125 4.172v-11z"/></symbol>
 </defs></svg>
-<script>!function(){var t=function(){try{return new URLSearchParams(window.location.search).get("docusaurus-theme")}catch(t){}}()||function(){try{return window.localStorage.getItem("theme")}catch(t){}}();document.documentElement.setAttribute("data-theme",t||(window.matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light")),document.documentElement.setAttribute("data-theme-choice",t||"system")}(),function(){try{const c=new URLSearchParams(window.location.search).entries();for(var[t,e]of c)if(t.startsWith("docusaurus-data-")){var a=t.replace("docusaurus-data-","data-");document.documentElement.setAttribute(a,e)}}catch(t){}}()</script><div id="__docusaurus"><link rel="preload" as="image" href="/logo.png"><div role="region" aria-label="跳到主要内容"><a class="skipToContent__uWo" href="#__docusaurus_skipToContent_fallback">跳到主要内容</a></div><nav aria-label="主导航" class="theme-layout-navbar navbar navbar--fixed-top"><div class="navbar__inner"><div class="theme-layout-navbar-left navbar__items"><button aria-label="切换导航栏" aria-expanded="false" class="navbar__toggle clean-btn" type="button"><svg width="30" height="30" viewBox="0 0 30 30" aria-hidden="true"><path stroke="currentColor" stroke-linecap="round" stroke-miterlimit="10" stroke-width="2" d="M4 7h22M4 15h22M4 23h22"></path></svg></button><a class="navbar__brand" href="/"><div class="navbar__logo"><img src="/logo.png" alt="NautilusTrader Logo" class="themedComponent_WkLn themedComponent--light_cjoX"><img src="/logo.png" alt="NautilusTrader Logo" class="themedComponent_WkLn themedComponent--dark_jZId"></div><b class="navbar__title text--truncate">NautilusTrader</b></a><a aria-current="page" class="navbar__item navbar__link navbar__link--active" href="/api_reference/">文档</a></div><div class="theme-layout-navbar-right navbar__items navbar__items--right"><a href="https://github.com/Aloento/NautilusTraderDoc" target="_blank" rel="noopener noreferrer" class="navbar__item navbar__link">GitHub<svg width="13.5" height="13.5" aria-label="(opens in new tab)" class="iconExternalLink_KfBJ"><use href="#theme-svg-external-link"></use></svg></a><div class="toggle_RWFU colorModeToggle_sA1q"><button class="clean-btn toggleButton_qjfc toggleButtonDisabled_cpNp" type="button" disabled="" title="system mode" aria-label="切换浅色/暗黑模式（当前为system mode）"><svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true" class="toggleIcon_CetX lightToggleIcon_UYsV"><path fill="currentColor" d="M12,9c1.65,0,3,1.35,3,3s-1.35,3-3,3s-3-1.35-3-3S10.35,9,12,9 M12,7c-2.76,0-5,2.24-5,5s2.24,5,5,5s5-2.24,5-5 S14.76,7,12,7L12,7z M2,13l2,0c0.55,0,1-0.45,1-1s-0.45-1-1-1l-2,0c-0.55,0-1,0.45-1,1S1.45,13,2,13z M20,13l2,0c0.55,0,1-0.45,1-1 s-0.45-1-1-1l-2,0c-0.55,0-1,0.45-1,1S19.45,13,20,13z M11,2v2c0,0.55,0.45,1,1,1s1-0.45,1-1V2c0-0.55-0.45-1-1-1S11,1.45,11,2z M11,20v2c0,0.55,0.45,1,1,1s1-0.45,1-1v-2c0-0.55-0.45-1-1-1C11.45,19,11,19.45,11,20z M5.99,4.58c-0.39-0.39-1.03-0.39-1.41,0 c-0.39,0.39-0.39,1.03,0,1.41l1.06,1.06c0.39,0.39,1.03,0.39,1.41,0s0.39-1.03,0-1.41L5.99,4.58z M18.36,16.95 c-0.39-0.39-1.03-0.39-1.41,0c-0.39,0.39-0.39,1.03,0,1.41l1.06,1.06c0.39,0.39,1.03,0.39,1.41,0c0.39-0.39,0.39-1.03,0-1.41 L18.36,16.95z M19.42,5.99c0.39-0.39,0.39-1.03,0-1.41c-0.39-0.39-1.03-0.39-1.41,0l-1.06,1.06c-0.39,0.39-0.39,1.03,0,1.41 s1.03,0.39,1.41,0L19.42,5.99z M7.05,18.36c0.39-0.39,0.39-1.03,0-1.41c-0.39-0.39-1.03-0.39-1.41,0l-1.06,1.06 c-0.39,0.39-0.39,1.03,0,1.41s1.03,0.39,1.41,0L7.05,18.36z"></path></svg><svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true" class="toggleIcon_CetX darkToggleIcon_i1s2"><path fill="currentColor" d="M9.37,5.51C9.19,6.15,9.1,6.82,9.1,7.5c0,4.08,3.32,7.4,7.4,7.4c0.68,0,1.35-0.09,1.99-0.27C17.45,17.19,14.93,19,12,19 c-3.86,0-7-3.14-7-7C5,9.07,6.81,6.55,9.37,5.51z M12,3c-4.97,0-9,4.03-9,9s4.03,9,9,9s9-4.03,9-9c0-0.46-0.04-0.92-0.1-1.36 c-0.98,1.37-2.58,2.26-4.4,2.26c-2.98,0-5.4-2.42-5.4-5.4c0-1.81,0.89-3.42,2.26-4.4C12.92,3.04,12.46,3,12,3L12,3z"></path></svg><svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true" class="toggleIcon_CetX systemToggleIcon_yIQx"><path fill="currentColor" d="m12 21c4.971 0 9-4.029 9-9s-4.029-9-9-9-9 4.029-9 9 4.029 9 9 9zm4.95-13.95c1.313 1.313 2.05 3.093 2.05 4.95s-0.738 3.637-2.05 4.95c-1.313 1.313-3.093 2.05-4.95 2.05v-14c1.857 0 3.637 0.737 4.95 2.05z"></path></svg></button></div><div class="navbarSearchContainer_PsjF"></div></div></div><div role="presentation" class="navbar-sidebar__backdrop"></div></nav><div id="__docusaurus_skipToContent_fallback" class="theme-layout-main main-wrapper mainWrapper_jk42"><div class="docsWrapper_KWBO"><button aria-label="回到顶部" class="clean-btn theme-back-to-top-button backToTopButton_XpKL" type="button"></button><div class="docRoot_joIP"><aside class="theme-doc-sidebar-container docSidebarContainer_DOen"><div class="sidebarViewport_j7YP"><div class="sidebar_nPgc"><nav aria-label="文档侧边栏" class="menu thin-scrollbar menu_MTDt"><ul class="theme-doc-sidebar-menu menu__list"><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-1 menu__list-item menu__list-item--collapsed"><div class="menu__list-item-collapsible"><a class="categoryLink_GgI9 menu__link menu__link--sublist" href="/api_reference/"><span title="Python API" class="categoryLinkLabel_XKxb">Python API</span></a><button aria-label="展开侧边栏分类 &#x27;Python API&#x27;" aria-expanded="false" type="button" class="clean-btn menu__caret"></button></div></li><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-1 menu__list-item"><div class="menu__list-item-collapsible"><a class="categoryLink_GgI9 menu__link menu__link--sublist menu__link--active" href="/concepts/"><span title="概念" class="categoryLinkLabel_XKxb">概念</span></a><button aria-label="折叠侧边栏分类 &#x27;概念&#x27;" aria-expanded="true" type="button" class="clean-btn menu__caret"></button></div><ul class="menu__list"><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class="menu__link" tabindex="0" href="/concepts/actors"><span title="Actors" class="linkLabel_CNtA">Actors</span></a></li><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class="menu__link" tabindex="0" href="/concepts/adapters"><span title="适配器" class="linkLabel_CNtA">适配器</span></a></li><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class="menu__link" tabindex="0" href="/concepts/architecture"><span title="架构" class="linkLabel_CNtA">架构</span></a></li><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class="menu__link" tabindex="0" href="/concepts/backtesting"><span title="回测" class="linkLabel_CNtA">回测</span></a></li><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class="menu__link" tabindex="0" href="/concepts/cache"><span title="Cache" class="linkLabel_CNtA">Cache</span></a></li><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class="menu__link" tabindex="0" href="/concepts/data"><span title="数据" class="linkLabel_CNtA">数据</span></a></li><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class="menu__link" tabindex="0" href="/concepts/execution"><span title="执行" class="linkLabel_CNtA">执行</span></a></li><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class="menu__link" tabindex="0" href="/concepts/instruments"><span title="合约与交易品种" class="linkLabel_CNtA">合约与交易品种</span></a></li><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class="menu__link" tabindex="0" href="/concepts/live"><span title="Live 交易" class="linkLabel_CNtA">Live 交易</span></a></li><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class="menu__link" tabindex="0" href="/concepts/logging"><span title="日志" class="linkLabel_CNtA">日志</span></a></li><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class="menu__link" tabindex="0" href="/concepts/message_bus"><span title="消息总线" class="linkLabel_CNtA">消息总线</span></a></li><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class="menu__link" tabindex="0" href="/concepts/orders"><span title="订单" class="linkLabel_CNtA">订单</span></a></li><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class="menu__link" tabindex="0" href="/concepts/overview"><span title="概览" class="linkLabel_CNtA">概览</span></a></li><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class="menu__link" tabindex="0" href="/concepts/portfolio"><span title="投资组合" class="linkLabel_CNtA">投资组合</span></a></li><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class="menu__link menu__link--active" aria-current="page" tabindex="0" href="/concepts/positions"><span title="持仓" class="linkLabel_CNtA">持仓</span></a></li><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class="menu__link" tabindex="0" href="/concepts/reports"><span title="报告" class="linkLabel_CNtA">报告</span></a></li><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class="menu__link" tabindex="0" href="/concepts/strategies"><span title="策略" class="linkLabel_CNtA">策略</span></a></li></ul></li><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-1 menu__list-item menu__list-item--collapsed"><div class="menu__list-item-collapsible"><a class="categoryLink_GgI9 menu__link menu__link--sublist" href="/developer_guide/"><span title="开发者指南" class="categoryLinkLabel_XKxb">开发者指南</span></a><button aria-label="展开侧边栏分类 &#x27;开发者指南&#x27;" aria-expanded="false" type="button" class="clean-btn menu__caret"></button></div></li><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-1 menu__list-item menu__list-item--collapsed"><div class="menu__list-item-collapsible"><a class="categoryLink_GgI9 menu__link menu__link--sublist" href="/getting_started/"><span title="入门" class="categoryLinkLabel_XKxb">入门</span></a><button aria-label="展开侧边栏分类 &#x27;入门&#x27;" aria-expanded="false" type="button" class="clean-btn menu__caret"></button></div></li><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-1 menu__list-item menu__list-item--collapsed"><div class="menu__list-item-collapsible"><a class="categoryLink_GgI9 menu__link menu__link--sublist" href="/integrations/"><span title="集成" class="categoryLinkLabel_XKxb">集成</span></a><button aria-label="展开侧边栏分类 &#x27;集成&#x27;" aria-expanded="false" type="button" class="clean-btn menu__caret"></button></div></li><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-1 menu__list-item menu__list-item--collapsed"><div class="menu__list-item-collapsible"><a class="categoryLink_GgI9 menu__link menu__link--sublist" href="/tutorials/"><span title="教程" class="categoryLinkLabel_XKxb">教程</span></a><button aria-label="展开侧边栏分类 &#x27;教程&#x27;" aria-expanded="false" type="button" class="clean-btn menu__caret"></button></div></li></ul></nav></div></div></aside><main class="docMainContainer_bw1l"><div class="container padding-top--md padding-bottom--lg"><div class="row"><div class="col docItemCol_PIhC"><div class="docItemContainer_pFw3"><article><nav class="theme-doc-breadcrumbs breadcrumbsContainer_HRKZ" aria-label="页面路径"><ul class="breadcrumbs"><li class="breadcrumbs__item"><a aria-label="主页面" class="breadcrumbs__link" href="/"><svg viewBox="0 0 24 24" class="breadcrumbHomeIcon_sX5c"><path d="M10 19v-5h4v5c0 .55.45 1 1 1h3c.55 0 1-.45 1-1v-7h1.7c.46 0 .68-.57.33-.87L12.67 3.6c-.38-.34-.96-.34-1.34 0l-8.36 7.53c-.34.3-.13.87.33.87H5v7c0 .55.45 1 1 1h3c.55 0 1-.45 1-1z" fill="currentColor"></path></svg></a></li><li class="breadcrumbs__item"><a class="breadcrumbs__link" href="/concepts/"><span>概念</span></a></li><li class="breadcrumbs__item breadcrumbs__item--active"><span class="breadcrumbs__link">持仓</span></li></ul></nav><div class="tocCollapsible_DhUt theme-doc-toc-mobile tocMobile_Izjv"><button type="button" class="clean-btn tocCollapsibleButton_eYR5">本页总览</button></div><div class="theme-doc-markdown markdown"><header><h1>持仓</h1></header>
-<p>本文档介绍 NautilusTrader 中持仓的工作原理，包括持仓生命周期、从成交（fills）聚合、盈亏（PnL）计算，以及在 NETTING 类型 OMS 配置下用于保留历史状态的重要机制——持仓快照（position snapshotting）。</p>
-<h2 class="anchor anchorWithStickyNavbar_RpWm" id="概述">概述<a href="#概述" class="hash-link" aria-label="概述的直接链接" title="概述的直接链接" translate="no">​</a></h2>
-<p>持仓表示在某一交易工具（instrument）上的未平仓暴露。持仓用于汇总该工具的所有成交记录，并持续计算未实现盈亏、平均开仓价与当前敞口等关键指标，因此是追踪交易绩效与风险的核心对象。</p>
-<p>系统在订单成交时自动创建持仓并跟踪其从打开到关闭的整个过程。平台通过 OMS（Order Management System）配置支持两种主要的持仓管理方式：NETTING（净额合并）和 HEDGING（对冲/独立持仓）。</p>
-<h2 class="anchor anchorWithStickyNavbar_RpWm" id="持仓生命周期">持仓生命周期<a href="#持仓生命周期" class="hash-link" aria-label="持仓生命周期的直接链接" title="持仓生命周期的直接链接" translate="no">​</a></h2>
-<h3 class="anchor anchorWithStickyNavbar_RpWm" id="创建">创建<a href="#创建" class="hash-link" aria-label="创建的直接链接" title="创建的直接链接" translate="no">​</a></h3>
-<p>在首次成交时创建持仓：</p>
+<script>!function(){var t=function(){try{return new URLSearchParams(window.location.search).get("docusaurus-theme")}catch(t){}}()||function(){try{return window.localStorage.getItem("theme-2e3")}catch(t){}}();document.documentElement.setAttribute("data-theme",t||(window.matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light")),document.documentElement.setAttribute("data-theme-choice",t||"system")}(),function(){try{for(var[t,e]of new URLSearchParams(window.location.search).entries())if(t.startsWith("docusaurus-data-")){var a=t.replace("docusaurus-data-","data-");document.documentElement.setAttribute(a,e)}}catch(t){}}()</script><div id=__docusaurus><link rel=preload as=image href=/logo.png /><div role=region aria-label=跳到主要内容><a class=skipToContent_zuOI href=#__docusaurus_skipToContent_fallback>跳到主要内容</a></div><nav aria-label=主导航 class="theme-layout-navbar navbar navbar--fixed-top"><div class=navbar__inner><div class="theme-layout-navbar-left navbar__items"><button aria-label=切换导航栏 aria-expanded=false class="navbar__toggle clean-btn" type=button><svg width=30 height=30 viewBox="0 0 30 30" aria-hidden=true><path stroke=currentColor stroke-linecap=round stroke-miterlimit=10 stroke-width=2 d="M4 7h22M4 15h22M4 23h22"/></svg></button><a class=navbar__brand href=/><div class=navbar__logo><img src=/logo.png alt="NautilusTrader Logo" class="themedComponent_q2_Y themedComponent--light_Nejn"/><img src=/logo.png alt="NautilusTrader Logo" class="themedComponent_q2_Y themedComponent--dark_JjIb"/></div><b class="navbar__title text--truncate">NautilusTrader</b></a><a aria-current=page class="navbar__item navbar__link navbar__link--active" href=/getting_started/>文档</a></div><div class="theme-layout-navbar-right navbar__items navbar__items--right"><a href=https://github.com/Aloento/NautilusTraderDoc target=_blank rel="noopener noreferrer" class="navbar__item navbar__link">GitHub<svg width=13.5 height=13.5 aria-label="(opens in new tab)" class=iconExternalLink_qUHo><use href=#theme-svg-external-link /></svg></a><div class="toggle_hHmI colorModeToggle_rOOn"><button class="clean-btn toggleButton_wEhT toggleButtonDisabled_yOOP" type=button disabled title="system mode" aria-label="切换浅色/暗黑模式（当前为system mode）"><svg viewBox="0 0 24 24" width=24 height=24 aria-hidden=true class="toggleIcon_Kt6U lightToggleIcon_Zfeh"><path fill=currentColor d="M12,9c1.65,0,3,1.35,3,3s-1.35,3-3,3s-3-1.35-3-3S10.35,9,12,9 M12,7c-2.76,0-5,2.24-5,5s2.24,5,5,5s5-2.24,5-5 S14.76,7,12,7L12,7z M2,13l2,0c0.55,0,1-0.45,1-1s-0.45-1-1-1l-2,0c-0.55,0-1,0.45-1,1S1.45,13,2,13z M20,13l2,0c0.55,0,1-0.45,1-1 s-0.45-1-1-1l-2,0c-0.55,0-1,0.45-1,1S19.45,13,20,13z M11,2v2c0,0.55,0.45,1,1,1s1-0.45,1-1V2c0-0.55-0.45-1-1-1S11,1.45,11,2z M11,20v2c0,0.55,0.45,1,1,1s1-0.45,1-1v-2c0-0.55-0.45-1-1-1C11.45,19,11,19.45,11,20z M5.99,4.58c-0.39-0.39-1.03-0.39-1.41,0 c-0.39,0.39-0.39,1.03,0,1.41l1.06,1.06c0.39,0.39,1.03,0.39,1.41,0s0.39-1.03,0-1.41L5.99,4.58z M18.36,16.95 c-0.39-0.39-1.03-0.39-1.41,0c-0.39,0.39-0.39,1.03,0,1.41l1.06,1.06c0.39,0.39,1.03,0.39,1.41,0c0.39-0.39,0.39-1.03,0-1.41 L18.36,16.95z M19.42,5.99c0.39-0.39,0.39-1.03,0-1.41c-0.39-0.39-1.03-0.39-1.41,0l-1.06,1.06c-0.39,0.39-0.39,1.03,0,1.41 s1.03,0.39,1.41,0L19.42,5.99z M7.05,18.36c0.39-0.39,0.39-1.03,0-1.41c-0.39-0.39-1.03-0.39-1.41,0l-1.06,1.06 c-0.39,0.39-0.39,1.03,0,1.41s1.03,0.39,1.41,0L7.05,18.36z"/></svg><svg viewBox="0 0 24 24" width=24 height=24 aria-hidden=true class="toggleIcon_Kt6U darkToggleIcon_XgQr"><path fill=currentColor d="M9.37,5.51C9.19,6.15,9.1,6.82,9.1,7.5c0,4.08,3.32,7.4,7.4,7.4c0.68,0,1.35-0.09,1.99-0.27C17.45,17.19,14.93,19,12,19 c-3.86,0-7-3.14-7-7C5,9.07,6.81,6.55,9.37,5.51z M12,3c-4.97,0-9,4.03-9,9s4.03,9,9,9s9-4.03,9-9c0-0.46-0.04-0.92-0.1-1.36 c-0.98,1.37-2.58,2.26-4.4,2.26c-2.98,0-5.4-2.42-5.4-5.4c0-1.81,0.89-3.42,2.26-4.4C12.92,3.04,12.46,3,12,3L12,3z"/></svg><svg viewBox="0 0 24 24" width=24 height=24 aria-hidden=true class="toggleIcon_Kt6U systemToggleIcon_BvUi"><path fill=currentColor d="m12 21c4.971 0 9-4.029 9-9s-4.029-9-9-9-9 4.029-9 9 4.029 9 9 9zm4.95-13.95c1.313 1.313 2.05 3.093 2.05 4.95s-0.738 3.637-2.05 4.95c-1.313 1.313-3.093 2.05-4.95 2.05v-14c1.857 0 3.637 0.737 4.95 2.05z"/></svg></button></div><div class=navbarSearchContainer_watl></div></div></div><div role=presentation class=navbar-sidebar__backdrop></div></nav><div id=__docusaurus_skipToContent_fallback class="theme-layout-main main-wrapper mainWrapper_R72Q"><div class=docsWrapper_XQ9b><button aria-label=回到顶部 class="clean-btn theme-back-to-top-button backToTopButton_MbnX" type=button></button><div class=docRoot_aqOB><aside class="theme-doc-sidebar-container docSidebarContainer_sI2e"><div class=sidebarViewport_TzTy><div class=sidebar_CbEe><nav aria-label=文档侧边栏 class="menu thin-scrollbar menu_ChRF"><ul class="theme-doc-sidebar-menu menu__list"><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-1 menu__list-item menu__list-item--collapsed"><div class=menu__list-item-collapsible><a class="categoryLink_Muyc menu__link menu__link--sublist" href=/getting_started/><span class=categoryLinkLabel_mAcL>快速开始</span></a><button aria-label="展开侧边栏分类 '快速开始'" aria-expanded=false type=button class="clean-btn menu__caret"></button></div><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-1 menu__list-item"><div class=menu__list-item-collapsible><a class="categoryLink_Muyc menu__link menu__link--sublist menu__link--active" href=/concepts/><span class=categoryLinkLabel_mAcL>核心概念</span></a><button aria-label="折叠侧边栏分类 '核心概念'" aria-expanded=true type=button class="clean-btn menu__caret"></button></div><ul class=menu__list><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-2 menu__list-item menu__list-item--collapsed"><div class=menu__list-item-collapsible><a class="categoryLink_Muyc menu__link menu__link--sublist" tabindex=0 href=/concepts/instruments/><span class=categoryLinkLabel_mAcL>金融工具</span></a><button aria-label="展开侧边栏分类 '金融工具'" aria-expanded=false type=button class="clean-btn menu__caret"></button></div><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-2 menu__list-item menu__list-item--collapsed"><div class=menu__list-item-collapsible><a class="categoryLink_Muyc menu__link menu__link--sublist" tabindex=0 href=/concepts/orders/><span class=categoryLinkLabel_mAcL>订单</span></a><button aria-label="展开侧边栏分类 '订单'" aria-expanded=false type=button class="clean-btn menu__caret"></button></div><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-2 menu__list-item menu__list-item--collapsed"><div class=menu__list-item-collapsible><a class="categoryLink_Muyc menu__link menu__link--sublist" tabindex=0 href=/concepts/data/><span class=categoryLinkLabel_mAcL>数据</span></a><button aria-label="展开侧边栏分类 '数据'" aria-expanded=false type=button class="clean-btn menu__caret"></button></div><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-2 menu__list-item menu__list-item--collapsed"><div class=menu__list-item-collapsible><a class="categoryLink_Muyc menu__link menu__link--sublist" tabindex=0 href=/concepts/backtesting/><span class=categoryLinkLabel_mAcL>回测</span></a><button aria-label="展开侧边栏分类 '回测'" aria-expanded=false type=button class="clean-btn menu__caret"></button></div><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-2 menu__list-item menu__list-item--collapsed"><div class=menu__list-item-collapsible><a class="categoryLink_Muyc menu__link menu__link--sublist" tabindex=0 href=/concepts/events/><span class=categoryLinkLabel_mAcL>事件</span></a><button aria-label="展开侧边栏分类 '事件'" aria-expanded=false type=button class="clean-btn menu__caret"></button></div><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-2 menu__list-item menu__list-item--collapsed"><div class=menu__list-item-collapsible><a class="categoryLink_Muyc menu__link menu__link--sublist" tabindex=0 href=/concepts/execution/><span class=categoryLinkLabel_mAcL>执行</span></a><button aria-label="展开侧边栏分类 '执行'" aria-expanded=false type=button class="clean-btn menu__caret"></button></div><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/concepts/accounting><span class=linkLabel_lYjD>核算</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/concepts/actors><span class=linkLabel_lYjD>Actors</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/concepts/adapters><span class=linkLabel_lYjD>适配器</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/concepts/architecture><span class=linkLabel_lYjD>架构</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/concepts/behavioral_models><span class=linkLabel_lYjD>行为模型</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/concepts/cache><span class=linkLabel_lYjD>缓存</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/concepts/configuration><span class=linkLabel_lYjD>配置</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/concepts/continuous_futures><span class=linkLabel_lYjD>连续期货</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/concepts/custom_data><span class=linkLabel_lYjD>自定义数据</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/concepts/dst><span class=linkLabel_lYjD>DST</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/concepts/event_sourcing><span class=linkLabel_lYjD>事件溯源</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/concepts/greeks><span class=linkLabel_lYjD>Greeks</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/concepts/live><span class=linkLabel_lYjD>实时交易</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/concepts/logging><span class=linkLabel_lYjD>日志</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/concepts/message_bus><span class=linkLabel_lYjD>消息总线</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/concepts/networking><span class=linkLabel_lYjD>网络</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/concepts/options><span class=linkLabel_lYjD>期权</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/concepts/order_book><span class=linkLabel_lYjD>订单簿</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/concepts/overview><span class=linkLabel_lYjD>概览</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/concepts/portfolio><span class=linkLabel_lYjD>组合</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class="menu__link menu__link--active" aria-current=page tabindex=0 href=/concepts/positions><span class=linkLabel_lYjD>持仓</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/concepts/python><span class=linkLabel_lYjD>Python</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/concepts/reports><span class=linkLabel_lYjD>报告</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/concepts/rust><span class=linkLabel_lYjD>Rust</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/concepts/strategies><span class=linkLabel_lYjD>策略</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/concepts/synthetics><span class=linkLabel_lYjD>合成工具</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/concepts/value_types><span class=linkLabel_lYjD>值类型</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/concepts/visualization><span class=linkLabel_lYjD>可视化</span></a></ul><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-1 menu__list-item menu__list-item--collapsed"><div class=menu__list-item-collapsible><a class="categoryLink_Muyc menu__link menu__link--sublist" href=/integrations/><span class=categoryLinkLabel_mAcL>交易所与集成</span></a><button aria-label="展开侧边栏分类 '交易所与集成'" aria-expanded=false type=button class="clean-btn menu__caret"></button></div><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-1 menu__list-item menu__list-item--collapsed"><div class=menu__list-item-collapsible><a class="categoryLink_Muyc menu__link menu__link--sublist" href=/how_to/><span class=categoryLinkLabel_mAcL>操作指南</span></a><button aria-label="展开侧边栏分类 '操作指南'" aria-expanded=false type=button class="clean-btn menu__caret"></button></div><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-1 menu__list-item menu__list-item--collapsed"><div class=menu__list-item-collapsible><a class="categoryLink_Muyc menu__link menu__link--sublist" href=/tutorials/><span class=categoryLinkLabel_mAcL>教程</span></a><button aria-label="展开侧边栏分类 '教程'" aria-expanded=false type=button class="clean-btn menu__caret"></button></div><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-1 menu__list-item menu__list-item--collapsed"><div class=menu__list-item-collapsible><a class="categoryLink_Muyc menu__link menu__link--sublist" href=/developer_guide/><span class=categoryLinkLabel_mAcL>开发者指南</span></a><button aria-label="展开侧边栏分类 '开发者指南'" aria-expanded=false type=button class="clean-btn menu__caret"></button></div><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-1 menu__list-item menu__list-item--collapsed"><div class=menu__list-item-collapsible><a class="categoryLink_Muyc menu__link menu__link--sublist" href=/api_reference/><span class=categoryLinkLabel_mAcL>API 参考</span></a><button aria-label="展开侧边栏分类 'API 参考'" aria-expanded=false type=button class="clean-btn menu__caret"></button></div></ul></nav></div></div></aside><main class=docMainContainer_sLF8><div class="container padding-top--md padding-bottom--lg"><div class=row><div class="col docItemCol_ZRft"><div class=docItemContainer_KOP5><article><nav class="theme-doc-breadcrumbs breadcrumbsContainer_d5rS" aria-label=页面路径><ul class=breadcrumbs><li class=breadcrumbs__item><a aria-label=主页面 class=breadcrumbs__link href=/><svg viewBox="0 0 24 24" class=breadcrumbHomeIcon_XgF2><path d="M10 19v-5h4v5c0 .55.45 1 1 1h3c.55 0 1-.45 1-1v-7h1.7c.46 0 .68-.57.33-.87L12.67 3.6c-.38-.34-.96-.34-1.34 0l-8.36 7.53c-.34.3-.13.87.33.87H5v7c0 .55.45 1 1 1h3c.55 0 1-.45 1-1z" fill=currentColor /></svg></a><li class=breadcrumbs__item><a class=breadcrumbs__link href=/concepts/><span>核心概念</span></a><li class="breadcrumbs__item breadcrumbs__item--active"><span class=breadcrumbs__link>持仓</span></ul></nav><div class="tocCollapsible_bgaJ theme-doc-toc-mobile tocMobile_FhT_"><button type=button class="clean-btn tocCollapsibleButton_F8AY">本页总览</button></div><div class="theme-doc-markdown markdown"><header><h1>持仓</h1></header>
+<p>本指南说明 NautilusTrader 如何由订单成交创建和更新持仓、如何计算盈亏（PnL），
+以及在 <code>NETTING</code> 订单管理系统（OMS）下如何保留已结束的周期。</p>
+<h2 class="anchor anchorTargetStickyNavbar_ana5" id=overview>概览<a href=#overview class=hash-link aria-label=概览的直接链接 title=概览的直接链接 translate=no>​</a></h2>
+<p>持仓记录一个开-平周期内对某工具的敞口。它汇总分配到同一持仓 ID 的成交，
+跟踪数量、均价、已实现盈亏、手续费与相关标识。配合市场价调用持仓的方法，
+可计算未实现盈亏与名义价值。</p>
+<p>执行引擎在订单成交时创建持仓，并从开仓跟踪到平仓。OMS 配置决定成交
+是汇入一个净持仓，还是留在各自独立的对冲持仓中。</p>
+<h2 class="anchor anchorTargetStickyNavbar_ana5" id=position-lifecycle>持仓生命周期<a href=#position-lifecycle class=hash-link aria-label=持仓生命周期的直接链接 title=持仓生命周期的直接链接 translate=no>​</a></h2>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=creation>创建<a href=#creation class=hash-link aria-label=创建的直接链接 title=创建的直接链接 translate=no>​</a></h3>
+<p>首笔成交开出一个持仓：</p>
 <ul>
-<li><strong>NETTING OMS</strong>：对每个交易工具在首次成交时创建一个持仓（每个 instrument 一条持仓）。</li>
-<li><strong>HEDGING OMS</strong>：在出现新的 <code>position_id</code> 时创建持仓（同一 instrument 可存在多条持仓）。</li>
+<li class=""><strong>NETTING OMS</strong>：某工具与策略的首笔成交即开仓，持仓使用确定性 ID
+<code>{instrument_id}-{strategy_id}</code>。</li>
+<li class=""><strong>HEDGING OMS</strong>：新 <code>position_id</code> 的首笔成交开仓（同一工具可有多个持仓）。</li>
 </ul>
-<p>持仓会记录：</p>
+<p>持仓记录：</p>
 <ul>
-<li>开仓的订单和成交详情。</li>
-<li>持仓方向（<code>LONG</code> 或 <code>SHORT</code>）。</li>
-<li>初始数量与平均价格。</li>
-<li>初始化与开仓的时间戳。</li>
+<li class="">开仓订单与成交明细。</li>
+<li class="">开仓方向（<code>BUY</code> 或 <code>SELL</code>）。</li>
+<li class="">计入开仓成交后的数量与平均开仓价。</li>
+<li class="">初始化与开仓时间戳。</li>
 </ul>
-<p>提示：在 actor/strategy 内可以通过缓存访问持仓，例如 <code>self.cache.position(position_id)</code> 或 <code>self.cache.positions(instrument_id=instrument_id)</code>。</p>
-<h3 class="anchor anchorWithStickyNavbar_RpWm" id="更新">更新<a href="#更新" class="hash-link" aria-label="更新的直接链接" title="更新的直接链接" translate="no">​</a></h3>
-<p>当后续发生更多成交时，持仓会：</p>
+<div class="theme-admonition theme-admonition-tip admonition_LYZY alert alert--success"><div class=admonitionHeading_pnFY><span class=admonitionIcon_tEzm><svg viewBox="0 0 12 16"><path fill-rule=evenodd d="M6.5 0C3.48 0 1 2.19 1 5c0 .92.55 2.25 1 3 1.34 2.25 1.78 2.78 2 4v1h5v-1c.22-1.22.66-1.75 2-4 .45-.75 1-2.08 1-3 0-2.81-2.48-5-5.5-5zm3.64 7.48c-.25.44-.47.8-.67 1.11-.86 1.41-1.25 2.06-1.45 3.23-.02.05-.02.11-.02.17H5c0-.06 0-.13-.02-.17-.2-1.17-.59-1.83-1.45-3.23-.2-.31-.42-.67-.67-1.11C2.44 6.78 2 5.65 2 5c0-2.2 2.02-4 4.5-4 1.22 0 2.36.42 3.22 1.19C10.55 2.94 11 3.94 11 5c0 .66-.44 1.78-.86 2.48zM4 14h5c-.23 1.14-1.3 2-2.5 2s-2.27-.86-2.5-2z"/></svg></span>提示</div><div class=admonitionContent_ZwmI><p>在 actor/策略内可通过缓存访问持仓：<code>self.cache.position(position_id)</code> 或
+<code>self.cache.positions(instrument_id=instrument_id)</code>。</div></div>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=updates>更新<a href=#updates class=hash-link aria-label=更新的直接链接 title=更新的直接链接 translate=no>​</a></h3>
+<p>后续成交发生时，持仓会：</p>
 <ul>
-<li>聚合买卖成交的数量。</li>
-<li>重新计算开仓与平仓的平均价格。</li>
-<li>更新峰值数量（历史上达到的最大敞口）。</li>
-<li>跟踪所有相关的订单 ID 与成交（trade）ID。</li>
-<li>按币种累计手续费（commissions）。</li>
+<li class="">汇总买卖成交的数量。</li>
+<li class="">重算平均开仓价与平仓价。</li>
+<li class="">更新当前周期的峰值数量。</li>
+<li class="">跟踪当前周期的订单 ID 与成交 ID。</li>
+<li class="">按币种累计手续费。</li>
 </ul>
-<h3 class="anchor anchorWithStickyNavbar_RpWm" id="关闭">关闭<a href="#关闭" class="hash-link" aria-label="关闭的直接链接" title="关闭的直接链接" translate="no">​</a></h3>
-<p>当净持仓数量变为零（<code>FLAT</code>）时，持仓被视为已关闭。关闭时：</p>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=closure>平仓<a href=#closure class=hash-link aria-label=平仓的直接链接 title=平仓的直接链接 translate=no>​</a></h3>
+<p><strong>净数量归零</strong>（<code>FLAT</code>）时持仓平仓。平仓时：</p>
 <ul>
-<li>记录关闭订单 ID。</li>
-<li>计算从开仓到关闭的持续时间。</li>
-<li>计算最终的已实现盈亏（realized PnL）。</li>
-<li>在 <code>NETTING</code> OMS 下，执行引擎会通过快照保留已关闭持仓的状态以维护历史 PnL（见“持仓快照”一节）。</li>
+<li class="">记录平仓订单 ID；到期结算产生的平仓该字段为空。</li>
+<li class="">计算从开仓到平仓的时长。</li>
+<li class="">计算最终已实现盈亏。</li>
+<li class="">无论哪种 OMS，该持仓日后以同一 ID 重新开仓时，引擎会先快照已平仓状态
+以保留历史盈亏（见<a href=#position-snapshotting class="">持仓快照</a>）。</li>
 </ul>
-<h2 class="anchor anchorWithStickyNavbar_RpWm" id="成交聚合order-fill-aggregation">成交聚合（Order fill aggregation）<a href="#成交聚合order-fill-aggregation" class="hash-link" aria-label="成交聚合（Order fill aggregation）的直接链接" title="成交聚合（Order fill aggregation）的直接链接" translate="no">​</a></h2>
-<p>持仓通过聚合成交记录来保持对市场敞口的准确视图。该聚合过程同时处理买卖双方的成交活动：</p>
-<h3 class="anchor anchorWithStickyNavbar_RpWm" id="买入成交buy-fills">买入成交（Buy fills）<a href="#买入成交buy-fills" class="hash-link" aria-label="买入成交（Buy fills）的直接链接" title="买入成交（Buy fills）的直接链接" translate="no">​</a></h3>
-<p>当发生 BUY 成交时：</p>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=settlement-at-contract-expiration>到期结算<a href=#settlement-at-contract-expiration class=hash-link aria-label=到期结算的直接链接 title=到期结算的直接链接 translate=no>​</a></h3>
+<p>实时节点中，<code>CONTRACT_EXPIRED</code> 类型的 <code>InstrumentClose</code> 只在节点执行客户端
+所服务的场所上结算二元期权持仓。满足该条件时，它按收盘价结算该工具的每个
+未平仓持仓（获胜结果为 <code>1</code>，落败结果为 <code>0</code>）。对每个持仓，执行引擎：</p>
 <ul>
-<li>增加多头敞口或减少空头敞口。</li>
-<li>对开仓部分更新平均开仓价（avg entry price）。</li>
-<li>对平仓部分更新平均平仓价（avg exit price）。</li>
-<li>计算任何被平仓部分的已实现盈亏。</li>
+<li class="">按收盘价结束当前周期，不创建订单或成交。</li>
+<li class="">为结算数量入账已实现盈亏。成交数量与手续费保持成交时的状态，
+因此开仓手续费留在已实现盈亏中。</li>
+<li class="">发出不带平仓订单 ID 的一条 <code>PositionClosed</code>。</li>
 </ul>
-<h3 class="anchor anchorWithStickyNavbar_RpWm" id="卖出成交sell-fills">卖出成交（Sell fills）<a href="#卖出成交sell-fills" class="hash-link" aria-label="卖出成交（Sell fills）的直接链接" title="卖出成交（Sell fills）的直接链接" translate="no">​</a></h3>
-<p>当发生 SELL 成交时：</p>
+<p>对某工具应用的第一个收盘指令具有权威性。重复或冲突的收盘，或恢复了已结算
+持仓的重启，都不会再次结算。结算之后，该工具的成交或成交撤销仍会更新订单，
+但不再改变持仓；引擎记录一条警告，不发出持仓事件。</p>
+<p>结算不赎回场所资产，也不改变账户余额。现金以场所账户报告为准，
+未赎回的派息只有在场所报告赎回资金后才计入账户余额。</p>
+<p>回测与沙箱模拟交易沿用模拟场所的到期处理：撮合引擎以到期成交平仓，
+这些成交为模拟账户入账。若场所的执行客户端自行结算到期合约（沙箱客户端
+即如此），实时节点不会对该场所应用引擎结算。</p>
+<h2 class="anchor anchorTargetStickyNavbar_ana5" id=order-fill-aggregation>订单成交聚合<a href=#order-fill-aggregation class=hash-link aria-label=订单成交聚合的直接链接 title=订单成交聚合的直接链接 translate=no>​</a></h2>
+<p>持仓聚合订单成交，以保持准确的市场敞口视图。聚合过程处理交易活动的两侧：</p>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=buy-fills>买入成交<a href=#buy-fills class=hash-link aria-label=买入成交的直接链接 title=买入成交的直接链接 translate=no>​</a></h3>
+<p>BUY 订单成交时：</p>
 <ul>
-<li>增加空头敞口或减少多头敞口。</li>
-<li>对开仓部分更新平均开仓价。</li>
-<li>对平仓部分更新平均平仓价。</li>
-<li>计算任何被平仓部分的已实现盈亏。</li>
+<li class="">增加多头敞口或减少空头敞口。</li>
+<li class="">开仓交易更新平均开仓价。</li>
+<li class="">平仓交易更新平均平仓价。</li>
+<li class="">对已平掉的部分计算已实现盈亏。</li>
 </ul>
-<h3 class="anchor anchorWithStickyNavbar_RpWm" id="净持仓计算">净持仓计算<a href="#净持仓计算" class="hash-link" aria-label="净持仓计算的直接链接" title="净持仓计算的直接链接" translate="no">​</a></h3>
-<p>持仓维护一个 <code>signed_qty</code> 字段来表示净敞口：</p>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=sell-fills>卖出成交<a href=#sell-fills class=hash-link aria-label=卖出成交的直接链接 title=卖出成交的直接链接 translate=no>​</a></h3>
+<p>SELL 订单成交时：</p>
 <ul>
-<li>正值表示 <code>LONG</code>（多头）。</li>
-<li>负值表示 <code>SHORT</code>（空头）。</li>
-<li>零表示 <code>FLAT</code>（无持仓，已平仓）。</li>
+<li class="">增加空头敞口或减少多头敞口。</li>
+<li class="">开仓交易更新平均开仓价。</li>
+<li class="">平仓交易更新平均平仓价。</li>
+<li class="">对已平掉的部分计算已实现盈亏。</li>
 </ul>
-<div class="language-python codeBlockContainer_euGm theme-code-block" style="--prism-color:#393A34;--prism-background-color:#f6f8fa"><div class="codeBlockContent_zF3K"><pre tabindex="0" class="prism-code language-python codeBlock_G1mO thin-scrollbar" style="color:#393A34;background-color:#f6f8fa"><code class="codeBlockLines_QZRj"><span class="token-line" style="color:#393A34"><span class="token comment" style="color:#999988;font-style:italic"># 示例：持仓聚合</span><span class="token plain"></span><br></span><span class="token-line" style="color:#393A34"><span class="token plain"></span><span class="token comment" style="color:#999988;font-style:italic"># 首次 BUY 100 手，价格 $50</span><span class="token plain"></span><br></span><span class="token-line" style="color:#393A34"><span class="token plain">signed_qty </span><span class="token operator" style="color:#393A34">=</span><span class="token plain"> </span><span class="token operator" style="color:#393A34">+</span><span class="token number" style="color:#36acaa">100</span><span class="token plain">  </span><span class="token comment" style="color:#999988;font-style:italic"># 多头</span><span class="token plain"></span><br></span><span class="token-line" style="color:#393A34"><span class="token plain" style="display:inline-block"></span><br></span><span class="token-line" style="color:#393A34"><span class="token plain"></span><span class="token comment" style="color:#999988;font-style:italic"># 后续 SELL 150 手，价格 $55</span><span class="token plain"></span><br></span><span class="token-line" style="color:#393A34"><span class="token plain">signed_qty </span><span class="token operator" style="color:#393A34">=</span><span class="token plain"> </span><span class="token operator" style="color:#393A34">-</span><span class="token number" style="color:#36acaa">50</span><span class="token plain">   </span><span class="token comment" style="color:#999988;font-style:italic"># 现在变为空头</span><span class="token plain"></span><br></span><span class="token-line" style="color:#393A34"><span class="token plain" style="display:inline-block"></span><br></span><span class="token-line" style="color:#393A34"><span class="token plain"></span><span class="token comment" style="color:#999988;font-style:italic"># 最后 BUY 50 手，价格 $52</span><span class="token plain"></span><br></span><span class="token-line" style="color:#393A34"><span class="token plain">signed_qty </span><span class="token operator" style="color:#393A34">=</span><span class="token plain"> </span><span class="token number" style="color:#36acaa">0</span><span class="token plain">     </span><span class="token comment" style="color:#999988;font-style:italic"># 持仓平仓（FLAT）</span><br></span></code></pre></div></div>
-<h2 class="anchor anchorWithStickyNavbar_RpWm" id="oms-类型与持仓管理">OMS 类型与持仓管理<a href="#oms-类型与持仓管理" class="hash-link" aria-label="OMS 类型与持仓管理的直接链接" title="OMS 类型与持仓管理的直接链接" translate="no">​</a></h2>
-<p>NautilusTrader 支持两种主要的 OMS 类型，它们显著影响持仓的跟踪与管理方式。另有 <code>OmsType.UNSPECIFIED</code> 选项，会采用组件上下文的默认设置。更多细节见 <a href="/concepts/execution#order-management-system-oms">Execution guide</a>。</p>
-<h3 class="anchor anchorWithStickyNavbar_RpWm" id="netting"><code>NETTING</code><a href="#netting" class="hash-link" aria-label="netting的直接链接" title="netting的直接链接" translate="no">​</a></h3>
-<p>在 <code>NETTING</code> 模式下，同一交易工具的所有成交都会聚合到一个持仓：</p>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=net-position-calculation>净持仓计算<a href=#net-position-calculation class=hash-link aria-label=净持仓计算的直接链接 title=净持仓计算的直接链接 translate=no>​</a></h3>
+<p>持仓维护 <code>signed_qty</code> 字段表示净敞口：</p>
 <ul>
-<li>每个 instrument ID 仅有一条持仓。</li>
-<li>所有成交都会计入同一持仓。</li>
-<li>随着净数量变化，持仓可能在 <code>LONG</code> 与 <code>SHORT</code> 之间反向。</li>
-<li>已关闭的持仓状态通过历史快照得到保留。</li>
+<li class="">正值表示 <code>LONG</code> 持仓。</li>
+<li class="">负值表示 <code>SHORT</code> 持仓。</li>
+<li class="">零表示 <code>FLAT</code>（已平仓）持仓。</li>
 </ul>
-<h3 class="anchor anchorWithStickyNavbar_RpWm" id="hedging"><code>HEDGING</code><a href="#hedging" class="hash-link" aria-label="hedging的直接链接" title="hedging的直接链接" translate="no">​</a></h3>
-<p>在 <code>HEDGING</code> 模式下，同一交易工具可以存在多条持仓：</p>
+<div class="language-python codeBlockContainer_eTMR theme-code-block" style=--prism-color:#393A34;--prism-background-color:#f6f8fa><div class=codeBlockContent_hafM><pre tabindex=0 class="prism-code language-python codeBlock_IMvC thin-scrollbar" style=color:#393A34;background-color:#f6f8fa><code class=codeBlockLines_gZDW><div class=token-line style=color:#393A34><span class="token comment" style=color:#999988;font-style:italic># Example: Position aggregation</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain"></span><span class="token comment" style=color:#999988;font-style:italic># Initial BUY 100 units at $50</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">signed_qty </span><span class="token operator" style=color:#393A34>=</span><span class="token plain"> </span><span class="token operator" style=color:#393A34>+</span><span class="token number" style=color:#36acaa>100</span><span class="token plain">  </span><span class="token comment" style=color:#999988;font-style:italic># LONG position</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain" style=display:inline-block></span><br/></div><div class=token-line style=color:#393A34><span class="token plain"></span><span class="token comment" style=color:#999988;font-style:italic># Subsequent SELL 150 units at $55</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">signed_qty </span><span class="token operator" style=color:#393A34>=</span><span class="token plain"> </span><span class="token operator" style=color:#393A34>-</span><span class="token number" style=color:#36acaa>50</span><span class="token plain">  </span><span class="token comment" style=color:#999988;font-style:italic># Closes the LONG cycle and opens a SHORT cycle</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain" style=display:inline-block></span><br/></div><div class=token-line style=color:#393A34><span class="token plain"></span><span class="token comment" style=color:#999988;font-style:italic># Final BUY 50 units at $52</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">signed_qty </span><span class="token operator" style=color:#393A34>=</span><span class="token plain"> </span><span class="token number" style=color:#36acaa>0</span><span class="token plain">  </span><span class="token comment" style=color:#999988;font-style:italic># Position FLAT (closed)</span><br/></div></code></pre></div></div>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=reversal-accounting>反手记账<a href=#reversal-accounting class=hash-link aria-label=反手记账的直接链接 title=反手记账的直接链接 translate=no>​</a></h3>
+<p>反向成交量超过现有持仓数量时，先平掉已有敞口，再以剩余数量朝另一方向开仓。
+执行引擎把这笔成交拆为平仓加新开仓，平仓状态的保留规则见
+<a href=#position-snapshotting class="">持仓快照</a>。</p>
+<p>若不拆分、直接把反手成交应用于同一个 <code>Position</code>，剩余敞口会开启新的记账段落。
+该段落有这些重置（成交撤销重放时同样如此）：</p>
 <ul>
-<li>可以同时存在多条 <code>LONG</code> 与 <code>SHORT</code> 持仓。</li>
-<li>每条持仓都有唯一的 position ID。</li>
-<li>各持仓独立跟踪。</li>
-<li>不会自动在持仓间进行净额合并（netting）。</li>
+<li class=""><code>avg_px_open</code> 变为反手成交价。</li>
+<li class=""><code>avg_px_close</code> 变为 <code>None</code>，<code>realized_return</code> 归零，直到后续出现平仓成交。</li>
+<li class=""><code>buy_qty</code> 与 <code>sell_qty</code> 重新开始：新入场侧只计开仓剩余量，另一侧为零，
+因此后续平仓均价不再包含前一方向的数量。</li>
 </ul>
-<p>警告：使用 <code>HEDGING</code> 模式时需注意保证金要求会增加，因为每条持仓独立占用保证金。部分交易场所可能并不支持真正的 hedging，会在场内自动进行 netting。</p>
-<h3 class="anchor anchorWithStickyNavbar_RpWm" id="策略层-vs-场所venue-oms">策略层 vs 场所（venue） OMS<a href="#策略层-vs-场所venue-oms" class="hash-link" aria-label="策略层 vs 场所（venue） OMS的直接链接" title="策略层 vs 场所（venue） OMS的直接链接" translate="no">​</a></h3>
-<p>平台允许策略与场所使用不同的 OMS 配置：</p>
-<table><thead><tr><th>Strategy OMS</th><th>Venue OMS</th><th>行为说明</th></tr></thead><tbody><tr><td><code>NETTING</code></td><td><code>NETTING</code></td><td>策略和场所层面在每个 instrument 上均为单一持仓</td></tr><tr><td><code>HEDGING</code></td><td><code>HEDGING</code></td><td>两层均支持多条持仓</td></tr><tr><td><code>NETTING</code></td><td><code>HEDGING</code></td><td>场所层面维护多条持仓，Nautilus 在策略层维持单一虚拟持仓</td></tr><tr><td><code>HEDGING</code></td><td><code>NETTING</code></td><td>场所层面为单一持仓，Nautilus 在策略层维护虚拟多持仓</td></tr></tbody></table>
-<p>提示：对于大多数交易场景，策略层与场所层保持 OMS 类型一致会简化持仓管理。只有在做自营交易台（prop desk）或与遗留系统对接时才常见需要覆盖配置。详情见 <a href="/concepts/live">Live guide</a>。</p>
-<h2 class="anchor anchorWithStickyNavbar_RpWm" id="持仓快照position-snapshotting">持仓快照（Position snapshotting）<a href="#持仓快照position-snapshotting" class="hash-link" aria-label="持仓快照（Position snapshotting）的直接链接" title="持仓快照（Position snapshotting）的直接链接" translate="no">​</a></h2>
-<p>持仓快照是 <code>NETTING</code> OMS 配置下的重要机制，用于在持仓关闭后保留其历史状态，从而确保 PnL 汇总与报告的准确性。</p>
-<h3 class="anchor anchorWithStickyNavbar_RpWm" id="为什么需要快照">为什么需要快照<a href="#为什么需要快照" class="hash-link" aria-label="为什么需要快照的直接链接" title="为什么需要快照的直接链接" translate="no">​</a></h3>
-<p>在 <code>NETTING</code> 系统中，当持仓关闭（变为 <code>FLAT</code>）后如果再次对同一工具开仓，原有的持仓对象会被重置以跟踪新的敞口。若不保存快照，之前周期的已实现 PnL 将丢失。</p>
-<h3 class="anchor anchorWithStickyNavbar_RpWm" id="工作原理">工作原理<a href="#工作原理" class="hash-link" aria-label="工作原理的直接链接" title="工作原理的直接链接" translate="no">​</a></h3>
-<p>当 <code>NETTING</code> 持仓关闭并随后对同一 instrument 有新的成交时，执行引擎会在重置持仓前对已关闭的持仓状态进行快照，保留：</p>
+<p><strong>只有平仓部分</strong>按前一入场价实现盈亏。对象的 <code>realized_pnl</code> 与手续费合计
+在反手中保持累计，成交的手续费只计一次。重置不清除成交历史、开仓时间戳
+或峰值数量。若持仓先到达 <code>FLAT</code> 再被后续成交重开，则整个周期完全重置，
+包括已实现盈亏与手续费。</p>
+<p>这些段落重置只适用于成交驱动的反手。改变持仓方向的数量调整不做同样的重置。</p>
+<h2 class="anchor anchorTargetStickyNavbar_ana5" id=position-adjustments>持仓调整<a href=#position-adjustments class=hash-link aria-label=持仓调整的直接链接 title=持仓调整的直接链接 translate=no>​</a></h2>
+<p>持仓调整记录正常成交之外的数量或盈亏变化，系统以
+<code>PositionAdjusted</code> 事件表示。</p>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=base-currency-commissions>基础币种手续费<a href=#base-currency-commissions class=hash-link aria-label=基础币种手续费的直接链接 title=基础币种手续费的直接链接 translate=no>​</a></h3>
+<p>交易现货货币对（如 BTC/USDT）或外汇现货时，以基础币种支付的手续费
+直接影响实收或实付数量：</p>
 <ul>
-<li>最终的数量与价格信息。</li>
-<li>已实现的 PnL。</li>
-<li>所有的成交事件（fill events）。</li>
-<li>手续费总额。</li>
+<li class=""><strong>开仓成交</strong>：手续费从成交数量中扣除。买 1.0 BTC、手续费 0.001 BTC，
+净多头持仓为 0.999 BTC。</li>
+<li class=""><strong>平仓成交</strong>：手续费作用于 <code>signed_qty</code>，因为它影响实际库存。卖出
+0.999 BTC 的多头持仓、手续费 0.000999 BTC，结果不是 FLAT，而是空头
+0.000999 BTC——你总共交出了 0.999999 BTC。</li>
+<li class=""><strong>反手</strong>：手续费影响反手两侧的最终持仓规模。</li>
 </ul>
-<p>这些快照会按 position ID 存入缓存（cache）。随后持仓对象会重置用于记录新一轮周期，但历史快照仍然可访问。Portfolio 会将所有快照的 PnL 汇总，确保总计正确。</p>
-<p>注意：此处的历史快照机制不同于可选的周期性持仓状态快照（<code>snapshot_positions</code>），后者用于遥测（telemetry）定期记录当前持仓状态。有关 <code>snapshot_positions</code> 与 <code>snapshot_positions_interval_secs</code> 的设置请参见 <a href="/concepts/live">Live guide</a>。</p>
-<h3 class="anchor anchorWithStickyNavbar_RpWm" id="示例场景">示例场景<a href="#示例场景" class="hash-link" aria-label="示例场景的直接链接" title="示例场景的直接链接" translate="no">​</a></h3>
-<div class="language-python codeBlockContainer_euGm theme-code-block" style="--prism-color:#393A34;--prism-background-color:#f6f8fa"><div class="codeBlockContent_zF3K"><pre tabindex="0" class="prism-code language-python codeBlock_G1mO thin-scrollbar" style="color:#393A34;background-color:#f6f8fa"><code class="codeBlockLines_QZRj"><span class="token-line" style="color:#393A34"><span class="token comment" style="color:#999988;font-style:italic"># NETTING OMS 示例</span><span class="token plain"></span><br></span><span class="token-line" style="color:#393A34"><span class="token plain"></span><span class="token comment" style="color:#999988;font-style:italic"># 第 1 周期：开多头</span><span class="token plain"></span><br></span><span class="token-line" style="color:#393A34"><span class="token plain">BUY </span><span class="token number" style="color:#36acaa">100</span><span class="token plain"> units at $</span><span class="token number" style="color:#36acaa">50</span><span class="token plain">   </span><span class="token comment" style="color:#999988;font-style:italic"># 持仓打开</span><span class="token plain"></span><br></span><span class="token-line" style="color:#393A34"><span class="token plain">SELL </span><span class="token number" style="color:#36acaa">100</span><span class="token plain"> units at $</span><span class="token number" style="color:#36acaa">55</span><span class="token plain">  </span><span class="token comment" style="color:#999988;font-style:italic"># 持仓关闭，PnL = $500</span><span class="token plain"></span><br></span><span class="token-line" style="color:#393A34"><span class="token plain"></span><span class="token comment" style="color:#999988;font-style:italic"># 引擎对该周期做快照，保留 $500 的已实现 PnL</span><span class="token plain"></span><br></span><span class="token-line" style="color:#393A34"><span class="token plain" style="display:inline-block"></span><br></span><span class="token-line" style="color:#393A34"><span class="token plain"></span><span class="token comment" style="color:#999988;font-style:italic"># 第 2 周期：开空头</span><span class="token plain"></span><br></span><span class="token-line" style="color:#393A34"><span class="token plain">SELL </span><span class="token number" style="color:#36acaa">50</span><span class="token plain"> units at $</span><span class="token number" style="color:#36acaa">54</span><span class="token plain">   </span><span class="token comment" style="color:#999988;font-style:italic"># 持仓重新打开（空头）</span><span class="token plain"></span><br></span><span class="token-line" style="color:#393A34"><span class="token plain">BUY </span><span class="token number" style="color:#36acaa">50</span><span class="token plain"> units at $</span><span class="token number" style="color:#36acaa">52</span><span class="token plain">    </span><span class="token comment" style="color:#999988;font-style:italic"># 持仓关闭，PnL = $100</span><span class="token plain"></span><br></span><span class="token-line" style="color:#393A34"><span class="token plain"></span><span class="token comment" style="color:#999988;font-style:italic"># 引擎对该周期做快照，保留 $100 的已实现 PnL</span><span class="token plain"></span><br></span><span class="token-line" style="color:#393A34"><span class="token plain" style="display:inline-block"></span><br></span><span class="token-line" style="color:#393A34"><span class="token plain"></span><span class="token comment" style="color:#999988;font-style:italic"># 总已实现 PnL = $500 + $100 = $600（来自所有快照）</span><br></span></code></pre></div></div>
-<p>若无快照机制，只有最近一轮周期的 PnL 可用，从而导致错误的汇报与分析。</p>
-<h2 class="anchor anchorWithStickyNavbar_RpWm" id="盈亏pnl计算">盈亏（PnL）计算<a href="#盈亏pnl计算" class="hash-link" aria-label="盈亏（PnL）计算的直接链接" title="盈亏（PnL）计算的直接链接" translate="no">​</a></h2>
-<p>NautilusTrader 提供全面的 PnL 计算，兼顾不同合约类型和市场惯例。</p>
-<h3 class="anchor anchorWithStickyNavbar_RpWm" id="已实现盈亏realized-pnl">已实现盈亏（Realized PnL）<a href="#已实现盈亏realized-pnl" class="hash-link" aria-label="已实现盈亏（Realized PnL）的直接链接" title="已实现盈亏（Realized PnL）的直接链接" translate="no">​</a></h3>
-<p>在持仓部分或全部被平仓时计算已实现盈亏：</p>
-<div class="language-python codeBlockContainer_euGm theme-code-block" style="--prism-color:#393A34;--prism-background-color:#f6f8fa"><div class="codeBlockContent_zF3K"><pre tabindex="0" class="prism-code language-python codeBlock_G1mO thin-scrollbar" style="color:#393A34;background-color:#f6f8fa"><code class="codeBlockLines_QZRj"><span class="token-line" style="color:#393A34"><span class="token comment" style="color:#999988;font-style:italic"># 对于常规合约</span><span class="token plain"></span><br></span><span class="token-line" style="color:#393A34"><span class="token plain">realized_pnl </span><span class="token operator" style="color:#393A34">=</span><span class="token plain"> </span><span class="token punctuation" style="color:#393A34">(</span><span class="token plain">exit_price </span><span class="token operator" style="color:#393A34">-</span><span class="token plain"> entry_price</span><span class="token punctuation" style="color:#393A34">)</span><span class="token plain"> </span><span class="token operator" style="color:#393A34">*</span><span class="token plain"> closed_quantity </span><span class="token operator" style="color:#393A34">*</span><span class="token plain"> multiplier</span><br></span><span class="token-line" style="color:#393A34"><span class="token plain" style="display:inline-block"></span><br></span><span class="token-line" style="color:#393A34"><span class="token plain"></span><span class="token comment" style="color:#999988;font-style:italic"># 对于反向合约（inverse instruments，需考虑方向）</span><span class="token plain"></span><br></span><span class="token-line" style="color:#393A34"><span class="token plain"></span><span class="token comment" style="color:#999988;font-style:italic"># 多头（LONG）： realized_pnl = closed_quantity * multiplier * (1/entry_price - 1/exit_price)</span><span class="token plain"></span><br></span><span class="token-line" style="color:#393A34"><span class="token plain"></span><span class="token comment" style="color:#999988;font-style:italic"># 空头（SHORT）： realized_pnl = closed_quantity * multiplier * (1/exit_price - 1/entry_price)</span><br></span></code></pre></div></div>
-<p>引擎会根据持仓方向自动应用恰当的计算公式。</p>
-<h3 class="anchor anchorWithStickyNavbar_RpWm" id="未实现盈亏unrealized-pnl">未实现盈亏（Unrealized PnL）<a href="#未实现盈亏unrealized-pnl" class="hash-link" aria-label="未实现盈亏（Unrealized PnL）的直接链接" title="未实现盈亏（Unrealized PnL）的直接链接" translate="no">​</a></h3>
-<p>使用当前市场价格计算未实现盈亏。<code>price</code> 参数可以是任意参考价（bid、ask、mid、last 或 mark）：</p>
-<div class="language-python codeBlockContainer_euGm theme-code-block" style="--prism-color:#393A34;--prism-background-color:#f6f8fa"><div class="codeBlockContent_zF3K"><pre tabindex="0" class="prism-code language-python codeBlock_G1mO thin-scrollbar" style="color:#393A34;background-color:#f6f8fa"><code class="codeBlockLines_QZRj"><span class="token-line" style="color:#393A34"><span class="token plain">position</span><span class="token punctuation" style="color:#393A34">.</span><span class="token plain">unrealized_pnl</span><span class="token punctuation" style="color:#393A34">(</span><span class="token plain">last_price</span><span class="token punctuation" style="color:#393A34">)</span><span class="token plain">  </span><span class="token comment" style="color:#999988;font-style:italic"># 使用最后成交价</span><span class="token plain"></span><br></span><span class="token-line" style="color:#393A34"><span class="token plain">position</span><span class="token punctuation" style="color:#393A34">.</span><span class="token plain">unrealized_pnl</span><span class="token punctuation" style="color:#393A34">(</span><span class="token plain">bid_price</span><span class="token punctuation" style="color:#393A34">)</span><span class="token plain">   </span><span class="token comment" style="color:#999988;font-style:italic"># 对多头更保守的估值</span><span class="token plain"></span><br></span><span class="token-line" style="color:#393A34"><span class="token plain">position</span><span class="token punctuation" style="color:#393A34">.</span><span class="token plain">unrealized_pnl</span><span class="token punctuation" style="color:#393A34">(</span><span class="token plain">ask_price</span><span class="token punctuation" style="color:#393A34">)</span><span class="token plain">   </span><span class="token comment" style="color:#999988;font-style:italic"># 对空头更保守的估值</span><br></span></code></pre></div></div>
-<h3 class="anchor anchorWithStickyNavbar_RpWm" id="总盈亏total-pnl">总盈亏（Total PnL）<a href="#总盈亏total-pnl" class="hash-link" aria-label="总盈亏（Total PnL）的直接链接" title="总盈亏（Total PnL）的直接链接" translate="no">​</a></h3>
-<p>总盈亏由已实现和未实现部分相加得到：</p>
-<div class="language-python codeBlockContainer_euGm theme-code-block" style="--prism-color:#393A34;--prism-background-color:#f6f8fa"><div class="codeBlockContent_zF3K"><pre tabindex="0" class="prism-code language-python codeBlock_G1mO thin-scrollbar" style="color:#393A34;background-color:#f6f8fa"><code class="codeBlockLines_QZRj"><span class="token-line" style="color:#393A34"><span class="token plain">total_pnl </span><span class="token operator" style="color:#393A34">=</span><span class="token plain"> position</span><span class="token punctuation" style="color:#393A34">.</span><span class="token plain">total_pnl</span><span class="token punctuation" style="color:#393A34">(</span><span class="token plain">current_price</span><span class="token punctuation" style="color:#393A34">)</span><span class="token plain"></span><br></span><span class="token-line" style="color:#393A34"><span class="token plain"></span><span class="token comment" style="color:#999988;font-style:italic"># 返回 realized_pnl + unrealized_pnl</span><br></span></code></pre></div></div>
-<h3 class="anchor anchorWithStickyNavbar_RpWm" id="货币相关注意事项">货币相关注意事项<a href="#货币相关注意事项" class="hash-link" aria-label="货币相关注意事项的直接链接" title="货币相关注意事项的直接链接" translate="no">​</a></h3>
+<div class="theme-admonition theme-admonition-note admonition_LYZY alert alert--secondary"><div class=admonitionHeading_pnFY><span class=admonitionIcon_tEzm><svg viewBox="0 0 14 16"><path fill-rule=evenodd d="M6.3 5.69a.942.942 0 0 1-.28-.7c0-.28.09-.52.28-.7.19-.18.42-.28.7-.28.28 0 .52.09.7.28.18.19.28.42.28.7 0 .28-.09.52-.28.7a1 1 0 0 1-.7.3c-.28 0-.52-.11-.7-.3zM8 7.99c-.02-.25-.11-.48-.31-.69-.2-.19-.42-.3-.69-.31H6c-.27.02-.48.13-.69.31-.2.2-.3.44-.31.69h1v3c.02.27.11.5.31.69.2.2.42.31.69.31h1c.27 0 .48-.11.69-.31.2-.19.3-.42.31-.69H8V7.98v.01zM7 2.3c-3.14 0-5.7 2.54-5.7 5.68 0 3.14 2.56 5.7 5.7 5.7s5.7-2.55 5.7-5.7c0-3.15-2.56-5.69-5.7-5.69v.01zM7 .98c3.86 0 7 3.14 7 7s-3.14 7-7 7-7-3.12-7-7 3.14-7 7-7z"/></svg></span>备注</div><div class=admonitionContent_ZwmI><p>基础币种手续费只适用于手续费币种与 <code>instrument.base_currency</code> 相同的
+现货货币对与外汇现货工具。其他工具的手续费单独跟踪，不影响持仓数量。</div></div>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=funding-payments>资金费支付<a href=#funding-payments class=hash-link aria-label=资金费支付的直接链接 title=资金费支付的直接链接 translate=no>​</a></h3>
+<p>资金费调整跟踪永续期货的周期性支付，不影响持仓数量。
+其 <code>quantity_change = None</code>，可包含盈亏变化。</p>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=adjustment-tracking>调整跟踪<a href=#adjustment-tracking class=hash-link aria-label=调整跟踪的直接链接 title=调整跟踪的直接链接 translate=no>​</a></h3>
+<p>持仓暴露其保留的调整记录：</p>
 <ul>
-<li>PnL 以合约的结算货币（settlement currency）计算。</li>
-<li>对于外汇（Forex），通常为报价货币（quote currency）。</li>
-<li>对于反向合约，PnL 可能以基础货币（base currency）计价。</li>
-<li>Portfolio 会按结算货币对各合约的已实现 PnL 进行汇总。</li>
-<li>多货币的总计需要在 Position 类外部进行货币转换。</li>
+<li class=""><code>position.adjustments()</code> 返回全部 <code>PositionAdjusted</code> 事件的列表。</li>
+<li class="">每条调整包含其类型（<code>COMMISSION</code> 或 <code>FUNDING</code>）、数量或盈亏变化、
+原因、事件 ID 与时间戳。</li>
+<li class="">已平仓持仓重新开仓时，当前调整历史被清空。</li>
+<li class=""><code>purge_events_for_order()</code> 之后，有成交的持仓会从幸存成交重新生成手续费
+调整，并重新应用非手续费调整。没有成交时，持仓变为空的 <code>FLAT</code> 外壳，
+清空调整历史。</li>
 </ul>
-<h2 class="anchor anchorWithStickyNavbar_RpWm" id="手续费与成本commissions-and-costs">手续费与成本（Commissions and costs）<a href="#手续费与成本commissions-and-costs" class="hash-link" aria-label="手续费与成本（Commissions and costs）的直接链接" title="手续费与成本（Commissions and costs）的直接链接" translate="no">​</a></h2>
-<p>持仓会跟踪所有交易成本：</p>
+<h2 class="anchor anchorTargetStickyNavbar_ana5" id=oms-types-and-position-management>OMS 类型与持仓管理<a href=#oms-types-and-position-management class=hash-link aria-label="OMS 类型与持仓管理的直接链接" title="OMS 类型与持仓管理的直接链接" translate=no>​</a></h2>
+<p>NautilusTrader 支持两种持仓管理模式。配置为
+<code>OmsType.UNSPECIFIED</code> 的策略使用其所属执行客户端的 OMS 类型。
+归属解析与持仓 ID 规则见<a class="" href=/concepts/execution/#order-management-system-oms>执行指南</a>。</p>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=netting><code>NETTING</code><a href=#netting class=hash-link aria-label=netting的直接链接 title=netting的直接链接 translate=no>​</a></h3>
+<p><code>NETTING</code> 模式下，每个工具与策略的成交聚合为单一持仓：</p>
 <ul>
-<li>手续费按币种累计。</li>
-<li>每笔成交的手续费会加入运行总额。</li>
-<li>支持多种手续费币种。</li>
-<li>仅当手续费以结算货币计价时才会计入已实现 PnL。</li>
-<li>其它币种的手续费会单独记录，可能需要转换后合并。</li>
+<li class="">每个工具与策略一个持仓。</li>
+<li class="">所有成交汇入同一持仓。</li>
+<li class="">穿越零位的成交结束当前周期，并在反方向开启新周期。</li>
+<li class="">历史快照保留已平仓状态。</li>
 </ul>
-<div class="language-python codeBlockContainer_euGm theme-code-block" style="--prism-color:#393A34;--prism-background-color:#f6f8fa"><div class="codeBlockContent_zF3K"><pre tabindex="0" class="prism-code language-python codeBlock_G1mO thin-scrollbar" style="color:#393A34;background-color:#f6f8fa"><code class="codeBlockLines_QZRj"><span class="token-line" style="color:#393A34"><span class="token plain">commissions </span><span class="token operator" style="color:#393A34">=</span><span class="token plain"> position</span><span class="token punctuation" style="color:#393A34">.</span><span class="token plain">commissions</span><span class="token punctuation" style="color:#393A34">(</span><span class="token punctuation" style="color:#393A34">)</span><span class="token plain"></span><br></span><span class="token-line" style="color:#393A34"><span class="token plain"></span><span class="token comment" style="color:#999988;font-style:italic"># 返回一个 list[Money]，按币种汇总的手续费</span><span class="token plain"></span><br></span><span class="token-line" style="color:#393A34"><span class="token plain" style="display:inline-block"></span><br></span><span class="token-line" style="color:#393A34"><span class="token plain">notional </span><span class="token operator" style="color:#393A34">=</span><span class="token plain"> position</span><span class="token punctuation" style="color:#393A34">.</span><span class="token plain">notional_value</span><span class="token punctuation" style="color:#393A34">(</span><span class="token plain">current_price</span><span class="token punctuation" style="color:#393A34">)</span><span class="token plain"></span><br></span><span class="token-line" style="color:#393A34"><span class="token plain"></span><span class="token comment" style="color:#999988;font-style:italic"># 返回以报价货币（standard）或基础货币（inverse）计价的 Money</span><br></span></code></pre></div></div>
-<p>限制：</p>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=hedging><code>HEDGING</code><a href=#hedging class=hash-link aria-label=hedging的直接链接 title=hedging的直接链接 translate=no>​</a></h3>
+<p><code>HEDGING</code> 模式下，同一工具可有多个持仓：</p>
 <ul>
-<li>如果反向合约没有设置 <code>base_currency</code> 将导致 panic（运行时错误）。</li>
-<li>不支持 quanto 合约（对于 quanto，函数会返回报价货币而非结算货币）。</li>
-<li>对于 quanto 合约，建议使用 <code>instrument.calculate_notional_value()</code>。</li>
+<li class="">可同时持有多个 <code>LONG</code> 与 <code>SHORT</code> 持仓。</li>
+<li class="">每个持仓有唯一持仓 ID。</li>
+<li class="">持仓独立跟踪。</li>
+<li class="">持仓之间不自动轧差。</li>
+<li class="">带新持仓 ID 的成交创建独立持仓。若后续成交复用了一个已平仓的持仓 ID，
+引擎在替换缓存状态前先归档已平仓周期。</li>
+<li class="">虚拟持仓反手会创建新 ID 并在缓存中保留原已平仓持仓，
+因此该路径不需要已平仓周期快照。</li>
 </ul>
-<h2 class="anchor anchorWithStickyNavbar_RpWm" id="持仓属性与状态">持仓属性与状态<a href="#持仓属性与状态" class="hash-link" aria-label="持仓属性与状态的直接链接" title="持仓属性与状态的直接链接" translate="no">​</a></h2>
-<h3 class="anchor anchorWithStickyNavbar_RpWm" id="标识符">标识符<a href="#标识符" class="hash-link" aria-label="标识符的直接链接" title="标识符的直接链接" translate="no">​</a></h3>
+<p>虚拟反手后，同一订单的后续成交即使携带原持仓 ID，也归入目标持仓。
+引擎从保留的订单与持仓历史推导目标，包括缓存恢复与成交撤销修正之后。
+历史不完整或有歧义时，引擎拒绝这些成交。</p>
+<p>即使设置 <code>carry_replay_events_on_reopen=False</code>，虚拟 <code>HEDGING</code> 持仓也总在
+重开时保留重放历史，以保证持仓 ID 被复用时上述路由仍然成立。</p>
+<div class="theme-admonition theme-admonition-warning admonition_LYZY alert alert--warning"><div class=admonitionHeading_pnFY><span class=admonitionIcon_tEzm><svg viewBox="0 0 16 16"><path fill-rule=evenodd d="M8.893 1.5c-.183-.31-.52-.5-.887-.5s-.703.19-.886.5L.138 13.499a.98.98 0 0 0 0 1.001c.193.31.53.501.886.501h13.964c.367 0 .704-.19.877-.5a1.03 1.03 0 0 0 .01-1.002L8.893 1.5zm.133 11.497H6.987v-2.003h2.039v2.003zm0-3.004H6.987V5.987h2.039v4.006z"/></svg></span>注意</div><div class=admonitionContent_ZwmI><p>场所独立维护多空持仓时，<code>HEDGING</code> 可能提高保证金要求。
+<code>NETTING</code> OMS 的场所只暴露其净持仓，即便 NautilusTrader 在本地
+跟踪多个虚拟持仓。请核对场所的持仓模式与保证金规则。</div></div>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=strategy-vs-venue-oms>策略 OMS 与场所 OMS<a href=#strategy-vs-venue-oms class=hash-link aria-label="策略 OMS 与场所 OMS的直接链接" title="策略 OMS 与场所 OMS的直接链接" translate=no>​</a></h3>
+<p>策略与场所的 OMS 类型可以不同：</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>策略 OMS<th>场所 OMS<th>结果<tbody><tr><td><code>NETTING</code><td><code>NETTING</code><td>每个工具与策略一个持仓。<tr><td><code>HEDGING</code><td><code>HEDGING</code><td>每个工具与策略多个持仓。<tr><td><code>NETTING</code><td><code>HEDGING</code><td>跨场所持仓的一个虚拟持仓。<tr><td><code>HEDGING</code><td><code>NETTING</code><td>对应场所单一净持仓的多个虚拟持仓。</table>
+<div class="theme-admonition theme-admonition-tip admonition_LYZY alert alert--success"><div class=admonitionHeading_pnFY><span class=admonitionIcon_tEzm><svg viewBox="0 0 12 16"><path fill-rule=evenodd d="M6.5 0C3.48 0 1 2.19 1 5c0 .92.55 2.25 1 3 1.34 2.25 1.78 2.78 2 4v1h5v-1c.22-1.22.66-1.75 2-4 .45-.75 1-2.08 1-3 0-2.81-2.48-5-5.5-5zm3.64 7.48c-.25.44-.47.8-.67 1.11-.86 1.41-1.25 2.06-1.45 3.23-.02.05-.02.11-.02.17H5c0-.06 0-.13-.02-.17-.2-1.17-.59-1.83-1.45-3.23-.2-.31-.42-.67-.67-1.11C2.44 6.78 2 5.65 2 5c0-2.2 2.02-4 4.5-4 1.22 0 2.36.42 3.22 1.19C10.55 2.94 11 3.94 11 5c0 .66-.44 1.78-.86 2.48zM4 14h5c-.23 1.14-1.3 2-2.5 2s-2.27-.86-2.5-2z"/></svg></span>提示</div><div class=admonitionContent_ZwmI><p>除非策略需要虚拟持仓，否则让策略与场所的 OMS 类型保持一致。
+场所的持仓模式配置见其集成指南。</div></div>
+<h2 class="anchor anchorTargetStickyNavbar_ana5" id=position-snapshotting>持仓快照<a href=#position-snapshotting class=hash-link aria-label=持仓快照的直接链接 title=持仓快照的直接链接 translate=no>​</a></h2>
+<p>持仓快照在后续成交重开已平仓持仓时，保留已结束周期用于盈亏跟踪与报告。</p>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=why-snapshotting-matters>为什么需要快照<a href=#why-snapshotting-matters class=hash-link aria-label=为什么需要快照的直接链接 title=为什么需要快照的直接链接 translate=no>​</a></h3>
+<p>持仓平仓（<code>FLAT</code>）后以同一 ID 因新交易重开时，其对象会重置以跟踪新的敞口。
+没有快照，上一周期的历史已实现盈亏就会丢失。</p>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=how-it-works>工作机制<a href=#how-it-works class=hash-link aria-label=工作机制的直接链接 title=工作机制的直接链接 translate=no>​</a></h3>
+<p>成交以同一 ID 重开已平仓持仓时，执行引擎先归档已平仓状态，再开启下一周期。
+这对 <code>NETTING</code> 与 <code>HEDGING</code> OMS 均适用。使用非虚拟 ID 的
+<code>HEDGING</code> 反手走另一条路径：直接复用 ID，不归档已平仓周期。</p>
+<p>快照保留：</p>
 <ul>
-<li><code>id</code>：持仓唯一标识符。</li>
-<li><code>instrument_id</code>：交易工具标识。</li>
-<li><code>account_id</code>：持仓所属账户。</li>
-<li><code>trader_id</code>：持仓所属交易员。</li>
-<li><code>strategy_id</code>：管理该持仓的策略。</li>
-<li><code>opening_order_id</code>：开仓时的客户端订单 ID。</li>
-<li><code>closing_order_id</code>：平仓时的客户端订单 ID。</li>
+<li class="">最终数量与价格。</li>
+<li class="">已实现盈亏。</li>
+<li class="">全部成交事件。</li>
+<li class="">手续费合计。</li>
 </ul>
-<h3 class="anchor anchorWithStickyNavbar_RpWm" id="持仓状态">持仓状态<a href="#持仓状态" class="hash-link" aria-label="持仓状态的直接链接" title="持仓状态的直接链接" translate="no">​</a></h3>
+<p>缓存按持仓 ID 存储快照。活动缓存条目表示新周期，此前的快照仍可访问。
+Portfolio 在工具合计中计入它们的已实现盈亏。</p>
+<p>唯一的例外是修正早期周期成交的成交撤销：修正会移动已存快照描述的周期边界，
+因此引擎用修正后历史实际结束的周期替换它们，保证每段只计一次。见
+<a class="" href=/concepts/execution/#position-replay-across-netting-cycles>NETTING 周期跨度的持仓重放</a>。</p>
+<div class="theme-admonition theme-admonition-note admonition_LYZY alert alert--secondary"><div class=admonitionHeading_pnFY><span class=admonitionIcon_tEzm><svg viewBox="0 0 14 16"><path fill-rule=evenodd d="M6.3 5.69a.942.942 0 0 1-.28-.7c0-.28.09-.52.28-.7.19-.18.42-.28.7-.28.28 0 .52.09.7.28.18.19.28.42.28.7 0 .28-.09.52-.28.7a1 1 0 0 1-.7.3c-.28 0-.52-.11-.7-.3zM8 7.99c-.02-.25-.11-.48-.31-.69-.2-.19-.42-.3-.69-.31H6c-.27.02-.48.13-.69.31-.2.2-.3.44-.31.69h1v3c.02.27.11.5.31.69.2.2.42.31.69.31h1c.27 0 .48-.11.69-.31.2-.19.3-.42.31-.69H8V7.98v.01zM7 2.3c-3.14 0-5.7 2.54-5.7 5.68 0 3.14 2.56 5.7 5.7 5.7s5.7-2.55 5.7-5.7c0-3.15-2.56-5.69-5.7-5.69v.01zM7 .98c3.86 0 7 3.14 7 7s-3.14 7-7 7-7-3.12-7-7 3.14-7 7-7z"/></svg></span>备注</div><div class=admonitionContent_ZwmI><p>这种已平仓周期归档不同于可选的持仓状态快照：<ul>
+<li class=""><code>snapshot_positions=True</code> 在持仓开仓、变化或平仓时发布状态。</li>
+<li class=""><code>snapshot_positions_interval_secs</code> 周期性发布所有未平仓持仓。</li>
+</ul><p>有 Redis 或 Postgres 支撑的缓存还会持久化这些快照。没有缓存支撑时，
+两条路径只在进程内消息总线上发布快照而不持久化。这些设置见
+<a href=https://nautilustrader.io/docs/python-api-latest/live.html#nautilus_trader.live.LiveExecutionEngineConfig target=_blank rel="noopener noreferrer" class=""><code>LiveExecutionEngineConfig</code></a>。</div></div>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=example-scenario>示例场景<a href=#example-scenario class=hash-link aria-label=示例场景的直接链接 title=示例场景的直接链接 translate=no>​</a></h3>
+<div class="language-text codeBlockContainer_eTMR theme-code-block" style=--prism-color:#393A34;--prism-background-color:#f6f8fa><div class=codeBlockContent_hafM><pre tabindex=0 class="prism-code language-text codeBlock_IMvC thin-scrollbar" style=color:#393A34;background-color:#f6f8fa><code class=codeBlockLines_gZDW><div class=token-line style=color:#393A34><span class="token plain"># NETTING OMS Example</span><br/></div><div class=token-line style=color:#393A34><span class="token plain"># Cycle 1: Open LONG position</span><br/></div><div class=token-line style=color:#393A34><span class="token plain">BUY 100 units at $50   # Position opens</span><br/></div><div class=token-line style=color:#393A34><span class="token plain">SELL 100 units at $55  # Position closes, PnL = $500</span><br/></div><div class=token-line style=color:#393A34><span class="token plain"># Snapshot taken preserving $500 realized PnL</span><br/></div><div class=token-line style=color:#393A34><span class="token plain" style=display:inline-block></span><br/></div><div class=token-line style=color:#393A34><span class="token plain"># Cycle 2: Open SHORT position</span><br/></div><div class=token-line style=color:#393A34><span class="token plain">SELL 50 units at $54   # Position reopens (SHORT)</span><br/></div><div class=token-line style=color:#393A34><span class="token plain">BUY 50 units at $52    # Position closes, PnL = $100</span><br/></div><div class=token-line style=color:#393A34><span class="token plain"># Snapshot taken preserving $100 realized PnL</span><br/></div><div class=token-line style=color:#393A34><span class="token plain" style=display:inline-block></span><br/></div><div class=token-line style=color:#393A34><span class="token plain"># Total realized PnL = $500 + $100 = $600 (from snapshots)</span><br/></div></code></pre></div></div>
+<h2 class="anchor anchorTargetStickyNavbar_ana5" id=pnl-calculations>盈亏计算<a href=#pnl-calculations class=hash-link aria-label=盈亏计算的直接链接 title=盈亏计算的直接链接 translate=no>​</a></h2>
+<p>持仓的盈亏计算考虑工具规格与市场惯例。</p>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=realized-pnl>已实现盈亏<a href=#realized-pnl class=hash-link aria-label=已实现盈亏的直接链接 title=已实现盈亏的直接链接 translate=no>​</a></h3>
+<p>已实现盈亏的价格部分在成交部分或全部平仓时计算，或在
+<a href=#settlement-at-contract-expiration class="">到期结算</a>平仓时计算。
+持仓成本币种的手续费随每笔成交影响已实现盈亏。</p>
+<div class="language-python codeBlockContainer_eTMR theme-code-block" style=--prism-color:#393A34;--prism-background-color:#f6f8fa><div class=codeBlockContent_hafM><pre tabindex=0 class="prism-code language-python codeBlock_IMvC thin-scrollbar" style=color:#393A34;background-color:#f6f8fa><code class=codeBlockLines_gZDW><div class=token-line style=color:#393A34><span class="token comment" style=color:#999988;font-style:italic># For standard instruments</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain"></span><span class="token comment" style=color:#999988;font-style:italic># LONG: realized_pnl = (exit_price - entry_price) * closed_quantity * multiplier</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain"></span><span class="token comment" style=color:#999988;font-style:italic># SHORT: realized_pnl = (entry_price - exit_price) * closed_quantity * multiplier</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain" style=display:inline-block></span><br/></div><div class=token-line style=color:#393A34><span class="token plain"></span><span class="token comment" style=color:#999988;font-style:italic># For inverse instruments (side-aware)</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain"></span><span class="token comment" style=color:#999988;font-style:italic># LONG: realized_pnl = closed_quantity * multiplier * (1/entry_price - 1/exit_price)</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain"></span><span class="token comment" style=color:#999988;font-style:italic># SHORT: realized_pnl = closed_quantity * multiplier * (1/exit_price - 1/entry_price)</span><br/></div></code></pre></div></div>
+<p>持仓方向决定公式。期权费计价的反向工具（如币本位期权）的期权费以基础币种报价，
+因此使用标准公式，盈亏与名义价值均以基础币种报告。</p>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=unrealized-pnl>未实现盈亏<a href=#unrealized-pnl class=hash-link aria-label=未实现盈亏的直接链接 title=未实现盈亏的直接链接 translate=no>​</a></h3>
+<p><code>unrealized_pnl()</code> 用传入的 <code>price</code> 为未平仓持仓计算盈亏，
+可传买价、卖价、中间价、最新价或 mark 价：</p>
+<div class="language-python codeBlockContainer_eTMR theme-code-block" style=--prism-color:#393A34;--prism-background-color:#f6f8fa><div class=codeBlockContent_hafM><pre tabindex=0 class="prism-code language-python codeBlock_IMvC thin-scrollbar" style=color:#393A34;background-color:#f6f8fa><code class=codeBlockLines_gZDW><div class=token-line style=color:#393A34><span class="token plain">position</span><span class="token punctuation" style=color:#393A34>.</span><span class="token plain">unrealized_pnl</span><span class="token punctuation" style=color:#393A34>(</span><span class="token plain">last_price</span><span class="token punctuation" style=color:#393A34>)</span><span class="token plain">  </span><span class="token comment" style=color:#999988;font-style:italic># Using last traded price</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">position</span><span class="token punctuation" style=color:#393A34>.</span><span class="token plain">unrealized_pnl</span><span class="token punctuation" style=color:#393A34>(</span><span class="token plain">bid_price</span><span class="token punctuation" style=color:#393A34>)</span><span class="token plain">  </span><span class="token comment" style=color:#999988;font-style:italic># Conservative for LONG positions</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">position</span><span class="token punctuation" style=color:#393A34>.</span><span class="token plain">unrealized_pnl</span><span class="token punctuation" style=color:#393A34>(</span><span class="token plain">ask_price</span><span class="token punctuation" style=color:#393A34>)</span><span class="token plain">  </span><span class="token comment" style=color:#999988;font-style:italic># Conservative for SHORT positions</span><br/></div></code></pre></div></div>
+<p><code>FLAT</code> 持仓无论传入什么价格都返回 <code>Money(0, cost_currency)</code>。</p>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=total-pnl>总盈亏<a href=#total-pnl class=hash-link aria-label=总盈亏的直接链接 title=总盈亏的直接链接 translate=no>​</a></h3>
+<p><code>total_pnl()</code> 合并已实现与未实现两部分：</p>
+<div class="language-python codeBlockContainer_eTMR theme-code-block" style=--prism-color:#393A34;--prism-background-color:#f6f8fa><div class=codeBlockContent_hafM><pre tabindex=0 class="prism-code language-python codeBlock_IMvC thin-scrollbar" style=color:#393A34;background-color:#f6f8fa><code class=codeBlockLines_gZDW><div class=token-line style=color:#393A34><span class="token plain">total_pnl </span><span class="token operator" style=color:#393A34>=</span><span class="token plain"> position</span><span class="token punctuation" style=color:#393A34>.</span><span class="token plain">total_pnl</span><span class="token punctuation" style=color:#393A34>(</span><span class="token plain">current_price</span><span class="token punctuation" style=color:#393A34>)</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain"></span><span class="token comment" style=color:#999988;font-style:italic># Returns realized_pnl + unrealized_pnl</span><br/></div></code></pre></div></div>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=currency-considerations>币种要点<a href=#currency-considerations class=hash-link aria-label=币种要点的直接链接 title=币种要点的直接链接 translate=no>​</a></h3>
 <ul>
-<li><code>side</code>：当前持仓方向（<code>LONG</code>、<code>SHORT</code> 或 <code>FLAT</code>）。</li>
-<li><code>entry</code>：当前开仓方向（<code>Buy</code> 对应 <code>LONG</code>，<code>Sell</code> 对应 <code>SHORT</code>）。在持仓反向时会更新。</li>
-<li><code>quantity</code>：当前绝对持仓数量。</li>
-<li><code>signed_qty</code>：带符号的持仓数量（多头为正、空头为负）。</li>
-<li><code>peak_qty</code>：持仓生命周期内达到的最大数量。</li>
-<li><code>is_open</code>：是否处于打开状态。</li>
-<li><code>is_closed</code>：是否已关闭（<code>FLAT</code>）。</li>
-<li><code>is_long</code>：是否为多头。</li>
-<li><code>is_short</code>：是否为空头。</li>
+<li class="">盈亏以工具的成本币种计算：线性合约为计价币种，反向合约为基础币种，
+quanto 合约为结算币种。</li>
+<li class="">外汇的成本币种通常是计价币种。</li>
+<li class="">Portfolio 按工具以成本币种汇总已实现盈亏。</li>
+<li class="">多币种合计需要在 Position 类之外完成换算。</li>
 </ul>
-<h3 class="anchor anchorWithStickyNavbar_RpWm" id="估值与定价">估值与定价<a href="#估值与定价" class="hash-link" aria-label="估值与定价的直接链接" title="估值与定价的直接链接" translate="no">​</a></h3>
+<h2 class="anchor anchorTargetStickyNavbar_ana5" id=commissions-and-costs>手续费与成本<a href=#commissions-and-costs class=hash-link aria-label=手续费与成本的直接链接 title=手续费与成本的直接链接 translate=no>​</a></h2>
+<p>持仓跟踪成交手续费：</p>
 <ul>
-<li><code>avg_px_open</code>：平均开仓价。</li>
-<li><code>avg_px_close</code>：持仓关闭时的平均平仓价。</li>
-<li><code>realized_pnl</code>：已实现盈亏。</li>
-<li><code>realized_return</code>：已实现收益率（小数，例如 0.05 表示 5%）。</li>
-<li><code>quote_currency</code>：报价货币。</li>
-<li><code>base_currency</code>：基础货币（如适用）。</li>
-<li><code>settlement_currency</code>：用于 PnL 结算的货币。</li>
+<li class="">手续费按币种累计。</li>
+<li class="">每笔成交的手续费加入运行合计。</li>
+<li class="">支持多种手续费币种。</li>
+<li class="">已实现盈亏只在手续费与持仓成本币种一致时才将其计入。</li>
+<li class="">其他币种的手续费单独跟踪，可能需要换算。</li>
 </ul>
-<h3 class="anchor anchorWithStickyNavbar_RpWm" id="合约规格">合约规格<a href="#合约规格" class="hash-link" aria-label="合约规格的直接链接" title="合约规格的直接链接" translate="no">​</a></h3>
+<div class="language-python codeBlockContainer_eTMR theme-code-block" style=--prism-color:#393A34;--prism-background-color:#f6f8fa><div class=codeBlockContent_hafM><pre tabindex=0 class="prism-code language-python codeBlock_IMvC thin-scrollbar" style=color:#393A34;background-color:#f6f8fa><code class=codeBlockLines_gZDW><div class=token-line style=color:#393A34><span class="token plain">commissions </span><span class="token operator" style=color:#393A34>=</span><span class="token plain"> position</span><span class="token punctuation" style=color:#393A34>.</span><span class="token plain">commissions</span><span class="token punctuation" style=color:#393A34>(</span><span class="token punctuation" style=color:#393A34>)</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain"></span><span class="token comment" style=color:#999988;font-style:italic># Returns list[Money] with aggregated commission totals per currency</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain" style=display:inline-block></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">notional </span><span class="token operator" style=color:#393A34>=</span><span class="token plain"> position</span><span class="token punctuation" style=color:#393A34>.</span><span class="token plain">notional_value</span><span class="token punctuation" style=color:#393A34>(</span><span class="token plain">current_price</span><span class="token punctuation" style=color:#393A34>)</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain"></span><span class="token comment" style=color:#999988;font-style:italic># Returns Money in quote (linear), base (inverse), or settlement currency (quanto)</span><br/></div></code></pre></div></div>
+<div class="theme-admonition theme-admonition-warning admonition_LYZY alert alert--warning"><div class=admonitionHeading_pnFY><span class=admonitionIcon_tEzm><svg viewBox="0 0 16 16"><path fill-rule=evenodd d="M8.893 1.5c-.183-.31-.52-.5-.887-.5s-.703.19-.886.5L.138 13.499a.98.98 0 0 0 0 1.001c.193.31.53.501.886.501h13.964c.367 0 .704-.19.877-.5a1.03 1.03 0 0 0 .01-1.002L8.893 1.5zm.133 11.497H6.987v-2.003h2.039v2.003zm0-3.004H6.987V5.987h2.039v4.006z"/></svg></span>注意</div><div class=admonitionContent_ZwmI><p>Python 中，<code>notional_value()</code> 在下列条件下抛出 <code>ValueError</code>：<ul>
+<li class="">反向持仓没有基础币种。</li>
+<li class="">非期权费计价的反向持仓传入的价格不为正。</li>
+<li class="">结果无法表示为 <code>Money</code>。</li>
+</ul><p>Rust 调用方可以用 <code>try_notional_value()</code> 处理这些计算错误；
+<code>notional_value()</code> 在计算失败时 panic。</div></div>
+<h2 class="anchor anchorTargetStickyNavbar_ana5" id=position-properties-and-state>持仓属性与状态<a href=#position-properties-and-state class=hash-link aria-label=持仓属性与状态的直接链接 title=持仓属性与状态的直接链接 translate=no>​</a></h2>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=identifiers>标识<a href=#identifiers class=hash-link aria-label=标识的直接链接 title=标识的直接链接 translate=no>​</a></h3>
 <ul>
-<li><code>multiplier</code>：合约乘数。</li>
-<li><code>price_precision</code>：价格的小数位精度。</li>
-<li><code>size_precision</code>：数量的小数位精度。</li>
-<li><code>is_inverse</code>：是否为反向合约。</li>
+<li class=""><code>id</code>：持仓唯一标识。</li>
+<li class=""><code>instrument_id</code>：交易的工具。</li>
+<li class=""><code>account_id</code>：持有该持仓的账户。</li>
+<li class=""><code>trader_id</code>：持仓所属的 trader。</li>
+<li class=""><code>strategy_id</code>：管理该持仓的策略。</li>
+<li class=""><code>opening_order_id</code>：开仓的客户端订单 ID。</li>
+<li class=""><code>closing_order_id</code>：由成交平仓时的平仓客户端订单 ID。</li>
 </ul>
-<h3 class="anchor anchorWithStickyNavbar_RpWm" id="时间戳">时间戳<a href="#时间戳" class="hash-link" aria-label="时间戳的直接链接" title="时间戳的直接链接" translate="no">​</a></h3>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=position-state>持仓状态<a href=#position-state class=hash-link aria-label=持仓状态的直接链接 title=持仓状态的直接链接 translate=no>​</a></h3>
 <ul>
-<li><code>ts_init</code>：持仓初始化时间。</li>
-<li><code>ts_opened</code>：持仓开仓时间。</li>
-<li><code>ts_last</code>：最后一次更新的时间戳。</li>
-<li><code>ts_closed</code>：持仓关闭时间。</li>
-<li><code>duration_ns</code>：从开仓到关闭的持续时间（纳秒）。</li>
+<li class=""><code>side</code>：当前持仓方向（<code>LONG</code>、<code>SHORT</code> 或 <code>FLAT</code>）。</li>
+<li class=""><code>entry</code>：当前周期的开仓方向（<code>LONG</code> 对应 <code>BUY</code>，<code>SHORT</code> 对应 <code>SELL</code>），
+持仓反手时更新。</li>
+<li class=""><code>quantity</code>：当前持仓绝对规模。</li>
+<li class=""><code>signed_qty</code>：带符号持仓规模（<code>LONG</code> 为正，<code>SHORT</code> 为负）。</li>
+<li class=""><code>peak_qty</code>：当前开-平周期中达到的最大数量。</li>
+<li class=""><code>is_open</code>：是否未平仓。</li>
+<li class=""><code>is_closed</code>：是否已平仓（<code>FLAT</code>）。</li>
+<li class=""><code>is_long</code>：方向是否为 <code>LONG</code>。</li>
+<li class=""><code>is_short</code>：方向是否为 <code>SHORT</code>。</li>
 </ul>
-<h3 class="anchor anchorWithStickyNavbar_RpWm" id="关联数据">关联数据<a href="#关联数据" class="hash-link" aria-label="关联数据的直接链接" title="关联数据的直接链接" translate="no">​</a></h3>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=pricing-and-valuation>价格与估值<a href=#pricing-and-valuation class=hash-link aria-label=价格与估值的直接链接 title=价格与估值的直接链接 translate=no>​</a></h3>
 <ul>
-<li><code>symbol</code>：交易工具的代码（ticker）。</li>
-<li><code>venue</code>：交易场所（venue）。</li>
-<li><code>client_order_ids</code>：与持仓相关的所有客户端订单 ID。</li>
-<li><code>venue_order_ids</code>：与持仓相关的所有场所订单 ID。</li>
-<li><code>trade_ids</code>：来自场所的所有成交/交易 ID。</li>
-<li><code>events</code>：应用到持仓的所有成交事件。</li>
-<li><code>event_count</code>：已应用成交事件的总数。</li>
-<li><code>last_event</code>：最近一次成交事件。</li>
-<li><code>last_trade_id</code>：最近一次成交的 trade ID。</li>
+<li class=""><code>avg_px_open</code>：平均开仓价。</li>
+<li class=""><code>avg_px_close</code>：平仓时的平均平仓价。</li>
+<li class=""><code>realized_pnl</code>：已实现盈亏。</li>
+<li class=""><code>realized_return</code>：已实现收益率的小数形式（如 0.05 表示 5%）。</li>
+<li class=""><code>quote_currency</code>：工具的计价币种。</li>
+<li class=""><code>base_currency</code>：基础币种（如适用）。</li>
+<li class=""><code>settlement_currency</code>：盈亏结算币种。</li>
 </ul>
-<p>信息：有关完整的类型信息与属性文档，请参见 Position 的<a href="/api_reference/model/position#class-position">API 参考</a>。</p>
-<h2 class="anchor anchorWithStickyNavbar_RpWm" id="事件与追踪">事件与追踪<a href="#事件与追踪" class="hash-link" aria-label="事件与追踪的直接链接" title="事件与追踪的直接链接" translate="no">​</a></h2>
-<p>持仓保留完整的事件历史：</p>
+<p>未拆分成交反转单一持仓时，均价与收益率如何重置而已实现盈亏保持累计，
+见<a href=#reversal-accounting class="">反手记账</a>。</p>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=instrument-specifications>工具规格<a href=#instrument-specifications class=hash-link aria-label=工具规格的直接链接 title=工具规格的直接链接 translate=no>​</a></h3>
 <ul>
-<li>所有订单成交事件按时间顺序存储。</li>
-<li>跟踪关联的客户端订单 ID。</li>
-<li>保存来自场所的成交 ID。</li>
-<li><code>event_count</code> 表示已应用的成交总数。</li>
+<li class=""><code>multiplier</code>：合约乘数。</li>
+<li class=""><code>price_precision</code>：价格小数精度。</li>
+<li class=""><code>size_precision</code>：数量小数精度。</li>
+<li class=""><code>is_inverse</code>：工具是否为反向类型。</li>
 </ul>
-<p>这些历史数据支持：</p>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=timestamps>时间戳<a href=#timestamps class=hash-link aria-label=时间戳的直接链接 title=时间戳的直接链接 translate=no>​</a></h3>
 <ul>
-<li>详细的持仓分析。</li>
-<li>交易对账（reconciliation）。</li>
-<li>绩效归因（performance attribution）。</li>
-<li>审计追踪。</li>
+<li class=""><code>ts_init</code>：持仓初始化时间。</li>
+<li class=""><code>ts_opened</code>：开仓时间。</li>
+<li class=""><code>ts_last</code>：最后更新时间戳。</li>
+<li class=""><code>ts_closed</code>：平仓时间（若已平仓）。</li>
+<li class=""><code>duration_ns</code>：开仓到平仓的时长（纳秒），未平仓时为零。</li>
 </ul>
-<p>提示：使用 <code>position.events</code> 可以访问完整的成交历史以便对账；<code>position.trade_ids</code> 有助于与券商流水进行匹配。更多对账最佳实践见 <a href="/concepts/execution">Execution guide</a>。</p>
-<h2 class="anchor anchorWithStickyNavbar_RpWm" id="数值精度">数值精度<a href="#数值精度" class="hash-link" aria-label="数值精度的直接链接" title="数值精度的直接链接" translate="no">​</a></h2>
-<p>持仓计算在 PnL 与平均价格计算中使用 64 位浮点（<code>f64</code>）。尽管 <code>Price</code>、<code>Quantity</code>、<code>Money</code> 等定点（fixed-point）类型在配置的小数位下能保证精度，但内部计算为提高性能与避免溢出会转换为 <code>f64</code>。</p>
-<h3 class="anchor anchorWithStickyNavbar_RpWm" id="设计理由">设计理由<a href="#设计理由" class="hash-link" aria-label="设计理由的直接链接" title="设计理由的直接链接" translate="no">​</a></h3>
-<p>平台在持仓计算中采用 <code>f64</code> 平衡性能与精度：</p>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=associated-data>关联数据<a href=#associated-data class=hash-link aria-label=关联数据的直接链接 title=关联数据的直接链接 translate=no>​</a></h3>
 <ul>
-<li>浮点运算比任意精度算术（arbitrary-precision）更快。</li>
-<li>即便是 128 位整数，相乘仍有溢出风险。</li>
-<li>每次计算都从精确的定点值开始，以避免累计误差。</li>
-<li>IEEE-754 双精度提供大约 15 位十进制有效数字。</li>
+<li class=""><code>symbol</code>：工具的代码。</li>
+<li class=""><code>venue</code>：交易场所。</li>
+<li class=""><code>client_order_ids</code>：当前周期保留成交的去重客户端订单 ID。</li>
+<li class=""><code>venue_order_ids</code>：当前周期保留成交的去重场所订单 ID。</li>
+<li class=""><code>trade_ids</code>：当前周期保留成交的去重成交 ID。</li>
+<li class=""><code>events</code>：当前周期保留的订单成交事件。</li>
+<li class=""><code>adjustments</code>：当前周期保留的持仓调整。</li>
+<li class=""><code>event_count</code>：当前周期保留的成交事件数。</li>
+<li class=""><code>last_event</code>：最近保留的成交事件。</li>
+<li class=""><code>last_trade_id</code>：最近保留成交的成交 ID。</li>
 </ul>
-<h3 class="anchor anchorWithStickyNavbar_RpWm" id="已验证的精度特性">已验证的精度特性<a href="#已验证的精度特性" class="hash-link" aria-label="已验证的精度特性的直接链接" title="已验证的精度特性的直接链接" translate="no">​</a></h3>
-<p>测试表明 <code>f64</code> 在典型交易场景中能保持足够的精度：</p>
+<div class="theme-admonition theme-admonition-info admonition_LYZY alert alert--info"><div class=admonitionHeading_pnFY><span class=admonitionIcon_tEzm><svg viewBox="0 0 14 16"><path fill-rule=evenodd d="M7 2.3c3.14 0 5.7 2.56 5.7 5.7s-2.56 5.7-5.7 5.7A5.71 5.71 0 0 1 1.3 8c0-3.14 2.56-5.7 5.7-5.7zM7 1C3.14 1 0 4.14 0 8s3.14 7 7 7 7-3.14 7-7-3.14-7-7-7zm1 3H6v5h2V4zm0 6H6v2h2v-2z"/></svg></span>信息</div><div class=admonitionContent_ZwmI><p>完整类型信息与详细属性文档见 Position
+<a href=https://nautilustrader.io/docs/python-api-latest/model/position.html#nautilus_trader.model.Position target=_blank rel="noopener noreferrer" class="">API Reference</a>。</div></div>
+<h2 class="anchor anchorTargetStickyNavbar_ana5" id=events-and-tracking>事件与跟踪<a href=#events-and-tracking class=hash-link aria-label=事件与跟踪的直接链接 title=事件与跟踪的直接链接 translate=no>​</a></h2>
+<p>每个 <code>Position</code> 对象记录其当前开-平周期的成交与调整：</p>
 <ul>
-<li>标准金额：对于 ≥ 0.01 的常规货币金额无精度损失。</li>
-<li>高精度工具：9 位小数的加密货币价格在 1e-6 范围内保持精度。</li>
-<li>连续成交：100 次成交无累计漂移（手续费精度保持到 1e-10）。</li>
-<li>极端价格：可处理从 0.00001 到 99,999.99999 的范围而不发生溢出。</li>
-<li>来回成交：以相同价格开平仓产生的 PnL 精确（仅手续费造成差异）。</li>
+<li class="">成交事件保持应用顺序。</li>
+<li class="">客户端订单、场所订单与成交 ID 访问器返回排序去重的值。</li>
+<li class=""><code>event_count</code> 报告保留的成交事件数。</li>
+<li class="">已平仓的 <code>NETTING</code> 周期在缓存快照中保留其事件历史，如上文所述。</li>
 </ul>
-<p>有关实现细节，请参见 <code>crates/model/src/position.rs</code> 中的 <code>test_position_pnl_precision_*</code> 测试。</p>
-<p>注意：若需满足监管合规或审计要求并要求精确十进制运算，可考虑在外部使用 <code>Decimal</code> 等库类型。极小金额（低于 <code>f64</code> 的机器精度 ~1e-15）可能被舍入为零，但对于现实的交易场景影响甚微。</p>
-<h2 class="anchor anchorWithStickyNavbar_RpWm" id="与其它组件的集成">与其它组件的集成<a href="#与其它组件的集成" class="hash-link" aria-label="与其它组件的集成的直接链接" title="与其它组件的集成的直接链接" translate="no">​</a></h2>
-<p>持仓与下列关键组件交互：</p>
+<p>这些数据支持：</p>
 <ul>
-<li><strong>Portfolio</strong>：汇总来自不同工具与策略的持仓。</li>
-<li><strong>ExecutionEngine</strong>：由成交事件创建并更新持仓。</li>
-<li><strong>Cache</strong>：存储持仓状态与快照。</li>
-<li><strong>RiskEngine</strong>：监控持仓限额与敞口。</li>
+<li class="">持仓细粒度分析。</li>
+<li class="">交易对账。</li>
+<li class="">绩效归因。</li>
+<li class="">审计线索。</li>
 </ul>
-<p>注意：对价差（spread）类合约通常不创建持仓。尽管或有联动订单（contingent orders）仍可触发，但这些在逻辑上不与普通持仓关联。引擎会对价差合约采用与常规合约不同的处理方式。</p>
-<h2 class="anchor anchorWithStickyNavbar_RpWm" id="总结">总结<a href="#总结" class="hash-link" aria-label="总结的直接链接" title="总结的直接链接" translate="no">​</a></h2>
-<p>持仓是 NautilusTrader 追踪交易活动与绩效的核心。理解持仓如何聚合成交、计算盈亏并应对不同 OMS 配置，对于构建稳健的交易策略至关重要。NETTING 模式下的持仓快照机制确保了历史盈亏的准确保留，而详尽的事件历史则支持深入分析与对账。</p></div><footer class="theme-doc-footer docusaurus-mt-lg"><div class="row margin-top--sm theme-doc-footer-edit-meta-row"><div class="col"><a href="https://github.com/Aloento/NautilusTraderDoc/tree/main/docs/concepts/positions.md" target="_blank" rel="noopener noreferrer" class="theme-edit-this-page"><svg fill="currentColor" height="20" width="20" viewBox="0 0 40 40" class="iconEdit_F7ru" aria-hidden="true"><g><path d="m34.5 11.7l-3 3.1-6.3-6.3 3.1-3q0.5-0.5 1.2-0.5t1.1 0.5l3.9 3.9q0.5 0.4 0.5 1.1t-0.5 1.2z m-29.5 17.1l18.4-18.5 6.3 6.3-18.4 18.4h-6.3v-6.2z"></path></g></svg>编辑此页</a></div><div class="col lastUpdated_GNoA"></div></div></footer></article><nav class="docusaurus-mt-lg pagination-nav" aria-label="文件选项卡"><a class="pagination-nav__link pagination-nav__link--prev" href="/concepts/portfolio"><div class="pagination-nav__sublabel">上一页</div><div class="pagination-nav__label">投资组合</div></a><a class="pagination-nav__link pagination-nav__link--next" href="/concepts/reports"><div class="pagination-nav__sublabel">下一页</div><div class="pagination-nav__label">报告</div></a></nav></div></div><div class="col col--3"><div class="tableOfContents_pg_n thin-scrollbar theme-doc-toc-desktop"><ul class="table-of-contents table-of-contents__left-border"><li><a href="#概述" class="table-of-contents__link toc-highlight">概述</a></li><li><a href="#持仓生命周期" class="table-of-contents__link toc-highlight">持仓生命周期</a><ul><li><a href="#创建" class="table-of-contents__link toc-highlight">创建</a></li><li><a href="#更新" class="table-of-contents__link toc-highlight">更新</a></li><li><a href="#关闭" class="table-of-contents__link toc-highlight">关闭</a></li></ul></li><li><a href="#成交聚合order-fill-aggregation" class="table-of-contents__link toc-highlight">成交聚合（Order fill aggregation）</a><ul><li><a href="#买入成交buy-fills" class="table-of-contents__link toc-highlight">买入成交（Buy fills）</a></li><li><a href="#卖出成交sell-fills" class="table-of-contents__link toc-highlight">卖出成交（Sell fills）</a></li><li><a href="#净持仓计算" class="table-of-contents__link toc-highlight">净持仓计算</a></li></ul></li><li><a href="#oms-类型与持仓管理" class="table-of-contents__link toc-highlight">OMS 类型与持仓管理</a><ul><li><a href="#netting" class="table-of-contents__link toc-highlight"><code>NETTING</code></a></li><li><a href="#hedging" class="table-of-contents__link toc-highlight"><code>HEDGING</code></a></li><li><a href="#策略层-vs-场所venue-oms" class="table-of-contents__link toc-highlight">策略层 vs 场所（venue） OMS</a></li></ul></li><li><a href="#持仓快照position-snapshotting" class="table-of-contents__link toc-highlight">持仓快照（Position snapshotting）</a><ul><li><a href="#为什么需要快照" class="table-of-contents__link toc-highlight">为什么需要快照</a></li><li><a href="#工作原理" class="table-of-contents__link toc-highlight">工作原理</a></li><li><a href="#示例场景" class="table-of-contents__link toc-highlight">示例场景</a></li></ul></li><li><a href="#盈亏pnl计算" class="table-of-contents__link toc-highlight">盈亏（PnL）计算</a><ul><li><a href="#已实现盈亏realized-pnl" class="table-of-contents__link toc-highlight">已实现盈亏（Realized PnL）</a></li><li><a href="#未实现盈亏unrealized-pnl" class="table-of-contents__link toc-highlight">未实现盈亏（Unrealized PnL）</a></li><li><a href="#总盈亏total-pnl" class="table-of-contents__link toc-highlight">总盈亏（Total PnL）</a></li><li><a href="#货币相关注意事项" class="table-of-contents__link toc-highlight">货币相关注意事项</a></li></ul></li><li><a href="#手续费与成本commissions-and-costs" class="table-of-contents__link toc-highlight">手续费与成本（Commissions and costs）</a></li><li><a href="#持仓属性与状态" class="table-of-contents__link toc-highlight">持仓属性与状态</a><ul><li><a href="#标识符" class="table-of-contents__link toc-highlight">标识符</a></li><li><a href="#持仓状态" class="table-of-contents__link toc-highlight">持仓状态</a></li><li><a href="#估值与定价" class="table-of-contents__link toc-highlight">估值与定价</a></li><li><a href="#合约规格" class="table-of-contents__link toc-highlight">合约规格</a></li><li><a href="#时间戳" class="table-of-contents__link toc-highlight">时间戳</a></li><li><a href="#关联数据" class="table-of-contents__link toc-highlight">关联数据</a></li></ul></li><li><a href="#事件与追踪" class="table-of-contents__link toc-highlight">事件与追踪</a></li><li><a href="#数值精度" class="table-of-contents__link toc-highlight">数值精度</a><ul><li><a href="#设计理由" class="table-of-contents__link toc-highlight">设计理由</a></li><li><a href="#已验证的精度特性" class="table-of-contents__link toc-highlight">已验证的精度特性</a></li></ul></li><li><a href="#与其它组件的集成" class="table-of-contents__link toc-highlight">与其它组件的集成</a></li><li><a href="#总结" class="table-of-contents__link toc-highlight">总结</a></li></ul></div></div></div></div></main></div></div></div><footer class="theme-layout-footer footer footer--dark"><div class="container container-fluid"><div class="row footer__links"><div class="theme-layout-footer-column col footer__col"><div class="footer__title"></div><ul class="footer__items clean-list"><li class="footer__item"><a href="https://github.com/nautechsystems/nautilus_trader" target="_blank" rel="noopener noreferrer" class="footer__link-item">Official GitHub<svg width="13.5" height="13.5" aria-label="(opens in new tab)" class="iconExternalLink_KfBJ"><use href="#theme-svg-external-link"></use></svg></a></li><li class="footer__item"><a href="https://nautilustrader.io/docs" target="_blank" rel="noopener noreferrer" class="footer__link-item">Official Documentation<svg width="13.5" height="13.5" aria-label="(opens in new tab)" class="iconExternalLink_KfBJ"><use href="#theme-svg-external-link"></use></svg></a></li></ul></div></div><div class="footer__bottom text--center"><div class="footer__copyright">© 2025 Nautech Systems Pty Ltd. All rights reserved.</div></div></div></footer></div>
-</body>
-</html>
+<div class="theme-admonition theme-admonition-tip admonition_LYZY alert alert--success"><div class=admonitionHeading_pnFY><span class=admonitionIcon_tEzm><svg viewBox="0 0 12 16"><path fill-rule=evenodd d="M6.5 0C3.48 0 1 2.19 1 5c0 .92.55 2.25 1 3 1.34 2.25 1.78 2.78 2 4v1h5v-1c.22-1.22.66-1.75 2-4 .45-.75 1-2.08 1-3 0-2.81-2.48-5-5.5-5zm3.64 7.48c-.25.44-.47.8-.67 1.11-.86 1.41-1.25 2.06-1.45 3.23-.02.05-.02.11-.02.17H5c0-.06 0-.13-.02-.17-.2-1.17-.59-1.83-1.45-3.23-.2-.31-.42-.67-.67-1.11C2.44 6.78 2 5.65 2 5c0-2.2 2.02-4 4.5-4 1.22 0 2.36.42 3.22 1.19C10.55 2.94 11 3.94 11 5c0 .66-.44 1.78-.86 2.48zM4 14h5c-.23 1.14-1.3 2-2.5 2s-2.27-.86-2.5-2z"/></svg></span>提示</div><div class=admonitionContent_ZwmI><p>用 <code>position.events()</code> 访问当前周期保留的成交进行对账。
+<code>position.trade_ids()</code> 的结果便于与券商账单核对。
+对账最佳实践见<a class="" href=/concepts/execution/>执行指南</a>。</div></div>
+<h2 class="anchor anchorTargetStickyNavbar_ana5" id=numerical-precision>数值精度<a href=#numerical-precision class=hash-link aria-label=数值精度的直接链接 title=数值精度的直接链接 translate=no>​</a></h2>
+<p><code>Position</code> 对带符号数量、均价、已实现收益率与盈亏中间值使用 <code>f64</code>。
+<code>Price</code>、<code>Quantity</code>、<code>Money</code> 在 API 边界保持定点数表示，但这些类型与
+<code>f64</code> 之间的换算可能引入舍入。</p>
+<p><code>f64</code> 只对 <code>2^53</code> 以内的整数精确表示，超出后换算会丢失低位。它提供约
+15 到 16 位有效十进制数字，而不是固定位数的小数。</p>
+<p>这一设计避免了任意精度算术的更高计算开销。均价计算也避免直接相乘原始
+定点值，因为那些乘积可能溢出其整数表示。均价复用先前的 <code>f64</code> 平均值，
+已实现盈亏在成交累积过程中于 <code>Money</code> 与 <code>f64</code> 之间换算。最终精度取决于
+数值、结算币种精度与成交序列。</p>
+<p>数值限制影响数量、反向盈亏与高精度成交：</p>
+<ul>
+<li class=""><strong>数量</strong>：<code>quantity</code> 由 <code>signed_qty</code> 按工具的 <code>size_precision</code> 派生。
+若该换算把残余数量舍入为零，持仓变为 <code>FLAT</code>，并把 <code>signed_qty</code> 归一为零。</li>
+<li class=""><strong>反向盈亏</strong>：非期权费计价工具的计算拒绝非正的开仓/平仓价，
+以及小于 <code>1e-15</code> 的正价。</li>
+<li class=""><strong>DeFi 精度</strong>：启用 <code>defi</code> feature 时，把超过 16 位小数的 <code>Price</code> 或
+<code>Quantity</code> 转换为 <code>f64</code> 会 panic，因此 <code>Position</code> 不支持
+17 或 18 位小数的成交值。</li>
+</ul>
+<p><code>crates/model/src/position.rs</code> 中的测试覆盖 <code>0.01</code> USD 手续费、九位小数价格输入、
+100 笔连续成交、<code>0.00001</code> 到 <code>99999.99999</code> 的价格以及同价往返。
+这些用例不构成通用的精度界限。</p>
+<div class="theme-admonition theme-admonition-warning admonition_LYZY alert alert--warning"><div class=admonitionHeading_pnFY><span class=admonitionIcon_tEzm><svg viewBox="0 0 16 16"><path fill-rule=evenodd d="M8.893 1.5c-.183-.31-.52-.5-.887-.5s-.703.19-.886.5L.138 13.499a.98.98 0 0 0 0 1.001c.193.31.53.501.886.501h13.964c.367 0 .704-.19.877-.5a1.03 1.03 0 0 0 .01-1.002L8.893 1.5zm.133 11.497H6.987v-2.003h2.039v2.003zm0-3.004H6.987V5.987h2.039v4.006z"/></svg></span>注意</div><div class=admonitionContent_ZwmI><p>监管报告或审计记录需要精确十进制算术时，请从原始成交与调整另行做一次
+十进制计算并保留该结果。把 <code>Position</code> 的浮点输出转回十进制（包括通过
+<code>signed_decimal_qty()</code>）无法恢复已丢弃的精度。<code>Position</code>
+不提供精确十进制的保证。请针对应用使用的工具、币种、金额范围与成交序列做验证。</div></div>
+<h2 class="anchor anchorTargetStickyNavbar_ana5" id=integration-with-other-components>与其他组件的集成<a href=#integration-with-other-components class=hash-link aria-label=与其他组件的集成的直接链接 title=与其他组件的集成的直接链接 translate=no>​</a></h2>
+<p>持仓与若干关键组件交互：</p>
+<ul>
+<li class=""><strong>Portfolio</strong>：跨工具与策略聚合持仓敞口与盈亏。</li>
+<li class=""><strong>ExecutionEngine</strong>：由成交创建并更新持仓。</li>
+<li class=""><strong>Cache</strong>：存储当前持仓状态与已平仓周期快照。</li>
+<li class=""><strong>RiskEngine</strong>：检查订单是否减仓时读取未平仓持仓。</li>
+</ul>
+<div class="theme-admonition theme-admonition-info admonition_LYZY alert alert--info"><div class=admonitionHeading_pnFY><span class=admonitionIcon_tEzm><svg viewBox="0 0 14 16"><path fill-rule=evenodd d="M7 2.3c3.14 0 5.7 2.56 5.7 5.7s-2.56 5.7-5.7 5.7A5.71 5.71 0 0 1 1.3 8c0-3.14 2.56-5.7 5.7-5.7zM7 1C3.14 1 0 4.14 0 8s3.14 7 7 7 7-3.14 7-7-3.14-7-7-7zm1 3H6v5h2V4zm0 6H6v2h2v-2z"/></svg></span>信息</div><div class=admonitionContent_ZwmI><p>价差工具不创建持仓。条件订单仍可为价差触发，但不与持仓关联。
+引擎把价差工具与常规持仓分开处理。</div></div>
+<h2 class="anchor anchorTargetStickyNavbar_ana5" id=related-guides>相关指南<a href=#related-guides class=hash-link aria-label=相关指南的直接链接 title=相关指南的直接链接 translate=no>​</a></h2>
+<ul>
+<li class=""><a class="" href=/concepts/events/>事件</a>：成交如何产生持仓事件。</li>
+<li class=""><a class="" href=/concepts/orders/>订单</a>：创建与修改持仓的订单。</li>
+<li class=""><a class="" href=/concepts/execution/>执行</a>：更新持仓的成交处理。</li>
+<li class=""><a class="" href=/concepts/portfolio>组合</a>：组合级的持仓聚合。</li>
+</ul></div><footer class="theme-doc-footer docusaurus-mt-lg"><div class="row margin-top--sm theme-doc-footer-edit-meta-row"><div class="col noPrint_MRkS"><a href=https://github.com/Aloento/NautilusTraderDoc/tree/main/docs/concepts/positions.md target=_blank rel="noopener noreferrer" class=theme-edit-this-page><svg fill=currentColor height=20 width=20 viewBox="0 0 40 40" class=iconEdit_RPSQ aria-hidden=true><g><path d="m34.5 11.7l-3 3.1-6.3-6.3 3.1-3q0.5-0.5 1.2-0.5t1.1 0.5l3.9 3.9q0.5 0.4 0.5 1.1t-0.5 1.2z m-29.5 17.1l18.4-18.5 6.3 6.3-18.4 18.4h-6.3v-6.2z"/></g></svg>编辑此页</a></div><div class="col lastUpdated_oZSl"><span class=theme-last-updated>最后<!-- -->于 <b><time datetime=2026-10-14T22:30:30.000Z itemprop=dateModified>2026年10月14日</time></b> <!-- -->更新</span></div></div></footer></article><nav class="docusaurus-mt-lg pagination-nav" aria-label=文件选项卡><a class="pagination-nav__link pagination-nav__link--prev" href=/concepts/portfolio><div class=pagination-nav__sublabel>上一页</div><div class=pagination-nav__label>组合</div></a><a class="pagination-nav__link pagination-nav__link--next" href=/concepts/python><div class=pagination-nav__sublabel>下一页</div><div class=pagination-nav__label>Python</div></a></nav></div></div><div class="col col--3"><div class="tableOfContents_LyLZ thin-scrollbar theme-doc-toc-desktop"><ul class="table-of-contents table-of-contents__left-border"><li><a href=#overview class="table-of-contents__link toc-highlight">概览</a><li><a href=#position-lifecycle class="table-of-contents__link toc-highlight">持仓生命周期</a><ul><li><a href=#creation class="table-of-contents__link toc-highlight">创建</a><li><a href=#updates class="table-of-contents__link toc-highlight">更新</a><li><a href=#closure class="table-of-contents__link toc-highlight">平仓</a><li><a href=#settlement-at-contract-expiration class="table-of-contents__link toc-highlight">到期结算</a></ul><li><a href=#order-fill-aggregation class="table-of-contents__link toc-highlight">订单成交聚合</a><ul><li><a href=#buy-fills class="table-of-contents__link toc-highlight">买入成交</a><li><a href=#sell-fills class="table-of-contents__link toc-highlight">卖出成交</a><li><a href=#net-position-calculation class="table-of-contents__link toc-highlight">净持仓计算</a><li><a href=#reversal-accounting class="table-of-contents__link toc-highlight">反手记账</a></ul><li><a href=#position-adjustments class="table-of-contents__link toc-highlight">持仓调整</a><ul><li><a href=#base-currency-commissions class="table-of-contents__link toc-highlight">基础币种手续费</a><li><a href=#funding-payments class="table-of-contents__link toc-highlight">资金费支付</a><li><a href=#adjustment-tracking class="table-of-contents__link toc-highlight">调整跟踪</a></ul><li><a href=#oms-types-and-position-management class="table-of-contents__link toc-highlight">OMS 类型与持仓管理</a><ul><li><a href=#netting class="table-of-contents__link toc-highlight"><code>NETTING</code></a><li><a href=#hedging class="table-of-contents__link toc-highlight"><code>HEDGING</code></a><li><a href=#strategy-vs-venue-oms class="table-of-contents__link toc-highlight">策略 OMS 与场所 OMS</a></ul><li><a href=#position-snapshotting class="table-of-contents__link toc-highlight">持仓快照</a><ul><li><a href=#why-snapshotting-matters class="table-of-contents__link toc-highlight">为什么需要快照</a><li><a href=#how-it-works class="table-of-contents__link toc-highlight">工作机制</a><li><a href=#example-scenario class="table-of-contents__link toc-highlight">示例场景</a></ul><li><a href=#pnl-calculations class="table-of-contents__link toc-highlight">盈亏计算</a><ul><li><a href=#realized-pnl class="table-of-contents__link toc-highlight">已实现盈亏</a><li><a href=#unrealized-pnl class="table-of-contents__link toc-highlight">未实现盈亏</a><li><a href=#total-pnl class="table-of-contents__link toc-highlight">总盈亏</a><li><a href=#currency-considerations class="table-of-contents__link toc-highlight">币种要点</a></ul><li><a href=#commissions-and-costs class="table-of-contents__link toc-highlight">手续费与成本</a><li><a href=#position-properties-and-state class="table-of-contents__link toc-highlight">持仓属性与状态</a><ul><li><a href=#identifiers class="table-of-contents__link toc-highlight">标识</a><li><a href=#position-state class="table-of-contents__link toc-highlight">持仓状态</a><li><a href=#pricing-and-valuation class="table-of-contents__link toc-highlight">价格与估值</a><li><a href=#instrument-specifications class="table-of-contents__link toc-highlight">工具规格</a><li><a href=#timestamps class="table-of-contents__link toc-highlight">时间戳</a><li><a href=#associated-data class="table-of-contents__link toc-highlight">关联数据</a></ul><li><a href=#events-and-tracking class="table-of-contents__link toc-highlight">事件与跟踪</a><li><a href=#numerical-precision class="table-of-contents__link toc-highlight">数值精度</a><li><a href=#integration-with-other-components class="table-of-contents__link toc-highlight">与其他组件的集成</a><li><a href=#related-guides class="table-of-contents__link toc-highlight">相关指南</a></ul></div></div></div></div></main></div></div></div><footer class="theme-layout-footer footer footer--dark"><div class="container container-fluid"><div class="row footer__links"><div class="theme-layout-footer-column col footer__col"><div class=footer__title></div><ul class="footer__items clean-list"><li class=footer__item><a href=https://github.com/nautechsystems/nautilus_trader target=_blank rel="noopener noreferrer" class=footer__link-item>Official GitHub<svg width=13.5 height=13.5 aria-label="(opens in new tab)" class=iconExternalLink_qUHo><use href=#theme-svg-external-link /></svg></a><li class=footer__item><a href=https://nautilustrader.io/docs target=_blank rel="noopener noreferrer" class=footer__link-item>Official Documentation<svg width=13.5 height=13.5 aria-label="(opens in new tab)" class=iconExternalLink_qUHo><use href=#theme-svg-external-link /></svg></a></ul></div></div><div class="footer__bottom text--center"><div class=footer__copyright>© 2026 Nautech Systems Pty Ltd. All rights reserved.</div></div></div></footer></div></body>

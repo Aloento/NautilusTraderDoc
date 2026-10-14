@@ -1,47 +1,1929 @@
-<!doctype html>
-<html lang="zh" dir="ltr" class="docs-wrapper plugin-docs plugin-id-default docs-version-current docs-doc-page docs-doc-id-integrations/blockchain" data-has-hydrated="false">
-<head>
-<meta charset="UTF-8">
-<meta name="generator" content="Docusaurus v3.9.1">
-<title data-rh="true">Blockchain | NautilusTrader 文档</title><meta data-rh="true" name="viewport" content="width=device-width,initial-scale=1"><meta data-rh="true" name="twitter:card" content="summary_large_image"><meta data-rh="true" property="og:url" content="https://nautilus.aloen.to/integrations/blockchain"><meta data-rh="true" property="og:locale" content="zh"><meta data-rh="true" name="docusaurus_locale" content="zh"><meta data-rh="true" name="docsearch:language" content="zh"><meta data-rh="true" name="docusaurus_version" content="current"><meta data-rh="true" name="docusaurus_tag" content="docs-default-current"><meta data-rh="true" name="docsearch:version" content="current"><meta data-rh="true" name="docsearch:docusaurus_tag" content="docs-default-current"><meta data-rh="true" property="og:title" content="Blockchain | NautilusTrader 文档"><meta data-rh="true" name="description" content="合约（Contracts）"><meta data-rh="true" property="og:description" content="合约（Contracts）"><link data-rh="true" rel="icon" href="/logo.png"><link data-rh="true" rel="canonical" href="https://nautilus.aloen.to/integrations/blockchain"><link data-rh="true" rel="alternate" href="https://nautilus.aloen.to/integrations/blockchain" hreflang="zh"><link data-rh="true" rel="alternate" href="https://nautilus.aloen.to/integrations/blockchain" hreflang="x-default"><script data-rh="true" type="application/ld+json">{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"集成","item":"https://nautilus.aloen.to/integrations/"},{"@type":"ListItem","position":2,"name":"Blockchain","item":"https://nautilus.aloen.to/integrations/blockchain"}]}</script><link rel="stylesheet" href="/assets/css/styles.33db920f.css">
-<script src="/assets/js/runtime~main.7f15ce23.js" defer="defer"></script>
-<script src="/assets/js/main.7a54437b.js" defer="defer"></script>
-</head>
-<body class="navigation-with-keyboard">
-<svg style="display: none;"><defs>
-<symbol id="theme-svg-external-link" viewBox="0 0 24 24"><path fill="currentColor" d="M21 13v10h-21v-19h12v2h-10v15h17v-8h2zm3-12h-10.988l4.035 4-6.977 7.07 2.828 2.828 6.977-7.07 4.125 4.172v-11z"/></symbol>
+<!doctype html><html lang=zh dir=ltr class="docs-wrapper plugin-docs plugin-id-default docs-version-current docs-doc-page docs-doc-id-integrations/blockchain" data-has-hydrated=false><head><meta charset=UTF-8><meta name=generator content="Docusaurus v3.10.2"><title data-rh=true>区块链 | NautilusTrader 文档</title><meta data-rh=true name=viewport content="width=device-width, initial-scale=1.0"/><meta data-rh=true name=twitter:card content=summary_large_image /><meta data-rh=true property=og:url content=https://nautilus.aloen.to/integrations/blockchain /><meta data-rh=true property=og:locale content=zh /><meta data-rh=true name=docusaurus_locale content=zh /><meta data-rh=true name=docsearch:language content=zh /><meta data-rh=true name=docusaurus_version content=current /><meta data-rh=true name=docusaurus_tag content=docs-default-current /><meta data-rh=true name=docsearch:version content=current /><meta data-rh=true name=docsearch:docusaurus_tag content=docs-default-current /><meta data-rh=true property=og:title content="区块链 | NautilusTrader 文档"/><meta data-rh=true name=description content=blockchain} /><meta data-rh=true property=og:description content=blockchain} /><link data-rh=true rel=icon href=/logo.png /><link data-rh=true rel=canonical href=https://nautilus.aloen.to/integrations/blockchain /><link data-rh=true rel=alternate href=https://nautilus.aloen.to/integrations/blockchain hreflang=zh /><link data-rh=true rel=alternate href=https://nautilus.aloen.to/integrations/blockchain hreflang=x-default /><script data-rh=true type=application/ld+json>{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","item":"https://nautilus.aloen.to/integrations/","name":"交易所与集成","position":1},{"@type":"ListItem","item":"https://nautilus.aloen.to/integrations/blockchain","name":"区块链","position":2}]}</script><link rel=stylesheet href=/assets/css/styles.adb7ea18.css /><script src=/assets/js/runtime~main.71ac0794.js defer></script><script src=/assets/js/main.d978d0f2.js defer></script></head><body><svg style="display: none;"><defs>
+<symbol id=theme-svg-external-link viewBox="0 0 24 24"><path fill=currentColor d="M21 13v10h-21v-19h12v2h-10v15h17v-8h2zm3-12h-10.988l4.035 4-6.977 7.07 2.828 2.828 6.977-7.07 4.125 4.172v-11z"/></symbol>
 </defs></svg>
-<script>!function(){var t=function(){try{return new URLSearchParams(window.location.search).get("docusaurus-theme")}catch(t){}}()||function(){try{return window.localStorage.getItem("theme")}catch(t){}}();document.documentElement.setAttribute("data-theme",t||(window.matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light")),document.documentElement.setAttribute("data-theme-choice",t||"system")}(),function(){try{const c=new URLSearchParams(window.location.search).entries();for(var[t,e]of c)if(t.startsWith("docusaurus-data-")){var a=t.replace("docusaurus-data-","data-");document.documentElement.setAttribute(a,e)}}catch(t){}}()</script><div id="__docusaurus"><link rel="preload" as="image" href="/logo.png"><div role="region" aria-label="跳到主要内容"><a class="skipToContent__uWo" href="#__docusaurus_skipToContent_fallback">跳到主要内容</a></div><nav aria-label="主导航" class="theme-layout-navbar navbar navbar--fixed-top"><div class="navbar__inner"><div class="theme-layout-navbar-left navbar__items"><button aria-label="切换导航栏" aria-expanded="false" class="navbar__toggle clean-btn" type="button"><svg width="30" height="30" viewBox="0 0 30 30" aria-hidden="true"><path stroke="currentColor" stroke-linecap="round" stroke-miterlimit="10" stroke-width="2" d="M4 7h22M4 15h22M4 23h22"></path></svg></button><a class="navbar__brand" href="/"><div class="navbar__logo"><img src="/logo.png" alt="NautilusTrader Logo" class="themedComponent_WkLn themedComponent--light_cjoX"><img src="/logo.png" alt="NautilusTrader Logo" class="themedComponent_WkLn themedComponent--dark_jZId"></div><b class="navbar__title text--truncate">NautilusTrader</b></a><a aria-current="page" class="navbar__item navbar__link navbar__link--active" href="/api_reference/">文档</a></div><div class="theme-layout-navbar-right navbar__items navbar__items--right"><a href="https://github.com/Aloento/NautilusTraderDoc" target="_blank" rel="noopener noreferrer" class="navbar__item navbar__link">GitHub<svg width="13.5" height="13.5" aria-label="(opens in new tab)" class="iconExternalLink_KfBJ"><use href="#theme-svg-external-link"></use></svg></a><div class="toggle_RWFU colorModeToggle_sA1q"><button class="clean-btn toggleButton_qjfc toggleButtonDisabled_cpNp" type="button" disabled="" title="system mode" aria-label="切换浅色/暗黑模式（当前为system mode）"><svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true" class="toggleIcon_CetX lightToggleIcon_UYsV"><path fill="currentColor" d="M12,9c1.65,0,3,1.35,3,3s-1.35,3-3,3s-3-1.35-3-3S10.35,9,12,9 M12,7c-2.76,0-5,2.24-5,5s2.24,5,5,5s5-2.24,5-5 S14.76,7,12,7L12,7z M2,13l2,0c0.55,0,1-0.45,1-1s-0.45-1-1-1l-2,0c-0.55,0-1,0.45-1,1S1.45,13,2,13z M20,13l2,0c0.55,0,1-0.45,1-1 s-0.45-1-1-1l-2,0c-0.55,0-1,0.45-1,1S19.45,13,20,13z M11,2v2c0,0.55,0.45,1,1,1s1-0.45,1-1V2c0-0.55-0.45-1-1-1S11,1.45,11,2z M11,20v2c0,0.55,0.45,1,1,1s1-0.45,1-1v-2c0-0.55-0.45-1-1-1C11.45,19,11,19.45,11,20z M5.99,4.58c-0.39-0.39-1.03-0.39-1.41,0 c-0.39,0.39-0.39,1.03,0,1.41l1.06,1.06c0.39,0.39,1.03,0.39,1.41,0s0.39-1.03,0-1.41L5.99,4.58z M18.36,16.95 c-0.39-0.39-1.03-0.39-1.41,0c-0.39,0.39-0.39,1.03,0,1.41l1.06,1.06c0.39,0.39,1.03,0.39,1.41,0c0.39-0.39,0.39-1.03,0-1.41 L18.36,16.95z M19.42,5.99c0.39-0.39,0.39-1.03,0-1.41c-0.39-0.39-1.03-0.39-1.41,0l-1.06,1.06c-0.39,0.39-0.39,1.03,0,1.41 s1.03,0.39,1.41,0L19.42,5.99z M7.05,18.36c0.39-0.39,0.39-1.03,0-1.41c-0.39-0.39-1.03-0.39-1.41,0l-1.06,1.06 c-0.39,0.39-0.39,1.03,0,1.41s1.03,0.39,1.41,0L7.05,18.36z"></path></svg><svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true" class="toggleIcon_CetX darkToggleIcon_i1s2"><path fill="currentColor" d="M9.37,5.51C9.19,6.15,9.1,6.82,9.1,7.5c0,4.08,3.32,7.4,7.4,7.4c0.68,0,1.35-0.09,1.99-0.27C17.45,17.19,14.93,19,12,19 c-3.86,0-7-3.14-7-7C5,9.07,6.81,6.55,9.37,5.51z M12,3c-4.97,0-9,4.03-9,9s4.03,9,9,9s9-4.03,9-9c0-0.46-0.04-0.92-0.1-1.36 c-0.98,1.37-2.58,2.26-4.4,2.26c-2.98,0-5.4-2.42-5.4-5.4c0-1.81,0.89-3.42,2.26-4.4C12.92,3.04,12.46,3,12,3L12,3z"></path></svg><svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true" class="toggleIcon_CetX systemToggleIcon_yIQx"><path fill="currentColor" d="m12 21c4.971 0 9-4.029 9-9s-4.029-9-9-9-9 4.029-9 9 4.029 9 9 9zm4.95-13.95c1.313 1.313 2.05 3.093 2.05 4.95s-0.738 3.637-2.05 4.95c-1.313 1.313-3.093 2.05-4.95 2.05v-14c1.857 0 3.637 0.737 4.95 2.05z"></path></svg></button></div><div class="navbarSearchContainer_PsjF"></div></div></div><div role="presentation" class="navbar-sidebar__backdrop"></div></nav><div id="__docusaurus_skipToContent_fallback" class="theme-layout-main main-wrapper mainWrapper_jk42"><div class="docsWrapper_KWBO"><button aria-label="回到顶部" class="clean-btn theme-back-to-top-button backToTopButton_XpKL" type="button"></button><div class="docRoot_joIP"><aside class="theme-doc-sidebar-container docSidebarContainer_DOen"><div class="sidebarViewport_j7YP"><div class="sidebar_nPgc"><nav aria-label="文档侧边栏" class="menu thin-scrollbar menu_MTDt"><ul class="theme-doc-sidebar-menu menu__list"><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-1 menu__list-item menu__list-item--collapsed"><div class="menu__list-item-collapsible"><a class="categoryLink_GgI9 menu__link menu__link--sublist" href="/api_reference/"><span title="Python API" class="categoryLinkLabel_XKxb">Python API</span></a><button aria-label="展开侧边栏分类 &#x27;Python API&#x27;" aria-expanded="false" type="button" class="clean-btn menu__caret"></button></div></li><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-1 menu__list-item menu__list-item--collapsed"><div class="menu__list-item-collapsible"><a class="categoryLink_GgI9 menu__link menu__link--sublist" href="/concepts/"><span title="概念" class="categoryLinkLabel_XKxb">概念</span></a><button aria-label="展开侧边栏分类 &#x27;概念&#x27;" aria-expanded="false" type="button" class="clean-btn menu__caret"></button></div></li><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-1 menu__list-item menu__list-item--collapsed"><div class="menu__list-item-collapsible"><a class="categoryLink_GgI9 menu__link menu__link--sublist" href="/developer_guide/"><span title="开发者指南" class="categoryLinkLabel_XKxb">开发者指南</span></a><button aria-label="展开侧边栏分类 &#x27;开发者指南&#x27;" aria-expanded="false" type="button" class="clean-btn menu__caret"></button></div></li><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-1 menu__list-item menu__list-item--collapsed"><div class="menu__list-item-collapsible"><a class="categoryLink_GgI9 menu__link menu__link--sublist" href="/getting_started/"><span title="入门" class="categoryLinkLabel_XKxb">入门</span></a><button aria-label="展开侧边栏分类 &#x27;入门&#x27;" aria-expanded="false" type="button" class="clean-btn menu__caret"></button></div></li><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-1 menu__list-item"><div class="menu__list-item-collapsible"><a class="categoryLink_GgI9 menu__link menu__link--sublist menu__link--active" href="/integrations/"><span title="集成" class="categoryLinkLabel_XKxb">集成</span></a><button aria-label="折叠侧边栏分类 &#x27;集成&#x27;" aria-expanded="true" type="button" class="clean-btn menu__caret"></button></div><ul class="menu__list"><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class="menu__link" tabindex="0" href="/integrations/betfair"><span title="Betfair" class="linkLabel_CNtA">Betfair</span></a></li><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class="menu__link" tabindex="0" href="/integrations/binance"><span title="Binance" class="linkLabel_CNtA">Binance</span></a></li><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class="menu__link" tabindex="0" href="/integrations/bitmex"><span title="BitMEX" class="linkLabel_CNtA">BitMEX</span></a></li><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class="menu__link menu__link--active" aria-current="page" tabindex="0" href="/integrations/blockchain"><span title="Blockchain" class="linkLabel_CNtA">Blockchain</span></a></li><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class="menu__link" tabindex="0" href="/integrations/bybit"><span title="Bybit" class="linkLabel_CNtA">Bybit</span></a></li><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class="menu__link" tabindex="0" href="/integrations/coinbase_intx"><span title="Coinbase International" class="linkLabel_CNtA">Coinbase International</span></a></li><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class="menu__link" tabindex="0" href="/integrations/databento"><span title="Databento" class="linkLabel_CNtA">Databento</span></a></li><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class="menu__link" tabindex="0" href="/integrations/dydx"><span title="dYdX" class="linkLabel_CNtA">dYdX</span></a></li><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class="menu__link" tabindex="0" href="/integrations/hyperliquid"><span title="Hyperliquid" class="linkLabel_CNtA">Hyperliquid</span></a></li><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class="menu__link" tabindex="0" href="/integrations/ib"><span title="Interactive Brokers" class="linkLabel_CNtA">Interactive Brokers</span></a></li><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class="menu__link" tabindex="0" href="/integrations/okx"><span title="OKX" class="linkLabel_CNtA">OKX</span></a></li><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class="menu__link" tabindex="0" href="/integrations/polymarket"><span title="Polymarket" class="linkLabel_CNtA">Polymarket</span></a></li><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class="menu__link" tabindex="0" href="/integrations/tardis"><span title="Tardis" class="linkLabel_CNtA">Tardis</span></a></li></ul></li><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-1 menu__list-item menu__list-item--collapsed"><div class="menu__list-item-collapsible"><a class="categoryLink_GgI9 menu__link menu__link--sublist" href="/tutorials/"><span title="教程" class="categoryLinkLabel_XKxb">教程</span></a><button aria-label="展开侧边栏分类 &#x27;教程&#x27;" aria-expanded="false" type="button" class="clean-btn menu__caret"></button></div></li></ul></nav></div></div></aside><main class="docMainContainer_bw1l"><div class="container padding-top--md padding-bottom--lg"><div class="row"><div class="col docItemCol_PIhC"><div class="docItemContainer_pFw3"><article><nav class="theme-doc-breadcrumbs breadcrumbsContainer_HRKZ" aria-label="页面路径"><ul class="breadcrumbs"><li class="breadcrumbs__item"><a aria-label="主页面" class="breadcrumbs__link" href="/"><svg viewBox="0 0 24 24" class="breadcrumbHomeIcon_sX5c"><path d="M10 19v-5h4v5c0 .55.45 1 1 1h3c.55 0 1-.45 1-1v-7h1.7c.46 0 .68-.57.33-.87L12.67 3.6c-.38-.34-.96-.34-1.34 0l-8.36 7.53c-.34.3-.13.87.33.87H5v7c0 .55.45 1 1 1h3c.55 0 1-.45 1-1z" fill="currentColor"></path></svg></a></li><li class="breadcrumbs__item"><a class="breadcrumbs__link" href="/integrations/"><span>集成</span></a></li><li class="breadcrumbs__item breadcrumbs__item--active"><span class="breadcrumbs__link">Blockchain</span></li></ul></nav><div class="tocCollapsible_DhUt theme-doc-toc-mobile tocMobile_Izjv"><button type="button" class="clean-btn tocCollapsibleButton_eYR5">本页总览</button></div><div class="theme-doc-markdown markdown"><header><h1>Blockchain</h1></header>
-<h2 class="anchor anchorWithStickyNavbar_RpWm" id="合约contracts">合约（Contracts）<a href="#合约contracts" class="hash-link" aria-label="合约（Contracts）的直接链接" title="合约（Contracts）的直接链接" translate="no">​</a></h2>
-<p>针对 EVM 智能合约提供的高性能查询接口，使用类型安全的 Rust 抽象封装。通过高效的批量（batch）调用，支持获取代币元数据（token metadata）、DEX 池信息以及常见 DeFi 协议的状态。</p>
-<h3 class="anchor anchorWithStickyNavbar_RpWm" id="基础multicall3">基础（Multicall3）<a href="#基础multicall3" class="hash-link" aria-label="基础（Multicall3）的直接链接" title="基础（Multicall3）的直接链接" translate="no">​</a></h3>
-<p>使用 Multicall3（合约地址 <code>0xcA11bde05977b3631167028862bE2a173976CA11</code>）将多个合约调用合并为一次 RPC 请求。</p>
+<script>!function(){var t=function(){try{return new URLSearchParams(window.location.search).get("docusaurus-theme")}catch(t){}}()||function(){try{return window.localStorage.getItem("theme-2e3")}catch(t){}}();document.documentElement.setAttribute("data-theme",t||(window.matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light")),document.documentElement.setAttribute("data-theme-choice",t||"system")}(),function(){try{for(var[t,e]of new URLSearchParams(window.location.search).entries())if(t.startsWith("docusaurus-data-")){var a=t.replace("docusaurus-data-","data-");document.documentElement.setAttribute(a,e)}}catch(t){}}()</script><div id=__docusaurus><link rel=preload as=image href=/logo.png /><div role=region aria-label=跳到主要内容><a class=skipToContent_zuOI href=#__docusaurus_skipToContent_fallback>跳到主要内容</a></div><nav aria-label=主导航 class="theme-layout-navbar navbar navbar--fixed-top"><div class=navbar__inner><div class="theme-layout-navbar-left navbar__items"><button aria-label=切换导航栏 aria-expanded=false class="navbar__toggle clean-btn" type=button><svg width=30 height=30 viewBox="0 0 30 30" aria-hidden=true><path stroke=currentColor stroke-linecap=round stroke-miterlimit=10 stroke-width=2 d="M4 7h22M4 15h22M4 23h22"/></svg></button><a class=navbar__brand href=/><div class=navbar__logo><img src=/logo.png alt="NautilusTrader Logo" class="themedComponent_q2_Y themedComponent--light_Nejn"/><img src=/logo.png alt="NautilusTrader Logo" class="themedComponent_q2_Y themedComponent--dark_JjIb"/></div><b class="navbar__title text--truncate">NautilusTrader</b></a><a aria-current=page class="navbar__item navbar__link navbar__link--active" href=/getting_started/>文档</a></div><div class="theme-layout-navbar-right navbar__items navbar__items--right"><a href=https://github.com/Aloento/NautilusTraderDoc target=_blank rel="noopener noreferrer" class="navbar__item navbar__link">GitHub<svg width=13.5 height=13.5 aria-label="(opens in new tab)" class=iconExternalLink_qUHo><use href=#theme-svg-external-link /></svg></a><div class="toggle_hHmI colorModeToggle_rOOn"><button class="clean-btn toggleButton_wEhT toggleButtonDisabled_yOOP" type=button disabled title="system mode" aria-label="切换浅色/暗黑模式（当前为system mode）"><svg viewBox="0 0 24 24" width=24 height=24 aria-hidden=true class="toggleIcon_Kt6U lightToggleIcon_Zfeh"><path fill=currentColor d="M12,9c1.65,0,3,1.35,3,3s-1.35,3-3,3s-3-1.35-3-3S10.35,9,12,9 M12,7c-2.76,0-5,2.24-5,5s2.24,5,5,5s5-2.24,5-5 S14.76,7,12,7L12,7z M2,13l2,0c0.55,0,1-0.45,1-1s-0.45-1-1-1l-2,0c-0.55,0-1,0.45-1,1S1.45,13,2,13z M20,13l2,0c0.55,0,1-0.45,1-1 s-0.45-1-1-1l-2,0c-0.55,0-1,0.45-1,1S19.45,13,20,13z M11,2v2c0,0.55,0.45,1,1,1s1-0.45,1-1V2c0-0.55-0.45-1-1-1S11,1.45,11,2z M11,20v2c0,0.55,0.45,1,1,1s1-0.45,1-1v-2c0-0.55-0.45-1-1-1C11.45,19,11,19.45,11,20z M5.99,4.58c-0.39-0.39-1.03-0.39-1.41,0 c-0.39,0.39-0.39,1.03,0,1.41l1.06,1.06c0.39,0.39,1.03,0.39,1.41,0s0.39-1.03,0-1.41L5.99,4.58z M18.36,16.95 c-0.39-0.39-1.03-0.39-1.41,0c-0.39,0.39-0.39,1.03,0,1.41l1.06,1.06c0.39,0.39,1.03,0.39,1.41,0c0.39-0.39,0.39-1.03,0-1.41 L18.36,16.95z M19.42,5.99c0.39-0.39,0.39-1.03,0-1.41c-0.39-0.39-1.03-0.39-1.41,0l-1.06,1.06c-0.39,0.39-0.39,1.03,0,1.41 s1.03,0.39,1.41,0L19.42,5.99z M7.05,18.36c0.39-0.39,0.39-1.03,0-1.41c-0.39-0.39-1.03-0.39-1.41,0l-1.06,1.06 c-0.39,0.39-0.39,1.03,0,1.41s1.03,0.39,1.41,0L7.05,18.36z"/></svg><svg viewBox="0 0 24 24" width=24 height=24 aria-hidden=true class="toggleIcon_Kt6U darkToggleIcon_XgQr"><path fill=currentColor d="M9.37,5.51C9.19,6.15,9.1,6.82,9.1,7.5c0,4.08,3.32,7.4,7.4,7.4c0.68,0,1.35-0.09,1.99-0.27C17.45,17.19,14.93,19,12,19 c-3.86,0-7-3.14-7-7C5,9.07,6.81,6.55,9.37,5.51z M12,3c-4.97,0-9,4.03-9,9s4.03,9,9,9s9-4.03,9-9c0-0.46-0.04-0.92-0.1-1.36 c-0.98,1.37-2.58,2.26-4.4,2.26c-2.98,0-5.4-2.42-5.4-5.4c0-1.81,0.89-3.42,2.26-4.4C12.92,3.04,12.46,3,12,3L12,3z"/></svg><svg viewBox="0 0 24 24" width=24 height=24 aria-hidden=true class="toggleIcon_Kt6U systemToggleIcon_BvUi"><path fill=currentColor d="m12 21c4.971 0 9-4.029 9-9s-4.029-9-9-9-9 4.029-9 9 4.029 9 9 9zm4.95-13.95c1.313 1.313 2.05 3.093 2.05 4.95s-0.738 3.637-2.05 4.95c-1.313 1.313-3.093 2.05-4.95 2.05v-14c1.857 0 3.637 0.737 4.95 2.05z"/></svg></button></div><div class=navbarSearchContainer_watl></div></div></div><div role=presentation class=navbar-sidebar__backdrop></div></nav><div id=__docusaurus_skipToContent_fallback class="theme-layout-main main-wrapper mainWrapper_R72Q"><div class=docsWrapper_XQ9b><button aria-label=回到顶部 class="clean-btn theme-back-to-top-button backToTopButton_MbnX" type=button></button><div class=docRoot_aqOB><aside class="theme-doc-sidebar-container docSidebarContainer_sI2e"><div class=sidebarViewport_TzTy><div class=sidebar_CbEe><nav aria-label=文档侧边栏 class="menu thin-scrollbar menu_ChRF"><ul class="theme-doc-sidebar-menu menu__list"><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-1 menu__list-item menu__list-item--collapsed"><div class=menu__list-item-collapsible><a class="categoryLink_Muyc menu__link menu__link--sublist" href=/getting_started/><span class=categoryLinkLabel_mAcL>快速开始</span></a><button aria-label="展开侧边栏分类 '快速开始'" aria-expanded=false type=button class="clean-btn menu__caret"></button></div><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-1 menu__list-item menu__list-item--collapsed"><div class=menu__list-item-collapsible><a class="categoryLink_Muyc menu__link menu__link--sublist" href=/concepts/><span class=categoryLinkLabel_mAcL>核心概念</span></a><button aria-label="展开侧边栏分类 '核心概念'" aria-expanded=false type=button class="clean-btn menu__caret"></button></div><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-1 menu__list-item"><div class=menu__list-item-collapsible><a class="categoryLink_Muyc menu__link menu__link--sublist menu__link--active" href=/integrations/><span class=categoryLinkLabel_mAcL>交易所与集成</span></a><button aria-label="折叠侧边栏分类 '交易所与集成'" aria-expanded=true type=button class="clean-btn menu__caret"></button></div><ul class=menu__list><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/integrations/architect_ax><span class=linkLabel_lYjD>AX Exchange</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/integrations/betfair><span class=linkLabel_lYjD>Betfair</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/integrations/binance><span class=linkLabel_lYjD>Binance</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class="menu__link menu__link--active" aria-current=page tabindex=0 href=/integrations/blockchain><span class=linkLabel_lYjD>区块链</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/integrations/bybit><span class=linkLabel_lYjD>Bybit</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/integrations/coinapi><span class=linkLabel_lYjD>CoinAPI</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/integrations/coinbase><span class=linkLabel_lYjD>Coinbase</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/integrations/databento><span class=linkLabel_lYjD>Databento</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/integrations/deribit><span class=linkLabel_lYjD>Deribit</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/integrations/derive><span class=linkLabel_lYjD>Derive</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/integrations/dydx><span class=linkLabel_lYjD>dYdX</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/integrations/hyperliquid><span class=linkLabel_lYjD>Hyperliquid</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/integrations/interactive_brokers><span class=linkLabel_lYjD>Interactive Brokers</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/integrations/kraken><span class=linkLabel_lYjD>Kraken</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/integrations/lighter><span class=linkLabel_lYjD>Lighter</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/integrations/okx><span class=linkLabel_lYjD>OKX</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/integrations/polymarket><span class=linkLabel_lYjD>Polymarket</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/integrations/tardis><span class=linkLabel_lYjD>Tardis</span></a></ul><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-1 menu__list-item menu__list-item--collapsed"><div class=menu__list-item-collapsible><a class="categoryLink_Muyc menu__link menu__link--sublist" href=/how_to/><span class=categoryLinkLabel_mAcL>操作指南</span></a><button aria-label="展开侧边栏分类 '操作指南'" aria-expanded=false type=button class="clean-btn menu__caret"></button></div><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-1 menu__list-item menu__list-item--collapsed"><div class=menu__list-item-collapsible><a class="categoryLink_Muyc menu__link menu__link--sublist" href=/tutorials/><span class=categoryLinkLabel_mAcL>教程</span></a><button aria-label="展开侧边栏分类 '教程'" aria-expanded=false type=button class="clean-btn menu__caret"></button></div><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-1 menu__list-item menu__list-item--collapsed"><div class=menu__list-item-collapsible><a class="categoryLink_Muyc menu__link menu__link--sublist" href=/developer_guide/><span class=categoryLinkLabel_mAcL>开发者指南</span></a><button aria-label="展开侧边栏分类 '开发者指南'" aria-expanded=false type=button class="clean-btn menu__caret"></button></div><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-1 menu__list-item menu__list-item--collapsed"><div class=menu__list-item-collapsible><a class="categoryLink_Muyc menu__link menu__link--sublist" href=/api_reference/><span class=categoryLinkLabel_mAcL>API 参考</span></a><button aria-label="展开侧边栏分类 'API 参考'" aria-expanded=false type=button class="clean-btn menu__caret"></button></div></ul></nav></div></div></aside><main class=docMainContainer_sLF8><div class="container padding-top--md padding-bottom--lg"><div class=row><div class="col docItemCol_ZRft"><div class=docItemContainer_KOP5><article><nav class="theme-doc-breadcrumbs breadcrumbsContainer_d5rS" aria-label=页面路径><ul class=breadcrumbs><li class=breadcrumbs__item><a aria-label=主页面 class=breadcrumbs__link href=/><svg viewBox="0 0 24 24" class=breadcrumbHomeIcon_XgF2><path d="M10 19v-5h4v5c0 .55.45 1 1 1h3c.55 0 1-.45 1-1v-7h1.7c.46 0 .68-.57.33-.87L12.67 3.6c-.38-.34-.96-.34-1.34 0l-8.36 7.53c-.34.3-.13.87.33.87H5v7c0 .55.45 1 1 1h3c.55 0 1-.45 1-1z" fill=currentColor /></svg></a><li class=breadcrumbs__item><a class=breadcrumbs__link href=/integrations/><span>交易所与集成</span></a><li class="breadcrumbs__item breadcrumbs__item--active"><span class=breadcrumbs__link>区块链</span></ul></nav><div class="tocCollapsible_bgaJ theme-doc-toc-mobile tocMobile_FhT_"><button type=button class="clean-btn tocCollapsibleButton_F8AY">本页总览</button></div><div class="theme-doc-markdown markdown"><header><h1>区块链</h1></header>
+<h2 class="anchor anchorTargetStickyNavbar_ana5" id=overview>概览<a href=#overview class=hash-link aria-label=概览的直接链接 title=概览的直接链接 translate=no>​</a></h2>
+<p>区块链适配器从 EVM 链摄取 DeFi 数据，并通过 NautilusTrader 数据模型暴露。它还包含
+一个执行客户端，用于本地签名的 Uniswap V3 市价兑换。该执行客户端尚未达到生产可用。
+适配器使用三种后端：</p>
 <ul>
-<li>始终使用 <code>allow_failure: true</code> 以支持部分成功并获取更详细的错误信息</li>
-<li>在同一区块内以原子方式执行</li>
-<li>可能的错误类型：<code>RpcError</code>（网络/RPC 问题）、<code>AbiDecodingError</code>（ABI 解码失败）</li>
+<li class="">HyperSync：高吞吐的历史区块与合约日志。查询形态、分页与调优见
+<a href=https://docs.envio.dev/docs/HyperSync/hypersync-usage target=_blank rel="noopener noreferrer" class="">Envio HyperSync 文档</a>。</li>
+<li class="">HTTP RPC：合约调用、Multicall 读取，以及最终的链上状态水合。</li>
+<li class="">Postgres：可选的持久缓存状态、池元数据、解码事件与快照。</li>
 </ul>
-<h3 class="anchor anchorWithStickyNavbar_RpWm" id="erc20">ERC20<a href="#erc20" class="hash-link" aria-label="ERC20的直接链接" title="ERC20的直接链接" translate="no">​</a></h3>
-<p>继承自 <code>BaseContract</code>，利用 Multicall3 实现高效的批量操作。可获取代币的元数据，并对非标准实现具备鲁棒性的处理逻辑。</p>
-<p><strong>方法（Methods）：</strong></p>
+<h2 class="anchor anchorTargetStickyNavbar_ana5" id=capability-status>能力状态<a href=#capability-status class=hash-link aria-label=能力状态的直接链接 title=能力状态的直接链接 translate=no>​</a></h2>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>能力<th>范围<th>成熟度<tbody><tr><td>历史区块<td>任何配置了可达 HyperSync 端点的 <code>Chain</code>。<td>经 Rust 服务与 <code>sync-blocks</code> 提供。<tr><td>实时区块<td>HyperSync，或具备 RPC 客户端的链用 WSS RPC。<td>经 Rust 与 Python 数据客户端接口提供。<tr><td>DEX 池发现<td>注册了池创建解析器的链与 DEX 组合。<td>经数据客户端与 <code>sync-dex</code> 提供。<tr><td>池快照与重放<td>具备完整快照解析器集的集中流动性集成。<td>需 Postgres，并满足下文的提供商约束。<tr><td>实时池事件<td>已注册的 swap、liquidity、collect、flash 与 fee-protocol 解析器。<td>经 Rust 与 Python 数据客户端接口提供。<tr><td>交易执行<td>本地签名的 Uniswap V3 BUY 与 SELL 市价兑换。<td>实验性；未达生产可用，且不向 Python 暴露。</table>
+<p>Ethereum、Polygon、Base、Arbitrum 和 BSC 有直接的 WSS RPC 客户端。其他配置的链取值
+在端点可达时可以使用 HyperSync 区块历史，但不支持 WSS 实时模式。</p>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=chain-and-dex-command-support>链与 DEX 命令支持<a href=#chain-and-dex-command-support class=hash-link aria-label="链与 DEX 命令支持的直接链接" title="链与 DEX 命令支持的直接链接" translate=no>​</a></h3>
+<p>命令支持由每条链、每个 DEX 注册的解析器推导而来。<code>sync-dex</code> 与
+<code>analyze-pool(s)</code> 的 CLI 帮助会打印相同的能力边界。</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>层级<th>含义<th>DEX<th>链<tbody><tr><td>可重放<td>发现、快照与 fee-protocol 重放解析器。<td>Uniswap V3 与 PancakeSwap V3。<td>Ethereum、Base、Arbitrum 和 BSC。<tr><td>仅分析<td>有快照解析器，但 CLI 无池发现。<td>Aerodrome Slipstream。<td>Base。<tr><td>仅发现<td>有池发现，但快照解析器集不完整。<td>Uniswap V2 与 Uniswap V4。<td>Ethereum、Base 和 Arbitrum。<tr><td>仅发现<td>有池发现，但快照解析器集不完整。<td>Camelot V3 与 Fluid DEX。<td>Arbitrum。<tr><td>仅注册<td>只注册元数据，事件解析器不支持命令。<td>Curve Finance 与 Fluid DEX。<td>Ethereum。<tr><td>仅注册<td>只注册元数据，事件解析器不支持命令。<td>Aerodrome V1、BaseSwap V2、BaseX 与 SushiSwap V3。<td>Base。<tr><td>仅注册<td>只注册元数据，事件解析器不支持命令。<td>Curve Finance、SushiSwap V2 与 SushiSwap V3。<td>Arbitrum。<tr><td>仅区块<td>无 DEX 注册；<code>sync-blocks</code> 仍可用。<td>-<td>其他配置链，包括 Polygon。</table>
+<p><code>sync-dex</code> 需要池创建解析器。<code>analyze-pool(s)</code> 需要 Initialize、Swap、Mint、Burn 和
+Collect 解析器。可重放的集成还解析 <code>SetFeeProtocol</code>；带 <code>CollectProtocol</code> 解析器的
+集成可以重放协议费提取。</p>
+<p>Aerodrome Slipstream 没有池创建解析器，CLI 也没有单独的池注册命令。只有当其池与
+代币元数据已经通过其他集成路径进入缓存时，分析才能工作。其重放派生的快照无法对照
+链上状态验证。仅注册的 DEX 会出现在命令帮助之外，并会在相应能力检查中失败。</p>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=interface-availability>接口可用性<a href=#interface-availability class=hash-link aria-label=接口可用性的直接链接 title=接口可用性的直接链接 translate=no>​</a></h3>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>接口<th>Rust<th>Python<th>CLI<tbody><tr><td>数据配置与工厂<td>公开的配置与工厂。<td>公开的配置与工厂。<td>-<tr><td>实时数据订阅<td>数据客户端订阅 API。<td>LiveNode 数据客户端 API。<td>-<tr><td>区块同步、发现与分析<td>适配器服务。<td>-<td><code>sync-blocks</code>、<code>sync-dex</code> 与分析命令。<tr><td>已存快照加载<td>缓存 API。<td><code>load_pool_snapshot</code>。<td>-<tr><td>执行配置<td>公开配置。<td>仅配置类型。<td>-<tr><td>执行工厂与订单路由<td>公开的工厂与客户端。<td>-<td>-<tr><td>预检、包装、授权与存储<td>直接调用 <code>BlockchainExecutionClient</code>。<td>-<td>-</table>
+<p>Python 模块不注册也不导出 <code>BlockchainExecutionClientFactory</code>，因此 Python 的
+LiveNode 配置无法实例化执行客户端。</p>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=examples>示例<a href=#examples class=hash-link aria-label=示例的直接链接 title=示例的直接链接 translate=no>​</a></h3>
+<p>两个公开语言接口都有可运行的数据客户端示例：</p>
 <ul>
-<li><code>fetch_token_info</code>：获取单个代币的元数据（内部通过 multicall 获取 name、symbol、decimals）</li>
-<li><code>batch_fetch_token_info</code>：在一次 multicall 中获取多个代币（每个代币发起 3 个调用）</li>
-<li><code>enforce_token_fields</code>：校验 name/symbol 非空</li>
+<li class=""><a href=https://github.com/nautechsystems/nautilus_trader/blob/develop/crates/adapters/blockchain/examples/node_data_tester.rs target=_blank rel="noopener noreferrer" class="">Rust LiveNode 数据测试器</a>。</li>
+<li class=""><a href=https://github.com/nautechsystems/nautilus_trader/blob/develop/examples/live/blockchain/data_tester.py target=_blank rel="noopener noreferrer" class="">Python 数据测试器</a>。</li>
+<li class=""><a href=https://github.com/nautechsystems/nautilus_trader/blob/develop/examples/live/blockchain/node_test.py target=_blank rel="noopener noreferrer" class="">Python LiveNode 示例</a>。</li>
 </ul>
-<p><strong>错误类型（Error Types）：</strong></p>
+<p>仓库不提供维护中的可运行执行配置示例。执行集成请用 Rust 构建，并遵守
+<a href=#execution class="">执行</a>中的约束。</p>
+<h2 class="anchor anchorTargetStickyNavbar_ana5" id=core-primitives>核心原语<a href=#core-primitives class=hash-link aria-label=核心原语的直接链接 title=核心原语的直接链接 translate=no>​</a></h2>
+<p>DeFi 领域模型位于 <code>nautilus_model::defi</code>。</p>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=chain>链<a href=#chain class=hash-link aria-label=链的直接链接 title=链的直接链接 translate=no>​</a></h3>
+<p><code>Chain</code> 定义目标区块链及其默认服务端点。</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>字段<th>类型<th>说明<tbody><tr><td><code>name</code><td><code>Blockchain</code><td>链枚举值，如 <code>Ethereum</code> 或 <code>Arbitrum</code>。<tr><td><code>chain_id</code><td><code>u32</code><td>EVM 链 ID，如 Ethereum 为 <code>1</code>。<tr><td><code>hypersync_url</code><td><code>String</code><td>HyperSync 端点，默认 <code>https://{chain_id}.hypersync.xyz</code>。<tr><td><code>rpc_url</code><td><code>Option&lt;String></code><td>存放在链模型上的可选直接 RPC 端点。<tr><td><code>native_currency_decimals</code><td><code>u8</code><td>原生 gas 代币的小数位精度，通常为 <code>18</code>。</table>
+<p>链可按数字 ID 用 <code>Chain::from_chain_id</code> 加载，或按名称用
+<code>Chain::from_chain_name</code> 加载。</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>链系<th>代码<th>名称<th>小数位<tbody><tr><td>Ethereum 与 L2<td>ETH<td>Ethereum<td>18<tr><td>Polygon<td>POL<td>Polygon<td>18<tr><td>Avalanche<td>AVAX<td>Avalanche<td>18<tr><td>BSC<td>BNB<td>Binance Coin<td>18</table>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=dex-and-pools>DEX 与池<a href=#dex-and-pools class=hash-link aria-label="DEX 与池的直接链接" title="DEX 与池的直接链接" translate=no>​</a></h3>
+<p>DEX 集成注册：</p>
+<ul>
+<li class="">工厂地址。</li>
+<li class="">事件签名与解析函数。</li>
+<li class="">AMM 类型。</li>
+</ul>
+<p>池定义把链和 DEX 绑定到池合约地址或协议池 ID，形成稳定的 Nautilus 金融工具 ID。
+代币对、费率层级、tick 间距和创建区块保留为池元数据。</p>
+<p>数据引擎处理池定义时，会在同一池金融工具 ID 下缓存并发布一个 <code>CurrencyPair</code>。
+金融工具的 base 与 quote 取自 <code>Pool::get_base_token</code> 和
+<code>Pool::get_quote_token</code>。swap 成交信息与执行都使用同一代币优先级方向。金融工具的
+价格与数量精度由代币小数位推导，上限为 <code>FIXED_PRECISION</code>。不同的池标识让相同
+代币对的池可以在缓存和消息总线中共存。</p>
+<p>Uniswap V3 及兼容的集中流动性池还使用：</p>
+<ul>
+<li class=""><code>Initialize(uint160,int24)</code> 获取初始价格状态。</li>
+<li class=""><code>Mint</code> 与 <code>Burn</code> 事件重放仓位与 tick 状态。</li>
+<li class=""><code>Swap</code> 事件跟踪实时池价移动。</li>
+<li class="">HTTP RPC 读取终态的 <code>slot0</code>、流动性、活跃 tick 与仓位数据。</li>
+</ul>
+<h2 class="anchor anchorTargetStickyNavbar_ana5" id=data-client-configuration>数据客户端配置<a href=#data-client-configuration class=hash-link aria-label=数据客户端配置的直接链接 title=数据客户端配置的直接链接 translate=no>​</a></h2>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>选项<th>默认值<th>说明<tbody><tr><td><code>chain</code><td>必填<td>目标 <code>Chain</code>，如 Ethereum 或 Arbitrum。<tr><td><code>dex_ids</code><td><code>[]</code><td>要注册与同步的 DEX 集成。<tr><td><code>http_rpc_url</code><td>必填<td>合约读取与 Multicall 的 HTTP RPC 端点。<tr><td><code>wss_rpc_url</code><td><code>None</code><td>WSS 端点；RPC 实时流必需。<tr><td><code>rpc_requests_per_second</code><td><code>None</code><td>可选的 RPC 请求限流。<tr><td><code>multicall_calls_per_rpc_request</code><td><code>200</code><td>单次 RPC 请求请求的 Multicall 目标数上限。<tr><td><code>use_hypersync_for_live_data</code><td>Rust: <code>false</code>；Python: <code>true</code><td>为 true 时，实时区块与事件流使用 HyperSync。<tr><td><code>from_block</code><td><code>None</code><td>历史同步的可选起始区块。<tr><td><code>pool_filters</code><td><code>DexPoolFilters()</code><td>池范围过滤规则。<tr><td><code>postgres_cache_database_config</code><td><code>None</code><td>可选的 Postgres 缓存配置。<tr><td><code>proxy_url</code><td><code>None</code><td>可选的 HTTP 与 WebSocket 代理 URL。<tr><td><code>transport_backend</code><td><code>Sockudo</code><td>WebSocket 传输后端。</table>
+<div class="theme-admonition theme-admonition-note admonition_LYZY alert alert--secondary"><div class=admonitionHeading_pnFY><span class=admonitionIcon_tEzm><svg viewBox="0 0 14 16"><path fill-rule=evenodd d="M6.3 5.69a.942.942 0 0 1-.28-.7c0-.28.09-.52.28-.7.19-.18.42-.28.7-.28.28 0 .52.09.7.28.18.19.28.42.28.7 0 .28-.09.52-.28.7a1 1 0 0 1-.7.3c-.28 0-.52-.11-.7-.3zM8 7.99c-.02-.25-.11-.48-.31-.69-.2-.19-.42-.3-.69-.31H6c-.27.02-.48.13-.69.31-.2.2-.3.44-.31.69h1v3c.02.27.11.5.31.69.2.2.42.31.69.31h1c.27 0 .48-.11.69-.31.2-.19.3-.42.31-.69H8V7.98v.01zM7 2.3c-3.14 0-5.7 2.54-5.7 5.68 0 3.14 2.56 5.7 5.7 5.7s5.7-2.55 5.7-5.7c0-3.15-2.56-5.69-5.7-5.69v.01zM7 .98c3.86 0 7 3.14 7 7s-3.14 7-7 7-7-3.12-7-7 3.14-7 7-7z"/></svg></span>备注</div><div class=admonitionContent_ZwmI><p>池快照请求需要 Postgres 缓存数据库。内存缓存可以存放代币与池，但
+最新的池剖析器引导会通过缓存数据库路径读取快照与事件状态。</div></div>
+<h2 class="anchor anchorTargetStickyNavbar_ana5" id=environment>环境<a href=#environment class=hash-link aria-label=环境的直接链接 title=环境的直接链接 translate=no>​</a></h2>
+<p>在仓库之外设置凭据：</p>
+<div class="language-bash codeBlockContainer_eTMR theme-code-block" style=--prism-color:#393A34;--prism-background-color:#f6f8fa><div class=codeBlockContent_hafM><pre tabindex=0 class="prism-code language-bash codeBlock_IMvC thin-scrollbar" style=color:#393A34;background-color:#f6f8fa><code class=codeBlockLines_gZDW><div class=token-line style=color:#393A34><span class="token plain">export ENVIO_API_TOKEN="&lt;envio-token>"</span><br/></div><div class=token-line style=color:#393A34><span class="token plain">export RPC_HTTP_URL="https://your-rpc.example"</span><br/></div><div class=token-line style=color:#393A34><span class="token plain">export RPC_WSS_URL="wss://your-rpc.example"</span><br/></div></code></pre></div></div>
+<p>本地使用 <code>.env</code> 时，确保该文件不进入版本控制：</p>
+<div class="language-dotenv codeBlockContainer_eTMR theme-code-block" style=--prism-color:#393A34;--prism-background-color:#f6f8fa><div class=codeBlockContent_hafM><pre tabindex=0 class="prism-code language-dotenv codeBlock_IMvC thin-scrollbar" style=color:#393A34;background-color:#f6f8fa><code class=codeBlockLines_gZDW><div class=token-line style=color:#393A34><span class="token plain">ENVIO_API_TOKEN=&lt;envio-token></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">RPC_HTTP_URL=https://your-rpc.example</span><br/></div><div class=token-line style=color:#393A34><span class="token plain">RPC_WSS_URL=wss://your-rpc.example</span><br/></div></code></pre></div></div>
+<ul>
+<li class="">Rust 的 HyperSync 客户端要求 <code>ENVIO_API_TOKEN</code>。缺失或格式错误的 token 会在
+发出任何查询前导致客户端构造失败。</li>
+<li class="">合约读取与快照水合需要 <code>RPC_HTTP_URL</code> 或 <code>--rpc-url</code>。</li>
+<li class=""><code>use_hypersync_for_live_data = false</code> 时必须有 <code>RPC_WSS_URL</code>，该模式使用
+WSS RPC 实时流。</li>
+</ul>
+<p>执行还需要更多变量（见<a href=#execution class="">执行</a>）：</p>
+<ul>
+<li class="">签名私钥从 <code>signer_private_key_env</code>
+配置字段所指的变量读取，绝不直接写在配置里。</li>
+<li class="">签名载荷保护从 <code>payload_key_env</code> 和
+<code>payload_key_retired_env</code> 所指变量读取生效与已退役的 32 字节密钥。这些配置字段
+只包含变量名，绝不包含密钥值。</li>
+</ul>
+<p>token 设置与配额细节见 Envio 的
+<a href=https://docs.envio.dev/docs/HyperSync/api-tokens target=_blank rel="noopener noreferrer" class="">HyperSync API token 文档</a>。</p>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=rpc-provider-requirements>RPC 提供商要求<a href=#rpc-provider-requirements class=hash-link aria-label="RPC 提供商要求的直接链接" title="RPC 提供商要求的直接链接" translate=no>​</a></h3>
+<p><code>RPC_HTTP_URL</code> 或 <code>--rpc-url</code> 必须指向目标链的 EVM JSON-RPC 端点。数据客户端用它
+做合约读取，首次池同步也通过它读取链上状态。客户端从 <code>Chain::hypersync_url</code>
+读取 HyperSync 端点，内置链默认 <code>https://{chain_id}.hypersync.xyz</code>。</p>
+<p>选择支持目标历史区块与 Multicall 工作量的 RPC 提供商。提供商的宣传标签不足以证明
+archive 访问权限：要用工作流将使用的历史区块验证一次 <code>eth_getCode</code> 或
+<code>eth_call</code>。只返回区块头并不能证明历史合约状态可用。大型池还可能要求更高的
+载荷、gas、超时与请求速率上限。</p>
+<p>archive 支持影响的是验证，不是事件同步能否运行：</p>
+<ul>
+<li class="">在 archive 节点上，历史区块快照会对照链上状态验证，并以
+<code>validation_state = on_chain</code> 存储。</li>
+<li class="">在非 archive 节点上，历史读取失败，快照保持 <code>validation_state = replay</code>，
+仍可作为重放起点使用。</li>
+<li class="">非 archive 节点首次同步时使用较新的 <code>--to-block</code>。引导过程在目标区块读取链上
+状态，非 archive 节点只提供近期状态。</li>
+</ul>
+<h2 class="anchor anchorTargetStickyNavbar_ana5" id=local-services>本地服务<a href=#local-services class=hash-link aria-label=本地服务的直接链接 title=本地服务的直接链接 translate=no>​</a></h2>
+<p>开发用 Docker Compose 文件启动 Postgres、Redis 和 pgAdmin。要创建容器、等待
+Postgres 就绪并初始化数据库模式，运行：</p>
+<div class="language-bash codeBlockContainer_eTMR theme-code-block" style=--prism-color:#393A34;--prism-background-color:#f6f8fa><div class=codeBlockContent_hafM><pre tabindex=0 class="prism-code language-bash codeBlock_IMvC thin-scrollbar" style=color:#393A34;background-color:#f6f8fa><code class=codeBlockLines_gZDW><div class=token-line style=color:#393A34><span class="token plain">make init-services</span><br/></div></code></pre></div></div>
+<p><code>make start-services</code> 启动已初始化的技术栈。<code>make init-db</code>
+初始化或重新应用 Postgres 模式。</p>
+<p>本地 Postgres 默认值：</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>字段<th>值<tbody><tr><td>主机<td><code>127.0.0.1:5432</code><tr><td>数据库<td><code>nautilus</code><tr><td>用户<td><code>nautilus</code><tr><td>密码<td><code>pass</code></table>
+<p>检查模式是否存在：</p>
+<div class="language-bash codeBlockContainer_eTMR theme-code-block" style=--prism-color:#393A34;--prism-background-color:#f6f8fa><div class=codeBlockContent_hafM><pre tabindex=0 class="prism-code language-bash codeBlock_IMvC thin-scrollbar" style=color:#393A34;background-color:#f6f8fa><code class=codeBlockLines_gZDW><div class=token-line style=color:#393A34><span class="token plain">docker exec nautilus-database psql -U nautilus -d nautilus -Atc \</span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    "select count(*) from information_schema.tables where table_schema='public'"</span><br/></div></code></pre></div></div>
+<p>池快照生成与快照请求需要已初始化模式的 Postgres 缓存。池发现与快照生成会写入
+<code>token</code>、<code>pool</code>、<code>pool_*_event</code>、<code>pool_snapshot</code>、
+<code>pool_position</code> 和 <code>pool_tick</code> 行。可重复或有破坏性的数据工作负载请使用专用数据库
+或可重置的 Docker 卷。</p>
+<h2 class="anchor anchorTargetStickyNavbar_ana5" id=data-flow>数据流<a href=#data-flow class=hash-link aria-label=数据流的直接链接 title=数据流的直接链接 translate=no>​</a></h2>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=architecture>架构<a href=#architecture class=hash-link aria-label=架构的直接链接 title=架构的直接链接 translate=no>​</a></h3>
+<p><code>sync-dex</code> 发现并存储池与代币，<code>analyze-pool(s)</code> 随后生成 <code>pool_snapshot</code>
+行。下图展示默认重放路径与 <code>--snapshot-from-rpc</code> 路径。</p>
+<!-- -->
+<p><code>analyze-pools</code> 每个池运行一个任务，并发量由 <code>--concurrency</code> 限制，每个任务拥有
+自己的数据客户端。除非 <code>validation_state</code> 为 <code>invalid</code>，快照都可用作重放起点。</p>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=data-client-surface>数据客户端接口<a href=#data-client-surface class=hash-link aria-label=数据客户端接口的直接链接 title=数据客户端接口的直接链接 translate=no>​</a></h3>
+<p>公开数据客户端支持这些 DeFi 订阅与请求：</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>接口<th>命令<th>行为<tbody><tr><td>区块<td><code>SubscribeBlocks</code>、<code>UnsubscribeBlocks</code><td>启动或停止共享的 HyperSync 或 WSS RPC 区块流。<tr><td>完整池<td><code>SubscribePool</code>、<code>UnsubscribePool</code><td>选择 swap、mint、burn、collect、flash 与两种 fee-protocol 事件类型。<tr><td>池 swap<td><code>SubscribePoolSwaps</code>、<code>UnsubscribePoolSwaps</code><td>选择单个池金融工具的 swap 事件。<tr><td>流动性更新<td><code>SubscribePoolLiquidityUpdates</code>、<code>UnsubscribePoolLiquidityUpdates</code><td>选择单个池金融工具的 mint 与 burn 事件。<tr><td>费用收取<td><code>SubscribePoolFeeCollects</code>、<code>UnsubscribePoolFeeCollects</code><td>选择单个池金融工具的 collect 事件。<tr><td>Flash 事件<td><code>SubscribePoolFlashEvents</code>、<code>UnsubscribePoolFlashEvents</code><td>选择单个池金融工具的 flash 事件。<tr><td>池快照<td><code>RequestPoolSnapshot</code><td>先发布池定义，缓存引导与验证成功后再发布可用快照。</table>
+<p>订阅共享底层区块与 DEX 事件流。客户端为每个池地址和事件类型统计持有者数量，
+因此取消一个订阅不会中断其他订阅仍在使用的数据流。完整池订阅与更窄的订阅重叠时
+同样成立：<code>UnsubscribePool</code> 后更窄的事件类型保持激活，反之亦然。数据引擎会保留
+池的剖析器更新器，直到没有任何数据客户端还持有该池的订阅。</p>
+<p>池快照响应携带其请求的 ID。若引导被最终退订、重置或断连取消，数据引擎会丢弃
+对应响应。池快照请求需要 Postgres，因为引导通过缓存数据库读取已存储的池与事件
+状态。</p>
+<div class="theme-admonition theme-admonition-warning admonition_LYZY alert alert--warning"><div class=admonitionHeading_pnFY><span class=admonitionIcon_tEzm><svg viewBox="0 0 16 16"><path fill-rule=evenodd d="M8.893 1.5c-.183-.31-.52-.5-.887-.5s-.703.19-.886.5L.138 13.499a.98.98 0 0 0 0 1.001c.193.31.53.501.886.501h13.964c.367 0 .704-.19.877-.5a1.03 1.03 0 0 0 .01-1.002L8.893 1.5zm.133 11.497H6.987v-2.003h2.039v2.003zm0-3.004H6.987V5.987h2.039v4.006z"/></svg></span>注意</div><div class=admonitionContent_ZwmI><p>DeFi 池定义与账户状态更新通过带类型的消息总线路由发布，
+<code>subscribe_any</code> 处理器永远收不到它们。请使用
+<code>subscribe_defi_pools</code> 和 <code>subscribe_account_state</code>，
+或对应的 actor 订阅 API。</div></div>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=pool-discovery>池发现<a href=#pool-discovery class=hash-link aria-label=池发现的直接链接 title=池发现的直接链接 translate=no>​</a></h3>
+<p>池发现过程：</p>
+<ul>
+<li class="">从 HyperSync 流式读取 DEX 工厂事件。</li>
+<li class="">通过 RPC 获取 ERC-20 元数据。</li>
+<li class="">把有效的代币与池存入缓存。</li>
+<li class="">跳过无效的代币元数据。<code>DexPoolFilters</code> 还可排除空代币元数据。</li>
+</ul>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=live-data>实时数据<a href=#live-data class=hash-link aria-label=实时数据的直接链接 title=实时数据的直接链接 translate=no>​</a></h3>
+<ul>
+<li class=""><code>use_hypersync_for_live_data = true</code>：通过 HyperSync 订阅区块获取实时时间戳，
+并为每个订阅的 DEX 过滤器保持一条开放的 HyperSync DEX 事件流。</li>
+<li class=""><code>use_hypersync_for_live_data = false</code>：使用 WSS RPC 的区块与池日志订阅，获取
+实时 swap、流动性更新、费用收取、flash 事件与 fee-protocol 事件。</li>
+</ul>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=snapshot-bootstrap>快照引导<a href=#snapshot-bootstrap class=hash-link aria-label=快照引导的直接链接 title=快照引导的直接链接 translate=no>​</a></h3>
+<p>对 Uniswap V3 兼容快照，默认引导重放已存储的池事件，重建价格、流动性、tick、
+仓位、费用与计数器。验证随后通过 HTTP RPC 与 Multicall 读取链上状态。</p>
+<p>引导模式：</p>
+<ul>
+<li class="">默认：把截至目标区块的完整池事件历史存入数据库，再从数据库引导。</li>
+<li class=""><code>--snapshot-from-rpc</code>：跳过完整 swap 存储，从 HyperSync 流式读取 Initialize、
+Mint、Burn、SetFeeProtocol 与 CollectProtocol 事件以枚举 tick 与仓位，再从
+RPC 水合精确的检查点区块。</li>
+</ul>
+<p>对历史悠久、活动量大的池，若只需要最终快照而不是存储 swap 历史，用
+<code>--snapshot-from-rpc</code>。它不能与 <code>--from-block</code>、<code>--reset</code> 或
+<code>--require-existing-snapshot</code> 组合使用。</p>
+<p><code>--snapshot-from-rpc</code> 模式下，最终 RPC 水合是检查点状态的权威来源。水合失败时
+命令直接失败，而不是输出带着过期价格状态的重放快照。</p>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=snapshot-validation>快照验证<a href=#snapshot-validation class=hash-link aria-label=快照验证的直接链接 title=快照验证的直接链接 translate=no>​</a></h3>
+<p>对重放派生的快照，引导在标记有效前把剖析器与链上状态比对。</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>类别<th>字段<th>不一致结果<tbody><tr><td>结构性<td>当前 tick、活跃流动性、逐 tick 流动性与仓位流动性。<td>存为 <code>invalid</code>；默认加载时排除。<tr><td>非结构性<td>sqrt 价格、fee protocol 与协议费余额。<td>告警并接受快照为 <code>on_chain</code>。</table>
+<p>非结构性差异可能来自：</p>
+<ul>
+<li class="">事件重放按交易范围作用，而 RPC 快照按区块范围作用。</li>
+<li class="">分叉或重放区间遗漏了一次 fee-protocol 更新。</li>
+<li class="">重放舍入与链上费用累加器不同。</li>
+</ul>
+<p>接受这些字段与回测重放的行为一致。</p>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=snapshot-bootstrap-guard>快照引导守卫<a href=#snapshot-bootstrap-guard class=hash-link aria-label=快照引导守卫的直接链接 title=快照引导守卫的直接链接 translate=no>​</a></h3>
+<p>只允许从本地快照缓存运行分析时，使用 <code>--require-existing-snapshot</code>：</p>
+<ul>
+<li class="">检查目标区块或之前最新的可用 <code>pool_snapshot</code>。</li>
+<li class="">没有可用快照时返回 <code>needs_bootstrap</code>。</li>
+<li class="">创建区块的快照若既无仓位也无 tick，视为不可用。</li>
+<li class="">跳过该池从创建到目标的引导。</li>
+</ul>
+<h4 class="anchor anchorTargetStickyNavbar_ana5" id=analysis-output>分析输出<a href=#analysis-output class=hash-link aria-label=分析输出的直接链接 title=分析输出的直接链接 translate=no>​</a></h4>
+<p><code>analyze-pool(s)</code> 打印：</p>
+<ul>
+<li class="">每个 <code>--checkpoint-blocks</code> 条目一条 JSON 结果。</li>
+<li class="">未给检查点时，在 <code>--to-block</code> 处输出一条 JSON 结果。</li>
+</ul>
+<p>需要首次引导的池形如：</p>
+<div class="language-json codeBlockContainer_eTMR theme-code-block" style=--prism-color:#393A34;--prism-background-color:#f6f8fa><div class=codeBlockContent_hafM><pre tabindex=0 class="prism-code language-json codeBlock_IMvC thin-scrollbar" style=color:#393A34;background-color:#f6f8fa><code class=codeBlockLines_gZDW><div class=token-line style=color:#393A34><span class="token punctuation" style=color:#393A34>{</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">  </span><span class="token property" style=color:#36acaa>"chain"</span><span class="token operator" style=color:#393A34>:</span><span class="token plain"> </span><span class="token string" style=color:#e3116c>"Ethereum"</span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">  </span><span class="token property" style=color:#36acaa>"dex"</span><span class="token operator" style=color:#393A34>:</span><span class="token plain"> </span><span class="token string" style=color:#e3116c>"UniswapV3"</span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">  </span><span class="token property" style=color:#36acaa>"pool_address"</span><span class="token operator" style=color:#393A34>:</span><span class="token plain"> </span><span class="token string" style=color:#e3116c>"0x1111111111111111111111111111111111111111"</span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">  </span><span class="token property" style=color:#36acaa>"target_block"</span><span class="token operator" style=color:#393A34>:</span><span class="token plain"> </span><span class="token number" style=color:#36acaa>25218797</span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">  </span><span class="token property" style=color:#36acaa>"status"</span><span class="token operator" style=color:#393A34>:</span><span class="token plain"> </span><span class="token string" style=color:#e3116c>"needs_bootstrap"</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain"></span><span class="token punctuation" style=color:#393A34>}</span><br/></div></code></pre></div></div>
+<p>成功的结果包含 <code>validation_state</code>：</p>
+<ul>
+<li class=""><code>on_chain</code>：已水合并与链上比对一致。</li>
+<li class=""><code>replay</code>：重放派生或未检查，仍可用作重放起点。</li>
+<li class=""><code>invalid</code>：已水合但不一致，不可用。</li>
+</ul>
+<div class="language-json codeBlockContainer_eTMR theme-code-block" style=--prism-color:#393A34;--prism-background-color:#f6f8fa><div class=codeBlockContent_hafM><pre tabindex=0 class="prism-code language-json codeBlock_IMvC thin-scrollbar" style=color:#393A34;background-color:#f6f8fa><code class=codeBlockLines_gZDW><div class=token-line style=color:#393A34><span class="token punctuation" style=color:#393A34>{</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">  </span><span class="token property" style=color:#36acaa>"chain"</span><span class="token operator" style=color:#393A34>:</span><span class="token plain"> </span><span class="token string" style=color:#e3116c>"Ethereum"</span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">  </span><span class="token property" style=color:#36acaa>"dex"</span><span class="token operator" style=color:#393A34>:</span><span class="token plain"> </span><span class="token string" style=color:#e3116c>"UniswapV3"</span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">  </span><span class="token property" style=color:#36acaa>"pool_address"</span><span class="token operator" style=color:#393A34>:</span><span class="token plain"> </span><span class="token string" style=color:#e3116c>"0x1111111111111111111111111111111111111111"</span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">  </span><span class="token property" style=color:#36acaa>"target_block"</span><span class="token operator" style=color:#393A34>:</span><span class="token plain"> </span><span class="token number" style=color:#36acaa>25218797</span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">  </span><span class="token property" style=color:#36acaa>"status"</span><span class="token operator" style=color:#393A34>:</span><span class="token plain"> </span><span class="token string" style=color:#e3116c>"success"</span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">  </span><span class="token property" style=color:#36acaa>"snapshot_block"</span><span class="token operator" style=color:#393A34>:</span><span class="token plain"> </span><span class="token number" style=color:#36acaa>25218790</span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">  </span><span class="token property" style=color:#36acaa>"positions"</span><span class="token operator" style=color:#393A34>:</span><span class="token plain"> </span><span class="token number" style=color:#36acaa>2</span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">  </span><span class="token property" style=color:#36acaa>"ticks"</span><span class="token operator" style=color:#393A34>:</span><span class="token plain"> </span><span class="token number" style=color:#36acaa>7</span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">  </span><span class="token property" style=color:#36acaa>"validation_state"</span><span class="token operator" style=color:#393A34>:</span><span class="token plain"> </span><span class="token string" style=color:#e3116c>"replay"</span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">  </span><span class="token property" style=color:#36acaa>"already_valid"</span><span class="token operator" style=color:#393A34>:</span><span class="token plain"> </span><span class="token boolean" style=color:#36acaa>false</span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">  </span><span class="token property" style=color:#36acaa>"liquidity_utilization_rate"</span><span class="token operator" style=color:#393A34>:</span><span class="token plain"> </span><span class="token number" style=color:#36acaa>0.25</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain"></span><span class="token punctuation" style=color:#393A34>}</span><br/></div></code></pre></div></div>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=checkpoints-and-concurrency>检查点与并发<a href=#checkpoints-and-concurrency class=hash-link aria-label=检查点与并发的直接链接 title=检查点与并发的直接链接 translate=no>​</a></h3>
+<ul>
+<li class=""><code>--checkpoint-blocks b1,b2,...</code>：一趟引导产出多个快照。区块会排序、去重并
+截断到 <code>--to-block</code>。</li>
+<li class=""><code>--concurrency</code>：控制 <code>analyze-pools</code> 的并行度。默认 <code>4</code>。</li>
+<li class=""><code>--skip-validation</code>：跳过链上比对，重放派生快照保持为 <code>replay</code>。</li>
+<li class=""><code>--snapshot-from-rpc</code>：在检查点区块从链上水合，快照记录为
+<code>on_chain</code>。</li>
+</ul>
+<p>快照键：</p>
+<ul>
+<li class="">默认模式：以检查点或之前最后一条池事件为键。两次检查点之间没有事件时可以
+共用同一存储行。</li>
+<li class=""><code>--snapshot-from-rpc</code>：以请求的检查点区块为键，附带区块范围的哨兵
+交易/日志索引。</li>
+</ul>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=backtest-replay>回测重放<a href=#backtest-replay class=hash-link aria-label=回测重放的直接链接 title=回测重放的直接链接 translate=no>​</a></h3>
+<p>回测重放需要输入数据里带快照。适配器在回测期间不处理实时快照请求。</p>
+<p><code>load_pool_snapshot</code> 从 Postgres 读取包含仓位与 tick 的完整快照：</p>
+<div class="language-python codeBlockContainer_eTMR theme-code-block" style=--prism-color:#393A34;--prism-background-color:#f6f8fa><div class=codeBlockContent_hafM><pre tabindex=0 class="prism-code language-python codeBlock_IMvC thin-scrollbar" style=color:#393A34;background-color:#f6f8fa><code class=codeBlockLines_gZDW><div class=token-line style=color:#393A34><span class="token keyword" style=color:#00009f>from</span><span class="token plain"> nautilus_trader</span><span class="token punctuation" style=color:#393A34>.</span><span class="token plain">adapters</span><span class="token punctuation" style=color:#393A34>.</span><span class="token plain">blockchain </span><span class="token keyword" style=color:#00009f>import</span><span class="token plain"> load_pool_snapshot</span><br/></div><div class=token-line style=color:#393A34><span class="token plain" style=display:inline-block></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">snapshot </span><span class="token operator" style=color:#393A34>=</span><span class="token plain"> load_pool_snapshot</span><span class="token punctuation" style=color:#393A34>(</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    pg_config</span><span class="token operator" style=color:#393A34>=</span><span class="token plain">postgres_config</span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    chain_id</span><span class="token operator" style=color:#393A34>=</span><span class="token plain">chain_id</span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    pool_address</span><span class="token operator" style=color:#393A34>=</span><span class="token plain">pool_address</span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    before_block</span><span class="token operator" style=color:#393A34>=</span><span class="token plain">replay_start_block</span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain">  </span><span class="token comment" style=color:#999988;font-style:italic># latest snapshot at or before this block</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain"></span><span class="token punctuation" style=color:#393A34>)</span><br/></div></code></pre></div></div>
+<p>重放规则：</p>
+<ul>
+<li class="">默认排除标记为 <code>invalid</code> 的快照，<code>on_chain</code> 与 <code>replay</code> 都可能返回。
+只有当调用方也接受 <code>invalid</code> 快照时才传 <code>require_valid=False</code>。</li>
+<li class=""><code>None</code> 视为环境准备失败，不要在没有剖析器状态时重放。</li>
+<li class="">把结果包装为 <code>DefiData.PoolSnapshot(snapshot)</code>，连同池事件一起传给
+<code>BacktestEngine.add_defi_data</code>。</li>
+<li class="">从快照区块开始重放每条池事件。晚于快照区块开始会让剖析器状态过期。</li>
+</ul>
+<p>缓存的区块时间戳加载为 Nautilus 数据对象时是 UNIX 纳秒。以秒级精度写入的缓存行
+在加载快照与池事件时归一化为纳秒，纳秒行保持其存储精度。</p>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=pool-analysis-constraints>池分析约束<a href=#pool-analysis-constraints class=hash-link aria-label=池分析约束的直接链接 title=池分析约束的直接链接 translate=no>​</a></h3>
+<p><code>analyze-pool(s)</code> 校验前置条件并逐池独立报告。直接调用底层 Rust 分析服务时同样
+适用这些边界。</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>条件<th>行为<th>约束<tbody><tr><td>缺少池元数据<td>以 <code>Pool &lt;address> is not registered</code> 失败。<td>先发现池；分析不能推断或注册元数据。<tr><td>缺少解析器能力<td>同步前失败。<td>使用<a href=#chain-and-dex-command-support class="">链与 DEX 命令支持</a>中支持快照的组合。<tr><td>地址未用校验和<td>以 <code>Blockchain address '&lt;address>' has incorrect checksum</code> 失败。<td>提供 EIP-55 地址；工厂 <code>getPool</code> 的结果可能需要转换校验和。<tr><td>提供商 Multicall 上限<td><code>out of gas</code>、载荷或超时错误会中止最终状态水合。<td>调低 <code>multicall_calls_per_rpc_request</code>，或换限额更高的提供商。<tr><td>缺少历史状态<td>首次引导无法在过旧的 <code>--to-block</code> 读取最终状态。<td>用较新的目标或支持 archive 的提供商；见 <a href=#rpc-provider-requirements class="">RPC 提供商要求</a>。<tr><td>HyperSync 配额受限<td>高活跃池会退避，完整首次同步可能需要数千次请求。<td>调低 <code>--concurrency</code>；不需要存储 swap 历史时用 <code>--snapshot-from-rpc</code>。<tr><td>中途 <code>--from-block</code><td>遗漏 <code>Initialize</code> 会让剖析器缺少初始价格。<td>生成首个快照时从池创建开始同步。<tr><td>无流动性事件<td><code>analyze-pool</code> 报错；<code>analyze-pools</code> 输出失败结果并继续其他池。<td>选择在目标区块或之前有 Mint 或 Burn 的池。<tr><td>任一单池失败<td>输出 <code>"status": "failure"</code>，<code>analyze-pool(s)</code> 以非零退出。<td>整体结果看退出码，单池结果看各自 JSON 状态。</table>
+<p><code>--snapshot-from-rpc</code> 模式的最终 RPC 水合是检查点状态的权威。水合失败会中止分析，
+而不是存储带过期价格状态的快照。</p>
+<h2 class="anchor anchorTargetStickyNavbar_ana5" id=pool-analysis-operations>池分析操作<a href=#pool-analysis-operations class=hash-link aria-label=池分析操作的直接链接 title=池分析操作的直接链接 translate=no>​</a></h2>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=discover-pools-before-analysis>分析前先发现池<a href=#discover-pools-before-analysis class=hash-link aria-label=分析前先发现池的直接链接 title=分析前先发现池的直接链接 translate=no>​</a></h3>
+<p><code>analyze-pool(s)</code> 从 Postgres 缓存读取池元数据，池未被发现时以
+<code>Pool &lt;address> is not registered</code> 失败。分析前先对相应链与 DEX 运行
+<code>sync-dex</code>，填充 <code>pool</code> 与 <code>token</code> 表。</p>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=check-command-support>检查命令支持<a href=#check-command-support class=hash-link aria-label=检查命令支持的直接链接 title=检查命令支持的直接链接 translate=no>​</a></h3>
+<p>开始同步前，参照<a href=#chain-and-dex-command-support class="">链与 DEX 命令支持</a>或命令帮助。
+<code>sync-dex</code> 与 <code>analyze-pool(s)</code> 会在查询事件前拒绝不支持的链与 DEX 组合，
+而不是返回空结果。</p>
+<div class="language-bash codeBlockContainer_eTMR theme-code-block" style=--prism-color:#393A34;--prism-background-color:#f6f8fa><div class=codeBlockContent_hafM><pre tabindex=0 class="prism-code language-bash codeBlock_IMvC thin-scrollbar" style=color:#393A34;background-color:#f6f8fa><code class=codeBlockLines_gZDW><div class=token-line style=color:#393A34><span class="token plain">./target/debug/nautilus blockchain sync-dex --help</span><br/></div><div class=token-line style=color:#393A34><span class="token plain">./target/debug/nautilus blockchain analyze-pools --help</span><br/></div></code></pre></div></div>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=use-checksummed-pool-addresses>使用校验和格式的池地址<a href=#use-checksummed-pool-addresses class=hash-link aria-label=使用校验和格式的池地址的直接链接 title=使用校验和格式的池地址的直接链接 translate=no>​</a></h3>
+<p>池地址必须使用 EIP-55 校验和。小写地址会以
+<code>Blockchain address '&lt;address>' has incorrect checksum</code> 失败。把发现的地址转换为
+校验和形式后再传 <code>--address</code> 或写入地址文件。</p>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=reduce-the-multicall-request-size>缩小 Multicall 请求规模<a href=#reduce-the-multicall-request-size class=hash-link aria-label="缩小 Multicall 请求规模的直接链接" title="缩小 Multicall 请求规模的直接链接" translate=no>​</a></h3>
+<p>RPC 提供商可能以 out-of-gas、载荷或超时错误拒绝过大的最终状态 Multicall。把
+<code>--multicall-calls-per-rpc-request</code> 从默认 <code>200</code> 调低，使单次请求保持在提供商
+限额内。</p>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=choose-a-target-block-the-rpc-provider-can-serve>选择提供商能提供服务的目标区块<a href=#choose-a-target-block-the-rpc-provider-can-serve class=hash-link aria-label=选择提供商能提供服务的目标区块的直接链接 title=选择提供商能提供服务的目标区块的直接链接 translate=no>​</a></h3>
+<p>首次同步在 <code>--to-block</code> 读取链上状态。非 archive 的 RPC 提供商要用较新的目标
+区块，或者改用能在请求的历史区块提供合约状态的提供商。见
+<a href=#rpc-provider-requirements class="">RPC 提供商要求</a>。</p>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=control-hypersync-request-volume>控制 HyperSync 请求量<a href=#control-hypersync-request-volume class=hash-link aria-label="控制 HyperSync 请求量的直接链接" title="控制 HyperSync 请求量的直接链接" translate=no>​</a></h3>
+<p>大型或历史悠久的池首次完整同步可能需要数千次请求。配置的 token 配额受限时调低
+<code>--concurrency</code>。精确检查点快照已够用、不需要存储 swap 历史时用
+<code>--snapshot-from-rpc</code>。</p>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=start-an-initial-replay-at-pool-creation>初始重放从池创建开始<a href=#start-an-initial-replay-at-pool-creation class=hash-link aria-label=初始重放从池创建开始的直接链接 title=初始重放从池创建开始的直接链接 translate=no>​</a></h3>
+<p><code>--from-block</code> 设在池历史中间可能遗漏其 <code>Initialize</code> 事件。没有初始价格时，
+快照引导会以
+<code>Pool is not initialized and it doesn't contain initial price, cannot bootstrap profiler</code>
+失败。生成首个快照时从池创建开始同步。</p>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=interpret-pool-failures>解读池失败<a href=#interpret-pool-failures class=hash-link aria-label=解读池失败的直接链接 title=解读池失败的直接链接 translate=no>​</a></h3>
+<p>目标区块或之前没有已处理 Mint 或 Burn 事件的池，可能缺少生成快照所需的状态。
+<code>analyze-pool</code> 返回错误。<code>analyze-pools</code> 输出一行
+<code>"status": "failure"</code> 的 JSON，继续处理其他池，并在任何单池失败后以非零退出。
+整体结果看进程退出码，单个结果看各自的 JSON 状态。</p>
+<h2 class="anchor anchorTargetStickyNavbar_ana5" id=runbook-validate-a-live-pool-sync>运行手册：验证实时池同步<a href=#runbook-validate-a-live-pool-sync class=hash-link aria-label=运行手册：验证实时池同步的直接链接 title=运行手册：验证实时池同步的直接链接 translate=no>​</a></h2>
+<p>用这套流程检查单个链上单个 DEX 的池发现、事件解析与快照生成。示例用 Arbitrum
+上的 PancakeSwap V3。它只执行只读的链上查询，且只写入配置的 Postgres 缓存。</p>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=prerequisites>前置条件<a href=#prerequisites class=hash-link aria-label=前置条件的直接链接 title=前置条件的直接链接 translate=no>​</a></h3>
+<ul>
+<li class="">Docker 可用，用于本地 Postgres 服务。</li>
+<li class=""><code>ENVIO_API_TOKEN</code> 是有效的 HyperSync token。</li>
+<li class=""><code>RPC_HTTP_URL</code> 指向能提供目标区块的 Arbitrum RPC 提供商。</li>
+<li class=""><code>POOL_ADDRESS</code> 是 EIP-55 校验和格式的 PancakeSwap V3 池地址。</li>
+</ul>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=start-the-local-services-and-build-the-cli>启动本地服务并构建 CLI<a href=#start-the-local-services-and-build-the-cli class=hash-link aria-label="启动本地服务并构建 CLI的直接链接" title="启动本地服务并构建 CLI的直接链接" translate=no>​</a></h3>
+<div class="language-bash codeBlockContainer_eTMR theme-code-block" style=--prism-color:#393A34;--prism-background-color:#f6f8fa><div class=codeBlockContent_hafM><pre tabindex=0 class="prism-code language-bash codeBlock_IMvC thin-scrollbar" style=color:#393A34;background-color:#f6f8fa><code class=codeBlockLines_gZDW><div class=token-line style=color:#393A34><span class="token plain">make init-services</span><br/></div><div class=token-line style=color:#393A34><span class="token plain">cargo build -p nautilus-cli --features defi --bin nautilus</span><br/></div></code></pre></div></div>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=discover-pools>发现池<a href=#discover-pools class=hash-link aria-label=发现池的直接链接 title=发现池的直接链接 translate=no>​</a></h3>
+<p>本地数据库被重置过的话，在分析前先立即运行一次发现：</p>
+<div class="language-bash codeBlockContainer_eTMR theme-code-block" style=--prism-color:#393A34;--prism-background-color:#f6f8fa><div class=codeBlockContent_hafM><pre tabindex=0 class="prism-code language-bash codeBlock_IMvC thin-scrollbar" style=color:#393A34;background-color:#f6f8fa><code class=codeBlockLines_gZDW><div class=token-line style=color:#393A34><span class="token plain">./target/debug/nautilus blockchain sync-dex \</span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    --chain arbitrum \</span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    --dex PancakeSwapV3 \</span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    --rpc-url "$RPC_HTTP_URL" \</span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    --host 127.0.0.1 \</span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    --port 5432 \</span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    --username nautilus \</span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    --password pass \</span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    --database nautilus</span><br/></div></code></pre></div></div>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=analyze-the-pool>分析池<a href=#analyze-the-pool class=hash-link aria-label=分析池的直接链接 title=分析池的直接链接 translate=no>​</a></h3>
+<p>这次验证运行把并发保持为 1：</p>
+<div class="language-bash codeBlockContainer_eTMR theme-code-block" style=--prism-color:#393A34;--prism-background-color:#f6f8fa><div class=codeBlockContent_hafM><pre tabindex=0 class="prism-code language-bash codeBlock_IMvC thin-scrollbar" style=color:#393A34;background-color:#f6f8fa><code class=codeBlockLines_gZDW><div class=token-line style=color:#393A34><span class="token plain">./target/debug/nautilus blockchain analyze-pools \</span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    --chain arbitrum \</span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    --dex PancakeSwapV3 \</span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    --address "$POOL_ADDRESS" \</span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    --rpc-url "$RPC_HTTP_URL" \</span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    --host 127.0.0.1 \</span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    --port 5432 \</span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    --username nautilus \</span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    --password pass \</span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    --database nautilus \</span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    --concurrency 1</span><br/></div></code></pre></div></div>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=check-the-stored-data>检查存储的数据<a href=#check-the-stored-data class=hash-link aria-label=检查存储的数据的直接链接 title=检查存储的数据的直接链接 translate=no>​</a></h3>
+<p>统计为该池写入下列表的行数：</p>
+<ul>
+<li class=""><code>pool_swap_event</code></li>
+<li class=""><code>pool_liquidity_event</code></li>
+<li class=""><code>pool_collect_event</code></li>
+<li class=""><code>pool_flash_event</code></li>
+<li class=""><code>pool_fee_protocol_update_event</code></li>
+<li class=""><code>pool_fee_protocol_collect_event</code></li>
+<li class=""><code>pool_snapshot</code></li>
+<li class=""><code>pool_position</code></li>
+<li class=""><code>pool_tick</code></li>
+</ul>
+<p>同步范围内没有 <code>SetFeeProtocol</code> 或 <code>CollectProtocol</code> 事件时，fee-protocol
+相关表保持为空。本地数据库重置后，先重跑发现再分析，池行才会存在。地址、提供商、
+重放区间与请求量相关的失败见<a href=#pool-analysis-operations class="">池分析操作</a>。</p>
+<h2 class="anchor anchorTargetStickyNavbar_ana5" id=contracts>合约<a href=#contracts class=hash-link aria-label=合约的直接链接 title=合约的直接链接 translate=no>​</a></h2>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=base-contract-and-multicall3>基础合约与 Multicall3<a href=#base-contract-and-multicall3 class=hash-link aria-label="基础合约与 Multicall3的直接链接" title="基础合约与 Multicall3的直接链接" translate=no>​</a></h3>
+<p><code>BaseContract</code> 通过 Multicall3
+（<code>0xcA11bde05977b3631167028862bE2a173976CA11</code>）批量执行合约调用：</p>
+<ul>
+<li class="">Multicall 使用 <code>tryAggregate(requireSuccess: false)</code>，每个结果各自报告成败，
+由合约包装器决定是否拒绝。</li>
+<li class="">读取在单一区块上下文中执行。</li>
+<li class="">传输与提供商失败以 RPC 错误浮出。</li>
+</ul>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=erc-20-metadata>ERC-20 元数据<a href=#erc-20-metadata class=hash-link aria-label="ERC-20 元数据的直接链接" title="ERC-20 元数据的直接链接" translate=no>​</a></h3>
+<p><code>Erc20Contract</code> 通过 Multicall 读取 <code>name</code>、<code>symbol</code> 与
+<code>decimals</code>。适配器可以跳过代币元数据畸形、原始字节或为空的池。</p>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=uniswap-v3-pools>Uniswap V3 池<a href=#uniswap-v3-pools class=hash-link aria-label="Uniswap V3 池的直接链接" title="Uniswap V3 池的直接链接" translate=no>​</a></h3>
+<p><code>UniswapV3PoolContract</code> 读取池全局状态、活跃 tick 与仓位。</p>
+<ul>
+<li class="">大型池可能超出提供商的载荷、gas 或超时限制。</li>
+<li class="">RPC 快照水合在最终状态读取失败时按失败关闭。</li>
+<li class="">超大型池可能需要更低的 <code>multicall_calls_per_rpc_request</code> 或更强的提供商。</li>
+</ul>
+<p>PancakeSwap V3 复用 Uniswap V3 的读取合约，因为 <code>slot0</code>、<code>ticks</code>、
+<code>positions</code>、<code>liquidity</code> 与费用增长读取共享同一 ABI。fee-protocol 编码不同：</p>
+<ul>
+<li class="">Uniswap V3 把两个 4 位费用分母打包进一个 <code>uint8</code>。</li>
+<li class="">PancakeSwap V3 在 <code>slot0.feeProtocol</code> 中存两个 16 位基点份额，并发出
+<code>SetFeeProtocol(uint32,uint32,uint32,uint32)</code>。</li>
+<li class="">PancakeSwap V3 快照存 <code>fee_protocol0_basis_points</code> 与
+<code>fee_protocol1_basis_points</code>，重放按 <code>fee * basis_points / 10000</code>
+计算协议费。</li>
+</ul>
+<h2 class="anchor anchorTargetStickyNavbar_ana5" id=execution>执行<a href=#execution class=hash-link aria-label=执行的直接链接 title=执行的直接链接 translate=no>​</a></h2>
+<div class="theme-admonition theme-admonition-warning admonition_LYZY alert alert--warning"><div class=admonitionHeading_pnFY><span class=admonitionIcon_tEzm><svg viewBox="0 0 16 16"><path fill-rule=evenodd d="M8.893 1.5c-.183-.31-.52-.5-.887-.5s-.703.19-.886.5L.138 13.499a.98.98 0 0 0 0 1.001c.193.31.53.501.886.501h13.964c.367 0 .704-.19.877-.5a1.03 1.03 0 0 0 .01-1.002L8.893 1.5zm.133 11.497H6.987v-2.003h2.039v2.003zm0-3.004H6.987V5.987h2.039v4.006z"/></svg></span>注意</div><div class=admonitionContent_ZwmI><p>执行客户端尚未达到生产可用。<code>BlockchainExecutionClient</code> 实现了预检、
+显式 WETH 包装与 ERC-20 授权、本地 EIP-1559 签名、持久对账，以及一条 Uniswap V3
+swap 流程。其他订单操作一律按失败关闭，不产生链上或持久化副作用。</div></div>
+<p>本节统一使用下列术语：</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>术语<th>含义<tbody><tr><td>决策高度<td>同一组授权读取集下，三个 RPC 源共同接受的最小新区块高度。<tr><td>验证源<td>一个权威端点，或分属不同配置故障域的两个只读验证器之一。<tr><td>部署清单<td>经审查的合约、代码哈希、代理绑定、身份、池、代币与允许的调用边。<tr><td>意图<td>一次持久的包装、授权或 swap 逻辑操作，与其交易哈希历史无关。<tr><td>签名器所有权<td>对钱包签名器的独占控制，以及分配后对其活跃 nonce 的控制。<tr><td>最终性边界<td>所有源在该交易的包含区块及其之前的最终化祖先链上达成一致的界点。</table>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=connection-and-account-state>连接与账户状态<a href=#connection-and-account-state class=hash-link aria-label=连接与账户状态的直接链接 title=连接与账户状态的直接链接 translate=no>​</a></h3>
+<p>构造客户端需要一个权威 RPC 端点与恰好两个只读验证提供商。每个源需要不同的端点、
+提供商 ID、运营方 ID，以及两两不相交的故障域 ID 集合。</p>
+<h4 class="anchor anchorTargetStickyNavbar_ana5" id=enforced-operating-conditions>强制运行条件<a href=#enforced-operating-conditions class=hash-link aria-label=强制运行条件的直接链接 title=强制运行条件的直接链接 translate=no>​</a></h4>
+<ul>
+<li class="">权威执行端点与两个验证端点必须使用 HTTPS。明文 HTTP 只接受
+<code>127.0.0.0/8</code> 内的规范 IPv4 回环字面量或恰为 <code>[::1]</code> 的地址。
+主机名、IPv4 映射的 IPv6、私有与链路本地地址、非规范数字形式都不合格。</li>
+<li class="">HyperSync 使用同样的 HTTPS 规则。该校验在加载 HyperSync token 或创建其
+客户端之前执行。</li>
+<li class="">区块链 HTTP 客户端拒绝重定向。规范回环 RPC 连接同时绕过配置的与环境代理。
+远程 HTTPS 执行 RPC 客户端继续遵循环境代理变量。</li>
+<li class="">使用 Postgres 的执行连接要求有效的活动载荷密钥、稳定的部署 ID、就绪的受保护
+存储，以及存储信封引用的每个密钥都可用。在加载签名器或发起执行 RPC 调用前，
+对每个保留的载荷完成认证。</li>
+<li class="">挂载的 Postgres 数据库只有在客户端断开以做检查、保护或回滚工作时才允许未受保护。
+重新封装要求受保护存储。未受保护的数据库不能提供执行能力。</li>
+</ul>
+<h4 class="anchor anchorTargetStickyNavbar_ana5" id=operator-assumptions>运营方假设<a href=#operator-assumptions class=hash-link aria-label=运营方假设的直接链接 title=运营方假设的直接链接 translate=no>​</a></h4>
+<p>故障域代表任何共享的上游、经销商、网关、代理、账户、网络路径或托管控制平面。
+不同的 URL 与不同的配置身份并不能证明运营独立。运营方必须核实三个提供商不共享
+控制或故障域。</p>
+<p>运营方还必须识别并监控所有能够改变清单固定部署的代码、或改变清单固定代理的实现
+的一方或治理机制。一旦此类部署变更或代理升级被公告或被怀疑，立即停止执行，并撤销
+支出方是受影响部署中路由地址的全部未回收授权。在签名所用决策区块上出现变更后代码
+或实现之前完成全部撤销；一旦出现，签名前的部署检查会对所有客户端交易按失败关闭，
+包括撤销本身。</p>
+<p>运营方必须保证签名密钥只被一个在线客户端独占，并控制对主机环境、数据库、副本、
+备份与导出通道的访问。</p>
+<p>Connect 在加载签名器前完成这些检查：</p>
 <ol>
-<li><strong><code>CallFailed</code></strong> — 合约不存在或函数未实现 → 跳过该代币</li>
-<li><strong><code>DecodingError</code></strong> — 返回原始字节而非 ABI 编码（例如 <code>0x5269636f...</code>）→ 跳过该代币</li>
-<li><strong><code>EmptyTokenField</code></strong> — 函数返回空字符串 → 若强制校验则跳过</li>
+<li class="">打开持久执行存储。配置了 Postgres 时，要求受保护存储就绪，并在加载任何已有
+验证台账前认证全部保留载荷。</li>
+<li class="">要求三个源都与本地链 ID 和经审查的最终化检查点一致。</li>
+<li class="">以每次至多 4,096 个区块的窗口扩展或复查持久的最终化区块头祖先链。</li>
+<li class="">要求三个源给出完全一致的最新区块高度签名器 nonce。</li>
+<li class="">在最终化高度验证经审查的部署清单，包括运行时代码、代理槽位、实现、路由与
+工厂关系、池身份、代币小数位与固定的报价合约。</li>
+<li class="">对每个源探测 archive、finalized 标签、显式高度状态与调用、gas、存储、报价与
+调用跟踪能力。</li>
+<li class="">原子地安装验证台账，或连同授权各项分类的证据迁移保留的执行历史。</li>
+<li class="">从 <code>signer_private_key_env</code> 加载私钥，要求其地址等于
+<code>wallet_address</code>，并对任何活跃意图做对账。</li>
+<li class="">读取原生余额与配置的 ERC-20 余额，安装完整钱包快照，并在配置的账户 ID 下
+发布一个 <code>AccountState</code>。</li>
 </ol>
-<p><strong>最佳实践（Best Practices）：</strong></p>
+<p>没有 Postgres 时，客户端可以连接并发布余额，但所有交易操作都会被拒绝。验证、
+迁移、对账、余额或精确金额换算失败会让客户端保持断开：移除已加载的签名器，保留
+之前的完整快照，不发布任何部分钱包状态。重复的代币符号也会导致快照被拒，因为
+符号定义货币身份。</p>
+<p>验证提供商从不接收已签名的交易字节，也没有广播方法。只有权威端点接收
+<code>eth_sendRawTransaction</code>。用于授权签名、重广播或持久迁移的安全关键未签名读取
+发给全部三个源。诊断性预检与连接时的余额发布只走权威端点，且不能授权执行。
+这保护的是完整性，不是订单机密性。需要路由或金额机密性的运营方需要另一套执行
+设计。</p>
+<p>发布的余额取 <code>total = free</code>、<code>locked = 0</code>。钱包账户在推导有效可用与锁定余额时
+应用本地预留，见<a class="" href=/concepts/accounting#wallet-accounts>钱包账户</a>。</p>
+<p>客户端启动后，<code>QueryAccount</code> 直接重发已安装的快照，不再做 RPC 读取。以下情况
+会失败：</p>
 <ul>
-<li>若某个池（pool）的任一代币出现错误，建议跳过该池</li>
-<li><code>raw_data</code> 字段保留原始响应，便于调试</li>
-<li>非标准代币通常还可能存在其他问题（例如转账手续费、rebasing 等）</li>
+<li class="">请求的账户 ID 与客户端账户 ID 不一致。</li>
+<li class="">客户端尚未启动。</li>
+<li class="">不存在完整快照。</li>
 </ul>
-<h2 class="anchor anchorWithStickyNavbar_RpWm" id="配置configuration">配置（Configuration）<a href="#配置configuration" class="hash-link" aria-label="配置（Configuration）的直接链接" title="配置（Configuration）的直接链接" translate="no">​</a></h2>
-<table><thead><tr><th>Option</th><th>Default</th><th>Description</th></tr></thead><tbody><tr><td><code>chain</code></td><td>Required</td><td>要同步的 <code>nautilus_trader.model.Chain</code>（例如 <code>Chain.ETHEREUM</code>）。</td></tr><tr><td><code>dex_ids</code></td><td>Required</td><td>描述要启用哪些 DEX 集成的 <code>DexType</code> 标识序列。</td></tr><tr><td><code>http_rpc_url</code></td><td>Required</td><td>用于 EVM 调用和 Multicall 请求的 HTTPS RPC 端点。</td></tr><tr><td><code>wss_rpc_url</code></td><td><code>None</code></td><td>可选的 WSS 端点，用于流式接收实时更新。</td></tr><tr><td><code>rpc_requests_per_second</code></td><td><code>None</code></td><td>可选的出站 RPC 调用限速（每秒请求数）。</td></tr><tr><td><code>multicall_calls_per_rpc_request</code></td><td><code>100</code></td><td>单次 RPC 请求中批处理的 Multicall 目标最大数量。</td></tr><tr><td><code>use_hypersync_for_live_data</code></td><td><code>True</code></td><td>若为 <code>True</code>，使用 Hypersync 进行引导和流式同步以获得更低延迟的差分（diffs）。</td></tr><tr><td><code>from_block</code></td><td><code>None</code></td><td>用于历史回溯的可选起始区块高度。</td></tr><tr><td><code>pool_filters</code></td><td><code>DexPoolFilters()</code></td><td>选择要监控的 DEX 池时应用的过滤规则。</td></tr><tr><td><code>postgres_cache_database_config</code></td><td><code>None</code></td><td>可选的 <code>PostgresConnectOptions</code>，用于在磁盘上缓存已解码的池状态。</td></tr></tbody></table></div><footer class="theme-doc-footer docusaurus-mt-lg"><div class="row margin-top--sm theme-doc-footer-edit-meta-row"><div class="col"><a href="https://github.com/Aloento/NautilusTraderDoc/tree/main/docs/integrations/blockchain.md" target="_blank" rel="noopener noreferrer" class="theme-edit-this-page"><svg fill="currentColor" height="20" width="20" viewBox="0 0 40 40" class="iconEdit_F7ru" aria-hidden="true"><g><path d="m34.5 11.7l-3 3.1-6.3-6.3 3.1-3q0.5-0.5 1.2-0.5t1.1 0.5l3.9 3.9q0.5 0.4 0.5 1.1t-0.5 1.2z m-29.5 17.1l18.4-18.5 6.3 6.3-18.4 18.4h-6.3v-6.2z"></path></g></svg>编辑此页</a></div><div class="col lastUpdated_GNoA"></div></div></footer></article><nav class="docusaurus-mt-lg pagination-nav" aria-label="文件选项卡"><a class="pagination-nav__link pagination-nav__link--prev" href="/integrations/bitmex"><div class="pagination-nav__sublabel">上一页</div><div class="pagination-nav__label">BitMEX</div></a><a class="pagination-nav__link pagination-nav__link--next" href="/integrations/bybit"><div class="pagination-nav__sublabel">下一页</div><div class="pagination-nav__label">Bybit</div></a></nav></div></div><div class="col col--3"><div class="tableOfContents_pg_n thin-scrollbar theme-doc-toc-desktop"><ul class="table-of-contents table-of-contents__left-border"><li><a href="#合约contracts" class="table-of-contents__link toc-highlight">合约（Contracts）</a><ul><li><a href="#基础multicall3" class="table-of-contents__link toc-highlight">基础（Multicall3）</a></li><li><a href="#erc20" class="table-of-contents__link toc-highlight">ERC20</a></li></ul></li><li><a href="#配置configuration" class="table-of-contents__link toc-highlight">配置（Configuration）</a></li></ul></div></div></div></div></main></div></div></div><footer class="theme-layout-footer footer footer--dark"><div class="container container-fluid"><div class="row footer__links"><div class="theme-layout-footer-column col footer__col"><div class="footer__title"></div><ul class="footer__items clean-list"><li class="footer__item"><a href="https://github.com/nautechsystems/nautilus_trader" target="_blank" rel="noopener noreferrer" class="footer__link-item">Official GitHub<svg width="13.5" height="13.5" aria-label="(opens in new tab)" class="iconExternalLink_KfBJ"><use href="#theme-svg-external-link"></use></svg></a></li><li class="footer__item"><a href="https://nautilustrader.io/docs" target="_blank" rel="noopener noreferrer" class="footer__link-item">Official Documentation<svg width="13.5" height="13.5" aria-label="(opens in new tab)" class="iconExternalLink_KfBJ"><use href="#theme-svg-external-link"></use></svg></a></li></ul></div></div><div class="footer__bottom text--center"><div class="footer__copyright">© 2025 Nautech Systems Pty Ltd. All rights reserved.</div></div></div></footer></div>
-</body>
-</html>
+<p>Disconnect 移除签名器并中止在途的提交任务。交易操作在任何执行 RPC 调用前
+拒绝已断开的客户端。</p>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=supported-order-slice>支持的订单范围<a href=#supported-order-slice class=hash-link aria-label=支持的订单范围的直接链接 title=支持的订单范围的直接链接 translate=no>​</a></h3>
+<p>客户端只接受一种市价单形态：</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>维度<th>接受<th>拒绝<tbody><tr><td>链<td>执行客户端配置的链。<td>金融工具场所属于其他链。<tr><td>DEX<td>Uniswap V3。<td>其他一切 DEX，包括 PancakeSwap V3。<tr><td>池<td><code>Cache::pool</code> 中带费率层级的地址型池。<td>未知的池、V4 池 ID 与无费率层级的池。<tr><td>订单<td>单笔方向为 <code>BUY</code> 或 <code>SELL</code> 的 <code>MarketOrder</code>。<td>经 <code>SubmitOrder</code> 提交的非市价订单。<tr><td>数量<td>以 base 计价的规模，且在 <code>max_order_amount</code> 内；BUY 还需匹配的 quote 支出上限。<td>以 quote 计价的输入，或超过任一适用上限的金额。<tr><td>方向<td>模型优先级互不相同的代币。<td>代币优先级相同、方向有歧义的交易对。</table>
+<p><code>InstrumentId</code> 选定池，例如
+<code>0xC6962004f452bE9203591991D15f6b388e09E8D0.Arbitrum:UniswapV3</code>。其场所必须能解析为 <code>&lt;Chain>:&lt;DexType></code>，
+其代码必须能解析为地址型 <code>PoolIdentifier</code>。<code>Pool::get_base_token</code> 与 <code>Pool::get_quote_token</code>
+应用模型的代币优先级约定：</p>
+<ul>
+<li class="">稳定币是 quote 资产。</li>
+<li class="">包装原生资产次之。</li>
+<li class="">其他代币相对它们成为 base 资产。</li>
+</ul>
+<p><code>Token::get_token_priority</code> 取值相等即为有歧义，订单被拒绝。</p>
+<p>场所路由接受任何场所匹配的配置链上的 Uniswap V3。swap 准备还要求该链注册了
+Uniswap V3 部署与工厂。</p>
+<p>订单列表对每个未结订单一律 <code>OrderDenied</code>。修改、撤单与批量撤单命令对被引用的
+每个缓存订单一律 <code>OrderModifyRejected</code> 或 <code>OrderCancelRejected</code>。全部撤单命令与
+订单查询只记录警告、不发事件。批量状态返回 <code>Ok(None)</code>，使启动对账记录日志并
+继续。订单、成交与持仓报告探测返回错误，避免 LiveNode 把空答复当作不存在。
+这些路径从不签名、广播或持久化意图。</p>
+<p>swap 在达到最终性前保持 <code>Submitted</code>，场所状态查询无法解析它。客户端要求提交
+保留（submission retention）。在途检查耗尽重试时，LiveNode 记录警告并让 swap
+保持 <code>Submitted</code> 而不是拒绝。因此最终化的成交或拒绝之后仍会作用于该订单。
+若节点在最终性之前停止，关闭流程会为本轮提交的每笔 swap 报告未完成的提交恢复，
+持久化的意图在下次 connect 时对账。请保持未结订单检查关闭。</p>
+<p>执行路由遵循 Nautilus 的多场所经纪模式。客户端代表一条链上的一个钱包与 RPC
+连接。每个金融工具场所同时标识其链与 DEX。</p>
+<p>策略可以通过 <code>client_id</code> 显式选择客户端。节点配置也可以通过
+<code>RoutingConfig.venues</code> 为金融工具场所注册客户端，或把它用作默认执行客户端。
+选定客户端后，<code>ExecutionClient::handles_order_venue</code>
+只接受解析链与客户端配置匹配、且 DEX 受客户端支持的场所。金融工具保留其
+<code>&lt;Chain>:&lt;DexType></code> 场所，不会被改写成 <code>BLOCKCHAIN</code>。</p>
+<p>订单映射为原始 Uniswap SwapRouter（签名带 deadline 的那个部署）上的一次
+<code>exactInputSingle</code> 调用。<code>allowed_token_pairs</code> 是有向的
+<code>(token_in, token_out)</code>：SELL 需要 base→quote 对，BUY 需要
+quote→base 对。只列一个方向不会放行另一个方向。</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>参数<th>来源<tbody><tr><td><code>tokenIn</code><td>SELL：池 base 代币。BUY：池 quote 代币。<tr><td><code>tokenOut</code><td>SELL：池 quote 代币。BUY：池 base 代币。<tr><td><code>fee</code><td>池费率层级。<tr><td><code>recipient</code><td>执行钱包地址。<tr><td><code>deadline</code><td>验证过的决策区块头时间戳加配置的 <code>deadline_seconds</code>。<tr><td><code>amountIn</code><td>SELL：<code>Quantity</code> 的原始 base 单位。BUY：来自验证过的 exact-output 报价的 quote 输入。<tr><td><code>amountOutMinimum</code><td>由决策高度验证过的报价推导（见下文）。<tr><td><code>sqrtPriceLimitX96</code><td><code>0</code>（滑点由 <code>amountOutMinimum</code> 限定）。</table>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=buy-quote-spend-limits>BUY 的 quote 支出上限<a href=#buy-quote-spend-limits class=hash-link aria-label="BUY 的 quote 支出上限的直接链接" title="BUY 的 quote 支出上限的直接链接" translate=no>​</a></h3>
+<p>每笔 BUY 都需要一条指向该 quote→base 交易对的 <code>quote_spend_limits</code>
+条目。条目在 <code>max_amount</code> 旁重复给出 quote 代币地址与小数位，<code>max_amount</code>
+是用币原始单位表示的 base-10 字符串。客户端构造会拒绝下列条目：</p>
+<ul>
+<li class="">同一有向交易对的第二条条目。</li>
+<li class=""><code>spend_token</code> 与 <code>token_in</code> 不同。</li>
+<li class=""><code>max_amount</code> 不是 <code>U256</code> 范围内的 base-10 无符号整数。</li>
+<li class="">交易对不在 <code>allowed_token_pairs</code> 中。</li>
+</ul>
+<p>订单准备还会把配置的代币与小数位同选定的池核对（示例条目见
+<a href=#execution-configuration class="">执行配置</a>）。</p>
+<p>客户端在签名前把三个源独立验证过的 exact-output 报价的 <code>amountIn</code> 与该上限
+比较。相等可接受，超出一个原始单位即被拒绝。<code>max_order_amount</code> 仍是提交的
+base 数量的独立上限，SELL 订单不使用 <code>quote_spend_limits</code>。</p>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=slippage-protection>滑点保护<a href=#slippage-protection class=hash-link aria-label=滑点保护的直接链接 title=滑点保护的直接链接 translate=no>​</a></h3>
+<p><code>amountOutMinimum</code> 一律推导得出，绝不由调用方提供：</p>
+<ol>
+<li class="">要求共享引擎缓存（<code>Cache::pool_profiler</code>）中存在已初始化的
+<code>PoolProfiler</code>，且带已处理事件水位线。其本地模拟必须能吃满 SELL 的输入
+或产出非零的 BUY 输入，但其金额不设置任何签名字段。该状态通常由实时的
+数据侧订阅维护。</li>
+<li class="">从三个源报告的最小新区块高度中选取决策高度。新区块高度的偏斜必须保持在
+<code>verification.chain_anchor.max_head_skew_blocks</code> 之内。</li>
+<li class="">要求剖析器水位线包含摄取时观察到的区块哈希。三个源必须都返回该确切的
+显式高度区块头。按区块取快照时，快照还必须把该区块头哈希作为快照标识。</li>
+<li class="">对事件水位线，要求存在一条规范回执，其交易、区块与索引元数据与剖析器位置
+匹配。选中的日志必须来自预期池，并使用受支持的池事件签名。</li>
+<li class="">验证一条从剖析器高度到决策高度、由父哈希链接、三个源完全一致的祖先链。
+距离不得超过 <code>max_quote_age_blocks</code>，该值必须在 <code>1..=4095</code> 内。</li>
+<li class="">通过三个源在决策高度调用清单固定的 <code>IQuoterV2</code> 合约。SELL 用
+<code>quoteExactInputSingle</code>，BUY 用
+<code>quoteExactOutputSingle</code>。完整解码结果必须一致，包括金额、结果平方根价格、
+跨越的已初始化 tick 与 gas 估计。</li>
+<li class="">签名前立即重读检查点、剖析器区块头、决策区块头、祖先链与报价。结果不可得
+或发生变化都会阻止签名。</li>
+<li class="">SELL 从验证过的 exact-input 输出计算 <code>amountOutMinimum</code>。BUY
+把验证过的 exact-output 输入用作 <code>amountIn</code>，并从请求的 base 输出推导
+<code>amountOutMinimum</code>。整数运算拒绝为零的最小值。</li>
+</ol>
+<p>剖析器出现分歧时可以请求数据刷新，但不能覆盖已验证的报价或削弱签名限额。</p>
+<p><code>slippage_bps</code> 配置字段设定滑点。提交命令 <code>params</code> 中的
+<code>slippage_bps</code> 条目会覆盖它、仅作用于该订单。超过 <code>max_slippage_bps</code>
+上限的覆盖在签名前被拒绝。</p>
+<p>升级前写入的事件行可能没有摄取区块哈希，因为模式迁移不回填该字段。这类行不能
+授权执行。下单前先通过正常实时数据订阅刷新交易池，或重同步其事件并重建快照。</p>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=preflight-wrapping-and-approval>预检、包装与授权<a href=#preflight-wrapping-and-approval class=hash-link aria-label=预检、包装与授权的直接链接 title=预检、包装与授权的直接链接 translate=no>​</a></h3>
+<p>预检、WETH 包装与路由授权是客户端上的显式操作，与 <code>submit_order</code> 分离：</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>操作<th>状态变化<th>广播前检查<th>完成检查<tbody><tr><td>预检<td>无。<td>权威链、已部署代码、余额、授权与当前费用的诊断。<td>返回结构化、脱敏后的报告。<tr><td>包装<td>带 value 调用 WETH <code>deposit()</code>。<td>验证过的决策祖先链、部署、WETH 余额、原生余额、gas、费用、nonce 与显式高度模拟。<td>WETH 余额恰好增加所包装的数量。<tr><td>授权<td>调用 <code>approve(router, amount)</code>。<td>包装的全部检查，另加路由策略、工厂与 WETH 身份、输入代币资格、零授权与授权模拟。<td>包含区块处的授权额等于目标值。</table>
+<p>预检从 <code>Cache::pool</code> 解析池。报告不含 RPC URL、私钥或原始签名交易。它报告
+下列数值并做检查：</p>
+<ul>
+<li class="">预期与观察到的链 ID。</li>
+<li class="">池、路由与代币的代码检查。</li>
+<li class="">代币余额与授权额，以及原生余额。</li>
+<li class="">base fee 与 priority fee、推导出的最大费用，以及该费用是否在上限内。</li>
+<li class="">整体就绪状态与每项失败的检查。</li>
+</ul>
+<p>Approve 拒绝标准的 <code>false</code> 返回值，接受不返回数据的代币。非零授权仅限配置的
+输入代币，且要求现有授权为零。开启 <code>unlimited_approval</code> 时，所有非零请求都以
+<code>U256::MAX</code> 为目标。最终授权必须精确等于目标值。零请求即使路由部署元数据不可用
+也能撤销白名单路由的授权，因此路由检查损坏并不能阻止撤销。</p>
+<p>调用不被打断时，包装与授权共用 EIP-1559 路径。它们在广播前持久化意图与签名
+哈希，在稳定最终性与操作后置条件成立后返回。Wrap 比较广播前一刻与包含区块处的
+WETH 余额，避免使用过期的广播前基线。后置条件失败时，错误在最终性之后返回，
+因此交易可能已改变链上状态。</p>
+<p>签名 swap 前，订单提交要求三个源就下列内容完全一致：</p>
+<ul>
+<li class="">决策区块头，以及来自持久最终化台账的父哈希祖先链。</li>
+<li class="">决策高度的部署清单，包括每个配置的代码哈希、代理绑定与角色探测。</li>
+<li class="">路由报告注册的工厂与配置的 WETH，且工厂能按输入代币、输出代币与费率层级
+解析出确切的池。</li>
+<li class="">两个代币报告审查后清单中存储的小数位。</li>
+<li class="">清单固定的报价合约返回唯一确切的报价。</li>
+<li class="">路由授权额与输入代币余额足以覆盖原始输入数量。</li>
+<li class="">原生余额足以覆盖交易 value 加最大 gas 成本。</li>
+<li class="">与持久 nonce 台账一致的规范与 pending nonce 观察。</li>
+<li class="">最大 gas 估计、priority fee 中位数，以及本地 gas 与费用上限。</li>
+</ul>
+<p>决策区块头提供 deadline、报价时效边界、持久 <code>created_block</code> 与 EIP-1559
+base fee。状态、调用、代码、存储、gas、余额与授权读取都使用其显式区块号。</p>
+<p>本地签名前一刻，客户端重复链、区块头、祖先链、部署、报价、规范 nonce 与
+pending nonce 检查，并把这份证据与 nonce 分配原子地持久化。签名前失败产生
+<code>OrderDenied</code> 且无广播。只有在持久的可恢复状态迁移成功后，客户端才释放准备
+槽位。迁移失败则保留所有权等待对账。</p>
+<p>SELL 的输入代币是 base 代币，BUY 的是 quote 代币。预检就绪报告仍显示 SELL
+设置所用的 base 代币授权。BUY 需要单独的 quote 代币授权；该授权或余额不足时，
+提交拒绝订单。</p>
+<p>提交从不执行包装或授权。授权或余额不足会发出 <code>OrderDenied</code>。</p>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=transaction-signing-and-broadcast>交易签名与广播<a href=#transaction-signing-and-broadcast class=hash-link aria-label=交易签名与广播的直接链接 title=交易签名与广播的直接链接 translate=no>​</a></h3>
+<h4 class="anchor anchorTargetStickyNavbar_ana5" id=local-signing>本地签名<a href=#local-signing class=hash-link aria-label=本地签名的直接链接 title=本地签名的直接链接 translate=no>​</a></h4>
+<p>客户端用 Alloy 在本地构建并签名 EIP-1559 交易：</p>
+<ul>
+<li class="">构建 <code>alloy::consensus::TxEip1559</code>，含链 ID、nonce、gas、费用、目标地址、
+value 与 calldata。</li>
+<li class="">用 <code>alloy::signers::local::PrivateKeySigner</code> 对
+<code>SignableTransaction::signature_hash()</code> 签名，得到
+<code>Signed&lt;TxEip1559></code>。</li>
+<li class="">用 <code>alloy::eips::eip2718::Encodable2718::encoded_2718()</code>
+编码 EIP-2718 封装，并通过 <code>eth_sendRawTransaction</code> 发送原始字节。</li>
+</ul>
+<p>私钥来自 <code>signer_private_key_env</code> 所指的环境变量，绝不写入日志、序列化或存入
+配置。构造签名器期间由 zeroizing 缓冲区持有临时密钥文本与解码字节。客户端只
+支持一个签名器，其推导地址必须在 connect 时等于 <code>wallet_address</code>。</p>
+<h4 class="anchor anchorTargetStickyNavbar_ana5" id=signer-and-nonce-ownership>签名器与 nonce 所有权<a href=#signer-and-nonce-ownership class=hash-link aria-label="签名器与 nonce 所有权的直接链接" title="签名器与 nonce 所有权的直接链接" translate=no>​</a></h4>
+<p>包装、授权与 swap 全部合计，同时在途的交易至多一笔：</p>
+<ul>
+<li class="">客户端在第一次准备 RPC 调用前抢占本地槽位。</li>
+<li class="">持久规范 nonce 来自三个源一致的显式最终化高度读取。pending nonce 只是一条
+额外的内存池观察，永远不能证明规范消耗。</li>
+<li class="">新签名要求规范 nonce <code>N</code>、无无法解释的 pending 使用，且意图能连同其验证
+证据原子地持有 <code>N</code>。</li>
+<li class="">只有在尚不存在签名时，准备失败才释放槽位。</li>
+<li class="">签名之后，槽位保持被占用，直至持久化、广播、最终性与必需的订单事件持久化
+全部完成。</li>
+<li class="">持久化错误保持槽位被占用，因为 Postgres 可能已提交而客户端丢失了确认。</li>
+<li class="">在持久化或广播期间取消操作不会释放槽位，也不会放行新交易。</li>
+</ul>
+<p>费用与 gas 策略同样在签名前执行：</p>
+<ul>
+<li class="">所有路径使用一致决策区块头的 base fee。三个 priority fee 值先取中位数，
+再应用 <code>base_fee_buffer_bps</code>。推导费用超过
+<code>max_fee_per_gas_wei</code> 会被拒绝。</li>
+<li class="">三个源都在决策高度对确切的未签名交易做估计。客户端选取最大估计值，应用
+<code>gas_buffer_bps</code>，超过 <code>gas_limit</code> 即拒绝。客户端不会钳制估计值。</li>
+</ul>
+<h4 class="anchor anchorTargetStickyNavbar_ana5" id=persist-before-broadcast>广播前持久化<a href=#persist-before-broadcast class=hash-link aria-label=广播前持久化的直接链接 title=广播前持久化的直接链接 translate=no>​</a></h4>
+<p>客户端在分配 nonce 或签名前保留一个持久意图，随后在广播前存储 nonce、一个
+经过认证的签名载荷信封与本地哈希。没有就绪且受保护的持久存储，交易无法提交。</p>
+<p>发送前一刻，客户端记录 <code>broadcast</code> 迁移。该写入之后的任何结果——包括节点
+拒绝——都按不确定处理，直到规范 nonce 与回执观察将其解决。</p>
+<p>没有持久 <code>broadcast</code> 迁移的签名意图保持活跃，并在等待显式恢复期间阻塞
+connect。适配器对该状态没有自动恢复命令或客户端方法。运营方必须检查持久的
+<code>execution_intent</code> 与 <code>execution_transaction_hash</code>
+记录，做出明确、经审查的恢复决定。适配器不会自动释放签名器槽位或重发交易。</p>
+<p>持久的 <code>broadcast</code> 意图在恢复观察之前，只能重发其精确的已持久字节。</p>
+<p>广播与回执处理遵循这些规则：</p>
+<ul>
+<li class="">每个执行 JSON-RPC 请求超时 10 秒。错误信息省略端点 URL、请求载荷与签名
+字节。</li>
+<li class=""><code>already known</code> 计为接受。</li>
+<li class="">超时、连接重置、节点拒绝、无法读取的响应，或返回哈希与签名哈希不一致，都
+进入持久意图下的对账。</li>
+<li class="">三个源回执均为 null 可重试；部分传播可重试；彼此冲突的非空回执属于分歧，
+不能授权状态变化。</li>
+<li class="">回执观察在配置的最终性轮询窗口内对瞬时 RPC 错误重试。</li>
+<li class="">轮询耗尽记录 <code>dropped</code>，签名器槽位保持占用。</li>
+<li class="">精确字节重广播只使用认证过的保留信封。再次发送前，三个源必须验证链、
+祖先链、部署、规范与 pending nonce、回执不存在，以及按用途的显式高度模拟。
+字节只发给权威源。</li>
+</ul>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=risk-and-validation-boundaries>风险与验证边界<a href=#risk-and-validation-boundaries class=hash-link aria-label=风险与验证边界的直接链接 title=风险与验证边界的直接链接 translate=no>​</a></h3>
+<p>通用盘前风控留在引擎中。交易场所专属的闸门在适配器内，以配置驱动的限流器
+实现：</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>检查<th>边界<th>强制执行<tbody><tr><td>链身份<td>适配器<td>经审查的检查点、三源链 ID、新区块头与父哈希祖先链<tr><td>部署身份<td>适配器 + 风控<td>经审查的代码哈希、代理绑定、角色探测、池身份与包含调用图<tr><td>代币对白名单<td>风控（适配器）<td>swap 的有向交易对；非零授权的输入代币资格<tr><td>订单金额<td>风控（适配器）<td>提交 base 数量的 <code>max_order_amount</code>；验证过的 BUY quote 输入上按对设置的 <code>quote_spend_limits</code><tr><td>报价出处<td>适配器<td>规范剖析器水位线、有界祖先链、固定 QuoterV2 结果与签名前最终复核<tr><td>gas 与费用<td>风控（适配器）<td>三源 gas 估计最大值、priority fee 中位数，以及本地 <code>gas_limit</code> 与 <code>max_fee_per_gas_wei</code> 上限<tr><td>余额充足性<td>适配器 + 风控<td>显式高度的三源输入代币与原生余额检查<tr><td>授权充足性<td>适配器<td>显式高度的三源路由授权检查<tr><td>滑点<td>风控（适配器）<td><code>max_slippage_bps</code> 上限与验证过的报价推导最小产出<tr><td>在途限制<td>适配器 + DB<td>本地槽位加持久规范 nonce 与签名器所有权</table>
+<p>限流器的每次拒绝都在签名前拒绝订单，并报告结构化的原因。</p>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=order-events>订单事件<a href=#order-events class=hash-link aria-label=订单事件的直接链接 title=订单事件的直接链接 translate=no>​</a></h3>
+<p>订单提交只发出有已知交易状态支撑的事件：</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>观察结果<th>事件<th>结果<tbody><tr><td>持久 <code>broadcast</code> 迁移之前的失败。<td><code>OrderDenied</code><td>没有任何交易离开客户端。<tr><td>已持久化的广播尝试，含含义不明的回复。<td><code>OrderSubmitted</code><td>签名意图仍是观察权威。<tr><td>验证过的最终化 revert。<td><code>OrderRejected</code><td>稳定的事件 ID 与终止标记允许释放签名器。<tr><td>最终化交易、跟踪或部署不一致。<td>无终止事件<td>客户端拒绝推导成交，签名器所有权保持隔离。<tr><td>交易与日志精确匹配的最终化成功。<td><code>OrderFilled</code><td>随后刷新钱包并持久化标记以完成意图。执行量低于订单数量的 BUY 还会为剩余部分发出 <code>OrderCanceled</code>。执行量高于订单数量的 BUY 报告全部产出。<tr><td>超时、分歧、读取不可得或重组。<td>无终止事件<td>订单保持已提交，签名器所有权保持占用。</table>
+<p>首次包含时的成功回执不会发出成交。客户端等待下文描述的稳定最终化边界。</p>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=persistence-and-reconciliation>持久化与对账<a href=#persistence-and-reconciliation class=hash-link aria-label=持久化与对账的直接链接 title=持久化与对账的直接链接 translate=no>​</a></h3>
+<h4 class="anchor anchorTargetStickyNavbar_ana5" id=durable-record-model>持久记录模型<a href=#durable-record-model class=hash-link aria-label=持久记录模型的直接链接 title=持久记录模型的直接链接 translate=no>​</a></h4>
+<p>执行 schema 版本 2 把逻辑钱包操作与其物理交易哈希分离。验证 schema 版本 2 增加
+规范 nonce、最终化区块头、决策证据与替换扫描台账：</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>记录<th>代表<th>恢复用途<tbody><tr><td>意图<td>一次逻辑上的 <code>wrap</code>、<code>approve</code> 或 <code>swap</code> 操作。<td>持有签名器、nonce、调用字段、订单标识与标记。<tr><td>哈希历史<td>经过认证的签名信封及其哈希。<td>选取当前哈希并存储回执观察。<tr><td>状态迁移<td>意图与哈希的只追加状态历史。<td>记录观察；恢复读取当前意图与哈希状态。<tr><td>规范 nonce<td>在最终化高度被证明的下一个签名器 nonce。<td>防止 pending 内存池状态释放或跳过 nonce。<tr><td>最终化区块头<td>从审查后检查点出发的父哈希链接区块头。<td>续接祖先链与有界替换扫描。<tr><td>决策证据<td>每次授权验证的脱敏结果。<td>证明哪一类读取授权了一次持久迁移。<tr><td>游标<td>最近一次完整扫描的最终化替换搜索高度。<td>续接多窗口扫描并重扫未最终化尾部。</table>
+<p><code>purpose</code> 是适配器本地的执行字段，取值为 <code>wrap</code>、<code>approve</code>
+与 <code>swap</code>。它告诉对账该意图是否同时持有 Nautilus 订单生命周期。它不是通用
+Nautilus 订单或 <code>SubmitOrder</code> 规格中的字段。</p>
+<p>schema 保留旧版执行交易表。其 connect 时的迁移：</p>
+<ul>
+<li class="">对旧版表加独占锁。</li>
+<li class="">拒绝无法安全映射的未解决旧行。</li>
+<li class="">schema 版本 2 生效后封锁旧版写入。</li>
+<li class="">保留现有数据。</li>
+</ul>
+<p>启用独立验证后的首次连接还会为每个保留的执行意图分类。它在远程重建之前认证每个
+保留的载荷。未签名的活跃 <code>prepared</code> 意图变为非活跃 <code>recoverable</code>。
+位于规范 nonce 上的已签名活跃意图保持活跃以供对账。已消耗的 nonce 需要 archive
+证据，证明其回执、最终化祖先链、完整交易身份、调用跟踪、部署身份与终止状态。</p>
+<p>已释放的历史必须已有一致的标记，且不得保留签名所有权。重复的 nonce 所有权、缺失
+archive 状态、载荷不匹配或历史被改动，都会在签名器加载之前阻止迁移。</p>
+<p>部分唯一索引强制：每个签名器一个活跃意图、每个签名器与 nonce 一个活跃持有者、
+每个客户端订单一个意图。意图还分别存储确认、成交与终止事件标记。最终化或 revert
+的意图在其成交或终止标记持久化之前保持活跃。</p>
+<h4 class="anchor anchorTargetStickyNavbar_ana5" id=states>状态<a href=#states class=hash-link aria-label=状态的直接链接 title=状态的直接链接 translate=no>​</a></h4>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>状态<th>检测或迁移<th>所有权与事件影响<tbody><tr><td><code>prepared</code><td>nonce 分配前保留的意图。<td>持有签名器；尚不存在交易。<tr><td><code>signed</code><td>已分配 nonce；任何完成的签名在广播前存储。<td>持有签名器与 nonce。<tr><td><code>broadcast</code><td>发送前持久化的广播尝试。<td>swap 可记录其 <code>OrderSubmitted</code> 标记。<tr><td><code>included</code><td>回执区块哈希与规范编号区块匹配。<td>非终止；无成交。<tr><td><code>replaced</code><td>另一条规范哈希消耗了签名器 nonce。<td>替换交易并入原意图。<tr><td><code>reorged</code><td>回执消失或其区块哈希不再匹配。<td>恢复观察；无终止事件。<tr><td><code>dropped</code><td>轮询窗口内没有稳定的最终化回执。<td>保持活跃并阻止新签名。<tr><td><code>finalized</code><td>成功回执达到稳定最终化边界。<td>保持活跃直至成交或终止标记。<tr><td><code>reverted</code><td>失败回执达到稳定最终化边界。<td>终止标记释放所有权；swap 发出 <code>OrderRejected</code>。<tr><td><code>recoverable</code><td>准备失败，或重启发现未签名的 <code>prepared</code> 意图。<td>因不存在签名而变为非活跃。</table>
+<h4 class="anchor anchorTargetStickyNavbar_ana5" id=restart-and-replacement>重启与替换<a href=#restart-and-replacement class=hash-link aria-label=重启与替换的直接链接 title=重启与替换的直接链接 translate=no>​</a></h4>
+<p>connect 时，客户端在允许新签名之前重新加载活跃签名器意图：</p>
+<ul>
+<li class="">未签名的 <code>prepared</code> 意图变为 <code>recoverable</code> 且非活跃。</li>
+<li class=""><code>signed</code> 意图保持活跃并保留其 nonce。在明确的恢复决定可用之前
+connect 失败。</li>
+<li class="">持久的 <code>broadcast</code> 意图只能重发精确的、经过认证的已存储字节，且仅在通过
+三源重广播检查之后。更晚的状态恢复本地在途槽位并观察当前哈希，不再另发。</li>
+<li class="">仍带签名字节的旧版 <code>recoverable</code> 意图同样使 connect 失败，而不是释放
+其 nonce。</li>
+<li class="">恢复的 wrap 或 approve 会重新验证目标、calldata 与 value（含同 nonce
+替换），再重跑其活体后置条件后才报告成功。</li>
+<li class="">swap 还要求其订单、金融工具与池已在引擎缓存中恢复。状态缺失或不一致会导致
+connect 失败。</li>
+</ul>
+<p>没有回执且验证过的规范签名器 nonce 已推进时，客户端从意图的创建高度开始扫描一致的
+规范完整区块。每次尝试至多覆盖 4,096 个区块。最终化游标连同其验证证据一并提交。
+下一次尝试从该处续接并重扫未最终化尾部。</p>
+<p>同 nonce 交易只有在其哈希与完整解码身份匹配该意图某个经过认证的保留信封时才能挂入。
+未知或不匹配的替换保持隔离，不发出订单拒绝，也不释放签名器所有权。消失的回执或
+变化的规范区块记录 <code>reorged</code> 并恢复观察。轮询超时记录
+<code>dropped</code>，并为下一次 connect 保留签名器槽位占用。</p>
+<div class="theme-admonition theme-admonition-warning admonition_LYZY alert alert--warning"><div class=admonitionHeading_pnFY><span class=admonitionIcon_tEzm><svg viewBox="0 0 16 16"><path fill-rule=evenodd d="M8.893 1.5c-.183-.31-.52-.5-.887-.5s-.703.19-.886.5L.138 13.499a.98.98 0 0 0 0 1.001c.193.31.53.501.886.501h13.964c.367 0 .704-.19.877-.5a1.03 1.03 0 0 0 .01-1.002L8.893 1.5zm.133 11.497H6.987v-2.003h2.039v2.003zm0-3.004H6.987V5.987h2.039v4.006z"/></svg></span>注意</div><div class=admonitionContent_ZwmI><p>意图活跃期间，签名密钥必须为本客户端独占。重启时，恢复的 wrap 或 approve
+必须匹配持久化的目标、calldata 与 value，包括同 nonce 替换。随后
+wrap 在包含区块与前一块重读 WETH 余额，approve 在包含区块重读路由授权。
+调用身份不匹配或后置条件失败会让意图保持活跃、占用在途签名器槽位，并使
+connect 失败——包括在后续进程中。不匹配的 swap 不发出终止事件并保持活跃。</div></div>
+<h4 class="anchor anchorTargetStickyNavbar_ana5" id=finality-and-fills>最终性与成交<a href=#finality-and-fills class=hash-link aria-label=最终性与成交的直接链接 title=最终性与成交的直接链接 translate=no>​</a></h4>
+<p>最终性使用每个源的 <code>finalized</code> 区块标签（经
+<code>eth_getBlockByNumber</code>），而非确认数。客户端：</p>
+<ol>
+<li class="">要求三条完全一致的非空标准化回执。</li>
+<li class="">把回执区块哈希匹配到一个一致的显式包含区块头。</li>
+<li class="">等待验证过的最低最终化高度达到包含高度。</li>
+<li class="">扩展一致的父哈希最终化祖先链。</li>
+<li class="">要求完整交易匹配经过认证的签名信封。</li>
+<li class="">要求三棵完全一致的 <code>debug_traceTransaction</code> 调用树，且每个内部
+调用只有在其用途、调用方、目标与调用类型精确匹配某条清单边时才被放行。合约创建
+与自毁一律拒绝。</li>
+<li class="">在包含处重新检查部署清单，然后在单个数据库事务中提交最终性证据、回执状态、
+区块头祖先链与规范 nonce 推进。</li>
+</ol>
+<p>链上执行之后，最后包含检查发现的部署或调用跟踪漂移会让签名器所有权保持隔离。这些
+检查无法撤销最终预签名检查所用决策区块之后的合约升级造成的链上效果，包括该检查完成
+之后、交易执行之前的升级。</p>
+<p>三个 RPC 源都必须支持 <code>finalized</code> 标签。不支持该标签会让对账按失败关闭。</p>
+<p>对成功的 swap，完整最终化交易必须匹配持久化的签名器、nonce、目标、
+calldata 与 value。回执必须恰含一条来自选定池的 <code>Swap</code>
+日志。SELL 要求日志的正 base 输入等于持久化的金额。BUY 要求日志的正 quote 输入
+等于持久化的金额，且有一个负的 base 输出。现有的 Uniswap V3 解析推导执行金额。
+BUY 的成交价是花费的 quote 除以发出的最后一项数量。</p>
+<p>成交包含：</p>
+<ul>
+<li class="">SELL 用原始订单数量。BUY 用按 <code>FIXED_PRECISION</code> 转换的执行 base 产出。
+池价改善时 BUY 的成交可能超过提交数量。需在实时执行引擎上设
+<code>allow_overfills = true</code> 才能应用这份成交。</li>
+<li class="">平均成交价。BUY 为花费的 quote 除以发出的最后一项数量。</li>
+<li class="">交易哈希作为场所订单 ID。</li>
+<li class="">由交易哈希与日志索引推导的确定性成交 ID。</li>
+<li class=""><code>effectiveGasPrice * gasUsed</code> 作为原生货币佣金。</li>
+</ul>
+<p>发出成交前，客户端通过三个源在最终化包含高度验证原生与受跟踪代币状态，然后发布
+稳定 ID 的订单事件与钱包账户状态、存储成交标记并释放签名器所有权。钱包刷新或事件
+分发失败会让最终化意图保持活跃以供对账。</p>
+<h4 class="anchor anchorTargetStickyNavbar_ana5" id=event-delivery-across-restarts>重启间的事件投递<a href=#event-delivery-across-restarts class=hash-link aria-label=重启间的事件投递的直接链接 title=重启间的事件投递的直接链接 translate=no>​</a></h4>
+<p>对账在发出重复的订单事件之前，检查持久化的事件标记与恢复的订单状态。终止事件 ID
+由交易哈希与事件类型确定性推导，成交 ID 由交易哈希与日志索引确定性推导。一旦对应
+状态持久，这些标识就抑制重复；崩溃后下游消费者也能据此对重试去重。</p>
+<p>事件发布与标记持久化是分开两个操作。二者之间的进程崩溃可能导致事件在重启后再次
+投递。消费者必须幂等地处理订单事件。本适配器不提供原子的 exactly-once 投递保证。</p>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=signed-transaction-storage>签名交易存储<a href=#signed-transaction-storage class=hash-link aria-label=签名交易存储的直接链接 title=签名交易存储的直接链接 translate=no>​</a></h3>
+<p>Postgres 支撑的执行要求受保护的签名交易存储。保护机制用 AES-256-GCM
+密封每笔已签名的 EIP-2718 交易，并清空其实明文字段。经过认证的上下文把精确的签名
+字节绑定到部署、链、签名器、意图、签名器 nonce 与交易哈希。</p>
+<p>存储维护使用断开连接的 <code>BlockchainExecutionClient</code>
+上的直接 Rust 方法。Python 与 CLI 不暴露它们。connect 从不隐式激活、恢复或修复
+保护。每次 Postgres 支撑的 connect 都要求就绪的受保护状态，并在加载签名器前认证
+每个保留的载荷。</p>
+<p>受保护存储有以下密钥与部署约束：</p>
+<ul>
+<li class="">
+<p>每个载荷密封密钥都以恰好 32 个原始字节的十六进制编码提供，可带可选的
+<code>0x</code> 前缀。运营方必须用密码学安全的伪随机数生成器（CSPRNG）生成这些字节，
+并为每个独立密封的数据库使用唯一的原始密钥。密钥值不得出现在配置、日志、shell
+历史与进程参数中。</p>
+</li>
+<li class="">
+<p><code>payload_deployment_id</code> 在受保护数据库的整个生命周期内保持稳定。
+部署 ID 变化会按设计使现有信封不可读。</p>
+</li>
+<li class="">
+<p>在没有任何存储信封引用某个旧密钥之前，把它列在
+<code>payload_key_retired_env</code> 中。已退役密钥可打开现有信封，但绝不再密封新信封。</p>
+</li>
+<li class="">
+<p>每次 connect 都保持完整密钥集可用。缺失活动或退役密钥、信封畸形、认证标签
+失败、持久上下文不匹配或意外的明文字段，都按失败关闭。受保护存储绝不回退到
+<code>raw_transaction</code>。</p>
+</li>
+<li class="">
+<p>把 <code>2^32</code> 次密封视为一个原始密钥的终身预算，而不是每数据库重置的限制。在
+累计使用逼近该上限前轮换活动密钥。在客户端断开时，把替代密钥配置为活动、旧密钥
+保留为退役，并在下一次 connect 前运行 Rust 的 rewrap 方法。</p>
+<p>恢复的副本若以原始密钥变为可写活跃，则共享同一预算。每个数据库预留并计数自己的
+密封次数，包括迁移与 rewrap 工作。其计数器耗尽数值上限时拒绝进一步的本地使用。
+但副本分叉后，数据库本地计数器无法强制执行累计预算。运营方必须把共享的恢复前
+历史计一次，并把此后每个副本的每次密封各计一次。</p>
+</li>
+</ul>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>方法<th>要求<th>结果<tbody><tr><td><code>protect_payload_storage()</code><td>活动密钥、稳定的部署 ID，以及断开的客户端。<td>先记录标记，再有界、可续地分批密封明文字段。<tr><td><code>check_payload_storage(batch_size)</code><td>断开的客户端与每个被引用的密钥。<td>认证一份稳定快照、不返回载荷字节，报告行数、密钥 ID 与角色计数。<tr><td><code>rewrap_payload_storage(batch_size)</code><td>受保护存储、新活动密钥，且全部旧密钥保留。<td>有界、可续地分批重新封装；旧密钥移除前必须通过完整检查。<tr><td><code>rollback_payload_storage(batch_size)</code><td>事故恢复、断开的客户端与全部密钥。<td>恢复并验证精确明文字段，清空信封，最后移除保护标记。</table>
+<p>保护、恢复、rewrap 或回滚之后运行完整检查。其角色报告包含直接的表所有者与带
+<code>SELECT</code> 权限的角色。完整报告还含有受保护状态、部署 ID、明文、原始、替代与已认证
+行数，以及被引用的密钥 ID。超级用户与继承的权限仍需服务器级审查。</p>
+<p>rewrap 只改变一个数据库副本，无法撤销 rewrap 前被复制的交易或信封。回滚让执行保持
+不可用，直到存储重新受保护并通过完整的受保护检查。它不会从 WAL、副本、备份、快照
+或更早的导出中移除签名字节。</p>
+<div class="theme-admonition theme-admonition-warning admonition_LYZY alert alert--warning"><div class=admonitionHeading_pnFY><span class=admonitionIcon_tEzm><svg viewBox="0 0 16 16"><path fill-rule=evenodd d="M8.893 1.5c-.183-.31-.52-.5-.887-.5s-.703.19-.886.5L.138 13.499a.98.98 0 0 0 0 1.001c.193.31.53.501.886.501h13.964c.367 0 .704-.19.877-.5a1.03 1.03 0 0 0 .01-1.002L8.893 1.5zm.133 11.497H6.987v-2.003h2.039v2.003zm0-3.004H6.987V5.987h2.039v4.006z"/></svg></span>注意</div><div class=admonitionContent_ZwmI><p>签名字节在其签名器 nonce 被消耗之前一直是持有者凭据。受保护存储覆盖的是活跃数据库
+载荷，不覆盖：<ul>
+<li class="">持久化之前或进程内存中的字节。</li>
+<li class="">死元组、WAL 或时间点恢复归档。</li>
+<li class="">副本、备份、快照、恢复或运营导出。</li>
+</ul><p>PostgreSQL 的语句或绑定参数日志在默认模式与回滚期间也可能捕获明文。调试输出、
+运营检查与执行 RPC 错误不会暴露这些字节。<p>恢复的受保护数据库需要其原始 <code>payload_deployment_id</code> 与完整的密钥清单。
+每个数据库独立强制执行签名器与 nonce 所有权，因此绝不要把恢复的副本用于另一个在线
+部署正在使用的签名器。也不要把两个具有相同部署 ID 的副本指向同一个签名器。</div></div>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=execution-configuration>执行配置<a href=#execution-configuration class=hash-link aria-label=执行配置的直接链接 title=执行配置的直接链接 translate=no>​</a></h3>
+<p><code>BlockchainExecutionClientConfig</code> 沿用
+<code>BlockchainDataClientConfig</code> 的模式，并向 Python 暴露这些字段：</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>字段<th>默认值<th>说明<tbody><tr><td><code>client_id</code><td>必填<td>客户端的账户 ID。<tr><td><code>chain</code><td>必填<td>区块链链配置。<tr><td><code>wallet_address</code><td>必填<td>执行客户端的钱包地址。<tr><td><code>http_rpc_url</code><td>必填<td>唯一的权威 RPC 端点与广播目标。<tr><td><code>verification</code><td>必填<td>两个只读提供商、本地链锚点与部署清单。<tr><td><code>signer_private_key_env</code><td>必填<td>存放签名器密钥的环境变量。<tr><td><code>payload_key_env</code><td><code>None</code><td>活动 32 字节密钥变量；配合 Postgres 执行时必填。<tr><td><code>payload_key_retired_env</code><td><code>[]</code><td>只能打开信封的旧密钥的环境变量。<tr><td><code>payload_deployment_id</code><td><code>None</code><td>稳定的数据库身份；配合 Postgres 执行时必填。<tr><td><code>router_addresses</code><td>必填<td>SwapRouter 白名单；至少需要一个地址。<tr><td><code>max_fee_per_gas_wei</code><td>必填<td>每 gas 的最大推导费用（wei）。<tr><td><code>base_fee_buffer_bps</code><td>必填<td>在一致决策区块头 base fee 之上的缓冲。<tr><td><code>gas_limit</code><td>必填<td>gas 上限；带缓冲的更高估计会被拒绝。<tr><td><code>gas_buffer_bps</code><td>必填<td>在 <code>eth_estimateGas</code> 之上应用的缓冲。<tr><td><code>unlimited_approval</code><td><code>false</code><td>请求无限授权而不是精确金额。<tr><td><code>weth_address</code><td>必填<td><code>wrap</code> 使用的包装原生代币。<tr><td><code>allowed_token_pairs</code><td>必填<td>有向输入/输出对；BUY 需要反向对。<tr><td><code>quote_spend_limits</code><td><code>None</code><td>有向 quote 代币上限；无匹配条目的 BUY 被拒绝。<tr><td><code>slippage_bps</code><td>必填<td>推导最小产出所用的默认滑点。<tr><td><code>max_slippage_bps</code><td>必填<td>单订单滑点覆盖的上限。<tr><td><code>max_order_amount</code><td>必填<td>提交 base 数量的 <code>u64</code> 上限，以 base 代币原始单位计。<tr><td><code>deadline_seconds</code><td>必填<td>swap 相对验证过的决策区块头时间戳的 deadline 偏移。<tr><td><code>max_quote_age_blocks</code><td>必填<td>剖析器到决策的最大祖先距离（区块）。<tr><td><code>receipt_timeout_secs</code><td>必填<td>回执与最终性轮询循环的 deadline。<tr><td><code>tokens</code><td><code>None</code><td>客户端连接时读取并发布的 ERC-20 地址。<tr><td><code>rpc_requests_per_second</code><td><code>None</code><td>三个源共用的每客户端 HTTP RPC 限速。<tr><td><code>postgres_cache_database_config</code><td><code>None</code><td>持久执行存储；交易提交需要它。<tr><td><code>transport_backend</code><td><code>Sockudo</code><td>兼容性字段；执行客户端不使用。</table>
+<p>适配器在配置校验、客户端搭建、连接或交易授权期间强制执行这些约束：</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>约束<th>规则<tbody><tr><td>交易限额<td><code>allowed_token_pairs</code>、两个滑点字段、<code>max_order_amount</code>、<code>deadline_seconds</code>、<code>max_quote_age_blocks</code> 与 <code>receipt_timeout_secs</code> 都必须设置。<tr><td>滑点<td><code>slippage_bps</code> 不得超过 <code>max_slippage_bps</code>，且 <code>max_slippage_bps</code> 必须低于 10,000。<tr><td>报价时效<td><code>max_quote_age_blocks</code> 必须在 <code>1..=4095</code>。<tr><td>路由<td><code>router_addresses</code> 必须至少含一个有效地址。<tr><td>验证拓扑<td>配置必须恰含两个验证器，三个源之间的提供商、运营方、端点与故障域身份两两不同。<tr><td>远程传输<td>远程执行、验证器与 HyperSync 端点必须用 HTTPS；只有规范回环字面量可用 HTTP。<tr><td>持久执行<td>交易操作需要 Postgres、活动载荷密钥、稳定部署 ID 与就绪的受保护存储。</table>
+<p>白名单中的第一个路由负责执行 swap，因此预检就绪要求在该路由上有授权。
+<code>receipt_timeout_secs</code> 控制 swap、wrap 与授权的轮询 deadline。它不是
+整个调用的严格上界，因为最终的 RPC 与持久化操作会额外耗时。</p>
+<p><code>BlockchainVerificationConfig</code> 包含：</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>字段<th>要求<tbody><tr><td><code>authoritative</code><td><code>http_rpc_url</code> 的稳定身份；该对象中不含第二个 URL。<tr><td><code>verifiers</code><td>恰好两个 <code>BlockchainVerificationProviderConfig</code>，带只读 HTTP URL。<tr><td><code>chain_anchor</code><td>链 ID 与名称、最终化检查点高度/哈希/时间戳，以及非零的新区块新鲜度限制。<tr><td><code>manifest_version</code><td>经审查的部署版本，等于 <code>deployment_manifest.version</code>。<tr><td><code>manifest_digest</code><td><code>deployment_manifest</code> 规范化 JSON 序列化的 Keccak-256 摘要。<tr><td><code>deployment_manifest</code><td>经审查的合约、代币、池、代理绑定、身份探测与精确调用边。</table>
+<p>每个 <code>BlockchainProviderIdentity</code> 有稳定的
+<code>provider_id</code>、<code>operator_id</code> 与一个或多个不透明的
+<code>failure_domain_ids</code>。所有 provider ID 与 operator ID 必须互不相同，任意两个
+故障域集合必须不相交，三个规范化端点 URI 必须不同。清单或保留的证据中不要放 RPC
+URL、凭据或提供商响应体。</p>
+<p>Python 用 <code>deployment_manifest_json</code> 构造
+<code>BlockchainVerificationConfig</code>。清单在本地解析，创建客户端前检查其配置的摘要。
+RPC 源不能创建、更新或批准清单。合约升级、新代币、新池或变化的调用边，都需要
+独立审查的清单与检查点更新，之后才能恢复执行。代理绑定支持 EIP-1967
+实现槽，以及 Circle FiatToken 部署使用的 Zeppelinos 非结构化实现槽。每个绑定固定
+确切的存储值、实现地址与实现运行时代码哈希。</p>
+<p>下面这条条目只有在推导的 USDC 输入不超过 1,000 USDC 时才放行 USDC→WETH 的 BUY。
+构造 <code>BlockchainExecutionClientConfig</code> 时把该列表作为
+<code>quote_spend_limits</code> 传入：</p>
+<div class="language-python codeBlockContainer_eTMR theme-code-block" style=--prism-color:#393A34;--prism-background-color:#f6f8fa><div class=codeBlockContent_hafM><pre tabindex=0 class="prism-code language-python codeBlock_IMvC thin-scrollbar" style=color:#393A34;background-color:#f6f8fa><code class=codeBlockLines_gZDW><div class=token-line style=color:#393A34><span class="token keyword" style=color:#00009f>from</span><span class="token plain"> nautilus_trader</span><span class="token punctuation" style=color:#393A34>.</span><span class="token plain">adapters</span><span class="token punctuation" style=color:#393A34>.</span><span class="token plain">blockchain </span><span class="token keyword" style=color:#00009f>import</span><span class="token plain"> QuoteSpendLimit</span><br/></div><div class=token-line style=color:#393A34><span class="token plain" style=display:inline-block></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">quote_spend_limits </span><span class="token operator" style=color:#393A34>=</span><span class="token plain"> </span><span class="token punctuation" style=color:#393A34>[</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    QuoteSpendLimit</span><span class="token punctuation" style=color:#393A34>(</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">        token_in</span><span class="token operator" style=color:#393A34>=</span><span class="token string" style=color:#e3116c>"0xaf88d065e77c8cC2239327C5EDb3A432268e5831"</span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">        token_out</span><span class="token operator" style=color:#393A34>=</span><span class="token string" style=color:#e3116c>"0x82aF49447D8a07e3bd95BD0d56f35241523fBab1"</span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">        spend_token</span><span class="token operator" style=color:#393A34>=</span><span class="token string" style=color:#e3116c>"0xaf88d065e77c8cC2239327C5EDb3A432268e5831"</span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">        spend_token_decimals</span><span class="token operator" style=color:#393A34>=</span><span class="token number" style=color:#36acaa>6</span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">        max_amount</span><span class="token operator" style=color:#393A34>=</span><span class="token string" style=color:#e3116c>"1000000000"</span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    </span><span class="token punctuation" style=color:#393A34>)</span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain"></span><span class="token punctuation" style=color:#393A34>]</span><br/></div></code></pre></div></div>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=validation-coverage>验证覆盖<a href=#validation-coverage class=hash-link aria-label=验证覆盖的直接链接 title=验证覆盖的直接链接 translate=no>​</a></h3>
+<p>执行测试分两层：</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>层<th>外部状态<th>主要覆盖<tbody><tr><td>单元/模拟 RPC<td>编排好的三源 JSON-RPC 响应。<td>类型化结果、敌意分歧、签名与对账。<tr><td>Postgres<td>Postgres 活跃时的临时模式。<td>证据顺序、迁移、nonce 所有权与崩溃恢复。</table>
+<p>默认测试不连接实时链。它们覆盖：</p>
+<ul>
+<li class="">
+<p>交易原语覆盖这些情形：</p>
+<ul>
+<li class=""><code>deposit</code>、<code>approve</code>、<code>allowance</code> 与
+<code>exactInputSingle</code> calldata。</li>
+<li class="">针对固定密钥向量的 EIP-1559 签名。</li>
+<li class="">带 pending-nonce 校验的规范 nonce 选择。</li>
+<li class="">费用与 gas 推导，以及上限拒绝。</li>
+</ul>
+</li>
+<li class="">
+<p>RPC 验证覆盖这些情形：</p>
+<ul>
+<li class="">错误的链或检查点、新区块偏斜与新鲜度、断链的祖先链。</li>
+<li class="">部署与代理变更，以及报价分歧。</li>
+<li class="">pending 与 revert 回执、部分回执传播与消失的回执。</li>
+<li class="">分歧的跟踪与未授权的内部调用。</li>
+<li class="">精确意图的同 nonce 替换、<code>already known</code>、节点拒绝与发送后超时。</li>
+</ul>
+</li>
+<li class="">
+<p>安全检查覆盖这些情形：</p>
+<ul>
+<li class="">无效的提供商独立性、签名器撤销，以及持久化与分发前后的取消。</li>
+<li class="">路由/工厂/WETH/池身份、授权迁移与返回值，以及预检就绪。</li>
+<li class="">wrap 与授权后置条件、精确钱包快照、connect 与重复账户查询。</li>
+<li class="">订单校验、限流器拒绝、规范报价出处、滑点、代币方向与精确的 quote
+支出边界。</li>
+<li class="">稳定事件 ID、最终成交字段与佣金。</li>
+</ul>
+</li>
+<li class="">
+<p>持久性：提交顺序、单笔在途交易、广播前签名隔离、授权的精确字节重广播、认证的
+替换扫描、持久祖先链续接、保留历史迁移、事件重试标识、钱包刷新所有权，以及与
+授权状态迁移的原子证据。Postgres 不可用时数据库测试跳过。</p>
+</li>
+</ul>
+<p>JSON-RPC 夹具位于 <code>crates/adapters/blockchain/test_data/execution/</code>。
+共享的网络 HTTP 单元套件覆盖重定向拒绝。</p>
+<p>公共网络上的执行验证必须保持只读，不得加载签名器或调用
+<code>eth_sendRawTransaction</code>。会改变状态的验证需要隔离的本地环境。</p>
+<h2 class="anchor anchorTargetStickyNavbar_ana5" id=limitations>限制<a href=#limitations class=hash-link aria-label=限制的直接链接 title=限制的直接链接 translate=no>​</a></h2>
+<ul>
+<li class="">
+<p>订单提交仅支持客户端链上已注册 Uniswap V3 部署的 BUY 与 SELL 市价单。订单列表
+被拒绝，修改与撤单被拒绝。场所报告探测返回错误，批量状态除外——它返回
+<code>Ok(None)</code>。这些不支持的路径一律按失败关闭，不产生链上或持久化副作用。LiveNode
+必须保持未结订单检查关闭。</p>
+<p>以 quote 计价与多跳订单不受支持。见<a href=#execution class="">执行</a>。</p>
+</li>
+<li class="">
+<p>Postgres 支撑的执行需要经过认证的签名交易信封。断开连接的回滚可为事故工作恢复
+明文，但适配器会拒绝执行，直到数据库受保护并再次通过完整检查。无论哪种表示，都
+要把数据库存储、副本、备份与导出当作可广播的凭据材料对待。见
+<a href=#signed-transaction-storage class="">签名交易存储</a>。</p>
+</li>
+<li class="">
+<p>恢复未完全自动化。没有持久 <code>broadcast</code> 迁移的签名意图会阻塞
+connect，跨越 4,096 个区块的同 nonce 替换搜索需要明确的恢复决定。见
+<a href=#persistence-and-reconciliation class="">持久化与对账</a>。</p>
+</li>
+<li class="">
+<p>订单事件发布与其持久标记是分开的两次写入，因此适配器不保证跨进程崩溃的原子
+exactly-once 事件投递。</p>
+</li>
+<li class="">
+<p>超大型 Uniswap V3 池在最终状态 Multicall 水合期间仍可能触及提供商的载荷、超时
+或速率限制。</p>
+</li>
+<li class="">
+<p>链上快照验证通过共享的 V3 池读取 ABI 支持 Uniswap V3 与 PancakeSwap V3。ABI
+不同的池可以同步事件并产出重放快照，但无法达到
+<code>validation_state = on_chain</code>。</p>
+</li>
+</ul></div><footer class="theme-doc-footer docusaurus-mt-lg"><div class="row margin-top--sm theme-doc-footer-edit-meta-row"><div class="col noPrint_MRkS"><a href=https://github.com/Aloento/NautilusTraderDoc/tree/main/docs/integrations/blockchain.md target=_blank rel="noopener noreferrer" class=theme-edit-this-page><svg fill=currentColor height=20 width=20 viewBox="0 0 40 40" class=iconEdit_RPSQ aria-hidden=true><g><path d="m34.5 11.7l-3 3.1-6.3-6.3 3.1-3q0.5-0.5 1.2-0.5t1.1 0.5l3.9 3.9q0.5 0.4 0.5 1.1t-0.5 1.2z m-29.5 17.1l18.4-18.5 6.3 6.3-18.4 18.4h-6.3v-6.2z"/></g></svg>编辑此页</a></div><div class="col lastUpdated_oZSl"><span class=theme-last-updated>最后<!-- -->于 <b><time datetime=2026-10-14T22:30:30.000Z itemprop=dateModified>2026年10月14日</time></b> <!-- -->更新</span></div></div></footer></article><nav class="docusaurus-mt-lg pagination-nav" aria-label=文件选项卡><a class="pagination-nav__link pagination-nav__link--prev" href=/integrations/binance><div class=pagination-nav__sublabel>上一页</div><div class=pagination-nav__label>Binance</div></a><a class="pagination-nav__link pagination-nav__link--next" href=/integrations/bybit><div class=pagination-nav__sublabel>下一页</div><div class=pagination-nav__label>Bybit</div></a></nav></div></div><div class="col col--3"><div class="tableOfContents_LyLZ thin-scrollbar theme-doc-toc-desktop"><ul class="table-of-contents table-of-contents__left-border"><li><a href=#overview class="table-of-contents__link toc-highlight">概览</a><li><a href=#capability-status class="table-of-contents__link toc-highlight">能力状态</a><ul><li><a href=#chain-and-dex-command-support class="table-of-contents__link toc-highlight">链与 DEX 命令支持</a><li><a href=#interface-availability class="table-of-contents__link toc-highlight">接口可用性</a><li><a href=#examples class="table-of-contents__link toc-highlight">示例</a></ul><li><a href=#core-primitives class="table-of-contents__link toc-highlight">核心原语</a><ul><li><a href=#chain class="table-of-contents__link toc-highlight">链</a><li><a href=#dex-and-pools class="table-of-contents__link toc-highlight">DEX 与池</a></ul><li><a href=#data-client-configuration class="table-of-contents__link toc-highlight">数据客户端配置</a><li><a href=#environment class="table-of-contents__link toc-highlight">环境</a><ul><li><a href=#rpc-provider-requirements class="table-of-contents__link toc-highlight">RPC 提供商要求</a></ul><li><a href=#local-services class="table-of-contents__link toc-highlight">本地服务</a><li><a href=#data-flow class="table-of-contents__link toc-highlight">数据流</a><ul><li><a href=#architecture class="table-of-contents__link toc-highlight">架构</a><li><a href=#data-client-surface class="table-of-contents__link toc-highlight">数据客户端接口</a><li><a href=#pool-discovery class="table-of-contents__link toc-highlight">池发现</a><li><a href=#live-data class="table-of-contents__link toc-highlight">实时数据</a><li><a href=#snapshot-bootstrap class="table-of-contents__link toc-highlight">快照引导</a><li><a href=#snapshot-validation class="table-of-contents__link toc-highlight">快照验证</a><li><a href=#snapshot-bootstrap-guard class="table-of-contents__link toc-highlight">快照引导守卫</a><li><a href=#checkpoints-and-concurrency class="table-of-contents__link toc-highlight">检查点与并发</a><li><a href=#backtest-replay class="table-of-contents__link toc-highlight">回测重放</a><li><a href=#pool-analysis-constraints class="table-of-contents__link toc-highlight">池分析约束</a></ul><li><a href=#pool-analysis-operations class="table-of-contents__link toc-highlight">池分析操作</a><ul><li><a href=#discover-pools-before-analysis class="table-of-contents__link toc-highlight">分析前先发现池</a><li><a href=#check-command-support class="table-of-contents__link toc-highlight">检查命令支持</a><li><a href=#use-checksummed-pool-addresses class="table-of-contents__link toc-highlight">使用校验和格式的池地址</a><li><a href=#reduce-the-multicall-request-size class="table-of-contents__link toc-highlight">缩小 Multicall 请求规模</a><li><a href=#choose-a-target-block-the-rpc-provider-can-serve class="table-of-contents__link toc-highlight">选择提供商能提供服务的目标区块</a><li><a href=#control-hypersync-request-volume class="table-of-contents__link toc-highlight">控制 HyperSync 请求量</a><li><a href=#start-an-initial-replay-at-pool-creation class="table-of-contents__link toc-highlight">初始重放从池创建开始</a><li><a href=#interpret-pool-failures class="table-of-contents__link toc-highlight">解读池失败</a></ul><li><a href=#runbook-validate-a-live-pool-sync class="table-of-contents__link toc-highlight">运行手册：验证实时池同步</a><ul><li><a href=#prerequisites class="table-of-contents__link toc-highlight">前置条件</a><li><a href=#start-the-local-services-and-build-the-cli class="table-of-contents__link toc-highlight">启动本地服务并构建 CLI</a><li><a href=#discover-pools class="table-of-contents__link toc-highlight">发现池</a><li><a href=#analyze-the-pool class="table-of-contents__link toc-highlight">分析池</a><li><a href=#check-the-stored-data class="table-of-contents__link toc-highlight">检查存储的数据</a></ul><li><a href=#contracts class="table-of-contents__link toc-highlight">合约</a><ul><li><a href=#base-contract-and-multicall3 class="table-of-contents__link toc-highlight">基础合约与 Multicall3</a><li><a href=#erc-20-metadata class="table-of-contents__link toc-highlight">ERC-20 元数据</a><li><a href=#uniswap-v3-pools class="table-of-contents__link toc-highlight">Uniswap V3 池</a></ul><li><a href=#execution class="table-of-contents__link toc-highlight">执行</a><ul><li><a href=#connection-and-account-state class="table-of-contents__link toc-highlight">连接与账户状态</a><li><a href=#supported-order-slice class="table-of-contents__link toc-highlight">支持的订单范围</a><li><a href=#buy-quote-spend-limits class="table-of-contents__link toc-highlight">BUY 的 quote 支出上限</a><li><a href=#slippage-protection class="table-of-contents__link toc-highlight">滑点保护</a><li><a href=#preflight-wrapping-and-approval class="table-of-contents__link toc-highlight">预检、包装与授权</a><li><a href=#transaction-signing-and-broadcast class="table-of-contents__link toc-highlight">交易签名与广播</a><li><a href=#risk-and-validation-boundaries class="table-of-contents__link toc-highlight">风险与验证边界</a><li><a href=#order-events class="table-of-contents__link toc-highlight">订单事件</a><li><a href=#persistence-and-reconciliation class="table-of-contents__link toc-highlight">持久化与对账</a><li><a href=#signed-transaction-storage class="table-of-contents__link toc-highlight">签名交易存储</a><li><a href=#execution-configuration class="table-of-contents__link toc-highlight">执行配置</a><li><a href=#validation-coverage class="table-of-contents__link toc-highlight">验证覆盖</a></ul><li><a href=#limitations class="table-of-contents__link toc-highlight">限制</a></ul></div></div></div></div></main></div></div></div><footer class="theme-layout-footer footer footer--dark"><div class="container container-fluid"><div class="row footer__links"><div class="theme-layout-footer-column col footer__col"><div class=footer__title></div><ul class="footer__items clean-list"><li class=footer__item><a href=https://github.com/nautechsystems/nautilus_trader target=_blank rel="noopener noreferrer" class=footer__link-item>Official GitHub<svg width=13.5 height=13.5 aria-label="(opens in new tab)" class=iconExternalLink_qUHo><use href=#theme-svg-external-link /></svg></a><li class=footer__item><a href=https://nautilustrader.io/docs target=_blank rel="noopener noreferrer" class=footer__link-item>Official Documentation<svg width=13.5 height=13.5 aria-label="(opens in new tab)" class=iconExternalLink_qUHo><use href=#theme-svg-external-link /></svg></a></ul></div></div><div class="footer__bottom text--center"><div class=footer__copyright>© 2026 Nautech Systems Pty Ltd. All rights reserved.</div></div></div></footer></div></body>

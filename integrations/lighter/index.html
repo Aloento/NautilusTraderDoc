@@ -1,0 +1,2052 @@
+<!doctype html><html lang=zh dir=ltr class="docs-wrapper plugin-docs plugin-id-default docs-version-current docs-doc-page docs-doc-id-integrations/lighter" data-has-hydrated=false><head><meta charset=UTF-8><meta name=generator content="Docusaurus v3.10.2"><title data-rh=true>Lighter | NautilusTrader 文档</title><meta data-rh=true name=viewport content="width=device-width, initial-scale=1.0"/><meta data-rh=true name=twitter:card content=summary_large_image /><meta data-rh=true property=og:url content=https://nautilus.aloen.to/integrations/lighter /><meta data-rh=true property=og:locale content=zh /><meta data-rh=true name=docusaurus_locale content=zh /><meta data-rh=true name=docsearch:language content=zh /><meta data-rh=true name=docusaurus_version content=current /><meta data-rh=true name=docusaurus_tag content=docs-default-current /><meta data-rh=true name=docsearch:version content=current /><meta data-rh=true name=docsearch:docusaurus_tag content=docs-default-current /><meta data-rh=true property=og:title content="Lighter | NautilusTrader 文档"/><meta data-rh=true name=description content="Lighter 是面向现货与永续合约的 decentralized central-limit-order-book"/><meta data-rh=true property=og:description content="Lighter 是面向现货与永续合约的 decentralized central-limit-order-book"/><link data-rh=true rel=icon href=/logo.png /><link data-rh=true rel=canonical href=https://nautilus.aloen.to/integrations/lighter /><link data-rh=true rel=alternate href=https://nautilus.aloen.to/integrations/lighter hreflang=zh /><link data-rh=true rel=alternate href=https://nautilus.aloen.to/integrations/lighter hreflang=x-default /><script data-rh=true type=application/ld+json>{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","item":"https://nautilus.aloen.to/integrations/","name":"交易所与集成","position":1},{"@type":"ListItem","item":"https://nautilus.aloen.to/integrations/lighter","name":"Lighter","position":2}]}</script><link rel=stylesheet href=/assets/css/styles.adb7ea18.css /><script src=/assets/js/runtime~main.71ac0794.js defer></script><script src=/assets/js/main.d978d0f2.js defer></script></head><body><svg style="display: none;"><defs>
+<symbol id=theme-svg-external-link viewBox="0 0 24 24"><path fill=currentColor d="M21 13v10h-21v-19h12v2h-10v15h17v-8h2zm3-12h-10.988l4.035 4-6.977 7.07 2.828 2.828 6.977-7.07 4.125 4.172v-11z"/></symbol>
+</defs></svg>
+<script>!function(){var t=function(){try{return new URLSearchParams(window.location.search).get("docusaurus-theme")}catch(t){}}()||function(){try{return window.localStorage.getItem("theme-2e3")}catch(t){}}();document.documentElement.setAttribute("data-theme",t||(window.matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light")),document.documentElement.setAttribute("data-theme-choice",t||"system")}(),function(){try{for(var[t,e]of new URLSearchParams(window.location.search).entries())if(t.startsWith("docusaurus-data-")){var a=t.replace("docusaurus-data-","data-");document.documentElement.setAttribute(a,e)}}catch(t){}}()</script><div id=__docusaurus><link rel=preload as=image href=/logo.png /><div role=region aria-label=跳到主要内容><a class=skipToContent_zuOI href=#__docusaurus_skipToContent_fallback>跳到主要内容</a></div><nav aria-label=主导航 class="theme-layout-navbar navbar navbar--fixed-top"><div class=navbar__inner><div class="theme-layout-navbar-left navbar__items"><button aria-label=切换导航栏 aria-expanded=false class="navbar__toggle clean-btn" type=button><svg width=30 height=30 viewBox="0 0 30 30" aria-hidden=true><path stroke=currentColor stroke-linecap=round stroke-miterlimit=10 stroke-width=2 d="M4 7h22M4 15h22M4 23h22"/></svg></button><a class=navbar__brand href=/><div class=navbar__logo><img src=/logo.png alt="NautilusTrader Logo" class="themedComponent_q2_Y themedComponent--light_Nejn"/><img src=/logo.png alt="NautilusTrader Logo" class="themedComponent_q2_Y themedComponent--dark_JjIb"/></div><b class="navbar__title text--truncate">NautilusTrader</b></a><a aria-current=page class="navbar__item navbar__link navbar__link--active" href=/getting_started/>文档</a></div><div class="theme-layout-navbar-right navbar__items navbar__items--right"><a href=https://github.com/Aloento/NautilusTraderDoc target=_blank rel="noopener noreferrer" class="navbar__item navbar__link">GitHub<svg width=13.5 height=13.5 aria-label="(opens in new tab)" class=iconExternalLink_qUHo><use href=#theme-svg-external-link /></svg></a><div class="toggle_hHmI colorModeToggle_rOOn"><button class="clean-btn toggleButton_wEhT toggleButtonDisabled_yOOP" type=button disabled title="system mode" aria-label="切换浅色/暗黑模式（当前为system mode）"><svg viewBox="0 0 24 24" width=24 height=24 aria-hidden=true class="toggleIcon_Kt6U lightToggleIcon_Zfeh"><path fill=currentColor d="M12,9c1.65,0,3,1.35,3,3s-1.35,3-3,3s-3-1.35-3-3S10.35,9,12,9 M12,7c-2.76,0-5,2.24-5,5s2.24,5,5,5s5-2.24,5-5 S14.76,7,12,7L12,7z M2,13l2,0c0.55,0,1-0.45,1-1s-0.45-1-1-1l-2,0c-0.55,0-1,0.45-1,1S1.45,13,2,13z M20,13l2,0c0.55,0,1-0.45,1-1 s-0.45-1-1-1l-2,0c-0.55,0-1,0.45-1,1S19.45,13,20,13z M11,2v2c0,0.55,0.45,1,1,1s1-0.45,1-1V2c0-0.55-0.45-1-1-1S11,1.45,11,2z M11,20v2c0,0.55,0.45,1,1,1s1-0.45,1-1v-2c0-0.55-0.45-1-1-1C11.45,19,11,19.45,11,20z M5.99,4.58c-0.39-0.39-1.03-0.39-1.41,0 c-0.39,0.39-0.39,1.03,0,1.41l1.06,1.06c0.39,0.39,1.03,0.39,1.41,0s0.39-1.03,0-1.41L5.99,4.58z M18.36,16.95 c-0.39-0.39-1.03-0.39-1.41,0c-0.39,0.39-0.39,1.03,0,1.41l1.06,1.06c0.39,0.39,1.03,0.39,1.41,0c0.39-0.39,0.39-1.03,0-1.41 L18.36,16.95z M19.42,5.99c0.39-0.39,0.39-1.03,0-1.41c-0.39-0.39-1.03-0.39-1.41,0l-1.06,1.06c-0.39,0.39-0.39,1.03,0,1.41 s1.03,0.39,1.41,0L19.42,5.99z M7.05,18.36c0.39-0.39,0.39-1.03,0-1.41c-0.39-0.39-1.03-0.39-1.41,0l-1.06,1.06 c-0.39,0.39-0.39,1.03,0,1.41s1.03,0.39,1.41,0L7.05,18.36z"/></svg><svg viewBox="0 0 24 24" width=24 height=24 aria-hidden=true class="toggleIcon_Kt6U darkToggleIcon_XgQr"><path fill=currentColor d="M9.37,5.51C9.19,6.15,9.1,6.82,9.1,7.5c0,4.08,3.32,7.4,7.4,7.4c0.68,0,1.35-0.09,1.99-0.27C17.45,17.19,14.93,19,12,19 c-3.86,0-7-3.14-7-7C5,9.07,6.81,6.55,9.37,5.51z M12,3c-4.97,0-9,4.03-9,9s4.03,9,9,9s9-4.03,9-9c0-0.46-0.04-0.92-0.1-1.36 c-0.98,1.37-2.58,2.26-4.4,2.26c-2.98,0-5.4-2.42-5.4-5.4c0-1.81,0.89-3.42,2.26-4.4C12.92,3.04,12.46,3,12,3L12,3z"/></svg><svg viewBox="0 0 24 24" width=24 height=24 aria-hidden=true class="toggleIcon_Kt6U systemToggleIcon_BvUi"><path fill=currentColor d="m12 21c4.971 0 9-4.029 9-9s-4.029-9-9-9-9 4.029-9 9 4.029 9 9 9zm4.95-13.95c1.313 1.313 2.05 3.093 2.05 4.95s-0.738 3.637-2.05 4.95c-1.313 1.313-3.093 2.05-4.95 2.05v-14c1.857 0 3.637 0.737 4.95 2.05z"/></svg></button></div><div class=navbarSearchContainer_watl></div></div></div><div role=presentation class=navbar-sidebar__backdrop></div></nav><div id=__docusaurus_skipToContent_fallback class="theme-layout-main main-wrapper mainWrapper_R72Q"><div class=docsWrapper_XQ9b><button aria-label=回到顶部 class="clean-btn theme-back-to-top-button backToTopButton_MbnX" type=button></button><div class=docRoot_aqOB><aside class="theme-doc-sidebar-container docSidebarContainer_sI2e"><div class=sidebarViewport_TzTy><div class=sidebar_CbEe><nav aria-label=文档侧边栏 class="menu thin-scrollbar menu_ChRF"><ul class="theme-doc-sidebar-menu menu__list"><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-1 menu__list-item menu__list-item--collapsed"><div class=menu__list-item-collapsible><a class="categoryLink_Muyc menu__link menu__link--sublist" href=/getting_started/><span class=categoryLinkLabel_mAcL>快速开始</span></a><button aria-label="展开侧边栏分类 '快速开始'" aria-expanded=false type=button class="clean-btn menu__caret"></button></div><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-1 menu__list-item menu__list-item--collapsed"><div class=menu__list-item-collapsible><a class="categoryLink_Muyc menu__link menu__link--sublist" href=/concepts/><span class=categoryLinkLabel_mAcL>核心概念</span></a><button aria-label="展开侧边栏分类 '核心概念'" aria-expanded=false type=button class="clean-btn menu__caret"></button></div><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-1 menu__list-item"><div class=menu__list-item-collapsible><a class="categoryLink_Muyc menu__link menu__link--sublist menu__link--active" href=/integrations/><span class=categoryLinkLabel_mAcL>交易所与集成</span></a><button aria-label="折叠侧边栏分类 '交易所与集成'" aria-expanded=true type=button class="clean-btn menu__caret"></button></div><ul class=menu__list><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/integrations/architect_ax><span class=linkLabel_lYjD>AX Exchange</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/integrations/betfair><span class=linkLabel_lYjD>Betfair</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/integrations/binance><span class=linkLabel_lYjD>Binance</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/integrations/blockchain><span class=linkLabel_lYjD>区块链</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/integrations/bybit><span class=linkLabel_lYjD>Bybit</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/integrations/coinapi><span class=linkLabel_lYjD>CoinAPI</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/integrations/coinbase><span class=linkLabel_lYjD>Coinbase</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/integrations/databento><span class=linkLabel_lYjD>Databento</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/integrations/deribit><span class=linkLabel_lYjD>Deribit</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/integrations/derive><span class=linkLabel_lYjD>Derive</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/integrations/dydx><span class=linkLabel_lYjD>dYdX</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/integrations/hyperliquid><span class=linkLabel_lYjD>Hyperliquid</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/integrations/interactive_brokers><span class=linkLabel_lYjD>Interactive Brokers</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/integrations/kraken><span class=linkLabel_lYjD>Kraken</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class="menu__link menu__link--active" aria-current=page tabindex=0 href=/integrations/lighter><span class=linkLabel_lYjD>Lighter</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/integrations/okx><span class=linkLabel_lYjD>OKX</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/integrations/polymarket><span class=linkLabel_lYjD>Polymarket</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/integrations/tardis><span class=linkLabel_lYjD>Tardis</span></a></ul><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-1 menu__list-item menu__list-item--collapsed"><div class=menu__list-item-collapsible><a class="categoryLink_Muyc menu__link menu__link--sublist" href=/how_to/><span class=categoryLinkLabel_mAcL>操作指南</span></a><button aria-label="展开侧边栏分类 '操作指南'" aria-expanded=false type=button class="clean-btn menu__caret"></button></div><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-1 menu__list-item menu__list-item--collapsed"><div class=menu__list-item-collapsible><a class="categoryLink_Muyc menu__link menu__link--sublist" href=/tutorials/><span class=categoryLinkLabel_mAcL>教程</span></a><button aria-label="展开侧边栏分类 '教程'" aria-expanded=false type=button class="clean-btn menu__caret"></button></div><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-1 menu__list-item menu__list-item--collapsed"><div class=menu__list-item-collapsible><a class="categoryLink_Muyc menu__link menu__link--sublist" href=/developer_guide/><span class=categoryLinkLabel_mAcL>开发者指南</span></a><button aria-label="展开侧边栏分类 '开发者指南'" aria-expanded=false type=button class="clean-btn menu__caret"></button></div><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-1 menu__list-item menu__list-item--collapsed"><div class=menu__list-item-collapsible><a class="categoryLink_Muyc menu__link menu__link--sublist" href=/api_reference/><span class=categoryLinkLabel_mAcL>API 参考</span></a><button aria-label="展开侧边栏分类 'API 参考'" aria-expanded=false type=button class="clean-btn menu__caret"></button></div></ul></nav></div></div></aside><main class=docMainContainer_sLF8><div class="container padding-top--md padding-bottom--lg"><div class=row><div class="col docItemCol_ZRft"><div class=docItemContainer_KOP5><article><nav class="theme-doc-breadcrumbs breadcrumbsContainer_d5rS" aria-label=页面路径><ul class=breadcrumbs><li class=breadcrumbs__item><a aria-label=主页面 class=breadcrumbs__link href=/><svg viewBox="0 0 24 24" class=breadcrumbHomeIcon_XgF2><path d="M10 19v-5h4v5c0 .55.45 1 1 1h3c.55 0 1-.45 1-1v-7h1.7c.46 0 .68-.57.33-.87L12.67 3.6c-.38-.34-.96-.34-1.34 0l-8.36 7.53c-.34.3-.13.87.33.87H5v7c0 .55.45 1 1 1h3c.55 0 1-.45 1-1z" fill=currentColor /></svg></a><li class=breadcrumbs__item><a class=breadcrumbs__link href=/integrations/><span>交易所与集成</span></a><li class="breadcrumbs__item breadcrumbs__item--active"><span class=breadcrumbs__link>Lighter</span></ul></nav><div class="tocCollapsible_bgaJ theme-doc-toc-mobile tocMobile_FhT_"><button type=button class="clean-btn tocCollapsibleButton_F8AY">本页总览</button></div><div class="theme-doc-markdown markdown"><header><h1>Lighter</h1></header>
+<p><a href=https://lighter.xyz target=_blank rel="noopener noreferrer" class="">Lighter</a> 是面向现货与永续合约的 decentralized central-limit-order-book
+交易所（去中心化中央限价订单簿），采用以太坊零知识 rollup 结算，撮合与排序在链下完成。
+适配器（adapter）同时支持 Lighter 及其 Robinhood Chain 部署。</p>
+<p><code>nautilus-lighter</code> crate 提供 Rust 数据与执行客户端、类型化的 REST 与 WebSocket 模型，以及一个
+内置的 L2 签名器，使用 ECgFp5 上的 Schnorr 签名。本页介绍部署配置、能力与运行限制。</p>
+<p>L2 签名基准测试与官方 Go SDK 的对比见
+<a href=https://github.com/nautechsystems/nautilus_trader/blob/develop/crates/adapters/lighter/benches/BENCHMARKS.md target=_blank rel="noopener noreferrer" class=""><code>crates/adapters/lighter/benches/BENCHMARKS.md</code></a>。
+绝对耗时因机器而异，只有同一台机器上测得的差值才有意义。</p>
+<h2 class="anchor anchorTargetStickyNavbar_ana5" id=overview>概览<a href=#overview class=hash-link aria-label=概览的直接链接 title=概览的直接链接 translate=no>​</a></h2>
+<ul>
+<li class=""><code>LighterRawHttpClient</code>：面向公共与账户端点的低层 REST 客户端。</li>
+<li class=""><code>LighterHttpClient</code>：领域 REST 客户端，把金融工具、成交、K 线、资金费与簿解析为 Nautilus
+模型类型，并返回类型化的场所订单与账户负载。</li>
+<li class=""><code>LighterWebSocketClient</code>：可重连的 WebSocket 客户端，负责公共行情与私有账户流。</li>
+<li class=""><code>LighterDataClient</code>：Nautilus 数据客户端，负责金融工具、成交、报价与 L2 market-by-price
+（MBP）订单簿。</li>
+<li class=""><code>LighterExecutionClient</code>：Nautilus 执行客户端，负责账户流、订单提交、修改、撤销与对账报告。</li>
+<li class=""><code>LighterDataClientFactory</code> 与 <code>LighterExecutionClientFactory</code>：live-node 工厂接线。</li>
+</ul>
+<p>Python 扩展暴露配置、部署与环境选择、工厂，以及集成方吊销。live 节点通过 Rust trait 使用数据
+与执行客户端。</p>
+<h2 class="anchor anchorTargetStickyNavbar_ana5" id=examples>示例<a href=#examples class=hash-link aria-label=示例的直接链接 title=示例的直接链接 translate=no>​</a></h2>
+<p>运行 tester 之前，先编辑其模块级常量，包括 <code>LIGHTER_DEPLOYMENT</code> 与 <code>LIGHTER_ENVIRONMENT</code>。
+Rust 与 Python tester 启动后立即连接，这些选择器不读取环境变量。</p>
+<div class="theme-admonition theme-admonition-warning admonition_LYZY alert alert--warning"><div class=admonitionHeading_pnFY><span class=admonitionIcon_tEzm><svg viewBox="0 0 16 16"><path fill-rule=evenodd d="M8.893 1.5c-.183-.31-.52-.5-.887-.5s-.703.19-.886.5L.138 13.499a.98.98 0 0 0 0 1.001c.193.31.53.501.886.501h13.964c.367 0 .704-.19.877-.5a1.03 1.03 0 0 0 .01-1.002L8.893 1.5zm.133 11.497H6.987v-2.003h2.039v2.003zm0-3.004H6.987V5.987h2.039v4.006z"/></svg></span>注意</div><div class=admonitionContent_ZwmI><p>两个执行 tester 默认都开启下单：Rust 设置 <code>DRY_RUN = false</code> 并选择 Lighter Mainnet；Python
+设置 <code>DRY_RUN = False</code> 并选择 Lighter Testnet。在任一主网部署上，已注资的账户会下真实订单。
+运行 tester 前先检查金融工具、数量、部署与环境，或开启 <code>DRY_RUN</code> 以只连接不下单。</div></div>
+<p>Python 示例在
+<a href=https://github.com/nautechsystems/nautilus_trader/tree/develop/examples/live/lighter/ target=_blank rel="noopener noreferrer" class=""><code>examples/live/lighter/</code></a>。</p>
+<p>在仓库根目录运行：</p>
+<div class="language-bash codeBlockContainer_eTMR theme-code-block" style=--prism-color:#393A34;--prism-background-color:#f6f8fa><div class=codeBlockContent_hafM><pre tabindex=0 class="prism-code language-bash codeBlock_IMvC thin-scrollbar" style=color:#393A34;background-color:#f6f8fa><code class=codeBlockLines_gZDW><div class=token-line style=color:#393A34><span class="token plain">uv run --project python --no-sync python examples/live/lighter/data_tester.py</span><br/></div><div class=token-line style=color:#393A34><span class="token plain">uv run --project python --no-sync python examples/live/lighter/exec_tester.py</span><br/></div></code></pre></div></div>
+<p>Rust 示例在 <code>crates/adapters/lighter/examples/</code>：</p>
+<div class="language-bash codeBlockContainer_eTMR theme-code-block" style=--prism-color:#393A34;--prism-background-color:#f6f8fa><div class=codeBlockContent_hafM><pre tabindex=0 class="prism-code language-bash codeBlock_IMvC thin-scrollbar" style=color:#393A34;background-color:#f6f8fa><code class=codeBlockLines_gZDW><div class=token-line style=color:#393A34><span class="token plain">cargo run --example lighter-data-tester --package nautilus-lighter --features examples</span><br/></div><div class=token-line style=color:#393A34><span class="token plain">cargo run --example lighter-exec-tester --package nautilus-lighter --features examples</span><br/></div></code></pre></div></div>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=emergency-account-cleanup>紧急账户清理<a href=#emergency-account-cleanup class=hash-link aria-label=紧急账户清理的直接链接 title=紧急账户清理的直接链接 translate=no>​</a></h3>
+<p><code>cargo run --bin lighter-flatten -p nautilus-lighter</code> 提交一次账户级的立即撤销，读取一份持仓
+快照，并为快照中的持仓提交 reduce-only 的 immediate-or-cancel（IOC）平仓单。</p>
+<div class="theme-admonition theme-admonition-warning admonition_LYZY alert alert--warning"><div class=admonitionHeading_pnFY><span class=admonitionIcon_tEzm><svg viewBox="0 0 16 16"><path fill-rule=evenodd d="M8.893 1.5c-.183-.31-.52-.5-.887-.5s-.703.19-.886.5L.138 13.499a.98.98 0 0 0 0 1.001c.193.31.53.501.886.501h13.964c.367 0 .704-.19.877-.5a1.03 1.03 0 0 0 .01-1.002L8.893 1.5zm.133 11.497H6.987v-2.003h2.039v2.003zm0-3.004H6.987V5.987h2.039v4.006z"/></svg></span>注意</div><div class=admonitionContent_ZwmI><p>运行该命令前先停掉该账户的其他写入方。清理作用于整个账户而非单个策略，先看清当前账户与
+持仓。</div></div>
+<p>该命令不确认、也不重试请求。成功退出只表示撤销与发现的平仓单已提交且没有已知错误，不代表
+账户已平。事后检查账户状态，有残留就重跑。</p>
+<p>每次运行最多提交 15 笔平仓：16 个交易的 nonce 窗口中，撤销占用一个槽位。快照不完整、请求
+失败或提交失败都会返回错误。平仓流程 15 分钟超时。</p>
+<p>把 <code>LIGHTER_DEPLOYMENT</code> 设为 <code>lighter</code> 或 <code>robinhood</code>，<code>LIGHTER_ENVIRONMENT</code> 设为 <code>mainnet</code>
+或 <code>testnet</code>。省略选择器时默认 Lighter Mainnet，并选择对应的凭据命名空间。</p>
+<h2 class="anchor anchorTargetStickyNavbar_ana5" id=product-support>产品支持<a href=#product-support class=hash-link aria-label=产品支持的直接链接 title=产品支持的直接链接 translate=no>​</a></h2>
+<p>能力矩阵描述的是适配器的支持情况。<em>Not supported by Lighter</em> 表示场所 API 的限制；
+<em>Not currently implemented</em> 表示适配器尚未实现。</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>产品类型<th>数据馈送<th>交易<th>备注<tbody><tr><td>现货<td>✓<td>✓<td>现货市场；新上市市场使用从 4095 起的 64 位 id。<tr><td>永续合约<td>✓<td>✓<td>线性永续；新上市市场使用从 4095 起的 64 位 id。<tr><td>到期合约<td>-<td>-<td><em>Lighter 不支持</em>。<tr><td>期权<td>-<td>-<td><em>Lighter 不支持</em>。</table>
+<h2 class="anchor anchorTargetStickyNavbar_ana5" id=limitations>限制<a href=#limitations class=hash-link aria-label=限制的直接链接 title=限制的直接链接 translate=no>​</a></h2>
+<ul>
+<li class="">原生的 OTO、OCO 与 OTOCO 组合要求<a href=#contingent-orders class="">或有订单</a>一节描述的形态。Nautilus 的
+OUO 关系不受原生组合支持。TWAP 未实现。Lighter 没有移动止损订单类型，也没有冰山显示数量字段。</li>
+<li class="">非或有订单列表、批量修改与显式批量撤销，会把支持的子单自动拆分为每批最多 15 个交易的
+WebSocket 批次。原生或有列表使用一个组合交易。</li>
+<li class=""><code>CancelAllOrders</code> 在该客户端账户上跨策略撤销缓存的挂单，保留各订单所属策略，并按金融工具与
+可选的 <code>order_side</code> 过滤。它按每批最多 15 笔逐单撤销。适配器的原生 cancel-all 模式是账户级
+的。Lighter 的
+<a href=https://apidocs.lighter.xyz/docs/wasm-signer#signcancelallorders target=_blank rel="noopener noreferrer" class="">新版签名器</a>增加了市场过滤，
+但没有方向过滤。</li>
+<li class="">现货交易支持市价单与限价单。条件止损与止盈订单仅限永续市场。</li>
+<li class=""><code>query_account</code> 与持仓报告重放最近缓存的私有 WebSocket 状态。</li>
+<li class="">无范围的订单对账被限定在已配置或已观察到的活跃市场内，避免在标准 REST 配额下向全场所扇出。</li>
+</ul>
+<h2 class="anchor anchorTargetStickyNavbar_ana5" id=symbology>符号体系<a href=#symbology class=hash-link aria-label=符号体系的直接链接 title=符号体系的直接链接 translate=no>​</a></h2>
+<p>Lighter 使用 64 位 <code>market_index</code>。既有市场保留其按区间划分的 ID。
+<a href=https://t.me/lighter_api_updates/174 target=_blank rel="noopener noreferrer" class="">Lighter Mainnet 2026 年 9 月升级</a>与
+<a href=https://t.me/lighter_api_updates/184 target=_blank rel="noopener noreferrer" class="">Robinhood 随后的升级</a>之后，新的现货与永续市场取 <code>4095</code>
+及以上的第一个空闲索引。</p>
+<p>产品类型永远取自 <code>market_type</code>，绝不从索引推断。适配器从 <code>GET /api/v1/orderBookDetails</code> 加载
+映射，并把场所符号转换为 Nautilus <code>InstrumentId</code>。</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>部署侧产品<th>Nautilus 符号格式<th>示例<th>备注<tbody><tr><td>Lighter 永续<td><code>{BASE}-PERP.LIGHTER</code><td><code>BTC-PERP.LIGHTER</code><td>场所原始符号 <code>BTC</code>。<tr><td>Lighter 现货<td><code>{BASE}/{QUOTE}-SPOT.LIGHTER</code><td><code>ETH/USDC-SPOT.LIGHTER</code><td>原始符号 <code>ETH/USDC</code>。<tr><td>Robinhood 永续<td><code>{BASE}-PERP.LIGHTER_ROBINHOOD</code><td><code>SNDK-PERP.LIGHTER_ROBINHOOD</code><td>场所原始符号 <code>SNDK</code>。<tr><td>Robinhood 现货<td><code>{BASE}/{QUOTE}-SPOT.LIGHTER_ROBINHOOD</code><td><code>SNDK/USDG-SPOT.LIGHTER_ROBINHOOD</code><td>原始符号 <code>SNDK/USDG</code>。</table>
+<p>后缀用于区分离现货与永续挂牌。出站请求会去掉后缀并使用缓存的 <code>market_index</code>。现货符号保留
+场所的交易对。</p>
+<h2 class="anchor anchorTargetStickyNavbar_ana5" id=deployments-and-environments>部署与环境<a href=#deployments-and-environments class=hash-link aria-label=部署与环境的直接链接 title=部署与环境的直接链接 translate=no>​</a></h2>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>部署<th>环境<th>REST URL<th>WebSocket URL<th>L2 签名链 ID<th>结算<th>默认场所<tbody><tr><td>Lighter<td>Mainnet<td><code>https://mainnet.zklighter.elliot.ai</code><td><code>wss://mainnet.zklighter.elliot.ai/stream</code><td>304<td>USDC<td><code>LIGHTER</code><tr><td>Lighter<td>Testnet<td><code>https://testnet.zklighter.elliot.ai</code><td><code>wss://testnet.zklighter.elliot.ai/stream</code><td>300<td>USDC<td><code>LIGHTER</code><tr><td>Robinhood<td>Mainnet<td><code>https://api.rh.lighter.xyz</code><td><code>wss://api.rh.lighter.xyz/stream</code><td>466324<td>USDG<td><code>LIGHTER_ROBINHOOD</code><tr><td>Robinhood<td>Testnet<td><code>https://api.rh-testnet.lighter.xyz</code><td><code>wss://api.rh-testnet.lighter.xyz/stream</code><td>300<td>USDG<td><code>LIGHTER_ROBINHOOD</code></table>
+<p>这些链 ID 是 Lighter L2 签名域取值，不是 EVM 网络的链 ID。</p>
+<p>选择 <code>LighterDeployment::Lighter</code> 或 <code>Robinhood</code>，以及 <code>LighterEnvironment::Mainnet</code> 或
+<code>Testnet</code>。两者一起决定默认 URL、链 ID、结算货币、场所与归因策略。两个测试网都用链 ID 300，
+因此适配器从不按数字 ID 推断部署行为。</p>
+<p>为私有网关或本地测试 fixture 覆盖 URL 只改变传输端点，部署签名、结算货币与归因保持不变。</p>
+<p>数据客户端会往其 WebSocket URL 追加 <code>readonly=true</code>，执行客户端保持 URL 不变。</p>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=custom-venue-identity>自定义场所标识<a href=#custom-venue-identity class=hash-link aria-label=自定义场所标识的直接链接 title=自定义场所标识的直接链接 translate=no>​</a></h3>
+<p>要在 Lighter 协议端点之间使用不同的 Nautilus 标识，在两个客户端配置上设置 <code>venue</code>。它限定
+金融工具、缓存条目、消息主题、socket 状态与执行路由，而不改变部署的协议行为。</p>
+<p>为兼容起见，工厂名保持 <code>LIGHTER</code>。<code>ClientId</code> 是客户端注册名。Robinhood 要按 <code>ClientId</code> 路由
+时，注册为 <code>LIGHTER_ROBINHOOD</code>。两种语言的示例都由 <code>LIGHTER_DEPLOYMENT</code> 推导它。支持自定义
+客户端名。</p>
+<p>Nautilus 按 issuer 路由账户命令，因此 <code>account_id</code> 的 issuer 必须与解析出的场所一致：
+<code>LIGHTER_RH_ALT</code> 需要形如 <code>LIGHTER_RH_ALT-001</code> 的 ID。自定义场所不会启用自定义链 ID 或归因。</p>
+<h2 class="anchor anchorTargetStickyNavbar_ana5" id=account-and-api-key-setup>账户与 API key 设置<a href=#account-and-api-key-setup class=hash-link aria-label="账户与 API key 设置的直接链接" title="账户与 API key 设置的直接链接" translate=no>​</a></h2>
+<p>公共行情不需要账户。私有流与执行需要来自同一部署与环境的账户索引、API key 索引与私钥。
+每行各有独立的命名空间：</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>部署<th>环境<th>账户与 API key 页面<th>账户 issuer<th>凭据前缀<tbody><tr><td>Lighter<td>Mainnet<td><a href=https://app.lighter.xyz/apikeys target=_blank rel="noopener noreferrer" class="">Lighter Mainnet</a><td><code>LIGHTER</code><td><code>LIGHTER_*</code><tr><td>Lighter<td>Testnet<td><a href=https://testnet.app.lighter.xyz/apikeys target=_blank rel="noopener noreferrer" class="">Lighter Testnet</a><td><code>LIGHTER</code><td><code>LIGHTER_TESTNET_*</code><tr><td>Robinhood<td>Mainnet<td><a href=https://robinhoodchain.lighter.xyz/apikeys target=_blank rel="noopener noreferrer" class="">Robinhood Mainnet</a><td><code>LIGHTER_ROBINHOOD</code><td><code>LIGHTER_ROBINHOOD_*</code><tr><td>Robinhood<td>Testnet<td><a href=https://rhctestnet.lighter.xyz/apikeys target=_blank rel="noopener noreferrer" class="">Robinhood Testnet</a><td><code>LIGHTER_ROBINHOOD</code><td><code>LIGHTER_ROBINHOOD_TESTNET_*</code></table>
+<p>不要跨行混用账户或 key，即使两个测试网的签名链 ID 同为 300。</p>
+<ol>
+<li class="">
+<p>打开目标部署的账户页面并登录。生成 API key 之前，先创建或选择交易账户，包括目标子账户。</p>
+</li>
+<li class="">
+<p>按 Lighter 的
+<a href=https://apidocs.lighter.xyz/docs/get-started#find-your-account-index target=_blank rel="noopener noreferrer" class="">账户索引查询</a>，
+对着该部署的 REST URL 操作。非 Robinhood Mainnet 的部署，把示例 URL 换成其
+<a href=#deployments-and-environments class="">部署表取值</a>：</p>
+<div class="language-bash codeBlockContainer_eTMR theme-code-block" style=--prism-color:#393A34;--prism-background-color:#f6f8fa><div class=codeBlockContent_hafM><pre tabindex=0 class="prism-code language-bash codeBlock_IMvC thin-scrollbar" style=color:#393A34;background-color:#f6f8fa><code class=codeBlockLines_gZDW><div class=token-line style=color:#393A34><span class="token plain">LIGHTER_SETUP_API_URL="https://api.rh.lighter.xyz"</span><br/></div><div class=token-line style=color:#393A34><span class="token plain">LIGHTER_SETUP_L1_ADDRESS="0xYOUR_ETHEREUM_ADDRESS"</span><br/></div><div class=token-line style=color:#393A34><span class="token plain" style=display:inline-block></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">curl -sS --get \</span><br/></div><div class=token-line style=color:#393A34><span class="token plain">  "${LIGHTER_SETUP_API_URL}/api/v1/accountsByL1Address" \</span><br/></div><div class=token-line style=color:#393A34><span class="token plain">  --data-urlencode "l1_address=${LIGHTER_SETUP_L1_ADDRESS}"</span><br/></div></code></pre></div></div>
+<p>从 <code>sub_accounts</code> 中所需条目读取 <code>index</code>。一个钱包可以拥有主账户和若干子账户，每个子账户
+有独立的账户索引与 API key。</p>
+</li>
+<li class="">
+<p>在所选账户的 API key 页面选择 <strong>Generate API Key</strong>。使用 <code>[4, 254]</code> 中未占用的索引。
+Lighter 的 <a href=https://apidocs.lighter.xyz/docs/api-keys target=_blank rel="noopener noreferrer" class="">API key 文档</a>把 <code>[0, 3]</code> 保留给其
+界面，<code>255</code> 是 API 查询哨兵。Robinhood 还保留 <code>157</code>。见
+<a href=https://apidocs.lighter.xyz/docs/lighter-rh#api-keys target=_blank rel="noopener noreferrer" class="">Robinhood API keys</a>。</p>
+</li>
+<li class="">
+<p>关掉弹窗前先保存生成的私钥，Lighter 不会再显示它。</p>
+</li>
+<li class="">
+<p>直接配置 <code>account_index</code>、<code>api_key_index</code> 与 <code>private_key</code>，或使用
+<a href=#api-credentials class="">API 凭据</a>一表中列出的环境变量。Nautilus 的 <code>account_id</code> 与场所账户索引
+是两回事：使用上表中的 issuer，例如 <code>LIGHTER-001</code> 或 <code>LIGHTER_ROBINHOOD-001</code>。</p>
+</li>
+<li class="">
+<p>确认目标部署能识别所选的账户与 key 索引：</p>
+<div class="language-bash codeBlockContainer_eTMR theme-code-block" style=--prism-color:#393A34;--prism-background-color:#f6f8fa><div class=codeBlockContent_hafM><pre tabindex=0 class="prism-code language-bash codeBlock_IMvC thin-scrollbar" style=color:#393A34;background-color:#f6f8fa><code class=codeBlockLines_gZDW><div class=token-line style=color:#393A34><span class="token plain">LIGHTER_SETUP_ACCOUNT_INDEX="123456"</span><br/></div><div class=token-line style=color:#393A34><span class="token plain">LIGHTER_SETUP_API_KEY_INDEX="4"</span><br/></div><div class=token-line style=color:#393A34><span class="token plain" style=display:inline-block></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">curl -sS --get \</span><br/></div><div class=token-line style=color:#393A34><span class="token plain">  "${LIGHTER_SETUP_API_URL}/api/v1/apikeys" \</span><br/></div><div class=token-line style=color:#393A34><span class="token plain">  --data-urlencode "account_index=${LIGHTER_SETUP_ACCOUNT_INDEX}" \</span><br/></div><div class=token-line style=color:#393A34><span class="token plain">  --data-urlencode "api_key_index=${LIGHTER_SETUP_API_KEY_INDEX}"</span><br/></div></code></pre></div></div>
+<p>成功会返回 <code>"code": 200</code> 与所选的 key。这次公共查询只确认索引，既不暴露也不校验私钥。</p>
+</li>
+</ol>
+<div class="theme-admonition theme-admonition-warning admonition_LYZY alert alert--warning"><div class=admonitionHeading_pnFY><span class=admonitionIcon_tEzm><svg viewBox="0 0 16 16"><path fill-rule=evenodd d="M8.893 1.5c-.183-.31-.52-.5-.887-.5s-.703.19-.886.5L.138 13.499a.98.98 0 0 0 0 1.001c.193.31.53.501.886.501h13.964c.367 0 .704-.19.877-.5a1.03 1.03 0 0 0 .01-1.002L8.893 1.5zm.133 11.497H6.987v-2.003h2.039v2.003zm0-3.004H6.987V5.987h2.039v4.006z"/></svg></span>注意</div><div class=admonitionContent_ZwmI><p>Lighter API key 授权交易、私有账户访问以及部分 withdrawal 操作。把私钥存放在 secret manager
+或受保护的环境配置中，不要提交到仓库，也不要出现在日志里。</div></div>
+<h2 class="anchor anchorTargetStickyNavbar_ana5" id=integrator-attribution>集成方归因<a href=#integrator-attribution class=hash-link aria-label=集成方归因的直接链接 title=集成方归因的直接链接 translate=no>​</a></h2>
+<p>通过 <a href=https://apidocs.lighter.xyz/docs/partner-integration target=_blank rel="noopener noreferrer" class="">Lighter 合作伙伴计划</a>，执行客户端
+会把 Lighter Mainnet 上的创建与修改交易在 <code>L2TxAttributes</code> 中归因到 NautilusTrader 的集成方
+账户。这适用于所有层级（包括 Standard）以及列表中的每一笔订单。maker 与 taker 的集成方费用
+为零。</p>
+<p>在 Lighter Mainnet 上，启动时会对非 maker-only 的 key 用 L2 签名提交 <code>ApproveIntegrator</code>，
+全部最大费用设为零，不需要 L1 签名。</p>
+<p>Lighter Testnet 与两个 Robinhood 环境把 <code>L2TxAttributes</code> 留空，并在启动时省略
+<code>ApproveIntegrator</code>。</p>
+<p>选择 Robinhood Mainnet 即让账户加入 <code>NAUTILUS</code> 推荐码。启动时，客户端用配置的 L2 API key
+把该推荐码应用到账户的公共 L1 地址。失败只记 warning，不阻塞交易。Robinhood Testnet 不做
+推荐归因。</p>
+<p>归因跟随类型化的部署与环境，与自定义场所名无关。</p>
+<p>maker-only 的 Lighter Mainnet key 无法提交 <code>ApproveIntegrator</code>，会跳过自动批准。这类 key 要
+通过适配器交易，同一账户上必须先由一个非 maker-only 的 key 批准该集成方：批准作用于账户
+范围。</p>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=revoking-the-approval>吊销批准<a href=#revoking-the-approval class=hash-link aria-label=吊销批准的直接链接 title=吊销批准的直接链接 translate=no>​</a></h3>
+<p>离开该适配器时要吊销 Lighter Mainnet 的批准，用 <code>approval_expiry = 0</code> 与零最大费用发送
+<code>ApproveIntegrator</code>。下次用非 maker-only key 启动执行客户端时，会在所有 Lighter Mainnet 层级
+重新续期零费用批准。</p>
+<div class="language-bash codeBlockContainer_eTMR theme-code-block" style=--prism-color:#393A34;--prism-background-color:#f6f8fa><div class=codeBlockContent_hafM><pre tabindex=0 class="prism-code language-bash codeBlock_IMvC thin-scrollbar" style=color:#393A34;background-color:#f6f8fa><code class=codeBlockLines_gZDW><div class=token-line style=color:#393A34><span class="token plain">export LIGHTER_API_KEY_INDEX=5</span><br/></div><div class=token-line style=color:#393A34><span class="token plain">export LIGHTER_API_SECRET=REPLACE_ME</span><br/></div><div class=token-line style=color:#393A34><span class="token plain">export LIGHTER_ACCOUNT_INDEX=123456</span><br/></div><div class=token-line style=color:#393A34><span class="token plain">cargo run -p nautilus-lighter --bin lighter-integrator-revoke           # Lighter Mainnet</span><br/></div></code></pre></div></div>
+<p>脚本源码：
+<a href=https://github.com/nautechsystems/nautilus_trader/blob/develop/crates/adapters/lighter/bin/integrator_revoke.rs target=_blank rel="noopener noreferrer" class=""><code>crates/adapters/lighter/bin/integrator_revoke.rs</code></a>。</p>
+<div class="language-python codeBlockContainer_eTMR theme-code-block" style=--prism-color:#393A34;--prism-background-color:#f6f8fa><div class=codeBlockContent_hafM><pre tabindex=0 class="prism-code language-python codeBlock_IMvC thin-scrollbar" style=color:#393A34;background-color:#f6f8fa><code class=codeBlockLines_gZDW><div class=token-line style=color:#393A34><span class="token comment" style=color:#999988;font-style:italic># Python (PyO3 binding) - reads the same env vars as the Rust bin</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain"></span><span class="token keyword" style=color:#00009f>from</span><span class="token plain"> nautilus_trader</span><span class="token punctuation" style=color:#393A34>.</span><span class="token plain">adapters</span><span class="token punctuation" style=color:#393A34>.</span><span class="token plain">lighter </span><span class="token keyword" style=color:#00009f>import</span><span class="token plain"> revoke_lighter_integrator</span><br/></div><div class=token-line style=color:#393A34><span class="token plain" style=display:inline-block></span><br/></div><div class=token-line style=color:#393A34><span class="token plain"></span><span class="token keyword" style=color:#00009f>await</span><span class="token plain"> revoke_lighter_integrator</span><span class="token punctuation" style=color:#393A34>(</span><span class="token punctuation" style=color:#393A34>)</span><span class="token plain">  </span><span class="token comment" style=color:#999988;font-style:italic># Lighter Mainnet (default)</span><br/></div></code></pre></div></div>
+<p>Rust 命令会显示该动作并等待回车后才签名或发送。摘要不对时用 <code>Ctrl+C</code> 中止。Python 绑定不
+提示，调用前先检查当前生效的环境变量。</p>
+<h2 class="anchor anchorTargetStickyNavbar_ana5" id=data-subscriptions>数据订阅<a href=#data-subscriptions class=hash-link aria-label=数据订阅的直接链接 title=数据订阅的直接链接 translate=no>​</a></h2>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>数据类型<th>订阅<th>快照<th>历史<th>Nautilus 类型<th>备注<tbody><tr><td>金融工具元数据<td>缓存重放<td>✓<td>-<td><code>InstrumentAny</code><td>从 <code>orderBookDetails</code> 加载。<tr><td>成交 tick<td>✓<td>-<td>✓<td><code>TradeTick</code><td>WebSocket 成交；公共 <code>recentTrades</code> REST 历史。<tr><td>报价 tick<td>✓<td>-<td>-<td><code>QuoteTick</code><td>实时 BBO；历史 <em>Lighter 不支持</em>。<tr><td>订单簿增量<td>✓<td>✓<td>-<td><code>OrderBookDeltas</code><td><code>L2_MBP</code>；历史 <em>Lighter 不支持</em>。<tr><td>订单簿深度<td>✓<td>-<td>-<td><code>OrderBookDepth</code><td>实时前 10 档；REST <em>尚未实现</em>。<tr><td>订单簿快照<td>-<td>✓<td>-<td><code>OrderBook</code><td>REST 快照；每侧最多聚合 250 个订单。<tr><td>标记价<td>✓<td>-<td>-<td><code>MarkPriceUpdate</code><td>永续市场统计流。<tr><td>指数价<td>✓<td>-<td>-<td><code>IndexPriceUpdate</code><td>市场与现货统计流。<tr><td>资金费率<td>✓<td>-<td>✓<td><code>FundingRateUpdate</code><td>当前估计值与 REST 每小时历史。<tr><td>K 线<td>✓<td>-<td>✓<td><code>Bar</code><td>WebSocket candle 流；REST 历史用于回填。<tr><td>金融工具状态<td>REST<td>✓<td>-<td><code>InstrumentStatus</code><td><code>active</code> / <code>inactive</code> 快照。</table>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=order-book-data>订单簿数据<a href=#order-book-data class=hash-link aria-label=订单簿数据的直接链接 title=订单簿数据的直接链接 translate=no>​</a></h3>
+<p>簿增量与深度订阅在订阅前会拒绝 <code>BookType::L2_MBP</code> 之外的类型。</p>
+<p>只有 <code>subscribed/order_book</code> 会初始化 WebSocket 簿。在它到达之前，适配器丢弃
+<code>update/order_book</code> 帧且不发出簿数据，因为增量消息不含未变化的档位。</p>
+<p>深度与增量共用 WebSocket 的 <code>order_book</code> 流。每个被接受的快照或增量更新都会刷新一份前 10 档
+深度视图。</p>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=bars>K 线<a href=#bars class=hash-link aria-label="K 线的直接链接" title="K 线的直接链接" translate=no>​</a></h3>
+<p>K 线订阅使用 <code>candle/{market_id}/{resolution}</code>。Lighter 大约每 500 毫秒批量推送未收盘 K 线的
+更新。适配器只在 candle 起始时间戳前进时，为每个已收盘周期发出一个 <code>Bar</code>。重连与退订会
+清空进行中的缓存。</p>
+<p>REST 与 WebSocket 支持 <code>1m</code>、<code>5m</code>、<code>15m</code>、<code>30m</code>、<code>1h</code>、<code>4h</code>、<code>12h</code> 与 <code>1d</code>。适配器对 REST
+请求接受 <code>1w</code>，但 Lighter Mainnet 会以 <code>20001 invalid param</code> 拒绝该分辨率，
+<a href=https://apidocs.lighter.xyz/reference/candles target=_blank rel="noopener noreferrer" class="">REST 模式</a>也未列出它。周 K 线订阅会在本地返回
+错误。要得到周数据，请聚合更短的 K 线。</p>
+<p>REST 历史会跳过 OHLC 缺失、为 null 或非正的缺口行：它们无法构成有效的 Nautilus K 线。之后
+有效的行仍会加载。</p>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=instrument-status-and-trades>金融工具状态与成交<a href=#instrument-status-and-trades class=hash-link aria-label=金融工具状态与成交的直接链接 title=金融工具状态与成交的直接链接 translate=no>​</a></h3>
+<p>金融工具状态订阅会重放缓存的 <code>orderBookDetails</code> 状态，或拉取一份 REST 快照。Lighter 没有
+WebSocket 的状态变更流。</p>
+<p>成交订阅使用公共 WebSocket 流。历史使用公共 <code>/api/v1/recentTrades</code>，无需凭据。适配器把最多
+100 笔成交过滤到请求的时间区间内，不分页。</p>
+<p>实时与历史资金费率的语义见<a href=#funding-rates class="">资金费率</a>。</p>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=unsupported-data-requests>不支持的数据请求<a href=#unsupported-data-requests class=hash-link aria-label=不支持的数据请求的直接链接 title=不支持的数据请求的直接链接 translate=no>​</a></h3>
+<p><code>request_quotes</code> 未实现：适配器用到的 REST 端点没有带时间戳的报价快照或历史，无法安全映射到
+<code>QuoteTick</code>。要获取实时最优买卖价，请订阅 WebSocket 的 <code>ticker</code> 流。</p>
+<p><code>request_book_depth</code> 未实现：REST 簿端点没有可用于 <code>OrderBookDepth.ts_event</code> 的场所事件时间戳。
+实时深度请用 <code>subscribe_book_depth</code>，REST 的 <code>OrderBook</code> 快照用 <code>request_book_snapshot</code>。</p>
+<h2 class="anchor anchorTargetStickyNavbar_ana5" id=order-book-recovery>订单簿恢复<a href=#order-book-recovery class=hash-link aria-label=订单簿恢复的直接链接 title=订单簿恢复的直接链接 translate=no>​</a></h2>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=sequence-validation>序列校验<a href=#sequence-validation class=hash-link aria-label=序列校验的直接链接 title=序列校验的直接链接 translate=no>​</a></h3>
+<p>适配器把每条增量更新的 <code>begin_nonce</code> 与上一份簿的 <code>nonce</code> 比对。不匹配时抑制簿输出，并启动
+一次退订/订阅替换。</p>
+<p>场所的 <code>offset</code> 不是连续性计数器：它可能跳号，重连后也可能因服务器不同而变化。参见
+<a href=https://apidocs.lighter.xyz/docs/websocket-reference#order-book target=_blank rel="noopener noreferrer" class="">Lighter 订单簿契约</a>。</p>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=snapshot-requirements>快照要求<a href=#snapshot-requirements class=hash-link aria-label=快照要求的直接链接 title=快照要求的直接链接 translate=no>​</a></h3>
+<p>订阅写操作完成后，初始订阅与替换订阅最多等待 <code>book_snapshot_timeout_secs</code>（默认 10 秒）以
+取得类型化的 <code>subscribed/order_book</code> 快照。设为 <code>0</code> 可禁用快照期限。</p>
+<p>快照缺失会启动或重试恢复，即使已收到控制确认或 <code>Already Subscribed</code> 响应。控制确认只释放
+订阅槽位，不算完成簿恢复。</p>
+<p>只有在匹配的快照替换掉缓存档位之后，簿输出才恢复。空快照同样会清空簿。</p>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=retry-limits-and-reconnects>重试限制与重连<a href=#retry-limits-and-reconnects class=hash-link aria-label=重试限制与重连的直接链接 title=重试限制与重连的直接链接 translate=no>​</a></h3>
+<p>每个恢复事件在 180 秒内最多做八次替换尝试，采用指数退避与抖动；之后在 [1 分钟, 15 分钟] 区间
+内按指数退避继续重试，直到快照被接受。替换用的退订与订阅写操作指向同一连接。</p>
+<p>重连会淘汰过期的订阅代次，同时保留恢复事件及其剩余预算。预算耗尽、正处在尝试间隔中等待的
+恢复，会在新连接上立即重试。</p>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=consumers-and-persistent-failures>消费者与持续失败<a href=#consumers-and-persistent-failures class=hash-link aria-label=消费者与持续失败的直接链接 title=消费者与持续失败的直接链接 translate=no>​</a></h3>
+<p>同一市场的增量与深度共用一个恢复事件：</p>
+<ul>
+<li class="">移除一个消费者时，另一个保持不变。</li>
+<li class="">移除最后一个消费者会取消待处理的写操作与快照等待。</li>
+<li class="">关闭会取消其持有的全部工作。</li>
+</ul>
+<p>恢复不会以失败状态结束。被拒绝的替换，或重连后回放的订阅，会按递增的间隔继续重试。迟到的
+快照仍能恢复簿。</p>
+<p>除限流以外的场所订阅失败，会让正在等待的初始 subscribe 调用失败，即使恢复已经启动。此后
+恢复只在还有其他消费者时继续。后续的 subscribe 会重新开始，其他市场各自独立恢复。</p>
+<p>共享的恢复机制与适配器职责见
+<a class="" href=/developer_guide/adapters#order-book-recovery-ownership>订单簿恢复的归属</a>。</p>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=live-recovery-validation>实时恢复验证<a href=#live-recovery-validation class=hash-link aria-label=实时恢复验证的直接链接 title=实时恢复验证的直接链接 translate=no>​</a></h3>
+<p>用 <code>lighter-book-stress</code> 在六个 Lighter 主网永续簿上验证同步与恢复的改动。它不提交订单，会
+检查簿流契约（包括每个快照事件内 nonce 递增），并与馈送最优 20 档的独立重建结果比对。</p>
+<p>在仓库根目录运行：</p>
+<div class="language-bash codeBlockContainer_eTMR theme-code-block" style=--prism-color:#393A34;--prism-background-color:#f6f8fa><div class=codeBlockContent_hafM><pre tabindex=0 class="prism-code language-bash codeBlock_IMvC thin-scrollbar" style=color:#393A34;background-color:#f6f8fa><code class=codeBlockLines_gZDW><div class=token-line style=color:#393A34><span class="token plain">CARGO_BUILD_JOBS=16 bash scripts/strip-adapter-env.bash \</span><br/></div><div class=token-line style=color:#393A34><span class="token plain">  cargo test -p nautilus-lighter --features examples --test lighter-book-stress -- --timeout 10 --rounds 12</span><br/></div></code></pre></div></div>
+<p><code>--scenario</code> 选择运行方式：</p>
+<ul>
+<li class=""><code>churn</code>（默认）：先验证无重连的恢复，再轮换 nonce 缺口、丢弃与延迟快照、被拒的替换、重连，
+以及恢复期间的重启。</li>
+<li class=""><code>initial</code>：在全新会话中每轮丢弃每个簿的首个快照。</li>
+<li class=""><code>boundaries</code>：让重试预算内的每次尝试都被拒，然后检查重试上限、结束上限等待的重连、恢复期间
+的退订，以及重连期间的关闭。</li>
+</ul>
+<p><code>--timeout</code> 设置快照超时秒数（<code>0</code> 禁用期限）；<code>--rounds</code> 设置轮数（默认 12）。</p>
+<p>该工具需要主网 WebSocket 流以及公共 <code>orderBooks</code> 与 <code>orderBookDetails</code> API。共享参数与输出
+格式见<a class="" href=/developer_guide/spec_data_testing#stress-harnesses>压力测试工具</a>。</p>
+<h2 class="anchor anchorTargetStickyNavbar_ana5" id=order-capabilities>订单能力<a href=#order-capabilities class=hash-link aria-label=订单能力的直接链接 title=订单能力的直接链接 translate=no>​</a></h2>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=order-identification>订单标识<a href=#order-identification class=hash-link aria-label=订单标识的直接链接 title=订单标识的直接链接 translate=no>​</a></h3>
+<p>Lighter 使用数字场所订单索引与调用方提供的 <code>client_order_index</code>。适配器从 Nautilus
+<code>ClientOrderId</code> 派生一个 31 位索引，冲突时向后探测。</p>
+<p>探测出的值在重启后无法重新推导。转换订单与成交报告之前，对账会通过核心缓存解析每个场所订单
+ID，并恢复其真实的 client 索引：缓存中的活动订单回到活动跟踪，终态订单使用有界回放跟踪。</p>
+<p>恢复绝不单凭整数推断 client order ID。对账必须包含该订单，且核心缓存必须保留其场所订单 ID
+映射；否则报告用唯一的场所订单 ID 作为其外部 client order ID。</p>
+<p>查询对活动与终态历史都使用数字场所订单 ID。在该 ID 已知之前，派生的 client 索引只能查询活动
+订单。活动匹配出现重复时按歧义失败。</p>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=order-types>订单类型<a href=#order-types class=hash-link aria-label=订单类型的直接链接 title=订单类型的直接链接 translate=no>​</a></h3>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>订单类型<th>永续<th>现货<th>备注<tbody><tr><td><code>MARKET</code><td>✓<td>✓<td>上限由缓存的对侧报价加滑点推导。<tr><td><code>LIMIT</code><td>✓<td>✓<td>需要限价。<tr><td><code>STOP_MARKET</code><td>✓<td>-<td>仅永续；上限由 <code>trigger_price</code> 加滑点推导。<tr><td><code>STOP_LIMIT</code><td>✓<td>-<td>仅永续；映射到 Lighter 止损限价单。<tr><td><code>MARKET_IF_TOUCHED</code><td>✓<td>-<td>仅永续；上限由 <code>trigger_price</code> 加滑点推导。<tr><td><code>LIMIT_IF_TOUCHED</code><td>✓<td>-<td>仅永续；映射到 Lighter 止盈限价单。<tr><td><code>MARKET_TO_LIMIT</code><td>-<td>-<td><em>Lighter 不支持</em>。<tr><td><code>TRAILING_STOP_MARKET</code><td>-<td>-<td><em>Lighter 不支持</em>。<tr><td><code>TRAILING_STOP_LIMIT</code><td>-<td>-<td><em>Lighter 不支持</em>。<tr><td><code>TWAP</code><td>-<td>-<td><em>尚未实现</em>；没有 Nautilus 映射。</table>
+<p>条件订单必须有 <code>trigger_price</code>。适配器会拒绝缺失触发价、在金融工具价格精度下截断为 <code>0</code> 个
+tick 的触发价，以及全部现货条件订单。</p>
+<p>Lighter 要求市价类订单给出可接受的最差 <code>price</code>。上限从以下起点推导：</p>
+<ul>
+<li class=""><code>MARKET</code>：买单用缓存 ask，卖单用 bid。没有缓存的 <code>QuoteTick</code> 时订单被拒。</li>
+<li class=""><code>STOP_MARKET</code> 与 <code>MARKET_IF_TOUCHED</code>：<code>trigger_price</code>。</li>
+</ul>
+<p>随后适配器应用 <code>market_order_slippage_bps</code>（默认 50 bps），再按金融工具价格精度取整：买单
+向上、卖单向下。用 <code>SubmitOrder.params["market_order_slippage_bps"]</code> 覆盖滑点。</p>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=contingent-orders>或有订单<a href=#contingent-orders class=hash-link aria-label=或有订单的直接链接 title=或有订单的直接链接 translate=no>​</a></h3>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>功能<th>永续<th>现货<th>备注<tbody><tr><td>止损市价<td>✓<td>-<td><code>STOP_MARKET</code> 映射到 Lighter <code>STOP_LOSS</code>。<tr><td>止损限价<td>✓<td>-<td><code>STOP_LIMIT</code> 映射到 Lighter <code>STOP_LOSS_LIMIT</code>。<tr><td>止盈市价<td>✓<td>-<td><code>MARKET_IF_TOUCHED</code> 映射到 Lighter <code>TAKE_PROFIT</code>。<tr><td>止盈限价<td>✓<td>-<td><code>LIMIT_IF_TOUCHED</code> 映射到 <code>TAKE_PROFIT_LIMIT</code>。<tr><td>触发价<td>✓<td>-<td>每个支持的条件订单都必须有。<tr><td>触发源选择<td>-<td>-<td><em>Lighter 不支持</em>；仅标记价触发。<tr><td>组合订单列表<td>✓<td>-<td>原生 OTO、OCO 与 OTOCO 组合。<tr><td>OCO / OTO 订单<td>✓<td>-<td>同市场组合，子单为止损/止盈。<tr><td>括号订单<td>✓<td>-<td>OTO 父单加 OCO 关联的条件退出腿。<tr><td><code>CreateGroupedOrders</code><td>✓<td>-<td>组合内每条腿共用一个签名交易与 nonce。</table>
+<p>用 <code>submit_order_list</code> 提交原生组合。适配器把 Lighter 的
+<a href=https://apidocs.lighter.xyz/docs/trading#stop-loss-and-take-profit target=_blank rel="noopener noreferrer" class=""><code>CreateGroupedOrders</code></a>
+关系映射为 Nautilus 的父子与兄弟关系：</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>Lighter 组合<th>场所代码<th>Nautilus 父单<th>Nautilus 子单或兄弟<tbody><tr><td>OTO<td>1<td><code>OTO</code><td>一个引用父单的子单，其兄弟间没有或有关系。<tr><td>OCO<td>2<td>无<td>两个互相关联的 <code>OCO</code> 兄弟。<tr><td>OTOCO<td>3<td><code>OTO</code><td>两个引用父单的子单，彼此作为 <code>OCO</code> 互相关联。</table>
+<p>Nautilus 没有单独的 OTOCO 类型。由于 Lighter 的 OTO 与 OCO 数字代码和 Nautilus 的代码不同，
+适配器显式映射这些关系。</p>
+<h4 class="anchor anchorTargetStickyNavbar_ana5" id=group-requirements>组合要求<a href=#group-requirements class=hash-link aria-label=组合要求的直接链接 title=组合要求的直接链接 translate=no>​</a></h4>
+<ul>
+<li class="">所有腿使用同一个永续金融工具、策略与订单列表 ID，client order ID 各不相同。</li>
+<li class="">OTO 父单使用 <code>MARKET</code> 或 <code>LIMIT</code>。其子单方向与父单相反，使用 <code>reduce_only</code>，且请求数量与
+父单相同。</li>
+<li class="">OCO 兄弟使用 <code>reduce_only</code>，共享同一方向与数量。这一对包含一个止损（<code>STOP_MARKET</code> 或
+<code>STOP_LIMIT</code>）与一个止盈（<code>MARKET_IF_TOUCHED</code> 或 <code>LIMIT_IF_TOUCHED</code>）。</li>
+</ul>
+<p>场所有效期按腿决定：</p>
+<ul>
+<li class="">子单共享一个非零有效期。</li>
+<li class="">市价与 IOC 限价父单使用零有效期。</li>
+<li class="">其他限价父单与子单共用同一有效期。</li>
+</ul>
+<p>默认有效期使用同一个时间戳。任何腿派发之前，显式的 GTD 有效期必须与组合中其他所有非零有效期
+一致。</p>
+<p>wire 形态遵循 <a href=https://github.com/elliottech/lighter-go/blob/9d38261d1a4cc5c7211b383ba07a4d6e41604708/types/txtypes/create_grouped_orders.go target=_blank rel="noopener noreferrer" class="">Go SDK 的校验</a>。
+适配器额外要求 OTO 子单是 reduce-only 且请求数量相符，以保持 Nautilus 的退出语义。</p>
+<p>要做原生括号单，请选择 <code>OCO</code> 退出腿与条件止盈。适配器会拒绝默认的
+<code>OrderFactory.bracket</code>——它使用 <code>OUO</code> 退出腿与普通 <code>LIMIT</code> 止盈。适配器不会用撤销代替数量
+更新，也不会把挂着的限价单转换成触发的止盈。</p>
+<h4 class="anchor anchorTargetStickyNavbar_ana5" id=child-activation-and-sizing>子单激活与规模<a href=#child-activation-and-sizing class=hash-link aria-label=子单激活与规模的直接链接 title=子单激活与规模的直接链接 translate=no>​</a></h4>
+<p>Lighter 根据父单的执行来激活 OTO/OTOCO 子单并确定其规模。在此之前，其 wire 基础数量为零。
+由 Nautilus 提交、处于挂起状态的子单的报告保留请求数量，场所侧数量变化会产生 <code>OrderUpdated</code>。</p>
+<p>场所数量为零的挂起子单不能被修改。适配器既不提供了结放量控制，也不提供独立的按比例缩放。</p>
+<h4 class="anchor anchorTargetStickyNavbar_ana5" id=cancellation-behavior>撤销行为<a href=#cancellation-behavior class=hash-link aria-label=撤销行为的直接链接 title=撤销行为的直接链接 translate=no>​</a></h4>
+<p>Lighter 的 OCO 在止损/止盈订单<strong>触发</strong>时就撤销兄弟订单，即使尚未成交；而 Nautilus 的 OCO 在
+成交或撤销时才请求对端撤销。适配器保留场所的触发即撤销行为，不重建兄弟订单。事件顺序可能
+延迟撤销的送达。见
+<a href=#native-child-fills-and-position-reconciliation class="">原生子单成交与持仓对账</a>。</p>
+<p>对活动的 Nautilus OCO 腿调用 <code>cancel_order</code>，会同时请求撤销其活动对端，使用两个独立交易：
+Lighter 的单订单撤销会让对端留在场上，且两者各自可能成功或失败。</p>
+<p>要等目标腿的 <code>OrderAccepted</code>。其对端需要已知的场所绑定或保留的组合提交索引。
+<code>batch_cancel_orders</code> 同样会带上活动的 OCO 对端，每个选中的订单只提交一次。</p>
+<div class="theme-admonition theme-admonition-warning admonition_LYZY alert alert--warning"><div class=admonitionHeading_pnFY><span class=admonitionIcon_tEzm><svg viewBox="0 0 16 16"><path fill-rule=evenodd d="M8.893 1.5c-.183-.31-.52-.5-.887-.5s-.703.19-.886.5L.138 13.499a.98.98 0 0 0 0 1.001c.193.31.53.501.886.501h13.964c.367 0 .704-.19.877-.5a1.03 1.03 0 0 0 .01-1.002L8.893 1.5zm.133 11.497H6.987v-2.003h2.039v2.003zm0-3.004H6.987V5.987h2.039v4.006z"/></svg></span>注意</div><div class=admonitionContent_ZwmI><p>原生组合请保持 <code>StrategyConfig.manage_contingent_orders = false</code>（默认值）。开启本地或有管理
+可能在场所之外独立改变子单规模，或在场所撤销其 OCO 对端时撤掉一个已触发但未成交的退出单。</div></div>
+<h4 class="anchor anchorTargetStickyNavbar_ana5" id=trigger-events-and-relationship-recovery>触发事件与关系恢复<a href=#trigger-events-and-relationship-recovery class=hash-link aria-label=触发事件与关系恢复的直接链接 title=触发事件与关系恢复的直接链接 translate=no>​</a></h4>
+<p>条件订单使用
+<a href=https://docs.lighter.xyz/trading/order-types-and-matching#trigger-conditions target=_blank rel="noopener noreferrer" class="">标记价触发</a>。
+条件限价单发出 <code>OrderTriggered</code>；市价类条件单没有中间的 <code>TRIGGERED</code> 状态直接成交，遵循
+Nautilus 语义。</p>
+<p>只要有本地订单上下文或缓存的场所绑定，即使 Lighter 在激活后清掉了父单链接，报告仍保留
+Nautilus 的 client、parent 与 linked ID。全新启动的客户端在处理第一条私有流的订单或成交之前，
+会先恢复缓存的所有权关系。</p>
+<p>已触发的条件限价单保留其 Nautilus 类型与最后已知的触发价。无法恢复触发价的外部订单会报告为
+活动中的 <code>LIMIT</code> 订单。</p>
+<p>触发之后，改价与改量会发送零触发价；再次改变触发价不受支持。独立的事务批次不会获得或有关系。</p>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=order-options>订单选项<a href=#order-options class=hash-link aria-label=订单选项的直接链接 title=订单选项的直接链接 translate=no>​</a></h3>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>选项<th>永续<th>现货<th>备注<tbody><tr><td><code>post_only</code><td>✓<td>✓<td>映射到 Lighter 的 post-only 有效期。<tr><td><code>reduce_only</code><td>✓<td>-<td>透传给 <code>CreateOrder</code>；只用于减少已有持仓。<tr><td><code>quote_quantity</code><td>-<td>-<td><em>Lighter 不支持</em>；请提交基础数量。<tr><td><code>display_qty</code><td>-<td>-<td><em>Lighter 不支持</em>；没有冰山显示数量字段。</table>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=adapter-order-params>适配器订单参数<a href=#adapter-order-params class=hash-link aria-label=适配器订单参数的直接链接 title=适配器订单参数的直接链接 translate=no>​</a></h3>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>参数<th>永续<th>现货<th>备注<tbody><tr><td><code>market_order_slippage_bps</code><td>✓<td>✓<td>覆盖配置默认值，用于市价类上限。<tr><td>经 <code>SubmitOrder.params</code> 的 <code>post_only</code><td>-<td>-<td><em>尚未实现</em>；请使用订单标志。<tr><td>经 <code>SubmitOrder.params</code> 的 <code>reduce_only</code><td>-<td>-<td><em>尚未实现</em>；请使用订单标志。</table>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=time-in-force>有效期<a href=#time-in-force class=hash-link aria-label=有效期的直接链接 title=有效期的直接链接 translate=no>​</a></h3>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>有效期<th>永续<th>现货<th>备注<tbody><tr><td><code>GTC</code><td>✓<td>✓<td>限价类用 <code>GoodTillTime</code>；市价类用 <code>IOC</code>。<tr><td><code>DAY</code><td>✓<td>✓<td>限价类与条件订单使用正的订单有效期。<tr><td><code>GTD</code><td>✓<td>✓<td>原生有效期为 5 分钟到 30 天；见下文的管理式 GTD 策略。<tr><td><code>IOC</code><td>✓<td>✓<td>普通 <code>MARKET</code>/<code>LIMIT</code> 用有效期 <code>0</code>；条件限价用触发有效期。<tr><td><code>FOK</code><td>-<td>-<td><em>Lighter 不支持</em>。<tr><td><code>AT_THE_OPEN</code><td>-<td>-<td><em>Lighter 不支持</em>。<tr><td><code>AT_THE_CLOSE</code><td>-<td>-<td><em>Lighter 不支持</em>。</table>
+<p>适配器把 <code>MARKET</code>、<code>STOP_MARKET</code> 与 <code>MARKET_IF_TOUCHED</code> 作为 <code>ImmediateOrCancel</code> 发送：
+Lighter 拒绝市价类的 <code>GoodTillTime</code>。有效期与 Nautilus <code>IOC</code> 的支持情况因订单类型而异：</p>
+<ul>
+<li class="">普通 <code>MARKET</code> 使用 <code>OrderExpiry = 0</code>。</li>
+<li class="">条件市价单在触发前保持正的有效期。适配器拒绝对其使用 Nautilus <code>IOC</code>，因为 Lighter 把
+IOC 保留给触发后的执行。</li>
+<li class="">条件限价单接受 Nautilus <code>IOC</code>：触发单以正有效期挂着，随后子单以 <code>ImmediateOrCancel</code> 执行。</li>
+</ul>
+<p>没有显式 GTD 有效期时，限价类的 <code>GTC</code>、<code>DAY</code> 与 <code>GTD</code> 使用当前时间加 28 天。条件单的 <code>GTC</code>、
+<code>DAY</code> 与限价类的 <code>IOC</code> 共用这一默认值：在这些路径上场所会以 <code>21711 invalid expiry</code> 拒绝 <code>-1</code>。</p>
+<h4 class="anchor anchorTargetStickyNavbar_ana5" id=gtd-policy>GTD 策略<a href=#gtd-policy class=hash-link aria-label="GTD 策略的直接链接" title="GTD 策略的直接链接" translate=no>​</a></h4>
+<p>在默认的 <code>use_gtd = true</code> 下，策略的 <code>expire_time</code> 成为场所的 <code>GoodTillTime</code> 有效期。适配器
+接受 [5 分钟 + 1 秒, 30 天] 的生命周期，额外的一秒用于容纳签名与传输。</p>
+<p>需要更短的生命周期时，把 <code>use_gtd = false</code> 与提交策略上的 <code>manage_gtd_expiry = true</code> 同时
+设置。本地 GTD 管理器会在策略到期时请求撤销。不设置它，订单可能一直挂到
+场所的 28 天回退有效期。</p>
+<p>wire 层的有效期仍是 <code>GoodTillTime</code>：Lighter 没有 <code>GoodTillCancel</code>，所以 <code>use_gtd = false</code> 不能
+像在 Binance 那样切换它。</p>
+<p>本地管理跳过原生的 5 分钟下限，但会拒绝超过 28 天的策略到期时刻——那种情况下场所会先过期。
+更长的生命周期请用原生 GTD。场所的撤单延迟仍会推迟订单移除。</p>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=execution-instructions>执行指令<a href=#execution-instructions class=hash-link aria-label=执行指令的直接链接 title=执行指令的直接链接 translate=no>​</a></h3>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>指令<th>永续<th>现货<th>备注<tbody><tr><td><code>post_only</code><td>✓<td>✓<td>覆盖有效期并发送 Lighter 的 <code>PostOnly</code>。<tr><td><code>reduce_only</code><td>✓<td>-<td>针对已有衍生品持仓的减仓标志。</table>
+<p><code>post_only</code> 用于限价类订单。适配器不会合成 maker 专属的市价单。</p>
+<p>Lighter 主网测试确认 <code>reduce_only=true</code> 能平掉永续持仓。非法的 reduce-only 开仓可能被直接丢弃、
+没有场所订单报告，并以 <code>INFLIGHT_TIMEOUT</code> 对账，且不附带场所拒绝原因。</p>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=advanced-order-features>高级订单特性<a href=#advanced-order-features class=hash-link aria-label=高级订单特性的直接链接 title=高级订单特性的直接链接 translate=no>​</a></h3>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>特性<th>永续<th>现货<th>备注<tbody><tr><td>订单修改<td>✓<td>✓<td>修改活动订单的数量、价格与触发价。<tr><td>括号订单<td>✓<td>-<td>原生 OTO 父单加 OCO 关联的止损/止盈退出腿。<tr><td>冰山订单<td>-<td>-<td><em>Lighter 不支持</em>。<tr><td>移动止损<td>-<td>-<td><em>Lighter 不支持</em>。<tr><td>挂钩订单<td>-<td>-<td><em>Lighter 不支持</em>；没有原生挂钩 API 类型。<tr><td>TWAP 订单<td>-<td>-<td><em>尚未实现</em>；没有 Nautilus 映射。<tr><td>追踪限价订单<td>-<td>-<td><em>尚未实现</em>。<tr><td>原子篮子<td>-<td>-<td><em>尚未实现</em>。<tr><td>杠杆更新<td>✓<td>-<td>仅永续；提交签名的 <code>UpdateLeverage</code> 交易。<tr><td>原生全部撤销<td>-<td>-<td>执行客户端中<em>尚未实现</em>。<tr><td>死人开关（dead man's switch）<td>-<td>-<td><em>尚未实现</em>；场所有计划撤销。</table>
+<p>Lighter 的
+<a href=https://apidocs.lighter.xyz/docs/wasm-signer#signcancelallorders target=_blank rel="noopener noreferrer" class=""><code>CancelAllOrders</code></a>
+支持立即与计划撤销。执行客户端使用逐单撤销；<code>lighter-flatten</code> 使用立即的原生账户级撤销。
+适配器不调度、也不续期撤销期限。</p>
+<p>场所的
+<a href=https://docs.lighter.xyz/trading/order-types-and-matching#advanced-orders target=_blank rel="noopener noreferrer" class="">追踪限价订单与原子篮子</a>
+不对外暴露。普通事务批次各自独立执行子单。</p>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=order-operations>订单操作<a href=#order-operations class=hash-link aria-label=订单操作的直接链接 title=订单操作的直接链接 translate=no>​</a></h3>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>操作<th>永续<th>现货<th>备注<tbody><tr><td>提交订单<td>✓<td>✓<td>通过 WebSocket 发送签名的 <code>L2CreateOrder</code> 交易。<tr><td>提交订单列表<td>✓<td>✓<td>独立批次；原生或有组合仅限永续。<tr><td>修改订单<td>✓<td>✓<td>发送签名的 <code>ModifyOrder</code>；报告可能重述接受。<tr><td>批量修改订单<td>✓<td>✓<td>每批最多 15 个签名修改交易的 WebSocket 批次。<tr><td>撤销订单<td>✓<td>✓<td>发送签名的 <code>L2CancelOrder</code> 交易。<tr><td>撤销全部订单<td>✓<td>✓<td>按金融工具与可选方向撤销缓存订单。<tr><td>设置杠杆<td>✓<td>-<td>仅永续；提交签名的 <code>UpdateLeverage</code> 交易。<tr><td>批量撤销订单<td>✓<td>✓<td>每批最多 15 个签名撤销交易的 WebSocket 批次。<tr><td>查询订单<td>✓<td>✓<td>需要凭据与 REST 查找。<tr><td>查询账户<td>✓<td>✓<td>重放最近的私有 WebSocket 账户状态。<tr><td>Mass status<td>✓<td>✓<td>限定在 WS 与 REST 报告所显示的账户活跃市场。</table>
+<h4 class="anchor anchorTargetStickyNavbar_ana5" id=order-lists-and-batch-operations>订单列表与批量操作<a href=#order-lists-and-batch-operations class=hash-link aria-label=订单列表与批量操作的直接链接 title=订单列表与批量操作的直接链接 translate=no>​</a></h4>
+<p>非或有的 <code>SubmitOrderList</code>、<code>BatchModifyOrders</code> 与 <code>BatchCancelOrders</code> 使用 WebSocket 的
+<code>jsonapi/sendtxbatch</code>，保留每个子单的签名交易与订单事件归属。它们既不提供原子执行，也不提供
+或有关系。</p>
+<p>本地校验会拒绝无效的提交子单，或拒绝无效的修改子单，同时让受支持的兄弟订单继续。每批最多
+15 个交易：31 个受支持的子单通常拆成 15、15、1 三批。并发的 nonce 分配或恢复可能产生更小的
+批次。</p>
+<p>每个批次使用独立的限流令牌与确认。拒绝只影响其自身的子单。</p>
+<p>签名下一批之前，适配器最多等待 10 秒以收取当前批的确认。超时后继续派发，并保留未确认的
+条目供对账。</p>
+<p><code>CancelAllOrders</code> 走同一批处理路径，保留任何方向过滤。场所的
+<a href=#active-and-pending-order-limits class="">活动与挂起订单上限</a>仍然适用：将一条命令拆分并不会增加账户
+在某个市场上可持有的订单数。</p>
+<p>或有列表必须恰好包含一个受支持的原生组合，由两或三条永续订单组成，共用一个
+<code>CreateGroupedOrders</code> 交易与 nonce。任何一条腿无效都会让整组被拒。</p>
+<p>Lighter 的<a href=https://apidocs.lighter.xyz/docs/trading#batch target=_blank rel="noopener noreferrer" class="">交易指南</a>给出的上限是 50，而其
+<a href=https://apidocs.lighter.xyz/docs/websocket-reference#send-batch-tx target=_blank rel="noopener noreferrer" class="">WebSocket 参考</a>写的是 15。
+适配器采用较低的那个文档值。</p>
+<h4 class="anchor anchorTargetStickyNavbar_ana5" id=nonce-allocation-and-transaction-admission>Nonce 分配与交易准入<a href=#nonce-allocation-and-transaction-admission class=hash-link aria-label="Nonce 分配与交易准入的直接链接" title="Nonce 分配与交易准入的直接链接" translate=no>​</a></h4>
+<p>每个批次使用同一个账户与 API key，在 Lighter 的
+<a href=https://apidocs.lighter.xyz/docs/core-concepts#nonce target=_blank rel="noopener noreferrer" class="">nonce 契约</a>下取连续 nonce。
+<code>skip_nonce=0</code> 时，适配器必须保持 nonce 顺序。</p>
+<p>本地窗口允许每个 key 有 16 个未确认的分配，不是乱序的场所交易。未签名的子单会等待容量或
+nonce 恢复，不会被丢弃。关闭会停止派发并丢弃队列中剩余的工作。</p>
+<p>批量响应按请求 ID 与签名交易哈希关联。</p>
+<p>确认只表示交易被准入，不表示订单被接受、修改或撤销。失败取决于拒绝发生的时点：</p>
+<ul>
+<li class="">准入前的拒绝会让整批失败且不消耗 nonce。无效 nonce 的响应还会刷新 nonce 基线。</li>
+<li class="">准入后，单个交易可能失败而其他成功。应用阶段的失败会消耗 nonce；应用前被排序者拒绝可能
+使该 nonce 未被消耗，从而让该 key 上后续的 nonce 失效。</li>
+</ul>
+<p>参见
+<a href=https://apidocs.lighter.xyz/docs/core-concepts#when-a-rejected-transaction-consumes-its-nonce target=_blank rel="noopener noreferrer" class="">nonce 消耗</a>。</p>
+<p>投递结果不明确时，适配器保留待处理状态供对账，不重发该批。</p>
+<h4 class="anchor anchorTargetStickyNavbar_ana5" id=modification-confirmation>修改确认<a href=#modification-confirmation class=hash-link aria-label=修改确认的直接链接 title=修改确认的直接链接 translate=no>​</a></h4>
+<p>每个订单最多只能有一个未决的修改。要等它的 <code>OrderUpdated</code> 或 <code>OrderModifyRejected</code> 之后再改
+一次。第二次请求会直接收到 <code>OrderModifyRejected</code>，且不会裁决第一次。</p>
+<p>待处理的撤销会拒绝修改。待处理的修改期间，撤销仍可用，但其结果要等修改裁决之后。</p>
+<p>确认需要一次交易查找，并与当前场所订单形态匹配。受影响的 WebSocket 订单帧与成交会一直等待，
+直到适配器发出 <code>OrderUpdated</code> 或 <code>OrderModifyRejected</code>。可能应用该修改或成交的 HTTP 报告，
+要等缓存应用该事件之后才处理。</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>请求<th>修改待处理期间的行为<tbody><tr><td>单订单状态查找<td>可能把未变化的活动报告作为 <code>PendingUpdate</code> 返回。<tr><td>批量订单报告与 mass status<td>暂扣该订单，并把结果标记为不完整。<tr><td><code>query_order</code><td>不发出报告。</table>
+<p>这可能带来几秒的报告延迟。持仓对账会暂扣受影响的金融工具，直到其执行事件进入缓存。</p>
+<h4 class="anchor anchorTargetStickyNavbar_ana5" id=native-child-fills-and-position-reconciliation>原生子单成交与持仓对账<a href=#native-child-fills-and-position-reconciliation class=hash-link aria-label=原生子单成交与持仓对账的直接链接 title=原生子单成交与持仓对账的直接链接 translate=no>​</a></h4>
+<p>对原生 OTO/OTOCO 子单，真实成交要等到终态场所订单与完整的真实成交覆盖确立有效数量之后才发出。
+适配器先发布该数量，再发布成交，随后对账终态状态。</p>
+<p>挂起的子单在其修改裁决之后才发布触发事件。</p>
+<p>未决的子单成交或修改也会暂扣同一策略与金融工具后续的成交与终态事件。成交按场所事件时间顺序
+放行，到达顺序用于打破并列。可能应用这些改动的 HTTP 报告要等缓存追上。</p>
+<p>在子单关闭且真实成交覆盖完整之前，缓存的成交与持仓核算可能滞后。</p>
+<p>这段延迟期间：</p>
+<ul>
+<li class="">包含受影响金融工具的范围，其持仓查询会失败。</li>
+<li class="">mass status 会省略受影响持仓的报告与合成的平仓报告，并保持不完整。</li>
+<li class="">场所持仓快照在私有流上仍然可用。</li>
+</ul>
+<h4 class="anchor anchorTargetStickyNavbar_ana5" id=outcome-recovery>结果恢复<a href=#outcome-recovery class=hash-link aria-label=结果恢复的直接链接 title=结果恢复的直接链接 translate=no>​</a></h4>
+<p>订单更新与交易查找用于裁决创建与撤销子单。恢复在待处理动作仍是当前动作期间，最多做三次查找，
+间隔两秒，并校验交易哈希、类型、账户、API key 与原始提交 nonce。</p>
+<p>已准入的修改（单批或批量）确定失败时，发出一个 <code>OrderModifyRejected</code>，并清除其匹配的待处理
+动作，不回滚已消耗的 nonce。</p>
+<p>延迟的结果不能清除较新的修改，也不能拒绝一个已被恢复确认的修改。</p>
+<div class="theme-admonition theme-admonition-warning admonition_LYZY alert alert--warning"><div class=admonitionHeading_pnFY><span class=admonitionIcon_tEzm><svg viewBox="0 0 16 16"><path fill-rule=evenodd d="M8.893 1.5c-.183-.31-.52-.5-.887-.5s-.703.19-.886.5L.138 13.499a.98.98 0 0 0 0 1.001c.193.31.53.501.886.501h13.964c.367 0 .704-.19.877-.5a1.03 1.03 0 0 0 .01-1.002L8.893 1.5zm.133 11.497H6.987v-2.003h2.039v2.003zm0-3.004H6.987V5.987h2.039v4.006z"/></svg></span>注意</div><div class=admonitionContent_ZwmI><p>若有界查找无法确认某次修改，它可能在本次会话剩余时间内保持未决，从而暂扣后续订单事件与
+成交，并拒绝再次修改。适配器既不假设成功，也不重发。要再次管理该订单，请先重启并对账
+场所状态。</div></div>
+<p>修改探测在重连之间保留其原始提交身份。撤销探测在连接变化时停止。</p>
+<p>撤销恢复也包括 <code>PendingCancel</code> 之外的订单，例如 <code>CancelAllOrders</code> 的目标。缓存中的订单只有在
+分派时处于 <code>PendingCancel</code> 才会收到 <code>OrderCancelRejected</code>，否则只记录失败日志。</p>
+<h4 class="anchor anchorTargetStickyNavbar_ana5" id=leverage-updates-and-signing-validation>杠杆更新与签名校验<a href=#leverage-updates-and-signing-validation class=hash-link aria-label=杠杆更新与签名校验的直接链接 title=杠杆更新与签名校验的直接链接 translate=no>​</a></h4>
+<p>调用 <code>LighterExecutionClient::update_leverage(instrument_id, initial_margin_fraction, margin_mode)</code>。
+保证金比例使用场所 tick（1e-4 比例）：<code>500</code> 表示 5% 初始保证金（20 倍杠杆），<code>1000</code> 表示 10%
+（10 倍）。</p>
+<p><code>UpdateLeverage</code>、<code>CancelAllOrders</code>、带集成方属性的修改订单、条件创建订单与
+<code>CreateGroupedOrders</code> 都对照官方 <code>lighter-python</code> SDK 1.1.4 版本自带的签名器做了字节级钉定。</p>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=order-querying-and-reconciliation>订单查询与对账<a href=#order-querying-and-reconciliation class=hash-link aria-label=订单查询与对账的直接链接 title=订单查询与对账的直接链接 translate=no>​</a></h3>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>功能<th>永续<th>现货<th>备注<tbody><tr><td>查询挂单<td>✓<td>✓<td>REST <code>accountActiveOrders</code>，按市场限定。<tr><td>查询订单历史<td>✓<td>✓<td>REST <code>accountInactiveOrders</code>，游标分页。<tr><td>订单状态更新<td>✓<td>✓<td>私有 WebSocket 订单流加状态报告。<tr><td>成交历史<td>✓<td>✓<td>REST <code>trades</code>；账户历史需要凭据。<tr><td>成交报告<td>✓<td>✓<td>REST 与私有 WebSocket 成交负载。<tr><td>持仓报告<td>✓<td>-<td>仅永续；重放缓存的持仓流。<tr><td>账户状态<td>✓<td>✓<td>重放缓存的合并账户状态快照。<tr><td>Mass status<td>✓<td>✓<td>合并订单、成交与缓存持仓。</table>
+<p>已认证的失活订单与成交分页会拒绝重复的游标，并在 1,000 页后停止。成交对账在多次调用间可重复，
+抑制实时 WebSocket 流已发出的成交。</p>
+<p>历史报告只把映射后的 client 索引绑定到匹配的场所订单 ID，避免被复用的索引把不相关的生命周期
+合并到一起。</p>
+<h4 class="anchor anchorTargetStickyNavbar_ana5" id=report-completeness>报告完整性<a href=#report-completeness class=hash-link aria-label=报告完整性的直接链接 title=报告完整性的直接链接 translate=no>​</a></h4>
+<p>每次有界的 mass status 对失活订单与成交使用同一个截止时刻。完整性的要求是：所有必需的订单、
+成交与持仓来源都成功，且每条历史成交都能映射到其订单。</p>
+<p>被暂扣的事件、未决的修改，或尚未应用到缓存的更新，都会让被暂扣的订单、成交与持仓来源变成
+不完整。</p>
+<p>仅历史失败不会否决可用的活动订单或显式的持仓报告。范围内没有持仓报告的有界历史成交，遵循
+引擎的
+<a class="" href=/concepts/execution/reconciliation#order-only-fill-projection>仅订单投影</a>规则。</p>
+<p><a href=https://apidocs.lighter.xyz/reference/trades target=_blank rel="noopener noreferrer" class=""><code>trades</code> 参考</a>不保证历史深度，因此回看窗口可能
+超出可用的成交。分页从最新的成交往回走。只有找到早于回看起点的成交才能证明覆盖完整：</p>
+<ul>
+<li class="">有早于起点的成交：报告集保持完整。</li>
+<li class="">先耗尽游标：适配器记录未覆盖的区间，并把报告集标记为不完整。</li>
+<li class="">没有保留任何成交：不可能有内容被截断，报告集保持完整。</li>
+</ul>
+<p>游标耗尽无法区分"被截断"和"确实没有更早的成交"：新账户可能在什么都没缺的情况下报告不完整。
+请选一个场所能够供出数据的回看窗口。</p>
+<p>更早的成交可以通过场所的
+<a href=https://apidocs.lighter.xyz/docs/historical-data target=_blank rel="noopener noreferrer" class="">历史数据导出</a>获取，最多 12 个月的账户成交。
+适配器不读取 <code>export</code> 端点。</p>
+<h4 class="anchor anchorTargetStickyNavbar_ana5" id=startup-position-checks>启动时的持仓检查<a href=#startup-position-checks class=hash-link aria-label=启动时的持仓检查的直接链接 title=启动时的持仓检查的直接链接 translate=no>​</a></h4>
+<p>若 <code>account_all_positions</code> 比其对应成交的处理早几毫秒到达，在策略启动时开仓可能出现瞬时的
+<code>cached=0, venue=N</code> warning。应用该成交后差异自行消解，不会生成对账订单。</p>
+<h2 class="anchor anchorTargetStickyNavbar_ana5" id=account-and-position-management>账户与持仓管理<a href=#account-and-position-management class=hash-link aria-label=账户与持仓管理的直接链接 title=账户与持仓管理的直接链接 translate=no>​</a></h2>
+<p>已认证的执行客户端订阅这些私有流：</p>
+<ul>
+<li class=""><code>account_all_orders</code>：订单状态报告。</li>
+<li class=""><code>account_all_trades</code>：成交报告。</li>
+<li class=""><code>account_all_positions</code>：初始持仓快照与实时更新。</li>
+<li class=""><code>account_all_assets</code>：按资产的余额快照（现货余额加永续抵押物）。</li>
+<li class=""><code>user_stats</code>：永续账户的保证金汇总（抵押物与可用余额）。</li>
+</ul>
+<p>适配器只在 <code>account_all_assets</code> 与 <code>user_stats</code> 的首帧都到达之后，才发出二者的合并状态。</p>
+<p>构造允许凭据缺失；<code>connect()</code> 要求已解析的 <code>private_key</code>、<code>account_index</code> 与
+<code>api_key_index</code>。私有账户流与 nonce 刷新是必需的。</p>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=position-snapshots-and-updates>持仓快照与更新<a href=#position-snapshots-and-updates class=hash-link aria-label=持仓快照与更新的直接链接 title=持仓快照与更新的直接链接 translate=no>​</a></h3>
+<p>永续在每个市场使用一个净额持仓，现货余额使用账户资产状态。权威的
+<code>subscribed/account_all_positions</code> 快照会：</p>
+<ul>
+<li class="">把未出现的市场和 <code>position</code> 为零的行拍平为平仓。<code>positions</code> 映射为空会拍平整个缓存。</li>
+<li class="">对未映射或无法解析的行保留缓存持仓，避免出现假的平仓报告。</li>
+</ul>
+<p>有界对账会跟踪快照的市场覆盖范围，重连使其失效。被触碰过但缺失的市场，只有在当前快照覆盖下
+才产生显式的平仓报告。未映射或畸形的行会让 mass status 保持不完整，而不是证明已平仓。</p>
+<p>增量的 <code>update/account_all_positions</code> 帧替换非零持仓、把显式的零行拍平，并保留未出现的持仓。
+空更新保留全部持仓。</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>功能<th>永续<th>现货<th>备注<tbody><tr><td>账户余额<td>✓<td>✓<td>合并资产 + <code>user_stats</code>，查询时从缓存重放。<tr><td>持仓状态<td>✓<td>-<td>仅永续；初始快照加实时更新。<tr><td>净额持仓<td>✓<td>-<td>每个永续市场一个 Nautilus 持仓。<tr><td>全仓保证金<td>✓<td>-<td>通过 <code>LighterPositionMarginMode::Cross</code> 传递。<tr><td>逐仓保证金<td>✓<td>-<td>通过 <code>LighterPositionMarginMode::Isolated</code> 传递。<tr><td>杠杆更新<td>✓<td>-<td>签名的 <code>UpdateLeverage</code> 交易。<tr><td>现货保证金 / 借币<td>-<td>-<td><em>尚未实现</em>；没有借币流程。<tr><td>抵押物模式变更<td>-<td>-<td><em>尚未实现</em>；请用场所工具配置。<tr><td>充值 / 提现<td>-<td>-<td><em>尚未实现</em>；请使用场所工具或 API。</table>
+<p>Lighter 的
+<a href=https://docs.lighter.xyz/trading/multi-asset-margin target=_blank rel="noopener noreferrer" class="">多资产保证金</a>支持非 USDC 的永续抵押物。
+其文档描述了现货的用途，但上线时不含现货。适配器既不暴露现货借币，也不提供抵押物模式变更。
+现货保证金这一行描述的是适配器的缺口，不是场所的限制。</p>
+<h2 class="anchor anchorTargetStickyNavbar_ana5" id=liquidation-and-adl-handling>强平与 ADL 处理<a href=#liquidation-and-adl-handling class=hash-link aria-label="强平与 ADL 处理的直接链接" title="强平与 ADL 处理的直接链接" translate=no>​</a></h2>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>事件或字段<th>支持<th>备注<tbody><tr><td>强平成交<td>✓<td>账户成交行可解析为成交，无专门事件。<tr><td>减仓成交<td>✓<td>账户成交行可解析为成交，无专门事件。<tr><td>强平价报告<td>-<td><em>尚未实现</em>；持仓报告省略该字段。<tr><td>ADL 事件流<td>-<td><em>尚未实现</em>；没有通知订阅。</table>
+<p>Lighter 的持仓负载包含 <code>liquidation_price</code>。其认证的
+<a href=https://apidocs.lighter.xyz/docs/websocket-reference#notification target=_blank rel="noopener noreferrer" class=""><code>notification</code> 流</a>会发布
+强平与减仓通知。</p>
+<p>适配器在原始负载中解析强平价，但不在 Nautilus 持仓报告中暴露它，也不订阅通知。强平与减仓
+成交走普通的成交报告路径。</p>
+<h2 class="anchor anchorTargetStickyNavbar_ana5" id=funding-rates>资金费率<a href=#funding-rates class=hash-link aria-label=资金费率的直接链接 title=资金费率的直接链接 translate=no>​</a></h2>
+<p>永续的 <code>market_stats</code> 发出 <code>MarkPriceUpdate</code>、<code>IndexPriceUpdate</code> 与 <code>FundingRateUpdate</code>。资金
+费率字段各不相同：</p>
+<ul>
+<li class=""><code>current_funding_rate</code>：实时更新中使用的下期估计值。</li>
+<li class=""><code>funding_rate</code> 与 <code>funding_timestamp</code>：最近一次已完成的支付。</li>
+</ul>
+<p>市场统计不提供未来的结算时刻，因此实时更新把 <code>interval</code> 与 <code>next_funding_ns</code> 留空。现货的
+<code>spot_market_stats</code> 发出 <code>IndexPriceUpdate</code>。</p>
+<p>历史资金费率请求使用公共 <code>/api/v1/fundings</code>，不使用账户专属的 <code>positionFunding</code>：</p>
+<ul>
+<li class=""><code>1h</code> 分辨率设 <code>interval=60</code>。</li>
+<li class=""><code>direction=long</code> 保持正值，<code>short</code> 取负。</li>
+<li class="">分页覆盖请求的区间，直到适配器的
+<a href=#historical-request-limits class="">页上限</a>，并受显式 <code>limit</code> 约束。</li>
+</ul>
+<h2 class="anchor anchorTargetStickyNavbar_ana5" id=account-tiers>账户层级<a href=#account-tiers class=hash-link aria-label=账户层级的直接链接 title=账户层级的直接链接 translate=no>​</a></h2>
+<p>账户层级决定延迟、限流与交易费用。客户端会记录来自 <code>GET /api/v1/account</code> 的层级，包括无法
+识别的 <code>account_type</code> 取值。</p>
+<p>所有 Lighter Mainnet 层级都使用
+<a href=#integrator-attribution class="">零费用集成方归因</a>。配额不会自动上升，本地覆盖也不会带来更高的
+场所限制。</p>
+<p><a href=https://apidocs.lighter.xyz/docs/account-types target=_blank rel="noopener noreferrer" class="">Lighter Mainnet</a>：</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>层级<th>延迟（maker / taker）<th>REST 加权限额<th><code>sendTx</code> 限额<th>费用（maker / taker）<th>备注<tbody><tr><td>Standard<td>0 ms / 300 ms<td>60 请求/分钟<td>60 请求/分钟<td>0 / 0<td>零费用的默认层级。<tr><td>Premium<td>0 ms / 140 ms<td>24,000 请求/分钟<td>[4,000, 57,600] 请求/分钟<td>[0.28, 0.40] / [1.96, 2.80] bps<td>延迟最低；随质押的 LIT 提升。<tr><td>Plus<td>0 ms / 300 ms<td>24,000 请求/分钟<td>4,000 请求/分钟<td>0.5 / 0.5 bps<td>限额更高，延迟与标准一致。<tr><td>Builder<td>-<td>240,000 请求/分钟<td>-<td>-<td>REST 吞吐最高。</table>
+<p>Premium 的限额与费用随质押的 LIT 提升。Robinhood 使用不同的费用与限额，其 Premium 层级按
+14 天交易量划分。见
+<a href=https://apidocs.lighter.xyz/docs/lighter-rh#account-tiers target=_blank rel="noopener noreferrer" class="">Robinhood 账户层级</a>。调高本地配额前，
+先确认你流量所对应的部署限制。见<a href=#rate-limiting class="">限流</a>。</p>
+<h2 class="anchor anchorTargetStickyNavbar_ana5" id=rate-limiting>限流<a href=#rate-limiting class=hash-link aria-label=限流的直接链接 title=限流的直接链接 translate=no>​</a></h2>
+<p>Lighter 同时限制 IP 与 L1 地址。数据与执行客户端各有独立的 REST 限流器，默认按 Standard 配额。
+请把两者合计的流量规划在场所限制之内。</p>
+<p>更高的<a href=#account-tiers class="">层级</a>需要显式的本地配额：</p>
+<ul>
+<li class=""><code>rest_quota_per_min</code>：两个客户端上的读请求每分钟；未设置默认 60。</li>
+<li class=""><code>sendtx_quota_per_min</code>：仅执行客户端上的交易请求每分钟；未设置时独立于
+<code>rest_quota_per_min</code> 默认 60，位于独立的桶。</li>
+</ul>
+<p>这些选项只改变本地限速。公共数据仍不需认证，更高的本地配额不会让它享受账户级的场所限制。</p>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=request-buckets-and-endpoint-weights>请求桶与端点权重<a href=#request-buckets-and-endpoint-weights class=hash-link aria-label=请求桶与端点权重的直接链接 title=请求桶与端点权重的直接链接 translate=no>​</a></h3>
+<p>场所对每个 L1 地址在 HTTP 与 WebSocket 之间共享一个交易桶。一次 WebSocket <code>sendTxBatch</code> 计为
+一次，最多携带 15 个适配器交易。</p>
+<p>Standard 账户的读与交易共享 60 请求/分钟。Plus 与 Premium 使用分开的场所桶。适配器在所有
+层级都分开本地的读取与交易限流器，因此 Standard 用户必须把合计流量（包括 nonce 与对账的读取）
+一起规划。</p>
+<p>REST 限流器每次调用消耗一个令牌，忽略场所权重。请按你的端点组合设置 <code>rest_quota_per_min</code>。
+Lighter Mainnet 的 Premium 限额是 24,000 加权请求/分钟，在不计入其他请求时，下面两种速率任一
+都可承受：</p>
+<ul>
+<li class="">40 次 <code>/api/v1/recentTrades</code>/分钟（权重 600）。</li>
+<li class="">120 次 <code>/api/v1/trades</code>/分钟（权重 200）。</li>
+</ul>
+<p>请确认你所在部署的权重。</p>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=transaction-type-limits>交易类型限制<a href=#transaction-type-limits class=hash-link aria-label=交易类型限制的直接链接 title=交易类型限制的直接链接 translate=no>​</a></h3>
+<p>Lighter 的默认交易类型限制是 40 请求/分钟，带有按类型的例外，与层级的
+<code>sendTx</code>/<code>sendTxBatch</code> 限制相互独立。</p>
+<p>Lighter 主网测试中，每次报价漂移都改价的报价策略，在一分钟内约 40 次修改后会撞到
+<code>code=23000</code>（<code>Too Many Requests</code>）。修改还要消耗
+<a href=#volume-quota-and-no-fill-quoting class="">交易量配额</a>。</p>
+<p>交易密集的报价请把 <code>sendtx_quota_per_min</code> 设为 40 或更低。这个共享限流器同时也为创建与撤销
+限速。批次最多 15 个交易只消耗一个令牌，因此该设置不会限制订单列表或批量修改中的子单数量。
+批量子单的交易类型限制请按你的部署确认。</p>
+<p>本地配额允许突发，不是严格的滚动分钟上限。配额 30 会允许最初 30 次请求的突发，并按 30/分钟
+补充，可能超过场所 60 秒 40 次的限制。请为突发和共享同一 L1 地址的其他客户端留出余量。</p>
+<p>要是有界地测试 Standard，每分钟 15 次交易请求与 5 次 REST 调用可以给独立的账户检查留出空间。</p>
+<p>无法关联的 WebSocket <code>23000</code> 响应只记日志，不会判定某一笔交易失败。它可能来自非交易流量，
+因此适配器不猜测是哪个订单或批次失败。未决的结果要靠对账解决，不要盲目重发。</p>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=shared-adapter-limiters>共享的适配器限流器<a href=#shared-adapter-limiters class=hash-link aria-label=共享的适配器限流器的直接链接 title=共享的适配器限流器的直接链接 translate=no>​</a></h3>
+<p>一个执行限流器在 WebSocket 的 <code>sendTx</code> 与 <code>sendTxBatch</code>（提交、修改与撤销），以及启动集成方
+批准所用的 HTTP <code>sendTx</code> 上统一执行 <code>sendtx_quota_per_min</code>。原始调用在配置了该值时使用它，
+否则回退到原始客户端的 REST 限流器。</p>
+<p>WebSocket URL 字符串完全相同的客户端共享一个 200 消息/分钟的限流器，用于非交易的控制帧。
+默认数据 URL 的 <code>readonly=true</code> 使其拥有与执行分离的限流器。请把合计的控制流量规划在场所的
+按 IP 限制之内。</p>
+<p>每条连接的订阅闸门允许 35 个未确认请求，这个数目取决于确认延迟而非发送速率。它不执行场所
+跨连接的每 IP 50 条消息上限。<code>sendTx</code> 与 <code>sendTxBatch</code> 既不消耗客户端消息桶，也不消耗场所的
+inflight 上限。</p>
+<p>下表中的层级限制针对
+<a href=https://apidocs.lighter.xyz/docs/rate-limits target=_blank rel="noopener noreferrer" class="">Lighter Mainnet</a>。</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>范围<th>场所限制<th>适配器行为<tbody><tr><td>REST，Standard 账户<td>60 请求/分钟<td>默认；设 <code>rest_quota_per_min</code> 覆盖。<tr><td>REST，Premium 账户<td>24,000 加权请求/分钟<td>需要本地覆盖；适用场所归因。<tr><td>REST，Plus 账户<td>24,000 加权请求/分钟<td>需要本地覆盖；适用场所归因。<tr><td>REST，Builder 账户<td>240,000 加权请求/分钟<td>需要本地覆盖；适用场所归因。<tr><td><code>sendTx</code> / <code>sendTxBatch</code>，standard<td>60 请求/分钟<td>与 REST 读取共享；含 HTTP 与 WebSocket。<tr><td><code>sendTx</code> / <code>sendTxBatch</code>，premium<td>[4,000, 57,600] 请求/分钟<td>设 <code>sendtx_quota_per_min</code>（随质押 LIT 提升）。<tr><td><code>sendTx</code> / <code>sendTxBatch</code>，plus<td>4,000 请求/分钟<td>设 <code>sendtx_quota_per_min</code> 才能用上。<tr><td>默认交易类型限制<td>40 请求/分钟<td>适用于不在交易量配额内的交易类型。<tr><td><code>L2UpdateLeverage</code> 交易限制<td>40 请求/分钟<td>与 <code>update_leverage</code> 相关。</table>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=active-and-pending-order-limits>活动与挂起订单上限<a href=#active-and-pending-order-limits class=hash-link aria-label=活动与挂起订单上限的直接链接 title=活动与挂起订单上限的直接链接 translate=no>​</a></h3>
+<p>Lighter 的
+<a href=https://apidocs.lighter.xyz/docs/rate-limits target=_blank rel="noopener noreferrer" class="">层级限制</a>按账户、以及账户内每个市场分别适用：</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>账户层级<th>每账户活动数<th>每市场活动数<th>每账户挂起数<th>每市场挂起数<tbody><tr><td>Standard<td>250<td>30<td>50<td>10<tr><td>Plus<td>750<td>250<td>500<td>100<tr><td>Premium<td>1,500<td>1,000<td>1,000<td>100</table>
+<p>活动订单指挂在簿上的订单。场所侧的挂起订单包括未触发的止盈、止损与 TWAP，与 Nautilus 的
+<code>PendingCancel</code> 或未确认请求不同。适配器不会预先统计它们，请为已有订单留出余量。本地配额
+不会提高场所上限。</p>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=endpoint-weights-and-transport-limits>端点权重与传输限制<a href=#endpoint-weights-and-transport-limits class=hash-link aria-label=端点权重与传输限制的直接链接 title=端点权重与传输限制的直接链接 translate=no>​</a></h3>
+<p>来自
+<a href=https://apidocs.lighter.xyz/docs/rate-limits target=_blank rel="noopener noreferrer" class="">Lighter Mainnet 限流</a>的常见 REST 权重：</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>端点组<th>权重<th>适配器行为<tbody><tr><td><code>sendTx</code>、<code>sendTxBatch</code>、<code>nextNonce</code><td>6<td>交易调用用交易限流器；<code>nextNonce</code> 用 REST。<tr><td><code>accountInactiveOrders</code>、<code>accountActiveOrders</code>、<code>accountOrders</code><td>100<td>适配器每次 HTTP 调用计一个 REST 令牌。<tr><td><code>apikeys</code><td>150<td>适配器每次 HTTP 调用计一个 REST 令牌。<tr><td><code>trades</code><td>200<td>适配器每次 HTTP 调用计一个 REST 令牌。<tr><td><code>recentTrades</code><td>600<td>适配器每次 HTTP 调用计一个 REST 令牌。<tr><td>没有显式场所权重的端点<td>300<td>适配器每次 HTTP 调用计一个 REST 令牌。</table>
+<p>其他具名端点各有不同权重，规划调用量前先查官方表。Robinhood 的权重可能不同，见
+<a href=https://apidocs.lighter.xyz/docs/lighter-rh#rate-limits target=_blank rel="noopener noreferrer" class="">Robinhood 限流</a>。</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>端点或传输<th>限制<th>备注<tbody><tr><td><code>/api/v1/trades</code><td>100 行<td>适配器按该上限分页做对账。<tr><td><code>/api/v1/accountInactiveOrders</code><td>100 行<td>适配器按该上限跟随 <code>next_cursor</code>。<tr><td><code>/api/v1/orderBookOrders</code><td>每侧 250 个订单<td>适配器把这些订单聚合为 L2 价位。<tr><td><code>/api/v1/candles</code><td>500 行<td>适配器按该场所最大值封顶 REST K 线分页。<tr><td><code>/api/v1/fundings</code><td>750 行<td>场所上限；适配器每页请求 100 行。<tr><td>WebSocket 连接<td>255 / IP<td>场所限制。<tr><td>每连接 WebSocket 订阅数<td>500<td>场所限制。<tr><td>每 IP WebSocket 订阅数<td>5,000<td>场所限制。<tr><td>每连接的唯一账户数<td>500<td>场所限制。<tr><td>每 IP 的唯一账户数<td>5,000<td>场所限制。<tr><td>每分钟 WebSocket 连接数<td>255<td>场所限制。<tr><td>每分钟 WebSocket 客户端消息<td>200<td>为非交易帧限速；心跳 ping 不受其约束。<tr><td>WebSocket inflight 消息<td>50 / IP<td>订阅闸门允许每条连接 35 个未决请求。<tr><td>WebSocket <code>sendTxBatch</code> 批量大小<td>15 个交易<td>适配器的单请求上限；更大的命令会拆批。<tr><td>WebSocket keepalive<td>2 分钟<td>适配器每 30 秒发一次心跳。<tr><td>WebSocket 出站命令队列<td>不封顶<td>写入前限速；无队列深度上限。</table>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=historical-request-limits>历史请求限制<a href=#historical-request-limits class=hash-link aria-label=历史请求限制的直接链接 title=历史请求限制的直接链接 translate=no>​</a></h3>
+<p>K 线与资金费率历史最多 500 个 REST 页：最多 250,000 根 K 线，或 49,500 个每小时资金费率区间。
+在最后一页完成算成功；带显式 <code>start</code> 且满足其显式 <code>limit</code> 的请求也算成功。</p>
+<p>未被覆盖的区间返回 <code>LighterHttpError::HistoryIncomplete</code>，不返回部分历史、也不重试。数据客户端
+记录该错误且不发出响应。缩窄区间即可继续。</p>
+<h2 class="anchor anchorTargetStickyNavbar_ana5" id=volume-quota-and-no-fill-quoting>交易量配额与不成交报价<a href=#volume-quota-and-no-fill-quoting class=hash-link aria-label=交易量配额与不成交报价的直接链接 title=交易量配额与不成交报价的直接链接 translate=no>​</a></h2>
+<p>与传输限制不同，<a href=https://apidocs.lighter.xyz/docs/volume-quota-program target=_blank rel="noopener noreferrer" class="">交易量配额</a>只适用于
+Plus 与 Premium 账户，在同一 L1 地址下的子账户之间共享：</p>
+<ul>
+<li class=""><code>L2CreateOrder</code>、<code>L2CancelAllOrders</code>、<code>L2ModifyOrder</code> 与 <code>L2CreateGroupedOrders</code> 会消耗它；
+每个符合条件的批量交易分别消耗。单笔订单撤销不消耗。</li>
+<li class="">已完成的交易量与免费额度会为其补充。</li>
+</ul>
+<p>适配器不检查剩余配额。当前规则与数值见所链接的场所文档。</p>
+<p>反复刷新却不成交的报价可能耗尽这一配额，即使 WebSocket 与 <code>sendTx</code> 限流器工作正常。实时测试
+请优先用更慢的单边报价、更宽的刷新阈值、测试网，或有界的、能通过成交赚回配额的策略。</p>
+<h2 class="anchor anchorTargetStickyNavbar_ana5" id=connection-management>连接管理<a href=#connection-management class=hash-link aria-label=连接管理的直接链接 title=连接管理的直接链接 translate=no>​</a></h2>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=heartbeats-and-reconnects>心跳与重连<a href=#heartbeats-and-reconnects class=hash-link aria-label=心跳与重连的直接链接 title=心跳与重连的直接链接 translate=no>​</a></h3>
+<p>WebSocket 客户端每 30 秒发送一次心跳，并按 [250 毫秒, 30 秒] 的指数退避重连。90 秒内没有入站
+帧就重连，即使场所还留着那个已停滞的 socket。Pong 会在没有行情的情况下刷新这个窗口。</p>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=private-authentication>私有认证<a href=#private-authentication class=hash-link aria-label=私有认证的直接链接 title=私有认证的直接链接 translate=no>​</a></h3>
+<p>私有认证令牌的有效期最长 8 小时。适配器签发 7 小时的令牌，每 6 小时轮换并重新订阅。透明的
+重连会签发新令牌，并在被跟踪的订阅开始回放之后重新订阅账户流。</p>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=nonce-recovery>Nonce 恢复<a href=#nonce-recovery class=hash-link aria-label="Nonce 恢复的直接链接" title="Nonce 恢复的直接链接" translate=no>​</a></h3>
+<p>执行端重连时通过 <code>GET /api/v1/nextNonce</code> 刷新 nonce 基线。在刷新或其后台重试为新连接装好基线
+之前，单笔提交、修改与撤销命令无法签名。批量命令（包括刷新期间收到的）会等待就绪。</p>
+<p>同一会话内：</p>
+<ul>
+<li class="">场所确认会推进本地 nonce 窗口。</li>
+<li class="">确定性拒绝或移交前的失败可能回滚其最新 nonce。</li>
+<li class="">过期的状态会触发一次 <code>GET /api/v1/nextNonce</code> 重同步。</li>
+</ul>
+<p>可能已到达场所的结果会保留其待处理 nonce 与订单身份，交给 WebSocket 或对账恢复。</p>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=account-stream-readiness>账户流就绪<a href=#account-stream-readiness class=hash-link aria-label=账户流就绪的直接链接 title=账户流就绪的直接链接 translate=no>​</a></h3>
+<p><code>LighterExecutionClient::connect()</code> 会清空旧的持仓与账户缓存，然后最多等待 30 秒，让全部五条
+<a href=#account-and-position-management class="">私有流</a>就绪。</p>
+<p>只有 <code>subscribed/account_all_positions</code> 能满足持仓就绪，实时更新不算；REST 账户负载永远不会作为
+回退。</p>
+<p>透明的重连与认证轮换不会重新进入 <code>connect()</code>。它们保留持仓，直到下一次
+<code>subscribed/account_all_positions</code> 套用快照替换规则。实时更新以合并方式应用，不逐出未出现的
+市场。</p>
+<h2 class="anchor anchorTargetStickyNavbar_ana5" id=api-credentials>API 凭据<a href=#api-credentials class=hash-link aria-label="API 凭据的直接链接" title="API 凭据的直接链接" translate=no>​</a></h2>
+<p>签名需要三项凭据：</p>
+<ul>
+<li class="">账户索引：Lighter 账户的数字标识。</li>
+<li class="">API key 索引：API key 槽位的数字。使用 <code>[4, 254]</code> 中未被保留的索引。Robinhood 还保留 <code>157</code>。
+不要用 <code>[0, 3]</code> 或 <code>255</code>；<code>255</code> 是 <code>apikeys</code> 查询的哨兵值，不是签名 key。</li>
+<li class="">API 私钥：40 字节的十六进制私钥，可带或不带 <code>0x</code> 前缀。</li>
+</ul>
+<p>配置值优先。字段缺失，或私钥为空、只有空白字符时，回退到由 <code>deployment</code> 与 <code>environment</code>
+选定的环境变量。</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>部署<th>环境<th>API key 索引<th>API 私钥<th>账户索引<tbody><tr><td>Lighter<td>Mainnet<td><code>LIGHTER_API_KEY_INDEX</code><td><code>LIGHTER_API_SECRET</code><td><code>LIGHTER_ACCOUNT_INDEX</code><tr><td>Lighter<td>Testnet<td><code>LIGHTER_TESTNET_API_KEY_INDEX</code><td><code>LIGHTER_TESTNET_API_SECRET</code><td><code>LIGHTER_TESTNET_ACCOUNT_INDEX</code><tr><td>Robinhood<td>Mainnet<td><code>LIGHTER_ROBINHOOD_API_KEY_INDEX</code><td><code>LIGHTER_ROBINHOOD_API_SECRET</code><td><code>LIGHTER_ROBINHOOD_ACCOUNT_INDEX</code><tr><td>Robinhood<td>Testnet<td><code>LIGHTER_ROBINHOOD_TESTNET_API_KEY_INDEX</code><td><code>LIGHTER_ROBINHOOD_TESTNET_API_SECRET</code><td><code>LIGHTER_ROBINHOOD_TESTNET_ACCOUNT_INDEX</code></table>
+<p>这四个命名空间让同一进程可以为多个部署目标运行客户端，而不共享凭据。</p>
+<p>执行端会拒绝不完整的凭据。全部数据订阅，以及金融工具、簿、成交、K 线与资金费率的 REST 请求
+都使用公共端点，不需要凭据。</p>
+<h2 class="anchor anchorTargetStickyNavbar_ana5" id=configuration>配置<a href=#configuration class=hash-link aria-label=配置的直接链接 title=配置的直接链接 translate=no>​</a></h2>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=data-client-configuration-options>数据客户端配置项<a href=#data-client-configuration-options class=hash-link aria-label=数据客户端配置项的直接链接 title=数据客户端配置项的直接链接 translate=no>​</a></h3>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>配置项<th>默认值<th>说明<tbody><tr><td><code>environment</code><td><code>Mainnet</code><td><code>LighterEnvironment::Mainnet</code> 或 <code>Testnet</code>。<tr><td><code>deployment</code><td><code>Lighter</code><td><code>LighterDeployment::Lighter</code> 或 <code>Robinhood</code>。<tr><td><code>venue</code><td><code>None</code><td>可选的 Nautilus 场所覆盖；默认由 <code>deployment</code> 决定。<tr><td><code>account_index</code><td><code>None</code><td>可选的工厂字段；公共数据调用不使用它。<tr><td><code>api_key_index</code><td><code>None</code><td>可选的工厂字段；公共数据调用不使用它。<tr><td><code>private_key</code><td><code>None</code><td>可选的工厂字段；公共数据调用不使用它。<tr><td><code>base_url_http</code><td><code>None</code><td>可选的 REST URL 覆盖。<tr><td><code>base_url_ws</code><td><code>None</code><td>可选的 WebSocket URL 覆盖。<tr><td><code>proxy_url</code><td><code>None</code><td>HTTP 与 WebSocket 的可选代理 URL。<tr><td><code>http_timeout_secs</code><td><code>60</code><td>HTTP 请求超时（秒）。<tr><td><code>ws_timeout_secs</code><td><code>30</code><td>WebSocket 连接与重连超时。<tr><td><code>update_instruments_interval_mins</code><td><code>60</code><td>金融工具元数据刷新间隔（分钟）。<tr><td><code>book_snapshot_timeout_secs</code><td><code>10</code><td>初始、重连与恢复的快照等待。<tr><td><code>rest_quota_per_min</code><td><code>None</code><td>REST 配额覆盖；未设置保持 60 请求/分钟。<tr><td><code>transport_backend</code><td>默认<td>WebSocket 传输后端。</table>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=execution-client-configuration-options>执行客户端配置项<a href=#execution-client-configuration-options class=hash-link aria-label=执行客户端配置项的直接链接 title=执行客户端配置项的直接链接 translate=no>​</a></h3>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>配置项<th>默认值<th>说明<tbody><tr><td><code>environment</code><td><code>Mainnet</code><td><code>LighterEnvironment::Mainnet</code> 或 <code>Testnet</code>。<tr><td><code>deployment</code><td><code>Lighter</code><td><code>LighterDeployment::Lighter</code> 或 <code>Robinhood</code>。<tr><td><code>venue</code><td><code>None</code><td>可选的 Nautilus 场所覆盖；默认由 <code>deployment</code> 决定。<tr><td><code>account_id</code><td><code>LIGHTER-001</code><td>Nautilus 账户 ID；issuer 必须与解析出的场所一致。<tr><td><code>account_index</code><td><code>None</code><td>Lighter 账户索引。<tr><td><code>api_key_index</code><td><code>None</code><td>Lighter API key 槽位。<tr><td><code>private_key</code><td><code>None</code><td>用于认证与 L2 交易签名的十六进制私钥。<tr><td><code>base_url_http</code><td><code>None</code><td>可选的 REST URL 覆盖。<tr><td><code>base_url_ws</code><td><code>None</code><td>可选的 WebSocket URL 覆盖。<tr><td><code>proxy_url</code><td><code>None</code><td>HTTP 与 WebSocket 的可选代理 URL。<tr><td><code>http_timeout_secs</code><td><code>60</code><td>HTTP 请求超时（秒）。<tr><td><code>ws_timeout_secs</code><td><code>30</code><td>WebSocket 连接与重连超时。<tr><td><code>market_order_slippage_bps</code><td><code>50</code><td><code>MARKET</code> / <code>STOP_MARKET</code> / <code>MIT</code> 的滑点上限（bps）。<tr><td><code>rest_quota_per_min</code><td><code>None</code><td>REST 配额覆盖；未设置保持 60 请求/分钟。<tr><td><code>sendtx_quota_per_min</code><td><code>None</code><td>交易配额覆盖；未设置保持 60 请求/分钟。<tr><td><code>transport_backend</code><td>默认<td>WebSocket 传输后端。<tr><td><code>use_gtd</code><td><code>true</code><td>使用场所原生 GTD；见 <a href=#gtd-policy class="">GTD 策略</a>。</table>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=configuration-example>配置示例<a href=#configuration-example class=hash-link aria-label=配置示例的直接链接 title=配置示例的直接链接 translate=no>​</a></h3>
+<div class="language-rust codeBlockContainer_eTMR theme-code-block" style=--prism-color:#393A34;--prism-background-color:#f6f8fa><div class=codeBlockContent_hafM><pre tabindex=0 class="prism-code language-rust codeBlock_IMvC thin-scrollbar" style=color:#393A34;background-color:#f6f8fa><code class=codeBlockLines_gZDW><div class=token-line style=color:#393A34><span class="token keyword" style=color:#00009f>use</span><span class="token plain"> </span><span class="token namespace" style=opacity:0.7>nautilus_lighter</span><span class="token namespace punctuation" style=opacity:0.7;color:#393A34>::</span><span class="token punctuation" style=color:#393A34>{</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    </span><span class="token namespace" style=opacity:0.7>common</span><span class="token namespace punctuation" style=opacity:0.7;color:#393A34>::</span><span class="token namespace" style=opacity:0.7>enums</span><span class="token namespace punctuation" style=opacity:0.7;color:#393A34>::</span><span class="token punctuation" style=color:#393A34>{</span><span class="token class-name">LighterDeployment</span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain"> </span><span class="token class-name">LighterEnvironment</span><span class="token punctuation" style=color:#393A34>}</span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    </span><span class="token namespace" style=opacity:0.7>config</span><span class="token namespace punctuation" style=opacity:0.7;color:#393A34>::</span><span class="token punctuation" style=color:#393A34>{</span><span class="token class-name">LighterDataClientConfig</span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain"> </span><span class="token class-name">LighterExecutionClientConfig</span><span class="token punctuation" style=color:#393A34>}</span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain"></span><span class="token punctuation" style=color:#393A34>}</span><span class="token punctuation" style=color:#393A34>;</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain"></span><span class="token keyword" style=color:#00009f>use</span><span class="token plain"> </span><span class="token namespace" style=opacity:0.7>nautilus_model</span><span class="token namespace punctuation" style=opacity:0.7;color:#393A34>::</span><span class="token namespace" style=opacity:0.7>identifiers</span><span class="token namespace punctuation" style=opacity:0.7;color:#393A34>::</span><span class="token class-name">AccountId</span><span class="token punctuation" style=color:#393A34>;</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain" style=display:inline-block></span><br/></div><div class=token-line style=color:#393A34><span class="token plain"></span><span class="token keyword" style=color:#00009f>let</span><span class="token plain"> data_config </span><span class="token operator" style=color:#393A34>=</span><span class="token plain"> </span><span class="token class-name">LighterDataClientConfig</span><span class="token punctuation" style=color:#393A34>::</span><span class="token function" style=color:#d73a49>builder</span><span class="token punctuation" style=color:#393A34>(</span><span class="token punctuation" style=color:#393A34>)</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    </span><span class="token punctuation" style=color:#393A34>.</span><span class="token function" style=color:#d73a49>environment</span><span class="token punctuation" style=color:#393A34>(</span><span class="token class-name">LighterEnvironment</span><span class="token punctuation" style=color:#393A34>::</span><span class="token class-name">Testnet</span><span class="token punctuation" style=color:#393A34>)</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    </span><span class="token punctuation" style=color:#393A34>.</span><span class="token function" style=color:#d73a49>deployment</span><span class="token punctuation" style=color:#393A34>(</span><span class="token class-name">LighterDeployment</span><span class="token punctuation" style=color:#393A34>::</span><span class="token class-name">Lighter</span><span class="token punctuation" style=color:#393A34>)</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    </span><span class="token punctuation" style=color:#393A34>.</span><span class="token function" style=color:#d73a49>build</span><span class="token punctuation" style=color:#393A34>(</span><span class="token punctuation" style=color:#393A34>)</span><span class="token punctuation" style=color:#393A34>;</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain" style=display:inline-block></span><br/></div><div class=token-line style=color:#393A34><span class="token plain"></span><span class="token keyword" style=color:#00009f>let</span><span class="token plain"> exec_config </span><span class="token operator" style=color:#393A34>=</span><span class="token plain"> </span><span class="token class-name">LighterExecutionClientConfig</span><span class="token punctuation" style=color:#393A34>::</span><span class="token function" style=color:#d73a49>builder</span><span class="token punctuation" style=color:#393A34>(</span><span class="token punctuation" style=color:#393A34>)</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    </span><span class="token punctuation" style=color:#393A34>.</span><span class="token function" style=color:#d73a49>environment</span><span class="token punctuation" style=color:#393A34>(</span><span class="token class-name">LighterEnvironment</span><span class="token punctuation" style=color:#393A34>::</span><span class="token class-name">Testnet</span><span class="token punctuation" style=color:#393A34>)</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    </span><span class="token punctuation" style=color:#393A34>.</span><span class="token function" style=color:#d73a49>deployment</span><span class="token punctuation" style=color:#393A34>(</span><span class="token class-name">LighterDeployment</span><span class="token punctuation" style=color:#393A34>::</span><span class="token class-name">Lighter</span><span class="token punctuation" style=color:#393A34>)</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    </span><span class="token punctuation" style=color:#393A34>.</span><span class="token function" style=color:#d73a49>account_id</span><span class="token punctuation" style=color:#393A34>(</span><span class="token class-name">AccountId</span><span class="token punctuation" style=color:#393A34>::</span><span class="token function" style=color:#d73a49>from</span><span class="token punctuation" style=color:#393A34>(</span><span class="token string" style=color:#e3116c>"LIGHTER-001"</span><span class="token punctuation" style=color:#393A34>)</span><span class="token punctuation" style=color:#393A34>)</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    </span><span class="token punctuation" style=color:#393A34>.</span><span class="token function" style=color:#d73a49>build</span><span class="token punctuation" style=color:#393A34>(</span><span class="token punctuation" style=color:#393A34>)</span><span class="token punctuation" style=color:#393A34>;</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain" style=display:inline-block></span><br/></div><div class=token-line style=color:#393A34><span class="token plain"></span><span class="token keyword" style=color:#00009f>let</span><span class="token plain"> robinhood_data_config </span><span class="token operator" style=color:#393A34>=</span><span class="token plain"> </span><span class="token class-name">LighterDataClientConfig</span><span class="token punctuation" style=color:#393A34>::</span><span class="token function" style=color:#d73a49>builder</span><span class="token punctuation" style=color:#393A34>(</span><span class="token punctuation" style=color:#393A34>)</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    </span><span class="token punctuation" style=color:#393A34>.</span><span class="token function" style=color:#d73a49>environment</span><span class="token punctuation" style=color:#393A34>(</span><span class="token class-name">LighterEnvironment</span><span class="token punctuation" style=color:#393A34>::</span><span class="token class-name">Mainnet</span><span class="token punctuation" style=color:#393A34>)</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    </span><span class="token punctuation" style=color:#393A34>.</span><span class="token function" style=color:#d73a49>deployment</span><span class="token punctuation" style=color:#393A34>(</span><span class="token class-name">LighterDeployment</span><span class="token punctuation" style=color:#393A34>::</span><span class="token class-name">Robinhood</span><span class="token punctuation" style=color:#393A34>)</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    </span><span class="token punctuation" style=color:#393A34>.</span><span class="token function" style=color:#d73a49>build</span><span class="token punctuation" style=color:#393A34>(</span><span class="token punctuation" style=color:#393A34>)</span><span class="token punctuation" style=color:#393A34>;</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain" style=display:inline-block></span><br/></div><div class=token-line style=color:#393A34><span class="token plain"></span><span class="token keyword" style=color:#00009f>let</span><span class="token plain"> robinhood_exec_config </span><span class="token operator" style=color:#393A34>=</span><span class="token plain"> </span><span class="token class-name">LighterExecutionClientConfig</span><span class="token punctuation" style=color:#393A34>::</span><span class="token function" style=color:#d73a49>builder</span><span class="token punctuation" style=color:#393A34>(</span><span class="token punctuation" style=color:#393A34>)</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    </span><span class="token punctuation" style=color:#393A34>.</span><span class="token function" style=color:#d73a49>environment</span><span class="token punctuation" style=color:#393A34>(</span><span class="token class-name">LighterEnvironment</span><span class="token punctuation" style=color:#393A34>::</span><span class="token class-name">Mainnet</span><span class="token punctuation" style=color:#393A34>)</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    </span><span class="token punctuation" style=color:#393A34>.</span><span class="token function" style=color:#d73a49>deployment</span><span class="token punctuation" style=color:#393A34>(</span><span class="token class-name">LighterDeployment</span><span class="token punctuation" style=color:#393A34>::</span><span class="token class-name">Robinhood</span><span class="token punctuation" style=color:#393A34>)</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    </span><span class="token punctuation" style=color:#393A34>.</span><span class="token function" style=color:#d73a49>account_id</span><span class="token punctuation" style=color:#393A34>(</span><span class="token class-name">AccountId</span><span class="token punctuation" style=color:#393A34>::</span><span class="token function" style=color:#d73a49>from</span><span class="token punctuation" style=color:#393A34>(</span><span class="token string" style=color:#e3116c>"LIGHTER_ROBINHOOD-001"</span><span class="token punctuation" style=color:#393A34>)</span><span class="token punctuation" style=color:#393A34>)</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    </span><span class="token punctuation" style=color:#393A34>.</span><span class="token function" style=color:#d73a49>build</span><span class="token punctuation" style=color:#393A34>(</span><span class="token punctuation" style=color:#393A34>)</span><span class="token punctuation" style=color:#393A34>;</span><br/></div></code></pre></div></div>
+<p>这些执行配置使用其部署与环境对应的
+<a href=#api-credentials class="">凭据环境变量</a>；显式的凭据字段会覆盖它们。</p>
+<p>设置 <code>LiveExecutionEngineConfig.reconciliation_instrument_ids</code> 可限定对账范围，设置
+<code>reconciliation_lookback_mins</code> 可为失活订单与成交的重放设定边界。</p>
+<h2 class="anchor anchorTargetStickyNavbar_ana5" id=official-documentation>官方文档<a href=#official-documentation class=hash-link aria-label=官方文档的直接链接 title=官方文档的直接链接 translate=no>​</a></h2>
+<ul>
+<li class=""><a href=https://apidocs.lighter.xyz/docs/get-started target=_blank rel="noopener noreferrer" class="">Get started</a></li>
+<li class=""><a href=https://apidocs.lighter.xyz/docs/trading target=_blank rel="noopener noreferrer" class="">交易与签名</a></li>
+<li class=""><a href=https://apidocs.lighter.xyz/docs/core-concepts target=_blank rel="noopener noreferrer" class="">核心概念与 nonce</a></li>
+<li class=""><a href=https://apidocs.lighter.xyz/docs/environments target=_blank rel="noopener noreferrer" class="">环境与端点</a></li>
+<li class=""><a href=https://apidocs.lighter.xyz/docs/lighter-rh target=_blank rel="noopener noreferrer" class="">Robinhood Chain 上的 Lighter</a></li>
+<li class=""><a href=https://apidocs.lighter.xyz/docs/api-keys target=_blank rel="noopener noreferrer" class="">API keys</a></li>
+<li class=""><a href=https://apidocs.lighter.xyz/docs/account-types target=_blank rel="noopener noreferrer" class="">账户类型</a></li>
+<li class=""><a href=https://apidocs.lighter.xyz/docs/rate-limits target=_blank rel="noopener noreferrer" class="">限流</a></li>
+<li class=""><a href=https://apidocs.lighter.xyz/docs/volume-quota-program target=_blank rel="noopener noreferrer" class="">交易量配额</a></li>
+<li class=""><a href=https://apidocs.lighter.xyz/docs/historical-data target=_blank rel="noopener noreferrer" class="">历史数据与导出</a></li>
+<li class=""><a href=https://apidocs.lighter.xyz/docs/data-structures-constants-and-errors target=_blank rel="noopener noreferrer" class="">数据结构、常量与错误</a></li>
+<li class=""><a href=https://raw.githubusercontent.com/elliottech/lighter-python/main/openapi.json target=_blank rel="noopener noreferrer" class="">REST OpenAPI</a></li>
+<li class=""><a href=https://apidocs.lighter.xyz/docs/websocket-reference target=_blank rel="noopener noreferrer" class="">WebSocket 参考</a></li>
+</ul>
+<h2 class="anchor anchorTargetStickyNavbar_ana5" id=contributing>贡献<a href=#contributing class=hash-link aria-label=贡献的直接链接 title=贡献的直接链接 translate=no>​</a></h2>
+<div class="theme-admonition theme-admonition-info admonition_LYZY alert alert--info"><div class=admonitionHeading_pnFY><span class=admonitionIcon_tEzm><svg viewBox="0 0 14 16"><path fill-rule=evenodd d="M7 2.3c3.14 0 5.7 2.56 5.7 5.7s-2.56 5.7-5.7 5.7A5.71 5.71 0 0 1 1.3 8c0-3.14 2.56-5.7 5.7-5.7zM7 1C3.14 1 0 4.14 0 8s3.14 7 7 7 7-3.14 7-7-3.14-7-7-7zm1 3H6v5h2V4zm0 6H6v2h2v-2z"/></svg></span>信息</div><div class=admonitionContent_ZwmI><p>想为 Lighter 适配器做贡献或提出特性需求，见
+<a href=https://github.com/nautechsystems/nautilus_trader/blob/develop/CONTRIBUTING.md target=_blank rel="noopener noreferrer" class="">贡献指南</a>。</div></div></div><footer class="theme-doc-footer docusaurus-mt-lg"><div class="row margin-top--sm theme-doc-footer-edit-meta-row"><div class="col noPrint_MRkS"><a href=https://github.com/Aloento/NautilusTraderDoc/tree/main/docs/integrations/lighter.md target=_blank rel="noopener noreferrer" class=theme-edit-this-page><svg fill=currentColor height=20 width=20 viewBox="0 0 40 40" class=iconEdit_RPSQ aria-hidden=true><g><path d="m34.5 11.7l-3 3.1-6.3-6.3 3.1-3q0.5-0.5 1.2-0.5t1.1 0.5l3.9 3.9q0.5 0.4 0.5 1.1t-0.5 1.2z m-29.5 17.1l18.4-18.5 6.3 6.3-18.4 18.4h-6.3v-6.2z"/></g></svg>编辑此页</a></div><div class="col lastUpdated_oZSl"><span class=theme-last-updated>最后<!-- -->于 <b><time datetime=2026-10-14T22:30:30.000Z itemprop=dateModified>2026年10月14日</time></b> <!-- -->更新</span></div></div></footer></article><nav class="docusaurus-mt-lg pagination-nav" aria-label=文件选项卡><a class="pagination-nav__link pagination-nav__link--prev" href=/integrations/kraken><div class=pagination-nav__sublabel>上一页</div><div class=pagination-nav__label>Kraken</div></a><a class="pagination-nav__link pagination-nav__link--next" href=/integrations/okx><div class=pagination-nav__sublabel>下一页</div><div class=pagination-nav__label>OKX</div></a></nav></div></div><div class="col col--3"><div class="tableOfContents_LyLZ thin-scrollbar theme-doc-toc-desktop"><ul class="table-of-contents table-of-contents__left-border"><li><a href=#overview class="table-of-contents__link toc-highlight">概览</a><li><a href=#examples class="table-of-contents__link toc-highlight">示例</a><ul><li><a href=#emergency-account-cleanup class="table-of-contents__link toc-highlight">紧急账户清理</a></ul><li><a href=#product-support class="table-of-contents__link toc-highlight">产品支持</a><li><a href=#limitations class="table-of-contents__link toc-highlight">限制</a><li><a href=#symbology class="table-of-contents__link toc-highlight">符号体系</a><li><a href=#deployments-and-environments class="table-of-contents__link toc-highlight">部署与环境</a><ul><li><a href=#custom-venue-identity class="table-of-contents__link toc-highlight">自定义场所标识</a></ul><li><a href=#account-and-api-key-setup class="table-of-contents__link toc-highlight">账户与 API key 设置</a><li><a href=#integrator-attribution class="table-of-contents__link toc-highlight">集成方归因</a><ul><li><a href=#revoking-the-approval class="table-of-contents__link toc-highlight">吊销批准</a></ul><li><a href=#data-subscriptions class="table-of-contents__link toc-highlight">数据订阅</a><ul><li><a href=#order-book-data class="table-of-contents__link toc-highlight">订单簿数据</a><li><a href=#bars class="table-of-contents__link toc-highlight">K 线</a><li><a href=#instrument-status-and-trades class="table-of-contents__link toc-highlight">金融工具状态与成交</a><li><a href=#unsupported-data-requests class="table-of-contents__link toc-highlight">不支持的数据请求</a></ul><li><a href=#order-book-recovery class="table-of-contents__link toc-highlight">订单簿恢复</a><ul><li><a href=#sequence-validation class="table-of-contents__link toc-highlight">序列校验</a><li><a href=#snapshot-requirements class="table-of-contents__link toc-highlight">快照要求</a><li><a href=#retry-limits-and-reconnects class="table-of-contents__link toc-highlight">重试限制与重连</a><li><a href=#consumers-and-persistent-failures class="table-of-contents__link toc-highlight">消费者与持续失败</a><li><a href=#live-recovery-validation class="table-of-contents__link toc-highlight">实时恢复验证</a></ul><li><a href=#order-capabilities class="table-of-contents__link toc-highlight">订单能力</a><ul><li><a href=#order-identification class="table-of-contents__link toc-highlight">订单标识</a><li><a href=#order-types class="table-of-contents__link toc-highlight">订单类型</a><li><a href=#contingent-orders class="table-of-contents__link toc-highlight">或有订单</a><li><a href=#order-options class="table-of-contents__link toc-highlight">订单选项</a><li><a href=#adapter-order-params class="table-of-contents__link toc-highlight">适配器订单参数</a><li><a href=#time-in-force class="table-of-contents__link toc-highlight">有效期</a><li><a href=#execution-instructions class="table-of-contents__link toc-highlight">执行指令</a><li><a href=#advanced-order-features class="table-of-contents__link toc-highlight">高级订单特性</a><li><a href=#order-operations class="table-of-contents__link toc-highlight">订单操作</a><li><a href=#order-querying-and-reconciliation class="table-of-contents__link toc-highlight">订单查询与对账</a></ul><li><a href=#account-and-position-management class="table-of-contents__link toc-highlight">账户与持仓管理</a><ul><li><a href=#position-snapshots-and-updates class="table-of-contents__link toc-highlight">持仓快照与更新</a></ul><li><a href=#liquidation-and-adl-handling class="table-of-contents__link toc-highlight">强平与 ADL 处理</a><li><a href=#funding-rates class="table-of-contents__link toc-highlight">资金费率</a><li><a href=#account-tiers class="table-of-contents__link toc-highlight">账户层级</a><li><a href=#rate-limiting class="table-of-contents__link toc-highlight">限流</a><ul><li><a href=#request-buckets-and-endpoint-weights class="table-of-contents__link toc-highlight">请求桶与端点权重</a><li><a href=#transaction-type-limits class="table-of-contents__link toc-highlight">交易类型限制</a><li><a href=#shared-adapter-limiters class="table-of-contents__link toc-highlight">共享的适配器限流器</a><li><a href=#active-and-pending-order-limits class="table-of-contents__link toc-highlight">活动与挂起订单上限</a><li><a href=#endpoint-weights-and-transport-limits class="table-of-contents__link toc-highlight">端点权重与传输限制</a><li><a href=#historical-request-limits class="table-of-contents__link toc-highlight">历史请求限制</a></ul><li><a href=#volume-quota-and-no-fill-quoting class="table-of-contents__link toc-highlight">交易量配额与不成交报价</a><li><a href=#connection-management class="table-of-contents__link toc-highlight">连接管理</a><ul><li><a href=#heartbeats-and-reconnects class="table-of-contents__link toc-highlight">心跳与重连</a><li><a href=#private-authentication class="table-of-contents__link toc-highlight">私有认证</a><li><a href=#nonce-recovery class="table-of-contents__link toc-highlight">Nonce 恢复</a><li><a href=#account-stream-readiness class="table-of-contents__link toc-highlight">账户流就绪</a></ul><li><a href=#api-credentials class="table-of-contents__link toc-highlight">API 凭据</a><li><a href=#configuration class="table-of-contents__link toc-highlight">配置</a><ul><li><a href=#data-client-configuration-options class="table-of-contents__link toc-highlight">数据客户端配置项</a><li><a href=#execution-client-configuration-options class="table-of-contents__link toc-highlight">执行客户端配置项</a><li><a href=#configuration-example class="table-of-contents__link toc-highlight">配置示例</a></ul><li><a href=#official-documentation class="table-of-contents__link toc-highlight">官方文档</a><li><a href=#contributing class="table-of-contents__link toc-highlight">贡献</a></ul></div></div></div></div></main></div></div></div><footer class="theme-layout-footer footer footer--dark"><div class="container container-fluid"><div class="row footer__links"><div class="theme-layout-footer-column col footer__col"><div class=footer__title></div><ul class="footer__items clean-list"><li class=footer__item><a href=https://github.com/nautechsystems/nautilus_trader target=_blank rel="noopener noreferrer" class=footer__link-item>Official GitHub<svg width=13.5 height=13.5 aria-label="(opens in new tab)" class=iconExternalLink_qUHo><use href=#theme-svg-external-link /></svg></a><li class=footer__item><a href=https://nautilustrader.io/docs target=_blank rel="noopener noreferrer" class=footer__link-item>Official Documentation<svg width=13.5 height=13.5 aria-label="(opens in new tab)" class=iconExternalLink_qUHo><use href=#theme-svg-external-link /></svg></a></ul></div></div><div class="footer__bottom text--center"><div class=footer__copyright>© 2026 Nautech Systems Pty Ltd. All rights reserved.</div></div></div></footer></div></body>

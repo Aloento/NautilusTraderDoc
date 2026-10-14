@@ -1,0 +1,1483 @@
+<!doctype html><html lang=zh dir=ltr class="docs-wrapper plugin-docs plugin-id-default docs-version-current docs-doc-page docs-doc-id-integrations/kraken" data-has-hydrated=false><head><meta charset=UTF-8><meta name=generator content="Docusaurus v3.10.2"><title data-rh=true>Kraken | NautilusTrader 文档</title><meta data-rh=true name=viewport content="width=device-width, initial-scale=1.0"/><meta data-rh=true name=twitter:card content=summary_large_image /><meta data-rh=true property=og:url content=https://nautilus.aloen.to/integrations/kraken /><meta data-rh=true property=og:locale content=zh /><meta data-rh=true name=docusaurus_locale content=zh /><meta data-rh=true name=docsearch:language content=zh /><meta data-rh=true name=docusaurus_version content=current /><meta data-rh=true name=docusaurus_tag content=docs-default-current /><meta data-rh=true name=docsearch:version content=current /><meta data-rh=true name=docsearch:docusaurus_tag content=docs-default-current /><meta data-rh=true property=og:title content="Kraken | NautilusTrader 文档"/><meta data-rh=true name=description content="Kraken 适配器支持 Kraken 现货（Spot）与 Kraken 衍生品（Futures）的实时行情数据与订单"/><meta data-rh=true property=og:description content="Kraken 适配器支持 Kraken 现货（Spot）与 Kraken 衍生品（Futures）的实时行情数据与订单"/><link data-rh=true rel=icon href=/logo.png /><link data-rh=true rel=canonical href=https://nautilus.aloen.to/integrations/kraken /><link data-rh=true rel=alternate href=https://nautilus.aloen.to/integrations/kraken hreflang=zh /><link data-rh=true rel=alternate href=https://nautilus.aloen.to/integrations/kraken hreflang=x-default /><script data-rh=true type=application/ld+json>{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","item":"https://nautilus.aloen.to/integrations/","name":"交易所与集成","position":1},{"@type":"ListItem","item":"https://nautilus.aloen.to/integrations/kraken","name":"Kraken","position":2}]}</script><link rel=stylesheet href=/assets/css/styles.adb7ea18.css /><script src=/assets/js/runtime~main.71ac0794.js defer></script><script src=/assets/js/main.d978d0f2.js defer></script></head><body><svg style="display: none;"><defs>
+<symbol id=theme-svg-external-link viewBox="0 0 24 24"><path fill=currentColor d="M21 13v10h-21v-19h12v2h-10v15h17v-8h2zm3-12h-10.988l4.035 4-6.977 7.07 2.828 2.828 6.977-7.07 4.125 4.172v-11z"/></symbol>
+</defs></svg>
+<script>!function(){var t=function(){try{return new URLSearchParams(window.location.search).get("docusaurus-theme")}catch(t){}}()||function(){try{return window.localStorage.getItem("theme-2e3")}catch(t){}}();document.documentElement.setAttribute("data-theme",t||(window.matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light")),document.documentElement.setAttribute("data-theme-choice",t||"system")}(),function(){try{for(var[t,e]of new URLSearchParams(window.location.search).entries())if(t.startsWith("docusaurus-data-")){var a=t.replace("docusaurus-data-","data-");document.documentElement.setAttribute(a,e)}}catch(t){}}()</script><div id=__docusaurus><link rel=preload as=image href=/logo.png /><div role=region aria-label=跳到主要内容><a class=skipToContent_zuOI href=#__docusaurus_skipToContent_fallback>跳到主要内容</a></div><nav aria-label=主导航 class="theme-layout-navbar navbar navbar--fixed-top"><div class=navbar__inner><div class="theme-layout-navbar-left navbar__items"><button aria-label=切换导航栏 aria-expanded=false class="navbar__toggle clean-btn" type=button><svg width=30 height=30 viewBox="0 0 30 30" aria-hidden=true><path stroke=currentColor stroke-linecap=round stroke-miterlimit=10 stroke-width=2 d="M4 7h22M4 15h22M4 23h22"/></svg></button><a class=navbar__brand href=/><div class=navbar__logo><img src=/logo.png alt="NautilusTrader Logo" class="themedComponent_q2_Y themedComponent--light_Nejn"/><img src=/logo.png alt="NautilusTrader Logo" class="themedComponent_q2_Y themedComponent--dark_JjIb"/></div><b class="navbar__title text--truncate">NautilusTrader</b></a><a aria-current=page class="navbar__item navbar__link navbar__link--active" href=/getting_started/>文档</a></div><div class="theme-layout-navbar-right navbar__items navbar__items--right"><a href=https://github.com/Aloento/NautilusTraderDoc target=_blank rel="noopener noreferrer" class="navbar__item navbar__link">GitHub<svg width=13.5 height=13.5 aria-label="(opens in new tab)" class=iconExternalLink_qUHo><use href=#theme-svg-external-link /></svg></a><div class="toggle_hHmI colorModeToggle_rOOn"><button class="clean-btn toggleButton_wEhT toggleButtonDisabled_yOOP" type=button disabled title="system mode" aria-label="切换浅色/暗黑模式（当前为system mode）"><svg viewBox="0 0 24 24" width=24 height=24 aria-hidden=true class="toggleIcon_Kt6U lightToggleIcon_Zfeh"><path fill=currentColor d="M12,9c1.65,0,3,1.35,3,3s-1.35,3-3,3s-3-1.35-3-3S10.35,9,12,9 M12,7c-2.76,0-5,2.24-5,5s2.24,5,5,5s5-2.24,5-5 S14.76,7,12,7L12,7z M2,13l2,0c0.55,0,1-0.45,1-1s-0.45-1-1-1l-2,0c-0.55,0-1,0.45-1,1S1.45,13,2,13z M20,13l2,0c0.55,0,1-0.45,1-1 s-0.45-1-1-1l-2,0c-0.55,0-1,0.45-1,1S19.45,13,20,13z M11,2v2c0,0.55,0.45,1,1,1s1-0.45,1-1V2c0-0.55-0.45-1-1-1S11,1.45,11,2z M11,20v2c0,0.55,0.45,1,1,1s1-0.45,1-1v-2c0-0.55-0.45-1-1-1C11.45,19,11,19.45,11,20z M5.99,4.58c-0.39-0.39-1.03-0.39-1.41,0 c-0.39,0.39-0.39,1.03,0,1.41l1.06,1.06c0.39,0.39,1.03,0.39,1.41,0s0.39-1.03,0-1.41L5.99,4.58z M18.36,16.95 c-0.39-0.39-1.03-0.39-1.41,0c-0.39,0.39-0.39,1.03,0,1.41l1.06,1.06c0.39,0.39,1.03,0.39,1.41,0c0.39-0.39,0.39-1.03,0-1.41 L18.36,16.95z M19.42,5.99c0.39-0.39,0.39-1.03,0-1.41c-0.39-0.39-1.03-0.39-1.41,0l-1.06,1.06c-0.39,0.39-0.39,1.03,0,1.41 s1.03,0.39,1.41,0L19.42,5.99z M7.05,18.36c0.39-0.39,0.39-1.03,0-1.41c-0.39-0.39-1.03-0.39-1.41,0l-1.06,1.06 c-0.39,0.39-0.39,1.03,0,1.41s1.03,0.39,1.41,0L7.05,18.36z"/></svg><svg viewBox="0 0 24 24" width=24 height=24 aria-hidden=true class="toggleIcon_Kt6U darkToggleIcon_XgQr"><path fill=currentColor d="M9.37,5.51C9.19,6.15,9.1,6.82,9.1,7.5c0,4.08,3.32,7.4,7.4,7.4c0.68,0,1.35-0.09,1.99-0.27C17.45,17.19,14.93,19,12,19 c-3.86,0-7-3.14-7-7C5,9.07,6.81,6.55,9.37,5.51z M12,3c-4.97,0-9,4.03-9,9s4.03,9,9,9s9-4.03,9-9c0-0.46-0.04-0.92-0.1-1.36 c-0.98,1.37-2.58,2.26-4.4,2.26c-2.98,0-5.4-2.42-5.4-5.4c0-1.81,0.89-3.42,2.26-4.4C12.92,3.04,12.46,3,12,3L12,3z"/></svg><svg viewBox="0 0 24 24" width=24 height=24 aria-hidden=true class="toggleIcon_Kt6U systemToggleIcon_BvUi"><path fill=currentColor d="m12 21c4.971 0 9-4.029 9-9s-4.029-9-9-9-9 4.029-9 9 4.029 9 9 9zm4.95-13.95c1.313 1.313 2.05 3.093 2.05 4.95s-0.738 3.637-2.05 4.95c-1.313 1.313-3.093 2.05-4.95 2.05v-14c1.857 0 3.637 0.737 4.95 2.05z"/></svg></button></div><div class=navbarSearchContainer_watl></div></div></div><div role=presentation class=navbar-sidebar__backdrop></div></nav><div id=__docusaurus_skipToContent_fallback class="theme-layout-main main-wrapper mainWrapper_R72Q"><div class=docsWrapper_XQ9b><button aria-label=回到顶部 class="clean-btn theme-back-to-top-button backToTopButton_MbnX" type=button></button><div class=docRoot_aqOB><aside class="theme-doc-sidebar-container docSidebarContainer_sI2e"><div class=sidebarViewport_TzTy><div class=sidebar_CbEe><nav aria-label=文档侧边栏 class="menu thin-scrollbar menu_ChRF"><ul class="theme-doc-sidebar-menu menu__list"><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-1 menu__list-item menu__list-item--collapsed"><div class=menu__list-item-collapsible><a class="categoryLink_Muyc menu__link menu__link--sublist" href=/getting_started/><span class=categoryLinkLabel_mAcL>快速开始</span></a><button aria-label="展开侧边栏分类 '快速开始'" aria-expanded=false type=button class="clean-btn menu__caret"></button></div><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-1 menu__list-item menu__list-item--collapsed"><div class=menu__list-item-collapsible><a class="categoryLink_Muyc menu__link menu__link--sublist" href=/concepts/><span class=categoryLinkLabel_mAcL>核心概念</span></a><button aria-label="展开侧边栏分类 '核心概念'" aria-expanded=false type=button class="clean-btn menu__caret"></button></div><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-1 menu__list-item"><div class=menu__list-item-collapsible><a class="categoryLink_Muyc menu__link menu__link--sublist menu__link--active" href=/integrations/><span class=categoryLinkLabel_mAcL>交易所与集成</span></a><button aria-label="折叠侧边栏分类 '交易所与集成'" aria-expanded=true type=button class="clean-btn menu__caret"></button></div><ul class=menu__list><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/integrations/architect_ax><span class=linkLabel_lYjD>AX Exchange</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/integrations/betfair><span class=linkLabel_lYjD>Betfair</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/integrations/binance><span class=linkLabel_lYjD>Binance</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/integrations/blockchain><span class=linkLabel_lYjD>区块链</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/integrations/bybit><span class=linkLabel_lYjD>Bybit</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/integrations/coinapi><span class=linkLabel_lYjD>CoinAPI</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/integrations/coinbase><span class=linkLabel_lYjD>Coinbase</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/integrations/databento><span class=linkLabel_lYjD>Databento</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/integrations/deribit><span class=linkLabel_lYjD>Deribit</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/integrations/derive><span class=linkLabel_lYjD>Derive</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/integrations/dydx><span class=linkLabel_lYjD>dYdX</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/integrations/hyperliquid><span class=linkLabel_lYjD>Hyperliquid</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/integrations/interactive_brokers><span class=linkLabel_lYjD>Interactive Brokers</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class="menu__link menu__link--active" aria-current=page tabindex=0 href=/integrations/kraken><span class=linkLabel_lYjD>Kraken</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/integrations/lighter><span class=linkLabel_lYjD>Lighter</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/integrations/okx><span class=linkLabel_lYjD>OKX</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/integrations/polymarket><span class=linkLabel_lYjD>Polymarket</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/integrations/tardis><span class=linkLabel_lYjD>Tardis</span></a></ul><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-1 menu__list-item menu__list-item--collapsed"><div class=menu__list-item-collapsible><a class="categoryLink_Muyc menu__link menu__link--sublist" href=/how_to/><span class=categoryLinkLabel_mAcL>操作指南</span></a><button aria-label="展开侧边栏分类 '操作指南'" aria-expanded=false type=button class="clean-btn menu__caret"></button></div><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-1 menu__list-item menu__list-item--collapsed"><div class=menu__list-item-collapsible><a class="categoryLink_Muyc menu__link menu__link--sublist" href=/tutorials/><span class=categoryLinkLabel_mAcL>教程</span></a><button aria-label="展开侧边栏分类 '教程'" aria-expanded=false type=button class="clean-btn menu__caret"></button></div><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-1 menu__list-item menu__list-item--collapsed"><div class=menu__list-item-collapsible><a class="categoryLink_Muyc menu__link menu__link--sublist" href=/developer_guide/><span class=categoryLinkLabel_mAcL>开发者指南</span></a><button aria-label="展开侧边栏分类 '开发者指南'" aria-expanded=false type=button class="clean-btn menu__caret"></button></div><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-1 menu__list-item menu__list-item--collapsed"><div class=menu__list-item-collapsible><a class="categoryLink_Muyc menu__link menu__link--sublist" href=/api_reference/><span class=categoryLinkLabel_mAcL>API 参考</span></a><button aria-label="展开侧边栏分类 'API 参考'" aria-expanded=false type=button class="clean-btn menu__caret"></button></div></ul></nav></div></div></aside><main class=docMainContainer_sLF8><div class="container padding-top--md padding-bottom--lg"><div class=row><div class="col docItemCol_ZRft"><div class=docItemContainer_KOP5><article><nav class="theme-doc-breadcrumbs breadcrumbsContainer_d5rS" aria-label=页面路径><ul class=breadcrumbs><li class=breadcrumbs__item><a aria-label=主页面 class=breadcrumbs__link href=/><svg viewBox="0 0 24 24" class=breadcrumbHomeIcon_XgF2><path d="M10 19v-5h4v5c0 .55.45 1 1 1h3c.55 0 1-.45 1-1v-7h1.7c.46 0 .68-.57.33-.87L12.67 3.6c-.38-.34-.96-.34-1.34 0l-8.36 7.53c-.34.3-.13.87.33.87H5v7c0 .55.45 1 1 1h3c.55 0 1-.45 1-1z" fill=currentColor /></svg></a><li class=breadcrumbs__item><a class=breadcrumbs__link href=/integrations/><span>交易所与集成</span></a><li class="breadcrumbs__item breadcrumbs__item--active"><span class=breadcrumbs__link>Kraken</span></ul></nav><div class="tocCollapsible_bgaJ theme-doc-toc-mobile tocMobile_FhT_"><button type=button class="clean-btn tocCollapsibleButton_F8AY">本页总览</button></div><div class="theme-doc-markdown markdown"><header><h1>Kraken</h1></header>
+<p>Kraken 适配器支持 Kraken 现货（Spot）与 Kraken 衍生品（Futures）的实时行情数据与订单
+执行。</p>
+<h2 class="anchor anchorTargetStickyNavbar_ana5" id=overview>概览<a href=#overview class=hash-link aria-label=概览的直接链接 title=概览的直接链接 translate=no>​</a></h2>
+<p>适配器以 Rust 实现并带 Python 绑定，不需要外部的 Kraken 客户端库。每个数据或执行配置通过
+其 <code>product_type</code> 选择 Spot 或 Futures 客户端。</p>
+<p>主要的 Python 组件：</p>
+<ul>
+<li class=""><code>KrakenDataClientConfig</code> 与 <code>KrakenExecutionClientConfig</code>：实盘客户端配置。</li>
+<li class=""><code>KrakenDataClientFactory</code> 与 <code>KrakenExecutionClientFactory</code>：交易节点构建器使用的工厂。</li>
+<li class=""><code>KrakenSpotHttpClient</code> 与 <code>KrakenFuturesHttpClient</code>：供直接发请求的较低层 HTTP 访问。</li>
+</ul>
+<p>Rust crate 还暴露 <code>KrakenSpotWebSocketClient</code> 与 <code>KrakenFuturesWebSocketClient</code>，供更低层的
+WebSocket 访问。</p>
+<p>通过实盘交易节点配置适配器，或者用低层客户端做直接的 API 访问。</p>
+<h2 class="anchor anchorTargetStickyNavbar_ana5" id=examples>示例<a href=#examples class=hash-link aria-label=示例的直接链接 title=示例的直接链接 translate=no>​</a></h2>
+<ul>
+<li class=""><a href=https://github.com/nautechsystems/nautilus_trader/tree/develop/examples/live/kraken/ target=_blank rel="noopener noreferrer" class="">Python 示例</a></li>
+<li class=""><a href=https://github.com/nautechsystems/nautilus_trader/tree/develop/crates/adapters/kraken/examples/ target=_blank rel="noopener noreferrer" class="">Rust 示例</a></li>
+</ul>
+<h2 class="anchor anchorTargetStickyNavbar_ana5" id=kraken-documentation>Kraken 文档<a href=#kraken-documentation class=hash-link aria-label="Kraken 文档的直接链接" title="Kraken 文档的直接链接" translate=no>​</a></h2>
+<ul>
+<li class=""><a href=https://docs.kraken.com/ target=_blank rel="noopener noreferrer" class="">Kraken API 文档</a></li>
+<li class=""><a href=https://docs.kraken.com/exchange/guides/rest/introduction target=_blank rel="noopener noreferrer" class="">Kraken 现货 REST API</a></li>
+<li class=""><a href=https://docs.kraken.com/exchange/guides/futures/introduction target=_blank rel="noopener noreferrer" class="">Kraken 衍生品 API</a></li>
+</ul>
+<h2 class="anchor anchorTargetStickyNavbar_ana5" id=products>产品<a href=#products class=hash-link aria-label=产品的直接链接 title=产品的直接链接 translate=no>​</a></h2>
+<p>适配器支持这些产品类别：</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>产品类型<th>支持<th>说明<tbody><tr><td>现货货币对<td>✓<td>现金交易，合格对支持保证金。<tr><td>现货代币化资产<td>✓<td>从 Kraken 的 <code>tokenized_asset</code> 资产类加载。<tr><td>期货<td>✓<td>Kraken 期货 API 返回的工具。</table>
+<div class="theme-admonition theme-admonition-warning admonition_LYZY alert alert--warning"><div class=admonitionHeading_pnFY><span class=admonitionIcon_tEzm><svg viewBox="0 0 16 16"><path fill-rule=evenodd d="M8.893 1.5c-.183-.31-.52-.5-.887-.5s-.703.19-.886.5L.138 13.499a.98.98 0 0 0 0 1.001c.193.31.53.501.886.501h13.964c.367 0 .704-.19.877-.5a1.03 1.03 0 0 0 .01-1.002L8.893 1.5zm.133 11.497H6.987v-2.003h2.039v2.003zm0-3.004H6.987V5.987h2.039v4.006z"/></svg></span>注意</div><div class=admonitionContent_ZwmI><p>Kraken 期货可能返回需要超过标准精度模式九位小数的工具定义。Futures 请保持启用
+<a class="" href=/getting_started/installation#precision-mode>高精度模式</a>。标准精度模式仍支持
+Spot，但只要有定义无法解析，Futures 客户端就无法启动或返回工具。Futures 目录请求不会返回
+部分结果，也从不四舍五入、钳制或省略不受支持的定义。</div></div>
+<div class="theme-admonition theme-admonition-note admonition_LYZY alert alert--secondary"><div class=admonitionHeading_pnFY><span class=admonitionIcon_tEzm><svg viewBox="0 0 14 16"><path fill-rule=evenodd d="M6.3 5.69a.942.942 0 0 1-.28-.7c0-.28.09-.52.28-.7.19-.18.42-.28.7-.28.28 0 .52.09.7.28.18.19.28.42.28.7 0 .28-.09.52-.28.7a1 1 0 0 1-.7.3c-.28 0-.52-.11-.7-.3zM8 7.99c-.02-.25-.11-.48-.31-.69-.2-.19-.42-.3-.69-.31H6c-.27.02-.48.13-.69.31-.2.2-.3.44-.31.69h1v3c.02.27.11.5.31.69.2.2.42.31.69.31h1c.27 0 .48-.11.69-.31.2-.19.3-.42.31-.69H8V7.98v.01zM7 2.3c-3.14 0-5.7 2.54-5.7 5.68 0 3.14 2.56 5.7 5.7 5.7s5.7-2.55 5.7-5.7c0-3.15-2.56-5.69-5.7-5.69v.01zM7 .98c3.86 0 7 3.14 7 7s-3.14 7-7 7-7-3.12-7-7 3.14-7 7-7z"/></svg></span>备注</div><div class=admonitionContent_ZwmI><p><strong>每个客户端单一产品类型</strong>：每个 Kraken 数据或执行客户端只配置一个 <code>product_type</code>
+（<code>SPOT</code> 或 <code>FUTURES</code>）。单个客户端不会横跨两个市场。</div></div>
+<h2 class="anchor anchorTargetStickyNavbar_ana5" id=spot-instrument-fees>现货工具费率<a href=#spot-instrument-fees class=hash-link aria-label=现货工具费率的直接链接 title=现货工具费率的直接链接 translate=no>​</a></h2>
+<p>现货工具加载不会填充场所的 maker 或 taker 费率，也不会调用 Kraken 的 <code>TradeVolume</code> 端点。</p>
+<p>缺少 <code>Funds permissions - Query</code>（<strong>Query Funds</strong>）权限的现货 API key，在执行客户端请求
+账户状态时会失败。</p>
+<h2 class="anchor anchorTargetStickyNavbar_ana5" id=bar-streaming>K 线流<a href=#bar-streaming class=hash-link aria-label="K 线流的直接链接" title="K 线流的直接链接" translate=no>​</a></h2>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=supported-intervals>支持的间隔<a href=#supported-intervals class=hash-link aria-label=支持的间隔的直接链接 title=支持的间隔的直接链接 translate=no>​</a></h3>
+<p>现货订阅 <code>EXTERNAL</code> K 线即可接收 Kraken 的 WebSocket OHLC 数据。可用间隔如下：</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>间隔<th>BarType 规格<tbody><tr><td>1 分钟<td><code>1-MINUTE-LAST</code><tr><td>5 分钟<td><code>5-MINUTE-LAST</code><tr><td>15 分钟<td><code>15-MINUTE-LAST</code><tr><td>30 分钟<td><code>30-MINUTE-LAST</code><tr><td>1 小时<td><code>1-HOUR-LAST</code><tr><td>4 小时<td><code>4-HOUR-LAST</code><tr><td>1 天<td><code>1-DAY-LAST</code><tr><td>1 周<td><code>1-WEEK-LAST</code><tr><td>15 天<td><code>15-DAY-LAST</code></table>
+<div class="theme-admonition theme-admonition-note admonition_LYZY alert alert--secondary"><div class=admonitionHeading_pnFY><span class=admonitionIcon_tEzm><svg viewBox="0 0 14 16"><path fill-rule=evenodd d="M6.3 5.69a.942.942 0 0 1-.28-.7c0-.28.09-.52.28-.7.19-.18.42-.28.7-.28.28 0 .52.09.7.28.18.19.28.42.28.7 0 .28-.09.52-.28.7a1 1 0 0 1-.7.3c-.28 0-.52-.11-.7-.3zM8 7.99c-.02-.25-.11-.48-.31-.69-.2-.19-.42-.3-.69-.31H6c-.27.02-.48.13-.69.31-.2.2-.3.44-.31.69h1v3c.02.27.11.5.31.69.2.2.42.31.69.31h1c.27 0 .48-.11.69-.31.2-.19.3-.42.31-.69H8V7.98v.01zM7 2.3c-3.14 0-5.7 2.54-5.7 5.68 0 3.14 2.56 5.7 5.7 5.7s5.7-2.55 5.7-5.7c0-3.15-2.56-5.69-5.7-5.69v.01zM7 .98c3.86 0 7 3.14 7 7s-3.14 7-7 7-7-3.12-7-7 3.14-7 7-7z"/></svg></span>备注</div><div class=admonitionContent_ZwmI><p><strong>Futures 限制</strong>：Kraken 期货不支持通过 WebSocket 的 K 线流。历史 K 线数据请改用
+<code>request_bars()</code>。</div></div>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=bar-emission-latency>K 线发出延迟<a href=#bar-emission-latency class=hash-link aria-label="K 线发出延迟的直接链接" title="K 线发出延迟的直接链接" translate=no>​</a></h3>
+<p>Kraken 的
+<a href=https://docs.kraken.com/exchange/api-reference/spot-websocket-v2/ohlc target=_blank rel="noopener noreferrer" class="">现货 WebSocket OHLC 频道</a>
+在成交事件上更新当前未完成的 K 线。它不提供标记 K 线已收盘的字段。</p>
+<p>正常流式传输期间，适配器缓冲当前 K 线，并在收到带新 <code>interval_begin</code> 的更新后发出它。
+因此延迟取决于下一个区间的首笔成交；对没有成交的市场，它不以一个 K 线周期为界。WebSocket
+消息处理器停止时，适配器会刷出其缓冲的 K 线，包括可能仍不完整的当前 K 线。</p>
+<p>适配器使用缓冲而非基于定时器的发出，原因是：</p>
+<ul>
+<li class="">基于定时器的发出可能漏掉 K 线收盘前的最后一次更新。</li>
+<li class="">Kraken 的更新不保证恰好在区间边界到达。</li>
+</ul>
+<div class="theme-admonition theme-admonition-tip admonition_LYZY alert alert--success"><div class=admonitionHeading_pnFY><span class=admonitionIcon_tEzm><svg viewBox="0 0 12 16"><path fill-rule=evenodd d="M6.5 0C3.48 0 1 2.19 1 5c0 .92.55 2.25 1 3 1.34 2.25 1.78 2.78 2 4v1h5v-1c.22-1.22.66-1.75 2-4 .45-.75 1-2.08 1-3 0-2.81-2.48-5-5.5-5zm3.64 7.48c-.25.44-.47.8-.67 1.11-.86 1.41-1.25 2.06-1.45 3.23-.02.05-.02.11-.02.17H5c0-.06 0-.13-.02-.17-.2-1.17-.59-1.83-1.45-3.23-.2-.31-.42-.67-.67-1.11C2.44 6.78 2 5.65 2 5c0-2.2 2.02-4 4.5-4 1.22 0 2.36.42 3.22 1.19C10.55 2.94 11 3.94 11 5c0 .66-.44 1.78-.86 2.48zM4 14h5c-.23 1.14-1.3 2-2.5 2s-2.27-.86-2.5-2z"/></svg></span>提示</div><div class=admonitionContent_ZwmI><p>要降低 K 线延迟，请订阅成交 tick 并用 <code>BarAggregator</code> 做 <code>INTERNAL</code> 聚合。时间 K 线使用
+本地定时器，无需等待 Kraken 下一区间的首笔成交，并在各场所间使用一致的聚合行为。</div></div>
+<h2 class="anchor anchorTargetStickyNavbar_ana5" id=symbology>符号体系<a href=#symbology class=hash-link aria-label=符号体系的直接链接 title=符号体系的直接链接 translate=no>​</a></h2>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=spot-symbol-normalization>现货 symbol 规范化<a href=#spot-symbol-normalization class=hash-link aria-label="现货 symbol 规范化的直接链接" title="现货 symbol 规范化的直接链接" translate=no>​</a></h3>
+<p>适配器对现货与期货使用不同的比特币 symbol 约定：</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>市场<th>Symbol 格式<th>示例<th>说明<tbody><tr><td>现货<td><code>BTC</code><td><code>BTC/USD.KRAKEN</code><td>适配器在加载时把 XBT 规范化为 BTC。<tr><td>期货<td><code>XBT</code><td><code>PI_XBTUSD.KRAKEN</code><td>工具 symbol 保留 Kraken 原生的 XBT。</table>
+<div class="theme-admonition theme-admonition-note admonition_LYZY alert alert--secondary"><div class=admonitionHeading_pnFY><span class=admonitionIcon_tEzm><svg viewBox="0 0 14 16"><path fill-rule=evenodd d="M6.3 5.69a.942.942 0 0 1-.28-.7c0-.28.09-.52.28-.7.19-.18.42-.28.7-.28.28 0 .52.09.7.28.18.19.28.42.28.7 0 .28-.09.52-.28.7a1 1 0 0 1-.7.3c-.28 0-.52-.11-.7-.3zM8 7.99c-.02-.25-.11-.48-.31-.69-.2-.19-.42-.3-.69-.31H6c-.27.02-.48.13-.69.31-.2.2-.3.44-.31.69h1v3c.02.27.11.5.31.69.2.2.42.31.69.31h1c.27 0 .48-.11.69-.31.2-.19.3-.42.31-.69H8V7.98v.01zM7 2.3c-3.14 0-5.7 2.54-5.7 5.68 0 3.14 2.56 5.7 5.7 5.7s5.7-2.55 5.7-5.7c0-3.15-2.56-5.69-5.7-5.69v.01zM7 .98c3.86 0 7 3.14 7 7s-3.14 7-7 7-7-3.12-7-7 3.14-7 7-7z"/></svg></span>备注</div><div class=admonitionContent_ZwmI><p>Kraken 的 REST API 对比特币可能返回 <code>XBT</code>，而其 WebSocket v2 API 要求 <code>BTC</code>。适配器加载工具
+时把现货 symbol 规范化为 <code>BTC</code>——无论 <code>XBT</code> 出现在基础货币（如 <code>XBT/USD</code> 变 <code>BTC/USD</code>）还是
+报价货币（如 <code>ETH/XBT</code> 变 <code>ETH/BTC</code>）。期货工具 symbol 保留 Kraken 原生的 <code>XBT</code> 格式。期货
+货币代码则不然，遵循与现货相同的<a href=#currency-codes class="">货币代码映射</a>。</div></div>
+<p>Kraken 在部分现货响应中还用 <code>XDG</code> 表示狗狗币。适配器把它规范化为 <code>DOGE</code>，报价货币 symbol
+也不例外。</p>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=currency-codes>货币代码<a href=#currency-codes class=hash-link aria-label=货币代码的直接链接 title=货币代码的直接链接 translate=no>​</a></h3>
+<p>适配器把 Kraken 的遗留资产代码按一致的映射用于工具、余额、费用与货币配置：</p>
+<ul>
+<li class=""><code>XXBT</code> 与 <code>XBT</code> 变为 <code>BTC</code>。</li>
+<li class=""><code>XXDG</code> 与 <code>XDG</code> 变为 <code>DOGE</code>。</li>
+<li class=""><code>ZEUR</code> 变为 <code>EUR</code>，<code>ZUSD</code> 变为 <code>USD</code>。</li>
+</ul>
+<p>映射使用显式表（与 Kraken 自己的 CLI 一样），而不是剥前缀。<code>XTZ</code>、<code>XRP</code>、<code>XLM</code>、<code>XAUT</code>、
+<code>ZRX</code> 与 <code>ZEC</code> 都是合法代码。未列入表的代码原样通过。</p>
+<p>配置接受任一拼写。例如 <code>spot_positions_quote_currency="ZEUR"</code> 与 <code>"EUR"</code> 都匹配欧元计价的
+工具。</p>
+<p>费用在可用时使用场所上报的货币。期货成交可以携带费用货币，在反向合约上那是基础货币而不是
+报价货币。现货 <code>TradesHistory</code> 只报告费用金额，因此这些佣金使用工具的报价货币。</p>
+<h4 class="anchor anchorTargetStickyNavbar_ana5" id=migration-from-earlier-currency-codes>从早先的货币代码迁移<a href=#migration-from-earlier-currency-codes class=hash-link aria-label=从早先的货币代码迁移的直接链接 title=从早先的货币代码迁移的直接链接 translate=no>​</a></h4>
+<div class="theme-admonition theme-admonition-warning admonition_LYZY alert alert--warning"><div class=admonitionHeading_pnFY><span class=admonitionIcon_tEzm><svg viewBox="0 0 16 16"><path fill-rule=evenodd d="M8.893 1.5c-.183-.31-.52-.5-.887-.5s-.703.19-.886.5L.138 13.499a.98.98 0 0 0 0 1.001c.193.31.53.501.886.501h13.964c.367 0 .704-.19.877-.5a1.03 1.03 0 0 0 .01-1.002L8.893 1.5zm.133 11.497H6.987v-2.003h2.039v2.003zm0-3.004H6.987V5.987h2.039v4.006z"/></svg></span>注意</div><div class=admonitionContent_ZwmI><p>请迁移或重建在货币规范化之前写入的缓存与数据库。已存储的工具、成交、持仓与余额可能使用
+下面列出的早先代码。</div></div>
+<p>早先的映射因来源而异：</p>
+<ul>
+<li class="">工具保留 <code>XXBT</code>、<code>XETH</code>、<code>XXDG</code>、<code>ZUSD</code> 与 <code>ZEUR</code>，其成交与持仓同样如此。它们现在变为
+<code>BTC</code>、<code>ETH</code>、<code>DOGE</code>、<code>USD</code> 与 <code>EUR</code>。</li>
+<li class="">现货余额与保证金汇总的资产会丢失一个前导 <code>X</code> 或 <code>Z</code>，留下 <code>XBT</code> 与 <code>XDG</code> 而不是 <code>BTC</code>
+与 <code>DOGE</code>，以及 <code>TZ</code>、<code>RX</code>、<code>AUT</code> 而不是 <code>XTZ</code>、<code>ZRX</code>、<code>XAUT</code>。在显式映射下 <code>KFEE</code> 变为
+<code>FEE</code>。</li>
+<li class="">期货余额保留钱包的字面拼写：现金与保证金钱包用 <code>xbt</code>，弹性（flex）钱包用 <code>XBT</code>。两者都
+变为 <code>BTC</code>。<code>usd</code> 变为 <code>USD</code>。</li>
+</ul>
+<h4 class="anchor anchorTargetStickyNavbar_ana5" id=futures-wallet-aggregation>期货钱包聚合<a href=#futures-wallet-aggregation class=hash-link aria-label=期货钱包聚合的直接链接 title=期货钱包聚合的直接链接 translate=no>​</a></h4>
+<p>规范化代码相同的期货余额合并为一个条目。总额与锁定金额跨钱包求和。总额非负时，每个钱包的
+锁定金额被限定在 <code>[0, total]</code> 内。总额为负时保留其上报的锁定金额。聚合结果本身不做钳制。
+因此预留超过合计持有量时，可用余额可以为负，以保留实际的缺口。</p>
+<p>此前，相互独立的钱包条目会在账户中彼此覆盖，只剩最后读到的那个条目。</p>
+<h4 class="anchor anchorTargetStickyNavbar_ana5" id=money-precision>金额精度<a href=#money-precision class=hash-link aria-label=金额精度的直接链接 title=金额精度的直接链接 translate=no>​</a></h4>
+<p>规范化后的代码可能解析为精度不同的内置货币。此前 <code>ZEUR</code>、<code>ZUSD</code> 等未知代码注册为八位小数
+的加密货币。内置的 <code>EUR</code> 与 <code>USD</code> 用两位，<code>JPY</code> 用零位。这影响工具报价货币、REST 成交佣金
+与推导的盈亏。</p>
+<p>账户余额保留八位小数，因为其解析器直接构建货币而不经过注册表。期货弹性 <code>portfolioValue</code>
+条目与全账户 USD 保证金条目也使用这个八位小数的货币。它们此前使用两位小数的 <code>USD</code>，因此
+精度只升不降。</p>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=spot-markets>现货市场<a href=#spot-markets class=hash-link aria-label=现货市场的直接链接 title=现货市场的直接链接 translate=no>​</a></h3>
+<p>NautilusTrader 对 Kraken 现货工具使用规范化、斜杠分隔的 symbol。适配器在内部把它们翻译成
+Kraken 的原生格式。</p>
+<p><strong>工具 ID 格式</strong>：</p>
+<div class="language-python codeBlockContainer_eTMR theme-code-block" style=--prism-color:#393A34;--prism-background-color:#f6f8fa><div class=codeBlockContent_hafM><pre tabindex=0 class="prism-code language-python codeBlock_IMvC thin-scrollbar" style=color:#393A34;background-color:#f6f8fa><code class=codeBlockLines_gZDW><div class=token-line style=color:#393A34><span class="token keyword" style=color:#00009f>from</span><span class="token plain"> nautilus_trader</span><span class="token punctuation" style=color:#393A34>.</span><span class="token plain">model </span><span class="token keyword" style=color:#00009f>import</span><span class="token plain"> InstrumentId</span><br/></div><div class=token-line style=color:#393A34><span class="token plain" style=display:inline-block></span><br/></div><div class=token-line style=color:#393A34><span class="token plain" style=display:inline-block></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">InstrumentId</span><span class="token punctuation" style=color:#393A34>.</span><span class="token plain">from_str</span><span class="token punctuation" style=color:#393A34>(</span><span class="token string" style=color:#e3116c>"BTC/USD.KRAKEN"</span><span class="token punctuation" style=color:#393A34>)</span><span class="token plain">  </span><span class="token comment" style=color:#999988;font-style:italic># Spot BTC/USD</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">InstrumentId</span><span class="token punctuation" style=color:#393A34>.</span><span class="token plain">from_str</span><span class="token punctuation" style=color:#393A34>(</span><span class="token string" style=color:#e3116c>"ETH/USD.KRAKEN"</span><span class="token punctuation" style=color:#393A34>)</span><span class="token plain">  </span><span class="token comment" style=color:#999988;font-style:italic># Spot ETH/USD</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">InstrumentId</span><span class="token punctuation" style=color:#393A34>.</span><span class="token plain">from_str</span><span class="token punctuation" style=color:#393A34>(</span><span class="token string" style=color:#e3116c>"SOL/USD.KRAKEN"</span><span class="token punctuation" style=color:#393A34>)</span><span class="token plain">  </span><span class="token comment" style=color:#999988;font-style:italic># Spot SOL/USD</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">InstrumentId</span><span class="token punctuation" style=color:#393A34>.</span><span class="token plain">from_str</span><span class="token punctuation" style=color:#393A34>(</span><span class="token string" style=color:#e3116c>"BTC/USDT.KRAKEN"</span><span class="token punctuation" style=color:#393A34>)</span><span class="token plain">  </span><span class="token comment" style=color:#999988;font-style:italic># Spot BTC/USDT</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">InstrumentId</span><span class="token punctuation" style=color:#393A34>.</span><span class="token plain">from_str</span><span class="token punctuation" style=color:#393A34>(</span><span class="token string" style=color:#e3116c>"ETH/BTC.KRAKEN"</span><span class="token punctuation" style=color:#393A34>)</span><span class="token plain">  </span><span class="token comment" style=color:#999988;font-style:italic># Spot ETH/BTC (normalized from ETH/XBT)</span><br/></div></code></pre></div></div>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=futures-markets>期货市场<a href=#futures-markets class=hash-link aria-label=期货市场的直接链接 title=期货市场的直接链接 translate=no>​</a></h3>
+<p>Kraken 期货 symbol 使用合约前缀：</p>
+<ul>
+<li class=""><code>PI_</code>：反向永续合约（例如 <code>PI_XBTUSD</code>）。</li>
+<li class=""><code>PF_</code>：线性多保证金永续合约（例如 <code>PF_XBTUSD</code>）。</li>
+<li class=""><code>PV_</code>：香草（vanilla）永续合约（例如 <code>PV_XRPXBT</code>）。</li>
+<li class=""><code>FI_</code>：反向固定到期合约（例如 <code>FI_XBTUSD_230929</code>）。</li>
+<li class=""><code>FF_</code>：线性固定到期合约。</li>
+</ul>
+<p>Kraken 的
+<a href=https://support.kraken.com/articles/360022835891-ticker-symbols-derivatives target=_blank rel="noopener noreferrer" class="">ticker symbol 参考</a>列出了
+主要合约前缀。请通过返回的工具目录确定哪些合约可用，示例 symbol 可能指向已过期或未上架的
+合约。</p>
+<p><strong>工具 ID 格式</strong>：</p>
+<div class="language-python codeBlockContainer_eTMR theme-code-block" style=--prism-color:#393A34;--prism-background-color:#f6f8fa><div class=codeBlockContent_hafM><pre tabindex=0 class="prism-code language-python codeBlock_IMvC thin-scrollbar" style=color:#393A34;background-color:#f6f8fa><code class=codeBlockLines_gZDW><div class=token-line style=color:#393A34><span class="token keyword" style=color:#00009f>from</span><span class="token plain"> nautilus_trader</span><span class="token punctuation" style=color:#393A34>.</span><span class="token plain">model </span><span class="token keyword" style=color:#00009f>import</span><span class="token plain"> InstrumentId</span><br/></div><div class=token-line style=color:#393A34><span class="token plain" style=display:inline-block></span><br/></div><div class=token-line style=color:#393A34><span class="token plain" style=display:inline-block></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">InstrumentId</span><span class="token punctuation" style=color:#393A34>.</span><span class="token plain">from_str</span><span class="token punctuation" style=color:#393A34>(</span><span class="token string" style=color:#e3116c>"PI_XBTUSD.KRAKEN"</span><span class="token punctuation" style=color:#393A34>)</span><span class="token plain">  </span><span class="token comment" style=color:#999988;font-style:italic># Perpetual inverse BTC</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">InstrumentId</span><span class="token punctuation" style=color:#393A34>.</span><span class="token plain">from_str</span><span class="token punctuation" style=color:#393A34>(</span><span class="token string" style=color:#e3116c>"PI_ETHUSD.KRAKEN"</span><span class="token punctuation" style=color:#393A34>)</span><span class="token plain">  </span><span class="token comment" style=color:#999988;font-style:italic># Perpetual inverse ETH</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">InstrumentId</span><span class="token punctuation" style=color:#393A34>.</span><span class="token plain">from_str</span><span class="token punctuation" style=color:#393A34>(</span><span class="token string" style=color:#e3116c>"PF_XBTUSD.KRAKEN"</span><span class="token punctuation" style=color:#393A34>)</span><span class="token plain">  </span><span class="token comment" style=color:#999988;font-style:italic># Perpetual linear multi-collateral BTC</span><br/></div></code></pre></div></div>
+<h2 class="anchor anchorTargetStickyNavbar_ana5" id=data-capabilities>数据能力<a href=#data-capabilities class=hash-link aria-label=数据能力的直接链接 title=数据能力的直接链接 translate=no>​</a></h2>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=subscriptions-real-time>订阅（实时）<a href=#subscriptions-real-time class=hash-link aria-label=订阅（实时）的直接链接 title=订阅（实时）的直接链接 translate=no>​</a></h3>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>数据类型<th>现货<th>期货<th>说明<tbody><tr><td><code>QuoteTick</code><td>✓<td>✓<td>现货 ticker；期货 L2 订单簿。<tr><td><code>TradeTick</code><td>✓<td>✓<td><tr><td><code>OrderBookDeltas</code><td>✓<td>✓<td>现货 L2/L3 与期货 L2 更新。<tr><td><code>OrderBookDepth</code><td>-<td>-<td>请用深度 <code>10</code> 的 <code>OrderBookDeltas</code>。<tr><td><code>Bar</code><td>✓<td>-<td>现货 WS OHLC 频道。见 K 线一节。<tr><td><code>MarkPriceUpdate</code><td>-<td>✓<td>来自期货 ticker 流。<tr><td><code>IndexPriceUpdate</code><td>-<td>✓<td>来自期货 ticker 流。<tr><td><code>FundingRateUpdate</code><td>-<td>✓<td>仅永续合约。<tr><td><code>InstrumentStatus</code><td>-<td>-<td>实盘客户端不发状态更新。</table>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=requests-historical>请求（历史）<a href=#requests-historical class=hash-link aria-label=请求（历史）的直接链接 title=请求（历史）的直接链接 translate=no>​</a></h3>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>数据类型<th>现货<th>期货<th>说明<tbody><tr><td><code>TradeTick</code><td>✓<td>✓<td><tr><td><code>Bar</code><td>✓<td>✓<td><tr><td><code>OrderBook</code>（快照）<td>✓<td>✓<td>经由 HTTP 深度端点。<tr><td><code>FundingRateUpdate</code><td>-<td>✓<td>客户端侧起止/limit 过滤。</table>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=l2-book-checksum-validation>L2 订单簿校验和验证<a href=#l2-book-checksum-validation class=hash-link aria-label="L2 订单簿校验和验证的直接链接" title="L2 订单簿校验和验证的直接链接" translate=no>​</a></h3>
+<p>Kraken 的
+<a href=https://docs.kraken.com/exchange/api-reference/spot-websocket-v2/book target=_blank rel="noopener noreferrer" class="">现货 L2 <code>book</code> 频道</a>
+在快照与更新中为两侧的前十档携带一个 CRC32 校验和。适配器默认针对本地影子订单簿验证它，
+价格用 <code>AssetPairs</code> 的 <code>pair_decimals</code>，数量用 <code>lot_decimals</code>。某些对的线上价格刻度比其
+tick 大小细一位。工具在其元数据中保留那个更细的刻度，使校验和渲染不会截断价格位数。
+Kraken 期货的 <code>book</code> 消息不携带校验和。</p>
+<h4 class="anchor anchorTargetStickyNavbar_ana5" id=recovery-and-stream-identity>恢复与流身份<a href=#recovery-and-stream-identity class=hash-link aria-label=恢复与流身份的直接链接 title=恢复与流身份的直接链接 translate=no>​</a></h4>
+<p>校验和不匹配时，适配器发出一个 <code>Clear</code> delta，丢弃影子订单簿，并按配置的深度带快照退订再
+重新订阅该 symbol。在该快照到达之前它忽略更新。每次 <code>book</code> 退订都带上其深度：Kraken 按
+symbol 与深度为订阅建键，省略的退订深度默认为 <code>10</code>。</p>
+<p>恢复与用户的订阅变更串行执行，因此过期的恢复绝不会取消一个替换订阅。订阅请求会标识每条流。
+Kraken 确认该请求之后，适配器只接受该 symbol 最新流的帧，丢弃来自被替换订阅与被取代恢复的
+帧。快照只有在成功解析并应用之后才改变订单簿。在已接受的快照或重连之前发出的恢复请求，在该
+事件之后什么都不发送。</p>
+<p>在帧处理之外丢弃影子订单簿时，适配器同样发出 <code>Clear</code> delta。这发生在这些事件上：</p>
+<ul>
+<li class="">重连。</li>
+<li class="">新流得到确认。</li>
+<li class="">最新订阅请求被拒绝。</li>
+<li class="">快照看门狗检测到未获确认的最新请求。</li>
+</ul>
+<h4 class="anchor anchorTargetStickyNavbar_ana5" id=missing-snapshots-and-rejected-subscriptions>快照缺失与订阅被拒<a href=#missing-snapshots-and-rejected-subscriptions class=hash-link aria-label=快照缺失与订阅被拒的直接链接 title=快照缺失与订阅被拒的直接链接 translate=no>​</a></h4>
+<p>快照看门狗是 <code>book</code> 恢复唯一的重试机制。即使禁用校验和验证它也会运行，因为它还恢复从未收到
+快照的流。每个替换订阅都重新开始一次全新等待，而不继承其前身的重试计数。</p>
+<p>10 秒内没有快照到达时，数据客户端再次请求它。请求之间的等待逐次翻倍（<code>10</code>、<code>20</code>、<code>40</code>、
+<code>80</code>、<code>160</code> 秒），至多五次请求。到达上限时记一条错误并停止重试。订单簿保持清空、更新被丢弃，
+直到快照到达。订阅变更或重连会重新开始恢复。</p>
+<p>Kraken 拒绝最新订阅请求时，会清空持有的订单簿，并以 error 级别记录场所原因与下次请求时间。
+该拒绝计为一次失败请求，因此下一次尝试在 20 秒之后。再四次拒绝大约在五分钟内耗尽配额。因此
+瞬时拒绝可以在 20 秒后的下一次尝试恢复。对被取代请求的拒绝会被忽略。</p>
+<p>重连时，适配器作废其记录的订阅，并以原请求 ID 重放每个订阅。重放的响应匹配不到任何活动请求。
+若 Kraken 拒绝重放，看门狗会在其 10 秒基础等待之内检测到快照缺失。</p>
+<h4 class="anchor anchorTargetStickyNavbar_ana5" id=repeated-checksum-mismatches>反复的校验和不匹配<a href=#repeated-checksum-mismatches class=hash-link aria-label=反复的校验和不匹配的直接链接 title=反复的校验和不匹配的直接链接 translate=no>​</a></h4>
+<p>同一工具上三次不匹配、其间没有有效更新时，该工具的验证被禁用并记录错误。适配器按收到的样子
+保留其订单簿，避免 Kraken 以不同方式哈希时陷入重订阅循环。有效快照不会重置不匹配计数。</p>
+<p>要禁用 L2 校验和验证：</p>
+<div class="language-python codeBlockContainer_eTMR theme-code-block" style=--prism-color:#393A34;--prism-background-color:#f6f8fa><div class=codeBlockContent_hafM><pre tabindex=0 class="prism-code language-python codeBlock_IMvC thin-scrollbar" style=color:#393A34;background-color:#f6f8fa><code class=codeBlockLines_gZDW><div class=token-line style=color:#393A34><span class="token plain">config </span><span class="token operator" style=color:#393A34>=</span><span class="token plain"> KrakenDataClientConfig</span><span class="token punctuation" style=color:#393A34>(</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    validate_l2_checksum</span><span class="token operator" style=color:#393A34>=</span><span class="token boolean" style=color:#36acaa>False</span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain"></span><span class="token punctuation" style=color:#393A34>)</span><br/></div></code></pre></div></div>
+<h2 class="anchor anchorTargetStickyNavbar_ana5" id=l3-order-book-market-by-order>L3 订单簿（按单，market-by-order）<a href=#l3-order-book-market-by-order class=hash-link aria-label="L3 订单簿（按单，market-by-order）的直接链接" title="L3 订单簿（按单，market-by-order）的直接链接" translate=no>​</a></h2>
+<p>Kraken 通过 WebSocket v2 的
+<a href=https://docs.kraken.com/exchange/api-reference/spot-websocket-v2/level3 target=_blank rel="noopener noreferrer" class=""><code>level3</code> 频道</a>
+（地址 <code>wss://ws-l3.kraken.com/v2</code>）暴露现货的逐单订单簿数据。它提供场所订单 ID、逐单数量
+与真正的增量事件（<code>add</code>、<code>modify</code>、<code>delete</code>）。适配器把每个场所订单 ID 哈希进
+NautilusTrader 使用的 <code>u64</code> 型 <code>BookOrder.order_id</code> 字段。</p>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=prerequisites>前置条件<a href=#prerequisites class=hash-link aria-label=前置条件的直接链接 title=前置条件的直接链接 translate=no>​</a></h3>
+<p>L3 订阅需要带 <code>WebSocket interface - On</code> 权限的现货 API 凭据，适配器用它获取
+<a href=https://docs.kraken.com/api-reference/trading/get-websockets-token target=_blank rel="noopener noreferrer" class="">鉴权令牌</a>。把凭据传入
+<code>KrakenDataClientConfig</code>：</p>
+<div class="language-python codeBlockContainer_eTMR theme-code-block" style=--prism-color:#393A34;--prism-background-color:#f6f8fa><div class=codeBlockContent_hafM><pre tabindex=0 class="prism-code language-python codeBlock_IMvC thin-scrollbar" style=color:#393A34;background-color:#f6f8fa><code class=codeBlockLines_gZDW><div class=token-line style=color:#393A34><span class="token keyword" style=color:#00009f>from</span><span class="token plain"> nautilus_trader</span><span class="token punctuation" style=color:#393A34>.</span><span class="token plain">adapters</span><span class="token punctuation" style=color:#393A34>.</span><span class="token plain">kraken </span><span class="token keyword" style=color:#00009f>import</span><span class="token plain"> KrakenDataClientConfig</span><br/></div><div class=token-line style=color:#393A34><span class="token plain" style=display:inline-block></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">config </span><span class="token operator" style=color:#393A34>=</span><span class="token plain"> KrakenDataClientConfig</span><span class="token punctuation" style=color:#393A34>(</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    api_key</span><span class="token operator" style=color:#393A34>=</span><span class="token string" style=color:#e3116c>"YOUR_KEY"</span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    api_secret</span><span class="token operator" style=color:#393A34>=</span><span class="token string" style=color:#e3116c>"YOUR_SECRET"</span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain"></span><span class="token punctuation" style=color:#393A34>)</span><br/></div></code></pre></div></div>
+<p>然后用 <code>book_type=BookType.L3_MBO</code> 订阅：</p>
+<div class="language-python codeBlockContainer_eTMR theme-code-block" style=--prism-color:#393A34;--prism-background-color:#f6f8fa><div class=codeBlockContent_hafM><pre tabindex=0 class="prism-code language-python codeBlock_IMvC thin-scrollbar" style=color:#393A34;background-color:#f6f8fa><code class=codeBlockLines_gZDW><div class=token-line style=color:#393A34><span class="token keyword" style=color:#00009f>from</span><span class="token plain"> nautilus_trader</span><span class="token punctuation" style=color:#393A34>.</span><span class="token plain">model </span><span class="token keyword" style=color:#00009f>import</span><span class="token plain"> BookType</span><br/></div><div class=token-line style=color:#393A34><span class="token plain" style=display:inline-block></span><br/></div><div class=token-line style=color:#393A34><span class="token plain"></span><span class="token comment" style=color:#999988;font-style:italic># Inside a registered strategy or data actor:</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">self</span><span class="token punctuation" style=color:#393A34>.</span><span class="token plain">subscribe_book_deltas</span><span class="token punctuation" style=color:#393A34>(</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    instrument_id</span><span class="token operator" style=color:#393A34>=</span><span class="token plain">instrument_id</span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    book_type</span><span class="token operator" style=color:#393A34>=</span><span class="token plain">BookType</span><span class="token punctuation" style=color:#393A34>.</span><span class="token plain">L3_MBO</span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    depth</span><span class="token operator" style=color:#393A34>=</span><span class="token number" style=color:#36acaa>1000</span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain">  </span><span class="token comment" style=color:#999988;font-style:italic># valid: 10, 100, 1000</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain"></span><span class="token punctuation" style=color:#393A34>)</span><br/></div></code></pre></div></div>
+<p>合法深度为 <code>10</code>、<code>100</code> 与 <code>1000</code>。<code>depth</code> 为 <code>0</code> 时使用 <code>1000</code>。</p>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=crc32-checksum-validation>CRC32 校验和验证<a href=#crc32-checksum-validation class=hash-link aria-label="CRC32 校验和验证的直接链接" title="CRC32 校验和验证的直接链接" translate=no>​</a></h3>
+<p>默认情况下，只要 Kraken 提供，适配器就会验证每个 L3 快照与更新的 CRC32 校验和。不匹配时，
+它发出 <code>Clear</code> delta、清除本地 L3 状态、刷新鉴权令牌并重新订阅，让 Kraken 发来新快照。
+要做基准测试而禁用验证：</p>
+<div class="language-python codeBlockContainer_eTMR theme-code-block" style=--prism-color:#393A34;--prism-background-color:#f6f8fa><div class=codeBlockContent_hafM><pre tabindex=0 class="prism-code language-python codeBlock_IMvC thin-scrollbar" style=color:#393A34;background-color:#f6f8fa><code class=codeBlockLines_gZDW><div class=token-line style=color:#393A34><span class="token plain">config </span><span class="token operator" style=color:#393A34>=</span><span class="token plain"> KrakenDataClientConfig</span><span class="token punctuation" style=color:#393A34>(</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    api_key</span><span class="token operator" style=color:#393A34>=</span><span class="token string" style=color:#e3116c>"..."</span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    api_secret</span><span class="token operator" style=color:#393A34>=</span><span class="token string" style=color:#e3116c>"..."</span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    validate_l3_checksum</span><span class="token operator" style=color:#393A34>=</span><span class="token boolean" style=color:#36acaa>False</span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain"></span><span class="token punctuation" style=color:#393A34>)</span><br/></div></code></pre></div></div>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=storage-recommendations>存储建议<a href=#storage-recommendations class=hash-link aria-label=存储建议的直接链接 title=存储建议的直接链接 translate=no>​</a></h3>
+<p><code>OrderBookDelta</code> 的 Arrow schema 携带 <code>order_id: u64</code>，因此 <code>ParquetDataCatalog</code> 用与 L2
+相同的 schema 存储 L3 数据。L3 每个工具产生的事件更多。</p>
+<ul>
+<li class="">使用更小的查询会话 <code>chunk_size</code>（例如 <code>50_000</code>）以瞄准更小的流式批次。按时间戳对齐的
+批次可能超过该目标。该设置不控制文件大小或并行读取。</li>
+<li class="">在 <code>DataCatalogConfig</code> 中设置 <code>compression="zstd"</code> 以压缩存储数据。</li>
+<li class="">Parquet 数据目录默认按工具对数据分区。</li>
+</ul>
+<h2 class="anchor anchorTargetStickyNavbar_ana5" id=order-capabilities>订单能力<a href=#order-capabilities class=hash-link aria-label=订单能力的直接链接 title=订单能力的直接链接 translate=no>​</a></h2>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=order-types>订单类型<a href=#order-types class=hash-link aria-label=订单类型的直接链接 title=订单类型的直接链接 translate=no>​</a></h3>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>订单类型<th>现货<th>期货<th>说明<tbody><tr><td><code>MARKET</code><td>✓<td>✓<td>按市价立即成交。<tr><td><code>LIMIT</code><td>✓<td>✓<td>按指定价或更优价成交。<tr><td><code>STOP_MARKET</code><td>✓<td>✓<td>条件市价单（止损）。<tr><td><code>MARKET_IF_TOUCHED</code><td>✓<td>✓<td>条件市价单（止盈）。<tr><td><code>STOP_LIMIT</code><td>✓<td>✓<td>条件限价单（止损限价）。<tr><td><code>LIMIT_IF_TOUCHED</code><td>✓<td>✓<td>现货：<code>take-profit-limit</code>；期货：带 <code>limit_price</code> 的 <code>take_profit</code>。<tr><td><code>TRAILING_STOP_MARKET</code><td>✓<td>-<td>带 <code>trailing_offset</code> 的移动止损。<tr><td><code>TRAILING_STOP_LIMIT</code><td>✓<td>-<td>带 <code>limit_offset</code> 的移动止损限价。</table>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=time-in-force>有效期<a href=#time-in-force class=hash-link aria-label=有效期的直接链接 title=有效期的直接链接 translate=no>​</a></h3>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>有效期<th>现货<th>期货<th>说明<tbody><tr><td><code>GTC</code><td>✓<td>✓<td>撤销前有效（Good Till Canceled）。<tr><td><code>GTD</code><td>✓<td>-<td>到期前有效（仅现货，需要 <code>expire_time</code>）。<tr><td><code>IOC</code><td>✓<td>✓<td>立即成交否则撤销（Immediate or Cancel）。<tr><td><code>FOK</code><td>✓<td>-<td>仅限现货限价订单。</table>
+<div class="theme-admonition theme-admonition-note admonition_LYZY alert alert--secondary"><div class=admonitionHeading_pnFY><span class=admonitionIcon_tEzm><svg viewBox="0 0 14 16"><path fill-rule=evenodd d="M6.3 5.69a.942.942 0 0 1-.28-.7c0-.28.09-.52.28-.7.19-.18.42-.28.7-.28.28 0 .52.09.7.28.18.19.28.42.28.7 0 .28-.09.52-.28.7a1 1 0 0 1-.7.3c-.28 0-.52-.11-.7-.3zM8 7.99c-.02-.25-.11-.48-.31-.69-.2-.19-.42-.3-.69-.31H6c-.27.02-.48.13-.69.31-.2.2-.3.44-.31.69h1v3c.02.27.11.5.31.69.2.2.42.31.69.31h1c.27 0 .48-.11.69-.31.2-.19.3-.42.31-.69H8V7.98v.01zM7 2.3c-3.14 0-5.7 2.54-5.7 5.68 0 3.14 2.56 5.7 5.7 5.7s5.7-2.55 5.7-5.7c0-3.15-2.56-5.69-5.7-5.69v.01zM7 .98c3.86 0 7 3.14 7 7s-3.14 7-7 7-7-3.12-7-7 3.14-7 7-7z"/></svg></span>备注</div><div class=admonitionContent_ZwmI><p><strong>市价订单</strong>天生是立即执行的，不支持有效期。<code>IOC</code> 只适用于限价类订单。</div></div>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=execution-instructions>执行指示<a href=#execution-instructions class=hash-link aria-label=执行指示的直接链接 title=执行指示的直接链接 translate=no>​</a></h3>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>指示<th>现货<th>期货<th>说明<tbody><tr><td><code>post_only</code><td>✓<td>✓<td>限价订单可用。<tr><td><code>reduce_only</code><td>✓<td>✓<td>现货需要保证金账户与已解析的杠杆。<tr><td><code>quote_quantity</code><td>✓<td>-<td>仅现货。以报价货币计的量（<code>viqc</code>）；走 REST。<tr><td><code>display_qty</code><td>✓<td>-<td>仅现货。冰山订单（<code>displayvol</code>）。</table>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=trigger-types>触发类型<a href=#trigger-types class=hash-link aria-label=触发类型的直接链接 title=触发类型的直接链接 translate=no>​</a></h3>
+<p>条件订单支持这些触发价参照：</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>触发类型<th>现货<th>期货<th>说明<tbody><tr><td><code>LAST_PRICE</code><td>✓<td>✓<td>默认。最新成交价。<tr><td><code>INDEX_PRICE</code><td>✓<td>✓<td>更广泛市场的指数价。<tr><td><code>MARK_PRICE</code><td>-<td>✓<td>仅期货。</table>
+<div class="theme-admonition theme-admonition-note admonition_LYZY alert alert--secondary"><div class=admonitionHeading_pnFY><span class=admonitionIcon_tEzm><svg viewBox="0 0 14 16"><path fill-rule=evenodd d="M6.3 5.69a.942.942 0 0 1-.28-.7c0-.28.09-.52.28-.7.19-.18.42-.28.7-.28.28 0 .52.09.7.28.18.19.28.42.28.7 0 .28-.09.52-.28.7a1 1 0 0 1-.7.3c-.28 0-.52-.11-.7-.3zM8 7.99c-.02-.25-.11-.48-.31-.69-.2-.19-.42-.3-.69-.31H6c-.27.02-.48.13-.69.31-.2.2-.3.44-.31.69h1v3c.02.27.11.5.31.69.2.2.42.31.69.31h1c.27 0 .48-.11.69-.31.2-.19.3-.42.31-.69H8V7.98v.01zM7 2.3c-3.14 0-5.7 2.54-5.7 5.68 0 3.14 2.56 5.7 5.7 5.7s5.7-2.55 5.7-5.7c0-3.15-2.56-5.69-5.7-5.69v.01zM7 .98c3.86 0 7 3.14 7 7s-3.14 7-7 7-7-3.12-7-7 3.14-7 7-7z"/></svg></span>备注</div><div class=admonitionContent_ZwmI><p>适配器在提交时拒绝不受支持的触发类型（例如 <code>BID_ASK</code>），而不是静默强转。</div></div>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=batch-operations>批量操作<a href=#batch-operations class=hash-link aria-label=批量操作的直接链接 title=批量操作的直接链接 translate=no>​</a></h3>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>操作<th>现货<th>期货<th>说明<tbody><tr><td>批量提交<td>✓<td>✓<td>现货按 15 笔分块；期货按 10 笔分块。<tr><td>批量修改<td>-<td>✓<td>仅期货 HTTP 方法。执行侧只发送一条命令。<tr><td>批量撤销<td>✓<td>✓<td>自动按 50 笔一批分块。</table>
+<div class="theme-admonition theme-admonition-note admonition_LYZY alert alert--secondary"><div class=admonitionHeading_pnFY><span class=admonitionIcon_tEzm><svg viewBox="0 0 14 16"><path fill-rule=evenodd d="M6.3 5.69a.942.942 0 0 1-.28-.7c0-.28.09-.52.28-.7.19-.18.42-.28.7-.28.28 0 .52.09.7.28.18.19.28.42.28.7 0 .28-.09.52-.28.7a1 1 0 0 1-.7.3c-.28 0-.52-.11-.7-.3zM8 7.99c-.02-.25-.11-.48-.31-.69-.2-.19-.42-.3-.69-.31H6c-.27.02-.48.13-.69.31-.2.2-.3.44-.31.69h1v3c.02.27.11.5.31.69.2.2.42.31.69.31h1c.27 0 .48-.11.69-.31.2-.19.3-.42.31-.69H8V7.98v.01zM7 2.3c-3.14 0-5.7 2.54-5.7 5.68 0 3.14 2.56 5.7 5.7 5.7s5.7-2.55 5.7-5.7c0-3.15-2.56-5.69-5.7-5.69v.01zM7 .98c3.86 0 7 3.14 7 7s-3.14 7-7 7-7-3.12-7-7 3.14-7 7-7z"/></svg></span>备注</div><div class=admonitionContent_ZwmI><p><strong>撤销全部订单</strong>：<ul>
+<li class="">现货为所请求的工具挑选匹配的未结与在途订单（无论是否带方向过滤），再按显式订单 ID 撤销
+它们。因此请求永远不会波及另一个工具。之所以包含在途订单，是因为场所可能已经接受了缓存
+仍记为已提交的订单。</li>
+<li class="">期货在未给方向过滤时使用场所按 symbol 限定的批量撤销；给了过滤时，按显式订单 ID 挑选
+匹配的缓存未结与在途订单。</li>
+<li class="">选出的 ID 经由批量撤销端点发送，并自动按 50 笔一批分块。Kraken 对两类标识分开建键，因此
+场所订单 ID 以 <code>orders</code> 发送、客户订单 ID 以 <code>cl_ord_ids</code> 发送，批量限额对两者合并计数。
+每笔撤销保留其目标订单所属的策略；聚合或含糊的响应交给对账处理，而不是产生逐单结果。</li>
+</ul></div></div>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=order-modification>订单修改<a href=#order-modification class=hash-link aria-label=订单修改的直接链接 title=订单修改的直接链接 translate=no>​</a></h3>
+<p>改单中的数量是订单新的总量（含已成交部分），这正是 Kraken
+现货改单接受 <code>order_qty</code> 的语义。Kraken 期货把裸改单的 <code>size</code> 读作未结数量，因此凡是改变
+订单大小的期货改单（无论单笔还是批量），适配器都发送 <code>qtyMode=ABSOLUTE</code>。Kraken 没有文档
+说明总量小于等于已成交数量时它的答复。</p>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=position-management>持仓管理<a href=#position-management class=hash-link aria-label=持仓管理的直接链接 title=持仓管理的直接链接 translate=no>​</a></h3>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>特性<th>现货<th>期货<th>说明<tbody><tr><td>查询持仓<td>✓<td>✓<td>现货保证金经 <code>OpenPositions</code>；现货现金需选择加入。<tr><td>持仓模式<td>-<td>-<td>每个工具单一持仓。<tr><td>杠杆控制<td>✓<td>-<td>现货 REST 层级；逐单 <code>params={"leverage": N}</code>。<tr><td>保证金模式<td>✓<td>✓<td>现货/期货全仓保证金；没有逐仓现货保证金。</table>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=order-querying>订单查询<a href=#order-querying class=hash-link aria-label=订单查询的直接链接 title=订单查询的直接链接 translate=no>​</a></h3>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>特性<th>现货<th>期货<th>说明<tbody><tr><td>查询未结订单<td>✓<td>✓<td>列出全部活动订单。<tr><td>查询订单历史<td>✓<td>✓<td>现货分页；期货读取一页历史。<tr><td>订单状态更新<td>✓<td>✓<td>经 WebSocket 的实时订单状态变化。<tr><td>成交历史<td>✓<td>✓<td>执行与成交报告。</table>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=contingent-orders>条件关联订单<a href=#contingent-orders class=hash-link aria-label=条件关联订单的直接链接 title=条件关联订单的直接链接 translate=no>​</a></h3>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>特性<th>现货<th>期货<th>说明<tbody><tr><td>关联订单列表<td>-<td>-<td>提交的列表只包含独立订单。<tr><td>OCO 订单<td>-<td>-<td><em>不支持</em>。<tr><td>括弧订单<td>-<td>-<td><em>不支持</em>。<tr><td>条件订单<td>✓<td>✓<td>止损与止盈订单。</table>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=maker-protection-futures>Maker 保护（期货）<a href=#maker-protection-futures class=hash-link aria-label="Maker 保护（期货）的直接链接" title="Maker 保护（期货）的直接链接" translate=no>​</a></h3>
+<p>Kraken 期货在选定市场启用
+<a href=https://docs.kraken.com/exchange/guides/futures/maker-protection target=_blank rel="noopener noreferrer" class="">Maker 保护</a>：
+可能吃掉流动性的下单与改单，在进入撮合引擎之前会被扣留市场的配置窗口。分类按订单类型进行，
+因此非 post-only 的限价下单即使本会挂着也会被扣留。止损与止盈的触发放置不被扣留；它们触发
+的订单除 post-only 外同样被扣留。Post-only 的放置与所有撤销从不被扣留，任何 API 也不暴露被
+扣留订单的状态。</p>
+<p>场所按市场把该扣留应用于每个客户端。适配器在原始场所工具模型上解码逐市场的时间窗
+（<code>makerProtectionMillis</code>），不对外暴露其配置。</p>
+<p>订单状态处理考虑了被扣留订单的语义：</p>
+<ul>
+<li class="">对被扣留限价放置确认的撤销不是终态。订单会以 IOC 释放，仍可能成交。被扣留的市价与 IOC
+订单无法撤回：撤销返回 <code>ORDER_NOT_FOUND</code>，订单在释放时仍会进入撮合。成交与终态由场所的
+订单更新驱动，绝不以撤销确认本身为准。</li>
+<li class="">释放后无法交易的订单，在 REST 上以场所状态 <code>iocWouldNotExecute</code>（行情侧为
+<code>IOC_WOULD_ENTER_BOOK</code>）上报，适配器把它当作终局拒绝。在订单更新流上，同样的结果以终局
+撤销到来，适配器保留其场所原因。</li>
+<li class="">释放后的订单会撤销同一账户中它会成交的挂单，覆盖配置的自成交策略。被撤销的挂单以原因
+<code>CANCELLED_BY_SELF_TRADE</code> 报告为已撤销。</li>
+</ul>
+<h4 class="anchor anchorTargetStickyNavbar_ana5" id=order-update-feed>订单更新流<a href=#order-update-feed class=hash-link aria-label=订单更新流的直接链接 title=订单更新流的直接链接 translate=no>​</a></h4>
+<p><code>is_cancel=true</code> 且原因为 <code>partial_fill</code> 的移除表示丢弃剩余量，属于终态（转换后的扣留，或
+任何 IOC 风格订单）。该 delta 携带场所的累计已成交量。</p>
+<ul>
+<li class="">对被跟踪的订单，成交量流记完该数量后，适配器就从流上关闭它。仍在途的成交绝不会成为孤儿，
+成交记完之后被跟踪的订单也不会停留在未结状态。</li>
+<li class="">对匹配不上的移除，适配器跳过它，经由对账收敛。</li>
+</ul>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>匹配不上的移除<th>原因<tbody><tr><td>仅撤销消息<td>不携带累计已成交量。<tr><td>无法解析的客户订单 ID<td>匹配不到被跟踪的订单。</table>
+<h4 class="anchor anchorTargetStickyNavbar_ana5" id=reconciliation>对账<a href=#reconciliation class=hash-link aria-label=对账的直接链接 title=对账的直接链接 translate=no>​</a></h4>
+<p>被扣留的订单从未进入订单簿，因此不出现在 <code>/openorders</code> 中。批量状态、仅未结报告运行与定向
+的单订单查询在把订单当作缺失之前，会先查询
+<a href=https://docs.kraken.com/api-reference/order-management/get-specific-orders-status target=_blank rel="noopener noreferrer" class=""><code>POST /orders/status</code></a>。
+该窗口报告处于未结、或最近 5 秒内已成交或已撤销的订单。</p>
+<p>场所会回显提交的客户订单 ID。除非它本就够短或已是 UUID（带连字符或 32 位十六进制），适配器
+会把它缩短到 18 个字符。批量状态与仅未结报告运行把窗口内的每份报告映射到缓存订单：</p>
+<ul>
+<li class="">缓存的场所订单 ID 直接标识订单。</li>
+<li class="">否则，按客户订单 ID 查询的订单中必须恰好有一笔持有缩短后的 ID，且必须恰好有一份场所订单
+ID 未知的报告携带它。工具与方向必须匹配，且场所下单时间不得早于订单创建时间五秒以上，以
+容纳时钟偏差。</li>
+</ul>
+<p>对其他任何窗口报告，适配器记警告说明原因并将其扣留，因为它无法把该报告恰好绑定到一笔缓存
+订单。</p>
+<p>场所订单 ID 与客户订单 ID 两种请求先后执行。缩短后的客户订单 ID 会匹配所有缩短结果相同的
+订单，因此按场所订单 ID 查询的订单也可能从客户订单 ID 请求中返回，且状态不同。适配器不论
+哪个请求后运行都选择最新状态：已关闭状态优先于未结，然后是较晚的场所更新，再然后是较大的
+已成交量。上述命名规则与下面的成交价格规则都适用于保留下来的那份报告。</p>
+<p>这些运行中，窗口不携带成交价格。因此完全执行的订单会被留下并记警告，不会按订单价推断其执行。
+定向的单订单查询改为根据近期成交为其定价，否则失败、由对账推迟。批量状态在漏掉某份窗口报告
+时把整个集合标记为不完整。有执行的已撤销订单会被报告，因为对账会等它的成交而不是推断。</p>
+<p>撤销确认之后才成交的扣留，会按场所累计已成交量对账到其真实的终态，而不是过早的撤销。</p>
+<h2 class="anchor anchorTargetStickyNavbar_ana5" id=order-routing-spot>订单路由（现货）<a href=#order-routing-spot class=hash-link aria-label=订单路由（现货）的直接链接 title=订单路由（现货）的直接链接 translate=no>​</a></h2>
+<p>现货执行客户端默认把订单提交、修改、撤销与批量撤销经由 Kraken 鉴权 WebSocket v2 trade 频道
+路由。WebSocket 不活跃时回退到 REST。在 <code>KrakenExecutionClientConfig</code> 上设置
+<code>use_ws_trade=False</code> 可让这些操作改走 REST。</p>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=order-shapes-routed-via-rest>改走 REST 的订单形态<a href=#order-shapes-routed-via-rest class=hash-link aria-label="改走 REST 的订单形态的直接链接" title="改走 REST 的订单形态的直接链接" translate=no>​</a></h3>
+<p>Kraken 的
+<a href=https://docs.kraken.com/exchange/api-reference/spot-websocket-v2/add_order target=_blank rel="noopener noreferrer" class="">现货 WebSocket v2 <code>add_order</code> 方法</a>
+支持这些形态，但适配器把它们改由 REST 路由：</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>形态<th>适配器行为<tbody><tr><td><code>FOK</code> 有效期<td>WebSocket 参数构建器不编码 <code>FOK</code>。<tr><td>移动止损 / 移动止损限价<td>WebSocket 参数构建器不编码移动偏移量。<tr><td>冰山订单（<code>display_qty</code>）<td>WebSocket 参数构建器不编码冰山订单。<tr><td>报价数量订单<td>WS 支持非保证金的买入市价单；适配器使用 REST。</table>
+<p>混合 symbol 的订单列表也使用 REST，因为 Kraken 的 WebSocket <code>batch_add</code> 请求要求共享单一
+symbol。不受支持的触发参照回退到 REST 路径——它会在向 Kraken 发送请求之前本地拒绝它们。
+现货保证金订单请按<a href=#spot-margin-trading class="">现货保证金交易</a>所述使用 REST。</p>
+<p>逐调用的 <code>params={"use_ws_trade": False}</code> 覆盖会无视配置的默认值，把单条命令强制走 REST。
+可设置在 <code>SubmitOrder</code>、<code>ModifyOrder</code>、<code>CancelOrder</code>、<code>SubmitOrderList</code> 或
+<code>BatchCancelOrders</code> 上。</p>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=websocket-request-timeout>WebSocket 请求超时<a href=#websocket-request-timeout class=hash-link aria-label="WebSocket 请求超时的直接链接" title="WebSocket 请求超时的直接链接" translate=no>​</a></h3>
+<p>WebSocket 往返超过 <code>ws_request_timeout_secs</code>（默认 <code>5</code>）时，场所结果仍属未知。提交、修改、
+撤销与批量添加请求保持在途，不做终局拒绝。调度器保留请求 ID，因此迟到的匹配响应仍能应用
+正常的成功或确定性拒绝处理。</p>
+<p>提交与批量添加超时还会在同一 WebSocket 上为每个受影响的客户订单 ID 发送一次尽力的补偿性
+撤销。若 Kraken 已接受订单但延迟了响应，这一撤销能限制敞口。它不会用本地终态替换未知结果。</p>
+<p>没有匹配响应到达时，由流更新与实盘执行对账引擎厘清订单。定向的状态查询可以厘清已有场所订单
+ID 的修改或撤销请求。匹配响应到达或执行客户端关闭时，作废保留的请求关联。</p>
+<div class="theme-admonition theme-admonition-tip admonition_LYZY alert alert--success"><div class=admonitionHeading_pnFY><span class=admonitionIcon_tEzm><svg viewBox="0 0 12 16"><path fill-rule=evenodd d="M6.5 0C3.48 0 1 2.19 1 5c0 .92.55 2.25 1 3 1.34 2.25 1.78 2.78 2 4v1h5v-1c.22-1.22.66-1.75 2-4 .45-.75 1-2.08 1-3 0-2.81-2.48-5-5.5-5zm3.64 7.48c-.25.44-.47.8-.67 1.11-.86 1.41-1.25 2.06-1.45 3.23-.02.05-.02.11-.02.17H5c0-.06 0-.13-.02-.17-.2-1.17-.59-1.83-1.45-3.23-.2-.31-.42-.67-.67-1.11C2.44 6.78 2 5.65 2 5c0-2.2 2.02-4 4.5-4 1.22 0 2.36.42 3.22 1.19C10.55 2.94 11 3.94 11 5c0 .66-.44 1.78-.86 2.48zM4 14h5c-.23 1.14-1.3 2-2.5 2s-2.27-.86-2.5-2z"/></svg></span>提示</div><div class=admonitionContent_ZwmI><p>把 <code>ws_request_timeout_secs</code> 设得明显高于你实测的往返延迟。超时来得过早，可能对一笔
+Kraken 已接受的提交或批量添加发出补偿性撤销。</div></div>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=websocket-order-routing-options>WebSocket 订单路由选项<a href=#websocket-order-routing-options class=hash-link aria-label="WebSocket 订单路由选项的直接链接" title="WebSocket 订单路由选项的直接链接" translate=no>​</a></h3>
+<p><code>KrakenExecutionClientConfig</code> 暴露：</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>选项<th>默认值<th>说明<tbody><tr><td><code>use_ws_trade</code><td><code>True</code><td>trade 频道活跃时经 WS 路由订单。<tr><td><code>ws_request_timeout_secs</code><td><code>5</code><td>等待现货 WS 订单响应的秒数。</table>
+<h2 class="anchor anchorTargetStickyNavbar_ana5" id=reconciliation>对账<a href=#reconciliation class=hash-link aria-label=对账的直接链接 title=对账的直接链接 translate=no>​</a></h2>
+<p>两个执行客户端都在启动时与运行期间，把本地订单、成交、持仓与账户状态和 Kraken 对账。</p>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=bounded-reports>有界报告<a href=#bounded-reports class=hash-link aria-label=有界报告的直接链接 title=有界报告的直接链接 translate=no>​</a></h3>
+<p>对账提供回看窗口时，两个执行客户端为每个历史查询推导同一个截止点，并通过
+<code>set_report_window</code> 把它记录在批量状态上。移动的截止点可能把在场所从未同时存在过的报告
+拼在一起。</p>
+<p>声明截止点会启用引擎的有界历史规则。不完整的集合仍会对账已收到的报告，并记警告。完整性
+标志是限定该集合，而不是阻断对账。</p>
+<h4 class="anchor anchorTargetStickyNavbar_ana5" id=scope-and-read-failures>范围与读取失败<a href=#scope-and-read-failures class=hash-link aria-label=范围与读取失败的直接链接 title=范围与读取失败的直接链接 translate=no>​</a></h4>
+<p>范围内某个解析不到工具或无法解析的未结订单或持仓，会让两个客户端的读取都失败。省略它就
+等于告诉对账场所从未持有那笔订单或持仓。</p>
+<p>期货有一个例外：一笔从未触发的 reduce-only 止损或止盈，在触发之前可能没有未成交数量。若
+其合约没有可据以定尺寸的未结持仓，读取会带着警告跳过该订单及其历史行，并把集合标记为不
+完整。未结持仓读取失败也会让订单读取失败。该触发器被跳过期间，针对它的单订单状态查询会
+失败，因此对账会推迟它。</p>
+<p>两个客户端对限定在自身不持有的工具的查询都返回空行。现货与期货共享 <code>KRAKEN</code> 场所，因此
+任一客户端都可能收到不属于自己路由的订单查询。单订单状态查询与 <code>query_order</code> 只检查命令
+所属的工具。另一个工具上无法厘清或无法解析的记录不能使该限定读取失败，尽管查询无法排除
+这类记录可能指名的订单。</p>
+<p>其他缺口会把集合标记为不完整：已关闭或历史订单与成交无法解析，或其工具无法解析。持仓记录
+不影响完整性标志。范围内持仓的失败会让读取失败。</p>
+<h4 class="anchor anchorTargetStickyNavbar_ana5" id=single-order-lookups>单订单查询<a href=#single-order-lookups class=hash-link aria-label=单订单查询的直接链接 title=单订单查询的直接链接 translate=no>​</a></h4>
+<p>没找到报告的单订单状态查询，是在告诉对账场所没有这笔订单，对账据此答案厘清该订单。查询
+只有从能排除该订单的读取中才给出这个答案，否则就失败，让对账推迟该订单：</p>
+<ul>
+<li class="">完整的读取排除它本可以返回的任何订单。被扣留的期货订单只显示在 orders-status 窗口中，
+期货的查询在作答前会为一个缓存订单读取该窗口。</li>
+<li class="">跳过过某行的读取——包括某行的工具客户端无法解析——排除的是场所订单 ID 未被任何被跳过
+行携带的订单。不指名任何订单的被跳过行（例如未文档化的历史事件种类）什么都排除不了。</li>
+<li class="">在另一产品类的工具上查询按完整读取对待，因为另一个客户端会为其订单作答。在本客户端自己
+产品类但它不持有的工具上查询，什么都读不到，也什么都排除不了。</li>
+<li class="">被中途截断的读取，排除在其持有的最旧事件之后（超过 60 秒时钟偏差容限）下单的订单，取
+订单创建与接受时间中较早者。期货历史页按从新到旧排列，因此返回续传 token 的页面能追溯
+到其最旧事件。到达页数上限而停止的现货已关闭订单读取什么都排除不了。</li>
+</ul>
+<p>读取无法排除的订单，会在每次未结订单检查时被再次推迟。期货上每次这样的查询消耗一个订单
+历史 token。</p>
+<h4 class="anchor anchorTargetStickyNavbar_ana5" id=spot-pagination-limits>现货分页上限<a href=#spot-pagination-limits class=hash-link aria-label=现货分页上限的直接链接 title=现货分页上限的直接链接 translate=no>​</a></h4>
+<p>现货已关闭订单与成交读取推进 offset，直到 Kraken 返回空页，每次读取至多 500 页。到达上限
+会记一条警告：</p>
+<ul>
+<li class="">启动批量状态把订单与成交读取的完整性记录在其报告窗口里，因此引擎把被截断的集合视为不
+完整。</li>
+<li class=""><code>generate_order_status_reports</code> 与 <code>generate_fill_reports</code> 返回读到上限为止的记录，
+不暴露完整性标志。</li>
+<li class="">在被上限截断的已关闭订单读取中什么都没找到的单订单状态查询会失败，因此对账推迟该订单。</li>
+</ul>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=spot-reconciliation>现货对账<a href=#spot-reconciliation class=hash-link aria-label=现货对账的直接链接 title=现货对账的直接链接 translate=no>​</a></h3>
+<h4 class="anchor anchorTargetStickyNavbar_ana5" id=order-status-reports>订单状态报告<a href=#order-status-reports class=hash-link aria-label=订单状态报告的直接链接 title=订单状态报告的直接链接 translate=no>​</a></h4>
+<ul>
+<li class="">
+<p>未结订单：拉取当前全部活动订单。</p>
+</li>
+<li class="">
+<p>已关闭订单：带分页支持地拉取历史订单。</p>
+</li>
+<li class="">
+<p>限定时间的查询：支持按起止时间戳过滤。</p>
+</li>
+<li class="">
+<p>启动批量状态在未结订单之外一并读取已关闭订单，因此节点停机期间到达终态的订单能被对账。
+对账回看窗口限定读取范围，被页数上限截断的已关闭订单读取会让批量状态不完整。</p>
+</li>
+<li class="">
+<p>报告携带订单自身的价格，而不是行顶层的 <code>price</code>。那个字段是平均成交价，未成交订单上读作
+零。报告的 <code>avg_px</code> 来自 <code>cost</code> 与 <code>vol_exec</code>。</p>
+<p>限价对限价订单取自 <code>descr.price</code>，对止损限价或止盈限价订单、以及 <code>misc</code> 标记为 <code>stopped</code>
+之后的移动止损限价订单，取自 <code>descr.price2</code>。移动止损限价的 <code>limitprice</code> 保存的是峰值
+价格，不是其限价。市价、结算仓位（settle-position）、止损、止盈或移动止损订单不携带限价。</p>
+<p>触发价取自 <code>stopprice</code>——止损、止盈、止损限价或止盈限价订单只在触发后才会填入它，因此
+在此之前由 <code>descr.price</code>（即 AddOrder 接受的那个值）代替。零值或相对价格读作无。</p>
+</li>
+<li class="">
+<p>未触发的移动止损限价订单没有绝对限价，因此其报告不携带价格；缓存中没有的订单在触发之前
+也无法从报告重建。</p>
+</li>
+<li class="">
+<p>执行帧只有在携带 <code>limit_price</code> 时才陈述订单价格，绝不按成交价陈述。</p>
+</li>
+</ul>
+<h4 class="anchor anchorTargetStickyNavbar_ana5" id=fill-reports>成交报告<a href=#fill-reports class=hash-link aria-label=成交报告的直接链接 title=成交报告的直接链接 translate=no>​</a></h4>
+<ul>
+<li class="">交易历史：带分页地拉取执行历史。</li>
+<li class="">限定时间的查询：支持按起止时间戳过滤。</li>
+<li class="">全部成交类型：市价、限价与条件订单的成交。</li>
+</ul>
+<h4 class="anchor anchorTargetStickyNavbar_ana5" id=pair-spelling>交易对拼写<a href=#pair-spelling class=hash-link aria-label=交易对拼写的直接链接 title=交易对拼写的直接链接 translate=no>​</a></h4>
+<ul>
+<li class="">Kraken 对交易对有两种拼法：<code>AssetPairs</code> 的键（<code>XXBTZEUR</code>），用作工具的 <code>raw_symbol</code>；
+以及 altname（<code>XBTEUR</code>）。<code>OpenPositions</code> 返回键，而 <code>OpenOrders</code> 与 <code>TradesHistory</code>
+返回 altname。</li>
+<li class="">适配器两种拼法都能解析，因此遗留命名交易对上的订单或成交会被报告。</li>
+<li class="">限定在单一工具的读取会解析每一行并比较工具 ID，而不是缓存的 <code>raw_symbol</code> 与场所拼法。
+因此无论 Kraken 怎么拼，它返回的都是该对自己的记录。</li>
+<li class="">限定在客户端不持有工具的读取什么都不返回。现货与期货 ID 共享 <code>KRAKEN</code> 场所，因此期货 ID
+可能到达现货客户端，反之亦然。两者都不会回退为返回所有工具的记录。在客户端自身产品类但
+不持有的工具上做单订单查询，排除不了任何订单。</li>
+<li class="">altname 与 <code>AssetPairs</code> 键不同的现货工具，把 altname 携带在其 <code>info</code> 映射中，因此工具经
+由 <code>cache_instrument</code> 或 <code>cache_instruments</code> 到达的客户端，无需重新拉取 <code>AssetPairs</code>
+就能解析 altname 拼法的记录。</li>
+<li class="">在非限定读取上，交易对解析不到缓存工具的未结订单会让整个读取失败，而不是在一次否则
+会成功的读取中被省略。限定读取跳过它无法解析的记录——那可能是别的工具的记录——而单订单
+查询无法排除该记录指名的订单。</li>
+<li class="">无法解析的已关闭订单或成交记为警告并跳过，保住能解析的记录。历史记录常常比已加载的工具
+集活得更久。</li>
+</ul>
+<h4 class="anchor anchorTargetStickyNavbar_ana5" id=account-balances>账户余额<a href=#account-balances class=hash-link aria-label=账户余额的直接链接 title=账户余额的直接链接 translate=no>​</a></h4>
+<ul>
+<li class="">钱包余额：从
+<a href=https://docs.kraken.com/api-reference/account-data/get-extended-balance target=_blank rel="noopener noreferrer" class=""><code>POST /0/private/BalanceEx</code></a>
+拉取，它按资产报告总量与冻结（<code>hold_trade</code>）数量。冻结数量填充 <code>AccountBalance.locked</code>，
+因此 <code>free</code> 排除了 Kraken 为挂着的非保证金现货订单预留的资金。对有信用额度的账户，净
+信用（<code>credit - credit_used</code>）计入 <code>AccountBalance.total</code>，因此 <code>free</code> 与 Kraken 的
+可用余额 <code>balance + credit - credit_used - hold_trade</code> 一致。</li>
+<li class="">零余额：Kraken 列为零的资产按零报告而不是省略，现货与期货都如此。引擎只做余额插入，因此
+快照中漏掉的一种货币会保留旧值。期货上零会计入逐货币求和，因此同一资产有资金的钱包与
+空钱包并存的，报告有资金的金额。Kraken 从响应中整个删掉的资产仍保留其最近报告的值。</li>
+</ul>
+<h4 class="anchor anchorTargetStickyNavbar_ana5" id=margin-position-reports>保证金持仓报告<a href=#margin-position-reports class=hash-link aria-label=保证金持仓报告的直接链接 title=保证金持仓报告的直接链接 translate=no>​</a></h4>
+<p><code>spot_account_type=AccountType.MARGIN</code> 时：</p>
+<ul>
+<li class="">未结持仓：从 <code>POST /0/private/OpenPositions</code> 拉取，按交易对聚合为
+<code>PositionStatusReport</code> 条目。Kraken 每个批次（lot）返回一个条目，因此同一对上方向相反的
+批次轧差进单一报告。</li>
+<li class="">开仓均价：每份报告携带 <code>avg_px_open</code>，由批次的 <code>cost</code> 与 <code>vol</code> 字段推导、按仍未平的量加权
+平均。多头与空头批次分别平均，因此报告的平均值描述轧差后幸存的一侧。对账需要这个值，
+才能在缓存没有该订单或成交历史时从报告开出一个持仓。</li>
+<li class="">该平均值标记为 <code>AvgPxReconciliation::OpeningOnly</code>，因为 Kraken 按 FIFO 平保证金批次，并
+把完全平掉的批次从 <code>OpenPositions</code> 移除。部分平仓之后，平均值描述的是仍开的批次而非开仓
+成交，与净持仓的均价对不上。对账只用它从空仓开仓，从不比较它。期货保持默认，因为那个
+端点报告一个净额持仓，其价格被 Kraken 文档定为平均开仓价。</li>
+<li class="">没有合成的 FLAT 清理：<code>OpenPositions</code> 只报告带杠杆的持仓，因此不带杠杆的现货持有永远不出
+现在那里，它的缺席不是仓位已平掉的证据。批量读取只报告场所返回的内容。</li>
+<li class="">保证金余额：<code>POST /0/private/TradeBalance</code> 与账户状态刷新一并调用。已用保证金填充
+<code>MarginBalance.initial</code>，净值与可用保证金填充汇总余额（见现货保证金交易）。</li>
+</ul>
+<div class="theme-admonition theme-admonition-warning admonition_LYZY alert alert--warning"><div class=admonitionHeading_pnFY><span class=admonitionIcon_tEzm><svg viewBox="0 0 16 16"><path fill-rule=evenodd d="M8.893 1.5c-.183-.31-.52-.5-.887-.5s-.703.19-.886.5L.138 13.499a.98.98 0 0 0 0 1.001c.193.31.53.501.886.501h13.964c.367 0 .704-.19.877-.5a1.03 1.03 0 0 0 .01-1.002L8.893 1.5zm.133 11.497H6.987v-2.003h2.039v2.003zm0-3.004H6.987V5.987h2.039v4.006z"/></svg></span>注意</div><div class=admonitionContent_ZwmI><p>设置了 <code>reconciliation_lookback_mins</code> 时，节点停机期间平掉的杠杆仓位不会从其平仓成交中
+恢复。完全平掉的批次不在 <code>OpenPositions</code> 中，因此该工具没有持仓报告。于是引擎把该订单的
+成交投影为仅订单。订单到达 <code>FILLED</code>，但缓存仓位保留其数量与已实现盈亏。平仓盈亏永远不会
+被记录。<p>这是共享引擎对没有范围内持仓报告的工具的既定行为，不是 Kraken 的规则。见
+<a class="" href=/concepts/execution/reconciliation#order-only-fill-projection>仅订单成交投影</a>。移除合成的 FLAT 正是让 Kraken 现货保证金暴露于此的原因，因为之前的扫描会提供一个显式的 FLAT。<p>周期性持仓检查也无法恢复它，因为保证金模式没有声明批量持仓覆盖，而这一跳过只在 debug 级别
+记录。这一状况也跨重启持续：此时平仓订单已缓存为 <code>FILLED</code> 且与场所完全一致，因此对账认为
+它已同步。<p>不设置 <code>reconciliation_lookback_mins</code> 可以避免该投影。已在缓存中的平仓订单——比如故障前
+提交的策略退出——随后会恢复到其仓位中：成交应用到缓存订单并平掉其仓位。<p>它不是通用的解法，因为缓存中不存在的平仓订单会被归到 <code>EXTERNAL</code> 策略，并按工具与策略为净仓
+持仓建键。除非缓存仓位归 <code>EXTERNAL</code> 所有，或该工具通过 <code>external_order_claim</code> 被认领，这
+样恢复的成交会开出第二个方向相反的仓位，而不是平掉缓存的那个。净敞口归零，但过期仓位及其
+已实现盈亏仍然存在。<p>在此之前，停机期间平掉的保证金仓位请手动对账；或使用 <code>use_spot_position_reports=True</code> 的
+<code>spot_account_type=AccountType.CASH</code> 运行——钱包读取会枚举它覆盖的每项持有，缺席的报告是
+空仓的真实证据。</div></div>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=futures-reconciliation>期货对账<a href=#futures-reconciliation class=hash-link aria-label=期货对账的直接链接 title=期货对账的直接链接 translate=no>​</a></h3>
+<h4 class="anchor anchorTargetStickyNavbar_ana5" id=order-status-reports-1>订单状态报告<a href=#order-status-reports-1 class=hash-link aria-label=订单状态报告的直接链接 title=订单状态报告的直接链接 translate=no>​</a></h4>
+<p>适配器返回未结订单，<code>open_only=False</code> 时还返回历史已关闭与已成交订单。历史读取有下述限制。</p>
+<h4 class="anchor anchorTargetStickyNavbar_ana5" id=order-history-and-pricing>订单历史与定价<a href=#order-history-and-pricing class=hash-link aria-label=订单历史与定价的直接链接 title=订单历史与定价的直接链接 translate=no>​</a></h4>
+<p>适配器从
+<a href=https://docs.kraken.com/api-reference/account-history/get-order-events target=_blank rel="noopener noreferrer" class=""><code>/api/history/v3/orders</code></a>
+读取订单生命周期事件。每次读取取一页：Kraken 的 <code>/history</code> 端点共享一个 100 token 的池，
+每 10 分钟补充 100 个。一页订单历史消耗一个 token，因此返回续传 token（在 body 或
+<code>Next-Continuation-Token</code> 头中）的页面会记一条警告，并把集合标记为不完整，而不再继续读取。
+被放置时间晚于该页最旧事件超过时钟偏差容限的缓存订单，单订单状态查询仍可能报告其缺席。见
+<a href=#single-order-lookups class="">单订单查询</a>。</p>
+<p>历史列出每个生命周期事件。读取每笔订单返回一份报告：场所仍列出的用未结订单快照，否则返回
+最新的历史状态。已关闭订单不会被盖了较晚时间戳的未结状态重新打开，例如撤销之后记录的被拒
+改单。</p>
+<p>合约名按场所的拼法解析：先精确匹配，再不区分大小写。历史不携带触发价，因此止损订单一旦
+触发执行，就按其执行成的限价或市价订单报告。场所发起的订单（强平、行权指派、对冲指派、
+unwind、大宗、RFQ）按市价订单报告。</p>
+<p>适配器带着警告跳过无法表示的行，并把集合标记为不完整：</p>
+<ul>
+<li class="">未知事件种类。</li>
+<li class="">报告为 <code>Unknown</code> 或缺失的订单类型。</li>
+<li class="">未知方向。</li>
+<li class="">早于 epoch 的时间戳。</li>
+</ul>
+<p><code>OrderNotFound</code> 不携带订单状态，被跳过且不影响完整性。在 HTTP 成功状态之下返回的场所错误
+会让读取失败。</p>
+<p>带执行的终态历史行不携带平均价。适配器用恰好覆盖其已成交数量的当页成交，或用当页成交加上
+缓存订单记录的成交为其定价，同样要求精确覆盖。失败的成交读取按空页计。没有精确覆盖时，
+单订单查询失败，批量读取则扣留该订单，让对账推迟它，而不是按限价推断执行。</p>
+<h4 class="anchor anchorTargetStickyNavbar_ana5" id=startup-history-fallback>启动历史回退<a href=#startup-history-fallback class=hash-link aria-label=启动历史回退的直接链接 title=启动历史回退的直接链接 translate=no>​</a></h4>
+<p>启动批量状态在未结订单之外读取一页历史。停机期间到达终态的订单若被这一页包含，就能恢复。
+HTTP 成功状态下的场所错误 body（无论其 code），或 HTTP 429，会触发警告并回退为只读未结
+订单，集合标记为不完整。其他 HTTP 错误、传输失败、无法解析的 body 都会让批量状态失败，
+未结订单读取失败也一样。</p>
+<h4 class="anchor anchorTargetStickyNavbar_ana5" id=startup-pricing-safeguard>启动定价保护<a href=#startup-pricing-safeguard class=hash-link aria-label=启动定价保护的直接链接 title=启动定价保护的直接链接 translate=no>​</a></h4>
+<p>批量状态对带执行的终态历史订单施加同样的精确成交覆盖要求。它会扣留未覆盖的订单并记警告
+点名，把集合标记为不完整。后续的读取仍只请求最新的成交页，无法回翻找回更早缺失的执行。</p>
+<p>缓存持有该订单时，被扣留订单的当页成交会被保留，因为引擎无需报告就能把这些成交与该订单
+对账。未缓存订单的成交随订单一并被扣留。</p>
+<h4 class="anchor anchorTargetStickyNavbar_ana5" id=flat-instruments>空仓工具<a href=#flat-instruments class=hash-link aria-label=空仓工具的直接链接 title=空仓工具的直接链接 translate=no>​</a></h4>
+<p>持仓读取只返回未结持仓，因此没有持仓报告的工具在场所是空仓的。成交读取是一页。开仓成交
+老于该页的一来一回只会留下其平仓一侧。没有 <code>reconciliation_lookback_mins</code> 时，引擎把每个
+保留的成交应用到持仓，这可能开出场所并不持有的仓位。</p>
+<p>作为补偿，不限界的启动读取会在空仓工具上，对读取页上缓存不持有的每笔订单（含未结订单）的
+成交做净额。当净额不为零且其中有终态历史订单时，终态订单连同其成交被扣留并记警告，集合
+标记为不完整。</p>
+<p>未结订单保留，因此未结订单的成交仍能开出仓位。场所仍有未结持仓的工具交给其持仓报告。有界
+回看把终态订单留给引擎，引擎会把没有持仓报告的成交仅投影到订单状态。</p>
+<h4 class="anchor anchorTargetStickyNavbar_ana5" id=fill-reports-1>成交报告<a href=#fill-reports-1 class=hash-link aria-label=成交报告的直接链接 title=成交报告的直接链接 translate=no>​</a></h4>
+<ul>
+<li class="">成交历史：读取最新的
+<a href=https://docs.kraken.com/api-reference/historical-data/get-your-fills target=_blank rel="noopener noreferrer" class=""><code>/fills</code> 页</a>，
+即所有期货合约最近的 100 笔成交。更早的执行不会返回。</li>
+<li class="">时间过滤：按起止时间戳做客户端侧过滤（解析 RFC3339 时间戳）。</li>
+<li class="">全部成交类型：带费用信息的 maker 与 taker 成交。</li>
+</ul>
+<h4 class="anchor anchorTargetStickyNavbar_ana5" id=position-status-reports>持仓状态报告<a href=#position-status-reports class=hash-link aria-label=持仓状态报告的直接链接 title=持仓状态报告的直接链接 translate=no>​</a></h4>
+<ul>
+<li class="">未结持仓：拉取全部活动期货持仓。</li>
+<li class="">报告字段：来自 REST 快照的方向、平均开仓价与仓位规模。Kraken 还返回未实现 funding，但
+<code>PositionStatusReport</code> 不暴露它。</li>
+</ul>
+<h4 class="anchor anchorTargetStickyNavbar_ana5" id=account-state>账户状态<a href=#account-state class=hash-link aria-label=账户状态的直接链接 title=账户状态的直接链接 translate=no>​</a></h4>
+<ul>
+<li class="">余额：跨钱包每资产一个条目，如货币代码一节所述。</li>
+<li class="">保证金：每币种一个条目，跨钱包求和（与余额相同），八位小数。弹性钱包的要求额以 USD 计，
+来自其 <code>initialMargin</code> 与 <code>maintenanceMargin</code>。单保证金钱包的要求额以其 <code>currency</code> 计，
+因此 <code>fi_xbtusd</code> 的要求额以 BTC 报告，其可用资金只约束该币种的余额。没有可用 <code>currency</code>
+的钱包不贡献保证金条目、不上报任何资产的冻结额，并记一条警告。</li>
+</ul>
+<div class="theme-admonition theme-admonition-note admonition_LYZY alert alert--secondary"><div class=admonitionHeading_pnFY><span class=admonitionIcon_tEzm><svg viewBox="0 0 14 16"><path fill-rule=evenodd d="M6.3 5.69a.942.942 0 0 1-.28-.7c0-.28.09-.52.28-.7.19-.18.42-.28.7-.28.28 0 .52.09.7.28.18.19.28.42.28.7 0 .28-.09.52-.28.7a1 1 0 0 1-.7.3c-.28 0-.52-.11-.7-.3zM8 7.99c-.02-.25-.11-.48-.31-.69-.2-.19-.42-.3-.69-.31H6c-.27.02-.48.13-.69.31-.2.2-.3.44-.31.69h1v3c.02.27.11.5.31.69.2.2.42.31.69.31h1c.27 0 .48-.11.69-.31.2-.19.3-.42.31-.69H8V7.98v.01zM7 2.3c-3.14 0-5.7 2.54-5.7 5.68 0 3.14 2.56 5.7 5.7 5.7s5.7-2.55 5.7-5.7c0-3.15-2.56-5.69-5.7-5.69v.01zM7 .98c3.86 0 7 3.14 7 7s-3.14 7-7 7-7-3.12-7-7 3.14-7 7-7z"/></svg></span>备注</div><div class=admonitionContent_ZwmI><p><strong>期货时间过滤</strong>：Kraken 期货的成交端点不支持服务端时间范围过滤。适配器通过解析 <code>fillTime</code>
+字段并与请求的起止时间戳比较，实现客户端侧过滤。</div></div>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=spot-position-reports-cash-mode>现货持仓报告（现金模式）<a href=#spot-position-reports-cash-mode class=hash-link aria-label=现货持仓报告（现金模式）的直接链接 title=现货持仓报告（现金模式）的直接链接 translate=no>​</a></h3>
+<p>现金模式下设置 <code>use_spot_position_reports=True</code>，把钱包余额报告为现货持仓。默认
+<code>False</code>。保证金账户独立于该选项使用 <code>OpenPositions</code>（见<a href=#spot-margin-trading class="">现货保证金交易</a>）。</p>
+<p><strong>工作方式</strong>：</p>
+<ul>
+<li class="">启用后，钱包余额被转换为 <code>PositionStatusReport</code> 对象。</li>
+<li class="">正余额报告为 <code>LONG</code> 持仓。</li>
+<li class="">只报告匹配所配置报价货币的工具（默认 <code>USDT</code>）。同一个过滤器决定客户端为哪些工具声明批量
+持仓覆盖，因此其他货币计价的工具绝不会因报告缺席而被对账成空仓。</li>
+<li class="">这可以避免同一资产有多种报价货币（如 BTC/USD、BTC/USDT、BTC/EUR）时的重复报告。</li>
+</ul>
+<p><strong>配置</strong>：</p>
+<div class="language-python codeBlockContainer_eTMR theme-code-block" style=--prism-color:#393A34;--prism-background-color:#f6f8fa><div class=codeBlockContent_hafM><pre tabindex=0 class="prism-code language-python codeBlock_IMvC thin-scrollbar" style=color:#393A34;background-color:#f6f8fa><code class=codeBlockLines_gZDW><div class=token-line style=color:#393A34><span class="token keyword" style=color:#00009f>from</span><span class="token plain"> nautilus_trader</span><span class="token punctuation" style=color:#393A34>.</span><span class="token plain">adapters</span><span class="token punctuation" style=color:#393A34>.</span><span class="token plain">kraken </span><span class="token keyword" style=color:#00009f>import</span><span class="token plain"> KrakenExecutionClientConfig</span><br/></div><div class=token-line style=color:#393A34><span class="token plain"></span><span class="token keyword" style=color:#00009f>from</span><span class="token plain"> nautilus_trader</span><span class="token punctuation" style=color:#393A34>.</span><span class="token plain">model </span><span class="token keyword" style=color:#00009f>import</span><span class="token plain"> AccountId</span><br/></div><div class=token-line style=color:#393A34><span class="token plain" style=display:inline-block></span><br/></div><div class=token-line style=color:#393A34><span class="token plain" style=display:inline-block></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">exec_config </span><span class="token operator" style=color:#393A34>=</span><span class="token plain"> KrakenExecutionClientConfig</span><span class="token punctuation" style=color:#393A34>(</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    account_id</span><span class="token operator" style=color:#393A34>=</span><span class="token plain">AccountId</span><span class="token punctuation" style=color:#393A34>.</span><span class="token plain">from_str</span><span class="token punctuation" style=color:#393A34>(</span><span class="token string" style=color:#e3116c>"KRAKEN-001"</span><span class="token punctuation" style=color:#393A34>)</span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    api_key</span><span class="token operator" style=color:#393A34>=</span><span class="token string" style=color:#e3116c>"YOUR_API_KEY"</span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    api_secret</span><span class="token operator" style=color:#393A34>=</span><span class="token string" style=color:#e3116c>"YOUR_API_SECRET"</span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    use_spot_position_reports</span><span class="token operator" style=color:#393A34>=</span><span class="token boolean" style=color:#36acaa>True</span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    spot_positions_quote_currency</span><span class="token operator" style=color:#393A34>=</span><span class="token string" style=color:#e3116c>"USDT"</span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain">  </span><span class="token comment" style=color:#999988;font-style:italic># Default</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain"></span><span class="token punctuation" style=color:#393A34>)</span><br/></div></code></pre></div></div>
+<div class="theme-admonition theme-admonition-warning admonition_LYZY alert alert--warning"><div class=admonitionHeading_pnFY><span class=admonitionIcon_tEzm><svg viewBox="0 0 16 16"><path fill-rule=evenodd d="M8.893 1.5c-.183-.31-.52-.5-.887-.5s-.703.19-.886.5L.138 13.499a.98.98 0 0 0 0 1.001c.193.31.53.501.886.501h13.964c.367 0 .704-.19.877-.5a1.03 1.03 0 0 0 .01-1.002L8.893 1.5zm.133 11.497H6.987v-2.003h2.039v2.003zm0-3.004H6.987V5.987h2.039v4.006z"/></svg></span>注意</div><div class=admonitionContent_ZwmI><p>平掉所报告现货持仓的策略可能会卖掉你的钱包持有。只有在你的策略确实管理这些持有时才启用
+钱包派生的持仓报告。</div></div>
+<h2 class="anchor anchorTargetStickyNavbar_ana5" id=spot-margin-trading>现货保证金交易<a href=#spot-margin-trading class=hash-link aria-label=现货保证金交易的直接链接 title=现货保证金交易的直接链接 translate=no>​</a></h2>
+<p>Kraken 现货在选定交易对上支持杠杆交易。<code>AssetPairs</code> 会在 <code>leverage_buy</code> 与
+<code>leverage_sell</code> 中声明每对的杠杆层级。适配器在工具加载时缓存这些层级，并在提交前据此校验
+REST 订单。用 <code>spot_account_type=AccountType.MARGIN</code> 启用保证金交易，并通过
+<code>default_leverage</code> 或逐单提交参数设置杠杆。</p>
+<div class="theme-admonition theme-admonition-warning admonition_LYZY alert alert--warning"><div class=admonitionHeading_pnFY><span class=admonitionIcon_tEzm><svg viewBox="0 0 16 16"><path fill-rule=evenodd d="M8.893 1.5c-.183-.31-.52-.5-.887-.5s-.703.19-.886.5L.138 13.499a.98.98 0 0 0 0 1.001c.193.31.53.501.886.501h13.964c.367 0 .704-.19.877-.5a1.03 1.03 0 0 0 .01-1.002L8.893 1.5zm.133 11.497H6.987v-2.003h2.039v2.003zm0-3.004H6.987V5.987h2.039v4.006z"/></svg></span>注意</div><div class=admonitionContent_ZwmI><p>现货保证金订单请使用 <code>use_ws_trade=False</code>。适配器的 WebSocket 路径会原样转发数字 <code>leverage</code>，
+不检查该对缓存的层级。Kraken 的
+<a href=https://docs.kraken.com/exchange/api-reference/spot-websocket-v2/add_order target=_blank rel="noopener noreferrer" class="">WebSocket <code>add_order</code> 模式</a>
+指定的是一个布尔 <code>margin</code> 字段，选中该对的最大杠杆。REST 支持显式的
+<a href=https://docs.kraken.com/api-reference/trading/add-order target=_blank rel="noopener noreferrer" class="">杠杆参数</a>，也有适配器的本地层级
+检查。</div></div>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=configuration-1>配置<a href=#configuration-1 class=hash-link aria-label=配置的直接链接 title=配置的直接链接 translate=no>​</a></h3>
+<div class="language-python codeBlockContainer_eTMR theme-code-block" style=--prism-color:#393A34;--prism-background-color:#f6f8fa><div class=codeBlockContent_hafM><pre tabindex=0 class="prism-code language-python codeBlock_IMvC thin-scrollbar" style=color:#393A34;background-color:#f6f8fa><code class=codeBlockLines_gZDW><div class=token-line style=color:#393A34><span class="token keyword" style=color:#00009f>from</span><span class="token plain"> nautilus_trader</span><span class="token punctuation" style=color:#393A34>.</span><span class="token plain">adapters</span><span class="token punctuation" style=color:#393A34>.</span><span class="token plain">kraken </span><span class="token keyword" style=color:#00009f>import</span><span class="token plain"> KrakenExecutionClientConfig</span><br/></div><div class=token-line style=color:#393A34><span class="token plain"></span><span class="token keyword" style=color:#00009f>from</span><span class="token plain"> nautilus_trader</span><span class="token punctuation" style=color:#393A34>.</span><span class="token plain">model </span><span class="token keyword" style=color:#00009f>import</span><span class="token plain"> AccountId</span><br/></div><div class=token-line style=color:#393A34><span class="token plain"></span><span class="token keyword" style=color:#00009f>from</span><span class="token plain"> nautilus_trader</span><span class="token punctuation" style=color:#393A34>.</span><span class="token plain">model </span><span class="token keyword" style=color:#00009f>import</span><span class="token plain"> AccountType</span><br/></div><div class=token-line style=color:#393A34><span class="token plain" style=display:inline-block></span><br/></div><div class=token-line style=color:#393A34><span class="token plain" style=display:inline-block></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">exec_config </span><span class="token operator" style=color:#393A34>=</span><span class="token plain"> KrakenExecutionClientConfig</span><span class="token punctuation" style=color:#393A34>(</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    account_id</span><span class="token operator" style=color:#393A34>=</span><span class="token plain">AccountId</span><span class="token punctuation" style=color:#393A34>.</span><span class="token plain">from_str</span><span class="token punctuation" style=color:#393A34>(</span><span class="token string" style=color:#e3116c>"KRAKEN-001"</span><span class="token punctuation" style=color:#393A34>)</span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    api_key</span><span class="token operator" style=color:#393A34>=</span><span class="token string" style=color:#e3116c>"YOUR_API_KEY"</span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    api_secret</span><span class="token operator" style=color:#393A34>=</span><span class="token string" style=color:#e3116c>"YOUR_API_SECRET"</span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    spot_account_type</span><span class="token operator" style=color:#393A34>=</span><span class="token plain">AccountType</span><span class="token punctuation" style=color:#393A34>.</span><span class="token plain">MARGIN</span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    use_ws_trade</span><span class="token operator" style=color:#393A34>=</span><span class="token boolean" style=color:#36acaa>False</span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    default_leverage</span><span class="token operator" style=color:#393A34>=</span><span class="token number" style=color:#36acaa>3</span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain">  </span><span class="token comment" style=color:#999988;font-style:italic># Optional config-level default</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    margin_balance_asset</span><span class="token operator" style=color:#393A34>=</span><span class="token string" style=color:#e3116c>"ZGBP"</span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain">  </span><span class="token comment" style=color:#999988;font-style:italic># Optional summary-display asset</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain"></span><span class="token punctuation" style=color:#393A34>)</span><br/></div></code></pre></div></div>
+<p><code>margin_balance_asset</code> 只控制 Kraken <code>TradeBalance</code> 端点返回的账户汇总指标（净值、可用
+保证金、已用保证金等）的计价货币。<code>OpenPositions</code> 的逐仓位数字始终以交易对的报价货币计。</p>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=per-order-leverage>逐单杠杆<a href=#per-order-leverage class=hash-link aria-label=逐单杠杆的直接链接 title=逐单杠杆的直接链接 translate=no>​</a></h3>
+<p>对单笔订单，通过 <code>params</code> 覆盖配置的默认值：</p>
+<div class="language-python codeBlockContainer_eTMR theme-code-block" style=--prism-color:#393A34;--prism-background-color:#f6f8fa><div class=codeBlockContent_hafM><pre tabindex=0 class="prism-code language-python codeBlock_IMvC thin-scrollbar" style=color:#393A34;background-color:#f6f8fa><code class=codeBlockLines_gZDW><div class=token-line style=color:#393A34><span class="token keyword" style=color:#00009f>from</span><span class="token plain"> nautilus_trader</span><span class="token punctuation" style=color:#393A34>.</span><span class="token plain">model </span><span class="token keyword" style=color:#00009f>import</span><span class="token plain"> InstrumentId</span><br/></div><div class=token-line style=color:#393A34><span class="token plain"></span><span class="token keyword" style=color:#00009f>from</span><span class="token plain"> nautilus_trader</span><span class="token punctuation" style=color:#393A34>.</span><span class="token plain">model </span><span class="token keyword" style=color:#00009f>import</span><span class="token plain"> OrderSide</span><br/></div><div class=token-line style=color:#393A34><span class="token plain"></span><span class="token keyword" style=color:#00009f>from</span><span class="token plain"> nautilus_trader</span><span class="token punctuation" style=color:#393A34>.</span><span class="token plain">model </span><span class="token keyword" style=color:#00009f>import</span><span class="token plain"> Price</span><br/></div><div class=token-line style=color:#393A34><span class="token plain"></span><span class="token keyword" style=color:#00009f>from</span><span class="token plain"> nautilus_trader</span><span class="token punctuation" style=color:#393A34>.</span><span class="token plain">model </span><span class="token keyword" style=color:#00009f>import</span><span class="token plain"> Quantity</span><br/></div><div class=token-line style=color:#393A34><span class="token plain" style=display:inline-block></span><br/></div><div class=token-line style=color:#393A34><span class="token plain" style=display:inline-block></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">order </span><span class="token operator" style=color:#393A34>=</span><span class="token plain"> strategy</span><span class="token punctuation" style=color:#393A34>.</span><span class="token plain">order_factory</span><span class="token punctuation" style=color:#393A34>.</span><span class="token plain">limit</span><span class="token punctuation" style=color:#393A34>(</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    instrument_id</span><span class="token operator" style=color:#393A34>=</span><span class="token plain">InstrumentId</span><span class="token punctuation" style=color:#393A34>.</span><span class="token plain">from_str</span><span class="token punctuation" style=color:#393A34>(</span><span class="token string" style=color:#e3116c>"BTC/USD.KRAKEN"</span><span class="token punctuation" style=color:#393A34>)</span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    order_side</span><span class="token operator" style=color:#393A34>=</span><span class="token plain">OrderSide</span><span class="token punctuation" style=color:#393A34>.</span><span class="token plain">BUY</span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    quantity</span><span class="token operator" style=color:#393A34>=</span><span class="token plain">Quantity</span><span class="token punctuation" style=color:#393A34>.</span><span class="token plain">from_str</span><span class="token punctuation" style=color:#393A34>(</span><span class="token string" style=color:#e3116c>"0.01"</span><span class="token punctuation" style=color:#393A34>)</span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    price</span><span class="token operator" style=color:#393A34>=</span><span class="token plain">Price</span><span class="token punctuation" style=color:#393A34>.</span><span class="token plain">from_str</span><span class="token punctuation" style=color:#393A34>(</span><span class="token string" style=color:#e3116c>"50000.00"</span><span class="token punctuation" style=color:#393A34>)</span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain"></span><span class="token punctuation" style=color:#393A34>)</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">strategy</span><span class="token punctuation" style=color:#393A34>.</span><span class="token plain">submit_order</span><span class="token punctuation" style=color:#393A34>(</span><span class="token plain">order</span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain"> params</span><span class="token operator" style=color:#393A34>=</span><span class="token punctuation" style=color:#393A34>{</span><span class="token string" style=color:#e3116c>"leverage"</span><span class="token punctuation" style=color:#393A34>:</span><span class="token plain"> </span><span class="token number" style=color:#36acaa>5</span><span class="token punctuation" style=color:#393A34>}</span><span class="token punctuation" style=color:#393A34>)</span><br/></div></code></pre></div></div>
+<p>在 REST 上，适配器在发送订单之前，会针对该对的 <code>leverage_buy</code> 或 <code>leverage_sell</code> 校验层级。
+层级不受支持时，单笔订单提交会在不触及 Kraken 的情况下发出 <code>OrderRejected</code> 事件。格式错误
+的逐单杠杆参数（例如字符串，或超出 <code>[0, 65535]</code> 的值），在任何一条路由上都会在提交前产生
+<code>OrderDenied</code>。</p>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=reduce-only>Reduce-only<a href=#reduce-only class=hash-link aria-label=Reduce-only的直接链接 title=Reduce-only的直接链接 translate=no>​</a></h3>
+<p>保证金订单可以携带 <code>reduce_only=True</code>，从而在减少既有持仓的同时不会开出更大的反向仓位。
+设置 <code>spot_account_type=AccountType.MARGIN</code>，并提供 <code>default_leverage</code> 或逐单
+<code>params={"leverage": N}</code>。适配器会在把现金订单发往 Kraken 之前拒绝带 <code>reduce_only</code> 的现金
+订单。</p>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=account-state-1>账户状态<a href=#account-state-1 class=hash-link aria-label=账户状态的直接链接 title=账户状态的直接链接 translate=no>​</a></h3>
+<p><code>spot_account_type=AccountType.MARGIN</code> 时，执行客户端在账户刷新期间调用 Kraken 的
+<code>TradeBalance</code> 端点。实盘账户状态使用：</p>
+<ul>
+<li class="">净值（<code>e</code>）与可用保证金（<code>mf</code>），用于 <code>margin_balance_asset</code> 计价的余额。</li>
+<li class="">已用保证金（<code>m</code>）用于 <code>MarginBalance.initial</code>。维持保证金为零，因为 Kraken 不返回单独的
+维持保证金金额。</li>
+</ul>
+<p>低层的 <code>KrakenSpotHttpClient</code> 方法 <code>request_margin_metrics()</code> 与
+<code>request_account_state_with_metrics()</code> 为直接调用方返回完整的 <code>TradeBalance</code> 指标字典。
+实盘执行客户端不会把该字典挂到 <code>AccountState.info</code> 上。</p>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=position-reconciliation>持仓对账<a href=#position-reconciliation class=hash-link aria-label=持仓对账的直接链接 title=持仓对账的直接链接 translate=no>​</a></h3>
+<p>未结的现货保证金持仓在每个 <code>position_check_interval_secs</code> 滴答时经由
+<code>POST /0/private/OpenPositions</code> 呈现。这条路径独立于 <code>use_spot_position_reports</code>（后者由
+钱包派生、仅限现金模式）。</p>
+<p>现货客户端按工具声明批量持仓覆盖，且只针对读取实际会枚举的工具：现金模式且
+<code>use_spot_position_reports=True</code>，并且工具以 <code>spot_positions_quote_currency</code> 计价（见现货
+持仓报告，用的是同一个过滤器）。<code>spot_account_type=AccountType.MARGIN</code> 下来源是
+<code>OpenPositions</code>，它省略不带杠杆的批次；而不开钱包派生报告的现金模式什么都不返回。凡未声明
+覆盖之处，报告缺席就让缓存持仓保持原样，而不是把它平掉。</p>
+<h2 class="anchor anchorTargetStickyNavbar_ana5" id=funding-rates>Funding 费率<a href=#funding-rates class=hash-link aria-label="Funding 费率的直接链接" title="Funding 费率的直接链接" translate=no>​</a></h2>
+<p>适配器从
+<a href=https://docs.kraken.com/exchange/api-reference/futures-websocket/ticker target=_blank rel="noopener noreferrer" class="">Futures ticker</a>
+WebSocket 流接收 funding 费率数据，它为永续期货提供 <code>relative_funding_rate</code> 与
+<code>next_funding_rate_time</code>。</p>
+<p>适配器把 <code>FundingRateUpdate.interval</code> 留为 <code>None</code>，因为 ticker 流不包含 funding 间隔字段。
+这并不意味着合约没有定义的 funding 周期。Kraken 的
+<a href=https://support.kraken.com/articles/4844359082772-linear-multi-collateral-derivatives-contract-specifications target=_blank rel="noopener noreferrer" class="">线性多保证金合约规格</a>
+定义了按小时的 funding 周期。已累计的 funding 在整点结束时或净持仓变化时结算。</p>
+<h2 class="anchor anchorTargetStickyNavbar_ana5" id=rate-limiting>速率限制<a href=#rate-limiting class=hash-link aria-label=速率限制的直接链接 title=速率限制的直接链接 translate=no>​</a></h2>
+<p>每个 Kraken HTTP 客户端都应用适配器侧的请求限流。默认为每秒五个请求，可用
+<code>max_requests_per_second</code> 覆盖。这是按请求计数限流，不是 Kraken 端点成本或账户层级预算的
+完整模型。</p>
+<p>Kraken 对现货与期货适用不同的场所限制：</p>
+<ul>
+<li class=""><a href=https://docs.kraken.com/exchange/guides/rest/ratelimits target=_blank rel="noopener noreferrer" class="">现货 REST 速率限制</a>使用随层级
+变化的调用计数器。Ledger 与交易历史调用加 <code>2</code>，多数其他 REST 调用加 <code>1</code>，订单管理使用
+独立的交易限流器。</li>
+<li class=""><a href=https://docs.kraken.com/exchange/guides/futures/ratelimits target=_blank rel="noopener noreferrer" class="">衍生品速率限制</a>使用端点
+成本，并为 <code>/derivatives</code> 与 <code>/history</code> 路径设置分开的预算。</li>
+</ul>
+<p>Kraken 文档记载的这些现货 REST 调用计数器限制：</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>现货层级<th>计数器上限<th>计数器衰减<tbody><tr><td>Starter<td>15<td>0.33/秒<tr><td>Intermediate<td>20<td>0.5/秒<tr><td>Pro<td>20<td>1/秒</table>
+<p>适配器固定请求速率对端点组合与账户层级而言过高时，Kraken 仍可能拒绝或限流请求。</p>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=reconciliation-interval-guidance>对账间隔建议<a href=#reconciliation-interval-guidance class=hash-link aria-label=对账间隔建议的直接链接 title=对账间隔建议的直接链接 translate=no>​</a></h3>
+<p>执行引擎的 <code>open_check_interval_secs</code> 与 <code>position_check_interval_secs</code> 设置会产生持续的
+私有 REST API 负载。即便适配器保持在其配置的每秒请求限流之下，过短的间隔也可能耗尽 Kraken
+的场所预算。</p>
+<p>从保守的间隔起步，尤其是对 Spot Starter 账户：</p>
+<div class="language-python codeBlockContainer_eTMR theme-code-block" style=--prism-color:#393A34;--prism-background-color:#f6f8fa><div class=codeBlockContent_hafM><pre tabindex=0 class="prism-code language-python codeBlock_IMvC thin-scrollbar" style=color:#393A34;background-color:#f6f8fa><code class=codeBlockLines_gZDW><div class=token-line style=color:#393A34><span class="token keyword" style=color:#00009f>from</span><span class="token plain"> nautilus_trader</span><span class="token punctuation" style=color:#393A34>.</span><span class="token plain">config </span><span class="token keyword" style=color:#00009f>import</span><span class="token plain"> LiveExecutionEngineConfig</span><br/></div><div class=token-line style=color:#393A34><span class="token plain" style=display:inline-block></span><br/></div><div class=token-line style=color:#393A34><span class="token plain" style=display:inline-block></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">exec_engine </span><span class="token operator" style=color:#393A34>=</span><span class="token plain"> LiveExecutionEngineConfig</span><span class="token punctuation" style=color:#393A34>(</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    reconciliation</span><span class="token operator" style=color:#393A34>=</span><span class="token boolean" style=color:#36acaa>True</span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    open_check_interval_secs</span><span class="token operator" style=color:#393A34>=</span><span class="token number" style=color:#36acaa>30.0</span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain">  </span><span class="token comment" style=color:#999988;font-style:italic># Conservative Spot Starter-tier starting point</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    position_check_interval_secs</span><span class="token operator" style=color:#393A34>=</span><span class="token number" style=color:#36acaa>120.0</span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain"></span><span class="token punctuation" style=color:#393A34>)</span><br/></div></code></pre></div></div>
+<p>按账户层级、启用的对账检查，以及使用同一 API key 的其他客户端调校这些值。Kraken 返回
+<code>EAPI:Rate limit exceeded</code> 时，增大间隔或调低 <code>max_requests_per_second</code>。</p>
+<h2 class="anchor anchorTargetStickyNavbar_ana5" id=configuration>配置<a href=#configuration class=hash-link aria-label=配置的直接链接 title=配置的直接链接 translate=no>​</a></h2>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=data-client-configuration-options>数据客户端配置选项<a href=#data-client-configuration-options class=hash-link aria-label=数据客户端配置选项的直接链接 title=数据客户端配置选项的直接链接 translate=no>​</a></h3>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>选项<th>默认值<th>说明<tbody><tr><td><code>product_type</code><td><code>SPOT</code><td>本客户端的产品类型（<code>SPOT</code> 或 <code>FUTURES</code>）。<tr><td><code>environment</code><td><code>LIVE</code><td>交易环境（<code>LIVE</code> 或 <code>DEMO</code>）；demo 仅期货可用。<tr><td><code>api_key</code><td><code>None</code><td>现货 L3 数据的 API key。<tr><td><code>api_secret</code><td><code>None</code><td>现货 L3 数据的 API secret。<tr><td><code>base_url</code><td><code>None</code><td>Kraken REST 基础 URL 的覆盖值。<tr><td><code>ws_public_url</code><td><code>None</code><td>公开 WebSocket URL 的覆盖值。<tr><td><code>ws_private_url</code><td><code>None</code><td>私有 WebSocket URL 的覆盖值。<tr><td><code>ws_l3_url</code><td><code>None</code><td>现货 L3 WebSocket URL 的覆盖值。<tr><td><code>validate_l3_checksum</code><td><code>True</code><td>验证 Kraken 现货 L3 校验和，不匹配时重同步。<tr><td><code>validate_l2_checksum</code><td><code>True</code><td>验证 Kraken 现货 L2 <code>book</code> 校验和，不匹配时重同步。<tr><td><code>proxy_url</code><td><code>None</code><td>HTTP 与 WebSocket 传输的可选代理 URL。<tr><td><code>timeout_secs</code><td><code>30</code><td>HTTP 请求超时（秒）。<tr><td><code>heartbeat_interval_secs</code><td><code>30</code><td>WebSocket 心跳间隔（秒）。<tr><td><code>ws_idle_timeout_ms</code><td><code>10,000</code><td>现货 v2 WebSocket 的数据静默超时；<code>0</code> 禁用。<tr><td><code>max_requests_per_second</code><td><code>None</code><td>每客户端请求限流；默认 5 请求/秒。<tr><td><code>transport_backend</code><td><code>Sockudo</code><td>WebSocket 传输后端。</table>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=execution-client-configuration-options>执行客户端配置选项<a href=#execution-client-configuration-options class=hash-link aria-label=执行客户端配置选项的直接链接 title=执行客户端配置选项的直接链接 translate=no>​</a></h3>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>选项<th>默认值<th>说明<tbody><tr><td><code>account_id</code><td>必需<td>Kraken 账户的账户 ID。<tr><td><code>api_key</code><td>必需<td>Kraken API key。<tr><td><code>api_secret</code><td>必需<td>Kraken API secret。<tr><td><code>product_type</code><td><code>SPOT</code><td>本客户端的产品类型（<code>SPOT</code> 或 <code>FUTURES</code>）。<tr><td><code>environment</code><td><code>LIVE</code><td>交易环境（<code>LIVE</code> 或 <code>DEMO</code>）；demo 仅期货可用。<tr><td><code>base_url</code><td><code>None</code><td>Kraken REST 基础 URL 的覆盖值。<tr><td><code>ws_url</code><td><code>None</code><td>Kraken WebSocket URL 的覆盖值。<tr><td><code>proxy_url</code><td><code>None</code><td>HTTP 与 WebSocket 传输的可选代理 URL。<tr><td><code>timeout_secs</code><td><code>30</code><td>HTTP 请求超时（秒）。<tr><td><code>heartbeat_interval_secs</code><td><code>30</code><td>WebSocket 心跳间隔（秒）。<tr><td><code>auth_timeout_secs</code><td><code>None</code><td>期货 WebSocket 鉴权超时；<code>None</code> 使用客户端默认值。<tr><td><code>max_requests_per_second</code><td><code>None</code><td>每客户端请求限流；默认 5 请求/秒。<tr><td><code>max_retries</code><td><code>3</code><td>可重试 REST 请求的最大重试次数。<tr><td><code>spot_account_type</code><td><code>CASH</code><td>现货交易的账户类型；<code>MARGIN</code> 启用杠杆与报告。<tr><td><code>default_leverage</code><td><code>None</code><td>现货保证金默认杠杆；设置时 REST 发送 <code>"N:1"</code>。<tr><td><code>use_spot_position_reports</code><td><code>False</code><td>把钱包余额报告为持仓；仅现金模式。<tr><td><code>spot_positions_quote_currency</code><td><code>"USDT"</code><td>现货钱包持仓报告及其覆盖的报价货币过滤。<tr><td><code>margin_balance_asset</code><td><code>None</code><td><code>TradeBalance</code> 的汇总资产；<code>None</code> 默认 <code>ZUSD</code>。<tr><td><code>use_ws_trade</code><td><code>True</code><td>活跃时使用现货 WebSocket v2 做订单操作。<tr><td><code>ws_request_timeout_secs</code><td><code>5</code><td>现货 WebSocket 订单响应超时。<tr><td><code>transport_backend</code><td><code>Sockudo</code><td>WebSocket 传输后端。</table>
+<p>现货保证金方面，订单没有逐单杠杆参数时应用 <code>default_leverage</code>。提交与账户状态示例见
+<a href=#spot-margin-trading class="">现货保证金交易</a>。</p>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=demo-environment-setup>Demo 环境设置<a href=#demo-environment-setup class=hash-link aria-label="Demo 环境设置的直接链接" title="Demo 环境设置的直接链接" translate=no>​</a></h3>
+<p>用 Kraken Futures demo（纸面交易）测试：</p>
+<ol>
+<li class="">在 <a href=https://demo-futures.kraken.com target=_blank rel="noopener noreferrer" class="">Kraken Futures demo</a> 注册并生成 API 凭据。</li>
+<li class="">用你的 demo 凭据设置环境变量：
+<ul>
+<li class=""><code>KRAKEN_FUTURES_DEMO_API_KEY</code></li>
+<li class=""><code>KRAKEN_FUTURES_DEMO_API_SECRET</code></li>
+</ul>
+</li>
+<li class="">读取凭据并传入 <code>KrakenExecutionClientConfig</code>，然后设置
+<code>environment=KrakenEnvironment.DEMO</code> 与 <code>product_type=KrakenProductType.FUTURES</code>。</li>
+</ol>
+<p><a href=https://github.com/nautechsystems/nautilus_trader/tree/develop/examples/live/kraken/ target=_blank rel="noopener noreferrer" class="">Python 示例</a>
+展示了完整的 demo 与实盘 <code>LiveNode</code> 配置。</p>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=production-configuration>生产环境配置<a href=#production-configuration class=hash-link aria-label=生产环境配置的直接链接 title=生产环境配置的直接链接 translate=no>​</a></h3>
+<p><code>KrakenDataClientConfig</code> 与 <code>KrakenDataClientFactory</code> 搭配，
+<code>KrakenExecutionClientConfig</code> 与 <code>KrakenExecutionClientFactory</code> 搭配。Python 示例展示了数据
+与执行客户端完整的 <code>LiveNode.builder(...)</code> 配置。</p>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=api-credentials>API 凭据<a href=#api-credentials class=hash-link aria-label="API 凭据的直接链接" title="API 凭据的直接链接" translate=no>​</a></h3>
+<p>实盘节点的配置对象不会自动读取凭据环境变量。请把 <code>api_key</code> 与 <code>api_secret</code> 显式传入
+<code>KrakenExecutionClientConfig</code>，现货 L3 数据还要传入 <code>KrakenDataClientConfig</code>。除现货 L3
+之外的行情数据不需要凭据。</p>
+<p>省略凭据参数时，低层的 Python HTTP 客户端会加载以下变量。Rust 应用可以先用
+<code>KrakenCredential::from_env_spot()</code> 或 <code>KrakenCredential::from_env_futures(demo)</code> 加载
+它们，再构建实盘节点配置。</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>环境变量<th>说明<tbody><tr><td><code>KRAKEN_SPOT_API_KEY</code><td>Kraken 现货实盘交易的 API key。<tr><td><code>KRAKEN_SPOT_API_SECRET</code><td>Kraken 现货实盘交易的 API secret。<tr><td><code>KRAKEN_FUTURES_API_KEY</code><td>Kraken 期货实盘 API key。<tr><td><code>KRAKEN_FUTURES_API_SECRET</code><td>Kraken 期货实盘 API secret。<tr><td><code>KRAKEN_FUTURES_DEMO_API_KEY</code><td>Kraken 期货（demo）的 API key。<tr><td><code>KRAKEN_FUTURES_DEMO_API_SECRET</code><td>Kraken 期货（demo）的 API secret。</table>
+<div class="theme-admonition theme-admonition-note admonition_LYZY alert alert--secondary"><div class=admonitionHeading_pnFY><span class=admonitionIcon_tEzm><svg viewBox="0 0 14 16"><path fill-rule=evenodd d="M6.3 5.69a.942.942 0 0 1-.28-.7c0-.28.09-.52.28-.7.19-.18.42-.28.7-.28.28 0 .52.09.7.28.18.19.28.42.28.7 0 .28-.09.52-.28.7a1 1 0 0 1-.7.3c-.28 0-.52-.11-.7-.3zM8 7.99c-.02-.25-.11-.48-.31-.69-.2-.19-.42-.3-.69-.31H6c-.27.02-.48.13-.69.31-.2.2-.3.44-.31.69h1v3c.02.27.11.5.31.69.2.2.42.31.69.31h1c.27 0 .48-.11.69-.31.2-.19.3-.42.31-.69H8V7.98v.01zM7 2.3c-3.14 0-5.7 2.54-5.7 5.68 0 3.14 2.56 5.7 5.7 5.7s5.7-2.55 5.7-5.7c0-3.15-2.56-5.69-5.7-5.69v.01zM7 .98c3.86 0 7 3.14 7 7s-3.14 7-7 7-7-3.12-7-7 3.14-7 7-7z"/></svg></span>备注</div><div class=admonitionContent_ZwmI><p><strong>Demo 环境</strong>：只有 Kraken 期货提供 demo 环境
+（<code>https://demo-futures.kraken.com</code>）用于无真实资金的测试。Kraken 现货没有 demo 或测试网
+环境。</div></div>
+<div class="theme-admonition theme-admonition-tip admonition_LYZY alert alert--success"><div class=admonitionHeading_pnFY><span class=admonitionIcon_tEzm><svg viewBox="0 0 12 16"><path fill-rule=evenodd d="M6.5 0C3.48 0 1 2.19 1 5c0 .92.55 2.25 1 3 1.34 2.25 1.78 2.78 2 4v1h5v-1c.22-1.22.66-1.75 2-4 .45-.75 1-2.08 1-3 0-2.81-2.48-5-5.5-5zm3.64 7.48c-.25.44-.47.8-.67 1.11-.86 1.41-1.25 2.06-1.45 3.23-.02.05-.02.11-.02.17H5c0-.06 0-.13-.02-.17-.2-1.17-.59-1.83-1.45-3.23-.2-.31-.42-.67-.67-1.11C2.44 6.78 2 5.65 2 5c0-2.2 2.02-4 4.5-4 1.22 0 2.36.42 3.22 1.19C10.55 2.94 11 3.94 11 5c0 .66-.44 1.78-.86 2.48zM4 14h5c-.23 1.14-1.3 2-2.5 2s-2.27-.86-2.5-2z"/></svg></span>提示</div><div class=admonitionContent_ZwmI><p>用环境变量存放凭据，然后在应用边界把它们的值传入实盘节点配置。</div></div>
+<p>鉴权错误会在私有客户端连接或执行私有操作时上报。所需权限取决于请求的数据或交易操作。</p>
+<h2 class="anchor anchorTargetStickyNavbar_ana5" id=contributing>参与贡献<a href=#contributing class=hash-link aria-label=参与贡献的直接链接 title=参与贡献的直接链接 translate=no>​</a></h2>
+<div class="theme-admonition theme-admonition-info admonition_LYZY alert alert--info"><div class=admonitionHeading_pnFY><span class=admonitionIcon_tEzm><svg viewBox="0 0 14 16"><path fill-rule=evenodd d="M7 2.3c3.14 0 5.7 2.56 5.7 5.7s-2.56 5.7-5.7 5.7A5.71 5.71 0 0 1 1.3 8c0-3.14 2.56-5.7 5.7-5.7zM7 1C3.14 1 0 4.14 0 8s3.14 7 7 7 7-3.14 7-7-3.14-7-7-7zm1 3H6v5h2V4zm0 6H6v2h2v-2z"/></svg></span>信息</div><div class=admonitionContent_ZwmI><p>要为 Kraken 适配器做贡献，见
+<a href=https://github.com/nautechsystems/nautilus_trader/blob/develop/CONTRIBUTING.md target=_blank rel="noopener noreferrer" class="">贡献指南</a>。</div></div></div><footer class="theme-doc-footer docusaurus-mt-lg"><div class="row margin-top--sm theme-doc-footer-edit-meta-row"><div class="col noPrint_MRkS"><a href=https://github.com/Aloento/NautilusTraderDoc/tree/main/docs/integrations/kraken.md target=_blank rel="noopener noreferrer" class=theme-edit-this-page><svg fill=currentColor height=20 width=20 viewBox="0 0 40 40" class=iconEdit_RPSQ aria-hidden=true><g><path d="m34.5 11.7l-3 3.1-6.3-6.3 3.1-3q0.5-0.5 1.2-0.5t1.1 0.5l3.9 3.9q0.5 0.4 0.5 1.1t-0.5 1.2z m-29.5 17.1l18.4-18.5 6.3 6.3-18.4 18.4h-6.3v-6.2z"/></g></svg>编辑此页</a></div><div class="col lastUpdated_oZSl"><span class=theme-last-updated>最后<!-- -->于 <b><time datetime=2026-10-14T22:30:30.000Z itemprop=dateModified>2026年10月14日</time></b> <!-- -->更新</span></div></div></footer></article><nav class="docusaurus-mt-lg pagination-nav" aria-label=文件选项卡><a class="pagination-nav__link pagination-nav__link--prev" href=/integrations/interactive_brokers><div class=pagination-nav__sublabel>上一页</div><div class=pagination-nav__label>Interactive Brokers</div></a><a class="pagination-nav__link pagination-nav__link--next" href=/integrations/lighter><div class=pagination-nav__sublabel>下一页</div><div class=pagination-nav__label>Lighter</div></a></nav></div></div><div class="col col--3"><div class="tableOfContents_LyLZ thin-scrollbar theme-doc-toc-desktop"><ul class="table-of-contents table-of-contents__left-border"><li><a href=#overview class="table-of-contents__link toc-highlight">概览</a><li><a href=#examples class="table-of-contents__link toc-highlight">示例</a><li><a href=#kraken-documentation class="table-of-contents__link toc-highlight">Kraken 文档</a><li><a href=#products class="table-of-contents__link toc-highlight">产品</a><li><a href=#spot-instrument-fees class="table-of-contents__link toc-highlight">现货工具费率</a><li><a href=#bar-streaming class="table-of-contents__link toc-highlight">K 线流</a><ul><li><a href=#supported-intervals class="table-of-contents__link toc-highlight">支持的间隔</a><li><a href=#bar-emission-latency class="table-of-contents__link toc-highlight">K 线发出延迟</a></ul><li><a href=#symbology class="table-of-contents__link toc-highlight">符号体系</a><ul><li><a href=#spot-symbol-normalization class="table-of-contents__link toc-highlight">现货 symbol 规范化</a><li><a href=#currency-codes class="table-of-contents__link toc-highlight">货币代码</a><li><a href=#spot-markets class="table-of-contents__link toc-highlight">现货市场</a><li><a href=#futures-markets class="table-of-contents__link toc-highlight">期货市场</a></ul><li><a href=#data-capabilities class="table-of-contents__link toc-highlight">数据能力</a><ul><li><a href=#subscriptions-real-time class="table-of-contents__link toc-highlight">订阅（实时）</a><li><a href=#requests-historical class="table-of-contents__link toc-highlight">请求（历史）</a><li><a href=#l2-book-checksum-validation class="table-of-contents__link toc-highlight">L2 订单簿校验和验证</a></ul><li><a href=#l3-order-book-market-by-order class="table-of-contents__link toc-highlight">L3 订单簿（按单，market-by-order）</a><ul><li><a href=#prerequisites class="table-of-contents__link toc-highlight">前置条件</a><li><a href=#crc32-checksum-validation class="table-of-contents__link toc-highlight">CRC32 校验和验证</a><li><a href=#storage-recommendations class="table-of-contents__link toc-highlight">存储建议</a></ul><li><a href=#order-capabilities class="table-of-contents__link toc-highlight">订单能力</a><ul><li><a href=#order-types class="table-of-contents__link toc-highlight">订单类型</a><li><a href=#time-in-force class="table-of-contents__link toc-highlight">有效期</a><li><a href=#execution-instructions class="table-of-contents__link toc-highlight">执行指示</a><li><a href=#trigger-types class="table-of-contents__link toc-highlight">触发类型</a><li><a href=#batch-operations class="table-of-contents__link toc-highlight">批量操作</a><li><a href=#order-modification class="table-of-contents__link toc-highlight">订单修改</a><li><a href=#position-management class="table-of-contents__link toc-highlight">持仓管理</a><li><a href=#order-querying class="table-of-contents__link toc-highlight">订单查询</a><li><a href=#contingent-orders class="table-of-contents__link toc-highlight">条件关联订单</a><li><a href=#maker-protection-futures class="table-of-contents__link toc-highlight">Maker 保护（期货）</a></ul><li><a href=#order-routing-spot class="table-of-contents__link toc-highlight">订单路由（现货）</a><ul><li><a href=#order-shapes-routed-via-rest class="table-of-contents__link toc-highlight">改走 REST 的订单形态</a><li><a href=#websocket-request-timeout class="table-of-contents__link toc-highlight">WebSocket 请求超时</a><li><a href=#websocket-order-routing-options class="table-of-contents__link toc-highlight">WebSocket 订单路由选项</a></ul><li><a href=#reconciliation class="table-of-contents__link toc-highlight">对账</a><ul><li><a href=#bounded-reports class="table-of-contents__link toc-highlight">有界报告</a><li><a href=#spot-reconciliation class="table-of-contents__link toc-highlight">现货对账</a><li><a href=#futures-reconciliation class="table-of-contents__link toc-highlight">期货对账</a><li><a href=#spot-position-reports-cash-mode class="table-of-contents__link toc-highlight">现货持仓报告（现金模式）</a></ul><li><a href=#spot-margin-trading class="table-of-contents__link toc-highlight">现货保证金交易</a><ul><li><a href=#configuration-1 class="table-of-contents__link toc-highlight">配置</a><li><a href=#per-order-leverage class="table-of-contents__link toc-highlight">逐单杠杆</a><li><a href=#reduce-only class="table-of-contents__link toc-highlight">Reduce-only</a><li><a href=#account-state-1 class="table-of-contents__link toc-highlight">账户状态</a><li><a href=#position-reconciliation class="table-of-contents__link toc-highlight">持仓对账</a></ul><li><a href=#funding-rates class="table-of-contents__link toc-highlight">Funding 费率</a><li><a href=#rate-limiting class="table-of-contents__link toc-highlight">速率限制</a><ul><li><a href=#reconciliation-interval-guidance class="table-of-contents__link toc-highlight">对账间隔建议</a></ul><li><a href=#configuration class="table-of-contents__link toc-highlight">配置</a><ul><li><a href=#data-client-configuration-options class="table-of-contents__link toc-highlight">数据客户端配置选项</a><li><a href=#execution-client-configuration-options class="table-of-contents__link toc-highlight">执行客户端配置选项</a><li><a href=#demo-environment-setup class="table-of-contents__link toc-highlight">Demo 环境设置</a><li><a href=#production-configuration class="table-of-contents__link toc-highlight">生产环境配置</a><li><a href=#api-credentials class="table-of-contents__link toc-highlight">API 凭据</a></ul><li><a href=#contributing class="table-of-contents__link toc-highlight">参与贡献</a></ul></div></div></div></div></main></div></div></div><footer class="theme-layout-footer footer footer--dark"><div class="container container-fluid"><div class="row footer__links"><div class="theme-layout-footer-column col footer__col"><div class=footer__title></div><ul class="footer__items clean-list"><li class=footer__item><a href=https://github.com/nautechsystems/nautilus_trader target=_blank rel="noopener noreferrer" class=footer__link-item>Official GitHub<svg width=13.5 height=13.5 aria-label="(opens in new tab)" class=iconExternalLink_qUHo><use href=#theme-svg-external-link /></svg></a><li class=footer__item><a href=https://nautilustrader.io/docs target=_blank rel="noopener noreferrer" class=footer__link-item>Official Documentation<svg width=13.5 height=13.5 aria-label="(opens in new tab)" class=iconExternalLink_qUHo><use href=#theme-svg-external-link /></svg></a></ul></div></div><div class="footer__bottom text--center"><div class=footer__copyright>© 2026 Nautech Systems Pty Ltd. All rights reserved.</div></div></div></footer></div></body>

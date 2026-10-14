@@ -1,0 +1,857 @@
+<!doctype html><html lang=zh dir=ltr class="docs-wrapper plugin-docs plugin-id-default docs-version-current docs-doc-page docs-doc-id-concepts/execution/reconciliation" data-has-hydrated=false><head><meta charset=UTF-8><meta name=generator content="Docusaurus v3.10.2"><title data-rh=true>执行对账 | NautilusTrader 文档</title><meta data-rh=true name=viewport content="width=device-width, initial-scale=1.0"/><meta data-rh=true name=twitter:card content=summary_large_image /><meta data-rh=true property=og:url content=https://nautilus.aloen.to/concepts/execution/reconciliation /><meta data-rh=true property=og:locale content=zh /><meta data-rh=true name=docusaurus_locale content=zh /><meta data-rh=true name=docsearch:language content=zh /><meta data-rh=true name=docusaurus_version content=current /><meta data-rh=true name=docusaurus_tag content=docs-default-current /><meta data-rh=true name=docsearch:version content=current /><meta data-rh=true name=docsearch:docusaurus_tag content=docs-default-current /><meta data-rh=true property=og:title content="执行对账 | NautilusTrader 文档"/><meta data-rh=true name=description content=execution-reconciliation} /><meta data-rh=true property=og:description content=execution-reconciliation} /><link data-rh=true rel=icon href=/logo.png /><link data-rh=true rel=canonical href=https://nautilus.aloen.to/concepts/execution/reconciliation /><link data-rh=true rel=alternate href=https://nautilus.aloen.to/concepts/execution/reconciliation hreflang=zh /><link data-rh=true rel=alternate href=https://nautilus.aloen.to/concepts/execution/reconciliation hreflang=x-default /><script data-rh=true type=application/ld+json>{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","item":"https://nautilus.aloen.to/concepts/","name":"核心概念","position":1},{"@type":"ListItem","item":"https://nautilus.aloen.to/concepts/execution/","name":"执行","position":2},{"@type":"ListItem","item":"https://nautilus.aloen.to/concepts/execution/reconciliation","name":"执行对账","position":3}]}</script><link rel=stylesheet href=/assets/css/styles.adb7ea18.css /><script src=/assets/js/runtime~main.71ac0794.js defer></script><script src=/assets/js/main.d978d0f2.js defer></script></head><body><svg style="display: none;"><defs>
+<symbol id=theme-svg-external-link viewBox="0 0 24 24"><path fill=currentColor d="M21 13v10h-21v-19h12v2h-10v15h17v-8h2zm3-12h-10.988l4.035 4-6.977 7.07 2.828 2.828 6.977-7.07 4.125 4.172v-11z"/></symbol>
+</defs></svg>
+<script>!function(){var t=function(){try{return new URLSearchParams(window.location.search).get("docusaurus-theme")}catch(t){}}()||function(){try{return window.localStorage.getItem("theme-2e3")}catch(t){}}();document.documentElement.setAttribute("data-theme",t||(window.matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light")),document.documentElement.setAttribute("data-theme-choice",t||"system")}(),function(){try{for(var[t,e]of new URLSearchParams(window.location.search).entries())if(t.startsWith("docusaurus-data-")){var a=t.replace("docusaurus-data-","data-");document.documentElement.setAttribute(a,e)}}catch(t){}}()</script><div id=__docusaurus><link rel=preload as=image href=/logo.png /><div role=region aria-label=跳到主要内容><a class=skipToContent_zuOI href=#__docusaurus_skipToContent_fallback>跳到主要内容</a></div><nav aria-label=主导航 class="theme-layout-navbar navbar navbar--fixed-top"><div class=navbar__inner><div class="theme-layout-navbar-left navbar__items"><button aria-label=切换导航栏 aria-expanded=false class="navbar__toggle clean-btn" type=button><svg width=30 height=30 viewBox="0 0 30 30" aria-hidden=true><path stroke=currentColor stroke-linecap=round stroke-miterlimit=10 stroke-width=2 d="M4 7h22M4 15h22M4 23h22"/></svg></button><a class=navbar__brand href=/><div class=navbar__logo><img src=/logo.png alt="NautilusTrader Logo" class="themedComponent_q2_Y themedComponent--light_Nejn"/><img src=/logo.png alt="NautilusTrader Logo" class="themedComponent_q2_Y themedComponent--dark_JjIb"/></div><b class="navbar__title text--truncate">NautilusTrader</b></a><a aria-current=page class="navbar__item navbar__link navbar__link--active" href=/getting_started/>文档</a></div><div class="theme-layout-navbar-right navbar__items navbar__items--right"><a href=https://github.com/Aloento/NautilusTraderDoc target=_blank rel="noopener noreferrer" class="navbar__item navbar__link">GitHub<svg width=13.5 height=13.5 aria-label="(opens in new tab)" class=iconExternalLink_qUHo><use href=#theme-svg-external-link /></svg></a><div class="toggle_hHmI colorModeToggle_rOOn"><button class="clean-btn toggleButton_wEhT toggleButtonDisabled_yOOP" type=button disabled title="system mode" aria-label="切换浅色/暗黑模式（当前为system mode）"><svg viewBox="0 0 24 24" width=24 height=24 aria-hidden=true class="toggleIcon_Kt6U lightToggleIcon_Zfeh"><path fill=currentColor d="M12,9c1.65,0,3,1.35,3,3s-1.35,3-3,3s-3-1.35-3-3S10.35,9,12,9 M12,7c-2.76,0-5,2.24-5,5s2.24,5,5,5s5-2.24,5-5 S14.76,7,12,7L12,7z M2,13l2,0c0.55,0,1-0.45,1-1s-0.45-1-1-1l-2,0c-0.55,0-1,0.45-1,1S1.45,13,2,13z M20,13l2,0c0.55,0,1-0.45,1-1 s-0.45-1-1-1l-2,0c-0.55,0-1,0.45-1,1S19.45,13,20,13z M11,2v2c0,0.55,0.45,1,1,1s1-0.45,1-1V2c0-0.55-0.45-1-1-1S11,1.45,11,2z M11,20v2c0,0.55,0.45,1,1,1s1-0.45,1-1v-2c0-0.55-0.45-1-1-1C11.45,19,11,19.45,11,20z M5.99,4.58c-0.39-0.39-1.03-0.39-1.41,0 c-0.39,0.39-0.39,1.03,0,1.41l1.06,1.06c0.39,0.39,1.03,0.39,1.41,0s0.39-1.03,0-1.41L5.99,4.58z M18.36,16.95 c-0.39-0.39-1.03-0.39-1.41,0c-0.39,0.39-0.39,1.03,0,1.41l1.06,1.06c0.39,0.39,1.03,0.39,1.41,0c0.39-0.39,0.39-1.03,0-1.41 L18.36,16.95z M19.42,5.99c0.39-0.39,0.39-1.03,0-1.41c-0.39-0.39-1.03-0.39-1.41,0l-1.06,1.06c-0.39,0.39-0.39,1.03,0,1.41 s1.03,0.39,1.41,0L19.42,5.99z M7.05,18.36c0.39-0.39,0.39-1.03,0-1.41c-0.39-0.39-1.03-0.39-1.41,0l-1.06,1.06 c-0.39,0.39-0.39,1.03,0,1.41s1.03,0.39,1.41,0L7.05,18.36z"/></svg><svg viewBox="0 0 24 24" width=24 height=24 aria-hidden=true class="toggleIcon_Kt6U darkToggleIcon_XgQr"><path fill=currentColor d="M9.37,5.51C9.19,6.15,9.1,6.82,9.1,7.5c0,4.08,3.32,7.4,7.4,7.4c0.68,0,1.35-0.09,1.99-0.27C17.45,17.19,14.93,19,12,19 c-3.86,0-7-3.14-7-7C5,9.07,6.81,6.55,9.37,5.51z M12,3c-4.97,0-9,4.03-9,9s4.03,9,9,9s9-4.03,9-9c0-0.46-0.04-0.92-0.1-1.36 c-0.98,1.37-2.58,2.26-4.4,2.26c-2.98,0-5.4-2.42-5.4-5.4c0-1.81,0.89-3.42,2.26-4.4C12.92,3.04,12.46,3,12,3L12,3z"/></svg><svg viewBox="0 0 24 24" width=24 height=24 aria-hidden=true class="toggleIcon_Kt6U systemToggleIcon_BvUi"><path fill=currentColor d="m12 21c4.971 0 9-4.029 9-9s-4.029-9-9-9-9 4.029-9 9 4.029 9 9 9zm4.95-13.95c1.313 1.313 2.05 3.093 2.05 4.95s-0.738 3.637-2.05 4.95c-1.313 1.313-3.093 2.05-4.95 2.05v-14c1.857 0 3.637 0.737 4.95 2.05z"/></svg></button></div><div class=navbarSearchContainer_watl></div></div></div><div role=presentation class=navbar-sidebar__backdrop></div></nav><div id=__docusaurus_skipToContent_fallback class="theme-layout-main main-wrapper mainWrapper_R72Q"><div class=docsWrapper_XQ9b><button aria-label=回到顶部 class="clean-btn theme-back-to-top-button backToTopButton_MbnX" type=button></button><div class=docRoot_aqOB><aside class="theme-doc-sidebar-container docSidebarContainer_sI2e"><div class=sidebarViewport_TzTy><div class=sidebar_CbEe><nav aria-label=文档侧边栏 class="menu thin-scrollbar menu_ChRF"><ul class="theme-doc-sidebar-menu menu__list"><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-1 menu__list-item menu__list-item--collapsed"><div class=menu__list-item-collapsible><a class="categoryLink_Muyc menu__link menu__link--sublist" href=/getting_started/><span class=categoryLinkLabel_mAcL>快速开始</span></a><button aria-label="展开侧边栏分类 '快速开始'" aria-expanded=false type=button class="clean-btn menu__caret"></button></div><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-1 menu__list-item"><div class=menu__list-item-collapsible><a class="categoryLink_Muyc menu__link menu__link--sublist menu__link--active" href=/concepts/><span class=categoryLinkLabel_mAcL>核心概念</span></a><button aria-label="折叠侧边栏分类 '核心概念'" aria-expanded=true type=button class="clean-btn menu__caret"></button></div><ul class=menu__list><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-2 menu__list-item menu__list-item--collapsed"><div class=menu__list-item-collapsible><a class="categoryLink_Muyc menu__link menu__link--sublist" tabindex=0 href=/concepts/instruments/><span class=categoryLinkLabel_mAcL>金融工具</span></a><button aria-label="展开侧边栏分类 '金融工具'" aria-expanded=false type=button class="clean-btn menu__caret"></button></div><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-2 menu__list-item menu__list-item--collapsed"><div class=menu__list-item-collapsible><a class="categoryLink_Muyc menu__link menu__link--sublist" tabindex=0 href=/concepts/orders/><span class=categoryLinkLabel_mAcL>订单</span></a><button aria-label="展开侧边栏分类 '订单'" aria-expanded=false type=button class="clean-btn menu__caret"></button></div><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-2 menu__list-item menu__list-item--collapsed"><div class=menu__list-item-collapsible><a class="categoryLink_Muyc menu__link menu__link--sublist" tabindex=0 href=/concepts/data/><span class=categoryLinkLabel_mAcL>数据</span></a><button aria-label="展开侧边栏分类 '数据'" aria-expanded=false type=button class="clean-btn menu__caret"></button></div><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-2 menu__list-item menu__list-item--collapsed"><div class=menu__list-item-collapsible><a class="categoryLink_Muyc menu__link menu__link--sublist" tabindex=0 href=/concepts/backtesting/><span class=categoryLinkLabel_mAcL>回测</span></a><button aria-label="展开侧边栏分类 '回测'" aria-expanded=false type=button class="clean-btn menu__caret"></button></div><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-2 menu__list-item menu__list-item--collapsed"><div class=menu__list-item-collapsible><a class="categoryLink_Muyc menu__link menu__link--sublist" tabindex=0 href=/concepts/events/><span class=categoryLinkLabel_mAcL>事件</span></a><button aria-label="展开侧边栏分类 '事件'" aria-expanded=false type=button class="clean-btn menu__caret"></button></div><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-2 menu__list-item"><div class=menu__list-item-collapsible><a class="categoryLink_Muyc menu__link menu__link--sublist menu__link--active" tabindex=0 href=/concepts/execution/><span class=categoryLinkLabel_mAcL>执行</span></a><button aria-label="折叠侧边栏分类 '执行'" aria-expanded=true type=button class="clean-btn menu__caret"></button></div><ul class=menu__list><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-3 menu__list-item"><a class=menu__link tabindex=0 href=/concepts/execution/algorithms><span class=linkLabel_lYjD>执行算法</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-3 menu__list-item"><a class=menu__link tabindex=0 href=/concepts/execution/policies><span class=linkLabel_lYjD>执行策略</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-3 menu__list-item"><a class="menu__link menu__link--active" aria-current=page tabindex=0 href=/concepts/execution/reconciliation><span class=linkLabel_lYjD>执行对账</span></a></ul><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/concepts/accounting><span class=linkLabel_lYjD>核算</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/concepts/actors><span class=linkLabel_lYjD>Actors</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/concepts/adapters><span class=linkLabel_lYjD>适配器</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/concepts/architecture><span class=linkLabel_lYjD>架构</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/concepts/behavioral_models><span class=linkLabel_lYjD>行为模型</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/concepts/cache><span class=linkLabel_lYjD>缓存</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/concepts/configuration><span class=linkLabel_lYjD>配置</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/concepts/continuous_futures><span class=linkLabel_lYjD>连续期货</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/concepts/custom_data><span class=linkLabel_lYjD>自定义数据</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/concepts/dst><span class=linkLabel_lYjD>DST</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/concepts/event_sourcing><span class=linkLabel_lYjD>事件溯源</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/concepts/greeks><span class=linkLabel_lYjD>Greeks</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/concepts/live><span class=linkLabel_lYjD>实时交易</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/concepts/logging><span class=linkLabel_lYjD>日志</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/concepts/message_bus><span class=linkLabel_lYjD>消息总线</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/concepts/networking><span class=linkLabel_lYjD>网络</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/concepts/options><span class=linkLabel_lYjD>期权</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/concepts/order_book><span class=linkLabel_lYjD>订单簿</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/concepts/overview><span class=linkLabel_lYjD>概览</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/concepts/portfolio><span class=linkLabel_lYjD>组合</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/concepts/positions><span class=linkLabel_lYjD>持仓</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/concepts/python><span class=linkLabel_lYjD>Python</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/concepts/reports><span class=linkLabel_lYjD>报告</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/concepts/rust><span class=linkLabel_lYjD>Rust</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/concepts/strategies><span class=linkLabel_lYjD>策略</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/concepts/synthetics><span class=linkLabel_lYjD>合成工具</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/concepts/value_types><span class=linkLabel_lYjD>值类型</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/concepts/visualization><span class=linkLabel_lYjD>可视化</span></a></ul><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-1 menu__list-item menu__list-item--collapsed"><div class=menu__list-item-collapsible><a class="categoryLink_Muyc menu__link menu__link--sublist" href=/integrations/><span class=categoryLinkLabel_mAcL>交易所与集成</span></a><button aria-label="展开侧边栏分类 '交易所与集成'" aria-expanded=false type=button class="clean-btn menu__caret"></button></div><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-1 menu__list-item menu__list-item--collapsed"><div class=menu__list-item-collapsible><a class="categoryLink_Muyc menu__link menu__link--sublist" href=/how_to/><span class=categoryLinkLabel_mAcL>操作指南</span></a><button aria-label="展开侧边栏分类 '操作指南'" aria-expanded=false type=button class="clean-btn menu__caret"></button></div><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-1 menu__list-item menu__list-item--collapsed"><div class=menu__list-item-collapsible><a class="categoryLink_Muyc menu__link menu__link--sublist" href=/tutorials/><span class=categoryLinkLabel_mAcL>教程</span></a><button aria-label="展开侧边栏分类 '教程'" aria-expanded=false type=button class="clean-btn menu__caret"></button></div><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-1 menu__list-item menu__list-item--collapsed"><div class=menu__list-item-collapsible><a class="categoryLink_Muyc menu__link menu__link--sublist" href=/developer_guide/><span class=categoryLinkLabel_mAcL>开发者指南</span></a><button aria-label="展开侧边栏分类 '开发者指南'" aria-expanded=false type=button class="clean-btn menu__caret"></button></div><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-1 menu__list-item menu__list-item--collapsed"><div class=menu__list-item-collapsible><a class="categoryLink_Muyc menu__link menu__link--sublist" href=/api_reference/><span class=categoryLinkLabel_mAcL>API 参考</span></a><button aria-label="展开侧边栏分类 'API 参考'" aria-expanded=false type=button class="clean-btn menu__caret"></button></div></ul></nav></div></div></aside><main class=docMainContainer_sLF8><div class="container padding-top--md padding-bottom--lg"><div class=row><div class="col docItemCol_ZRft"><div class=docItemContainer_KOP5><article><nav class="theme-doc-breadcrumbs breadcrumbsContainer_d5rS" aria-label=页面路径><ul class=breadcrumbs><li class=breadcrumbs__item><a aria-label=主页面 class=breadcrumbs__link href=/><svg viewBox="0 0 24 24" class=breadcrumbHomeIcon_XgF2><path d="M10 19v-5h4v5c0 .55.45 1 1 1h3c.55 0 1-.45 1-1v-7h1.7c.46 0 .68-.57.33-.87L12.67 3.6c-.38-.34-.96-.34-1.34 0l-8.36 7.53c-.34.3-.13.87.33.87H5v7c0 .55.45 1 1 1h3c.55 0 1-.45 1-1z" fill=currentColor /></svg></a><li class=breadcrumbs__item><a class=breadcrumbs__link href=/concepts/><span>核心概念</span></a><li class=breadcrumbs__item><a class=breadcrumbs__link href=/concepts/execution/><span>执行</span></a><li class="breadcrumbs__item breadcrumbs__item--active"><span class=breadcrumbs__link>执行对账</span></ul></nav><div class="tocCollapsible_bgaJ theme-doc-toc-mobile tocMobile_FhT_"><button type=button class="clean-btn tocCollapsibleButton_F8AY">本页总览</button></div><div class="theme-doc-markdown markdown"><header><h1>执行对账</h1></header>
+<p>执行对账（reconciliation）把交易场所实际的订单与持仓状态和系统内部事件溯源的状态对齐。本篇帮助理解启动时的状态恢复，以及发现运行时差异的持续检查。</p>
+<p>未决的实时命令结果是状态分歧的来源之一。Nautilus 如何区分本地失败、确定结果与未知结果，见
+<a class="" href=/concepts/execution/policies#command-outcomes>命令结果</a>。</p>
+<p>完整的节点生命周期见<a class="" href=/concepts/live>实时交易</a>。可用设置与推荐值见
+<a class="" href=/how_to/configure_live_trading#executionengine-configuration>配置实时交易节点</a>。</p>
+<h2 class="anchor anchorTargetStickyNavbar_ana5" id=reconciliation-model>对账模型<a href=#reconciliation-model class=hash-link aria-label=对账模型的直接链接 title=对账模型的直接链接 translate=no>​</a></h2>
+<p>实时执行用场所报告核对本地状态。回测同时控制订单执行与结果状态，因此不需要场所对账。</p>
+<p>两种场景：</p>
+<ul>
+<li class=""><strong>存在缓存状态</strong>：用报告数据生成缺失事件，把状态对齐。</li>
+<li class=""><strong>没有缓存状态</strong>：场所的全部订单与持仓从零生成。</li>
+</ul>
+<div class="theme-admonition theme-admonition-info admonition_LYZY alert alert--info"><div class=admonitionHeading_pnFY><span class=admonitionIcon_tEzm><svg viewBox="0 0 14 16"><path fill-rule=evenodd d="M7 2.3c3.14 0 5.7 2.56 5.7 5.7s-2.56 5.7-5.7 5.7A5.71 5.71 0 0 1 1.3 8c0-3.14 2.56-5.7 5.7-5.7zM7 1C3.14 1 0 4.14 0 8s3.14 7 7 7 7-3.14 7-7-3.14-7-7-7zm1 3H6v5h2V4zm0 6H6v2h2v-2z"/></svg></span>持仓报告即市场敞口</div><div class=admonitionContent_ZwmI><p><strong>显式的持仓报告具有权威性。启动对账期间，
+引擎要么在对账容差内对齐该报告，要么失败关闭（fail closed）。</strong><p>具有权威性的持仓报告：<ul>
+<li class="">显式的持仓报告，包含数量与方向。</li>
+<li class="">显式的空仓报告。</li>
+</ul><p>以下不构成空仓证据：<ul>
+<li class="">缺失报告。</li>
+<li class="">数量为 null。</li>
+<li class="">不发布持仓的场所。</li>
+</ul><p>成交窗口不决定报告是否具有权威性。缺失报告不等于空仓。<p><code>generate_missing_orders</code> 默认启用。
+引擎生成对齐本地状态到报告所需的订单与成交。
+禁用生成并不会让未解决的报告通过启动检查。<p>该保证覆盖在启用对账时由持仓报告与工具
+过滤器纳入的报告。未解决的报告会使 actor 和
+策略无法启动。</div></div>
+<div class="theme-admonition theme-admonition-tip admonition_LYZY alert alert--success"><div class=admonitionHeading_pnFY><span class=admonitionIcon_tEzm><svg viewBox="0 0 12 16"><path fill-rule=evenodd d="M6.5 0C3.48 0 1 2.19 1 5c0 .92.55 2.25 1 3 1.34 2.25 1.78 2.78 2 4v1h5v-1c.22-1.22.66-1.75 2-4 .45-.75 1-2.08 1-3 0-2.81-2.48-5-5.5-5zm3.64 7.48c-.25.44-.47.8-.67 1.11-.86 1.41-1.25 2.06-1.45 3.23-.02.05-.02.11-.02.17H5c0-.06 0-.13-.02-.17-.2-1.17-.59-1.83-1.45-3.23-.2-.31-.42-.67-.67-1.11C2.44 6.78 2 5.65 2 5c0-2.2 2.02-4 4.5-4 1.22 0 2.36.42 3.22 1.19C10.55 2.94 11 3.94 11 5c0 .66-.44 1.78-.86 2.48zM4 14h5c-.23 1.14-1.3 2-2.5 2s-2.27-.86-2.5-2z"/></svg></span>提示</div><div class=admonitionContent_ZwmI><p>把所有执行事件持久化到缓存数据库。这减少对场所历史的依赖，并让对账拥有解读短历史窗口所需的订单与持仓保留状态。</div></div>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=component-responsibilities>组件职责<a href=#component-responsibilities class=hash-link aria-label=组件职责的直接链接 title=组件职责的直接链接 translate=no>​</a></h3>
+<p><code>LiveNode</code> 拥有 <code>ExecutionManager</code> 并调度周期性对账。管理器跟踪活动、重试与成交标识，解读缓存状态，并准备对账事件。
+<code>ExecutionEngine</code> 把事件应用到订单与持仓，并处理单条执行报告。</p>
+<p>UML 图展示所有权与依赖。实心菱形表示所有权。虚线箭头从调用方指向其使用的组件。内核拥有引擎与共享缓存，为聚焦对账在此省略。</p>
+<!-- -->
+<p>live 客户端门面在节点与引擎之间共享同一个适配器实例。事件循环处理其他工作时，待决的报告请求可能仍持有对客户端的借用。工具更新推迟到这些借用释放后，再随请求完成或取消一并刷出。</p>
+<p>在 <code>nautilus-live</code> 内，各源模块按如下划分职责：</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>模块<th>职责<tbody><tr><td><code>node/mod.rs</code><td>节点生命周期、事件循环与事件分发。<tr><td><code>node/reconciliation.rs</code><td>周期性报告任务、截止时间、取消与结果处理。<tr><td><code>execution/manager.rs</code><td>对账状态、决策与单项对账检查。<tr><td><code>execution/reconciliation.rs</code><td>共享类型、与状态无关的决策与定向报告请求。</table>
+<p>独立的 <code>nautilus_execution::reconciliation</code> 模块提供与执行引擎共享的报告转事件与算术运算。</p>
+<p>对账在启动和持续检查阶段走不同路径：</p>
+<ul>
+<li class=""><strong>启动</strong>：管理器发布原始报告，应用订单与成交事件，核验历史成交的应用情况，然后在更新后的缓存基础上评估持仓。</li>
+<li class=""><strong>持续持仓检查</strong>：节点先协调权威成交的查询与分发，再让管理器生成合成事件。活动修订号用于发现请求或回调期间的本地变更。应用权威成交后，合成对账推迟到拿到新的持仓报告。</li>
+</ul>
+<p>准备失败或引擎未应用的成交同样推迟合成对账。该推迟只持续到其首次失败后经过 <code>position_check_threshold_ms</code>。之后的检查跳过该成交，转用合成方式对齐持仓。每个工具与账户的每次检查遇到第一个此类成交即停止，因此每笔被拒的成交至少让回退推迟一次检查。若被跳过的成交之后经其他路径（如执行流）应用，它会叠加到合成更正上。下一次持仓检查会调平差额。</p>
+<p>管理器在不启用 <code>node</code> feature 时依然可用。独立调用方可以使用其单项轮询方法并自行应用返回的事件。独立的持仓轮询直接返回合成差异事件。节点额外加上权威成交恢复序列。</p>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=execution-client-origins>执行客户端来源<a href=#execution-client-origins class=hash-link aria-label=执行客户端来源的直接链接 title=执行客户端来源的直接链接 translate=no>​</a></h3>
+<p><strong>执行客户端来源</strong>（execution-client origin）是订单与负责其执行的客户端之间一次性写入的绑定。</p>
+<p>以下时机记录来源：</p>
+<ul>
+<li class="">提交时来自显式客户端，或来自路由与场所校验之后、传输之前最终选定的客户端。</li>
+<li class="">启动对账期间实化非合成外部订单时，来自发布 mass-status 的客户端。</li>
+<li class="">外部订单由运行时场所报告实化、且报告的账户恰好匹配一个处理该工具场所的已注册客户端时。</li>
+</ul>
+<p>以下情形来源可能缺失：</p>
+<ul>
+<li class="">在解析来源持久化之前写入的缓存数据。</li>
+<li class="">运行时报告未能按账户与工具场所恰好识别出一个已注册客户端的外部订单。</li>
+<li class="">合成对账订单。</li>
+</ul>
+<p>内置缓存后端在传输之前把解析好的来源入队等待持久化。其写入仍是异步的，因此入队顺序不能保证订单到达客户端之前来源已落盘。</p>
+<p>启动时，每个客户端的 mass status 与缓存来源比对。客户端上报的订单应当绑定到该客户端本身。</p>
+<ul>
+<li class=""><strong>来源缺失</strong>：记录一条聚合警告，并对现有缓存数据保持兼容。</li>
+<li class=""><strong>来源冲突</strong>：记录一条聚合的废弃警告，并为兼容执行对账。未来版本会把冲突作为启动错误拒绝。</li>
+</ul>
+<p>参见<a href=#startup-scenarios class="">启动场景</a>中的来源相关行。</p>
+<p>这与<a href=#external-order-creation class="">外部订单认领</a>是两回事——后者把场所来源的订单归属到<em>策略</em>。执行客户端来源记录订单属于哪个<em>客户端</em>。</p>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=reconciliation-reports>对账报告<a href=#reconciliation-reports class=hash-link aria-label=对账报告的直接链接 title=对账报告的直接链接 translate=no>​</a></h3>
+<p>执行引擎消费 live 适配器的四种对账报告变体。当匹配订单在缓存中缺失时，各变体的常规职责不同。显式限定的历史可改用<a href=#order-only-fill-projection class="">仅订单成交投影</a>。</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>变体<th>用途<th>订单缺失时的动作<tbody><tr><td><code>OrderStatusReport</code><td>订单状态更新。<td>创建订单并推断任何已报告的成交。<tr><td><code>FillReport</code><td>独立成交。<td>先创建市价单，再应用成交元数据。<tr><td><code>OrderWithFills</code><td>订单状态加成交。<td>创建订单、应用成交并推断残差。<tr><td><code>PositionStatusReport</code><td>场所持仓快照。<td>记录该报告。持仓仍由成交推导。</table>
+<h4 class="anchor anchorTargetStickyNavbar_ana5" id=when-to-use-each-variant>各变体的适用时机<a href=#when-to-use-each-variant class=hash-link aria-label=各变体的适用时机的直接链接 title=各变体的适用时机的直接链接 translate=no>​</a></h4>
+<p>适配器按场所事件选择变体：</p>
+<ul>
+<li class="">订单生命周期更新、且成交细节走独立数据流时，用 <code>OrderStatusReport</code>。</li>
+<li class="">场所发起的平仓有成交但没有用户级订单时，用 <code>FillReport</code>。
+Hyperliquid 强平即属此类。</li>
+<li class="">一个场所事件同时包含订单状态及其成交时，用 <code>OrderWithFills</code>。Binance
+Futures 对交易所生成的 ADL、强平与结算订单使用它。</li>
+</ul>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=snapshot-freshness-and-fill-corrections>快照新鲜度与成交更正<a href=#snapshot-freshness-and-fill-corrections class=hash-link aria-label=快照新鲜度与成交更正的直接链接 title=快照新鲜度与成交更正的直接链接 translate=no>​</a></h3>
+<p>快照不得撤销发生在其所描述状态之后的成交。在流事件之后收到快照，并不使快照更新：恢复期间 REST 请求与流分发可能重叠。例如某次请求观察到已成交为零，流随后送上一笔 5 单位的成交，而更早的响应最后才到。把该响应当作更正，就会错误作废这 5 个单位。</p>
+<p>快照更正需要区分：</p>
+<ul>
+<li class=""><strong>早于成交的快照</strong>：其较低的已成交数量不能证明成交已被作废。</li>
+<li class=""><strong>覆盖该成交并报告缩减的快照</strong>：缩减可以代表一次真实更正，由保留的成交历史推导。</li>
+<li class=""><strong>显式的场所成交作废事件</strong>：按
+<a class="" href=/concepts/events/order_fill_voided>OrderFillVoided 契约</a>处理，包括其身份、数量与顺序检查。它不依赖从快照总量推断更正。</li>
+</ul>
+<p>确立覆盖关系时，时间戳的含义很重要：</p>
+<ul>
+<li class="">Derive 适配器报告的是订单更新时间戳。</li>
+<li class="">Betfair 的 <code>matchedDate</code> 描述的是最后一次撮合，不是快照或更正的时刻。</li>
+</ul>
+<p>响应到达时间、相同的时间戳、来自不同时钟的时间戳，本身都不能证明快照包含某笔成交。</p>
+<p>把真实更正当作过时数据拒绝，会让本地已成交数量与敞口持续偏高，直到后续对账调平。反过来，携带误导性较新时间戳的过时快照，若新鲜度检查信任该时间戳，仍可能造成错误作废。</p>
+<p>即使快照不包含伴随成交，执行引擎也会把 mass-status 中已成交数量的减少应用到保留的成交上。</p>
+<p><strong>成交活动重叠</strong>：收集始于 <code>ExecutionMassStatus.ts_init</code>。若缓存成交或成交作废的本地初始化时间戳不早于该边界，引擎自动跳过该订单快照。这会跳过该订单报告的全部变更，包括状态、数量与价格更新。</p>
+<p>引擎仍会发布原始报告，并按正常去重处理伴随成交；被跳过的快照不入队。收集起点晚于缓存成交活动之后的后续快照，即可应用真实更正。该跳过无需配置，也不抑制显式的成交作废事件。</p>
+<p>这一保护适用于 <code>ExecutionEngine</code> 的运行时 mass-status 处理。启动对账使用 <code>ExecutionManager</code>，不施加该时间戳边界。</p>
+<p>要获得运行时保护，适配器必须在收集报告之前、使用与成交事件相同的本地时钟捕获 mass-status 时间戳。该边界防的是与本地活动重叠，无法发现收集开始时就已经过时的场所状态。</p>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=order-only-fill-projection>仅订单成交投影<a href=#order-only-fill-projection class=hash-link aria-label=仅订单成交投影的直接链接 title=仅订单成交投影的直接链接 translate=no>​</a></h3>
+<p>启动对账期间，若该工具没有范围内的显式持仓报告，限定的历史成交不改变持仓或组合。缺省不等于空仓报告。订单仍达到所报告的状态与已成交数量。</p>
+<p>显式持仓报告（无论持仓或空仓）是数量目标。引擎应用可用的成交，按配置生成差额，或让持仓保持未解决。</p>
+<p>该投影只适用于对账恢复。原始报告仍可用。设置
+<code>filter_position_reports</code> 后，即使 mass status 包含持仓报告，限定的历史成交也变为仅订单。未声明窗口的例外与保留成交规则见<a href=#bounded-history-safety class="">有界历史安全</a>。</p>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=external-order-creation>外部订单创建<a href=#external-order-creation class=hash-link aria-label=外部订单创建的直接链接 title=外部订单创建的直接链接 translate=no>​</a></h3>
+<p>报告引用的订单不在缓存中时，引擎创建一个<strong>外部订单</strong>。这涵盖场所发起的 ADL、强平或结算，其他进程下的订单，以及本地尚未观察到的订单。</p>
+<p>命名上区分配置意图与运行时归属状态：</p>
+<ul>
+<li class=""><code>external_order_instrument_ids</code> 是可序列化的策略配置意图。它列出策略注册时应把外部订单指派给该策略的工具。</li>
+<li class=""><strong>外部订单认领</strong>（external order claim）是把一个 <code>InstrumentId</code> 映射到一个 <code>StrategyId</code> 的活跃缓存条目。代码用 <code>external_order_claims</code> 表示这些活跃条目的集合。</li>
+</ul>
+<p>策略在 live 注册时用 <code>register_external_order_claims</code> 把配置的工具 ID 实化。该操作是增量且严格的：重复的工具或任何已有认领的工具（包括同一策略的认领）都会被拒绝。</p>
+<p>策略方法 <code>set_external_order_instrument_ids(...)</code> 委托给缓存操作
+<code>set_external_order_claims</code>。该操作把输入视为该策略期望的完整活跃集合：可以保留或释放该策略现有认领、获取无人认领的工具，但不能拿走其他策略的认领。</p>
+<p>校验覆盖整个输入后才修改缓存，因此发生冲突时每个现有认领保持不变。</p>
+<p><code>ExecutionManager</code> 与 <code>ExecutionEngine</code> 处理外部报告时读取缓存中同一份规范认领映射。它们把外部订单指派给：</p>
+<ul>
+<li class="">该报告工具活跃认领所指的策略。</li>
+<li class="">兜底默认的 <code>EXTERNAL</code> 策略。</li>
+</ul>
+<p>因此认领更新对两个组件立即可见，无需协调消息。外部订单创建时存在的认领决定指派。已缓存订单保持其已指派的 <code>StrategyId</code>，改变认领不会重新指派。</p>
+<p>要在策略之间转移工具，当前持有方必须先释放，新持有方才能认领。跨策略交接不是原子的。释放与认领之间处理的报告没有活跃认领，被指派给 <code>EXTERNAL</code>。</p>
+<p>缓存重置保留活跃认领，使已注册的路由保持配置状态；而下线策略会清除其认领。</p>
+<p>外部订单在报告携带 <code>client_order_id</code> 时直接采用，否则由 <code>venue_order_id</code> 派生。引擎把订单加入缓存、注册其场所订单 ID，并发出相应的 <code>OrderAccepted</code>、<code>OrderFilled</code>、<code>OrderCanceled</code> 或 <code>OrderExpired</code> 事件。持仓随后经正常事件管道更新。</p>
+<p>策略配置与运行时更新见<a class="" href=/concepts/strategies#claiming-external-orders>认领外部订单</a>。</p>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=reducing-external-positions>削减外部持仓<a href=#reducing-external-positions class=hash-link aria-label=削减外部持仓的直接链接 title=削减外部持仓的直接链接 translate=no>​</a></h3>
+<p>NETTING 下，策略可以用 reduce-only 成交削减继承来的 <code>EXTERNAL</code> 仓位。</p>
+<h4 class="anchor anchorTargetStickyNavbar_ana5" id=position-selection>持仓选择<a href=#position-selection class=hash-link aria-label=持仓选择的直接链接 title=持仓选择的直接链接 translate=no>​</a></h4>
+<p>已有的缓存持仓关联保持权威。没有缓存关联时，reduce-only 成交优先使用策略自己的未平持仓。该持仓不存在或已平仓时，引擎寻找同时满足以下全部条件的持仓：</p>
+<ul>
+<li class="">属于 <code>EXTERNAL</code> 且使用 NETTING。</li>
+<li class="">处于未平状态且在成交的反方向。</li>
+<li class="">与成交的工具和账户匹配。</li>
+</ul>
+<p>只有<strong>恰好一个</strong>持仓匹配时引擎才选用该回退。成交数量不得超过该持仓的数量，但订单剩余量可以更大。若不存在安全的回退，其他方面合法的成交只更新订单，不开仓也不更新持仓。</p>
+<h4 class="anchor anchorTargetStickyNavbar_ana5" id=ownership-and-events>归属与事件<a href=#ownership-and-events class=hash-link aria-label=归属与事件的直接链接 title=归属与事件的直接链接 translate=no>​</a></h4>
+<p>成功削减后，引擎把订单与该外部持仓关联，后续成交沿用同一目标。持仓保持 <code>EXTERNAL</code> 归属：</p>
+<ul>
+<li class=""><code>OrderFilled</code> 携带执行削减策略的 ID，并标识外部持仓。</li>
+<li class=""><code>PositionChanged</code> 与 <code>PositionClosed</code> 使用 <code>EXTERNAL</code> 策略的事件主题。</li>
+</ul>
+<h4 class="anchor anchorTargetStickyNavbar_ana5" id=linked-reduction-checks>关联削减检查<a href=#linked-reduction-checks class=hash-link aria-label=关联削减检查的直接链接 title=关联削减检查的直接链接 translate=no>​</a></h4>
+<p>应用持仓经济学时，每次关联削减必须与外部持仓的账户一致，削减其未平数量，且不反转或重新开启它。成交违反这些检查时，引擎在<strong>修改订单或持仓之前</strong>拒绝它。</p>
+<p><a href=#order-only-fill-projection class="">仅订单成交投影</a>绕过这些削减检查，因为它只修复订单历史而不改变持仓。</p>
+<h2 class="anchor anchorTargetStickyNavbar_ana5" id=reconciliation-configuration>对账配置<a href=#reconciliation-configuration class=hash-link aria-label=对账配置的直接链接 title=对账配置的直接链接 translate=no>​</a></h2>
+<p>除非 <code>reconciliation</code> 设为 false，live 节点会为每个执行客户端运行启动对账。<code>reconciliation_lookback_mins</code> 参数经执行引擎控制向前请求多久的历史。启动开关与轮询间隔属于节点的 <code>LiveExecutionEngineConfig</code>。管理器接收用于对账决策的阈值、重试上限、过滤器与回看窗口。</p>
+<div class="theme-admonition theme-admonition-tip admonition_LYZY alert alert--success"><div class=admonitionHeading_pnFY><span class=admonitionIcon_tEzm><svg viewBox="0 0 12 16"><path fill-rule=evenodd d="M6.5 0C3.48 0 1 2.19 1 5c0 .92.55 2.25 1 3 1.34 2.25 1.78 2.78 2 4v1h5v-1c.22-1.22.66-1.75 2-4 .45-.75 1-2.08 1-3 0-2.81-2.48-5-5.5-5zm3.64 7.48c-.25.44-.47.8-.67 1.11-.86 1.41-1.25 2.06-1.45 3.23-.02.05-.02.11-.02.17H5c0-.06 0-.13-.02-.17-.2-1.17-.59-1.83-1.45-3.23-.2-.31-.42-.67-.67-1.11C2.44 6.78 2 5.65 2 5c0-2.2 2.02-4 4.5-4 1.22 0 2.36.42 3.22 1.19C10.55 2.94 11 3.94 11 5c0 .66-.44 1.78-.86 2.48zM4 14h5c-.23 1.14-1.3 2-2.5 2s-2.27-.86-2.5-2z"/></svg></span>提示</div><div class=admonitionContent_ZwmI><p><code>reconciliation_lookback_mins</code> 留空即使用适配器文档化的默认值。许多适配器请求场所提供的最大执行历史，另一些用有界默认值以匹配场所的数据保留与请求限制。见所选场所的集成指南。</div></div>
+<div class="theme-admonition theme-admonition-warning admonition_LYZY alert alert--warning"><div class=admonitionHeading_pnFY><span class=admonitionIcon_tEzm><svg viewBox="0 0 16 16"><path fill-rule=evenodd d="M8.893 1.5c-.183-.31-.52-.5-.887-.5s-.703.19-.886.5L.138 13.499a.98.98 0 0 0 0 1.001c.193.31.53.501.886.501h13.964c.367 0 .704-.19.877-.5a1.03 1.03 0 0 0 .01-1.002L8.893 1.5zm.133 11.497H6.987v-2.003h2.039v2.003zm0-3.004H6.987V5.987h2.039v4.006z"/></svg></span>注意</div><div class=admonitionContent_ZwmI><p>有界历史窗口的起点可能晚于开仓成交。一些场所还会过滤或丢弃更早的执行数据。这不改变上文的持仓报告规则：显式
+报告仍是数量目标。</div></div>
+<p>全部实时交易选项见 <code>LiveExecutionEngineConfig</code>
+<a href=https://nautilustrader.io/docs/python-api-latest/config.html#nautilus_trader.live.LiveExecutionEngineConfig target=_blank rel="noopener noreferrer" class="">API 参考</a>。</p>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=order-ownership-and-tags>订单归属与标签<a href=#order-ownership-and-tags class=hash-link aria-label=订单归属与标签的直接链接 title=订单归属与标签的直接链接 translate=no>​</a></h3>
+<p>每个策略可以把 <code>external_order_instrument_ids</code> 配置为认领场所来源外部订单及特化工具的对账活动的意图。策略 live 注册时把该意图实化为活跃认领，策略可在运行时替换。这让策略在没有缓存状态时也能恢复管理未成交订单与持仓。</p>
+<p>外部订单的策略 ID 与来源标签取决于其来源，以及是否有策略认领其工具。被认领的订单与成交使用认领策略的 ID，策略因此可以继续管理恢复的状态。</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>订单来源<th>未被认领<th>已被认领<tbody><tr><td>场所订单<td><code>EXTERNAL</code>，标签 <code>VENUE</code><td>认领策略，无标签<tr><td>持仓对账订单<td><code>EXTERNAL</code>，标签 <code>RECONCILIATION</code><td>认领策略，标签 <code>RECONCILIATION</code></table>
+<div class="theme-admonition theme-admonition-tip admonition_LYZY alert alert--success"><div class=admonitionHeading_pnFY><span class=admonitionIcon_tEzm><svg viewBox="0 0 12 16"><path fill-rule=evenodd d="M6.5 0C3.48 0 1 2.19 1 5c0 .92.55 2.25 1 3 1.34 2.25 1.78 2.78 2 4v1h5v-1c.22-1.22.66-1.75 2-4 .45-.75 1-2.08 1-3 0-2.81-2.48-5-5.5-5zm3.64 7.48c-.25.44-.47.8-.67 1.11-.86 1.41-1.25 2.06-1.45 3.23-.02.05-.02.11-.02.17H5c0-.06 0-.13-.02-.17-.2-1.17-.59-1.83-1.45-3.23-.2-.31-.42-.67-.67-1.11C2.44 6.78 2 5.65 2 5c0-2.2 2.02-4 4.5-4 1.22 0 2.36.42 3.22 1.19C10.55 2.94 11 3.94 11 5c0 .66-.44 1.78-.86 2.48zM4 14h5c-.23 1.14-1.3 2-2.5 2s-2.27-.86-2.5-2z"/></svg></span>提示</div><div class=admonitionContent_ZwmI><p>要在策略中识别未被认领的外部订单，检查 <code>order.strategy_id.value == "EXTERNAL"</code>。
+归属与否都不妨碍这些订单参与持仓跟踪或组合计算。历史成交在适用时仍遵循<a href=#bounded-history-safety class="">有界历史安全</a>规则。</div></div>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=submission-recovery>提交恢复<a href=#submission-recovery class=hash-link aria-label=提交恢复的直接链接 title=提交恢复的直接链接 translate=no>​</a></h3>
+<p><code>submission_recovery_policy</code> 默认为 <code>ResolveLocally</code>。选择 <code>RetainUnresolved</code> 会启用：</p>
+<ul>
+<li class="">提交身份跟踪。</li>
+<li class="">耗尽诊断。</li>
+<li class="">提交恢复预算保留至确认。</li>
+</ul>
+<p>耗尽且未确认的提交保持未解决，并停止进一步的自动逐单恢复查询。客户端也可以独立于配置的策略要求这一保护。Polymarket 自动启用该保护。</p>
+<p>保留的提交还影响<a class="" href=/concepts/live#submission-recovery-at-shutdown>节点关闭结果</a>。提交恢复在 <code>delay_post_stop</code> 边界仍未完成时，Rust 的 <code>LiveNode::stop</code> 与 <code>run</code>，以及托管运行，会在拆除后报告未解决的客户端订单 ID。未显式选择的 Polymarket 也包含在内。耗尽诊断与成功拆除都不构成场所结果或持仓清零的证据。</p>
+<h4 class="anchor anchorTargetStickyNavbar_ana5" id=exhaustion-diagnostic>耗尽诊断<a href=#exhaustion-diagnostic class=hash-link aria-label=耗尽诊断的直接链接 title=耗尽诊断的直接链接 translate=no>​</a></h4>
+<p>启用跟踪后，原生 <code>LiveNode</code> 在未确认提交达到现有恢复上限时，在 <code>reconciliation.SubmissionRecoveryExhausted</code> 上发布 <code>SubmissionRecoveryExhausted</code>。诊断在处理完对账事件后发布，每个被跟踪的提交一次。</p>
+<p>诊断携带原始提交身份、恢复来源、检查次数与事件时间戳。它不是订单事件，不构成场所结果的证据。</p>
+<h4 class="anchor anchorTargetStickyNavbar_ana5" id=recovery-budget>恢复预算<a href=#recovery-budget class=hash-link aria-label=恢复预算的直接链接 title=恢复预算的直接链接 translate=no>​</a></h4>
+<p>确认之前派发的撤销或修改共享该提交的剩余恢复预算。重复注册与缺单记账不能重启该预算。确认使其退役，且不移交给重叠命令。</p>
+<p>确认之后派发的命令，在派发时启动自己的在途检查，即使其 pending 事件尚未到达。它使用现有的命令清理规则。例如 <code>PARTIALLY_FILLED</code> 订单状态报告在两种策略下都会停止待撤消的超时。该清理规则不适用于独立成交报告。</p>
+<p>没有提交跟踪（<code>ResolveLocally</code> 且客户端不要求保留）时，命令派发启动全新的恢复预算，原生成交或 <code>Triggered</code> 事件不会终止挂起命令的超时。</p>
+<h4 class="anchor anchorTargetStickyNavbar_ana5" id=acknowledgement>确认<a href=#acknowledgement class=hash-link aria-label=确认的直接链接 title=确认的直接链接 translate=no>​</a></h4>
+<p>携带场所订单 ID 的匹配 <code>Submitted</code> 报告使原始提交的恢复退役。来报、批量或定向查询响应使用同样的确认检查。已应用的、带场所身份的 <code>OrderUpdated</code> 也确认提交。不带场所身份的本地更新不算。</p>
+<p>注册表在后续活动中保留提交身份：</p>
+<ul>
+<li class=""><strong>已确认的提交</strong>：仅报告的确认也会被记住，包括尚未注册恢复的缓存订单，因此重复的提交注册不能重启超时。缺单记账不会为已确认的提交再次注册。</li>
+<li class=""><strong>已耗尽的提交</strong>：其身份留在注册表中直到场所证据将其裁决。重复注册与撤销或修改派发不能重启其自动恢复。</li>
+</ul>
+<p>后续命令不产生提交耗尽诊断。</p>
+<h4 class="anchor anchorTargetStickyNavbar_ana5" id=registration>注册<a href=#registration class=hash-link aria-label=注册的直接链接 title=注册的直接链接 translate=no>​</a></h4>
+<ul>
+<li class=""><strong>live 节点</strong>：<code>LiveNode</code> 在派发前注册提交身份，并自动处理客户端要求的保留。</li>
+<li class=""><strong>直接使用 <code>ExecutionManager</code> 的调用方</strong>：提交用 <code>register_submission</code>。<code>register_inflight</code>
+只启动命令恢复，不会从缓存推断提交身份。直接宿主若要依赖 inflight 检查中的客户端要求保留，必须选择 <code>RetainUnresolved</code> 或先与客户端运行 <code>check_open_orders</code>。</li>
+</ul>
+<h4 class="anchor anchorTargetStickyNavbar_ana5" id=recovery-limits>恢复上限<a href=#recovery-limits class=hash-link aria-label=恢复上限的直接链接 title=恢复上限的直接链接 translate=no>​</a></h4>
+<p>现有上限与覆盖检查仍然适用：</p>
+<ul>
+<li class=""><strong>在途检查</strong>：<code>inflight_check_retries</code> 统计检查次数。上限为 <code>N</code> 时，耗尽前允许 <code>N - 1</code>
+次中间订单查询。</li>
+<li class=""><strong>缺单检查</strong>：使用 <code>open_check_missing_retries</code>，并要求在报告耗尽之前完成匹配的客户端覆盖加一次成功且未找到订单的定向查询。失败或推迟的定向查询不产生该诊断。</li>
+</ul>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=instrument-availability>工具可用性<a href=#instrument-availability class=hash-link aria-label=工具可用性的直接链接 title=工具可用性的直接链接 translate=no>​</a></h3>
+<p>适配器解析对账报告需要用到工具，因此报告引用的每个工具必须已加载。对账期间适配器不会向场所补拉缺失的工具。</p>
+<p>工具范围来自适配器的 provider 配置而非引擎。
+<code>InstrumentProviderConfig.load_ids</code> 决定适配器持有哪些工具，而
+<code>reconciliation_instrument_ids</code> 只在适配器产出报告之后过滤报告。</p>
+<p>显式 <code>load_ids</code> 范围之外的报告是预期行为，在 debug 级别丢弃。因此限定到单一工具的节点对场所其余部分保持安静。范围内的工具解析失败说明出了问题，无论它是 <code>load_ids</code> 点名的还是 <code>load_all=True</code> 覆盖的。结果取决于报告描述的内容：</p>
+<ul>
+<li class="">未成交订单或持仓报告会使对账失败，系统不启动。无法定价的 live 持仓绝不会被静默丢弃。</li>
+<li class="">已关闭或历史记录记录警告而不中断启动。适配器声明有界历史时，该记录还会把报告集标记为不完整，适用
+<a href=#bounded-history-safety class="">有界历史安全</a>规则。到期通常会退役更早期成交仍引用的工具。</li>
+</ul>
+<h2 class="anchor anchorTargetStickyNavbar_ana5" id=startup-reconciliation>启动对账<a href=#startup-reconciliation class=hash-link aria-label=启动对账的直接链接 title=启动对账的直接链接 translate=no>​</a></h2>
+<p>所有适配器执行客户端遵循同一对账流程，调用三个方法产出 execution mass status：</p>
+<ul>
+<li class=""><code>generate_order_status_reports</code></li>
+<li class=""><code>generate_fill_reports</code></li>
+<li class=""><code>generate_position_status_reports</code></li>
+</ul>
+<!-- -->
+<p>这些报告代表外部现实。流程按图示顺序处理，使每次持仓检查都建立在对齐后的订单与成交状态之上。</p>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=mass-status-history-contract>Mass-status 历史契约<a href=#mass-status-history-contract class=hash-link aria-label="Mass-status 历史契约的直接链接" title="Mass-status 历史契约的直接链接" translate=no>​</a></h3>
+<p><code>ExecutionMassStatus</code> 可以声明其历史报告的出处：</p>
+<ul>
+<li class=""><code>lookback_start=None</code> 表示适配器未声明显式的时间下界。</li>
+<li class=""><code>lookback_start=Some(timestamp)</code> 表示历史订单与成交报告不包含该时间戳之前的场所活动。</li>
+<li class=""><code>reports_complete=true</code> 表示解读有界历史所需的每个订单、成交与持仓来源都已完成，且所有必需记录都成功映射。</li>
+</ul>
+<p>历史来源失败时，适配器仍可返回权威的活跃订单与持仓报告，但把 mass status 标记为不完整以记录缺失的历史。不完整不妨碍从显式持仓报告恢复。</p>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=report-deduplication>报告去重<a href=#report-deduplication class=hash-link aria-label=报告去重的直接链接 title=报告去重的直接链接 translate=no>​</a></h3>
+<ul>
+<li class="">批次内的订单报告去重并记录警告。</li>
+<li class="">重复的 trade ID 作为警告记录，供排查。</li>
+<li class="">持仓报告除 <code>report_id</code> 和 <code>ts_init</code> 外与更早报告一致时，在启动校验与持续持仓检查中只计一次，每个重复记录警告。任何其他字段（包括 <code>ts_last</code>）不同的报告单独计数。</li>
+</ul>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=order-reconciliation>订单对账<a href=#order-reconciliation class=hash-link aria-label=订单对账的直接链接 title=订单对账的直接链接 translate=no>​</a></h3>
+<ul>
+<li class="">生成并应用事件，把订单从缓存状态推进到当前状态。</li>
+<li class="">为无法识别的客户端订单 ID 或缺少客户端订单 ID 的报告生成外部订单事件。</li>
+</ul>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=fill-reconciliation>成交对账<a href=#fill-reconciliation class=hash-link aria-label=成交对账的直接链接 title=成交对账的直接链接 translate=no>​</a></h3>
+<ul>
+<li class="">为缺失的成交报告推断 <code>OrderFilled</code> 事件。</li>
+<li class="">用基于容差的价格与手续费比较，校验成交报告数据的一致性。</li>
+<li class="">既无订单报告也无缓存订单的成交组被丢弃，每个 mass status 对被丢弃的组记录一条聚合警告。成交携带 <code>venue_position_id</code> 的组单独处理：启用 <code>generate_missing_orders</code> 时引擎据此构建已成交订单，否则跳过。</li>
+</ul>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=event-ordering>事件顺序<a href=#event-ordering class=hash-link aria-label=事件顺序的直接链接 title=事件顺序的直接链接 translate=no>​</a></h3>
+<p>启动对账按时间顺序应用其生成的订单与成交事件：</p>
+<ul>
+<li class="">成交按事件时间应用：<code>FillReport.ts_event</code> 中的场所成交时间，或推断成交所用报告的 <code>ts_last</code>。</li>
+<li class="">每个场所订单的其他事件（如受理）不晚于其后最早的成交应用。场所上报最后更新时间或适配器使用本地时间时，报告的受理可能晚于订单自身的成交；但订单仍在成交应用之前被受理。</li>
+<li class="">不同场所订单的事件保留各自的时间，包括与被其替换订单共用客户端订单 ID 的被替换订单。</li>
+</ul>
+<p>顺序只改变应用时机。每个事件保留其上报的时间戳。</p>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=position-reconciliation>持仓对账<a href=#position-reconciliation class=hash-link aria-label=持仓对账的直接链接 title=持仓对账的直接链接 translate=no>​</a></h3>
+<ul>
+<li class="">按账户与工具，用账户的数量容差把净持仓与场所持仓报告匹配。</li>
+<li class="">订单对账后持仓仍与场所不一致时，生成外部订单事件。</li>
+<li class="">启用 <code>generate_missing_orders</code>（默认 True）时，生成策略 ID 为
+<code>EXTERNAL</code>、标签为 <code>RECONCILIATION</code> 的订单调平差异。</li>
+<li class="">同一账户与工具的 NETTING 归属分散在多个策略时记录警告，因为场所持仓报告是账户级净持仓。</li>
+</ul>
+<h4 class="anchor anchorTargetStickyNavbar_ana5" id=synthetic-orders>合成订单<a href=#synthetic-orders class=hash-link aria-label=合成订单的直接链接 title=合成订单的直接链接 translate=no>​</a></h4>
+<p>对账以已知价格生成合成 MARKET 订单报告与成交：</p>
+<ul>
+<li class="">从空仓开仓使用报告的 <code>avg_px_open</code>。</li>
+<li class="">增加现有持仓使用以报告开仓均价为目标计算的价格。</li>
+<li class="">削减现有持仓使用报告的开仓均价；报告缺失时回退到缓存均价。削减不改变剩余持仓的开仓均价。</li>
+<li class="">平仓到零使用缓存开仓均价。</li>
+<li class="">方向反转先平掉缓存持仓，再以其开仓均价开出报告的持仓。</li>
+</ul>
+<p>标记其均价的报告会使其中一些价格变化，见
+<a href=#reported-entry-averages class="">报告的开仓均价</a>。</p>
+<p>在工具数量精度下四舍五入为零的数量差，引擎直接跳过。启动校验仍会用账户的数量容差检查剩余差额。</p>
+<h4 class="anchor anchorTargetStickyNavbar_ana5" id=replayed-fills>重放的成交<a href=#replayed-fills class=hash-link aria-label=重放的成交的直接链接 title=重放的成交的直接链接 translate=no>​</a></h4>
+<p>对账可以由场所持仓报告开出持仓。该持仓保持未平期间，同工具同账户、<code>ts_event</code> 更早的成交报告只更新订单、不更新持仓。报告已经包含这些执行。因此重启后重发成交的场所（如 Interactive
+Brokers TWS）不会让持仓翻倍。该工具与账户没有此类未平持仓时，更早的成交照常应用。</p>
+<p>该保护有以下已知缺口：</p>
+<ul>
+<li class=""><strong>对账窗口</strong>：合成开仓成交携带对账时刻而非报告时刻。落在持仓报告查询与对账之间的真实成交因此也不计入持仓。持续持仓检查只有在启用 <code>generate_missing_orders</code> 运行时才会将其对齐。</li>
+<li class=""><strong>开仓订单清除</strong>：保护需要缓存中存在合成开仓订单。启用已关闭订单清除后，<code>purge_closed_orders_buffer_mins</code> 短于场所重放延迟时会先把它清掉。</li>
+<li class=""><strong>打包成交</strong>：随订单状态报告一起到达的成交绕过该保护。</li>
+</ul>
+<p>不计入持仓的成交仍保留在订单上，与
+<a href=#order-only-fill-projection class="">仅订单成交投影</a>相同，但有以下影响：</p>
+<ul>
+<li class=""><strong>事件存储恢复</strong>：从事件存储恢复缓存时，成交会应用到持仓，恢复的持仓可能高估场所数量。</li>
+<li class=""><strong>成交作废</strong>：该成交的场所作废被拒绝，订单保持已成交。</li>
+<li class=""><strong>锁定余额</strong>：本应由该成交关闭的未成交订单，其锁定余额保留到该工具与账户的下一个订单事件。</li>
+<li class=""><strong>持仓检查</strong>：若对账后的持仓在持续持仓检查对齐之前已平掉，后续检查会在该成交处停止，等其首次应用失败后经过 <code>position_check_threshold_ms</code>，再合成对齐持仓。</li>
+</ul>
+<h4 class="anchor anchorTargetStickyNavbar_ana5" id=startup-position-validation>启动持仓校验<a href=#startup-position-validation class=hash-link aria-label=启动持仓校验的直接链接 title=启动持仓校验的直接链接 translate=no>​</a></h4>
+<p>应用启动报告后，live 节点用缓存检查<strong>每个范围内的显式持仓报告，包括空仓报告</strong>。未解决的持仓会在 actor 或策略 <code>on_start</code> <strong>之前</strong>阻断启动。错误信息指出账户、工具、场所数量与恢复失败原因。</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>持仓情形<th>缓存标识<th>数量要求<tbody><tr><td>HEDGING 且带场所持仓 ID<td>精确的场所持仓 ID<td>精确数量<tr><td>NETTING，带或不带场所持仓 ID<td>账户与工具<td>账户容差内<tr><td>不带持仓 ID 的净额报告<td>账户与工具<td>账户容差内</table>
+<p>场所同时报告多头与空头持仓时，两侧合计也必须匹配，仅净额相等不够。超出账户容差的残余差额保持未解决，即使在工具数量精度下四舍五入为零。容差内的差额保持可接受，包括接近零的微小残差。</p>
+<p>未平持仓带报告的 <code>avg_px_open</code> 时，启动还用成交调整的相对容差 0.01% 检查开仓均价。均价可能落在两个工具价格档位之间，比较时不向工具价格精度取整。</p>
+<p>NETTING 报告对每个报告方向使用数量加权的开仓均价。一个方向跨多份报告时，所有有贡献的报告都必须提供均价，才能确立该方向的价格目标。报告可以跳过该检查或放宽容差，见
+<a href=#reported-entry-averages class="">报告的开仓均价</a>。</p>
+<p>数量匹配本身不能解决报告的开仓均价不匹配。数量已匹配时，持仓对账不会仅为改变均价而生成更正，剩余的价格不匹配会使启动失败。更正数量后，若结果均价仍超出容差，启动同样失败。合成恢复不能确立历史已实现盈亏。</p>
+<h4 class="anchor anchorTargetStickyNavbar_ana5" id=reported-entry-averages>报告的开仓均价<a href=#reported-entry-averages class=hash-link aria-label=报告的开仓均价的直接链接 title=报告的开仓均价的直接链接 translate=no>​</a></h4>
+<p><code>PositionStatusReport</code> 的两个字段告知对账如何解读 <code>avg_px_open</code>。默认值保持上文所述行为。</p>
+<ul>
+<li class=""><code>avg_px_open_reconciliation</code>：<code>MATCH</code>（默认）把均价与缓存开仓均价比较，并据此为合成成交定价。<code>OPENING_ONLY</code> 标记用另一种方法（如剩余 FIFO 批次）计算的均价。持仓被削减后，该均价合理地不同于缓存的数量加权均价。</li>
+<li class=""><code>avg_px_open_precision</code>：场所对均价舍入或截断时保留的小数位数。未设置时，比较不附加宽容量。</li>
+</ul>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>均价的用途<th><code>OPENING_ONLY</code><th>设置了 <code>avg_px_open_precision</code><tbody><tr><td>启动开仓价格检查<td>该方向跳过。数量检查仍适用。<td>在 0.01% 加该方向最粗精度一个单位的范围内视为通过。<tr><td>成交调整匹配<td>仅数量，因此价格差异保留真实成交。<td>使用同样的价格宽容容量。数量仍须精确匹配。<tr><td>从空仓开仓或方向反转<td>使用报告的均价。<td>使用报告的均价。<tr><td>增加或削减持仓<td>使用缓存的均价。<td>缓存均价已与报告一致时使用缓存均价。</table>
+<p><code>OPENING_ONLY</code> 下，从空仓开仓包含<a href=#fill-adjustment class="">成交调整</a>在部分窗口前加入的合成开仓成交。两个条件同时成立时，标记了精度的报告以窗口成交的均价为该成交定价：窗口持仓与报告同方向，且其均价已与报告一致。任一条件不满足则该成交使用默认价格。</p>
+<p>一份 <code>OPENING_ONLY</code> 报告使整个方向不可比较，因为该方向的加权均价会混合算法。对现有持仓的变动按缓存均价定价，保持其开仓均价，且削减不记合成交易盈亏。没有缓存均价时，合成成交回退到报告均价。</p>
+<h4 class="anchor anchorTargetStickyNavbar_ana5" id=recovery-prerequisites-and-filters>恢复前提与过滤<a href=#recovery-prerequisites-and-filters class=hash-link aria-label=恢复前提与过滤的直接链接 title=恢复前提与过滤的直接链接 translate=no>​</a></h4>
+<p>在空缓存中由没有订单或成交历史的报告创建持仓，需要 <code>avg_px_open</code>。引擎不会臆造开仓价格。</p>
+<ul>
+<li class=""><strong>缺单生成</strong>：禁用 <code>generate_missing_orders</code> 不会绕过启动校验。</li>
+<li class=""><strong>报告范围</strong>：持仓报告与工具过滤器仍然适用，被排除的报告不检查。</li>
+<li class=""><strong>对账禁用</strong>：禁用对账则完全跳过该检查。</li>
+</ul>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=fill-adjustment>成交调整<a href=#fill-adjustment class=hash-link aria-label=成交调整的直接链接 title=成交调整的直接链接 translate=no>​</a></h3>
+<p>报告的成交无法解释当前场所持仓时，引擎可以分析零点穿越、移除已平生命周期，并生成一笔合成成交。</p>
+<p>成交调整受以下条件约束：</p>
+<ul>
+<li class="">声明了 <code>lookback_start</code> 不跳过调整。</li>
+<li class="">没有报告的 <code>avg_px_open</code> 时，引擎保留原始订单与成交，不为合成成交调整臆造价格。</li>
+<li class="">设置 <code>filter_position_reports</code> 会对声明与未声明的窗口都跳过成交调整。</li>
+</ul>
+<p>成交调整使用以下术语：</p>
+<ul>
+<li class=""><strong>零点穿越</strong>：持仓数量穿越零（FLAT），标记一个生命周期边界。</li>
+<li class=""><strong>生命周期</strong>：两次零点穿越之间的成交序列，代表一个开平仓周期。</li>
+<li class=""><strong>合成成交</strong>：代表缺失活动的计算成交报告，定价使持仓均价正确。</li>
+<li class=""><strong>容差</strong>：成交调整使用 0.0001（0.01%）的相对开仓价格容差，吸收细微计算差异。启动校验使用同样的价格容差外加账户独立的数量容差。设置 <code>avg_px_open_precision</code> 的报告在该精度上加一个单位到价格容差。</li>
+</ul>
+<p>禁用 <code>generate_missing_orders</code> 时，引擎仍处理原始场所订单报告。当前生命周期能解释场所持仓时，过滤掉已完成的生命周期。但它不会增补或替换合成报告去把成交窗口对齐到场所持仓，也不会为没有订单报告的成交组实化订单。</p>
+<p>应用历史上限的适配器仍应通过
+<a href=#mass-status-history-contract class="">mass-status 历史契约</a>声明该上限。声明记录出处，
+并不授权放任显式持仓报告不匹配。</p>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=bounded-history-safety>有界历史安全<a href=#bounded-history-safety class=hash-link aria-label=有界历史安全的直接链接 title=有界历史安全的直接链接 translate=no>​</a></h3>
+<p><strong>显式持仓报告</strong>对持仓具有权威性，无论持仓还是空仓。引擎
+要么在对账容差内对齐该报告，要么失败关闭。它不会重放
+有界窗口来决定报告是否具有权威性。</p>
+<p>引擎应用可用的订单与成交，并默认生成达到报告所需的订单与成交。禁用 <code>generate_missing_orders</code> 不会放任不匹配存在。</p>
+<p>其工具没有范围内显式持仓报告时，有界成交不开仓、不平仓也不改变持仓，也不更新组合经济学。订单仍达到报告的状态与已成交数量。原始对账报告仍可用。</p>
+<p>为兼容起见，未声明 <code>lookback_start</code> 的 mass status 在不存在持仓报告时仍可应用历史成交。该例外不把缺失报告当作空仓。保留成交去重与旧生命周期投影在两条路径中都继续适用。</p>
+<p>带显式 <code>venue_position_id</code> 的报告走持仓专属的对账路径，不需要 NETTING 生命周期推断。</p>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=failure-handling>失败处理<a href=#failure-handling class=hash-link aria-label=失败处理的直接链接 title=失败处理的直接链接 translate=no>​</a></h3>
+<ul>
+<li class="">单个来源失败后，适配器可以保留其余成功的报告分支。显式限定边界的 mass status 必须把结果标记为不完整。不完整不否决显式持仓报告。没有显式持仓报告的有界成交不改变持仓。</li>
+<li class="">先于订单状态报告到达的成交报告被推迟，直到订单状态可用。</li>
+</ul>
+<h4 class="anchor anchorTargetStickyNavbar_ana5" id=commission-failures>手续费失败<a href=#commission-failures class=hash-link aria-label=手续费失败的直接链接 title=手续费失败的直接链接 translate=no>​</a></h4>
+<p>按<a class="" href=/developer_guide/adapters#commission-failure-handling>适配器契约</a>，适配器成交的手续费无法计算或表示时，报告请求失败。适配器不得丢弃该成交，也不得把其手续费替换为零或通用公式。启动在应用该客户端的 mass status 之前停止。</p>
+<p>引擎请负责的执行客户端计算推断成交的手续费。失败会推迟推断的数量及依赖的终态迁移，直到后续对账周期成功。同一报告集中的合法显式成交仍可应用。外部订单的场景中，引擎在把订单加入缓存或发布初始事件之前先解决手续费，因此失败会推迟整个外部订单。负责的执行客户端不可用产生同样的失败关闭结果。</p>
+<p>应用总体成功的 mass status 时推断成交手续费失败，本身不会停止启动。范围内显式持仓报告仍未解决时启动仍失败；否则未完成的工作留待后续对账周期。</p>
+<p>启动对账因任何其他原因失败时，系统记录错误且不启动。</p>
+<h2 class="anchor anchorTargetStickyNavbar_ana5" id=runtime-checks>运行时检查<a href=#runtime-checks class=hash-link aria-label=运行时检查的直接链接 title=运行时检查的直接链接 translate=no>​</a></h2>
+<p>持续对账在启动对账完成后开始。它会：</p>
+<ul>
+<li class="">监控在途订单是否超过配置阈值。</li>
+<li class="">按配置间隔与场所核对未成交订单。</li>
+<li class="">按配置间隔与场所核对持仓状态。</li>
+<li class="">用场所公开订单簿审计内部<em>自有</em>订单簿。</li>
+</ul>
+<p><code>reconciliation_startup_delay_secs</code> 参数在启动对账完成<em>之后</em>再追加一段延迟，给系统稳定的时间。各检查的结果见<a href=#runtime-scenarios class="">运行时场景</a>。</p>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=in-flight-checks>在途检查<a href=#in-flight-checks class=hash-link aria-label=在途检查的直接链接 title=在途检查的直接链接 translate=no>​</a></h3>
+<p>耗尽配置的重试后，在途检查器按以下方式裁决超时订单——除非订单从未被受理且提交保留规则适用：</p>
+<ul>
+<li class=""><code>SUBMITTED</code>：以原因 <code>INFLIGHT_TIMEOUT</code> 拒绝订单。</li>
+<li class=""><code>PENDING_CANCEL</code> 或 <code>PENDING_UPDATE</code>：把订单裁决为 <code>CANCELED</code>。</li>
+</ul>
+<p>对从未被受理的订单，<code>SubmissionRecoveryPolicy::RetainUnresolved</code> 要求保留，Polymarket 无论配置如何也要求保留。保留会停止自动的逐单恢复查询，同时允许后续场所证据裁决订单。保留规则见
+<a href=#submission-recovery class="">提交恢复</a>。</p>
+<p><a class="" href=/concepts/execution/policies#terminal-reconciliation-provenance>终态对账来源</a>区分本地策略裁决与场所报告的结果。</p>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=order-consistency-checks>订单一致性检查<a href=#order-consistency-checks class=hash-link aria-label=订单一致性检查的直接链接 title=订单一致性检查的直接链接 translate=no>​</a></h3>
+<p>下表适用于缓存状态与场所状态不一致的情况。缺失的未成交订单报告本身不能证明挂起的修改或撤销结果。因此这些检查让那些状态保持未解决，直到其他检查能确定场所状态。</p>
+<div class="theme-admonition theme-admonition-info admonition_LYZY alert alert--info"><div class=admonitionHeading_pnFY><span class=admonitionIcon_tEzm><svg viewBox="0 0 14 16"><path fill-rule=evenodd d="M7 2.3c3.14 0 5.7 2.56 5.7 5.7s-2.56 5.7-5.7 5.7A5.71 5.71 0 0 1 1.3 8c0-3.14 2.56-5.7 5.7-5.7zM7 1C3.14 1 0 4.14 0 8s3.14 7 7 7 7-3.14 7-7-3.14-7-7-7zm1 3H6v5h2V4zm0 6H6v2h2v-2z"/></svg></span>全历史检查</div><div class=admonitionContent_ZwmI><p><em>Not found</em>（未找到）各行只在全历史模式（<code>open_check_open_only=False</code>）适用，默认是仅未成交模式。提交保留同样在此适用：策略或其客户端要求保留时，未确认的 <code>SUBMITTED</code> 订单保持未解决。</div></div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>缓存状态<th>场所状态<th>裁决<th>理由<tbody><tr><td><code>SUBMITTED</code><td><em>未找到</em><td><code>REJECTED</code><td>订单从未被场所确认（例如在网络错误中丢失）。<tr><td><code>ACCEPTED</code><td><em>未找到</em><td><code>REJECTED</code><td>订单在场所不存在，很可能从未成功下单。<tr><td><code>ACCEPTED</code><td><code>CANCELED</code><td><code>CANCELED</code><td>场所撤销了订单（用户操作或场所发起）。<tr><td><code>ACCEPTED</code><td><code>EXPIRED</code><td><code>EXPIRED</code><td>订单在场所到达 GTD 过期。<tr><td><code>ACCEPTED</code><td><code>REJECTED</code><td><code>REJECTED</code><td>场所受理后拒绝（罕见但可能）。<tr><td><code>PENDING_UPDATE</code><td><em>未找到</em><td><em>未解决</em><td>修改结果保持未知。<tr><td><code>PENDING_CANCEL</code><td><em>未找到</em><td><em>未解决</em><td>撤销结果保持未知。<tr><td><code>PARTIALLY_FILLED</code><td><code>CANCELED</code><td><code>CANCELED</code><td>订单在场所被撤，保留成交。<tr><td><code>PARTIALLY_FILLED</code><td><em>未找到</em><td><code>CANCELED</code><td>订单不存在但曾有成交（核对成交历史）。</table>
+<h4 class="anchor anchorTargetStickyNavbar_ana5" id=open-only-mode>仅未成交模式<a href=#open-only-mode class=hash-link aria-label=仅未成交模式的直接链接 title=仅未成交模式的直接链接 translate=no>​</a></h4>
+<p>场所"未成交订单"端点设计上排除已关闭订单，无法区分缺失订单与刚关闭的订单。缺单检查无法证明最终场所状态时，挂起的撤销/修改保持未解决。</p>
+<h4 class="anchor anchorTargetStickyNavbar_ana5" id=recent-order-protection>近期订单保护<a href=#recent-order-protection class=hash-link aria-label=近期订单保护的直接链接 title=近期订单保护的直接链接 translate=no>​</a></h4>
+<p>最后一个事件落在 <code>open_check_threshold_ms</code> 窗口内的订单跳过对账，防止场所仍在处理时因竞态产生误报。</p>
+<h4 class="anchor anchorTargetStickyNavbar_ana5" id=targeted-query-safeguard>定向查询防护<a href=#targeted-query-safeguard class=hash-link aria-label=定向查询防护的直接链接 title=定向查询防护的直接链接 translate=no>​</a></h4>
+<p>应用终态"未找到"裁决之前，引擎向场所发起一次单订单查询，捕获批量查询限制或时延造成的漏报。</p>
+<h4 class="anchor anchorTargetStickyNavbar_ana5" id=completed-orders>已完成订单<a href=#completed-orders class=hash-link aria-label=已完成订单的直接链接 title=已完成订单的直接链接 translate=no>​</a></h4>
+<p>在场所"未找到"的 <code>FILLED</code> 订单被静默忽略。场所通常把已完成订单移出查询结果。</p>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=position-checks>持仓检查<a href=#position-checks class=hash-link aria-label=持仓检查的直接链接 title=持仓检查的直接链接 translate=no>​</a></h3>
+<p>持仓检查按工具与账户使用独立的重试计数。持仓匹配成功即清除计数；反复未解决的差异会停止该组合的主动对账，直到差异消除。</p>
+<p>场所持仓查询失败时，引擎在本周期跳过该场所的缓存持仓，而不是把缺失报告当作空仓。</p>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=retry-coordination>重试协调<a href=#retry-coordination class=hash-link aria-label=重试协调的直接链接 title=重试协调的直接链接 translate=no>​</a></h3>
+<p>在途循环按 <code>inflight_check_retries</code> 递增自己的逐单重试计数，并把该值镜像进缺单跟踪。未成交订单循环按 <code>open_check_missing_retries</code> 递增缺单计数。每个循环只受自己的上限约束，两个设置不会互相覆盖。</p>
+<p>未成交订单循环耗尽重试时，引擎发出一次定向 <code>GenerateOrderStatusReport</code> 探测——在应用终态、或让含糊的挂起撤销/修改保持未解决之前。场所返回该订单则继续对账并清除缺单跟踪。挂起状态仍未解决时，引擎还会重置在途计数，在配置的阈值过后再次检查。</p>
+<p><code>RetainUnresolved</code> 或注册客户端要求保留时，未被确认的被跟踪提交保持其原始在途预算而非重置。反复的缺单检查不能拖延该预算的耗尽。耗尽时保留未解决的提交，不产生合成终态事件。</p>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=single-order-query-throttling>单订单查询限流<a href=#single-order-query-throttling class=hash-link aria-label=单订单查询限流的直接链接 title=单订单查询限流的直接链接 translate=no>​</a></h3>
+<p>引擎用 <code>max_single_order_queries_per_cycle</code> 限制每周期的单订单查询数，其余订单推迟到下一周期。<code>single_order_query_delay_ms</code> 拉开连续查询的间隔以避免触发速率限制。这让数百个订单在批量查询失败时仍能处理，且不会压垮场所 API。</p>
+<h2 class="anchor anchorTargetStickyNavbar_ana5" id=common-reconciliation-scenarios>常见对账场景<a href=#common-reconciliation-scenarios class=hash-link aria-label=常见对账场景的直接链接 title=常见对账场景的直接链接 translate=no>​</a></h2>
+<p>下表覆盖启动对账（mass status）、运行时检查（在途订单检查、未成交订单轮询、自有簿审计）、成交调整与有界历史。</p>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=startup-scenarios>启动场景<a href=#startup-scenarios class=hash-link aria-label=启动场景的直接链接 title=启动场景的直接链接 translate=no>​</a></h3>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>场景<th>描述<th>系统行为<tbody><tr><td><strong>订单状态差异</strong><td>本地状态与场所不同（例如本地 <code>SUBMITTED</code>，场所 <code>REJECTED</code>）。<td>更新本地订单以匹配场所状态，发出缺失事件。<tr><td><strong>遗漏的成交</strong><td>完整的场所历史包含引擎错过的成交。<td>生成缺失的 <code>OrderFilled</code> 事件并应用其经济学影响。<tr><td><strong>多笔成交</strong><td>完整一致的报告集包含某订单的多笔成交。<td>按事件顺序重建报告的成交历史。<tr><td><strong>不完整的有界历史</strong><td>必需的订单、成交或持仓来源失败或无法映射。<td>对齐显式持仓报告，或使其保持未解决。无报告的成交保持仅订单。<tr><td><strong>含糊的有界生命周期</strong><td>有界报告不能证明一次连贯的 NETTING 持仓迁移。<td>显式持仓报告仍是数量目标。无报告的成交保持仅订单。<tr><td><strong>外部订单</strong><td>订单存在于场所但不在本地缓存。<td>创建策略 ID 为 <code>EXTERNAL</code>、标签为 <code>VENUE</code> 的未认领订单。<tr><td><strong>客户端来源缺失</strong><td>mass status 中的缓存订单没有记录执行客户端来源。<td>记录一条带计数与示例 ID 的聚合警告。按报告的客户端对账。<tr><td><strong>客户端来源冲突</strong><td>缓存订单的来源与提供报告的客户端不同。<td>记录一条聚合的废弃警告。兼容期内继续对账。<tr><td><strong>部分成交后撤销</strong><td>订单部分成交后被场所撤销。<td>状态更新为 <code>CANCELED</code>，保留成交历史。<tr><td><strong>成交数据不同</strong><td>场所报告的成交价/手续费与缓存不同。<td>保留缓存数据，记录差异。<tr><td><strong>被过滤订单</strong><td>通过配置标记过滤的订单。<td>按 <code>filtered_client_order_ids</code> 或工具过滤器跳过。<tr><td><strong>未解析工具</strong><td>报告引用了适配器未加载的范围内工具。<td>未成交订单与持仓报告使启动失败。其他情形警告并把有界历史标记为不完整。<tr><td><strong>成交手续费失败</strong><td>适配器构建报告时无法表示必需的成交手续费。<td>mass-status 生成失败，启动在应用该客户端报告前停止。<tr><td><strong>推断成交手续费失败</strong><td>负责的执行客户端无法计算必需的手续费。<td>推迟推断工作。外部订单保持缺席，合法显式成交仍可应用。<tr><td><strong>重复订单报告</strong><td>多个订单共用同一标识。<td>去重并记录警告。<tr><td><strong>持仓数量不匹配（多头）</strong><td>内部多头持仓与场所不同（例如 100 对 150）。<td><code>generate_missing_orders=True</code> 时以计算价格生成 BUY MARKET。<tr><td><strong>持仓数量不匹配（空头）</strong><td>内部空头持仓与场所不同（例如 -100 对 -150）。<td><code>generate_missing_orders=True</code> 时以计算价格生成 SELL MARKET。<tr><td><strong>持仓削减</strong><td>场所持仓小于内部（例如内部多头 150，场所多头 100）。<td>以计算价格生成反方向 MARKET 订单。<tr><td><strong>持仓方向翻转</strong><td>内部持仓与场所方向相反（例如内部多头 100，场所空头 50）。<td>生成 MARKET 订单平掉内部持仓并开出外部持仓。<tr><td><strong>内部对账订单</strong><td>为调平持仓差异生成的订单。<td>标签 <code>RECONCILIATION</code>。有配置认领时使用认领，否则 <code>EXTERNAL</code>。</table>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=runtime-scenarios>运行时场景<a href=#runtime-scenarios class=hash-link aria-label=运行时场景的直接链接 title=运行时场景的直接链接 translate=no>​</a></h3>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>场景<th>描述<th>系统行为<tbody><tr><td><strong>在途提交超时</strong><td><code>SUBMITTED</code> 超过重试耗尽仍未确认。<td>以 <code>INFLIGHT_TIMEOUT</code> 裁决为 <code>REJECTED</code>。<tr><td><strong>在途撤销/修改超时</strong><td><code>PENDING_CANCEL</code> 或 <code>PENDING_UPDATE</code> 超过重试。<td>经对账裁决为 <code>CANCELED</code>。<tr><td><strong>未成交订单检查差异</strong><td>周期性轮询发现场所状态变化。<td>确认状态并应用迁移。<tr><td><strong>持仓检查差异</strong><td>周期性轮询发现持仓不匹配。<td>符合条件时生成对账事件。<tr><td><strong>手续费构造失败</strong><td>必需的成交手续费无法表示。<td>受影响的工作推迟到后续周期。<tr><td><strong>自有簿审计不匹配</strong><td>自有订单簿偏离场所公开订单簿。<td>审计并记录不一致。</table>
+<p>策略或其客户端要求提交保留时，在途超时各行不适用于未确认订单，该订单保持未解决。见<a href=#in-flight-checks class="">在途检查</a>。</p>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=fill-adjustment-scenarios>成交调整场景<a href=#fill-adjustment-scenarios class=hash-link aria-label=成交调整场景的直接链接 title=成交调整场景的直接链接 translate=no>​</a></h3>
+<p>以下场景与 mass status 是否声明 <code>lookback_start</code> 无关：</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>场景<th>描述<th>系统行为<tbody><tr><td><strong>完整生命周期</strong><td>从开仓到当前状态的全部成交都被捕获。<td>不调整。<tr><td><strong>不完整单生命周期</strong><td>报告缺少开仓成交，且无零点穿越。<td>以计算价格添加一笔合成开仓成交。<tr><td><strong>多生命周期，当前匹配</strong><td>零点穿越分隔更早与当前生命周期。<td>过滤掉旧生命周期保留当前的。成交跨越穿越点的订单保留其更早成交，仅投影到订单状态，因此其已成交数量不被推断。<tr><td><strong>多生命周期，当前不匹配</strong><td>当前生命周期与场所持仓不同。<td>生成合成持仓成交，保留报告订单用于回放去重，其更早成交仅投影到订单状态。<tr><td><strong>空仓</strong><td>无论成交历史如何，场所报告为空仓。<td>不做调整。<tr><td><strong>没有成交</strong><td>报告集中不含成交。<td>返回空成交集。</table>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=bounded-history-scenarios>有界历史场景<a href=#bounded-history-scenarios class=hash-link aria-label=有界历史场景的直接链接 title=有界历史场景的直接链接 translate=no>​</a></h3>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>持仓报告<th>历史报告<th>系统行为<tbody><tr><td><strong>显式持仓</strong><td>完整、不完整或含糊的有界历史。<td>应用可用报告并尝试恢复到报告的数量与开仓均价。未解决的差异阻断启动。<tr><td><strong>显式空仓</strong><td>完整、不完整或含糊的有界历史。<td>应用可用报告，并在启用生成时关闭残余敞口。未解决的数量差异阻断启动。<tr><td><strong>缺失</strong><td>有界历史，有无缓存前驱皆可。<td>仅恢复订单状态。成交不改变持仓或组合经济学。<tr><td><strong>被过滤</strong><td>持仓报告或工具过滤器排除了该报告。<td>持仓报告过滤使有界成交变为仅订单。工具过滤同时排除订单与持仓。</table>
+<h2 class="anchor anchorTargetStickyNavbar_ana5" id=common-reconciliation-issues>常见对账问题<a href=#common-reconciliation-issues class=hash-link aria-label=常见对账问题的直接链接 title=常见对账问题的直接链接 translate=no>​</a></h2>
+<div class="theme-admonition theme-admonition-tip admonition_LYZY alert alert--success"><div class=admonitionHeading_pnFY><span class=admonitionIcon_tEzm><svg viewBox="0 0 12 16"><path fill-rule=evenodd d="M6.5 0C3.48 0 1 2.19 1 5c0 .92.55 2.25 1 3 1.34 2.25 1.78 2.78 2 4v1h5v-1c.22-1.22.66-1.75 2-4 .45-.75 1-2.08 1-3 0-2.81-2.48-5-5.5-5zm3.64 7.48c-.25.44-.47.8-.67 1.11-.86 1.41-1.25 2.06-1.45 3.23-.02.05-.02.11-.02.17H5c0-.06 0-.13-.02-.17-.2-1.17-.59-1.83-1.45-3.23-.2-.31-.42-.67-.67-1.11C2.44 6.78 2 5.65 2 5c0-2.2 2.02-4 4.5-4 1.22 0 2.36.42 3.22 1.19C10.55 2.94 11 3.94 11 5c0 .66-.44 1.78-.86 2.48zM4 14h5c-.23 1.14-1.3 2-2.5 2s-2.27-.86-2.5-2z"/></svg></span>提示</div><div class=admonitionContent_ZwmI><p>问题持续存在时，先检查场所报告与缓存归属，再考虑丢弃状态或清空账户。</div></div>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=missing-trade-reports>缺失成交报告<a href=#missing-trade-reports class=hash-link aria-label=缺失成交报告的直接链接 title=缺失成交报告的直接链接 translate=no>​</a></h3>
+<p>一些场所会过滤较早的成交。增大 <code>reconciliation_lookback_mins</code>，或把所有事件本地持久化。显式限定边界的适配器会把历史标记为不完整，使不受支持的成交不改变持仓或组合经济学。</p>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=position-mismatches>持仓不匹配<a href=#position-mismatches class=hash-link aria-label=持仓不匹配的直接链接 title=持仓不匹配的直接链接 translate=no>​</a></h3>
+<p>早于回看窗口的外部订单会造成持仓漂移。加大窗口、恢复保留状态，或让权威的持仓报告对账当前数量。清空账户只能作为有意的运维恢复步骤。</p>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=split-netting-ownership>NETTING 归属分裂<a href=#split-netting-ownership class=hash-link aria-label="NETTING 归属分裂的直接链接" title="NETTING 归属分裂的直接链接" translate=no>​</a></h3>
+<p>多个策略可以对同一账户与工具持有缓存持仓，但场所报告的是单一的账户级净持仓。恢复外部状态时，每个 NETTING 账户/工具组合尽量只让一个策略认领。</p>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=duplicate-order-ids>重复订单 ID<a href=#duplicate-order-ids class=hash-link aria-label="重复订单 ID的直接链接" title="重复订单 ID的直接链接" translate=no>​</a></h3>
+<p>对账会去重并记录警告。频繁重复可能说明场所数据完整性有问题。</p>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=unresolved-instruments>未解析工具<a href=#unresolved-instruments class=hash-link aria-label=未解析工具的直接链接 title=未解析工具的直接链接 translate=no>​</a></h3>
+<p>报告引用了适配器从未加载的工具。把它加入 <code>load_ids</code> 或设置
+<code>load_all=True</code>。显式 <code>load_ids</code> 范围之外的报告按设计丢弃，无需处理。</p>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=precision-differences>精度差异<a href=#precision-differences class=hash-link aria-label=精度差异的直接链接 title=精度差异的直接链接 translate=no>​</a></h3>
+<p>对账容差能吸收微小的数量与开仓价格差异。大的差异可能意味着订单缺失。</p>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=out-of-order-reports>乱序报告<a href=#out-of-order-reports class=hash-link aria-label=乱序报告的直接链接 title=乱序报告的直接链接 translate=no>​</a></h3>
+<p>先于订单状态报告到达的成交报告被推迟，直到订单状态可用。</p>
+<h2 class="anchor anchorTargetStickyNavbar_ana5" id=reconciliation-invariants>对账不变量<a href=#reconciliation-invariants class=hash-link aria-label=对账不变量的直接链接 title=对账不变量的直接链接 translate=no>​</a></h2>
+<p>对账路径对其处理的报告与持仓保持以下不变量：</p>
+<ol>
+<li class=""><strong>订单状态</strong>：权威报告恢复精确的订单状态与已成交数量，
+即使历史成交仅应用于订单状态。</li>
+<li class=""><strong>显式持仓报告</strong>：显式的持仓或空仓报告是数量目标。引擎
+向其对齐，按配置生成订单与成交，或使其保持未解决。缺失
+报告不等于空仓。</li>
+<li class=""><strong>缺失持仓报告</strong>：没有范围内持仓报告时，显式限定的历史成交
+仅更新订单状态，不改变持仓或组合经济学。</li>
+<li class=""><strong>持仓数量</strong>：对账后的持仓在适用的数量容差内匹配权威的
+场所报告。</li>
+<li class=""><strong>开仓价格</strong>：启动继续之前，报告的开仓均价在容差内匹配，
+报告标记为 <code>OPENING_ONLY</code> 的均价除外。合成成交使用报告或计算的价格，不重建
+缺失的历史盈亏。</li>
+<li class=""><strong>ID 确定性</strong>：合成的 <code>trade_id</code> 与 <code>venue_order_id</code> 是逻辑事件的确定性函数，
+因此回放能跨重启对其去重。</li>
+</ol>
+<h2 class="anchor anchorTargetStickyNavbar_ana5" id=related-guides>相关指南<a href=#related-guides class=hash-link aria-label=相关指南的直接链接 title=相关指南的直接链接 translate=no>​</a></h2>
+<ul>
+<li class=""><a class="" href=/concepts/live>实时交易</a> - 节点生命周期、配置、指标与关闭。</li>
+<li class=""><a class="" href=/how_to/configure_live_trading>配置实时交易节点</a> - 节点与引擎配置。</li>
+<li class=""><a class="" href=/concepts/adapters>适配器</a> - 场所连接。</li>
+<li class=""><a class="" href=/concepts/execution/>执行</a> - 命令结果与执行流程。</li>
+<li class=""><a class="" href=/concepts/execution/policies>执行策略</a> - 命令证据、持久化与恢复
+边界。</li>
+</ul></div><footer class="theme-doc-footer docusaurus-mt-lg"><div class="row margin-top--sm theme-doc-footer-edit-meta-row"><div class="col noPrint_MRkS"><a href=https://github.com/Aloento/NautilusTraderDoc/tree/main/docs/concepts/execution/reconciliation.md target=_blank rel="noopener noreferrer" class=theme-edit-this-page><svg fill=currentColor height=20 width=20 viewBox="0 0 40 40" class=iconEdit_RPSQ aria-hidden=true><g><path d="m34.5 11.7l-3 3.1-6.3-6.3 3.1-3q0.5-0.5 1.2-0.5t1.1 0.5l3.9 3.9q0.5 0.4 0.5 1.1t-0.5 1.2z m-29.5 17.1l18.4-18.5 6.3 6.3-18.4 18.4h-6.3v-6.2z"/></g></svg>编辑此页</a></div><div class="col lastUpdated_oZSl"><span class=theme-last-updated>最后<!-- -->于 <b><time datetime=2026-10-14T22:30:30.000Z itemprop=dateModified>2026年10月14日</time></b> <!-- -->更新</span></div></div></footer></article><nav class="docusaurus-mt-lg pagination-nav" aria-label=文件选项卡><a class="pagination-nav__link pagination-nav__link--prev" href=/concepts/execution/policies><div class=pagination-nav__sublabel>上一页</div><div class=pagination-nav__label>执行策略</div></a><a class="pagination-nav__link pagination-nav__link--next" href=/concepts/accounting><div class=pagination-nav__sublabel>下一页</div><div class=pagination-nav__label>核算</div></a></nav></div></div><div class="col col--3"><div class="tableOfContents_LyLZ thin-scrollbar theme-doc-toc-desktop"><ul class="table-of-contents table-of-contents__left-border"><li><a href=#reconciliation-model class="table-of-contents__link toc-highlight">对账模型</a><ul><li><a href=#component-responsibilities class="table-of-contents__link toc-highlight">组件职责</a><li><a href=#execution-client-origins class="table-of-contents__link toc-highlight">执行客户端来源</a><li><a href=#reconciliation-reports class="table-of-contents__link toc-highlight">对账报告</a><li><a href=#snapshot-freshness-and-fill-corrections class="table-of-contents__link toc-highlight">快照新鲜度与成交更正</a><li><a href=#order-only-fill-projection class="table-of-contents__link toc-highlight">仅订单成交投影</a><li><a href=#external-order-creation class="table-of-contents__link toc-highlight">外部订单创建</a><li><a href=#reducing-external-positions class="table-of-contents__link toc-highlight">削减外部持仓</a></ul><li><a href=#reconciliation-configuration class="table-of-contents__link toc-highlight">对账配置</a><ul><li><a href=#order-ownership-and-tags class="table-of-contents__link toc-highlight">订单归属与标签</a><li><a href=#submission-recovery class="table-of-contents__link toc-highlight">提交恢复</a><li><a href=#instrument-availability class="table-of-contents__link toc-highlight">工具可用性</a></ul><li><a href=#startup-reconciliation class="table-of-contents__link toc-highlight">启动对账</a><ul><li><a href=#mass-status-history-contract class="table-of-contents__link toc-highlight">Mass-status 历史契约</a><li><a href=#report-deduplication class="table-of-contents__link toc-highlight">报告去重</a><li><a href=#order-reconciliation class="table-of-contents__link toc-highlight">订单对账</a><li><a href=#fill-reconciliation class="table-of-contents__link toc-highlight">成交对账</a><li><a href=#event-ordering class="table-of-contents__link toc-highlight">事件顺序</a><li><a href=#position-reconciliation class="table-of-contents__link toc-highlight">持仓对账</a><li><a href=#fill-adjustment class="table-of-contents__link toc-highlight">成交调整</a><li><a href=#bounded-history-safety class="table-of-contents__link toc-highlight">有界历史安全</a><li><a href=#failure-handling class="table-of-contents__link toc-highlight">失败处理</a></ul><li><a href=#runtime-checks class="table-of-contents__link toc-highlight">运行时检查</a><ul><li><a href=#in-flight-checks class="table-of-contents__link toc-highlight">在途检查</a><li><a href=#order-consistency-checks class="table-of-contents__link toc-highlight">订单一致性检查</a><li><a href=#position-checks class="table-of-contents__link toc-highlight">持仓检查</a><li><a href=#retry-coordination class="table-of-contents__link toc-highlight">重试协调</a><li><a href=#single-order-query-throttling class="table-of-contents__link toc-highlight">单订单查询限流</a></ul><li><a href=#common-reconciliation-scenarios class="table-of-contents__link toc-highlight">常见对账场景</a><ul><li><a href=#startup-scenarios class="table-of-contents__link toc-highlight">启动场景</a><li><a href=#runtime-scenarios class="table-of-contents__link toc-highlight">运行时场景</a><li><a href=#fill-adjustment-scenarios class="table-of-contents__link toc-highlight">成交调整场景</a><li><a href=#bounded-history-scenarios class="table-of-contents__link toc-highlight">有界历史场景</a></ul><li><a href=#common-reconciliation-issues class="table-of-contents__link toc-highlight">常见对账问题</a><ul><li><a href=#missing-trade-reports class="table-of-contents__link toc-highlight">缺失成交报告</a><li><a href=#position-mismatches class="table-of-contents__link toc-highlight">持仓不匹配</a><li><a href=#split-netting-ownership class="table-of-contents__link toc-highlight">NETTING 归属分裂</a><li><a href=#duplicate-order-ids class="table-of-contents__link toc-highlight">重复订单 ID</a><li><a href=#unresolved-instruments class="table-of-contents__link toc-highlight">未解析工具</a><li><a href=#precision-differences class="table-of-contents__link toc-highlight">精度差异</a><li><a href=#out-of-order-reports class="table-of-contents__link toc-highlight">乱序报告</a></ul><li><a href=#reconciliation-invariants class="table-of-contents__link toc-highlight">对账不变量</a><li><a href=#related-guides class="table-of-contents__link toc-highlight">相关指南</a></ul></div></div></div></div></main></div></div></div><footer class="theme-layout-footer footer footer--dark"><div class="container container-fluid"><div class="row footer__links"><div class="theme-layout-footer-column col footer__col"><div class=footer__title></div><ul class="footer__items clean-list"><li class=footer__item><a href=https://github.com/nautechsystems/nautilus_trader target=_blank rel="noopener noreferrer" class=footer__link-item>Official GitHub<svg width=13.5 height=13.5 aria-label="(opens in new tab)" class=iconExternalLink_qUHo><use href=#theme-svg-external-link /></svg></a><li class=footer__item><a href=https://nautilustrader.io/docs target=_blank rel="noopener noreferrer" class=footer__link-item>Official Documentation<svg width=13.5 height=13.5 aria-label="(opens in new tab)" class=iconExternalLink_qUHo><use href=#theme-svg-external-link /></svg></a></ul></div></div><div class="footer__bottom text--center"><div class=footer__copyright>© 2026 Nautech Systems Pty Ltd. All rights reserved.</div></div></div></footer></div></body>

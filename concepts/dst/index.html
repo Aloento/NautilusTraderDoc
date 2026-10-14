@@ -1,0 +1,948 @@
+<!doctype html><html lang=zh dir=ltr class="docs-wrapper plugin-docs plugin-id-default docs-version-current docs-doc-page docs-doc-id-concepts/dst" data-has-hydrated=false><head><meta charset=UTF-8><meta name=generator content="Docusaurus v3.10.2"><title data-rh=true>DST | NautilusTrader 文档</title><meta data-rh=true name=viewport content="width=device-width, initial-scale=1.0"/><meta data-rh=true name=twitter:card content=summary_large_image /><meta data-rh=true property=og:url content=https://nautilus.aloen.to/concepts/dst /><meta data-rh=true property=og:locale content=zh /><meta data-rh=true name=docusaurus_locale content=zh /><meta data-rh=true name=docsearch:language content=zh /><meta data-rh=true name=docusaurus_version content=current /><meta data-rh=true name=docusaurus_tag content=docs-default-current /><meta data-rh=true name=docsearch:version content=current /><meta data-rh=true name=docsearch:docusaurus_tag content=docs-default-current /><meta data-rh=true property=og:title content="DST | NautilusTrader 文档"/><meta data-rh=true name=description content="确定性模拟测试（deterministic simulation testing，DST）在受种子控制的运行时下运行"/><meta data-rh=true property=og:description content="确定性模拟测试（deterministic simulation testing，DST）在受种子控制的运行时下运行"/><link data-rh=true rel=icon href=/logo.png /><link data-rh=true rel=canonical href=https://nautilus.aloen.to/concepts/dst /><link data-rh=true rel=alternate href=https://nautilus.aloen.to/concepts/dst hreflang=zh /><link data-rh=true rel=alternate href=https://nautilus.aloen.to/concepts/dst hreflang=x-default /><script data-rh=true type=application/ld+json>{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","item":"https://nautilus.aloen.to/concepts/","name":"核心概念","position":1},{"@type":"ListItem","item":"https://nautilus.aloen.to/concepts/dst","name":"DST","position":2}]}</script><link rel=stylesheet href=/assets/css/styles.adb7ea18.css /><script src=/assets/js/runtime~main.71ac0794.js defer></script><script src=/assets/js/main.d978d0f2.js defer></script></head><body><svg style="display: none;"><defs>
+<symbol id=theme-svg-external-link viewBox="0 0 24 24"><path fill=currentColor d="M21 13v10h-21v-19h12v2h-10v15h17v-8h2zm3-12h-10.988l4.035 4-6.977 7.07 2.828 2.828 6.977-7.07 4.125 4.172v-11z"/></symbol>
+</defs></svg>
+<script>!function(){var t=function(){try{return new URLSearchParams(window.location.search).get("docusaurus-theme")}catch(t){}}()||function(){try{return window.localStorage.getItem("theme-2e3")}catch(t){}}();document.documentElement.setAttribute("data-theme",t||(window.matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light")),document.documentElement.setAttribute("data-theme-choice",t||"system")}(),function(){try{for(var[t,e]of new URLSearchParams(window.location.search).entries())if(t.startsWith("docusaurus-data-")){var a=t.replace("docusaurus-data-","data-");document.documentElement.setAttribute(a,e)}}catch(t){}}()</script><div id=__docusaurus><link rel=preload as=image href=/logo.png /><div role=region aria-label=跳到主要内容><a class=skipToContent_zuOI href=#__docusaurus_skipToContent_fallback>跳到主要内容</a></div><nav aria-label=主导航 class="theme-layout-navbar navbar navbar--fixed-top"><div class=navbar__inner><div class="theme-layout-navbar-left navbar__items"><button aria-label=切换导航栏 aria-expanded=false class="navbar__toggle clean-btn" type=button><svg width=30 height=30 viewBox="0 0 30 30" aria-hidden=true><path stroke=currentColor stroke-linecap=round stroke-miterlimit=10 stroke-width=2 d="M4 7h22M4 15h22M4 23h22"/></svg></button><a class=navbar__brand href=/><div class=navbar__logo><img src=/logo.png alt="NautilusTrader Logo" class="themedComponent_q2_Y themedComponent--light_Nejn"/><img src=/logo.png alt="NautilusTrader Logo" class="themedComponent_q2_Y themedComponent--dark_JjIb"/></div><b class="navbar__title text--truncate">NautilusTrader</b></a><a aria-current=page class="navbar__item navbar__link navbar__link--active" href=/getting_started/>文档</a></div><div class="theme-layout-navbar-right navbar__items navbar__items--right"><a href=https://github.com/Aloento/NautilusTraderDoc target=_blank rel="noopener noreferrer" class="navbar__item navbar__link">GitHub<svg width=13.5 height=13.5 aria-label="(opens in new tab)" class=iconExternalLink_qUHo><use href=#theme-svg-external-link /></svg></a><div class="toggle_hHmI colorModeToggle_rOOn"><button class="clean-btn toggleButton_wEhT toggleButtonDisabled_yOOP" type=button disabled title="system mode" aria-label="切换浅色/暗黑模式（当前为system mode）"><svg viewBox="0 0 24 24" width=24 height=24 aria-hidden=true class="toggleIcon_Kt6U lightToggleIcon_Zfeh"><path fill=currentColor d="M12,9c1.65,0,3,1.35,3,3s-1.35,3-3,3s-3-1.35-3-3S10.35,9,12,9 M12,7c-2.76,0-5,2.24-5,5s2.24,5,5,5s5-2.24,5-5 S14.76,7,12,7L12,7z M2,13l2,0c0.55,0,1-0.45,1-1s-0.45-1-1-1l-2,0c-0.55,0-1,0.45-1,1S1.45,13,2,13z M20,13l2,0c0.55,0,1-0.45,1-1 s-0.45-1-1-1l-2,0c-0.55,0-1,0.45-1,1S19.45,13,20,13z M11,2v2c0,0.55,0.45,1,1,1s1-0.45,1-1V2c0-0.55-0.45-1-1-1S11,1.45,11,2z M11,20v2c0,0.55,0.45,1,1,1s1-0.45,1-1v-2c0-0.55-0.45-1-1-1C11.45,19,11,19.45,11,20z M5.99,4.58c-0.39-0.39-1.03-0.39-1.41,0 c-0.39,0.39-0.39,1.03,0,1.41l1.06,1.06c0.39,0.39,1.03,0.39,1.41,0s0.39-1.03,0-1.41L5.99,4.58z M18.36,16.95 c-0.39-0.39-1.03-0.39-1.41,0c-0.39,0.39-0.39,1.03,0,1.41l1.06,1.06c0.39,0.39,1.03,0.39,1.41,0c0.39-0.39,0.39-1.03,0-1.41 L18.36,16.95z M19.42,5.99c0.39-0.39,0.39-1.03,0-1.41c-0.39-0.39-1.03-0.39-1.41,0l-1.06,1.06c-0.39,0.39-0.39,1.03,0,1.41 s1.03,0.39,1.41,0L19.42,5.99z M7.05,18.36c0.39-0.39,0.39-1.03,0-1.41c-0.39-0.39-1.03-0.39-1.41,0l-1.06,1.06 c-0.39,0.39-0.39,1.03,0,1.41s1.03,0.39,1.41,0L7.05,18.36z"/></svg><svg viewBox="0 0 24 24" width=24 height=24 aria-hidden=true class="toggleIcon_Kt6U darkToggleIcon_XgQr"><path fill=currentColor d="M9.37,5.51C9.19,6.15,9.1,6.82,9.1,7.5c0,4.08,3.32,7.4,7.4,7.4c0.68,0,1.35-0.09,1.99-0.27C17.45,17.19,14.93,19,12,19 c-3.86,0-7-3.14-7-7C5,9.07,6.81,6.55,9.37,5.51z M12,3c-4.97,0-9,4.03-9,9s4.03,9,9,9s9-4.03,9-9c0-0.46-0.04-0.92-0.1-1.36 c-0.98,1.37-2.58,2.26-4.4,2.26c-2.98,0-5.4-2.42-5.4-5.4c0-1.81,0.89-3.42,2.26-4.4C12.92,3.04,12.46,3,12,3L12,3z"/></svg><svg viewBox="0 0 24 24" width=24 height=24 aria-hidden=true class="toggleIcon_Kt6U systemToggleIcon_BvUi"><path fill=currentColor d="m12 21c4.971 0 9-4.029 9-9s-4.029-9-9-9-9 4.029-9 9 4.029 9 9 9zm4.95-13.95c1.313 1.313 2.05 3.093 2.05 4.95s-0.738 3.637-2.05 4.95c-1.313 1.313-3.093 2.05-4.95 2.05v-14c1.857 0 3.637 0.737 4.95 2.05z"/></svg></button></div><div class=navbarSearchContainer_watl></div></div></div><div role=presentation class=navbar-sidebar__backdrop></div></nav><div id=__docusaurus_skipToContent_fallback class="theme-layout-main main-wrapper mainWrapper_R72Q"><div class=docsWrapper_XQ9b><button aria-label=回到顶部 class="clean-btn theme-back-to-top-button backToTopButton_MbnX" type=button></button><div class=docRoot_aqOB><aside class="theme-doc-sidebar-container docSidebarContainer_sI2e"><div class=sidebarViewport_TzTy><div class=sidebar_CbEe><nav aria-label=文档侧边栏 class="menu thin-scrollbar menu_ChRF"><ul class="theme-doc-sidebar-menu menu__list"><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-1 menu__list-item menu__list-item--collapsed"><div class=menu__list-item-collapsible><a class="categoryLink_Muyc menu__link menu__link--sublist" href=/getting_started/><span class=categoryLinkLabel_mAcL>快速开始</span></a><button aria-label="展开侧边栏分类 '快速开始'" aria-expanded=false type=button class="clean-btn menu__caret"></button></div><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-1 menu__list-item"><div class=menu__list-item-collapsible><a class="categoryLink_Muyc menu__link menu__link--sublist menu__link--active" href=/concepts/><span class=categoryLinkLabel_mAcL>核心概念</span></a><button aria-label="折叠侧边栏分类 '核心概念'" aria-expanded=true type=button class="clean-btn menu__caret"></button></div><ul class=menu__list><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-2 menu__list-item menu__list-item--collapsed"><div class=menu__list-item-collapsible><a class="categoryLink_Muyc menu__link menu__link--sublist" tabindex=0 href=/concepts/instruments/><span class=categoryLinkLabel_mAcL>金融工具</span></a><button aria-label="展开侧边栏分类 '金融工具'" aria-expanded=false type=button class="clean-btn menu__caret"></button></div><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-2 menu__list-item menu__list-item--collapsed"><div class=menu__list-item-collapsible><a class="categoryLink_Muyc menu__link menu__link--sublist" tabindex=0 href=/concepts/orders/><span class=categoryLinkLabel_mAcL>订单</span></a><button aria-label="展开侧边栏分类 '订单'" aria-expanded=false type=button class="clean-btn menu__caret"></button></div><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-2 menu__list-item menu__list-item--collapsed"><div class=menu__list-item-collapsible><a class="categoryLink_Muyc menu__link menu__link--sublist" tabindex=0 href=/concepts/data/><span class=categoryLinkLabel_mAcL>数据</span></a><button aria-label="展开侧边栏分类 '数据'" aria-expanded=false type=button class="clean-btn menu__caret"></button></div><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-2 menu__list-item menu__list-item--collapsed"><div class=menu__list-item-collapsible><a class="categoryLink_Muyc menu__link menu__link--sublist" tabindex=0 href=/concepts/backtesting/><span class=categoryLinkLabel_mAcL>回测</span></a><button aria-label="展开侧边栏分类 '回测'" aria-expanded=false type=button class="clean-btn menu__caret"></button></div><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-2 menu__list-item menu__list-item--collapsed"><div class=menu__list-item-collapsible><a class="categoryLink_Muyc menu__link menu__link--sublist" tabindex=0 href=/concepts/events/><span class=categoryLinkLabel_mAcL>事件</span></a><button aria-label="展开侧边栏分类 '事件'" aria-expanded=false type=button class="clean-btn menu__caret"></button></div><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-2 menu__list-item menu__list-item--collapsed"><div class=menu__list-item-collapsible><a class="categoryLink_Muyc menu__link menu__link--sublist" tabindex=0 href=/concepts/execution/><span class=categoryLinkLabel_mAcL>执行</span></a><button aria-label="展开侧边栏分类 '执行'" aria-expanded=false type=button class="clean-btn menu__caret"></button></div><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/concepts/accounting><span class=linkLabel_lYjD>核算</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/concepts/actors><span class=linkLabel_lYjD>Actors</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/concepts/adapters><span class=linkLabel_lYjD>适配器</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/concepts/architecture><span class=linkLabel_lYjD>架构</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/concepts/behavioral_models><span class=linkLabel_lYjD>行为模型</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/concepts/cache><span class=linkLabel_lYjD>缓存</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/concepts/configuration><span class=linkLabel_lYjD>配置</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/concepts/continuous_futures><span class=linkLabel_lYjD>连续期货</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/concepts/custom_data><span class=linkLabel_lYjD>自定义数据</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class="menu__link menu__link--active" aria-current=page tabindex=0 href=/concepts/dst><span class=linkLabel_lYjD>DST</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/concepts/event_sourcing><span class=linkLabel_lYjD>事件溯源</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/concepts/greeks><span class=linkLabel_lYjD>Greeks</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/concepts/live><span class=linkLabel_lYjD>实时交易</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/concepts/logging><span class=linkLabel_lYjD>日志</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/concepts/message_bus><span class=linkLabel_lYjD>消息总线</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/concepts/networking><span class=linkLabel_lYjD>网络</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/concepts/options><span class=linkLabel_lYjD>期权</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/concepts/order_book><span class=linkLabel_lYjD>订单簿</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/concepts/overview><span class=linkLabel_lYjD>概览</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/concepts/portfolio><span class=linkLabel_lYjD>组合</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/concepts/positions><span class=linkLabel_lYjD>持仓</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/concepts/python><span class=linkLabel_lYjD>Python</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/concepts/reports><span class=linkLabel_lYjD>报告</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/concepts/rust><span class=linkLabel_lYjD>Rust</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/concepts/strategies><span class=linkLabel_lYjD>策略</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/concepts/synthetics><span class=linkLabel_lYjD>合成工具</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/concepts/value_types><span class=linkLabel_lYjD>值类型</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/concepts/visualization><span class=linkLabel_lYjD>可视化</span></a></ul><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-1 menu__list-item menu__list-item--collapsed"><div class=menu__list-item-collapsible><a class="categoryLink_Muyc menu__link menu__link--sublist" href=/integrations/><span class=categoryLinkLabel_mAcL>交易所与集成</span></a><button aria-label="展开侧边栏分类 '交易所与集成'" aria-expanded=false type=button class="clean-btn menu__caret"></button></div><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-1 menu__list-item menu__list-item--collapsed"><div class=menu__list-item-collapsible><a class="categoryLink_Muyc menu__link menu__link--sublist" href=/how_to/><span class=categoryLinkLabel_mAcL>操作指南</span></a><button aria-label="展开侧边栏分类 '操作指南'" aria-expanded=false type=button class="clean-btn menu__caret"></button></div><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-1 menu__list-item menu__list-item--collapsed"><div class=menu__list-item-collapsible><a class="categoryLink_Muyc menu__link menu__link--sublist" href=/tutorials/><span class=categoryLinkLabel_mAcL>教程</span></a><button aria-label="展开侧边栏分类 '教程'" aria-expanded=false type=button class="clean-btn menu__caret"></button></div><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-1 menu__list-item menu__list-item--collapsed"><div class=menu__list-item-collapsible><a class="categoryLink_Muyc menu__link menu__link--sublist" href=/developer_guide/><span class=categoryLinkLabel_mAcL>开发者指南</span></a><button aria-label="展开侧边栏分类 '开发者指南'" aria-expanded=false type=button class="clean-btn menu__caret"></button></div><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-1 menu__list-item menu__list-item--collapsed"><div class=menu__list-item-collapsible><a class="categoryLink_Muyc menu__link menu__link--sublist" href=/api_reference/><span class=categoryLinkLabel_mAcL>API 参考</span></a><button aria-label="展开侧边栏分类 'API 参考'" aria-expanded=false type=button class="clean-btn menu__caret"></button></div></ul></nav></div></div></aside><main class=docMainContainer_sLF8><div class="container padding-top--md padding-bottom--lg"><div class=row><div class="col docItemCol_ZRft"><div class=docItemContainer_KOP5><article><nav class="theme-doc-breadcrumbs breadcrumbsContainer_d5rS" aria-label=页面路径><ul class=breadcrumbs><li class=breadcrumbs__item><a aria-label=主页面 class=breadcrumbs__link href=/><svg viewBox="0 0 24 24" class=breadcrumbHomeIcon_XgF2><path d="M10 19v-5h4v5c0 .55.45 1 1 1h3c.55 0 1-.45 1-1v-7h1.7c.46 0 .68-.57.33-.87L12.67 3.6c-.38-.34-.96-.34-1.34 0l-8.36 7.53c-.34.3-.13.87.33.87H5v7c0 .55.45 1 1 1h3c.55 0 1-.45 1-1z" fill=currentColor /></svg></a><li class=breadcrumbs__item><a class=breadcrumbs__link href=/concepts/><span>核心概念</span></a><li class="breadcrumbs__item breadcrumbs__item--active"><span class=breadcrumbs__link>DST</span></ul></nav><div class="tocCollapsible_bgaJ theme-doc-toc-mobile tocMobile_FhT_"><button type=button class="clean-btn tocCollapsibleButton_F8AY">本页总览</button></div><div class="theme-doc-markdown markdown"><header><h1>DST</h1></header>
+<!-- -->
+<p>确定性模拟测试（deterministic simulation testing，DST）在受种子控制的运行时下运行
+NautilusTrader。本指南界定：</p>
+<ul>
+<li class="">种子控制执行的可复现性保证。</li>
+<li class="">这些保证成立所需的条件。</li>
+<li class="">强制该契约的源代码接缝与检查。</li>
+<li class="">确定性执行止步的路径。</li>
+</ul>
+<p>每项论断都附源码位置，用户与审计者可以对照代码核验契约。</p>
+<div class="theme-admonition theme-admonition-note admonition_LYZY alert alert--secondary"><div class=admonitionHeading_pnFY><span class=admonitionIcon_tEzm><svg viewBox="0 0 14 16"><path fill-rule=evenodd d="M6.3 5.69a.942.942 0 0 1-.28-.7c0-.28.09-.52.28-.7.19-.18.42-.28.7-.28.28 0 .52.09.7.28.18.19.28.42.28.7 0 .28-.09.52-.28.7a1 1 0 0 1-.7.3c-.28 0-.52-.11-.7-.3zM8 7.99c-.02-.25-.11-.48-.31-.69-.2-.19-.42-.3-.69-.31H6c-.27.02-.48.13-.69.31-.2.2-.3.44-.31.69h1v3c.02.27.11.5.31.69.2.2.42.31.69.31h1c.27 0 .48-.11.69-.31.2-.19.3-.42.31-.69H8V7.98v.01zM7 2.3c-3.14 0-5.7 2.54-5.7 5.68 0 3.14 2.56 5.7 5.7 5.7s5.7-2.55 5.7-5.7c0-3.15-2.56-5.69-5.7-5.69v.01zM7 .98c3.86 0 7 3.14 7 7s-3.14 7-7 7-7-3.12-7-7 3.14-7 7-7z"/></svg></span>备注</div><div class=admonitionContent_ZwmI><p>依赖 NautilusTrader 确定性的下游测试框架，消费的是其锁定的 NautilusTrader
+提交处对应的本文档版本。对本文档的修改对这些消费者而言是契约变更，
+应按契约变更来评审。</div></div>
+<h2 class="anchor anchorTargetStickyNavbar_ana5" id=what-dst-is>DST 是什么<a href=#what-dst-is class=hash-link aria-label="DST 是什么的直接链接" title="DST 是什么的直接链接" translate=no>​</a></h2>
+<p>DST 控制并发系统中的不确定性来源。在下文定义的契约范围内，一个种子决定
+任务调度、定时器触发与随机值。种子、二进制、配置与平台都相同的两次运行
+产生完全一致的可观测行为。记录失败的种子，即可重放同一次执行。</p>
+<p>常规异步运行时的调度决策取自进程的环境状态，包括：</p>
+<ul>
+<li class="">任务唤醒顺序。</li>
+<li class="">定时器分辨率。</li>
+<li class="">操作系统线程调度。</li>
+<li class="">随机化的哈希种子。</li>
+</ul>
+<p>常规测试框架不控制这些来源，因此 CI 中偶然出现一次的竞态可能难以复现。
+DST 用带种子的伪随机序列替代它们。不同的种子探索不同的交织，
+相同的种子选出相同的交织。</p>
+<p><a href=https://apple.github.io/foundationdb/testing.html target=_blank rel="noopener noreferrer" class="">FoundationDB</a> 用这一模式测试生产级
+分布式数据库。Rust 生态中，<a href=https://crates.io/crates/madsim target=_blank rel="noopener noreferrer" class="">madsim</a> 拦截
+<code>tokio</code> 原语以提供确定性调度器。</p>
+<p>DST 针对的是并发缺陷，例如：</p>
+<ul>
+<li class="">通道唤醒顺序。</li>
+<li class="">关停期间的排空竞态。</li>
+<li class="">启动时序。</li>
+<li class="">对账顺序。</li>
+<li class="">恢复路径的正确性。</li>
+</ul>
+<p>其他测试层无法穷尽这些交织。确定性调度器可以跨种子探索它们，
+并重放失败的调度。</p>
+<h2 class="anchor anchorTargetStickyNavbar_ana5" id=goals>目标<a href=#goals class=hash-link aria-label=目标的直接链接 title=目标的直接链接 translate=no>​</a></h2>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>目标<th>要求<tbody><tr><td>种子可复现的执行<td>范围内的运行时对相同种子与输入产生相同的可观测行为。<tr><td>范围显式<td>每一次退回真实时间、未播种随机性或其他不确定性都有文档记录。<tr><td>源码层强制<td>静态检查在依赖评审者注意力之前，就拒绝 DST 路径上的禁用模式。<tr><td>最小必要拦截<td>只在契约需要的地方，让时间、任务调度与随机性经由确定性来源。</table>
+<h2 class="anchor anchorTargetStickyNavbar_ana5" id=approach>方法<a href=#approach class=hash-link aria-label=方法的直接链接 title=方法的直接链接 translate=no>​</a></h2>
+<p>实现分两层。第一层用 <code>madsim</code> 替换选定的 <code>tokio</code> 原语；
+第二层控制这些原语之外的不确定性来源。</p>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=layer-1-runtime-swap>第 1 层：运行时替换<a href=#layer-1-runtime-swap class=hash-link aria-label="第 1 层：运行时替换的直接链接" title="第 1 层：运行时替换的直接链接" translate=no>​</a></h3>
+<p>在 <code>nautilus-common</code> 的 <code>simulation</code> Cargo feature 下，设置
+<code>RUSTFLAGS="--cfg madsim"</code> 时，四个门面子模块选择模拟行为：</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>子模块<th>覆盖内容<th>常规构建<th>模拟构建<th>采用程度<tbody><tr><td><code>time</code><td>定时器、interval 与单调 <code>Instant</code>。<td><code>tokio</code><td><code>madsim</code><td>完整。<tr><td><code>task</code><td>异步任务的生成与等待。<td><code>tokio</code><td><code>madsim</code><td>完整。<tr><td><code>runtime</code><td>运行时构建器与句柄。<td><code>tokio</code><td><code>madsim</code><td>完整。<tr><td><code>signal</code><td>进程信号，如 <code>ctrl_c</code> 与 <code>SIGTERM</code>。<td><code>tokio</code> 或 OS<td><code>ctrl_c</code> 用 <code>madsim</code>，<code>terminate</code> 用永不完成的 future<td>部分。见<a href=#signal-handling class="">信号处理</a>。</table>
+<p>这些再导出位于 <code>nautilus_common::live::dst</code>。DST 路径上 <code>time</code>、<code>task</code>、
+<code>runtime</code> 的调用点都从该模块导入。常规构建把导入解析为 <code>tokio</code>，
+<code>simulation</code> 加 <code>cfg(madsim)</code> 时解析为 <code>madsim</code>。</p>
+<p><code>sync</code>、<code>io</code>、<code>fs</code>、<code>net</code> 子模块以及 <code>select!</code> 宏继续使用真实的 <code>tokio</code>。
+网络 crate 为明文 HTTP 与 Tungstenite WebSocket 连接提供单独的
+<a href=#simulated-http-and-websocket-transport class="">传输边界</a>，不替换依赖内部的 Tokio。</p>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=layer-2-nondeterminism-substitution>第 2 层：不确定性替换<a href=#layer-2-nondeterminism-substitution class=hash-link aria-label="第 2 层：不确定性替换的直接链接" title="第 2 层：不确定性替换的直接链接" translate=no>​</a></h3>
+<p>别名运行时之外的不确定性需要显式接缝。</p>
+<h4 class="anchor anchorTargetStickyNavbar_ana5" id=wall-clock-time>墙上时钟时间<a href=#wall-clock-time class=hash-link aria-label=墙上时钟时间的直接链接 title=墙上时钟时间的直接链接 translate=no>​</a></h4>
+<p>墙上时钟读取经由 <code>nautilus_core::time::duration_since_unix_epoch</code>。
+模拟下该接缝调用 <code>madsim::time::TimeHandle::try_current()</code>，
+为订单与成交时间戳保留 Unix 纪元语义。</p>
+<p>普通的 <code>#[rstest]</code> 函数体在 madsim 运行时之外执行，此时接缝回退到
+<code>SystemTime::now()</code>，与常规构建使用相同的真实系统调用。模拟下的生产路径
+都在 madsim 运行时内执行，获得虚拟时间。</p>
+<h4 class="anchor anchorTargetStickyNavbar_ana5" id=monotonic-time>单调时间<a href=#monotonic-time class=hash-link aria-label=单调时间的直接链接 title=单调时间的直接链接 translate=no>​</a></h4>
+<p>单调时间读取经由 <code>nautilus_common::live::dst::time::Instant</code>。常规构建把
+该类型解析为 <code>tokio::time::Instant</code>，保持与
+<code>#[tokio::test(start_paused = true)]</code> 的兼容；模拟构建解析为
+<code>madsim::time::Instant</code>。</p>
+<h4 class="anchor anchorTargetStickyNavbar_ana5" id=network-local-monotonic-time>网络层本地单调时间<a href=#network-local-monotonic-time class=hash-link aria-label=网络层本地单调时间的直接链接 title=网络层本地单调时间的直接链接 translate=no>​</a></h4>
+<p>网络代码的单调读取经由 <code>nautilus_network::dst::time</code>。<code>nautilus-network</code>
+在依赖图中位于 <code>nautilus-common</code> 之下，因此它提供一个行为相同的本地
+再导出模块。</p>
+<h4 class="anchor anchorTargetStickyNavbar_ana5" id=iteration-order>迭代顺序<a href=#iteration-order class=hash-link aria-label=迭代顺序的直接链接 title=迭代顺序的直接链接 translate=no>​</a></h4>
+<p>可观测的迭代顺序使用 <code>IndexMap</code>、<code>IndexSet</code> 或显式排序，不依赖
+<code>AHashMap</code> 或 <code>AHashSet</code>。<code>AHash</code> 按进程随机化其 hasher。
+当迭代控制事件发布、或控制从带种子 <code>FillModel</code> 抽取的顺序时，
+必须保证顺序稳定。</p>
+<h4 class="anchor anchorTargetStickyNavbar_ana5" id=select-polling-order>Select 轮询顺序<a href=#select-polling-order class=hash-link aria-label="Select 轮询顺序的直接链接" title="Select 轮询顺序的直接链接" translate=no>​</a></h4>
+<p>DST 路径上每个生产环境的 <code>tokio::select!</code> 站点都以 <code>biased;</code> 开头。
+否则分支轮询顺序将由未被拦截的 RNG 决定。</p>
+<h2 class="anchor anchorTargetStickyNavbar_ana5" id=determinism-contract>确定性契约<a href=#determinism-contract class=hash-link aria-label=确定性契约的直接链接 title=确定性契约的直接链接 translate=no>​</a></h2>
+<p>在下列条件下，同一平台上由 <code>(seed, binary hash, configuration hash)</code> 标识的运行
+产生逐位一致的：</p>
+<ul>
+<li class="">异步任务的调度顺序。</li>
+<li class="">定时器触发（虚拟单调时间与虚拟墙上时间）。</li>
+<li class=""><code>madsim::rand</code> 的随机输出。</li>
+<li class=""><code>tokio::sync</code> 通道上的投递顺序。</li>
+</ul>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=required-conditions>必需条件<a href=#required-conditions class=hash-link aria-label=必需条件的直接链接 title=必需条件的直接链接 translate=no>​</a></h3>
+<p>契约<strong>只在下面每一行都满足时</strong>成立：</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>不确定性来源<th>必需条件<th>绕过时的失败表现<tbody><tr><td>构建选择<td>启用 <code>simulation</code> feature 并设置 <code>RUSTFLAGS="--cfg madsim"</code>。<td>只设其一会在无报错的情况下退回真实 <code>tokio</code>。该 cfg 同时激活 madsim 对 <code>clock_gettime</code> 与 <code>getrandom</code> 的 libc 拦截。<tr><td><code>tokio::select!</code><td>DST 路径上每个生产块首行放 <code>biased;</code>。<td>未拦截的 RNG 决定轮询顺序。<tr><td>单调时间<td>使用 <code>nautilus_common::live::dst::time</code> 或 <code>nautilus_network::dst::time</code>。<td>直接用 <code>std::time::Instant::now</code> 会读取宿主机时钟。<tr><td>墙上时钟时间<td>使用 <code>nautilus_core::time::duration_since_unix_epoch</code>。<td>直接读时钟绕过虚拟时间。<tr><td>随机性<td>使用 <code>madsim::rand</code>。<td><code>rand::thread_rng</code>、<code>rand::rng()</code>、<code>fastrand</code>、<code>getrandom</code> 与 <code>OsRng</code> 不被拦截。<tr><td>迭代顺序<td>在使用处用 <code>IndexMap</code>、<code>IndexSet</code> 或排序。<td>随机化的哈希迭代会改变可观测顺序。<tr><td>本地任务<td>模拟下排除 <code>tokio::task::LocalSet</code>。<td><code>madsim</code> 没有 <code>LocalSet</code>，直接配合 <code>spawn_local</code> 使用。<tr><td>阻塞任务<td>排除或移除 <code>tokio::task::spawn_blocking</code>。<td>阻塞调用会逃出确定性调度器。</table>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=adapter-dst-contract>适配器 DST 契约<a href=#adapter-dst-contract class=hash-link aria-label="适配器 DST 契约的直接链接" title="适配器 DST 契约的直接链接" translate=no>​</a></h3>
+<p>适配器只有在每条<strong>声明路径</strong>都满足下列要求时才算符合 DST。
+<a class="" href=/developer_guide/adapters#deterministic-simulation>适配器开发者指南</a>指明参考实现
+与受维护适配器的要求，本节陈述契约本身。</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>要求<th>规则<tbody><tr><td>构建边界<td>暴露并传播 <code>simulation</code> feature。声明的路径在 <code>cfg(madsim)</code> 下构建与运行，没有仅测试用的生产行为。<tr><td>静态门禁<td>每个声明路径的生产文件都被 <code>check-dst-conventions</code> 覆盖，或记录了排除理由。<tr><td>确定性输入<td>墙上时间、单调时间、定时器、随机性与生成的标识符来自 <code>nautilus_common::live::dst</code> 门面、<code>nautilus_core::time</code> 墙上时钟接缝，或注入的声明输入。认证输入来自确定性来源。<tr><td>异步控制<td>任务、定时器与运行时控制经 DST 门面；每个生产 <code>select!</code> 带 <code>biased;</code>；连接、重连、重试、退订与关停均可确定性复现。<tr><td>线上身份<td>在每个线上与领域输出边界使用有序集合或显式排序。重试与重连保留协议标识符，并从相同声明输入复现逐字节相同的请求。不确定的结果使用共享的命令失败分类。<tr><td>受控传输<td>每条声明路径的端点通过受支持的生产配置指向受控的本地对端。没有硬编码的场所主机、凭据或真实场所状态。私有路径允许固定的合成凭据。<tr><td>新进程证明<td>相同种子、配置与对端脚本在新进程中产生完全一致的线上记录与领域输出。至少一个校准过的变异被拒绝。上游固定订阅字节与线上字段。完整比对在下游进行。</table>
+<p>适配器未声明的能力，在某个切片证明它之前留在契约之外。切片扩大已证明的
+集合，门禁防止回归。</p>
+<h2 class="anchor anchorTargetStickyNavbar_ana5" id=static-enforcement>静态强制<a href=#static-enforcement class=hash-link aria-label=静态强制的直接链接 title=静态强制的直接链接 translate=no>​</a></h2>
+<p>静态强制分两层：</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>层<th>强制内容<tbody><tr><td>Clippy 策略<td><code>clippy.toml</code> 与 <code>[workspace.lints.clippy]</code> 拒绝直接的 <code>getrandom::{fill,u32,u64}</code> 调用和 <code>tokio::task::LocalSet</code>。<tr><td><code>check-dst-conventions</code><td>预提交钩子执行 Clippy 无法干净表达的、与路径和 cfg 相关的结构检查。</table>
+<p>钩子位于 <code>.pre-commit-hooks/check_dst_conventions.sh</code>，在标准预提交套件与 CI 中运行。
+其作用范围随规则而异：</p>
+<ul>
+<li class=""><strong>规则 1 至 4 和 6</strong>：17 个范围内的 workspace crate，以及钩子
+<code>ADAPTER_PATHS</code> 列表中经过审计的适配器文件。</li>
+<li class=""><strong>规则 5</strong>：其两个经过审计的文件。</li>
+<li class=""><strong>规则 7</strong>：madsim 构建路径上的九个 crate、那些适配器文件，以及
+<code>crates/network/src/websocket/client.rs</code>。</li>
+</ul>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>规则<th>拒绝内容<th>范围或例外<tbody><tr><td>1<td>原始的 <code>std::time::Instant::now()</code>、<code>SystemTime::now()</code>、<code>jiff::Timestamp::now()</code>、<code>jiff::Zoned::now()</code> 读取，含导入后的裸形式。<td>允许墙上时钟接缝、经审计的日志或进度计时，以及带标记的行。<tr><td>2<td>原始的 <code>rand::thread_rng</code>、<code>rand::rng()</code>、<code>fastrand::</code>、<code>getrandom::</code>、<code>OsRng</code> 与 <code>Uuid::new_v4()</code> 用法。<td>允许 cfg 门控与带标记的行。<tr><td>3<td>生产环境 <code>tokio::select!</code> 块前三行没有 <code>biased;</code>。<td>排除测试与带标记的行。<tr><td>4<td><code>std::thread::spawn</code>、<code>std::thread::Builder::new</code> 与 <code>tokio::task::spawn_blocking</code>。<td>允许仅测试、非 madsim 与带标记的站点。<tr><td>5<td>对账管理器与撮合引擎中的 <code>AHashMap</code> 或 <code>AHashSet</code>。<td>覆盖两个经审计的文件。其余文件在审计完成前不受该静态规则约束。<tr><td>6<td>直接的 <code>tokio::net::TcpStream::connect</code> 与 <code>tokio::net::TcpListener::bind</code> 调用。<td>调用方必须使用 <code>nautilus_network::net</code>，它在 <code>turmoil</code> feature 下换成 <code>turmoil::net</code>。<tr><td>7<td>madsim 构建路径上生产代码中的原始 <code>tokio::{time,task,runtime,signal}</code> 路径。<td>允许门面、进程级真实 Tokio 运行时、测试基础设施、cfg 门控站点与带标记的行。</table>
+<p>受支持的 Madsim HTTP 与 WebSocket 路径使用 <code>nautilus_network::dst::net</code>：
+选择模拟字节流，常规构建中再导出 <code>nautilus_network::net</code>。</p>
+<p>钩子支持两种例外形式：</p>
+<ul>
+<li class="">在具体行上加行内 <code>// dst-ok</code> 标记，通常附简短理由
+（例如不影响状态的仅日志墙上时钟计时）。</li>
+<li class="">钩子脚本内维护一个很小的文件级允许名单，用于代码库审计中被归为
+保留不动的站点（缓存模块的日志计时、日志桥接与写入器的
+日志记录加时间戳、DeFi 模块的进度上报）。</li>
+</ul>
+<p>钩子排除：</p>
+<ul>
+<li class=""><code>tests/</code>、<code>python/</code>、<code>ffi/</code> 目录下的文件。</li>
+<li class="">名为 <code>tests.rs</code>、<code>*_test.rs</code>、<code>*_tests.rs</code> 的文件。</li>
+<li class="">行内 <code>#[cfg(test)]</code> 模块中的行。</li>
+</ul>
+<p>这些路径不属于生产 DST 契约。</p>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=in-scope-crates>范围内的 crate<a href=#in-scope-crates class=hash-link aria-label="范围内的 crate的直接链接" title="范围内的 crate的直接链接" translate=no>​</a></h3>
+<p><code>nautilus-live</code> 的传递闭包包含 16 个范围内的 crate：</p>
+<ul>
+<li class=""><code>analysis</code></li>
+<li class=""><code>common</code></li>
+<li class=""><code>core</code></li>
+<li class=""><code>cryptography</code></li>
+<li class=""><code>data</code></li>
+<li class=""><code>execution</code></li>
+<li class=""><code>indicators</code></li>
+<li class=""><code>live</code></li>
+<li class=""><code>model</code></li>
+<li class=""><code>network</code></li>
+<li class=""><code>persistence</code></li>
+<li class=""><code>portfolio</code></li>
+<li class=""><code>risk</code></li>
+<li class=""><code>serialization</code></li>
+<li class=""><code>system</code></li>
+<li class=""><code>trading</code></li>
+</ul>
+<p>钩子还覆盖 <code>backtest</code>，共 17 个 crate。</p>
+<p>适配器 crate 与基础设施 crate（Redis、Postgres）在范围之外，除非适配器的
+集成指南中记录了经审计的切片。经审计的切片指明静态门禁覆盖的 DST 路径
+文件、其余部分的排除理由，以及适配器 <code>dst</code> 测试证明的运行时切片。</p>
+<div class="theme-admonition theme-admonition-warning admonition_LYZY alert alert--warning"><div class=admonitionHeading_pnFY><span class=admonitionIcon_tEzm><svg viewBox="0 0 16 16"><path fill-rule=evenodd d="M8.893 1.5c-.183-.31-.52-.5-.887-.5s-.703.19-.886.5L.138 13.499a.98.98 0 0 0 0 1.001c.193.31.53.501.886.501h13.964c.367 0 .704-.19.877-.5a1.03 1.03 0 0 0 .01-1.002L8.893 1.5zm.133 11.497H6.987v-2.003h2.039v2.003zm0-3.004H6.987V5.987h2.039v4.006z"/></svg></span>注意</div><div class=admonitionContent_ZwmI><p>仅静态覆盖不能确立运行时资格：被覆盖的文件也可能服务于已证明运行时
+切片之外的路径。</div></div>
+<h2 class="anchor anchorTargetStickyNavbar_ana5" id=simulated-http-and-websocket-transport>模拟 HTTP 与 WebSocket 传输<a href=#simulated-http-and-websocket-transport class=hash-link aria-label="模拟 HTTP 与 WebSocket 传输的直接链接" title="模拟 HTTP 与 WebSocket 传输的直接链接" translate=no>​</a></h2>
+<p>在 <code>simulation</code> 与 <code>cfg(madsim)</code> 下，<code>nautilus-network</code> 在 Madsim 字节流上
+执行明文 HTTP/1.1 请求与 Tungstenite WebSocket 连接。</p>
+<ul>
+<li class=""><strong>HTTP</strong>：生产与模拟路径共享请求默认值、URL 与查询编码、响应校验。
+共享的响应校验包括缓冲体上限与覆盖 body 读取的截止时间。
+<code>crates/network/src/http/simulation.rs</code> 中的模拟分支用 Hyper 完成
+HTTP/1.1 交换，并持有自己的 Madsim 连接任务。</li>
+<li class=""><strong>WebSocket</strong>：流量使用 Tungstenite 编解码器。<code>crates/network/src/dst.rs</code>
+把其拥有的任务与传输流路由到 Madsim。</li>
+</ul>
+<p>常规构建使用池化的 Hyper HTTP 连接与 Tokio 任务。</p>
+<p>配置受控的 <code>http://</code> 与 <code>ws://</code> 端点，并选择
+<code>TransportBackend::Tungstenite</code>。模拟在打开连接前拒绝 HTTPS/WSS、显式代理
+与 Sockudo。Sockudo 的内部定时器需要 Tokio 运行时。环境中的 HTTP 代理设置
+不影响模拟交换。</p>
+<p>重定向行为取决于 <code>HttpRedirectPolicy</code>：</p>
+<ul>
+<li class=""><code>Follow</code>（默认）：带 <code>Location</code> 的重定向响应返回错误，而不是跟随。</li>
+<li class=""><code>Reject</code>：把重定向响应原样返回调用方。</li>
+</ul>
+<p>该模型覆盖 HTTP 请求字节、WebSocket 消息载荷与领域事件，
+不承诺可复现的 WebSocket 握手 key 或帧掩码、TLS 记录、操作系统 TCP 调度、
+部分写入、socket 选项或 TCP 半关闭。</p>
+<p><code>crates/network/src/dst/stream.rs</code> 中，流关闭（shutdown）会刷出字节，
+丢弃流则断开连接。同时组合 <code>simulation</code>、<code>cfg(madsim)</code> 与 <code>turmoil</code>
+是编译错误，两个模拟器要分别在各自的构建中运行。</p>
+<p>模拟会按名称对请求头排序，以产生可复现的 HTTP 字节。这一规范化顺序
+不承诺与真实请求头顺序逐字节相等。每个 HTTP 请求都新建连接，
+不建模连接池与 keep-alive 复用。</p>
+<p>网络测试覆盖传输行为，但不为某个适配器、产品或通道确立端到端的一致性。</p>
+<h2 class="anchor anchorTargetStickyNavbar_ana5" id=network-seed-soaks>网络种子冲刷<a href=#network-seed-soaks class=hash-link aria-label=网络种子冲刷的直接链接 title=网络种子冲刷的直接链接 translate=no>​</a></h2>
+<p><a href=https://crates.io/crates/turmoil target=_blank rel="noopener noreferrer" class="">Turmoil</a> 在带种子的调度器下模拟网络。
+<code>nautilus-network</code> 的传输测试用它触及 madsim 运行时替换之外的链路与
+重连顺序。</p>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=fixed-seed-nightly-tests>固定种子的夜间测试<a href=#fixed-seed-nightly-tests class=hash-link aria-label=固定种子的夜间测试的直接链接 title=固定种子的夜间测试的直接链接 translate=no>​</a></h3>
+<p>夜间套件为以下场景运行可复现的用例：</p>
+<ul>
+<li class="">初次连接。</li>
+<li class="">重连。</li>
+<li class="">网络分区。</li>
+<li class="">重连期间关闭。</li>
+<li class="">退避期间关闭。</li>
+<li class="">反复丢弃服务端并断言精确消息顺序。</li>
+</ul>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=reconnect-seed-soak>重连种子冲刷<a href=#reconnect-seed-soak class=hash-link aria-label=重连种子冲刷的直接链接 title=重连种子冲刷的直接链接 translate=no>​</a></h3>
+<p>一个被忽略的重连测试扫描 Turmoil 种子，直到手动停止或达到配置上限。
+每个种子先运行 Tungstenite WebSocket 后端；启用 <code>transport-sockudo</code>
+feature 时再运行 Sockudo，让两个后端拥有相同的调度搜索路径。</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>变量<th>默认值<th>作用<tbody><tr><td><code>NAUTILUS_TURMOIL_SOAK_START</code><td><code>0</code><td>选择首个种子，使扫描可以续跑。<tr><td><code>NAUTILUS_TURMOIL_SOAK_COUNT</code><td>无上限<td>达到指定种子数后停止。<tr><td><code>NAUTILUS_TURMOIL_SOAK_PROGRESS_INTERVAL</code><td><code>100</code><td>每个后端经过这么多种子记录一次进度。</table>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=run-the-soak>运行冲刷<a href=#run-the-soak class=hash-link aria-label=运行冲刷的直接链接 title=运行冲刷的直接链接 translate=no>​</a></h3>
+<p>持续冲刷：</p>
+<div class="language-bash codeBlockContainer_eTMR theme-code-block" style=--prism-color:#393A34;--prism-background-color:#f6f8fa><div class=codeBlockContent_hafM><pre tabindex=0 class="prism-code language-bash codeBlock_IMvC thin-scrollbar" style=color:#393A34;background-color:#f6f8fa><code class=codeBlockLines_gZDW><div class=token-line style=color:#393A34><span class="token plain">scripts/soak-network-turmoil.sh</span><br/></div></code></pre></div></div>
+<p>有界冲刷：</p>
+<div class="language-bash codeBlockContainer_eTMR theme-code-block" style=--prism-color:#393A34;--prism-background-color:#f6f8fa><div class=codeBlockContent_hafM><pre tabindex=0 class="prism-code language-bash codeBlock_IMvC thin-scrollbar" style=color:#393A34;background-color:#f6f8fa><code class=codeBlockLines_gZDW><div class=token-line style=color:#393A34><span class="token plain">env NAUTILUS_TURMOIL_SOAK_COUNT=100 scripts/soak-network-turmoil.sh</span><br/></div></code></pre></div></div>
+<p>每个种子启用随机节点顺序与 1 ms 到 25 ms 的链路延迟。场景反复丢弃
+服务端，让客户端在重连状态间循环，并断言精确的应用消息顺序。</p>
+<p>冲刷不启用 Turmoil 的 <code>fail_rate</code>。对 TCP 而言，没有重传模型的丢包会在
+保序测试中夸大客户端的投递契约。</p>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=platform-coverage>平台覆盖<a href=#platform-coverage class=hash-link aria-label=平台覆盖的直接链接 title=平台覆盖的直接链接 translate=no>​</a></h3>
+<p>Turmoil 测试使用模拟网络，未限定 Linux，因此种子扫描也会跑在 macOS 上。
+若干使用真实本地回环 socket 与 WebSocket 的单元测试为 CI 稳定性限定
+<code>target_os = "linux"</code>，macOS 上的运行因此不覆盖那部分宿主 TCP 测试。
+只有在 Linux CI 或 Linux 工作站上跑过，才可视为完整网络测试集已覆盖。</p>
+<h2 class="anchor anchorTargetStickyNavbar_ana5" id=implementation-notes>实现说明<a href=#implementation-notes class=hash-link aria-label=实现说明的直接链接 title=实现说明的直接链接 translate=no>​</a></h2>
+<p>以下小节把每个确定性接缝对应到其源码、用途与例外。</p>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=iteration-order-seams>迭代顺序接缝<a href=#iteration-order-seams class=hash-link aria-label=迭代顺序接缝的直接链接 title=迭代顺序接缝的直接链接 translate=no>​</a></h3>
+<p>迭代在 DST 路径上可观测的生产位置，使用有序集合或显式排序。</p>
+<h4 class="anchor anchorTargetStickyNavbar_ana5" id=matching-engine>撮合引擎<a href=#matching-engine class=hash-link aria-label=撮合引擎的直接链接 title=撮合引擎的直接链接 translate=no>​</a></h4>
+<p><code>crates/execution/src/matching_engine/mod.rs</code> 使用十一个有序集合：</p>
+<ul>
+<li class=""><code>execution_bar_types</code></li>
+<li class=""><code>execution_bar_deltas</code></li>
+<li class=""><code>account_ids</code></li>
+<li class=""><code>cached_filled_qty</code></li>
+<li class=""><code>post_match_order_ids</code></li>
+<li class=""><code>bid_consumption</code></li>
+<li class=""><code>ask_consumption</code></li>
+<li class=""><code>queue_pending</code></li>
+<li class=""><code>queue_ahead_orders</code></li>
+<li class=""><code>queue_ahead_total</code></li>
+<li class=""><code>queue_excess</code></li>
+</ul>
+<p><code>queue_pending</code>、<code>queue_ahead_orders</code>、<code>queue_ahead_total</code> 的删除使用
+<code>.shift_remove()</code>，删除条目不会重排剩余部分。</p>
+<h4 class="anchor anchorTargetStickyNavbar_ana5" id=reconciliation-manager>对账管理器<a href=#reconciliation-manager class=hash-link aria-label=对账管理器的直接链接 title=对账管理器的直接链接 translate=no>​</a></h4>
+<p>规则 5 覆盖 <code>crates/live/src/execution/manager.rs</code>。
+<code>ReconciliationResult</code> 的 <code>orders</code> 与 <code>fills</code> 映射在
+<code>crates/execution/src/reconciliation/types.rs</code> 中使用 <code>IndexMap</code>。</p>
+<h4 class="anchor anchorTargetStickyNavbar_ana5" id=account-balances>账户余额<a href=#account-balances class=hash-link aria-label=账户余额的直接链接 title=账户余额的直接链接 translate=no>​</a></h4>
+<p>账户 trait 从以下方法返回 <code>IndexMap</code>：</p>
+<ul>
+<li class=""><code>balances</code></li>
+<li class=""><code>balances_total</code></li>
+<li class=""><code>balances_free</code></li>
+<li class=""><code>balances_locked</code></li>
+<li class=""><code>starting_balances</code></li>
+</ul>
+<p><code>BaseAccount</code> 与 <code>MarginAccount</code> 上的余额与保证金存储也使用 <code>IndexMap</code>。
+<code>commissions</code> 与 <code>leverages</code> 字段保持 <code>AHashMap</code>。</p>
+<h4 class="anchor anchorTargetStickyNavbar_ana5" id=position-commissions>持仓手续费<a href=#position-commissions class=hash-link aria-label=持仓手续费的直接链接 title=持仓手续费的直接链接 translate=no>​</a></h4>
+<p><code>crates/model/src/position.rs</code> 中的 <code>Position::commissions</code> 使用 <code>IndexMap</code>。
+持仓快照在 <code>crates/model/src/events/position/snapshot.rs</code> 中经 <code>.values()</code>
+消费该映射，使其顺序可观测。</p>
+<h4 class="anchor anchorTargetStickyNavbar_ana5" id=portfolio-aggregation>组合聚合<a href=#portfolio-aggregation class=hash-link aria-label=组合聚合的直接链接 title=组合聚合的直接链接 translate=no>​</a></h4>
+<p><code>crates/portfolio/src/portfolio.rs</code> 用 <code>IndexMap</code> 存储 <code>unrealized_pnls</code>、
+<code>realized_pnls</code> 与 <code>net_positions</code>。<code>accumulate_mark_values</code> 构建
+<code>IndexMap&lt;Currency, Decimal></code>。</p>
+<h4 class="anchor anchorTargetStickyNavbar_ana5" id=data-engine>数据引擎<a href=#data-engine class=hash-link aria-label=数据引擎的直接链接 title=数据引擎的直接链接 translate=no>​</a></h4>
+<p><code>crates/data/src/engine/</code> 对 <code>book_snapshot_counts</code>、<code>bar_aggregators</code> 与
+<code>BookSnapshotInfos</code> 使用有序存储。迭代式删除使用 <code>.shift_remove()</code>。</p>
+<h4 class="anchor anchorTargetStickyNavbar_ana5" id=execution-engine>执行引擎<a href=#execution-engine class=hash-link aria-label=执行引擎的直接链接 title=执行引擎的直接链接 translate=no>​</a></h4>
+<p><code>ExecutionEngine.clients</code> 使用 <code>IndexMap</code>。<code>get_clients_for_orders()</code> 中的
+<code>client_ids</code> 与 <code>venues</code> 累加器使用 <code>IndexSet</code>。</p>
+<h4 class="anchor anchorTargetStickyNavbar_ana5" id=backtest-engine-and-exchange>回测引擎与模拟场所<a href=#backtest-engine-and-exchange class=hash-link aria-label=回测引擎与模拟场所的直接链接 title=回测引擎与模拟场所的直接链接 translate=no>​</a></h4>
+<p><code>BacktestEngine.venues</code> 与 <code>SimulatedExchange.matching_engines</code> 保留场所与工具的
+迭代顺序，用于：</p>
+<ul>
+<li class="">结算。</li>
+<li class="">到期。</li>
+<li class="">清算。</li>
+<li class="">带种子的 <code>FillModel</code> 抽取。</li>
+</ul>
+<p>源码位置为 <code>crates/backtest/src/engine.rs</code> 与 <code>crates/backtest/src/exchange.rs</code>。</p>
+<h4 class="anchor anchorTargetStickyNavbar_ana5" id=trading-algorithm>交易算法<a href=#trading-algorithm class=hash-link aria-label=交易算法的直接链接 title=交易算法的直接链接 translate=no>​</a></h4>
+<p><code>crates/trading/src/algorithm/core.rs</code> 中的 <code>strategy_event_handlers</code> 使用
+<code>IndexMap</code>，驱动有序的 <code>msgbus::unsubscribe_*</code> 扇出。</p>
+<h4 class="anchor anchorTargetStickyNavbar_ana5" id=analyzer>分析器<a href=#analyzer class=hash-link aria-label=分析器的直接链接 title=分析器的直接链接 translate=no>​</a></h4>
+<p><code>crates/analysis/src/analyzer.rs</code> 中的 <code>account_balances</code> 与
+<code>account_balances_starting</code> 使用 <code>IndexMap</code>。</p>
+<h4 class="anchor anchorTargetStickyNavbar_ana5" id=cache-api>缓存 API<a href=#cache-api class=hash-link aria-label="缓存 API的直接链接" title="缓存 API的直接链接" translate=no>​</a></h4>
+<p><code>crates/common/src/cache/mod.rs</code> 中的 <code>get_orders_for_ids</code> 与
+<code>get_positions_for_ids</code> 按 <code>client_order_id</code> 与 <code>position_id</code> 对返回的向量排序。
+底层存储保留 <code>AHashSet</code>，因为它具有集合语义。</p>
+<h4 class="anchor anchorTargetStickyNavbar_ana5" id=instrument-store>工具存储<a href=#instrument-store class=hash-link aria-label=工具存储的直接链接 title=工具存储的直接链接 translate=no>​</a></h4>
+<p><code>crates/common/src/providers.rs</code> 中的 <code>InstrumentStore.instruments</code> 使用带
+<code>ahash</code> hasher 的 <code>IndexMap</code>。适配器从 <code>get_all()</code> 或 <code>list_all()</code> 为每个条目
+发布一条 <code>DataEvent::Instrument</code> 时，该顺序可观测。</p>
+<h4 class="anchor anchorTargetStickyNavbar_ana5" id=order-emulator>订单模拟器<a href=#order-emulator class=hash-link aria-label=订单模拟器的直接链接 title=订单模拟器的直接链接 translate=no>​</a></h4>
+<p><code>crates/execution/src/order_emulator/emulator.rs</code> 中的 <code>on_reset</code> 在有序的
+<code>msgbus::unsubscribe_*</code> 扇出之前，对三个排空集合排序：</p>
+<ul>
+<li class=""><code>subscribed_quotes</code></li>
+<li class=""><code>subscribed_trades</code></li>
+<li class=""><code>subscribed_strategies</code></li>
+</ul>
+<p>报价与成交路径还会推进带种子的 <code>UUID4::new</code> 抽取序列。存储保持 <code>AHashSet</code>。</p>
+<h4 class="anchor anchorTargetStickyNavbar_ana5" id=websocket-subscriptions>WebSocket 订阅<a href=#websocket-subscriptions class=hash-link aria-label="WebSocket 订阅的直接链接" title="WebSocket 订阅的直接链接" translate=no>​</a></h4>
+<p><code>crates/network/src/websocket/subscription.rs</code> 中的 <code>topics_from_map</code> 对返回的
+向量排序，在 <code>all_topics()</code> 之后保留重连重放顺序；存储仍是值为 <code>AHashSet</code>
+的 <code>DashMap</code>。</p>
+<h4 class="anchor anchorTargetStickyNavbar_ana5" id=unordered-collection-limits>无序集合的界限<a href=#unordered-collection-limits class=hash-link aria-label=无序集合的界限的直接链接 title=无序集合的界限的直接链接 translate=no>​</a></h4>
+<p><code>nautilus-live</code> 闭包中的 <code>AHashMap</code> / <code>AHashSet</code> 位置只用于查找、位于并发
+共享所有权包装（<code>Arc&lt;DashMap></code>、<code>AtomicMap</code>）之后，或汇入可交换的聚合。
+<code>backtest</code> 中还有规则 5 两文件强制范围之外的哈希集合，包括运行前校验与
+结果映射。在相应路径完成审计前，其迭代顺序视为不受静态保证覆盖。</p>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=time-seams>时间接缝<a href=#time-seams class=hash-link aria-label=时间接缝的直接链接 title=时间接缝的直接链接 translate=no>​</a></h3>
+<p>剩余的 <code>Instant::now</code> 与 <code>SystemTime::now</code> 位置属于测试、文件白名单位置或
+带标记的例外：</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>位置<th>用途<th>处理方式<tbody><tr><td><code>crates/common/src/testing.rs</code><td><code>wait_until</code> 与 <code>wait_until_async</code> 的计时。<td>行内 <code>// dst-ok</code>：测试控制按设计使用真实时间。<tr><td><code>crates/execution/src/engine/mod.rs</code><td><code>load_cache</code> 的初始化日志计时。<td>行内 <code>// dst-ok</code>：计时不影响 DST 状态。<tr><td><code>crates/common/src/cache/mod.rs</code><td><code>check_integrity</code> 与 <code>audit_own_order_books</code> 的计时。<td>文件白名单。<tr><td><code>crates/model/src/defi/reporting.rs</code><td>进度日志。<td>文件白名单。<tr><td><code>crates/core/src/time.rs</code><td>墙上时钟接缝定义。<td>显式接缝例外。</table>
+<p><code>jiff::Timestamp::now</code> 与 <code>jiff::Zoned::now</code> 在范围内 crate 中被钩子禁用。
+其余时间戳调用点是日志桥接与写入器，在
+<a href=#logging-runs-on-real-os-threads class="">日志运行在真实 OS 线程上</a>一节中被划出范围。
+<code>crates/core/src/datetime.rs::is_within_last_24_hours</code> 经
+<code>nautilus_core::time::nanos_since_unix_epoch()</code> 取时，并直接用 <code>u64</code> 纳秒比较。</p>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=randomness-seams>随机性接缝<a href=#randomness-seams class=hash-link aria-label=随机性接缝的直接链接 title=随机性接缝的直接链接 translate=no>​</a></h3>
+<p>DST 路径上的生产随机性使用以下接缝。</p>
+<h4 class="anchor anchorTargetStickyNavbar_ana5" id=uuid-generation>UUID 生成<a href=#uuid-generation class=hash-link aria-label="UUID 生成的直接链接" title="UUID 生成的直接链接" translate=no>​</a></h4>
+<p><code>crates/core/src/uuid.rs::UUID4::new()</code> 在模拟的 madsim 运行时内使用
+<code>madsim::rand::thread_rng()</code>。常规构建，以及 madsim 运行时之外的普通
+<code>#[rstest]</code> 函数体，使用 <code>rand::rng()</code>。</p>
+<p>生产模拟路径在运行时内执行并消费带种子的字节。<code>nautilus-common</code> 与
+<code>nautilus-risk</code> 中的订单与事件工厂经由该接缝。</p>
+<h4 class="anchor anchorTargetStickyNavbar_ana5" id=fill-model-randomness>成交模型随机性<a href=#fill-model-randomness class=hash-link aria-label=成交模型随机性的直接链接 title=成交模型随机性的直接链接 translate=no>​</a></h4>
+<p><code>crates/execution/src/models/fill.rs::default_std_rng()</code> 遵循同样的运行时分流。
+未提供种子时 <code>ProbabilisticFillState::new()</code> 调用它。调用方提供种子时，
+<code>StdRng::seed_from_u64</code> 本身就是确定性的，无需接缝。</p>
+<h4 class="anchor anchorTargetStickyNavbar_ana5" id=random-matching-engine-ids>随机撮合引擎 ID<a href=#random-matching-engine-ids class=hash-link aria-label="随机撮合引擎 ID的直接链接" title="随机撮合引擎 ID的直接链接" translate=no>​</a></h4>
+<p><code>crates/execution/src/matching_engine/ids_generator.rs</code> 中的 <code>use_random_ids</code>
+路径为持仓 ID 与场所订单 ID 调用 <code>nautilus_core::UUID4::new()</code>。
+默认 ID 方案 <code>{venue}-{raw_id}-{count}</code> 不使用随机字节，本身确定性。</p>
+<h4 class="anchor anchorTargetStickyNavbar_ana5" id=reconnect-jitter>重连抖动<a href=#reconnect-jitter class=hash-link aria-label=重连抖动的直接链接 title=重连抖动的直接链接 translate=no>​</a></h4>
+<p><code>crates/network/src/backoff.rs</code> 在模拟运行时内采样
+<code>madsim::rand::thread_rng()</code>。常规构建以及 Madsim 运行时之外的调用使用
+<code>rand::rng()</code>。以相同种子重启运行时，会重启模拟的抖动序列。</p>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=tokio-submodule-split>Tokio 子模块划分<a href=#tokio-submodule-split class=hash-link aria-label="Tokio 子模块划分的直接链接" title="Tokio 子模块划分的直接链接" translate=no>​</a></h3>
+<p>common 门面把 <code>time</code>、<code>task</code>、<code>runtime</code>、<code>signal</code> 路由到 <code>madsim</code>。
+<code>tokio</code> 的 <code>sync</code>、<code>io</code>、<code>fs</code>、<code>net</code> 子模块以及 <code>select!</code> 的直接使用在模拟下
+仍走真实 <code>tokio</code>。网络层本地的 <code>dst::net</code> 边界单独为受支持的 HTTP 与
+WebSocket 路径选择 Madsim 字节流。</p>
+<p>全局替换 Tokio 网络会连带影响这些依赖：</p>
+<ul>
+<li class=""><code>tokio-tungstenite</code></li>
+<li class=""><code>tokio-rustls</code></li>
+<li class=""><code>hyper-util</code></li>
+<li class=""><code>hyper-rustls</code></li>
+</ul>
+<p>网络层本地边界通过向 Hyper 与 Tungstenite 提供流，避免全局替换。
+TLS 留在其模拟范围之外。</p>
+<p>范围内的直接使用点：</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>位置<th>真实 Tokio 面<th>边界<tbody><tr><td><code>crates/network/src/net.rs</code><td><code>tokio::net::{TcpListener, TcpStream}</code><td>在 <code>crate::net</code> 接缝后再导出常规传输。<tr><td><code>crates/network/src/socket/client.rs</code><td><code>tokio::io::{AsyncReadExt, AsyncWriteExt}</code><td>在选定的传输上执行 I/O。<tr><td><code>crates/network/src/tls.rs</code><td><code>tokio::io::{AsyncRead, AsyncWrite}</code><td>定义 TLS I/O 约束。<tr><td><code>crates/network/src/socket/types.rs</code><td><code>tokio::io::{ReadHalf, WriteHalf}</code><td>拆分 <code>MaybeTlsStream&lt;TcpStream></code>。<code>TcpStream</code> 来自 <code>crate::net</code>。</table>
+<p>这些路径即使在模拟下也使用真实 socket。<code>tokio::sync</code> 通道实现同样保持真实，
+但 madsim 会调度其发送端与接收端任务，因此通道投递顺序仍属于确定性调度契约。</p>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=raw-thread-escape-rules>原生线程逃逸规则<a href=#raw-thread-escape-rules class=hash-link aria-label=原生线程逃逸规则的直接链接 title=原生线程逃逸规则的直接链接 translate=no>​</a></h3>
+<p>钩子的规则 4 禁止在三种逃逸情形之外原生创建线程：</p>
+<ul>
+<li class=""><code>#[cfg(test)]</code> 测试模块。</li>
+<li class=""><code>#[cfg(not(madsim))]</code> 或 <code>#[cfg(not(all(feature = "simulation", madsim)))]</code>
+的生产位置（例如日志写入器线程）。</li>
+<li class="">行内 <code>// dst-ok</code> 标记。</li>
+</ul>
+<p><code>tokio::task::LocalSet</code> 与 <code>tokio::task::spawn_blocking</code> 在 <code>madsim</code> 下不受支持。
+代码库审计在范围内 crate 中未发现任何生产使用点。新增使用点必须带 cfg 门控或
+<code>// dst-ok</code> 标记。</p>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=logging-tests-under-simulation>模拟下的日志测试<a href=#logging-tests-under-simulation class=hash-link aria-label=模拟下的日志测试的直接链接 title=模拟下的日志测试的直接链接 translate=no>​</a></h3>
+<p>日志写入器线程在模拟下被 cfg 门控排除。<code>cfg(madsim)</code> 时日志事件被丢弃。
+初始化文件日志写入器的测试要么挂起，要么对空日志文件断言失败。
+因此受影响的子模块在模块边界被门控排除：</p>
+<ul>
+<li class=""><code>crates/common/src/logging/logger.rs::tests::serial_tests</code>。</li>
+<li class=""><code>crates/common/src/logging/macros.rs::tests</code>。</li>
+</ul>
+<p><code>logger.rs::tests::sim_tests::test_init_under_madsim_skips_writer_thread_and_forces_bypass</code>
+在模拟下运行，锁定被门控的行为。</p>
+<h2 class="anchor anchorTargetStickyNavbar_ana5" id=scope-boundaries>范围边界<a href=#scope-boundaries class=hash-link aria-label=范围边界的直接链接 title=范围边界的直接链接 translate=no>​</a></h2>
+<p>契约受以下边界限制。每个小节指出可能在两次运行间变化、或留在受审计 DST
+路径之外的行为。</p>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=python-and-ffi-are-not-in-dst-scope>Python 与 FFI 不在 DST 范围内<a href=#python-and-ffi-are-not-in-dst-scope class=hash-link aria-label="Python 与 FFI 不在 DST 范围内的直接链接" title="Python 与 FFI 不在 DST 范围内的直接链接" translate=no>​</a></h3>
+<p>DST 在原生 Rust 测试框架下运行，不启动 Python 解释器。契约不包括：</p>
+<ul>
+<li class=""><code>crates/*/src/python/</code> 下的 PyO3 绑定。</li>
+<li class=""><code>crates/core/src/ffi/</code> 与 <code>crates/model/src/ffi/</code> 下的 Rust FFI 模块。</li>
+<li class=""><code>python/nautilus_trader/</code> 下的 Python 包。</li>
+</ul>
+<p>仅经这些绑定可达的代码在范围之外。原生 DST 框架可达的任意 Rust 路径都必须
+满足契约，即便同一类型也通过某个绑定导出。</p>
+<p><code>check-dst-conventions</code> 钩子按此策略跳过范围内 crate 的 <code>/python/</code> 与 <code>/ffi/</code>
+路径。那些路径背后的时钟、RNG 与线程调用不适用本契约。</p>
+<p>DST 主要覆盖 Rust 引擎中的订单生命周期、对账、撮合、风控与执行状态机。
+只有用 Rust 编写、或用 Rust 原生测试框架驱动的用户策略才可重放。</p>
+<p>Python 策略可以通过以下方式改变其命令流：</p>
+<ul>
+<li class="">调用 <code>time.time()</code>。</li>
+<li class="">发出任意网络请求。</li>
+<li class="">依赖操作系统线程调度。</li>
+</ul>
+<p>Rust 内核按其确定性契约处理该命令流，但 DST 不保证从 Python 入口点的
+端到端重放。</p>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=platform-scoped>限定平台<a href=#platform-scoped class=hash-link aria-label=限定平台的直接链接 title=限定平台的直接链接 translate=no>​</a></h3>
+<p><code>madsim</code> 对 <code>clock_gettime</code> 与 <code>getrandom</code> 的 libc 覆盖是平台特定的。
+契约不主张跨平台的逐位可复现。在 Linux x86_64 上复现某失败的种子，
+在 macOS aarch64 上可能无法复现。</p>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=non-aliased-dependencies-escape-silently>未替换的依赖静默逃逸<a href=#non-aliased-dependencies-escape-silently class=hash-link aria-label=未替换的依赖静默逃逸的直接链接 title=未替换的依赖静默逃逸的直接链接 translate=no>​</a></h3>
+<p>依赖通过以下途径直达操作系统时，会无声地逃出模拟器：</p>
+<ul>
+<li class="">直接 <code>libc</code> 调用。</li>
+<li class=""><code>std::net</code> 旁路。</li>
+<li class="">未路由的随机性，如 <code>fastrand</code> 或 <code>OsRng</code>。</li>
+</ul>
+<p>范围内的 crate 已完成审计。适配器与基础设施 crate 进入 DST 路径前需要
+单独审计。</p>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=transport-scope-limits>传输范围限制<a href=#transport-scope-limits class=hash-link aria-label=传输范围限制的直接链接 title=传输范围限制的直接链接 translate=no>​</a></h3>
+<p>以下依赖内部使用真实 <code>tokio</code>：</p>
+<ul>
+<li class=""><code>tokio-tungstenite</code></li>
+<li class=""><code>tokio-rustls</code></li>
+<li class=""><code>hyper-util</code></li>
+<li class=""><code>hyper-rustls</code></li>
+<li class=""><code>redis</code></li>
+<li class=""><code>sqlx</code></li>
+</ul>
+<p><a href=#simulated-http-and-websocket-transport class="">模拟 HTTP 与 WebSocket 传输</a>为受支持的
+明文路径提供 Madsim 流。原始 socket 客户端、TLS、Redis 与 SQL 留在该边界之外。
+Turmoil 提供<a href=#network-seed-soaks class="">网络种子冲刷</a>所述的另一套网络模拟。</p>
+<p>以下测试模块驱动真实的本地回环 socket，在
+<code>all(feature = "simulation", madsim)</code> 下被 cfg 门控排除：</p>
+<ul>
+<li class=""><code>crates/network/src/http/client.rs::tests</code></li>
+<li class=""><code>crates/network/src/http/tests.rs</code></li>
+<li class=""><code>crates/network/src/socket/client.rs::tests</code></li>
+<li class=""><code>crates/network/src/socket/client.rs::rust_tests</code></li>
+<li class=""><code>crates/network/src/websocket/client.rs::tests</code></li>
+<li class=""><code>crates/network/src/websocket/client.rs::rust_tests</code></li>
+<li class=""><code>crates/network/tests/integration/websocket_proxy.rs</code></li>
+</ul>
+<p>它们的生产路径经 <code>dst::time::*</code> 触及 madsim 时间原语，而这些原语在
+<code>#[tokio::test]</code> 运行时中调用会 panic。</p>
+<p><code>crates/network/src/retry.rs</code> 中的重试模块在两种运行时下都运行。其测试属性在
+<code>#[tokio::test(start_paused = true)]</code> 与 <code>#[madsim::test]</code> 之间切换。
+时间读取与 sleep 使用 <code>crate::dst::time</code>；显式的虚拟时间推进使用 cfg 门控的
+<code>advance_clock</code> 函数。同一份测试体因此覆盖常规与模拟两种构建。</p>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=signal-handling>信号处理<a href=#signal-handling class=hash-link aria-label=信号处理的直接链接 title=信号处理的直接链接 translate=no>​</a></h3>
+<p><code>nautilus_common::live::dst::signal</code> 暴露经路由的 <code>ctrl_c</code> 与 <code>terminate</code>
+再导出，<code>crates/live/src/node/mod.rs</code> 的运行循环使用它们。
+<code>cfg(madsim)</code> 下，测试可以用 <code>madsim::runtime::Handle::send_ctrl_c</code>
+注入节点关停。适配器二进制的入口点仍直接调用 <code>tokio::signal::ctrl_c</code>，
+留在范围之外。</p>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=logging-runs-on-real-os-threads>日志运行在真实 OS 线程上<a href=#logging-runs-on-real-os-threads class=hash-link aria-label="日志运行在真实 OS 线程上的直接链接" title="日志运行在真实 OS 线程上的直接链接" translate=no>​</a></h3>
+<p>日志子系统通过 <code>std::thread::Builder</code> 创建写入器线程，并使用
+<code>std::sync::mpsc</code>。模拟下该线程不会创建，日志事件被丢弃。
+日志输出在确定性契约之外：写入器只写，从不读取或修改模拟状态。</p>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=adapters>适配器<a href=#adapters class=hash-link aria-label=适配器的直接链接 title=适配器的直接链接 translate=no>​</a></h3>
+<p>端到端的适配器行为留在上游模拟测试范围之外。视适配器而定，未审计路径中可能包含：</p>
+<ul>
+<li class="">直接的 <code>jiff::Timestamp::now</code> 或 <code>jiff::Zoned::now</code> 调用。</li>
+<li class="">直接的 <code>SystemTime::now</code> 调用。</li>
+<li class="">未路由的 RNG 调用。</li>
+<li class="">原始传输客户端。</li>
+</ul>
+<p>DST 契约要覆盖适配器的行为，必须先审计这些位置。</p>
+<h2 class="anchor anchorTargetStickyNavbar_ana5" id=relationship-to-other-testing-layers>与其他测试层的关系<a href=#relationship-to-other-testing-layers class=hash-link aria-label=与其他测试层的关系的直接链接 title=与其他测试层的关系的直接链接 translate=no>​</a></h2>
+<p>DST 与现有测试互补，不取代任何一层。</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>测试层<th>覆盖内容<th>与 DST 的关系<tbody><tr><td>单元测试<td>纯逻辑、计算、解析器、转换器。<td>不变。<tr><td>集成测试<td>组件交互、I/O 边界。<td>不变。DST 与其并行运行，而非取而代之。<tr><td>基于属性的测试<td>输入域上的不变式（解析器、往返）。<td>不变。<tr><td>验收测试<td>端到端回测与实时场景。<td>不变。<tr><td>确定性模拟（DST）<td>异步时序、调度、恢复正确性。<td>增加可种子重放的探索。</table>
+<p>DST 覆盖异步并发与状态机正确性。典型的失败包括：</p>
+<ul>
+<li class="">某种任务唤醒顺序下丢失一条关停消息。</li>
+<li class="">迭代顺序改变时丢失一个对账事件。</li>
+</ul>
+<p>其他测试层继续负责各自原有的范围。</p>
+<h2 class="anchor anchorTargetStickyNavbar_ana5" id=status>状态<a href=#status class=hash-link aria-label=状态的直接链接 title=状态的直接链接 translate=no>​</a></h2>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=runtime-swap>运行时替换<a href=#runtime-swap class=hash-link aria-label=运行时替换的直接链接 title=运行时替换的直接链接 translate=no>​</a></h3>
+<p>第 1 层已实现。<code>nautilus_common::live::dst</code> 暴露 <code>time</code>、<code>task</code>、<code>runtime</code>、
+<code>signal</code> 的路由再导出。<code>time</code>、<code>task</code>、<code>runtime</code> 的生产调用点已使用该接缝。
+信号的采用仍是部分的，见<a href=#signal-handling class="">信号处理</a>。</p>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=nondeterminism-substitution>不确定性替换<a href=#nondeterminism-substitution class=hash-link aria-label=不确定性替换的直接链接 title=不确定性替换的直接链接 translate=no>​</a></h3>
+<p>第 2 层已在 17 个范围内 crate 中实现。接缝覆盖墙上时间、单调时间、随机性与
+可观测迭代顺序。<a href=#implementation-notes class="">实现说明</a>列出已审计的路径与剩余例外。</p>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=static-enforcement-status>静态强制状态<a href=#static-enforcement-status class=hash-link aria-label=静态强制状态的直接链接 title=静态强制状态的直接链接 translate=no>​</a></h3>
+<p><code>check-dst-conventions</code> 在预提交与 CI 中运行，覆盖承载性的结构条件，
+并通过 <code>// dst-ok</code> 允许经评审的逐行例外。</p>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=runtime-verification-limit>运行时验证限度<a href=#runtime-verification-limit class=hash-link aria-label=运行时验证限度的直接链接 title=运行时验证限度的直接链接 translate=no>​</a></h3>
+<p>验证覆盖接缝测试与静态检查。本仓库不跨新进程比较完整的适配器运行。</p>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=simulation-smoke-gate>模拟冒烟门禁<a href=#simulation-smoke-gate class=hash-link aria-label=模拟冒烟门禁的直接链接 title=模拟冒烟门禁的直接链接 translate=no>​</a></h3>
+<p>夜间工作流与本地 pre-flight 使用同一组 DST 目标：</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>入口点<th>相关顺序<th>目的<tbody><tr><td><code>.github/workflows/nightly-tests.yml</code><td><code>check-code-sim</code> > <code>cargo-test-sim</code><td>运行夜间及手动派发的 DST 冒烟门禁。<tr><td><code>make pre-flight</code><td><code>check-code-sim</code> > <code>cargo-test-sim</code> > <code>cargo-test-extras</code><td>在 Rust 测试套件之前尽早失败于 DST lint。</table>
+<p><code>check-code-sim</code> 在 <code>nautilus-common</code>、<code>nautilus-core</code>、<code>nautilus-event-store</code>、
+<code>nautilus-network</code>、<code>nautilus-execution</code>、<code>nautilus-live</code> 上，以
+<code>--features simulation</code> 加 <code>cfg(madsim)</code> 运行锁定的稳定版 Clippy。
+另有单独的 <code>--no-default-features</code> 分支，在标准精度核心分支中不带默认
+feature 地编译并 lint 每个受审计的适配器。</p>
+<p><code>cargo-test-sim</code> 使用三次 feature 自洽的 nextest 调用：</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>精度<th>包<th>Features<th>选择<tbody><tr><td>标准<td><code>nautilus-common</code>、<code>nautilus-core</code>、<code>nautilus-event-store</code>、<code>nautilus-network</code>、<code>nautilus-execution</code>、<code>nautilus-live</code><td><code>simulation</code><td>全部兼容的 common、event-store、network、execution 测试，外加聚焦的 live 与 core 测试。<tr><td>标准<td>每个受审计的适配器<td><code>simulation</code><td>仅集成 <code>dst</code> 测试，不带适配器默认 feature。<tr><td>高<td><code>nautilus-common</code>、<code>nautilus-execution</code><td><code>simulation,high-precision</code><td>两个包的全部测试。</table>
+<p>Nextest 会编译选定的库与测试目标，因此门禁不另跑一次 Cargo build。
+这几次调用在各自包集上各解析一次 feature 集。合起来在两种定点数宽度下
+都演练经接缝路由的 <code>QuantityRaw</code>（<code>u64</code> / <code>u128</code>）与 <code>PriceRaw</code>（<code>i64</code> / <code>i128</code>）路径。</p>
+<h4 class="anchor anchorTargetStickyNavbar_ana5" id=common-tests>Common 测试<a href=#common-tests class=hash-link aria-label="Common 测试的直接链接" title="Common 测试的直接链接" translate=no>​</a></h4>
+<p>标准精度运行执行全部模拟兼容的 <code>nautilus-common</code> 测试。其 feature 图传播
+<code>nautilus-core/simulation</code>，在整个套件中选择 <code>wall_clock_now</code> 的 cfg 分支。</p>
+<p>普通 <code>#[rstest]</code> 函数体在 madsim 运行时之外执行，使用接缝的
+<code>SystemTime::now()</code> 回退。这与 madsim 的 libc shim 在运行时之外的路径相同。</p>
+<p><code>LiveClock</code> 测试模块被 cfg 门控排除：其普通 <code>#[rstest]</code> 用例在没有 madsim
+运行时的情况下启动 <code>LiveTimer</code> 任务，且多数在等待墙上时钟推进。</p>
+<p><code>live::dst::tests::test_dst_wall_clock_advances_with_virtual_time</code> 在
+<code>#[madsim::test]</code> 下运行，断言 <code>nanos_since_unix_epoch</code> 随
+<code>madsim::time::sleep</code> 推进，锁定运行时内的虚拟墙上时钟行为。</p>
+<h4 class="anchor anchorTargetStickyNavbar_ana5" id=event-store-tests>Event store 测试<a href=#event-store-tests class=hash-link aria-label="Event store 测试的直接链接" title="Event store 测试的直接链接" translate=no>​</a></h4>
+<p>标准精度运行执行全部模拟兼容的 <code>nautilus-event-store</code> 测试，在
+<code>cfg(madsim)</code> 下演练同步的事件与标记写入器，包括确定性的序列排序。
+依赖阻塞 OS 线程的测试保留原生覆盖并被门控排除，因为那些线程运行在
+madsim 调度控制之外。</p>
+<p>event-store 冒烟分支在不把静态约定钩子扩展到 event-store 生产代码的前提下，
+编译并测试其现有的模拟实现。</p>
+<h4 class="anchor anchorTargetStickyNavbar_ana5" id=live-startup-reconciliation>Live 启动对账<a href=#live-startup-reconciliation class=hash-link aria-label="Live 启动对账的直接链接" title="Live 启动对账的直接链接" translate=no>​</a></h4>
+<p>聚焦的 <code>nautilus-live</code> 回归在 madsim 下运行，验证待处理的 mass-status 请求
+达到其配置的超时并报告预期错误，同时验证节点清理。
+完整的超时与清理流程从不进入真实的 Tokio 定时器。</p>
+<h4 class="anchor anchorTargetStickyNavbar_ana5" id=network-tests>网络测试<a href=#network-tests class=hash-link aria-label=网络测试的直接链接 title=网络测试的直接链接 translate=no>​</a></h4>
+<p>该运行执行除源头被 cfg 门控排除的传输绑定模块之外的全部 <code>nautilus-network</code>
+测试。覆盖包括 sleep、超时与限流器的虚拟时间接缝测试，以及演练退避时序的
+重试套件。<code>crates/network/tests/simulation.rs</code> 增加 WebSocket 重连、
+不支持端点与 Sockudo 拒绝、抖动重置检查。
+<code>crates/network/src/http/simulation.rs</code> 中的单元测试覆盖请求字节、响应上限、
+body 截止时间、取消、重定向策略与 HTTPS/代理拒绝。</p>
+<p><code>#[madsim::test]</code> 默认使用变化的种子，并在失败时报告它。设置
+<code>MADSIM_TEST_SEED</code> 可重放某个调度。<code>.github/workflows/nightly-tests.yml</code> 中的
+<code>dst smoke (cfg madsim)</code> 任务从 <code>GITHUB_RUN_NUMBER * MADSIM_TEST_NUM</code> 起选取
+五个连续种子。抖动运行时重置测试固定自己的种子，与跨种子的网络检查互补。</p>
+<h4 class="anchor anchorTargetStickyNavbar_ana5" id=execution-tests>Execution 测试<a href=#execution-tests class=hash-link aria-label="Execution 测试的直接链接" title="Execution 测试的直接链接" translate=no>​</a></h4>
+<p>该运行执行全部 <code>nautilus-execution</code> 测试。这些普通 <code>#[rstest]</code> 用例在不进入
+madsim 运行时的情况下，演练撮合引擎、成交模型与执行引擎中的 cfg 门控分支，
+因此 <code>default_std_rng()</code> 在这些测试中走宿主 RNG 回退。</p>
+<h4 class="anchor anchorTargetStickyNavbar_ana5" id=core-seam-tests>Core 接缝测试<a href=#core-seam-tests class=hash-link aria-label="Core 接缝测试的直接链接" title="Core 接缝测试的直接链接" translate=no>​</a></h4>
+<p>聚焦的 <code>nautilus-core</code> 选择把 <code>wall_clock_now</code> 对虚拟时间做锁定验证。</p>
+<h4 class="anchor anchorTargetStickyNavbar_ana5" id=adapter-tests>适配器测试<a href=#adapter-tests class=hash-link aria-label=适配器测试的直接链接 title=适配器测试的直接链接 translate=no>​</a></h4>
+<p>每个受审计的适配器在不带该 crate 默认 feature 的 <code>simulation</code> 下运行其集成
+<code>dst</code> 测试。那些 <code>#[madsim::test]</code> 用例锁定适配器集成指南所记录的切片：
+订阅字节、重连行为、认证帧，以及逐操作的线上字段。</p>
+<h4 class="anchor anchorTargetStickyNavbar_ana5" id=overall-gate-coverage>门禁总体覆盖<a href=#overall-gate-coverage class=hash-link aria-label=门禁总体覆盖的直接链接 title=门禁总体覆盖的直接链接 translate=no>​</a></h4>
+<p><code>nautilus-common</code>、<code>nautilus-core</code>、<code>nautilus-network</code>、<code>nautilus-live</code> 以及受审计
+适配器中的 <code>#[madsim::test]</code> 用例提供确定性调度器覆盖。完整门禁能捕捉
+cfg 门控接缝的漂移，但不验证端到端的适配器确定性。</p>
+<h2 class="anchor anchorTargetStickyNavbar_ana5" id=further-reading>延伸阅读<a href=#further-reading class=hash-link aria-label=延伸阅读的直接链接 title=延伸阅读的直接链接 translate=no>​</a></h2>
+<ul>
+<li class=""><code>.pre-commit-hooks/check_dst_conventions.sh</code> 完整定义了七条强制规则，
+并说明 <code>// dst-ok</code> 标记的约定。</li>
+<li class=""><a href=https://apple.github.io/foundationdb/testing.html target=_blank rel="noopener noreferrer" class="">FoundationDB 测试哲学</a>。</li>
+<li class=""><a href=https://tigerbeetle.com/blog/ target=_blank rel="noopener noreferrer" class="">TigerBeetle 模拟测试博客</a>。</li>
+<li class=""><a href=https://github.com/madsim-rs/madsim target=_blank rel="noopener noreferrer" class="">madsim 仓库</a>，确定性运行时。</li>
+<li class=""><a href=https://github.com/tokio-rs/turmoil target=_blank rel="noopener noreferrer" class="">Turmoil 仓库</a>，确定性网络模拟器。</li>
+</ul></div><footer class="theme-doc-footer docusaurus-mt-lg"><div class="row margin-top--sm theme-doc-footer-edit-meta-row"><div class="col noPrint_MRkS"><a href=https://github.com/Aloento/NautilusTraderDoc/tree/main/docs/concepts/dst.md target=_blank rel="noopener noreferrer" class=theme-edit-this-page><svg fill=currentColor height=20 width=20 viewBox="0 0 40 40" class=iconEdit_RPSQ aria-hidden=true><g><path d="m34.5 11.7l-3 3.1-6.3-6.3 3.1-3q0.5-0.5 1.2-0.5t1.1 0.5l3.9 3.9q0.5 0.4 0.5 1.1t-0.5 1.2z m-29.5 17.1l18.4-18.5 6.3 6.3-18.4 18.4h-6.3v-6.2z"/></g></svg>编辑此页</a></div><div class="col lastUpdated_oZSl"><span class=theme-last-updated>最后<!-- -->于 <b><time datetime=2026-10-14T22:30:30.000Z itemprop=dateModified>2026年10月14日</time></b> <!-- -->更新</span></div></div></footer></article><nav class="docusaurus-mt-lg pagination-nav" aria-label=文件选项卡><a class="pagination-nav__link pagination-nav__link--prev" href=/concepts/custom_data><div class=pagination-nav__sublabel>上一页</div><div class=pagination-nav__label>自定义数据</div></a><a class="pagination-nav__link pagination-nav__link--next" href=/concepts/event_sourcing><div class=pagination-nav__sublabel>下一页</div><div class=pagination-nav__label>事件溯源</div></a></nav></div></div><div class="col col--3"><div class="tableOfContents_LyLZ thin-scrollbar theme-doc-toc-desktop"><ul class="table-of-contents table-of-contents__left-border"><li><a href=#what-dst-is class="table-of-contents__link toc-highlight">DST 是什么</a><li><a href=#goals class="table-of-contents__link toc-highlight">目标</a><li><a href=#approach class="table-of-contents__link toc-highlight">方法</a><ul><li><a href=#layer-1-runtime-swap class="table-of-contents__link toc-highlight">第 1 层：运行时替换</a><li><a href=#layer-2-nondeterminism-substitution class="table-of-contents__link toc-highlight">第 2 层：不确定性替换</a></ul><li><a href=#determinism-contract class="table-of-contents__link toc-highlight">确定性契约</a><ul><li><a href=#required-conditions class="table-of-contents__link toc-highlight">必需条件</a><li><a href=#adapter-dst-contract class="table-of-contents__link toc-highlight">适配器 DST 契约</a></ul><li><a href=#static-enforcement class="table-of-contents__link toc-highlight">静态强制</a><ul><li><a href=#in-scope-crates class="table-of-contents__link toc-highlight">范围内的 crate</a></ul><li><a href=#simulated-http-and-websocket-transport class="table-of-contents__link toc-highlight">模拟 HTTP 与 WebSocket 传输</a><li><a href=#network-seed-soaks class="table-of-contents__link toc-highlight">网络种子冲刷</a><ul><li><a href=#fixed-seed-nightly-tests class="table-of-contents__link toc-highlight">固定种子的夜间测试</a><li><a href=#reconnect-seed-soak class="table-of-contents__link toc-highlight">重连种子冲刷</a><li><a href=#run-the-soak class="table-of-contents__link toc-highlight">运行冲刷</a><li><a href=#platform-coverage class="table-of-contents__link toc-highlight">平台覆盖</a></ul><li><a href=#implementation-notes class="table-of-contents__link toc-highlight">实现说明</a><ul><li><a href=#iteration-order-seams class="table-of-contents__link toc-highlight">迭代顺序接缝</a><li><a href=#time-seams class="table-of-contents__link toc-highlight">时间接缝</a><li><a href=#randomness-seams class="table-of-contents__link toc-highlight">随机性接缝</a><li><a href=#tokio-submodule-split class="table-of-contents__link toc-highlight">Tokio 子模块划分</a><li><a href=#raw-thread-escape-rules class="table-of-contents__link toc-highlight">原生线程逃逸规则</a><li><a href=#logging-tests-under-simulation class="table-of-contents__link toc-highlight">模拟下的日志测试</a></ul><li><a href=#scope-boundaries class="table-of-contents__link toc-highlight">范围边界</a><ul><li><a href=#python-and-ffi-are-not-in-dst-scope class="table-of-contents__link toc-highlight">Python 与 FFI 不在 DST 范围内</a><li><a href=#platform-scoped class="table-of-contents__link toc-highlight">限定平台</a><li><a href=#non-aliased-dependencies-escape-silently class="table-of-contents__link toc-highlight">未替换的依赖静默逃逸</a><li><a href=#transport-scope-limits class="table-of-contents__link toc-highlight">传输范围限制</a><li><a href=#signal-handling class="table-of-contents__link toc-highlight">信号处理</a><li><a href=#logging-runs-on-real-os-threads class="table-of-contents__link toc-highlight">日志运行在真实 OS 线程上</a><li><a href=#adapters class="table-of-contents__link toc-highlight">适配器</a></ul><li><a href=#relationship-to-other-testing-layers class="table-of-contents__link toc-highlight">与其他测试层的关系</a><li><a href=#status class="table-of-contents__link toc-highlight">状态</a><ul><li><a href=#runtime-swap class="table-of-contents__link toc-highlight">运行时替换</a><li><a href=#nondeterminism-substitution class="table-of-contents__link toc-highlight">不确定性替换</a><li><a href=#static-enforcement-status class="table-of-contents__link toc-highlight">静态强制状态</a><li><a href=#runtime-verification-limit class="table-of-contents__link toc-highlight">运行时验证限度</a><li><a href=#simulation-smoke-gate class="table-of-contents__link toc-highlight">模拟冒烟门禁</a></ul><li><a href=#further-reading class="table-of-contents__link toc-highlight">延伸阅读</a></ul></div></div></div></div></main></div></div></div><footer class="theme-layout-footer footer footer--dark"><div class="container container-fluid"><div class="row footer__links"><div class="theme-layout-footer-column col footer__col"><div class=footer__title></div><ul class="footer__items clean-list"><li class=footer__item><a href=https://github.com/nautechsystems/nautilus_trader target=_blank rel="noopener noreferrer" class=footer__link-item>Official GitHub<svg width=13.5 height=13.5 aria-label="(opens in new tab)" class=iconExternalLink_qUHo><use href=#theme-svg-external-link /></svg></a><li class=footer__item><a href=https://nautilustrader.io/docs target=_blank rel="noopener noreferrer" class=footer__link-item>Official Documentation<svg width=13.5 height=13.5 aria-label="(opens in new tab)" class=iconExternalLink_qUHo><use href=#theme-svg-external-link /></svg></a></ul></div></div><div class="footer__bottom text--center"><div class=footer__copyright>© 2026 Nautech Systems Pty Ltd. All rights reserved.</div></div></div></footer></div></body>

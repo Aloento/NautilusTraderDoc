@@ -1,188 +1,236 @@
-<!doctype html>
-<html lang="zh" dir="ltr" class="docs-wrapper plugin-docs plugin-id-default docs-version-current docs-doc-page docs-doc-id-concepts/overview" data-has-hydrated="false">
-<head>
-<meta charset="UTF-8">
-<meta name="generator" content="Docusaurus v3.9.1">
-<title data-rh="true">概览 | NautilusTrader 文档</title><meta data-rh="true" name="viewport" content="width=device-width,initial-scale=1"><meta data-rh="true" name="twitter:card" content="summary_large_image"><meta data-rh="true" property="og:url" content="https://nautilus.aloen.to/concepts/overview"><meta data-rh="true" property="og:locale" content="zh"><meta data-rh="true" name="docusaurus_locale" content="zh"><meta data-rh="true" name="docsearch:language" content="zh"><meta data-rh="true" name="docusaurus_version" content="current"><meta data-rh="true" name="docusaurus_tag" content="docs-default-current"><meta data-rh="true" name="docsearch:version" content="current"><meta data-rh="true" name="docsearch:docusaurus_tag" content="docs-default-current"><meta data-rh="true" property="og:title" content="概览 | NautilusTrader 文档"><meta data-rh="true" name="description" content="简介"><meta data-rh="true" property="og:description" content="简介"><link data-rh="true" rel="icon" href="/logo.png"><link data-rh="true" rel="canonical" href="https://nautilus.aloen.to/concepts/overview"><link data-rh="true" rel="alternate" href="https://nautilus.aloen.to/concepts/overview" hreflang="zh"><link data-rh="true" rel="alternate" href="https://nautilus.aloen.to/concepts/overview" hreflang="x-default"><script data-rh="true" type="application/ld+json">{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"概念","item":"https://nautilus.aloen.to/concepts/"},{"@type":"ListItem","position":2,"name":"概览","item":"https://nautilus.aloen.to/concepts/overview"}]}</script><link rel="stylesheet" href="/assets/css/styles.33db920f.css">
-<script src="/assets/js/runtime~main.7f15ce23.js" defer="defer"></script>
-<script src="/assets/js/main.7a54437b.js" defer="defer"></script>
-</head>
-<body class="navigation-with-keyboard">
-<svg style="display: none;"><defs>
-<symbol id="theme-svg-external-link" viewBox="0 0 24 24"><path fill="currentColor" d="M21 13v10h-21v-19h12v2h-10v15h17v-8h2zm3-12h-10.988l4.035 4-6.977 7.07 2.828 2.828 6.977-7.07 4.125 4.172v-11z"/></symbol>
+<!doctype html><html lang=zh dir=ltr class="docs-wrapper plugin-docs plugin-id-default docs-version-current docs-doc-page docs-doc-id-concepts/overview" data-has-hydrated=false><head><meta charset=UTF-8><meta name=generator content="Docusaurus v3.10.2"><title data-rh=true>概览 | NautilusTrader 文档</title><meta data-rh=true name=viewport content="width=device-width, initial-scale=1.0"/><meta data-rh=true name=twitter:card content=summary_large_image /><meta data-rh=true property=og:url content=https://nautilus.aloen.to/concepts/overview /><meta data-rh=true property=og:locale content=zh /><meta data-rh=true name=docusaurus_locale content=zh /><meta data-rh=true name=docsearch:language content=zh /><meta data-rh=true name=docusaurus_version content=current /><meta data-rh=true name=docusaurus_tag content=docs-default-current /><meta data-rh=true name=docsearch:version content=current /><meta data-rh=true name=docsearch:docusaurus_tag content=docs-default-current /><meta data-rh=true property=og:title content="概览 | NautilusTrader 文档"/><meta data-rh=true name=description content=overview} /><meta data-rh=true property=og:description content=overview} /><link data-rh=true rel=icon href=/logo.png /><link data-rh=true rel=canonical href=https://nautilus.aloen.to/concepts/overview /><link data-rh=true rel=alternate href=https://nautilus.aloen.to/concepts/overview hreflang=zh /><link data-rh=true rel=alternate href=https://nautilus.aloen.to/concepts/overview hreflang=x-default /><script data-rh=true type=application/ld+json>{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","item":"https://nautilus.aloen.to/concepts/","name":"核心概念","position":1},{"@type":"ListItem","item":"https://nautilus.aloen.to/concepts/overview","name":"概览","position":2}]}</script><link rel=stylesheet href=/assets/css/styles.adb7ea18.css /><script src=/assets/js/runtime~main.71ac0794.js defer></script><script src=/assets/js/main.d978d0f2.js defer></script></head><body><svg style="display: none;"><defs>
+<symbol id=theme-svg-external-link viewBox="0 0 24 24"><path fill=currentColor d="M21 13v10h-21v-19h12v2h-10v15h17v-8h2zm3-12h-10.988l4.035 4-6.977 7.07 2.828 2.828 6.977-7.07 4.125 4.172v-11z"/></symbol>
 </defs></svg>
-<script>!function(){var t=function(){try{return new URLSearchParams(window.location.search).get("docusaurus-theme")}catch(t){}}()||function(){try{return window.localStorage.getItem("theme")}catch(t){}}();document.documentElement.setAttribute("data-theme",t||(window.matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light")),document.documentElement.setAttribute("data-theme-choice",t||"system")}(),function(){try{const c=new URLSearchParams(window.location.search).entries();for(var[t,e]of c)if(t.startsWith("docusaurus-data-")){var a=t.replace("docusaurus-data-","data-");document.documentElement.setAttribute(a,e)}}catch(t){}}()</script><div id="__docusaurus"><link rel="preload" as="image" href="/logo.png"><div role="region" aria-label="跳到主要内容"><a class="skipToContent__uWo" href="#__docusaurus_skipToContent_fallback">跳到主要内容</a></div><nav aria-label="主导航" class="theme-layout-navbar navbar navbar--fixed-top"><div class="navbar__inner"><div class="theme-layout-navbar-left navbar__items"><button aria-label="切换导航栏" aria-expanded="false" class="navbar__toggle clean-btn" type="button"><svg width="30" height="30" viewBox="0 0 30 30" aria-hidden="true"><path stroke="currentColor" stroke-linecap="round" stroke-miterlimit="10" stroke-width="2" d="M4 7h22M4 15h22M4 23h22"></path></svg></button><a class="navbar__brand" href="/"><div class="navbar__logo"><img src="/logo.png" alt="NautilusTrader Logo" class="themedComponent_WkLn themedComponent--light_cjoX"><img src="/logo.png" alt="NautilusTrader Logo" class="themedComponent_WkLn themedComponent--dark_jZId"></div><b class="navbar__title text--truncate">NautilusTrader</b></a><a aria-current="page" class="navbar__item navbar__link navbar__link--active" href="/api_reference/">文档</a></div><div class="theme-layout-navbar-right navbar__items navbar__items--right"><a href="https://github.com/Aloento/NautilusTraderDoc" target="_blank" rel="noopener noreferrer" class="navbar__item navbar__link">GitHub<svg width="13.5" height="13.5" aria-label="(opens in new tab)" class="iconExternalLink_KfBJ"><use href="#theme-svg-external-link"></use></svg></a><div class="toggle_RWFU colorModeToggle_sA1q"><button class="clean-btn toggleButton_qjfc toggleButtonDisabled_cpNp" type="button" disabled="" title="system mode" aria-label="切换浅色/暗黑模式（当前为system mode）"><svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true" class="toggleIcon_CetX lightToggleIcon_UYsV"><path fill="currentColor" d="M12,9c1.65,0,3,1.35,3,3s-1.35,3-3,3s-3-1.35-3-3S10.35,9,12,9 M12,7c-2.76,0-5,2.24-5,5s2.24,5,5,5s5-2.24,5-5 S14.76,7,12,7L12,7z M2,13l2,0c0.55,0,1-0.45,1-1s-0.45-1-1-1l-2,0c-0.55,0-1,0.45-1,1S1.45,13,2,13z M20,13l2,0c0.55,0,1-0.45,1-1 s-0.45-1-1-1l-2,0c-0.55,0-1,0.45-1,1S19.45,13,20,13z M11,2v2c0,0.55,0.45,1,1,1s1-0.45,1-1V2c0-0.55-0.45-1-1-1S11,1.45,11,2z M11,20v2c0,0.55,0.45,1,1,1s1-0.45,1-1v-2c0-0.55-0.45-1-1-1C11.45,19,11,19.45,11,20z M5.99,4.58c-0.39-0.39-1.03-0.39-1.41,0 c-0.39,0.39-0.39,1.03,0,1.41l1.06,1.06c0.39,0.39,1.03,0.39,1.41,0s0.39-1.03,0-1.41L5.99,4.58z M18.36,16.95 c-0.39-0.39-1.03-0.39-1.41,0c-0.39,0.39-0.39,1.03,0,1.41l1.06,1.06c0.39,0.39,1.03,0.39,1.41,0c0.39-0.39,0.39-1.03,0-1.41 L18.36,16.95z M19.42,5.99c0.39-0.39,0.39-1.03,0-1.41c-0.39-0.39-1.03-0.39-1.41,0l-1.06,1.06c-0.39,0.39-0.39,1.03,0,1.41 s1.03,0.39,1.41,0L19.42,5.99z M7.05,18.36c0.39-0.39,0.39-1.03,0-1.41c-0.39-0.39-1.03-0.39-1.41,0l-1.06,1.06 c-0.39,0.39-0.39,1.03,0,1.41s1.03,0.39,1.41,0L7.05,18.36z"></path></svg><svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true" class="toggleIcon_CetX darkToggleIcon_i1s2"><path fill="currentColor" d="M9.37,5.51C9.19,6.15,9.1,6.82,9.1,7.5c0,4.08,3.32,7.4,7.4,7.4c0.68,0,1.35-0.09,1.99-0.27C17.45,17.19,14.93,19,12,19 c-3.86,0-7-3.14-7-7C5,9.07,6.81,6.55,9.37,5.51z M12,3c-4.97,0-9,4.03-9,9s4.03,9,9,9s9-4.03,9-9c0-0.46-0.04-0.92-0.1-1.36 c-0.98,1.37-2.58,2.26-4.4,2.26c-2.98,0-5.4-2.42-5.4-5.4c0-1.81,0.89-3.42,2.26-4.4C12.92,3.04,12.46,3,12,3L12,3z"></path></svg><svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true" class="toggleIcon_CetX systemToggleIcon_yIQx"><path fill="currentColor" d="m12 21c4.971 0 9-4.029 9-9s-4.029-9-9-9-9 4.029-9 9 4.029 9 9 9zm4.95-13.95c1.313 1.313 2.05 3.093 2.05 4.95s-0.738 3.637-2.05 4.95c-1.313 1.313-3.093 2.05-4.95 2.05v-14c1.857 0 3.637 0.737 4.95 2.05z"></path></svg></button></div><div class="navbarSearchContainer_PsjF"></div></div></div><div role="presentation" class="navbar-sidebar__backdrop"></div></nav><div id="__docusaurus_skipToContent_fallback" class="theme-layout-main main-wrapper mainWrapper_jk42"><div class="docsWrapper_KWBO"><button aria-label="回到顶部" class="clean-btn theme-back-to-top-button backToTopButton_XpKL" type="button"></button><div class="docRoot_joIP"><aside class="theme-doc-sidebar-container docSidebarContainer_DOen"><div class="sidebarViewport_j7YP"><div class="sidebar_nPgc"><nav aria-label="文档侧边栏" class="menu thin-scrollbar menu_MTDt"><ul class="theme-doc-sidebar-menu menu__list"><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-1 menu__list-item menu__list-item--collapsed"><div class="menu__list-item-collapsible"><a class="categoryLink_GgI9 menu__link menu__link--sublist" href="/api_reference/"><span title="Python API" class="categoryLinkLabel_XKxb">Python API</span></a><button aria-label="展开侧边栏分类 &#x27;Python API&#x27;" aria-expanded="false" type="button" class="clean-btn menu__caret"></button></div></li><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-1 menu__list-item"><div class="menu__list-item-collapsible"><a class="categoryLink_GgI9 menu__link menu__link--sublist menu__link--active" href="/concepts/"><span title="概念" class="categoryLinkLabel_XKxb">概念</span></a><button aria-label="折叠侧边栏分类 &#x27;概念&#x27;" aria-expanded="true" type="button" class="clean-btn menu__caret"></button></div><ul class="menu__list"><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class="menu__link" tabindex="0" href="/concepts/actors"><span title="Actors" class="linkLabel_CNtA">Actors</span></a></li><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class="menu__link" tabindex="0" href="/concepts/adapters"><span title="适配器" class="linkLabel_CNtA">适配器</span></a></li><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class="menu__link" tabindex="0" href="/concepts/architecture"><span title="架构" class="linkLabel_CNtA">架构</span></a></li><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class="menu__link" tabindex="0" href="/concepts/backtesting"><span title="回测" class="linkLabel_CNtA">回测</span></a></li><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class="menu__link" tabindex="0" href="/concepts/cache"><span title="Cache" class="linkLabel_CNtA">Cache</span></a></li><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class="menu__link" tabindex="0" href="/concepts/data"><span title="数据" class="linkLabel_CNtA">数据</span></a></li><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class="menu__link" tabindex="0" href="/concepts/execution"><span title="执行" class="linkLabel_CNtA">执行</span></a></li><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class="menu__link" tabindex="0" href="/concepts/instruments"><span title="合约与交易品种" class="linkLabel_CNtA">合约与交易品种</span></a></li><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class="menu__link" tabindex="0" href="/concepts/live"><span title="Live 交易" class="linkLabel_CNtA">Live 交易</span></a></li><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class="menu__link" tabindex="0" href="/concepts/logging"><span title="日志" class="linkLabel_CNtA">日志</span></a></li><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class="menu__link" tabindex="0" href="/concepts/message_bus"><span title="消息总线" class="linkLabel_CNtA">消息总线</span></a></li><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class="menu__link" tabindex="0" href="/concepts/orders"><span title="订单" class="linkLabel_CNtA">订单</span></a></li><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class="menu__link menu__link--active" aria-current="page" tabindex="0" href="/concepts/overview"><span title="概览" class="linkLabel_CNtA">概览</span></a></li><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class="menu__link" tabindex="0" href="/concepts/portfolio"><span title="投资组合" class="linkLabel_CNtA">投资组合</span></a></li><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class="menu__link" tabindex="0" href="/concepts/positions"><span title="持仓" class="linkLabel_CNtA">持仓</span></a></li><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class="menu__link" tabindex="0" href="/concepts/reports"><span title="报告" class="linkLabel_CNtA">报告</span></a></li><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class="menu__link" tabindex="0" href="/concepts/strategies"><span title="策略" class="linkLabel_CNtA">策略</span></a></li></ul></li><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-1 menu__list-item menu__list-item--collapsed"><div class="menu__list-item-collapsible"><a class="categoryLink_GgI9 menu__link menu__link--sublist" href="/developer_guide/"><span title="开发者指南" class="categoryLinkLabel_XKxb">开发者指南</span></a><button aria-label="展开侧边栏分类 &#x27;开发者指南&#x27;" aria-expanded="false" type="button" class="clean-btn menu__caret"></button></div></li><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-1 menu__list-item menu__list-item--collapsed"><div class="menu__list-item-collapsible"><a class="categoryLink_GgI9 menu__link menu__link--sublist" href="/getting_started/"><span title="入门" class="categoryLinkLabel_XKxb">入门</span></a><button aria-label="展开侧边栏分类 &#x27;入门&#x27;" aria-expanded="false" type="button" class="clean-btn menu__caret"></button></div></li><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-1 menu__list-item menu__list-item--collapsed"><div class="menu__list-item-collapsible"><a class="categoryLink_GgI9 menu__link menu__link--sublist" href="/integrations/"><span title="集成" class="categoryLinkLabel_XKxb">集成</span></a><button aria-label="展开侧边栏分类 &#x27;集成&#x27;" aria-expanded="false" type="button" class="clean-btn menu__caret"></button></div></li><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-1 menu__list-item menu__list-item--collapsed"><div class="menu__list-item-collapsible"><a class="categoryLink_GgI9 menu__link menu__link--sublist" href="/tutorials/"><span title="教程" class="categoryLinkLabel_XKxb">教程</span></a><button aria-label="展开侧边栏分类 &#x27;教程&#x27;" aria-expanded="false" type="button" class="clean-btn menu__caret"></button></div></li></ul></nav></div></div></aside><main class="docMainContainer_bw1l"><div class="container padding-top--md padding-bottom--lg"><div class="row"><div class="col docItemCol_PIhC"><div class="docItemContainer_pFw3"><article><nav class="theme-doc-breadcrumbs breadcrumbsContainer_HRKZ" aria-label="页面路径"><ul class="breadcrumbs"><li class="breadcrumbs__item"><a aria-label="主页面" class="breadcrumbs__link" href="/"><svg viewBox="0 0 24 24" class="breadcrumbHomeIcon_sX5c"><path d="M10 19v-5h4v5c0 .55.45 1 1 1h3c.55 0 1-.45 1-1v-7h1.7c.46 0 .68-.57.33-.87L12.67 3.6c-.38-.34-.96-.34-1.34 0l-8.36 7.53c-.34.3-.13.87.33.87H5v7c0 .55.45 1 1 1h3c.55 0 1-.45 1-1z" fill="currentColor"></path></svg></a></li><li class="breadcrumbs__item"><a class="breadcrumbs__link" href="/concepts/"><span>概念</span></a></li><li class="breadcrumbs__item breadcrumbs__item--active"><span class="breadcrumbs__link">概览</span></li></ul></nav><div class="tocCollapsible_DhUt theme-doc-toc-mobile tocMobile_Izjv"><button type="button" class="clean-btn tocCollapsibleButton_eYR5">本页总览</button></div><div class="theme-doc-markdown markdown"><header><h1>概览</h1></header>
-<h2 class="anchor anchorWithStickyNavbar_RpWm" id="简介">简介<a href="#简介" class="hash-link" aria-label="简介的直接链接" title="简介的直接链接" translate="no">​</a></h2>
-<p>NautilusTrader 是一个开源、高性能、面向生产的算法交易平台，旨在使量化交易者能够使用事件驱动的引擎在历史数据上对自动化交易策略组合进行回测，并且能在无需修改策略代码的情况下将相同实现部署到实盘环境。</p>
-<p>该平台以 <em>AI-first</em> 为设计理念，目标是在高性能且健壮的 Python 原生环境中开发与部署算法交易策略。这有助于解决研究/回测环境与生产实盘环境之间不一致的问题，保证二者具有最高程度的行为一致性（parity）。</p>
-<p>NautilusTrader 在设计、架构与实现时高度重视软件正确性与安全性，旨在支持以 Python 为主的、用于关键任务的交易系统回测与实盘部署工作负载。</p>
-<p>此外，该平台具有通用性且与资产类别无关 —— 通过模块化适配器（adapters）可以接入任意 REST API 或 WebSocket 流。它支持面向多种资产类别与合约类型的高频交易，包括 FX（外汇）、股票、期货、期权、加密（Crypto）、去中心化金融（DeFi）以及博彩（Betting），从而能够在多个交易场所并行运行交易策略。</p>
-<h2 class="anchor anchorWithStickyNavbar_RpWm" id="特性">特性<a href="#特性" class="hash-link" aria-label="特性的直接链接" title="特性的直接链接" translate="no">​</a></h2>
+<script>!function(){var t=function(){try{return new URLSearchParams(window.location.search).get("docusaurus-theme")}catch(t){}}()||function(){try{return window.localStorage.getItem("theme-2e3")}catch(t){}}();document.documentElement.setAttribute("data-theme",t||(window.matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light")),document.documentElement.setAttribute("data-theme-choice",t||"system")}(),function(){try{for(var[t,e]of new URLSearchParams(window.location.search).entries())if(t.startsWith("docusaurus-data-")){var a=t.replace("docusaurus-data-","data-");document.documentElement.setAttribute(a,e)}}catch(t){}}()</script><div id=__docusaurus><link rel=preload as=image href=/logo.png /><div role=region aria-label=跳到主要内容><a class=skipToContent_zuOI href=#__docusaurus_skipToContent_fallback>跳到主要内容</a></div><nav aria-label=主导航 class="theme-layout-navbar navbar navbar--fixed-top"><div class=navbar__inner><div class="theme-layout-navbar-left navbar__items"><button aria-label=切换导航栏 aria-expanded=false class="navbar__toggle clean-btn" type=button><svg width=30 height=30 viewBox="0 0 30 30" aria-hidden=true><path stroke=currentColor stroke-linecap=round stroke-miterlimit=10 stroke-width=2 d="M4 7h22M4 15h22M4 23h22"/></svg></button><a class=navbar__brand href=/><div class=navbar__logo><img src=/logo.png alt="NautilusTrader Logo" class="themedComponent_q2_Y themedComponent--light_Nejn"/><img src=/logo.png alt="NautilusTrader Logo" class="themedComponent_q2_Y themedComponent--dark_JjIb"/></div><b class="navbar__title text--truncate">NautilusTrader</b></a><a aria-current=page class="navbar__item navbar__link navbar__link--active" href=/getting_started/>文档</a></div><div class="theme-layout-navbar-right navbar__items navbar__items--right"><a href=https://github.com/Aloento/NautilusTraderDoc target=_blank rel="noopener noreferrer" class="navbar__item navbar__link">GitHub<svg width=13.5 height=13.5 aria-label="(opens in new tab)" class=iconExternalLink_qUHo><use href=#theme-svg-external-link /></svg></a><div class="toggle_hHmI colorModeToggle_rOOn"><button class="clean-btn toggleButton_wEhT toggleButtonDisabled_yOOP" type=button disabled title="system mode" aria-label="切换浅色/暗黑模式（当前为system mode）"><svg viewBox="0 0 24 24" width=24 height=24 aria-hidden=true class="toggleIcon_Kt6U lightToggleIcon_Zfeh"><path fill=currentColor d="M12,9c1.65,0,3,1.35,3,3s-1.35,3-3,3s-3-1.35-3-3S10.35,9,12,9 M12,7c-2.76,0-5,2.24-5,5s2.24,5,5,5s5-2.24,5-5 S14.76,7,12,7L12,7z M2,13l2,0c0.55,0,1-0.45,1-1s-0.45-1-1-1l-2,0c-0.55,0-1,0.45-1,1S1.45,13,2,13z M20,13l2,0c0.55,0,1-0.45,1-1 s-0.45-1-1-1l-2,0c-0.55,0-1,0.45-1,1S19.45,13,20,13z M11,2v2c0,0.55,0.45,1,1,1s1-0.45,1-1V2c0-0.55-0.45-1-1-1S11,1.45,11,2z M11,20v2c0,0.55,0.45,1,1,1s1-0.45,1-1v-2c0-0.55-0.45-1-1-1C11.45,19,11,19.45,11,20z M5.99,4.58c-0.39-0.39-1.03-0.39-1.41,0 c-0.39,0.39-0.39,1.03,0,1.41l1.06,1.06c0.39,0.39,1.03,0.39,1.41,0s0.39-1.03,0-1.41L5.99,4.58z M18.36,16.95 c-0.39-0.39-1.03-0.39-1.41,0c-0.39,0.39-0.39,1.03,0,1.41l1.06,1.06c0.39,0.39,1.03,0.39,1.41,0c0.39-0.39,0.39-1.03,0-1.41 L18.36,16.95z M19.42,5.99c0.39-0.39,0.39-1.03,0-1.41c-0.39-0.39-1.03-0.39-1.41,0l-1.06,1.06c-0.39,0.39-0.39,1.03,0,1.41 s1.03,0.39,1.41,0L19.42,5.99z M7.05,18.36c0.39-0.39,0.39-1.03,0-1.41c-0.39-0.39-1.03-0.39-1.41,0l-1.06,1.06 c-0.39,0.39-0.39,1.03,0,1.41s1.03,0.39,1.41,0L7.05,18.36z"/></svg><svg viewBox="0 0 24 24" width=24 height=24 aria-hidden=true class="toggleIcon_Kt6U darkToggleIcon_XgQr"><path fill=currentColor d="M9.37,5.51C9.19,6.15,9.1,6.82,9.1,7.5c0,4.08,3.32,7.4,7.4,7.4c0.68,0,1.35-0.09,1.99-0.27C17.45,17.19,14.93,19,12,19 c-3.86,0-7-3.14-7-7C5,9.07,6.81,6.55,9.37,5.51z M12,3c-4.97,0-9,4.03-9,9s4.03,9,9,9s9-4.03,9-9c0-0.46-0.04-0.92-0.1-1.36 c-0.98,1.37-2.58,2.26-4.4,2.26c-2.98,0-5.4-2.42-5.4-5.4c0-1.81,0.89-3.42,2.26-4.4C12.92,3.04,12.46,3,12,3L12,3z"/></svg><svg viewBox="0 0 24 24" width=24 height=24 aria-hidden=true class="toggleIcon_Kt6U systemToggleIcon_BvUi"><path fill=currentColor d="m12 21c4.971 0 9-4.029 9-9s-4.029-9-9-9-9 4.029-9 9 4.029 9 9 9zm4.95-13.95c1.313 1.313 2.05 3.093 2.05 4.95s-0.738 3.637-2.05 4.95c-1.313 1.313-3.093 2.05-4.95 2.05v-14c1.857 0 3.637 0.737 4.95 2.05z"/></svg></button></div><div class=navbarSearchContainer_watl></div></div></div><div role=presentation class=navbar-sidebar__backdrop></div></nav><div id=__docusaurus_skipToContent_fallback class="theme-layout-main main-wrapper mainWrapper_R72Q"><div class=docsWrapper_XQ9b><button aria-label=回到顶部 class="clean-btn theme-back-to-top-button backToTopButton_MbnX" type=button></button><div class=docRoot_aqOB><aside class="theme-doc-sidebar-container docSidebarContainer_sI2e"><div class=sidebarViewport_TzTy><div class=sidebar_CbEe><nav aria-label=文档侧边栏 class="menu thin-scrollbar menu_ChRF"><ul class="theme-doc-sidebar-menu menu__list"><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-1 menu__list-item menu__list-item--collapsed"><div class=menu__list-item-collapsible><a class="categoryLink_Muyc menu__link menu__link--sublist" href=/getting_started/><span class=categoryLinkLabel_mAcL>快速开始</span></a><button aria-label="展开侧边栏分类 '快速开始'" aria-expanded=false type=button class="clean-btn menu__caret"></button></div><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-1 menu__list-item"><div class=menu__list-item-collapsible><a class="categoryLink_Muyc menu__link menu__link--sublist menu__link--active" href=/concepts/><span class=categoryLinkLabel_mAcL>核心概念</span></a><button aria-label="折叠侧边栏分类 '核心概念'" aria-expanded=true type=button class="clean-btn menu__caret"></button></div><ul class=menu__list><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-2 menu__list-item menu__list-item--collapsed"><div class=menu__list-item-collapsible><a class="categoryLink_Muyc menu__link menu__link--sublist" tabindex=0 href=/concepts/instruments/><span class=categoryLinkLabel_mAcL>金融工具</span></a><button aria-label="展开侧边栏分类 '金融工具'" aria-expanded=false type=button class="clean-btn menu__caret"></button></div><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-2 menu__list-item menu__list-item--collapsed"><div class=menu__list-item-collapsible><a class="categoryLink_Muyc menu__link menu__link--sublist" tabindex=0 href=/concepts/orders/><span class=categoryLinkLabel_mAcL>订单</span></a><button aria-label="展开侧边栏分类 '订单'" aria-expanded=false type=button class="clean-btn menu__caret"></button></div><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-2 menu__list-item menu__list-item--collapsed"><div class=menu__list-item-collapsible><a class="categoryLink_Muyc menu__link menu__link--sublist" tabindex=0 href=/concepts/data/><span class=categoryLinkLabel_mAcL>数据</span></a><button aria-label="展开侧边栏分类 '数据'" aria-expanded=false type=button class="clean-btn menu__caret"></button></div><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-2 menu__list-item menu__list-item--collapsed"><div class=menu__list-item-collapsible><a class="categoryLink_Muyc menu__link menu__link--sublist" tabindex=0 href=/concepts/backtesting/><span class=categoryLinkLabel_mAcL>回测</span></a><button aria-label="展开侧边栏分类 '回测'" aria-expanded=false type=button class="clean-btn menu__caret"></button></div><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-2 menu__list-item menu__list-item--collapsed"><div class=menu__list-item-collapsible><a class="categoryLink_Muyc menu__link menu__link--sublist" tabindex=0 href=/concepts/events/><span class=categoryLinkLabel_mAcL>事件</span></a><button aria-label="展开侧边栏分类 '事件'" aria-expanded=false type=button class="clean-btn menu__caret"></button></div><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-2 menu__list-item menu__list-item--collapsed"><div class=menu__list-item-collapsible><a class="categoryLink_Muyc menu__link menu__link--sublist" tabindex=0 href=/concepts/execution/><span class=categoryLinkLabel_mAcL>执行</span></a><button aria-label="展开侧边栏分类 '执行'" aria-expanded=false type=button class="clean-btn menu__caret"></button></div><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/concepts/accounting><span class=linkLabel_lYjD>核算</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/concepts/actors><span class=linkLabel_lYjD>Actors</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/concepts/adapters><span class=linkLabel_lYjD>适配器</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/concepts/architecture><span class=linkLabel_lYjD>架构</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/concepts/behavioral_models><span class=linkLabel_lYjD>行为模型</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/concepts/cache><span class=linkLabel_lYjD>缓存</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/concepts/configuration><span class=linkLabel_lYjD>配置</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/concepts/continuous_futures><span class=linkLabel_lYjD>连续期货</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/concepts/custom_data><span class=linkLabel_lYjD>自定义数据</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/concepts/dst><span class=linkLabel_lYjD>DST</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/concepts/event_sourcing><span class=linkLabel_lYjD>事件溯源</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/concepts/greeks><span class=linkLabel_lYjD>Greeks</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/concepts/live><span class=linkLabel_lYjD>实时交易</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/concepts/logging><span class=linkLabel_lYjD>日志</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/concepts/message_bus><span class=linkLabel_lYjD>消息总线</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/concepts/networking><span class=linkLabel_lYjD>网络</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/concepts/options><span class=linkLabel_lYjD>期权</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/concepts/order_book><span class=linkLabel_lYjD>订单簿</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class="menu__link menu__link--active" aria-current=page tabindex=0 href=/concepts/overview><span class=linkLabel_lYjD>概览</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/concepts/portfolio><span class=linkLabel_lYjD>组合</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/concepts/positions><span class=linkLabel_lYjD>持仓</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/concepts/python><span class=linkLabel_lYjD>Python</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/concepts/reports><span class=linkLabel_lYjD>报告</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/concepts/rust><span class=linkLabel_lYjD>Rust</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/concepts/strategies><span class=linkLabel_lYjD>策略</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/concepts/synthetics><span class=linkLabel_lYjD>合成工具</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/concepts/value_types><span class=linkLabel_lYjD>值类型</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/concepts/visualization><span class=linkLabel_lYjD>可视化</span></a></ul><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-1 menu__list-item menu__list-item--collapsed"><div class=menu__list-item-collapsible><a class="categoryLink_Muyc menu__link menu__link--sublist" href=/integrations/><span class=categoryLinkLabel_mAcL>交易所与集成</span></a><button aria-label="展开侧边栏分类 '交易所与集成'" aria-expanded=false type=button class="clean-btn menu__caret"></button></div><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-1 menu__list-item menu__list-item--collapsed"><div class=menu__list-item-collapsible><a class="categoryLink_Muyc menu__link menu__link--sublist" href=/how_to/><span class=categoryLinkLabel_mAcL>操作指南</span></a><button aria-label="展开侧边栏分类 '操作指南'" aria-expanded=false type=button class="clean-btn menu__caret"></button></div><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-1 menu__list-item menu__list-item--collapsed"><div class=menu__list-item-collapsible><a class="categoryLink_Muyc menu__link menu__link--sublist" href=/tutorials/><span class=categoryLinkLabel_mAcL>教程</span></a><button aria-label="展开侧边栏分类 '教程'" aria-expanded=false type=button class="clean-btn menu__caret"></button></div><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-1 menu__list-item menu__list-item--collapsed"><div class=menu__list-item-collapsible><a class="categoryLink_Muyc menu__link menu__link--sublist" href=/developer_guide/><span class=categoryLinkLabel_mAcL>开发者指南</span></a><button aria-label="展开侧边栏分类 '开发者指南'" aria-expanded=false type=button class="clean-btn menu__caret"></button></div><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-1 menu__list-item menu__list-item--collapsed"><div class=menu__list-item-collapsible><a class="categoryLink_Muyc menu__link menu__link--sublist" href=/api_reference/><span class=categoryLinkLabel_mAcL>API 参考</span></a><button aria-label="展开侧边栏分类 'API 参考'" aria-expanded=false type=button class="clean-btn menu__caret"></button></div></ul></nav></div></div></aside><main class=docMainContainer_sLF8><div class="container padding-top--md padding-bottom--lg"><div class=row><div class="col docItemCol_ZRft"><div class=docItemContainer_KOP5><article><nav class="theme-doc-breadcrumbs breadcrumbsContainer_d5rS" aria-label=页面路径><ul class=breadcrumbs><li class=breadcrumbs__item><a aria-label=主页面 class=breadcrumbs__link href=/><svg viewBox="0 0 24 24" class=breadcrumbHomeIcon_XgF2><path d="M10 19v-5h4v5c0 .55.45 1 1 1h3c.55 0 1-.45 1-1v-7h1.7c.46 0 .68-.57.33-.87L12.67 3.6c-.38-.34-.96-.34-1.34 0l-8.36 7.53c-.34.3-.13.87.33.87H5v7c0 .55.45 1 1 1h3c.55 0 1-.45 1-1z" fill=currentColor /></svg></a><li class=breadcrumbs__item><a class=breadcrumbs__link href=/concepts/><span>核心概念</span></a><li class="breadcrumbs__item breadcrumbs__item--active"><span class=breadcrumbs__link>概览</span></ul></nav><div class="tocCollapsible_bgaJ theme-doc-toc-mobile tocMobile_FhT_"><button type=button class="clean-btn tocCollapsibleButton_F8AY">本页总览</button></div><div class="theme-doc-markdown markdown"><header><h1>概览</h1></header>
+<h2 class="anchor anchorTargetStickyNavbar_ana5" id=introduction>简介<a href=#introduction class=hash-link aria-label=简介的直接链接 title=简介的直接链接 translate=no>​</a></h2>
+<p>NautilusTrader 是一个开源、生产级、Rust 原生的引擎，用于构建多资产、多交易场所的交易系统。</p>
+<p>系统覆盖研究、确定性模拟和实时执行，全部运行在同一套事件驱动架构内。Python 作为控制面，负责策略逻辑、配置和编排。</p>
+<p>这种分层兼顾了编译型交易引擎的性能与安全性，以及 Python 在系统组装和策略开发上的灵活性。关键任务负载也可以完全用 Rust 编写交易系统。</p>
+<p>同一份策略与执行算法代码可以跨回测和实时系统运行，减少部署差异。实时执行仍会引入模拟未必能复现的交易场所、传输、时序、持久化、外部活动和对账行为。见
+<a class="" href=/concepts/live#backtest-and-live-differences>回测与实时的差异</a>。</p>
+<p>NautilusTrader 不绑定资产类别。任何提供 REST API 或 WebSocket 数据源的场所都可以通过模块化适配器接入。已有集成覆盖中心化和去中心化加密货币交易所（CEX 与 DEX）、外汇（FX）、股票、期货、期权和博彩交易所。</p>
+<h2 class="anchor anchorTargetStickyNavbar_ana5" id=features>特性<a href=#features class=hash-link aria-label=特性的直接链接 title=特性的直接链接 translate=no>​</a></h2>
 <ul>
-<li>高速（Fast）：核心使用 Rust 开发，采用 <a href="https://crates.io/crates/tokio" target="_blank" rel="noopener noreferrer">tokio</a> 实现异步网络。</li>
-<li>可靠（Reliable）：依托 Rust 的类型与线程安全，同时支持可选的基于 Redis 的状态持久化。</li>
-<li>可移植（Portable）：与操作系统无关，可运行于 Linux、macOS 和 Windows，并支持通过 Docker 部署。</li>
-<li>灵活（Flexible）：模块化适配器可接入任意 REST API 或 WebSocket 数据源。</li>
-<li>高级（Advanced）：支持丰富的 Time-In-Force（如 <code>IOC</code>, <code>FOK</code>, <code>GTC</code>, <code>GTD</code>, <code>DAY</code>, <code>AT_THE_OPEN</code>, <code>AT_THE_CLOSE</code>），高级订单类型和条件触发，执行指令（如 <code>post-only</code>, <code>reduce-only</code>）以及冰山（iceberg）订单。支持联动/应急订单（contingency orders）例如 <code>OCO</code>, <code>OUO</code>, <code>OTO</code>。</li>
-<li>可定制（Customizable）：允许添加用户自定义组件，或利用 <a href="/concepts/cache">cache</a> 与 <a href="/concepts/message_bus">message bus</a> 从头组装完整系统。</li>
-<li>回测（Backtesting）：支持在多个交易场所、多个品种与策略并行运行，使用历史报价 tick、成交 tick、K 线（bar）、订单簿以及自定义数据，粒度可达纳秒级（nanosecond）。</li>
-<li>实盘（Live）：回测与实盘可以使用完全相同的策略实现，保证行为一致性。</li>
-<li>多场所（Multi-venue）：支持多交易场所，便于做市（market-making）与统计套利（statistical arbitrage）策略实现。</li>
-<li>AI 训练（AI Training）：回测引擎速度足够快，可用于训练 AI 交易代理（如强化学习 RL / 进化策略 ES）。</li>
+<li class=""><strong>快速</strong>：Rust 核心，使用 <a href=https://crates.io/crates/tokio target=_blank rel="noopener noreferrer" class="">tokio</a> 做异步网络。</li>
+<li class=""><strong>可靠</strong>：Rust 提供类型安全与线程安全，状态可选持久化到 Redis 或 PostgreSQL。</li>
+<li class=""><strong>可移植</strong>：支持 Linux、macOS 和 Windows，可用 Docker 部署。</li>
+<li class=""><strong>灵活</strong>：模块化适配器可接入任意 REST API 或 WebSocket 数据源。</li>
+<li class=""><strong>高级订单</strong>：时效（Time-in-force）选项包括 <code>IOC</code>、<code>FOK</code>、<code>GTC</code>、<code>GTD</code>、<code>DAY</code>、<code>AT_THE_OPEN</code> 和 <code>AT_THE_CLOSE</code>。领域模型还支持条件触发、<code>post-only</code>、<code>reduce-only</code>、冰山单（iceberg），以及 <code>OCO</code>、<code>OUO</code>、<code>OTO</code> 或有订单。各交易场所的支持取决于适配器。</li>
+<li class=""><strong>可定制</strong>：使用用户自定义组件，或基于<a class="" href=/concepts/cache>缓存</a>和<a class="" href=/concepts/message_bus>消息总线</a>从零组装整个系统。</li>
+<li class=""><strong>回测</strong>：以纳秒级精度，用历史报价、成交、bar、订单簿和自定义数据同时运行多个交易场所、金融工具和策略。</li>
+<li class=""><strong>实时</strong>：研究与实时部署使用完全相同的策略实现。</li>
+<li class=""><strong>多场所</strong>：同时跨多个交易场所运行做市和跨场所策略。</li>
+<li class=""><strong>AI 训练</strong>：高吞吐模拟可支撑训练 AI 交易智能体等负载，如强化学习（RL）或进化策略（ES）。</li>
 </ul>
-<p><img decoding="async" loading="lazy" src="https://github.com/nautechsystems/nautilus_trader/blob/develop/assets/nautilus-art.png?raw=true" alt="Nautilus" title="nautilus" class="img_DwKz"></p>
-<blockquote>
-<p><em>nautilus — 源自古希腊语“水手”（sailor）和“船”（naus）。</em></p>
-<p><em>鹦鹉螺（nautilus）壳体由模块化的舱室组成，其增长系数近似于对数螺线。该形态被用于平台在设计与架构上的审美与理念映射。</em></p>
-</blockquote>
-<h2 class="anchor anchorWithStickyNavbar_RpWm" id="为什么选择-nautilustrader">为什么选择 NautilusTrader？<a href="#为什么选择-nautilustrader" class="hash-link" aria-label="为什么选择 NautilusTrader？的直接链接" title="为什么选择 NautilusTrader？的直接链接" translate="no">​</a></h2>
+<h2 class="anchor anchorTargetStickyNavbar_ana5" id=why-nautilustrader>为什么选择 NautilusTrader？<a href=#why-nautilustrader class=hash-link aria-label="为什么选择 NautilusTrader？的直接链接" title="为什么选择 NautilusTrader？的直接链接" translate=no>​</a></h2>
+<p>交易策略研究通常在 Python 中用向量化方式完成，而生产交易系统则另行用编译型语言以事件驱动架构搭建。</p>
+<p>NautilusTrader 消除了这种割裂。</p>
+<p>Rust 原生核心为研究和实时执行提供同一个确定性事件驱动运行时，Python 充当控制面。两个环境使用同一套架构、执行语义和时间模型，策略从研究走到生产无需重写。</p>
+<p>Rust 原生运行时通过 <a href=https://pyo3.rs target=_blank rel="noopener noreferrer" class="">PyO3</a> 暴露 Python 绑定。安装官方预编译 Python wheel 不需要 Rust 工具链。</p>
+<h2 class="anchor anchorTargetStickyNavbar_ana5" id=use-cases>使用场景<a href=#use-cases class=hash-link aria-label=使用场景的直接链接 title=使用场景的直接链接 translate=no>​</a></h2>
+<p>NautilusTrader 支持三类主要场景：</p>
 <ul>
-<li>高性能的事件驱动 Python：核心为原生二进制组件。</li>
-<li>回测与实盘的一致性（parity）：策略代码可在回测与实盘间无缝复用。</li>
-<li>降低运营风险：增强的风控功能、逻辑准确性以及类型安全性。</li>
-<li>高度可扩展：内置消息总线（message bus）、自定义组件与 Actor、以及可扩展的适配器体系。</li>
+<li class="">在历史数据上回测交易系统（<code>backtest</code>）。</li>
+<li class="">用实时数据和虚拟执行模拟交易系统（<code>sandbox</code>）。</li>
+<li class="">在真实或模拟盘账户上实时部署交易系统（<code>live</code>）。</li>
 </ul>
-<p>传统上，交易策略研究与回测常在 Python 中使用向量化方法完成，但在把策略移植到事件驱动的生产环境时通常需要用 C++、C#、Java 等静态类型语言重写。原因在于向量化回测无法充分表达实时交易中基于时间与事件的细粒度复杂性，而编译型语言在性能与类型安全上通常更适配生产环境。</p>
-<p>NautilusTrader 的一个关键优势是避免了这一步的重复实现：平台的重要核心组件使用 <a href="https://www.rust-lang.org/" target="_blank" rel="noopener noreferrer">Rust</a> 或 <a href="https://cython.org/" target="_blank" rel="noopener noreferrer">Cython</a> 完整实现。这意味着我们选对了工具；系统编程语言编译出高性能的二进制，同时通过 CPython 的 C 扩展模块向上暴露出 Python 原生接口，满足专业量化交易员与机构的需求。</p>
-<h2 class="anchor anchorWithStickyNavbar_RpWm" id="使用场景">使用场景<a href="#使用场景" class="hash-link" aria-label="使用场景的直接链接" title="使用场景的直接链接" translate="no">​</a></h2>
-<p>该软件包主要支持三类使用场景：</p>
-<ul>
-<li>在历史数据上回测交易系统（<code>backtest</code>）。</li>
-<li>使用实时数据与虚拟执行模拟交易系统（<code>sandbox</code>）。</li>
-<li>在真实或模拟账户上部署交易系统并运行实盘（<code>live</code>）。</li>
-</ul>
-<p>代码库提供了实现上述功能的软件框架。默认的 <code>backtest</code> 与 <code>live</code> 系统实现位于同名子包中；可以通过 sandbox 适配器构建 <code>sandbox</code> 环境。</p>
-<div class="theme-admonition theme-admonition-note admonition_lEzE alert alert--secondary"><div class="admonitionHeading_aAf0"><span class="admonitionIcon_xtBN"><svg viewBox="0 0 14 16"><path fill-rule="evenodd" d="M6.3 5.69a.942.942 0 0 1-.28-.7c0-.28.09-.52.28-.7.19-.18.42-.28.7-.28.28 0 .52.09.7.28.18.19.28.42.28.7 0 .28-.09.52-.28.7a1 1 0 0 1-.7.3c-.28 0-.52-.11-.7-.3zM8 7.99c-.02-.25-.11-.48-.31-.69-.2-.19-.42-.3-.69-.31H6c-.27.02-.48.13-.69.31-.2.2-.3.44-.31.69h1v3c.02.27.11.5.31.69.2.2.42.31.69.31h1c.27 0 .48-.11.69-.31.2-.19.3-.42.31-.69H8V7.98v.01zM7 2.3c-3.14 0-5.7 2.54-5.7 5.68 0 3.14 2.56 5.7 5.7 5.7s5.7-2.55 5.7-5.7c0-3.15-2.56-5.69-5.7-5.69v.01zM7 .98c3.86 0 7 3.14 7 7s-3.14 7-7 7-7-3.12-7-7 3.14-7 7-7z"></path></svg></span>备注</div><div class="admonitionContent_Vfkp"><ul>
-<li>所有示例均以这些默认系统实现为基础。</li>
-<li>我们将交易策略视作端到端交易系统（包括应用层与基础设施层）中的子组件。</li>
+<p>NautilusTrader 为 Python 和 Rust 都提供回测与实时节点实现。
+sandbox 适配器为 <code>sandbox</code> 环境提供模拟执行。</p>
+<div class="theme-admonition theme-admonition-note admonition_LYZY alert alert--secondary"><div class=admonitionHeading_pnFY><span class=admonitionIcon_tEzm><svg viewBox="0 0 14 16"><path fill-rule=evenodd d="M6.3 5.69a.942.942 0 0 1-.28-.7c0-.28.09-.52.28-.7.19-.18.42-.28.7-.28.28 0 .52.09.7.28.18.19.28.42.28.7 0 .28-.09.52-.28.7a1 1 0 0 1-.7.3c-.28 0-.52-.11-.7-.3zM8 7.99c-.02-.25-.11-.48-.31-.69-.2-.19-.42-.3-.69-.31H6c-.27.02-.48.13-.69.31-.2.2-.3.44-.31.69h1v3c.02.27.11.5.31.69.2.2.42.31.69.31h1c.27 0 .48-.11.69-.31.2-.19.3-.42.31-.69H8V7.98v.01zM7 2.3c-3.14 0-5.7 2.54-5.7 5.68 0 3.14 2.56 5.7 5.7 5.7s5.7-2.55 5.7-5.7c0-3.15-2.56-5.69-5.7-5.69v.01zM7 .98c3.86 0 7 3.14 7 7s-3.14 7-7 7-7-3.12-7-7 3.14-7 7-7z"/></svg></span>备注</div><div class=admonitionContent_ZwmI><ul>
+<li class="">除非另有说明，示例均使用这些节点实现。</li>
+<li class="">交易策略只是端到端交易系统的一个组件，系统还包括应用层和基础设施层。</li>
 </ul></div></div>
-<h2 class="anchor anchorWithStickyNavbar_RpWm" id="分布式distributed">分布式（Distributed）<a href="#分布式distributed" class="hash-link" aria-label="分布式（Distributed）的直接链接" title="分布式（Distributed）的直接链接" translate="no">​</a></h2>
-<p>平台设计便于与更大规模的分布式系统集成。为此，几乎所有配置与领域对象都可以序列化为 JSON、MessagePack 或 Apache Arrow（Feather），用于网络间的高效通信。</p>
-<h2 class="anchor anchorWithStickyNavbar_RpWm" id="公共核心common-core">公共核心（Common core）<a href="#公共核心common-core" class="hash-link" aria-label="公共核心（Common core）的直接链接" title="公共核心（Common core）的直接链接" translate="no">​</a></h2>
-<p>公共系统核心被所有节点环境上下文（参见 <a href="/concepts/architecture#environment-contexts">environment contexts</a>：<code>backtest</code>、<code>sandbox</code> 和 <code>live</code>）所使用。用户定义的 <code>Actor</code>、<code>Strategy</code> 与 <code>ExecAlgorithm</code> 等组件在这些环境上下文之间具有一致的管理与生命周期语义。</p>
-<h2 class="anchor anchorWithStickyNavbar_RpWm" id="回测backtesting">回测（Backtesting）<a href="#回测backtesting" class="hash-link" aria-label="回测（Backtesting）的直接链接" title="回测（Backtesting）的直接链接" translate="no">​</a></h2>
-<p>回测通常先将数据提供给 <code>BacktestEngine</code>（可以直接提供，也可通过更高级别的 <code>BacktestNode</code> 与 <code>ParquetDataCatalog</code>），然后以纳秒精度将数据流通过系统执行回放。</p>
-<h2 class="anchor anchorWithStickyNavbar_RpWm" id="实盘交易live-trading">实盘交易（Live trading）<a href="#实盘交易live-trading" class="hash-link" aria-label="实盘交易（Live trading）的直接链接" title="实盘交易（Live trading）的直接链接" translate="no">​</a></h2>
-<p><code>TradingNode</code> 可以从多个数据源与执行客户端接收数据与事件。实盘部署既可使用模拟/纸面（demo/paper）账户，也可连接真实账户。</p>
-<p>在实盘场景中，平台支持在单个事件循环（event loop）上异步运行以获得高性能（参见 Python 的 <a href="https://docs.python.org/3/library/asyncio-eventloop.html" target="_blank" rel="noopener noreferrer">event loop</a>），在 Linux 与 macOS 上还可以通过 <a href="https://github.com/MagicStack/uvloop" target="_blank" rel="noopener noreferrer">uvloop</a>（如适用）进一步提升性能。</p>
-<h2 class="anchor anchorWithStickyNavbar_RpWm" id="领域模型domain-model">领域模型（Domain model）<a href="#领域模型domain-model" class="hash-link" aria-label="领域模型（Domain model）的直接链接" title="领域模型（Domain model）的直接链接" translate="no">​</a></h2>
-<p>平台包含完整的交易领域模型，涵盖基础数值类型（如 <code>Price</code>、<code>Quantity</code>）以及更复杂的实体（如 <code>Order</code> 和 <code>Position</code>），这些实体会聚合多个事件以推导出对象状态。</p>
-<h2 class="anchor anchorWithStickyNavbar_RpWm" id="时间戳timestamps">时间戳（Timestamps）<a href="#时间戳timestamps" class="hash-link" aria-label="时间戳（Timestamps）的直接链接" title="时间戳（Timestamps）的直接链接" translate="no">​</a></h2>
-<p>平台内所有时间戳均以 UTC 的纳秒精度记录。</p>
-<p>时间戳字符串遵循 ISO 8601（RFC 3339）格式，使用 9 位（纳秒）或在某些情况下使用 3 位（毫秒）的小数位表示（主要以纳秒为主），并始终保留所有小数位（包括尾随零）。这些时间戳会出现在日志、调试与对象显示输出中。</p>
-<p>时间戳字符串的组成：</p>
+<h2 class="anchor anchorTargetStickyNavbar_ana5" id=distributed>分布式<a href=#distributed class=hash-link aria-label=分布式的直接链接 title=分布式的直接链接 translate=no>​</a></h2>
+<p>平台可集成到更大的分布式系统中：</p>
 <ul>
-<li>始终包含完整的日期部分：<code>YYYY-MM-DD</code>。</li>
-<li>使用 <code>T</code> 分隔日期与时间部分。</li>
-<li>通常为纳秒精度（9 位小数），在某些场景（例如 GTD 到期时间）可能使用毫秒精度（3 位小数）。</li>
-<li>始终以 <code>Z</code> 后缀标识 UTC 时区。</li>
+<li class=""><a class="" href=/concepts/message_bus#encoding>外部消息总线</a>支持 JSON 和 MessagePack 负载，模式（schema）覆盖的行情数据还支持 Cap'n Proto 和 Simple Binary Encoding (SBE)。</li>
+<li class="">Apache Arrow 和 Parquet 通过<a class="" href=/concepts/data/catalog>数据目录</a>提供列式交换与持久化。</li>
+</ul>
+<p>各负载类型支持的格式不同。</p>
+<h2 class="anchor anchorTargetStickyNavbar_ana5" id=common-core>通用核心<a href=#common-core class=hash-link aria-label=通用核心的直接链接 title=通用核心的直接链接 translate=no>​</a></h2>
+<p>所有节点<a class="" href=/concepts/architecture#environment-contexts>环境上下文</a>——<code>backtest</code>、<code>sandbox</code>、<code>live</code>——都使用同一套系统核心。用户定义的 actor、策略和执行算法在这些上下文中使用相同的生命周期。</p>
+<h2 class="anchor anchorTargetStickyNavbar_ana5" id=backtesting>回测<a href=#backtesting class=hash-link aria-label=回测的直接链接 title=回测的直接链接 translate=no>​</a></h2>
+<p>数据可直接喂给 <code>BacktestEngine</code>，也可经由更上层的 <code>BacktestNode</code> 和 <code>ParquetDataCatalog</code> 送入，然后以纳秒级精度让数据流经系统。API 与执行模型见 <a class="" href=/concepts/backtesting/>回测</a>。</p>
+<h2 class="anchor anchorTargetStickyNavbar_ana5" id=live-trading>实时交易<a href=#live-trading class=hash-link aria-label=实时交易的直接链接 title=实时交易的直接链接 translate=no>​</a></h2>
+<p><code>LiveNode</code> 从多个数据客户端和执行客户端摄取数据与事件，支持演示、模拟盘和真实账户。Rust 原生节点（含其 PyO3 接口）在调用线程上运行内核事件循环。异步 I/O 与后台任务使用共享的多线程 Tokio 运行时。</p>
+<p>节点生命周期与风险注意事项见 <a class="" href=/concepts/live>实时交易</a>，状态恢复见 <a class="" href=/concepts/execution/reconciliation>执行对账</a>。</p>
+<h2 class="anchor anchorTargetStickyNavbar_ana5" id=domain-model>领域模型<a href=#domain-model class=hash-link aria-label=领域模型的直接链接 title=领域模型的直接链接 translate=no>​</a></h2>
+<p>交易领域模型包含 <code>Price</code>、<code>Quantity</code> 等<a class="" href=/concepts/value_types>值类型</a>，以及通过聚合事件来确定状态的<a class="" href=/concepts/orders/>订单</a>和<a class="" href=/concepts/positions>持仓</a>。</p>
+<h2 class="anchor anchorTargetStickyNavbar_ana5" id=timestamps>时间戳<a href=#timestamps class=hash-link aria-label=时间戳的直接链接 title=时间戳的直接链接 translate=no>​</a></h2>
+<p>NautilusTrader 以 <strong>UNIX 纳秒</strong>表示系统时间戳。其标准 ISO 8601（RFC 3339）格式化器使用 UTC，并保留全部九位小数。毫秒格式化器为部分展示场景保留三位小数，例如 good-till-date（GTD）到期时间。</p>
+<p>时间戳字符串由以下部分组成：</p>
+<ul>
+<li class="">始终包含完整日期部分：<code>YYYY-MM-DD</code>。</li>
+<li class="">日期与时间之间用 <code>T</code> 分隔。</li>
+<li class="">纳秒输出保留九位小数，毫秒输出保留三位。</li>
+<li class=""><code>Z</code> 后缀表示 UTC 时区。</li>
 </ul>
 <p>示例：<code>2024-01-05T15:30:45.123456789Z</code></p>
-<p>完整规范参见 <a href="https://datatracker.ietf.org/doc/html/rfc3339" target="_blank" rel="noopener noreferrer">RFC 3339: Date and Time on the Internet</a>。</p>
-<h2 class="anchor anchorWithStickyNavbar_RpWm" id="uuids">UUIDs<a href="#uuids" class="hash-link" aria-label="UUIDs的直接链接" title="UUIDs的直接链接" translate="no">​</a></h2>
-<p>平台使用符合 RFC 4122 的版本 4 UUID（Universally Unique Identifier）作为唯一标识符。在高性能实现中，我们使用 <code>uuid</code> crate 对从字符串解析的 UUID 进行正确性校验，确保输入 UUID 符合规范。</p>
-<p>有效的 UUID v4 由以下特征构成：</p>
+<p>完整规范见
+<a href=https://datatracker.ietf.org/doc/html/rfc3339 target=_blank rel="noopener noreferrer" class="">RFC 3339: Date and Time on the Internet</a>。</p>
+<h2 class="anchor anchorTargetStickyNavbar_ana5" id=uuids>UUID<a href=#uuids class=hash-link aria-label=UUID的直接链接 title=UUID的直接链接 translate=no>​</a></h2>
+<p><code>UUID4</code> 值类型为事件、命令、报告及其他内部消息提供随机的通用唯一标识符（UUID）版本 4 值。解析字符串时，它使用 <code>uuid</code> crate 校验版本位和变体位。</p>
+<p>按 RFC 9562，合法的 UUID v4 满足：</p>
 <ul>
-<li>32 个十六进制字符，分为 5 个组显示。</li>
-<li>各组以连字符分隔，格式为 <code>8-4-4-4-12</code>。</li>
-<li>第三组以 <code>4</code> 开头以表示版本 4。</li>
-<li>第四组以 <code>8</code>、<code>9</code>、<code>a</code> 或 <code>b</code> 开头以表示 RFC 4122 变体。</li>
+<li class="">32 个十六进制数字，分为 5 组显示。</li>
+<li class="">组间用连字符分隔：<code>8-4-4-4-12</code> 格式。</li>
+<li class="">版本 4 标识（第三组以 "4" 开头）。</li>
+<li class="">IETF 变体标识（第四组以 "8"、"9"、"a" 或 "b" 开头）。</li>
 </ul>
 <p>示例：<code>2d89666b-1a1e-4a75-b193-4eb3b454c757</code></p>
-<p>完整规范参见 <a href="https://datatracker.ietf.org/doc/html/rfc4122" target="_blank" rel="noopener noreferrer">RFC 4122: A Universally Unique IDentifier (UUID) URN Namespace</a>。</p>
-<h2 class="anchor anchorWithStickyNavbar_RpWm" id="数据类型data-types">数据类型（Data types）<a href="#数据类型data-types" class="hash-link" aria-label="数据类型（Data types）的直接链接" title="数据类型（Data types）的直接链接" translate="no">​</a></h2>
-<p>下列市场数据类型可以历史查询，也可以在交易场所/数据提供方支持时订阅为实时流，并在 integrations 适配器中实现：</p>
+<p>完整规范见
+<a href=https://www.rfc-editor.org/rfc/rfc9562.html target=_blank rel="noopener noreferrer" class="">RFC 9562: Universally Unique Identifiers (UUIDs)</a>。</p>
+<h2 class="anchor anchorTargetStickyNavbar_ana5" id=data-types>数据类型<a href=#data-types class=hash-link aria-label=数据类型的直接链接 title=数据类型的直接链接 translate=no>​</a></h2>
+<p>NautilusTrader 定义了以下内置行情与参考数据类型。历史请求和实时订阅的可用性取决于提供商和适配器。字段与行为见 <a class="" href=/concepts/data/>数据</a>。</p>
 <ul>
-<li><code>OrderBookDelta</code>（L1/L2/L3）</li>
-<li><code>OrderBookDeltas</code>（容器类型）</li>
-<li><code>OrderBookDepth10</code>（每侧固定 10 个档位）</li>
-<li><code>QuoteTick</code></li>
-<li><code>TradeTick</code></li>
-<li><code>Bar</code></li>
-<li><code>Instrument</code></li>
-<li><code>InstrumentStatus</code></li>
-<li><code>InstrumentClose</code></li>
+<li class=""><code>OrderBookDelta</code>（单笔订单簿变更）</li>
+<li class=""><code>OrderBookDeltas</code>（容器类型）</li>
+<li class=""><code>OrderBookDepth</code>（可变深度快照，内联容量为十档）</li>
+<li class=""><code>QuoteTick</code></li>
+<li class=""><code>TradeTick</code></li>
+<li class=""><code>Bar</code></li>
+<li class=""><code>MarkPriceUpdate</code></li>
+<li class=""><code>IndexPriceUpdate</code></li>
+<li class=""><code>FundingRateUpdate</code></li>
+<li class=""><code>OptionGreeks</code></li>
+<li class=""><code>Instrument</code></li>
+<li class=""><code>InstrumentStatus</code></li>
+<li class=""><code>InstrumentClose</code></li>
 </ul>
-<p>下面的 <code>PriceType</code> 可用于构建 K 线（bar）聚合：</p>
+<p>应用自定义类型请使用<a class="" href=/concepts/custom_data>自定义数据</a>。</p>
+<p>以下 <code>PriceType</code> 选项为内部 bar 聚合选择细粒度数据：</p>
 <ul>
-<li><code>BID</code></li>
-<li><code>ASK</code></li>
-<li><code>MID</code></li>
-<li><code>LAST</code></li>
+<li class=""><code>BID</code></li>
+<li class=""><code>ASK</code></li>
+<li class=""><code>MID</code></li>
+<li class=""><code>LAST</code></li>
 </ul>
-<h2 class="anchor anchorWithStickyNavbar_RpWm" id="k-线bar聚合">K 线（Bar）聚合<a href="#k-线bar聚合" class="hash-link" aria-label="K 线（Bar）聚合的直接链接" title="K 线（Bar）聚合的直接链接" translate="no">​</a></h2>
-<p>以下 <code>BarAggregation</code> 方法可用：</p>
+<p><code>BID</code>、<code>ASK</code>、<code>MID</code> 使用 <code>QuoteTick</code> 数据，<code>LAST</code> 使用 <code>TradeTick</code> 数据。
+复合 bar 类型则聚合更小的 bar。</p>
+<h2 class="anchor anchorTargetStickyNavbar_ana5" id=bar-aggregations>Bar 聚合<a href=#bar-aggregations class=hash-link aria-label="Bar 聚合的直接链接" title="Bar 聚合的直接链接" translate=no>​</a></h2>
+<p>可用的 <code>BarAggregation</code> 方法如下：</p>
 <ul>
-<li><code>MILLISECOND</code></li>
-<li><code>SECOND</code></li>
-<li><code>MINUTE</code></li>
-<li><code>HOUR</code></li>
-<li><code>DAY</code></li>
-<li><code>WEEK</code></li>
-<li><code>MONTH</code></li>
-<li><code>YEAR</code></li>
-<li><code>TICK</code></li>
-<li><code>VOLUME</code></li>
-<li><code>VALUE</code>（又称 Dollar bars）</li>
-<li><code>RENKO</code>（基于价格的砖形图）</li>
-<li><code>TICK_IMBALANCE</code></li>
-<li><code>TICK_RUNS</code></li>
-<li><code>VOLUME_IMBALANCE</code></li>
-<li><code>VOLUME_RUNS</code></li>
-<li><code>VALUE_IMBALANCE</code></li>
-<li><code>VALUE_RUNS</code></li>
+<li class=""><code>MILLISECOND</code></li>
+<li class=""><code>SECOND</code></li>
+<li class=""><code>MINUTE</code></li>
+<li class=""><code>HOUR</code></li>
+<li class=""><code>DAY</code></li>
+<li class=""><code>WEEK</code></li>
+<li class=""><code>MONTH</code></li>
+<li class=""><code>YEAR</code></li>
+<li class=""><code>TICK</code></li>
+<li class=""><code>VOLUME</code></li>
+<li class=""><code>VALUE</code>（即 dollar bars）</li>
+<li class=""><code>RENKO</code>（基于价格的砖块）</li>
+<li class=""><code>TICK_IMBALANCE</code></li>
+<li class=""><code>TICK_RUNS</code></li>
+<li class=""><code>VOLUME_IMBALANCE</code></li>
+<li class=""><code>VOLUME_RUNS</code></li>
+<li class=""><code>VALUE_IMBALANCE</code></li>
+<li class=""><code>VALUE_RUNS</code></li>
 </ul>
-<p>当前已实现的聚合方法：</p>
+<p>上述聚合均已实现内部聚合。信息驱动型聚合需要 <code>TradeTick</code> 数据。</p>
+<p><code>BarSpecification</code> 组合了价格类型、聚合方法和正数步长。固定子单位的时间 bar 有整除性限制。校验规则见 <a class="" href=/concepts/data/#bar-types>Bar 类型</a>。实时交易期间，只要所需的输入数据可用，即可运行内部聚合。</p>
+<h2 class="anchor anchorTargetStickyNavbar_ana5" id=account-types>账户类型<a href=#account-types class=hash-link aria-label=账户类型的直接链接 title=账户类型的直接链接 translate=no>​</a></h2>
+<p><a class="" href=/concepts/accounting#account-types>核算引擎</a>在实时和回测环境中都支持以下配置：</p>
 <ul>
-<li><code>MILLISECOND</code></li>
-<li><code>SECOND</code></li>
-<li><code>MINUTE</code></li>
-<li><code>HOUR</code></li>
-<li><code>DAY</code></li>
-<li><code>WEEK</code></li>
-<li><code>MONTH</code></li>
-<li><code>YEAR</code></li>
-<li><code>TICK</code></li>
-<li><code>VOLUME</code></li>
-<li><code>VALUE</code></li>
-<li><code>RENKO</code></li>
+<li class=""><code>Cash</code> 单币种（基础货币）</li>
+<li class=""><code>Cash</code> 多币种</li>
+<li class=""><code>Margin</code> 单币种（基础货币）</li>
+<li class=""><code>Margin</code> 多币种</li>
+<li class=""><code>Betting</code> 单币种</li>
+<li class=""><code>Wallet</code> 多币种（区块链钱包，执行客户端尚在开发中）</li>
 </ul>
-<p>上文列出但未出现在“已实现”列表中的聚合方法是计划中的功能，尚未实现。</p>
-<p>价格类型（PriceType）与 K 线聚合方法（BarAggregation）可以与步长（step sizes）&gt;= 1 组合，通过 <code>BarSpecification</code> 灵活配置。这允许在实盘中使用替代 K 线聚合方法。</p>
-<h2 class="anchor anchorWithStickyNavbar_RpWm" id="账户类型account-types">账户类型（Account types）<a href="#账户类型account-types" class="hash-link" aria-label="账户类型（Account types）的直接链接" title="账户类型（Account types）的直接链接" translate="no">​</a></h2>
-<p>以下账户类型在实盘与回测环境中均可用：</p>
+<h2 class="anchor anchorTargetStickyNavbar_ana5" id=order-types>订单类型<a href=#order-types class=hash-link aria-label=订单类型的直接链接 title=订单类型的直接链接 translate=no>​</a></h2>
+<p><a class="" href=/concepts/orders/>订单模型</a>支持以下类型，具体取决于交易场所适配器的支持情况：</p>
 <ul>
-<li><code>Cash</code> 单币种（以基础货币为准）</li>
-<li><code>Cash</code> 多币种</li>
-<li><code>Margin</code> 单币种（以基础货币为准）</li>
-<li><code>Margin</code> 多币种</li>
-<li><code>Betting</code> 单币种</li>
+<li class=""><code>MARKET</code></li>
+<li class=""><code>LIMIT</code></li>
+<li class=""><code>STOP_MARKET</code></li>
+<li class=""><code>STOP_LIMIT</code></li>
+<li class=""><code>MARKET_TO_LIMIT</code></li>
+<li class=""><code>MARKET_IF_TOUCHED</code></li>
+<li class=""><code>LIMIT_IF_TOUCHED</code></li>
+<li class=""><code>TRAILING_STOP_MARKET</code></li>
+<li class=""><code>TRAILING_STOP_LIMIT</code></li>
 </ul>
-<h2 class="anchor anchorWithStickyNavbar_RpWm" id="订单类型order-types">订单类型（Order types）<a href="#订单类型order-types" class="hash-link" aria-label="订单类型（Order types）的直接链接" title="订单类型（Order types）的直接链接" translate="no">​</a></h2>
-<p>下列订单类型在交易所支持时可用：</p>
+<h2 class="anchor anchorTargetStickyNavbar_ana5" id=value-types>值类型<a href=#value-types class=hash-link aria-label=值类型的直接链接 title=值类型的直接链接 translate=no>​</a></h2>
+<p>以下定点值类型以 128 位或 64 位原始整数为底层，取决于编译时使用的<a class="" href=/getting_started/installation#precision-mode>精度模式</a>。</p>
 <ul>
-<li><code>MARKET</code></li>
-<li><code>LIMIT</code></li>
-<li><code>STOP_MARKET</code></li>
-<li><code>STOP_LIMIT</code></li>
-<li><code>MARKET_TO_LIMIT</code></li>
-<li><code>MARKET_IF_TOUCHED</code></li>
-<li><code>LIMIT_IF_TOUCHED</code></li>
-<li><code>TRAILING_STOP_MARKET</code></li>
-<li><code>TRAILING_STOP_LIMIT</code></li>
+<li class=""><code>Price</code></li>
+<li class=""><code>Quantity</code></li>
+<li class=""><code>Money</code></li>
 </ul>
-<h2 class="anchor anchorWithStickyNavbar_RpWm" id="值类型value-types">值类型（Value types）<a href="#值类型value-types" class="hash-link" aria-label="值类型（Value types）的直接链接" title="值类型（Value types）的直接链接" translate="no">​</a></h2>
-<p>以下值类型的底层采用 128-bit 或 64-bit 的整数，取决于编译时使用的<a href="/getting_started/installation#precision-mode">精度模式</a>：</p>
-<ul>
-<li><code>Price</code></li>
-<li><code>Quantity</code></li>
-<li><code>Money</code></li>
-</ul>
-<h3 class="anchor anchorWithStickyNavbar_RpWm" id="高精度模式128-bit">高精度模式（128-bit）<a href="#高精度模式128-bit" class="hash-link" aria-label="高精度模式（128-bit）的直接链接" title="高精度模式（128-bit）的直接链接" translate="no">​</a></h3>
-<p>当 <code>high-precision</code> feature flag <strong>启用</strong>（默认）时，采用如下规格：</p>
-<table><thead><tr><th style="text-align:center">类型</th><th style="text-align:center">底层类型</th><th style="text-align:center">最大精度</th><th style="text-align:center">最小值</th><th style="text-align:center">最大值</th></tr></thead><tbody><tr><td style="text-align:center"><code>Price</code></td><td style="text-align:center"><code>i128</code></td><td style="text-align:center">16</td><td style="text-align:center">-17,014,118,346,046</td><td style="text-align:center">17,014,118,346,046</td></tr><tr><td style="text-align:center"><code>Money</code></td><td style="text-align:center"><code>i128</code></td><td style="text-align:center">16</td><td style="text-align:center">-17,014,118,346,046</td><td style="text-align:center">17,014,118,346,046</td></tr><tr><td style="text-align:center"><code>Quantity</code></td><td style="text-align:center"><code>u128</code></td><td style="text-align:center">16</td><td style="text-align:center">0</td><td style="text-align:center">34,028,236,692,093</td></tr></tbody></table>
-<h3 class="anchor anchorWithStickyNavbar_RpWm" id="标准精度模式64-bit">标准精度模式（64-bit）<a href="#标准精度模式64-bit" class="hash-link" aria-label="标准精度模式（64-bit）的直接链接" title="标准精度模式（64-bit）的直接链接" translate="no">​</a></h3>
-<p>当 <code>high-precision</code> feature flag <strong>禁用</strong>时，采用如下规格：</p>
-<table><thead><tr><th style="text-align:center">类型</th><th style="text-align:center">底层类型</th><th style="text-align:center">最大精度</th><th style="text-align:center">最小值</th><th style="text-align:center">最大值</th></tr></thead><tbody><tr><td style="text-align:center"><code>Price</code></td><td style="text-align:center"><code>i64</code></td><td style="text-align:center">9</td><td style="text-align:center">-9,223,372,036</td><td style="text-align:center">9,223,372,036</td></tr><tr><td style="text-align:center"><code>Money</code></td><td style="text-align:center"><code>i64</code></td><td style="text-align:center">9</td><td style="text-align:center">-9,223,372,036</td><td style="text-align:center">9,223,372,036</td></tr><tr><td style="text-align:center"><code>Quantity</code></td><td style="text-align:center"><code>u64</code></td><td style="text-align:center">9</td><td style="text-align:center">0</td><td style="text-align:center">18,446,744,073</td></tr></tbody></table></div><footer class="theme-doc-footer docusaurus-mt-lg"><div class="row margin-top--sm theme-doc-footer-edit-meta-row"><div class="col"><a href="https://github.com/Aloento/NautilusTraderDoc/tree/main/docs/concepts/overview.md" target="_blank" rel="noopener noreferrer" class="theme-edit-this-page"><svg fill="currentColor" height="20" width="20" viewBox="0 0 40 40" class="iconEdit_F7ru" aria-hidden="true"><g><path d="m34.5 11.7l-3 3.1-6.3-6.3 3.1-3q0.5-0.5 1.2-0.5t1.1 0.5l3.9 3.9q0.5 0.4 0.5 1.1t-0.5 1.2z m-29.5 17.1l18.4-18.5 6.3 6.3-18.4 18.4h-6.3v-6.2z"></path></g></svg>编辑此页</a></div><div class="col lastUpdated_GNoA"></div></div></footer></article><nav class="docusaurus-mt-lg pagination-nav" aria-label="文件选项卡"><a class="pagination-nav__link pagination-nav__link--prev" href="/concepts/orders"><div class="pagination-nav__sublabel">上一页</div><div class="pagination-nav__label">订单</div></a><a class="pagination-nav__link pagination-nav__link--next" href="/concepts/portfolio"><div class="pagination-nav__sublabel">下一页</div><div class="pagination-nav__label">投资组合</div></a></nav></div></div><div class="col col--3"><div class="tableOfContents_pg_n thin-scrollbar theme-doc-toc-desktop"><ul class="table-of-contents table-of-contents__left-border"><li><a href="#简介" class="table-of-contents__link toc-highlight">简介</a></li><li><a href="#特性" class="table-of-contents__link toc-highlight">特性</a></li><li><a href="#为什么选择-nautilustrader" class="table-of-contents__link toc-highlight">为什么选择 NautilusTrader？</a></li><li><a href="#使用场景" class="table-of-contents__link toc-highlight">使用场景</a></li><li><a href="#分布式distributed" class="table-of-contents__link toc-highlight">分布式（Distributed）</a></li><li><a href="#公共核心common-core" class="table-of-contents__link toc-highlight">公共核心（Common core）</a></li><li><a href="#回测backtesting" class="table-of-contents__link toc-highlight">回测（Backtesting）</a></li><li><a href="#实盘交易live-trading" class="table-of-contents__link toc-highlight">实盘交易（Live trading）</a></li><li><a href="#领域模型domain-model" class="table-of-contents__link toc-highlight">领域模型（Domain model）</a></li><li><a href="#时间戳timestamps" class="table-of-contents__link toc-highlight">时间戳（Timestamps）</a></li><li><a href="#uuids" class="table-of-contents__link toc-highlight">UUIDs</a></li><li><a href="#数据类型data-types" class="table-of-contents__link toc-highlight">数据类型（Data types）</a></li><li><a href="#k-线bar聚合" class="table-of-contents__link toc-highlight">K 线（Bar）聚合</a></li><li><a href="#账户类型account-types" class="table-of-contents__link toc-highlight">账户类型（Account types）</a></li><li><a href="#订单类型order-types" class="table-of-contents__link toc-highlight">订单类型（Order types）</a></li><li><a href="#值类型value-types" class="table-of-contents__link toc-highlight">值类型（Value types）</a><ul><li><a href="#高精度模式128-bit" class="table-of-contents__link toc-highlight">高精度模式（128-bit）</a></li><li><a href="#标准精度模式64-bit" class="table-of-contents__link toc-highlight">标准精度模式（64-bit）</a></li></ul></li></ul></div></div></div></div></main></div></div></div><footer class="theme-layout-footer footer footer--dark"><div class="container container-fluid"><div class="row footer__links"><div class="theme-layout-footer-column col footer__col"><div class="footer__title"></div><ul class="footer__items clean-list"><li class="footer__item"><a href="https://github.com/nautechsystems/nautilus_trader" target="_blank" rel="noopener noreferrer" class="footer__link-item">Official GitHub<svg width="13.5" height="13.5" aria-label="(opens in new tab)" class="iconExternalLink_KfBJ"><use href="#theme-svg-external-link"></use></svg></a></li><li class="footer__item"><a href="https://nautilustrader.io/docs" target="_blank" rel="noopener noreferrer" class="footer__link-item">Official Documentation<svg width="13.5" height="13.5" aria-label="(opens in new tab)" class="iconExternalLink_KfBJ"><use href="#theme-svg-external-link"></use></svg></a></li></ul></div></div><div class="footer__bottom text--center"><div class="footer__copyright">© 2025 Nautech Systems Pty Ltd. All rights reserved.</div></div></div></footer></div>
-</body>
-</html>
+<p>官方 Python wheel 在所有受支持平台上使用高精度模式。纯 Rust 构建默认使用标准精度，除非启用 <code>high-precision</code> feature。</p>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=high-precision-mode-128-bit>高精度模式（128 位）<a href=#high-precision-mode-128-bit class=hash-link aria-label="高精度模式（128 位）的直接链接" title="高精度模式（128 位）的直接链接" translate=no>​</a></h3>
+<p>启用 <code>high-precision</code> feature 标志时（<strong>enabled</strong>），值采用以下规格：</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th style=text-align:left>类型<th style=text-align:left>底层存储<th style=text-align:left>最大精度<th style=text-align:left>最小值<th style=text-align:left>最大值<tbody><tr><td style=text-align:left><code>Price</code><td style=text-align:left><code>i128</code><td style=text-align:left>16<td style=text-align:left>-17,014,118,346,046<td style=text-align:left>17,014,118,346,046<tr><td style=text-align:left><code>Money</code><td style=text-align:left><code>i128</code><td style=text-align:left>16<td style=text-align:left>-17,014,118,346,046<td style=text-align:left>17,014,118,346,046<tr><td style=text-align:left><code>Quantity</code><td style=text-align:left><code>u128</code><td style=text-align:left>16<td style=text-align:left>0<td style=text-align:left>34,028,236,692,093</table>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=standard-precision-mode-64-bit>标准精度模式（64 位）<a href=#standard-precision-mode-64-bit class=hash-link aria-label="标准精度模式（64 位）的直接链接" title="标准精度模式（64 位）的直接链接" translate=no>​</a></h3>
+<p><strong>禁用</strong> <code>high-precision</code> feature 标志时，值采用以下规格：</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th style=text-align:left>类型<th style=text-align:left>底层存储<th style=text-align:left>最大精度<th style=text-align:left>最小值<th style=text-align:left>最大值<tbody><tr><td style=text-align:left><code>Price</code><td style=text-align:left><code>i64</code><td style=text-align:left>9<td style=text-align:left>-9,223,372,036<td style=text-align:left>9,223,372,036<tr><td style=text-align:left><code>Money</code><td style=text-align:left><code>i64</code><td style=text-align:left>9<td style=text-align:left>-9,223,372,036<td style=text-align:left>9,223,372,036<tr><td style=text-align:left><code>Quantity</code><td style=text-align:left><code>u64</code><td style=text-align:left>9<td style=text-align:left>0<td style=text-align:left>18,446,744,073</table></div><footer class="theme-doc-footer docusaurus-mt-lg"><div class="row margin-top--sm theme-doc-footer-edit-meta-row"><div class="col noPrint_MRkS"><a href=https://github.com/Aloento/NautilusTraderDoc/tree/main/docs/concepts/overview.md target=_blank rel="noopener noreferrer" class=theme-edit-this-page><svg fill=currentColor height=20 width=20 viewBox="0 0 40 40" class=iconEdit_RPSQ aria-hidden=true><g><path d="m34.5 11.7l-3 3.1-6.3-6.3 3.1-3q0.5-0.5 1.2-0.5t1.1 0.5l3.9 3.9q0.5 0.4 0.5 1.1t-0.5 1.2z m-29.5 17.1l18.4-18.5 6.3 6.3-18.4 18.4h-6.3v-6.2z"/></g></svg>编辑此页</a></div><div class="col lastUpdated_oZSl"><span class=theme-last-updated>最后<!-- -->于 <b><time datetime=2026-10-14T22:30:30.000Z itemprop=dateModified>2026年10月14日</time></b> <!-- -->更新</span></div></div></footer></article><nav class="docusaurus-mt-lg pagination-nav" aria-label=文件选项卡><a class="pagination-nav__link pagination-nav__link--prev" href=/concepts/order_book><div class=pagination-nav__sublabel>上一页</div><div class=pagination-nav__label>订单簿</div></a><a class="pagination-nav__link pagination-nav__link--next" href=/concepts/portfolio><div class=pagination-nav__sublabel>下一页</div><div class=pagination-nav__label>组合</div></a></nav></div></div><div class="col col--3"><div class="tableOfContents_LyLZ thin-scrollbar theme-doc-toc-desktop"><ul class="table-of-contents table-of-contents__left-border"><li><a href=#introduction class="table-of-contents__link toc-highlight">简介</a><li><a href=#features class="table-of-contents__link toc-highlight">特性</a><li><a href=#why-nautilustrader class="table-of-contents__link toc-highlight">为什么选择 NautilusTrader？</a><li><a href=#use-cases class="table-of-contents__link toc-highlight">使用场景</a><li><a href=#distributed class="table-of-contents__link toc-highlight">分布式</a><li><a href=#common-core class="table-of-contents__link toc-highlight">通用核心</a><li><a href=#backtesting class="table-of-contents__link toc-highlight">回测</a><li><a href=#live-trading class="table-of-contents__link toc-highlight">实时交易</a><li><a href=#domain-model class="table-of-contents__link toc-highlight">领域模型</a><li><a href=#timestamps class="table-of-contents__link toc-highlight">时间戳</a><li><a href=#uuids class="table-of-contents__link toc-highlight">UUID</a><li><a href=#data-types class="table-of-contents__link toc-highlight">数据类型</a><li><a href=#bar-aggregations class="table-of-contents__link toc-highlight">Bar 聚合</a><li><a href=#account-types class="table-of-contents__link toc-highlight">账户类型</a><li><a href=#order-types class="table-of-contents__link toc-highlight">订单类型</a><li><a href=#value-types class="table-of-contents__link toc-highlight">值类型</a><ul><li><a href=#high-precision-mode-128-bit class="table-of-contents__link toc-highlight">高精度模式（128 位）</a><li><a href=#standard-precision-mode-64-bit class="table-of-contents__link toc-highlight">标准精度模式（64 位）</a></ul></ul></div></div></div></div></main></div></div></div><footer class="theme-layout-footer footer footer--dark"><div class="container container-fluid"><div class="row footer__links"><div class="theme-layout-footer-column col footer__col"><div class=footer__title></div><ul class="footer__items clean-list"><li class=footer__item><a href=https://github.com/nautechsystems/nautilus_trader target=_blank rel="noopener noreferrer" class=footer__link-item>Official GitHub<svg width=13.5 height=13.5 aria-label="(opens in new tab)" class=iconExternalLink_qUHo><use href=#theme-svg-external-link /></svg></a><li class=footer__item><a href=https://nautilustrader.io/docs target=_blank rel="noopener noreferrer" class=footer__link-item>Official Documentation<svg width=13.5 height=13.5 aria-label="(opens in new tab)" class=iconExternalLink_qUHo><use href=#theme-svg-external-link /></svg></a></ul></div></div><div class="footer__bottom text--center"><div class=footer__copyright>© 2026 Nautech Systems Pty Ltd. All rights reserved.</div></div></div></footer></div></body>

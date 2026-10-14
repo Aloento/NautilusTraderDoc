@@ -1,0 +1,250 @@
+<!doctype html><html lang=zh dir=ltr class="docs-wrapper plugin-docs plugin-id-default docs-version-current docs-doc-page docs-doc-id-how_to/migrate_parquet_catalog" data-has-hydrated=false><head><meta charset=UTF-8><meta name=generator content="Docusaurus v3.10.2"><title data-rh=true>迁移 Parquet 目录 | NautilusTrader 文档</title><meta data-rh=true name=viewport content="width=device-width, initial-scale=1.0"/><meta data-rh=true name=twitter:card content=summary_large_image /><meta data-rh=true property=og:url content=https://nautilus.aloen.to/how_to/migrate_parquet_catalog /><meta data-rh=true property=og:locale content=zh /><meta data-rh=true name=docusaurus_locale content=zh /><meta data-rh=true name=docsearch:language content=zh /><meta data-rh=true name=docusaurus_version content=current /><meta data-rh=true name=docusaurus_tag content=docs-default-current /><meta data-rh=true name=docsearch:version content=current /><meta data-rh=true name=docsearch:docusaurus_tag content=docs-default-current /><meta data-rh=true property=og:title content="迁移 Parquet 目录 | NautilusTrader 文档"/><meta data-rh=true name=description content=migrate-a-parquet-catalog} /><meta data-rh=true property=og:description content=migrate-a-parquet-catalog} /><link data-rh=true rel=icon href=/logo.png /><link data-rh=true rel=canonical href=https://nautilus.aloen.to/how_to/migrate_parquet_catalog /><link data-rh=true rel=alternate href=https://nautilus.aloen.to/how_to/migrate_parquet_catalog hreflang=zh /><link data-rh=true rel=alternate href=https://nautilus.aloen.to/how_to/migrate_parquet_catalog hreflang=x-default /><script data-rh=true type=application/ld+json>{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","item":"https://nautilus.aloen.to/how_to/","name":"操作指南","position":1},{"@type":"ListItem","item":"https://nautilus.aloen.to/how_to/migrate_parquet_catalog","name":"迁移 Parquet 目录","position":2}]}</script><link rel=stylesheet href=/assets/css/styles.adb7ea18.css /><script src=/assets/js/runtime~main.71ac0794.js defer></script><script src=/assets/js/main.d978d0f2.js defer></script></head><body><svg style="display: none;"><defs>
+<symbol id=theme-svg-external-link viewBox="0 0 24 24"><path fill=currentColor d="M21 13v10h-21v-19h12v2h-10v15h17v-8h2zm3-12h-10.988l4.035 4-6.977 7.07 2.828 2.828 6.977-7.07 4.125 4.172v-11z"/></symbol>
+</defs></svg>
+<script>!function(){var t=function(){try{return new URLSearchParams(window.location.search).get("docusaurus-theme")}catch(t){}}()||function(){try{return window.localStorage.getItem("theme-2e3")}catch(t){}}();document.documentElement.setAttribute("data-theme",t||(window.matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light")),document.documentElement.setAttribute("data-theme-choice",t||"system")}(),function(){try{for(var[t,e]of new URLSearchParams(window.location.search).entries())if(t.startsWith("docusaurus-data-")){var a=t.replace("docusaurus-data-","data-");document.documentElement.setAttribute(a,e)}}catch(t){}}()</script><div id=__docusaurus><link rel=preload as=image href=/logo.png /><div role=region aria-label=跳到主要内容><a class=skipToContent_zuOI href=#__docusaurus_skipToContent_fallback>跳到主要内容</a></div><nav aria-label=主导航 class="theme-layout-navbar navbar navbar--fixed-top"><div class=navbar__inner><div class="theme-layout-navbar-left navbar__items"><button aria-label=切换导航栏 aria-expanded=false class="navbar__toggle clean-btn" type=button><svg width=30 height=30 viewBox="0 0 30 30" aria-hidden=true><path stroke=currentColor stroke-linecap=round stroke-miterlimit=10 stroke-width=2 d="M4 7h22M4 15h22M4 23h22"/></svg></button><a class=navbar__brand href=/><div class=navbar__logo><img src=/logo.png alt="NautilusTrader Logo" class="themedComponent_q2_Y themedComponent--light_Nejn"/><img src=/logo.png alt="NautilusTrader Logo" class="themedComponent_q2_Y themedComponent--dark_JjIb"/></div><b class="navbar__title text--truncate">NautilusTrader</b></a><a aria-current=page class="navbar__item navbar__link navbar__link--active" href=/getting_started/>文档</a></div><div class="theme-layout-navbar-right navbar__items navbar__items--right"><a href=https://github.com/Aloento/NautilusTraderDoc target=_blank rel="noopener noreferrer" class="navbar__item navbar__link">GitHub<svg width=13.5 height=13.5 aria-label="(opens in new tab)" class=iconExternalLink_qUHo><use href=#theme-svg-external-link /></svg></a><div class="toggle_hHmI colorModeToggle_rOOn"><button class="clean-btn toggleButton_wEhT toggleButtonDisabled_yOOP" type=button disabled title="system mode" aria-label="切换浅色/暗黑模式（当前为system mode）"><svg viewBox="0 0 24 24" width=24 height=24 aria-hidden=true class="toggleIcon_Kt6U lightToggleIcon_Zfeh"><path fill=currentColor d="M12,9c1.65,0,3,1.35,3,3s-1.35,3-3,3s-3-1.35-3-3S10.35,9,12,9 M12,7c-2.76,0-5,2.24-5,5s2.24,5,5,5s5-2.24,5-5 S14.76,7,12,7L12,7z M2,13l2,0c0.55,0,1-0.45,1-1s-0.45-1-1-1l-2,0c-0.55,0-1,0.45-1,1S1.45,13,2,13z M20,13l2,0c0.55,0,1-0.45,1-1 s-0.45-1-1-1l-2,0c-0.55,0-1,0.45-1,1S19.45,13,20,13z M11,2v2c0,0.55,0.45,1,1,1s1-0.45,1-1V2c0-0.55-0.45-1-1-1S11,1.45,11,2z M11,20v2c0,0.55,0.45,1,1,1s1-0.45,1-1v-2c0-0.55-0.45-1-1-1C11.45,19,11,19.45,11,20z M5.99,4.58c-0.39-0.39-1.03-0.39-1.41,0 c-0.39,0.39-0.39,1.03,0,1.41l1.06,1.06c0.39,0.39,1.03,0.39,1.41,0s0.39-1.03,0-1.41L5.99,4.58z M18.36,16.95 c-0.39-0.39-1.03-0.39-1.41,0c-0.39,0.39-0.39,1.03,0,1.41l1.06,1.06c0.39,0.39,1.03,0.39,1.41,0c0.39-0.39,0.39-1.03,0-1.41 L18.36,16.95z M19.42,5.99c0.39-0.39,0.39-1.03,0-1.41c-0.39-0.39-1.03-0.39-1.41,0l-1.06,1.06c-0.39,0.39-0.39,1.03,0,1.41 s1.03,0.39,1.41,0L19.42,5.99z M7.05,18.36c0.39-0.39,0.39-1.03,0-1.41c-0.39-0.39-1.03-0.39-1.41,0l-1.06,1.06 c-0.39,0.39-0.39,1.03,0,1.41s1.03,0.39,1.41,0L7.05,18.36z"/></svg><svg viewBox="0 0 24 24" width=24 height=24 aria-hidden=true class="toggleIcon_Kt6U darkToggleIcon_XgQr"><path fill=currentColor d="M9.37,5.51C9.19,6.15,9.1,6.82,9.1,7.5c0,4.08,3.32,7.4,7.4,7.4c0.68,0,1.35-0.09,1.99-0.27C17.45,17.19,14.93,19,12,19 c-3.86,0-7-3.14-7-7C5,9.07,6.81,6.55,9.37,5.51z M12,3c-4.97,0-9,4.03-9,9s4.03,9,9,9s9-4.03,9-9c0-0.46-0.04-0.92-0.1-1.36 c-0.98,1.37-2.58,2.26-4.4,2.26c-2.98,0-5.4-2.42-5.4-5.4c0-1.81,0.89-3.42,2.26-4.4C12.92,3.04,12.46,3,12,3L12,3z"/></svg><svg viewBox="0 0 24 24" width=24 height=24 aria-hidden=true class="toggleIcon_Kt6U systemToggleIcon_BvUi"><path fill=currentColor d="m12 21c4.971 0 9-4.029 9-9s-4.029-9-9-9-9 4.029-9 9 4.029 9 9 9zm4.95-13.95c1.313 1.313 2.05 3.093 2.05 4.95s-0.738 3.637-2.05 4.95c-1.313 1.313-3.093 2.05-4.95 2.05v-14c1.857 0 3.637 0.737 4.95 2.05z"/></svg></button></div><div class=navbarSearchContainer_watl></div></div></div><div role=presentation class=navbar-sidebar__backdrop></div></nav><div id=__docusaurus_skipToContent_fallback class="theme-layout-main main-wrapper mainWrapper_R72Q"><div class=docsWrapper_XQ9b><button aria-label=回到顶部 class="clean-btn theme-back-to-top-button backToTopButton_MbnX" type=button></button><div class=docRoot_aqOB><aside class="theme-doc-sidebar-container docSidebarContainer_sI2e"><div class=sidebarViewport_TzTy><div class=sidebar_CbEe><nav aria-label=文档侧边栏 class="menu thin-scrollbar menu_ChRF"><ul class="theme-doc-sidebar-menu menu__list"><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-1 menu__list-item menu__list-item--collapsed"><div class=menu__list-item-collapsible><a class="categoryLink_Muyc menu__link menu__link--sublist" href=/getting_started/><span class=categoryLinkLabel_mAcL>快速开始</span></a><button aria-label="展开侧边栏分类 '快速开始'" aria-expanded=false type=button class="clean-btn menu__caret"></button></div><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-1 menu__list-item menu__list-item--collapsed"><div class=menu__list-item-collapsible><a class="categoryLink_Muyc menu__link menu__link--sublist" href=/concepts/><span class=categoryLinkLabel_mAcL>核心概念</span></a><button aria-label="展开侧边栏分类 '核心概念'" aria-expanded=false type=button class="clean-btn menu__caret"></button></div><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-1 menu__list-item menu__list-item--collapsed"><div class=menu__list-item-collapsible><a class="categoryLink_Muyc menu__link menu__link--sublist" href=/integrations/><span class=categoryLinkLabel_mAcL>交易所与集成</span></a><button aria-label="展开侧边栏分类 '交易所与集成'" aria-expanded=false type=button class="clean-btn menu__caret"></button></div><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-1 menu__list-item"><div class=menu__list-item-collapsible><a class="categoryLink_Muyc menu__link menu__link--sublist menu__link--active" href=/how_to/><span class=categoryLinkLabel_mAcL>操作指南</span></a><button aria-label="折叠侧边栏分类 '操作指南'" aria-expanded=true type=button class="clean-btn menu__caret"></button></div><ul class=menu__list><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/how_to/configure_live_trading><span class=linkLabel_lYjD>配置实时交易节点</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/how_to/data_catalog_databento><span class=linkLabel_lYjD>用 Databento 建数据目录</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/how_to/get_started_lighter><span class=linkLabel_lYjD>Lighter 快速上手</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/how_to/loading_external_data><span class=linkLabel_lYjD>加载外部数据</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class="menu__link menu__link--active" aria-current=page tabindex=0 href=/how_to/migrate_parquet_catalog><span class=linkLabel_lYjD>迁移 Parquet 目录</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/how_to/run_rust_backtest><span class=linkLabel_lYjD>运行回测（Rust）</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/how_to/run_rust_live_trading><span class=linkLabel_lYjD>运行实时交易（Rust）</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/how_to/stream_parquet_catalog><span class=linkLabel_lYjD>向 Parquet 目录流式写入数据</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/how_to/write_rust_actor><span class=linkLabel_lYjD>编写 Actor（Rust）</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/how_to/write_rust_strategy><span class=linkLabel_lYjD>编写策略（Rust）</span></a></ul><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-1 menu__list-item menu__list-item--collapsed"><div class=menu__list-item-collapsible><a class="categoryLink_Muyc menu__link menu__link--sublist" href=/tutorials/><span class=categoryLinkLabel_mAcL>教程</span></a><button aria-label="展开侧边栏分类 '教程'" aria-expanded=false type=button class="clean-btn menu__caret"></button></div><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-1 menu__list-item menu__list-item--collapsed"><div class=menu__list-item-collapsible><a class="categoryLink_Muyc menu__link menu__link--sublist" href=/developer_guide/><span class=categoryLinkLabel_mAcL>开发者指南</span></a><button aria-label="展开侧边栏分类 '开发者指南'" aria-expanded=false type=button class="clean-btn menu__caret"></button></div><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-1 menu__list-item menu__list-item--collapsed"><div class=menu__list-item-collapsible><a class="categoryLink_Muyc menu__link menu__link--sublist" href=/api_reference/><span class=categoryLinkLabel_mAcL>API 参考</span></a><button aria-label="展开侧边栏分类 'API 参考'" aria-expanded=false type=button class="clean-btn menu__caret"></button></div></ul></nav></div></div></aside><main class=docMainContainer_sLF8><div class="container padding-top--md padding-bottom--lg"><div class=row><div class="col docItemCol_ZRft"><div class=docItemContainer_KOP5><article><nav class="theme-doc-breadcrumbs breadcrumbsContainer_d5rS" aria-label=页面路径><ul class=breadcrumbs><li class=breadcrumbs__item><a aria-label=主页面 class=breadcrumbs__link href=/><svg viewBox="0 0 24 24" class=breadcrumbHomeIcon_XgF2><path d="M10 19v-5h4v5c0 .55.45 1 1 1h3c.55 0 1-.45 1-1v-7h1.7c.46 0 .68-.57.33-.87L12.67 3.6c-.38-.34-.96-.34-1.34 0l-8.36 7.53c-.34.3-.13.87.33.87H5v7c0 .55.45 1 1 1h3c.55 0 1-.45 1-1z" fill=currentColor /></svg></a><li class=breadcrumbs__item><a class=breadcrumbs__link href=/how_to/><span>操作指南</span></a><li class="breadcrumbs__item breadcrumbs__item--active"><span class=breadcrumbs__link>迁移 Parquet 目录</span></ul></nav><div class="tocCollapsible_bgaJ theme-doc-toc-mobile tocMobile_FhT_"><button type=button class="clean-btn tocCollapsibleButton_F8AY">本页总览</button></div><div class="theme-doc-markdown markdown"><header><h1>迁移 Parquet 目录</h1></header>
+<p>用 <code>nautilus catalog migrate-parquet</code> 把已有的 Nautilus Parquet 目录重写为当前 Arrow 格式。
+该命令读取源目录并写入一个独立的目标目录，目标必须是新的或空的，且不能与源重叠。两个位置
+都可以是本地路径或受支持的对象存储 URI。</p>
+<h2 class="anchor anchorTargetStickyNavbar_ana5" id=run-the-migration>执行迁移<a href=#run-the-migration class=hash-link aria-label=执行迁移的直接链接 title=执行迁移的直接链接 translate=no>​</a></h2>
+<p>先校验源 schema：</p>
+<div class="language-bash codeBlockContainer_eTMR theme-code-block" style=--prism-color:#393A34;--prism-background-color:#f6f8fa><div class=codeBlockContent_hafM><pre tabindex=0 class="prism-code language-bash codeBlock_IMvC thin-scrollbar" style=color:#393A34;background-color:#f6f8fa><code class=codeBlockLines_gZDW><div class=token-line style=color:#393A34><span class="token plain">nautilus catalog migrate-parquet /data/catalog-old /data/catalog-new --dry-run</span><br/></div></code></pre></div></div>
+<p>试运行仅根据源 schema 与布局规划迁移。它报告可识别的文件、schema 冲突和位于受支持目录树
+之外的文件，且不创建任何目标文件或目录。它不解码行值，也不证明目标可写。先解决报告的
+schema 错误，再执行转换：</p>
+<div class="language-bash codeBlockContainer_eTMR theme-code-block" style=--prism-color:#393A34;--prism-background-color:#f6f8fa><div class=codeBlockContent_hafM><pre tabindex=0 class="prism-code language-bash codeBlock_IMvC thin-scrollbar" style=color:#393A34;background-color:#f6f8fa><code class=codeBlockLines_gZDW><div class=token-line style=color:#393A34><span class="token plain">nautilus catalog migrate-parquet /data/catalog-old /data/catalog-new</span><br/></div></code></pre></div></div>
+<p>在源码检出目录中运行时，使用：</p>
+<div class="language-bash codeBlockContainer_eTMR theme-code-block" style=--prism-color:#393A34;--prism-background-color:#f6f8fa><div class=codeBlockContent_hafM><pre tabindex=0 class="prism-code language-bash codeBlock_IMvC thin-scrollbar" style=color:#393A34;background-color:#f6f8fa><code class=codeBlockLines_gZDW><div class=token-line style=color:#393A34><span class="token plain">cargo run -p nautilus-cli -- catalog migrate-parquet /data/catalog-old /data/catalog-new</span><br/></div></code></pre></div></div>
+<p>远程存储时，用可重复的 <code>--source-option key=value</code> 和 <code>--target-option key=value</code> 参数传入
+原生对象存储设置。</p>
+<p>两个位置之间的重叠会在创建任何东西之前被拒绝；非空目标中不会写入任何数据，因此对已完成的
+目标重复执行会失败，而不会覆盖其文件。本地路径下，空目录检查运行之前，目标目录本身可能已
+被创建。</p>
+<p>迁移会保留源文件：只读取它们，并在转换每个文件前重新检查其大小与版本标记。</p>
+<p>若某个文件的行超出其文件名中的时间戳区间，转换也会拒绝该文件；仅看 schema 的试运行检测不到
+这种情况。请在单独的副本中修正源的覆盖范围，然后重试到一个新的空目标。</p>
+<p>打印的报告区分：已迁移的文件与行数、转码的行数、由路径推导标识符的行数、跳过的文件、以及
+未迁移的文件；空覆盖文件计入已迁移文件、行数为零。切换之前先检查报告。</p>
+<h2 class="anchor anchorTargetStickyNavbar_ana5" id=arrow-representation>Arrow 表示<a href=#arrow-representation class=hash-link aria-label="Arrow 表示的直接链接" title="Arrow 表示的直接链接" translate=no>​</a></h2>
+<p>当前格式使用标准 Arrow 类型。下面每种表示适用于其旁注的记录族。</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>值<th>当前 Arrow 表示<th>记录族<tbody><tr><td>价格与数量<td><code>Decimal128(38, 16)</code><td>报价、成交、K 线、delta、深度档位、标记价与指数价、收盘价<tr><td>小数文本<td>UTF-8 字符串<td>Funding <code>rate</code>、金融工具、订单、持仓、快照与报告记录<tr><td>浮点度量<td><code>Float64</code><td>期权 Greeks、持仓 <code>signed_qty</code> 以及均价/收益字段<tr><td>时刻时间戳<td><code>Timestamp(Nanosecond, Some("UTC"))</code><td>每个 <code>ts_event</code>/<code>ts_init</code> 列及其他时刻字段<tr><td>时长与计数<td>无符号整数<td>持仓 <code>duration</code>、funding <code>interval</code>、序号、计数、订单 ID、标志位<tr><td>行情枚举<td><code>Dictionary&lt;Int8, Utf8></code> 枚举名<td>成交主动方、delta 动作/方向、收盘类型、状态动作、Greeks 约定<tr><td>记录枚举与 ID<td>UTF-8 字符串<td>订单、持仓、快照与报告的枚举、方向、状态和 ID<tr><td>结构化负载<td>以 <code>arrow.json</code> 编码的 UTF-8 字符串<td>账户余额/保证金/<code>info</code>、订单 <code>info</code>/手续费/标签、报告<tr><td>自定义 <code>Money</code><td>小数金额与货币字典组成的 struct<td>Arrow 宏生成的自定义数据 <code>Money</code> 字段<tr><td>深度方向<td>价格、数量、计数、订单 ID struct 的 list<td>订单簿深度</table>
+<p>纳秒值保持精确，包括同一微秒内的不同时间戳；时长保持整数值。</p>
+<p><code>OrderFilled</code> 展示了记录族与行情数据的差异：它的 <code>last_px</code>、<code>last_qty</code>、<code>order_side</code>、
+<code>order_type</code> 和 <code>liquidity_side</code> 列全部是 UTF-8 字符串，只有 <code>info</code> 列使用 <code>arrow.json</code>。</p>
+<p>显示输出是独立的便捷表示，可能使用浮点价格与数量。需要精确小数值时，请使用可用的原始输出。</p>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=storage-scale-and-precision>存储标度与精度<a href=#storage-scale-and-precision class=hash-link aria-label=存储标度与精度的直接链接 title=存储标度与精度的直接链接 translate=no>​</a></h3>
+<p>物理小数一律使用标度 16，每个文件的 schema 元数据携带解释它们所需的领域值
+<code>price_precision</code> 和 <code>size_precision</code>。标准精度构建在编码时对原始整数重新定标；读取方会拒绝
+其数值配置无法精确表示的值，而不是四舍五入。精度元数据大于 16、以及精度大于 16 的 <code>Money</code>
+货币都会被拒绝，因此 wei 这类 DeFi 精度不在目录可表示的范围内。</p>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=schema-identification-and-compatibility>Schema 识别与兼容性<a href=#schema-identification-and-compatibility class=hash-link aria-label="Schema 识别与兼容性的直接链接" title="Schema 识别与兼容性的直接链接" translate=no>​</a></h3>
+<p>schema 指纹记录有序的字段名、Arrow 类型与可空性。迁移注册表对已注册的传统转码器使用精确
+指纹。匹配当前 schema 时按名称与类型检查列，字典字符串接受纯 UTF-8，不要求字段顺序或可空性
+一致。schema 元数据不计入指纹：<code>type_name</code>、身份与数值精度仍是独立要求。没有持久化的整数
+schema 版本。仅凭发布版本号无法确定文件的 schema。</p>
+<p>V2 目录的 Arrow schema 与 v1 不同。兼容性更新保留既有字段的含义、精确数值、身份与时间戳。
+不兼容 schema 的变更需要显式迁移和文档化的源支持；读取方不得悄悄重新解释旧文件。对于位于
+当前目录布局中的文件，运行时查询会拒绝被查询选中的文件里可识别的传统 schema，并引导调用方
+去执行迁移——即使某个 SQL 谓词本会返回零行。时间戳边界可能在 schema 校验前就排除文件。
+查询也会跳过更旧的目录布局；这两种情况都可能返回零行且没有 schema 错误。查询传统目录前
+请先迁移。</p>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=nulls-and-rejected-values>空值与被拒绝的值<a href=#nulls-and-rejected-values class=hash-link aria-label=空值与被拒绝的值的直接链接 title=空值与被拒绝的值的直接链接 translate=no>​</a></h3>
+<p>未定义的价格与数量在可空的记录族（如 delta、收盘价、标记价与指数价）中映射为 Arrow null。
+报价、成交和 K 线把价格与数量列声明为非空，编码时拒绝未定义值，解码时拒绝 null，并指明字段
+与行。深度档位字段不可空：编码时省略缺失档位，解码时拒绝 null 档位与 null 值。无效值以及
+超出可表示范围的值都会产生错误。</p>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=identity-and-file-layout>身份与文件布局<a href=#identity-and-file-layout class=hash-link aria-label=身份与文件布局的直接链接 title=身份与文件布局的直接链接 translate=no>​</a></h3>
+<p>每个文件的 schema 元数据在 <code>type_name</code> 下写明其类型，例如 <code>QuoteTick</code>、<code>OrderFilled</code>、
+<code>CryptoPerpetual</code> 或已注册的自定义类型，并在 <code>instrument_id</code> 或 <code>bar_type</code> 下携带其身份。
+目录名重复这一身份。行情文件（包括 funding rate、工具状态和期权 Greeks）只在元数据中保留
+工具 ID；记录文件同时把它存为一列。写入器在持久化前剥离内存中可空的 <code>identifier</code> 列，因此
+存储的文件不含 <code>identifier</code> 列。Parquet 文件不存储 cluster key。</p>
+<p>目录按数据类型与标识符分组文件。自定义数据使用 <code>data/custom/&lt;type>/&lt;identifier>/</code>；金融工具
+按每个具体工具类型建一个文件夹。读取迁移源时能识别旧文件夹名，包括 <code>quote_tick</code>、
+<code>order_book_depth10</code>、按类划分的工具目录和 <code>custom_&lt;type></code>。</p>
+<h2 class="anchor anchorTargetStickyNavbar_ana5" id=what-converts>哪些会转换<a href=#what-converts class=hash-link aria-label=哪些会转换的直接链接 title=哪些会转换的直接链接 translate=no>​</a></h2>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>源形态<th>转换<tbody><tr><td>定宽行情数据，8 或 16 字节字段<td>归一化为小数、UTC 时间戳、枚举字典、纯 UTF-8<tr><td>扁平 10 档与定长 list 深度<td>重建为变长深度 list；null 档位丢弃；缺失 ID 置零<tr><td>带传统 <code>type</code> 元数据的记录<td>对齐到已注册的记录 schema，包括 <code>info</code><tr><td>带传统 <code>class</code> 元数据的金融工具<td>解码并按类重新编码为字符串 schema<tr><td>已知的传统状态、funding 与收盘形态<td>通过三个已注册转码器转换<tr><td>带 <code>type_name</code> 的最终格式自定义数据<td>直接透传；<code>custom_&lt;type></code> 重命名为 <code>custom/&lt;type></code><tr><td>不带 <code>type_name</code> 的传统自定义数据<td>从 <code>custom_&lt;type></code> 目录推断类型并重命名<tr><td>空覆盖文件<td>以空文件复制到重命名后的布局</table>
+<p>随后，迁移会对每个内置的目标 batch 解码，再用当前编码器重新编码，因此迁移后的文件与后续写入
+产生的文件具有相同的 schema 和元数据，二者可以合并。被当前解码器拒绝的行会导致迁移失败。</p>
+<p>自定义数据的 <code>ts_event</code> 和 <code>ts_init</code> 列若以 <code>uint64</code> 纳秒存储，会转换为
+<code>timestamp("ns", tz="UTC")</code>。传统字典编码的字符串列变为纯 UTF-8；其他受支持的自定义数据列
+原样透传。时间戳已是纳秒 Arrow 时间戳的自定义文件原样透传。时间戳使用其他物理类型的文件
+（尤其是旧版 pandas 写入目录中的 <code>int64</code>）会在预检失败：请先重 cast 为 <code>uint64</code> 纳秒再迁移。</p>
+<p>从 <code>custom_&lt;type></code> 目录推断类型是尽力而为的 snake_case 转 PascalCase：缩写经不起这种转换，
+因此切换前请核对推断出的目标目录。</p>
+<p>定深源格式省略订单 ID，迁移会保留其读取器返回的零 ID。目标格式在后续写入中会保留订单 ID。</p>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=what-does-not-convert>哪些不会转换<a href=#what-does-not-convert class=hash-link aria-label=哪些不会转换的直接链接 title=哪些不会转换的直接链接 translate=no>​</a></h3>
+<ul>
+<li class=""><strong>Feather 树。</strong> <code>backtest</code> 和 <code>live</code> Feather 树不在本命令范围内。请改用
+<a class="" href=/how_to/stream_parquet_catalog>流式工作流</a>转换已暂存的运行。</li>
+<li class=""><strong>未迁移路径。</strong> <code>portfolio_snapshot</code> 目录、非 Parquet 叶子节点和无法识别的目录会报告为
+未迁移，绝不转换。</li>
+<li class=""><strong>预检失败。</strong> schema 冲突、传统 <code>custom_&lt;type></code> 目录之外缺失 <code>type_name</code> 元数据、没有
+<code>class</code> 或 <code>type_name</code> 元数据的金融工具、定二进制自定义列、既非 <code>uint64</code> 也非纳秒 Arrow
+时间戳的自定义时间戳，以及未知指纹，都会在预检阶段失败并列出全部问题，且在任何目标写入
+之前。</li>
+</ul>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=verified-sources-and-cutover-checks>已验证的源与切换检查<a href=#verified-sources-and-cutover-checks class=hash-link aria-label=已验证的源与切换检查的直接链接 title=已验证的源与切换检查的直接链接 translate=no>​</a></h3>
+<p>已发布版本的覆盖范围限于来自 <strong>1.231.0</strong> 版本的以下 fixtures：</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>源写入器<th>数值配置<th>已验证的记录族<tbody><tr><td>发布的 Python Linux wheel<td>128 位<td>报价、<code>CurrencyPair</code>、Binance 标记价更新<tr><td>发布 tag 处的 Rust 源码<td>64 位<td>报价与 <code>CurrencyPair</code><tr><td>发布的 Python 适配器写入器<td>与精度无关<td>两个 fixture 目录中的 Binance 标记价更新</table>
+<p>Binance fixture 是 <code>BinanceFuturesMarkPriceUpdate</code>：其价格与 funding rate 为字符串，同一个已
+发布适配器文件在两种数值配置下都经过测试。测试比较解码后的报价与工具字段、全部适配器 Arrow
+字段、分区身份、纳秒时间戳、已知的空覆盖，以及源文件字节。适配器验证覆盖迁移与原始 Arrow
+查询，不承诺在适配器 schema 变更后的强类型解码。已发布的 Python 工具写入器不写 tick scheme，
+因此迁移无法恢复它们。fixture 的来源与复现说明随源数据放在
+<code>test_data/nautilus/catalog_1_231_0/</code>。</p>
+<p>这份矩阵并不能确立对所有 1.x 版本、工具类或适配器的支持。其他版本与记录族需要各自的源
+fixture 和切换比较。未知指纹与不受支持的自定义时间戳类型仍是预检错误。</p>
+<p>额外的端到端覆盖来自 develop 提交 <code>1602043deb</code>，构建时启用了 <code>high-precision</code> feature。它
+覆盖报价、成交、K 线、定深订单簿、<code>CurrencyPair</code> 工具、账户状态记录和一个通用自定义数据类型。
+测试把解码后的目标值与原始值比较，并检查源文件保持字节级一致。该 fixture 不能确立最低受支持
+版本，也不覆盖所有历史目录格式。</p>
+<p>合成工具的回归测试还覆盖带传统 <code>class</code> 元数据的 <code>CryptoPerpetual</code> 文件中的纯字符串与字典编码
+字符串、<code>uint64</code> 与 <code>timestamp("ns", tz="UTC")</code> 两种时间戳，以及有无已移除的 <code>maker_fee</code> 和
+<code>taker_fee</code> 列。迁移会丢弃这些费率列，因为当前工具模型不再存储它们。运行时查询会拒绝这些传统
+工具文件并引导用户执行迁移命令；读取时不会转换文件。</p>
+<p>源中包含以下内容时，请仔细检查目标：</p>
+<ul>
+<li class="">更旧 Nautilus 版本写入的数据。</li>
+<li class=""><code>CurrencyPair</code> 和 <code>CryptoPerpetual</code> 之外的工具类型。</li>
+<li class="">上述 Binance fixture 之外的适配器自定义数据，如 Betfair、Deribit 和 Hyperliquid。</li>
+<li class="">delta、标记价与指数价、收盘价、Greeks、当前形态的 funding，或 <code>account_state</code> 之外的记录族。</li>
+</ul>
+<p>通过查询目标并与源比较解码后的值、身份、时间戳和覆盖区间来验证目标。仅比较文件数和行数是不够的。</p>
+<h2 class="anchor anchorTargetStickyNavbar_ana5" id=recover-from-a-failed-migration>从失败的迁移中恢复<a href=#recover-from-a-failed-migration class=hash-link aria-label=从失败的迁移中恢复的直接链接 title=从失败的迁移中恢复的直接链接 translate=no>​</a></h2>
+<p>转换时一次处理一个文件，每个源文件都完整读入内存。文件按顺序以"仅创建"方式写入，因此失败
+可能留下不完整的目录。</p>
+<div class="theme-admonition theme-admonition-warning admonition_LYZY alert alert--warning"><div class=admonitionHeading_pnFY><span class=admonitionIcon_tEzm><svg viewBox="0 0 16 16"><path fill-rule=evenodd d="M8.893 1.5c-.183-.31-.52-.5-.887-.5s-.703.19-.886.5L.138 13.499a.98.98 0 0 0 0 1.001c.193.31.53.501.886.501h13.964c.367 0 .704-.19.877-.5a1.03 1.03 0 0 0 .01-1.002L8.893 1.5zm.133 11.497H6.987v-2.003h2.039v2.003zm0-3.004H6.987V5.987h2.039v4.006z"/></svg></span>重试到新的空目标</div><div class=admonitionContent_ZwmI><p>没有"续传到部分完成的目录"这种机制。修正原因后重试到一个新的空目标；重试到那个不完整的目录
+会因空目录检查而失败。</div></div>
+<p>回滚使用被保留的源：把应用指回与兼容应用版本的源目录。没有反向迁移，因此切换之后只写入新目标
+的数据不会回流到源。</p>
+<h2 class="anchor anchorTargetStickyNavbar_ana5" id=read-the-result>读取结果<a href=#read-the-result class=hash-link aria-label=读取结果的直接链接 title=读取结果的直接链接 translate=no>​</a></h2>
+<p>把 <code>ParquetDataCatalog</code>、回测数据配置或实时节点的目录配置指向目标目录。使用当前 Nautilus 版本
+写入更多数据。PyArrow、pandas 和 Polars 可以直接读取开放的 Arrow 值，无需 Nautilus 专用的
+二进制解码器。</p>
+<p>新的流式数据见 <a class="" href=/how_to/stream_parquet_catalog>Parquet 流式写入</a>。</div><footer class="theme-doc-footer docusaurus-mt-lg"><div class="row margin-top--sm theme-doc-footer-edit-meta-row"><div class="col noPrint_MRkS"><a href=https://github.com/Aloento/NautilusTraderDoc/tree/main/docs/how_to/migrate_parquet_catalog.md target=_blank rel="noopener noreferrer" class=theme-edit-this-page><svg fill=currentColor height=20 width=20 viewBox="0 0 40 40" class=iconEdit_RPSQ aria-hidden=true><g><path d="m34.5 11.7l-3 3.1-6.3-6.3 3.1-3q0.5-0.5 1.2-0.5t1.1 0.5l3.9 3.9q0.5 0.4 0.5 1.1t-0.5 1.2z m-29.5 17.1l18.4-18.5 6.3 6.3-18.4 18.4h-6.3v-6.2z"/></g></svg>编辑此页</a></div><div class="col lastUpdated_oZSl"><span class=theme-last-updated>最后<!-- -->于 <b><time datetime=2026-10-14T22:30:30.000Z itemprop=dateModified>2026年10月14日</time></b> <!-- -->更新</span></div></div></footer></article><nav class="docusaurus-mt-lg pagination-nav" aria-label=文件选项卡><a class="pagination-nav__link pagination-nav__link--prev" href=/how_to/loading_external_data><div class=pagination-nav__sublabel>上一页</div><div class=pagination-nav__label>加载外部数据</div></a><a class="pagination-nav__link pagination-nav__link--next" href=/how_to/run_rust_backtest><div class=pagination-nav__sublabel>下一页</div><div class=pagination-nav__label>运行回测（Rust）</div></a></nav></div></div><div class="col col--3"><div class="tableOfContents_LyLZ thin-scrollbar theme-doc-toc-desktop"><ul class="table-of-contents table-of-contents__left-border"><li><a href=#run-the-migration class="table-of-contents__link toc-highlight">执行迁移</a><li><a href=#arrow-representation class="table-of-contents__link toc-highlight">Arrow 表示</a><ul><li><a href=#storage-scale-and-precision class="table-of-contents__link toc-highlight">存储标度与精度</a><li><a href=#schema-identification-and-compatibility class="table-of-contents__link toc-highlight">Schema 识别与兼容性</a><li><a href=#nulls-and-rejected-values class="table-of-contents__link toc-highlight">空值与被拒绝的值</a><li><a href=#identity-and-file-layout class="table-of-contents__link toc-highlight">身份与文件布局</a></ul><li><a href=#what-converts class="table-of-contents__link toc-highlight">哪些会转换</a><ul><li><a href=#what-does-not-convert class="table-of-contents__link toc-highlight">哪些不会转换</a><li><a href=#verified-sources-and-cutover-checks class="table-of-contents__link toc-highlight">已验证的源与切换检查</a></ul><li><a href=#recover-from-a-failed-migration class="table-of-contents__link toc-highlight">从失败的迁移中恢复</a><li><a href=#read-the-result class="table-of-contents__link toc-highlight">读取结果</a></ul></div></div></div></div></main></div></div></div><footer class="theme-layout-footer footer footer--dark"><div class="container container-fluid"><div class="row footer__links"><div class="theme-layout-footer-column col footer__col"><div class=footer__title></div><ul class="footer__items clean-list"><li class=footer__item><a href=https://github.com/nautechsystems/nautilus_trader target=_blank rel="noopener noreferrer" class=footer__link-item>Official GitHub<svg width=13.5 height=13.5 aria-label="(opens in new tab)" class=iconExternalLink_qUHo><use href=#theme-svg-external-link /></svg></a><li class=footer__item><a href=https://nautilustrader.io/docs target=_blank rel="noopener noreferrer" class=footer__link-item>Official Documentation<svg width=13.5 height=13.5 aria-label="(opens in new tab)" class=iconExternalLink_qUHo><use href=#theme-svg-external-link /></svg></a></ul></div></div><div class="footer__bottom text--center"><div class=footer__copyright>© 2026 Nautech Systems Pty Ltd. All rights reserved.</div></div></div></footer></div></body>

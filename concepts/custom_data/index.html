@@ -1,0 +1,284 @@
+<!doctype html><html lang=zh dir=ltr class="docs-wrapper plugin-docs plugin-id-default docs-version-current docs-doc-page docs-doc-id-concepts/custom_data" data-has-hydrated=false><head><meta charset=UTF-8><meta name=generator content="Docusaurus v3.10.2"><title data-rh=true>自定义数据 | NautilusTrader 文档</title><meta data-rh=true name=viewport content="width=device-width, initial-scale=1.0"/><meta data-rh=true name=twitter:card content=summary_large_image /><meta data-rh=true property=og:url content=https://nautilus.aloen.to/concepts/custom_data /><meta data-rh=true property=og:locale content=zh /><meta data-rh=true name=docusaurus_locale content=zh /><meta data-rh=true name=docsearch:language content=zh /><meta data-rh=true name=docusaurus_version content=current /><meta data-rh=true name=docusaurus_tag content=docs-default-current /><meta data-rh=true name=docsearch:version content=current /><meta data-rh=true name=docsearch:docusaurus_tag content=docs-default-current /><meta data-rh=true property=og:title content="自定义数据 | NautilusTrader 文档"/><meta data-rh=true name=description content=custom-data} /><meta data-rh=true property=og:description content=custom-data} /><link data-rh=true rel=icon href=/logo.png /><link data-rh=true rel=canonical href=https://nautilus.aloen.to/concepts/custom_data /><link data-rh=true rel=alternate href=https://nautilus.aloen.to/concepts/custom_data hreflang=zh /><link data-rh=true rel=alternate href=https://nautilus.aloen.to/concepts/custom_data hreflang=x-default /><script data-rh=true type=application/ld+json>{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","item":"https://nautilus.aloen.to/concepts/","name":"核心概念","position":1},{"@type":"ListItem","item":"https://nautilus.aloen.to/concepts/custom_data","name":"自定义数据","position":2}]}</script><link rel=stylesheet href=/assets/css/styles.adb7ea18.css /><script src=/assets/js/runtime~main.71ac0794.js defer></script><script src=/assets/js/main.d978d0f2.js defer></script></head><body><svg style="display: none;"><defs>
+<symbol id=theme-svg-external-link viewBox="0 0 24 24"><path fill=currentColor d="M21 13v10h-21v-19h12v2h-10v15h17v-8h2zm3-12h-10.988l4.035 4-6.977 7.07 2.828 2.828 6.977-7.07 4.125 4.172v-11z"/></symbol>
+</defs></svg>
+<script>!function(){var t=function(){try{return new URLSearchParams(window.location.search).get("docusaurus-theme")}catch(t){}}()||function(){try{return window.localStorage.getItem("theme-2e3")}catch(t){}}();document.documentElement.setAttribute("data-theme",t||(window.matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light")),document.documentElement.setAttribute("data-theme-choice",t||"system")}(),function(){try{for(var[t,e]of new URLSearchParams(window.location.search).entries())if(t.startsWith("docusaurus-data-")){var a=t.replace("docusaurus-data-","data-");document.documentElement.setAttribute(a,e)}}catch(t){}}()</script><div id=__docusaurus><link rel=preload as=image href=/logo.png /><div role=region aria-label=跳到主要内容><a class=skipToContent_zuOI href=#__docusaurus_skipToContent_fallback>跳到主要内容</a></div><nav aria-label=主导航 class="theme-layout-navbar navbar navbar--fixed-top"><div class=navbar__inner><div class="theme-layout-navbar-left navbar__items"><button aria-label=切换导航栏 aria-expanded=false class="navbar__toggle clean-btn" type=button><svg width=30 height=30 viewBox="0 0 30 30" aria-hidden=true><path stroke=currentColor stroke-linecap=round stroke-miterlimit=10 stroke-width=2 d="M4 7h22M4 15h22M4 23h22"/></svg></button><a class=navbar__brand href=/><div class=navbar__logo><img src=/logo.png alt="NautilusTrader Logo" class="themedComponent_q2_Y themedComponent--light_Nejn"/><img src=/logo.png alt="NautilusTrader Logo" class="themedComponent_q2_Y themedComponent--dark_JjIb"/></div><b class="navbar__title text--truncate">NautilusTrader</b></a><a aria-current=page class="navbar__item navbar__link navbar__link--active" href=/getting_started/>文档</a></div><div class="theme-layout-navbar-right navbar__items navbar__items--right"><a href=https://github.com/Aloento/NautilusTraderDoc target=_blank rel="noopener noreferrer" class="navbar__item navbar__link">GitHub<svg width=13.5 height=13.5 aria-label="(opens in new tab)" class=iconExternalLink_qUHo><use href=#theme-svg-external-link /></svg></a><div class="toggle_hHmI colorModeToggle_rOOn"><button class="clean-btn toggleButton_wEhT toggleButtonDisabled_yOOP" type=button disabled title="system mode" aria-label="切换浅色/暗黑模式（当前为system mode）"><svg viewBox="0 0 24 24" width=24 height=24 aria-hidden=true class="toggleIcon_Kt6U lightToggleIcon_Zfeh"><path fill=currentColor d="M12,9c1.65,0,3,1.35,3,3s-1.35,3-3,3s-3-1.35-3-3S10.35,9,12,9 M12,7c-2.76,0-5,2.24-5,5s2.24,5,5,5s5-2.24,5-5 S14.76,7,12,7L12,7z M2,13l2,0c0.55,0,1-0.45,1-1s-0.45-1-1-1l-2,0c-0.55,0-1,0.45-1,1S1.45,13,2,13z M20,13l2,0c0.55,0,1-0.45,1-1 s-0.45-1-1-1l-2,0c-0.55,0-1,0.45-1,1S19.45,13,20,13z M11,2v2c0,0.55,0.45,1,1,1s1-0.45,1-1V2c0-0.55-0.45-1-1-1S11,1.45,11,2z M11,20v2c0,0.55,0.45,1,1,1s1-0.45,1-1v-2c0-0.55-0.45-1-1-1C11.45,19,11,19.45,11,20z M5.99,4.58c-0.39-0.39-1.03-0.39-1.41,0 c-0.39,0.39-0.39,1.03,0,1.41l1.06,1.06c0.39,0.39,1.03,0.39,1.41,0s0.39-1.03,0-1.41L5.99,4.58z M18.36,16.95 c-0.39-0.39-1.03-0.39-1.41,0c-0.39,0.39-0.39,1.03,0,1.41l1.06,1.06c0.39,0.39,1.03,0.39,1.41,0c0.39-0.39,0.39-1.03,0-1.41 L18.36,16.95z M19.42,5.99c0.39-0.39,0.39-1.03,0-1.41c-0.39-0.39-1.03-0.39-1.41,0l-1.06,1.06c-0.39,0.39-0.39,1.03,0,1.41 s1.03,0.39,1.41,0L19.42,5.99z M7.05,18.36c0.39-0.39,0.39-1.03,0-1.41c-0.39-0.39-1.03-0.39-1.41,0l-1.06,1.06 c-0.39,0.39-0.39,1.03,0,1.41s1.03,0.39,1.41,0L7.05,18.36z"/></svg><svg viewBox="0 0 24 24" width=24 height=24 aria-hidden=true class="toggleIcon_Kt6U darkToggleIcon_XgQr"><path fill=currentColor d="M9.37,5.51C9.19,6.15,9.1,6.82,9.1,7.5c0,4.08,3.32,7.4,7.4,7.4c0.68,0,1.35-0.09,1.99-0.27C17.45,17.19,14.93,19,12,19 c-3.86,0-7-3.14-7-7C5,9.07,6.81,6.55,9.37,5.51z M12,3c-4.97,0-9,4.03-9,9s4.03,9,9,9s9-4.03,9-9c0-0.46-0.04-0.92-0.1-1.36 c-0.98,1.37-2.58,2.26-4.4,2.26c-2.98,0-5.4-2.42-5.4-5.4c0-1.81,0.89-3.42,2.26-4.4C12.92,3.04,12.46,3,12,3L12,3z"/></svg><svg viewBox="0 0 24 24" width=24 height=24 aria-hidden=true class="toggleIcon_Kt6U systemToggleIcon_BvUi"><path fill=currentColor d="m12 21c4.971 0 9-4.029 9-9s-4.029-9-9-9-9 4.029-9 9 4.029 9 9 9zm4.95-13.95c1.313 1.313 2.05 3.093 2.05 4.95s-0.738 3.637-2.05 4.95c-1.313 1.313-3.093 2.05-4.95 2.05v-14c1.857 0 3.637 0.737 4.95 2.05z"/></svg></button></div><div class=navbarSearchContainer_watl></div></div></div><div role=presentation class=navbar-sidebar__backdrop></div></nav><div id=__docusaurus_skipToContent_fallback class="theme-layout-main main-wrapper mainWrapper_R72Q"><div class=docsWrapper_XQ9b><button aria-label=回到顶部 class="clean-btn theme-back-to-top-button backToTopButton_MbnX" type=button></button><div class=docRoot_aqOB><aside class="theme-doc-sidebar-container docSidebarContainer_sI2e"><div class=sidebarViewport_TzTy><div class=sidebar_CbEe><nav aria-label=文档侧边栏 class="menu thin-scrollbar menu_ChRF"><ul class="theme-doc-sidebar-menu menu__list"><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-1 menu__list-item menu__list-item--collapsed"><div class=menu__list-item-collapsible><a class="categoryLink_Muyc menu__link menu__link--sublist" href=/getting_started/><span class=categoryLinkLabel_mAcL>快速开始</span></a><button aria-label="展开侧边栏分类 '快速开始'" aria-expanded=false type=button class="clean-btn menu__caret"></button></div><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-1 menu__list-item"><div class=menu__list-item-collapsible><a class="categoryLink_Muyc menu__link menu__link--sublist menu__link--active" href=/concepts/><span class=categoryLinkLabel_mAcL>核心概念</span></a><button aria-label="折叠侧边栏分类 '核心概念'" aria-expanded=true type=button class="clean-btn menu__caret"></button></div><ul class=menu__list><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-2 menu__list-item menu__list-item--collapsed"><div class=menu__list-item-collapsible><a class="categoryLink_Muyc menu__link menu__link--sublist" tabindex=0 href=/concepts/instruments/><span class=categoryLinkLabel_mAcL>金融工具</span></a><button aria-label="展开侧边栏分类 '金融工具'" aria-expanded=false type=button class="clean-btn menu__caret"></button></div><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-2 menu__list-item menu__list-item--collapsed"><div class=menu__list-item-collapsible><a class="categoryLink_Muyc menu__link menu__link--sublist" tabindex=0 href=/concepts/orders/><span class=categoryLinkLabel_mAcL>订单</span></a><button aria-label="展开侧边栏分类 '订单'" aria-expanded=false type=button class="clean-btn menu__caret"></button></div><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-2 menu__list-item menu__list-item--collapsed"><div class=menu__list-item-collapsible><a class="categoryLink_Muyc menu__link menu__link--sublist" tabindex=0 href=/concepts/data/><span class=categoryLinkLabel_mAcL>数据</span></a><button aria-label="展开侧边栏分类 '数据'" aria-expanded=false type=button class="clean-btn menu__caret"></button></div><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-2 menu__list-item menu__list-item--collapsed"><div class=menu__list-item-collapsible><a class="categoryLink_Muyc menu__link menu__link--sublist" tabindex=0 href=/concepts/backtesting/><span class=categoryLinkLabel_mAcL>回测</span></a><button aria-label="展开侧边栏分类 '回测'" aria-expanded=false type=button class="clean-btn menu__caret"></button></div><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-2 menu__list-item menu__list-item--collapsed"><div class=menu__list-item-collapsible><a class="categoryLink_Muyc menu__link menu__link--sublist" tabindex=0 href=/concepts/events/><span class=categoryLinkLabel_mAcL>事件</span></a><button aria-label="展开侧边栏分类 '事件'" aria-expanded=false type=button class="clean-btn menu__caret"></button></div><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-2 menu__list-item menu__list-item--collapsed"><div class=menu__list-item-collapsible><a class="categoryLink_Muyc menu__link menu__link--sublist" tabindex=0 href=/concepts/execution/><span class=categoryLinkLabel_mAcL>执行</span></a><button aria-label="展开侧边栏分类 '执行'" aria-expanded=false type=button class="clean-btn menu__caret"></button></div><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/concepts/accounting><span class=linkLabel_lYjD>核算</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/concepts/actors><span class=linkLabel_lYjD>Actors</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/concepts/adapters><span class=linkLabel_lYjD>适配器</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/concepts/architecture><span class=linkLabel_lYjD>架构</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/concepts/behavioral_models><span class=linkLabel_lYjD>行为模型</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/concepts/cache><span class=linkLabel_lYjD>缓存</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/concepts/configuration><span class=linkLabel_lYjD>配置</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/concepts/continuous_futures><span class=linkLabel_lYjD>连续期货</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class="menu__link menu__link--active" aria-current=page tabindex=0 href=/concepts/custom_data><span class=linkLabel_lYjD>自定义数据</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/concepts/dst><span class=linkLabel_lYjD>DST</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/concepts/event_sourcing><span class=linkLabel_lYjD>事件溯源</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/concepts/greeks><span class=linkLabel_lYjD>Greeks</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/concepts/live><span class=linkLabel_lYjD>实时交易</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/concepts/logging><span class=linkLabel_lYjD>日志</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/concepts/message_bus><span class=linkLabel_lYjD>消息总线</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/concepts/networking><span class=linkLabel_lYjD>网络</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/concepts/options><span class=linkLabel_lYjD>期权</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/concepts/order_book><span class=linkLabel_lYjD>订单簿</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/concepts/overview><span class=linkLabel_lYjD>概览</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/concepts/portfolio><span class=linkLabel_lYjD>组合</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/concepts/positions><span class=linkLabel_lYjD>持仓</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/concepts/python><span class=linkLabel_lYjD>Python</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/concepts/reports><span class=linkLabel_lYjD>报告</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/concepts/rust><span class=linkLabel_lYjD>Rust</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/concepts/strategies><span class=linkLabel_lYjD>策略</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/concepts/synthetics><span class=linkLabel_lYjD>合成工具</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/concepts/value_types><span class=linkLabel_lYjD>值类型</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/concepts/visualization><span class=linkLabel_lYjD>可视化</span></a></ul><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-1 menu__list-item menu__list-item--collapsed"><div class=menu__list-item-collapsible><a class="categoryLink_Muyc menu__link menu__link--sublist" href=/integrations/><span class=categoryLinkLabel_mAcL>交易所与集成</span></a><button aria-label="展开侧边栏分类 '交易所与集成'" aria-expanded=false type=button class="clean-btn menu__caret"></button></div><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-1 menu__list-item menu__list-item--collapsed"><div class=menu__list-item-collapsible><a class="categoryLink_Muyc menu__link menu__link--sublist" href=/how_to/><span class=categoryLinkLabel_mAcL>操作指南</span></a><button aria-label="展开侧边栏分类 '操作指南'" aria-expanded=false type=button class="clean-btn menu__caret"></button></div><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-1 menu__list-item menu__list-item--collapsed"><div class=menu__list-item-collapsible><a class="categoryLink_Muyc menu__link menu__link--sublist" href=/tutorials/><span class=categoryLinkLabel_mAcL>教程</span></a><button aria-label="展开侧边栏分类 '教程'" aria-expanded=false type=button class="clean-btn menu__caret"></button></div><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-1 menu__list-item menu__list-item--collapsed"><div class=menu__list-item-collapsible><a class="categoryLink_Muyc menu__link menu__link--sublist" href=/developer_guide/><span class=categoryLinkLabel_mAcL>开发者指南</span></a><button aria-label="展开侧边栏分类 '开发者指南'" aria-expanded=false type=button class="clean-btn menu__caret"></button></div><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-1 menu__list-item menu__list-item--collapsed"><div class=menu__list-item-collapsible><a class="categoryLink_Muyc menu__link menu__link--sublist" href=/api_reference/><span class=categoryLinkLabel_mAcL>API 参考</span></a><button aria-label="展开侧边栏分类 'API 参考'" aria-expanded=false type=button class="clean-btn menu__caret"></button></div></ul></nav></div></div></aside><main class=docMainContainer_sLF8><div class="container padding-top--md padding-bottom--lg"><div class=row><div class="col docItemCol_ZRft"><div class=docItemContainer_KOP5><article><nav class="theme-doc-breadcrumbs breadcrumbsContainer_d5rS" aria-label=页面路径><ul class=breadcrumbs><li class=breadcrumbs__item><a aria-label=主页面 class=breadcrumbs__link href=/><svg viewBox="0 0 24 24" class=breadcrumbHomeIcon_XgF2><path d="M10 19v-5h4v5c0 .55.45 1 1 1h3c.55 0 1-.45 1-1v-7h1.7c.46 0 .68-.57.33-.87L12.67 3.6c-.38-.34-.96-.34-1.34 0l-8.36 7.53c-.34.3-.13.87.33.87H5v7c0 .55.45 1 1 1h3c.55 0 1-.45 1-1z" fill=currentColor /></svg></a><li class=breadcrumbs__item><a class=breadcrumbs__link href=/concepts/><span>核心概念</span></a><li class="breadcrumbs__item breadcrumbs__item--active"><span class=breadcrumbs__link>自定义数据</span></ul></nav><div class="tocCollapsible_bgaJ theme-doc-toc-mobile tocMobile_FhT_"><button type=button class="clean-btn tocCollapsibleButton_F8AY">本页总览</button></div><div class="theme-doc-markdown markdown"><header><h1>自定义数据</h1></header>
+<p>NautilusTrader 支持用 Python 或 Rust 编写自定义数据。两种方式与内置数据共用
+同一套运行时路由、持久化与查询管线。</p>
+<p>本文说明自定义数据如何：</p>
+<ul>
+<li class="">在运行时注册。</li>
+<li class="">跨越 Python/Rust 边界进行包装。</li>
+<li class="">与 Arrow/Parquet 相互序列化。</li>
+<li class="">经由 actor 和策略路由。</li>
+</ul>
+<h2 class="anchor anchorTargetStickyNavbar_ana5" id=goals>目标<a href=#goals class=hash-link aria-label=目标的直接链接 title=目标的直接链接 translate=no>​</a></h2>
+<p>自定义数据架构满足以下要求：</p>
+<ul>
+<li class="">用户可以用纯 Python 定义自定义数据，无需编写 Rust 代码。</li>
+<li class="">Rust 定义的自定义数据可使用原生 Rust JSON 和 Arrow 处理器。</li>
+<li class="">在 PyO3 边界保持单一的用户侧 <code>CustomData</code> 包装器。</li>
+<li class="">在 <code>ParquetDataCatalog</code> 中持久化时采用动态类型注册，而非硬编码模式。</li>
+<li class="">自定义数据可走常规的数据引擎、actor、策略订阅流程进行路由。</li>
+</ul>
+<h2 class="anchor anchorTargetStickyNavbar_ana5" id=high-level-model>高层模型<a href=#high-level-model class=hash-link aria-label=高层模型的直接链接 title=高层模型的直接链接 translate=no>​</a></h2>
+<p>NautilusTrader 支持两种编写模式：</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>模式<th>编写形式<th>注册路径<th>编码/解码路径<th>包装器后端<tbody><tr><td>纯 Python<td>带 JSON 和 Arrow 方法的类<td><code>register_custom_data_class(...)</code><td>Python 回调 + Arrow C FFI<td><code>PythonCustomDataWrapper</code><tr><td>同二进制 Rust<td><code>#[custom_data]</code> 或 <code>#[custom_data(pyo3)]</code> 类型<td><code>ensure_custom_data_registered::&lt;T>()</code> 及提取器注册<td>原生 Rust<td>原生 Rust 载荷</table>
+<p>两种模式最终汇聚到同一个外层 PyO3 <code>CustomData</code> 包装器和同一套
+<code>DataType</code> 身份模型。</p>
+<h2 class="anchor anchorTargetStickyNavbar_ana5" id=end-to-end-flow>端到端流程<a href=#end-to-end-flow class=hash-link aria-label=端到端流程的直接链接 title=端到端流程的直接链接 translate=no>​</a></h2>
+<!-- -->
+<h2 class="anchor anchorTargetStickyNavbar_ana5" id=core-components>核心组件<a href=#core-components class=hash-link aria-label=核心组件的直接链接 title=核心组件的直接链接 translate=no>​</a></h2>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=registry-module>注册表模块<a href=#registry-module class=hash-link aria-label=注册表模块的直接链接 title=注册表模块的直接链接 translate=no>​</a></h3>
+<p><code>crates/model/src/data/registry.rs</code> 持有进程级的 JSON、Arrow 和
+Python 提取器注册表。注册使用原子的 <code>DashMap::entry()</code> 操作，
+因此并发的 <code>register_*</code> 与 <code>ensure_*</code> 调用在抢占条目时不会竞态。</p>
+<p>该模块通过 <code>OnceLock</code> 初始化其注册表状态，保存：</p>
+<ul>
+<li class="">以 <code>type_name</code> 为键的 JSON 反序列化器。</li>
+<li class="">以 <code>type_name</code> 为键的 Arrow 模式、编码器与解码器。</li>
+<li class="">把 Python 对象转换为 <code>Arc&lt;dyn CustomDataTrait></code> 的 Python 提取器。</li>
+<li class="">为同二进制类型生成 Python 提取器的 Rust 提取器工厂。</li>
+</ul>
+<p>NautilusTrader 不把每种类型硬编码进主二进制，而是用 <code>DataType</code> 和 Parquet
+元数据中存储的 <code>type_name</code> 在运行时解析处理器。</p>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=customdata><code>CustomData</code><a href=#customdata class=hash-link aria-label=customdata的直接链接 title=customdata的直接链接 translate=no>​</a></h3>
+<p>外层 PyO3 <code>CustomData</code> 包装器是跨越 FFI 边界的通用容器。</p>
+<p>构造签名：<code>CustomData(data_type, data)</code>，<code>DataType</code> 在前，内层载荷在后。</p>
+<p>它包含：</p>
+<ul>
+<li class="">一个 <code>DataType</code>。</li>
+<li class="">一个实现 <code>CustomDataTrait</code> 的内层自定义载荷（包装为
+<code>Arc&lt;dyn CustomDataTrait></code>）。</li>
+</ul>
+<p>时间戳（<code>ts_event</code>、<code>ts_init</code>）委托给内层
+<code>CustomDataTrait</code> 实现，并以属性形式暴露在包装器上。</p>
+<p>Python 侧的 <code>CustomData</code> 实现了 <code>__eq__</code> 与 <code>__repr__</code>。Rust 的 <code>PartialEq</code>
+实现比较 <code>DataType</code> 并把载荷相等性委托给内层值。实例被有意设为不可哈希，
+使相等性与载荷比较保持一致。</p>
+<p>该包装器在两种自定义数据模式间共享。用户代码只面对一个 API，
+尽管底层载荷可能是：</p>
+<ul>
+<li class="">Python 支撑的包装器。</li>
+<li class="">同二进制的 Rust 值。</li>
+</ul>
+<h4 class="anchor anchorTargetStickyNavbar_ana5" id=customdata-json-envelope><code>CustomData</code> JSON 信封<a href=#customdata-json-envelope class=hash-link aria-label=customdata-json-envelope的直接链接 title=customdata-json-envelope的直接链接 translate=no>​</a></h4>
+<p>序列化到 JSON 时（如 <code>to_json_bytes</code> / <code>from_json_bytes</code>、SQL 缓存或 Redis），
+<code>CustomData</code> 使用统一的标准信封，反序列化因此不依赖用户载荷的字段名：</p>
+<ul>
+<li class=""><code>type</code>：自定义类型名（来自 <code>CustomDataTrait::type_name</code>）。</li>
+<li class=""><code>data_type</code>：含 <code>type_name</code>、<code>metadata</code> 和可选
+<code>identifier</code> 的对象。</li>
+<li class=""><code>payload</code>：仅内层载荷（<code>CustomDataTrait::to_json</code>
+的结果解析为值）。注册的反序列化器只把这个值传给
+<code>from_json</code>，因此用户结构体可以使用任意字段名（包括 <code>value</code>），
+不会与包装器元数据冲突。</li>
+</ul>
+<p>该信封由 Rust 的 <code>CustomData</code> 序列化产生，注册表模块从 JSON 反序列化
+自定义数据时消费它。</p>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=datatype><code>DataType</code><a href=#datatype class=hash-link aria-label=datatype的直接链接 title=datatype的直接链接 translate=no>​</a></h3>
+<p><code>DataType</code> 为路由和持久化标识自定义数据。</p>
+<p>构造函数：<code>DataType(type_name, metadata=None, identifier=None)</code>。</p>
+<p>它包含：</p>
+<ul>
+<li class=""><code>type_name</code>。</li>
+<li class="">可选的 <code>metadata</code>。</li>
+<li class="">可选的 <code>identifier</code>，用于持久化路径与缓存数据库查询，
+不影响路由、相等性或哈希。</li>
+</ul>
+<p><strong>相等性、哈希与主题路由</strong>只由 <code>type_name</code> 和 <code>metadata</code> 决定。类型名与元数据相同、
+标识符不同的两个 <code>DataType</code> 相等，并发布到相同的消息总线主题。</p>
+<p><code>identifier</code> 决定目录中 <code>data/custom/&lt;type_name>/&lt;identifier...></code> 下的路径，
+并参与 PostgreSQL 与 Redis 过滤。</p>
+<p>持久化会为每个 <code>CustomData</code> 值存储完整的 <code>DataType</code>，查询时还原；
+而处理器查找使用 <code>type_name</code>。因此同一逻辑类型可以携带不同的元数据或标识符，
+仍通过同一个注册处理器解码。</p>
+<h2 class="anchor anchorTargetStickyNavbar_ana5" id=registration-architecture>注册架构<a href=#registration-architecture class=hash-link aria-label=注册架构的直接链接 title=注册架构的直接链接 translate=no>​</a></h2>
+<p>注册弥合 Python 对象与 Rust trait object 之间的差距。</p>
+<!-- -->
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=pure-python-registration>纯 Python 注册<a href=#pure-python-registration class=hash-link aria-label="纯 Python 注册的直接链接" title="纯 Python 注册的直接链接" translate=no>​</a></h3>
+<p>Python 代码调用 <code>register_custom_data_class(MyType)</code> 时：</p>
+<ol>
+<li class="">Rust 保留该类用于 JSON 重建。</li>
+<li class="">Rust 注册调用类回调的 JSON 和 Arrow 处理器。</li>
+<li class="">构造 <code>CustomData</code> 时，若已注册的原生提取器能接受该对象，Rust 使用它；
+否则把对象包装进
+<code>PythonCustomDataWrapper</code>。</li>
+</ol>
+<p>供目录使用时，在注册前通过 <code>_schema</code> 或 <code>arrow_schema_py()</code> 提供 Arrow 模式，
+或使用 <code>@customdataclass</code>。没有模式的类也可注册，用于 JSON 和消息总线；
+目录写入会强制满足<a href=#catalog-write-flow class="">目录模式要求</a>。</p>
+<p>此路径上的 JSON 和 Arrow 回调在 Python GIL 下运行。</p>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=same-binary-rust-registration>同二进制 Rust 注册<a href=#same-binary-rust-registration class=hash-link aria-label="同二进制 Rust 注册的直接链接" title="同二进制 Rust 注册的直接链接" translate=no>​</a></h3>
+<p>对编译进进程的 Rust 类型：</p>
+<ol>
+<li class=""><code>#[custom_data]</code> 或 <code>#[custom_data(pyo3)]</code> 生成 trait 与 JSON
+实现，默认还生成 Arrow 实现。</li>
+<li class=""><code>ensure_custom_data_registered::&lt;T>()</code> 把原生模式/编码器/解码器
+处理器插入进程级注册表。</li>
+<li class=""><code>ensure_rust_extractor_registered::&lt;T>()</code> 为 PyO3 暴露的类型注册
+提取器工厂。经 Python 类注册激活后，提取器可以恢复具体 Rust 类型，
+而不使用 Python 包装器。</li>
+</ol>
+<p>此路径的编码/解码全程保持 Rust 原生。</p>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=registration-precedence>注册优先级<a href=#registration-precedence class=hash-link aria-label=注册优先级的直接链接 title=注册优先级的直接链接 translate=no>​</a></h3>
+<p><code>register_custom_data_class(...)</code> 按以下顺序解析处理器：</p>
+<ol>
+<li class="">若原生提取器和原生 JSON/Arrow 处理器已注册，优先使用它们。</li>
+<li class="">否则使用 Python 包装器与回调处理器。</li>
+</ol>
+<p>幂等的 <code>ensure_*</code> 注册不会覆盖已有处理器。对每个类型名，第一个
+Arrow 注册保留其模式、编码器和解码器。若已注册的 Python 类的 Arrow 模式
+需要修正，修正后须重启进程再重新注册。</p>
+<h2 class="anchor anchorTargetStickyNavbar_ana5" id=wrapper-backends>包装器后端<a href=#wrapper-backends class=hash-link aria-label=包装器后端的直接链接 title=包装器后端的直接链接 translate=no>​</a></h2>
+<p>内部而言，外层 <code>CustomData</code> 包装器可持有不同的载荷实现。</p>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=pythoncustomdatawrapper><code>PythonCustomDataWrapper</code><a href=#pythoncustomdatawrapper class=hash-link aria-label=pythoncustomdatawrapper的直接链接 title=pythoncustomdatawrapper的直接链接 translate=no>​</a></h3>
+<p>用于纯 Python 自定义数据。</p>
+<p>职责：</p>
+<ul>
+<li class="">保存对 Python 对象的引用。</li>
+<li class="">缓存 <code>ts_event</code>、<code>ts_init</code> 和 <code>type_name</code>。</li>
+<li class="">实现 <code>CustomDataTrait</code>。</li>
+<li class="">支持在 GIL 下调用 Python 的 JSON 与 Arrow 回调路径。</li>
+</ul>
+<p>当没有注册提取器能接受该对象时，它是构造的回退选择。Python 的 JSON 和 Arrow
+解码器也直接产生这个包装器。</p>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=native-same-binary-rust-payload>原生同二进制 Rust 载荷<a href=#native-same-binary-rust-payload class=hash-link aria-label="原生同二进制 Rust 载荷的直接链接" title="原生同二进制 Rust 载荷的直接链接" translate=no>​</a></h3>
+<p>对编译进进程的 Rust 类型，内层载荷就是具体 Rust 类型，可直接从
+<code>Arc&lt;dyn CustomDataTrait></code> 向下转型。</p>
+<p>序列化与解码都不需要 Python 回调路径。</p>
+<h2 class="anchor anchorTargetStickyNavbar_ana5" id=persistence-architecture>持久化架构<a href=#persistence-architecture class=hash-link aria-label=持久化架构的直接链接 title=持久化架构的直接链接 translate=no>​</a></h2>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=why-dynamic-arrow-registration-is-needed>为什么需要动态 Arrow 注册<a href=#why-dynamic-arrow-registration-is-needed class=hash-link aria-label="为什么需要动态 Arrow 注册的直接链接" title="为什么需要动态 Arrow 注册的直接链接" translate=no>​</a></h3>
+<p>内置 NautilusTrader 数据类型的模式与编码器在 Rust 二进制中是静态已知的，
+自定义数据则不是。持久化层因此用注册的 <code>type_name</code> 动态解析自定义数据。</p>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=catalog-write-flow>目录写入流程<a href=#catalog-write-flow class=hash-link aria-label=目录写入流程的直接链接 title=目录写入流程的直接链接 translate=no>​</a></h3>
+<p><code>ParquetDataCatalog</code> 期望自定义写入以 <code>CustomData</code> 值的形式传入。</p>
+<p>自定义数据的写入路径：</p>
+<ol>
+<li class="">从内层载荷取 <code>type_name</code>，从首个值的 <code>DataType</code> 取
+<code>metadata</code> 和 <code>identifier</code>。</li>
+<li class="">校验注册的 Arrow 模式包含 <code>ts_init</code>，且任何 <code>ts_event</code> 或
+<code>ts_init</code> 字段使用 <code>timestamp("ns", tz="UTC")</code>。</li>
+<li class="">在进程级注册表中查找 Arrow 编码器。</li>
+<li class="">把值编码为 <code>RecordBatch</code>。</li>
+<li class="">追加一个 <code>data_type</code> 列，存放持久化的 <code>DataType</code>。</li>
+<li class="">把 <code>type_name</code> 与元数据附加到 Arrow 模式上。</li>
+<li class="">把批次写入自定义数据路径下的 Parquet。</li>
+</ol>
+<p>路径布局为 <code>data/custom/&lt;type_name>/&lt;identifier...></code>。</p>
+<p>标识符在成为路径段之前会先规范化。</p>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=catalog-read-flow>目录读取流程<a href=#catalog-read-flow class=hash-link aria-label=目录读取流程的直接链接 title=目录读取流程的直接链接 translate=no>​</a></h3>
+<p>查询时：</p>
+<ol>
+<li class="">目录读取匹配的 Parquet 文件。</li>
+<li class="">从模式元数据中提取 <code>type_name</code>。</li>
+<li class="">向进程级注册表请求解码器。</li>
+<li class="">把 <code>RecordBatch</code> 解码为 <code>Vec&lt;Data></code>。</li>
+<li class="">用原始 <code>DataType</code> 重建 <code>CustomData</code>。</li>
+</ol>
+<p>这使得自定义数据的查询解析与写入时注册对称。</p>
+<p>在 Feather 到 Parquet 的转换中（例如回测结束后），自定义数据分支转换 Arrow
+批次，并把结果直接写入匹配的自定义数据路径：</p>
+<ul>
+<li class="">以 <code>custom/{TypeName}</code> 传入数据类，类型名与注册值逐字一致。Feather 会话把
+自定义数据存于 <code>data/custom/{TypeName}</code>，而不是 snake_case 目录。</li>
+<li class="">打算手动转换时设置 <code>promote_on_close=False</code>。关闭时提升（promote）是默认行为。
+转换一个已提升过的会话会在不同文件名下重写同一 <code>ts_init</code> 区间，
+目录会以其非不相交（non-disjoint）为由拒绝。</li>
+</ul>
+<div class="theme-admonition theme-admonition-info admonition_LYZY alert alert--info"><div class=admonitionHeading_pnFY><span class=admonitionIcon_tEzm><svg viewBox="0 0 14 16"><path fill-rule=evenodd d="M7 2.3c3.14 0 5.7 2.56 5.7 5.7s-2.56 5.7-5.7 5.7A5.71 5.71 0 0 1 1.3 8c0-3.14 2.56-5.7 5.7-5.7zM7 1C3.14 1 0 4.14 0 8s3.14 7 7 7 7-3.14 7-7-3.14-7-7-7zm1 3H6v5h2V4zm0 6H6v2h2v-2z"/></svg></span>信息</div><div class=admonitionContent_ZwmI><p>Python 的 <code>StreamingFeatherWriter.write()</code> 对已注册、支持 Arrow 的类型接受
+<code>CustomData</code> 包装器，<code>convert_stream_to_data</code> 会把暂存的 Feather 流转换为
+Parquet。要跳过暂存，用 <code>ParquetDataCatalog.write_custom_data</code>
+把自定义数据直接写入目录。</div></div>
+<p>读取只使用 <code>data/custom/{TypeName}</code>。仍使用旧的 Python 写入布局
+<code>data/custom_&lt;snake_case></code>（例如 <code>data/custom_binance_bar</code>）的目录，请用
+<a class="" href=/how_to/migrate_parquet_catalog>nautilus catalog migrate-parquet</a> 迁移。</p>
+<h2 class="anchor anchorTargetStickyNavbar_ana5" id=the-arrow-c-ffi-bridge>Arrow C FFI 桥<a href=#the-arrow-c-ffi-bridge class=hash-link aria-label="Arrow C FFI 桥的直接链接" title="Arrow C FFI 桥的直接链接" translate=no>​</a></h2>
+<p>纯 Python 自定义数据没有原生 Rust Arrow 编码逻辑。对这类数据，
+NautilusTrader 通过 Arrow C FFI 接口在 Python 与 Rust 之间传递
+<code>RecordBatch</code>，无需 JSON 或二进制序列化。</p>
+<!-- -->
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=pure-python-encode-path>纯 Python 编码路径<a href=#pure-python-encode-path class=hash-link aria-label="纯 Python 编码路径的直接链接" title="纯 Python 编码路径的直接链接" translate=no>​</a></h3>
+<p>纯 Python 类的编码：</p>
+<ol>
+<li class="">Rust 获取 GIL。</li>
+<li class="">Rust 在首个 Python 载荷上调用 <code>encode_record_batch_py(...)</code>。</li>
+<li class="">Python 把对象转换为 <code>pyarrow.RecordBatch</code>。</li>
+<li class="">Python 通过 <code>_export_to_c</code> 把批次导出为 Arrow C FFI 结构。</li>
+<li class="">Rust 从 FFI 结构重建原生 <code>RecordBatch</code> 并写入。</li>
+</ol>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=pure-python-decode-path>纯 Python 解码路径<a href=#pure-python-decode-path class=hash-link aria-label="纯 Python 解码路径的直接链接" title="纯 Python 解码路径的直接链接" translate=no>​</a></h3>
+<p>反方向：</p>
+<ol>
+<li class="">Rust 把其 <code>RecordBatch</code> 转为 Arrow C FFI 结构。</li>
+<li class="">Python 通过 <code>RecordBatch._import_from_c</code> 导入批次。</li>
+<li class="">Python 在类上调用 <code>decode_record_batch_py(metadata, batch)</code>。</li>
+<li class="">Rust 把返回的 Python 对象包装进 <code>PythonCustomDataWrapper</code>。</li>
+</ol>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=native-paths>原生路径<a href=#native-paths class=hash-link aria-label=原生路径的直接链接 title=原生路径的直接链接 translate=no>​</a></h3>
+<p>同二进制 Rust 自定义数据不使用 Arrow C FFI 桥，
+它们使用主进程中注册的原生 Rust 编码/解码处理器。</p>
+<h2 class="anchor anchorTargetStickyNavbar_ana5" id=reconstruction-on-query>查询时的重建<a href=#reconstruction-on-query class=hash-link aria-label=查询时的重建的直接链接 title=查询时的重建的直接链接 translate=no>​</a></h2>
+<p>从目录加载回自定义数据时，重建方式取决于后端：</p>
+<ul>
+<li class="">同二进制 Rust 类型直接解码为原生 Rust 值。</li>
+<li class="">纯 Python 类型经由注册类的
+<code>decode_record_batch_py(...)</code> 回调重建。</li>
+</ul>
+<p>所有情况下，调用方在 PyO3 API 边界收到的都是同一个外层 <code>CustomData</code> 包装器。</p>
+<h2 class="anchor anchorTargetStickyNavbar_ana5" id=runtime-integration>运行时集成<a href=#runtime-integration class=hash-link aria-label=运行时集成的直接链接 title=运行时集成的直接链接 translate=no>​</a></h2>
+<p>自定义数据同样参与 NautilusTrader 的运行时路由。</p>
+<p>相关集成点包括：</p>
+<ul>
+<li class=""><code>crates/data/src/engine/dispatch.rs</code> 通过消息总线发布 <code>CustomData</code>。</li>
+<li class=""><code>crates/common/src/msgbus/switchboard.rs</code> 从 <code>DataType</code> 派生自定义主题。</li>
+<li class=""><code>crates/common/src/actor/*</code> 把自定义数据路由到 actor 订阅。</li>
+<li class=""><code>crates/trading/src/python/strategy.rs</code> 把自定义数据暴露给 Python
+策略的 <code>on_data</code>。</li>
+<li class=""><code>crates/backtest/src/engine.rs</code> 把 <code>Data::Custom</code> 视为
+数据引擎投递的输入，而非交易所路由的数据。</li>
+</ul>
+<p>注册的自定义类型可以通过与内置数据族相同的运行时接口进行持久化、查询、
+订阅和消费。</p>
+<h2 class="anchor anchorTargetStickyNavbar_ana5" id=cache-database-integration>缓存数据库集成<a href=#cache-database-integration class=hash-link aria-label=缓存数据库集成的直接链接 title=缓存数据库集成的直接链接 translate=no>​</a></h2>
+<p>PostgreSQL 与 Redis 缓存数据库实现支持 <code>CustomData</code>。</p>
+<ul>
+<li class="">PostgreSQL 把自定义数据存入 <code>custom</code> 表。</li>
+<li class="">存储的记录包含 <code>data_type</code>、<code>metadata</code>、<code>identifier</code> 和完整的
+JSON 载荷。</li>
+<li class="">读取时用 <code>CustomData::from_json_bytes(...)</code> 重建 <code>CustomData</code>。</li>
+<li class="">Python SQL 绑定暴露 <code>add_custom_data</code> 与 <code>load_custom_data</code>。</li>
+<li class="">Redis 缓存把自定义数据存于
+<code>custom:&lt;ts_init_020>:&lt;uuid></code> 键下，值为完整的 <code>CustomData</code> JSON。</li>
+<li class="">Redis 的 <code>add_custom_data</code> 和 <code>load_custom_data</code> 按 <code>DataType</code>
+（type_name、metadata、identifier）过滤，结果按 <code>ts_init</code> 排序返回。
+这通过 PyO3 的 <code>RedisCacheDatabase</code> API 暴露。</li>
+</ul>
+<h2 class="anchor anchorTargetStickyNavbar_ana5" id=practical-implications>实际影响<a href=#practical-implications class=hash-link aria-label=实际影响的直接链接 title=实际影响的直接链接 translate=no>​</a></h2>
+<p>纯 Python 编写与 Rust 原生编码/解码是同一个概念上的自定义数据系统的两个后端，
+而不是彼此分离的 Python-only 和 Rust-only 功能集。</div><footer class="theme-doc-footer docusaurus-mt-lg"><div class="row margin-top--sm theme-doc-footer-edit-meta-row"><div class="col noPrint_MRkS"><a href=https://github.com/Aloento/NautilusTraderDoc/tree/main/docs/concepts/custom_data.md target=_blank rel="noopener noreferrer" class=theme-edit-this-page><svg fill=currentColor height=20 width=20 viewBox="0 0 40 40" class=iconEdit_RPSQ aria-hidden=true><g><path d="m34.5 11.7l-3 3.1-6.3-6.3 3.1-3q0.5-0.5 1.2-0.5t1.1 0.5l3.9 3.9q0.5 0.4 0.5 1.1t-0.5 1.2z m-29.5 17.1l18.4-18.5 6.3 6.3-18.4 18.4h-6.3v-6.2z"/></g></svg>编辑此页</a></div><div class="col lastUpdated_oZSl"><span class=theme-last-updated>最后<!-- -->于 <b><time datetime=2026-10-14T22:30:30.000Z itemprop=dateModified>2026年10月14日</time></b> <!-- -->更新</span></div></div></footer></article><nav class="docusaurus-mt-lg pagination-nav" aria-label=文件选项卡><a class="pagination-nav__link pagination-nav__link--prev" href=/concepts/continuous_futures><div class=pagination-nav__sublabel>上一页</div><div class=pagination-nav__label>连续期货</div></a><a class="pagination-nav__link pagination-nav__link--next" href=/concepts/dst><div class=pagination-nav__sublabel>下一页</div><div class=pagination-nav__label>DST</div></a></nav></div></div><div class="col col--3"><div class="tableOfContents_LyLZ thin-scrollbar theme-doc-toc-desktop"><ul class="table-of-contents table-of-contents__left-border"><li><a href=#goals class="table-of-contents__link toc-highlight">目标</a><li><a href=#high-level-model class="table-of-contents__link toc-highlight">高层模型</a><li><a href=#end-to-end-flow class="table-of-contents__link toc-highlight">端到端流程</a><li><a href=#core-components class="table-of-contents__link toc-highlight">核心组件</a><ul><li><a href=#registry-module class="table-of-contents__link toc-highlight">注册表模块</a><li><a href=#customdata class="table-of-contents__link toc-highlight"><code>CustomData</code></a><li><a href=#datatype class="table-of-contents__link toc-highlight"><code>DataType</code></a></ul><li><a href=#registration-architecture class="table-of-contents__link toc-highlight">注册架构</a><ul><li><a href=#pure-python-registration class="table-of-contents__link toc-highlight">纯 Python 注册</a><li><a href=#same-binary-rust-registration class="table-of-contents__link toc-highlight">同二进制 Rust 注册</a><li><a href=#registration-precedence class="table-of-contents__link toc-highlight">注册优先级</a></ul><li><a href=#wrapper-backends class="table-of-contents__link toc-highlight">包装器后端</a><ul><li><a href=#pythoncustomdatawrapper class="table-of-contents__link toc-highlight"><code>PythonCustomDataWrapper</code></a><li><a href=#native-same-binary-rust-payload class="table-of-contents__link toc-highlight">原生同二进制 Rust 载荷</a></ul><li><a href=#persistence-architecture class="table-of-contents__link toc-highlight">持久化架构</a><ul><li><a href=#why-dynamic-arrow-registration-is-needed class="table-of-contents__link toc-highlight">为什么需要动态 Arrow 注册</a><li><a href=#catalog-write-flow class="table-of-contents__link toc-highlight">目录写入流程</a><li><a href=#catalog-read-flow class="table-of-contents__link toc-highlight">目录读取流程</a></ul><li><a href=#the-arrow-c-ffi-bridge class="table-of-contents__link toc-highlight">Arrow C FFI 桥</a><ul><li><a href=#pure-python-encode-path class="table-of-contents__link toc-highlight">纯 Python 编码路径</a><li><a href=#pure-python-decode-path class="table-of-contents__link toc-highlight">纯 Python 解码路径</a><li><a href=#native-paths class="table-of-contents__link toc-highlight">原生路径</a></ul><li><a href=#reconstruction-on-query class="table-of-contents__link toc-highlight">查询时的重建</a><li><a href=#runtime-integration class="table-of-contents__link toc-highlight">运行时集成</a><li><a href=#cache-database-integration class="table-of-contents__link toc-highlight">缓存数据库集成</a><li><a href=#practical-implications class="table-of-contents__link toc-highlight">实际影响</a></ul></div></div></div></div></main></div></div></div><footer class="theme-layout-footer footer footer--dark"><div class="container container-fluid"><div class="row footer__links"><div class="theme-layout-footer-column col footer__col"><div class=footer__title></div><ul class="footer__items clean-list"><li class=footer__item><a href=https://github.com/nautechsystems/nautilus_trader target=_blank rel="noopener noreferrer" class=footer__link-item>Official GitHub<svg width=13.5 height=13.5 aria-label="(opens in new tab)" class=iconExternalLink_qUHo><use href=#theme-svg-external-link /></svg></a><li class=footer__item><a href=https://nautilustrader.io/docs target=_blank rel="noopener noreferrer" class=footer__link-item>Official Documentation<svg width=13.5 height=13.5 aria-label="(opens in new tab)" class=iconExternalLink_qUHo><use href=#theme-svg-external-link /></svg></a></ul></div></div><div class="footer__bottom text--center"><div class=footer__copyright>© 2026 Nautech Systems Pty Ltd. All rights reserved.</div></div></div></footer></div></body>

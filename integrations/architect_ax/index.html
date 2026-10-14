@@ -1,0 +1,903 @@
+<!doctype html><html lang=zh dir=ltr class="docs-wrapper plugin-docs plugin-id-default docs-version-current docs-doc-page docs-doc-id-integrations/architect_ax" data-has-hydrated=false><head><meta charset=UTF-8><meta name=generator content="Docusaurus v3.10.2"><title data-rh=true>AX Exchange | NautilusTrader 文档</title><meta data-rh=true name=viewport content="width=device-width, initial-scale=1.0"/><meta data-rh=true name=twitter:card content=summary_large_image /><meta data-rh=true property=og:url content=https://nautilus.aloen.to/integrations/architect_ax /><meta data-rh=true property=og:locale content=zh /><meta data-rh=true name=docusaurus_locale content=zh /><meta data-rh=true name=docsearch:language content=zh /><meta data-rh=true name=docusaurus_version content=current /><meta data-rh=true name=docusaurus_tag content=docs-default-current /><meta data-rh=true name=docsearch:version content=current /><meta data-rh=true name=docsearch:docusaurus_tag content=docs-default-current /><meta data-rh=true property=og:title content="AX Exchange | NautilusTrader 文档"/><meta data-rh=true name=description content="AX Exchange 是一家受监管的中心化衍生品交易所，标的为传统资产类别。Architect Bermuda Ltd. 持有 Bermuda Monetary Authority（BMA）牌照运营 AX。AX 的生产与 sandbox 目录都上架永续和到期期货合约。"/><meta data-rh=true property=og:description content="AX Exchange 是一家受监管的中心化衍生品交易所，标的为传统资产类别。Architect Bermuda Ltd. 持有 Bermuda Monetary Authority（BMA）牌照运营 AX。AX 的生产与 sandbox 目录都上架永续和到期期货合约。"/><link data-rh=true rel=icon href=/logo.png /><link data-rh=true rel=canonical href=https://nautilus.aloen.to/integrations/architect_ax /><link data-rh=true rel=alternate href=https://nautilus.aloen.to/integrations/architect_ax hreflang=zh /><link data-rh=true rel=alternate href=https://nautilus.aloen.to/integrations/architect_ax hreflang=x-default /><script data-rh=true type=application/ld+json>{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","item":"https://nautilus.aloen.to/integrations/","name":"交易所与集成","position":1},{"@type":"ListItem","item":"https://nautilus.aloen.to/integrations/architect_ax","name":"AX Exchange","position":2}]}</script><link rel=stylesheet href=/assets/css/styles.adb7ea18.css /><script src=/assets/js/runtime~main.71ac0794.js defer></script><script src=/assets/js/main.d978d0f2.js defer></script></head><body><svg style="display: none;"><defs>
+<symbol id=theme-svg-external-link viewBox="0 0 24 24"><path fill=currentColor d="M21 13v10h-21v-19h12v2h-10v15h17v-8h2zm3-12h-10.988l4.035 4-6.977 7.07 2.828 2.828 6.977-7.07 4.125 4.172v-11z"/></symbol>
+</defs></svg>
+<script>!function(){var t=function(){try{return new URLSearchParams(window.location.search).get("docusaurus-theme")}catch(t){}}()||function(){try{return window.localStorage.getItem("theme-2e3")}catch(t){}}();document.documentElement.setAttribute("data-theme",t||(window.matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light")),document.documentElement.setAttribute("data-theme-choice",t||"system")}(),function(){try{for(var[t,e]of new URLSearchParams(window.location.search).entries())if(t.startsWith("docusaurus-data-")){var a=t.replace("docusaurus-data-","data-");document.documentElement.setAttribute(a,e)}}catch(t){}}()</script><div id=__docusaurus><link rel=preload as=image href=/logo.png /><div role=region aria-label=跳到主要内容><a class=skipToContent_zuOI href=#__docusaurus_skipToContent_fallback>跳到主要内容</a></div><nav aria-label=主导航 class="theme-layout-navbar navbar navbar--fixed-top"><div class=navbar__inner><div class="theme-layout-navbar-left navbar__items"><button aria-label=切换导航栏 aria-expanded=false class="navbar__toggle clean-btn" type=button><svg width=30 height=30 viewBox="0 0 30 30" aria-hidden=true><path stroke=currentColor stroke-linecap=round stroke-miterlimit=10 stroke-width=2 d="M4 7h22M4 15h22M4 23h22"/></svg></button><a class=navbar__brand href=/><div class=navbar__logo><img src=/logo.png alt="NautilusTrader Logo" class="themedComponent_q2_Y themedComponent--light_Nejn"/><img src=/logo.png alt="NautilusTrader Logo" class="themedComponent_q2_Y themedComponent--dark_JjIb"/></div><b class="navbar__title text--truncate">NautilusTrader</b></a><a aria-current=page class="navbar__item navbar__link navbar__link--active" href=/getting_started/>文档</a></div><div class="theme-layout-navbar-right navbar__items navbar__items--right"><a href=https://github.com/Aloento/NautilusTraderDoc target=_blank rel="noopener noreferrer" class="navbar__item navbar__link">GitHub<svg width=13.5 height=13.5 aria-label="(opens in new tab)" class=iconExternalLink_qUHo><use href=#theme-svg-external-link /></svg></a><div class="toggle_hHmI colorModeToggle_rOOn"><button class="clean-btn toggleButton_wEhT toggleButtonDisabled_yOOP" type=button disabled title="system mode" aria-label="切换浅色/暗黑模式（当前为system mode）"><svg viewBox="0 0 24 24" width=24 height=24 aria-hidden=true class="toggleIcon_Kt6U lightToggleIcon_Zfeh"><path fill=currentColor d="M12,9c1.65,0,3,1.35,3,3s-1.35,3-3,3s-3-1.35-3-3S10.35,9,12,9 M12,7c-2.76,0-5,2.24-5,5s2.24,5,5,5s5-2.24,5-5 S14.76,7,12,7L12,7z M2,13l2,0c0.55,0,1-0.45,1-1s-0.45-1-1-1l-2,0c-0.55,0-1,0.45-1,1S1.45,13,2,13z M20,13l2,0c0.55,0,1-0.45,1-1 s-0.45-1-1-1l-2,0c-0.55,0-1,0.45-1,1S19.45,13,20,13z M11,2v2c0,0.55,0.45,1,1,1s1-0.45,1-1V2c0-0.55-0.45-1-1-1S11,1.45,11,2z M11,20v2c0,0.55,0.45,1,1,1s1-0.45,1-1v-2c0-0.55-0.45-1-1-1C11.45,19,11,19.45,11,20z M5.99,4.58c-0.39-0.39-1.03-0.39-1.41,0 c-0.39,0.39-0.39,1.03,0,1.41l1.06,1.06c0.39,0.39,1.03,0.39,1.41,0s0.39-1.03,0-1.41L5.99,4.58z M18.36,16.95 c-0.39-0.39-1.03-0.39-1.41,0c-0.39,0.39-0.39,1.03,0,1.41l1.06,1.06c0.39,0.39,1.03,0.39,1.41,0c0.39-0.39,0.39-1.03,0-1.41 L18.36,16.95z M19.42,5.99c0.39-0.39,0.39-1.03,0-1.41c-0.39-0.39-1.03-0.39-1.41,0l-1.06,1.06c-0.39,0.39-0.39,1.03,0,1.41 s1.03,0.39,1.41,0L19.42,5.99z M7.05,18.36c0.39-0.39,0.39-1.03,0-1.41c-0.39-0.39-1.03-0.39-1.41,0l-1.06,1.06 c-0.39,0.39-0.39,1.03,0,1.41s1.03,0.39,1.41,0L7.05,18.36z"/></svg><svg viewBox="0 0 24 24" width=24 height=24 aria-hidden=true class="toggleIcon_Kt6U darkToggleIcon_XgQr"><path fill=currentColor d="M9.37,5.51C9.19,6.15,9.1,6.82,9.1,7.5c0,4.08,3.32,7.4,7.4,7.4c0.68,0,1.35-0.09,1.99-0.27C17.45,17.19,14.93,19,12,19 c-3.86,0-7-3.14-7-7C5,9.07,6.81,6.55,9.37,5.51z M12,3c-4.97,0-9,4.03-9,9s4.03,9,9,9s9-4.03,9-9c0-0.46-0.04-0.92-0.1-1.36 c-0.98,1.37-2.58,2.26-4.4,2.26c-2.98,0-5.4-2.42-5.4-5.4c0-1.81,0.89-3.42,2.26-4.4C12.92,3.04,12.46,3,12,3L12,3z"/></svg><svg viewBox="0 0 24 24" width=24 height=24 aria-hidden=true class="toggleIcon_Kt6U systemToggleIcon_BvUi"><path fill=currentColor d="m12 21c4.971 0 9-4.029 9-9s-4.029-9-9-9-9 4.029-9 9 4.029 9 9 9zm4.95-13.95c1.313 1.313 2.05 3.093 2.05 4.95s-0.738 3.637-2.05 4.95c-1.313 1.313-3.093 2.05-4.95 2.05v-14c1.857 0 3.637 0.737 4.95 2.05z"/></svg></button></div><div class=navbarSearchContainer_watl></div></div></div><div role=presentation class=navbar-sidebar__backdrop></div></nav><div id=__docusaurus_skipToContent_fallback class="theme-layout-main main-wrapper mainWrapper_R72Q"><div class=docsWrapper_XQ9b><button aria-label=回到顶部 class="clean-btn theme-back-to-top-button backToTopButton_MbnX" type=button></button><div class=docRoot_aqOB><aside class="theme-doc-sidebar-container docSidebarContainer_sI2e"><div class=sidebarViewport_TzTy><div class=sidebar_CbEe><nav aria-label=文档侧边栏 class="menu thin-scrollbar menu_ChRF"><ul class="theme-doc-sidebar-menu menu__list"><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-1 menu__list-item menu__list-item--collapsed"><div class=menu__list-item-collapsible><a class="categoryLink_Muyc menu__link menu__link--sublist" href=/getting_started/><span class=categoryLinkLabel_mAcL>快速开始</span></a><button aria-label="展开侧边栏分类 '快速开始'" aria-expanded=false type=button class="clean-btn menu__caret"></button></div><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-1 menu__list-item menu__list-item--collapsed"><div class=menu__list-item-collapsible><a class="categoryLink_Muyc menu__link menu__link--sublist" href=/concepts/><span class=categoryLinkLabel_mAcL>核心概念</span></a><button aria-label="展开侧边栏分类 '核心概念'" aria-expanded=false type=button class="clean-btn menu__caret"></button></div><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-1 menu__list-item"><div class=menu__list-item-collapsible><a class="categoryLink_Muyc menu__link menu__link--sublist menu__link--active" href=/integrations/><span class=categoryLinkLabel_mAcL>交易所与集成</span></a><button aria-label="折叠侧边栏分类 '交易所与集成'" aria-expanded=true type=button class="clean-btn menu__caret"></button></div><ul class=menu__list><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class="menu__link menu__link--active" aria-current=page tabindex=0 href=/integrations/architect_ax><span class=linkLabel_lYjD>AX Exchange</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/integrations/betfair><span class=linkLabel_lYjD>Betfair</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/integrations/binance><span class=linkLabel_lYjD>Binance</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/integrations/blockchain><span class=linkLabel_lYjD>区块链</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/integrations/bybit><span class=linkLabel_lYjD>Bybit</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/integrations/coinapi><span class=linkLabel_lYjD>CoinAPI</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/integrations/coinbase><span class=linkLabel_lYjD>Coinbase</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/integrations/databento><span class=linkLabel_lYjD>Databento</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/integrations/deribit><span class=linkLabel_lYjD>Deribit</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/integrations/derive><span class=linkLabel_lYjD>Derive</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/integrations/dydx><span class=linkLabel_lYjD>dYdX</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/integrations/hyperliquid><span class=linkLabel_lYjD>Hyperliquid</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/integrations/interactive_brokers><span class=linkLabel_lYjD>Interactive Brokers</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/integrations/kraken><span class=linkLabel_lYjD>Kraken</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/integrations/lighter><span class=linkLabel_lYjD>Lighter</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/integrations/okx><span class=linkLabel_lYjD>OKX</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/integrations/polymarket><span class=linkLabel_lYjD>Polymarket</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/integrations/tardis><span class=linkLabel_lYjD>Tardis</span></a></ul><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-1 menu__list-item menu__list-item--collapsed"><div class=menu__list-item-collapsible><a class="categoryLink_Muyc menu__link menu__link--sublist" href=/how_to/><span class=categoryLinkLabel_mAcL>操作指南</span></a><button aria-label="展开侧边栏分类 '操作指南'" aria-expanded=false type=button class="clean-btn menu__caret"></button></div><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-1 menu__list-item menu__list-item--collapsed"><div class=menu__list-item-collapsible><a class="categoryLink_Muyc menu__link menu__link--sublist" href=/tutorials/><span class=categoryLinkLabel_mAcL>教程</span></a><button aria-label="展开侧边栏分类 '教程'" aria-expanded=false type=button class="clean-btn menu__caret"></button></div><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-1 menu__list-item menu__list-item--collapsed"><div class=menu__list-item-collapsible><a class="categoryLink_Muyc menu__link menu__link--sublist" href=/developer_guide/><span class=categoryLinkLabel_mAcL>开发者指南</span></a><button aria-label="展开侧边栏分类 '开发者指南'" aria-expanded=false type=button class="clean-btn menu__caret"></button></div><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-1 menu__list-item menu__list-item--collapsed"><div class=menu__list-item-collapsible><a class="categoryLink_Muyc menu__link menu__link--sublist" href=/api_reference/><span class=categoryLinkLabel_mAcL>API 参考</span></a><button aria-label="展开侧边栏分类 'API 参考'" aria-expanded=false type=button class="clean-btn menu__caret"></button></div></ul></nav></div></div></aside><main class=docMainContainer_sLF8><div class="container padding-top--md padding-bottom--lg"><div class=row><div class="col docItemCol_ZRft"><div class=docItemContainer_KOP5><article><nav class="theme-doc-breadcrumbs breadcrumbsContainer_d5rS" aria-label=页面路径><ul class=breadcrumbs><li class=breadcrumbs__item><a aria-label=主页面 class=breadcrumbs__link href=/><svg viewBox="0 0 24 24" class=breadcrumbHomeIcon_XgF2><path d="M10 19v-5h4v5c0 .55.45 1 1 1h3c.55 0 1-.45 1-1v-7h1.7c.46 0 .68-.57.33-.87L12.67 3.6c-.38-.34-.96-.34-1.34 0l-8.36 7.53c-.34.3-.13.87.33.87H5v7c0 .55.45 1 1 1h3c.55 0 1-.45 1-1z" fill=currentColor /></svg></a><li class=breadcrumbs__item><a class=breadcrumbs__link href=/integrations/><span>交易所与集成</span></a><li class="breadcrumbs__item breadcrumbs__item--active"><span class=breadcrumbs__link>AX Exchange</span></ul></nav><div class="tocCollapsible_bgaJ theme-doc-toc-mobile tocMobile_FhT_"><button type=button class="clean-btn tocCollapsibleButton_F8AY">本页总览</button></div><div class="theme-doc-markdown markdown"><header><h1>AX Exchange</h1></header>
+<p><a href=https://architect.exchange target=_blank rel="noopener noreferrer" class="">AX Exchange</a> 是一家受监管的中心化衍生品交易所，标的为传统资产类别。Architect Bermuda Ltd. 持有 <a href=https://www.bma.bm target=_blank rel="noopener noreferrer" class="">Bermuda Monetary Authority（BMA）</a>牌照运营 AX。AX 的生产与 sandbox 目录都上架永续和到期期货合约。</p>
+<p>本集成支持基于 AX Exchange 的实时行情接入与订单执行。</p>
+<h2 class="anchor anchorTargetStickyNavbar_ana5" id=overview>概览<a href=#overview class=hash-link aria-label=概览的直接链接 title=概览的直接链接 translate=no>​</a></h2>
+<p>适配器以 Rust 实现，通过 PyO3 绑定暴露给 Python，不需要外部 AX 客户端库。</p>
+<p>本指南假定读者要同时配置实时行情与交易执行。AX Exchange 适配器包含多个组件，按用途可组合使用也可单独使用：</p>
+<ul>
+<li class=""><code>AxHttpClient</code>：低层 HTTP API 连接。</li>
+<li class=""><code>AxMdWebSocketClient</code> 与 <code>AxOrdersWebSocketClient</code>：供 Rust 调用方使用的低层 WebSocket 连接。</li>
+<li class=""><code>AxDataClient</code>：行情数据源管理器。</li>
+<li class=""><code>AxExecutionClient</code>：账户管理与交易执行网关。</li>
+<li class=""><code>AxDataClientFactory</code>：AX 数据客户端工厂。</li>
+<li class=""><code>AxExecutionClientFactory</code>：AX 执行客户端工厂。</li>
+</ul>
+<div class="theme-admonition theme-admonition-note admonition_LYZY alert alert--secondary"><div class=admonitionHeading_pnFY><span class=admonitionIcon_tEzm><svg viewBox="0 0 14 16"><path fill-rule=evenodd d="M6.3 5.69a.942.942 0 0 1-.28-.7c0-.28.09-.52.28-.7.19-.18.42-.28.7-.28.28 0 .52.09.7.28.18.19.28.42.28.7 0 .28-.09.52-.28.7a1 1 0 0 1-.7.3c-.28 0-.52-.11-.7-.3zM8 7.99c-.02-.25-.11-.48-.31-.69-.2-.19-.42-.3-.69-.31H6c-.27.02-.48.13-.69.31-.2.2-.3.44-.31.69h1v3c.02.27.11.5.31.69.2.2.42.31.69.31h1c.27 0 .48-.11.69-.31.2-.19.3-.42.31-.69H8V7.98v.01zM7 2.3c-3.14 0-5.7 2.54-5.7 5.68 0 3.14 2.56 5.7 5.7 5.7s5.7-2.55 5.7-5.7c0-3.15-2.56-5.69-5.7-5.69v.01zM7 .98c3.86 0 7 3.14 7 7s-3.14 7-7 7-7-3.12-7-7 3.14-7 7-7z"/></svg></span>备注</div><div class=admonitionContent_ZwmI><p>多数用户按下文配置实时交易节点即可，不需要直接使用这些底层组件。</div></div>
+<h2 class="anchor anchorTargetStickyNavbar_ana5" id=examples>示例<a href=#examples class=hash-link aria-label=示例的直接链接 title=示例的直接链接 translate=no>​</a></h2>
+<ul>
+<li class=""><a href=https://github.com/nautechsystems/nautilus_trader/tree/develop/examples/live/architect_ax/ target=_blank rel="noopener noreferrer" class="">Python 示例</a></li>
+<li class=""><a href=https://github.com/nautechsystems/nautilus_trader/tree/develop/crates/adapters/architect_ax/examples/ target=_blank rel="noopener noreferrer" class="">Rust 示例</a></li>
+</ul>
+<h2 class="anchor anchorTargetStickyNavbar_ana5" id=ax-exchange-documentation>AX Exchange 文档<a href=#ax-exchange-documentation class=hash-link aria-label="AX Exchange 文档的直接链接" title="AX Exchange 文档的直接链接" translate=no>​</a></h2>
+<p>AX Exchange 在 <a href=https://docs.architect.exchange/ target=_blank rel="noopener noreferrer" class="">Architect 文档站</a> 提供用户文档。请与本 NautilusTrader 集成指南配合阅读。</p>
+<h2 class="anchor anchorTargetStickyNavbar_ana5" id=products>产品<a href=#products class=hash-link aria-label=产品的直接链接 title=产品的直接链接 translate=no>​</a></h2>
+<p>生产目录按以下场所类别上架永续和到期期货合约：</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>场所类别<th>示例<th>Nautilus 资产类别<tbody><tr><td>外汇<td><code>EURUSD-PERP</code>、<code>JPYUSD-PERP</code><td>FX<tr><td>股票<td><code>AAPL-PERP</code>、<code>NVDA-PERP</code><td>Equity<tr><td>金属<td><code>XAU-PERP</code>、<code>XAU-2026-DEC</code><td>Commodity<tr><td>能源<td><code>WTIOIL-PERP</code><td>Commodity<tr><td>国债<td><code>UST10Y-PERP</code><td>Debt<tr><td>算力<td><code>NVDA-H100-2027-MAR</code><td>Alternative</table>
+<p>sandbox 目录有所不同：它还上架 <code>energy_etfs</code> 合约（如 <code>USO-PERP</code>、<code>UNG-PERP</code>，映射到 Equity 资产类别），以及算力永续（如 <code>OCPI-H100-PERP</code>）。</p>
+<p>适配器把 <code>crypto</code> 场所类别映射为 <code>CRYPTOCURRENCY</code> 资产类别，无法识别的类别一律映射为 <code>ALTERNATIVE</code>。</p>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=perpetual-contracts>永续合约<a href=#perpetual-contracts class=hash-link aria-label=永续合约的直接链接 title=永续合约的直接链接 translate=no>​</a></h3>
+<p>永续合约（永续互换）是跟踪标的资产价格、没有到期日的衍生品。与标准期货不同，它没有结算日，因此没有展期成本，持仓管理也更简单。资金费率机制通过多空持有者之间的周期性支付，使合约价格与标的指数价格保持一致。资金费率机制与合约规格的细节见 <a href=https://docs.architect.exchange/ target=_blank rel="noopener noreferrer" class="">Architect 文档</a>。</p>
+<p>AX 永续合约的特征：</p>
+<ul>
+<li class=""><strong>以 USD 现金结算</strong>：无实物交割，全部盈亏以 USD 结算。</li>
+<li class=""><strong>资金费率</strong>：周期性支付使合约价格与标的一致。</li>
+<li class=""><strong>乘数为 1</strong>：每张合约代表一单位标的暴露。</li>
+<li class=""><strong>只支持整数张合约</strong>：不支持小数数量。</li>
+<li class=""><strong>保证金</strong>：开仓需要初始保证金，维持持仓需要维持保证金。</li>
+</ul>
+<p>适配器把无到期日的 AX 金融工具表示为 <code>PerpetualContract</code>，有到期日的表示为 <code>FuturesContract</code>。场所类别决定 Nautilus 资产类别。适配器使用 <code>MARGIN</code> 账户类型和 <code>NETTING</code> 订单管理。</p>
+<h2 class="anchor anchorTargetStickyNavbar_ana5" id=symbology>代码体系<a href=#symbology class=hash-link aria-label=代码体系的直接链接 title=代码体系的直接链接 translate=no>​</a></h2>
+<p>适配器保留每个 AX 代码原样，并追加 Nautilus 场所标识 <code>.AX</code>。永续代码使用 <code>-PERP</code> 后缀，到期代码包含年份和合约月份。</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>合约<th>AX 代码<th>Nautilus InstrumentId<tbody><tr><td>EUR/USD 永续<td><code>EURUSD-PERP</code><td><code>EURUSD-PERP.AX</code><tr><td>黄金永续<td><code>XAU-PERP</code><td><code>XAU-PERP.AX</code><tr><td>黄金到期合约<td><code>XAU-2026-DEC</code><td><code>XAU-2026-DEC.AX</code></table>
+<p>场所标识是 <code>AX</code>。构造 Nautilus <code>InstrumentId</code>：</p>
+<div class="language-python codeBlockContainer_eTMR theme-code-block" style=--prism-color:#393A34;--prism-background-color:#f6f8fa><div class=codeBlockContent_hafM><pre tabindex=0 class="prism-code language-python codeBlock_IMvC thin-scrollbar" style=color:#393A34;background-color:#f6f8fa><code class=codeBlockLines_gZDW><div class=token-line style=color:#393A34><span class="token keyword" style=color:#00009f>from</span><span class="token plain"> nautilus_trader</span><span class="token punctuation" style=color:#393A34>.</span><span class="token plain">model </span><span class="token keyword" style=color:#00009f>import</span><span class="token plain"> InstrumentId</span><br/></div><div class=token-line style=color:#393A34><span class="token plain" style=display:inline-block></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">instrument_id </span><span class="token operator" style=color:#393A34>=</span><span class="token plain"> InstrumentId</span><span class="token punctuation" style=color:#393A34>.</span><span class="token plain">from_str</span><span class="token punctuation" style=color:#393A34>(</span><span class="token string" style=color:#e3116c>"EURUSD-PERP.AX"</span><span class="token punctuation" style=color:#393A34>)</span><br/></div></code></pre></div></div>
+<h2 class="anchor anchorTargetStickyNavbar_ana5" id=environments>环境<a href=#environments class=hash-link aria-label=环境的直接链接 title=环境的直接链接 translate=no>​</a></h2>
+<p>AX Exchange 提供两种交易环境，用客户端配置中的 <code>environment</code> 参数选择。</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>环境<th>配置<th>说明<tbody><tr><td><strong>Sandbox</strong><td><code>environment=AxEnvironment.SANDBOX</code><td>模拟资金的测试环境。<tr><td><strong>Production</strong><td><code>environment=AxEnvironment.PRODUCTION</code><td>真实资金的实盘交易。</table>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=sandbox>Sandbox<a href=#sandbox class=hash-link aria-label=Sandbox的直接链接 title=Sandbox的直接链接 translate=no>​</a></h3>
+<p>开发与测试的默认环境，使用模拟资金。设置 <code>environment=AxEnvironment.SANDBOX</code> 后所有 sandbox 端点自动解析。</p>
+<h4 class="anchor anchorTargetStickyNavbar_ana5" id=1-create-a-sandbox-account>1. 创建 sandbox 账户<a href=#1-create-a-sandbox-account class=hash-link aria-label="1. 创建 sandbox 账户的直接链接" title="1. 创建 sandbox 账户的直接链接" translate=no>​</a></h4>
+<p>按 <a href=https://docs.architect.exchange/ target=_blank rel="noopener noreferrer" class="">Architect 文档</a> 创建 sandbox 账户。注册时需要邀请码。</p>
+<h4 class="anchor anchorTargetStickyNavbar_ana5" id=2-create-api-keys-and-fund-the-account>2. 创建 API 密钥并为账户注资<a href=#2-create-api-keys-and-fund-the-account class=hash-link aria-label="2. 创建 API 密钥并为账户注资的直接链接" title="2. 创建 API 密钥并为账户注资的直接链接" translate=no>​</a></h4>
+<p>用 AX sandbox UI 生成 API 密钥并向账户存入模拟资金。妥善保存 <code>api_key</code> 和 <code>api_secret</code>。</p>
+<h4 class="anchor anchorTargetStickyNavbar_ana5" id=3-set-environment-variables>3. 设置环境变量<a href=#3-set-environment-variables class=hash-link aria-label="3. 设置环境变量的直接链接" title="3. 设置环境变量的直接链接" translate=no>​</a></h4>
+<div class="language-bash codeBlockContainer_eTMR theme-code-block" style=--prism-color:#393A34;--prism-background-color:#f6f8fa><div class=codeBlockContent_hafM><pre tabindex=0 class="prism-code language-bash codeBlock_IMvC thin-scrollbar" style=color:#393A34;background-color:#f6f8fa><code class=codeBlockLines_gZDW><div class=token-line style=color:#393A34><span class="token plain">export AX_API_KEY="your-sandbox-api-key"</span><br/></div><div class=token-line style=color:#393A34><span class="token plain">export AX_API_SECRET="your-sandbox-api-secret"</span><br/></div></code></pre></div></div>
+<h4 class="anchor anchorTargetStickyNavbar_ana5" id=4-configure-the-live-node>4. 配置交易节点<a href=#4-configure-the-live-node class=hash-link aria-label="4. 配置交易节点的直接链接" title="4. 配置交易节点的直接链接" translate=no>​</a></h4>
+<p>在数据与执行客户端配置上设置 <code>environment=AxEnvironment.SANDBOX</code>。完整的 <code>LiveNode</code> 搭建见
+<a href=https://github.com/nautechsystems/nautilus_trader/tree/develop/examples/live/architect_ax/ target=_blank rel="noopener noreferrer" class="">Python 示例</a>。</p>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=production>生产环境<a href=#production class=hash-link aria-label=生产环境的直接链接 title=生产环境的直接链接 translate=no>​</a></h3>
+<p>用于真实资金实盘交易，需要已完成认证的 AX Exchange 账户。</p>
+<div class="language-python codeBlockContainer_eTMR theme-code-block" style=--prism-color:#393A34;--prism-background-color:#f6f8fa><div class=codeBlockContent_hafM><pre tabindex=0 class="prism-code language-python codeBlock_IMvC thin-scrollbar" style=color:#393A34;background-color:#f6f8fa><code class=codeBlockLines_gZDW><div class=token-line style=color:#393A34><span class="token plain">config </span><span class="token operator" style=color:#393A34>=</span><span class="token plain"> AxExecutionClientConfig</span><span class="token punctuation" style=color:#393A34>(</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    environment</span><span class="token operator" style=color:#393A34>=</span><span class="token plain">AxEnvironment</span><span class="token punctuation" style=color:#393A34>.</span><span class="token plain">PRODUCTION</span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain"></span><span class="token punctuation" style=color:#393A34>)</span><br/></div></code></pre></div></div>
+<div class="theme-admonition theme-admonition-warning admonition_LYZY alert alert--warning"><div class=admonitionHeading_pnFY><span class=admonitionIcon_tEzm><svg viewBox="0 0 16 16"><path fill-rule=evenodd d="M8.893 1.5c-.183-.31-.52-.5-.887-.5s-.703.19-.886.5L.138 13.499a.98.98 0 0 0 0 1.001c.193.31.53.501.886.501h13.964c.367 0 .704-.19.877-.5a1.03 1.03 0 0 0 .01-1.002L8.893 1.5zm.133 11.497H6.987v-2.003h2.039v2.003zm0-3.004H6.987V5.987h2.039v4.006z"/></svg></span>注意</div><div class=admonitionContent_ZwmI><p>下单前务必确认环境正确。默认是 Sandbox，以防误入实盘。</div></div>
+<h2 class="anchor anchorTargetStickyNavbar_ana5" id=market-data>行情数据<a href=#market-data class=hash-link aria-label=行情数据的直接链接 title=行情数据的直接链接 translate=no>​</a></h2>
+<p>适配器经 WebSocket 订阅提供实时行情，并提供 HTTP 端点做历史数据回填。</p>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=data-types>数据类型<a href=#data-types class=hash-link aria-label=数据类型的直接链接 title=数据类型的直接链接 translate=no>​</a></h3>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>AX 数据<th>Nautilus 数据类型<th>说明<tbody><tr><td>订单簿（L1）<td><code>QuoteTick</code><td>来自 L1 簿订阅的最优买卖价 top-of-book。<tr><td>订单簿（L2）<td><code>OrderBookDelta</code><td>按价格档位聚合。<tr><td>订单簿（L3）<td><code>OrderBookDelta</code><td>每次快照的逐单数量，使用合成 ID。<tr><td>成交<td><code>TradeTick</code><td>仅成交 WebSocket 订阅的实时成交事件。<tr><td>Mark 价格<td><code>MarkPriceUpdate</code><td>从 L1 ticker 订阅提取。<tr><td>Bar/candle<td><code>Bar</code><td>OHLCV 数据（只有总量，无买卖拆分）。<tr><td>资金费率<td><code>FundingRateUpdate</code><td>经 HTTP 轮询；间隔可配置。<tr><td>金融工具状态<td><code>InstrumentStatus</code><td>来自 L1 ticker 订阅的状态变更。</table>
+<p>AX 金融工具状态到 <code>MarketStatusAction</code> 的映射：</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>AX 状态<th><code>MarketStatusAction</code><tbody><tr><td>开盘前<td><code>PRE_OPEN</code><tr><td>开盘<td><code>TRADING</code><tr><td>收盘、收盘冻结<td><code>CLOSE</code><tr><td>暂停交易（halted）<td><code>HALT</code><tr><td>收盘集合竞价<td><code>CROSS</code><tr><td>停牌（suspended）<td><code>SUSPEND</code><tr><td>退市，或任何无法识别的状态<td><code>NOT_AVAILABLE_FOR_TRADING</code></table>
+<div class="theme-admonition theme-admonition-note admonition_LYZY alert alert--secondary"><div class=admonitionHeading_pnFY><span class=admonitionIcon_tEzm><svg viewBox="0 0 14 16"><path fill-rule=evenodd d="M6.3 5.69a.942.942 0 0 1-.28-.7c0-.28.09-.52.28-.7.19-.18.42-.28.7-.28.28 0 .52.09.7.28.18.19.28.42.28.7 0 .28-.09.52-.28.7a1 1 0 0 1-.7.3c-.28 0-.52-.11-.7-.3zM8 7.99c-.02-.25-.11-.48-.31-.69-.2-.19-.42-.3-.69-.31H6c-.27.02-.48.13-.69.31-.2.2-.3.44-.31.69h1v3c.02.27.11.5.31.69.2.2.42.31.69.31h1c.27 0 .48-.11.69-.31.2-.19.3-.42.31-.69H8V7.98v.01zM7 2.3c-3.14 0-5.7 2.54-5.7 5.68 0 3.14 2.56 5.7 5.7 5.7s5.7-2.55 5.7-5.7c0-3.15-2.56-5.69-5.7-5.69v.01zM7 .98c3.86 0 7 3.14 7 7s-3.14 7-7 7-7-3.12-7-7 3.14-7 7-7z"/></svg></span>备注</div><div class=admonitionContent_ZwmI><p>AX Exchange 不支持历史报价 tick 请求。报价数据只能通过 WebSocket L1 簿订阅实时获取。适配器不暴露 AX 的指数价格和金融工具收盘事件，这两类订阅会记录警告且不产出数据。</div></div>
+<div class="theme-admonition theme-admonition-note admonition_LYZY alert alert--secondary"><div class=admonitionHeading_pnFY><span class=admonitionIcon_tEzm><svg viewBox="0 0 14 16"><path fill-rule=evenodd d="M6.3 5.69a.942.942 0 0 1-.28-.7c0-.28.09-.52.28-.7.19-.18.42-.28.7-.28.28 0 .52.09.7.28.18.19.28.42.28.7 0 .28-.09.52-.28.7a1 1 0 0 1-.7.3c-.28 0-.52-.11-.7-.3zM8 7.99c-.02-.25-.11-.48-.31-.69-.2-.19-.42-.3-.69-.31H6c-.27.02-.48.13-.69.31-.2.2-.3.44-.31.69h1v3c.02.27.11.5.31.69.2.2.42.31.69.31h1c.27 0 .48-.11.69-.31.2-.19.3-.42.31-.69H8V7.98v.01zM7 2.3c-3.14 0-5.7 2.54-5.7 5.68 0 3.14 2.56 5.7 5.7 5.7s5.7-2.55 5.7-5.7c0-3.15-2.56-5.69-5.7-5.69v.01zM7 .98c3.86 0 7 3.14 7 7s-3.14 7-7 7-7-3.12-7-7 3.14-7 7-7z"/></svg></span>备注</div><div class=admonitionContent_ZwmI><p>AX 的 L3 快照含逐单数量但没有场所订单 ID，适配器在每次快照内分配合成 ID，无法跨快照跟踪同一笔订单。L2 与 L3 处理要求完整快照（<code>st: true</code>），适配器拒绝增量帧（<code>st: false</code>），以免清掉未变的簿档位。</div></div>
+<div class="theme-admonition theme-admonition-note admonition_LYZY alert alert--secondary"><div class=admonitionHeading_pnFY><span class=admonitionIcon_tEzm><svg viewBox="0 0 14 16"><path fill-rule=evenodd d="M6.3 5.69a.942.942 0 0 1-.28-.7c0-.28.09-.52.28-.7.19-.18.42-.28.7-.28.28 0 .52.09.7.28.18.19.28.42.28.7 0 .28-.09.52-.28.7a1 1 0 0 1-.7.3c-.28 0-.52-.11-.7-.3zM8 7.99c-.02-.25-.11-.48-.31-.69-.2-.19-.42-.3-.69-.31H6c-.27.02-.48.13-.69.31-.2.2-.3.44-.31.69h1v3c.02.27.11.5.31.69.2.2.42.31.69.31h1c.27 0 .48-.11.69-.31.2-.19.3-.42.31-.69H8V7.98v.01zM7 2.3c-3.14 0-5.7 2.54-5.7 5.68 0 3.14 2.56 5.7 5.7 5.7s5.7-2.55 5.7-5.7c0-3.15-2.56-5.69-5.7-5.69v.01zM7 .98c3.86 0 7 3.14 7 7s-3.14 7-7 7-7-3.12-7-7 3.14-7 7-7z"/></svg></span>备注</div><div class=admonitionContent_ZwmI><p>AX 不为行情数据发布成交标识。因此适配器的 <code>TradeTick.trade_id</code> 由成交的时间戳、价格、数量和主动方推导。只要 REST 与 WebSocket 都上报该成交的主动方，两者对同一成交给出一致 ID；AX 上报完全相同的成交共享同一 ID。这只影响按 <code>trade_id</code> 对行情去重的消费者——成交报告携带的是场所自己的成交 ID。</div></div>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=websocket-subscription-behavior>WebSocket 订阅行为<a href=#websocket-subscription-behavior class=hash-link aria-label="WebSocket 订阅行为的直接链接" title="WebSocket 订阅行为的直接链接" translate=no>​</a></h3>
+<p>AX 行情 WebSocket 订阅每个代码只有一条活动流。适配器选择能覆盖当前 Nautilus 订阅的最小流：</p>
+<ul>
+<li class="">
+<p>仅成交订阅使用 AX <code>level: "TRADES"</code>，只投递成交。</p>
+</li>
+<li class="">
+<p>仅订单簿和仅报价订阅设置 AX <code>trades: false</code> 和 <code>ticker: false</code>，抑制未请求的成交与 ticker 事件。</p>
+</li>
+<li class="">
+<p>Mark 价格与金融工具状态订阅需要 AX ticker 事件，因此适配器在活动簿流上启用 ticker 投递；没有订单簿订阅时另开一条 L1 流。</p>
+</li>
+<li class="">
+<p>订单簿 delta 按 Nautilus 簿类型对应的 AX 层级订阅。<code>L1_MBP</code> 没有支持 delta 的 AX 等价层级，适配器记录警告后改订 L2。</p>
+</li>
+<li class="">
+<p>某代码同时有多个 Nautilus 数据类型活动时，只在以下变化发生时重新订阅：</p>
+<ul>
+<li class="">所需的 AX 层级或投递标志发生变化。</li>
+<li class="">订单簿需要新的快照（见<a href=#order-book-recovery class="">订单簿恢复</a>）。</li>
+</ul>
+</li>
+<li class="">
+<p>订阅变更按数据引擎发出的顺序到达 AX，因此"先退订再重订"的结果是流保持订阅。</p>
+</li>
+</ul>
+<p>AX 在 ticker 事件上发布估算资金费率，并在订单 WebSocket 上提供估算资金费率请求。ticker 模型保留估算资金费率元数据。Nautilus 通过 HTTP 轮询暴露已结算的资金费率更新。适配器不单独发布估算资金费率数据类型，也不请求独立估算值。</p>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=order-book-recovery>订单簿恢复<a href=#order-book-recovery class=hash-link aria-label=订单簿恢复的直接链接 title=订单簿恢复的直接链接 translate=no>​</a></h3>
+<p>数据客户端用<a class="" href=/developer_guide/adapters#order-book-recovery-ownership>共享的订单簿恢复机制</a>管理每个订单簿 delta 订阅。AX 的 L2、L3 消息携带完整快照且没有序号。AX 在每次订阅确认后立即发送一个快照，空簿或无变化的簿也不例外。客户端把每条消息都当作快照接受。订阅写入进行期间会抑制该簿的输出，已退订订单簿的帧直接丢弃。</p>
+<p>恢复在同一连接上用"退订 + 订阅"替换该代码的订阅，替换保留当前的层级与成交、ticker 标志。AX 把一个代码的全部行情放在一条流上，替换进行期间该代码的成交、报价、mark 价格和金融工具状态都会暂停。恢复在以下情况启动：</p>
+<ul>
+<li class="">初始订阅写入失败。</li>
+<li class="">初始订阅写入完成或连接重建后，<code>book_snapshot_timeout_secs</code>（默认 10 秒）内没有快照到达。<code>disconnect</code> 之后的数据客户端 <code>connect</code> 同样适用：客户端保留订单簿，WebSocket 客户端会重放它们的订阅。</li>
+<li class="">L2 或 L3 帧无法转换，例如增量帧（<code>st: false</code>）。订单簿停止输出直到替代快照到达；进行中的恢复当前尝试直接失败，不再等它的快照期限。</li>
+</ul>
+<p>被 AX 拒绝的订阅不会送来快照，其快照期限会启动恢复。WebSocket handler 已停止导致无法入队的订阅不启动恢复，其订单簿也不输出任何东西。对已开流的订单簿再订阅 delta 会替换该流，订单簿因此从新快照开始。</p>
+<p>每次恢复在 180 秒内最多尝试八次，指数退避；此后持续重试直到接受一个快照，重试间隔从一分钟翻倍到十五分钟。进行中的恢复带着剩余预算跨重连继续，退订或关闭会取消它。预算重试后、正处在尝试间隔等待中的恢复，在新连接上立即重试。恢复永远不会以失败状态结束。</p>
+<p>客户端不把订阅确认与恢复尝试做关联。替换写入完成之后，替换前就已入队的快照仍能让恢复成功。订单簿无变化时 AX 不发帧，因此客户端不会把静默的订单簿当作过期。</p>
+<p><code>book_snapshot_timeout_secs</code> 设为 <code>0</code> 会禁用快照期限，恢复只从失败的初始写入或无效帧启动。在重试预算内，没有送达快照的替换会一直等待，直到以下事件之一：</p>
+<ul>
+<li class="">客户端接受了一个快照。</li>
+<li class="">无效帧使当前尝试失败。</li>
+<li class="">恢复被取消。</li>
+<li class="">180 秒初始预算结束。</li>
+</ul>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=live-recovery-validation>实时恢复验证<a href=#live-recovery-validation class=hash-link aria-label=实时恢复验证的直接链接 title=实时恢复验证的直接链接 translate=no>​</a></h3>
+<p><code>ax-book-stress</code> «压力金融工具»是订单簿同步与恢复代码变更时的«开发金融工具»。它使用 AX sandbox 行情，不提交任何订单，按订单簿数据流契约和每条转发的原生 L2 帧校验五个永续订单簿。</p>
+<p>AX 行情流要求认证，因此该金融工具从 <code>AX_API_KEY</code> 和 <code>AX_API_SECRET</code> 读取 sandbox API 凭据，不经 <code>scripts/strip-adapter-env.bash</code> 运行。在仓库根目录运行：</p>
+<div class="language-bash codeBlockContainer_eTMR theme-code-block" style=--prism-color:#393A34;--prism-background-color:#f6f8fa><div class=codeBlockContent_hafM><pre tabindex=0 class="prism-code language-bash codeBlock_IMvC thin-scrollbar" style=color:#393A34;background-color:#f6f8fa><code class=codeBlockLines_gZDW><div class=token-line style=color:#393A34><span class="token plain">CARGO_BUILD_JOBS=16 cargo test -p nautilus-architect-ax --features examples --test ax-book-stress -- --timeout 10 --rounds 14</span><br/></div></code></pre></div></div>
+<p><code>--scenario</code> 选择运行内容：</p>
+<ul>
+<li class="">
+<p><code>churn</code>（默认）：轮流验证这些情形：</p>
+<ul>
+<li class="">无效帧，每个订单簿无需重连即可恢复。</li>
+<li class="">重连后快照被扣住超过期限。</li>
+<li class="">重连后迟到的快照。</li>
+<li class="">被拒绝的替换。</li>
+<li class="">快照之前被切断的重连。</li>
+<li class="">恢复期间的重启。</li>
+<li class="">不关闭 socket 的 40 秒流量冻结。</li>
+</ul>
+</li>
+<li class="">
+<p><code>initial</code>：在每轮的新会话中丢弃每个订单簿的首个快照并使其数据流静默。<code>--timeout 0</code> 时，订单簿保持无数据直到重连重放订阅。</p>
+</li>
+<li class="">
+<p><code>turnover</code>：在恢复刚启动、替换到达场所之后、或被拒替换超期之后，对一个恢复中的订单簿执行退订加重订阅。场所处理稳定后，新订阅必须继续流式且不再有新的替换。</p>
+</li>
+<li class="">
+<p><code>boundaries</code>：让重试预算内的每次尝试都被拒绝，然后校验重试上限、结束上限等待的重连、恢复期间的退订、重连期间的关闭。它要求非零 <code>--timeout</code>（每个被拒尝试由快照期限收尾），且 <code>--symbols</code> 至少三个。</p>
+</li>
+</ul>
+<p><code>--timeout</code> 设置快照超时秒数（<code>0</code> 禁用快照期限），<code>--rounds</code> 设置轮数（默认 14）。<code>--symbols</code> 接收逗号分隔的代码列表。sandbox 做市商只对部分金融工具报价，而停止流式的订单簿会使运行失败，请挑选会流式的订单簿。</p>
+<p>该金融工具需要 sandbox 行情 WebSocket 和 REST API。共享参数与输出格式见
+<a class="" href=/developer_guide/spec_data_testing#stress-harnesses>«压力«测试金融工具»»</a>。</p>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=http-api-behavior>HTTP API 行为<a href=#http-api-behavior class=hash-link aria-label="HTTP API 行为的直接链接" title="HTTP API 行为的直接链接" translate=no>​</a></h3>
+<ul>
+<li class=""><code>GET /tickers</code> 返回 limit/offset 分页元数据，支持 <code>limit</code>、<code>offset</code>、<code>sort</code> 查询参数。</li>
+<li class=""><code>GET /ticker</code> 在响应顶层 <code>ticker</code> 字段下返回 ticker。</li>
+<li class=""><code>GET /open-orders</code> 使用 limit/offset 分页。挂单对账遍历全部分页并校验总数、偏移、重复和完整性，检测到的响应偏差会使请求失败。</li>
+<li class=""><code>GET /fills</code> 和 <code>GET /funding-rates</code> 使用游标分页。适配器把每条游标链当作尽力而为的历史读取遍历；遍历期间 AX 侧的更正不构成原子快照。</li>
+<li class=""><code>GET /orders</code> 暴露游标元数据，支持 <code>order_id</code>、<code>order_ids</code>、<code>account_id</code> 和可选时间戳过滤。启动时的全量状态对账遍历其游标链，接受不完整分页，拒绝重复游标和重复订单 ID。</li>
+<li class="">挂单、历史订单、成交和持仓报告请求遇到未缓存代码时经 <code>GET /instrument</code> 解析并缓存结果。金融工具请求或解析失败会使整个报告请求失败，而不是丢弃场所状态。</li>
+<li class=""><code>GET /transactions</code> 要求 <code>start_timestamp_ns</code> 和 <code>end_timestamp_ns</code>，跨度不超过 7 天。低层客户端暴露其游标与账户选择器。</li>
+<li class=""><code>GET /order-status</code> 对被拒订单可以带上 <code>reject_reason</code> 和 <code>reject_message</code>。</li>
+<li class="">省略账户选择器时，AX 使用主账户。高层执行客户端只拥有一个主账户。低层请求模型暴露文档化的账户选择器。</li>
+</ul>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=bar-intervals>Bar 周期<a href=#bar-intervals class=hash-link aria-label="Bar 周期的直接链接" title="Bar 周期的直接链接" translate=no>​</a></h3>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>周期<th>说明<tbody><tr><td><code>1s</code><td>一秒<tr><td><code>5s</code><td>五秒<tr><td><code>1m</code><td>一分钟<tr><td><code>5m</code><td>五分钟<tr><td><code>15m</code><td>十五分钟<tr><td><code>1h</code><td>一小时<tr><td><code>1d</code><td>一天</table>
+<h2 class="anchor anchorTargetStickyNavbar_ana5" id=orders-capability>订单能力<a href=#orders-capability class=hash-link aria-label=订单能力的直接链接 title=订单能力的直接链接 translate=no>​</a></h2>
+<p>AX 的下单 API 没有订单类型选项，其唯一的原生订单形态要求价格，适配器把它映射为 Nautilus 的 <code>LIMIT</code> 订单。适配器的 Nautilus <code>MARKET</code> 订单是模拟的：先预览一个激进价格，再以该价格带 IOC 提交上述形态。</p>
+<p>官方
+<a href=https://docs.architect.exchange/api-reference/order-management/place-order target=_blank rel="noopener noreferrer" class="">REST place-order</a>
+和
+<a href=https://docs.architect.exchange/api-reference/order-management/orders-ws target=_blank rel="noopener noreferrer" class="">orders WebSocket</a>
+的请求 schema 都不含 <code>order_type</code> 或 <code>trigger_price</code> 字段。sandbox 中触发价未越过的止损限价提交会以当前限价立即成交。条件执行未获确认，因此适配器在发送前拒绝场所原生的止损限价订单。</p>
+<p>Nautilus 仍可在本地模拟止损限价订单：通用订单模拟器等待配置的触发条件，然后向本适配器发送普通限价订单。</p>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=order-types>订单类型<a href=#order-types class=hash-link aria-label=订单类型的直接链接 title=订单类型的直接链接 translate=no>​</a></h3>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>订单类型<th>支持<th>说明<tbody><tr><td><code>MARKET</code><td>✓<td>适配器用激进 IOC 价格模拟。<tr><td><code>LIMIT</code><td>✓<td>映射到 AX 原生带价订单形态。<tr><td><code>STOP_LIMIT</code><td>-<td><em>AX Exchange 不支持</em>。<tr><td><code>LIMIT_IF_TOUCHED</code><td>-<td><em>AX Exchange 不支持</em>。<tr><td><code>STOP_MARKET</code><td>-<td><em>AX Exchange 不支持</em>。<tr><td><code>MARKET_IF_TOUCHED</code><td>-<td><em>AX Exchange 不支持</em>。<tr><td><code>TRAILING_STOP_MARKET</code><td>-<td><em>AX Exchange 不支持</em>。</table>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=execution-instructions>执行指令<a href=#execution-instructions class=hash-link aria-label=执行指令的直接链接 title=执行指令的直接链接 translate=no>​</a></h3>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>指令<th>支持<th>说明<tbody><tr><td><code>post_only</code><td>✓<td>仅限挂单方；订单若会成为吃单方则被拒绝。<tr><td><code>reduce_only</code><td>-<td>本地拒绝；AX 没有 reduce-only 字段。<tr><td><code>quote_quantity</code><td>-<td>本地拒绝；适配器传输路径只编码基础货币。<tr><td><code>display_qty</code><td>-<td>本地拒绝；适配器传输路径没有显示数量字段。</table>
+<p>适配器在下单和替换请求上省略 <code>rb</code>，post-only 订单使用 AX 默认的 <code>rej</code> 行为。不支持选择 <code>bo</code>（从对侧回撤一档）或 <code>tbl</code>（本侧最优价）。见
+<a href=https://docs.architect.exchange/changelog target=_blank rel="noopener noreferrer" class="">AX changelog</a>。</p>
+<p>订单历史、挂单和 WebSocket 订单响应在 <code>AxOrderDetail</code>、<code>AxOpenOrder</code> 和 <code>AxWsOrder</code> 上把 <code>rb</code> 保留为可选的类型化适配器元数据。它描述最近一次下单或替换请求，且只在该请求 <code>po: true</code> 时生效。缺失或为 null 的值保持缺失，无法识别的字符串映射为 <code>Unknown</code> 而不是 <code>Reject</code>。<code>OrderStatusReport</code> 不暴露该元数据，因此对账报告无法区分外部下单或替换订单所采用的重新定价策略。</p>
+<p>reduce-only 边界之所以重要，是因为 AX 没有 reduce-only 字段。sandbox 中，场所曾在 reduce-only 指令被从传输负载中剥掉之后，把订单当普通订单接受并成交——这类订单可能开仓或加仓而不是减仓。生产环境行为未经验证。因此适配器在提交前直接拒绝 reduce-only 订单，而不是发送场所无法兑现的指令。</p>
+<p>适配器同样拒绝按计价货币数量和显示数量指令，因为其 AX 传输路径无法编码这些语义。这是适配器边界，不代表 AX Exchange 拒绝场所原生的等价功能。</p>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=time-in-force>时效<a href=#time-in-force class=hash-link aria-label=时效的直接链接 title=时效的直接链接 translate=no>​</a></h3>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>时效<th>支持<th>说明<tbody><tr><td><code>GTC</code><td>✓<td>撤销前有效。<tr><td><code>GTD</code><td>-<td>适配器本地拒绝。<tr><td><code>DAY</code><td>✓<td>当日有效。<tr><td><code>IOC</code><td>✓<td>立即成交否则撤销。<tr><td><code>FOK</code><td>-<td>适配器本地拒绝。<tr><td><code>AT_THE_OPEN</code><td>-<td>适配器本地拒绝。<tr><td><code>AT_THE_CLOSE</code><td>-<td>适配器本地拒绝。</table>
+<p>场所已弃用 <code>DAY</code>，建议改用 <code>GTC</code>。</p>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=advanced-order-features>高级订单特性<a href=#advanced-order-features class=hash-link aria-label=高级订单特性的直接链接 title=高级订单特性的直接链接 translate=no>​</a></h3>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>特性<th>支持<th>说明<tbody><tr><td>订单修改<td>✓<td>原子替换；AX 返回新的场所订单 ID。<tr><td>撤销订单<td>✓<td>单笔订单撤销。<tr><td>撤销全部订单<td>✓<td>撤销某金融工具的全部挂单。<tr><td>批量撤单<td>-<td>适配器逐个发送撤销。<tr><td>订单列表<td>✓<td>顺序提交（订单逐个提交，非原子）。</table>
+<p>已有场所订单 ID 的撤销会被转发，包括对终态订单的第二次撤销。本地订单已关闭或待撤销后，策略不会再发这第二次撤销。适配器只在 AX 发来 <code>CancelRejected</code> 时才发出 <code>OrderCancelRejected</code>。sandbox 对已撤销订单的重发会以 WebSocket 错误 <code>404</code>（<code>order not found</code>）回应，适配器记录该错误但不把它转成 <code>OrderCancelRejected</code>。</p>
+<p><strong>方向过滤</strong>：AX 的撤销全部没有方向参数。因此带 <code>order_side</code> 的 <code>CancelAllOrders</code> 命令会改为发送逐个撤销请求，只撤销该金融工具该方向的挂单。按方向过滤的请求只在挂单中选取，尚未被 AX 确认的在途（<code>SUBMITTED</code>）订单会在这种操作中存活。</p>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=position-management>持仓管理<a href=#position-management class=hash-link aria-label=持仓管理的直接链接 title=持仓管理的直接链接 translate=no>​</a></h3>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>特性<th>支持<th>说明<tbody><tr><td>查询持仓<td>✓<td>实时持仓更新。<tr><td>持仓模式<td>-<td>仅净额结算模式。<tr><td>全仓保证金<td>✓<td>跨全部金融工具的全仓保证金。</table>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=order-querying>订单查询<a href=#order-querying class=hash-link aria-label=订单查询的直接链接 title=订单查询的直接链接 translate=no>​</a></h3>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>特性<th>支持<th>说明<tbody><tr><td>查询挂单<td>✓<td>列出全部活动订单。<tr><td>查询单个订单<td>✓<td>按场所订单 ID 或客户订单 ID（任意订单状态）。<tr><td>订单状态报告<td>✓<td>挂单检查与启动时的历史全量状态。<tr><td>成交报告<td>✓<td>执行与成交历史。</table>
+<div class="theme-admonition theme-admonition-note admonition_LYZY alert alert--secondary"><div class=admonitionHeading_pnFY><span class=admonitionIcon_tEzm><svg viewBox="0 0 14 16"><path fill-rule=evenodd d="M6.3 5.69a.942.942 0 0 1-.28-.7c0-.28.09-.52.28-.7.19-.18.42-.28.7-.28.28 0 .52.09.7.28.18.19.28.42.28.7 0 .28-.09.52-.28.7a1 1 0 0 1-.7.3c-.28 0-.52-.11-.7-.3zM8 7.99c-.02-.25-.11-.48-.31-.69-.2-.19-.42-.3-.69-.31H6c-.27.02-.48.13-.69.31-.2.2-.3.44-.31.69h1v3c.02.27.11.5.31.69.2.2.42.31.69.31h1c.27 0 .48-.11.69-.31.2-.19.3-.42.31-.69H8V7.98v.01zM7 2.3c-3.14 0-5.7 2.54-5.7 5.68 0 3.14 2.56 5.7 5.7 5.7s5.7-2.55 5.7-5.7c0-3.15-2.56-5.69-5.7-5.69v.01zM7 .98c3.86 0 7 3.14 7 7s-3.14 7-7 7-7-3.12-7-7 3.14-7 7-7z"/></svg></span>备注</div><div class=admonitionContent_ZwmI><p>挂单批量检查在 <code>open_check_open_only</code> 启用（默认）时使用 <code>/open-orders</code>，否则使用 <code>/orders</code>。启动全量状态对账使用 <code>/orders</code>，因此其快照包含已成交、已撤销这类历史终态订单。经 <code>query_order</code> 的单订单查询使用专门的 <code>/order-status</code> 端点，任意订单状态都适用。<p>AX 的挂单与历史订单负载不暴露止损订单类型或触发价，因此 REST 来源的对账把每个可见的外部订单都报告为限价订单。适配器不提交场所原生的条件订单。<p>历史订单报告携带场所拒绝原因（<code>r</code>，回退到 <code>txt</code>），因此对账出的 <code>OrderRejected</code> 事件与实时事件保持同样的原因字符串。实时撤销不带原因时，对账出的 <code>OrderCanceled</code> 事件可以带上场所原因。报告保留场所的 post-only 标志和亚秒时间戳。<p>被替换的历史订单 ID 是终态。当日结束订单过期，未成交 IOC 订单撤销，与 WebSocket 事件路径一致。未知的订单状态会使对账请求失败，而不是从快照中悄悄漏掉订单。兄弟订单状态未知的成交仍会送达执行。<p>启动全量状态对账用 <code>reconciliation_lookback_mins</code> 限定 <code>/orders</code> 和 <code>/fills</code> 请求范围，持仓始终按当前快照上报。超过七天的回看实际也只取到七天成交，声明的窗口会向下取整到该上限。有界窗口下，对账后为平的金融工具的成交只作用于其订单，不物化出持仓——窗口内完成的往返开平不会在重启后产生幻影持仓。不设界时，启动会拉取并核对账户上的每一笔历史订单。</div></div>
+<div class="theme-admonition theme-admonition-warning admonition_LYZY alert alert--warning"><div class=admonitionHeading_pnFY><span class=admonitionIcon_tEzm><svg viewBox="0 0 16 16"><path fill-rule=evenodd d="M8.893 1.5c-.183-.31-.52-.5-.887-.5s-.703.19-.886.5L.138 13.499a.98.98 0 0 0 0 1.001c.193.31.53.501.886.501h13.964c.367 0 .704-.19.877-.5a1.03 1.03 0 0 0 .01-1.002L8.893 1.5zm.133 11.497H6.987v-2.003h2.039v2.003zm0-3.004H6.987V5.987h2.039v4.006z"/></svg></span>注意</div><div class=admonitionContent_ZwmI><p>重启后没有缓存的替换历史时，对账可能把旧订单的状态或字段套用到其替换单上，让一笔活动订单在本地显示为已撤销，恢复保持不完整。恢复交易前，请对照 AX 检查被替换的订单。</div></div>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=account-state>账户状态<a href=#account-state class=hash-link aria-label=账户状态的直接链接 title=账户状态的直接链接 translate=no>​</a></h3>
+<p><code>/balances</code> 端点不带保证金数据，因此账户状态还要请求 <code>/risk-snapshot</code>。其 USD <code>initial_margin_required_total</code> 填充 USD 余额的锁定资金，以 USD 余额为上限。USD 的 <code>MarginBalance</code> 条目把初始保证金与维持保证金配对。<code>/risk-snapshot</code> 失败时，账户状态退回只有余额、锁定保证金为零，并记录警告。</p>
+<h2 class="anchor anchorTargetStickyNavbar_ana5" id=authentication>认证<a href=#authentication class=hash-link aria-label=认证的直接链接 title=认证的直接链接 translate=no>​</a></h2>
+<p>AX Exchange 使用 bearer token 认证：</p>
+<ol>
+<li class="">用 API key 与 secret 经 <code>/authenticate</code> 换取会话 token。</li>
+<li class="">会话 token 作为后续 REST 与 WebSocket 请求的 bearer token。</li>
+<li class="">适配器申请一小时有效期的会话 token，每 30 分钟刷新一次。</li>
+<li class="">刷新会更新 REST 认证和下一次 WebSocket 重连使用的 token，不打断当前连接。</li>
+</ol>
+<h2 class="anchor anchorTargetStickyNavbar_ana5" id=configuration>配置<a href=#configuration class=hash-link aria-label=配置的直接链接 title=配置的直接链接 translate=no>​</a></h2>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=environments-and-endpoints>环境与端点<a href=#environments-and-endpoints class=hash-link aria-label=环境与端点的直接链接 title=环境与端点的直接链接 translate=no>​</a></h3>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>环境<th>HTTP API<th>HTTP API（订单）<th>行情 WS<th>订单 WS<tbody><tr><td>Sandbox<td><code>https://gateway.sandbox.architect.exchange/api</code><td><code>https://gateway.sandbox.architect.exchange/orders</code><td><code>wss://gateway.sandbox.architect.exchange/md/ws</code><td><code>wss://gateway.sandbox.architect.exchange/orders/ws</code><tr><td>Production<td><code>https://gateway.architect.exchange/api</code><td><code>https://gateway.architect.exchange/orders</code><td><code>wss://gateway.architect.exchange/md/ws</code><td><code>wss://gateway.architect.exchange/orders/ws</code></table>
+<div class="theme-admonition theme-admonition-info admonition_LYZY alert alert--info"><div class=admonitionHeading_pnFY><span class=admonitionIcon_tEzm><svg viewBox="0 0 14 16"><path fill-rule=evenodd d="M7 2.3c3.14 0 5.7 2.56 5.7 5.7s-2.56 5.7-5.7 5.7A5.71 5.71 0 0 1 1.3 8c0-3.14 2.56-5.7 5.7-5.7zM7 1C3.14 1 0 4.14 0 8s3.14 7 7 7 7-3.14 7-7-3.14-7-7-7zm1 3H6v5h2V4zm0 6H6v2h2v-2z"/></svg></span>信息</div><div class=admonitionContent_ZwmI><p>订单管理端点（下单、撤单、替换、撤销全部、订单状态、挂单、历史订单和初始保证金要求）使用 orders 基础 URL。其余 REST 端点——包括认证、账户状态、成交、交易和行情——使用 API 基础 URL。两个 URL 都由适配器按配置的环境解析。</div></div>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=data-client-configuration-options>数据客户端配置选项<a href=#data-client-configuration-options class=hash-link aria-label=数据客户端配置选项的直接链接 title=数据客户端配置选项的直接链接 translate=no>​</a></h3>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>选项<th>默认值<th>说明<tbody><tr><td><code>api_key</code><td><code>None</code><td>API 密钥；缺省时从 <code>AX_API_KEY</code> 环境变量读取。<tr><td><code>api_secret</code><td><code>None</code><td>API secret；缺省时从 <code>AX_API_SECRET</code> 环境变量读取。<tr><td><code>environment</code><td><code>SANDBOX</code><td>交易环境（<code>SANDBOX</code> 或 <code>PRODUCTION</code>）。<tr><td><code>base_url_http</code><td><code>None</code><td>REST 基础 URL 覆盖。<tr><td><code>base_url_ws_public</code><td><code>None</code><td>行情 WebSocket URL 覆盖。<tr><td><code>base_url_ws_private</code><td><code>None</code><td>私有订单 WebSocket URL 覆盖。<tr><td><code>proxy_url</code><td><code>None</code><td>HTTP 与 WebSocket 传输的可选代理 URL。<tr><td><code>http_timeout_secs</code><td><code>60</code><td>REST 请求超时（秒）。<tr><td><code>max_retries</code><td><code>3</code><td>幂等 REST 请求（<code>GET</code>、<code>HEAD</code>、<code>OPTIONS</code>）的最大重试次数。<tr><td><code>retry_delay_initial_ms</code><td><code>1,000</code><td>重试初始延迟（毫秒）。<tr><td><code>retry_delay_max_ms</code><td><code>10,000</code><td>重试最大延迟（毫秒，指数退避）。<tr><td><code>heartbeat_interval_secs</code><td><code>20</code><td>WebSocket 连接心跳间隔（秒）。<tr><td><code>recv_window_ms</code><td><code>5,000</code><td>保留字段；AX 使用 bearer token，适配器不发送窗口。<tr><td><code>update_instruments_interval_mins</code><td><code>60</code><td>金融工具目录刷新间隔（分钟）。<tr><td><code>funding_rate_poll_interval_mins</code><td><code>15</code><td>资金费率轮询间隔（分钟）。<tr><td><code>book_snapshot_timeout_secs</code><td><code>10</code><td>初始、重连与恢复时等待订单簿快照的时长；<code>0</code> 禁用。<tr><td><code>transport_backend</code><td><code>Sockudo</code><td>WebSocket 传输后端。</table>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=execution-client-configuration-options>执行客户端配置选项<a href=#execution-client-configuration-options class=hash-link aria-label=执行客户端配置选项的直接链接 title=执行客户端配置选项的直接链接 translate=no>​</a></h3>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>选项<th>默认值<th>说明<tbody><tr><td><code>account_id</code><td><code>AX-001</code><td>执行客户端的账户 ID。<tr><td><code>api_key</code><td><code>None</code><td>API 密钥；缺省时从 <code>AX_API_KEY</code> 环境变量读取。<tr><td><code>api_secret</code><td><code>None</code><td>API secret；缺省时从 <code>AX_API_SECRET</code> 环境变量读取。<tr><td><code>environment</code><td><code>SANDBOX</code><td>交易环境（<code>SANDBOX</code> 或 <code>PRODUCTION</code>）。<tr><td><code>base_url_http</code><td><code>None</code><td>API REST 基础 URL 覆盖。<tr><td><code>base_url_orders</code><td><code>None</code><td>订单 REST 基础 URL 覆盖。<tr><td><code>base_url_ws_private</code><td><code>None</code><td>订单 WebSocket URL 覆盖。<tr><td><code>proxy_url</code><td><code>None</code><td>HTTP 与 WebSocket 传输的可选代理 URL。<tr><td><code>http_timeout_secs</code><td><code>60</code><td>REST 请求超时（秒）。<tr><td><code>max_retries</code><td><code>3</code><td>幂等 REST 请求（<code>GET</code>、<code>HEAD</code>、<code>OPTIONS</code>）的最大重试次数。<tr><td><code>retry_delay_initial_ms</code><td><code>1,000</code><td>重试初始延迟（毫秒）。<tr><td><code>retry_delay_max_ms</code><td><code>10,000</code><td>重试最大延迟（毫秒，指数退避）。<tr><td><code>heartbeat_interval_secs</code><td><code>30</code><td>WebSocket 连接心跳间隔（秒）。<tr><td><code>recv_window_ms</code><td><code>5,000</code><td>保留字段；AX 使用 bearer token，适配器不发送窗口。<tr><td><code>cancel_on_disconnect</code><td><code>False</code><td>断开时撤销本 WebSocket 会话的挂单。<tr><td><code>transport_backend</code><td><code>Sockudo</code><td>WebSocket 传输后端。</table>
+<p><code>transport_backend=None</code> 时，编译后的 Rust 默认值在启用 <code>transport-sockudo</code> Cargo feature 时选 Sockudo，否则选 Tungstenite。</p>
+<p><code>AxDataClientConfig</code> 与 <code>AxDataClientFactory</code> 搭配，<code>AxExecutionClientConfig</code> 与 <code>AxExecutionClientFactory</code> 搭配。数据与执行客户端完整的 <code>LiveNode.builder(...)</code> 配置见 Python 示例。</p>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=api-credentials>API 凭据<a href=#api-credentials class=hash-link aria-label="API 凭据的直接链接" title="API 凭据的直接链接" translate=no>​</a></h3>
+<p>向 AX Exchange 客户端提供凭据有两种方式：把 <code>api_key</code> 和 <code>api_secret</code> 传入配置对象，或设置以下环境变量：</p>
+<ul>
+<li class=""><code>AX_API_KEY</code></li>
+<li class=""><code>AX_API_SECRET</code></li>
+</ul>
+<div class="theme-admonition theme-admonition-tip admonition_LYZY alert alert--success"><div class=admonitionHeading_pnFY><span class=admonitionIcon_tEzm><svg viewBox="0 0 12 16"><path fill-rule=evenodd d="M6.5 0C3.48 0 1 2.19 1 5c0 .92.55 2.25 1 3 1.34 2.25 1.78 2.78 2 4v1h5v-1c.22-1.22.66-1.75 2-4 .45-.75 1-2.08 1-3 0-2.81-2.48-5-5.5-5zm3.64 7.48c-.25.44-.47.8-.67 1.11-.86 1.41-1.25 2.06-1.45 3.23-.02.05-.02.11-.02.17H5c0-.06 0-.13-.02-.17-.2-1.17-.59-1.83-1.45-3.23-.2-.31-.42-.67-.67-1.11C2.44 6.78 2 5.65 2 5c0-2.2 2.02-4 4.5-4 1.22 0 2.36.42 3.22 1.19C10.55 2.94 11 3.94 11 5c0 .66-.44 1.78-.86 2.48zM4 14h5c-.23 1.14-1.3 2-2.5 2s-2.27-.86-2.5-2z"/></svg></span>提示</div><div class=admonitionContent_ZwmI><p>建议用环境变量管理凭据。</div></div>
+<p>启动交易节点时，凭据是否有效、有无交易权限会立即得到确认。</p>
+<h2 class="anchor anchorTargetStickyNavbar_ana5" id=implementation-notes>实现说明<a href=#implementation-notes class=hash-link aria-label=实现说明的直接链接 title=实现说明的直接链接 translate=no>​</a></h2>
+<ul>
+<li class="">
+<p><strong>只支持整数张合约</strong>：AX 使用整数合约数量。适配器把每手规模增量和批量大小建模为 1 张，同时强制执行每个金融工具各自的 <code>minimum_order_size</code>。小数数量在本地产生 <code>OrderDenied</code>。</p>
+</li>
+<li class="">
+<p><strong>到期期货的激活时间</strong>：AX 发布到期时间但不发布激活时间。适配器对未知的激活时间使用零值，并在金融工具元数据中保留这一限制。</p>
+</li>
+<li class="">
+<p><strong>限流</strong>：适配器施加保守的 10 请求/秒限流，收到限流响应时自动指数退避。</p>
+</li>
+<li class="">
+<p><strong>市价单</strong>：AX 不支持原生市价单。适配器用预览端点确定穿透价，然后提交一个激进 IOC 限价单。预览与提交之间盘口可能移动，因此模拟市价单可能只部分成交。</p>
+</li>
+<li class="">
+<p><strong>止损限价订单</strong>：sandbox 测试未能确认条件语义，适配器拒绝场所原生的止损限价提交。策略需要止损限价订单时使用本地订单模拟。</p>
+</li>
+<li class="">
+<p><strong>订单修改</strong>：AX 经 <code>POST /replace-order</code> 支持原子替换。执行客户端把 <code>modify_order</code> 映射到该端点，并记录其返回的新场所订单 ID。修改携带触发价时（AX 没有对应字段）适配器在本地拒绝；订单还没有场所订单 ID 时同样拒绝。</p>
+</li>
+<li class="">
+<p><strong>资金费率轮询</strong>：数据客户端按 <code>funding_rate_poll_interval_mins</code> 对每个订阅金融工具轮询 <code>GET /funding-rates</code>，请求七天回看以在周末和假期也能取到费率。仅当最新费率与上次发出的不同时才发出。</p>
+</li>
+<li class="">
+<p><strong>断开即撤单</strong>：在执行客户端配置中设置 <code>cancel_on_disconnect=True</code>，订单 WebSocket 断开时让交易所撤销全部挂单。</p>
+</li>
+<li class="">
+<p><strong>账户费率</strong>：金融工具不携带挂单/吃单费率。认证客户端从 <code>GET /whoami</code> 解析账户费率，查询失败则连接失败。执行客户端把费率按 AX 账户缓存（与金融工具无关），每次连接时刷新；自动 WebSocket 重连沿用缓存的费率。</p>
+</li>
+<li class="">
+<p><strong>成交佣金</strong>：WebSocket 的实时成交事件不含费用数据。适配器用成交数量、成交价绝对值、合约乘数和账户的挂单/吃单费率，为跟踪的成交事件和未跟踪的成交报告估算佣金。账户归属依次取成交的账户 ID、订单的账户 ID，两者都没有时用 <code>/whoami</code> 的第一个账户。计算保持十进制运算，只在最后一步把费用舍入进精度为 2 的 USD <code>Money</code>。</p>
+<p>金融工具或完整账户费率表未缓存、或佣金无法表示的成交，会被记录并跳过。被跟踪订单的元数据仍可用于对账，恢复依赖配置的对账检查或显式订单查询。跳过的成交不会触发立即的 REST 请求。</p>
+<p>对账不会替换已应用的佣金，因此流式估算即便与场所 <code>/fills</code> 上报的佣金不同也会保留。<code>/fills</code> 端点只为未从流中应用的成交提供佣金，适配器用 <code>Money::from_decimal</code> 转成 USD，<code>0.012188</code> 这类分以下费用会存为 <code>0.01</code>。无法表示的 REST 佣金会使成交报告请求与全量状态失败；启动期间该错误会阻止节点启动。</p>
+</li>
+<li class="">
+<p><strong>成交对账窗口</strong>：<code>/fills</code> 端点要求有界时间范围且跨度上限七天。对账请求最近七天的成交，更早的成交不参与对账。</p>
+</li>
+<li class="">
+<p><strong>成交的订单归属</strong>：AX 对大宗交易和最终结算成交可能省略 <code>order_id</code>。适配器对这些被分类的记录用 <code>trade_id</code> 推导确定性的对账订单 ID。对有有效 <code>order_id</code> 的普通成交，分类字段是可选的。适配器拒绝既无订单 ID 也无显式特殊成交分类的行，也拒绝自相矛盾的分类。</p>
+</li>
+<li class="">
+<p><strong>未成交的 IOC/FOK</strong>：AX 把未成交的即时订单报告为过期，适配器映射为 <code>OrderCanceled</code> 以匹配 NautilusTrader 语义。</p>
+</li>
+<li class="">
+<p><strong>一档报价</strong>：示例测试器会在 top-of-book 一档之外挂 post-only 限价单，这些报价仍可能成交。残余订单用
+<code>cargo run --bin ax-flatten -p nautilus-architect-ax</code> 清掉（<code>AX_IS_SANDBOX</code> 默认为 true）。
+该程序先撤销账户上全部挂单，再平掉所有持仓。</p>
+</li>
+</ul>
+<h2 class="anchor anchorTargetStickyNavbar_ana5" id=contributing>参与贡献<a href=#contributing class=hash-link aria-label=参与贡献的直接链接 title=参与贡献的直接链接 translate=no>​</a></h2>
+<div class="theme-admonition theme-admonition-info admonition_LYZY alert alert--info"><div class=admonitionHeading_pnFY><span class=admonitionIcon_tEzm><svg viewBox="0 0 14 16"><path fill-rule=evenodd d="M7 2.3c3.14 0 5.7 2.56 5.7 5.7s-2.56 5.7-5.7 5.7A5.71 5.71 0 0 1 1.3 8c0-3.14 2.56-5.7 5.7-5.7zM7 1C3.14 1 0 4.14 0 8s3.14 7 7 7 7-3.14 7-7-3.14-7-7-7zm1 3H6v5h2V4zm0 6H6v2h2v-2z"/></svg></span>信息</div><div class=admonitionContent_ZwmI><p>需要更多功能或想为 AX Exchange 适配器做贡献，见我们的
+<a href=https://github.com/nautechsystems/nautilus_trader/blob/develop/CONTRIBUTING.md target=_blank rel="noopener noreferrer" class="">贡献指南</a>。</div></div></div><footer class="theme-doc-footer docusaurus-mt-lg"><div class="row margin-top--sm theme-doc-footer-edit-meta-row"><div class="col noPrint_MRkS"><a href=https://github.com/Aloento/NautilusTraderDoc/tree/main/docs/integrations/architect_ax.md target=_blank rel="noopener noreferrer" class=theme-edit-this-page><svg fill=currentColor height=20 width=20 viewBox="0 0 40 40" class=iconEdit_RPSQ aria-hidden=true><g><path d="m34.5 11.7l-3 3.1-6.3-6.3 3.1-3q0.5-0.5 1.2-0.5t1.1 0.5l3.9 3.9q0.5 0.4 0.5 1.1t-0.5 1.2z m-29.5 17.1l18.4-18.5 6.3 6.3-18.4 18.4h-6.3v-6.2z"/></g></svg>编辑此页</a></div><div class="col lastUpdated_oZSl"><span class=theme-last-updated>最后<!-- -->于 <b><time datetime=2026-10-14T22:30:30.000Z itemprop=dateModified>2026年10月14日</time></b> <!-- -->更新</span></div></div></footer></article><nav class="docusaurus-mt-lg pagination-nav" aria-label=文件选项卡><a class="pagination-nav__link pagination-nav__link--prev" href=/integrations/><div class=pagination-nav__sublabel>上一页</div><div class=pagination-nav__label>集成</div></a><a class="pagination-nav__link pagination-nav__link--next" href=/integrations/betfair><div class=pagination-nav__sublabel>下一页</div><div class=pagination-nav__label>Betfair</div></a></nav></div></div><div class="col col--3"><div class="tableOfContents_LyLZ thin-scrollbar theme-doc-toc-desktop"><ul class="table-of-contents table-of-contents__left-border"><li><a href=#overview class="table-of-contents__link toc-highlight">概览</a><li><a href=#examples class="table-of-contents__link toc-highlight">示例</a><li><a href=#ax-exchange-documentation class="table-of-contents__link toc-highlight">AX Exchange 文档</a><li><a href=#products class="table-of-contents__link toc-highlight">产品</a><ul><li><a href=#perpetual-contracts class="table-of-contents__link toc-highlight">永续合约</a></ul><li><a href=#symbology class="table-of-contents__link toc-highlight">代码体系</a><li><a href=#environments class="table-of-contents__link toc-highlight">环境</a><ul><li><a href=#sandbox class="table-of-contents__link toc-highlight">Sandbox</a><li><a href=#production class="table-of-contents__link toc-highlight">生产环境</a></ul><li><a href=#market-data class="table-of-contents__link toc-highlight">行情数据</a><ul><li><a href=#data-types class="table-of-contents__link toc-highlight">数据类型</a><li><a href=#websocket-subscription-behavior class="table-of-contents__link toc-highlight">WebSocket 订阅行为</a><li><a href=#order-book-recovery class="table-of-contents__link toc-highlight">订单簿恢复</a><li><a href=#live-recovery-validation class="table-of-contents__link toc-highlight">实时恢复验证</a><li><a href=#http-api-behavior class="table-of-contents__link toc-highlight">HTTP API 行为</a><li><a href=#bar-intervals class="table-of-contents__link toc-highlight">Bar 周期</a></ul><li><a href=#orders-capability class="table-of-contents__link toc-highlight">订单能力</a><ul><li><a href=#order-types class="table-of-contents__link toc-highlight">订单类型</a><li><a href=#execution-instructions class="table-of-contents__link toc-highlight">执行指令</a><li><a href=#time-in-force class="table-of-contents__link toc-highlight">时效</a><li><a href=#advanced-order-features class="table-of-contents__link toc-highlight">高级订单特性</a><li><a href=#position-management class="table-of-contents__link toc-highlight">持仓管理</a><li><a href=#order-querying class="table-of-contents__link toc-highlight">订单查询</a><li><a href=#account-state class="table-of-contents__link toc-highlight">账户状态</a></ul><li><a href=#authentication class="table-of-contents__link toc-highlight">认证</a><li><a href=#configuration class="table-of-contents__link toc-highlight">配置</a><ul><li><a href=#environments-and-endpoints class="table-of-contents__link toc-highlight">环境与端点</a><li><a href=#data-client-configuration-options class="table-of-contents__link toc-highlight">数据客户端配置选项</a><li><a href=#execution-client-configuration-options class="table-of-contents__link toc-highlight">执行客户端配置选项</a><li><a href=#api-credentials class="table-of-contents__link toc-highlight">API 凭据</a></ul><li><a href=#implementation-notes class="table-of-contents__link toc-highlight">实现说明</a><li><a href=#contributing class="table-of-contents__link toc-highlight">参与贡献</a></ul></div></div></div></div></main></div></div></div><footer class="theme-layout-footer footer footer--dark"><div class="container container-fluid"><div class="row footer__links"><div class="theme-layout-footer-column col footer__col"><div class=footer__title></div><ul class="footer__items clean-list"><li class=footer__item><a href=https://github.com/nautechsystems/nautilus_trader target=_blank rel="noopener noreferrer" class=footer__link-item>Official GitHub<svg width=13.5 height=13.5 aria-label="(opens in new tab)" class=iconExternalLink_qUHo><use href=#theme-svg-external-link /></svg></a><li class=footer__item><a href=https://nautilustrader.io/docs target=_blank rel="noopener noreferrer" class=footer__link-item>Official Documentation<svg width=13.5 height=13.5 aria-label="(opens in new tab)" class=iconExternalLink_qUHo><use href=#theme-svg-external-link /></svg></a></ul></div></div><div class="footer__bottom text--center"><div class=footer__copyright>© 2026 Nautech Systems Pty Ltd. All rights reserved.</div></div></div></footer></div></body>

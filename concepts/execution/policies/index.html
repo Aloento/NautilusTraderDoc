@@ -1,0 +1,303 @@
+<!doctype html><html lang=zh dir=ltr class="docs-wrapper plugin-docs plugin-id-default docs-version-current docs-doc-page docs-doc-id-concepts/execution/policies" data-has-hydrated=false><head><meta charset=UTF-8><meta name=generator content="Docusaurus v3.10.2"><title data-rh=true>执行策略 | NautilusTrader 文档</title><meta data-rh=true name=viewport content="width=device-width, initial-scale=1.0"/><meta data-rh=true name=twitter:card content=summary_large_image /><meta data-rh=true property=og:url content=https://nautilus.aloen.to/concepts/execution/policies /><meta data-rh=true property=og:locale content=zh /><meta data-rh=true name=docusaurus_locale content=zh /><meta data-rh=true name=docsearch:language content=zh /><meta data-rh=true name=docusaurus_version content=current /><meta data-rh=true name=docusaurus_tag content=docs-default-current /><meta data-rh=true name=docsearch:version content=current /><meta data-rh=true name=docsearch:docusaurus_tag content=docs-default-current /><meta data-rh=true property=og:title content="执行策略 | NautilusTrader 文档"/><meta data-rh=true name=description content=execution-policies} /><meta data-rh=true property=og:description content=execution-policies} /><link data-rh=true rel=icon href=/logo.png /><link data-rh=true rel=canonical href=https://nautilus.aloen.to/concepts/execution/policies /><link data-rh=true rel=alternate href=https://nautilus.aloen.to/concepts/execution/policies hreflang=zh /><link data-rh=true rel=alternate href=https://nautilus.aloen.to/concepts/execution/policies hreflang=x-default /><script data-rh=true type=application/ld+json>{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","item":"https://nautilus.aloen.to/concepts/","name":"核心概念","position":1},{"@type":"ListItem","item":"https://nautilus.aloen.to/concepts/execution/","name":"执行","position":2},{"@type":"ListItem","item":"https://nautilus.aloen.to/concepts/execution/policies","name":"执行策略","position":3}]}</script><link rel=stylesheet href=/assets/css/styles.adb7ea18.css /><script src=/assets/js/runtime~main.71ac0794.js defer></script><script src=/assets/js/main.d978d0f2.js defer></script></head><body><svg style="display: none;"><defs>
+<symbol id=theme-svg-external-link viewBox="0 0 24 24"><path fill=currentColor d="M21 13v10h-21v-19h12v2h-10v15h17v-8h2zm3-12h-10.988l4.035 4-6.977 7.07 2.828 2.828 6.977-7.07 4.125 4.172v-11z"/></symbol>
+</defs></svg>
+<script>!function(){var t=function(){try{return new URLSearchParams(window.location.search).get("docusaurus-theme")}catch(t){}}()||function(){try{return window.localStorage.getItem("theme-2e3")}catch(t){}}();document.documentElement.setAttribute("data-theme",t||(window.matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light")),document.documentElement.setAttribute("data-theme-choice",t||"system")}(),function(){try{for(var[t,e]of new URLSearchParams(window.location.search).entries())if(t.startsWith("docusaurus-data-")){var a=t.replace("docusaurus-data-","data-");document.documentElement.setAttribute(a,e)}}catch(t){}}()</script><div id=__docusaurus><link rel=preload as=image href=/logo.png /><div role=region aria-label=跳到主要内容><a class=skipToContent_zuOI href=#__docusaurus_skipToContent_fallback>跳到主要内容</a></div><nav aria-label=主导航 class="theme-layout-navbar navbar navbar--fixed-top"><div class=navbar__inner><div class="theme-layout-navbar-left navbar__items"><button aria-label=切换导航栏 aria-expanded=false class="navbar__toggle clean-btn" type=button><svg width=30 height=30 viewBox="0 0 30 30" aria-hidden=true><path stroke=currentColor stroke-linecap=round stroke-miterlimit=10 stroke-width=2 d="M4 7h22M4 15h22M4 23h22"/></svg></button><a class=navbar__brand href=/><div class=navbar__logo><img src=/logo.png alt="NautilusTrader Logo" class="themedComponent_q2_Y themedComponent--light_Nejn"/><img src=/logo.png alt="NautilusTrader Logo" class="themedComponent_q2_Y themedComponent--dark_JjIb"/></div><b class="navbar__title text--truncate">NautilusTrader</b></a><a aria-current=page class="navbar__item navbar__link navbar__link--active" href=/getting_started/>文档</a></div><div class="theme-layout-navbar-right navbar__items navbar__items--right"><a href=https://github.com/Aloento/NautilusTraderDoc target=_blank rel="noopener noreferrer" class="navbar__item navbar__link">GitHub<svg width=13.5 height=13.5 aria-label="(opens in new tab)" class=iconExternalLink_qUHo><use href=#theme-svg-external-link /></svg></a><div class="toggle_hHmI colorModeToggle_rOOn"><button class="clean-btn toggleButton_wEhT toggleButtonDisabled_yOOP" type=button disabled title="system mode" aria-label="切换浅色/暗黑模式（当前为system mode）"><svg viewBox="0 0 24 24" width=24 height=24 aria-hidden=true class="toggleIcon_Kt6U lightToggleIcon_Zfeh"><path fill=currentColor d="M12,9c1.65,0,3,1.35,3,3s-1.35,3-3,3s-3-1.35-3-3S10.35,9,12,9 M12,7c-2.76,0-5,2.24-5,5s2.24,5,5,5s5-2.24,5-5 S14.76,7,12,7L12,7z M2,13l2,0c0.55,0,1-0.45,1-1s-0.45-1-1-1l-2,0c-0.55,0-1,0.45-1,1S1.45,13,2,13z M20,13l2,0c0.55,0,1-0.45,1-1 s-0.45-1-1-1l-2,0c-0.55,0-1,0.45-1,1S19.45,13,20,13z M11,2v2c0,0.55,0.45,1,1,1s1-0.45,1-1V2c0-0.55-0.45-1-1-1S11,1.45,11,2z M11,20v2c0,0.55,0.45,1,1,1s1-0.45,1-1v-2c0-0.55-0.45-1-1-1C11.45,19,11,19.45,11,20z M5.99,4.58c-0.39-0.39-1.03-0.39-1.41,0 c-0.39,0.39-0.39,1.03,0,1.41l1.06,1.06c0.39,0.39,1.03,0.39,1.41,0s0.39-1.03,0-1.41L5.99,4.58z M18.36,16.95 c-0.39-0.39-1.03-0.39-1.41,0c-0.39,0.39-0.39,1.03,0,1.41l1.06,1.06c0.39,0.39,1.03,0.39,1.41,0c0.39-0.39,0.39-1.03,0-1.41 L18.36,16.95z M19.42,5.99c0.39-0.39,0.39-1.03,0-1.41c-0.39-0.39-1.03-0.39-1.41,0l-1.06,1.06c-0.39,0.39-0.39,1.03,0,1.41 s1.03,0.39,1.41,0L19.42,5.99z M7.05,18.36c0.39-0.39,0.39-1.03,0-1.41c-0.39-0.39-1.03-0.39-1.41,0l-1.06,1.06 c-0.39,0.39-0.39,1.03,0,1.41s1.03,0.39,1.41,0L7.05,18.36z"/></svg><svg viewBox="0 0 24 24" width=24 height=24 aria-hidden=true class="toggleIcon_Kt6U darkToggleIcon_XgQr"><path fill=currentColor d="M9.37,5.51C9.19,6.15,9.1,6.82,9.1,7.5c0,4.08,3.32,7.4,7.4,7.4c0.68,0,1.35-0.09,1.99-0.27C17.45,17.19,14.93,19,12,19 c-3.86,0-7-3.14-7-7C5,9.07,6.81,6.55,9.37,5.51z M12,3c-4.97,0-9,4.03-9,9s4.03,9,9,9s9-4.03,9-9c0-0.46-0.04-0.92-0.1-1.36 c-0.98,1.37-2.58,2.26-4.4,2.26c-2.98,0-5.4-2.42-5.4-5.4c0-1.81,0.89-3.42,2.26-4.4C12.92,3.04,12.46,3,12,3L12,3z"/></svg><svg viewBox="0 0 24 24" width=24 height=24 aria-hidden=true class="toggleIcon_Kt6U systemToggleIcon_BvUi"><path fill=currentColor d="m12 21c4.971 0 9-4.029 9-9s-4.029-9-9-9-9 4.029-9 9 4.029 9 9 9zm4.95-13.95c1.313 1.313 2.05 3.093 2.05 4.95s-0.738 3.637-2.05 4.95c-1.313 1.313-3.093 2.05-4.95 2.05v-14c1.857 0 3.637 0.737 4.95 2.05z"/></svg></button></div><div class=navbarSearchContainer_watl></div></div></div><div role=presentation class=navbar-sidebar__backdrop></div></nav><div id=__docusaurus_skipToContent_fallback class="theme-layout-main main-wrapper mainWrapper_R72Q"><div class=docsWrapper_XQ9b><button aria-label=回到顶部 class="clean-btn theme-back-to-top-button backToTopButton_MbnX" type=button></button><div class=docRoot_aqOB><aside class="theme-doc-sidebar-container docSidebarContainer_sI2e"><div class=sidebarViewport_TzTy><div class=sidebar_CbEe><nav aria-label=文档侧边栏 class="menu thin-scrollbar menu_ChRF"><ul class="theme-doc-sidebar-menu menu__list"><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-1 menu__list-item menu__list-item--collapsed"><div class=menu__list-item-collapsible><a class="categoryLink_Muyc menu__link menu__link--sublist" href=/getting_started/><span class=categoryLinkLabel_mAcL>快速开始</span></a><button aria-label="展开侧边栏分类 '快速开始'" aria-expanded=false type=button class="clean-btn menu__caret"></button></div><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-1 menu__list-item"><div class=menu__list-item-collapsible><a class="categoryLink_Muyc menu__link menu__link--sublist menu__link--active" href=/concepts/><span class=categoryLinkLabel_mAcL>核心概念</span></a><button aria-label="折叠侧边栏分类 '核心概念'" aria-expanded=true type=button class="clean-btn menu__caret"></button></div><ul class=menu__list><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-2 menu__list-item menu__list-item--collapsed"><div class=menu__list-item-collapsible><a class="categoryLink_Muyc menu__link menu__link--sublist" tabindex=0 href=/concepts/instruments/><span class=categoryLinkLabel_mAcL>金融工具</span></a><button aria-label="展开侧边栏分类 '金融工具'" aria-expanded=false type=button class="clean-btn menu__caret"></button></div><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-2 menu__list-item menu__list-item--collapsed"><div class=menu__list-item-collapsible><a class="categoryLink_Muyc menu__link menu__link--sublist" tabindex=0 href=/concepts/orders/><span class=categoryLinkLabel_mAcL>订单</span></a><button aria-label="展开侧边栏分类 '订单'" aria-expanded=false type=button class="clean-btn menu__caret"></button></div><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-2 menu__list-item menu__list-item--collapsed"><div class=menu__list-item-collapsible><a class="categoryLink_Muyc menu__link menu__link--sublist" tabindex=0 href=/concepts/data/><span class=categoryLinkLabel_mAcL>数据</span></a><button aria-label="展开侧边栏分类 '数据'" aria-expanded=false type=button class="clean-btn menu__caret"></button></div><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-2 menu__list-item menu__list-item--collapsed"><div class=menu__list-item-collapsible><a class="categoryLink_Muyc menu__link menu__link--sublist" tabindex=0 href=/concepts/backtesting/><span class=categoryLinkLabel_mAcL>回测</span></a><button aria-label="展开侧边栏分类 '回测'" aria-expanded=false type=button class="clean-btn menu__caret"></button></div><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-2 menu__list-item menu__list-item--collapsed"><div class=menu__list-item-collapsible><a class="categoryLink_Muyc menu__link menu__link--sublist" tabindex=0 href=/concepts/events/><span class=categoryLinkLabel_mAcL>事件</span></a><button aria-label="展开侧边栏分类 '事件'" aria-expanded=false type=button class="clean-btn menu__caret"></button></div><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-2 menu__list-item"><div class=menu__list-item-collapsible><a class="categoryLink_Muyc menu__link menu__link--sublist menu__link--active" tabindex=0 href=/concepts/execution/><span class=categoryLinkLabel_mAcL>执行</span></a><button aria-label="折叠侧边栏分类 '执行'" aria-expanded=true type=button class="clean-btn menu__caret"></button></div><ul class=menu__list><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-3 menu__list-item"><a class=menu__link tabindex=0 href=/concepts/execution/algorithms><span class=linkLabel_lYjD>执行算法</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-3 menu__list-item"><a class="menu__link menu__link--active" aria-current=page tabindex=0 href=/concepts/execution/policies><span class=linkLabel_lYjD>执行策略</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-3 menu__list-item"><a class=menu__link tabindex=0 href=/concepts/execution/reconciliation><span class=linkLabel_lYjD>执行对账</span></a></ul><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/concepts/accounting><span class=linkLabel_lYjD>核算</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/concepts/actors><span class=linkLabel_lYjD>Actors</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/concepts/adapters><span class=linkLabel_lYjD>适配器</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/concepts/architecture><span class=linkLabel_lYjD>架构</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/concepts/behavioral_models><span class=linkLabel_lYjD>行为模型</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/concepts/cache><span class=linkLabel_lYjD>缓存</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/concepts/configuration><span class=linkLabel_lYjD>配置</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/concepts/continuous_futures><span class=linkLabel_lYjD>连续期货</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/concepts/custom_data><span class=linkLabel_lYjD>自定义数据</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/concepts/dst><span class=linkLabel_lYjD>DST</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/concepts/event_sourcing><span class=linkLabel_lYjD>事件溯源</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/concepts/greeks><span class=linkLabel_lYjD>Greeks</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/concepts/live><span class=linkLabel_lYjD>实时交易</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/concepts/logging><span class=linkLabel_lYjD>日志</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/concepts/message_bus><span class=linkLabel_lYjD>消息总线</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/concepts/networking><span class=linkLabel_lYjD>网络</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/concepts/options><span class=linkLabel_lYjD>期权</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/concepts/order_book><span class=linkLabel_lYjD>订单簿</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/concepts/overview><span class=linkLabel_lYjD>概览</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/concepts/portfolio><span class=linkLabel_lYjD>组合</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/concepts/positions><span class=linkLabel_lYjD>持仓</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/concepts/python><span class=linkLabel_lYjD>Python</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/concepts/reports><span class=linkLabel_lYjD>报告</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/concepts/rust><span class=linkLabel_lYjD>Rust</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/concepts/strategies><span class=linkLabel_lYjD>策略</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/concepts/synthetics><span class=linkLabel_lYjD>合成工具</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/concepts/value_types><span class=linkLabel_lYjD>值类型</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/concepts/visualization><span class=linkLabel_lYjD>可视化</span></a></ul><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-1 menu__list-item menu__list-item--collapsed"><div class=menu__list-item-collapsible><a class="categoryLink_Muyc menu__link menu__link--sublist" href=/integrations/><span class=categoryLinkLabel_mAcL>交易所与集成</span></a><button aria-label="展开侧边栏分类 '交易所与集成'" aria-expanded=false type=button class="clean-btn menu__caret"></button></div><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-1 menu__list-item menu__list-item--collapsed"><div class=menu__list-item-collapsible><a class="categoryLink_Muyc menu__link menu__link--sublist" href=/how_to/><span class=categoryLinkLabel_mAcL>操作指南</span></a><button aria-label="展开侧边栏分类 '操作指南'" aria-expanded=false type=button class="clean-btn menu__caret"></button></div><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-1 menu__list-item menu__list-item--collapsed"><div class=menu__list-item-collapsible><a class="categoryLink_Muyc menu__link menu__link--sublist" href=/tutorials/><span class=categoryLinkLabel_mAcL>教程</span></a><button aria-label="展开侧边栏分类 '教程'" aria-expanded=false type=button class="clean-btn menu__caret"></button></div><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-1 menu__list-item menu__list-item--collapsed"><div class=menu__list-item-collapsible><a class="categoryLink_Muyc menu__link menu__link--sublist" href=/developer_guide/><span class=categoryLinkLabel_mAcL>开发者指南</span></a><button aria-label="展开侧边栏分类 '开发者指南'" aria-expanded=false type=button class="clean-btn menu__caret"></button></div><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-1 menu__list-item menu__list-item--collapsed"><div class=menu__list-item-collapsible><a class="categoryLink_Muyc menu__link menu__link--sublist" href=/api_reference/><span class=categoryLinkLabel_mAcL>API 参考</span></a><button aria-label="展开侧边栏分类 'API 参考'" aria-expanded=false type=button class="clean-btn menu__caret"></button></div></ul></nav></div></div></aside><main class=docMainContainer_sLF8><div class="container padding-top--md padding-bottom--lg"><div class=row><div class="col docItemCol_ZRft"><div class=docItemContainer_KOP5><article><nav class="theme-doc-breadcrumbs breadcrumbsContainer_d5rS" aria-label=页面路径><ul class=breadcrumbs><li class=breadcrumbs__item><a aria-label=主页面 class=breadcrumbs__link href=/><svg viewBox="0 0 24 24" class=breadcrumbHomeIcon_XgF2><path d="M10 19v-5h4v5c0 .55.45 1 1 1h3c.55 0 1-.45 1-1v-7h1.7c.46 0 .68-.57.33-.87L12.67 3.6c-.38-.34-.96-.34-1.34 0l-8.36 7.53c-.34.3-.13.87.33.87H5v7c0 .55.45 1 1 1h3c.55 0 1-.45 1-1z" fill=currentColor /></svg></a><li class=breadcrumbs__item><a class=breadcrumbs__link href=/concepts/><span>核心概念</span></a><li class=breadcrumbs__item><a class=breadcrumbs__link href=/concepts/execution/><span>执行</span></a><li class="breadcrumbs__item breadcrumbs__item--active"><span class=breadcrumbs__link>执行策略</span></ul></nav><div class="tocCollapsible_bgaJ theme-doc-toc-mobile tocMobile_FhT_"><button type=button class="clean-btn tocCollapsibleButton_F8AY">本页总览</button></div><div class="theme-doc-markdown markdown"><header><h1>执行策略</h1></header>
+<p>NautilusTrader 要在分布式边界上协调本地状态与交易场所。本篇定义治理订单命令、订单事件、持久化与一致性对账的各项策略，包括其文档化行为与已知限制。解读订单状态、实现执行适配器或设计实时恢复流程时以本篇为准。</p>
+<p>组件与路由模型见<a class="" href=/concepts/execution/>执行</a>。每个订单状态及主要状态迁移见<a class="" href=/concepts/orders/#order-state-flow>订单</a>。</p>
+<h2 class="anchor anchorTargetStickyNavbar_ana5" id=policy-summary>策略摘要<a href=#policy-summary class=hash-link aria-label=策略摘要的直接链接 title=策略摘要的直接链接 translate=no>​</a></h2>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>边界<th>行为<th>限制<tbody><tr><td>订单状态<td>每个应用的事件必须满足订单状态机与身份校验。<td>仅凭状态无法区分它来自场所证据还是对账。<tr><td>命令结果<td>适配器区分确定的本地失败、确定的场所结果与未知结果。<td>传输层结果不一定能证明场所做了什么。<tr><td>命令投递<td>契约只在重复同一请求安全时重试改变状态的命令。<td>并非所有适配器都遵循该契约，且投递不是恰好一次。<tr><td>事件应用<td>订单身份与迁移校验拒绝无效事件。成交拒绝重复的 <code>trade_id</code>。<td>没有覆盖所有事件类型、或覆盖丢失保留状态情形的恰好一次保证。<tr><td>发送前持久化<td>缓存先在入队订单与解析出的执行客户端来源，之后才调用客户端。<td>内置缓存后端在客户端可发送之前，不会等待持久存储。<tr><td>有界恢复<td>对账可恢复被报告的订单状态，而不施加不受支持的成交经济影响。<td>部分历史不能证明历史持仓经济学、已实现盈亏或均价。<tr><td>终态策略<td>对账可在配置的重试之后裁决缺失或超时的订单。<td>策略裁决不是场所确认的拒绝或撤销。</table>
+<h2 class="anchor anchorTargetStickyNavbar_ana5" id=order-state>订单状态<a href=#order-state class=hash-link aria-label=订单状态的直接链接 title=订单状态的直接链接 translate=no>​</a></h2>
+<p>订单是事件溯源的。每个订单从 <code>OrderInitialized</code> 开始，<code>OrderCore::apply</code> 依据订单身份和当前状态允许的迁移校验事件。非法迁移或重复的成交 <code>trade_id</code> 会在修改订单之前被拒绝，之后每个被接受的事件追加到订单事件历史。</p>
+<p><a class="" href=/concepts/orders/#order-state-flow>订单状态流</a>展示主要生命周期。模型还接受部分恢复与现实边界情形，包括命令挂起期间收到的成交、已撤销订单的迟到成交。<a class="" href=/concepts/events/>事件</a>下的每个事件页面记录其字段与典型迁移。</p>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=ordering>顺序<a href=#ordering class=hash-link aria-label=顺序的直接链接 title=顺序的直接链接 translate=no>​</a></h3>
+<p>在单个实时节点内，runner 把每条选中的消息分支处理完毕才选择下一条。这把内核侧的订单变更串行化。订单按应用顺序追加每个被接受的事件，不按事件时间戳重排历史。</p>
+<p>多个 channel 同时就绪时，由 runner 的优先级决定下一个处理谁。来自独立适配器任务或场所的事件因此可能交错，事件时间戳不构成全局 FIFO 顺序。参见<a class="" href=/concepts/live#dispatch-priority-and-overload-behavior>分发优先级与过载行为</a>。</p>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=duplicate-application>重复应用<a href=#duplicate-application class=hash-link aria-label=重复应用的直接链接 title=重复应用的直接链接 translate=no>​</a></h3>
+<p>NautilusTrader 不把 <code>event_id</code> 用作通用的订单级去重键，也不保证所有订单事件恰好应用一次。它的保护范围更窄：</p>
+<ul>
+<li class="">订单拒绝以最新记录价格重复同一 <code>trade_id</code> 的成交。以新价格重复的成交只重述该笔成交的均价，不施加数量。</li>
+<li class="">执行引擎阻止同一 <code>trade_id</code> 再次向目标持仓增加数量，价格重述改道作用于持仓均价。</li>
+<li class="">成交作废使用原始 <code>trade_id</code>，拒绝重复、过时、冲突或超量的累计更正。</li>
+<li class="">其他重复的生命周期事件仍须通过状态迁移。一些保持状态的更新和重复的挂起请求是合法事件，可以再次追加。</li>
+</ul>
+<p>这些检查依赖缓存中保留的订单与持仓证据。恢复的状态在重启后仍保留先前的 trade ID 和事件历史。若该状态和所需的场所历史都缺失，NautilusTrader 无法从缺失的证据推断出恰好一次的应用。</p>
+<p>用不同 trade ID 描述同一逻辑成交的报告保持相互独立，受正常的超量成交与完整性检查约束。</p>
+<p>可选的<a class="" href=/concepts/event_sourcing>事件存储</a>有独立的边界。它的捕获适配器在有限的近期窗口内对同一消息标识的重复分发做去重，回放时每条存储的序列条目应用一次。这不能让未提交的捕获变得持久，也不能让场所投递变成恰好一次。</p>
+<h2 class="anchor anchorTargetStickyNavbar_ana5" id=command-outcomes>命令结果<a href=#command-outcomes class=hash-link aria-label=命令结果的直接链接 title=命令结果的直接链接 translate=no>​</a></h2>
+<p>执行命令依据可用证据得出结果：</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>证据<th>含义<th>结果<tbody><tr><td>确定的本地失败<td>校验证明命令未被发送。<td>失败可归因于该命令时，拒绝提交，或拒绝修改/撤销。<tr><td>确定的场所结果<td>撮合引擎或场所明确确认结果。<td>应用对应的受理、更新、撤销或拒绝事件。<tr><td>未知的实时结果<td>命令可能已到达场所，但结果未知。<td>命令保持在途，等待流更新、轮询、查询或对账。</table>
+<p>失败事件的种类取决于命令与失败何时被确定：</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>命令<th>事件<th>含义<tbody><tr><td>提交或提交订单列表<td><code>OrderDenied</code><td>本地检查阻止提交。没有 <code>OrderSubmitted</code> 事件。<tr><td>提交或提交订单列表<td><code>OrderRejected</code><td>提交已进入执行环节，后被证实未成功。<tr><td>修改<td><code>OrderModifyRejected</code><td>所请求的修改被证实未成功。<tr><td>撤销、全部撤销或批量撤销<td><code>OrderCancelRejected</code><td>所请求的撤销被证实未成功。</table>
+<p>提交命令只针对合格订单评估。缓存中的订单离开 <code>INITIALIZED</code> 或 <code>RELEASED</code> 后不再合格；从分发给执行客户端起、到 <code>ExecutionEngine</code> 应用该客户端首个状态事件为止，同样不合格。</p>
+<p>对不合格订单：</p>
+<ul>
+<li class="">重复的 <code>SubmitOrder</code> 被跳过。</li>
+<li class="">点名它的 <code>SubmitOrderList</code> 被拒绝且不触达客户端。<code>OrderDenied</code>
+（<code>ORDER_LIST_DENIED</code>）只作用于列表中合格的成员。早先的提交保持其生命周期，之后的客户端事件正常应用。</li>
+</ul>
+<p><strong>分发记录是进程本地的</strong>：reset 会清除它，重启后也不存在。重启后，仍处于 <code>INITIALIZED</code> 的已分发订单与任何未路由订单同样处理，直到客户端事件或场所的撤销/到期报告将其裁决。</p>
+<p>修改或撤销的准备工作，NautilusTrader 只在失败可归因于该命令、并证明其未被发送时才发出对应的拒绝事件。否则只记录失败，不臆造结果。</p>
+<p>成功的批量响应仍可能包含逐单的确定失败。缺少逐单证据的整单失败，不能证明所有子命令都失败了。</p>
+<div class="theme-admonition theme-admonition-warning admonition_LYZY alert alert--warning"><div class=admonitionHeading_pnFY><span class=admonitionIcon_tEzm><svg viewBox="0 0 16 16"><path fill-rule=evenodd d="M8.893 1.5c-.183-.31-.52-.5-.887-.5s-.703.19-.886.5L.138 13.499a.98.98 0 0 0 0 1.001c.193.31.53.501.886.501h13.964c.367 0 .704-.19.877-.5a1.03 1.03 0 0 0 .01-1.002L8.893 1.5zm.133 11.497H6.987v-2.003h2.039v2.003zm0-3.004H6.987V5.987h2.039v4.006z"/></svg></span>未知的实时结果</div><div class=admonitionContent_ZwmI><p>传输错误、超时、断连、任务取消、适配器请求重试耗尽、缺失的确认，以及发送后发生的解析失败，通常都会让场所结果处于未知状态。HTTP 状态码与速率限制只有在场所语义能证明命令未被接受时才是确定的。</div></div>
+<p><strong>在途订单</strong>（in-flight order）正在等待裁决：</p>
+<ul>
+<li class=""><code>SUBMITTED</code>：初次提交，等待受理或拒绝。</li>
+<li class=""><code>PENDING_UPDATE</code>：修改等待确认。</li>
+<li class=""><code>PENDING_CANCEL</code>：撤销等待确认。</li>
+</ul>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=delivery-and-retry-limits>投递与重试限制<a href=#delivery-and-retry-limits class=hash-link aria-label=投递与重试限制的直接链接 title=投递与重试限制的直接链接 translate=no>​</a></h3>
+<p>响应丢失时请求仍可能已到达场所。NautilusTrader 不保证提交、修改、撤销命令恰好投递一次。</p>
+<h4 class="anchor anchorTargetStickyNavbar_ana5" id=safety-test>安全性判定<a href=#safety-test class=hash-link aria-label=安全性判定的直接链接 title=安全性判定的直接链接 translate=no>​</a></h4>
+<p>适配器只在重复是安全的条件下重试瞬态失败。重复安全须满足：</p>
+<ul>
+<li class="">不可能把状态变更应用两次。</li>
+<li class="">不可能改动第一次尝试未点名的订单。</li>
+<li class="">不可能把先前的成功报成拒绝。</li>
+</ul>
+<p>只铸造一个额外短时效会话令牌、不吊销现有会话、不创建长期凭据的重复，是安全的。</p>
+<p>其他任何重复要靠场所协议才能安全：稳定的请求标识加重复检测，或对同一目标的幂等语义。该保证必须在整个重试窗口内成立，包括目标订单成交或撤销之后，直到场所的去重时钟过期为止。</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>请求<th>重复的影响<th>尝试次数<tbody><tr><td>提交，或提交订单列表。<td>可能挂出第二笔实盘订单。<td>一次，除非安全性判定成立。<tr><td>修改。<td>可能施加第二次修改。<td>一次，除非安全性判定成立。<tr><td>撤销，或按显式 ID 批量撤销。<td>第二次响应可能报告拒绝。<td>一次，除非安全性判定成立。<tr><td>全部撤销。<td>可能撤销两次尝试之间挂出的订单。<td>一次，除非安全性判定成立。<tr><td>其他改变状态的请求。<td>可能把该变更应用两次。<td>一次，除非安全性判定成立。<tr><td>仅铸造未使用的短时效令牌、不吊销会话、不创建长期凭据的会话令牌请求。<td>再铸造一个未使用的令牌。<td>瞬态失败时可重试。<tr><td>读取或其他幂等请求。<td>无场所状态变化。<td>瞬态失败时可重试。</table>
+<p>安全性判定不成立时，适配器只发送一次请求。结果保持未知，直到流更新、查询、轮询或对账裁决同一语义命令。</p>
+<div class="theme-admonition theme-admonition-warning admonition_LYZY alert alert--warning"><div class=admonitionHeading_pnFY><span class=admonitionIcon_tEzm><svg viewBox="0 0 16 16"><path fill-rule=evenodd d="M8.893 1.5c-.183-.31-.52-.5-.887-.5s-.703.19-.886.5L.138 13.499a.98.98 0 0 0 0 1.001c.193.31.53.501.886.501h13.964c.367 0 .704-.19.877-.5a1.03 1.03 0 0 0 .01-1.002L8.893 1.5zm.133 11.497H6.987v-2.003h2.039v2.003zm0-3.004H6.987V5.987h2.039v4.006z"/></svg></span>遵循程度不完整</div><div class=admonitionContent_ZwmI><p>瞬态失败可能让某些订单命令发出两次，已知包括 Bybit、OKX 和 Kraken 现货。该列表并非完整普查。
+<a class="" href=/developer_guide/adapters#retry-gate-conformance>重试门遵循表</a>记录了已检查的 HTTP 门。</div></div>
+<h4 class="anchor anchorTargetStickyNavbar_ana5" id=outcome>结果<a href=#outcome class=hash-link aria-label=结果的直接链接 title=结果的直接链接 translate=no>​</a></h4>
+<p>失败是否可安全重试，与场所结果是否已知是两回事。失败可以安全重试，而先前尝试仍是含糊的。一旦某次尝试可能已到达场所，后续失败就保持含糊，除非权威证据裁决了同一语义命令。</p>
+<h2 class="anchor anchorTargetStickyNavbar_ana5" id=persistence-before-transport>传输前持久化<a href=#persistence-before-transport class=hash-link aria-label=传输前持久化的直接链接 title=传输前持久化的直接链接 translate=no>​</a></h2>
+<p>创建客户端订单 ID、发布 <code>OrderInitialized</code>、发送 <code>SubmitOrder</code> 都是进程内动作，本身不确认持久存储。</p>
+<p>对内置执行引擎处理的提交：</p>
+<ol>
+<li class="">在最终调用执行客户端之前，订单及其 <code>ClientOrderId</code> 和 <code>OrderInitialized</code> 事件已在缓存中。</li>
+<li class="">引擎选定并校验执行客户端。</li>
+<li class="">缓存把解析好的订单到客户端的来源关系入队等待持久化，然后更新内存中的来源索引。</li>
+<li class="">引擎调用选定的 <code>ExecutionClient</code>。</li>
+<li class="">缓存后端独立于场所传输与确认处理其排队的写入。</li>
+</ol>
+<p>缓存后端无法接受入队时，这些步骤会在调用客户端之前失败。入队成功不代表底层存储已提交订单或来源。内置的 Redis 和
+PostgreSQL 缓存后端异步处理这些写入。</p>
+<p>最后一步只是调用适配器的 <code>ExecutionClient</code>。其后的实际发送、以及把场所响应或流更新映射为订单事件，都由适配器负责。成功的客户端调用或 <code>OrderSubmitted</code> 事件都不能证明场所已受理。</p>
+<div class="theme-admonition theme-admonition-warning admonition_LYZY alert alert--warning"><div class=admonitionHeading_pnFY><span class=admonitionIcon_tEzm><svg viewBox="0 0 16 16"><path fill-rule=evenodd d="M8.893 1.5c-.183-.31-.52-.5-.887-.5s-.703.19-.886.5L.138 13.499a.98.98 0 0 0 0 1.001c.193.31.53.501.886.501h13.964c.367 0 .704-.19.877-.5a1.03 1.03 0 0 0 .01-1.002L8.893 1.5zm.133 11.497H6.987v-2.003h2.039v2.003zm0-3.004H6.987V5.987h2.039v4.006z"/></svg></span>持久化空隙</div><div class=admonitionContent_ZwmI><p>因此，进程故障可能发生在场所已收到订单、而本地订单和来源尚未持久化之间。场所报告该订单时，启动对账可以恢复它。但若场所历史不完整，节点可能缺少重建完整执行历史所需的证据。</div></div>
+<p>可选的<a class="" href=/concepts/event_sourcing>事件存储</a>同样异步捕获，不以持久提交作为消息分发的门槛。实时重启继续依赖恢复的缓存状态加场所对账。</p>
+<h2 class="anchor anchorTargetStickyNavbar_ana5" id=reconciliation-authority>对账的权威性<a href=#reconciliation-authority class=hash-link aria-label=对账的权威性的直接链接 title=对账的权威性的直接链接 translate=no>​</a></h2>
+<p>缓存中的订单事件流是本地派生订单状态的来源。实时恢复期间，适配器的报告提供用于对齐该状态的场所证据。对账按订单状态、成交、持仓三个阶段应用报告，使持仓检查建立在已对账的订单与成交状态之上。</p>
+<p>恢复的含义是：恢复可用的缓存状态、对齐可用的场所报告、并把策略启动屏障保持到启动对账完成。它不证明场所返回了完整历史，也不证明所有未知的命令结果都已裁决。</p>
+<div class="theme-admonition theme-admonition-info admonition_LYZY alert alert--info"><div class=admonitionHeading_pnFY><span class=admonitionIcon_tEzm><svg viewBox="0 0 14 16"><path fill-rule=evenodd d="M7 2.3c3.14 0 5.7 2.56 5.7 5.7s-2.56 5.7-5.7 5.7A5.71 5.71 0 0 1 1.3 8c0-3.14 2.56-5.7 5.7-5.7zM7 1C3.14 1 0 4.14 0 8s3.14 7 7 7 7-3.14 7-7-3.14-7-7-7zm1 3H6v5h2V4zm0 6H6v2h2v-2z"/></svg></span>持仓报告即市场敞口</div><div class=admonitionContent_ZwmI><p><strong>显式的持仓报告具有权威性。启动对账期间，
+引擎要么在对账容差内对齐该报告，要么失败关闭（fail closed）。</strong><p>具有权威性的持仓报告：<ul>
+<li class="">显式的持仓报告，包含数量与方向。</li>
+<li class="">显式的空仓报告。</li>
+</ul><p>以下不构成空仓证据：<ul>
+<li class="">缺失报告。</li>
+<li class="">数量为 null。</li>
+<li class="">不发布持仓的场所。</li>
+</ul><p>成交窗口不决定报告是否具有权威性。缺失报告不等于空仓。<p><code>generate_missing_orders</code> 默认启用。引擎生成对齐本地状态到报告所需的订单与成交。
+禁用生成并不会让未解决的报告通过启动检查。<p>该保证覆盖在启用对账时由持仓报告与工具过滤器纳入的报告。未解决的报告会使 actor 和
+策略无法启动。</div></div>
+<p>缓存中不存在对应订单的报告可以创建外部订单。有活跃认领（claim）时，外部订单被指派给相应策略；无人认领时使用 <code>EXTERNAL</code>
+策略。参见
+<a class="" href=/concepts/execution/reconciliation#external-order-creation>外部订单创建</a>。</p>
+<p>外部订单和成交在其证据通过相同对账规则后，仍参与持仓跟踪与组合计算。无论是否有策略认领这些活动，有界历史保护措施都适用。</p>
+<p>启动对账先于各 trader 组件运行。除非有文档化的兼容路径处理该特定情形，启动失败会阻止节点启动。</p>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=terminal-reconciliation-provenance>终态对账的来源<a href=#terminal-reconciliation-provenance class=hash-link aria-label=终态对账的来源的直接链接 title=终态对账的来源的直接链接 translate=no>​</a></h3>
+<p><code>reconciliation</code> 字段标识经对账生成的事件，但它本身不能区分场所状态报告与本地策略裁决。以下本地策略裁决只在"提交保留策略不要求订单保持未决"时适用。显式的场所状态报告仍会对保留的订单执行对账：</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>证据路径<th>先前状态<th>终态事件<th>可获得的事件来源<tbody><tr><td>显式场所状态报告<td>模型允许的任何迁移<td><code>OrderRejected</code>/<code>OrderCanceled</code><td><code>reconciliation=true</code>。拒绝保留报告的 reason，缺失时为 <code>UNKNOWN</code>。撤销保留任何报告的原因。<tr><td>在途重试耗尽<td><code>SUBMITTED</code><td><code>OrderRejected</code><td><code>reconciliation=true</code>，reason <code>INFLIGHT_TIMEOUT</code>。<tr><td>在途重试耗尽<td><code>PENDING_UPDATE</code>/<code>PENDING_CANCEL</code><td><code>OrderCanceled</code><td><code>reconciliation=true</code>，<code>reason=None</code>。<tr><td>重试与定向查询后全历史订单仍然缺失<td><code>SUBMITTED</code>/<code>ACCEPTED</code><td><code>OrderRejected</code><td><code>reconciliation=true</code>，reason <code>NOT_FOUND_AT_VENUE</code>。<tr><td>重试与定向查询后全历史订单仍然缺失<td><code>PARTIALLY_FILLED</code><td><code>OrderCanceled</code><td><code>reconciliation=true</code>，<code>reason=None</code>。</table>
+<p><code>submission_recovery_policy</code> 默认为 <code>SubmissionRecoveryPolicy::ResolveLocally</code>。使用
+<code>SubmissionRecoveryPolicy::RetainUnresolved</code> 时，从未被受理的订单在恢复重试耗尽后保持未确认状态，包括挂起中的撤销或修改。Polymarket 客户端无论配置何种策略都要求这一行为。</p>
+<p>对这些保留的订单，自动的逐单恢复查询会停止，但后续场所事件与报告仍可裁决订单。已被受理的订单继续使用上面的本地裁决规则。</p>
+<div class="theme-admonition theme-admonition-warning admonition_LYZY alert alert--warning"><div class=admonitionHeading_pnFY><span class=admonitionIcon_tEzm><svg viewBox="0 0 16 16"><path fill-rule=evenodd d="M8.893 1.5c-.183-.31-.52-.5-.887-.5s-.703.19-.886.5L.138 13.499a.98.98 0 0 0 0 1.001c.193.31.53.501.886.501h13.964c.367 0 .704-.19.877-.5a1.03 1.03 0 0 0 .01-1.002L8.893 1.5zm.133 11.497H6.987v-2.003h2.039v2.003zm0-3.004H6.987V5.987h2.039v4.006z"/></svg></span>本地终态不是场所确认</div><div class=admonitionContent_ZwmI><p>表中第一行有显式场所状态支撑。其余各行是在运维配置的重试策略到期后恢复本地终态。它们不能证明场所拒绝了提交或撤销了挂单。</div></div>
+<p><code>OrderCanceled.reason</code> 可以携带场所报告的撤销原因，但两条合成对账路径不设置它。没有 reason 时，仅凭事件无法区分场所报告的撤销与合成路径。需要这一区分的消费方必须保存相关的对账输入与运维日志。可选的事件存储在启用时会捕获原始场所报告，但没有 <code>OrderCanceled</code> 字段携带策略原因。</p>
+<p>查询协调、近期订单保护与缺单行为见<a class="" href=/concepts/execution/reconciliation#runtime-checks>运行时检查</a>。</p>
+<h2 class="anchor anchorTargetStickyNavbar_ana5" id=related-guides>相关指南<a href=#related-guides class=hash-link aria-label=相关指南的直接链接 title=相关指南的直接链接 translate=no>​</a></h2>
+<ul>
+<li class=""><a class="" href=/concepts/execution/>执行</a>：组件角色、路由、OMS 行为与风控检查。</li>
+<li class=""><a class="" href=/concepts/execution/algorithms>执行算法</a>：TWAP、自定义算法与派生订单。</li>
+<li class=""><a class="" href=/concepts/orders/>订单</a>：订单类型、状态与主要状态流。</li>
+<li class=""><a class="" href=/concepts/events/>事件</a>：事件字段、分发与订单到持仓的效应。</li>
+<li class=""><a class="" href=/concepts/execution/reconciliation>执行对账</a>：启动恢复、持续检查与对账不变量。</li>
+<li class=""><a class="" href=/concepts/live>实时交易</a>：节点生命周期、分发策略、指标与关闭。</li>
+<li class=""><a class="" href=/how_to/configure_live_trading>配置实时交易节点</a>：实时执行设置。</li>
+</ul></div><footer class="theme-doc-footer docusaurus-mt-lg"><div class="row margin-top--sm theme-doc-footer-edit-meta-row"><div class="col noPrint_MRkS"><a href=https://github.com/Aloento/NautilusTraderDoc/tree/main/docs/concepts/execution/policies.md target=_blank rel="noopener noreferrer" class=theme-edit-this-page><svg fill=currentColor height=20 width=20 viewBox="0 0 40 40" class=iconEdit_RPSQ aria-hidden=true><g><path d="m34.5 11.7l-3 3.1-6.3-6.3 3.1-3q0.5-0.5 1.2-0.5t1.1 0.5l3.9 3.9q0.5 0.4 0.5 1.1t-0.5 1.2z m-29.5 17.1l18.4-18.5 6.3 6.3-18.4 18.4h-6.3v-6.2z"/></g></svg>编辑此页</a></div><div class="col lastUpdated_oZSl"><span class=theme-last-updated>最后<!-- -->于 <b><time datetime=2026-10-14T22:30:30.000Z itemprop=dateModified>2026年10月14日</time></b> <!-- -->更新</span></div></div></footer></article><nav class="docusaurus-mt-lg pagination-nav" aria-label=文件选项卡><a class="pagination-nav__link pagination-nav__link--prev" href=/concepts/execution/algorithms><div class=pagination-nav__sublabel>上一页</div><div class=pagination-nav__label>执行算法</div></a><a class="pagination-nav__link pagination-nav__link--next" href=/concepts/execution/reconciliation><div class=pagination-nav__sublabel>下一页</div><div class=pagination-nav__label>执行对账</div></a></nav></div></div><div class="col col--3"><div class="tableOfContents_LyLZ thin-scrollbar theme-doc-toc-desktop"><ul class="table-of-contents table-of-contents__left-border"><li><a href=#policy-summary class="table-of-contents__link toc-highlight">策略摘要</a><li><a href=#order-state class="table-of-contents__link toc-highlight">订单状态</a><ul><li><a href=#ordering class="table-of-contents__link toc-highlight">顺序</a><li><a href=#duplicate-application class="table-of-contents__link toc-highlight">重复应用</a></ul><li><a href=#command-outcomes class="table-of-contents__link toc-highlight">命令结果</a><ul><li><a href=#delivery-and-retry-limits class="table-of-contents__link toc-highlight">投递与重试限制</a></ul><li><a href=#persistence-before-transport class="table-of-contents__link toc-highlight">传输前持久化</a><li><a href=#reconciliation-authority class="table-of-contents__link toc-highlight">对账的权威性</a><ul><li><a href=#terminal-reconciliation-provenance class="table-of-contents__link toc-highlight">终态对账的来源</a></ul><li><a href=#related-guides class="table-of-contents__link toc-highlight">相关指南</a></ul></div></div></div></div></main></div></div></div><footer class="theme-layout-footer footer footer--dark"><div class="container container-fluid"><div class="row footer__links"><div class="theme-layout-footer-column col footer__col"><div class=footer__title></div><ul class="footer__items clean-list"><li class=footer__item><a href=https://github.com/nautechsystems/nautilus_trader target=_blank rel="noopener noreferrer" class=footer__link-item>Official GitHub<svg width=13.5 height=13.5 aria-label="(opens in new tab)" class=iconExternalLink_qUHo><use href=#theme-svg-external-link /></svg></a><li class=footer__item><a href=https://nautilustrader.io/docs target=_blank rel="noopener noreferrer" class=footer__link-item>Official Documentation<svg width=13.5 height=13.5 aria-label="(opens in new tab)" class=iconExternalLink_qUHo><use href=#theme-svg-external-link /></svg></a></ul></div></div><div class="footer__bottom text--center"><div class=footer__copyright>© 2026 Nautech Systems Pty Ltd. All rights reserved.</div></div></div></footer></div></body>

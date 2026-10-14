@@ -1,0 +1,1097 @@
+<!doctype html><html lang=zh dir=ltr class="docs-wrapper plugin-docs plugin-id-default docs-version-current docs-doc-page docs-doc-id-integrations/coinbase" data-has-hydrated=false><head><meta charset=UTF-8><meta name=generator content="Docusaurus v3.10.2"><title data-rh=true>Coinbase | NautilusTrader 文档</title><meta data-rh=true name=viewport content="width=device-width, initial-scale=1.0"/><meta data-rh=true name=twitter:card content=summary_large_image /><meta data-rh=true property=og:url content=https://nautilus.aloen.to/integrations/coinbase /><meta data-rh=true property=og:locale content=zh /><meta data-rh=true name=docusaurus_locale content=zh /><meta data-rh=true name=docsearch:language content=zh /><meta data-rh=true name=docusaurus_version content=current /><meta data-rh=true name=docusaurus_tag content=docs-default-current /><meta data-rh=true name=docsearch:version content=current /><meta data-rh=true name=docsearch:docusaurus_tag content=docs-default-current /><meta data-rh=true property=og:title content="Coinbase | NautilusTrader 文档"/><meta data-rh=true name=description content="Coinbase 成立于 2012 年，是美国监管下规模最大的加密货币交易所之一。其 Advanced Trade API"/><meta data-rh=true property=og:description content="Coinbase 成立于 2012 年，是美国监管下规模最大的加密货币交易所之一。其 Advanced Trade API"/><link data-rh=true rel=icon href=/logo.png /><link data-rh=true rel=canonical href=https://nautilus.aloen.to/integrations/coinbase /><link data-rh=true rel=alternate href=https://nautilus.aloen.to/integrations/coinbase hreflang=zh /><link data-rh=true rel=alternate href=https://nautilus.aloen.to/integrations/coinbase hreflang=x-default /><script data-rh=true type=application/ld+json>{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","item":"https://nautilus.aloen.to/integrations/","name":"交易所与集成","position":1},{"@type":"ListItem","item":"https://nautilus.aloen.to/integrations/coinbase","name":"Coinbase","position":2}]}</script><link rel=stylesheet href=/assets/css/styles.adb7ea18.css /><script src=/assets/js/runtime~main.71ac0794.js defer></script><script src=/assets/js/main.d978d0f2.js defer></script></head><body><svg style="display: none;"><defs>
+<symbol id=theme-svg-external-link viewBox="0 0 24 24"><path fill=currentColor d="M21 13v10h-21v-19h12v2h-10v15h17v-8h2zm3-12h-10.988l4.035 4-6.977 7.07 2.828 2.828 6.977-7.07 4.125 4.172v-11z"/></symbol>
+</defs></svg>
+<script>!function(){var t=function(){try{return new URLSearchParams(window.location.search).get("docusaurus-theme")}catch(t){}}()||function(){try{return window.localStorage.getItem("theme-2e3")}catch(t){}}();document.documentElement.setAttribute("data-theme",t||(window.matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light")),document.documentElement.setAttribute("data-theme-choice",t||"system")}(),function(){try{for(var[t,e]of new URLSearchParams(window.location.search).entries())if(t.startsWith("docusaurus-data-")){var a=t.replace("docusaurus-data-","data-");document.documentElement.setAttribute(a,e)}}catch(t){}}()</script><div id=__docusaurus><link rel=preload as=image href=/logo.png /><div role=region aria-label=跳到主要内容><a class=skipToContent_zuOI href=#__docusaurus_skipToContent_fallback>跳到主要内容</a></div><nav aria-label=主导航 class="theme-layout-navbar navbar navbar--fixed-top"><div class=navbar__inner><div class="theme-layout-navbar-left navbar__items"><button aria-label=切换导航栏 aria-expanded=false class="navbar__toggle clean-btn" type=button><svg width=30 height=30 viewBox="0 0 30 30" aria-hidden=true><path stroke=currentColor stroke-linecap=round stroke-miterlimit=10 stroke-width=2 d="M4 7h22M4 15h22M4 23h22"/></svg></button><a class=navbar__brand href=/><div class=navbar__logo><img src=/logo.png alt="NautilusTrader Logo" class="themedComponent_q2_Y themedComponent--light_Nejn"/><img src=/logo.png alt="NautilusTrader Logo" class="themedComponent_q2_Y themedComponent--dark_JjIb"/></div><b class="navbar__title text--truncate">NautilusTrader</b></a><a aria-current=page class="navbar__item navbar__link navbar__link--active" href=/getting_started/>文档</a></div><div class="theme-layout-navbar-right navbar__items navbar__items--right"><a href=https://github.com/Aloento/NautilusTraderDoc target=_blank rel="noopener noreferrer" class="navbar__item navbar__link">GitHub<svg width=13.5 height=13.5 aria-label="(opens in new tab)" class=iconExternalLink_qUHo><use href=#theme-svg-external-link /></svg></a><div class="toggle_hHmI colorModeToggle_rOOn"><button class="clean-btn toggleButton_wEhT toggleButtonDisabled_yOOP" type=button disabled title="system mode" aria-label="切换浅色/暗黑模式（当前为system mode）"><svg viewBox="0 0 24 24" width=24 height=24 aria-hidden=true class="toggleIcon_Kt6U lightToggleIcon_Zfeh"><path fill=currentColor d="M12,9c1.65,0,3,1.35,3,3s-1.35,3-3,3s-3-1.35-3-3S10.35,9,12,9 M12,7c-2.76,0-5,2.24-5,5s2.24,5,5,5s5-2.24,5-5 S14.76,7,12,7L12,7z M2,13l2,0c0.55,0,1-0.45,1-1s-0.45-1-1-1l-2,0c-0.55,0-1,0.45-1,1S1.45,13,2,13z M20,13l2,0c0.55,0,1-0.45,1-1 s-0.45-1-1-1l-2,0c-0.55,0-1,0.45-1,1S19.45,13,20,13z M11,2v2c0,0.55,0.45,1,1,1s1-0.45,1-1V2c0-0.55-0.45-1-1-1S11,1.45,11,2z M11,20v2c0,0.55,0.45,1,1,1s1-0.45,1-1v-2c0-0.55-0.45-1-1-1C11.45,19,11,19.45,11,20z M5.99,4.58c-0.39-0.39-1.03-0.39-1.41,0 c-0.39,0.39-0.39,1.03,0,1.41l1.06,1.06c0.39,0.39,1.03,0.39,1.41,0s0.39-1.03,0-1.41L5.99,4.58z M18.36,16.95 c-0.39-0.39-1.03-0.39-1.41,0c-0.39,0.39-0.39,1.03,0,1.41l1.06,1.06c0.39,0.39,1.03,0.39,1.41,0c0.39-0.39,0.39-1.03,0-1.41 L18.36,16.95z M19.42,5.99c0.39-0.39,0.39-1.03,0-1.41c-0.39-0.39-1.03-0.39-1.41,0l-1.06,1.06c-0.39,0.39-0.39,1.03,0,1.41 s1.03,0.39,1.41,0L19.42,5.99z M7.05,18.36c0.39-0.39,0.39-1.03,0-1.41c-0.39-0.39-1.03-0.39-1.41,0l-1.06,1.06 c-0.39,0.39-0.39,1.03,0,1.41s1.03,0.39,1.41,0L7.05,18.36z"/></svg><svg viewBox="0 0 24 24" width=24 height=24 aria-hidden=true class="toggleIcon_Kt6U darkToggleIcon_XgQr"><path fill=currentColor d="M9.37,5.51C9.19,6.15,9.1,6.82,9.1,7.5c0,4.08,3.32,7.4,7.4,7.4c0.68,0,1.35-0.09,1.99-0.27C17.45,17.19,14.93,19,12,19 c-3.86,0-7-3.14-7-7C5,9.07,6.81,6.55,9.37,5.51z M12,3c-4.97,0-9,4.03-9,9s4.03,9,9,9s9-4.03,9-9c0-0.46-0.04-0.92-0.1-1.36 c-0.98,1.37-2.58,2.26-4.4,2.26c-2.98,0-5.4-2.42-5.4-5.4c0-1.81,0.89-3.42,2.26-4.4C12.92,3.04,12.46,3,12,3L12,3z"/></svg><svg viewBox="0 0 24 24" width=24 height=24 aria-hidden=true class="toggleIcon_Kt6U systemToggleIcon_BvUi"><path fill=currentColor d="m12 21c4.971 0 9-4.029 9-9s-4.029-9-9-9-9 4.029-9 9 4.029 9 9 9zm4.95-13.95c1.313 1.313 2.05 3.093 2.05 4.95s-0.738 3.637-2.05 4.95c-1.313 1.313-3.093 2.05-4.95 2.05v-14c1.857 0 3.637 0.737 4.95 2.05z"/></svg></button></div><div class=navbarSearchContainer_watl></div></div></div><div role=presentation class=navbar-sidebar__backdrop></div></nav><div id=__docusaurus_skipToContent_fallback class="theme-layout-main main-wrapper mainWrapper_R72Q"><div class=docsWrapper_XQ9b><button aria-label=回到顶部 class="clean-btn theme-back-to-top-button backToTopButton_MbnX" type=button></button><div class=docRoot_aqOB><aside class="theme-doc-sidebar-container docSidebarContainer_sI2e"><div class=sidebarViewport_TzTy><div class=sidebar_CbEe><nav aria-label=文档侧边栏 class="menu thin-scrollbar menu_ChRF"><ul class="theme-doc-sidebar-menu menu__list"><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-1 menu__list-item menu__list-item--collapsed"><div class=menu__list-item-collapsible><a class="categoryLink_Muyc menu__link menu__link--sublist" href=/getting_started/><span class=categoryLinkLabel_mAcL>快速开始</span></a><button aria-label="展开侧边栏分类 '快速开始'" aria-expanded=false type=button class="clean-btn menu__caret"></button></div><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-1 menu__list-item menu__list-item--collapsed"><div class=menu__list-item-collapsible><a class="categoryLink_Muyc menu__link menu__link--sublist" href=/concepts/><span class=categoryLinkLabel_mAcL>核心概念</span></a><button aria-label="展开侧边栏分类 '核心概念'" aria-expanded=false type=button class="clean-btn menu__caret"></button></div><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-1 menu__list-item"><div class=menu__list-item-collapsible><a class="categoryLink_Muyc menu__link menu__link--sublist menu__link--active" href=/integrations/><span class=categoryLinkLabel_mAcL>交易所与集成</span></a><button aria-label="折叠侧边栏分类 '交易所与集成'" aria-expanded=true type=button class="clean-btn menu__caret"></button></div><ul class=menu__list><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/integrations/architect_ax><span class=linkLabel_lYjD>AX Exchange</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/integrations/betfair><span class=linkLabel_lYjD>Betfair</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/integrations/binance><span class=linkLabel_lYjD>Binance</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/integrations/blockchain><span class=linkLabel_lYjD>区块链</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/integrations/bybit><span class=linkLabel_lYjD>Bybit</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/integrations/coinapi><span class=linkLabel_lYjD>CoinAPI</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class="menu__link menu__link--active" aria-current=page tabindex=0 href=/integrations/coinbase><span class=linkLabel_lYjD>Coinbase</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/integrations/databento><span class=linkLabel_lYjD>Databento</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/integrations/deribit><span class=linkLabel_lYjD>Deribit</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/integrations/derive><span class=linkLabel_lYjD>Derive</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/integrations/dydx><span class=linkLabel_lYjD>dYdX</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/integrations/hyperliquid><span class=linkLabel_lYjD>Hyperliquid</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/integrations/interactive_brokers><span class=linkLabel_lYjD>Interactive Brokers</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/integrations/kraken><span class=linkLabel_lYjD>Kraken</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/integrations/lighter><span class=linkLabel_lYjD>Lighter</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/integrations/okx><span class=linkLabel_lYjD>OKX</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/integrations/polymarket><span class=linkLabel_lYjD>Polymarket</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/integrations/tardis><span class=linkLabel_lYjD>Tardis</span></a></ul><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-1 menu__list-item menu__list-item--collapsed"><div class=menu__list-item-collapsible><a class="categoryLink_Muyc menu__link menu__link--sublist" href=/how_to/><span class=categoryLinkLabel_mAcL>操作指南</span></a><button aria-label="展开侧边栏分类 '操作指南'" aria-expanded=false type=button class="clean-btn menu__caret"></button></div><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-1 menu__list-item menu__list-item--collapsed"><div class=menu__list-item-collapsible><a class="categoryLink_Muyc menu__link menu__link--sublist" href=/tutorials/><span class=categoryLinkLabel_mAcL>教程</span></a><button aria-label="展开侧边栏分类 '教程'" aria-expanded=false type=button class="clean-btn menu__caret"></button></div><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-1 menu__list-item menu__list-item--collapsed"><div class=menu__list-item-collapsible><a class="categoryLink_Muyc menu__link menu__link--sublist" href=/developer_guide/><span class=categoryLinkLabel_mAcL>开发者指南</span></a><button aria-label="展开侧边栏分类 '开发者指南'" aria-expanded=false type=button class="clean-btn menu__caret"></button></div><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-1 menu__list-item menu__list-item--collapsed"><div class=menu__list-item-collapsible><a class="categoryLink_Muyc menu__link menu__link--sublist" href=/api_reference/><span class=categoryLinkLabel_mAcL>API 参考</span></a><button aria-label="展开侧边栏分类 'API 参考'" aria-expanded=false type=button class="clean-btn menu__caret"></button></div></ul></nav></div></div></aside><main class=docMainContainer_sLF8><div class="container padding-top--md padding-bottom--lg"><div class=row><div class="col docItemCol_ZRft"><div class=docItemContainer_KOP5><article><nav class="theme-doc-breadcrumbs breadcrumbsContainer_d5rS" aria-label=页面路径><ul class=breadcrumbs><li class=breadcrumbs__item><a aria-label=主页面 class=breadcrumbs__link href=/><svg viewBox="0 0 24 24" class=breadcrumbHomeIcon_XgF2><path d="M10 19v-5h4v5c0 .55.45 1 1 1h3c.55 0 1-.45 1-1v-7h1.7c.46 0 .68-.57.33-.87L12.67 3.6c-.38-.34-.96-.34-1.34 0l-8.36 7.53c-.34.3-.13.87.33.87H5v7c0 .55.45 1 1 1h3c.55 0 1-.45 1-1z" fill=currentColor /></svg></a><li class=breadcrumbs__item><a class=breadcrumbs__link href=/integrations/><span>交易所与集成</span></a><li class="breadcrumbs__item breadcrumbs__item--active"><span class=breadcrumbs__link>Coinbase</span></ul></nav><div class="tocCollapsible_bgaJ theme-doc-toc-mobile tocMobile_FhT_"><button type=button class="clean-btn tocCollapsibleButton_F8AY">本页总览</button></div><div class="theme-doc-markdown markdown"><header><h1>Coinbase</h1></header>
+<p>Coinbase 成立于 2012 年，是美国监管下规模最大的加密货币交易所之一。其 Advanced Trade API
+提供现货、永续互换和到期期货交易。本适配器通过共享的执行客户端，支持现货（Cash）账户和
+CFM 衍生品（Margin）账户的实时行情接入与订单执行，账户类型由工厂选择（见<a href=#execution-scope class="">执行范围</a>）。</p>
+<h2 class="anchor anchorTargetStickyNavbar_ana5" id=overview>概览<a href=#overview class=hash-link aria-label=概览的直接链接 title=概览的直接链接 translate=no>​</a></h2>
+<p>Coinbase 适配器以 Rust 实现，通过配置、工厂、枚举和常量暴露给 Python。</p>
+<p>组件：</p>
+<ul>
+<li class=""><code>CoinbaseRawHttpClient</code>：底层 REST 客户端，负责传输、JWT 签名和速率限制。</li>
+<li class=""><code>CoinbaseHttpClient</code>：领域 REST 客户端，把场所响应解析为 Nautilus 类型。</li>
+<li class=""><code>CoinbaseWebSocketClient</code>：底层 WebSocket 连接，使用 JWT 订阅鉴权。</li>
+<li class=""><code>CoinbaseInstrumentProvider</code>：金融工具解析与加载。</li>
+<li class=""><code>CoinbaseDataClient</code>：行情数据源管理器。</li>
+<li class=""><code>CoinbaseDataClientFactory</code>：数据客户端工厂。</li>
+<li class=""><code>CoinbaseExecutionClient</code>：执行客户端（现货或 CFM 衍生品；REST 下单 + WS 数据流）。</li>
+<li class=""><code>CoinbaseExecutionClientFactory</code>：执行客户端工厂。现货与 CFM 衍生品由配置上的
+<code>account_type</code> 选择。</li>
+</ul>
+<p><code>nautilus_trader.adapters.coinbase</code> 提供的 Python 接口：</p>
+<ul>
+<li class=""><code>CoinbaseDataClientConfig</code>、<code>CoinbaseExecutionClientConfig</code></li>
+<li class=""><code>CoinbaseDataClientFactory</code>、<code>CoinbaseExecutionClientFactory</code></li>
+<li class=""><code>CoinbaseEnvironment</code>、<code>CoinbaseMarginType</code></li>
+<li class=""><code>COINBASE</code>、<code>COINBASE_CLIENT_ID</code> 和 <code>COINBASE_VENUE</code></li>
+</ul>
+<h2 class="anchor anchorTargetStickyNavbar_ana5" id=examples>示例<a href=#examples class=hash-link aria-label=示例的直接链接 title=示例的直接链接 translate=no>​</a></h2>
+<ul>
+<li class=""><a href=https://github.com/nautechsystems/nautilus_trader/tree/develop/examples/live/coinbase/ target=_blank rel="noopener noreferrer" class="">Python 示例</a></li>
+<li class=""><a href=https://github.com/nautechsystems/nautilus_trader/tree/develop/crates/adapters/coinbase/examples/ target=_blank rel="noopener noreferrer" class="">Rust 示例</a></li>
+</ul>
+<h2 class="anchor anchorTargetStickyNavbar_ana5" id=coinbase-documentation>Coinbase 文档<a href=#coinbase-documentation class=hash-link aria-label="Coinbase 文档的直接链接" title="Coinbase 文档的直接链接" translate=no>​</a></h2>
+<p>Coinbase 为 Advanced Trade API 提供了文档：</p>
+<ul>
+<li class=""><a href=https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/introduction target=_blank rel="noopener noreferrer" class="">REST API 参考</a></li>
+<li class=""><a href=https://docs.cdp.coinbase.com/coinbase-app/advanced-trade-apis/guides/orders target=_blank rel="noopener noreferrer" class="">订单管理指南</a></li>
+<li class=""><a href=https://docs.cdp.coinbase.com/coinbase-app/advanced-trade-apis/websocket/websocket-channels target=_blank rel="noopener noreferrer" class="">WebSocket 频道</a></li>
+<li class=""><a href=https://docs.cdp.coinbase.com/coinbase-app/authentication-authorization/api-key-authentication target=_blank rel="noopener noreferrer" class="">API key 鉴权</a></li>
+<li class=""><a href=https://docs.cdp.coinbase.com/coinbase-app/api-architecture/rate-limiting target=_blank rel="noopener noreferrer" class="">速率限制</a></li>
+</ul>
+<p>请结合本 NautilusTrader 集成指南阅读 Coinbase 文档。</p>
+<div class="theme-admonition theme-admonition-info admonition_LYZY alert alert--info"><div class=admonitionHeading_pnFY><span class=admonitionIcon_tEzm><svg viewBox="0 0 14 16"><path fill-rule=evenodd d="M7 2.3c3.14 0 5.7 2.56 5.7 5.7s-2.56 5.7-5.7 5.7A5.71 5.71 0 0 1 1.3 8c0-3.14 2.56-5.7 5.7-5.7zM7 1C3.14 1 0 4.14 0 8s3.14 7 7 7 7-3.14 7-7-3.14-7-7-7zm1 3H6v5h2V4zm0 6H6v2h2v-2z"/></svg></span>信息</div><div class=admonitionContent_ZwmI><p>本适配器面向 Coinbase Advanced Trade API。不覆盖独立的
+<a href=https://international.coinbase.com target=_blank rel="noopener noreferrer" class="">Coinbase International Exchange（INTX）</a>场所，其适配器在
+NautilusTrader 1.224.0 中已移除。</div></div>
+<h2 class="anchor anchorTargetStickyNavbar_ana5" id=products>产品<a href=#products class=hash-link aria-label=产品的直接链接 title=产品的直接链接 translate=no>​</a></h2>
+<p>产品（product）是一组相关工具类型的统称。</p>
+<p>支持以下产品类型：</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>产品类型<th>支持<th>说明<tbody><tr><td>现货<td>✓<td>以 USD、USDC、USDT 计价的现货对。<tr><td>永续合约<td>✓<td>FCM 场所上以 USD 保证金的永续互换。<tr><td>期货合约<td>✓<td>到期交割期货（nano BTC、nano ETH 等）。</table>
+<h2 class="anchor anchorTargetStickyNavbar_ana5" id=symbology>符号体系<a href=#symbology class=hash-link aria-label=符号体系的直接链接 title=符号体系的直接链接 translate=no>​</a></h2>
+<p>Coinbase 直接把场所原生的 <code>product_id</code> 字段用作 Nautilus symbol。金融工具 ID 为
+<code>{product_id}.COINBASE</code>。</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>产品<th>格式<th>示例<tbody><tr><td>现货<td><code>{base}-{quote}</code><td><code>BTC-USD</code>、<code>ETH-USDC</code>、<code>SOL-USDT</code>。<tr><td>永续<td><code>{contract_code}-{ddMMMyy}-CDE</code><td><code>BIP-20DEC30-CDE</code>（BTC PERP）。<tr><td>到期期货<td><code>{contract_code}-{ddMMMyy}-CDE</code><td><code>BIT-24APR26-CDE</code>（BTC 2026 年 4 月）。</table>
+<p><code>-CDE</code> 后缀表示 Coinbase Derivatives Exchange（FCM 场所）。永续工具带有交易所指派的远期
+到期日（如 <code>20DEC30</code>），但依据是否存在持续 funding 费率被归类为 <code>CryptoPerpetual</code>。到期期货
+归类为 <code>CryptoFuture</code>。</p>
+<p>适配器从 API 元数据以结构化方式解析产品类型
+（<code>future_product_details.contract_expiry_type</code>；当其值为 <code>EXPIRING</code> 时，以
+<code>future_product_details.funding_rate</code> 非空作为永续合约的独有结构信号）。回退启发式检查
+<code>display_name</code> 中是否含有 <code>PERP</code> 或 <code>Perpetual</code> 子串。</p>
+<p>完整 Nautilus 金融工具 ID 示例：</p>
+<ul>
+<li class=""><code>BTC-USD.COINBASE</code>（现货 Bitcoin/USD）。</li>
+<li class=""><code>ETH-USDC.COINBASE</code>（现货 Ether/USDC）。</li>
+<li class=""><code>BIP-20DEC30-CDE.COINBASE</code>（BTC 永续互换）。</li>
+<li class=""><code>BIT-24APR26-CDE.COINBASE</code>（BTC 到期期货，2026 年 4 月）。</li>
+</ul>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=aliased-products-usdc-and-usd>别名产品（USDC 与 USD）<a href=#aliased-products-usdc-and-usd class=hash-link aria-label="别名产品（USDC 与 USD）的直接链接" title="别名产品（USDC 与 USD）的直接链接" translate=no>​</a></h3>
+<p>Coinbase 把同一交易对的 USDC 计价版本和 USD 计价版本合并到同一个撮合引擎簿。
+<code>GET /products</code> 通过 <code>alias</code> 和 <code>alias_to</code> 暴露这层关系：</p>
+<div class="language-text codeBlockContainer_eTMR theme-code-block" style=--prism-color:#393A34;--prism-background-color:#f6f8fa><div class=codeBlockContent_hafM><pre tabindex=0 class="prism-code language-text codeBlock_IMvC thin-scrollbar" style=color:#393A34;background-color:#f6f8fa><code class=codeBlockLines_gZDW><div class=token-line style=color:#393A34><span class="token plain">BTC-USD :  alias=""        alias_to=["BTC-USDC"]   # canonical</span><br/></div><div class=token-line style=color:#393A34><span class="token plain">BTC-USDC:  alias="BTC-USD" alias_to=[]             # alias of BTC-USD</span><br/></div></code></pre></div></div>
+<p>当调用方使用别名一侧订阅或下单时，场所在线路上把请求改写为规范（canonical）ID。适配器在
+工具引导阶段记录 <code>product_id -> alias</code> 映射，并在两侧透明地处理改写：</p>
+<ul>
+<li class="">数据订阅使用规范 ID 发出。数据 WebSocket 客户端持有反向映射，在解析前把入站消息重新
+键回调用方提供的 ID。</li>
+<li class="">订单以调用方的 <code>product_id</code> 提交。执行客户端把该 ID 记录在 <code>client_order_id</code> 下，并对
+user 频道回显的规范 ID 重新键回。因此，别名一侧的订单永远不会被报告到规范工具上。</li>
+</ul>
+<p>因此，只持有 USDC 的策略可以端到端交易 <code>BTC-USDC.COINBASE</code>，无需引用规范的 <code>BTC-USD</code>。
+结算货币由提交的 <code>product_id</code> 决定，所以在 <code>BTC-USDC.COINBASE</code> 下的订单总是借记或贷记
+USDC 钱包。</p>
+<h2 class="anchor anchorTargetStickyNavbar_ana5" id=environments>环境<a href=#environments class=hash-link aria-label=环境的直接链接 title=环境的直接链接 translate=no>​</a></h2>
+<p>Coinbase 提供两个交易环境。用客户端配置中的 <code>environment</code> 字段选择合适的环境。</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>环境<th><code>environment</code> 值<th>REST 基础 URL<tbody><tr><td>实盘<td><code>CoinbaseEnvironment.LIVE</code><td><code>https://api.coinbase.com</code><tr><td>Sandbox<td><code>CoinbaseEnvironment.SANDBOX</code><td><code>https://api-sandbox.coinbase.com</code></table>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=live-production>Live（生产）<a href=#live-production class=hash-link aria-label=Live（生产）的直接链接 title=Live（生产）的直接链接 translate=no>​</a></h3>
+<p>用真实资金实时交易的默认环境。</p>
+<div class="language-python codeBlockContainer_eTMR theme-code-block" style=--prism-color:#393A34;--prism-background-color:#f6f8fa><div class=codeBlockContent_hafM><pre tabindex=0 class="prism-code language-python codeBlock_IMvC thin-scrollbar" style=color:#393A34;background-color:#f6f8fa><code class=codeBlockLines_gZDW><div class=token-line style=color:#393A34><span class="token plain">config </span><span class="token operator" style=color:#393A34>=</span><span class="token plain"> CoinbaseExecutionClientConfig</span><span class="token punctuation" style=color:#393A34>(</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    api_key</span><span class="token operator" style=color:#393A34>=</span><span class="token string" style=color:#e3116c>"YOUR_API_KEY"</span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    api_secret</span><span class="token operator" style=color:#393A34>=</span><span class="token string" style=color:#e3116c>"YOUR_API_SECRET"</span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    </span><span class="token comment" style=color:#999988;font-style:italic># environment=CoinbaseEnvironment.LIVE (default)</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain"></span><span class="token punctuation" style=color:#393A34>)</span><br/></div></code></pre></div></div>
+<p>环境变量：<code>COINBASE_API_KEY</code>、<code>COINBASE_API_SECRET</code>。</p>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=sandbox>Sandbox<a href=#sandbox class=hash-link aria-label=Sandbox的直接链接 title=Sandbox的直接链接 translate=no>​</a></h3>
+<p>按 <a href=https://docs.cdp.coinbase.com/coinbase-app/advanced-trade-apis/sandbox target=_blank rel="noopener noreferrer" class="">Sandbox 文档</a>的
+说明，这是一个静态 mock 测试环境，用于打通集成管线。</p>
+<div class="language-python codeBlockContainer_eTMR theme-code-block" style=--prism-color:#393A34;--prism-background-color:#f6f8fa><div class=codeBlockContent_hafM><pre tabindex=0 class="prism-code language-python codeBlock_IMvC thin-scrollbar" style=color:#393A34;background-color:#f6f8fa><code class=codeBlockLines_gZDW><div class=token-line style=color:#393A34><span class="token plain">config </span><span class="token operator" style=color:#393A34>=</span><span class="token plain"> CoinbaseExecutionClientConfig</span><span class="token punctuation" style=color:#393A34>(</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    api_key</span><span class="token operator" style=color:#393A34>=</span><span class="token string" style=color:#e3116c>"ANY_NON_EMPTY_STRING"</span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain">  </span><span class="token comment" style=color:#999988;font-style:italic># required by the adapter constructor</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    api_secret</span><span class="token operator" style=color:#393A34>=</span><span class="token string" style=color:#e3116c>"ANY_NON_EMPTY_STRING"</span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    environment</span><span class="token operator" style=color:#393A34>=</span><span class="token plain">CoinbaseEnvironment</span><span class="token punctuation" style=color:#393A34>.</span><span class="token plain">SANDBOX</span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain"></span><span class="token punctuation" style=color:#393A34>)</span><br/></div></code></pre></div></div>
+<p>Sandbox 场所不强制鉴权，但 <code>CoinbaseExecutionClient::new</code> 在构造时要求两个字段（或对应的
+环境变量）都有值。</p>
+<div class="theme-admonition theme-admonition-warning admonition_LYZY alert alert--warning"><div class=admonitionHeading_pnFY><span class=admonitionIcon_tEzm><svg viewBox="0 0 16 16"><path fill-rule=evenodd d="M8.893 1.5c-.183-.31-.52-.5-.887-.5s-.703.19-.886.5L.138 13.499a.98.98 0 0 0 0 1.001c.193.31.53.501.886.501h13.964c.367 0 .704-.19.877-.5a1.03 1.03 0 0 0 .01-1.002L8.893 1.5zm.133 11.497H6.987v-2.003h2.039v2.003zm0-3.004H6.987V5.987h2.039v4.006z"/></svg></span>注意</div><div class=admonitionContent_ZwmI><p><strong>Sandbox 不是一个平行的交易场所</strong>：<ul>
+<li class="">所有响应都是静态预定义的，没有实时行情和动态定价。</li>
+<li class="">只有 Accounts 和 Orders 端点可用，其他资源没有。</li>
+<li class="">不需要鉴权（也不强制）。</li>
+<li class="">自定义 <code>X-Sandbox</code> 请求头可以触发预定义的错误场景。</li>
+</ul><p>用 sandbox 打通客户端并验证请求/响应形态。任何贴近真实的行为测试都要在生产环境
+（用真实资金，谨慎操作）进行。</div></div>
+<h2 class="anchor anchorTargetStickyNavbar_ana5" id=authentication>鉴权<a href=#authentication class=hash-link aria-label=鉴权的直接链接 title=鉴权的直接链接 translate=no>​</a></h2>
+<p>Coinbase Advanced Trade 使用 ES256 JWT 鉴权。每个 REST 请求和每个 WebSocket 订阅都会生成
+一个用你的 EC 私钥签名的短时效 JWT。适配器从环境变量或配置字段解析凭据。</p>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=creating-an-api-key>创建 API key<a href=#creating-an-api-key class=hash-link aria-label="创建 API key的直接链接" title="创建 API key的直接链接" translate=no>​</a></h3>
+<p>Coinbase 有多种 key 类型。适配器要求使用 <strong>Coinbase App Secret
+API key</strong>，签名算法为 <strong>ECDSA</strong>（不是 Ed25519）。</p>
+<ol>
+<li class="">
+<p>打开 CDP 门户的 API keys 页面：
+<a href=https://portal.cdp.coinbase.com/projects/api-keys target=_blank rel="noopener noreferrer" class="">portal.cdp.coinbase.com/projects/api-keys</a>。</p>
+</li>
+<li class="">
+<p>选择 <strong>Secret API Keys</strong> 标签页，点击 <strong>Create API key</strong>。</p>
+</li>
+<li class="">
+<p>输入昵称（如 <code>nautilus-trading</code>）。</p>
+</li>
+<li class="">
+<p>展开 <strong>API restrictions</strong>，把权限设为 <strong>View</strong> 和 <strong>Trade</strong>。</p>
+</li>
+<li class="">
+<p>展开 <strong>Advanced Settings</strong>，把签名算法从 Ed25519 改为 <strong>ECDSA</strong>。这一步是必需的：
+Ed25519 key 不能用于 Advanced Trade API。</p>
+</li>
+<li class="">
+<p>点击 <strong>Create API key</strong>。在弹窗中保存 key 名称和私钥。key 名称形如
+<code>organizations/{org_id}/apiKeys/{key_id}</code>。私钥是 PEM 编码的 EC key（SEC1 格式）。</p>
+</li>
+</ol>
+<div class="theme-admonition theme-admonition-warning admonition_LYZY alert alert--warning"><div class=admonitionHeading_pnFY><span class=admonitionIcon_tEzm><svg viewBox="0 0 16 16"><path fill-rule=evenodd d="M8.893 1.5c-.183-.31-.52-.5-.887-.5s-.703.19-.886.5L.138 13.499a.98.98 0 0 0 0 1.001c.193.31.53.501.886.501h13.964c.367 0 .704-.19.877-.5a1.03 1.03 0 0 0 .01-1.002L8.893 1.5zm.133 11.497H6.987v-2.003h2.039v2.003zm0-3.004H6.987V5.987h2.039v4.006z"/></svg></span>注意</div><div class=admonitionContent_ZwmI><p>Coinbase 不再自动下载 key 文件。请在关闭创建弹窗前复制其中的值或点击下载按钮。
+私钥事后无法再次获取。</div></div>
+<div class="theme-admonition theme-admonition-info admonition_LYZY alert alert--info"><div class=admonitionHeading_pnFY><span class=admonitionIcon_tEzm><svg viewBox="0 0 14 16"><path fill-rule=evenodd d="M7 2.3c3.14 0 5.7 2.56 5.7 5.7s-2.56 5.7-5.7 5.7A5.71 5.71 0 0 1 1.3 8c0-3.14 2.56-5.7 5.7-5.7zM7 1C3.14 1 0 4.14 0 8s3.14 7 7 7 7-3.14 7-7-3.14-7-7-7zm1 3H6v5h2V4zm0 6H6v2h2v-2z"/></svg></span>信息</div><div class=admonitionContent_ZwmI><p>不要使用已过期的旧版 Coinbase App API key。请创建 CDP API key 并选择 ECDSA 算法。适配器
+用 ES256 签名请求。见 Coinbase 的
+<a href=https://docs.cdp.coinbase.com/coinbase-app/authentication-authorization/legacy-keys target=_blank rel="noopener noreferrer" class="">旧版 key 迁移指南</a>。</div></div>
+<p>完整细节见 Coinbase
+<a href=https://docs.cdp.coinbase.com/coinbase-app/authentication-authorization/api-key-authentication target=_blank rel="noopener noreferrer" class="">API key 鉴权指南</a>。</p>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=environment-variables>环境变量<a href=#environment-variables class=hash-link aria-label=环境变量的直接链接 title=环境变量的直接链接 translate=no>​</a></h3>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>变量<th>说明<tbody><tr><td><code>COINBASE_API_KEY</code><td>key 名称（<code>organizations/{org_id}/apiKeys/{key_id}</code>）。<tr><td><code>COINBASE_API_SECRET</code><td>PEM 编码的 EC 私钥（完整多行字符串）。</table>
+<p>示例：</p>
+<div class="language-bash codeBlockContainer_eTMR theme-code-block" style=--prism-color:#393A34;--prism-background-color:#f6f8fa><div class=codeBlockContent_hafM><pre tabindex=0 class="prism-code language-bash codeBlock_IMvC thin-scrollbar" style=color:#393A34;background-color:#f6f8fa><code class=codeBlockLines_gZDW><div class=token-line style=color:#393A34><span class="token plain">export COINBASE_API_KEY="organizations/abc-123/apiKeys/def-456"</span><br/></div><div class=token-line style=color:#393A34><span class="token plain">export COINBASE_API_SECRET="$(cat ~/path/to/cdp_api_key.pem)"</span><br/></div></code></pre></div></div>
+<div class="theme-admonition theme-admonition-tip admonition_LYZY alert alert--success"><div class=admonitionHeading_pnFY><span class=admonitionIcon_tEzm><svg viewBox="0 0 12 16"><path fill-rule=evenodd d="M6.5 0C3.48 0 1 2.19 1 5c0 .92.55 2.25 1 3 1.34 2.25 1.78 2.78 2 4v1h5v-1c.22-1.22.66-1.75 2-4 .45-.75 1-2.08 1-3 0-2.81-2.48-5-5.5-5zm3.64 7.48c-.25.44-.47.8-.67 1.11-.86 1.41-1.25 2.06-1.45 3.23-.02.05-.02.11-.02.17H5c0-.06 0-.13-.02-.17-.2-1.17-.59-1.83-1.45-3.23-.2-.31-.42-.67-.67-1.11C2.44 6.78 2 5.65 2 5c0-2.2 2.02-4 4.5-4 1.22 0 2.36.42 3.22 1.19C10.55 2.94 11 3.94 11 5c0 .66-.44 1.78-.86 2.48zM4 14h5c-.23 1.14-1.3 2-2.5 2s-2.27-.86-2.5-2z"/></svg></span>提示</div><div class=admonitionContent_ZwmI><p>推荐用环境变量管理凭据。</div></div>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=jwt-lifetime>JWT 有效期<a href=#jwt-lifetime class=hash-link aria-label="JWT 有效期的直接链接" title="JWT 有效期的直接链接" translate=no>​</a></h3>
+<p>Coinbase JWT 在 120 秒后过期。按
+<a href=https://docs.cdp.coinbase.com/coinbase-app/advanced-trade-apis/websocket/websocket-overview target=_blank rel="noopener noreferrer" class="">WebSocket 概览</a>
+的说明，每条需要鉴权的 WebSocket 消息（即每次订阅）都必须生成不同的 JWT。适配器为每个签名
+REST 请求和每条鉴权订阅消息重新生成新鲜 JWT，无需手动轮换。</p>
+<h2 class="anchor anchorTargetStickyNavbar_ana5" id=portfolios>投资组合<a href=#portfolios class=hash-link aria-label=投资组合的直接链接 title=投资组合的直接链接 translate=no>​</a></h2>
+<p>Coinbase 账户持有一个或多个<strong>投资组合（portfolio）</strong>。每个投资组合有自己的钱包（USD、USDC、
+BTC 等）、余额和订单范围。每个账户都有一个 <code>DEFAULT</code> 投资组合。用户可以创建额外的 <code>CONSUMER</code>
+投资组合来隔离策略、风险或税则批次。</p>
+<p>CDP API key 在<strong>创建时绑定到单个投资组合</strong>。每个鉴权请求（账户查询、下单、撤单）都作用于
+该投资组合，除非显式指定其他组合。</p>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=finding-your-portfolio-uuids>查找投资组合 UUID<a href=#finding-your-portfolio-uuids class=hash-link aria-label="查找投资组合 UUID的直接链接" title="查找投资组合 UUID的直接链接" translate=no>​</a></h3>
+<p>运行适配器的鉴权探测二进制：</p>
+<div class="language-bash codeBlockContainer_eTMR theme-code-block" style=--prism-color:#393A34;--prism-background-color:#f6f8fa><div class=codeBlockContent_hafM><pre tabindex=0 class="prism-code language-bash codeBlock_IMvC thin-scrollbar" style=color:#393A34;background-color:#f6f8fa><code class=codeBlockLines_gZDW><div class=token-line style=color:#393A34><span class="token plain">cargo run --bin coinbase-http-private --package nautilus-coinbase</span><br/></div></code></pre></div></div>
+<p>它会打印：</p>
+<ul>
+<li class="">你的 CDP key 可见的投资组合。</li>
+<li class="">所绑定投资组合中的账户余额。</li>
+<li class="">若干参考 REST 调用。</li>
+</ul>
+<p>示例输出：</p>
+<div class="language-text codeBlockContainer_eTMR theme-code-block" style=--prism-color:#393A34;--prism-background-color:#f6f8fa><div class=codeBlockContent_hafM><pre tabindex=0 class="prism-code language-text codeBlock_IMvC thin-scrollbar" style=color:#393A34;background-color:#f6f8fa><code class=codeBlockLines_gZDW><div class=token-line style=color:#393A34><span class="token plain">Found 1 portfolio(s)</span><br/></div><div class=token-line style=color:#393A34><span class="token plain">  name=Default type=DEFAULT uuid=ca7244bc-21d1-5e4c-bfe5-80f208ac5723 deleted=false</span><br/></div><div class=token-line style=color:#393A34><span class="token plain">Account has 3 balance(s)</span><br/></div><div class=token-line style=color:#393A34><span class="token plain">  USDC total=100.00000000 USDC free=100.00000000 USDC locked=0.00000000 USDC</span><br/></div><div class=token-line style=color:#393A34><span class="token plain">  AUD total=0.00 AUD free=0.00 AUD locked=0.00 AUD</span><br/></div><div class=token-line style=color:#393A34><span class="token plain">  BTC total=0.00000000 BTC free=0.00000000 BTC locked=0.00000000 BTC</span><br/></div></code></pre></div></div>
+<p>等价的 curl（你需要先用自己的 CDP PEM key 签发 ES256 JWT）：</p>
+<div class="language-bash codeBlockContainer_eTMR theme-code-block" style=--prism-color:#393A34;--prism-background-color:#f6f8fa><div class=codeBlockContent_hafM><pre tabindex=0 class="prism-code language-bash codeBlock_IMvC thin-scrollbar" style=color:#393A34;background-color:#f6f8fa><code class=codeBlockLines_gZDW><div class=token-line style=color:#393A34><span class="token plain">curl -H "Authorization: Bearer $JWT" \</span><br/></div><div class=token-line style=color:#393A34><span class="token plain">  https://api.coinbase.com/api/v3/brokerage/portfolios</span><br/></div></code></pre></div></div>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=when-retail_portfolio_id-is-required>何时需要 <code>retail_portfolio_id</code><a href=#when-retail_portfolio_id-is-required class=hash-link aria-label=when-retail_portfolio_id-is-required的直接链接 title=when-retail_portfolio_id-is-required的直接链接 translate=no>​</a></h3>
+<p>Coinbase 的 <code>POST /orders</code> 端点默认路由到 key 绑定的投资组合，因此单投资组合账户不需要设置
+该字段。在 <a href=#execution-client-configuration-options class=""><code>CoinbaseExecutionClientConfig</code></a> 上设置它，
+当以下任一条件成立时：</p>
+<ul>
+<li class="">账户持有多个投资组合，而你想交易的那个不是 key 的默认组合。</li>
+<li class="">场所以下列信息拒单 <code>account is not available</code>，且已排除下文的钱包诊断。</li>
+</ul>
+<div class="theme-admonition theme-admonition-note admonition_LYZY alert alert--secondary"><div class=admonitionHeading_pnFY><span class=admonitionIcon_tEzm><svg viewBox="0 0 14 16"><path fill-rule=evenodd d="M6.3 5.69a.942.942 0 0 1-.28-.7c0-.28.09-.52.28-.7.19-.18.42-.28.7-.28.28 0 .52.09.7.28.18.19.28.42.28.7 0 .28-.09.52-.28.7a1 1 0 0 1-.7.3c-.28 0-.52-.11-.7-.3zM8 7.99c-.02-.25-.11-.48-.31-.69-.2-.19-.42-.3-.69-.31H6c-.27.02-.48.13-.69.31-.2.2-.3.44-.31.69h1v3c.02.27.11.5.31.69.2.2.42.31.69.31h1c.27 0 .48-.11.69-.31.2-.19.3-.42.31-.69H8V7.98v.01zM7 2.3c-3.14 0-5.7 2.54-5.7 5.68 0 3.14 2.56 5.7 5.7 5.7s5.7-2.55 5.7-5.7c0-3.15-2.56-5.69-5.7-5.69v.01zM7 .98c3.86 0 7 3.14 7 7s-3.14 7-7 7-7-3.12-7-7 3.14-7 7-7z"/></svg></span>备注</div><div class=admonitionContent_ZwmI><p>Coinbase 的 <a href=https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/orders/create-order target=_blank rel="noopener noreferrer" class="">Create Order 参考文档</a>
+把 <code>retail_portfolio_id</code> 标记为已弃用、仅适用于旧版 key，并说明 CDP key 默认使用
+key 被授权的投资组合。配置后适配器仍会发送该字段，因此当场所的默认路由与你的账户
+布局不符时，它依然可用。</div></div>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=creating-a-new-portfolio>创建新投资组合<a href=#creating-a-new-portfolio class=hash-link aria-label=创建新投资组合的直接链接 title=创建新投资组合的直接链接 translate=no>​</a></h3>
+<p>多数用户不需要创建投资组合，账户的默认组合开箱即用。仅当你想做到以下几点时，才在
+<a href=https://www.coinbase.com/portfolios target=_blank rel="noopener noreferrer" class="">coinbase.com/portfolios</a> 创建：</p>
+<ul>
+<li class="">把 API 驱动的交易与手动零售操作隔离。</li>
+<li class="">在策略之间隔离风险或盈亏。</li>
+<li class="">绕开受限的默认组合（例如 Vault）。</li>
+</ul>
+<p>创建投资组合后，先给它注资（在 coinbase.com 上从默认组合的钱包转入）再发订单，否则场所
+会对计价货币返回 <code>account is not available</code>。</p>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=troubleshooting-account-is-not-available>排查 <code>account is not available</code><a href=#troubleshooting-account-is-not-available class=hash-link aria-label=troubleshooting-account-is-not-available的直接链接 title=troubleshooting-account-is-not-available的直接链接 translate=no>​</a></h3>
+<p>场所因几种不同原因返回该错误。用上面的探测二进制诊断，检查投资组合的钱包列表。</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>症状<th>可能原因<th>解决办法<tbody><tr><td>仅特定产品被拒（如只有 USDC 却下 <code>BTC-USD</code>）<td>投资组合缺少该产品计价货币的钱包。Coinbase 上 USD 与 USDC 是分开的，场所按提交的 <code>product_id</code> 路由订单，而不是按规范别名。<td>改下到你持有其计价货币的产品（USDC 钱包用 <code>BTC-USDC</code>）。适配器内部已处理数据侧别名解析，无需改配置。也可以在 coinbase.com 给缺失钱包注资，但只持有一种货币时没有必要。<tr><td>所有产品下的每笔订单都被拒<td>key 绑定到了非默认投资组合，而 <code>retail_portfolio_id</code> 未设置。<td>把 <code>CoinbaseExecutionClientConfig</code> 的 <code>retail_portfolio_id</code> 设为目标投资组合 UUID。<tr><td>非美国账户在 <code>*-USD</code> 产品上被拒<td>司法辖区限制（如 AU 账户不能交易 USD 计价对）。<td>改用本地可用的计价货币（USDC、AUD、EUR 等），不要用 USD。<tr><td>轮换 key 后立即被拒<td>新 key 创建在与旧 key 不同的投资组合。<td>把 <code>retail_portfolio_id</code> 更新为新 key 所在的组合，或转移资金。</table>
+<h2 class="anchor anchorTargetStickyNavbar_ana5" id=market-data>行情数据<a href=#market-data class=hash-link aria-label=行情数据的直接链接 title=行情数据的直接链接 translate=no>​</a></h2>
+<p>除衍生品指数价与 funding 数据外，数据客户端的所有内容都来自 WebSocket 频道。Coinbase
+Advanced Trade 不在任何 WebSocket 频道上发布指数价或 funding 费率，这两路数据改用 REST 轮询
+获取。</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>Nautilus 订阅<th>数据源<th>说明<tbody><tr><td>订单簿 delta<td><code>level2</code> 频道<td>仅 <code>L2_MBP</code>；其他订单簿类型被拒绝。<tr><td>报价<td><code>ticker</code> 频道<td>来自场所 ticker 负载的最优买卖价。<tr><td>成交<td><code>market_trades</code> 频道<td>也可通过 REST 请求获取。<tr><td>K 线<td><code>candles</code> 频道<td>固定五分钟桶；场所不接受粒度参数。<tr><td>工具状态<td><code>status</code> 频道<td>见<a href=#instrument-status class="">工具状态</a>。<tr><td>指数价<td>REST <code>/products/{id}</code> 轮询<td>仅衍生品，按 <code>derivatives_poll_interval_secs</code> 轮询。<tr><td>Funding 费率<td>REST <code>/products/{id}</code> 轮询<td>仅永续；见 <a href=#funding-rates class="">Funding 费率</a>。<tr><td>标记价<td><em>Coinbase 不支持</em><td>订阅会被拒绝，而不是用结算价合成。</table>
+<p>连接时总会发送一个 <code>heartbeats</code> 订阅，并在每次重连时重放。它满足场所的五秒订阅时限，并在
+已订阅产品频道安静时保持连接活跃。</p>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=bars>K 线<a href=#bars class=hash-link aria-label="K 线的直接链接" title="K 线的直接链接" translate=no>​</a></h3>
+<p>历史 K 线请求接受 EXTERNAL 聚合，粒度以适配器映射的为准：1m、5m、15m、30m、1h、2h、6h 和
+1d。其他步长或聚合一律拒绝。Coinbase 的 <code>/products/{id}/candles</code> 端点还支持 <code>FOUR_HOUR</code>，
+适配器目前未映射。</p>
+<p>实时 K 线订阅不同：WebSocket 的 <code>candles</code> 频道不接受粒度参数，只发布五分钟桶。适配器给每根
+收到的 K 线盖上该产品的工具所注册的 <code>BarType</code>。因此其他订阅规格得到的都是五分钟 K 线，只是
+标签为所请求的类型。实时订阅请请求 <code>5-MINUTE-LAST-EXTERNAL</code> K 线类型，其他粒度用历史请求。</p>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=funding-rates>Funding 费率<a href=#funding-rates class=hash-link aria-label="Funding 费率的直接链接" title="Funding 费率的直接链接" translate=no>​</a></h3>
+<p>适配器按 <code>derivatives_poll_interval_secs</code>（默认 15 秒）轮询 REST <code>/products/{id}</code> 端点，当
+FCM <code>future_product_details</code> 负载中带有 <code>funding_rate</code> 时发出 <code>FundingRateUpdate</code>。funding
+间隔从 <code>funding_interval</code> 字段解析（通常为 <code>"3600s"</code>，即每小时 funding），下次 funding 时间戳
+取自 <code>funding_time</code>。Coinbase Advanced Trade 不在 WebSocket <code>ticker</code> 频道上发布
+<code>funding_rate</code>，因此 REST 轮询是唯一的实时来源。</p>
+<p>历史 funding 费率请求尚未实现。</p>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=instrument-status>工具状态<a href=#instrument-status class=hash-link aria-label=工具状态的直接链接 title=工具状态的直接链接 translate=no>​</a></h3>
+<p>首次订阅时 <code>subscribe_instrument_status</code> 会加入 Coinbase 的 WebSocket <code>status</code> 频道（场所对
+所有产品只发布一条状态流）。它把入站事件过滤为已订阅的工具，并发出带以下动作的
+<code>InstrumentStatus</code> 事件：</p>
+<ul>
+<li class=""><code>online</code> 对应 <code>MarketStatusAction::Trading</code>。</li>
+<li class=""><code>offline</code> 对应 <code>Halt</code>。</li>
+<li class=""><code>delisted</code> 对应 <code>Close</code>。</li>
+</ul>
+<p>状态未设置（期货）或状态不在适配器建模范围内的产品不携带数据引擎需要的信息，直接跳过。
+最后一个工具退订时会释放该频道订阅。</p>
+<h2 class="anchor anchorTargetStickyNavbar_ana5" id=orders-capability>订单能力<a href=#orders-capability class=hash-link aria-label=订单能力的直接链接 title=订单能力的直接链接 translate=no>​</a></h2>
+<p>下表描述 Coinbase <strong>场所</strong>的订单界面。随包发行的
+<a href=#execution-scope class=""><code>CoinbaseExecutionClient</code></a> 依据配置的 <code>account_type</code> 处理现货或 CFM
+衍生品。Coinbase 的订单能力在现货与衍生品之间不同（永续与到期期货共享同一 FCM 订单界面）。</p>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=execution-scope>执行范围<a href=#execution-scope class=hash-link aria-label=执行范围的直接链接 title=执行范围的直接链接 translate=no>​</a></h3>
+<p><code>CoinbaseExecutionClientFactory</code> 只产出一种 <code>CoinbaseExecutionClient</code> 类型。产品族由
+<code>CoinbaseExecutionClientConfig</code> 的 <code>account_type</code> 字段选择：</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th><code>account_type</code><th>引导加载的工具<th>账户状态来源<tbody><tr><td><code>AccountType::Cash</code><td>仅 <code>CoinbaseProductType::Spot</code>。<td><code>/accounts</code> REST 端点。<tr><td><code>AccountType::Margin</code><td><code>CoinbaseProductType::Future</code>（永续 + 到期）。<td>CFM <code>balance_summary</code> REST + <code>futures_balance_summary</code> WS，外加来自 <code>cfm/positions</code> 的持仓报告。</table>
+<p>其他账户类型在工厂创建时被拒绝。OMS 永远是 <code>Netting</code>，因为场所不提供对冲模式。</p>
+<p>为防止跨账户串扰：</p>
+<ol>
+<li class="">连接时的工具引导加载只限于配置的产品族，另一族的产品绝不进入进程内缓存。</li>
+<li class=""><code>submit_order</code> 拒绝任何工具不在该缓存内的订单。</li>
+<li class=""><code>generate_order_status_report(s)</code> 与 <code>generate_fill_reports</code> 的输出经同一缓存后置过滤。
+因此即使账户同时有现货与衍生品活动，单个客户端也从不暴露另一范围的报告。</li>
+</ol>
+<p>每个范围运行一个执行客户端。同一交易者要同时做现货和 CFM 时，创建两个客户端，使用不同的
+<code>account_type</code> 与 <code>account_id</code>。配置显式的 <code>COINBASE</code> 场所路由或默认客户端（见
+<a class="" href=/concepts/live#execution-client-routing>执行客户端路由</a>）。提交订单时传入预期的
+<code>client_id</code>。</p>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=order-types>订单类型<a href=#order-types class=hash-link aria-label=订单类型的直接链接 title=订单类型的直接链接 translate=no>​</a></h3>
+<p>下表按 Nautilus 模型暴露的形式列出订单类型。右列展示适配器发出的对应
+<code>order_configuration</code> 键。表中没有的 Coinbase 订单类型（TWAP、Bracket、Scaled、SOR LIMIT
+IOC）记录在<a href=#advanced-order-features class="">高级订单特性</a>下，并在那里标注为适配器<em>尚未实现</em>。</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>订单类型<th>现货<th>永续<th>期货<th>线格式<tbody><tr><td><code>MARKET</code><td>✓<td>✓<td>✓<td><code>market_market_ioc</code>（全部产品）；<code>market_market_fok</code>（永续）<tr><td><code>LIMIT</code><td>✓<td>✓<td>✓<td><code>limit_limit_gtc</code> / <code>limit_limit_gtd</code> / <code>limit_limit_fok</code><tr><td><code>STOP_LIMIT</code><td>✓<td>✓<td>✓<td><code>stop_limit_stop_limit_gtc</code> / <code>stop_limit_stop_limit_gtd</code><tr><td><code>STOP_MARKET</code><td>-<td>-<td>-<td><em>Coinbase 不支持</em>。<tr><td><code>MARKET_IF_TOUCHED</code><td>-<td>-<td>-<td><em>Coinbase 不支持</em>。<tr><td><code>LIMIT_IF_TOUCHED</code><td>-<td>-<td>-<td><em>Coinbase 不支持</em>。<tr><td><code>TRAILING_STOP_MARKET</code><td>-<td>-<td>-<td><em>Coinbase 不支持</em>。</table>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=execution-instructions>执行指示<a href=#execution-instructions class=hash-link aria-label=执行指示的直接链接 title=执行指示的直接链接 translate=no>​</a></h3>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>指示<th>现货<th>永续<th>期货<th>说明<tbody><tr><td><code>post_only</code><td>✓<td>✓<td>✓<td>仅限 LIMIT GTC 与 LIMIT GTD。<tr><td><code>reduce_only</code><td>-<td>-<td>-<td><em>Coinbase 不支持</em>；见<a href=#derivatives-trading class="">衍生品交易</a>。</table>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=time-in-force>有效期<a href=#time-in-force class=hash-link aria-label=有效期的直接链接 title=有效期的直接链接 translate=no>​</a></h3>
+<p>适配器接受下表中的组合。未列出的组合在提交时以 <code>"Unsupported TIF {tif} for {order_type}"</code>
+拒绝。</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>订单类型<th>GTC<th>GTD<th>IOC<th>FOK<th>说明<tbody><tr><td><code>MARKET</code><td>✓<td>-<td>✓<td>(✓)<td>GTC 映射为 IOC；显式 IOC 被尊重。FOK 构建 <code>market_market_fok</code>，Coinbase 文档注明仅限永续，现货上会被拒绝。<tr><td><code>LIMIT</code><td>✓<td>✓<td>-<td>✓<td>GTD 需要 <code>expire_time</code>。LIMIT IOC <em>尚未实现</em>（见 <a href=#advanced-order-features class="">SOR LIMIT IOC</a>）。<tr><td><code>STOP_LIMIT</code><td>✓<td>✓<td>-<td>-<td>需要 <code>trigger_price</code>。</table>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=advanced-order-features>高级订单特性<a href=#advanced-order-features class=hash-link aria-label=高级订单特性的直接链接 title=高级订单特性的直接链接 translate=no>​</a></h3>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>特性<th>现货<th>永续<th>期货<th>说明<tbody><tr><td>订单修改<td>✓<td>-<td>-<td>仅限未结的 GTC 变体；Coinbase 以 <code>CANNOT_EDIT_FUTURES_ORDER</code> 拒绝期货场所的修改。<tr><td>括号订单<td>-<td>-<td>-<td><em>尚未实现</em>。场所提供 <code>trigger_bracket_gtc</code> / <code>trigger_bracket_gtd</code>。<tr><td>OCO 订单<td>-<td>-<td>-<td><em>Coinbase 不支持</em>将其作为独立订单类型。<tr><td>冰山订单<td>-<td>-<td>-<td><em>Coinbase 不支持</em>。<tr><td>TWAP 订单<td>-<td>-<td>-<td><em>尚未实现</em>。场所提供 <code>twap_limit_gtd</code>。<tr><td>分批订单（Scaled）<td>-<td>-<td>-<td><em>尚未实现</em>。场所提供 <code>scaled_limit_gtc</code>。<tr><td>SOR LIMIT IOC<td>-<td>-<td>-<td><em>尚未实现</em>。场所提供 <code>sor_limit_ioc</code> 用于智能路由的 LIMIT IOC。</table>
+<p>场所底层规范见
+<a href=https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/orders/create-order target=_blank rel="noopener noreferrer" class="">Create Order 参考</a>
+和 <a href=https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/orders/edit-order target=_blank rel="noopener noreferrer" class="">Edit Order 参考</a>。</p>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=position-controls-derivatives>持仓控制（衍生品）<a href=#position-controls-derivatives class=hash-link aria-label=持仓控制（衍生品）的直接链接 title=持仓控制（衍生品）的直接链接 translate=no>​</a></h3>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>控制项<th>说明<tbody><tr><td>杠杆<td>按订单设置；默认 <code>1.0</code>。<tr><td>保证金类型<td>按订单设置：全仓（默认）或逐仓。<tr><td>持仓模式<td>仅单向；不开放对冲模式。</table>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=batch-operations>批量操作<a href=#batch-operations class=hash-link aria-label=批量操作的直接链接 title=批量操作的直接链接 translate=no>​</a></h3>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>操作<th>说明<tbody><tr><td>批量下单<td>不支持。每笔订单一个 <code>Create Order</code> 请求。<tr><td>批量改单<td>不支持。每次修改一个 <code>Edit Order</code> 请求。<tr><td>批量撤单<td><code>POST /api/v3/brokerage/orders/batch_cancel</code> 接受 <code>order_ids</code> 数组。最大数量无文档说明；响应中逐单给出成功/失败。</table>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=order-querying>订单查询<a href=#order-querying class=hash-link aria-label=订单查询的直接链接 title=订单查询的直接链接 translate=no>​</a></h3>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>特性<th>现货<th>永续<th>期货<th>说明<tbody><tr><td>查询未结订单<td>✓<td>✓<td>✓<td>列出全部活动订单。<tr><td>查询订单历史<td>✓<td>✓<td>✓<td>带游标分页的历史订单数据。<tr><td>订单状态更新<td>✓<td>✓<td>✓<td>通过 <code>user</code> 频道的实时状态变化。<tr><td>成交历史<td>✓<td>✓<td>✓<td>执行与成交报告。</table>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=spot-trading-limitations>现货交易限制<a href=#spot-trading-limitations class=hash-link aria-label=现货交易限制的直接链接 title=现货交易限制的直接链接 translate=no>​</a></h3>
+<ul>
+<li class="">现货不接受 MARKET FOK。Coinbase 文档注明 <code>market_market_fok</code> 仅限永续，现货上以
+<code>UNSUPPORTED_ORDER_CONFIGURATION</code> 拒绝。</li>
+<li class="">支持以计价货币计量的 MARKET 订单。LIMIT 订单以基础单位计量。</li>
+</ul>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=derivatives-trading>衍生品交易<a href=#derivatives-trading class=hash-link aria-label=衍生品交易的直接链接 title=衍生品交易的直接链接 translate=no>​</a></h3>
+<p>Coinbase 衍生品通过 FCM（期货佣金商，Futures Commission Merchant）场所交易。执行客户端
+通过现货同用的 <code>POST /orders</code> 端点提交订单。逐单的 <code>leverage</code> 与 <code>margin_type</code>（<code>CROSS</code> 或
+<code>ISOLATED</code>）默认值来自 <code>CoinbaseExecutionClientConfig.default_leverage</code> 和
+<code>default_margin_type</code>。保证金余额从两处更新：REST <code>cfm/balance_summary</code> 端点（连接时快照、
+<code>query_account</code> 以及 WebSocket 重连时），以及鉴权的 <code>futures_balance_summary</code> WebSocket
+频道。持仓报告来自 REST <code>cfm/positions</code> 端点。</p>
+<p>Coinbase 的 Advanced Trade API 没有在下单 schema 中文档化 <code>reduce_only</code> 字段。执行客户端会在
+进入传输前拒绝只减仓订单，而不是不带该指示就提交。</p>
+<p>适配器对以下情况记录警告：</p>
+<ul>
+<li class="">REST 订单状态报告描述的订单属于强平。</li>
+<li class="">CFM 余额摘要显示的清算缓冲低于清算阈值的 20%。</li>
+</ul>
+<p>Coinbase 不单独标记自动减仓（auto-deleveraging），它与强平走同一条警告。user 频道没有对应的
+警告，因此强平只能从对账中看出，实时数据流里看不到。</p>
+<h2 class="anchor anchorTargetStickyNavbar_ana5" id=execution-client-behavior>执行客户端行为<a href=#execution-client-behavior class=hash-link aria-label=执行客户端行为的直接链接 title=执行客户端行为的直接链接 translate=no>​</a></h2>
+<p>本节记录 <code>CoinbaseExecutionClient</code> 如何把 Nautilus 订单命令和 Coinbase 场所事件翻译为
+Nautilus 执行事件。</p>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=order-submission>订单提交<a href=#order-submission class=hash-link aria-label=订单提交的直接链接 title=订单提交的直接链接 translate=no>​</a></h3>
+<p><code>submit_order</code> 直接从 Nautilus 订单字段构建 Coinbase 的 <code>order_configuration</code> 形态：</p>
+<ul>
+<li class=""><code>MARKET</code> IOC 与 GTC（Nautilus 默认）-> <code>market_market_ioc</code>。FOK -> <code>market_market_fok</code>。
+<code>Day</code> 与 <code>Gtd</code> 在 HTTP 调用之前就被拒绝，以免调用方在不知情的情况下拿到 IOC 语义。用
+<code>Gtc</code> 构建的 <code>MARKET</code> 订单会在场所按 IOC 执行。要求严格回测/实时一致性的策略应显式用
+<code>Ioc</code> 构建 <code>MarketOrder</code>。</li>
+<li class=""><code>LIMIT</code> GTC -> <code>limit_limit_gtc</code>，GTD -> <code>limit_limit_gtd</code>（需要 <code>expire_time</code>），
+FOK -> <code>limit_limit_fok</code>。</li>
+<li class=""><code>STOP_LIMIT</code> GTC -> <code>stop_limit_stop_limit_gtc</code>，GTD ->
+<code>stop_limit_stop_limit_gtd</code>。止损方向由订单方向推导（<code>Buy</code> -> <code>STOP_DIRECTION_STOP_UP</code>，
+<code>Sell</code> -> <code>STOP_DIRECTION_STOP_DOWN</code>）。</li>
+<li class=""><code>STOP_MARKET</code>、<code>MARKET_IF_TOUCHED</code>、<code>LIMIT_IF_TOUCHED</code> 及跟踪止损变体 Coinbase 不支持。
+它们表现为 <code>OrderRejected</code>，携带派生的提交任务里 <code>build_order_configuration</code> 的错误
+（订单会先发出 <code>OrderSubmitted</code>）。</li>
+</ul>
+<p>HTTP 创建成功时，发出 <code>OrderAccepted</code>，携带 <code>success_response.order_id</code> 返回的场所订单 ID。
+响应 <code>success=false</code> 时，发出 <code>OrderRejected</code>，携带格式化后的场所失败原因。由于任何提交尝试
+都可能已经到达 Coinbase，传输错误、超时、速率限制响应、解码失败或 HTTP 5xx 不能证明订单被
+拒绝。适配器让订单保持在途状态并保留其提交元数据，直到 user 频道或对账将其厘清。</p>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=order-modification>订单修改<a href=#order-modification class=hash-link aria-label=订单修改的直接链接 title=订单修改的直接链接 translate=no>​</a></h3>
+<p><code>modify_order</code> 用类型化的 <code>EditOrderRequest</code> 向 <code>/orders/edit</code> 发 POST。Coinbase 只支持修改
+未结的 GTC 变体，并以 <code>CANNOT_EDIT_FUTURES_ORDER</code> 拒绝期货场所订单的修改，因此修改实际上
+仅限现货。其他订单类型必须用撤单重下。</p>
+<p>Coinbase 的 <code>/orders/edit</code> 即使只改一项也同时要求 <code>price</code> 和 <code>size</code>。它把省略的 <code>size</code> 读成
+0 并以 <code>INVALID_EDITED_SIZE</code> 或 <code>CANNOT_EDIT_TO_BELOW_FILLED_SIZE</code> 拒绝。执行客户端会从缓存
+订单自动补全缺失字段，策略可以只调用 <code>modify_order(price=X)</code> 而无需重复当前数量。
+<code>ModifyOrder</code> 命令中的值优先；否则使用缓存订单当前的 <code>price</code> 与 <code>quantity</code>。</p>
+<p>场所修改失败发出 <code>OrderModifyRejected</code>，携带类型化 <code>EditOrderResponse</code> 中的原因（优先取
+<code>edit_failure_reason</code>，回退到 <code>preview_failure_reason</code>）。场所结果未知的 HTTP 失败会让订单
+停留在 <code>PENDING_UPDATE</code>，直到某个更新、查询结果或对账将其厘清。</p>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=cancellation>撤单<a href=#cancellation class=hash-link aria-label=撤单的直接链接 title=撤单的直接链接 translate=no>​</a></h3>
+<ul>
+<li class=""><code>cancel_order</code> 提交只含单个 ID 的 <code>batch_cancel</code>。明确的逐单场所失败表现为
+<code>OrderCancelRejected</code>。场所结果未知的整请求传输失败让订单停留在 <code>PENDING_CANCEL</code>，等待
+对账。</li>
+<li class=""><code>cancel_all_orders</code> 通过 REST 列出未结订单时不带 <code>OPEN</code> 过滤（因为 Coinbase 的 <code>OPEN</code>
+过滤会排除仍可撤销的 <code>PENDING</code> 和 <code>QUEUED</code> 订单），然后在本地过滤为
+<code>{Accepted, Triggered, PendingUpdate, PartiallyFilled}</code> 与所请求的方向，再把
+<code>batch_cancel</code> 按每组 100 笔分块调用。逐单场所失败发出 <code>OrderCancelRejected</code>。场所结果
+未知的整请求失败让受影响订单等待对账。</li>
+<li class=""><code>batch_cancel_orders</code> 以相同方式分块，明确的逐单场所失败表现为
+<code>OrderCancelRejected</code>。场所结果未知的传输失败让受影响订单等待对账。</li>
+</ul>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=user-websocket-channel>User WebSocket 频道<a href=#user-websocket-channel class=hash-link aria-label="User WebSocket 频道的直接链接" title="User WebSocket 频道的直接链接" translate=no>​</a></h3>
+<p><code>CoinbaseExecutionClient</code> 用全新 JWT 订阅 <code>user</code> 频道，不带 <code>product_ids</code> 过滤。它把每个
+事件解析为 <code>OrderStatusReport</code> 并发送到执行事件流。Coinbase 报告的是每单累计状态而非逐笔
+成交，因此执行客户端从累计增量合成 <code>FillReport</code>。逐笔成交按
+<code>(avg_now * qty_now - avg_prev * qty_prev) / delta_qty</code> 推导，使多次成交的订单携带正确的
+成交价，而不是累计加权均价。在终态更新（<code>CANCELLED</code>、<code>EXPIRED</code>、<code>FAILED</code>）中场所会把
+<code>leaves_quantity</code> 置零，此时恢复原始数量。</p>
+<p>user 频道不回显 <code>price</code>、<code>stop_price</code>、<code>trigger_type</code> 或 maker/taker 分类。执行客户端在提交
+时把这些信息缓存在 <code>client_order_id</code> 下，并在发出前修补报告，因此对账器不会观察到
+<code>Some(price) -> None</code> 的分叉，<code>post_only</code> 成交也能正确盖上
+<code>liquidity_side = Maker</code>。订单状态 <code>PENDING</code>、<code>QUEUED</code> 和 <code>OPEN</code> 全部映射为
+<code>OrderStatus::Accepted</code>，避免 user 频道更新与 REST 的 <code>OrderAccepted</code> 事件赛跑时产生虚假的
+状态倒退警告。</p>
+<p>携带 <code>INVALID_LIMIT_PRICE_POST_ONLY</code>（或预览/下单时的等价错误）的 <code>submit_order</code> 拒绝会以
+<code>due_post_only = true</code> 发出，策略可以据此响应 post-only 交叉（通常是按新的最优买卖价重新
+报价）。</p>
+<p>重连时通过 REST 重新拉取账户状态，断连窗口内的余额变化得以恢复。逐单累计跟踪跨重连保留，
+合成成交增量因此保持正确。</p>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=fill-deduplication>成交去重<a href=#fill-deduplication class=hash-link aria-label=成交去重的直接链接 title=成交去重的直接链接 translate=no>​</a></h3>
+<p>user 频道 WebSocket 可能在重连时重放事件。执行客户端维护一个以
+<code>(venue_order_id, trade_id)</code> 为键、容量 10,000 条的 FIFO 去重表，合成交易 ID 与近期见过的
+相同的成交会被丢弃。累计状态映射表以相同容量设界，防止在本客户端生命周期内从未收到终态
+事件的订单撑爆内存。极长断连（超出内存去重窗口）之后，重放的成交可能发出重复的
+<code>FillReport</code> 值。这种情况下策略应依赖 REST 对账恢复规范状态。</p>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=position-reconciliation>持仓对账<a href=#position-reconciliation class=hash-link aria-label=持仓对账的直接链接 title=持仓对账的直接链接 translate=no>​</a></h3>
+<p>Cash（现货）账户的客户端不返回持仓报告，因为 Coinbase 现货没有持仓。Margin 账户的持仓报告
+来自 REST <code>cfm/positions</code>（列表）和 <code>cfm/positions/{product_id}</code>（单笔）端点，并后置过滤到
+引导加载的工具缓存。未结订单与历史成交在连接时以及 <code>LiveExecutionEngineConfig</code> 设定的标准
+对账周期，通过 <code>generate_order_status_report(s)</code> 和 <code>generate_fill_reports</code> 从 REST 对账。</p>
+<h2 class="anchor anchorTargetStickyNavbar_ana5" id=rate-limiting>速率限制<a href=#rate-limiting class=hash-link aria-label=速率限制的直接链接 title=速率限制的直接链接 translate=no>​</a></h2>
+<p>Coinbase 为 Advanced Trade API 公布以下限制：</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>界面<th>限制<th>来源<tbody><tr><td>WebSocket 连接<td>每个 IP 每秒 8 个<td>Advanced Trade WebSocket Rate Limits<tr><td>WebSocket 未鉴权消息<td>每个 IP 每秒 8 条<td>Advanced Trade WebSocket Rate Limits<tr><td>WebSocket 订阅时限<td>连接后 5 秒内必须送达首条订阅消息，否则服务器断开<td>Advanced Trade WebSocket Overview<tr><td>鉴权 WebSocket JWT<td>120 秒；每条鉴权订阅消息都必须生成新 JWT<td>Advanced Trade WebSocket Overview<tr><td>REST 单 key 配额<td>每个 API key 每小时 10,000 次请求（Coinbase App 通用策略）<td>Coinbase App Rate Limiting</table>
+<p>超出 REST 限制时，Coinbase 返回 HTTP <code>429</code>，响应体为：</p>
+<div class="language-json codeBlockContainer_eTMR theme-code-block" style=--prism-color:#393A34;--prism-background-color:#f6f8fa><div class=codeBlockContent_hafM><pre tabindex=0 class="prism-code language-json codeBlock_IMvC thin-scrollbar" style=color:#393A34;background-color:#f6f8fa><code class=codeBlockLines_gZDW><div class=token-line style=color:#393A34><span class="token punctuation" style=color:#393A34>{</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">  </span><span class="token property" style=color:#36acaa>"errors"</span><span class="token operator" style=color:#393A34>:</span><span class="token plain"> </span><span class="token punctuation" style=color:#393A34>[</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    </span><span class="token punctuation" style=color:#393A34>{</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">      </span><span class="token property" style=color:#36acaa>"id"</span><span class="token operator" style=color:#393A34>:</span><span class="token plain"> </span><span class="token string" style=color:#e3116c>"rate_limit_exceeded"</span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">      </span><span class="token property" style=color:#36acaa>"message"</span><span class="token operator" style=color:#393A34>:</span><span class="token plain"> </span><span class="token string" style=color:#e3116c>"Too many requests"</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    </span><span class="token punctuation" style=color:#393A34>}</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">  </span><span class="token punctuation" style=color:#393A34>]</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain"></span><span class="token punctuation" style=color:#393A34>}</span><br/></div></code></pre></div></div>
+<p>适配器还在客户端把所有 REST 流量节流到每秒 30 次请求，订阅与退订消息限制在每秒 8 条，
+在突发到达场所之前就先行整形。</p>
+<div class="theme-admonition theme-admonition-info admonition_LYZY alert alert--info"><div class=admonitionHeading_pnFY><span class=admonitionIcon_tEzm><svg viewBox="0 0 14 16"><path fill-rule=evenodd d="M7 2.3c3.14 0 5.7 2.56 5.7 5.7s-2.56 5.7-5.7 5.7A5.71 5.71 0 0 1 1.3 8c0-3.14 2.56-5.7 5.7-5.7zM7 1C3.14 1 0 4.14 0 8s3.14 7 7 7 7-3.14 7-7-3.14-7-7-7zm1 3H6v5h2V4zm0 6H6v2h2v-2z"/></svg></span>信息</div><div class=admonitionContent_ZwmI><p>Coinbase 当前的 Advanced Trade 文档公布了 WebSocket 限制，但没有 Advanced Trade 专属的
+REST 配额（每秒上限、按投资组合的限制），因此上面 Coinbase App 的每小时配额是最具体的
+有文档数值。参考：
+<a href=https://docs.cdp.coinbase.com/coinbase-app/advanced-trade-apis/websocket/websocket-rate-limits target=_blank rel="noopener noreferrer" class="">WebSocket 速率限制</a>、
+<a href=https://docs.cdp.coinbase.com/coinbase-app/advanced-trade-apis/websocket/websocket-overview target=_blank rel="noopener noreferrer" class="">WebSocket 概览</a>、
+<a href=https://docs.cdp.coinbase.com/coinbase-app/api-architecture/rate-limiting target=_blank rel="noopener noreferrer" class="">Coinbase App 速率限制</a>。</div></div>
+<h2 class="anchor anchorTargetStickyNavbar_ana5" id=reconnect-and-resubscribe>重连与重新订阅<a href=#reconnect-and-resubscribe class=hash-link aria-label=重连与重新订阅的直接链接 title=重连与重新订阅的直接链接 translate=no>​</a></h2>
+<p>WebSocket 客户端重连使用指数退避，基数 250ms、上限 30s。握手完成后自动重放保留的订阅。
+Coinbase 会断开连接后 5 秒内不发订阅消息的客户端，因此重放总是包含 <code>heartbeats</code>。客户端在
+首次重放前标记该主题，并在其生命周期内一直保留。</p>
+<p>对鉴权频道（<code>user</code>，以及 Margin 客户端上的 <code>futures_balance_summary</code>），适配器为每条订阅
+消息生成新鲜 JWT，因为 Coinbase 要求每条鉴权 WebSocket 消息使用不同的 JWT。凭据缺失或 JWT
+构建失败时，适配器跳过需要鉴权的主题，而不是不签名就发送。该失败会出现在客户端消息流的
+错误里。订阅一旦被接受，数据流在 WebSocket 连接的生命周期内继续，无需再次鉴权。</p>
+<p>执行客户端重新连接时，若此前的 user WebSocket 仍处于活动或重连中，会先关闭那个连接。它
+重建内部客户端，而不是复用既有状态机。这保证即使上一会话的 <code>Disconnect</code> 命令与关闭信号
+赛跑失败，也能得到全新的命令通道、输出通道和关闭信号。</p>
+<h2 class="anchor anchorTargetStickyNavbar_ana5" id=configuration>配置<a href=#configuration class=hash-link aria-label=配置的直接链接 title=配置的直接链接 translate=no>​</a></h2>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=data-client-configuration-options>数据客户端配置项<a href=#data-client-configuration-options class=hash-link aria-label=数据客户端配置项的直接链接 title=数据客户端配置项的直接链接 translate=no>​</a></h3>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>选项<th>默认值<th>说明<tbody><tr><td><code>api_key</code><td><code>None</code><td>回退到 <code>COINBASE_API_KEY</code> 环境变量。<tr><td><code>api_secret</code><td><code>None</code><td>回退到 <code>COINBASE_API_SECRET</code> 环境变量。<tr><td><code>base_url_rest</code><td><code>None</code><td>REST 基础 URL 覆盖。<tr><td><code>base_url_ws</code><td><code>None</code><td>WebSocket 行情 URL 覆盖。<tr><td><code>proxy_url</code><td><code>None</code><td>HTTP 与 WebSocket 传输的可选代理 URL。<tr><td><code>environment</code><td><code>Live</code><td><code>Live</code> 或 <code>Sandbox</code>。<tr><td><code>http_timeout_secs</code><td><code>10</code><td>HTTP 请求超时（秒）。<tr><td><code>ws_timeout_secs</code><td><code>30</code><td>WebSocket 超时（秒）。<tr><td><code>update_instruments_interval_mins</code><td><code>60</code><td>工具目录刷新间隔。<tr><td><code>derivatives_poll_interval_secs</code><td><code>15</code><td>发出 <code>IndexPriceUpdate</code> 与 <code>FundingRateUpdate</code> 的 REST 轮询间隔。<tr><td><code>transport_backend</code><td><code>Sockudo</code><td>WebSocket 传输后端。</table>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=execution-client-configuration-options>执行客户端配置项<a href=#execution-client-configuration-options class=hash-link aria-label=执行客户端配置项的直接链接 title=执行客户端配置项的直接链接 translate=no>​</a></h3>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>选项<th>默认值<th>说明<tbody><tr><td><code>account_id</code><td><code>Venue</code><td>Nautilus 账户标识；默认 <code>COINBASE-001</code>。<tr><td><code>api_key</code><td><code>None</code><td>回退到 <code>COINBASE_API_KEY</code> 环境变量。<tr><td><code>api_secret</code><td><code>None</code><td>回退到 <code>COINBASE_API_SECRET</code> 环境变量。<tr><td><code>base_url_rest</code><td><code>None</code><td>REST 基础 URL 覆盖。<tr><td><code>base_url_ws</code><td><code>None</code><td>user 数据 WebSocket URL 覆盖。<tr><td><code>proxy_url</code><td><code>None</code><td>HTTP 与 WebSocket 传输的可选代理 URL。<tr><td><code>environment</code><td><code>Live</code><td><code>Live</code> 或 <code>Sandbox</code>。<tr><td><code>http_timeout_secs</code><td><code>10</code><td>HTTP 请求超时（秒）。<tr><td><code>max_retries</code><td><code>3</code><td>HTTP 请求最大重试次数。<tr><td><code>retry_delay_initial_ms</code><td><code>100</code><td>初始重试延迟（毫秒）。<tr><td><code>retry_delay_max_ms</code><td><code>5,000</code><td>最大重试延迟（毫秒）。<tr><td><code>account_type</code><td><code>Cash</code><td>现货用 <code>Cash</code>，CFM 衍生品用 <code>Margin</code>。见<a href=#execution-scope class="">执行范围</a>。<tr><td><code>default_margin_type</code><td><code>None</code><td>应用于衍生品订单的默认 <code>CoinbaseMarginType</code>（<code>Cross</code> 或 <code>Isolated</code>）。Cash 下忽略。<tr><td><code>default_leverage</code><td><code>None</code><td>应用于衍生品订单的默认杠杆。Cash 下忽略。<tr><td><code>retail_portfolio_id</code><td><code>None</code><td>CDP 零售投资组合 UUID，设置后随下单发送。Coinbase 已将该字段对 CDP key 标记为弃用。见<a href=#portfolios class="">投资组合</a>。<tr><td><code>transport_backend</code><td><code>Sockudo</code><td>WebSocket 传输后端。</table>
+<p>配置从适配器的公开 Python 模块构造：</p>
+<div class="language-python codeBlockContainer_eTMR theme-code-block" style=--prism-color:#393A34;--prism-background-color:#f6f8fa><div class=codeBlockContent_hafM><pre tabindex=0 class="prism-code language-python codeBlock_IMvC thin-scrollbar" style=color:#393A34;background-color:#f6f8fa><code class=codeBlockLines_gZDW><div class=token-line style=color:#393A34><span class="token keyword" style=color:#00009f>from</span><span class="token plain"> nautilus_trader</span><span class="token punctuation" style=color:#393A34>.</span><span class="token plain">adapters</span><span class="token punctuation" style=color:#393A34>.</span><span class="token plain">coinbase </span><span class="token keyword" style=color:#00009f>import</span><span class="token plain"> CoinbaseDataClientConfig</span><br/></div><div class=token-line style=color:#393A34><span class="token plain"></span><span class="token keyword" style=color:#00009f>from</span><span class="token plain"> nautilus_trader</span><span class="token punctuation" style=color:#393A34>.</span><span class="token plain">adapters</span><span class="token punctuation" style=color:#393A34>.</span><span class="token plain">coinbase </span><span class="token keyword" style=color:#00009f>import</span><span class="token plain"> CoinbaseEnvironment</span><br/></div><div class=token-line style=color:#393A34><span class="token plain"></span><span class="token keyword" style=color:#00009f>from</span><span class="token plain"> nautilus_trader</span><span class="token punctuation" style=color:#393A34>.</span><span class="token plain">adapters</span><span class="token punctuation" style=color:#393A34>.</span><span class="token plain">coinbase </span><span class="token keyword" style=color:#00009f>import</span><span class="token plain"> CoinbaseExecutionClientConfig</span><br/></div><div class=token-line style=color:#393A34><span class="token plain"></span><span class="token keyword" style=color:#00009f>from</span><span class="token plain"> nautilus_trader</span><span class="token punctuation" style=color:#393A34>.</span><span class="token plain">model </span><span class="token keyword" style=color:#00009f>import</span><span class="token plain"> AccountId</span><br/></div><div class=token-line style=color:#393A34><span class="token plain" style=display:inline-block></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">data_config </span><span class="token operator" style=color:#393A34>=</span><span class="token plain"> CoinbaseDataClientConfig</span><span class="token punctuation" style=color:#393A34>(</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    api_key</span><span class="token operator" style=color:#393A34>=</span><span class="token string" style=color:#e3116c>"YOUR_COINBASE_API_KEY"</span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    api_secret</span><span class="token operator" style=color:#393A34>=</span><span class="token string" style=color:#e3116c>"YOUR_COINBASE_API_SECRET"</span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    environment</span><span class="token operator" style=color:#393A34>=</span><span class="token plain">CoinbaseEnvironment</span><span class="token punctuation" style=color:#393A34>.</span><span class="token plain">LIVE</span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain"></span><span class="token punctuation" style=color:#393A34>)</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain" style=display:inline-block></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">exec_config </span><span class="token operator" style=color:#393A34>=</span><span class="token plain"> CoinbaseExecutionClientConfig</span><span class="token punctuation" style=color:#393A34>(</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    account_id</span><span class="token operator" style=color:#393A34>=</span><span class="token plain">AccountId</span><span class="token punctuation" style=color:#393A34>(</span><span class="token string" style=color:#e3116c>"COINBASE-001"</span><span class="token punctuation" style=color:#393A34>)</span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    api_key</span><span class="token operator" style=color:#393A34>=</span><span class="token string" style=color:#e3116c>"YOUR_COINBASE_API_KEY"</span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    api_secret</span><span class="token operator" style=color:#393A34>=</span><span class="token string" style=color:#e3116c>"YOUR_COINBASE_API_SECRET"</span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    environment</span><span class="token operator" style=color:#393A34>=</span><span class="token plain">CoinbaseEnvironment</span><span class="token punctuation" style=color:#393A34>.</span><span class="token plain">LIVE</span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain"></span><span class="token punctuation" style=color:#393A34>)</span><br/></div></code></pre></div></div>
+<p>当前的 Python 示例展示了如何在 <code>LiveNode.builder(...)</code> 中把这些配置与
+<code>CoinbaseDataClientFactory</code> 和 <code>CoinbaseExecutionClientFactory</code> 配对。</p>
+<h2 class="anchor anchorTargetStickyNavbar_ana5" id=known-limitations>已知限制<a href=#known-limitations class=hash-link aria-label=已知限制的直接链接 title=已知限制的直接链接 translate=no>​</a></h2>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=venue-side>场所侧<a href=#venue-side class=hash-link aria-label=场所侧的直接链接 title=场所侧的直接链接 translate=no>​</a></h3>
+<ul>
+<li class="">订单修改仅限未结的 GTC 订单，期货场所订单以 <code>CANNOT_EDIT_FUTURES_ORDER</code> 拒绝。其余情况
+必须用撤单重下。</li>
+<li class="">OCO 订单不作为独立订单类型开放。</li>
+<li class="">跟踪止损、MARKET_IF_TOUCHED、LIMIT_IF_TOUCHED 和冰山订单 Coinbase 不支持。</li>
+<li class="">标记价在 REST 和 WebSocket 上都不发布，标记价订阅会被拒绝。</li>
+<li class="">批量下单与批量改单不可用，只有批量撤单可用。</li>
+<li class="">Sandbox 是静态 mock 环境（只有 Accounts 和 Orders 端点、预定义响应、没有真实行情）。</li>
+<li class="">user 频道 WebSocket 报告的是每单累计状态，不是逐笔成交。执行客户端从累计增量推导逐笔
+数量、价格与手续费。逐笔 <code>trade_id</code> 由 <code>(venue_order_id, cumulative_quantity)</code> 合成。</li>
+</ul>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=adapter-side>适配器侧<a href=#adapter-side class=hash-link aria-label=适配器侧的直接链接 title=适配器侧的直接链接 translate=no>​</a></h3>
+<ul>
+<li class=""><strong>实时与 REST 路径的成交稳定标识不同。</strong> user 频道不提供 Coinbase 的逐笔 <code>trade_id</code>，
+实时 <code>FillReport</code> 使用由场所订单 ID 与累计数量合成的 ID。REST 对账使用场所
+<code>trade_id</code>，因此实时处理与对账之间的标识符可能不同。</li>
+<li class=""><strong>每个客户端只服务一个产品族。</strong> 提交、修改、撤销与报告生成都按配置的产品族过滤
+（<code>AccountType::Cash</code> 下为现货；<code>AccountType::Margin</code> 下为永续 + 到期期货）。工具不在
+引导缓存内的订单会被拒绝。见<a href=#execution-scope class="">执行范围</a>。</li>
+<li class=""><strong>Cash 账户的持仓报告恒为空。</strong> Coinbase 现货没有持仓。衍生品（CFM）持仓报告来自
+<code>cfm/positions</code>，只出现在 Margin 客户端上。</li>
+<li class=""><strong>user 频道更新省略 <code>price</code>、<code>stop_price</code> 和 <code>trigger_type</code>。</strong> 对本客户端提交的订单，
+缺失字段从 <code>submit_order</code> 时填充的缓存修补。对外部订单（由其他进程或 Coinbase 界面提交），
+user 频道处理器在首次见到时通过请求 <code>/orders/historical/{venue_order_id}</code> 并缓存结果来
+丰富报告。该 REST 调用给外部订单的首条 user 频道更新增加延迟，后续更新使用缓存的丰富结果。</li>
+<li class=""><strong>cancel-all 与 batch-cancel 的 REST 列表失败只记日志。</strong> 若列出未结订单的 REST 调用失败，
+不会发出逐单 <code>OrderCancelRejected</code>。订单停留在 <code>PendingCancel</code>，直到下次对账恢复。与 Bybit
+适配器的模式一致。</li>
+<li class=""><strong>新上市产品必须重连才可交易。</strong> 工具缓存在连接时填充，之后上市的产品不在缓存中，
+<code>submit_order</code> 会拒绝它们。</li>
+<li class=""><strong>MARKET 订单默认 IOC。</strong> 用 Nautilus 默认 <code>TimeInForce::Gtc</code> 构建的 <code>MarketOrder</code> 在场所
+被映射为 <code>market_market_ioc</code>。显式 <code>TimeInForce::Ioc</code> 被尊重。<code>TimeInForce::Fok</code> 路由到
+<code>market_market_fok</code>，Coinbase 文档注明仅限永续，现货上运行时以
+<code>UNSUPPORTED_ORDER_CONFIGURATION</code> 拒绝。<code>Day</code> 与 <code>Gtd</code> 在提交时被拒绝。</li>
+<li class=""><strong>历史 funding 费率请求未实现。</strong> Funding 费率只能作为衍生品 REST 轮询的实时更新获得。</li>
+<li class=""><strong>实时 K 线订阅忽略所请求的粒度。</strong> 场所的 <code>candles</code> 频道发布五分钟桶且不接受粒度参数，
+<code>subscribe_bars</code> 也不拒绝其他 K 线规格。任何其他步长的订阅收到的都是盖着所请求
+<code>BarType</code> 标签的五分钟 K 线。见 <a href=#bars class="">K 线</a>。</li>
+</ul>
+<h2 class="anchor anchorTargetStickyNavbar_ana5" id=diagnostic-binaries>诊断二进制<a href=#diagnostic-binaries class=hash-link aria-label=诊断二进制的直接链接 title=诊断二进制的直接链接 translate=no>​</a></h2>
+<p>三个二进制协助连通性检查、实盘验证和账户清理：</p>
+<ul>
+<li class=""><code>coinbase-http-public</code> 无需凭据请求现货工具、某个产品的订单簿和最近成交。用于在配置
+API key 之前确认连通性。</li>
+<li class=""><code>coinbase-http-private</code> 列出投资组合、打印钱包余额、对 <code>BTC-USD</code> 和 <code>BTC-USDC</code> 运行
+<code>/orders/preview</code>，并显示逐产品的准入标志。新账户上线时的推荐首选。</li>
+<li class=""><code>coinbase-cancel-all-open</code> 撤销所鉴权 CDP key 上的全部未结订单。测试轮次之间清空挂单
+很有用。</li>
+</ul>
+<p>两个需要鉴权的二进制从环境读取 <code>COINBASE_API_KEY</code> 和 <code>COINBASE_API_SECRET</code>。</p>
+<h2 class="anchor anchorTargetStickyNavbar_ana5" id=contributing>参与贡献<a href=#contributing class=hash-link aria-label=参与贡献的直接链接 title=参与贡献的直接链接 translate=no>​</a></h2>
+<div class="theme-admonition theme-admonition-info admonition_LYZY alert alert--info"><div class=admonitionHeading_pnFY><span class=admonitionIcon_tEzm><svg viewBox="0 0 14 16"><path fill-rule=evenodd d="M7 2.3c3.14 0 5.7 2.56 5.7 5.7s-2.56 5.7-5.7 5.7A5.71 5.71 0 0 1 1.3 8c0-3.14 2.56-5.7 5.7-5.7zM7 1C3.14 1 0 4.14 0 8s3.14 7 7 7 7-3.14 7-7-3.14-7-7-7zm1 3H6v5h2V4zm0 6H6v2h2v-2z"/></svg></span>信息</div><div class=admonitionContent_ZwmI><p>要获取更多特性或为 Coinbase 适配器做贡献，请见我们的
+<a href=https://github.com/nautechsystems/nautilus_trader/blob/develop/CONTRIBUTING.md target=_blank rel="noopener noreferrer" class="">贡献指南</a>。</div></div></div><footer class="theme-doc-footer docusaurus-mt-lg"><div class="row margin-top--sm theme-doc-footer-edit-meta-row"><div class="col noPrint_MRkS"><a href=https://github.com/Aloento/NautilusTraderDoc/tree/main/docs/integrations/coinbase.md target=_blank rel="noopener noreferrer" class=theme-edit-this-page><svg fill=currentColor height=20 width=20 viewBox="0 0 40 40" class=iconEdit_RPSQ aria-hidden=true><g><path d="m34.5 11.7l-3 3.1-6.3-6.3 3.1-3q0.5-0.5 1.2-0.5t1.1 0.5l3.9 3.9q0.5 0.4 0.5 1.1t-0.5 1.2z m-29.5 17.1l18.4-18.5 6.3 6.3-18.4 18.4h-6.3v-6.2z"/></g></svg>编辑此页</a></div><div class="col lastUpdated_oZSl"><span class=theme-last-updated>最后<!-- -->于 <b><time datetime=2026-10-14T22:30:30.000Z itemprop=dateModified>2026年10月14日</time></b> <!-- -->更新</span></div></div></footer></article><nav class="docusaurus-mt-lg pagination-nav" aria-label=文件选项卡><a class="pagination-nav__link pagination-nav__link--prev" href=/integrations/coinapi><div class=pagination-nav__sublabel>上一页</div><div class=pagination-nav__label>CoinAPI</div></a><a class="pagination-nav__link pagination-nav__link--next" href=/integrations/databento><div class=pagination-nav__sublabel>下一页</div><div class=pagination-nav__label>Databento</div></a></nav></div></div><div class="col col--3"><div class="tableOfContents_LyLZ thin-scrollbar theme-doc-toc-desktop"><ul class="table-of-contents table-of-contents__left-border"><li><a href=#overview class="table-of-contents__link toc-highlight">概览</a><li><a href=#examples class="table-of-contents__link toc-highlight">示例</a><li><a href=#coinbase-documentation class="table-of-contents__link toc-highlight">Coinbase 文档</a><li><a href=#products class="table-of-contents__link toc-highlight">产品</a><li><a href=#symbology class="table-of-contents__link toc-highlight">符号体系</a><ul><li><a href=#aliased-products-usdc-and-usd class="table-of-contents__link toc-highlight">别名产品（USDC 与 USD）</a></ul><li><a href=#environments class="table-of-contents__link toc-highlight">环境</a><ul><li><a href=#live-production class="table-of-contents__link toc-highlight">Live（生产）</a><li><a href=#sandbox class="table-of-contents__link toc-highlight">Sandbox</a></ul><li><a href=#authentication class="table-of-contents__link toc-highlight">鉴权</a><ul><li><a href=#creating-an-api-key class="table-of-contents__link toc-highlight">创建 API key</a><li><a href=#environment-variables class="table-of-contents__link toc-highlight">环境变量</a><li><a href=#jwt-lifetime class="table-of-contents__link toc-highlight">JWT 有效期</a></ul><li><a href=#portfolios class="table-of-contents__link toc-highlight">投资组合</a><ul><li><a href=#finding-your-portfolio-uuids class="table-of-contents__link toc-highlight">查找投资组合 UUID</a><li><a href=#when-retail_portfolio_id-is-required class="table-of-contents__link toc-highlight">何时需要 <code>retail_portfolio_id</code></a><li><a href=#creating-a-new-portfolio class="table-of-contents__link toc-highlight">创建新投资组合</a><li><a href=#troubleshooting-account-is-not-available class="table-of-contents__link toc-highlight">排查 <code>account is not available</code></a></ul><li><a href=#market-data class="table-of-contents__link toc-highlight">行情数据</a><ul><li><a href=#bars class="table-of-contents__link toc-highlight">K 线</a><li><a href=#funding-rates class="table-of-contents__link toc-highlight">Funding 费率</a><li><a href=#instrument-status class="table-of-contents__link toc-highlight">工具状态</a></ul><li><a href=#orders-capability class="table-of-contents__link toc-highlight">订单能力</a><ul><li><a href=#execution-scope class="table-of-contents__link toc-highlight">执行范围</a><li><a href=#order-types class="table-of-contents__link toc-highlight">订单类型</a><li><a href=#execution-instructions class="table-of-contents__link toc-highlight">执行指示</a><li><a href=#time-in-force class="table-of-contents__link toc-highlight">有效期</a><li><a href=#advanced-order-features class="table-of-contents__link toc-highlight">高级订单特性</a><li><a href=#position-controls-derivatives class="table-of-contents__link toc-highlight">持仓控制（衍生品）</a><li><a href=#batch-operations class="table-of-contents__link toc-highlight">批量操作</a><li><a href=#order-querying class="table-of-contents__link toc-highlight">订单查询</a><li><a href=#spot-trading-limitations class="table-of-contents__link toc-highlight">现货交易限制</a><li><a href=#derivatives-trading class="table-of-contents__link toc-highlight">衍生品交易</a></ul><li><a href=#execution-client-behavior class="table-of-contents__link toc-highlight">执行客户端行为</a><ul><li><a href=#order-submission class="table-of-contents__link toc-highlight">订单提交</a><li><a href=#order-modification class="table-of-contents__link toc-highlight">订单修改</a><li><a href=#cancellation class="table-of-contents__link toc-highlight">撤单</a><li><a href=#user-websocket-channel class="table-of-contents__link toc-highlight">User WebSocket 频道</a><li><a href=#fill-deduplication class="table-of-contents__link toc-highlight">成交去重</a><li><a href=#position-reconciliation class="table-of-contents__link toc-highlight">持仓对账</a></ul><li><a href=#rate-limiting class="table-of-contents__link toc-highlight">速率限制</a><li><a href=#reconnect-and-resubscribe class="table-of-contents__link toc-highlight">重连与重新订阅</a><li><a href=#configuration class="table-of-contents__link toc-highlight">配置</a><ul><li><a href=#data-client-configuration-options class="table-of-contents__link toc-highlight">数据客户端配置项</a><li><a href=#execution-client-configuration-options class="table-of-contents__link toc-highlight">执行客户端配置项</a></ul><li><a href=#known-limitations class="table-of-contents__link toc-highlight">已知限制</a><ul><li><a href=#venue-side class="table-of-contents__link toc-highlight">场所侧</a><li><a href=#adapter-side class="table-of-contents__link toc-highlight">适配器侧</a></ul><li><a href=#diagnostic-binaries class="table-of-contents__link toc-highlight">诊断二进制</a><li><a href=#contributing class="table-of-contents__link toc-highlight">参与贡献</a></ul></div></div></div></div></main></div></div></div><footer class="theme-layout-footer footer footer--dark"><div class="container container-fluid"><div class="row footer__links"><div class="theme-layout-footer-column col footer__col"><div class=footer__title></div><ul class="footer__items clean-list"><li class=footer__item><a href=https://github.com/nautechsystems/nautilus_trader target=_blank rel="noopener noreferrer" class=footer__link-item>Official GitHub<svg width=13.5 height=13.5 aria-label="(opens in new tab)" class=iconExternalLink_qUHo><use href=#theme-svg-external-link /></svg></a><li class=footer__item><a href=https://nautilustrader.io/docs target=_blank rel="noopener noreferrer" class=footer__link-item>Official Documentation<svg width=13.5 height=13.5 aria-label="(opens in new tab)" class=iconExternalLink_qUHo><use href=#theme-svg-external-link /></svg></a></ul></div></div><div class="footer__bottom text--center"><div class=footer__copyright>© 2026 Nautech Systems Pty Ltd. All rights reserved.</div></div></div></footer></div></body>

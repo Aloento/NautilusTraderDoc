@@ -1,0 +1,278 @@
+<!doctype html><html lang=zh dir=ltr class="docs-wrapper plugin-docs plugin-id-default docs-version-current docs-doc-page docs-doc-id-developer_guide/shell" data-has-hydrated=false><head><meta charset=UTF-8><meta name=generator content="Docusaurus v3.10.2"><title data-rh=true>Shell 脚本 | NautilusTrader 文档</title><meta data-rh=true name=viewport content="width=device-width, initial-scale=1.0"/><meta data-rh=true name=twitter:card content=summary_large_image /><meta data-rh=true property=og:url content=https://nautilus.aloen.to/developer_guide/shell /><meta data-rh=true property=og:locale content=zh /><meta data-rh=true name=docusaurus_locale content=zh /><meta data-rh=true name=docsearch:language content=zh /><meta data-rh=true name=docusaurus_version content=current /><meta data-rh=true name=docusaurus_tag content=docs-default-current /><meta data-rh=true name=docsearch:version content=current /><meta data-rh=true name=docsearch:docusaurus_tag content=docs-default-current /><meta data-rh=true property=og:title content="Shell 脚本 | NautilusTrader 文档"/><meta data-rh=true name=description content=shell-scripts} /><meta data-rh=true property=og:description content=shell-scripts} /><link data-rh=true rel=icon href=/logo.png /><link data-rh=true rel=canonical href=https://nautilus.aloen.to/developer_guide/shell /><link data-rh=true rel=alternate href=https://nautilus.aloen.to/developer_guide/shell hreflang=zh /><link data-rh=true rel=alternate href=https://nautilus.aloen.to/developer_guide/shell hreflang=x-default /><script data-rh=true type=application/ld+json>{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","item":"https://nautilus.aloen.to/developer_guide/","name":"开发者指南","position":1},{"@type":"ListItem","item":"https://nautilus.aloen.to/developer_guide/shell","name":"Shell 脚本","position":2}]}</script><link rel=stylesheet href=/assets/css/styles.adb7ea18.css /><script src=/assets/js/runtime~main.71ac0794.js defer></script><script src=/assets/js/main.d978d0f2.js defer></script></head><body><svg style="display: none;"><defs>
+<symbol id=theme-svg-external-link viewBox="0 0 24 24"><path fill=currentColor d="M21 13v10h-21v-19h12v2h-10v15h17v-8h2zm3-12h-10.988l4.035 4-6.977 7.07 2.828 2.828 6.977-7.07 4.125 4.172v-11z"/></symbol>
+</defs></svg>
+<script>!function(){var t=function(){try{return new URLSearchParams(window.location.search).get("docusaurus-theme")}catch(t){}}()||function(){try{return window.localStorage.getItem("theme-2e3")}catch(t){}}();document.documentElement.setAttribute("data-theme",t||(window.matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light")),document.documentElement.setAttribute("data-theme-choice",t||"system")}(),function(){try{for(var[t,e]of new URLSearchParams(window.location.search).entries())if(t.startsWith("docusaurus-data-")){var a=t.replace("docusaurus-data-","data-");document.documentElement.setAttribute(a,e)}}catch(t){}}()</script><div id=__docusaurus><link rel=preload as=image href=/logo.png /><div role=region aria-label=跳到主要内容><a class=skipToContent_zuOI href=#__docusaurus_skipToContent_fallback>跳到主要内容</a></div><nav aria-label=主导航 class="theme-layout-navbar navbar navbar--fixed-top"><div class=navbar__inner><div class="theme-layout-navbar-left navbar__items"><button aria-label=切换导航栏 aria-expanded=false class="navbar__toggle clean-btn" type=button><svg width=30 height=30 viewBox="0 0 30 30" aria-hidden=true><path stroke=currentColor stroke-linecap=round stroke-miterlimit=10 stroke-width=2 d="M4 7h22M4 15h22M4 23h22"/></svg></button><a class=navbar__brand href=/><div class=navbar__logo><img src=/logo.png alt="NautilusTrader Logo" class="themedComponent_q2_Y themedComponent--light_Nejn"/><img src=/logo.png alt="NautilusTrader Logo" class="themedComponent_q2_Y themedComponent--dark_JjIb"/></div><b class="navbar__title text--truncate">NautilusTrader</b></a><a aria-current=page class="navbar__item navbar__link navbar__link--active" href=/getting_started/>文档</a></div><div class="theme-layout-navbar-right navbar__items navbar__items--right"><a href=https://github.com/Aloento/NautilusTraderDoc target=_blank rel="noopener noreferrer" class="navbar__item navbar__link">GitHub<svg width=13.5 height=13.5 aria-label="(opens in new tab)" class=iconExternalLink_qUHo><use href=#theme-svg-external-link /></svg></a><div class="toggle_hHmI colorModeToggle_rOOn"><button class="clean-btn toggleButton_wEhT toggleButtonDisabled_yOOP" type=button disabled title="system mode" aria-label="切换浅色/暗黑模式（当前为system mode）"><svg viewBox="0 0 24 24" width=24 height=24 aria-hidden=true class="toggleIcon_Kt6U lightToggleIcon_Zfeh"><path fill=currentColor d="M12,9c1.65,0,3,1.35,3,3s-1.35,3-3,3s-3-1.35-3-3S10.35,9,12,9 M12,7c-2.76,0-5,2.24-5,5s2.24,5,5,5s5-2.24,5-5 S14.76,7,12,7L12,7z M2,13l2,0c0.55,0,1-0.45,1-1s-0.45-1-1-1l-2,0c-0.55,0-1,0.45-1,1S1.45,13,2,13z M20,13l2,0c0.55,0,1-0.45,1-1 s-0.45-1-1-1l-2,0c-0.55,0-1,0.45-1,1S19.45,13,20,13z M11,2v2c0,0.55,0.45,1,1,1s1-0.45,1-1V2c0-0.55-0.45-1-1-1S11,1.45,11,2z M11,20v2c0,0.55,0.45,1,1,1s1-0.45,1-1v-2c0-0.55-0.45-1-1-1C11.45,19,11,19.45,11,20z M5.99,4.58c-0.39-0.39-1.03-0.39-1.41,0 c-0.39,0.39-0.39,1.03,0,1.41l1.06,1.06c0.39,0.39,1.03,0.39,1.41,0s0.39-1.03,0-1.41L5.99,4.58z M18.36,16.95 c-0.39-0.39-1.03-0.39-1.41,0c-0.39,0.39-0.39,1.03,0,1.41l1.06,1.06c0.39,0.39,1.03,0.39,1.41,0c0.39-0.39,0.39-1.03,0-1.41 L18.36,16.95z M19.42,5.99c0.39-0.39,0.39-1.03,0-1.41c-0.39-0.39-1.03-0.39-1.41,0l-1.06,1.06c-0.39,0.39-0.39,1.03,0,1.41 s1.03,0.39,1.41,0L19.42,5.99z M7.05,18.36c0.39-0.39,0.39-1.03,0-1.41c-0.39-0.39-1.03-0.39-1.41,0l-1.06,1.06 c-0.39,0.39-0.39,1.03,0,1.41s1.03,0.39,1.41,0L7.05,18.36z"/></svg><svg viewBox="0 0 24 24" width=24 height=24 aria-hidden=true class="toggleIcon_Kt6U darkToggleIcon_XgQr"><path fill=currentColor d="M9.37,5.51C9.19,6.15,9.1,6.82,9.1,7.5c0,4.08,3.32,7.4,7.4,7.4c0.68,0,1.35-0.09,1.99-0.27C17.45,17.19,14.93,19,12,19 c-3.86,0-7-3.14-7-7C5,9.07,6.81,6.55,9.37,5.51z M12,3c-4.97,0-9,4.03-9,9s4.03,9,9,9s9-4.03,9-9c0-0.46-0.04-0.92-0.1-1.36 c-0.98,1.37-2.58,2.26-4.4,2.26c-2.98,0-5.4-2.42-5.4-5.4c0-1.81,0.89-3.42,2.26-4.4C12.92,3.04,12.46,3,12,3L12,3z"/></svg><svg viewBox="0 0 24 24" width=24 height=24 aria-hidden=true class="toggleIcon_Kt6U systemToggleIcon_BvUi"><path fill=currentColor d="m12 21c4.971 0 9-4.029 9-9s-4.029-9-9-9-9 4.029-9 9 4.029 9 9 9zm4.95-13.95c1.313 1.313 2.05 3.093 2.05 4.95s-0.738 3.637-2.05 4.95c-1.313 1.313-3.093 2.05-4.95 2.05v-14c1.857 0 3.637 0.737 4.95 2.05z"/></svg></button></div><div class=navbarSearchContainer_watl></div></div></div><div role=presentation class=navbar-sidebar__backdrop></div></nav><div id=__docusaurus_skipToContent_fallback class="theme-layout-main main-wrapper mainWrapper_R72Q"><div class=docsWrapper_XQ9b><button aria-label=回到顶部 class="clean-btn theme-back-to-top-button backToTopButton_MbnX" type=button></button><div class=docRoot_aqOB><aside class="theme-doc-sidebar-container docSidebarContainer_sI2e"><div class=sidebarViewport_TzTy><div class=sidebar_CbEe><nav aria-label=文档侧边栏 class="menu thin-scrollbar menu_ChRF"><ul class="theme-doc-sidebar-menu menu__list"><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-1 menu__list-item menu__list-item--collapsed"><div class=menu__list-item-collapsible><a class="categoryLink_Muyc menu__link menu__link--sublist" href=/getting_started/><span class=categoryLinkLabel_mAcL>快速开始</span></a><button aria-label="展开侧边栏分类 '快速开始'" aria-expanded=false type=button class="clean-btn menu__caret"></button></div><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-1 menu__list-item menu__list-item--collapsed"><div class=menu__list-item-collapsible><a class="categoryLink_Muyc menu__link menu__link--sublist" href=/concepts/><span class=categoryLinkLabel_mAcL>核心概念</span></a><button aria-label="展开侧边栏分类 '核心概念'" aria-expanded=false type=button class="clean-btn menu__caret"></button></div><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-1 menu__list-item menu__list-item--collapsed"><div class=menu__list-item-collapsible><a class="categoryLink_Muyc menu__link menu__link--sublist" href=/integrations/><span class=categoryLinkLabel_mAcL>交易所与集成</span></a><button aria-label="展开侧边栏分类 '交易所与集成'" aria-expanded=false type=button class="clean-btn menu__caret"></button></div><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-1 menu__list-item menu__list-item--collapsed"><div class=menu__list-item-collapsible><a class="categoryLink_Muyc menu__link menu__link--sublist" href=/how_to/><span class=categoryLinkLabel_mAcL>操作指南</span></a><button aria-label="展开侧边栏分类 '操作指南'" aria-expanded=false type=button class="clean-btn menu__caret"></button></div><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-1 menu__list-item menu__list-item--collapsed"><div class=menu__list-item-collapsible><a class="categoryLink_Muyc menu__link menu__link--sublist" href=/tutorials/><span class=categoryLinkLabel_mAcL>教程</span></a><button aria-label="展开侧边栏分类 '教程'" aria-expanded=false type=button class="clean-btn menu__caret"></button></div><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-1 menu__list-item"><div class=menu__list-item-collapsible><a class="categoryLink_Muyc menu__link menu__link--sublist menu__link--active" href=/developer_guide/><span class=categoryLinkLabel_mAcL>开发者指南</span></a><button aria-label="折叠侧边栏分类 '开发者指南'" aria-expanded=true type=button class="clean-btn menu__caret"></button></div><ul class=menu__list><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/developer_guide/adapters><span class=linkLabel_lYjD>适配器</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/developer_guide/benchmarking><span class=linkLabel_lYjD>基准测试</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/developer_guide/callback_dispatch><span class=linkLabel_lYjD>回调派发契约</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/developer_guide/coding_standards><span class=linkLabel_lYjD>编码规范</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/developer_guide/design_principles><span class=linkLabel_lYjD>设计原则</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/developer_guide/docs><span class=linkLabel_lYjD>文档风格</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/developer_guide/environment_setup><span class=linkLabel_lYjD>环境搭建</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/developer_guide/ffi><span class=linkLabel_lYjD>FFI 内存契约</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/developer_guide/markdown_style><span class=linkLabel_lYjD>Markdown 风格</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/developer_guide/plugins><span class=linkLabel_lYjD>插件</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/developer_guide/python><span class=linkLabel_lYjD>Python</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/developer_guide/python_adapters><span class=linkLabel_lYjD>Python 适配器接口</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/developer_guide/releases><span class=linkLabel_lYjD>发布</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/developer_guide/runtime_conformance><span class=linkLabel_lYjD>运行时一致性契约</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/developer_guide/rust><span class=linkLabel_lYjD>Rust</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/developer_guide/security><span class=linkLabel_lYjD>安全架构</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class="menu__link menu__link--active" aria-current=page tabindex=0 href=/developer_guide/shell><span class=linkLabel_lYjD>Shell 脚本</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/developer_guide/spec_data_testing><span class=linkLabel_lYjD>数据测试规范</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/developer_guide/spec_exec_testing><span class=linkLabel_lYjD>执行测试规范</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/developer_guide/test_datasets><span class=linkLabel_lYjD>测试数据集</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/developer_guide/testing><span class=linkLabel_lYjD>测试</span></a></ul><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-1 menu__list-item menu__list-item--collapsed"><div class=menu__list-item-collapsible><a class="categoryLink_Muyc menu__link menu__link--sublist" href=/api_reference/><span class=categoryLinkLabel_mAcL>API 参考</span></a><button aria-label="展开侧边栏分类 'API 参考'" aria-expanded=false type=button class="clean-btn menu__caret"></button></div></ul></nav></div></div></aside><main class=docMainContainer_sLF8><div class="container padding-top--md padding-bottom--lg"><div class=row><div class="col docItemCol_ZRft"><div class=docItemContainer_KOP5><article><nav class="theme-doc-breadcrumbs breadcrumbsContainer_d5rS" aria-label=页面路径><ul class=breadcrumbs><li class=breadcrumbs__item><a aria-label=主页面 class=breadcrumbs__link href=/><svg viewBox="0 0 24 24" class=breadcrumbHomeIcon_XgF2><path d="M10 19v-5h4v5c0 .55.45 1 1 1h3c.55 0 1-.45 1-1v-7h1.7c.46 0 .68-.57.33-.87L12.67 3.6c-.38-.34-.96-.34-1.34 0l-8.36 7.53c-.34.3-.13.87.33.87H5v7c0 .55.45 1 1 1h3c.55 0 1-.45 1-1z" fill=currentColor /></svg></a><li class=breadcrumbs__item><a class=breadcrumbs__link href=/developer_guide/><span>开发者指南</span></a><li class="breadcrumbs__item breadcrumbs__item--active"><span class=breadcrumbs__link>Shell 脚本</span></ul></nav><div class="tocCollapsible_bgaJ theme-doc-toc-mobile tocMobile_FhT_"><button type=button class="clean-btn tocCollapsibleButton_F8AY">本页总览</button></div><div class="theme-doc-markdown markdown"><header><h1>Shell 脚本</h1></header>
+<p>本页定义何时创建 shell 脚本，以及如何命名、编写、调用与测试它。默认使用 Bash。
+只有当受支持的调用方确实无法依赖系统装有 Bash 时，才用 POSIX <code>sh</code>。</p>
+<p>本策略适用于仓库中所有 shell 文件，包括 <code>scripts/</code>、<code>scripts/ci/</code>、
+<code>.pre-commit-hooks/</code> 与各组件目录。</p>
+<h2 class="anchor anchorTargetStickyNavbar_ana5" id=when-to-write-a-script>何时写脚本<a href=#when-to-write-a-script class=hash-link aria-label=何时写脚本的直接链接 title=何时写脚本的直接链接 translate=no>​</a></h2>
+<p>添加脚本前，先搜索是否已有脚本、Make 目标或已安装的工具提供该行为。
+当脚本能让过程化逻辑拥有单一的可测试、可 lint 的事实来源时，再添加脚本。</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>位置<th>负责内容<th>下放<tbody><tr><td>GitHub Actions<td>事件、权限、矩阵、runner、secrets 与 hosted action<td>多步 shell 行为<tr><td><code>Makefile</code><td>可发现的任务、依赖、变量与并发限制<td>非平凡的控制流<tr><td>Shell 脚本<td>校验、可复用的命令序列、重试与转换<td>工作流编排与构建依赖管理</table>
+<p>下列情形优先用脚本：</p>
+<ul>
+<li class="">某命令序列被多个工作流、Make 目标或开发任务使用。</li>
+<li class="">内联的 GitHub Actions 步骤含有值得在工作流之外测试的分支、循环、重试或失败处理。</li>
+<li class="">Make recipe 的过程化逻辑多到引号、错误传播或平台行为难以评审。</li>
+<li class="">重复的维护或发布任务能从 ShellCheck、<code>shfmt</code> 与聚焦测试中受益。</li>
+</ul>
+<p>命令简短、只用一次、放在调用方里更清晰时，保持内联。不要仅为多出一个文件去包装
+一条稳定的命令。</p>
+<p>从 GitHub Actions 抽离逻辑时，<code>${{ github.ref }}</code> 这类表达式、权限、secret 选择与
+runner 选择留在工作流里。普通值通过参数或环境变量传给脚本。脚本的退出状态必须
+仍是该步骤的退出状态。</p>
+<h2 class="anchor anchorTargetStickyNavbar_ana5" id=choose-the-shell-and-extension>选择 shell 与扩展名<a href=#choose-the-shell-and-extension class=hash-link aria-label="选择 shell 与扩展名的直接链接" title="选择 shell 与扩展名的直接链接" translate=no>​</a></h2>
+<p>扩展名标识 shell 语言，不表示文件是否可执行或可 source。</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>扩展名<th>解释器<th>用途<tbody><tr><td><code>.bash</code><td>Bash<td>新脚本与可 source 的 Bash 文件的默认选择。<tr><td><code>.sh</code><td>POSIX <code>sh</code><td>仅当受支持的调用方确实有不依赖 Bash 运行的要求。</table>
+<p><code>.bash</code> 文件用 <code>#!/usr/bin/env bash</code>，<code>.sh</code> 文件用 <code>#!/usr/bin/env sh</code>。
+保留 shebang，即使 Make 或 GitHub Actions 通过 <code>bash</code> 或 <code>sh</code> 调用该文件。
+工具与直接调用方靠它识别解释器。</p>
+<p>常规的开发、Make 与 CI 脚本优先用 Bash，因为仓库本就依赖它，且它的特性让
+非平凡的 shell 代码更清晰。这些特性包括 <code>pipefail</code>、<code>[[ ... ]]</code>、数组、
+进程替换与函数局部变量。</p>
+<p>小型引导或包装脚本可能有必须不依赖 Bash 的受支持接口，这类脚本才用 POSIX <code>sh</code>。
+要在目标的 <code>/bin/sh</code> 下测试该脚本。仅凭语法简单证明不了 POSIX 兼容。</p>
+<p>既有文件名早于这条扩展名策略，所以有些 <code>.sh</code> 文件实际是 Bash。以它们的 shebang
+为事实来源。不要仅为改扩展名而重命名既有脚本。该策略适用于新文件，以及已经更新
+所有调用点与文档的成范围重命名。</p>
+<h2 class="anchor anchorTargetStickyNavbar_ana5" id=define-the-portability-target>定义可移植目标<a href=#define-the-portability-target class=hash-link aria-label=定义可移植目标的直接链接 title=定义可移植目标的直接链接 translate=no>​</a></h2>
+<p>脚本必须支持其调用方运行的每个平台。除非用途指明更窄的目标，否则按 Linux、
+macOS 以及经由 Git Bash、MSYS2 或 WSL 的 Windows 来写。</p>
+<p>默认的语言下限是 Bash 3.2，因为受支持的 macOS 系统都有它。除非每个调用方都
+配置了更新版本，否则避免 Bash 4+ 特性。常见的 Bash 4+ 特性与可移植替代：</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>特性<th>Bash 版本<th>可移植替代<tbody><tr><td>关联数组（<code>declare -A</code>）<td>4.0+<td>文件、简单数组或函数<tr><td><code>readarray</code> / <code>mapfile</code><td>4.0+<td><code>while read</code> 循环<tr><td><code>${var,,}</code> / <code>${var^^}</code><td>4.0+<td>用 <code>tr</code> 做大小写转换</table>
+<p>仅 CI 使用的脚本，当所有工作流调用方都保证该环境时，可以用更新的 Bash 版本或
+平台专属工具。在依赖该约束的代码旁注明。<code>scripts/ci/</code> 下的路径本身不会让脚本
+变成 Linux-only，因为 CI 也使用 macOS 与 Windows runner。</p>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=system-utilities>系统工具<a href=#system-utilities class=hash-link aria-label=系统工具的直接链接 title=系统工具的直接链接 translate=no>​</a></h3>
+<p>优先选 GNU 与 BSD 工具都支持的选项。没有公共写法时，探测能力或操作系统，
+并实现两种形式。</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>操作<th>GNU 写法<th>BSD 或 macOS 写法<th>可移植做法<tbody><tr><td><code>sed</code> 原地修改<td><code>sed -i</code><td><code>sed -i ''</code><td>用备份后缀如 <code>sed -i.bak</code>，然后删除备份。<tr><td>文件大小<td><code>stat -c '%s'</code><td><code>stat -f '%z'</code><td>尝试或选择受支持的写法。<tr><td>SHA-256<td><code>sha256sum</code><td><code>shasum -a 256</code><td>探测命令，并保持输出处理一致。<tr><td>规范路径<td><code>readlink -f</code><td>无公共写法<td>避免使用，或从已知目录用 <code>pwd</code> 解析。<tr><td>扩展匹配<td><code>grep -P</code><td>无公共写法<td><code>grep -E</code> 能表达同样模式时用它。<tr><td>纳秒时间<td><code>date +%N</code><td>无公共写法<td>用已有的运行 ID 或 <code>$RANDOM</code> 做缓存失效。</table>
+<p>对路径与展开加引号，防止空格改变参数边界。不要假定文件系统路径区分大小写。
+先根据脚本所在位置（而非调用方的工作目录）解析出仓库根，再使用仓库相对路径。</p>
+<p>只用文档化的开发环境或 runner 配置所安装的命令。确需可选命令时，用 <code>command -v</code>
+检查，并说明如何安装或替代。仓库通过 <code>.gitattributes</code> 以 LF 行尾存储文本，
+不要添加平台专属的行尾。</p>
+<h2 class="anchor anchorTargetStickyNavbar_ana5" id=place-and-name-scripts>脚本的位置与命名<a href=#place-and-name-scripts class=hash-link aria-label=脚本的位置与命名的直接链接 title=脚本的位置与命名的直接链接 translate=no>​</a></h2>
+<ul>
+<li class="">
+<p>通用的开发与维护命令放 <code>scripts/</code>。</p>
+</li>
+<li class="">
+<p>工作流专属的构建、测试、发布与校验命令放 <code>scripts/ci/</code>。</p>
+</li>
+<li class="">
+<p>由 pre-commit 调用的仓库检查放 <code>.pre-commit-hooks/</code>。</p>
+</li>
+<li class="">
+<p>组件专属的脚本在移入 <code>scripts/</code> 会掩盖其归属时，留在组件旁边。</p>
+</li>
+<li class="">
+<p><code>scripts/</code> 下与组件目录中使用小写 kebab-case。回归测试脚本命名为
+<code>test-&lt;script-name>.bash</code> 或 <code>test-&lt;script-name>.sh</code>，让被测的一对文件保持在一起。</p>
+</li>
+<li class="">
+<p><code>.pre-commit-hooks/</code> 下使用小写 snake_case，并沿用现有的 <code>check_*</code> 与
+<code>test_check_*</code> 命名族。</p>
+</li>
+</ul>
+<p>每个脚本聚焦一个任务；新逻辑与既有脚本职责相同时，扩展它而不是新建。</p>
+<h2 class="anchor anchorTargetStickyNavbar_ana5" id=structure-scripts-for-reliable-execution>以可靠执行为目标组织脚本<a href=#structure-scripts-for-reliable-execution class=hash-link aria-label=以可靠执行为目标组织脚本的直接链接 title=以可靠执行为目标组织脚本的直接链接 translate=no>​</a></h2>
+<p>独立的 Bash 脚本以这两行开头：</p>
+<div class="language-bash codeBlockContainer_eTMR theme-code-block" style=--prism-color:#393A34;--prism-background-color:#f6f8fa><div class=codeBlockContent_hafM><pre tabindex=0 class="prism-code language-bash codeBlock_IMvC thin-scrollbar" style=color:#393A34;background-color:#f6f8fa><code class=codeBlockLines_gZDW><div class=token-line style=color:#393A34><span class="token plain">#!/usr/bin/env bash</span><br/></div><div class=token-line style=color:#393A34><span class="token plain">set -euo pipefail</span><br/></div></code></pre></div></div>
+<p>独立的 POSIX <code>sh</code> 脚本用 <code>set -eu</code>。POSIX 没有定义 <code>pipefail</code>，失败必须传播时
+要显式检查管道的行为。脚本无法使用这些选项时，说明是哪段具体的控制流让某个
+选项不安全。</p>
+<p>遵循以下要求：</p>
+<ul>
+<li class="">改变状态之前校验必填参数与环境变量。无效输入时打印简明的用法说明并以非零退出。</li>
+<li class="">参数展开要加引号。参数列表用 Bash 数组，不要拼接命令字符串，也不要使用 <code>eval</code>。</li>
+<li class="">调用方需要捕获结果时，机器可读的输出走标准输出，诊断信息走标准错误。</li>
+<li class="">常规状态输出不以句号结尾。输出是完整的解释性或诊断性句子时保留标点。</li>
+<li class="">用 <code>mktemp</code> 创建临时文件，用 <code>trap</code> 注册清理，且清理只限定在脚本创建的那些路径。</li>
+<li class="">重试要有上限，报告最终的失败；请求的操作没有完成时返回非零状态。</li>
+<li class="">不要打印 secret，也不要在凭据附近启用命令跟踪。secret 通过环境或工具支持的
+secret 输入传入。</li>
+<li class="">只在命令本身讲不清约束或行为时才写注释。</li>
+</ul>
+<p>用户或工具以 <code>./path</code> 方式调用时，给独立脚本加可执行权限。可 source 的文件不需要。
+优先在子进程中执行脚本；只有调用方必须共享其函数或 shell 状态时才 source 文件。</p>
+<p>可 source 的 Bash 文件不得调用 <code>exit</code>，也不得改动调用方的 shell 选项。
+函数返回错误，由调用方决定错误策略。解析源文件位置时用 <code>${BASH_SOURCE[0]}</code>
+而不是 <code>$0</code>。</p>
+<p>脚本需要多个函数时：</p>
+<ol>
+<li class="">先定义 <code>main</code>。</li>
+<li class="">被调用的函数放在调用方下方。</li>
+<li class="">所有定义完成后再调用 <code>main "$@"</code>。</li>
+</ol>
+<p>这样任务在文件顶部一目了然，同时保证执行开始前每个函数都已存在。</p>
+<h2 class="anchor anchorTargetStickyNavbar_ana5" id=integrate-with-make-and-github-actions>与 Make 和 GitHub Actions 集成<a href=#integrate-with-make-and-github-actions class=hash-link aria-label="与 Make 和 GitHub Actions 集成的直接链接" title="与 Make 和 GitHub Actions 集成的直接链接" translate=no>​</a></h2>
+<p>Make 目标提供开发者运行的稳定、可发现的命令。目标依赖、构建变量与并发限制留在
+Makefile，然后以显式解释器调用脚本。例如 <code>check-generated-drift</code> 目标把它的
+过程化工作下放给 <code>scripts/ci/check-generated-drift.bash</code>。</p>
+<p>GitHub Actions 通过具名环境变量提供工作流上下文，并在可行处调用与本地相同的脚本。
+构建工作流就遵循这条边界：它掌控 Python 矩阵条件与 <code>TARGET_DIR</code>，
+然后调用 <code>scripts/ci/check-generated-drift.bash</code>。</p>
+<p>脚本同时也是本地命令时，GitHub 专属的输出文件（如 <code>$GITHUB_OUTPUT</code> 与
+<code>$GITHUB_ENV</code>）留在工作流边界。专职 GitHub Actions 的脚本，在其声明的用途就是
+这层集成时，可以写这些文件。</p>
+<h2 class="anchor anchorTargetStickyNavbar_ana5" id=format-and-lint>格式化与 lint<a href=#format-and-lint class=hash-link aria-label="格式化与 lint的直接链接" title="格式化与 lint的直接链接" translate=no>​</a></h2>
+<p>pre-commit 配置用 <code>shfmt</code> 格式化 shell 文件：两空格缩进、case 分支缩进、
+一致的重定向间距、Bash 解析器。随后 ShellCheck 检查引号、展开、控制流、
+可移植性与常见命令错误。工具版本与选项以 <code>.pre-commit-config.yaml</code> 中固定的
+钩子为事实来源。</p>
+<p>对确切改动的脚本运行两个钩子：</p>
+<div class="language-bash codeBlockContainer_eTMR theme-code-block" style=--prism-color:#393A34;--prism-background-color:#f6f8fa><div class=codeBlockContent_hafM><pre tabindex=0 class="prism-code language-bash codeBlock_IMvC thin-scrollbar" style=color:#393A34;background-color:#f6f8fa><code class=codeBlockLines_gZDW><div class=token-line style=color:#393A34><span class="token plain">prek run shfmt --files scripts/ci/test-wheel.bash</span><br/></div><div class=token-line style=color:#393A34><span class="token plain">prek run shellcheck --files scripts/ci/test-wheel.bash</span><br/></div></code></pre></div></div>
+<p><code>shfmt</code> 原地更新文件，先审阅它的改动再运行 ShellCheck。ShellCheck 从 shebang
+选择语言，因此带 <code>#!/usr/bin/env sh</code> 的 <code>.sh</code> 文件会接受 POSIX 检查，
+即便格式化器用的是通用的 Bash 解析器。</p>
+<p>ShellCheck 抑制只放在最窄的适用行上。代码讲不清约束时，在旁边补一句原因。
+不要为了压住一个脚本而在全仓库禁用某项检查。</p>
+<p>仓库还拒绝没有 shebang 的可执行文件、混合行尾、行尾空白与未解决的合并标记。
+这些检查与 ShellCheck 互补，不能替代运行时测试。</p>
+<h2 class="anchor anchorTargetStickyNavbar_ana5" id=test-behavior>测试行为<a href=#test-behavior class=hash-link aria-label=测试行为的直接链接 title=测试行为的直接链接 translate=no>​</a></h2>
+<p>运行能覆盖改动分支与失败路径的最小测试。对能独立于工作流回归的逻辑，
+添加配套的 shell 测试。这包括解析、多分支决策、重试与清理、策略检查，
+以及实质性的外部副作用。</p>
+<p>领域级的套件可以覆盖协同工作的多个脚本。薄包装若被该套件调用且行为已被证明，
+就不需要一对一的测试。</p>
+<p>每个配套测试：</p>
+<ul>
+<li class="">在 <code>mktemp -d</code> 下创建隔离状态，退出时删除。</li>
+<li class="">通过临时 <code>PATH</code> 提供伪造的外部命令，而不是改动生产代码。</li>
+<li class="">用有区分度的输入，并对输出、退出状态与副作用做精确断言。</li>
+<li class="">覆盖成功、无效输入、依赖失败与清理这些存在的路径。</li>
+<li class="">所需的测试命令不可用时直接失败。跳过的"通过"不能验证行为。</li>
+<li class="">经由 <code>make test-scripts</code> 运行，这是 CI 使用的脚本测试清单。</li>
+</ul>
+<p>脚本在多个操作系统上都有调用方时，在各方相关的 CI 矩阵上验证平台敏感的改动。
+Linux 测试加干净的 ShellCheck 输出证明不了 macOS 或 Windows 的行为。</p>
+<h2 class="anchor anchorTargetStickyNavbar_ana5" id=review-checklist>评审清单<a href=#review-checklist class=hash-link aria-label=评审清单的直接链接 title=评审清单的直接链接 translate=no>​</a></h2>
+<ul>
+<li class="">该行为没有现成的脚本、Make 目标、已安装工具或简单的原生工作流特性可用。</li>
+<li class="">GitHub Actions、Make 与脚本各自负责了工作流中正确的部分。</li>
+<li class="">扩展名、shebang、可执行模式与文档化的可移植目标相互一致。</li>
+<li class="">脚本独立于调用方的工作目录运行。</li>
+<li class="">参数、失败、临时文件、重试、输出与 secret 都有显式处理。</li>
+<li class="">针对最终改动文件，聚焦的行为测试、<code>shfmt</code> 与 ShellCheck 全部通过。</li>
+<li class="">每个调用点、工作流路径过滤与文档都使用最终的文件名。</li>
+</ul></div><footer class="theme-doc-footer docusaurus-mt-lg"><div class="row margin-top--sm theme-doc-footer-edit-meta-row"><div class="col noPrint_MRkS"><a href=https://github.com/Aloento/NautilusTraderDoc/tree/main/docs/developer_guide/shell.md target=_blank rel="noopener noreferrer" class=theme-edit-this-page><svg fill=currentColor height=20 width=20 viewBox="0 0 40 40" class=iconEdit_RPSQ aria-hidden=true><g><path d="m34.5 11.7l-3 3.1-6.3-6.3 3.1-3q0.5-0.5 1.2-0.5t1.1 0.5l3.9 3.9q0.5 0.4 0.5 1.1t-0.5 1.2z m-29.5 17.1l18.4-18.5 6.3 6.3-18.4 18.4h-6.3v-6.2z"/></g></svg>编辑此页</a></div><div class="col lastUpdated_oZSl"><span class=theme-last-updated>最后<!-- -->于 <b><time datetime=2026-10-14T22:30:30.000Z itemprop=dateModified>2026年10月14日</time></b> <!-- -->更新</span></div></div></footer></article><nav class="docusaurus-mt-lg pagination-nav" aria-label=文件选项卡><a class="pagination-nav__link pagination-nav__link--prev" href=/developer_guide/security><div class=pagination-nav__sublabel>上一页</div><div class=pagination-nav__label>安全架构</div></a><a class="pagination-nav__link pagination-nav__link--next" href=/developer_guide/spec_data_testing><div class=pagination-nav__sublabel>下一页</div><div class=pagination-nav__label>数据测试规范</div></a></nav></div></div><div class="col col--3"><div class="tableOfContents_LyLZ thin-scrollbar theme-doc-toc-desktop"><ul class="table-of-contents table-of-contents__left-border"><li><a href=#when-to-write-a-script class="table-of-contents__link toc-highlight">何时写脚本</a><li><a href=#choose-the-shell-and-extension class="table-of-contents__link toc-highlight">选择 shell 与扩展名</a><li><a href=#define-the-portability-target class="table-of-contents__link toc-highlight">定义可移植目标</a><ul><li><a href=#system-utilities class="table-of-contents__link toc-highlight">系统工具</a></ul><li><a href=#place-and-name-scripts class="table-of-contents__link toc-highlight">脚本的位置与命名</a><li><a href=#structure-scripts-for-reliable-execution class="table-of-contents__link toc-highlight">以可靠执行为目标组织脚本</a><li><a href=#integrate-with-make-and-github-actions class="table-of-contents__link toc-highlight">与 Make 和 GitHub Actions 集成</a><li><a href=#format-and-lint class="table-of-contents__link toc-highlight">格式化与 lint</a><li><a href=#test-behavior class="table-of-contents__link toc-highlight">测试行为</a><li><a href=#review-checklist class="table-of-contents__link toc-highlight">评审清单</a></ul></div></div></div></div></main></div></div></div><footer class="theme-layout-footer footer footer--dark"><div class="container container-fluid"><div class="row footer__links"><div class="theme-layout-footer-column col footer__col"><div class=footer__title></div><ul class="footer__items clean-list"><li class=footer__item><a href=https://github.com/nautechsystems/nautilus_trader target=_blank rel="noopener noreferrer" class=footer__link-item>Official GitHub<svg width=13.5 height=13.5 aria-label="(opens in new tab)" class=iconExternalLink_qUHo><use href=#theme-svg-external-link /></svg></a><li class=footer__item><a href=https://nautilustrader.io/docs target=_blank rel="noopener noreferrer" class=footer__link-item>Official Documentation<svg width=13.5 height=13.5 aria-label="(opens in new tab)" class=iconExternalLink_qUHo><use href=#theme-svg-external-link /></svg></a></ul></div></div><div class="footer__bottom text--center"><div class=footer__copyright>© 2026 Nautech Systems Pty Ltd. All rights reserved.</div></div></div></footer></div></body>

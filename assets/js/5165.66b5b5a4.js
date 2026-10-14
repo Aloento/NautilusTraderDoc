@@ -1,0 +1,1 @@
+"use strict";(self.webpackChunknautilus_trader_doc=self.webpackChunknautilus_trader_doc||[]).push([["5165"],{252(e,r,c){c.d(r,{createArchitectureServices:()=>t.S});var t=c(34561);c(30508)}}]);

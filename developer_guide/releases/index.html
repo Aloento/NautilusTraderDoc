@@ -1,0 +1,316 @@
+<!doctype html><html lang=zh dir=ltr class="docs-wrapper plugin-docs plugin-id-default docs-version-current docs-doc-page docs-doc-id-developer_guide/releases" data-has-hydrated=false><head><meta charset=UTF-8><meta name=generator content="Docusaurus v3.10.2"><title data-rh=true>发布 | NautilusTrader 文档</title><meta data-rh=true name=viewport content="width=device-width, initial-scale=1.0"/><meta data-rh=true name=twitter:card content=summary_large_image /><meta data-rh=true property=og:url content=https://nautilus.aloen.to/developer_guide/releases /><meta data-rh=true property=og:locale content=zh /><meta data-rh=true name=docusaurus_locale content=zh /><meta data-rh=true name=docsearch:language content=zh /><meta data-rh=true name=docusaurus_version content=current /><meta data-rh=true name=docusaurus_tag content=docs-default-current /><meta data-rh=true name=docsearch:version content=current /><meta data-rh=true name=docsearch:docusaurus_tag content=docs-default-current /><meta data-rh=true property=og:title content="发布 | NautilusTrader 文档"/><meta data-rh=true name=description content=releases} /><meta data-rh=true property=og:description content=releases} /><link data-rh=true rel=icon href=/logo.png /><link data-rh=true rel=canonical href=https://nautilus.aloen.to/developer_guide/releases /><link data-rh=true rel=alternate href=https://nautilus.aloen.to/developer_guide/releases hreflang=zh /><link data-rh=true rel=alternate href=https://nautilus.aloen.to/developer_guide/releases hreflang=x-default /><script data-rh=true type=application/ld+json>{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","item":"https://nautilus.aloen.to/developer_guide/","name":"开发者指南","position":1},{"@type":"ListItem","item":"https://nautilus.aloen.to/developer_guide/releases","name":"发布","position":2}]}</script><link rel=stylesheet href=/assets/css/styles.adb7ea18.css /><script src=/assets/js/runtime~main.71ac0794.js defer></script><script src=/assets/js/main.d978d0f2.js defer></script></head><body><svg style="display: none;"><defs>
+<symbol id=theme-svg-external-link viewBox="0 0 24 24"><path fill=currentColor d="M21 13v10h-21v-19h12v2h-10v15h17v-8h2zm3-12h-10.988l4.035 4-6.977 7.07 2.828 2.828 6.977-7.07 4.125 4.172v-11z"/></symbol>
+</defs></svg>
+<script>!function(){var t=function(){try{return new URLSearchParams(window.location.search).get("docusaurus-theme")}catch(t){}}()||function(){try{return window.localStorage.getItem("theme-2e3")}catch(t){}}();document.documentElement.setAttribute("data-theme",t||(window.matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light")),document.documentElement.setAttribute("data-theme-choice",t||"system")}(),function(){try{for(var[t,e]of new URLSearchParams(window.location.search).entries())if(t.startsWith("docusaurus-data-")){var a=t.replace("docusaurus-data-","data-");document.documentElement.setAttribute(a,e)}}catch(t){}}()</script><div id=__docusaurus><link rel=preload as=image href=/logo.png /><div role=region aria-label=跳到主要内容><a class=skipToContent_zuOI href=#__docusaurus_skipToContent_fallback>跳到主要内容</a></div><nav aria-label=主导航 class="theme-layout-navbar navbar navbar--fixed-top"><div class=navbar__inner><div class="theme-layout-navbar-left navbar__items"><button aria-label=切换导航栏 aria-expanded=false class="navbar__toggle clean-btn" type=button><svg width=30 height=30 viewBox="0 0 30 30" aria-hidden=true><path stroke=currentColor stroke-linecap=round stroke-miterlimit=10 stroke-width=2 d="M4 7h22M4 15h22M4 23h22"/></svg></button><a class=navbar__brand href=/><div class=navbar__logo><img src=/logo.png alt="NautilusTrader Logo" class="themedComponent_q2_Y themedComponent--light_Nejn"/><img src=/logo.png alt="NautilusTrader Logo" class="themedComponent_q2_Y themedComponent--dark_JjIb"/></div><b class="navbar__title text--truncate">NautilusTrader</b></a><a aria-current=page class="navbar__item navbar__link navbar__link--active" href=/getting_started/>文档</a></div><div class="theme-layout-navbar-right navbar__items navbar__items--right"><a href=https://github.com/Aloento/NautilusTraderDoc target=_blank rel="noopener noreferrer" class="navbar__item navbar__link">GitHub<svg width=13.5 height=13.5 aria-label="(opens in new tab)" class=iconExternalLink_qUHo><use href=#theme-svg-external-link /></svg></a><div class="toggle_hHmI colorModeToggle_rOOn"><button class="clean-btn toggleButton_wEhT toggleButtonDisabled_yOOP" type=button disabled title="system mode" aria-label="切换浅色/暗黑模式（当前为system mode）"><svg viewBox="0 0 24 24" width=24 height=24 aria-hidden=true class="toggleIcon_Kt6U lightToggleIcon_Zfeh"><path fill=currentColor d="M12,9c1.65,0,3,1.35,3,3s-1.35,3-3,3s-3-1.35-3-3S10.35,9,12,9 M12,7c-2.76,0-5,2.24-5,5s2.24,5,5,5s5-2.24,5-5 S14.76,7,12,7L12,7z M2,13l2,0c0.55,0,1-0.45,1-1s-0.45-1-1-1l-2,0c-0.55,0-1,0.45-1,1S1.45,13,2,13z M20,13l2,0c0.55,0,1-0.45,1-1 s-0.45-1-1-1l-2,0c-0.55,0-1,0.45-1,1S19.45,13,20,13z M11,2v2c0,0.55,0.45,1,1,1s1-0.45,1-1V2c0-0.55-0.45-1-1-1S11,1.45,11,2z M11,20v2c0,0.55,0.45,1,1,1s1-0.45,1-1v-2c0-0.55-0.45-1-1-1C11.45,19,11,19.45,11,20z M5.99,4.58c-0.39-0.39-1.03-0.39-1.41,0 c-0.39,0.39-0.39,1.03,0,1.41l1.06,1.06c0.39,0.39,1.03,0.39,1.41,0s0.39-1.03,0-1.41L5.99,4.58z M18.36,16.95 c-0.39-0.39-1.03-0.39-1.41,0c-0.39,0.39-0.39,1.03,0,1.41l1.06,1.06c0.39,0.39,1.03,0.39,1.41,0c0.39-0.39,0.39-1.03,0-1.41 L18.36,16.95z M19.42,5.99c0.39-0.39,0.39-1.03,0-1.41c-0.39-0.39-1.03-0.39-1.41,0l-1.06,1.06c-0.39,0.39-0.39,1.03,0,1.41 s1.03,0.39,1.41,0L19.42,5.99z M7.05,18.36c0.39-0.39,0.39-1.03,0-1.41c-0.39-0.39-1.03-0.39-1.41,0l-1.06,1.06 c-0.39,0.39-0.39,1.03,0,1.41s1.03,0.39,1.41,0L7.05,18.36z"/></svg><svg viewBox="0 0 24 24" width=24 height=24 aria-hidden=true class="toggleIcon_Kt6U darkToggleIcon_XgQr"><path fill=currentColor d="M9.37,5.51C9.19,6.15,9.1,6.82,9.1,7.5c0,4.08,3.32,7.4,7.4,7.4c0.68,0,1.35-0.09,1.99-0.27C17.45,17.19,14.93,19,12,19 c-3.86,0-7-3.14-7-7C5,9.07,6.81,6.55,9.37,5.51z M12,3c-4.97,0-9,4.03-9,9s4.03,9,9,9s9-4.03,9-9c0-0.46-0.04-0.92-0.1-1.36 c-0.98,1.37-2.58,2.26-4.4,2.26c-2.98,0-5.4-2.42-5.4-5.4c0-1.81,0.89-3.42,2.26-4.4C12.92,3.04,12.46,3,12,3L12,3z"/></svg><svg viewBox="0 0 24 24" width=24 height=24 aria-hidden=true class="toggleIcon_Kt6U systemToggleIcon_BvUi"><path fill=currentColor d="m12 21c4.971 0 9-4.029 9-9s-4.029-9-9-9-9 4.029-9 9 4.029 9 9 9zm4.95-13.95c1.313 1.313 2.05 3.093 2.05 4.95s-0.738 3.637-2.05 4.95c-1.313 1.313-3.093 2.05-4.95 2.05v-14c1.857 0 3.637 0.737 4.95 2.05z"/></svg></button></div><div class=navbarSearchContainer_watl></div></div></div><div role=presentation class=navbar-sidebar__backdrop></div></nav><div id=__docusaurus_skipToContent_fallback class="theme-layout-main main-wrapper mainWrapper_R72Q"><div class=docsWrapper_XQ9b><button aria-label=回到顶部 class="clean-btn theme-back-to-top-button backToTopButton_MbnX" type=button></button><div class=docRoot_aqOB><aside class="theme-doc-sidebar-container docSidebarContainer_sI2e"><div class=sidebarViewport_TzTy><div class=sidebar_CbEe><nav aria-label=文档侧边栏 class="menu thin-scrollbar menu_ChRF"><ul class="theme-doc-sidebar-menu menu__list"><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-1 menu__list-item menu__list-item--collapsed"><div class=menu__list-item-collapsible><a class="categoryLink_Muyc menu__link menu__link--sublist" href=/getting_started/><span class=categoryLinkLabel_mAcL>快速开始</span></a><button aria-label="展开侧边栏分类 '快速开始'" aria-expanded=false type=button class="clean-btn menu__caret"></button></div><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-1 menu__list-item menu__list-item--collapsed"><div class=menu__list-item-collapsible><a class="categoryLink_Muyc menu__link menu__link--sublist" href=/concepts/><span class=categoryLinkLabel_mAcL>核心概念</span></a><button aria-label="展开侧边栏分类 '核心概念'" aria-expanded=false type=button class="clean-btn menu__caret"></button></div><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-1 menu__list-item menu__list-item--collapsed"><div class=menu__list-item-collapsible><a class="categoryLink_Muyc menu__link menu__link--sublist" href=/integrations/><span class=categoryLinkLabel_mAcL>交易所与集成</span></a><button aria-label="展开侧边栏分类 '交易所与集成'" aria-expanded=false type=button class="clean-btn menu__caret"></button></div><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-1 menu__list-item menu__list-item--collapsed"><div class=menu__list-item-collapsible><a class="categoryLink_Muyc menu__link menu__link--sublist" href=/how_to/><span class=categoryLinkLabel_mAcL>操作指南</span></a><button aria-label="展开侧边栏分类 '操作指南'" aria-expanded=false type=button class="clean-btn menu__caret"></button></div><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-1 menu__list-item menu__list-item--collapsed"><div class=menu__list-item-collapsible><a class="categoryLink_Muyc menu__link menu__link--sublist" href=/tutorials/><span class=categoryLinkLabel_mAcL>教程</span></a><button aria-label="展开侧边栏分类 '教程'" aria-expanded=false type=button class="clean-btn menu__caret"></button></div><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-1 menu__list-item"><div class=menu__list-item-collapsible><a class="categoryLink_Muyc menu__link menu__link--sublist menu__link--active" href=/developer_guide/><span class=categoryLinkLabel_mAcL>开发者指南</span></a><button aria-label="折叠侧边栏分类 '开发者指南'" aria-expanded=true type=button class="clean-btn menu__caret"></button></div><ul class=menu__list><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/developer_guide/adapters><span class=linkLabel_lYjD>适配器</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/developer_guide/benchmarking><span class=linkLabel_lYjD>基准测试</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/developer_guide/callback_dispatch><span class=linkLabel_lYjD>回调派发契约</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/developer_guide/coding_standards><span class=linkLabel_lYjD>编码规范</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/developer_guide/design_principles><span class=linkLabel_lYjD>设计原则</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/developer_guide/docs><span class=linkLabel_lYjD>文档风格</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/developer_guide/environment_setup><span class=linkLabel_lYjD>环境搭建</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/developer_guide/ffi><span class=linkLabel_lYjD>FFI 内存契约</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/developer_guide/markdown_style><span class=linkLabel_lYjD>Markdown 风格</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/developer_guide/plugins><span class=linkLabel_lYjD>插件</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/developer_guide/python><span class=linkLabel_lYjD>Python</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/developer_guide/python_adapters><span class=linkLabel_lYjD>Python 适配器接口</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class="menu__link menu__link--active" aria-current=page tabindex=0 href=/developer_guide/releases><span class=linkLabel_lYjD>发布</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/developer_guide/runtime_conformance><span class=linkLabel_lYjD>运行时一致性契约</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/developer_guide/rust><span class=linkLabel_lYjD>Rust</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/developer_guide/security><span class=linkLabel_lYjD>安全架构</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/developer_guide/shell><span class=linkLabel_lYjD>Shell 脚本</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/developer_guide/spec_data_testing><span class=linkLabel_lYjD>数据测试规范</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/developer_guide/spec_exec_testing><span class=linkLabel_lYjD>执行测试规范</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/developer_guide/test_datasets><span class=linkLabel_lYjD>测试数据集</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/developer_guide/testing><span class=linkLabel_lYjD>测试</span></a></ul><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-1 menu__list-item menu__list-item--collapsed"><div class=menu__list-item-collapsible><a class="categoryLink_Muyc menu__link menu__link--sublist" href=/api_reference/><span class=categoryLinkLabel_mAcL>API 参考</span></a><button aria-label="展开侧边栏分类 'API 参考'" aria-expanded=false type=button class="clean-btn menu__caret"></button></div></ul></nav></div></div></aside><main class=docMainContainer_sLF8><div class="container padding-top--md padding-bottom--lg"><div class=row><div class="col docItemCol_ZRft"><div class=docItemContainer_KOP5><article><nav class="theme-doc-breadcrumbs breadcrumbsContainer_d5rS" aria-label=页面路径><ul class=breadcrumbs><li class=breadcrumbs__item><a aria-label=主页面 class=breadcrumbs__link href=/><svg viewBox="0 0 24 24" class=breadcrumbHomeIcon_XgF2><path d="M10 19v-5h4v5c0 .55.45 1 1 1h3c.55 0 1-.45 1-1v-7h1.7c.46 0 .68-.57.33-.87L12.67 3.6c-.38-.34-.96-.34-1.34 0l-8.36 7.53c-.34.3-.13.87.33.87H5v7c0 .55.45 1 1 1h3c.55 0 1-.45 1-1z" fill=currentColor /></svg></a><li class=breadcrumbs__item><a class=breadcrumbs__link href=/developer_guide/><span>开发者指南</span></a><li class="breadcrumbs__item breadcrumbs__item--active"><span class=breadcrumbs__link>发布</span></ul></nav><div class="tocCollapsible_bgaJ theme-doc-toc-mobile tocMobile_FhT_"><button type=button class="clean-btn tocCollapsibleButton_F8AY">本页总览</button></div><div class="theme-doc-markdown markdown"><header><h1>发布</h1></header>
+<p>本指南介绍发布流程，以及撰写发布说明的标准。</p>
+<h2 class="anchor anchorTargetStickyNavbar_ana5" id=overview>总览<a href=#overview class=hash-link aria-label=总览的直接链接 title=总览的直接链接 translate=no>​</a></h2>
+<p>NautilusTrader 采用三分支模型：</p>
+<ul>
+<li class=""><strong><code>develop</code></strong>：活跃开发。每次 push 向 Cloudflare R2 发布 dev wheel。</li>
+<li class=""><strong><code>nightly</code></strong>：预发布测试。发布所有支持的预发布 wheel 与 CLI 二进制。</li>
+<li class=""><strong><code>master</code></strong>：稳定版发布。触发完整的发布流水线。</li>
+</ul>
+<p>发布提交合并进 <code>master</code> 后，流水线自动：</p>
+<ul>
+<li class="">依据 <code>python/pyproject.toml</code> 打版本标签。</li>
+<li class="">创建草稿状态的 GitHub release。</li>
+<li class="">上传发布资源。</li>
+<li class="">把 Cargo crate 发布到 crates.io。</li>
+<li class="">把 wheel 与 sdist 发布到 PyPI。</li>
+<li class="">发布 GitHub release。</li>
+<li class="">构建 Docker 镜像。</li>
+<li class="">触发文档重建。</li>
+</ul>
+<h2 class="anchor anchorTargetStickyNavbar_ana5" id=stable-release-workflow>稳定版发布工作流<a href=#stable-release-workflow class=hash-link aria-label=稳定版发布工作流的直接链接 title=稳定版发布工作流的直接链接 translate=no>​</a></h2>
+<p><code>build</code> 工作流把 GitHub release 视为稳定版发布的锚点。它先创建草稿 release，
+把 wheel 与 sdist 资源上传到该草稿，然后才把这些包发布到包索引。只有在注册表验证
+与最终完整性资源都完成后，工作流才发布 GitHub release。</p>
+<!-- -->
+<p>编辑 <code>.github/workflows/build.yml</code> 时保持这些次序规则不变：</p>
+<ul>
+<li class="">任何发布资源上传或包注册表发布之前，草稿 GitHub release 必须已存在。</li>
+<li class=""><code>tag-release</code> 必须依赖 <code>security-audit</code>，使审计失败后无法继续打稳定版发布标签。</li>
+<li class="">包索引发布（<code>packages.nautechsystems.io</code>、PyPI、crates.io）开始之前，wheel 与
+sdist 资源必须已挂到 GitHub release 上。</li>
+<li class="">PyPI 与 crates.io 的 Trusted Publishing 任务必须保留 <code>environment: release</code> 与
+<code>id-token: write</code>，这些注册依赖 <code>release</code> 环境。</li>
+<li class="">非 OIDC 的完整性与资源上传任务应避免 <code>environment: release</code>，除非它们确实需要
+release 环境的 secret 或批准。</li>
+<li class=""><code>publish-release-integrity</code> 必须在 PyPI 与 crates.io 发布之后运行。它先生成
+发布清单，对照该清单验证注册表，验证通过后附上最终的完整性资源。</li>
+<li class=""><code>publish-github-release</code> 必须是稳定版发布的最后一个任务。GitHub 建议先创建草稿
+release、挂上全部资源，再发布草稿并启用 release 不可变性。若仓库启用了 GitHub
+release 不可变性，已发布的 release 资源与 release 标签都无法更改，只有标题与
+发布说明仍可编辑。该任务在发布前校验最终的草稿资源集合，发布草稿后再校验
+GitHub 的 release 证明。</li>
+</ul>
+<h2 class="anchor anchorTargetStickyNavbar_ana5" id=recovering-a-missing-release-tag>恢复缺失的发布标签<a href=#recovering-a-missing-release-tag class=hash-link aria-label=恢复缺失的发布标签的直接链接 title=恢复缺失的发布标签的直接链接 translate=no>​</a></h2>
+<p><code>Create git tag</code> 步骤只在本次运行的提交相对其父提交（<code>HEAD~1</code>）改变了版本时
+才创建 <code>v&lt;version></code>，且标签已存在时绝不创建。若版本未变而标签缺失，无论重跑
+多少次失败任务，<code>Verify release tag</code> 都会失败。</p>
+<p>重试的发布在版本提升之后，<code>master</code> 上通常又有一个或多个提交。于是重跑的运行
+与父提交版本相同，不会创建标签。由于 <code>tag-release</code> 是草稿 release 与每个下游
+发布任务的锚点，标签缺失时运行无法继续。</p>
+<p>先检查标签是否存在，以及本次运行的提交是否提升版本：</p>
+<ul>
+<li class="">标签缺失且本次运行的提交提升了版本：重跑失败任务即可，无需手工打标签。
+任务通过后 <code>tag-release</code> 会创建标签。</li>
+<li class="">标签缺失且本次运行的提交与父提交版本相同：任何重跑都不会创建标签，
+按下面的手工标签流程恢复。</li>
+</ul>
+<p>手工恢复之所以可行，取决于 <code>tag-release</code> 剩余机制：</p>
+<ul>
+<li class="">手工推送后重跑时，<code>Create git tag</code> 依同一规则跳过创建。</li>
+<li class=""><code>Verify release tag</code> 要求 <code>v&lt;version></code> 解析到本次运行的提交（<code>GITHUB_SHA</code>），
+因此在该精确提交上手工推送的标签能通过检查。</li>
+<li class="">草稿 release 的创建是幂等的，重跑会更新已存在的草稿。</li>
+</ul>
+<p>恢复步骤：维护者手工创建标签，然后重跑失败任务：</p>
+<ol>
+<li class="">
+<p>从失败运行页记下该运行的提交 SHA。本地检出该提交并确认其携带的版本：</p>
+<div class="language-bash codeBlockContainer_eTMR theme-code-block" style=--prism-color:#393A34;--prism-background-color:#f6f8fa><div class=codeBlockContent_hafM><pre tabindex=0 class="prism-code language-bash codeBlock_IMvC thin-scrollbar" style=color:#393A34;background-color:#f6f8fa><code class=codeBlockLines_gZDW><div class=token-line style=color:#393A34><span class="token plain">./scripts/package-version.sh</span><br/></div></code></pre></div></div>
+</li>
+<li class="">
+<p>在该运行的精确提交上创建签名的附注标签，沿用既有的标签消息约定，并推送：</p>
+<div class="language-bash codeBlockContainer_eTMR theme-code-block" style=--prism-color:#393A34;--prism-background-color:#f6f8fa><div class=codeBlockContent_hafM><pre tabindex=0 class="prism-code language-bash codeBlock_IMvC thin-scrollbar" style=color:#393A34;background-color:#f6f8fa><code class=codeBlockLines_gZDW><div class=token-line style=color:#393A34><span class="token plain">git tag -s v&lt;version> -m "Released version &lt;version>" &lt;run-commit-sha></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">git push origin v&lt;version></span><br/></div></code></pre></div></div>
+</li>
+<li class="">
+<p>本地验证标签。签名必须有效，且 <code>git rev-parse 'v&lt;version>^{commit}'</code>
+必须等于该运行的提交 SHA：</p>
+<div class="language-bash codeBlockContainer_eTMR theme-code-block" style=--prism-color:#393A34;--prism-background-color:#f6f8fa><div class=codeBlockContent_hafM><pre tabindex=0 class="prism-code language-bash codeBlock_IMvC thin-scrollbar" style=color:#393A34;background-color:#f6f8fa><code class=codeBlockLines_gZDW><div class=token-line style=color:#393A34><span class="token plain">git tag -v v&lt;version></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">git rev-parse 'v&lt;version>^{commit}'</span><br/></div></code></pre></div></div>
+</li>
+<li class="">
+<p>在失败的运行上选择 "Re-run failed jobs"。有了推送的标签，
+<code>Verify release tag</code> 会通过，草稿 release 创建与下游发布任务继续执行。</p>
+</li>
+</ol>
+<p>只在发布提交与版本都已定稿时才这样做。标签是永久的发布锚点，一旦 release
+不可变性生效，已发布的发布标签就无法更改。若 <code>v&lt;version></code> 指向不同的提交，
+不要移动或重推既有标签，要调查这个不一致——<code>Verify release tag</code> 在这种情况下
+就是设计为失败的。</p>
+<h2 class="anchor anchorTargetStickyNavbar_ana5" id=versioning>版本管理<a href=#versioning class=hash-link aria-label=版本管理的直接链接 title=版本管理的直接链接 translate=no>​</a></h2>
+<p>项目维护两个版本号：</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>文件<th>范围<tbody><tr><td><code>python/pyproject.toml</code><td>Python 包<tr><td><code>Cargo.toml</code>（workspace）<td>Rust crate</table>
+<p>两者独立提升。Python 版本决定 <code>v&lt;python-version></code> 发布标签。以 <code>aN</code>、<code>bN</code> 或
+<code>rcN</code> 结尾的版本创建 GitHub 预发布；最终版本创建普通发布。</p>
+<h2 class="anchor anchorTargetStickyNavbar_ana5" id=crates-io-publishing>Crates.io 发布<a href=#crates-io-publishing class=hash-link aria-label="Crates.io 发布的直接链接" title="Crates.io 发布的直接链接" translate=no>​</a></h2>
+<p><code>build</code> 工作流通过 <code>publish-cargo-crates</code> 任务发布 Cargo crate。该任务经
+GitHub Actions OIDC 使用 crates.io Trusted Publishing，不使用持久 cargo 令牌。
+每个 crate 在 crates.io 上按如下配置：</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>字段<th>值<tbody><tr><td>Owner<td><code>nautechsystems</code><tr><td>Repository<td><code>nautilus_trader</code><tr><td>Workflow<td><code>build.yml</code><tr><td>Environment<td><code>release</code></table>
+<p>配好 trusted publisher 之后，为 crate 启用 Trusted Publishing Only。从未发布过的
+crate 仍需先做一次初始的手工发布，crates.io 才允许配置 trusted publisher。</p>
+<p>CI 发布不要用 <code>cargo publish --workspace</code>。发布任务运行
+<code>scripts/ci/publish-cargo-crates.sh</code>，它会：</p>
+<ul>
+<li class="">按依赖顺序逐个发布 crate。</li>
+<li class="">跳过 crates.io 上已存在的版本。</li>
+<li class="">每个新版本发布后，等它出现在 crates.io API 与 sparse index 中，再发布依赖它的 crate。</li>
+</ul>
+<p>若某个可发布的 crate 依赖一个不在 crates.io 上的本地 <code>publish = false</code> crate，
+脚本会在上传前失败。可选的本地依赖同样会阻止发布，因为解析到缺失 crate 的
+公开 feature 无法使用。</p>
+<p>发布后验证只在 crates.io 显示某版本由本仓库以 trusted-publishing 发布时，
+才将其视为 <code>previously_published</code>。</p>
+<p><strong>人工恢复</strong>：用户自行发布的版本会验证失败，除非
+<code>CRATES_IO_MANUAL_PUBLISH_EXCEPTIONS</code> 逐个列出紧急令牌发布恢复的每个
+<code>crate@version</code>。被接受的条目会以 <code>release_status: "manual_token_publish"</code> 出现在
+<code>crates-manifest.json</code> 中。格式错误或使用不到的例外条目会使任务失败。</p>
+<p>trusted-publishing 仓库填错，以及校验和或 sparse-index 不匹配，同样导致验证失败。</p>
+<h2 class="anchor anchorTargetStickyNavbar_ana5" id=release-checklist>发布清单<a href=#release-checklist class=hash-link aria-label=发布清单的直接链接 title=发布清单的直接链接 translate=no>​</a></h2>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=pre-release-on-develop>发布前（在 <code>develop</code> 上）<a href=#pre-release-on-develop class=hash-link aria-label=pre-release-on-develop的直接链接 title=pre-release-on-develop的直接链接 translate=no>​</a></h3>
+<ul class="contains-task-list containsTaskList_C6Bz">
+<li class=task-list-item><input type=checkbox disabled/> 定稿 <code>RELEASES.md</code>：评审所有条目，删除空小节</li>
+<li class=task-list-item><input type=checkbox disabled/> 确认 <code>python/pyproject.toml</code> 与 <code>Cargo.toml</code> workspace 中版本已设置</li>
+<li class=task-list-item><input type=checkbox disabled/> 确认 CI 发布的每个 crate 都配好了 crates.io Trusted Publishing：
+<code>bash scripts/ci/check-crates-io-trusted-publishing.sh</code></li>
+<li class=task-list-item><input type=checkbox disabled/> 确认 <code>develop</code> 上所有 CI 检查通过</li>
+</ul>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=release>发布<a href=#release class=hash-link aria-label=发布的直接链接 title=发布的直接链接 translate=no>​</a></h3>
+<ul class="contains-task-list containsTaskList_C6Bz">
+<li class=task-list-item><input type=checkbox disabled/> 把 <code>develop</code> 合入 <code>nightly</code>，确认 nightly CI 通过</li>
+<li class=task-list-item><input type=checkbox disabled/> 把 <code>nightly</code> 合入 <code>master</code></li>
+<li class=task-list-item><input type=checkbox disabled/> 确认 <code>build</code> 工作流完成：
+<ul>
+<li class="">Linux x86/ARM、macOS、Windows 的 wheel 均已构建</li>
+<li class=""><code>cargo-deny</code> 与 <code>cargo-vet</code> 通过</li>
+<li class=""><code>security-audit</code> 的 Zizmor 与供应链检查通过</li>
+<li class="">打标签之前，发布文档/特性与 Cargo 发布预检通过</li>
+<li class="">已创建标签与草稿 GitHub release</li>
+<li class="">包注册表发布之前，wheel 与 sdist 已挂到 GitHub release</li>
+<li class="">Cargo crate 已发布到 crates.io，或因版本已存在而跳过</li>
+<li class="">wheel 与 sdist 已发布到 PyPI</li>
+<li class="">注册表验证通过之后才附上发布校验和、crates 清单与证明伴生文件</li>
+<li class="">全部发布资源与完整性资源挂载之后才发布 GitHub release</li>
+<li class="">若运行因发布标签缺失而失败，按<a href=#recovering-a-missing-release-tag class="">恢复缺失的发布标签</a>
+处理并重跑失败任务</li>
+</ul>
+</li>
+<li class=task-list-item><input type=checkbox disabled/> 确认 <code>docker</code> 工作流完成（镜像已构建并推送）</li>
+<li class=task-list-item><input type=checkbox disabled/> 确认 <code>build-docs</code> 工作流完成（已触发文档重建）</li>
+</ul>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=post-release-on-develop>发布后（在 <code>develop</code> 上）<a href=#post-release-on-develop class=hash-link aria-label=post-release-on-develop的直接链接 title=post-release-on-develop的直接链接 translate=no>​</a></h3>
+<ul class="contains-task-list containsTaskList_C6Bz">
+<li class=task-list-item><input type=checkbox disabled/> 在 <code>RELEASES.md</code> 中为已发布版本更新发布日期</li>
+<li class=task-list-item><input type=checkbox disabled/> 在已完成的发布下方添加水平分隔线 <code>---</code></li>
+<li class=task-list-item><input type=checkbox disabled/> 在 <code>RELEASES.md</code> 顶部添加下一版本的模板（见下文）</li>
+<li class=task-list-item><input type=checkbox disabled/> 把 <code>python/pyproject.toml</code> 版本提升到下一个发布号</li>
+<li class=task-list-item><input type=checkbox disabled/> 提升教程与 how-to 中 <code>Cargo.toml</code> 片段的 crate 版本
+（<code>docs/concepts/rust.md</code>、<code>docs/how_to/run_rust_backtest.md</code>、
+<code>docs/how_to/run_rust_live_trading.md</code>）</li>
+</ul>
+<h2 class="anchor anchorTargetStickyNavbar_ana5" id=release-notes>发布说明<a href=#release-notes class=hash-link aria-label=发布说明的直接链接 title=发布说明的直接链接 translate=no>​</a></h2>
+<p>本节定义在 <code>RELEASES.md</code> 中撰写发布说明的标准。</p>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=sections>小节<a href=#sections class=hash-link aria-label=小节的直接链接 title=小节的直接链接 translate=no>​</a></h3>
+<p>按以下顺序使用这些小节：</p>
+<ol>
+<li class="">Enhancements</li>
+<li class="">Breaking Changes</li>
+<li class="">Security</li>
+<li class="">Fixes</li>
+<li class="">Internal Improvements</li>
+<li class="">Documentation Updates</li>
+<li class="">Deprecations</li>
+</ol>
+<p>某次发布没有条目的小节直接省略。</p>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=enhancements>Enhancements<a href=#enhancements class=hash-link aria-label=Enhancements的直接链接 title=Enhancements的直接链接 translate=no>​</a></h3>
+<p>新特性与用户可见的改进。</p>
+<p><strong>格式</strong>：</p>
+<div class="language-markdown codeBlockContainer_eTMR theme-code-block" style=--prism-color:#393A34;--prism-background-color:#f6f8fa><div class=codeBlockContent_hafM><pre tabindex=0 class="prism-code language-markdown codeBlock_IMvC thin-scrollbar" style=color:#393A34;background-color:#f6f8fa><code class=codeBlockLines_gZDW><div class=token-line style=color:#393A34><span class="token list punctuation" style=color:#393A34>-</span><span class="token plain"> Added </span><span class="token code-snippet code keyword" style=color:#00009f>`subscribe_order_fills(...)`</span><span class="token plain"> and </span><span class="token code-snippet code keyword" style=color:#00009f>`unsubscribe_order_fills(...)`</span><span class="token plain"> for </span><span class="token code-snippet code keyword" style=color:#00009f>`Actor`</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain"></span><span class="token list punctuation" style=color:#393A34>-</span><span class="token plain"> Added Bybit conditional orders support</span><br/></div><div class=token-line style=color:#393A34><span class="token plain"></span><span class="token list punctuation" style=color:#393A34>-</span><span class="token plain"> Added support for </span><span class="token code-snippet code keyword" style=color:#00009f>`OrderBookDepth10`</span><span class="token plain"> requests (#2955), thanks @faysou</span><br/></div></code></pre></div></div>
+<p><strong>准则</strong>：</p>
+<ul>
+<li class="">以 "Added" 开头。</li>
+<li class="">代码元素用反引号。</li>
+<li class="">具体写明加了什么，而不是怎么加的。</li>
+</ul>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=breaking-changes>Breaking Changes<a href=#breaking-changes class=hash-link aria-label="Breaking Changes的直接链接" title="Breaking Changes的直接链接" translate=no>​</a></h3>
+<p>可能破坏既有代码的变更。</p>
+<p><strong>格式</strong>：</p>
+<div class="language-markdown codeBlockContainer_eTMR theme-code-block" style=--prism-color:#393A34;--prism-background-color:#f6f8fa><div class=codeBlockContent_hafM><pre tabindex=0 class="prism-code language-markdown codeBlock_IMvC thin-scrollbar" style=color:#393A34;background-color:#f6f8fa><code class=codeBlockLines_gZDW><div class=token-line style=color:#393A34><span class="token list punctuation" style=color:#393A34>-</span><span class="token plain"> Removed </span><span class="token code-snippet code keyword" style=color:#00009f>`nautilus_trader.analysis.statistics`</span><span class="token plain"> subpackage - must import from </span><span class="token code-snippet code keyword" style=color:#00009f>`nautilus_trader.analysis`</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain"></span><span class="token list punctuation" style=color:#393A34>-</span><span class="token plain"> Renamed </span><span class="token code-snippet code keyword" style=color:#00009f>`BinanceAccountType.USDT_FUTURE`</span><span class="token plain"> to </span><span class="token code-snippet code keyword" style=color:#00009f>`USDT_FUTURES`</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain"></span><span class="token list punctuation" style=color:#393A34>-</span><span class="token plain"> Changed </span><span class="token code-snippet code keyword" style=color:#00009f>`start`</span><span class="token plain"> parameter to required for </span><span class="token code-snippet code keyword" style=color:#00009f>`Actor`</span><span class="token plain"> data request methods</span><br/></div></code></pre></div></div>
+<p><strong>准则</strong>：</p>
+<ul>
+<li class="">以 "Removed"、"Renamed" 或 "Changed" 开头。</li>
+<li class="">简要说明迁移路径。</li>
+</ul>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=security>Security<a href=#security class=hash-link aria-label=Security的直接链接 title=Security的直接链接 translate=no>​</a></h3>
+<p>防止崩溃、未定义行为或数据损坏的安全加固与修复。包括从 Internal Improvements
+提升上来的重要加固改进。</p>
+<p><strong>格式</strong>：</p>
+<div class="language-markdown codeBlockContainer_eTMR theme-code-block" style=--prism-color:#393A34;--prism-background-color:#f6f8fa><div class=codeBlockContent_hafM><pre tabindex=0 class="prism-code language-markdown codeBlock_IMvC thin-scrollbar" style=color:#393A34;background-color:#f6f8fa><code class=codeBlockLines_gZDW><div class=token-line style=color:#393A34><span class="token list punctuation" style=color:#393A34>-</span><span class="token plain"> Fixed divide-by-zero and overflow bugs in model crate that could cause crashes</span><br/></div><div class=token-line style=color:#393A34><span class="token plain"></span><span class="token list punctuation" style=color:#393A34>-</span><span class="token plain"> Fixed core arithmetic operations to reject NaN/Infinity values and improve overflow handling</span><br/></div></code></pre></div></div>
+<p><strong>准则</strong>：</p>
+<ul>
+<li class="">收录上溢/下溢修复、内存安全改进、FFI 防护、数据完整性修复。</li>
+<li class="">聚焦对用户的影响：本来可能发生什么。</li>
+<li class="">排除常规依赖升级、轻微加固或仅涉及测试的修复。</li>
+<li class="">本次发布没有安全条目时，整个小节省略。</li>
+</ul>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=fixes>Fixes<a href=#fixes class=hash-link aria-label=Fixes的直接链接 title=Fixes的直接链接 translate=no>​</a></h3>
+<p>提升正确性、但不构成安全问题的缺陷修复。</p>
+<p><strong>格式</strong>：</p>
+<div class="language-markdown codeBlockContainer_eTMR theme-code-block" style=--prism-color:#393A34;--prism-background-color:#f6f8fa><div class=codeBlockContent_hafM><pre tabindex=0 class="prism-code language-markdown codeBlock_IMvC thin-scrollbar" style=color:#393A34;background-color:#f6f8fa><code class=codeBlockLines_gZDW><div class=token-line style=color:#393A34><span class="token list punctuation" style=color:#393A34>-</span><span class="token plain"> Fixed reduce-only order panic when quantity exceeds position</span><br/></div><div class=token-line style=color:#393A34><span class="token plain"></span><span class="token list punctuation" style=color:#393A34>-</span><span class="token plain"> Fixed Binance order status parsing for external orders (#3006), thanks for reporting @bmlquant</span><br/></div></code></pre></div></div>
+<p><strong>准则</strong>：</p>
+<ul>
+<li class="">以 "Fixed" 开头。</li>
+</ul>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=internal-improvements>Internal Improvements<a href=#internal-improvements class=hash-link aria-label="Internal Improvements的直接链接" title="Internal Improvements的直接链接" translate=no>​</a></h3>
+<p>实现细节与基础设施变更。</p>
+<p><strong>格式</strong>：</p>
+<div class="language-markdown codeBlockContainer_eTMR theme-code-block" style=--prism-color:#393A34;--prism-background-color:#f6f8fa><div class=codeBlockContent_hafM><pre tabindex=0 class="prism-code language-markdown codeBlock_IMvC thin-scrollbar" style=color:#393A34;background-color:#f6f8fa><code class=codeBlockLines_gZDW><div class=token-line style=color:#393A34><span class="token list punctuation" style=color:#393A34>-</span><span class="token plain"> Added ARM64 support to Docker builds</span><br/></div><div class=token-line style=color:#393A34><span class="token plain"></span><span class="token list punctuation" style=color:#393A34>-</span><span class="token plain"> Ported </span><span class="token code-snippet code keyword" style=color:#00009f>`PortfolioAnalyzer`</span><span class="token plain"> to Rust</span><br/></div><div class=token-line style=color:#393A34><span class="token plain"></span><span class="token list punctuation" style=color:#393A34>-</span><span class="token plain"> Improved clock and timer thread safety</span><br/></div><div class=token-line style=color:#393A34><span class="token plain"></span><span class="token list punctuation" style=color:#393A34>-</span><span class="token plain"> Upgraded Rust (MSRV) to 1.90.0</span><br/></div><div class=token-line style=color:#393A34><span class="token plain"></span><span class="token list punctuation" style=color:#393A34>-</span><span class="token plain"> Upgraded </span><span class="token code-snippet code keyword" style=color:#00009f>`pyo3`</span><span class="token plain"> crates to v0.26.0</span><br/></div></code></pre></div></div>
+<p><strong>准则</strong>：</p>
+<ul>
+<li class="">使用 "Added"、"Implemented"、"Improved"、"Optimized"、"Upgraded"、"Refined"、
+"Standardized"。</li>
+<li class="">依赖升级给出版本号。</li>
+</ul>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=documentation-updates>Documentation Updates<a href=#documentation-updates class=hash-link aria-label="Documentation Updates的直接链接" title="Documentation Updates的直接链接" translate=no>​</a></h3>
+<p>指南与示例的变更。</p>
+<p><strong>格式</strong>：</p>
+<div class="language-markdown codeBlockContainer_eTMR theme-code-block" style=--prism-color:#393A34;--prism-background-color:#f6f8fa><div class=codeBlockContent_hafM><pre tabindex=0 class="prism-code language-markdown codeBlock_IMvC thin-scrollbar" style=color:#393A34;background-color:#f6f8fa><code class=codeBlockLines_gZDW><div class=token-line style=color:#393A34><span class="token list punctuation" style=color:#393A34>-</span><span class="token plain"> Added rate limit tables with links to official docs</span><br/></div><div class=token-line style=color:#393A34><span class="token plain"></span><span class="token list punctuation" style=color:#393A34>-</span><span class="token plain"> Improved dark and light themes for readability</span><br/></div><div class=token-line style=color:#393A34><span class="token plain"></span><span class="token list punctuation" style=color:#393A34>-</span><span class="token plain"> Fixed broken links</span><br/></div></code></pre></div></div>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=deprecations>Deprecations<a href=#deprecations class=hash-link aria-label=Deprecations的直接链接 title=Deprecations的直接链接 translate=no>​</a></h3>
+<p>标记为将来移除的特性。</p>
+<p><strong>格式</strong>：</p>
+<div class="language-markdown codeBlockContainer_eTMR theme-code-block" style=--prism-color:#393A34;--prism-background-color:#f6f8fa><div class=codeBlockContent_hafM><pre tabindex=0 class="prism-code language-markdown codeBlock_IMvC thin-scrollbar" style=color:#393A34;background-color:#f6f8fa><code class=codeBlockLines_gZDW><div class=token-line style=color:#393A34><span class="token list punctuation" style=color:#393A34>-</span><span class="token plain"> Deprecated </span><span class="token code-snippet code keyword" style=color:#00009f>`some_config_option`</span><span class="token plain">; disable (</span><span class="token code-snippet code keyword" style=color:#00009f>`False`</span><span class="token plain">) to maintain consistent behavior. Will be removed in future version</span><br/></div></code></pre></div></div>
+<p><strong>准则</strong>：</p>
+<ul>
+<li class="">说明迁移路径并给出替代方案。</li>
+</ul>
+<h2 class="anchor anchorTargetStickyNavbar_ana5" id=attribution>署名<a href=#attribution class=hash-link aria-label=署名的直接链接 title=署名的直接链接 translate=no>​</a></h2>
+<ul>
+<li class="">给外部贡献者署名：<code>thanks @username</code> 或 <code>thanks for reporting @username</code>。</li>
+<li class="">社区贡献与复杂特性附上 issue/PR 编号：<code>(#1234)</code>。</li>
+</ul>
+<h2 class="anchor anchorTargetStickyNavbar_ana5" id=style>风格<a href=#style class=hash-link aria-label=风格的直接链接 title=风格的直接链接 translate=no>​</a></h2>
+<ul>
+<li class="">用句子式大写（只大写首词）。</li>
+<li class="">结尾不加句号。</li>
+<li class="">代码元素用反引号。</li>
+<li class="">聚焦<strong>改了什么</strong>，而不是怎么改的。</li>
+</ul>
+<p><strong>要具体</strong>：</p>
+<div class="language-markdown codeBlockContainer_eTMR theme-code-block" style=--prism-color:#393A34;--prism-background-color:#f6f8fa><div class=codeBlockContent_hafM><pre tabindex=0 class="prism-code language-markdown codeBlock_IMvC thin-scrollbar" style=color:#393A34;background-color:#f6f8fa><code class=codeBlockLines_gZDW><div class=token-line style=color:#393A34><span class="token plain">Bad:  Improved Binance adapter</span><br/></div><div class=token-line style=color:#393A34><span class="token plain">Good: Improved Binance fill handling when instrument not cached</span><br/></div></code></pre></div></div>
+<h2 class="anchor anchorTargetStickyNavbar_ana5" id=security-classification>安全分类<a href=#security-classification class=hash-link aria-label=安全分类的直接链接 title=安全分类的直接链接 translate=no>​</a></h2>
+<p>变更涉及以下任一项时归入 Security：</p>
+<ul>
+<li class="">内存安全（上溢、下溢、威胁稳定性的除零）。</li>
+<li class="">可能损坏状态的未定义行为或崩溃。</li>
+<li class="">数据完整性（NaN/Infinity 传播、导致损坏的竞态）。</li>
+<li class="">防止注入或利用的输入校验（SQL 注入、命令注入、路径穿越）。</li>
+<li class="">构建加固（非执行栈、FFI 防护）。</li>
+<li class="">用户应当知晓的重要加固。</li>
+</ul>
+<p>否则归入 Fixes（逻辑缺陷与 panic）或 Internal Improvements（轻微加固）。</p>
+<p>注意：普通逻辑 panic 归入 Fixes，除非它们威胁系统稳定性或数据损坏。</p>
+<h2 class="anchor anchorTargetStickyNavbar_ana5" id=examples>示例<a href=#examples class=hash-link aria-label=示例的直接链接 title=示例的直接链接 translate=no>​</a></h2>
+<p><strong>Security</strong>（可能导致崩溃/损坏）：</p>
+<div class="language-markdown codeBlockContainer_eTMR theme-code-block" style=--prism-color:#393A34;--prism-background-color:#f6f8fa><div class=codeBlockContent_hafM><pre tabindex=0 class="prism-code language-markdown codeBlock_IMvC thin-scrollbar" style=color:#393A34;background-color:#f6f8fa><code class=codeBlockLines_gZDW><div class=token-line style=color:#393A34><span class="token list punctuation" style=color:#393A34>-</span><span class="token plain"> Fixed divide-by-zero in margin calculations that could crash the engine</span><br/></div><div class=token-line style=color:#393A34><span class="token plain"></span><span class="token list punctuation" style=color:#393A34>-</span><span class="token plain"> Fixed integer overflow in model arithmetic that could crash the process</span><br/></div></code></pre></div></div>
+<p><strong>Fixes</strong>（结果错误但安全）：</p>
+<div class="language-markdown codeBlockContainer_eTMR theme-code-block" style=--prism-color:#393A34;--prism-background-color:#f6f8fa><div class=codeBlockContent_hafM><pre tabindex=0 class="prism-code language-markdown codeBlock_IMvC thin-scrollbar" style=color:#393A34;background-color:#f6f8fa><code class=codeBlockLines_gZDW><div class=token-line style=color:#393A34><span class="token list punctuation" style=color:#393A34>-</span><span class="token plain"> Fixed Binance order status parsing for external orders</span><br/></div><div class=token-line style=color:#393A34><span class="token plain"></span><span class="token list punctuation" style=color:#393A34>-</span><span class="token plain"> Fixed position purge logic to prevent purging re-opened position</span><br/></div></code></pre></div></div>
+<p><strong>Enhancements</strong>（面向用户）：</p>
+<div class="language-markdown codeBlockContainer_eTMR theme-code-block" style=--prism-color:#393A34;--prism-background-color:#f6f8fa><div class=codeBlockContent_hafM><pre tabindex=0 class="prism-code language-markdown codeBlock_IMvC thin-scrollbar" style=color:#393A34;background-color:#f6f8fa><code class=codeBlockLines_gZDW><div class=token-line style=color:#393A34><span class="token list punctuation" style=color:#393A34>-</span><span class="token plain"> Added Bybit conditional orders support</span><br/></div></code></pre></div></div>
+<p><strong>Internal</strong>（实现层面）：</p>
+<div class="language-markdown codeBlockContainer_eTMR theme-code-block" style=--prism-color:#393A34;--prism-background-color:#f6f8fa><div class=codeBlockContent_hafM><pre tabindex=0 class="prism-code language-markdown codeBlock_IMvC thin-scrollbar" style=color:#393A34;background-color:#f6f8fa><code class=codeBlockLines_gZDW><div class=token-line style=color:#393A34><span class="token list punctuation" style=color:#393A34>-</span><span class="token plain"> Implemented Bybit ping/pong handling</span><br/></div></code></pre></div></div>
+<h2 class="anchor anchorTargetStickyNavbar_ana5" id=release-notes-template>发布说明模板<a href=#release-notes-template class=hash-link aria-label=发布说明模板的直接链接 title=发布说明模板的直接链接 translate=no>​</a></h2>
+<div class="language-markdown codeBlockContainer_eTMR theme-code-block" style=--prism-color:#393A34;--prism-background-color:#f6f8fa><div class=codeBlockContent_hafM><pre tabindex=0 class="prism-code language-markdown codeBlock_IMvC thin-scrollbar" style=color:#393A34;background-color:#f6f8fa><code class=codeBlockLines_gZDW><div class=token-line style=color:#393A34><span class="token title important punctuation" style=color:#393A34>#</span><span class="token title important"> NautilusTrader &lt;VERSION> Beta</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain" style=display:inline-block></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">Released on TBD (UTC).</span><br/></div><div class=token-line style=color:#393A34><span class="token plain" style=display:inline-block></span><br/></div><div class=token-line style=color:#393A34><span class="token plain"></span><span class="token title important punctuation" style=color:#393A34>###</span><span class="token title important"> Enhancements</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain" style=display:inline-block></span><br/></div><div class=token-line style=color:#393A34><span class="token plain"></span><span class="token title important punctuation" style=color:#393A34>###</span><span class="token title important"> Breaking Changes</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain" style=display:inline-block></span><br/></div><div class=token-line style=color:#393A34><span class="token plain"></span><span class="token title important punctuation" style=color:#393A34>###</span><span class="token title important"> Security</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain" style=display:inline-block></span><br/></div><div class=token-line style=color:#393A34><span class="token plain"></span><span class="token title important punctuation" style=color:#393A34>###</span><span class="token title important"> Fixes</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain" style=display:inline-block></span><br/></div><div class=token-line style=color:#393A34><span class="token plain"></span><span class="token title important punctuation" style=color:#393A34>###</span><span class="token title important"> Internal Improvements</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain" style=display:inline-block></span><br/></div><div class=token-line style=color:#393A34><span class="token plain"></span><span class="token title important punctuation" style=color:#393A34>###</span><span class="token title important"> Documentation Updates</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain" style=display:inline-block></span><br/></div><div class=token-line style=color:#393A34><span class="token plain"></span><span class="token title important punctuation" style=color:#393A34>###</span><span class="token title important"> Deprecations</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain" style=display:inline-block></span><br/></div><div class=token-line style=color:#393A34><span class="token plain"></span><span class="token hr punctuation" style=color:#393A34>---</span><br/></div></code></pre></div></div></div><footer class="theme-doc-footer docusaurus-mt-lg"><div class="row margin-top--sm theme-doc-footer-edit-meta-row"><div class="col noPrint_MRkS"><a href=https://github.com/Aloento/NautilusTraderDoc/tree/main/docs/developer_guide/releases.md target=_blank rel="noopener noreferrer" class=theme-edit-this-page><svg fill=currentColor height=20 width=20 viewBox="0 0 40 40" class=iconEdit_RPSQ aria-hidden=true><g><path d="m34.5 11.7l-3 3.1-6.3-6.3 3.1-3q0.5-0.5 1.2-0.5t1.1 0.5l3.9 3.9q0.5 0.4 0.5 1.1t-0.5 1.2z m-29.5 17.1l18.4-18.5 6.3 6.3-18.4 18.4h-6.3v-6.2z"/></g></svg>编辑此页</a></div><div class="col lastUpdated_oZSl"><span class=theme-last-updated>最后<!-- -->于 <b><time datetime=2026-10-14T22:30:30.000Z itemprop=dateModified>2026年10月14日</time></b> <!-- -->更新</span></div></div></footer></article><nav class="docusaurus-mt-lg pagination-nav" aria-label=文件选项卡><a class="pagination-nav__link pagination-nav__link--prev" href=/developer_guide/python_adapters><div class=pagination-nav__sublabel>上一页</div><div class=pagination-nav__label>Python 适配器接口</div></a><a class="pagination-nav__link pagination-nav__link--next" href=/developer_guide/runtime_conformance><div class=pagination-nav__sublabel>下一页</div><div class=pagination-nav__label>运行时一致性契约</div></a></nav></div></div><div class="col col--3"><div class="tableOfContents_LyLZ thin-scrollbar theme-doc-toc-desktop"><ul class="table-of-contents table-of-contents__left-border"><li><a href=#overview class="table-of-contents__link toc-highlight">总览</a><li><a href=#stable-release-workflow class="table-of-contents__link toc-highlight">稳定版发布工作流</a><li><a href=#recovering-a-missing-release-tag class="table-of-contents__link toc-highlight">恢复缺失的发布标签</a><li><a href=#versioning class="table-of-contents__link toc-highlight">版本管理</a><li><a href=#crates-io-publishing class="table-of-contents__link toc-highlight">Crates.io 发布</a><li><a href=#release-checklist class="table-of-contents__link toc-highlight">发布清单</a><ul><li><a href=#pre-release-on-develop class="table-of-contents__link toc-highlight">发布前（在 <code>develop</code> 上）</a><li><a href=#release class="table-of-contents__link toc-highlight">发布</a><li><a href=#post-release-on-develop class="table-of-contents__link toc-highlight">发布后（在 <code>develop</code> 上）</a></ul><li><a href=#release-notes class="table-of-contents__link toc-highlight">发布说明</a><ul><li><a href=#sections class="table-of-contents__link toc-highlight">小节</a><li><a href=#enhancements class="table-of-contents__link toc-highlight">Enhancements</a><li><a href=#breaking-changes class="table-of-contents__link toc-highlight">Breaking Changes</a><li><a href=#security class="table-of-contents__link toc-highlight">Security</a><li><a href=#fixes class="table-of-contents__link toc-highlight">Fixes</a><li><a href=#internal-improvements class="table-of-contents__link toc-highlight">Internal Improvements</a><li><a href=#documentation-updates class="table-of-contents__link toc-highlight">Documentation Updates</a><li><a href=#deprecations class="table-of-contents__link toc-highlight">Deprecations</a></ul><li><a href=#attribution class="table-of-contents__link toc-highlight">署名</a><li><a href=#style class="table-of-contents__link toc-highlight">风格</a><li><a href=#security-classification class="table-of-contents__link toc-highlight">安全分类</a><li><a href=#examples class="table-of-contents__link toc-highlight">示例</a><li><a href=#release-notes-template class="table-of-contents__link toc-highlight">发布说明模板</a></ul></div></div></div></div></main></div></div></div><footer class="theme-layout-footer footer footer--dark"><div class="container container-fluid"><div class="row footer__links"><div class="theme-layout-footer-column col footer__col"><div class=footer__title></div><ul class="footer__items clean-list"><li class=footer__item><a href=https://github.com/nautechsystems/nautilus_trader target=_blank rel="noopener noreferrer" class=footer__link-item>Official GitHub<svg width=13.5 height=13.5 aria-label="(opens in new tab)" class=iconExternalLink_qUHo><use href=#theme-svg-external-link /></svg></a><li class=footer__item><a href=https://nautilustrader.io/docs target=_blank rel="noopener noreferrer" class=footer__link-item>Official Documentation<svg width=13.5 height=13.5 aria-label="(opens in new tab)" class=iconExternalLink_qUHo><use href=#theme-svg-external-link /></svg></a></ul></div></div><div class="footer__bottom text--center"><div class=footer__copyright>© 2026 Nautech Systems Pty Ltd. All rights reserved.</div></div></div></footer></div></body>

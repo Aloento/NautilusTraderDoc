@@ -1,0 +1,785 @@
+<!doctype html><html lang=zh dir=ltr class="docs-wrapper plugin-docs plugin-id-default docs-version-current docs-doc-page docs-doc-id-developer_guide/callback_dispatch" data-has-hydrated=false><head><meta charset=UTF-8><meta name=generator content="Docusaurus v3.10.2"><title data-rh=true>回调派发契约 | NautilusTrader 文档</title><meta data-rh=true name=viewport content="width=device-width, initial-scale=1.0"/><meta data-rh=true name=twitter:card content=summary_large_image /><meta data-rh=true property=og:url content=https://nautilus.aloen.to/developer_guide/callback_dispatch /><meta data-rh=true property=og:locale content=zh /><meta data-rh=true name=docusaurus_locale content=zh /><meta data-rh=true name=docsearch:language content=zh /><meta data-rh=true name=docusaurus_version content=current /><meta data-rh=true name=docusaurus_tag content=docs-default-current /><meta data-rh=true name=docsearch:version content=current /><meta data-rh=true name=docsearch:docusaurus_tag content=docs-default-current /><meta data-rh=true property=og:title content="回调派发契约 | NautilusTrader 文档"/><meta data-rh=true name=description content=callback-dispatch-contract} /><meta data-rh=true property=og:description content=callback-dispatch-contract} /><link data-rh=true rel=icon href=/logo.png /><link data-rh=true rel=canonical href=https://nautilus.aloen.to/developer_guide/callback_dispatch /><link data-rh=true rel=alternate href=https://nautilus.aloen.to/developer_guide/callback_dispatch hreflang=zh /><link data-rh=true rel=alternate href=https://nautilus.aloen.to/developer_guide/callback_dispatch hreflang=x-default /><script data-rh=true type=application/ld+json>{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","item":"https://nautilus.aloen.to/developer_guide/","name":"开发者指南","position":1},{"@type":"ListItem","item":"https://nautilus.aloen.to/developer_guide/callback_dispatch","name":"回调派发契约","position":2}]}</script><link rel=stylesheet href=/assets/css/styles.adb7ea18.css /><script src=/assets/js/runtime~main.71ac0794.js defer></script><script src=/assets/js/main.d978d0f2.js defer></script></head><body><svg style="display: none;"><defs>
+<symbol id=theme-svg-external-link viewBox="0 0 24 24"><path fill=currentColor d="M21 13v10h-21v-19h12v2h-10v15h17v-8h2zm3-12h-10.988l4.035 4-6.977 7.07 2.828 2.828 6.977-7.07 4.125 4.172v-11z"/></symbol>
+</defs></svg>
+<script>!function(){var t=function(){try{return new URLSearchParams(window.location.search).get("docusaurus-theme")}catch(t){}}()||function(){try{return window.localStorage.getItem("theme-2e3")}catch(t){}}();document.documentElement.setAttribute("data-theme",t||(window.matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light")),document.documentElement.setAttribute("data-theme-choice",t||"system")}(),function(){try{for(var[t,e]of new URLSearchParams(window.location.search).entries())if(t.startsWith("docusaurus-data-")){var a=t.replace("docusaurus-data-","data-");document.documentElement.setAttribute(a,e)}}catch(t){}}()</script><div id=__docusaurus><link rel=preload as=image href=/logo.png /><div role=region aria-label=跳到主要内容><a class=skipToContent_zuOI href=#__docusaurus_skipToContent_fallback>跳到主要内容</a></div><nav aria-label=主导航 class="theme-layout-navbar navbar navbar--fixed-top"><div class=navbar__inner><div class="theme-layout-navbar-left navbar__items"><button aria-label=切换导航栏 aria-expanded=false class="navbar__toggle clean-btn" type=button><svg width=30 height=30 viewBox="0 0 30 30" aria-hidden=true><path stroke=currentColor stroke-linecap=round stroke-miterlimit=10 stroke-width=2 d="M4 7h22M4 15h22M4 23h22"/></svg></button><a class=navbar__brand href=/><div class=navbar__logo><img src=/logo.png alt="NautilusTrader Logo" class="themedComponent_q2_Y themedComponent--light_Nejn"/><img src=/logo.png alt="NautilusTrader Logo" class="themedComponent_q2_Y themedComponent--dark_JjIb"/></div><b class="navbar__title text--truncate">NautilusTrader</b></a><a aria-current=page class="navbar__item navbar__link navbar__link--active" href=/getting_started/>文档</a></div><div class="theme-layout-navbar-right navbar__items navbar__items--right"><a href=https://github.com/Aloento/NautilusTraderDoc target=_blank rel="noopener noreferrer" class="navbar__item navbar__link">GitHub<svg width=13.5 height=13.5 aria-label="(opens in new tab)" class=iconExternalLink_qUHo><use href=#theme-svg-external-link /></svg></a><div class="toggle_hHmI colorModeToggle_rOOn"><button class="clean-btn toggleButton_wEhT toggleButtonDisabled_yOOP" type=button disabled title="system mode" aria-label="切换浅色/暗黑模式（当前为system mode）"><svg viewBox="0 0 24 24" width=24 height=24 aria-hidden=true class="toggleIcon_Kt6U lightToggleIcon_Zfeh"><path fill=currentColor d="M12,9c1.65,0,3,1.35,3,3s-1.35,3-3,3s-3-1.35-3-3S10.35,9,12,9 M12,7c-2.76,0-5,2.24-5,5s2.24,5,5,5s5-2.24,5-5 S14.76,7,12,7L12,7z M2,13l2,0c0.55,0,1-0.45,1-1s-0.45-1-1-1l-2,0c-0.55,0-1,0.45-1,1S1.45,13,2,13z M20,13l2,0c0.55,0,1-0.45,1-1 s-0.45-1-1-1l-2,0c-0.55,0-1,0.45-1,1S19.45,13,20,13z M11,2v2c0,0.55,0.45,1,1,1s1-0.45,1-1V2c0-0.55-0.45-1-1-1S11,1.45,11,2z M11,20v2c0,0.55,0.45,1,1,1s1-0.45,1-1v-2c0-0.55-0.45-1-1-1C11.45,19,11,19.45,11,20z M5.99,4.58c-0.39-0.39-1.03-0.39-1.41,0 c-0.39,0.39-0.39,1.03,0,1.41l1.06,1.06c0.39,0.39,1.03,0.39,1.41,0s0.39-1.03,0-1.41L5.99,4.58z M18.36,16.95 c-0.39-0.39-1.03-0.39-1.41,0c-0.39,0.39-0.39,1.03,0,1.41l1.06,1.06c0.39,0.39,1.03,0.39,1.41,0c0.39-0.39,0.39-1.03,0-1.41 L18.36,16.95z M19.42,5.99c0.39-0.39,0.39-1.03,0-1.41c-0.39-0.39-1.03-0.39-1.41,0l-1.06,1.06c-0.39,0.39-0.39,1.03,0,1.41 s1.03,0.39,1.41,0L19.42,5.99z M7.05,18.36c0.39-0.39,0.39-1.03,0-1.41c-0.39-0.39-1.03-0.39-1.41,0l-1.06,1.06 c-0.39,0.39-0.39,1.03,0,1.41s1.03,0.39,1.41,0L7.05,18.36z"/></svg><svg viewBox="0 0 24 24" width=24 height=24 aria-hidden=true class="toggleIcon_Kt6U darkToggleIcon_XgQr"><path fill=currentColor d="M9.37,5.51C9.19,6.15,9.1,6.82,9.1,7.5c0,4.08,3.32,7.4,7.4,7.4c0.68,0,1.35-0.09,1.99-0.27C17.45,17.19,14.93,19,12,19 c-3.86,0-7-3.14-7-7C5,9.07,6.81,6.55,9.37,5.51z M12,3c-4.97,0-9,4.03-9,9s4.03,9,9,9s9-4.03,9-9c0-0.46-0.04-0.92-0.1-1.36 c-0.98,1.37-2.58,2.26-4.4,2.26c-2.98,0-5.4-2.42-5.4-5.4c0-1.81,0.89-3.42,2.26-4.4C12.92,3.04,12.46,3,12,3L12,3z"/></svg><svg viewBox="0 0 24 24" width=24 height=24 aria-hidden=true class="toggleIcon_Kt6U systemToggleIcon_BvUi"><path fill=currentColor d="m12 21c4.971 0 9-4.029 9-9s-4.029-9-9-9-9 4.029-9 9 4.029 9 9 9zm4.95-13.95c1.313 1.313 2.05 3.093 2.05 4.95s-0.738 3.637-2.05 4.95c-1.313 1.313-3.093 2.05-4.95 2.05v-14c1.857 0 3.637 0.737 4.95 2.05z"/></svg></button></div><div class=navbarSearchContainer_watl></div></div></div><div role=presentation class=navbar-sidebar__backdrop></div></nav><div id=__docusaurus_skipToContent_fallback class="theme-layout-main main-wrapper mainWrapper_R72Q"><div class=docsWrapper_XQ9b><button aria-label=回到顶部 class="clean-btn theme-back-to-top-button backToTopButton_MbnX" type=button></button><div class=docRoot_aqOB><aside class="theme-doc-sidebar-container docSidebarContainer_sI2e"><div class=sidebarViewport_TzTy><div class=sidebar_CbEe><nav aria-label=文档侧边栏 class="menu thin-scrollbar menu_ChRF"><ul class="theme-doc-sidebar-menu menu__list"><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-1 menu__list-item menu__list-item--collapsed"><div class=menu__list-item-collapsible><a class="categoryLink_Muyc menu__link menu__link--sublist" href=/getting_started/><span class=categoryLinkLabel_mAcL>快速开始</span></a><button aria-label="展开侧边栏分类 '快速开始'" aria-expanded=false type=button class="clean-btn menu__caret"></button></div><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-1 menu__list-item menu__list-item--collapsed"><div class=menu__list-item-collapsible><a class="categoryLink_Muyc menu__link menu__link--sublist" href=/concepts/><span class=categoryLinkLabel_mAcL>核心概念</span></a><button aria-label="展开侧边栏分类 '核心概念'" aria-expanded=false type=button class="clean-btn menu__caret"></button></div><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-1 menu__list-item menu__list-item--collapsed"><div class=menu__list-item-collapsible><a class="categoryLink_Muyc menu__link menu__link--sublist" href=/integrations/><span class=categoryLinkLabel_mAcL>交易所与集成</span></a><button aria-label="展开侧边栏分类 '交易所与集成'" aria-expanded=false type=button class="clean-btn menu__caret"></button></div><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-1 menu__list-item menu__list-item--collapsed"><div class=menu__list-item-collapsible><a class="categoryLink_Muyc menu__link menu__link--sublist" href=/how_to/><span class=categoryLinkLabel_mAcL>操作指南</span></a><button aria-label="展开侧边栏分类 '操作指南'" aria-expanded=false type=button class="clean-btn menu__caret"></button></div><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-1 menu__list-item menu__list-item--collapsed"><div class=menu__list-item-collapsible><a class="categoryLink_Muyc menu__link menu__link--sublist" href=/tutorials/><span class=categoryLinkLabel_mAcL>教程</span></a><button aria-label="展开侧边栏分类 '教程'" aria-expanded=false type=button class="clean-btn menu__caret"></button></div><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-1 menu__list-item"><div class=menu__list-item-collapsible><a class="categoryLink_Muyc menu__link menu__link--sublist menu__link--active" href=/developer_guide/><span class=categoryLinkLabel_mAcL>开发者指南</span></a><button aria-label="折叠侧边栏分类 '开发者指南'" aria-expanded=true type=button class="clean-btn menu__caret"></button></div><ul class=menu__list><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/developer_guide/adapters><span class=linkLabel_lYjD>适配器</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/developer_guide/benchmarking><span class=linkLabel_lYjD>基准测试</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class="menu__link menu__link--active" aria-current=page tabindex=0 href=/developer_guide/callback_dispatch><span class=linkLabel_lYjD>回调派发契约</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/developer_guide/coding_standards><span class=linkLabel_lYjD>编码规范</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/developer_guide/design_principles><span class=linkLabel_lYjD>设计原则</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/developer_guide/docs><span class=linkLabel_lYjD>文档风格</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/developer_guide/environment_setup><span class=linkLabel_lYjD>环境搭建</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/developer_guide/ffi><span class=linkLabel_lYjD>FFI 内存契约</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/developer_guide/markdown_style><span class=linkLabel_lYjD>Markdown 风格</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/developer_guide/plugins><span class=linkLabel_lYjD>插件</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/developer_guide/python><span class=linkLabel_lYjD>Python</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/developer_guide/python_adapters><span class=linkLabel_lYjD>Python 适配器接口</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/developer_guide/releases><span class=linkLabel_lYjD>发布</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/developer_guide/runtime_conformance><span class=linkLabel_lYjD>运行时一致性契约</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/developer_guide/rust><span class=linkLabel_lYjD>Rust</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/developer_guide/security><span class=linkLabel_lYjD>安全架构</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/developer_guide/shell><span class=linkLabel_lYjD>Shell 脚本</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/developer_guide/spec_data_testing><span class=linkLabel_lYjD>数据测试规范</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/developer_guide/spec_exec_testing><span class=linkLabel_lYjD>执行测试规范</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/developer_guide/test_datasets><span class=linkLabel_lYjD>测试数据集</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/developer_guide/testing><span class=linkLabel_lYjD>测试</span></a></ul><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-1 menu__list-item menu__list-item--collapsed"><div class=menu__list-item-collapsible><a class="categoryLink_Muyc menu__link menu__link--sublist" href=/api_reference/><span class=categoryLinkLabel_mAcL>API 参考</span></a><button aria-label="展开侧边栏分类 'API 参考'" aria-expanded=false type=button class="clean-btn menu__caret"></button></div></ul></nav></div></div></aside><main class=docMainContainer_sLF8><div class="container padding-top--md padding-bottom--lg"><div class=row><div class="col docItemCol_ZRft"><div class=docItemContainer_KOP5><article><nav class="theme-doc-breadcrumbs breadcrumbsContainer_d5rS" aria-label=页面路径><ul class=breadcrumbs><li class=breadcrumbs__item><a aria-label=主页面 class=breadcrumbs__link href=/><svg viewBox="0 0 24 24" class=breadcrumbHomeIcon_XgF2><path d="M10 19v-5h4v5c0 .55.45 1 1 1h3c.55 0 1-.45 1-1v-7h1.7c.46 0 .68-.57.33-.87L12.67 3.6c-.38-.34-.96-.34-1.34 0l-8.36 7.53c-.34.3-.13.87.33.87H5v7c0 .55.45 1 1 1h3c.55 0 1-.45 1-1z" fill=currentColor /></svg></a><li class=breadcrumbs__item><a class=breadcrumbs__link href=/developer_guide/><span>开发者指南</span></a><li class="breadcrumbs__item breadcrumbs__item--active"><span class=breadcrumbs__link>回调派发契约</span></ul></nav><div class="tocCollapsible_bgaJ theme-doc-toc-mobile tocMobile_FhT_"><button type=button class="clean-btn tocCollapsibleButton_F8AY">本页总览</button></div><div class="theme-doc-markdown markdown"><header><h1>回调派发契约</h1></header>
+<p>本页定义排队（queued）的 actor 与策略回调的所有权、顺序与进展要求。策略层面的
+说明见<a class="" href=/developer_guide/design_principles#queued-callback-dispatch-requirements>设计原则</a>。</p>
+<p>:::info 入队不等于已生效
+这些要求是排队 actor 与策略回调投递的设计约束，不是对既有同步派发路径的保证。
+支持消息总线同步重入，并不会启用排队的 actor 或策略回调。
+:::</p>
+<p>按目的阅读本页：</p>
+<ul>
+<li class=""><strong>规范性契约</strong>：<a href=#ordering-and-reentrancy class="">顺序</a>、可观察状态、有界进展与
+<a href=#drain-boundary-design class="">排空边界设计</a>定义了启用（activation）的要求。</li>
+<li class=""><strong>当前实现</strong>：<a href=#implementation-limits class="">实现限度</a>与
+<a href=#runtime-integration class="">运行时集成</a>区分既有机制与启用缺口。
+<a class="" href=/developer_guide/runtime_conformance>运行时一致性契约</a>把源码与代表性检查映射到各要求。</li>
+<li class=""><strong>私有实现细节</strong>：<a href=#private-dispatch-primitives class="">派发原语</a>、命令传输与
+存储记账说明机制如何强制执行这些要求。</li>
+</ul>
+<p>失败消息与纠正动作见<a href=#reentrancy-and-dispatch-diagnostics class="">重入与派发诊断</a>。</p>
+<h2 class="anchor anchorTargetStickyNavbar_ana5" id=worked-callback-sequence>回调序列示例<a href=#worked-callback-sequence class=hash-link aria-label=回调序列示例的直接链接 title=回调序列示例的直接链接 translate=no>​</a></h2>
+<p>这个例子演示排队的契约。生产环境的规范回调仍是同步的。假设事件 A 有两个合格
+接收者——策略 S1 与 S2，事件 B 的接收者是 S3；没有无关的待处理工作，且每个排空
+边界上所需访问都可用。</p>
+<div class="language-text codeBlockContainer_eTMR theme-code-block" style=--prism-color:#393A34;--prism-background-color:#f6f8fa><div class=codeBlockContent_hafM><pre tabindex=0 class="prism-code language-text codeBlock_IMvC thin-scrollbar" style=color:#393A34;background-color:#f6f8fa><code class=codeBlockLines_gZDW><div class=token-line style=color:#393A34><span class="token plain">Publication A</span><br/></div><div class=token-line style=color:#393A34><span class="token plain">  |  Reserve publication ordinal before synchronous subscribers run</span><br/></div><div class=token-line style=color:#393A34><span class="token plain">  |  Admit S1(A), creating root R; admit S2(A) under the same root</span><br/></div><div class=token-line style=color:#393A34><span class="token plain">  v</span><br/></div><div class=token-line style=color:#393A34><span class="token plain">Callback queue: [ S1(A) | S2(A) ]                         root R</span><br/></div><div class=token-line style=color:#393A34><span class="token plain">  |</span><br/></div><div class=token-line style=color:#393A34><span class="token plain">  |  Enclosing runtime borrows end</span><br/></div><div class=token-line style=color:#393A34><span class="token plain">  v</span><br/></div><div class=token-line style=color:#393A34><span class="token plain">Safe boundary: drain callbacks</span><br/></div><div class=token-line style=color:#393A34><span class="token plain">  |</span><br/></div><div class=token-line style=color:#393A34><span class="token plain">  +-- S1(A) runs                                          root R</span><br/></div><div class=token-line style=color:#393A34><span class="token plain">  |     |</span><br/></div><div class=token-line style=color:#393A34><span class="token plain">  |     +-- publish B --> queue S3(B) after S2(A)          root R</span><br/></div><div class=token-line style=color:#393A34><span class="token plain">  |     |                (no recursive S3 invocation)</span><br/></div><div class=token-line style=color:#393A34><span class="token plain">  |     |</span><br/></div><div class=token-line style=color:#393A34><span class="token plain">  |     +-- send C -----> command transport retains C     root R</span><br/></div><div class=token-line style=color:#393A34><span class="token plain">  |                      (owner thread; context preserved)</span><br/></div><div class=token-line style=color:#393A34><span class="token plain">  |</span><br/></div><div class=token-line style=color:#393A34><span class="token plain">  +-- S2(A) runs                                          root R</span><br/></div><div class=token-line style=color:#393A34><span class="token plain">  |</span><br/></div><div class=token-line style=color:#393A34><span class="token plain">  +-- S3(B) runs                                          root R</span><br/></div><div class=token-line style=color:#393A34><span class="token plain" style=display:inline-block></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">Callback order: S1(A) --> S2(A) --> S3(B), even across bounded drain passes</span><br/></div><div class=token-line style=color:#393A34><span class="token plain">Budget:         three completed deliveries charged to R,</span><br/></div><div class=token-line style=color:#393A34><span class="token plain">                even across bounded drain passes</span><br/></div><div class=token-line style=color:#393A34><span class="token plain" style=display:inline-block></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">When the runtime processes C (timing depends on the runtime):</span><br/></div><div class=token-line style=color:#393A34><span class="token plain">  restore R --> handle C --> any resulting callbacks retain R</span><br/></div><div class=token-line style=color:#393A34><span class="token plain">                            and queue by publication/admission order</span><br/></div><div class=token-line style=color:#393A34><span class="token plain">  C itself consumes no callback delivery budget</span><br/></div></code></pre></div></div>
+<p>嵌套的发布 B 排在 A 的待处理接收者之后。回调与命令都保留根 R。</p>
+<p>上述回调顺序并不规定 C 相对于 S2(A) 与 S3(B) 何时执行。回调遍历之间的命令处理
+由<a href=#runtime-integration class="">回测结算与实时调度</a>决定。只要 C 或其他被保留的后代
+持有 R，R 就存活。让出不会重置其预算。从外部线程或无关任务发送不会自动继承 R。</p>
+<h2 class="anchor anchorTargetStickyNavbar_ana5" id=terminology>术语<a href=#terminology class=hash-link aria-label=术语的直接链接 title=术语的直接链接 translate=no>​</a></h2>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>术语<th>含义<tbody><tr><td>Publication（发布）<td>一次事件发布，其序号在同步订阅者工作之前预留。<tr><td>Admission（准入）<td>在构造捕获之前预留回调计数、已知存储与队列位置。<tr><td>Slot（槽位）<td>队列中一个有序条目，无论处于预留、就绪还是已取消状态。<tr><td>Capture（捕获）<td>为回调或调用保留的所有权值。<tr><td>Root（根）<td>后代工作共享的因果所有权与累计投递记账。不回滚。<tr><td>Retained work（保留工作）<td>队列中或挂起的工作，使其根在当前调用或排空之后仍存活。<tr><td>Drain（排空）<td>按序对回调槽位的一次有界遍历。<tr><td>Safe boundary（安全边界）<td>运行时拥有的时刻：外围借用已结束，允许调用回调。</table>
+<h2 class="anchor anchorTargetStickyNavbar_ana5" id=implementation-limits>实现限度<a href=#implementation-limits class=hash-link aria-label=实现限度的直接链接 title=实现限度的直接链接 translate=no>​</a></h2>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>领域<th>已实现<th>限度<tbody><tr><td>Actor 投递<td>私有的有序投递原语<td>排队的 actor 与策略投递未启用<tr><td><a href=#callback-roots-and-budgets class="">根传播</a><td>经保留工作与命令/事件通道的因果根<td>所有者线程的祖先关系。相互独立的定时触发<tr><td><a href=#draining-and-progress class="">排空安全性</a><td>回测与实时运行循环的边界<td>实时生命周期集成与启用尚未完成<tr><td><a href=#callback-roots-and-budgets class="">进展预算</a><td>按根累计已完成回调投递的计费<td>不约束回调耗时或纯命令循环<tr><td><a href=#storage-limits class="">内存记账</a><td>保留单元与已知存储限制<td>不是进程总内存上限。无用户配置<tr><td><a href=#failure-cleanup class="">失败处理</a><td>unwind 恢复与受守卫的拆除<td>致命错误停止所有根。已完成的效果不回滚<tr><td><a href=#backend-compatibility class="">访问与后端</a><td>私有的受检访问守卫<td>未检查的访问，以及 native/Python/dynamic 的一致性在保障之外<tr><td><a href=#maintenance-and-observable-state class="">可观察状态</a><td>同步的缓存与门面效果<td>当前缓存状态，不是按事件时间的快照</table>
+<h2 class="anchor anchorTargetStickyNavbar_ana5" id=ordering-and-reentrancy>顺序与重入<a href=#ordering-and-reentrancy class=hash-link aria-label=顺序与重入的直接链接 title=顺序与重入的直接链接 translate=no>​</a></h2>
+<p>:::tip 什么是重入？
+重入指代码在其较早一次调用返回之前再次被进入。例如消息总线的订阅者又发布了
+另一条消息，导致嵌套投递先于原来的发布完成。这发生在单个线程上，不需要并行执行。
+:::</p>
+<p>在同一运行时线程内，规范的 actor 与策略回调必须跨组件、跨 topic 保持
+<strong>发布顺序</strong>。该规则对空闲与活跃的组件同样适用。嵌套发布不得超越更早发布的
+待处理投递，包括更早发布的全部接收者。相互独立的节点之间没有共享的全局顺序保证。</p>
+<p>回调要求其组件的<strong>独占访问</strong>，以及一个外围可变运行时借用已结束的投递边界。
+native 与 Python 组件必须遵循同样的顺序契约。</p>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=raw-python-subscribers>原始 Python 订阅者<a href=#raw-python-subscribers class=hash-link aria-label="原始 Python 订阅者的直接链接" title="原始 Python 订阅者的直接链接" translate=no>​</a></h3>
+<p>原始的 Python <a class="" href=/concepts/message_bus>topic 消息</a>把原始对象同步投递给
+订阅的可调用对象，包括在嵌套发布期间。它与规范的自定义数据订阅共享运行时总线
+与 topic 空间。排队的顺序要求适用于规范回调，原始可调用对象保持同步。
+原始可调用对象内部的嵌套发布，仍必须保持待处理规范投递的发布顺序。</p>
+<h2 class="anchor anchorTargetStickyNavbar_ana5" id=maintenance-and-observable-state>维护与可观察状态<a href=#maintenance-and-observable-state class=hash-link aria-label=维护与可观察状态的直接链接 title=维护与可观察状态的直接链接 translate=no>​</a></h2>
+<p>组件维护随每个排队事件运行，<strong>在该事件的作者回调之前</strong>。包括：</p>
+<ul>
+<li class="">指标更新。</li>
+<li class="">定时器清理。</li>
+<li class="">条件单处理。</li>
+</ul>
+<p>作者回调被抑制时，维护仍执行其适用的生命周期规则。维护发出的事件进入同一套
+有序派发机制。</p>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=cache-state-and-eligibility>缓存状态与资格<a href=#cache-state-and-eligibility class=hash-link aria-label=缓存状态与资格的直接链接 title=缓存状态与资格的直接链接 translate=no>​</a></h3>
+<p>引擎<a class="" href=/concepts/architecture#cache>缓存</a>的变更与直接的门面效果保持同步。
+回调观察到的是<strong>当前缓存状态</strong>。有序投递不提供按事件时间的缓存快照。不可变的
+事件载荷记录着事件本身，而缓存可能已经反映了后续变化。把指标更新与事件投递
+放在一起，保持了它们与相应回调之间的顺序。</p>
+<p>例如，引擎可以应用订单更新 E1，把其回调排队，并在该回调排空之前应用 E2。
+E1 的回调收到 E1 的不可变载荷，但缓存查询可能返回 E2 之后的订单状态。
+关于 E1 的事实看载荷，当前运行时状态看缓存。</p>
+<p>作者回调在<strong>事件到达与投递两个时刻</strong>都要求具备资格。停止、重置或退役不得把
+旧回调带进新的注册或<a class="" href=/concepts/actors#lifecycle>生命周期</a>世代。</p>
+<h2 class="anchor anchorTargetStickyNavbar_ana5" id=bounded-progress>有界进展<a href=#bounded-progress class=hash-link aria-label=有界进展的直接链接 title=有界进展的直接链接 translate=no>​</a></h2>
+<p><strong>排空</strong>按序处理队列中的回调，在允许时尝试投递。待处理回调参与运行时的排空
+条件。实时执行使用有界的排空批次，并在批次之间让出。回测在推进模拟时间之前
+完成待处理工作。失控的回调链会产生显式故障。</p>
+<p>队列溢出记录致命错误，并在安全边界停止执行。它既不能静默丢弃回调，也不能在
+某个操作的同步效果中途打断它。已完成的效果不会被回调派发回滚。</p>
+<h2 class="anchor anchorTargetStickyNavbar_ana5" id=drain-boundary-design>排空边界设计<a href=#drain-boundary-design class=hash-link aria-label=排空边界设计的直接链接 title=排空边界设计的直接链接 translate=no>​</a></h2>
+<p>运行时集成必须把回调排空集中在少数几个显式的所有权边界上。<strong>排空调度归运行时
+所有</strong>。各个派发与 flush 方法不得各自持有自己的排空策略。这能把借用的释放、
+回调顺序与失败处理保持在少数几处，并限制重复的排空调用、异步传播与错误管道。</p>
+<p>每个边界必须指明：</p>
+<ul>
+<li class="">哪些组件、引擎与缓存借用已经结束。</li>
+<li class="">接下来可以运行哪些回调。</li>
+<li class="">失败由哪条现有生命周期路径处理。</li>
+</ul>
+<p>关停与所有权清理保持在该生命周期所有者之下。回调派发不得引入平行的生命周期或
+恢复状态机。失败时停止后续派发、保留错误，并按清理契约要求的顺序释放保留的
+所有权。</p>
+<p>用满足顺序、进展与所有权要求的最小边界集合。只有在外移排空仍保留这些要求时
+才外移。用精确的回调序列测试验证边界的位置，包括跨有界排空遍历的续作。
+仅仅减少排空位置并不能确立正确性。在同步核心与回测中，确定性的回调顺序仍是
+必须满足的启用准则。</p>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=scheduling-and-ownership-boundaries>调度与所有权边界<a href=#scheduling-and-ownership-boundaries class=hash-link aria-label=调度与所有权边界的直接链接 title=调度与所有权边界的直接链接 translate=no>​</a></h3>
+<p><code>actor::drain_callbacks(budget)</code> 保持为公共操作：处理一个有界批次，返回是否
+仍有回调剩余或派发是否失败。回测结算与实时调度负责该操作外围的重复。
+优先用这些按运行时编写的小循环，而不是带运行模式、生命周期状态或策略对象的
+共享调度器。只有当共享能消除重复、又不引入那些机制时，才共享更多代码。</p>
+<p>下面的边界图把既有的集成与所有权规则，同排队回调启用所需的证据分开。最后一列
+写的是测试要求，不是已完成的验证。</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>运行时与边界<th>既有集成<th>保留的所有权与释放<th>启用所需的证据<tbody><tr><td>回测启动<td>结算数据命令与回调，交易命令留在队列里<td>结算前启动阶段的引擎借用已结束<td>首个输入之前的启动回调序列。交易命令仍在队列中<tr><td>回测事件结算<td>引擎工作与每个定时器处理器之后调用 <code>drain_command_queues</code><td>结算前外围引擎与交易场所借用已结束<td>回调生成的命令在下一个定时器或时间推进之前结算<tr><td>回测正常停止<td>结算到期工作、停止 trader、结算停止产生的命令，然后停止引擎<td>回调投递前 trader 与引擎借用已结束<td>精确的停止产生命令与回调序列<tr><td>回测失败与拆除<td>中止清理与受守卫的回调清除<td>清除捕获之前，所有权的同步工作先释放<td>中止时的丢弃，以及外部根仍在时的拒绝<tr><td>实时启动<td>成功启动后首次运行循环排空<td>连接与批量状态 future 持有引擎借用直到完成或取消<td>工具先于执行连接。native 与 Python 回调在外围借用结束之后运行<tr><td>实时事件结算<td>有界的运行循环遍历，带让出与停止检查<td>下一次排空前，同步事件处理器的借用已结束<td>精确的回调序列、批次续作、停止资格，以及不变的纯通道调度<tr><td>实时报告请求<td>报告家族串行化。命令使用共享客户端访问。工具更新延后<td>共享客户端借用跨循环迭代，并在延后的工具 flush 之前结束<td>保持一个报告挂起的同时走真实回调路由。证明访问安全与随后的进展<tr><td>实时正常停止<td>残余时间窗与最后的缓冲派发。独立 runner 保留通道<td>报告 future 在延后工具 flush 与客户端断开之前 drop<td>待处理报告的完成、超时与关停取消都保持顺序<tr><td>实时致命失败与处置<td>现有关停处理失败。处置只清除不投递<td>内核处置先于保留 runner 的释放与受守卫的清除<td>停止产生的工作被丢弃。外部根仍然拒绝清除<tr><td>实时宿主运行的遗弃<td>丢弃 run future 可能让关停未完成<td>报告 future 在节点返回前 drop。后续处置尝试清理<td>区分被 await 的取消与遗弃。验证捕获释放与受守卫的清理</table>
+<p>实时的所有权由
+<a href=https://github.com/nautechsystems/nautilus_trader/blob/develop/crates/live/src/execution/client.rs target=_blank rel="noopener noreferrer" class="">执行客户端门面</a>、
+<a href=https://github.com/nautechsystems/nautilus_trader/blob/develop/crates/live/src/node/reconciliation.rs target=_blank rel="noopener noreferrer" class="">报告任务生命周期</a>、
+<a href=https://github.com/nautechsystems/nautilus_trader/blob/develop/crates/live/src/node/mod.rs target=_blank rel="noopener noreferrer" class="">节点生命周期</a>与
+<a href=https://github.com/nautechsystems/nautilus_trader/blob/develop/crates/live/src/python/node.rs target=_blank rel="noopener noreferrer" class="">Python 宿主运行所有者</a>实现。</p>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=backtest-boundaries>回测边界<a href=#backtest-boundaries class=hash-link aria-label=回测边界的直接链接 title=回测边界的直接链接 translate=no>​</a></h3>
+<p>回测结算集中调度的参照，但不是"每个时间戳结束时排空一次"。定时器处理器在下一个
+处理器之前结算自己的工作，即使在同一时间戳。交易场所处理在结算之前释放其借用。
+把所有排空移到最外层循环会改变这些边界。启动阶段的数据命令与回调遍历也不能
+使用无限制的结算，否则交易命令的执行时机就会改变。</p>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=live-startup-and-standalone-lifecycle>实时启动与独立生命周期<a href=#live-startup-and-standalone-lifecycle class=hash-link aria-label=实时启动与独立生命周期的直接链接 title=实时启动与独立生命周期的直接链接 translate=no>​</a></h3>
+<h4 class="anchor anchorTargetStickyNavbar_ana5" id=startup-ordering>启动顺序<a href=#startup-ordering class=hash-link aria-label=启动顺序的直接链接 title=启动顺序的直接链接 translate=no>​</a></h4>
+<p>保持启动顺序：工具事件先到达缓存，之后执行客户端才连接、订阅命令才被处理。</p>
+<p>实时启动成功后，<code>run_with_mode</code> 在 trader 启动、plug-in 启动与启动期系统派发
+之后，抵达首次运行循环排空，然后才选取下一条通道消息。就用这个既有边界，
+除非某个已识别的生产者与顺序要求证明确需更早的排空。</p>
+<p>连接 future 在 await 期间持有引擎的可变借用，启动对账期间的批量状态请求也是。
+它们完成本身并不构成再加一个排空位置的理由。重放与启动失败走各自的出口，
+需要各自的所有权证明。</p>
+<h4 class="anchor anchorTargetStickyNavbar_ana5" id=standalone-lifecycle-restrictions>独立生命周期的限制<a href=#standalone-lifecycle-restrictions class=hash-link aria-label=独立生命周期的限制的直接链接 title=独立生命周期的限制的直接链接 translate=no>​</a></h4>
+<p>独立调用 <code>LiveNode::start</code> 与 <code>stop</code> 不运行连续的事件循环。<code>start</code> 返回时
+保留 runner，stop 或 abort 会处理 runner 的待处理消息。这条路径作为测试与
+嵌入的积木继续受支持，保持其现有的同步回调。<code>finish_startup_trader</code> 里
+孤零零一次排空无法提供排队回调的续作。</p>
+<p><code>LiveNode</code> 的初始排队回调启用仅限于拥有节点事件循环的 Rust
+<code>run</code>/<code>run_with_mode</code> 与 Python <code>run</code>/<code>run_async</code>。经由独立
+<code>start</code>/<code>stop</code> 的排队投递暂缓。在回调准入之前，启用必须先拒绝"独立启动 +
+排队投递"并给出清晰错误；不得静默回退到同步投递，也不得让回调停留在未投递
+状态。这一限制针对独立启动，不针对通过正在运行事件循环的节点的 handle 发出
+停止请求。</p>
+<p>排队 actor 投递与这一拒绝都尚未实现。强制执行该生命周期限制是一项启用要求，
+它不改变现有的独立 API。</p>
+<h4 class="anchor anchorTargetStickyNavbar_ana5" id=hosted-run-cancellation-and-abandonment>宿主运行的取消与遗弃<a href=#hosted-run-cancellation-and-abandonment class=hash-link aria-label=宿主运行的取消与遗弃的直接链接 title=宿主运行的取消与遗弃的直接链接 translate=no>​</a></h4>
+<p>被 await 的宿主运行取消会驱动优雅关停。而在宿主循环仍在运行时丢弃该运行，
+可能在关停完成之前就 drop 掉其 future。该路径上不保证回调投递。启用覆盖必须
+把遗弃之后的所有权释放与受守卫的处置清理，同优雅关停分开验证。</p>
+<p>run future drop 时会释放报告借用，但本身不运行报告任务的取消清理，也不 flush
+延后的工具更新或移除定向查询标记。</p>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=live-stop-and-terminal-cleanup>实时停止与终态清理<a href=#live-stop-and-terminal-cleanup class=hash-link aria-label=实时停止与终态清理的直接链接 title=实时停止与终态清理的直接链接 translate=no>​</a></h3>
+<p><code>LiveNode::finalize_stop</code> 无法独自拥有回调拆除：调用方仍持有通道接收端，
+且正常关停在此之后还处理缓冲事件。<code>start</code>/<code>stop</code> 路径保留其 runner，而
+<code>run_with_mode</code> 在本地拥有接收端。终态清理的所有者是 <code>LiveNode::dispose</code>，
+不是正常停止，也不是运行循环的末尾。</p>
+<p>:::info 终态所有权清理
+<code>LiveNode::dispose</code> 按此顺序执行回调清理：</p>
+<ol>
+<li class="">处置内核。确保没有任何引擎或组件借用残留，然后才释放 runner。</li>
+<li class="">释放保留的 runner 并丢弃其待处理消息，包括处置期间 stop 回调排入的队列工作。</li>
+<li class="">记录任何已闭锁的回调失败，然后尝试清除回调状态。清理被拒绝要记日志，
+但不强制重置。</li>
+</ol>
+<p>处置不得变成又一个回调投递循环。保留正常停止与 runner 复用。不要为了让清除
+成功而在正常停止或运行循环末尾关闭通道。保留 runner 的释放归处置所有。
+:::</p>
+<p>丢弃 runner 不能证明所有根都已释放。清除仍必须拒绝活动作用域或外部保留的根，
+并报告失败而不强制重置。被拒绝的清除让回调状态保持原样。阻塞的所有权释放后
+可以重试处置。需要验证：</p>
+<ul>
+<li class="">保留 runner 中带根的消息在处置之前阻止清除，并被处置释放。</li>
+<li class="">stop 产生的带根消息被处置丢弃，不进行回调投递。</li>
+<li class="">所有权允许时，致命运行循环闭锁在处置时清除。</li>
+<li class="">外部所有权持续阻止清除。</li>
+</ul>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=required-boundary-verification>必需的边界验证<a href=#required-boundary-verification class=hash-link aria-label=必需的边界验证的直接链接 title=必需的边界验证的直接链接 translate=no>​</a></h3>
+<h4 class="anchor anchorTargetStickyNavbar_ana5" id=sequence-requirements>序列要求<a href=#sequence-requirements class=hash-link aria-label=序列要求的直接链接 title=序列要求的直接链接 translate=no>​</a></h4>
+<p>边界变更需要针对下列各项的精确序列断言：</p>
+<ul>
+<li class="">回测启动的数据命令与回调先于首个输入，交易命令留在队列中。</li>
+<li class="">实时工具处理先于执行连接，以及被启用路由所要求的任何顺序。</li>
+<li class="">同一时间戳的定时器与回调生成的命令，先于下一个定时器或时间推进。</li>
+<li class="">跨有界遍历的续作、实时停止资格，以及不变的纯通道调度。</li>
+<li class="">正常停止产生的工作对致命中止丢弃的区分，加上根仍存在时的清理拒绝。</li>
+<li class="">在回调准入之前拒绝"排队投递 + 独立实时启动"，同时保留同步的独立行为
+与运行中节点经 handle 驱动的关停。</li>
+</ul>
+<p>这些序列检查是启用要求，不是实时排队投递已实现的证据。要通过真实的 native 与
+Python 组件走被启用的路由。仅靠私有派发器的测试，证明不了运行时借用恰好在
+选定边界结束。</p>
+<h4 class="anchor anchorTargetStickyNavbar_ana5" id=access-enforcement>访问强制<a href=#access-enforcement class=hash-link aria-label=访问强制的直接链接 title=访问强制的直接链接 translate=no>​</a></h4>
+<p>对每条被启用的路由，经由现有准入机制预留，并为调用获取受检的组件访问。
+逐一识别回调能够触及的引擎、客户端与缓存访问：actor 分配守卫保护不了那些
+独立的借用或未检查的句柄。实现必须在调用回调之前确立兼容的访问。仅靠成功的
+actor 守卫并不充分。</p>
+<h4 class="anchor anchorTargetStickyNavbar_ana5" id=pending-report-tests>待处理报告测试<a href=#pending-report-tests class=hash-link aria-label=待处理报告测试的直接链接 title=待处理报告测试的直接链接 translate=no>​</a></h4>
+<p>用显式的测试同步点把报告请求保持在挂起状态。走真实的回调路由，在释放报告
+前后断言其精确的事件与命令序列。路由可达时，覆盖成功完成、超时、关停取消
+与宿主运行遗弃。</p>
+<p>报告挂起期间，共享的命令访问可以继续。客户端的可变访问必须等到冲突借用结束。
+路由需要延后时保持发布顺序与报告 future 的进展。不要把已声明安全排空边界上
+忙碌的队头变成无界重试。<a href=#draining-and-progress class="">致命停滞投递规则</a>仍然适用。</p>
+<p>现有的<a href=https://github.com/nautechsystems/nautilus_trader/blob/develop/crates/live/tests/integration/node.rs target=_blank rel="noopener noreferrer" class="">实时节点测试</a>覆盖报告串行化、
+延后工具更新、超时与关停清理。它们不走生产环境的排队 actor 投递，不能替代
+这些按路由的启用测试。</p>
+<h2 class="anchor anchorTargetStickyNavbar_ana5" id=runtime-integration>运行时集成<a href=#runtime-integration class=hash-link aria-label=运行时集成的直接链接 title=运行时集成的直接链接 translate=no>​</a></h2>
+<p><a href=https://github.com/nautechsystems/nautilus_trader/blob/develop/crates/common/src/actor/dispatch.rs target=_blank rel="noopener noreferrer" class="">根传播测试</a>覆盖同步与实时运行时中的保留续作、
+数据与交易命令，包括延后的交易子命令。实时数据与执行事件通道也在混合通道
+跳转与<a href=https://github.com/nautechsystems/nautilus_trader/blob/develop/crates/live/src/node/mod.rs target=_blank rel="noopener noreferrer" class="">启动缓冲</a>中保留根。</p>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=backtests>回测<a href=#backtests class=hash-link aria-label=回测的直接链接 title=回测的直接链接 translate=no>​</a></h3>
+<p>回测在启动数据命令批次、命令与执行事件结算、定时器处理器之后调用边界排空。
+每次回调遍历处理有限数量的槽位。模拟时间推进之前，只要还有回调或同步命令
+待处理，结算就继续。仅有保留的根并不能让结算保持运行。启动照旧把交易命令
+留在队列里，直到正常结算。</p>
+<p>派发错误从回测执行中传播出来并触发中止清理。trader 启动失败也会停止引擎、
+丢弃待处理的同步命令。中止（<code>abort_run</code>）、重置与处置在清除回调捕获之前先
+释放同步命令批次。外部保留的工作仍可能阻止回调清理。正常结束（<code>end_impl</code>）
+在清除派发器之前排空残余工作。</p>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=live-running-loops>实时运行循环<a href=#live-running-loops class=hash-link aria-label=实时运行循环的直接链接 title=实时运行循环的直接链接 translate=no>​</a></h3>
+<p>实时运行循环在选取下一个事件之前排空一个有界的回调批次，并在有回调待处理时
+让出。待处理回调无需另一条通道消息即可恢复。停止信号在批次之间保持有资格。
+现有的通道优先级与纯通道让出保持不变。</p>
+<p>回调失败时：</p>
+<ul>
+<li class=""><strong>独立 runner</strong>：返回错误，不关闭通道、不丢弃其消息。</li>
+<li class=""><strong>实时节点</strong>：触发现有关停，跳过残余事件时间窗与最终缓冲派发。接收端
+drop 时丢弃待处理的通道消息，包括 stop 回调排入的命令。</li>
+</ul>
+<p>两条路径都保留致命回调闭锁，都不清除回调所有权。</p>
+<p>启动与残余 flush 不集成回调排空。处置在尝试回调清理之前先释放自有的工作，
+且不投递回调。启用仍需要为实时生命周期路径提供显式的调度与所有权覆盖，
+同时不假定每个生命周期方法都需要一次排空。</p>
+<p>实时报告 future 会跨循环迭代持有共享客户端借用。仅在循环顶部的排空，证明不了
+需要客户端可变访问的回调的安全性。排队回调启用必须把这些保留的借用计算在内。</p>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=activation-requirements>启用要求<a href=#activation-requirements class=hash-link aria-label=启用要求的直接链接 title=启用要求的直接链接 translate=no>​</a></h3>
+<p>这些边界并不启用排队 actor 投递。启用之前，运行时集成必须：</p>
+<ul>
+<li class="">在启用更多回调路由或引入可复用的调用存储时，保持
+<a href=#sender-types-and-ingress class="">相互独立的入口边界</a>。</li>
+<li class="">完成终态处置之外的实时生命周期排空边界与所有权覆盖。</li>
+<li class="">在准入排队回调之前，强制执行
+<a href=#live-startup-and-standalone-lifecycle class="">实时生命周期限制</a>。</li>
+<li class="">为每条被启用的回调路由确立 native 与 Python 的所有权安全。</li>
+<li class="">经由完整的回测与实时运行时生命周期验证排队回调。</li>
+<li class="">在同步核心与回测中，通过 native 与 Python 组件证明确定性的回调序列。
+覆盖嵌套发布、扇出、回调生成的命令、同一时间戳的工作，以及跨排空批次的
+续作。仅凭最终的计数与余额无法证明顺序。</li>
+</ul>
+<p>公开的交易消息及其直接的 <code>dispatch()</code> 路径不携带跨线程的回调上下文。
+同步队列私有地拥有其上下文。实时命令通道使用下文描述的信封。仅靠运行时
+排空，证明不了完整的实时生命周期集成或后端一致性。</p>
+<h2 class="anchor anchorTargetStickyNavbar_ana5" id=private-dispatch-primitives>私有派发原语<a href=#private-dispatch-primitives class=hash-link aria-label=私有派发原语的直接链接 title=私有派发原语的直接链接 translate=no>​</a></h2>
+<p>actor 模块包含私有的访问、准入、发布、调用与存储原语。数据与交易命令在同步
+与实时运行时中保留<a href=#callback-roots-and-budgets class="">回调根</a>。本地发出的实时数据、
+执行、系统消息与时间事件经由其通道保留根。</p>
+<p>生产环境的 actor 查找、组件访问与消息总线路由都不使用排队回调投递。要启用
+该投递，运行时边界需要 native 与 Python 的所有权支持。仅靠原语与运行时排空
+证明不了运行时所有权安全，也证明不了 native、direct 与 dynamic 回调的一致性。</p>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=publication-and-admission>发布与准入<a href=#publication-and-admission class=hash-link aria-label=发布与准入的直接链接 title=发布与准入的直接链接 translate=no>​</a></h3>
+<p>发布作用域在同步订阅者运行之前预留一个<strong>序号</strong>（ordinal）。回调预留按发布
+序号排序，再按准入序号排序，因此嵌套发布排在其外围发布的每个待处理接收者之后。</p>
+<p>作用域按栈顺序嵌套与 drop。drop 一个作用域会恢复发布状态而不投递回调。
+发布过程中的 unwind 会闭锁一个致命错误。</p>
+<p><code>publish_any</code> 与共享的类型化发布路径在进入总线 tap 与同步订阅者运行之前进入
+作用域。<code>try_publish_any</code> 在初始的总线访问检查之后做同样的事。作用域在嵌套
+的类型化与 <code>Any</code> 发布之间保持预留顺序。经由这些路径 unwind 会闭锁致命派发
+错误，即使没有回调被排队、或调用方随后捕获了 panic。</p>
+<p>发布作用域给预留排序，但不准入规范回调，也不排空它们。</p>
+<p>准入<strong>在调用方构造所有权捕获之前</strong>预留计数、已知存储与队列槽位：</p>
+<ul>
+<li class="">成功的预留接受其捕获，即使另一个操作随后闭锁了失败。</li>
+<li class="">未完成的预留会阻塞后续投递与拆除。</li>
+<li class="">取消留下一个槽位，由显式排空或拆除释放。</li>
+<li class="">actor 预留保留注册身份，因此替换或重新注册同一分配会跳过过期的处理器。
+被跳过的投递仍按完成计入其根的预算。</li>
+</ul>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=draining-and-progress>排空与进展<a href=#draining-and-progress class=hash-link aria-label=排空与进展的直接链接 title=排空与进展的直接链接 translate=no>​</a></h3>
+<p>一次排空最多处理它得到的<strong>槽位预算</strong>，包括已取消的槽位。队列的第一个回调
+无法获得其组件的独占访问时，队列处于<strong>忙碌队头</strong>状态，这会阻塞后续投递。</p>
+<p>私有边界排空在显式排空之上加了更严格的契约：调用方必须确立一个安全的投递
+时刻。</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>显式排空的结果<th>含义<th>边界排空的行为<tbody><tr><td>队列为空<td>没有剩余槽位<td>正常返回<tr><td>槽位预算耗尽<td>遍历之后仍有槽位剩余<td>正常返回。不算停滞<tr><td>进入被延后<td>发布、递归排空、拆除或受检访问阻止进入<td>报告有活跃工作。不闭锁失败<tr><td>未完成的队头预留<td>第一个预留还没有捕获<td>报告有活跃工作。不闭锁失败<tr><td>忙碌队头<td>组件独占访问不可用<td>闭锁致命的停滞投递错误</table>
+<p>进入被延后时不做任何工作。未完成的队头预留或忙碌队头，可能出现在同一次遍历
+已有若干投递完成之后。**错误结果不返回投递计数。**边界上的忙碌队头是致命的，
+即使前面的回调已经取得进展。耗尽槽位预算（包括耗在已取消槽位上）不是停滞投递。</p>
+<p>队列为空并不意味着所有保留的根都已释放。仅凭所有权记账不是继续排空的理由。
+边界排空保留第一个致命错误，并把队列中的捕获留到显式拆除时再释放其所有权。</p>
+<p>:::warning 排空前先释放外围借用
+守卫的销毁只释放访问，不排空回调。调用方还必须在排空之前结束外围的引擎、
+缓存及其他未跟踪的借用。
+:::</p>
+<h4 class="anchor anchorTargetStickyNavbar_ana5" id=draining-during-unwind>unwind 期间的排空<a href=#draining-during-unwind class=hash-link aria-label="unwind 期间的排空的直接链接" title="unwind 期间的排空的直接链接" translate=no>​</a></h4>
+<p>在 panic unwind 期间进入的、本来会成功的排空，在退出时闭锁致命的投递失败，
+即使其队列为空。它返回的结果仍是成功的。该失败可通过回调失败检查获知，
+并会停止下一次边界排空。</p>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=callback-roots-and-budgets>回调根与预算<a href=#callback-roots-and-budgets class=hash-link aria-label=回调根与预算的直接链接 title=回调根与预算的直接链接 translate=no>​</a></h3>
+<p><strong>根</strong>拥有一个进入的发布或预留的投递预算，以及它引发的全部回调工作。
+发布顺序不依赖于工作归哪个根所有。</p>
+<ul>
+<li class="">嵌套的发布与预留继承活动中的根。</li>
+<li class="">没有活动根的发布，在其首次回调准入或命令发送时启动一个根。
+空作用域不分配根。</li>
+<li class="">发布作用域之外，若尚无活动根，每次准入各自启动一个根。</li>
+</ul>
+<h4 class="anchor anchorTargetStickyNavbar_ana5" id=delivery-budget-versus-slot-budget>投递预算对槽位预算<a href=#delivery-budget-versus-slot-budget class=hash-link aria-label=投递预算对槽位预算的直接链接 title=投递预算对槽位预算的直接链接 translate=no>​</a></h4>
+<p>每次完成的投递按其根的预算计费一次。忙碌的尝试与已取消的槽位不计费，
+尽管已取消的槽位仍消耗排空的槽位预算。</p>
+<p>到达链路上限时，派发在运行下一个就绪回调之前闭锁致命的失控错误。
+被阻塞的回调留在队列中等待显式拆除。<strong>致命错误会停掉整个派发器</strong>，
+尽管各根有各自独立的预算。</p>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=retained-work-and-cleanup>保留工作与清理<a href=#retained-work-and-cleanup class=hash-link aria-label=保留工作与清理的直接链接 title=保留工作与清理的直接链接 translate=no>​</a></h3>
+<p>队列槽位、活动作用域与保留的调用工作都让其根存活。**队列为空不会重置
+幸存根的预算。**保留的存储捕获当前活动的根，没有活动根时启动一个。
+该存储增长时保留其根。</p>
+<h4 class="anchor anchorTargetStickyNavbar_ana5" id=resumption-and-storage-reuse>恢复与存储复用<a href=#resumption-and-storage-reuse class=hash-link aria-label=恢复与存储复用的直接链接 title=恢复与存储复用的直接链接 translate=no>​</a></h4>
+<p>经由 <code>with_chain</code> 恢复保留的工作，会让其根在该调用期间变为活动。返回或
+unwind 时恢复外围的根。调用批次对每个保留的值使用该机制。恢复工作本身
+不算一次投递。每个调用批次局部于一次准备与调用；其底层分配不决定后续
+值的根——每个值捕获其自身准入时刻活动的上下文。</p>
+<h4 class="anchor anchorTargetStickyNavbar_ana5" id=independent-timer-firings>相互独立的定时器触发<a href=#independent-timer-firings class=hash-link aria-label=相互独立的定时器触发的直接链接 title=相互独立的定时器触发的直接链接 translate=no>​</a></h4>
+<p>回调注册与因果所有权有各自的生命周期。复用已注册的定时器回调不会复用
+某次触发的预算。每个独立的实时时间事件信封都在回调查找与调用之前建立
+自己的作用域，即使投递发生在另一个活动作用域内部。保留的续作保持其
+原始根。仅靠存储复用不会让无关事件变成续作。</p>
+<h4 class="anchor anchorTargetStickyNavbar_ana5" id=destruction-and-release>销毁与释放<a href=#destruction-and-release class=hash-link aria-label=销毁与释放的直接链接 title=销毁与释放的直接链接 translate=no>​</a></h4>
+<p>已投递捕获的析构函数在该投递的根活动状态下运行，包括 unwind 期间。
+未被调用的批内值销毁时同样恢复其根。</p>
+<p>根及其存储的计费在最后一个所有者 drop 时释放。取消、失败的批次与显式
+拆除使用与其他保留存储相同的所有权清理。保留的工作在释放之前阻止拆除。</p>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=failure-cleanup>失败清理<a href=#failure-cleanup class=hash-link aria-label=失败清理的直接链接 title=失败清理的直接链接 translate=no>​</a></h3>
+<p>溢出闭锁第一个致命失败，并在不构造捕获的情况下拒绝后续预留。同步的门面
+效果可以在运行时于安全边界报告失败之前完成。队列槽位仍为所有权保留，
+等待显式拆除。失败的调用批次在准备退出、其守卫释放之后释放捕获。</p>
+<p>拆除顺序是强制的：</p>
+<ol>
+<li class="">在清除重置闭锁之前报告致命错误。这是调用方的责任。</li>
+<li class="">拆除开始之前结束所有活动的发布、预留、调用、链、排空与访问作用域。
+清除会拒绝活动作用域与外部保留的根。</li>
+<li class="">先摘除存储，再释放捕获。</li>
+<li class="">释放捕获。</li>
+</ol>
+<p>拆除在整个清除期间拒绝由析构函数驱动的准入。</p>
+<h4 class="anchor anchorTargetStickyNavbar_ana5" id=preparation-and-destructor-safety>准备与析构安全<a href=#preparation-and-destructor-safety class=hash-link aria-label=准备与析构安全的直接链接 title=准备与析构安全的直接链接 translate=no>​</a></h4>
+<p>调用准备把批次所有者留在获取守卫的调用之外。被拒绝或 unwind 时，先前
+转移的捕获会存活到那些守卫释放。调用方在构造每个捕获之前预留，并在该
+调用内部获取准备守卫。原语管不了作者代码持有借用期间构造或显式销毁的
+任意局部变量。析构函数不得在既有 unwind 期间 panic。</p>
+<h2 class="anchor anchorTargetStickyNavbar_ana5" id=reentrancy-and-dispatch-diagnostics>重入与派发诊断<a href=#reentrancy-and-dispatch-diagnostics class=hash-link aria-label=重入与派发诊断的直接链接 title=重入与派发诊断的直接链接 translate=no>​</a></h2>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=component-access-conflicts>组件访问冲突<a href=#component-access-conflicts class=hash-link aria-label=组件访问冲突的直接链接 title=组件访问冲突的直接链接 translate=no>​</a></h3>
+<p>受检的组件状态访问失败时，
+<a href=https://github.com/nautechsystems/nautilus_trader/blob/develop/crates/common/src/component.rs target=_blank rel="noopener noreferrer" class="">ComponentAccessError</a>
+会描述资源与尝试的操作。这些诊断已经适用于同步路径，并不代表排队投递已启用。
+冲突可能来自回调重入，也可能来自一个持有过久的普通借用。消息不会指明持有者
+及其调用栈。</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>变体<th>消息前缀<th>含义与动作<tbody><tr><td><code>NotRegistered</code><td><code>Cannot access {resource} during {operation}: the actor is not registered</code><td>注册尚未提供该资源。访问前先注册组件。<tr><td><code>ReadConflict</code><td><code>Cannot read {resource} during {operation}: it is already mutably borrowed</code><td>读取之前先释放已有的独占借用。<tr><td><code>WriteConflict</code><td><code>Cannot modify {resource} during {operation}: it is already borrowed</code><td>修改之前先释放已有的共享或独占借用。</table>
+<p>native 的 <code>try_cache_ref()</code> 与 <code>try_clock_mut()</code> 返回这些错误。对应的
+<code>cache_ref()</code> 与 <code>clock_mut()</code> 带同样的诊断 panic。见
+<a class="" href=/concepts/rust#dataactornative-methods>native 访问方法</a>。</p>
+<p>可移植的 Rust 门面同样报告访问冲突：</p>
+<ul>
+<li class=""><a href=https://github.com/nautechsystems/nautilus_trader/blob/develop/crates/common/src/cache/api.rs target=_blank rel="noopener noreferrer" class="">CacheApi</a>
+不可失败的读方法带 <code>ReadConflict</code> 与操作名 <code>cache read</code> 的诊断 panic。
+<code>get()</code> 经 <code>anyhow::Result</code> 返回该冲突，操作名为 <code>get</code>。可失败的 <code>try_*</code>
+查找经查找错误的 <code>Access</code> 变体返回它，操作名是方法名，如 <code>try_position</code>。</li>
+<li class=""><a href=https://github.com/nautechsystems/nautilus_trader/blob/develop/crates/common/src/clock/api.rs target=_blank rel="noopener noreferrer" class="">ClockApi</a>
+在 native 支撑下，冲突的读带 <code>ReadConflict</code> panic。定时器与告警的设置方法
+经 <code>anyhow::Result</code> 返回 <code>WriteConflict</code>；<code>cancel_timer()</code> 与
+<code>cancel_timers()</code> 在该冲突上 panic。时钟的诊断会点明尝试的方法。
+由处理器支撑的时钟委托给其处理器，而不是这些 native 借用检查。</li>
+</ul>
+<p>Python actor 的信号订阅与退订，会把冲突的 actor 借用映射为 <code>RuntimeError</code>，
+资源名为 <code>Python actor</code>，操作名为 <code>subscribe_signal</code> 或
+<code>unsubscribe_signal</code>。这并未覆盖所有 Python 或 native 的访问路径。</p>
+<p>诊断冲突的方法：</p>
+<ol>
+<li class="">在 traceback 中定位被尝试的操作。</li>
+<li class="">沿着外围借用追溯，穿过任何同步发布、命令派发或生命周期调用。</li>
+<li class="">在代码能重入同一资源之前结束该借用。native 代码中，用一个短作用域读取或
+复制所需状态，释放守卫，然后再发布或派发。</li>
+</ol>
+<p>不要绕过借用检查，也不要在冲突作用域仍活动时反复重试。移动回调排空需要
+<a href=#drain-boundary-design class="">排空边界设计</a>中的所有权与序列证明。</p>
+<p>组件生命周期注册表操作另有独立的拒绝机制，重叠访问时报
+<code>Component '{id}' is already mutably borrowed</code>。这一基于 ID 的检查与资源借用、
+私有的回调分配守卫都不同。三者都证明不了未检查访问的安全性。</p>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=callback-dispatcher-failures>回调派发器失败<a href=#callback-dispatcher-failures class=hash-link aria-label=回调派发器失败的直接链接 title=回调派发器失败的直接链接 translate=no>​</a></h3>
+<p><a href=https://github.com/nautechsystems/nautilus_trader/blob/develop/crates/common/src/actor/dispatch.rs target=_blank rel="noopener noreferrer" class="">CallbackDispatchError</a>
+暴露下列诊断。<code>InvalidDestination</code>、<code>Stalled</code> 与 <code>Runaway</code> 描述排队投递的
+失败。当前生产路由不准入那些回调，因此这几个变体仍是私有集成与测试行为。
+其他诊断在排队 actor 投递未启用时，就可能经由发布作用域、命令根记账、运行时
+排空或清理出现。</p>
+<p>派发器保留第一个致命失败。后续边界排空会报告它而不投递更多回调。已完成的
+同步效果与回调效果都不回滚。</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>变体<th>消息<th>含义与动作<tbody><tr><td><code>Overflow</code><td><code>Callback storage limit exceeded</code><td>回调准入、保留存储或命令根分配超出容量。检查捕获与保留的工作。<tr><td><code>InvalidDestination</code><td><code>Invalid callback destination</code><td>受检的 actor 投递发现类型不匹配。核对已注册的 actor 类型与处理器目标。<tr><td><code>SequenceExhausted</code><td><code>Callback publication sequence exhausted</code><td>顺序计数器无法前进。停止派发并按拆除流程处理。<tr><td><code>PublicationUnwound</code><td><code>Callback publication unwound</code><td>发布作用域发生 unwind。检查原始 panic，即使调用方捕获了它。<tr><td><code>DeliveryUnwound</code><td><code>Callback delivery unwound</code><td>排空作用域在 unwind 期间退出。检查原始 panic。<tr><td><code>Runaway</code><td><code>Callback chain delivery limit exceeded</code><td>单个根耗尽累计投递预算。检查回调与命令之间的反馈回路。<tr><td><code>Stalled</code><td><code>Callback delivery stalled at a safe boundary</code><td>队头在已声明的安全边界上无法运行。纠正访问所有权或边界位置。<tr><td><code>Active</code><td><code>Callback work or access is still active</code><td>排空进入、未完成的预留或拆除所有权阻止该操作。释放阻塞的作用域或保留的根。</table>
+<p><code>Active</code> 是一次操作拒绝，本身不闭锁致命失败。实时运行循环遇到这一排空错误
+仍会退出；节点若在运行会发起关停。安全边界上的忙碌队头确实会闭锁 <code>Stalled</code>。
+反复排空不是恢复策略。未完成的预留可能在前面若干回调已运行之后拒绝排空，
+且错误结果不携带投递计数。</p>
+<p>在走<a href=#failure-cleanup class="">失败清理</a>之前保留原始失败。实时处置期间，
+<code>Callback dispatch failed before disposal cleanup: ...</code> 报告既有的闭锁，
+<code>Failed to clear callback dispatch during disposal: ...</code> 报告清理被拒绝。
+外部保留的工作先释放，再重试处置。不要强制清除所有权，也不要把清理当作回滚。</p>
+<h2 class="anchor anchorTargetStickyNavbar_ana5" id=synchronous-commands>同步命令<a href=#synchronous-commands class=hash-link aria-label=同步命令的直接链接 title=同步命令的直接链接 translate=no>​</a></h2>
+<p>命令的祖先关系取决于发送时刻的上下文：</p>
+<ul>
+<li class="">有活动根时，命令捕获它，包括在回调投递与保留工作恢复期间。</li>
+<li class="">处于发布或命令处理作用域内时，发送会在需要时启动该作用域的根。</li>
+<li class="">在这些作用域之外且没有活动根时，发送不带根。处理它时，在首次准入回调工作
+或发送嵌套命令时创建一个独立的根。</li>
+</ul>
+<p>同一次排空批次中的命令，不会因为一起运行就共享一个根。处理与销毁在返回或
+unwind 时恢复外围的根。</p>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=batch-and-child-ordering>批次与子命令顺序<a href=#batch-and-child-ordering class=hash-link aria-label=批次与子命令顺序的直接链接 title=批次与子命令顺序的直接链接 translate=no>​</a></h3>
+<p>一次命令排空按序处理进入时收集的批次。处理器经由同步发送端排入的命令，
+留到下一次排空。交易处理器也可以捕获延后的子命令：它们深度优先执行，
+按捕获顺序，先于所收集批次中的下一条命令。每个子命令捕获其捕获时刻活动的
+根（包括临时的嵌套上下文），而不是在父处理器返回后改用父上下文。
+端点的直接路由保持不变。</p>
+<p>队列与派发栈帧的借用处理器运行之前、被遗弃的命令销毁之前都会结束。命令处理
+不算回调投递，也不会自动排空回调。</p>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=panic-and-overflow>Panic 与溢出<a href=#panic-and-overflow class=hash-link aria-label="Panic 与溢出的直接链接" title="Panic 与溢出的直接链接" translate=no>​</a></h3>
+<p>处理器 panic 时，panic 向外传播。所收集批次中未处理的命令与待处理的延后
+子命令，在各自的上下文下销毁。新排入的命令留在队列里。捕获的根让回调记账
+保持存活，并在这些命令释放之前阻止显式的派发器拆除。被遗弃的命令也在线程
+拆除时释放其捕获的所有权。</p>
+<p>回调存储限制不会拒绝命令发送。若某次发送需要根、而其分配超出这些限制，
+会在命令仍在队列中时闭锁回调溢出。命令条目不消耗回调保留单元限制，命令
+载荷与队列容量也不计入已知回调存储。每个根的分配只计费一次。</p>
+<p>:::warning 命令传输不是回调预算
+这些限制不约束命令队列内存，也不约束只生成命令的循环。
+:::</p>
+<h2 class="anchor anchorTargetStickyNavbar_ana5" id=live-command-and-event-channels>实时命令与事件通道<a href=#live-command-and-event-channels class=hash-link aria-label=实时命令与事件通道的直接链接 title=实时命令与事件通道的直接链接 translate=no>​</a></h2>
+<p>实时数据与交易命令的发送端只在构造它的那个线程上捕获根。发送端必须在运行时
+线程上构造。来自其他线程的发送属于独立入口，即使另一个运行时在那边有活动根。
+派发信封携带 send-safe 的令牌。回调根与记账保持线程局部。在另一个线程上处理
+带根的信封会在派发之前 panic。</p>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=dispatch-and-buffering>派发与缓冲<a href=#dispatch-and-buffering class=hash-link aria-label=派发与缓冲的直接链接 title=派发与缓冲的直接链接 translate=no>​</a></h3>
+<p>信封经由启动缓冲、runner 轮询与关停排空保留其祖先关系。交易子命令捕获自己
+活动的根，保持深度优先顺序。在节点轮询的命令路径上，执行观察者在每次匹配的
+端点派发之前运行，子命令亦然。处理不带根的信封会启动一个独立的惰性根作用域，
+这不启用排队回调，也不自动排空它们。</p>
+<p>启动缓冲在把执行批次拆成单笔订单时，保留每个事件的根。相互独立的批次保持
+独立，直到派发。报告仍在缓冲的订单事件之前排空，账户事件仍立即处理。节点执行
+观察与成交簿记在收到事件的上下文下运行。事件传输本身不消耗回调投递预算。</p>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=sender-types-and-ingress>发送端类型与入口<a href=#sender-types-and-ingress class=hash-link aria-label=发送端类型与入口的直接链接 title=发送端类型与入口的直接链接 translate=no>​</a></h3>
+<p>实时数据、执行与系统事件的发送端使用 <code>EventSender&lt;T></code>（<code>DispatchSender&lt;T></code>
+的别名），与命令共用同一种 <code>DispatchMessage&lt;T></code> 信封。系统命令与时间事件
+也使用该发送端。运行时绑定确立所有者线程。在该线程上同步发出的事件继承活动
+根；外部线程的发送与无活动作用域的发送保持独立。上下文不会跨任意 spawn 的
+任务或 await 点传播。</p>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=system-and-time-events>系统与时间事件<a href=#system-and-time-events class=hash-link aria-label=系统与时间事件的直接链接 title=系统与时间事件的直接链接 translate=no>​</a></h3>
+<p>系统事件与命令经由启动缓冲、轮询与关停保留其信封。时间事件投递在解析并调用
+回调之前恢复信封上下文。定时器注册不捕获根：定时触发独立进入，复用回调不会
+在各次触发之间共享预算。从活动回调作用域同步发出的时间事件则继承该作用域。
+回调租约、取消与清理保持既有行为。回调传输本身不消耗投递预算。</p>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=standalone-senders>独立发送端<a href=#standalone-senders class=hash-link aria-label=独立发送端的直接链接 title=独立发送端的直接链接 translate=no>​</a></h3>
+<p>独立客户端可以把普通的 Tokio sender 转成 <code>EventSender&lt;T></code>，以保留直接的
+领域事件接收端。该模式不携带回调上下文，实时 runner 的通道绑定也不使用它。
+事件载荷与通道容量留在回调存储记账之外，命令载荷与队列同样如此。</p>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=destruction-across-threads>跨线程销毁<a href=#destruction-across-threads class=hash-link aria-label=跨线程销毁的直接链接 title=跨线程销毁的直接链接 translate=no>​</a></h3>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>销毁线程<th>载荷上下文<th>根释放<tbody><tr><td>所有者线程<td>销毁其载荷时恢复该消息的根<td>在所有者线程上释放所有权<tr><td>外部线程<td>无法恢复所有者线程的上下文<td>经由清理队列释放令牌，不访问所有者的根</table>
+<p>所有者在其下一次通道捕获或派发、回调静止检查或派发器清除时，收回外部线程的
+释放。线程拆除也会释放它们。派发信封、线程局部上下文注册表容量与清理队列
+存储都留在回调存储限制之外。</p>
+<h2 class="anchor anchorTargetStickyNavbar_ana5" id=storage-limits>存储限制<a href=#storage-limits class=hash-link aria-label=存储限制的直接链接 title=存储限制的直接链接 translate=no>​</a></h2>
+<p>私有限制是：</p>
+<ul>
+<li class=""><strong>保留单元</strong>：最多 65,536。调用捕获与批容量预留和队列中的回调共享该计数，
+因此计数可能保守地高于回调数量。</li>
+<li class=""><strong>已知存储</strong>：最多 64 MiB。</li>
+<li class=""><strong>回调链</strong>：每个根最多 1,048,576 次完成的投递。</li>
+</ul>
+<p>这些限制是防御性的保险丝，不是负载规模的建议值。它们阻止过度的保留或回调链，
+并不确立可持续的事件速率或安全的进程内存预算。限制是内部的，不对外提供配置。</p>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=included-storage>计入的存储<a href=#included-storage class=hash-link aria-label=计入的存储的直接链接 title=计入的存储的直接链接 translate=no>​</a></h3>
+<p>已知存储包括：</p>
+<ul>
+<li class="">回调值、队列槽位与可见的队列容量。</li>
+<li class="">链分配与调用向量的容量。</li>
+<li class="">调用方提供的堆开销计费。</li>
+</ul>
+<p>载荷测量覆盖可访问的字符串与向量容量、递归的 JSON 内容、元数据条目、
+订单事件集合、可见的订单簿条目与期权链条目。启用 <code>defi</code> 时，还覆盖直接
+所有的区块链字符串。</p>
+<p>共享的载荷存储可能被计费多次。数据类型名、topic 与标识符暴露字符串切片，
+因此它们的计费按长度计，不含无法访问的空余容量。投递在途以及批次保留捕获
+期间，计费一直保持。</p>
+<p>:::warning 不是全进程内存上限
+这份记账不是进程总内存的界。它不包括：</p>
+<ul>
+<li class="">分配器自身的管理开销。</li>
+<li class="">容量未被这些测量暴露的集合内部结构。</li>
+<li class="">驻留池存储与已注册的 actor 分配。</li>
+<li class="">不透明的自定义数据载荷。</li>
+<li class="">Python 对象图与动态模块存储。
+:::</li>
+</ul>
+<p>调用方必须为其捕获类型提供已知的堆开销计费。泛型预留无法检查任意的所有权字段。</p>
+<h2 class="anchor anchorTargetStickyNavbar_ana5" id=backend-compatibility>后端兼容性<a href=#backend-compatibility class=hash-link aria-label=后端兼容性的直接链接 title=后端兼容性的直接链接 translate=no>​</a></h2>
+<p>私有的分配守卫拒绝重叠的受检访问。**未检查的访问与外围的引擎/缓存借用
+仍在这些守卫之外。**native、Python 与 dynamic 后端之间的一致性尚未确立。</p>
+<p>direct 与 dynamic 后端必须保持同样的回调顺序、组件独占访问与生命周期资格
+要求。门面效果保持同步。<a class="" href=/developer_guide/plugins#boundary-rules>plug-in 边界规则</a>适用于
+跨越动态库边界的所有值。回调派发不会隐式跨该边界转移分配的所有权。</p>
+<p>准入票据与清理作用域始终是框架机制。作者字段、回调签名与规范的门面 API
+都不暴露它们。</div><footer class="theme-doc-footer docusaurus-mt-lg"><div class="row margin-top--sm theme-doc-footer-edit-meta-row"><div class="col noPrint_MRkS"><a href=https://github.com/Aloento/NautilusTraderDoc/tree/main/docs/developer_guide/callback_dispatch.md target=_blank rel="noopener noreferrer" class=theme-edit-this-page><svg fill=currentColor height=20 width=20 viewBox="0 0 40 40" class=iconEdit_RPSQ aria-hidden=true><g><path d="m34.5 11.7l-3 3.1-6.3-6.3 3.1-3q0.5-0.5 1.2-0.5t1.1 0.5l3.9 3.9q0.5 0.4 0.5 1.1t-0.5 1.2z m-29.5 17.1l18.4-18.5 6.3 6.3-18.4 18.4h-6.3v-6.2z"/></g></svg>编辑此页</a></div><div class="col lastUpdated_oZSl"><span class=theme-last-updated>最后<!-- -->于 <b><time datetime=2026-10-14T22:30:30.000Z itemprop=dateModified>2026年10月14日</time></b> <!-- -->更新</span></div></div></footer></article><nav class="docusaurus-mt-lg pagination-nav" aria-label=文件选项卡><a class="pagination-nav__link pagination-nav__link--prev" href=/developer_guide/benchmarking><div class=pagination-nav__sublabel>上一页</div><div class=pagination-nav__label>基准测试</div></a><a class="pagination-nav__link pagination-nav__link--next" href=/developer_guide/coding_standards><div class=pagination-nav__sublabel>下一页</div><div class=pagination-nav__label>编码规范</div></a></nav></div></div><div class="col col--3"><div class="tableOfContents_LyLZ thin-scrollbar theme-doc-toc-desktop"><ul class="table-of-contents table-of-contents__left-border"><li><a href=#worked-callback-sequence class="table-of-contents__link toc-highlight">回调序列示例</a><li><a href=#terminology class="table-of-contents__link toc-highlight">术语</a><li><a href=#implementation-limits class="table-of-contents__link toc-highlight">实现限度</a><li><a href=#ordering-and-reentrancy class="table-of-contents__link toc-highlight">顺序与重入</a><ul><li><a href=#raw-python-subscribers class="table-of-contents__link toc-highlight">原始 Python 订阅者</a></ul><li><a href=#maintenance-and-observable-state class="table-of-contents__link toc-highlight">维护与可观察状态</a><ul><li><a href=#cache-state-and-eligibility class="table-of-contents__link toc-highlight">缓存状态与资格</a></ul><li><a href=#bounded-progress class="table-of-contents__link toc-highlight">有界进展</a><li><a href=#drain-boundary-design class="table-of-contents__link toc-highlight">排空边界设计</a><ul><li><a href=#scheduling-and-ownership-boundaries class="table-of-contents__link toc-highlight">调度与所有权边界</a><li><a href=#backtest-boundaries class="table-of-contents__link toc-highlight">回测边界</a><li><a href=#live-startup-and-standalone-lifecycle class="table-of-contents__link toc-highlight">实时启动与独立生命周期</a><li><a href=#live-stop-and-terminal-cleanup class="table-of-contents__link toc-highlight">实时停止与终态清理</a><li><a href=#required-boundary-verification class="table-of-contents__link toc-highlight">必需的边界验证</a></ul><li><a href=#runtime-integration class="table-of-contents__link toc-highlight">运行时集成</a><ul><li><a href=#backtests class="table-of-contents__link toc-highlight">回测</a><li><a href=#live-running-loops class="table-of-contents__link toc-highlight">实时运行循环</a><li><a href=#activation-requirements class="table-of-contents__link toc-highlight">启用要求</a></ul><li><a href=#private-dispatch-primitives class="table-of-contents__link toc-highlight">私有派发原语</a><ul><li><a href=#publication-and-admission class="table-of-contents__link toc-highlight">发布与准入</a><li><a href=#draining-and-progress class="table-of-contents__link toc-highlight">排空与进展</a><li><a href=#callback-roots-and-budgets class="table-of-contents__link toc-highlight">回调根与预算</a><li><a href=#retained-work-and-cleanup class="table-of-contents__link toc-highlight">保留工作与清理</a><li><a href=#failure-cleanup class="table-of-contents__link toc-highlight">失败清理</a></ul><li><a href=#reentrancy-and-dispatch-diagnostics class="table-of-contents__link toc-highlight">重入与派发诊断</a><ul><li><a href=#component-access-conflicts class="table-of-contents__link toc-highlight">组件访问冲突</a><li><a href=#callback-dispatcher-failures class="table-of-contents__link toc-highlight">回调派发器失败</a></ul><li><a href=#synchronous-commands class="table-of-contents__link toc-highlight">同步命令</a><ul><li><a href=#batch-and-child-ordering class="table-of-contents__link toc-highlight">批次与子命令顺序</a><li><a href=#panic-and-overflow class="table-of-contents__link toc-highlight">Panic 与溢出</a></ul><li><a href=#live-command-and-event-channels class="table-of-contents__link toc-highlight">实时命令与事件通道</a><ul><li><a href=#dispatch-and-buffering class="table-of-contents__link toc-highlight">派发与缓冲</a><li><a href=#sender-types-and-ingress class="table-of-contents__link toc-highlight">发送端类型与入口</a><li><a href=#system-and-time-events class="table-of-contents__link toc-highlight">系统与时间事件</a><li><a href=#standalone-senders class="table-of-contents__link toc-highlight">独立发送端</a><li><a href=#destruction-across-threads class="table-of-contents__link toc-highlight">跨线程销毁</a></ul><li><a href=#storage-limits class="table-of-contents__link toc-highlight">存储限制</a><ul><li><a href=#included-storage class="table-of-contents__link toc-highlight">计入的存储</a></ul><li><a href=#backend-compatibility class="table-of-contents__link toc-highlight">后端兼容性</a></ul></div></div></div></div></main></div></div></div><footer class="theme-layout-footer footer footer--dark"><div class="container container-fluid"><div class="row footer__links"><div class="theme-layout-footer-column col footer__col"><div class=footer__title></div><ul class="footer__items clean-list"><li class=footer__item><a href=https://github.com/nautechsystems/nautilus_trader target=_blank rel="noopener noreferrer" class=footer__link-item>Official GitHub<svg width=13.5 height=13.5 aria-label="(opens in new tab)" class=iconExternalLink_qUHo><use href=#theme-svg-external-link /></svg></a><li class=footer__item><a href=https://nautilustrader.io/docs target=_blank rel="noopener noreferrer" class=footer__link-item>Official Documentation<svg width=13.5 height=13.5 aria-label="(opens in new tab)" class=iconExternalLink_qUHo><use href=#theme-svg-external-link /></svg></a></ul></div></div><div class="footer__bottom text--center"><div class=footer__copyright>© 2026 Nautech Systems Pty Ltd. All rights reserved.</div></div></div></footer></div></body>

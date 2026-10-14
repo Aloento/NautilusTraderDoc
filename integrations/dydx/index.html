@@ -1,122 +1,1107 @@
-<!doctype html>
-<html lang="zh" dir="ltr" class="docs-wrapper plugin-docs plugin-id-default docs-version-current docs-doc-page docs-doc-id-integrations/dydx" data-has-hydrated="false">
-<head>
-<meta charset="UTF-8">
-<meta name="generator" content="Docusaurus v3.9.1">
-<title data-rh="true">dYdX | NautilusTrader 文档</title><meta data-rh="true" name="viewport" content="width=device-width,initial-scale=1"><meta data-rh="true" name="twitter:card" content="summary_large_image"><meta data-rh="true" property="og:url" content="https://nautilus.aloen.to/integrations/dydx"><meta data-rh="true" property="og:locale" content="zh"><meta data-rh="true" name="docusaurus_locale" content="zh"><meta data-rh="true" name="docsearch:language" content="zh"><meta data-rh="true" name="docusaurus_version" content="current"><meta data-rh="true" name="docusaurus_tag" content="docs-default-current"><meta data-rh="true" name="docsearch:version" content="current"><meta data-rh="true" name="docsearch:docusaurus_tag" content="docs-default-current"><meta data-rh="true" property="og:title" content="dYdX | NautilusTrader 文档"><meta data-rh="true" name="description" content="dYdX 是在加密衍生品交易量方面规模较大的去中心化交易所（DEX）之一。dYdX 运行在以太坊链上的智能合约上，允许用户在无需中介的情况下进行交易。本集成支持 dYdX v4 的实时行情数据接入（market data ingestion）和订单执行；dYdX v4 是该协议首个实现完全去中心化、无中心化组件的版本。"><meta data-rh="true" property="og:description" content="dYdX 是在加密衍生品交易量方面规模较大的去中心化交易所（DEX）之一。dYdX 运行在以太坊链上的智能合约上，允许用户在无需中介的情况下进行交易。本集成支持 dYdX v4 的实时行情数据接入（market data ingestion）和订单执行；dYdX v4 是该协议首个实现完全去中心化、无中心化组件的版本。"><link data-rh="true" rel="icon" href="/logo.png"><link data-rh="true" rel="canonical" href="https://nautilus.aloen.to/integrations/dydx"><link data-rh="true" rel="alternate" href="https://nautilus.aloen.to/integrations/dydx" hreflang="zh"><link data-rh="true" rel="alternate" href="https://nautilus.aloen.to/integrations/dydx" hreflang="x-default"><script data-rh="true" type="application/ld+json">{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"集成","item":"https://nautilus.aloen.to/integrations/"},{"@type":"ListItem","position":2,"name":"dYdX","item":"https://nautilus.aloen.to/integrations/dydx"}]}</script><link rel="stylesheet" href="/assets/css/styles.33db920f.css">
-<script src="/assets/js/runtime~main.7f15ce23.js" defer="defer"></script>
-<script src="/assets/js/main.7a54437b.js" defer="defer"></script>
-</head>
-<body class="navigation-with-keyboard">
-<svg style="display: none;"><defs>
-<symbol id="theme-svg-external-link" viewBox="0 0 24 24"><path fill="currentColor" d="M21 13v10h-21v-19h12v2h-10v15h17v-8h2zm3-12h-10.988l4.035 4-6.977 7.07 2.828 2.828 6.977-7.07 4.125 4.172v-11z"/></symbol>
+<!doctype html><html lang=zh dir=ltr class="docs-wrapper plugin-docs plugin-id-default docs-version-current docs-doc-page docs-doc-id-integrations/dydx" data-has-hydrated=false><head><meta charset=UTF-8><meta name=generator content="Docusaurus v3.10.2"><title data-rh=true>dYdX | NautilusTrader 文档</title><meta data-rh=true name=viewport content="width=device-width, initial-scale=1.0"/><meta data-rh=true name=twitter:card content=summary_large_image /><meta data-rh=true property=og:url content=https://nautilus.aloen.to/integrations/dydx /><meta data-rh=true property=og:locale content=zh /><meta data-rh=true name=docusaurus_locale content=zh /><meta data-rh=true name=docsearch:language content=zh /><meta data-rh=true name=docusaurus_version content=current /><meta data-rh=true name=docusaurus_tag content=docs-default-current /><meta data-rh=true name=docsearch:version content=current /><meta data-rh=true name=docsearch:docusaurus_tag content=docs-default-current /><meta data-rh=true property=og:title content="dYdX | NautilusTrader 文档"/><meta data-rh=true name=description content="dYdX 是最大的去中心化加密货币交易所之一，主打加密货币衍生品。本集成支持基于 dYdX v4 的实时行情接入与订单执行。dYdX v4 运行在自己的 Cosmos SDK 应用链（dYdX Chain）上，采用 CometBFT 共识。订单簿与撮合引擎作为验证者进程的一部分运行在链上。订单通过 gRPC 以 Cosmos 交易提交，每个区块结算一次。Indexer 服务为行情数据和账户状态提供 REST 与 WebSocket API。"/><meta data-rh=true property=og:description content="dYdX 是最大的去中心化加密货币交易所之一，主打加密货币衍生品。本集成支持基于 dYdX v4 的实时行情接入与订单执行。dYdX v4 运行在自己的 Cosmos SDK 应用链（dYdX Chain）上，采用 CometBFT 共识。订单簿与撮合引擎作为验证者进程的一部分运行在链上。订单通过 gRPC 以 Cosmos 交易提交，每个区块结算一次。Indexer 服务为行情数据和账户状态提供 REST 与 WebSocket API。"/><link data-rh=true rel=icon href=/logo.png /><link data-rh=true rel=canonical href=https://nautilus.aloen.to/integrations/dydx /><link data-rh=true rel=alternate href=https://nautilus.aloen.to/integrations/dydx hreflang=zh /><link data-rh=true rel=alternate href=https://nautilus.aloen.to/integrations/dydx hreflang=x-default /><script data-rh=true type=application/ld+json>{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","item":"https://nautilus.aloen.to/integrations/","name":"交易所与集成","position":1},{"@type":"ListItem","item":"https://nautilus.aloen.to/integrations/dydx","name":"dYdX","position":2}]}</script><link rel=stylesheet href=/assets/css/styles.adb7ea18.css /><script src=/assets/js/runtime~main.71ac0794.js defer></script><script src=/assets/js/main.d978d0f2.js defer></script></head><body><svg style="display: none;"><defs>
+<symbol id=theme-svg-external-link viewBox="0 0 24 24"><path fill=currentColor d="M21 13v10h-21v-19h12v2h-10v15h17v-8h2zm3-12h-10.988l4.035 4-6.977 7.07 2.828 2.828 6.977-7.07 4.125 4.172v-11z"/></symbol>
 </defs></svg>
-<script>!function(){var t=function(){try{return new URLSearchParams(window.location.search).get("docusaurus-theme")}catch(t){}}()||function(){try{return window.localStorage.getItem("theme")}catch(t){}}();document.documentElement.setAttribute("data-theme",t||(window.matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light")),document.documentElement.setAttribute("data-theme-choice",t||"system")}(),function(){try{const c=new URLSearchParams(window.location.search).entries();for(var[t,e]of c)if(t.startsWith("docusaurus-data-")){var a=t.replace("docusaurus-data-","data-");document.documentElement.setAttribute(a,e)}}catch(t){}}()</script><div id="__docusaurus"><link rel="preload" as="image" href="/logo.png"><div role="region" aria-label="跳到主要内容"><a class="skipToContent__uWo" href="#__docusaurus_skipToContent_fallback">跳到主要内容</a></div><nav aria-label="主导航" class="theme-layout-navbar navbar navbar--fixed-top"><div class="navbar__inner"><div class="theme-layout-navbar-left navbar__items"><button aria-label="切换导航栏" aria-expanded="false" class="navbar__toggle clean-btn" type="button"><svg width="30" height="30" viewBox="0 0 30 30" aria-hidden="true"><path stroke="currentColor" stroke-linecap="round" stroke-miterlimit="10" stroke-width="2" d="M4 7h22M4 15h22M4 23h22"></path></svg></button><a class="navbar__brand" href="/"><div class="navbar__logo"><img src="/logo.png" alt="NautilusTrader Logo" class="themedComponent_WkLn themedComponent--light_cjoX"><img src="/logo.png" alt="NautilusTrader Logo" class="themedComponent_WkLn themedComponent--dark_jZId"></div><b class="navbar__title text--truncate">NautilusTrader</b></a><a aria-current="page" class="navbar__item navbar__link navbar__link--active" href="/api_reference/">文档</a></div><div class="theme-layout-navbar-right navbar__items navbar__items--right"><a href="https://github.com/Aloento/NautilusTraderDoc" target="_blank" rel="noopener noreferrer" class="navbar__item navbar__link">GitHub<svg width="13.5" height="13.5" aria-label="(opens in new tab)" class="iconExternalLink_KfBJ"><use href="#theme-svg-external-link"></use></svg></a><div class="toggle_RWFU colorModeToggle_sA1q"><button class="clean-btn toggleButton_qjfc toggleButtonDisabled_cpNp" type="button" disabled="" title="system mode" aria-label="切换浅色/暗黑模式（当前为system mode）"><svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true" class="toggleIcon_CetX lightToggleIcon_UYsV"><path fill="currentColor" d="M12,9c1.65,0,3,1.35,3,3s-1.35,3-3,3s-3-1.35-3-3S10.35,9,12,9 M12,7c-2.76,0-5,2.24-5,5s2.24,5,5,5s5-2.24,5-5 S14.76,7,12,7L12,7z M2,13l2,0c0.55,0,1-0.45,1-1s-0.45-1-1-1l-2,0c-0.55,0-1,0.45-1,1S1.45,13,2,13z M20,13l2,0c0.55,0,1-0.45,1-1 s-0.45-1-1-1l-2,0c-0.55,0-1,0.45-1,1S19.45,13,20,13z M11,2v2c0,0.55,0.45,1,1,1s1-0.45,1-1V2c0-0.55-0.45-1-1-1S11,1.45,11,2z M11,20v2c0,0.55,0.45,1,1,1s1-0.45,1-1v-2c0-0.55-0.45-1-1-1C11.45,19,11,19.45,11,20z M5.99,4.58c-0.39-0.39-1.03-0.39-1.41,0 c-0.39,0.39-0.39,1.03,0,1.41l1.06,1.06c0.39,0.39,1.03,0.39,1.41,0s0.39-1.03,0-1.41L5.99,4.58z M18.36,16.95 c-0.39-0.39-1.03-0.39-1.41,0c-0.39,0.39-0.39,1.03,0,1.41l1.06,1.06c0.39,0.39,1.03,0.39,1.41,0c0.39-0.39,0.39-1.03,0-1.41 L18.36,16.95z M19.42,5.99c0.39-0.39,0.39-1.03,0-1.41c-0.39-0.39-1.03-0.39-1.41,0l-1.06,1.06c-0.39,0.39-0.39,1.03,0,1.41 s1.03,0.39,1.41,0L19.42,5.99z M7.05,18.36c0.39-0.39,0.39-1.03,0-1.41c-0.39-0.39-1.03-0.39-1.41,0l-1.06,1.06 c-0.39,0.39-0.39,1.03,0,1.41s1.03,0.39,1.41,0L7.05,18.36z"></path></svg><svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true" class="toggleIcon_CetX darkToggleIcon_i1s2"><path fill="currentColor" d="M9.37,5.51C9.19,6.15,9.1,6.82,9.1,7.5c0,4.08,3.32,7.4,7.4,7.4c0.68,0,1.35-0.09,1.99-0.27C17.45,17.19,14.93,19,12,19 c-3.86,0-7-3.14-7-7C5,9.07,6.81,6.55,9.37,5.51z M12,3c-4.97,0-9,4.03-9,9s4.03,9,9,9s9-4.03,9-9c0-0.46-0.04-0.92-0.1-1.36 c-0.98,1.37-2.58,2.26-4.4,2.26c-2.98,0-5.4-2.42-5.4-5.4c0-1.81,0.89-3.42,2.26-4.4C12.92,3.04,12.46,3,12,3L12,3z"></path></svg><svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true" class="toggleIcon_CetX systemToggleIcon_yIQx"><path fill="currentColor" d="m12 21c4.971 0 9-4.029 9-9s-4.029-9-9-9-9 4.029-9 9 4.029 9 9 9zm4.95-13.95c1.313 1.313 2.05 3.093 2.05 4.95s-0.738 3.637-2.05 4.95c-1.313 1.313-3.093 2.05-4.95 2.05v-14c1.857 0 3.637 0.737 4.95 2.05z"></path></svg></button></div><div class="navbarSearchContainer_PsjF"></div></div></div><div role="presentation" class="navbar-sidebar__backdrop"></div></nav><div id="__docusaurus_skipToContent_fallback" class="theme-layout-main main-wrapper mainWrapper_jk42"><div class="docsWrapper_KWBO"><button aria-label="回到顶部" class="clean-btn theme-back-to-top-button backToTopButton_XpKL" type="button"></button><div class="docRoot_joIP"><aside class="theme-doc-sidebar-container docSidebarContainer_DOen"><div class="sidebarViewport_j7YP"><div class="sidebar_nPgc"><nav aria-label="文档侧边栏" class="menu thin-scrollbar menu_MTDt"><ul class="theme-doc-sidebar-menu menu__list"><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-1 menu__list-item menu__list-item--collapsed"><div class="menu__list-item-collapsible"><a class="categoryLink_GgI9 menu__link menu__link--sublist" href="/api_reference/"><span title="Python API" class="categoryLinkLabel_XKxb">Python API</span></a><button aria-label="展开侧边栏分类 &#x27;Python API&#x27;" aria-expanded="false" type="button" class="clean-btn menu__caret"></button></div></li><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-1 menu__list-item menu__list-item--collapsed"><div class="menu__list-item-collapsible"><a class="categoryLink_GgI9 menu__link menu__link--sublist" href="/concepts/"><span title="概念" class="categoryLinkLabel_XKxb">概念</span></a><button aria-label="展开侧边栏分类 &#x27;概念&#x27;" aria-expanded="false" type="button" class="clean-btn menu__caret"></button></div></li><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-1 menu__list-item menu__list-item--collapsed"><div class="menu__list-item-collapsible"><a class="categoryLink_GgI9 menu__link menu__link--sublist" href="/developer_guide/"><span title="开发者指南" class="categoryLinkLabel_XKxb">开发者指南</span></a><button aria-label="展开侧边栏分类 &#x27;开发者指南&#x27;" aria-expanded="false" type="button" class="clean-btn menu__caret"></button></div></li><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-1 menu__list-item menu__list-item--collapsed"><div class="menu__list-item-collapsible"><a class="categoryLink_GgI9 menu__link menu__link--sublist" href="/getting_started/"><span title="入门" class="categoryLinkLabel_XKxb">入门</span></a><button aria-label="展开侧边栏分类 &#x27;入门&#x27;" aria-expanded="false" type="button" class="clean-btn menu__caret"></button></div></li><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-1 menu__list-item"><div class="menu__list-item-collapsible"><a class="categoryLink_GgI9 menu__link menu__link--sublist menu__link--active" href="/integrations/"><span title="集成" class="categoryLinkLabel_XKxb">集成</span></a><button aria-label="折叠侧边栏分类 &#x27;集成&#x27;" aria-expanded="true" type="button" class="clean-btn menu__caret"></button></div><ul class="menu__list"><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class="menu__link" tabindex="0" href="/integrations/betfair"><span title="Betfair" class="linkLabel_CNtA">Betfair</span></a></li><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class="menu__link" tabindex="0" href="/integrations/binance"><span title="Binance" class="linkLabel_CNtA">Binance</span></a></li><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class="menu__link" tabindex="0" href="/integrations/bitmex"><span title="BitMEX" class="linkLabel_CNtA">BitMEX</span></a></li><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class="menu__link" tabindex="0" href="/integrations/blockchain"><span title="Blockchain" class="linkLabel_CNtA">Blockchain</span></a></li><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class="menu__link" tabindex="0" href="/integrations/bybit"><span title="Bybit" class="linkLabel_CNtA">Bybit</span></a></li><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class="menu__link" tabindex="0" href="/integrations/coinbase_intx"><span title="Coinbase International" class="linkLabel_CNtA">Coinbase International</span></a></li><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class="menu__link" tabindex="0" href="/integrations/databento"><span title="Databento" class="linkLabel_CNtA">Databento</span></a></li><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class="menu__link menu__link--active" aria-current="page" tabindex="0" href="/integrations/dydx"><span title="dYdX" class="linkLabel_CNtA">dYdX</span></a></li><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class="menu__link" tabindex="0" href="/integrations/hyperliquid"><span title="Hyperliquid" class="linkLabel_CNtA">Hyperliquid</span></a></li><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class="menu__link" tabindex="0" href="/integrations/ib"><span title="Interactive Brokers" class="linkLabel_CNtA">Interactive Brokers</span></a></li><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class="menu__link" tabindex="0" href="/integrations/okx"><span title="OKX" class="linkLabel_CNtA">OKX</span></a></li><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class="menu__link" tabindex="0" href="/integrations/polymarket"><span title="Polymarket" class="linkLabel_CNtA">Polymarket</span></a></li><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class="menu__link" tabindex="0" href="/integrations/tardis"><span title="Tardis" class="linkLabel_CNtA">Tardis</span></a></li></ul></li><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-1 menu__list-item menu__list-item--collapsed"><div class="menu__list-item-collapsible"><a class="categoryLink_GgI9 menu__link menu__link--sublist" href="/tutorials/"><span title="教程" class="categoryLinkLabel_XKxb">教程</span></a><button aria-label="展开侧边栏分类 &#x27;教程&#x27;" aria-expanded="false" type="button" class="clean-btn menu__caret"></button></div></li></ul></nav></div></div></aside><main class="docMainContainer_bw1l"><div class="container padding-top--md padding-bottom--lg"><div class="row"><div class="col docItemCol_PIhC"><div class="docItemContainer_pFw3"><article><nav class="theme-doc-breadcrumbs breadcrumbsContainer_HRKZ" aria-label="页面路径"><ul class="breadcrumbs"><li class="breadcrumbs__item"><a aria-label="主页面" class="breadcrumbs__link" href="/"><svg viewBox="0 0 24 24" class="breadcrumbHomeIcon_sX5c"><path d="M10 19v-5h4v5c0 .55.45 1 1 1h3c.55 0 1-.45 1-1v-7h1.7c.46 0 .68-.57.33-.87L12.67 3.6c-.38-.34-.96-.34-1.34 0l-8.36 7.53c-.34.3-.13.87.33.87H5v7c0 .55.45 1 1 1h3c.55 0 1-.45 1-1z" fill="currentColor"></path></svg></a></li><li class="breadcrumbs__item"><a class="breadcrumbs__link" href="/integrations/"><span>集成</span></a></li><li class="breadcrumbs__item breadcrumbs__item--active"><span class="breadcrumbs__link">dYdX</span></li></ul></nav><div class="tocCollapsible_DhUt theme-doc-toc-mobile tocMobile_Izjv"><button type="button" class="clean-btn tocCollapsibleButton_eYR5">本页总览</button></div><div class="theme-doc-markdown markdown"><header><h1>dYdX</h1></header>
-<p>dYdX 是在加密衍生品交易量方面规模较大的去中心化交易所（DEX）之一。dYdX 运行在以太坊链上的智能合约上，允许用户在无需中介的情况下进行交易。本集成支持 dYdX v4 的实时行情数据接入（market data ingestion）和订单执行；dYdX v4 是该协议首个实现完全去中心化、无中心化组件的版本。</p>
-<h2 class="anchor anchorWithStickyNavbar_RpWm" id="安装">安装<a href="#安装" class="hash-link" aria-label="安装的直接链接" title="安装的直接链接" translate="no">​</a></h2>
-<p>要安装包含 dYdX 支持的 NautilusTrader：</p>
-<div class="language-bash codeBlockContainer_euGm theme-code-block" style="--prism-color:#393A34;--prism-background-color:#f6f8fa"><div class="codeBlockContent_zF3K"><pre tabindex="0" class="prism-code language-bash codeBlock_G1mO thin-scrollbar" style="color:#393A34;background-color:#f6f8fa"><code class="codeBlockLines_QZRj"><span class="token-line" style="color:#393A34"><span class="token plain">pip install --upgrade &quot;nautilus_trader[dydx]&quot;</span><br></span></code></pre></div></div>
-<p>要从源码构建并包含所有可选项（包括 dYdX）：</p>
-<div class="language-bash codeBlockContainer_euGm theme-code-block" style="--prism-color:#393A34;--prism-background-color:#f6f8fa"><div class="codeBlockContent_zF3K"><pre tabindex="0" class="prism-code language-bash codeBlock_G1mO thin-scrollbar" style="color:#393A34;background-color:#f6f8fa"><code class="codeBlockLines_QZRj"><span class="token-line" style="color:#393A34"><span class="token plain">uv sync --all-extras</span><br></span></code></pre></div></div>
-<h2 class="anchor anchorWithStickyNavbar_RpWm" id="示例">示例<a href="#示例" class="hash-link" aria-label="示例的直接链接" title="示例的直接链接" translate="no">​</a></h2>
-<p>可在此处找到 dYdX 的实时示例脚本：<a href="https://github.com/nautechsystems/nautilus_trader/tree/develop/examples/live/dydx/" target="_blank" rel="noopener noreferrer">examples/live/dydx</a>。</p>
-<h2 class="anchor anchorWithStickyNavbar_RpWm" id="概览">概览<a href="#概览" class="hash-link" aria-label="概览的直接链接" title="概览的直接链接" translate="no">​</a></h2>
-<p>本指南假设你要同时配置实时行情数据订阅和交易执行。dYdX 适配器由多个组件组成，可根据使用场景单独使用或组合使用：</p>
+<script>!function(){var t=function(){try{return new URLSearchParams(window.location.search).get("docusaurus-theme")}catch(t){}}()||function(){try{return window.localStorage.getItem("theme-2e3")}catch(t){}}();document.documentElement.setAttribute("data-theme",t||(window.matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light")),document.documentElement.setAttribute("data-theme-choice",t||"system")}(),function(){try{for(var[t,e]of new URLSearchParams(window.location.search).entries())if(t.startsWith("docusaurus-data-")){var a=t.replace("docusaurus-data-","data-");document.documentElement.setAttribute(a,e)}}catch(t){}}()</script><div id=__docusaurus><link rel=preload as=image href=/logo.png /><div role=region aria-label=跳到主要内容><a class=skipToContent_zuOI href=#__docusaurus_skipToContent_fallback>跳到主要内容</a></div><nav aria-label=主导航 class="theme-layout-navbar navbar navbar--fixed-top"><div class=navbar__inner><div class="theme-layout-navbar-left navbar__items"><button aria-label=切换导航栏 aria-expanded=false class="navbar__toggle clean-btn" type=button><svg width=30 height=30 viewBox="0 0 30 30" aria-hidden=true><path stroke=currentColor stroke-linecap=round stroke-miterlimit=10 stroke-width=2 d="M4 7h22M4 15h22M4 23h22"/></svg></button><a class=navbar__brand href=/><div class=navbar__logo><img src=/logo.png alt="NautilusTrader Logo" class="themedComponent_q2_Y themedComponent--light_Nejn"/><img src=/logo.png alt="NautilusTrader Logo" class="themedComponent_q2_Y themedComponent--dark_JjIb"/></div><b class="navbar__title text--truncate">NautilusTrader</b></a><a aria-current=page class="navbar__item navbar__link navbar__link--active" href=/getting_started/>文档</a></div><div class="theme-layout-navbar-right navbar__items navbar__items--right"><a href=https://github.com/Aloento/NautilusTraderDoc target=_blank rel="noopener noreferrer" class="navbar__item navbar__link">GitHub<svg width=13.5 height=13.5 aria-label="(opens in new tab)" class=iconExternalLink_qUHo><use href=#theme-svg-external-link /></svg></a><div class="toggle_hHmI colorModeToggle_rOOn"><button class="clean-btn toggleButton_wEhT toggleButtonDisabled_yOOP" type=button disabled title="system mode" aria-label="切换浅色/暗黑模式（当前为system mode）"><svg viewBox="0 0 24 24" width=24 height=24 aria-hidden=true class="toggleIcon_Kt6U lightToggleIcon_Zfeh"><path fill=currentColor d="M12,9c1.65,0,3,1.35,3,3s-1.35,3-3,3s-3-1.35-3-3S10.35,9,12,9 M12,7c-2.76,0-5,2.24-5,5s2.24,5,5,5s5-2.24,5-5 S14.76,7,12,7L12,7z M2,13l2,0c0.55,0,1-0.45,1-1s-0.45-1-1-1l-2,0c-0.55,0-1,0.45-1,1S1.45,13,2,13z M20,13l2,0c0.55,0,1-0.45,1-1 s-0.45-1-1-1l-2,0c-0.55,0-1,0.45-1,1S19.45,13,20,13z M11,2v2c0,0.55,0.45,1,1,1s1-0.45,1-1V2c0-0.55-0.45-1-1-1S11,1.45,11,2z M11,20v2c0,0.55,0.45,1,1,1s1-0.45,1-1v-2c0-0.55-0.45-1-1-1C11.45,19,11,19.45,11,20z M5.99,4.58c-0.39-0.39-1.03-0.39-1.41,0 c-0.39,0.39-0.39,1.03,0,1.41l1.06,1.06c0.39,0.39,1.03,0.39,1.41,0s0.39-1.03,0-1.41L5.99,4.58z M18.36,16.95 c-0.39-0.39-1.03-0.39-1.41,0c-0.39,0.39-0.39,1.03,0,1.41l1.06,1.06c0.39,0.39,1.03,0.39,1.41,0c0.39-0.39,0.39-1.03,0-1.41 L18.36,16.95z M19.42,5.99c0.39-0.39,0.39-1.03,0-1.41c-0.39-0.39-1.03-0.39-1.41,0l-1.06,1.06c-0.39,0.39-0.39,1.03,0,1.41 s1.03,0.39,1.41,0L19.42,5.99z M7.05,18.36c0.39-0.39,0.39-1.03,0-1.41c-0.39-0.39-1.03-0.39-1.41,0l-1.06,1.06 c-0.39,0.39-0.39,1.03,0,1.41s1.03,0.39,1.41,0L7.05,18.36z"/></svg><svg viewBox="0 0 24 24" width=24 height=24 aria-hidden=true class="toggleIcon_Kt6U darkToggleIcon_XgQr"><path fill=currentColor d="M9.37,5.51C9.19,6.15,9.1,6.82,9.1,7.5c0,4.08,3.32,7.4,7.4,7.4c0.68,0,1.35-0.09,1.99-0.27C17.45,17.19,14.93,19,12,19 c-3.86,0-7-3.14-7-7C5,9.07,6.81,6.55,9.37,5.51z M12,3c-4.97,0-9,4.03-9,9s4.03,9,9,9s9-4.03,9-9c0-0.46-0.04-0.92-0.1-1.36 c-0.98,1.37-2.58,2.26-4.4,2.26c-2.98,0-5.4-2.42-5.4-5.4c0-1.81,0.89-3.42,2.26-4.4C12.92,3.04,12.46,3,12,3L12,3z"/></svg><svg viewBox="0 0 24 24" width=24 height=24 aria-hidden=true class="toggleIcon_Kt6U systemToggleIcon_BvUi"><path fill=currentColor d="m12 21c4.971 0 9-4.029 9-9s-4.029-9-9-9-9 4.029-9 9 4.029 9 9 9zm4.95-13.95c1.313 1.313 2.05 3.093 2.05 4.95s-0.738 3.637-2.05 4.95c-1.313 1.313-3.093 2.05-4.95 2.05v-14c1.857 0 3.637 0.737 4.95 2.05z"/></svg></button></div><div class=navbarSearchContainer_watl></div></div></div><div role=presentation class=navbar-sidebar__backdrop></div></nav><div id=__docusaurus_skipToContent_fallback class="theme-layout-main main-wrapper mainWrapper_R72Q"><div class=docsWrapper_XQ9b><button aria-label=回到顶部 class="clean-btn theme-back-to-top-button backToTopButton_MbnX" type=button></button><div class=docRoot_aqOB><aside class="theme-doc-sidebar-container docSidebarContainer_sI2e"><div class=sidebarViewport_TzTy><div class=sidebar_CbEe><nav aria-label=文档侧边栏 class="menu thin-scrollbar menu_ChRF"><ul class="theme-doc-sidebar-menu menu__list"><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-1 menu__list-item menu__list-item--collapsed"><div class=menu__list-item-collapsible><a class="categoryLink_Muyc menu__link menu__link--sublist" href=/getting_started/><span class=categoryLinkLabel_mAcL>快速开始</span></a><button aria-label="展开侧边栏分类 '快速开始'" aria-expanded=false type=button class="clean-btn menu__caret"></button></div><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-1 menu__list-item menu__list-item--collapsed"><div class=menu__list-item-collapsible><a class="categoryLink_Muyc menu__link menu__link--sublist" href=/concepts/><span class=categoryLinkLabel_mAcL>核心概念</span></a><button aria-label="展开侧边栏分类 '核心概念'" aria-expanded=false type=button class="clean-btn menu__caret"></button></div><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-1 menu__list-item"><div class=menu__list-item-collapsible><a class="categoryLink_Muyc menu__link menu__link--sublist menu__link--active" href=/integrations/><span class=categoryLinkLabel_mAcL>交易所与集成</span></a><button aria-label="折叠侧边栏分类 '交易所与集成'" aria-expanded=true type=button class="clean-btn menu__caret"></button></div><ul class=menu__list><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/integrations/architect_ax><span class=linkLabel_lYjD>AX Exchange</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/integrations/betfair><span class=linkLabel_lYjD>Betfair</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/integrations/binance><span class=linkLabel_lYjD>Binance</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/integrations/blockchain><span class=linkLabel_lYjD>区块链</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/integrations/bybit><span class=linkLabel_lYjD>Bybit</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/integrations/coinapi><span class=linkLabel_lYjD>CoinAPI</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/integrations/coinbase><span class=linkLabel_lYjD>Coinbase</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/integrations/databento><span class=linkLabel_lYjD>Databento</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/integrations/deribit><span class=linkLabel_lYjD>Deribit</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/integrations/derive><span class=linkLabel_lYjD>Derive</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class="menu__link menu__link--active" aria-current=page tabindex=0 href=/integrations/dydx><span class=linkLabel_lYjD>dYdX</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/integrations/hyperliquid><span class=linkLabel_lYjD>Hyperliquid</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/integrations/interactive_brokers><span class=linkLabel_lYjD>Interactive Brokers</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/integrations/kraken><span class=linkLabel_lYjD>Kraken</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/integrations/lighter><span class=linkLabel_lYjD>Lighter</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/integrations/okx><span class=linkLabel_lYjD>OKX</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/integrations/polymarket><span class=linkLabel_lYjD>Polymarket</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/integrations/tardis><span class=linkLabel_lYjD>Tardis</span></a></ul><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-1 menu__list-item menu__list-item--collapsed"><div class=menu__list-item-collapsible><a class="categoryLink_Muyc menu__link menu__link--sublist" href=/how_to/><span class=categoryLinkLabel_mAcL>操作指南</span></a><button aria-label="展开侧边栏分类 '操作指南'" aria-expanded=false type=button class="clean-btn menu__caret"></button></div><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-1 menu__list-item menu__list-item--collapsed"><div class=menu__list-item-collapsible><a class="categoryLink_Muyc menu__link menu__link--sublist" href=/tutorials/><span class=categoryLinkLabel_mAcL>教程</span></a><button aria-label="展开侧边栏分类 '教程'" aria-expanded=false type=button class="clean-btn menu__caret"></button></div><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-1 menu__list-item menu__list-item--collapsed"><div class=menu__list-item-collapsible><a class="categoryLink_Muyc menu__link menu__link--sublist" href=/developer_guide/><span class=categoryLinkLabel_mAcL>开发者指南</span></a><button aria-label="展开侧边栏分类 '开发者指南'" aria-expanded=false type=button class="clean-btn menu__caret"></button></div><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-1 menu__list-item menu__list-item--collapsed"><div class=menu__list-item-collapsible><a class="categoryLink_Muyc menu__link menu__link--sublist" href=/api_reference/><span class=categoryLinkLabel_mAcL>API 参考</span></a><button aria-label="展开侧边栏分类 'API 参考'" aria-expanded=false type=button class="clean-btn menu__caret"></button></div></ul></nav></div></div></aside><main class=docMainContainer_sLF8><div class="container padding-top--md padding-bottom--lg"><div class=row><div class="col docItemCol_ZRft"><div class=docItemContainer_KOP5><article><nav class="theme-doc-breadcrumbs breadcrumbsContainer_d5rS" aria-label=页面路径><ul class=breadcrumbs><li class=breadcrumbs__item><a aria-label=主页面 class=breadcrumbs__link href=/><svg viewBox="0 0 24 24" class=breadcrumbHomeIcon_XgF2><path d="M10 19v-5h4v5c0 .55.45 1 1 1h3c.55 0 1-.45 1-1v-7h1.7c.46 0 .68-.57.33-.87L12.67 3.6c-.38-.34-.96-.34-1.34 0l-8.36 7.53c-.34.3-.13.87.33.87H5v7c0 .55.45 1 1 1h3c.55 0 1-.45 1-1z" fill=currentColor /></svg></a><li class=breadcrumbs__item><a class=breadcrumbs__link href=/integrations/><span>交易所与集成</span></a><li class="breadcrumbs__item breadcrumbs__item--active"><span class=breadcrumbs__link>dYdX</span></ul></nav><div class="tocCollapsible_bgaJ theme-doc-toc-mobile tocMobile_FhT_"><button type=button class="clean-btn tocCollapsibleButton_F8AY">本页总览</button></div><div class="theme-doc-markdown markdown"><header><h1>dYdX</h1></header>
+<p>dYdX 是最大的去中心化加密货币交易所之一，主打加密货币衍生品。本集成支持基于 dYdX v4 的实时行情接入与订单执行。dYdX v4 运行在自己的 Cosmos SDK 应用链（dYdX Chain）上，采用 CometBFT 共识。订单簿与撮合引擎作为验证者进程的一部分运行在链上。订单通过 gRPC 以 Cosmos 交易提交，每个区块结算一次。Indexer 服务为行情数据和账户状态提供 REST 与 WebSocket API。</p>
+<h2 class="anchor anchorTargetStickyNavbar_ana5" id=installation>安装<a href=#installation class=hash-link aria-label=安装的直接链接 title=安装的直接链接 translate=no>​</a></h2>
+<div class="theme-admonition theme-admonition-note admonition_LYZY alert alert--secondary"><div class=admonitionHeading_pnFY><span class=admonitionIcon_tEzm><svg viewBox="0 0 14 16"><path fill-rule=evenodd d="M6.3 5.69a.942.942 0 0 1-.28-.7c0-.28.09-.52.28-.7.19-.18.42-.28.7-.28.28 0 .52.09.7.28.18.19.28.42.28.7 0 .28-.09.52-.28.7a1 1 0 0 1-.7.3c-.28 0-.52-.11-.7-.3zM8 7.99c-.02-.25-.11-.48-.31-.69-.2-.19-.42-.3-.69-.31H6c-.27.02-.48.13-.69.31-.2.2-.3.44-.31.69h1v3c.02.27.11.5.31.69.2.2.42.31.69.31h1c.27 0 .48-.11.69-.31.2-.19.3-.42.31-.69H8V7.98v.01zM7 2.3c-3.14 0-5.7 2.54-5.7 5.68 0 3.14 2.56 5.7 5.7 5.7s5.7-2.55 5.7-5.7c0-3.15-2.56-5.69-5.7-5.69v.01zM7 .98c3.86 0 7 3.14 7 7s-3.14 7-7 7-7-3.12-7-7 3.14-7 7-7z"/></svg></span>备注</div><div class=admonitionContent_ZwmI><p>无需额外的安装选项。适配器以 Rust 实现，构建时自动编译进核心 <code>nautilus_trader</code> 包。</div></div>
+<h2 class="anchor anchorTargetStickyNavbar_ana5" id=examples>示例<a href=#examples class=hash-link aria-label=示例的直接链接 title=示例的直接链接 translate=no>​</a></h2>
 <ul>
-<li><code>DYDXHttpClient</code>：低级别 HTTP API 连接。</li>
-<li><code>DYDXWebSocketClient</code>：低级别 WebSocket API 连接。</li>
-<li><code>DYDXAccountGRPCAPI</code>：低级别 gRPC API，用于账户更新。</li>
-<li><code>DYDXInstrumentProvider</code>：合约/品种解析与加载功能。</li>
-<li><code>DYDXDataClient</code>：行情数据订阅管理器（market data feed manager）。</li>
-<li><code>DYDXExecutionClient</code>：账户管理与订单执行网关（execution gateway）。</li>
-<li><code>DYDXLiveDataClientFactory</code>：dYdX 数据客户端的工厂（用于 trading node builder）。</li>
-<li><code>DYDXLiveExecClientFactory</code>：dYdX 执行客户端的工厂（用于 trading node builder）。</li>
+<li class=""><a href=https://github.com/nautechsystems/nautilus_trader/tree/develop/examples/live/dydx/ target=_blank rel="noopener noreferrer" class="">Python 示例</a></li>
+<li class=""><a href=https://github.com/nautechsystems/nautilus_trader/tree/develop/crates/adapters/dydx/examples/ target=_blank rel="noopener noreferrer" class="">Rust 示例</a></li>
 </ul>
-<div class="theme-admonition theme-admonition-note admonition_lEzE alert alert--secondary"><div class="admonitionHeading_aAf0"><span class="admonitionIcon_xtBN"><svg viewBox="0 0 14 16"><path fill-rule="evenodd" d="M6.3 5.69a.942.942 0 0 1-.28-.7c0-.28.09-.52.28-.7.19-.18.42-.28.7-.28.28 0 .52.09.7.28.18.19.28.42.28.7 0 .28-.09.52-.28.7a1 1 0 0 1-.7.3c-.28 0-.52-.11-.7-.3zM8 7.99c-.02-.25-.11-.48-.31-.69-.2-.19-.42-.3-.69-.31H6c-.27.02-.48.13-.69.31-.2.2-.3.44-.31.69h1v3c.02.27.11.5.31.69.2.2.42.31.69.31h1c.27 0 .48-.11.69-.31.2-.19.3-.42.31-.69H8V7.98v.01zM7 2.3c-3.14 0-5.7 2.54-5.7 5.68 0 3.14 2.56 5.7 5.7 5.7s5.7-2.55 5.7-5.7c0-3.15-2.56-5.69-5.7-5.69v.01zM7 .98c3.86 0 7 3.14 7 7s-3.14 7-7 7-7-3.12-7-7 3.14-7 7-7z"></path></svg></span>备注</div><div class="admonitionContent_Vfkp"><p>大多数用户只需要为实时交易节点（live trading node）定义配置（如下示例），不必直接使用这些低级组件。</p></div></div>
-<div class="theme-admonition theme-admonition-warning admonition_lEzE alert alert--warning"><div class="admonitionHeading_aAf0"><span class="admonitionIcon_xtBN"><svg viewBox="0 0 16 16"><path fill-rule="evenodd" d="M8.893 1.5c-.183-.31-.52-.5-.887-.5s-.703.19-.886.5L.138 13.499a.98.98 0 0 0 0 1.001c.193.31.53.501.886.501h13.964c.367 0 .704-.19.877-.5a1.03 1.03 0 0 0 .01-1.002L8.893 1.5zm.133 11.497H6.987v-2.003h2.039v2.003zm0-3.004H6.987V5.987h2.039v4.006z"></path></svg></span>首次激活账户</div><div class="admonitionContent_Vfkp"><p>dYdX v4 的交易账户（子账户 sub-account 0）只有在钱包首次入金或发生交易之后才会被链上创建。在此之前，任何 gRPC/Indexer 查询都会返回 <code>NOT_FOUND</code>，导致 <code>DYDXExecutionClient.connect()</code> 连接失败。</p><p><strong>操作建议 →</strong> 在启动实时 <code>TradingNode</code> 之前，请从相同钱包在相同网络（主网或测试网）中存入任意正额 USDC（≥ 1 wei）或其他支持的抵押品。交易在被区块确认后（几块区块后）重启节点，客户端即可正常连接。</p></div></div>
-<h2 class="anchor anchorWithStickyNavbar_RpWm" id="故障排查troubleshooting">故障排查（Troubleshooting）<a href="#故障排查troubleshooting" class="hash-link" aria-label="故障排查（Troubleshooting）的直接链接" title="故障排查（Troubleshooting）的直接链接" translate="no">​</a></h2>
-<h3 class="anchor anchorWithStickyNavbar_RpWm" id="statuscodenot_found--account--0-not-found"><code>StatusCode.NOT_FOUND</code> — account … /0 not found<a href="#statuscodenot_found--account--0-not-found" class="hash-link" aria-label="statuscodenot_found--account--0-not-found的直接链接" title="statuscodenot_found--account--0-not-found的直接链接" translate="no">​</a></h3>
-<p>原因：该钱包/子账户从未被注资，因此尚未在链上创建。</p>
-<p>解决方法：</p>
+<h2 class="anchor anchorTargetStickyNavbar_ana5" id=overview>概览<a href=#overview class=hash-link aria-label=概览的直接链接 title=概览的直接链接 translate=no>​</a></h2>
+<p>适配器以 Rust 实现，通过 PyO3 提供 Python 绑定。它直接对接 dYdX 的 Indexer API（REST/WebSocket）获取行情，通过 gRPC 提交 Cosmos SDK 交易，不依赖外部客户端库。</p>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=product-support>产品支持<a href=#product-support class=hash-link aria-label=产品支持的直接链接 title=产品支持的直接链接 translate=no>​</a></h3>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>产品类型<th>数据源<th>交易<th>说明<tbody><tr><td>永续期货<td>✓<td>✓<td>所有永续合约均以 USDC 结算。<tr><td>现货<td>-<td>-<td>dYdX 的现货在 Solana 上；本适配器不支持。<tr><td>期权<td>-<td>-<td><em>dYdX 不提供</em>。</table>
+<div class="theme-admonition theme-admonition-note admonition_LYZY alert alert--secondary"><div class=admonitionHeading_pnFY><span class=admonitionIcon_tEzm><svg viewBox="0 0 14 16"><path fill-rule=evenodd d="M6.3 5.69a.942.942 0 0 1-.28-.7c0-.28.09-.52.28-.7.19-.18.42-.28.7-.28.28 0 .52.09.7.28.18.19.28.42.28.7 0 .28-.09.52-.28.7a1 1 0 0 1-.7.3c-.28 0-.52-.11-.7-.3zM8 7.99c-.02-.25-.11-.48-.31-.69-.2-.19-.42-.3-.69-.31H6c-.27.02-.48.13-.69.31-.2.2-.3.44-.31.69h1v3c.02.27.11.5.31.69.2.2.42.31.69.31h1c.27 0 .48-.11.69-.31.2-.19.3-.42.31-.69H8V7.98v.01zM7 2.3c-3.14 0-5.7 2.54-5.7 5.68 0 3.14 2.56 5.7 5.7 5.7s5.7-2.55 5.7-5.7c0-3.15-2.56-5.69-5.7-5.69v.01zM7 .98c3.86 0 7 3.14 7 7s-3.14 7-7 7-7-3.12-7-7 3.14-7 7-7z"/></svg></span>备注</div><div class=admonitionContent_ZwmI><p>本适配器只支持永续期货。所有市场以 USD 计价、以 USDC 结算。</div></div>
+<h2 class="anchor anchorTargetStickyNavbar_ana5" id=chain-architecture>链架构<a href=#chain-architecture class=hash-link aria-label=链架构的直接链接 title=链架构的直接链接 translate=no>​</a></h2>
+<p>与暴露单一 REST/WebSocket API 的中心化交易所（CEX）不同，dYdX v4 运行在自己的 <strong>Cosmos SDK 应用链</strong>上。这意味着每笔交易都是走共识的 Cosmos 交易，适配器必须管理序列号（sequence）、gas 和基于区块高度的过期。</p>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=transport-layers>传输层<a href=#transport-layers class=hash-link aria-label=传输层的直接链接 title=传输层的直接链接 translate=no>​</a></h3>
+<p>适配器通过三个相互独立的传输层通信：</p>
+<div class="language-text codeBlockContainer_eTMR theme-code-block" style=--prism-color:#393A34;--prism-background-color:#f6f8fa><div class=codeBlockContent_hafM><pre tabindex=0 class="prism-code language-text codeBlock_IMvC thin-scrollbar" style=color:#393A34;background-color:#f6f8fa><code class=codeBlockLines_gZDW><div class=token-line style=color:#393A34><span class="token plain">                         ┌─────────────────────────────────────────────┐</span><br/></div><div class=token-line style=color:#393A34><span class="token plain">                         │              dYdX v4 Chain                  │</span><br/></div><div class=token-line style=color:#393A34><span class="token plain">                         │                                             │</span><br/></div><div class=token-line style=color:#393A34><span class="token plain"> ┌──────────┐  HTTP      │   ┌──────────────────────┐                  │</span><br/></div><div class=token-line style=color:#393A34><span class="token plain"> │          │───────────►│   │  Indexer (read-only) │                  │</span><br/></div><div class=token-line style=color:#393A34><span class="token plain"> │          │  WebSocket │   │  - REST API          │                  │</span><br/></div><div class=token-line style=color:#393A34><span class="token plain"> │ Nautilus │───────────►│   │  - Streaming API     │                  │</span><br/></div><div class=token-line style=color:#393A34><span class="token plain"> │ Adapter  │            │   └──────────────────────┘                  │</span><br/></div><div class=token-line style=color:#393A34><span class="token plain"> │          │  gRPC      │   ┌──────────────────────┐                  │</span><br/></div><div class=token-line style=color:#393A34><span class="token plain"> │          │───────────►│   │  Validator (write)   │                  │</span><br/></div><div class=token-line style=color:#393A34><span class="token plain"> └──────────┘            │   │  - Cosmos Tx submit  │                  │</span><br/></div><div class=token-line style=color:#393A34><span class="token plain">                         │   │  - Sequence mgmt     │                  │</span><br/></div><div class=token-line style=color:#393A34><span class="token plain">                         │   └──────────────────────┘                  │</span><br/></div><div class=token-line style=color:#393A34><span class="token plain">                         └─────────────────────────────────────────────┘</span><br/></div></code></pre></div></div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>层级<th>目标<th>方向<th>用途<tbody><tr><td>HTTP<td>Indexer<td>只读<td>金融工具元数据、历史数据、账户状态。<tr><td>WebSocket<td>Indexer<td>只读<td>实时行情、订单/成交/持仓更新。<tr><td>gRPC<td>Validator<td>写入<td>下单、撤单与批量操作。</table>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=block-based-settlement>按区块结算<a href=#block-based-settlement class=hash-link aria-label=按区块结算的直接链接 title=按区块结算的直接链接 translate=no>​</a></h3>
+<p>交易在区块提交时结算，短期订单按区块高度而非挂钟时间过期。适配器在滚动 100 个区块的窗口内跟踪 WebSocket 的区块高度与时间戳，据此估算 <code>seconds_per_block</code>，再用该估算把基于时间的订单过期换算为区块高度偏移。</p>
+<p>样本不足五个区块时，估算回退到每块 <strong>500 毫秒</strong>。主网实测的出块时间更接近一秒，因此回退值会低估短期窗口——结果是边缘订单被路由到长期路径，而不是相反。</p>
+<h2 class="anchor anchorTargetStickyNavbar_ana5" id=architecture>架构<a href=#architecture class=hash-link aria-label=架构的直接链接 title=架构的直接链接 translate=no>​</a></h2>
+<p>dYdX v4 适配器包含多个组件，可组合使用也可单独使用：</p>
+<ul>
+<li class=""><code>DydxHttpClient</code>：Indexer REST API 查询的 HTTP 客户端。</li>
+<li class=""><code>DydxWebSocketClient</code>：供 Rust 调用方使用的 WebSocket 客户端。</li>
+<li class=""><code>DydxGrpcClient</code>：提交 Cosmos SDK 交易的 gRPC 客户端。</li>
+<li class=""><code>InstrumentCache</code>：金融工具解析与加载，HTTP、WebSocket 和执行客户端共用。</li>
+<li class=""><code>DydxDataClient</code>：行情数据源管理器。</li>
+<li class=""><code>DydxExecutionClient</code>：账户管理与交易执行网关。</li>
+<li class=""><code>DydxDataClientFactory</code>：dYdX v4 数据客户端工厂（交易节点 builder 使用）。</li>
+<li class=""><code>DydxExecutionClientFactory</code>：dYdX v4 执行客户端工厂（交易节点 builder 使用）。</li>
+</ul>
+<div class="theme-admonition theme-admonition-note admonition_LYZY alert alert--secondary"><div class=admonitionHeading_pnFY><span class=admonitionIcon_tEzm><svg viewBox="0 0 14 16"><path fill-rule=evenodd d="M6.3 5.69a.942.942 0 0 1-.28-.7c0-.28.09-.52.28-.7.19-.18.42-.28.7-.28.28 0 .52.09.7.28.18.19.28.42.28.7 0 .28-.09.52-.28.7a1 1 0 0 1-.7.3c-.28 0-.52-.11-.7-.3zM8 7.99c-.02-.25-.11-.48-.31-.69-.2-.19-.42-.3-.69-.31H6c-.27.02-.48.13-.69.31-.2.2-.3.44-.31.69h1v3c.02.27.11.5.31.69.2.2.42.31.69.31h1c.27 0 .48-.11.69-.31.2-.19.3-.42.31-.69H8V7.98v.01zM7 2.3c-3.14 0-5.7 2.54-5.7 5.68 0 3.14 2.56 5.7 5.7 5.7s5.7-2.55 5.7-5.7c0-3.15-2.56-5.69-5.7-5.69v.01zM7 .98c3.86 0 7 3.14 7 7s-3.14 7-7 7-7-3.12-7-7 3.14-7 7-7z"/></svg></span>备注</div><div class=admonitionContent_ZwmI><p>多数用户按下文配置实时交易节点即可，不需要直接使用这些底层组件。</div></div>
+<div class="theme-admonition theme-admonition-warning admonition_LYZY alert alert--warning"><div class=admonitionHeading_pnFY><span class=admonitionIcon_tEzm><svg viewBox="0 0 16 16"><path fill-rule=evenodd d="M8.893 1.5c-.183-.31-.52-.5-.887-.5s-.703.19-.886.5L.138 13.499a.98.98 0 0 0 0 1.001c.193.31.53.501.886.501h13.964c.367 0 .704-.19.877-.5a1.03 1.03 0 0 0 .01-1.002L8.893 1.5zm.133 11.497H6.987v-2.003h2.039v2.003zm0-3.004H6.987V5.987h2.039v4.006z"/></svg></span>首次账户激活</div><div class=admonitionContent_ZwmI><p>dYdX v4 交易账户（子账户 0）要等钱包首次入金或首笔交易之后才会创建。在此之前，gRPC 和 Indexer 的账户查询都返回 not-found，<code>DydxExecutionClient.connect()</code> 会在初始化交易序列号时失败。<p>启动 <code>LiveNode</code> 之前，先用同一网络（主网/测试网）上的同一钱包发送任意正数 USDC 或其他支持的抵押品。交易确认（几个区块）后重启节点，客户端即可正常连接。</div></div>
+<h2 class="anchor anchorTargetStickyNavbar_ana5" id=troubleshooting>故障排查<a href=#troubleshooting class=hash-link aria-label=故障排查的直接链接 title=故障排查的直接链接 translate=no>​</a></h2>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=grpc-notfound-on-connect>连接时 gRPC <code>NotFound</code><a href=#grpc-notfound-on-connect class=hash-link aria-label=grpc-notfound-on-connect的直接链接 title=grpc-notfound-on-connect的直接链接 translate=no>​</a></h3>
+<p><strong>原因</strong>：钱包/子账户从未入金，链上还不存在。</p>
+<p><strong>解决办法</strong>：</p>
 <ol>
-<li>在正确的网络上向子账户 0 存入任意正额的 USDC。</li>
-<li>等待链上最终确认（主网约需 ~30 秒，测试网可能更久）。</li>
-<li>重启 <code>TradingNode</code>，连接应能成功建立。</li>
+<li class="">向正确网络的子账户 0 存入任意正数 USDC。</li>
+<li class="">等待确认（主网约 30 秒，测试网更久）。</li>
+<li class="">重启 <code>LiveNode</code>，连接应当成功。</li>
 </ol>
-<div class="theme-admonition theme-admonition-tip admonition_lEzE alert alert--success"><div class="admonitionHeading_aAf0"><span class="admonitionIcon_xtBN"><svg viewBox="0 0 12 16"><path fill-rule="evenodd" d="M6.5 0C3.48 0 1 2.19 1 5c0 .92.55 2.25 1 3 1.34 2.25 1.78 2.78 2 4v1h5v-1c.22-1.22.66-1.75 2-4 .45-.75 1-2.08 1-3 0-2.81-2.48-5-5.5-5zm3.64 7.48c-.25.44-.47.8-.67 1.11-.86 1.41-1.25 2.06-1.45 3.23-.02.05-.02.11-.02.17H5c0-.06 0-.13-.02-.17-.2-1.17-.59-1.83-1.45-3.23-.2-.31-.42-.67-.67-1.11C2.44 6.78 2 5.65 2 5c0-2.2 2.02-4 4.5-4 1.22 0 2.36.42 3.22 1.19C10.55 2.94 11 3.94 11 5c0 .66-.44 1.78-.86 2.48zM4 14h5c-.23 1.14-1.3 2-2.5 2s-2.27-.86-2.5-2z"></path></svg></span>提示</div><div class="admonitionContent_Vfkp"><p>在无人值守的部署场景中，可将 <code>connect()</code> 调用包装在指数退避（exponential-backoff）重试循环中，直到存款确认后重连成功。</p></div></div>
-<h2 class="anchor anchorWithStickyNavbar_RpWm" id="合约符号symbology">合约符号（Symbology）<a href="#合约符号symbology" class="hash-link" aria-label="合约符号（Symbology）的直接链接" title="合约符号（Symbology）的直接链接" translate="no">​</a></h2>
-<p>dYdX 目前只提供永续合约（perpetual contracts）。为了与其它适配器保持一致，并在将来若 dYdX 出现其它产品时具备向后兼容性，NautilusTrader 会在所有永续合约的符号后添加 <code>-PERP</code>。例如，Bitcoin/USD-C 的永续期货合约标识为 <code>BTC-USD-PERP</code>。平台中所有市场的计价货币为 USD-C，因此在显示时常被简写为 USD。</p>
-<h2 class="anchor anchorWithStickyNavbar_RpWm" id="短期订单与长期订单">短期订单与长期订单<a href="#短期订单与长期订单" class="hash-link" aria-label="短期订单与长期订单的直接链接" title="短期订单与长期订单的直接链接" translate="no">​</a></h2>
-<p>dYdX 区分短期订单（short-term orders）与长期/有状态订单（long-term / stateful orders）。短期订单设计为立即下单，并期望在接收订单的同一区块内被处理。此类订单会在内存中保留最多 20 个区块，只有其成交量（fill amount）与到期区块高度会被提交到链上状态。短期订单主要面向高吞吐量的做市商或市价单场景。</p>
-<p>默认情况下，所有订单都会以短期订单发送。若需构建长期订单，可通过在订单上附加标签（tag）来实现，例如：</p>
-<div class="language-python codeBlockContainer_euGm theme-code-block" style="--prism-color:#393A34;--prism-background-color:#f6f8fa"><div class="codeBlockContent_zF3K"><pre tabindex="0" class="prism-code language-python codeBlock_G1mO thin-scrollbar" style="color:#393A34;background-color:#f6f8fa"><code class="codeBlockLines_QZRj"><span class="token-line" style="color:#393A34"><span class="token keyword" style="color:#00009f">from</span><span class="token plain"> nautilus_trader</span><span class="token punctuation" style="color:#393A34">.</span><span class="token plain">adapters</span><span class="token punctuation" style="color:#393A34">.</span><span class="token plain">dydx </span><span class="token keyword" style="color:#00009f">import</span><span class="token plain"> DYDXOrderTags</span><br></span><span class="token-line" style="color:#393A34"><span class="token plain" style="display:inline-block"></span><br></span><span class="token-line" style="color:#393A34"><span class="token plain">order</span><span class="token punctuation" style="color:#393A34">:</span><span class="token plain"> LimitOrder </span><span class="token operator" style="color:#393A34">=</span><span class="token plain"> self</span><span class="token punctuation" style="color:#393A34">.</span><span class="token plain">order_factory</span><span class="token punctuation" style="color:#393A34">.</span><span class="token plain">limit</span><span class="token punctuation" style="color:#393A34">(</span><span class="token plain"></span><br></span><span class="token-line" style="color:#393A34"><span class="token plain">    instrument_id</span><span class="token operator" style="color:#393A34">=</span><span class="token plain">self</span><span class="token punctuation" style="color:#393A34">.</span><span class="token plain">instrument_id</span><span class="token punctuation" style="color:#393A34">,</span><span class="token plain"></span><br></span><span class="token-line" style="color:#393A34"><span class="token plain">    order_side</span><span class="token operator" style="color:#393A34">=</span><span class="token plain">OrderSide</span><span class="token punctuation" style="color:#393A34">.</span><span class="token plain">BUY</span><span class="token punctuation" style="color:#393A34">,</span><span class="token plain"></span><br></span><span class="token-line" style="color:#393A34"><span class="token plain">    quantity</span><span class="token operator" style="color:#393A34">=</span><span class="token plain">self</span><span class="token punctuation" style="color:#393A34">.</span><span class="token plain">instrument</span><span class="token punctuation" style="color:#393A34">.</span><span class="token plain">make_qty</span><span class="token punctuation" style="color:#393A34">(</span><span class="token plain">self</span><span class="token punctuation" style="color:#393A34">.</span><span class="token plain">trade_size</span><span class="token punctuation" style="color:#393A34">)</span><span class="token punctuation" style="color:#393A34">,</span><span class="token plain"></span><br></span><span class="token-line" style="color:#393A34"><span class="token plain">    price</span><span class="token operator" style="color:#393A34">=</span><span class="token plain">self</span><span class="token punctuation" style="color:#393A34">.</span><span class="token plain">instrument</span><span class="token punctuation" style="color:#393A34">.</span><span class="token plain">make_price</span><span class="token punctuation" style="color:#393A34">(</span><span class="token plain">price</span><span class="token punctuation" style="color:#393A34">)</span><span class="token punctuation" style="color:#393A34">,</span><span class="token plain"></span><br></span><span class="token-line" style="color:#393A34"><span class="token plain">    time_in_force</span><span class="token operator" style="color:#393A34">=</span><span class="token plain">TimeInForce</span><span class="token punctuation" style="color:#393A34">.</span><span class="token plain">GTD</span><span class="token punctuation" style="color:#393A34">,</span><span class="token plain"></span><br></span><span class="token-line" style="color:#393A34"><span class="token plain">    expire_time</span><span class="token operator" style="color:#393A34">=</span><span class="token plain">self</span><span class="token punctuation" style="color:#393A34">.</span><span class="token plain">clock</span><span class="token punctuation" style="color:#393A34">.</span><span class="token plain">utc_now</span><span class="token punctuation" style="color:#393A34">(</span><span class="token punctuation" style="color:#393A34">)</span><span class="token plain"> </span><span class="token operator" style="color:#393A34">+</span><span class="token plain"> pd</span><span class="token punctuation" style="color:#393A34">.</span><span class="token plain">Timedelta</span><span class="token punctuation" style="color:#393A34">(</span><span class="token plain">minutes</span><span class="token operator" style="color:#393A34">=</span><span class="token number" style="color:#36acaa">10</span><span class="token punctuation" style="color:#393A34">)</span><span class="token punctuation" style="color:#393A34">,</span><span class="token plain"></span><br></span><span class="token-line" style="color:#393A34"><span class="token plain">    post_only</span><span class="token operator" style="color:#393A34">=</span><span class="token boolean" style="color:#36acaa">True</span><span class="token punctuation" style="color:#393A34">,</span><span class="token plain"></span><br></span><span class="token-line" style="color:#393A34"><span class="token plain">    emulation_trigger</span><span class="token operator" style="color:#393A34">=</span><span class="token plain">self</span><span class="token punctuation" style="color:#393A34">.</span><span class="token plain">emulation_trigger</span><span class="token punctuation" style="color:#393A34">,</span><span class="token plain"></span><br></span><span class="token-line" style="color:#393A34"><span class="token plain">    tags</span><span class="token operator" style="color:#393A34">=</span><span class="token punctuation" style="color:#393A34">[</span><span class="token plain">DYDXOrderTags</span><span class="token punctuation" style="color:#393A34">(</span><span class="token plain">is_short_term_order</span><span class="token operator" style="color:#393A34">=</span><span class="token boolean" style="color:#36acaa">False</span><span class="token punctuation" style="color:#393A34">)</span><span class="token punctuation" style="color:#393A34">.</span><span class="token plain">value</span><span class="token punctuation" style="color:#393A34">]</span><span class="token punctuation" style="color:#393A34">,</span><span class="token plain"></span><br></span><span class="token-line" style="color:#393A34"><span class="token plain"></span><span class="token punctuation" style="color:#393A34">)</span><br></span></code></pre></div></div>
-<p>若要指定订单在链上保持活动的区块数，可以这样设置：</p>
-<div class="language-python codeBlockContainer_euGm theme-code-block" style="--prism-color:#393A34;--prism-background-color:#f6f8fa"><div class="codeBlockContent_zF3K"><pre tabindex="0" class="prism-code language-python codeBlock_G1mO thin-scrollbar" style="color:#393A34;background-color:#f6f8fa"><code class="codeBlockLines_QZRj"><span class="token-line" style="color:#393A34"><span class="token keyword" style="color:#00009f">from</span><span class="token plain"> nautilus_trader</span><span class="token punctuation" style="color:#393A34">.</span><span class="token plain">adapters</span><span class="token punctuation" style="color:#393A34">.</span><span class="token plain">dydx </span><span class="token keyword" style="color:#00009f">import</span><span class="token plain"> DYDXOrderTags</span><br></span><span class="token-line" style="color:#393A34"><span class="token plain" style="display:inline-block"></span><br></span><span class="token-line" style="color:#393A34"><span class="token plain">order</span><span class="token punctuation" style="color:#393A34">:</span><span class="token plain"> LimitOrder </span><span class="token operator" style="color:#393A34">=</span><span class="token plain"> self</span><span class="token punctuation" style="color:#393A34">.</span><span class="token plain">order_factory</span><span class="token punctuation" style="color:#393A34">.</span><span class="token plain">limit</span><span class="token punctuation" style="color:#393A34">(</span><span class="token plain"></span><br></span><span class="token-line" style="color:#393A34"><span class="token plain">    instrument_id</span><span class="token operator" style="color:#393A34">=</span><span class="token plain">self</span><span class="token punctuation" style="color:#393A34">.</span><span class="token plain">instrument_id</span><span class="token punctuation" style="color:#393A34">,</span><span class="token plain"></span><br></span><span class="token-line" style="color:#393A34"><span class="token plain">    order_side</span><span class="token operator" style="color:#393A34">=</span><span class="token plain">OrderSide</span><span class="token punctuation" style="color:#393A34">.</span><span class="token plain">BUY</span><span class="token punctuation" style="color:#393A34">,</span><span class="token plain"></span><br></span><span class="token-line" style="color:#393A34"><span class="token plain">    quantity</span><span class="token operator" style="color:#393A34">=</span><span class="token plain">self</span><span class="token punctuation" style="color:#393A34">.</span><span class="token plain">instrument</span><span class="token punctuation" style="color:#393A34">.</span><span class="token plain">make_qty</span><span class="token punctuation" style="color:#393A34">(</span><span class="token plain">self</span><span class="token punctuation" style="color:#393A34">.</span><span class="token plain">trade_size</span><span class="token punctuation" style="color:#393A34">)</span><span class="token punctuation" style="color:#393A34">,</span><span class="token plain"></span><br></span><span class="token-line" style="color:#393A34"><span class="token plain">    price</span><span class="token operator" style="color:#393A34">=</span><span class="token plain">self</span><span class="token punctuation" style="color:#393A34">.</span><span class="token plain">instrument</span><span class="token punctuation" style="color:#393A34">.</span><span class="token plain">make_price</span><span class="token punctuation" style="color:#393A34">(</span><span class="token plain">price</span><span class="token punctuation" style="color:#393A34">)</span><span class="token punctuation" style="color:#393A34">,</span><span class="token plain"></span><br></span><span class="token-line" style="color:#393A34"><span class="token plain">    time_in_force</span><span class="token operator" style="color:#393A34">=</span><span class="token plain">TimeInForce</span><span class="token punctuation" style="color:#393A34">.</span><span class="token plain">GTD</span><span class="token punctuation" style="color:#393A34">,</span><span class="token plain"></span><br></span><span class="token-line" style="color:#393A34"><span class="token plain">    expire_time</span><span class="token operator" style="color:#393A34">=</span><span class="token plain">self</span><span class="token punctuation" style="color:#393A34">.</span><span class="token plain">clock</span><span class="token punctuation" style="color:#393A34">.</span><span class="token plain">utc_now</span><span class="token punctuation" style="color:#393A34">(</span><span class="token punctuation" style="color:#393A34">)</span><span class="token plain"> </span><span class="token operator" style="color:#393A34">+</span><span class="token plain"> pd</span><span class="token punctuation" style="color:#393A34">.</span><span class="token plain">Timedelta</span><span class="token punctuation" style="color:#393A34">(</span><span class="token plain">seconds</span><span class="token operator" style="color:#393A34">=</span><span class="token number" style="color:#36acaa">5</span><span class="token punctuation" style="color:#393A34">)</span><span class="token punctuation" style="color:#393A34">,</span><span class="token plain"></span><br></span><span class="token-line" style="color:#393A34"><span class="token plain">    post_only</span><span class="token operator" style="color:#393A34">=</span><span class="token boolean" style="color:#36acaa">True</span><span class="token punctuation" style="color:#393A34">,</span><span class="token plain"></span><br></span><span class="token-line" style="color:#393A34"><span class="token plain">    emulation_trigger</span><span class="token operator" style="color:#393A34">=</span><span class="token plain">self</span><span class="token punctuation" style="color:#393A34">.</span><span class="token plain">emulation_trigger</span><span class="token punctuation" style="color:#393A34">,</span><span class="token plain"></span><br></span><span class="token-line" style="color:#393A34"><span class="token plain">    tags</span><span class="token operator" style="color:#393A34">=</span><span class="token punctuation" style="color:#393A34">[</span><span class="token plain">DYDXOrderTags</span><span class="token punctuation" style="color:#393A34">(</span><span class="token plain">is_short_term_order</span><span class="token operator" style="color:#393A34">=</span><span class="token boolean" style="color:#36acaa">True</span><span class="token punctuation" style="color:#393A34">,</span><span class="token plain"> num_blocks_open</span><span class="token operator" style="color:#393A34">=</span><span class="token number" style="color:#36acaa">5</span><span class="token punctuation" style="color:#393A34">)</span><span class="token punctuation" style="color:#393A34">.</span><span class="token plain">value</span><span class="token punctuation" style="color:#393A34">]</span><span class="token punctuation" style="color:#393A34">,</span><span class="token plain"></span><br></span><span class="token-line" style="color:#393A34"><span class="token plain"></span><span class="token punctuation" style="color:#393A34">)</span><br></span></code></pre></div></div>
-<h2 class="anchor anchorWithStickyNavbar_RpWm" id="市价单market-orders">市价单（Market orders）<a href="#市价单market-orders" class="hash-link" aria-label="市价单（Market orders）的直接链接" title="市价单（Market orders）的直接链接" translate="no">​</a></h2>
-<p>在 dYdX 中，市价单需要指定一个价格以作为滑点保护（slippage protection），且会使用隐藏单（hidden orders）。通过为市价单设置价格，你可以限制潜在的滑点。例如：如果为买入市价单指定价格 $100，则仅当市场价格小于等于 $100 时该单才可能被成交；若市场价格高于 $100，则不会执行该订单。</p>
-<p>包括 dYdX 在内的一些交易所支持隐藏单：隐藏单对其它市场参与者不可见，但仍可被撮合成交。为市价单指定价格，可将其作为隐藏单，只有当市场价格达到指定价格时才会执行。</p>
-<p>若未指定市场价格（market_order_price），默认值为 0。</p>
-<p>创建市价单并指定价格的示例：</p>
-<div class="language-python codeBlockContainer_euGm theme-code-block" style="--prism-color:#393A34;--prism-background-color:#f6f8fa"><div class="codeBlockContent_zF3K"><pre tabindex="0" class="prism-code language-python codeBlock_G1mO thin-scrollbar" style="color:#393A34;background-color:#f6f8fa"><code class="codeBlockLines_QZRj"><span class="token-line" style="color:#393A34"><span class="token plain">order </span><span class="token operator" style="color:#393A34">=</span><span class="token plain"> self</span><span class="token punctuation" style="color:#393A34">.</span><span class="token plain">order_factory</span><span class="token punctuation" style="color:#393A34">.</span><span class="token plain">market</span><span class="token punctuation" style="color:#393A34">(</span><span class="token plain"></span><br></span><span class="token-line" style="color:#393A34"><span class="token plain">    instrument_id</span><span class="token operator" style="color:#393A34">=</span><span class="token plain">self</span><span class="token punctuation" style="color:#393A34">.</span><span class="token plain">instrument_id</span><span class="token punctuation" style="color:#393A34">,</span><span class="token plain"></span><br></span><span class="token-line" style="color:#393A34"><span class="token plain">    order_side</span><span class="token operator" style="color:#393A34">=</span><span class="token plain">OrderSide</span><span class="token punctuation" style="color:#393A34">.</span><span class="token plain">BUY</span><span class="token punctuation" style="color:#393A34">,</span><span class="token plain"></span><br></span><span class="token-line" style="color:#393A34"><span class="token plain">    quantity</span><span class="token operator" style="color:#393A34">=</span><span class="token plain">self</span><span class="token punctuation" style="color:#393A34">.</span><span class="token plain">instrument</span><span class="token punctuation" style="color:#393A34">.</span><span class="token plain">make_qty</span><span class="token punctuation" style="color:#393A34">(</span><span class="token plain">self</span><span class="token punctuation" style="color:#393A34">.</span><span class="token plain">trade_size</span><span class="token punctuation" style="color:#393A34">)</span><span class="token punctuation" style="color:#393A34">,</span><span class="token plain"></span><br></span><span class="token-line" style="color:#393A34"><span class="token plain">    time_in_force</span><span class="token operator" style="color:#393A34">=</span><span class="token plain">TimeInForce</span><span class="token punctuation" style="color:#393A34">.</span><span class="token plain">IOC</span><span class="token punctuation" style="color:#393A34">,</span><span class="token plain"></span><br></span><span class="token-line" style="color:#393A34"><span class="token plain">    tags</span><span class="token operator" style="color:#393A34">=</span><span class="token punctuation" style="color:#393A34">[</span><span class="token plain">DYDXOrderTags</span><span class="token punctuation" style="color:#393A34">(</span><span class="token plain">is_short_term_order</span><span class="token operator" style="color:#393A34">=</span><span class="token boolean" style="color:#36acaa">True</span><span class="token punctuation" style="color:#393A34">,</span><span class="token plain"> market_order_price</span><span class="token operator" style="color:#393A34">=</span><span class="token plain">Price</span><span class="token punctuation" style="color:#393A34">.</span><span class="token plain">from_str</span><span class="token punctuation" style="color:#393A34">(</span><span class="token string" style="color:#e3116c">&quot;10_000&quot;</span><span class="token punctuation" style="color:#393A34">)</span><span class="token punctuation" style="color:#393A34">)</span><span class="token punctuation" style="color:#393A34">.</span><span class="token plain">value</span><span class="token punctuation" style="color:#393A34">]</span><span class="token punctuation" style="color:#393A34">,</span><span class="token plain"></span><br></span><span class="token-line" style="color:#393A34"><span class="token plain"></span><span class="token punctuation" style="color:#393A34">)</span><br></span></code></pre></div></div>
-<h2 class="anchor anchorWithStickyNavbar_RpWm" id="止损限价与止损市价stop-limit--stop-market">止损限价与止损市价（Stop limit / Stop market）<a href="#止损限价与止损市价stop-limit--stop-market" class="hash-link" aria-label="止损限价与止损市价（Stop limit / Stop market）的直接链接" title="止损限价与止损市价（Stop limit / Stop market）的直接链接" translate="no">​</a></h2>
-<p>支持提交止损限价和止损市价等条件性订单。对于条件性订单，dYdX 仅支持以长期订单（long-term orders）方式提交。</p>
-<h2 class="anchor anchorWithStickyNavbar_RpWm" id="订单能力概览">订单能力概览<a href="#订单能力概览" class="hash-link" aria-label="订单能力概览的直接链接" title="订单能力概览的直接链接" translate="no">​</a></h2>
-<p>dYdX 对永续合约交易提供了较为完备的订单类型与执行特性，下面按类别列出支持情况：</p>
-<h3 class="anchor anchorWithStickyNavbar_RpWm" id="订单类型order-types">订单类型（Order Types）<a href="#订单类型order-types" class="hash-link" aria-label="订单类型（Order Types）的直接链接" title="订单类型（Order Types）的直接链接" translate="no">​</a></h3>
-<table><thead><tr><th>Order Type</th><th>Perpetuals</th><th>说明</th></tr></thead><tbody><tr><td><code>MARKET</code></td><td>✓</td><td>需提供价格以防止滑点；不支持按计价货币下单（quote quantity）。</td></tr><tr><td><code>LIMIT</code></td><td>✓</td><td></td></tr><tr><td><code>STOP_MARKET</code></td><td>✓</td><td>仅支持以长期订单方式提交。</td></tr><tr><td><code>STOP_LIMIT</code></td><td>✓</td><td>仅支持以长期订单方式提交。</td></tr><tr><td><code>MARKET_IF_TOUCHED</code></td><td>-</td><td><em>不支持</em>。</td></tr><tr><td><code>LIMIT_IF_TOUCHED</code></td><td>-</td><td><em>不支持</em>。</td></tr><tr><td><code>TRAILING_STOP_MARKET</code></td><td>-</td><td><em>不支持</em>。</td></tr></tbody></table>
-<h3 class="anchor anchorWithStickyNavbar_RpWm" id="执行指令execution-instructions">执行指令（Execution Instructions）<a href="#执行指令execution-instructions" class="hash-link" aria-label="执行指令（Execution Instructions）的直接链接" title="执行指令（Execution Instructions）的直接链接" translate="no">​</a></h3>
-<table><thead><tr><th>Instruction</th><th>Perpetuals</th><th>说明</th></tr></thead><tbody><tr><td><code>post_only</code></td><td>✓</td><td>支持所有订单类型。</td></tr><tr><td><code>reduce_only</code></td><td>✓</td><td>支持所有订单类型。</td></tr></tbody></table>
-<h3 class="anchor anchorWithStickyNavbar_RpWm" id="有效期类型time-in-force">有效期类型（Time in force）<a href="#有效期类型time-in-force" class="hash-link" aria-label="有效期类型（Time in force）的直接链接" title="有效期类型（Time in force）的直接链接" translate="no">​</a></h3>
-<table><thead><tr><th>Time in force</th><th>Perpetuals</th><th>说明</th></tr></thead><tbody><tr><td><code>GTC</code></td><td>✓</td><td>Good Till Canceled。</td></tr><tr><td><code>GTD</code></td><td>✓</td><td>Good Till Date。</td></tr><tr><td><code>FOK</code></td><td>✓</td><td>Fill or Kill。</td></tr><tr><td><code>IOC</code></td><td>✓</td><td>Immediate or Cancel。</td></tr></tbody></table>
-<h3 class="anchor anchorWithStickyNavbar_RpWm" id="高级订单功能advanced-order-features">高级订单功能（Advanced Order Features）<a href="#高级订单功能advanced-order-features" class="hash-link" aria-label="高级订单功能（Advanced Order Features）的直接链接" title="高级订单功能（Advanced Order Features）的直接链接" translate="no">​</a></h3>
-<table><thead><tr><th>Feature</th><th>Perpetuals</th><th>说明</th></tr></thead><tbody><tr><td>Order Modification</td><td>✓</td><td>仅限短期订单；使用取消-替换（cancel-replace）。</td></tr><tr><td>Bracket/OCO Orders</td><td>-</td><td><em>不支持</em>。</td></tr><tr><td>Iceberg Orders</td><td>-</td><td><em>不支持</em>。</td></tr></tbody></table>
-<h3 class="anchor anchorWithStickyNavbar_RpWm" id="批量操作batch-operations">批量操作（Batch operations）<a href="#批量操作batch-operations" class="hash-link" aria-label="批量操作（Batch operations）的直接链接" title="批量操作（Batch operations）的直接链接" translate="no">​</a></h3>
-<table><thead><tr><th>Operation</th><th>Perpetuals</th><th>说明</th></tr></thead><tbody><tr><td>Batch Submit</td><td>-</td><td><em>不支持</em>。</td></tr><tr><td>Batch Modify</td><td>-</td><td><em>不支持</em>。</td></tr><tr><td>Batch Cancel</td><td>-</td><td><em>不支持</em>。</td></tr></tbody></table>
-<h3 class="anchor anchorWithStickyNavbar_RpWm" id="持仓管理position-management">持仓管理（Position management）<a href="#持仓管理position-management" class="hash-link" aria-label="持仓管理（Position management）的直接链接" title="持仓管理（Position management）的直接链接" translate="no">​</a></h3>
-<table><thead><tr><th>Feature</th><th>Perpetuals</th><th>说明</th></tr></thead><tbody><tr><td>Query positions</td><td>✓</td><td>实时持仓查询。</td></tr><tr><td>Position mode</td><td>-</td><td>仅支持净头寸模式（net position）。</td></tr><tr><td>Leverage control</td><td>✓</td><td>可对每个市场设置杠杆。</td></tr><tr><td>Margin mode</td><td>-</td><td>仅支持全仓（cross margin）。</td></tr></tbody></table>
-<h3 class="anchor anchorWithStickyNavbar_RpWm" id="订单查询order-querying">订单查询（Order querying）<a href="#订单查询order-querying" class="hash-link" aria-label="订单查询（Order querying）的直接链接" title="订单查询（Order querying）的直接链接" translate="no">​</a></h3>
-<table><thead><tr><th>Feature</th><th>Perpetuals</th><th>说明</th></tr></thead><tbody><tr><td>Query open orders</td><td>✓</td><td>列出所有活动订单。</td></tr><tr><td>Query order history</td><td>✓</td><td>历史订单数据。</td></tr><tr><td>Order status updates</td><td>✓</td><td>实时订单状态变更。</td></tr><tr><td>Trade history</td><td>✓</td><td>成交与回执报告。</td></tr></tbody></table>
-<h3 class="anchor anchorWithStickyNavbar_RpWm" id="组合条件性订单contingent-orders">组合/条件性订单（Contingent orders）<a href="#组合条件性订单contingent-orders" class="hash-link" aria-label="组合/条件性订单（Contingent orders）的直接链接" title="组合/条件性订单（Contingent orders）的直接链接" translate="no">​</a></h3>
-<table><thead><tr><th>Feature</th><th>Perpetuals</th><th>说明</th></tr></thead><tbody><tr><td>Order lists</td><td>-</td><td><em>不支持</em>。</td></tr><tr><td>OCO orders</td><td>-</td><td><em>不支持</em>。</td></tr><tr><td>Bracket orders</td><td>-</td><td><em>不支持</em>。</td></tr><tr><td>Conditional orders</td><td>✓</td><td>支持止损市价（stop market）与止损限价（stop limit）。</td></tr></tbody></table>
-<h3 class="anchor anchorWithStickyNavbar_RpWm" id="order-classification">Order classification<a href="#order-classification" class="hash-link" aria-label="Order classification的直接链接" title="Order classification的直接链接" translate="no">​</a></h3>
-<p>dYdX 将订单分为 <strong>短期订单（short-term）</strong> 与 <strong>长期订单（long-term）</strong>：</p>
+<div class="theme-admonition theme-admonition-tip admonition_LYZY alert alert--success"><div class=admonitionHeading_pnFY><span class=admonitionIcon_tEzm><svg viewBox="0 0 12 16"><path fill-rule=evenodd d="M6.5 0C3.48 0 1 2.19 1 5c0 .92.55 2.25 1 3 1.34 2.25 1.78 2.78 2 4v1h5v-1c.22-1.22.66-1.75 2-4 .45-.75 1-2.08 1-3 0-2.81-2.48-5-5.5-5zm3.64 7.48c-.25.44-.47.8-.67 1.11-.86 1.41-1.25 2.06-1.45 3.23-.02.05-.02.11-.02.17H5c0-.06 0-.13-.02-.17-.2-1.17-.59-1.83-1.45-3.23-.2-.31-.42-.67-.67-1.11C2.44 6.78 2 5.65 2 5c0-2.2 2.02-4 4.5-4 1.22 0 2.36.42 3.22 1.19C10.55 2.94 11 3.94 11 5c0 .66-.44 1.78-.86 2.48zM4 14h5c-.23 1.14-1.3 2-2.5 2s-2.27-.86-2.5-2z"/></svg></span>提示</div><div class=admonitionContent_ZwmI><p>无人值守的部署中，把 <code>connect()</code> 包进指数退避循环，让客户端重试直到入金出现。</div></div>
+<h2 class="anchor anchorTargetStickyNavbar_ana5" id=symbology>代码体系<a href=#symbology class=hash-link aria-label=代码体系的直接链接 title=代码体系的直接链接 translate=no>​</a></h2>
+<p>dYdX 对永续期货合约使用特定代码约定。</p>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=symbol-format>代码格式<a href=#symbol-format class=hash-link aria-label=代码格式的直接链接 title=代码格式的直接链接 translate=no>​</a></h3>
+<p>格式：<code>{Base}-USD-PERP</code></p>
+<p>dYdX 上所有永续合约都是：</p>
 <ul>
-<li><strong>短期订单</strong>：所有订单的默认类型；适用于高频交易和市价单。</li>
-<li><strong>长期订单</strong>：条件性订单需以长期订单方式提交；可使用 <code>DYDXOrderTags</code> 指定。</li>
+<li class="">以 USD 计价</li>
+<li class="">以 USDC 结算</li>
+<li class="">在 Nautilus 中使用 <code>.DYDX</code> 场所后缀</li>
 </ul>
-<h2 class="anchor anchorWithStickyNavbar_RpWm" id="配置configuration">配置（Configuration）<a href="#配置configuration" class="hash-link" aria-label="配置（Configuration）的直接链接" title="配置（Configuration）的直接链接" translate="no">​</a></h2>
-<p>各客户端的产品类型需在配置中明确指定。</p>
-<h3 class="anchor anchorWithStickyNavbar_RpWm" id="数据客户端配置选项data-client-configuration-options">数据客户端配置选项（Data client configuration options）<a href="#数据客户端配置选项data-client-configuration-options" class="hash-link" aria-label="数据客户端配置选项（Data client configuration options）的直接链接" title="数据客户端配置选项（Data client configuration options）的直接链接" translate="no">​</a></h3>
-<table><thead><tr><th>Option</th><th>Default</th><th>说明</th></tr></thead><tbody><tr><td><code>wallet_address</code></td><td><code>None</code></td><td>钱包地址；若省略会从环境变量 <code>DYDX_WALLET_ADDRESS</code> / <code>DYDX_TESTNET_WALLET_ADDRESS</code> 加载。</td></tr><tr><td><code>is_testnet</code></td><td><code>False</code></td><td>为 <code>True</code> 时连接 dYdX 测试网。</td></tr><tr><td><code>update_instruments_interval_mins</code></td><td><code>60</code></td><td>instrument 目录刷新间隔（分钟）。</td></tr><tr><td><code>max_retries</code></td><td><code>None</code></td><td>REST/WebSocket 恢复重试的最大次数。</td></tr><tr><td><code>retry_delay_initial_ms</code></td><td><code>None</code></td><td>重试初始延迟（毫秒）。</td></tr><tr><td><code>retry_delay_max_ms</code></td><td><code>None</code></td><td>重试最大延迟（毫秒）。</td></tr></tbody></table>
-<h3 class="anchor anchorWithStickyNavbar_RpWm" id="执行客户端配置选项execution-client-configuration-options">执行客户端配置选项（Execution client configuration options）<a href="#执行客户端配置选项execution-client-configuration-options" class="hash-link" aria-label="执行客户端配置选项（Execution client configuration options）的直接链接" title="执行客户端配置选项（Execution client configuration options）的直接链接" translate="no">​</a></h3>
-<table><thead><tr><th>Option</th><th>Default</th><th>说明</th></tr></thead><tbody><tr><td><code>wallet_address</code></td><td><code>None</code></td><td>钱包地址；若省略会从环境变量 <code>DYDX_WALLET_ADDRESS</code> / <code>DYDX_TESTNET_WALLET_ADDRESS</code> 加载。</td></tr><tr><td><code>subaccount</code></td><td><code>0</code></td><td>子账户编号（dYdX 默认为子账户 <code>0</code>）。</td></tr><tr><td><code>mnemonic</code></td><td><code>None</code></td><td>用于派生签名密钥的助记词；若省略将从环境中加载。</td></tr><tr><td><code>base_url_http</code></td><td><code>None</code></td><td>REST 基地址重写。</td></tr><tr><td><code>base_url_ws</code></td><td><code>None</code></td><td>WebSocket 基地址重写。</td></tr><tr><td><code>is_testnet</code></td><td><code>False</code></td><td>为 <code>True</code> 时连接 dYdX 测试网。</td></tr><tr><td><code>max_retries</code></td><td><code>None</code></td><td>订单提交/取消/修改调用的最大重试次数。</td></tr><tr><td><code>retry_delay_initial_ms</code></td><td><code>None</code></td><td>重试初始延迟（毫秒）。</td></tr><tr><td><code>retry_delay_max_ms</code></td><td><code>None</code></td><td>重试最大延迟（毫秒）。</td></tr></tbody></table>
-<h3 class="anchor anchorWithStickyNavbar_RpWm" id="execution-clients">Execution clients<a href="#execution-clients" class="hash-link" aria-label="Execution clients的直接链接" title="Execution clients的直接链接" translate="no">​</a></h3>
-<p>账户类型必须为保证金账户（margin account）才能交易永续合约。</p>
-<p>最常见的用例是将 dYdX 的数据客户端与执行客户端一并配置到实时 <code>TradingNode</code> 中。为此，请在你的客户端配置中添加一个 <code>DYDX</code> 部分，例如：</p>
-<div class="language-python codeBlockContainer_euGm theme-code-block" style="--prism-color:#393A34;--prism-background-color:#f6f8fa"><div class="codeBlockContent_zF3K"><pre tabindex="0" class="prism-code language-python codeBlock_G1mO thin-scrollbar" style="color:#393A34;background-color:#f6f8fa"><code class="codeBlockLines_QZRj"><span class="token-line" style="color:#393A34"><span class="token keyword" style="color:#00009f">from</span><span class="token plain"> nautilus_trader</span><span class="token punctuation" style="color:#393A34">.</span><span class="token plain">live</span><span class="token punctuation" style="color:#393A34">.</span><span class="token plain">node </span><span class="token keyword" style="color:#00009f">import</span><span class="token plain"> TradingNode</span><br></span><span class="token-line" style="color:#393A34"><span class="token plain" style="display:inline-block"></span><br></span><span class="token-line" style="color:#393A34"><span class="token plain">config </span><span class="token operator" style="color:#393A34">=</span><span class="token plain"> TradingNodeConfig</span><span class="token punctuation" style="color:#393A34">(</span><span class="token plain"></span><br></span><span class="token-line" style="color:#393A34"><span class="token plain">    </span><span class="token punctuation" style="color:#393A34">.</span><span class="token punctuation" style="color:#393A34">.</span><span class="token punctuation" style="color:#393A34">.</span><span class="token punctuation" style="color:#393A34">,</span><span class="token plain">  </span><span class="token comment" style="color:#999988;font-style:italic"># Omitted</span><span class="token plain"></span><br></span><span class="token-line" style="color:#393A34"><span class="token plain">    data_clients</span><span class="token operator" style="color:#393A34">=</span><span class="token punctuation" style="color:#393A34">{</span><span class="token plain"></span><br></span><span class="token-line" style="color:#393A34"><span class="token plain">        </span><span class="token string" style="color:#e3116c">&quot;DYDX&quot;</span><span class="token punctuation" style="color:#393A34">:</span><span class="token plain"> </span><span class="token punctuation" style="color:#393A34">{</span><span class="token plain"></span><br></span><span class="token-line" style="color:#393A34"><span class="token plain">            </span><span class="token string" style="color:#e3116c">&quot;wallet_address&quot;</span><span class="token punctuation" style="color:#393A34">:</span><span class="token plain"> </span><span class="token string" style="color:#e3116c">&quot;YOUR_DYDX_WALLET_ADDRESS&quot;</span><span class="token punctuation" style="color:#393A34">,</span><span class="token plain"></span><br></span><span class="token-line" style="color:#393A34"><span class="token plain">            </span><span class="token string" style="color:#e3116c">&quot;is_testnet&quot;</span><span class="token punctuation" style="color:#393A34">:</span><span class="token plain"> </span><span class="token boolean" style="color:#36acaa">False</span><span class="token punctuation" style="color:#393A34">,</span><span class="token plain"></span><br></span><span class="token-line" style="color:#393A34"><span class="token plain">        </span><span class="token punctuation" style="color:#393A34">}</span><span class="token punctuation" style="color:#393A34">,</span><span class="token plain"></span><br></span><span class="token-line" style="color:#393A34"><span class="token plain">    </span><span class="token punctuation" style="color:#393A34">}</span><span class="token punctuation" style="color:#393A34">,</span><span class="token plain"></span><br></span><span class="token-line" style="color:#393A34"><span class="token plain">    exec_clients</span><span class="token operator" style="color:#393A34">=</span><span class="token punctuation" style="color:#393A34">{</span><span class="token plain"></span><br></span><span class="token-line" style="color:#393A34"><span class="token plain">        </span><span class="token string" style="color:#e3116c">&quot;DYDX&quot;</span><span class="token punctuation" style="color:#393A34">:</span><span class="token plain"> </span><span class="token punctuation" style="color:#393A34">{</span><span class="token plain"></span><br></span><span class="token-line" style="color:#393A34"><span class="token plain">            </span><span class="token string" style="color:#e3116c">&quot;wallet_address&quot;</span><span class="token punctuation" style="color:#393A34">:</span><span class="token plain"> </span><span class="token string" style="color:#e3116c">&quot;YOUR_DYDX_WALLET_ADDRESS&quot;</span><span class="token punctuation" style="color:#393A34">,</span><span class="token plain"></span><br></span><span class="token-line" style="color:#393A34"><span class="token plain">            </span><span class="token string" style="color:#e3116c">&quot;subaccount&quot;</span><span class="token punctuation" style="color:#393A34">:</span><span class="token plain"> </span><span class="token string" style="color:#e3116c">&quot;YOUR_DYDX_SUBACCOUNT_NUMBER&quot;</span><span class="token plain"></span><br></span><span class="token-line" style="color:#393A34"><span class="token plain">            </span><span class="token string" style="color:#e3116c">&quot;mnemonic&quot;</span><span class="token punctuation" style="color:#393A34">:</span><span class="token plain"> </span><span class="token string" style="color:#e3116c">&quot;YOUR_MNEMONIC&quot;</span><span class="token punctuation" style="color:#393A34">,</span><span class="token plain"></span><br></span><span class="token-line" style="color:#393A34"><span class="token plain">            </span><span class="token string" style="color:#e3116c">&quot;is_testnet&quot;</span><span class="token punctuation" style="color:#393A34">:</span><span class="token plain"> </span><span class="token boolean" style="color:#36acaa">False</span><span class="token punctuation" style="color:#393A34">,</span><span class="token plain"></span><br></span><span class="token-line" style="color:#393A34"><span class="token plain">        </span><span class="token punctuation" style="color:#393A34">}</span><span class="token punctuation" style="color:#393A34">,</span><span class="token plain"></span><br></span><span class="token-line" style="color:#393A34"><span class="token plain">    </span><span class="token punctuation" style="color:#393A34">}</span><span class="token punctuation" style="color:#393A34">,</span><span class="token plain"></span><br></span><span class="token-line" style="color:#393A34"><span class="token plain"></span><span class="token punctuation" style="color:#393A34">)</span><br></span></code></pre></div></div>
-<p>然后创建一个 <code>TradingNode</code> 并注册相应的客户端工厂：</p>
-<div class="language-python codeBlockContainer_euGm theme-code-block" style="--prism-color:#393A34;--prism-background-color:#f6f8fa"><div class="codeBlockContent_zF3K"><pre tabindex="0" class="prism-code language-python codeBlock_G1mO thin-scrollbar" style="color:#393A34;background-color:#f6f8fa"><code class="codeBlockLines_QZRj"><span class="token-line" style="color:#393A34"><span class="token keyword" style="color:#00009f">from</span><span class="token plain"> nautilus_trader</span><span class="token punctuation" style="color:#393A34">.</span><span class="token plain">adapters</span><span class="token punctuation" style="color:#393A34">.</span><span class="token plain">dydx </span><span class="token keyword" style="color:#00009f">import</span><span class="token plain"> DYDXLiveDataClientFactory</span><br></span><span class="token-line" style="color:#393A34"><span class="token plain"></span><span class="token keyword" style="color:#00009f">from</span><span class="token plain"> nautilus_trader</span><span class="token punctuation" style="color:#393A34">.</span><span class="token plain">adapters</span><span class="token punctuation" style="color:#393A34">.</span><span class="token plain">dydx </span><span class="token keyword" style="color:#00009f">import</span><span class="token plain"> DYDXLiveExecClientFactory</span><br></span><span class="token-line" style="color:#393A34"><span class="token plain"></span><span class="token keyword" style="color:#00009f">from</span><span class="token plain"> nautilus_trader</span><span class="token punctuation" style="color:#393A34">.</span><span class="token plain">live</span><span class="token punctuation" style="color:#393A34">.</span><span class="token plain">node </span><span class="token keyword" style="color:#00009f">import</span><span class="token plain"> TradingNode</span><br></span><span class="token-line" style="color:#393A34"><span class="token plain" style="display:inline-block"></span><br></span><span class="token-line" style="color:#393A34"><span class="token plain"></span><span class="token comment" style="color:#999988;font-style:italic"># 使用配置实例化实时交易节点</span><span class="token plain"></span><br></span><span class="token-line" style="color:#393A34"><span class="token plain">node </span><span class="token operator" style="color:#393A34">=</span><span class="token plain"> TradingNode</span><span class="token punctuation" style="color:#393A34">(</span><span class="token plain">config</span><span class="token operator" style="color:#393A34">=</span><span class="token plain">config</span><span class="token punctuation" style="color:#393A34">)</span><span class="token plain"></span><br></span><span class="token-line" style="color:#393A34"><span class="token plain" style="display:inline-block"></span><br></span><span class="token-line" style="color:#393A34"><span class="token plain"></span><span class="token comment" style="color:#999988;font-style:italic"># 向节点注册客户端工厂</span><span class="token plain"></span><br></span><span class="token-line" style="color:#393A34"><span class="token plain">node</span><span class="token punctuation" style="color:#393A34">.</span><span class="token plain">add_data_client_factory</span><span class="token punctuation" style="color:#393A34">(</span><span class="token string" style="color:#e3116c">&quot;DYDX&quot;</span><span class="token punctuation" style="color:#393A34">,</span><span class="token plain"> DYDXLiveDataClientFactory</span><span class="token punctuation" style="color:#393A34">)</span><span class="token plain"></span><br></span><span class="token-line" style="color:#393A34"><span class="token plain">node</span><span class="token punctuation" style="color:#393A34">.</span><span class="token plain">add_exec_client_factory</span><span class="token punctuation" style="color:#393A34">(</span><span class="token string" style="color:#e3116c">&quot;DYDX&quot;</span><span class="token punctuation" style="color:#393A34">,</span><span class="token plain"> DYDXLiveExecClientFactory</span><span class="token punctuation" style="color:#393A34">)</span><span class="token plain"></span><br></span><span class="token-line" style="color:#393A34"><span class="token plain" style="display:inline-block"></span><br></span><span class="token-line" style="color:#393A34"><span class="token plain"></span><span class="token comment" style="color:#999988;font-style:italic"># 最后构建节点</span><span class="token plain"></span><br></span><span class="token-line" style="color:#393A34"><span class="token plain">node</span><span class="token punctuation" style="color:#393A34">.</span><span class="token plain">build</span><span class="token punctuation" style="color:#393A34">(</span><span class="token punctuation" style="color:#393A34">)</span><br></span></code></pre></div></div>
-<h3 class="anchor anchorWithStickyNavbar_RpWm" id="api-凭证api-credentials">API 凭证（API credentials）<a href="#api-凭证api-credentials" class="hash-link" aria-label="API 凭证（API credentials）的直接链接" title="API 凭证（API credentials）的直接链接" translate="no">​</a></h3>
-<p>为 dYdX 客户端提供凭证有两种方式：要么在配置对象中直接传入 <code>wallet_address</code> 与 <code>mnemonic</code>，要么设置相应的环境变量：</p>
-<p>对于 dYdX 实盘客户端（live clients），可设置：</p>
+<p>例如：</p>
 <ul>
-<li><code>DYDX_WALLET_ADDRESS</code></li>
-<li><code>DYDX_MNEMONIC</code></li>
+<li class=""><code>BTC-USD-PERP.DYDX</code> - 比特币永续期货</li>
+<li class=""><code>ETH-USD-PERP.DYDX</code> - 以太坊永续期货</li>
+<li class=""><code>SOL-USD-PERP.DYDX</code> - Solana 永续期货</li>
 </ul>
-<p>对于 dYdX 测试网客户端（testnet clients），可设置：</p>
+<p>在策略中订阅：</p>
+<div class="language-python codeBlockContainer_eTMR theme-code-block" style=--prism-color:#393A34;--prism-background-color:#f6f8fa><div class=codeBlockContent_hafM><pre tabindex=0 class="prism-code language-python codeBlock_IMvC thin-scrollbar" style=color:#393A34;background-color:#f6f8fa><code class=codeBlockLines_gZDW><div class=token-line style=color:#393A34><span class="token plain">InstrumentId</span><span class="token punctuation" style=color:#393A34>.</span><span class="token plain">from_str</span><span class="token punctuation" style=color:#393A34>(</span><span class="token string" style=color:#e3116c>"BTC-USD-PERP.DYDX"</span><span class="token punctuation" style=color:#393A34>)</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">InstrumentId</span><span class="token punctuation" style=color:#393A34>.</span><span class="token plain">from_str</span><span class="token punctuation" style=color:#393A34>(</span><span class="token string" style=color:#e3116c>"ETH-USD-PERP.DYDX"</span><span class="token punctuation" style=color:#393A34>)</span><br/></div></code></pre></div></div>
+<div class="theme-admonition theme-admonition-info admonition_LYZY alert alert--info"><div class=admonitionHeading_pnFY><span class=admonitionIcon_tEzm><svg viewBox="0 0 14 16"><path fill-rule=evenodd d="M7 2.3c3.14 0 5.7 2.56 5.7 5.7s-2.56 5.7-5.7 5.7A5.71 5.71 0 0 1 1.3 8c0-3.14 2.56-5.7 5.7-5.7zM7 1C3.14 1 0 4.14 0 8s3.14 7 7 7 7-3.14 7-7-3.14-7-7-7zm1 3H6v5h2V4zm0 6H6v2h2v-2z"/></svg></span>信息</div><div class=admonitionContent_ZwmI><p>dYdX Indexer 对永续合约的 ticker 是 <code>{Base}-USD</code>（如 <code>BTC-USD</code>）。适配器追加 <code>-PERP</code> 后缀，与其他适配器保持一致，也为未来其他产品类型留出空间。</div></div>
+<h2 class="anchor anchorTargetStickyNavbar_ana5" id=orders-capability>订单能力<a href=#orders-capability class=hash-link aria-label=订单能力的直接链接 title=订单能力的直接链接 translate=no>​</a></h2>
+<p>dYdX 支持一整套订单类型与执行特性。适配器根据订单类型、时效和过期时间，自动把每笔订单归类为短期、长期或有条件（conditional），无需手动标记。</p>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=order-types>订单类型<a href=#order-types class=hash-link aria-label=订单类型的直接链接 title=订单类型的直接链接 translate=no>​</a></h3>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>订单类型<th>永续合约<th>说明<tbody><tr><td><code>MARKET</code><td>✓<td>以当前最优价立即执行。<tr><td><code>LIMIT</code><td>✓<td><tr><td><code>STOP_MARKET</code><td>✓<td>止损条件单，始终为 stateful。<tr><td><code>STOP_LIMIT</code><td>✓<td>条件单，始终为 stateful。<tr><td><code>MARKET_IF_TOUCHED</code><td>✓<td>触及价格触发的止盈市价单。<tr><td><code>LIMIT_IF_TOUCHED</code><td>✓<td>触及价格触发的止盈限价单。<tr><td><code>TRAILING_STOP_MARKET</code><td>-<td><em>不支持</em>。<tr><td><code>TRAILING_STOP_LIMIT</code><td>-<td><em>不支持</em>。</table>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=execution-instructions>执行指令<a href=#execution-instructions class=hash-link aria-label=执行指令的直接链接 title=执行指令的直接链接 translate=no>​</a></h3>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>指令<th>永续合约<th>说明<tbody><tr><td><code>post_only</code><td>✓<td>支持 LIMIT、STOP_LIMIT 和 LIMIT_IF_TOUCHED 订单。post-only 订单若定价会穿越价差，会被交易场所<strong>先接受再立即撤销</strong>（不是带原因的拒绝）。<tr><td><code>reduce_only</code><td>✓<td>链上**只接受立即可执行的订单（IOC）**带该标志。其他情况链上以 <code>code=9003</code> 拒绝：<code>Reduce-only is currently disabled for non-IOC orders</code>。</table>
+<p>适配器对该标志的处理因订单类型而异：</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>订单类型<th><code>reduce_only</code> 行为<tbody><tr><td><code>MARKET</code><td>作为 IOC 订单转发。<tr><td><code>LIMIT</code>、<code>STOP_LIMIT</code>、<code>LIMIT_IF_TOUCHED</code><td>按你的时效转发。必须用 <code>IOC</code>，否则链会拒绝。<tr><td><code>STOP_MARKET</code>、<code>MARKET_IF_TOUCHED</code><td>会转发，但这两类没有时效，链总是拒绝。</table>
+<p>市价单直接设 <code>reduce_only</code>；支持的限价类订单要搭配 <code>IOC</code> 使用。</p>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=time-in-force-options>时效选项<a href=#time-in-force-options class=hash-link aria-label=时效选项的直接链接 title=时效选项的直接链接 translate=no>​</a></h3>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>时效<th>永续合约<th>说明<tbody><tr><td><code>GTC</code><td>✓<td>撤销前有效（Good Till Canceled）。<tr><td><code>GTD</code><td>✓<td>到期前有效（Good Till Date）。场所把过期上报为撤销事件；订单 <code>expire_time</code> 已过时，适配器把它映射为 <code>OrderExpired</code>（而非 <code>OrderCanceled</code>）。<tr><td><code>IOC</code><td>✓<td>立即成交否则撤销（Immediate or Cancel）。<tr><td><code>FOK</code><td>-<td><em>已被 dYdX v4 弃用</em>。链以 <code>code=48</code> 拒绝 FOK 订单；适配器在本地生成 <code>OrderDenied</code>，不广播。<tr><td><code>DAY</code><td>-<td><em>不支持</em>。适配器在本地生成 <code>OrderDenied</code>，不广播。</table>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=advanced-order-features>高级订单特性<a href=#advanced-order-features class=hash-link aria-label=高级订单特性的直接链接 title=高级订单特性的直接链接 translate=no>​</a></h3>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>特性<th>永续合约<th>说明<tbody><tr><td>订单修改<td>-<td>不支持。dYdX 支持短期订单<a href=https://docs.dydx.xyz/concepts/trading/limit-orderbook#replacements target=_blank rel="noopener noreferrer" class="">替换</a>（同 ID、更高 GTB）；尚未以 <code>ModifyOrder</code> 暴露。<tr><td>括号/OCO 订单<td>-<td><em>不支持</em>。<tr><td>冰山订单<td>-<td><em>不支持</em>。</table>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=batch-operations>批量操作<a href=#batch-operations class=hash-link aria-label=批量操作的直接链接 title=批量操作的直接链接 translate=no>​</a></h3>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>操作<th>永续合约<th>说明<tbody><tr><td>批量下单<td>✓<td>支持长期 <code>LIMIT</code> 订单。短期订单逐个提交。<tr><td>批量修改<td>-<td><em>不支持</em>。<tr><td>批量撤单<td>✓<td>按生命周期分组：短期订单用 <code>MsgBatchCancel</code>（一次 gRPC 调用），长期订单用批量 <code>MsgCancelOrder</code>。</table>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=position-management>持仓管理<a href=#position-management class=hash-link aria-label=持仓管理的直接链接 title=持仓管理的直接链接 translate=no>​</a></h3>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>特性<th>永续合约<th>说明<tbody><tr><td>查询持仓<td>✓<td>实时持仓更新。<tr><td>持仓模式<td>-<td>仅净额结算（见下）。<tr><td>杠杆控制<td>-<td>由各市场的保证金比例决定，无账户级覆盖。<tr><td>保证金模式<td>-<td>仅全仓（cross margin）。</table>
+<div class="theme-admonition theme-admonition-note admonition_LYZY alert alert--secondary"><div class=admonitionHeading_pnFY><span class=admonitionIcon_tEzm><svg viewBox="0 0 14 16"><path fill-rule=evenodd d="M6.3 5.69a.942.942 0 0 1-.28-.7c0-.28.09-.52.28-.7.19-.18.42-.28.7-.28.28 0 .52.09.7.28.18.19.28.42.28.7 0 .28-.09.52-.28.7a1 1 0 0 1-.7.3c-.28 0-.52-.11-.7-.3zM8 7.99c-.02-.25-.11-.48-.31-.69-.2-.19-.42-.3-.69-.31H6c-.27.02-.48.13-.69.31-.2.2-.3.44-.31.69h1v3c.02.27.11.5.31.69.2.2.42.31.69.31h1c.27 0 .48-.11.69-.31.2-.19.3-.42.31-.69H8V7.98v.01zM7 2.3c-3.14 0-5.7 2.54-5.7 5.68 0 3.14 2.56 5.7 5.7 5.7s5.7-2.55 5.7-5.7c0-3.15-2.56-5.69-5.7-5.69v.01zM7 .98c3.86 0 7 3.14 7 7s-3.14 7-7 7-7-3.12-7-7 3.14-7 7-7z"/></svg></span>备注</div><div class=admonitionContent_ZwmI><p>dYdX 在场所层面对持仓做净额结算（每个金融工具一个持仓），因此适配器只以 <code>NETTING</code> 模式运行。</div></div>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=order-querying>订单查询<a href=#order-querying class=hash-link aria-label=订单查询的直接链接 title=订单查询的直接链接 translate=no>​</a></h3>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>特性<th>永续合约<th>说明<tbody><tr><td>查询挂单<td>✓<td>列出全部活动订单。<tr><td>查询订单历史<td>✓<td>历史订单数据。<tr><td>订单状态更新<td>✓<td>实时订单状态变更。<tr><td>成交历史<td>✓<td>执行与成交报告。</table>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=contingent-orders>或有订单<a href=#contingent-orders class=hash-link aria-label=或有订单的直接链接 title=或有订单的直接链接 translate=no>​</a></h3>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>特性<th>永续合约<th>说明<tbody><tr><td>订单列表<td>-<td><em>不支持</em>。<tr><td>OCO 订单<td>-<td><em>不支持</em>。<tr><td>括号订单<td>-<td><em>不支持</em>。<tr><td>条件订单<td>✓<td>止损、止盈市价、止盈限价。</table>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=equity-tier-limit>权益层级限额<a href=#equity-tier-limit class=hash-link aria-label=权益层级限额的直接链接 title=权益层级限额的直接链接 translate=no>​</a></h3>
+<p>dYdX 按子账户净抵押品限额其可持有的<strong>stateful 订单</strong>（长期与条件）数量上限，短期订单不受限。超限提交会被链以 <code>code=10001</code> 拒绝，日志形如 <code>Opening order would exceed equity tier limit of N</code>。请先撤销已有的 stateful 订单再下单，或把策略拆分到多个子账户。</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>净抵押品<th>最大在持 stateful 订单<tbody><tr><td>低于 $20<td>0<tr><td>$20 至 $100<td>10<tr><td>$100 至 $1,000<td>20<tr><td>$1,000 至 $10,000<td>40<tr><td>$10,000 至 $100,000<td>100<tr><td>$100,000 及以上<td>200</table>
+<p>层级可由治理调整。实时值可查询节点的 <code>/dydxprotocol/clob/equity_tier</code> 端点，或见
+<a href=https://docs.dydx.xyz/concepts/trading/limits/equity-tier-limits target=_blank rel="noopener noreferrer" class="">权益层级限额</a>。</p>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=mit-and-lit-round-tripping>MIT 与 LIT 的往返转换<a href=#mit-and-lit-round-tripping class=hash-link aria-label="MIT 与 LIT 的往返转换的直接链接" title="MIT 与 LIT 的往返转换的直接链接" translate=no>​</a></h3>
+<p>dYdX 协议用单一的 <code>TAKE_PROFIT</code> 订单类型，带价格（<code>subticks</code>）和触发价。它表现为"触发即市价"还是"触发即限价"隐含在价格里。适配器把 Nautilus 的 <code>MARKET_IF_TOUCHED</code> 提交为价格设为 5% 穿透最坏价的止盈单，把 <code>LIMIT_IF_TOUCHED</code> 提交为用户限价的止盈单。两种形式在 Indexer 返回时都是 <code>"type":"TAKE_PROFIT"</code>。</p>
+<p>对账时，适配器按上报价格偏离触发价的幅度还原原始 Nautilus 订单类型：偏差<strong>达到 2% 或以上</strong>说明价格来自 5% 穿透缓冲，订单按 <code>MARKET_IF_TOUCHED</code> 对账；更近的按用户自选限价处理，对账为 <code>LIMIT_IF_TOUCHED</code>。2% 阈值能把穿透区间与通常的止盈限价偏移（远低于 1%）分开。</p>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=liquidation-and-adl-deleveraging-handling>清算与 ADL（自动减仓）处理<a href=#liquidation-and-adl-deleveraging-handling class=hash-link aria-label="清算与 ADL（自动减仓）处理的直接链接" title="清算与 ADL（自动减仓）处理的直接链接" translate=no>​</a></h3>
+<p>dYdX v4 按顺序使用两层风险机制：</p>
+<ol>
+<li class=""><strong>清算（Liquidation）</strong>：账户跌破维持保证金时启动。持仓在距预言机价格有界价差内与保险基金对敲平仓。</li>
+<li class=""><strong>自动减仓（ADL）</strong>：清算无法完全恢复偿付能力，或预言机价格大幅跳空使账户单步穿仓时启动。ADL 让资不抵债的持仓与随机挑选的对手方账户对敲平仓。</li>
+</ol>
+<p>Indexer 通过每条 <code>Fill</code> 记录的 <code>type</code> 字段暴露分类：</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th><code>type</code><th>含义<tbody><tr><td><code>LIMIT</code><td>普通成交。<tr><td><code>LIQUIDATED</code><td>清算的吃单方（资不抵债的一方）。<tr><td><code>LIQUIDATION</code><td>清算的挂单方（保险基金）。<tr><td><code>DELEVERAGED</code><td>自动减仓的吃单方（被减仓平仓）。<tr><td><code>OFFSETTING</code><td>自动减仓的挂单方（被选中的对手账户）。</table>
+<p>场所未来引入的其他取值会解码为未知成交类型并按普通成交处理，新分类不会导致成交被丢弃。</p>
+<p>适配器对每笔清算/减仓成交记录一条警告（含金融工具、方向、数量、价格），然后按常规路径发出 <code>FillReport</code>。场所上报为 <code>LIQUIDATED</code> 的持仓按已平仓处理，对应的持仓报告就此收尾。</p>
+<p>上游参考：</p>
 <ul>
-<li><code>DYDX_TESTNET_WALLET_ADDRESS</code></li>
-<li><code>DYDX_TESTNET_MNEMONIC</code></li>
+<li class=""><a href=https://docs.dydx.xyz/concepts/trading/liquidations target=_blank rel="noopener noreferrer" class="">清算</a></li>
+<li class=""><a href=https://help.dydx.trade/en/articles/166973-contract-loss-mechanisms-on-dydx-chain target=_blank rel="noopener noreferrer" class="">合约损失机制（自动减仓）</a></li>
 </ul>
-<div class="theme-admonition theme-admonition-tip admonition_lEzE alert alert--success"><div class="admonitionHeading_aAf0"><span class="admonitionIcon_xtBN"><svg viewBox="0 0 12 16"><path fill-rule="evenodd" d="M6.5 0C3.48 0 1 2.19 1 5c0 .92.55 2.25 1 3 1.34 2.25 1.78 2.78 2 4v1h5v-1c.22-1.22.66-1.75 2-4 .45-.75 1-2.08 1-3 0-2.81-2.48-5-5.5-5zm3.64 7.48c-.25.44-.47.8-.67 1.11-.86 1.41-1.25 2.06-1.45 3.23-.02.05-.02.11-.02.17H5c0-.06 0-.13-.02-.17-.2-1.17-.59-1.83-1.45-3.23-.2-.31-.42-.67-.67-1.11C2.44 6.78 2 5.65 2 5c0-2.2 2.02-4 4.5-4 1.22 0 2.36.42 3.22 1.19C10.55 2.94 11 3.94 11 5c0 .66-.44 1.78-.86 2.48zM4 14h5c-.23 1.14-1.3 2-2.5 2s-2.27-.86-2.5-2z"></path></svg></span>提示</div><div class="admonitionContent_Vfkp"><p>建议使用环境变量来管理凭证。这样更安全，也便于在不同环境间切换。</p></div></div>
-<p>数据客户端会使用钱包地址来确定交易费用（trading fees），这些费用信息仅在回测时使用。</p>
-<h3 class="anchor anchorWithStickyNavbar_RpWm" id="测试网testnets">测试网（Testnets）<a href="#测试网testnets" class="hash-link" aria-label="测试网（Testnets）的直接链接" title="测试网（Testnets）的直接链接" translate="no">​</a></h3>
-<p>也可以将数据客户端或执行客户端配置为连接 dYdX 测试网。只需将 <code>is_testnet</code> 选项设为 <code>True</code>（默认值为 <code>False</code>）：</p>
-<div class="language-python codeBlockContainer_euGm theme-code-block" style="--prism-color:#393A34;--prism-background-color:#f6f8fa"><div class="codeBlockContent_zF3K"><pre tabindex="0" class="prism-code language-python codeBlock_G1mO thin-scrollbar" style="color:#393A34;background-color:#f6f8fa"><code class="codeBlockLines_QZRj"><span class="token-line" style="color:#393A34"><span class="token plain">config </span><span class="token operator" style="color:#393A34">=</span><span class="token plain"> TradingNodeConfig</span><span class="token punctuation" style="color:#393A34">(</span><span class="token plain"></span><br></span><span class="token-line" style="color:#393A34"><span class="token plain">    </span><span class="token punctuation" style="color:#393A34">.</span><span class="token punctuation" style="color:#393A34">.</span><span class="token punctuation" style="color:#393A34">.</span><span class="token punctuation" style="color:#393A34">,</span><span class="token plain">  </span><span class="token comment" style="color:#999988;font-style:italic"># Omitted</span><span class="token plain"></span><br></span><span class="token-line" style="color:#393A34"><span class="token plain">    data_clients</span><span class="token operator" style="color:#393A34">=</span><span class="token punctuation" style="color:#393A34">{</span><span class="token plain"></span><br></span><span class="token-line" style="color:#393A34"><span class="token plain">        </span><span class="token string" style="color:#e3116c">&quot;DYDX&quot;</span><span class="token punctuation" style="color:#393A34">:</span><span class="token plain"> </span><span class="token punctuation" style="color:#393A34">{</span><span class="token plain"></span><br></span><span class="token-line" style="color:#393A34"><span class="token plain">            </span><span class="token string" style="color:#e3116c">&quot;wallet_address&quot;</span><span class="token punctuation" style="color:#393A34">:</span><span class="token plain"> </span><span class="token string" style="color:#e3116c">&quot;YOUR_DYDX_WALLET_ADDRESS&quot;</span><span class="token punctuation" style="color:#393A34">,</span><span class="token plain"></span><br></span><span class="token-line" style="color:#393A34"><span class="token plain">            </span><span class="token string" style="color:#e3116c">&quot;is_testnet&quot;</span><span class="token punctuation" style="color:#393A34">:</span><span class="token plain"> </span><span class="token boolean" style="color:#36acaa">True</span><span class="token punctuation" style="color:#393A34">,</span><span class="token plain"></span><br></span><span class="token-line" style="color:#393A34"><span class="token plain">        </span><span class="token punctuation" style="color:#393A34">}</span><span class="token punctuation" style="color:#393A34">,</span><span class="token plain"></span><br></span><span class="token-line" style="color:#393A34"><span class="token plain">    </span><span class="token punctuation" style="color:#393A34">}</span><span class="token punctuation" style="color:#393A34">,</span><span class="token plain"></span><br></span><span class="token-line" style="color:#393A34"><span class="token plain">    exec_clients</span><span class="token operator" style="color:#393A34">=</span><span class="token punctuation" style="color:#393A34">{</span><span class="token plain"></span><br></span><span class="token-line" style="color:#393A34"><span class="token plain">        </span><span class="token string" style="color:#e3116c">&quot;DYDX&quot;</span><span class="token punctuation" style="color:#393A34">:</span><span class="token plain"> </span><span class="token punctuation" style="color:#393A34">{</span><span class="token plain"></span><br></span><span class="token-line" style="color:#393A34"><span class="token plain">            </span><span class="token string" style="color:#e3116c">&quot;wallet_address&quot;</span><span class="token punctuation" style="color:#393A34">:</span><span class="token plain"> </span><span class="token string" style="color:#e3116c">&quot;YOUR_DYDX_WALLET_ADDRESS&quot;</span><span class="token punctuation" style="color:#393A34">,</span><span class="token plain"></span><br></span><span class="token-line" style="color:#393A34"><span class="token plain">            </span><span class="token string" style="color:#e3116c">&quot;subaccount&quot;</span><span class="token punctuation" style="color:#393A34">:</span><span class="token plain"> </span><span class="token string" style="color:#e3116c">&quot;YOUR_DYDX_SUBACCOUNT_NUMBER&quot;</span><span class="token plain"></span><br></span><span class="token-line" style="color:#393A34"><span class="token plain">            </span><span class="token string" style="color:#e3116c">&quot;mnemonic&quot;</span><span class="token punctuation" style="color:#393A34">:</span><span class="token plain"> </span><span class="token string" style="color:#e3116c">&quot;YOUR_MNEMONIC&quot;</span><span class="token punctuation" style="color:#393A34">,</span><span class="token plain"></span><br></span><span class="token-line" style="color:#393A34"><span class="token plain">            </span><span class="token string" style="color:#e3116c">&quot;is_testnet&quot;</span><span class="token punctuation" style="color:#393A34">:</span><span class="token plain"> </span><span class="token boolean" style="color:#36acaa">True</span><span class="token punctuation" style="color:#393A34">,</span><span class="token plain"></span><br></span><span class="token-line" style="color:#393A34"><span class="token plain">        </span><span class="token punctuation" style="color:#393A34">}</span><span class="token punctuation" style="color:#393A34">,</span><span class="token plain"></span><br></span><span class="token-line" style="color:#393A34"><span class="token plain">    </span><span class="token punctuation" style="color:#393A34">}</span><span class="token punctuation" style="color:#393A34">,</span><span class="token plain"></span><br></span><span class="token-line" style="color:#393A34"><span class="token plain"></span><span class="token punctuation" style="color:#393A34">)</span><br></span></code></pre></div></div>
-<h3 class="anchor anchorWithStickyNavbar_RpWm" id="解析器警告parser-warnings">解析器警告（Parser warnings）<a href="#解析器警告parser-warnings" class="hash-link" aria-label="解析器警告（Parser warnings）的直接链接" title="解析器警告（Parser warnings）的直接链接" translate="no">​</a></h3>
-<p>某些 dYdX 的合约在解析为 Nautilus 对象时可能因字段值过大而超出平台处理范围。遇到此类情况时，会采用“警告并跳过”（warn and continue）的策略，该合约将不会被加入可用合约列表。</p>
-<h2 class="anchor anchorWithStickyNavbar_RpWm" id="市场深度order-books">市场深度（Order books）<a href="#市场深度order-books" class="hash-link" aria-label="市场深度（Order books）的直接链接" title="市场深度（Order books）的直接链接" translate="no">​</a></h2>
-<p>根据订阅类型，order book 可维护为全深度（full depth）或仅顶级盘口（top-of-book）。交易所不直接推送聚合的 quote，适配器会订阅 order book 的增量（deltas），并在顶级盘口价格或数量变动时向 <code>DataEngine</code> 发送新的报价。</p>
-<div class="theme-admonition theme-admonition-info admonition_lEzE alert alert--info"><div class="admonitionHeading_aAf0"><span class="admonitionIcon_xtBN"><svg viewBox="0 0 14 16"><path fill-rule="evenodd" d="M7 2.3c3.14 0 5.7 2.56 5.7 5.7s-2.56 5.7-5.7 5.7A5.71 5.71 0 0 1 1.3 8c0-3.14 2.56-5.7 5.7-5.7zM7 1C3.14 1 0 4.14 0 8s3.14 7 7 7 7-3.14 7-7-3.14-7-7-7zm1 3H6v5h2V4zm0 6H6v2h2v-2z"></path></svg></span>信息</div><div class="admonitionContent_Vfkp"><p>如需了解更多功能或贡献 dYdX 适配器，请参阅我们的<a href="https://github.com/nautechsystems/nautilus_trader/blob/develop/CONTRIBUTING.md" target="_blank" rel="noopener noreferrer">贡献指南</a>。</p></div></div></div><footer class="theme-doc-footer docusaurus-mt-lg"><div class="row margin-top--sm theme-doc-footer-edit-meta-row"><div class="col"><a href="https://github.com/Aloento/NautilusTraderDoc/tree/main/docs/integrations/dydx.md" target="_blank" rel="noopener noreferrer" class="theme-edit-this-page"><svg fill="currentColor" height="20" width="20" viewBox="0 0 40 40" class="iconEdit_F7ru" aria-hidden="true"><g><path d="m34.5 11.7l-3 3.1-6.3-6.3 3.1-3q0.5-0.5 1.2-0.5t1.1 0.5l3.9 3.9q0.5 0.4 0.5 1.1t-0.5 1.2z m-29.5 17.1l18.4-18.5 6.3 6.3-18.4 18.4h-6.3v-6.2z"></path></g></svg>编辑此页</a></div><div class="col lastUpdated_GNoA"></div></div></footer></article><nav class="docusaurus-mt-lg pagination-nav" aria-label="文件选项卡"><a class="pagination-nav__link pagination-nav__link--prev" href="/integrations/databento"><div class="pagination-nav__sublabel">上一页</div><div class="pagination-nav__label">Databento</div></a><a class="pagination-nav__link pagination-nav__link--next" href="/integrations/hyperliquid"><div class="pagination-nav__sublabel">下一页</div><div class="pagination-nav__label">Hyperliquid</div></a></nav></div></div><div class="col col--3"><div class="tableOfContents_pg_n thin-scrollbar theme-doc-toc-desktop"><ul class="table-of-contents table-of-contents__left-border"><li><a href="#安装" class="table-of-contents__link toc-highlight">安装</a></li><li><a href="#示例" class="table-of-contents__link toc-highlight">示例</a></li><li><a href="#概览" class="table-of-contents__link toc-highlight">概览</a></li><li><a href="#故障排查troubleshooting" class="table-of-contents__link toc-highlight">故障排查（Troubleshooting）</a><ul><li><a href="#statuscodenot_found--account--0-not-found" class="table-of-contents__link toc-highlight"><code>StatusCode.NOT_FOUND</code> — account … /0 not found</a></li></ul></li><li><a href="#合约符号symbology" class="table-of-contents__link toc-highlight">合约符号（Symbology）</a></li><li><a href="#短期订单与长期订单" class="table-of-contents__link toc-highlight">短期订单与长期订单</a></li><li><a href="#市价单market-orders" class="table-of-contents__link toc-highlight">市价单（Market orders）</a></li><li><a href="#止损限价与止损市价stop-limit--stop-market" class="table-of-contents__link toc-highlight">止损限价与止损市价（Stop limit / Stop market）</a></li><li><a href="#订单能力概览" class="table-of-contents__link toc-highlight">订单能力概览</a><ul><li><a href="#订单类型order-types" class="table-of-contents__link toc-highlight">订单类型（Order Types）</a></li><li><a href="#执行指令execution-instructions" class="table-of-contents__link toc-highlight">执行指令（Execution Instructions）</a></li><li><a href="#有效期类型time-in-force" class="table-of-contents__link toc-highlight">有效期类型（Time in force）</a></li><li><a href="#高级订单功能advanced-order-features" class="table-of-contents__link toc-highlight">高级订单功能（Advanced Order Features）</a></li><li><a href="#批量操作batch-operations" class="table-of-contents__link toc-highlight">批量操作（Batch operations）</a></li><li><a href="#持仓管理position-management" class="table-of-contents__link toc-highlight">持仓管理（Position management）</a></li><li><a href="#订单查询order-querying" class="table-of-contents__link toc-highlight">订单查询（Order querying）</a></li><li><a href="#组合条件性订单contingent-orders" class="table-of-contents__link toc-highlight">组合/条件性订单（Contingent orders）</a></li><li><a href="#order-classification" class="table-of-contents__link toc-highlight">Order classification</a></li></ul></li><li><a href="#配置configuration" class="table-of-contents__link toc-highlight">配置（Configuration）</a><ul><li><a href="#数据客户端配置选项data-client-configuration-options" class="table-of-contents__link toc-highlight">数据客户端配置选项（Data client configuration options）</a></li><li><a href="#执行客户端配置选项execution-client-configuration-options" class="table-of-contents__link toc-highlight">执行客户端配置选项（Execution client configuration options）</a></li><li><a href="#execution-clients" class="table-of-contents__link toc-highlight">Execution clients</a></li><li><a href="#api-凭证api-credentials" class="table-of-contents__link toc-highlight">API 凭证（API credentials）</a></li><li><a href="#测试网testnets" class="table-of-contents__link toc-highlight">测试网（Testnets）</a></li><li><a href="#解析器警告parser-warnings" class="table-of-contents__link toc-highlight">解析器警告（Parser warnings）</a></li></ul></li><li><a href="#市场深度order-books" class="table-of-contents__link toc-highlight">市场深度（Order books）</a></li></ul></div></div></div></div></main></div></div></div><footer class="theme-layout-footer footer footer--dark"><div class="container container-fluid"><div class="row footer__links"><div class="theme-layout-footer-column col footer__col"><div class="footer__title"></div><ul class="footer__items clean-list"><li class="footer__item"><a href="https://github.com/nautechsystems/nautilus_trader" target="_blank" rel="noopener noreferrer" class="footer__link-item">Official GitHub<svg width="13.5" height="13.5" aria-label="(opens in new tab)" class="iconExternalLink_KfBJ"><use href="#theme-svg-external-link"></use></svg></a></li><li class="footer__item"><a href="https://nautilustrader.io/docs" target="_blank" rel="noopener noreferrer" class="footer__link-item">Official Documentation<svg width="13.5" height="13.5" aria-label="(opens in new tab)" class="iconExternalLink_KfBJ"><use href="#theme-svg-external-link"></use></svg></a></li></ul></div></div><div class="footer__bottom text--center"><div class="footer__copyright">© 2025 Nautech Systems Pty Ltd. All rights reserved.</div></div></div></footer></div>
-</body>
-</html>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=order-classification>订单分类<a href=#order-classification class=hash-link aria-label=订单分类的直接链接 title=订单分类的直接链接 translate=no>​</a></h3>
+<p>dYdX 把每笔订单归入三种链上类别之一。适配器根据时效和过期时间自动判定类别，无需手动配置。</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>类别<th>存放位置<th>过期方式<th>典型用途<tbody><tr><td>短期<td>内存<td>区块高度<td>IOC，或 40 个区块内过期的订单。<tr><td>长期<td>链上<td>时间戳（UTC）<td>过期超出短期窗口的 GTC/GTD。<tr><td>有条件<td>链上<td>时间戳（UTC）<td>止损与止盈触发单。</table>
+<p>协议层面，<strong>dYdX 的所有订单都是限价单</strong>。<code>MARKET</code> 类型是 Nautilus 的便利抽象，适配器把它实现为定价深度穿透盘口的激进 IOC 限价单。因此市价单与限价单走同样的 <code>Submitted > Accepted > Filled</code> 生命周期（成交前会有 <code>OrderAccepted</code> 事件）。</p>
+<p>短期与 stateful 订单的完整协议机制见
+<a href=https://docs.dydx.xyz/concepts/trading/orders target=_blank rel="noopener noreferrer" class="">dYdX 订单文档</a>。</p>
+<h4 class="anchor anchorTargetStickyNavbar_ana5" id=short-term-orders>短期订单<a href=#short-term-orders class=hash-link aria-label=短期订单的直接链接 title=短期订单的直接链接 translate=no>​</a></h4>
+<p>短期订单<strong>只存在于验证者内存</strong>中，按区块高度过期。协议的 <code>ShortBlockWindow</code> 把其寿命封顶为当前高度之后的 <strong>40 个区块</strong>。它们跳过链上存储，是 dYdX 上最快的订单类型。</p>
+<p><strong>特性</strong>：</p>
+<ul>
+<li class=""><strong>IOC（以及弃用的 FOK）永远是短期订单</strong>，不管其他参数如何</li>
+<li class=""><strong>GTD 订单</strong>过期落在动态短期窗口（<code>40 blocks × seconds_per_block</code>）内时自动归为短期</li>
+<li class="">防重放用 Good-Til-Block（GTB），不用 Cosmos SDK 序列号</li>
+<li class="">可以<strong>并发</strong>广播（无信号量，序列号用缓存值）</li>
+<li class="">过期不需要撤销交易。Indexer 把每次过期上报为撤销，适配器发出 <code>OrderCanceled</code></li>
+<li class="">不能批量装进一笔交易（每笔交易一个 <code>MsgPlaceOrder</code>）</li>
+</ul>
+<h4 class="anchor anchorTargetStickyNavbar_ana5" id=long-term-orders>长期订单<a href=#long-term-orders class=hash-link aria-label=长期订单的直接链接 title=长期订单的直接链接 translate=no>​</a></h4>
+<p>长期（stateful）订单<strong>存储在链上</strong>，按 UTC 时间戳过期。过期或被撤销时会生成显式撤销事件。</p>
+<p><strong>特性</strong>：</p>
+<ul>
+<li class=""><strong>GTC</strong> 订单默认 90 天过期（协议上限 95 天）</li>
+<li class=""><strong>GTD</strong> 订单使用用户提供的时间戳</li>
+<li class="">需要规范的 Cosmos SDK 序列号管理（信号量串行化）</li>
+<li class="">必须以递增序列号<strong>串行</strong>广播</li>
+<li class="">可以批量装进一笔交易</li>
+</ul>
+<h4 class="anchor anchorTargetStickyNavbar_ana5" id=conditional-orders>有条件订单<a href=#conditional-orders class=hash-link aria-label=有条件订单的直接链接 title=有条件订单的直接链接 translate=no>​</a></h4>
+<p>有条件订单（止损、止盈）<strong>始终存储在链上</strong>，由验证者上的价格条件触发。</p>
+<p><strong>特性</strong>：</p>
+<ul>
+<li class="">始终使用基于时间戳的过期（GTC 默认 90 天，协议上限 95 天）</li>
+<li class="">始终使用长期广播路径（信号量串行）</li>
+<li class="">包括 <code>StopMarket</code>、<code>StopLimit</code>、<code>TakeProfitMarket</code> 和 <code>TakeProfitLimit</code></li>
+</ul>
+<h4 class="anchor anchorTargetStickyNavbar_ana5" id=automatic-routing>自动路由<a href=#automatic-routing class=hash-link aria-label=自动路由的直接链接 title=自动路由的直接链接 translate=no>​</a></h4>
+<p>适配器根据估算的出块时间自动决定订单寿命：</p>
+<div class="language-text codeBlockContainer_eTMR theme-code-block" style=--prism-color:#393A34;--prism-background-color:#f6f8fa><div class=codeBlockContent_hafM><pre tabindex=0 class="prism-code language-text codeBlock_IMvC thin-scrollbar" style=color:#393A34;background-color:#f6f8fa><code class=codeBlockLines_gZDW><div class=token-line style=color:#393A34><span class="token plain">max_short_term_secs = 40 blocks (ShortBlockWindow) × seconds_per_block</span><br/></div></code></pre></div></div>
+<p>订单距过期不足 <code>max_short_term_secs</code> 时按短期路由，否则按长期路由。无需手动配置。</p>
+<h4 class="anchor anchorTargetStickyNavbar_ana5" id=market-order-implementation>MARKET 订单的实现<a href=#market-order-implementation class=hash-link aria-label="MARKET 订单的实现的直接链接" title="MARKET 订单的实现的直接链接" translate=no>​</a></h4>
+<p>dYdX 没有原生市价单类型。适配器把 <code>MARKET</code> 订单实现为激进的 <strong>IOC 限价单</strong>，定价为：</p>
+<ul>
+<li class=""><strong>买入</strong>：<code>oracle_price × (1 + 0.05)</code>（高于预言机价 5%）</li>
+<li class=""><strong>卖出</strong>：<code>oracle_price × (1 - 0.05)</code>（低于预言机价 5%）</li>
+</ul>
+<p>这 5% 滑点缓冲（<code>DEFAULT_MARKET_ORDER_SLIPPAGE = 0.05</code>）设定最坏价格（"穿透价"）。订单是 IOC，未成交的滑点不会被消耗。缓冲有意设宽，以在剧烈行情下最大化成交概率。</p>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=client-order-id-encoding>客户订单 ID 编码<a href=#client-order-id-encoding class=hash-link aria-label="客户订单 ID 编码的直接链接" title="客户订单 ID 编码的直接链接" translate=no>​</a></h3>
+<p>dYdX 链上要求 <code>u32</code> 客户端 ID，而 Nautilus 使用字符串型 <code>ClientOrderId</code>（如 <code>O-20260220-031943-001-000-51</code>）。适配器做双向编码，让订单在重启后无需持久化状态也能对账。</p>
+<p>对标准 O 格式（<code>O-YYYYMMDD-HHMMSS-TTT-SSS-CCC</code>），编码是确定性的：</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>dYdX 字段<th>位数<th>内容<tbody><tr><td><code>client_id</code><td>32<td><code>[trader:10][strategy:10][count:12]</code>（唯一键）。<tr><td><code>client_metadata</code><td>32<td>距 2020-01-01 UTC 的秒数（时间戳）。</table>
+<p>由于编码确定，适配器可以把任何对账回来的订单解码回原始 <code>ClientOrderId</code> 字符串，不需要数据库或映射文件。</p>
+<p>纯数字的 <code>ClientOrderId</code> 同样是确定性的：数字直接作为 <code>client_id</code>，<code>client_metadata</code> 置固定标记，跨重启也能解码。其他格式退化为顺序分配加内存反向映射，这类 ID 只能在当次会话内解码。</p>
+<h4 class="anchor anchorTargetStickyNavbar_ana5" id=restart-collision-prevention>重启防冲突<a href=#restart-collision-prevention class=hash-link aria-label=重启防冲突的直接链接 title=重启防冲突的直接链接 translate=no>​</a></h4>
+<p>重启时，Nautilus 按对账回来的订单数量重置内部订单计数器，这个数量可能低于上一次会话用过的最大计数值（例如部分订单已从 API 响应中过期）。这会让新订单产生与上次会话订单相同的 <code>client_id</code>，导致场所订单 UUID 重复。</p>
+<p>适配器把对账期间见过的每个 <code>client_id</code> 都登记下来来防止这一点。新的 O 格式编码若产生已用过的 <code>client_id</code>，编码器记录警告并回退到顺序分配，顺序分配也会跳过所有已登记的值。</p>
+<div class="theme-admonition theme-admonition-note admonition_LYZY alert alert--secondary"><div class=admonitionHeading_pnFY><span class=admonitionIcon_tEzm><svg viewBox="0 0 14 16"><path fill-rule=evenodd d="M6.3 5.69a.942.942 0 0 1-.28-.7c0-.28.09-.52.28-.7.19-.18.42-.28.7-.28.28 0 .52.09.7.28.18.19.28.42.28.7 0 .28-.09.52-.28.7a1 1 0 0 1-.7.3c-.28 0-.52-.11-.7-.3zM8 7.99c-.02-.25-.11-.48-.31-.69-.2-.19-.42-.3-.69-.31H6c-.27.02-.48.13-.69.31-.2.2-.3.44-.31.69h1v3c.02.27.11.5.31.69.2.2.42.31.69.31h1c.27 0 .48-.11.69-.31.2-.19.3-.42.31-.69H8V7.98v.01zM7 2.3c-3.14 0-5.7 2.54-5.7 5.68 0 3.14 2.56 5.7 5.7 5.7s5.7-2.55 5.7-5.7c0-3.15-2.56-5.69-5.7-5.69v.01zM7 .98c3.86 0 7 3.14 7 7s-3.14 7-7 7-7-3.12-7-7 3.14-7 7-7z"/></svg></span>备注</div><div class=admonitionContent_ZwmI><p>该保护是自动的，无需用户配置。警告日志 <code>[ENCODER] client_id ... collides with reconciled order</code> 只是提示性的，订单仍会以替代 ID 成功提交。</div></div>
+<h2 class="anchor anchorTargetStickyNavbar_ana5" id=broadcasting-and-retry-strategy>广播与重试策略<a href=#broadcasting-and-retry-strategy class=hash-link aria-label=广播与重试策略的直接链接 title=广播与重试策略的直接链接 translate=no>​</a></h2>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=short-term-broadcast>短期广播<a href=#short-term-broadcast class=hash-link aria-label=短期广播的直接链接 title=短期广播的直接链接 translate=no>​</a></h3>
+<p>短期订单用 Good-Til-Block（GTB）防重放。链上 <code>ClobDecorator</code> 的 ante handler 对短期消息跳过 Cosmos SDK 序列号检查，因此：</p>
+<ul>
+<li class=""><strong>无信号量</strong>：广播完全并发</li>
+<li class=""><strong>序列号用缓存值</strong>：无需递增或分配</li>
+<li class=""><strong>不重试</strong>：广播失败即失败</li>
+<li class="">良性的撤销错误按成功处理（见下文）</li>
+</ul>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=long-term-broadcast>长期广播<a href=#long-term-broadcast class=hash-link aria-label=长期广播的直接链接 title=长期广播的直接链接 translate=no>​</a></h3>
+<p>长期和条件订单需要规范的 Cosmos SDK 序列号管理：</p>
+<ul>
+<li class=""><strong>1 个许可的信号量</strong>串行化全部长期广播</li>
+<li class=""><strong>指数退避</strong>：500ms → 1s → 2s → 4s（最多重试 5 次）</li>
+<li class=""><strong>总预算 10 秒</strong>，防止无限重试循环</li>
+<li class="">序列号不匹配时，先<strong>从链上重新同步</strong>再重试</li>
+<li class="">瞬时 gRPC 失败（unavailable、deadline exceeded、resource exhausted）同样先重新同步再重试，反复超时不会让本地序列号跑在链前面</li>
+</ul>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=sequence-mismatch-detection>序列号不匹配检测<a href=#sequence-mismatch-detection class=hash-link aria-label=序列号不匹配检测的直接链接 title=序列号不匹配检测的直接链接 translate=no>​</a></h3>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>错误码<th>来源<th>含义<tbody><tr><td><code>code=32</code><td>Cosmos SDK<td>账户序列号不匹配<tr><td><code>code=104</code><td>dYdX 认证器<td>签名验证失败（与序列号相关）</table>
+<p>两者都经 <code>RetryManager</code> 触发自动重新同步加重试。</p>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=benign-cancel-errors>良性撤销错误<a href=#benign-cancel-errors class=hash-link aria-label=良性撤销错误的直接链接 title=良性撤销错误的直接链接 translate=no>​</a></h3>
+<p>短期撤销操作中的这些错误按<strong>成功</strong>处理：</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>错误码<th>含义<tbody><tr><td><code>code=19</code><td>交易已在 mempool 缓存中（重复交易）<tr><td><code>code=9</code><td>memclob 中已存在 GoodTilBlock 大于等于它的撤销<tr><td><code>code=3006</code><td>要撤销的订单不存在（已成交/过期/撤销）</table>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=batch-cancel-partitioning>批量撤单分组<a href=#batch-cancel-partitioning class=hash-link aria-label=批量撤单分组的直接链接 title=批量撤单分组的直接链接 translate=no>​</a></h3>
+<p>撤销多个订单时，适配器按生命周期分组：</p>
+<ol>
+<li class=""><strong>短期订单</strong>：经 <code>broadcast_short_term()</code> 发一条 <code>MsgBatchCancel</code></li>
+<li class=""><strong>长期订单</strong>：经 <code>broadcast_with_retry()</code> 发批量的 <code>MsgCancelOrder</code> 消息</li>
+</ol>
+<p>确保每组使用各自的广播策略。</p>
+<h2 class="anchor anchorTargetStickyNavbar_ana5" id=funding-rates>资金费率<a href=#funding-rates class=hash-link aria-label=资金费率的直接链接 title=资金费率的直接链接 translate=no>​</a></h2>
+<p>dYdX 永续期货使用固定 1 小时资金费率区间。适配器对所有 <code>FundingRateUpdate</code> 对象（无论 WebSocket 还是历史数据）把 <code>interval</code> 设为 <code>60</code>（分钟）。</p>
+<h2 class="anchor anchorTargetStickyNavbar_ana5" id=rate-limiting>限流<a href=#rate-limiting class=hash-link aria-label=限流的直接链接 title=限流的直接链接 translate=no>​</a></h2>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=grpc-rate-limiting>gRPC 限流<a href=#grpc-rate-limiting class=hash-link aria-label="gRPC 限流的直接链接" title="gRPC 限流的直接链接" translate=no>​</a></h3>
+<p>适配器对 gRPC <code>broadcast_tx</code> 调用限流，防止来自验证者节点的 <code>ResourceExhausted</code>（429）错误。</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>设置<th>默认值<th>说明<tbody><tr><td><code>grpc_rate_limit_per_second</code><td><code>4</code><td>每秒最大 gRPC 广播请求数，设为 <code>None</code> 禁用。</table>
+<p>这是配置结构体字段，不是 Python <code>DydxExecutionClientConfig</code> 构造函数的参数。</p>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=provider-limits>提供商限额<a href=#provider-limits class=hash-link aria-label=提供商限额的直接链接 title=提供商限额的直接链接 translate=no>​</a></h3>
+<p>公共 gRPC 提供商的已知限额：</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>提供商<th>限额<tbody><tr><td>Polkachu<td>300 req/min（约 5/s）<tr><td>KingNodes<td>250 req/min（约 4.2/s）<tr><td>AutoStake<td>4 req/s</table>
+<p>默认 4 req/s 偏保守，在所有公共提供商上都能用。</p>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=multiple-grpc-url-fallback>多 gRPC URL 回退<a href=#multiple-grpc-url-fallback class=hash-link aria-label="多 gRPC URL 回退的直接链接" title="多 gRPC URL 回退的直接链接" translate=no>​</a></h3>
+<p>适配器连接 URL 列表中第一个可达的节点，连接失败就换下一个。去中心化交易所上单个公共节点会不打招呼地下线，这一点很重要。执行配置按以下顺序解析该列表：</p>
+<ol>
+<li class=""><code>grpc_urls</code>，非空时。</li>
+<li class=""><code>grpc_endpoint</code>，作为单元素列表。只设置这一个字段就放弃了回退能力。</li>
+<li class="">所选网络的默认公共验证者节点。</li>
+</ol>
+<p>两个字段都属于配置结构体，但 Python 的 <code>DydxExecutionClientConfig</code> 构造函数不暴露它们，因此 Python 配置总是使用内置回退的网络默认值。</p>
+<h2 class="anchor anchorTargetStickyNavbar_ana5" id=price-and-size-quantization>价格与数量量化<a href=#price-and-size-quantization class=hash-link aria-label=价格与数量量化的直接链接 title=价格与数量量化的直接链接 translate=no>​</a></h2>
+<p>dYdX 对价格和数量使用整数量化。适配器经 <code>OrderMessageBuilder</code> 自动处理全部转换，理解这些参数有助于调试。</p>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=market-parameters>市场参数<a href=#market-parameters class=hash-link aria-label=市场参数的直接链接 title=市场参数的直接链接 translate=no>​</a></h3>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>参数<th>说明<tbody><tr><td><code>atomic_resolution</code><td>人类可读数量转 quantums 的指数<tr><td><code>quantum_conversion_exponent</code><td>quantums 转代币的指数<tr><td><code>step_base_quantums</code><td>最小下单规模的步长（quantums）<tr><td><code>subticks_per_tick</code><td>每个 tick 内部的价格粒度</table>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=market-order-pricing>市价单定价<a href=#market-order-pricing class=hash-link aria-label=市价单定价的直接链接 title=市价单定价的直接链接 translate=no>​</a></h3>
+<p>未显式定价的订单使用预言机价格加 5% 滑点缓冲（"穿透价"），覆盖 <code>MARKET</code>、<code>STOP_MARKET</code> 和 <code>MARKET_IF_TOUCHED</code>：</p>
+<ul>
+<li class=""><strong>买入</strong>：<code>oracle_price × 1.05</code></li>
+<li class=""><strong>卖出</strong>：<code>oracle_price × 0.95</code></li>
+</ul>
+<p>订单定价从金融工具缓存读取预言机价格。该缓存由 Indexer 在客户端连接时填充，之后不再刷新，因此穿透区间始终锚定连接时刻的预言机价。执行客户端另行在 markets 通道上跟踪实时预言机价格，用于账户状态和持仓估值，不用于订单定价。</p>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=automatic-handling>自动处理<a href=#automatic-handling class=hash-link aria-label=自动处理的直接链接 title=自动处理的直接链接 translate=no>​</a></h3>
+<p>全部价格与数量量化由 <code>OrderMessageBuilder</code> 自动处理，经 Nautilus 下单无需手动转换。</p>
+<h2 class="anchor anchorTargetStickyNavbar_ana5" id=data-subscriptions>数据订阅<a href=#data-subscriptions class=hash-link aria-label=数据订阅的直接链接 title=数据订阅的直接链接 translate=no>​</a></h2>
+<p>适配器支持以下数据订阅：</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>数据类型<th>订阅<th>历史请求<th>说明<tbody><tr><td>成交 tick<td>✓<td>✓<td><tr><td>报价 tick<td>✓<td>-<td>由订单簿 top-of-book 合成。<tr><td>订单簿 delta<td>✓<td>-<td>仅 L2 深度。<tr><td>订单簿快照<td>-<td>✓<td>经 HTTP 请求的一次性快照。<tr><td>Bar<td>✓<td>✓<td>支持的周期见下文。<tr><td>Mark 价格<td>✓<td>-<td>经 markets 通道。<tr><td>Index 价格<td>✓<td>-<td>经 markets 通道。<tr><td>资金费率<td>✓<td>✓<td>实时经 markets 通道，历史经 HTTP。<tr><td>金融工具状态<td>✓<td>-<td>经 markets 通道。</table>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=supported-bar-resolutions>支持的 bar 周期<a href=#supported-bar-resolutions class=hash-link aria-label="支持的 bar 周期的直接链接" title="支持的 bar 周期的直接链接" translate=no>​</a></h3>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>周期<th>dYdX candle<tbody><tr><td>1-MINUTE<td><code>1MIN</code><tr><td>5-MINUTE<td><code>5MINS</code><tr><td>15-MINUTE<td><code>15MINS</code><tr><td>30-MINUTE<td><code>30MINS</code><tr><td>1-HOUR<td><code>1HOUR</code><tr><td>4-HOUR<td><code>4HOURS</code><tr><td>1-DAY<td><code>1DAY</code></table>
+<h2 class="anchor anchorTargetStickyNavbar_ana5" id=subaccounts>子账户<a href=#subaccounts class=hash-link aria-label=子账户的直接链接 title=子账户的直接链接 translate=no>​</a></h2>
+<p>dYdX 支持每个钱包地址多个子账户，便于在单一钱包内隔离交易策略与风险管理。</p>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=concepts>概念<a href=#concepts class=hash-link aria-label=概念的直接链接 title=概念的直接链接 translate=no>​</a></h3>
+<ul>
+<li class="">每个钱包地址可有多个编号子账户（0、1、2、…、127）。128 及以上是场所的逐仓隔离保证金子账户，本适配器不支持。</li>
+<li class="">子账户 0 是<strong>默认</strong>账户，首次入金时自动创建。</li>
+<li class="">每个子账户独立维护：
+<ul>
+<li class="">持仓</li>
+<li class="">挂单</li>
+<li class="">抵押品余额</li>
+<li class="">保证金要求</li>
+</ul>
+</li>
+</ul>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=configuration>配置<a href=#configuration class=hash-link aria-label=配置的直接链接 title=配置的直接链接 translate=no>​</a></h3>
+<p>在执行客户端配置中指定子账户编号：</p>
+<div class="language-python codeBlockContainer_eTMR theme-code-block" style=--prism-color:#393A34;--prism-background-color:#f6f8fa><div class=codeBlockContent_hafM><pre tabindex=0 class="prism-code language-python codeBlock_IMvC thin-scrollbar" style=color:#393A34;background-color:#f6f8fa><code class=codeBlockLines_gZDW><div class=token-line style=color:#393A34><span class="token keyword" style=color:#00009f>from</span><span class="token plain"> nautilus_trader</span><span class="token punctuation" style=color:#393A34>.</span><span class="token plain">adapters</span><span class="token punctuation" style=color:#393A34>.</span><span class="token plain">dydx </span><span class="token keyword" style=color:#00009f>import</span><span class="token plain"> DydxExecutionClientConfig</span><br/></div><div class=token-line style=color:#393A34><span class="token plain"></span><span class="token keyword" style=color:#00009f>from</span><span class="token plain"> nautilus_trader</span><span class="token punctuation" style=color:#393A34>.</span><span class="token plain">model </span><span class="token keyword" style=color:#00009f>import</span><span class="token plain"> AccountId</span><br/></div><div class=token-line style=color:#393A34><span class="token plain" style=display:inline-block></span><br/></div><div class=token-line style=color:#393A34><span class="token plain" style=display:inline-block></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">exec_config </span><span class="token operator" style=color:#393A34>=</span><span class="token plain"> DydxExecutionClientConfig</span><span class="token punctuation" style=color:#393A34>(</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    account_id</span><span class="token operator" style=color:#393A34>=</span><span class="token plain">AccountId</span><span class="token punctuation" style=color:#393A34>.</span><span class="token plain">from_str</span><span class="token punctuation" style=color:#393A34>(</span><span class="token string" style=color:#e3116c>"DYDX-001"</span><span class="token punctuation" style=color:#393A34>)</span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    subaccount_number</span><span class="token operator" style=color:#393A34>=</span><span class="token number" style=color:#36acaa>0</span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain"></span><span class="token punctuation" style=color:#393A34>)</span><br/></div></code></pre></div></div>
+<div class="theme-admonition theme-admonition-note admonition_LYZY alert alert--secondary"><div class=admonitionHeading_pnFY><span class=admonitionIcon_tEzm><svg viewBox="0 0 14 16"><path fill-rule=evenodd d="M6.3 5.69a.942.942 0 0 1-.28-.7c0-.28.09-.52.28-.7.19-.18.42-.28.7-.28.28 0 .52.09.7.28.18.19.28.42.28.7 0 .28-.09.52-.28.7a1 1 0 0 1-.7.3c-.28 0-.52-.11-.7-.3zM8 7.99c-.02-.25-.11-.48-.31-.69-.2-.19-.42-.3-.69-.31H6c-.27.02-.48.13-.69.31-.2.2-.3.44-.31.69h1v3c.02.27.11.5.31.69.2.2.42.31.69.31h1c.27 0 .48-.11.69-.31.2-.19.3-.42.31-.69H8V7.98v.01zM7 2.3c-3.14 0-5.7 2.54-5.7 5.68 0 3.14 2.56 5.7 5.7 5.7s5.7-2.55 5.7-5.7c0-3.15-2.56-5.69-5.7-5.69v.01zM7 .98c3.86 0 7 3.14 7 7s-3.14 7-7 7-7-3.12-7-7 3.14-7 7-7z"/></svg></span>备注</div><div class=admonitionContent_ZwmI><p>多数用户使用子账户 <code>0</code>（默认值）。高级用户可以为不同子账户配置多个执行客户端，实现策略隔离或风险隔离。</div></div>
+<h2 class="anchor anchorTargetStickyNavbar_ana5" id=testnet-setup>测试网设置<a href=#testnet-setup class=hash-link aria-label=测试网设置的直接链接 title=测试网设置的直接链接 translate=no>​</a></h2>
+<p>dYdX 测试网（<code>dydx-testnet-4</code>）是主网的完整副本，用于不冒真实资金风险地测试策略。设置 <code>network=DydxNetwork.TESTNET</code> 后，所有默认测试网端点自动解析。</p>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=1-create-a-testnet-wallet>1. 创建测试网钱包<a href=#1-create-a-testnet-wallet class=hash-link aria-label="1. 创建测试网钱包的直接链接" title="1. 创建测试网钱包的直接链接" translate=no>​</a></h3>
+<p><strong>方式 A：通过 dYdX 测试网网页应用（最简单）</strong></p>
+<ol>
+<li class="">打开 <a href=https://v4.testnet.dydx.exchange target=_blank rel="noopener noreferrer" class="">v4.testnet.dydx.exchange</a></li>
+<li class="">用 MetaMask、Keplr、Phantom 或 WalletConnect 连接</li>
+<li class="">dYdX 账户自动生成</li>
+<li class="">导出助记短语：点击右上角地址，选择 "Export secret phrase"</li>
+</ol>
+<p><strong>方式 B：使用已有的 secp256k1 私钥</strong></p>
+<p>任意 32 字节十六进制编码的 secp256k1 私钥都可以。适配器用 Cosmos bech32 编码自动从密钥推导出 <code>dydx1...</code> 地址。</p>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=2-fund-the-testnet-account>2. 为测试网账户注资<a href=#2-fund-the-testnet-account class=hash-link aria-label="2. 为测试网账户注资的直接链接" title="2. 为测试网账户注资的直接链接" translate=no>​</a></h3>
+<p>适配器连接前子账户必须已入金（见<a href=#architecture class="">首次账户激活</a>）。</p>
+<p><strong>通过测试网网页应用</strong>：在 <a href=https://v4.testnet.dydx.exchange target=_blank rel="noopener noreferrer" class="">v4.testnet.dydx.exchange</a> 点击入金/充值按钮，自动获得测试网 USDC。</p>
+<p><strong>直接调用 faucet API</strong>：</p>
+<div class="language-bash codeBlockContainer_eTMR theme-code-block" style=--prism-color:#393A34;--prism-background-color:#f6f8fa><div class=codeBlockContent_hafM><pre tabindex=0 class="prism-code language-bash codeBlock_IMvC thin-scrollbar" style=color:#393A34;background-color:#f6f8fa><code class=codeBlockLines_gZDW><div class=token-line style=color:#393A34><span class="token plain"># Fund subaccount 0 with 2000 USDC</span><br/></div><div class=token-line style=color:#393A34><span class="token plain">curl -X POST https://faucet.v4testnet.dydx.exchange/faucet/tokens \</span><br/></div><div class=token-line style=color:#393A34><span class="token plain">  -H "Content-Type: application/json" \</span><br/></div><div class=token-line style=color:#393A34><span class="token plain">  -d '{"address": "dydx1...", "subaccountNumber": 0, "amount": 2000}'</span><br/></div><div class=token-line style=color:#393A34><span class="token plain" style=display:inline-block></span><br/></div><div class=token-line style=color:#393A34><span class="token plain"># Fund native tokens (for gas fees)</span><br/></div><div class=token-line style=color:#393A34><span class="token plain">curl -X POST https://faucet.v4testnet.dydx.exchange/faucet/native-token \</span><br/></div><div class=token-line style=color:#393A34><span class="token plain">  -H "Content-Type: application/json" \</span><br/></div><div class=token-line style=color:#393A34><span class="token plain">  -d '{"address": "dydx1..."}'</span><br/></div></code></pre></div></div>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=3-set-environment-variables>3. 设置环境变量<a href=#3-set-environment-variables class=hash-link aria-label="3. 设置环境变量的直接链接" title="3. 设置环境变量的直接链接" translate=no>​</a></h3>
+<div class="language-bash codeBlockContainer_eTMR theme-code-block" style=--prism-color:#393A34;--prism-background-color:#f6f8fa><div class=codeBlockContent_hafM><pre tabindex=0 class="prism-code language-bash codeBlock_IMvC thin-scrollbar" style=color:#393A34;background-color:#f6f8fa><code class=codeBlockLines_gZDW><div class=token-line style=color:#393A34><span class="token plain">export DYDX_TESTNET_WALLET_ADDRESS="dydx1..."</span><br/></div><div class=token-line style=color:#393A34><span class="token plain">export DYDX_TESTNET_PRIVATE_KEY="0x..."  # hex-encoded, 0x prefix optional</span><br/></div></code></pre></div></div>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=4-configure-the-trading-node>4. 配置交易节点<a href=#4-configure-the-trading-node class=hash-link aria-label="4. 配置交易节点的直接链接" title="4. 配置交易节点的直接链接" translate=no>​</a></h3>
+<p>数据与执行客户端都设置 <code>network=DydxNetwork.TESTNET</code>：</p>
+<div class="language-python codeBlockContainer_eTMR theme-code-block" style=--prism-color:#393A34;--prism-background-color:#f6f8fa><div class=codeBlockContent_hafM><pre tabindex=0 class="prism-code language-python codeBlock_IMvC thin-scrollbar" style=color:#393A34;background-color:#f6f8fa><code class=codeBlockLines_gZDW><div class=token-line style=color:#393A34><span class="token keyword" style=color:#00009f>from</span><span class="token plain"> nautilus_trader</span><span class="token punctuation" style=color:#393A34>.</span><span class="token plain">adapters</span><span class="token punctuation" style=color:#393A34>.</span><span class="token plain">dydx </span><span class="token keyword" style=color:#00009f>import</span><span class="token plain"> DydxDataClientConfig</span><br/></div><div class=token-line style=color:#393A34><span class="token plain"></span><span class="token keyword" style=color:#00009f>from</span><span class="token plain"> nautilus_trader</span><span class="token punctuation" style=color:#393A34>.</span><span class="token plain">adapters</span><span class="token punctuation" style=color:#393A34>.</span><span class="token plain">dydx </span><span class="token keyword" style=color:#00009f>import</span><span class="token plain"> DydxExecutionClientConfig</span><br/></div><div class=token-line style=color:#393A34><span class="token plain"></span><span class="token keyword" style=color:#00009f>from</span><span class="token plain"> nautilus_trader</span><span class="token punctuation" style=color:#393A34>.</span><span class="token plain">adapters</span><span class="token punctuation" style=color:#393A34>.</span><span class="token plain">dydx </span><span class="token keyword" style=color:#00009f>import</span><span class="token plain"> DydxNetwork</span><br/></div><div class=token-line style=color:#393A34><span class="token plain"></span><span class="token keyword" style=color:#00009f>from</span><span class="token plain"> nautilus_trader</span><span class="token punctuation" style=color:#393A34>.</span><span class="token plain">model </span><span class="token keyword" style=color:#00009f>import</span><span class="token plain"> AccountId</span><br/></div><div class=token-line style=color:#393A34><span class="token plain" style=display:inline-block></span><br/></div><div class=token-line style=color:#393A34><span class="token plain" style=display:inline-block></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">data_config </span><span class="token operator" style=color:#393A34>=</span><span class="token plain"> DydxDataClientConfig</span><span class="token punctuation" style=color:#393A34>(</span><span class="token plain">network</span><span class="token operator" style=color:#393A34>=</span><span class="token plain">DydxNetwork</span><span class="token punctuation" style=color:#393A34>.</span><span class="token plain">TESTNET</span><span class="token punctuation" style=color:#393A34>)</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain" style=display:inline-block></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">exec_config </span><span class="token operator" style=color:#393A34>=</span><span class="token plain"> DydxExecutionClientConfig</span><span class="token punctuation" style=color:#393A34>(</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    account_id</span><span class="token operator" style=color:#393A34>=</span><span class="token plain">AccountId</span><span class="token punctuation" style=color:#393A34>.</span><span class="token plain">from_str</span><span class="token punctuation" style=color:#393A34>(</span><span class="token string" style=color:#e3116c>"DYDX-001"</span><span class="token punctuation" style=color:#393A34>)</span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    network</span><span class="token operator" style=color:#393A34>=</span><span class="token plain">DydxNetwork</span><span class="token punctuation" style=color:#393A34>.</span><span class="token plain">TESTNET</span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    wallet_address</span><span class="token operator" style=color:#393A34>=</span><span class="token boolean" style=color:#36acaa>None</span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain">  </span><span class="token comment" style=color:#999988;font-style:italic># Falls back to DYDX_TESTNET_WALLET_ADDRESS</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    private_key</span><span class="token operator" style=color:#393A34>=</span><span class="token boolean" style=color:#36acaa>None</span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain">  </span><span class="token comment" style=color:#999988;font-style:italic># Falls back to DYDX_TESTNET_PRIVATE_KEY</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    subaccount_number</span><span class="token operator" style=color:#393A34>=</span><span class="token number" style=color:#36acaa>0</span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain"></span><span class="token punctuation" style=color:#393A34>)</span><br/></div></code></pre></div></div>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=testnet-endpoints>测试网端点<a href=#testnet-endpoints class=hash-link aria-label=测试网端点的直接链接 title=测试网端点的直接链接 translate=no>​</a></h3>
+<p>Python 构造函数自动选择默认测试网端点，不暴露端点覆盖。</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>服务<th>默认 URL<tbody><tr><td>HTTP<td><code>https://indexer.v4testnet.dydx.exchange</code><tr><td>WebSocket<td><code>wss://indexer.v4testnet.dydx.exchange/v4/ws</code><tr><td>gRPC<td><code>https://test-dydx-grpc.kingnodes.com:443</code>（主）<tr><td>Faucet<td><code>https://faucet.v4testnet.dydx.exchange</code><tr><td>网页应用<td><code>https://v4.testnet.dydx.exchange</code></table>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=mainnet-endpoints>主网端点<a href=#mainnet-endpoints class=hash-link aria-label=主网端点的直接链接 title=主网端点的直接链接 translate=no>​</a></h3>
+<p>Python 构造函数自动选择默认主网端点，不暴露端点覆盖。</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>服务<th>默认 URL<tbody><tr><td>HTTP<td><code>https://indexer.dydx.trade</code><tr><td>WebSocket<td><code>wss://indexer.dydx.trade/v4/ws</code><tr><td>gRPC<td><code>https://dydx-ops-grpc.kingnodes.com:443</code>（主）</table>
+<h2 class="anchor anchorTargetStickyNavbar_ana5" id=configuration-1>配置<a href=#configuration-1 class=hash-link aria-label=配置的直接链接 title=配置的直接链接 translate=no>​</a></h2>
+<p>通过交易节点配置 dYdX 适配器。执行客户端支持凭据的环境变量回退；数据客户端使用公共端点，不需要钱包凭据。</p>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=data-client-configuration-options>数据客户端配置选项<a href=#data-client-configuration-options class=hash-link aria-label=数据客户端配置选项的直接链接 title=数据客户端配置选项的直接链接 translate=no>​</a></h3>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>选项<th>默认值<th>说明<tbody><tr><td><code>network</code><td><code>MAINNET</code><td><code>DydxNetwork.MAINNET</code> 或 <code>DydxNetwork.TESTNET</code>。<tr><td><code>proxy_url</code><td><code>None</code><td>HTTP 与 WebSocket 可选代理 URL。</table>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=execution-client-configuration-options>执行客户端配置选项<a href=#execution-client-configuration-options class=hash-link aria-label=执行客户端配置选项的直接链接 title=执行客户端配置选项的直接链接 translate=no>​</a></h3>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>选项<th>默认值<th>说明<tbody><tr><td><code>account_id</code><td>必填<td>该客户端的 Nautilus 账户 ID。<tr><td><code>network</code><td><code>MAINNET</code><td><code>DydxNetwork.MAINNET</code> 或 <code>DydxNetwork.TESTNET</code>。<tr><td><code>private_key</code><td><code>None</code><td>十六进制签名密钥；回退到按网络区分的环境变量。<tr><td><code>wallet_address</code><td><code>None</code><td>dYdX 钱包地址；回退到按网络区分的环境变量。<tr><td><code>subaccount_number</code><td><code>0</code><td>子账户编号，<code>0</code> 至 <code>127</code>。<tr><td><code>proxy_url</code><td><code>None</code><td>HTTP 与 WebSocket 可选代理 URL。</table>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=basic-setup>基本设置<a href=#basic-setup class=hash-link aria-label=基本设置的直接链接 title=基本设置的直接链接 translate=no>​</a></h3>
+<p>在节点 builder 上把 <code>DydxDataClientConfig</code> 与 <code>DydxDataClientFactory</code>、<code>DydxExecutionClientConfig</code> 与 <code>DydxExecutionClientFactory</code> 一起注册。
+<a href=https://github.com/nautechsystems/nautilus_trader/tree/develop/examples/live/dydx/ target=_blank rel="noopener noreferrer" class="">Python 示例</a>
+展示了两个客户端完整的 <code>LiveNode.builder(...)</code> 接线。</p>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=api-credentials>API 凭据<a href=#api-credentials class=hash-link aria-label="API 凭据的直接链接" title="API 凭据的直接链接" translate=no>​</a></h3>
+<p>凭据可以直接通过 Python 配置传入（<code>wallet_address</code>、<code>private_key</code>），也可以根据配置的 <code>network</code> 自动从环境变量解析。</p>
+<h4 class="anchor anchorTargetStickyNavbar_ana5" id=environment-variables>环境变量<a href=#environment-variables class=hash-link aria-label=环境变量的直接链接 title=环境变量的直接链接 translate=no>​</a></h4>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>变量<th>网络<th>说明<tbody><tr><td><code>DYDX_WALLET_ADDRESS</code><td>主网<td>Bech32 编码的钱包地址（<code>dydx1...</code>）。<tr><td><code>DYDX_PRIVATE_KEY</code><td>主网<td>十六进制编码的 secp256k1 签名私钥。<tr><td><code>DYDX_TESTNET_WALLET_ADDRESS</code><td>测试网<td>测试网钱包地址（<code>dydx1...</code>）。<tr><td><code>DYDX_TESTNET_PRIVATE_KEY</code><td>测试网<td>测试网私钥。</table>
+<h4 class="anchor anchorTargetStickyNavbar_ana5" id=resolution-priority>解析优先级<a href=#resolution-priority class=hash-link aria-label=解析优先级的直接链接 title=解析优先级的直接链接 translate=no>​</a></h4>
+<ol>
+<li class="">Python 配置传入的值（非空时）</li>
+<li class="">按 <code>network</code> 选定的环境变量</li>
+</ol>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=permissioned-key-trading>授权密钥交易<a href=#permissioned-key-trading class=hash-link aria-label=授权密钥交易的直接链接 title=授权密钥交易的直接链接 translate=no>​</a></h3>
+<h4 class="anchor anchorTargetStickyNavbar_ana5" id=what-are-api-trading-keys>什么是 API Trading Keys<a href=#what-are-api-trading-keys class=hash-link aria-label="什么是 API Trading Keys的直接链接" title="什么是 API Trading Keys的直接链接" translate=no>​</a></h4>
+<p>API Trading Keys 让你把交易委托给一个独立的签名密钥，不必共享主钱包的助记短语。API 密钥可以使用所有者全仓账户的全部可用保证金交易，但不能提款或划转资产。</p>
+<h4 class="anchor anchorTargetStickyNavbar_ana5" id=creating-an-api-key>创建 API 密钥<a href=#creating-an-api-key class=hash-link aria-label="创建 API 密钥的直接链接" title="创建 API 密钥的直接链接" translate=no>​</a></h4>
+<ol>
+<li class="">在 dYdX 网页应用中进入 <strong>More > API Trading Keys</strong></li>
+<li class="">点击 <strong>Generate New API Key</strong></li>
+<li class="">保存 <strong>API Wallet Address</strong> 和 <strong>Private Key</strong>（只显示一次，dYdX 不存储）</li>
+<li class="">点击 <strong>Authorize API Key</strong>（把密钥作为认证器注册到链上）</li>
+<li class="">密钥即刻生效，可用于交易</li>
+</ol>
+<p>认证器模型见
+<a href=https://docs.dydx.xyz/interaction/permissioned-keys target=_blank rel="noopener noreferrer" class="">dYdX 授权密钥文档</a>，网页应用创建与管理密钥的流程见
+<a href=https://help.dydx.trade/en/articles/267486-api-trading-keys-creating-a-new-key-on-the-front-end target=_blank rel="noopener noreferrer" class="">前端操作指南</a>。</p>
+<h4 class="anchor anchorTargetStickyNavbar_ana5" id=adapter-configuration>适配器配置<a href=#adapter-configuration class=hash-link aria-label=适配器配置的直接链接 title=适配器配置的直接链接 translate=no>​</a></h4>
+<p>把 API 密钥的私钥设为 <code>DYDX_PRIVATE_KEY</code>，所有者的钱包地址设为 <code>DYDX_WALLET_ADDRESS</code>。适配器在连接时检测到二者不一致，自动向链查询匹配的认证器 ID。</p>
+<div class="language-python codeBlockContainer_eTMR theme-code-block" style=--prism-color:#393A34;--prism-background-color:#f6f8fa><div class=codeBlockContent_hafM><pre tabindex=0 class="prism-code language-python codeBlock_IMvC thin-scrollbar" style=color:#393A34;background-color:#f6f8fa><code class=codeBlockLines_gZDW><div class=token-line style=color:#393A34><span class="token keyword" style=color:#00009f>from</span><span class="token plain"> nautilus_trader</span><span class="token punctuation" style=color:#393A34>.</span><span class="token plain">adapters</span><span class="token punctuation" style=color:#393A34>.</span><span class="token plain">dydx </span><span class="token keyword" style=color:#00009f>import</span><span class="token plain"> DydxExecutionClientConfig</span><br/></div><div class=token-line style=color:#393A34><span class="token plain"></span><span class="token keyword" style=color:#00009f>from</span><span class="token plain"> nautilus_trader</span><span class="token punctuation" style=color:#393A34>.</span><span class="token plain">model </span><span class="token keyword" style=color:#00009f>import</span><span class="token plain"> AccountId</span><br/></div><div class=token-line style=color:#393A34><span class="token plain" style=display:inline-block></span><br/></div><div class=token-line style=color:#393A34><span class="token plain" style=display:inline-block></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">config </span><span class="token operator" style=color:#393A34>=</span><span class="token plain"> DydxExecutionClientConfig</span><span class="token punctuation" style=color:#393A34>(</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    account_id</span><span class="token operator" style=color:#393A34>=</span><span class="token plain">AccountId</span><span class="token punctuation" style=color:#393A34>.</span><span class="token plain">from_str</span><span class="token punctuation" style=color:#393A34>(</span><span class="token string" style=color:#e3116c>"DYDX-001"</span><span class="token punctuation" style=color:#393A34>)</span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    wallet_address</span><span class="token operator" style=color:#393A34>=</span><span class="token string" style=color:#e3116c>"dydx1owner..."</span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain">  </span><span class="token comment" style=color:#999988;font-style:italic># Owner account (holds margin)</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    private_key</span><span class="token operator" style=color:#393A34>=</span><span class="token string" style=color:#e3116c>"0xapikey..."</span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain">  </span><span class="token comment" style=color:#999988;font-style:italic># API Trading Key private key</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain"></span><span class="token punctuation" style=color:#393A34>)</span><br/></div></code></pre></div></div>
+<p>公共 Python 配置不接受手动指定认证器 ID。</p>
+<div class="theme-admonition theme-admonition-note admonition_LYZY alert alert--secondary"><div class=admonitionHeading_pnFY><span class=admonitionIcon_tEzm><svg viewBox="0 0 14 16"><path fill-rule=evenodd d="M6.3 5.69a.942.942 0 0 1-.28-.7c0-.28.09-.52.28-.7.19-.18.42-.28.7-.28.28 0 .52.09.7.28.18.19.28.42.28.7 0 .28-.09.52-.28.7a1 1 0 0 1-.7.3c-.28 0-.52-.11-.7-.3zM8 7.99c-.02-.25-.11-.48-.31-.69-.2-.19-.42-.3-.69-.31H6c-.27.02-.48.13-.69.31-.2.2-.3.44-.31.69h1v3c.02.27.11.5.31.69.2.2.42.31.69.31h1c.27 0 .48-.11.69-.31.2-.19.3-.42.31-.69H8V7.98v.01zM7 2.3c-3.14 0-5.7 2.54-5.7 5.68 0 3.14 2.56 5.7 5.7 5.7s5.7-2.55 5.7-5.7c0-3.15-2.56-5.69-5.7-5.69v.01zM7 .98c3.86 0 7 3.14 7 7s-3.14 7-7 7-7-3.12-7-7 3.14-7 7-7z"/></svg></span>备注</div><div class=admonitionContent_ZwmI><p>API Trading Keys 只适用于<strong>全仓</strong>账户和全仓市场，不支持逐仓。</div></div>
+<h2 class="anchor anchorTargetStickyNavbar_ana5" id=order-books>订单簿<a href=#order-books class=hash-link aria-label=订单簿的直接链接 title=订单簿的直接链接 translate=no>​</a></h2>
+<p>按订阅方式，订单簿可以维持完整深度或 top-of-book 报价。场所不直接提供报价：适配器订阅订单簿 delta，在 top-of-book 价格或数量变化时为 <code>DataEngine</code> 合成报价。只支持 L2（MBP）簿类型。</p>
+<h2 class="anchor anchorTargetStickyNavbar_ana5" id=contributing>参与贡献<a href=#contributing class=hash-link aria-label=参与贡献的直接链接 title=参与贡献的直接链接 translate=no>​</a></h2>
+<div class="theme-admonition theme-admonition-info admonition_LYZY alert alert--info"><div class=admonitionHeading_pnFY><span class=admonitionIcon_tEzm><svg viewBox="0 0 14 16"><path fill-rule=evenodd d="M7 2.3c3.14 0 5.7 2.56 5.7 5.7s-2.56 5.7-5.7 5.7A5.71 5.71 0 0 1 1.3 8c0-3.14 2.56-5.7 5.7-5.7zM7 1C3.14 1 0 4.14 0 8s3.14 7 7 7 7-3.14 7-7-3.14-7-7-7zm1 3H6v5h2V4zm0 6H6v2h2v-2z"/></svg></span>信息</div><div class=admonitionContent_ZwmI><p>需要更多功能或想为 dYdX 适配器做贡献，见我们的
+<a href=https://github.com/nautechsystems/nautilus_trader/blob/develop/CONTRIBUTING.md target=_blank rel="noopener noreferrer" class="">贡献指南</a>。</div></div></div><footer class="theme-doc-footer docusaurus-mt-lg"><div class="row margin-top--sm theme-doc-footer-edit-meta-row"><div class="col noPrint_MRkS"><a href=https://github.com/Aloento/NautilusTraderDoc/tree/main/docs/integrations/dydx.md target=_blank rel="noopener noreferrer" class=theme-edit-this-page><svg fill=currentColor height=20 width=20 viewBox="0 0 40 40" class=iconEdit_RPSQ aria-hidden=true><g><path d="m34.5 11.7l-3 3.1-6.3-6.3 3.1-3q0.5-0.5 1.2-0.5t1.1 0.5l3.9 3.9q0.5 0.4 0.5 1.1t-0.5 1.2z m-29.5 17.1l18.4-18.5 6.3 6.3-18.4 18.4h-6.3v-6.2z"/></g></svg>编辑此页</a></div><div class="col lastUpdated_oZSl"><span class=theme-last-updated>最后<!-- -->于 <b><time datetime=2026-10-14T22:30:30.000Z itemprop=dateModified>2026年10月14日</time></b> <!-- -->更新</span></div></div></footer></article><nav class="docusaurus-mt-lg pagination-nav" aria-label=文件选项卡><a class="pagination-nav__link pagination-nav__link--prev" href=/integrations/derive><div class=pagination-nav__sublabel>上一页</div><div class=pagination-nav__label>Derive</div></a><a class="pagination-nav__link pagination-nav__link--next" href=/integrations/hyperliquid><div class=pagination-nav__sublabel>下一页</div><div class=pagination-nav__label>Hyperliquid</div></a></nav></div></div><div class="col col--3"><div class="tableOfContents_LyLZ thin-scrollbar theme-doc-toc-desktop"><ul class="table-of-contents table-of-contents__left-border"><li><a href=#installation class="table-of-contents__link toc-highlight">安装</a><li><a href=#examples class="table-of-contents__link toc-highlight">示例</a><li><a href=#overview class="table-of-contents__link toc-highlight">概览</a><ul><li><a href=#product-support class="table-of-contents__link toc-highlight">产品支持</a></ul><li><a href=#chain-architecture class="table-of-contents__link toc-highlight">链架构</a><ul><li><a href=#transport-layers class="table-of-contents__link toc-highlight">传输层</a><li><a href=#block-based-settlement class="table-of-contents__link toc-highlight">按区块结算</a></ul><li><a href=#architecture class="table-of-contents__link toc-highlight">架构</a><li><a href=#troubleshooting class="table-of-contents__link toc-highlight">故障排查</a><ul><li><a href=#grpc-notfound-on-connect class="table-of-contents__link toc-highlight">连接时 gRPC <code>NotFound</code></a></ul><li><a href=#symbology class="table-of-contents__link toc-highlight">代码体系</a><ul><li><a href=#symbol-format class="table-of-contents__link toc-highlight">代码格式</a></ul><li><a href=#orders-capability class="table-of-contents__link toc-highlight">订单能力</a><ul><li><a href=#order-types class="table-of-contents__link toc-highlight">订单类型</a><li><a href=#execution-instructions class="table-of-contents__link toc-highlight">执行指令</a><li><a href=#time-in-force-options class="table-of-contents__link toc-highlight">时效选项</a><li><a href=#advanced-order-features class="table-of-contents__link toc-highlight">高级订单特性</a><li><a href=#batch-operations class="table-of-contents__link toc-highlight">批量操作</a><li><a href=#position-management class="table-of-contents__link toc-highlight">持仓管理</a><li><a href=#order-querying class="table-of-contents__link toc-highlight">订单查询</a><li><a href=#contingent-orders class="table-of-contents__link toc-highlight">或有订单</a><li><a href=#equity-tier-limit class="table-of-contents__link toc-highlight">权益层级限额</a><li><a href=#mit-and-lit-round-tripping class="table-of-contents__link toc-highlight">MIT 与 LIT 的往返转换</a><li><a href=#liquidation-and-adl-deleveraging-handling class="table-of-contents__link toc-highlight">清算与 ADL（自动减仓）处理</a><li><a href=#order-classification class="table-of-contents__link toc-highlight">订单分类</a><li><a href=#client-order-id-encoding class="table-of-contents__link toc-highlight">客户订单 ID 编码</a></ul><li><a href=#broadcasting-and-retry-strategy class="table-of-contents__link toc-highlight">广播与重试策略</a><ul><li><a href=#short-term-broadcast class="table-of-contents__link toc-highlight">短期广播</a><li><a href=#long-term-broadcast class="table-of-contents__link toc-highlight">长期广播</a><li><a href=#sequence-mismatch-detection class="table-of-contents__link toc-highlight">序列号不匹配检测</a><li><a href=#benign-cancel-errors class="table-of-contents__link toc-highlight">良性撤销错误</a><li><a href=#batch-cancel-partitioning class="table-of-contents__link toc-highlight">批量撤单分组</a></ul><li><a href=#funding-rates class="table-of-contents__link toc-highlight">资金费率</a><li><a href=#rate-limiting class="table-of-contents__link toc-highlight">限流</a><ul><li><a href=#grpc-rate-limiting class="table-of-contents__link toc-highlight">gRPC 限流</a><li><a href=#provider-limits class="table-of-contents__link toc-highlight">提供商限额</a><li><a href=#multiple-grpc-url-fallback class="table-of-contents__link toc-highlight">多 gRPC URL 回退</a></ul><li><a href=#price-and-size-quantization class="table-of-contents__link toc-highlight">价格与数量量化</a><ul><li><a href=#market-parameters class="table-of-contents__link toc-highlight">市场参数</a><li><a href=#market-order-pricing class="table-of-contents__link toc-highlight">市价单定价</a><li><a href=#automatic-handling class="table-of-contents__link toc-highlight">自动处理</a></ul><li><a href=#data-subscriptions class="table-of-contents__link toc-highlight">数据订阅</a><ul><li><a href=#supported-bar-resolutions class="table-of-contents__link toc-highlight">支持的 bar 周期</a></ul><li><a href=#subaccounts class="table-of-contents__link toc-highlight">子账户</a><ul><li><a href=#concepts class="table-of-contents__link toc-highlight">概念</a><li><a href=#configuration class="table-of-contents__link toc-highlight">配置</a></ul><li><a href=#testnet-setup class="table-of-contents__link toc-highlight">测试网设置</a><ul><li><a href=#1-create-a-testnet-wallet class="table-of-contents__link toc-highlight">1. 创建测试网钱包</a><li><a href=#2-fund-the-testnet-account class="table-of-contents__link toc-highlight">2. 为测试网账户注资</a><li><a href=#3-set-environment-variables class="table-of-contents__link toc-highlight">3. 设置环境变量</a><li><a href=#4-configure-the-trading-node class="table-of-contents__link toc-highlight">4. 配置交易节点</a><li><a href=#testnet-endpoints class="table-of-contents__link toc-highlight">测试网端点</a><li><a href=#mainnet-endpoints class="table-of-contents__link toc-highlight">主网端点</a></ul><li><a href=#configuration-1 class="table-of-contents__link toc-highlight">配置</a><ul><li><a href=#data-client-configuration-options class="table-of-contents__link toc-highlight">数据客户端配置选项</a><li><a href=#execution-client-configuration-options class="table-of-contents__link toc-highlight">执行客户端配置选项</a><li><a href=#basic-setup class="table-of-contents__link toc-highlight">基本设置</a><li><a href=#api-credentials class="table-of-contents__link toc-highlight">API 凭据</a><li><a href=#permissioned-key-trading class="table-of-contents__link toc-highlight">授权密钥交易</a></ul><li><a href=#order-books class="table-of-contents__link toc-highlight">订单簿</a><li><a href=#contributing class="table-of-contents__link toc-highlight">参与贡献</a></ul></div></div></div></div></main></div></div></div><footer class="theme-layout-footer footer footer--dark"><div class="container container-fluid"><div class="row footer__links"><div class="theme-layout-footer-column col footer__col"><div class=footer__title></div><ul class="footer__items clean-list"><li class=footer__item><a href=https://github.com/nautechsystems/nautilus_trader target=_blank rel="noopener noreferrer" class=footer__link-item>Official GitHub<svg width=13.5 height=13.5 aria-label="(opens in new tab)" class=iconExternalLink_qUHo><use href=#theme-svg-external-link /></svg></a><li class=footer__item><a href=https://nautilustrader.io/docs target=_blank rel="noopener noreferrer" class=footer__link-item>Official Documentation<svg width=13.5 height=13.5 aria-label="(opens in new tab)" class=iconExternalLink_qUHo><use href=#theme-svg-external-link /></svg></a></ul></div></div><div class="footer__bottom text--center"><div class=footer__copyright>© 2026 Nautech Systems Pty Ltd. All rights reserved.</div></div></div></footer></div></body>

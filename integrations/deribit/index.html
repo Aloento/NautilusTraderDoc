@@ -1,0 +1,1416 @@
+<!doctype html><html lang=zh dir=ltr class="docs-wrapper plugin-docs plugin-id-default docs-version-current docs-doc-page docs-doc-id-integrations/deribit" data-has-hydrated=false><head><meta charset=UTF-8><meta name=generator content="Docusaurus v3.10.2"><title data-rh=true>Deribit | NautilusTrader 文档</title><meta data-rh=true name=viewport content="width=device-width, initial-scale=1.0"/><meta data-rh=true name=twitter:card content=summary_large_image /><meta data-rh=true property=og:url content=https://nautilus.aloen.to/integrations/deribit /><meta data-rh=true property=og:locale content=zh /><meta data-rh=true name=docusaurus_locale content=zh /><meta data-rh=true name=docsearch:language content=zh /><meta data-rh=true name=docusaurus_version content=current /><meta data-rh=true name=docusaurus_tag content=docs-default-current /><meta data-rh=true name=docsearch:version content=current /><meta data-rh=true name=docsearch:docusaurus_tag content=docs-default-current /><meta data-rh=true property=og:title content="Deribit | NautilusTrader 文档"/><meta data-rh=true name=description content="Deribit 成立于 2016 年，是一家覆盖期权、期货、永续、现货与组合工具的加密货币衍生品交易所。"/><meta data-rh=true property=og:description content="Deribit 成立于 2016 年，是一家覆盖期权、期货、永续、现货与组合工具的加密货币衍生品交易所。"/><link data-rh=true rel=icon href=/logo.png /><link data-rh=true rel=canonical href=https://nautilus.aloen.to/integrations/deribit /><link data-rh=true rel=alternate href=https://nautilus.aloen.to/integrations/deribit hreflang=zh /><link data-rh=true rel=alternate href=https://nautilus.aloen.to/integrations/deribit hreflang=x-default /><script data-rh=true type=application/ld+json>{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","item":"https://nautilus.aloen.to/integrations/","name":"交易所与集成","position":1},{"@type":"ListItem","item":"https://nautilus.aloen.to/integrations/deribit","name":"Deribit","position":2}]}</script><link rel=stylesheet href=/assets/css/styles.adb7ea18.css /><script src=/assets/js/runtime~main.71ac0794.js defer></script><script src=/assets/js/main.d978d0f2.js defer></script></head><body><svg style="display: none;"><defs>
+<symbol id=theme-svg-external-link viewBox="0 0 24 24"><path fill=currentColor d="M21 13v10h-21v-19h12v2h-10v15h17v-8h2zm3-12h-10.988l4.035 4-6.977 7.07 2.828 2.828 6.977-7.07 4.125 4.172v-11z"/></symbol>
+</defs></svg>
+<script>!function(){var t=function(){try{return new URLSearchParams(window.location.search).get("docusaurus-theme")}catch(t){}}()||function(){try{return window.localStorage.getItem("theme-2e3")}catch(t){}}();document.documentElement.setAttribute("data-theme",t||(window.matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light")),document.documentElement.setAttribute("data-theme-choice",t||"system")}(),function(){try{for(var[t,e]of new URLSearchParams(window.location.search).entries())if(t.startsWith("docusaurus-data-")){var a=t.replace("docusaurus-data-","data-");document.documentElement.setAttribute(a,e)}}catch(t){}}()</script><div id=__docusaurus><link rel=preload as=image href=/logo.png /><div role=region aria-label=跳到主要内容><a class=skipToContent_zuOI href=#__docusaurus_skipToContent_fallback>跳到主要内容</a></div><nav aria-label=主导航 class="theme-layout-navbar navbar navbar--fixed-top"><div class=navbar__inner><div class="theme-layout-navbar-left navbar__items"><button aria-label=切换导航栏 aria-expanded=false class="navbar__toggle clean-btn" type=button><svg width=30 height=30 viewBox="0 0 30 30" aria-hidden=true><path stroke=currentColor stroke-linecap=round stroke-miterlimit=10 stroke-width=2 d="M4 7h22M4 15h22M4 23h22"/></svg></button><a class=navbar__brand href=/><div class=navbar__logo><img src=/logo.png alt="NautilusTrader Logo" class="themedComponent_q2_Y themedComponent--light_Nejn"/><img src=/logo.png alt="NautilusTrader Logo" class="themedComponent_q2_Y themedComponent--dark_JjIb"/></div><b class="navbar__title text--truncate">NautilusTrader</b></a><a aria-current=page class="navbar__item navbar__link navbar__link--active" href=/getting_started/>文档</a></div><div class="theme-layout-navbar-right navbar__items navbar__items--right"><a href=https://github.com/Aloento/NautilusTraderDoc target=_blank rel="noopener noreferrer" class="navbar__item navbar__link">GitHub<svg width=13.5 height=13.5 aria-label="(opens in new tab)" class=iconExternalLink_qUHo><use href=#theme-svg-external-link /></svg></a><div class="toggle_hHmI colorModeToggle_rOOn"><button class="clean-btn toggleButton_wEhT toggleButtonDisabled_yOOP" type=button disabled title="system mode" aria-label="切换浅色/暗黑模式（当前为system mode）"><svg viewBox="0 0 24 24" width=24 height=24 aria-hidden=true class="toggleIcon_Kt6U lightToggleIcon_Zfeh"><path fill=currentColor d="M12,9c1.65,0,3,1.35,3,3s-1.35,3-3,3s-3-1.35-3-3S10.35,9,12,9 M12,7c-2.76,0-5,2.24-5,5s2.24,5,5,5s5-2.24,5-5 S14.76,7,12,7L12,7z M2,13l2,0c0.55,0,1-0.45,1-1s-0.45-1-1-1l-2,0c-0.55,0-1,0.45-1,1S1.45,13,2,13z M20,13l2,0c0.55,0,1-0.45,1-1 s-0.45-1-1-1l-2,0c-0.55,0-1,0.45-1,1S19.45,13,20,13z M11,2v2c0,0.55,0.45,1,1,1s1-0.45,1-1V2c0-0.55-0.45-1-1-1S11,1.45,11,2z M11,20v2c0,0.55,0.45,1,1,1s1-0.45,1-1v-2c0-0.55-0.45-1-1-1C11.45,19,11,19.45,11,20z M5.99,4.58c-0.39-0.39-1.03-0.39-1.41,0 c-0.39,0.39-0.39,1.03,0,1.41l1.06,1.06c0.39,0.39,1.03,0.39,1.41,0s0.39-1.03,0-1.41L5.99,4.58z M18.36,16.95 c-0.39-0.39-1.03-0.39-1.41,0c-0.39,0.39-0.39,1.03,0,1.41l1.06,1.06c0.39,0.39,1.03,0.39,1.41,0c0.39-0.39,0.39-1.03,0-1.41 L18.36,16.95z M19.42,5.99c0.39-0.39,0.39-1.03,0-1.41c-0.39-0.39-1.03-0.39-1.41,0l-1.06,1.06c-0.39,0.39-0.39,1.03,0,1.41 s1.03,0.39,1.41,0L19.42,5.99z M7.05,18.36c0.39-0.39,0.39-1.03,0-1.41c-0.39-0.39-1.03-0.39-1.41,0l-1.06,1.06 c-0.39,0.39-0.39,1.03,0,1.41s1.03,0.39,1.41,0L7.05,18.36z"/></svg><svg viewBox="0 0 24 24" width=24 height=24 aria-hidden=true class="toggleIcon_Kt6U darkToggleIcon_XgQr"><path fill=currentColor d="M9.37,5.51C9.19,6.15,9.1,6.82,9.1,7.5c0,4.08,3.32,7.4,7.4,7.4c0.68,0,1.35-0.09,1.99-0.27C17.45,17.19,14.93,19,12,19 c-3.86,0-7-3.14-7-7C5,9.07,6.81,6.55,9.37,5.51z M12,3c-4.97,0-9,4.03-9,9s4.03,9,9,9s9-4.03,9-9c0-0.46-0.04-0.92-0.1-1.36 c-0.98,1.37-2.58,2.26-4.4,2.26c-2.98,0-5.4-2.42-5.4-5.4c0-1.81,0.89-3.42,2.26-4.4C12.92,3.04,12.46,3,12,3L12,3z"/></svg><svg viewBox="0 0 24 24" width=24 height=24 aria-hidden=true class="toggleIcon_Kt6U systemToggleIcon_BvUi"><path fill=currentColor d="m12 21c4.971 0 9-4.029 9-9s-4.029-9-9-9-9 4.029-9 9 4.029 9 9 9zm4.95-13.95c1.313 1.313 2.05 3.093 2.05 4.95s-0.738 3.637-2.05 4.95c-1.313 1.313-3.093 2.05-4.95 2.05v-14c1.857 0 3.637 0.737 4.95 2.05z"/></svg></button></div><div class=navbarSearchContainer_watl></div></div></div><div role=presentation class=navbar-sidebar__backdrop></div></nav><div id=__docusaurus_skipToContent_fallback class="theme-layout-main main-wrapper mainWrapper_R72Q"><div class=docsWrapper_XQ9b><button aria-label=回到顶部 class="clean-btn theme-back-to-top-button backToTopButton_MbnX" type=button></button><div class=docRoot_aqOB><aside class="theme-doc-sidebar-container docSidebarContainer_sI2e"><div class=sidebarViewport_TzTy><div class=sidebar_CbEe><nav aria-label=文档侧边栏 class="menu thin-scrollbar menu_ChRF"><ul class="theme-doc-sidebar-menu menu__list"><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-1 menu__list-item menu__list-item--collapsed"><div class=menu__list-item-collapsible><a class="categoryLink_Muyc menu__link menu__link--sublist" href=/getting_started/><span class=categoryLinkLabel_mAcL>快速开始</span></a><button aria-label="展开侧边栏分类 '快速开始'" aria-expanded=false type=button class="clean-btn menu__caret"></button></div><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-1 menu__list-item menu__list-item--collapsed"><div class=menu__list-item-collapsible><a class="categoryLink_Muyc menu__link menu__link--sublist" href=/concepts/><span class=categoryLinkLabel_mAcL>核心概念</span></a><button aria-label="展开侧边栏分类 '核心概念'" aria-expanded=false type=button class="clean-btn menu__caret"></button></div><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-1 menu__list-item"><div class=menu__list-item-collapsible><a class="categoryLink_Muyc menu__link menu__link--sublist menu__link--active" href=/integrations/><span class=categoryLinkLabel_mAcL>交易所与集成</span></a><button aria-label="折叠侧边栏分类 '交易所与集成'" aria-expanded=true type=button class="clean-btn menu__caret"></button></div><ul class=menu__list><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/integrations/architect_ax><span class=linkLabel_lYjD>AX Exchange</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/integrations/betfair><span class=linkLabel_lYjD>Betfair</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/integrations/binance><span class=linkLabel_lYjD>Binance</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/integrations/blockchain><span class=linkLabel_lYjD>区块链</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/integrations/bybit><span class=linkLabel_lYjD>Bybit</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/integrations/coinapi><span class=linkLabel_lYjD>CoinAPI</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/integrations/coinbase><span class=linkLabel_lYjD>Coinbase</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/integrations/databento><span class=linkLabel_lYjD>Databento</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class="menu__link menu__link--active" aria-current=page tabindex=0 href=/integrations/deribit><span class=linkLabel_lYjD>Deribit</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/integrations/derive><span class=linkLabel_lYjD>Derive</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/integrations/dydx><span class=linkLabel_lYjD>dYdX</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/integrations/hyperliquid><span class=linkLabel_lYjD>Hyperliquid</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/integrations/interactive_brokers><span class=linkLabel_lYjD>Interactive Brokers</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/integrations/kraken><span class=linkLabel_lYjD>Kraken</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/integrations/lighter><span class=linkLabel_lYjD>Lighter</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/integrations/okx><span class=linkLabel_lYjD>OKX</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/integrations/polymarket><span class=linkLabel_lYjD>Polymarket</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/integrations/tardis><span class=linkLabel_lYjD>Tardis</span></a></ul><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-1 menu__list-item menu__list-item--collapsed"><div class=menu__list-item-collapsible><a class="categoryLink_Muyc menu__link menu__link--sublist" href=/how_to/><span class=categoryLinkLabel_mAcL>操作指南</span></a><button aria-label="展开侧边栏分类 '操作指南'" aria-expanded=false type=button class="clean-btn menu__caret"></button></div><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-1 menu__list-item menu__list-item--collapsed"><div class=menu__list-item-collapsible><a class="categoryLink_Muyc menu__link menu__link--sublist" href=/tutorials/><span class=categoryLinkLabel_mAcL>教程</span></a><button aria-label="展开侧边栏分类 '教程'" aria-expanded=false type=button class="clean-btn menu__caret"></button></div><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-1 menu__list-item menu__list-item--collapsed"><div class=menu__list-item-collapsible><a class="categoryLink_Muyc menu__link menu__link--sublist" href=/developer_guide/><span class=categoryLinkLabel_mAcL>开发者指南</span></a><button aria-label="展开侧边栏分类 '开发者指南'" aria-expanded=false type=button class="clean-btn menu__caret"></button></div><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-1 menu__list-item menu__list-item--collapsed"><div class=menu__list-item-collapsible><a class="categoryLink_Muyc menu__link menu__link--sublist" href=/api_reference/><span class=categoryLinkLabel_mAcL>API 参考</span></a><button aria-label="展开侧边栏分类 'API 参考'" aria-expanded=false type=button class="clean-btn menu__caret"></button></div></ul></nav></div></div></aside><main class=docMainContainer_sLF8><div class="container padding-top--md padding-bottom--lg"><div class=row><div class="col docItemCol_ZRft"><div class=docItemContainer_KOP5><article><nav class="theme-doc-breadcrumbs breadcrumbsContainer_d5rS" aria-label=页面路径><ul class=breadcrumbs><li class=breadcrumbs__item><a aria-label=主页面 class=breadcrumbs__link href=/><svg viewBox="0 0 24 24" class=breadcrumbHomeIcon_XgF2><path d="M10 19v-5h4v5c0 .55.45 1 1 1h3c.55 0 1-.45 1-1v-7h1.7c.46 0 .68-.57.33-.87L12.67 3.6c-.38-.34-.96-.34-1.34 0l-8.36 7.53c-.34.3-.13.87.33.87H5v7c0 .55.45 1 1 1h3c.55 0 1-.45 1-1z" fill=currentColor /></svg></a><li class=breadcrumbs__item><a class=breadcrumbs__link href=/integrations/><span>交易所与集成</span></a><li class="breadcrumbs__item breadcrumbs__item--active"><span class=breadcrumbs__link>Deribit</span></ul></nav><div class="tocCollapsible_bgaJ theme-doc-toc-mobile tocMobile_FhT_"><button type=button class="clean-btn tocCollapsibleButton_F8AY">本页总览</button></div><div class="theme-doc-markdown markdown"><header><h1>Deribit</h1></header>
+<p>Deribit 成立于 2016 年，是一家覆盖期权、期货、永续、现货与组合工具的加密货币衍生品交易所。
+按成交量计它是最大的加密货币期权交易所之一，也是加密货币衍生品交易的领先平台。</p>
+<p>本集成支持与 Deribit 的实时行情接入与订单执行。</p>
+<h2 class="anchor anchorTargetStickyNavbar_ana5" id=overview>概览<a href=#overview class=hash-link aria-label=概览的直接链接 title=概览的直接链接 translate=no>​</a></h2>
+<p>Deribit 适配器以 Rust 实现，通过配置、工厂、客户端、枚举和常量暴露给 Python。Deribit 在
+HTTP 与 WebSocket 两种传输上都使用 JSON-RPC 2.0。适配器优先用 WebSocket 做订阅、实时数据
+和订单操作，用 HTTP 做工具加载、历史请求与对账。</p>
+<p>组件：</p>
+<ul>
+<li class=""><code>DeribitRawHttpClient</code>：底层 HTTP 客户端，负责 JSON-RPC 成帧、签名、速率限制与重试。</li>
+<li class=""><code>DeribitHttpClient</code>：领域 HTTP 客户端，把场所响应解析为 Nautilus 类型。通过 <code>inner()</code>
+可触达底层客户端。</li>
+<li class=""><code>DeribitWebSocketClient</code>：面向 Rust 调用方的底层 WebSocket 连接。</li>
+<li class=""><code>DeribitDataClient</code>：行情数据源管理器。</li>
+<li class=""><code>DeribitDataClientFactory</code>：数据客户端工厂。</li>
+<li class=""><code>DeribitExecutionClient</code>：账户管理与交易执行网关。</li>
+<li class=""><code>DeribitExecutionClientFactory</code>：执行客户端工厂。</li>
+</ul>
+<p><code>nautilus_trader.adapters.deribit</code> 提供的 Python 接口：</p>
+<ul>
+<li class=""><code>DeribitDataClientConfig</code>、<code>DeribitExecutionClientConfig</code></li>
+<li class=""><code>DeribitDataClientFactory</code>、<code>DeribitExecutionClientFactory</code></li>
+<li class=""><code>DeribitHttpClient</code></li>
+<li class=""><code>DeribitCurrency</code>、<code>DeribitEnvironment</code>、<code>DeribitProductType</code></li>
+<li class=""><code>DeribitBookSummary</code>、<code>DeribitVolatilityIndex</code></li>
+<li class=""><code>get_deribit_http_base_url</code>、<code>get_deribit_ws_url</code></li>
+<li class=""><code>DERIBIT</code>、<code>DERIBIT_CLIENT_ID</code> 和 <code>DERIBIT_VENUE</code></li>
+</ul>
+<div class="theme-admonition theme-admonition-note admonition_LYZY alert alert--secondary"><div class=admonitionHeading_pnFY><span class=admonitionIcon_tEzm><svg viewBox="0 0 14 16"><path fill-rule=evenodd d="M6.3 5.69a.942.942 0 0 1-.28-.7c0-.28.09-.52.28-.7.19-.18.42-.28.7-.28.28 0 .52.09.7.28.18.19.28.42.28.7 0 .28-.09.52-.28.7a1 1 0 0 1-.7.3c-.28 0-.52-.11-.7-.3zM8 7.99c-.02-.25-.11-.48-.31-.69-.2-.19-.42-.3-.69-.31H6c-.27.02-.48.13-.69.31-.2.2-.3.44-.31.69h1v3c.02.27.11.5.31.69.2.2.42.31.69.31h1c.27 0 .48-.11.69-.31.2-.19.3-.42.31-.69H8V7.98v.01zM7 2.3c-3.14 0-5.7 2.54-5.7 5.68 0 3.14 2.56 5.7 5.7 5.7s5.7-2.55 5.7-5.7c0-3.15-2.56-5.69-5.7-5.69v.01zM7 .98c3.86 0 7 3.14 7 7s-3.14 7-7 7-7-3.12-7-7 3.14-7 7-7z"/></svg></span>备注</div><div class=admonitionContent_ZwmI><p>多数用户如下方所示配置实时交易节点即可，无需直接使用这些底层组件。</div></div>
+<h2 class="anchor anchorTargetStickyNavbar_ana5" id=examples>示例<a href=#examples class=hash-link aria-label=示例的直接链接 title=示例的直接链接 translate=no>​</a></h2>
+<ul>
+<li class=""><a href=https://github.com/nautechsystems/nautilus_trader/tree/develop/examples/live/deribit/ target=_blank rel="noopener noreferrer" class="">Python 示例</a></li>
+<li class=""><a href=https://github.com/nautechsystems/nautilus_trader/tree/develop/crates/adapters/deribit/examples/ target=_blank rel="noopener noreferrer" class="">Rust 示例</a></li>
+</ul>
+<h2 class="anchor anchorTargetStickyNavbar_ana5" id=deribit-documentation>Deribit 文档<a href=#deribit-documentation class=hash-link aria-label="Deribit 文档的直接链接" title="Deribit 文档的直接链接" translate=no>​</a></h2>
+<ul>
+<li class=""><a href=https://docs.deribit.com/ target=_blank rel="noopener noreferrer" class="">API 参考</a></li>
+<li class=""><a href=https://docs.deribit.com/articles/rate-limits target=_blank rel="noopener noreferrer" class="">速率限制</a></li>
+<li class=""><a href=https://docs.deribit.com/articles/connection-management-best-practices target=_blank rel="noopener noreferrer" class="">连接管理</a></li>
+<li class=""><a href=https://docs.deribit.com/articles/market-data-collection-best-practices target=_blank rel="noopener noreferrer" class="">行情数据采集</a></li>
+<li class=""><a href=https://docs.deribit.com/articles/order-management-best-practices target=_blank rel="noopener noreferrer" class="">订单管理</a></li>
+<li class=""><a href=https://docs.deribit.com/articles/access-scope target=_blank rel="noopener noreferrer" class="">访问范围</a></li>
+</ul>
+<p>请结合本 NautilusTrader 集成指南阅读 Deribit 文档。</p>
+<h2 class="anchor anchorTargetStickyNavbar_ana5" id=product-support>产品支持<a href=#product-support class=hash-link aria-label=产品支持的直接链接 title=产品支持的直接链接 translate=no>​</a></h2>
+<p>每个客户端只在连接时加载一次其 <code>product_types</code> 配置中列出的产品族。两个客户端之后都不会
+刷新工具集，因此新上市的工具需要重启节点才能加载。数据客户端上的
+<code>auto_load_missing_instruments</code> 则改为在首次订阅时拉取未缓存的工具，见
+<a href=#lazy-load-on-subscribe class="">订阅时懒加载</a>。</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>产品类型<th>行情数据<th>交易<th>说明<tbody><tr><td>永续期货<td>✓<td>✓<td>用 <code>DeribitProductType.FUTURE</code> 加载。<tr><td>到期期货<td>✓<td>✓<td>用 <code>DeribitProductType.FUTURE</code> 加载。<tr><td>期权<td>✓<td>✓<td>用 <code>DeribitProductType.OPTION</code> 加载。<tr><td>现货<td>✓<td>✓<td>用 <code>DeribitProductType.SPOT</code> 加载。<tr><td>期货组合<td>✓<td>✓<td>用 <code>DeribitProductType.FUTURE_COMBO</code> 加载。<tr><td>期权组合<td>✓<td>✓<td>用 <code>DeribitProductType.OPTION_COMBO</code> 加载。</table>
+<h2 class="anchor anchorTargetStickyNavbar_ana5" id=symbology>符号体系<a href=#symbology class=hash-link aria-label=符号体系的直接链接 title=符号体系的直接链接 translate=no>​</a></h2>
+<p>Deribit 对不同工具类型使用特定的 symbol 约定。引用工具 ID 时应始终带上 <code>.DERIBIT</code> 后缀
+（例如 BTC 永最为 <code>BTC-PERPETUAL.DERIBIT</code>）。</p>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=quantity-units>数量单位<a href=#quantity-units class=hash-link aria-label=数量单位的直接链接 title=数量单位的直接链接 translate=no>​</a></h3>
+<p>Nautilus 数量映射到 Deribit 的 <code>amount</code> 字段，而不是可选的 <code>contracts</code> 字段。Deribit 对永续
+与反向期货以 USD 单位报数量，对期权与线性期货以标的基础货币报数量。Deribit 的
+<code>contract_size</code> 字段用于在 <code>amount</code> 与合约张数之间换算。适配器不会再把它当作 Nautilus 的
+乘数应用一遍。</p>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=perpetual-futures>永续期货<a href=#perpetual-futures class=hash-link aria-label=永续期货的直接链接 title=永续期货的直接链接 translate=no>​</a></h3>
+<p>格式：<code>{Currency}-PERPETUAL</code></p>
+<p>示例：</p>
+<ul>
+<li class=""><code>BTC-PERPETUAL</code> —— 比特币永续互换。</li>
+<li class=""><code>ETH-PERPETUAL</code> —— 以太坊永续互换。</li>
+</ul>
+<p>在策略中订阅 BTC 永续：</p>
+<div class="language-python codeBlockContainer_eTMR theme-code-block" style=--prism-color:#393A34;--prism-background-color:#f6f8fa><div class=codeBlockContent_hafM><pre tabindex=0 class="prism-code language-python codeBlock_IMvC thin-scrollbar" style=color:#393A34;background-color:#f6f8fa><code class=codeBlockLines_gZDW><div class=token-line style=color:#393A34><span class="token plain">InstrumentId</span><span class="token punctuation" style=color:#393A34>.</span><span class="token plain">from_str</span><span class="token punctuation" style=color:#393A34>(</span><span class="token string" style=color:#e3116c>"BTC-PERPETUAL.DERIBIT"</span><span class="token punctuation" style=color:#393A34>)</span><br/></div></code></pre></div></div>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=dated-futures>到期期货<a href=#dated-futures class=hash-link aria-label=到期期货的直接链接 title=到期期货的直接链接 translate=no>​</a></h3>
+<p>格式：<code>{Currency}-{DDMMMYY}</code></p>
+<p>示例：</p>
+<ul>
+<li class=""><code>BTC-25DEC26</code> —— 2026 年 12 月 25 日到期的比特币期货。</li>
+<li class=""><code>ETH-26MAR27</code> —— 2027 年 3 月 26 日到期的以太坊期货。</li>
+</ul>
+<div class="language-python codeBlockContainer_eTMR theme-code-block" style=--prism-color:#393A34;--prism-background-color:#f6f8fa><div class=codeBlockContent_hafM><pre tabindex=0 class="prism-code language-python codeBlock_IMvC thin-scrollbar" style=color:#393A34;background-color:#f6f8fa><code class=codeBlockLines_gZDW><div class=token-line style=color:#393A34><span class="token plain">InstrumentId</span><span class="token punctuation" style=color:#393A34>.</span><span class="token plain">from_str</span><span class="token punctuation" style=color:#393A34>(</span><span class="token string" style=color:#e3116c>"BTC-25DEC26.DERIBIT"</span><span class="token punctuation" style=color:#393A34>)</span><br/></div></code></pre></div></div>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=options>期权<a href=#options class=hash-link aria-label=期权的直接链接 title=期权的直接链接 translate=no>​</a></h3>
+<p>格式：<code>{Currency}-{DDMMMYY}-{Strike}-{Type}</code></p>
+<p>示例：</p>
+<ul>
+<li class=""><code>BTC-25DEC26-100000-C</code> —— 行权价 100,000 美元、2026 年 12 月 25 日到期的比特币买权。</li>
+<li class=""><code>BTC-25DEC26-80000-P</code> —— 行权价 80,000 美元、2026 年 12 月 25 日到期的比特币卖权。</li>
+<li class=""><code>ETH-26MAR27-4000-C</code> —— 行权价 4,000 美元、2027 年 3 月 26 日到期的以太坊买权。</li>
+</ul>
+<p>其中：</p>
+<ul>
+<li class=""><code>C</code> = 买权（call option）。</li>
+<li class=""><code>P</code> = 卖权（put option）。</li>
+</ul>
+<div class="language-python codeBlockContainer_eTMR theme-code-block" style=--prism-color:#393A34;--prism-background-color:#f6f8fa><div class=codeBlockContent_hafM><pre tabindex=0 class="prism-code language-python codeBlock_IMvC thin-scrollbar" style=color:#393A34;background-color:#f6f8fa><code class=codeBlockLines_gZDW><div class=token-line style=color:#393A34><span class="token plain">InstrumentId</span><span class="token punctuation" style=color:#393A34>.</span><span class="token plain">from_str</span><span class="token punctuation" style=color:#393A34>(</span><span class="token string" style=color:#e3116c>"BTC-25DEC26-100000-C.DERIBIT"</span><span class="token punctuation" style=color:#393A34>)</span><br/></div></code></pre></div></div>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=spot>现货<a href=#spot class=hash-link aria-label=现货的直接链接 title=现货的直接链接 translate=no>​</a></h3>
+<p>格式：<code>{BaseCurrency}_{QuoteCurrency}</code></p>
+<p>示例：</p>
+<ul>
+<li class=""><code>BTC_USDC</code> —— 比特币对 USDC。</li>
+<li class=""><code>ETH_USDC</code> —— 以太坊对 USDC。</li>
+</ul>
+<div class="language-python codeBlockContainer_eTMR theme-code-block" style=--prism-color:#393A34;--prism-background-color:#f6f8fa><div class=codeBlockContent_hafM><pre tabindex=0 class="prism-code language-python codeBlock_IMvC thin-scrollbar" style=color:#393A34;background-color:#f6f8fa><code class=codeBlockLines_gZDW><div class=token-line style=color:#393A34><span class="token plain">InstrumentId</span><span class="token punctuation" style=color:#393A34>.</span><span class="token plain">from_str</span><span class="token punctuation" style=color:#393A34>(</span><span class="token string" style=color:#e3116c>"BTC_USDC.DERIBIT"</span><span class="token punctuation" style=color:#393A34>)</span><br/></div></code></pre></div></div>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=future-combos>期货组合<a href=#future-combos class=hash-link aria-label=期货组合的直接链接 title=期货组合的直接链接 translate=no>​</a></h3>
+<p>格式：<code>{Currency}-FS-{LegA}_{LegB}</code></p>
+<p>腿是到期期货或永续（在组合名内记作 <code>PERP</code>，尽管独立工具是 <code>BTC-PERPETUAL</code>）。组合随其
+最早的腿到期。</p>
+<p>示例：</p>
+<ul>
+<li class=""><code>BTC-FS-25DEC26_PERP</code> —— 2026 年 12 月期货与永续之间的日历价差。</li>
+<li class=""><code>BTC-FS-26MAR27_25DEC26</code> —— 两个到期期货之间的跨月价差。</li>
+</ul>
+<div class="language-python codeBlockContainer_eTMR theme-code-block" style=--prism-color:#393A34;--prism-background-color:#f6f8fa><div class=codeBlockContent_hafM><pre tabindex=0 class="prism-code language-python codeBlock_IMvC thin-scrollbar" style=color:#393A34;background-color:#f6f8fa><code class=codeBlockLines_gZDW><div class=token-line style=color:#393A34><span class="token plain">InstrumentId</span><span class="token punctuation" style=color:#393A34>.</span><span class="token plain">from_str</span><span class="token punctuation" style=color:#393A34>(</span><span class="token string" style=color:#e3116c>"BTC-FS-25DEC26_PERP.DERIBIT"</span><span class="token punctuation" style=color:#393A34>)</span><br/></div></code></pre></div></div>
+<p>适配器把期货组合建模为 <code>CryptoFuturesSpread</code>，以 USD 计价（腿间价差），结算货币为加密货币，
+<code>is_inverse</code> 按上游 <code>instrument_type</code> 设置。</p>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=option-combos>期权组合<a href=#option-combos class=hash-link aria-label=期权组合的直接链接 title=期权组合的直接链接 translate=no>​</a></h3>
+<p>格式：<code>{Currency}-{Strategy}-{DDMMMYY}-{Strikes}</code></p>
+<p>策略代码包括 CS（买权价差）、PS（卖权价差）、STRG（宽跨式）、STRD（跨式）、BOX（盒式）
+和 RR（风险逆转）。行权价段用 <code>_</code> 分隔多个行权价。</p>
+<p>示例：</p>
+<ul>
+<li class=""><code>BTC-CS-25DEC26-70000_75000</code> —— 70k / 75k 买权价差，2026 年 12 月 25 日到期。</li>
+<li class=""><code>BTC-STRG-26MAR27-72000_80000</code> —— 72k / 80k 宽跨式，2027 年 3 月 26 日到期。</li>
+<li class=""><code>BTC-STRD-26MAR27-77000</code> —— 77k 跨式，2027 年 3 月 26 日到期。</li>
+<li class=""><code>BTC-BOX-26MAR27-58000_60000</code> —— 58k / 60k 盒式，2027 年 3 月 26 日到期。</li>
+</ul>
+<div class="language-python codeBlockContainer_eTMR theme-code-block" style=--prism-color:#393A34;--prism-background-color:#f6f8fa><div class=codeBlockContent_hafM><pre tabindex=0 class="prism-code language-python codeBlock_IMvC thin-scrollbar" style=color:#393A34;background-color:#f6f8fa><code class=codeBlockLines_gZDW><div class=token-line style=color:#393A34><span class="token plain">InstrumentId</span><span class="token punctuation" style=color:#393A34>.</span><span class="token plain">from_str</span><span class="token punctuation" style=color:#393A34>(</span><span class="token string" style=color:#e3116c>"BTC-STRG-26MAR27-72000_80000.DERIBIT"</span><span class="token punctuation" style=color:#393A34>)</span><br/></div></code></pre></div></div>
+<p>适配器把期权组合建模为 <code>CryptoOptionSpread</code>，按 Deribit 反向期权约定以基础货币计价。小数
+<code>size_increment</code>（如 <code>0.1</code>）端到端保留。</p>
+<h2 class="anchor anchorTargetStickyNavbar_ana5" id=traded-expirations>可交易到期日<a href=#traded-expirations class=hash-link aria-label=可交易到期日的直接链接 title=可交易到期日的直接链接 translate=no>​</a></h2>
+<p>Deribit 通过 <code>public/get_expirations</code> HTTP 端点暴露当前可交易的到期日。期权链加载器可以用
+高层 HTTP 客户端刷新有效的期权系列，而无需扫描每个工具。</p>
+<div class="language-rust codeBlockContainer_eTMR theme-code-block" style=--prism-color:#393A34;--prism-background-color:#f6f8fa><div class=codeBlockContent_hafM><pre tabindex=0 class="prism-code language-rust codeBlock_IMvC thin-scrollbar" style=color:#393A34;background-color:#f6f8fa><code class=codeBlockLines_gZDW><div class=token-line style=color:#393A34><span class="token keyword" style=color:#00009f>use</span><span class="token plain"> </span><span class="token namespace" style=opacity:0.7>nautilus_deribit</span><span class="token namespace punctuation" style=opacity:0.7;color:#393A34>::</span><span class="token namespace" style=opacity:0.7>http</span><span class="token namespace punctuation" style=opacity:0.7;color:#393A34>::</span><span class="token namespace" style=opacity:0.7>models</span><span class="token namespace punctuation" style=opacity:0.7;color:#393A34>::</span><span class="token class-name">DeribitCurrency</span><span class="token punctuation" style=color:#393A34>;</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain" style=display:inline-block></span><br/></div><div class=token-line style=color:#393A34><span class="token plain"></span><span class="token keyword" style=color:#00009f>let</span><span class="token plain"> expirations </span><span class="token operator" style=color:#393A34>=</span><span class="token plain"> client</span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    </span><span class="token punctuation" style=color:#393A34>.</span><span class="token function" style=color:#d73a49>request_option_expirations</span><span class="token punctuation" style=color:#393A34>(</span><span class="token class-name">DeribitCurrency</span><span class="token punctuation" style=color:#393A34>::</span><span class="token constant" style=color:#36acaa>BTC</span><span class="token punctuation" style=color:#393A34>)</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    </span><span class="token punctuation" style=color:#393A34>.</span><span class="token keyword" style=color:#00009f>await</span><span class="token operator" style=color:#393A34>?</span><span class="token punctuation" style=color:#393A34>;</span><br/></div></code></pre></div></div>
+<div class="language-python codeBlockContainer_eTMR theme-code-block" style=--prism-color:#393A34;--prism-background-color:#f6f8fa><div class=codeBlockContent_hafM><pre tabindex=0 class="prism-code language-python codeBlock_IMvC thin-scrollbar" style=color:#393A34;background-color:#f6f8fa><code class=codeBlockLines_gZDW><div class=token-line style=color:#393A34><span class="token keyword" style=color:#00009f>from</span><span class="token plain"> nautilus_trader</span><span class="token punctuation" style=color:#393A34>.</span><span class="token plain">adapters</span><span class="token punctuation" style=color:#393A34>.</span><span class="token plain">deribit </span><span class="token keyword" style=color:#00009f>import</span><span class="token plain"> DeribitCurrency</span><br/></div><div class=token-line style=color:#393A34><span class="token plain"></span><span class="token keyword" style=color:#00009f>from</span><span class="token plain"> nautilus_trader</span><span class="token punctuation" style=color:#393A34>.</span><span class="token plain">adapters</span><span class="token punctuation" style=color:#393A34>.</span><span class="token plain">deribit </span><span class="token keyword" style=color:#00009f>import</span><span class="token plain"> DeribitHttpClient</span><br/></div><div class=token-line style=color:#393A34><span class="token plain" style=display:inline-block></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">client </span><span class="token operator" style=color:#393A34>=</span><span class="token plain"> DeribitHttpClient</span><span class="token punctuation" style=color:#393A34>(</span><span class="token punctuation" style=color:#393A34>)</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">expirations </span><span class="token operator" style=color:#393A34>=</span><span class="token plain"> </span><span class="token keyword" style=color:#00009f>await</span><span class="token plain"> client</span><span class="token punctuation" style=color:#393A34>.</span><span class="token plain">request_option_expirations</span><span class="token punctuation" style=color:#393A34>(</span><span class="token plain">DeribitCurrency</span><span class="token punctuation" style=color:#393A34>.</span><span class="token plain">BTC</span><span class="token punctuation" style=color:#393A34>)</span><br/></div></code></pre></div></div>
+<p>该高层方法只返回期权到期日。底层 Rust 请求请用 <code>GetExpirationsParams</code> 调用
+<code>client.inner().get_expirations(...)</code>。对 <code>BTC</code> 这类具体货币，Deribit 返回按货币建键的结果；
+对 <code>currency=any</code> 返回按 kind 直接建键的结果。适配器两种形态都能处理。</p>
+<h2 class="anchor anchorTargetStickyNavbar_ana5" id=combo-instruments>组合工具<a href=#combo-instruments class=hash-link aria-label=组合工具的直接链接 title=组合工具的直接链接 translate=no>​</a></h2>
+<p>当 <code>product_types</code> 含有期货组合或期权组合变体时，工具加载会包含组合。Python 中使用
+<code>DeribitProductType.FUTURE_COMBO</code> 或 <code>DeribitProductType.OPTION_COMBO</code>。Deribit 在
+<code>/public/get_combos</code> 上暴露每个有效组合的腿构成，并在标准的
+<code>/public/get_instruments?kind=option_combo|future_combo</code> 响应上给出组合的交易元数据
+（tick 大小、合约大小、到期、最小交易量）。适配器把两者合并，把 <code>deribit_combo_id</code>、
+<code>deribit_combo_state</code> 和 <code>deribit_combo_legs</code> 挂到已加载工具的 <code>info</code> 映射上，策略无需第二次
+场所调用即可解析各腿。</p>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=trade-publishing>成交发布<a href=#trade-publishing class=hash-link aria-label=成交发布的直接链接 title=成交发布的直接链接 translate=no>​</a></h3>
+<p>Deribit 把每笔组合成交发布两次：</p>
+<ul>
+<li class="">在组合的成交频道（<code>trades.{combo_name}.{interval}</code>）：父成交加一个 <code>legs[]</code> 数组，描述
+每条腿的成交。</li>
+<li class="">在每条腿的成交频道（<code>trades.{leg_instrument}.{interval}</code>）：该腿的独立成交，带
+<code>combo_id</code> 和 <code>combo_trade_id</code> 指回父成交。</li>
+</ul>
+<p>因此，订阅普通期权或期货的调用方会在其现有成交流上看到组合来源的成交；订阅组合本身的
+调用方看到组合级成交。适配器不会把组合父消息扩散成额外的腿 tick。它把上游的父消息与
+逐腿消息作为不同的 <code>TradeTick</code> 转发到各自的 <code>InstrumentId</code> 上。因此，同时订阅组合和某条
+标的腿的调用方，对同一笔组合成交会收到一个组合 tick 加一个腿 tick，不会在同一工具上收到
+重复 tick。</p>
+<p>要让 Deribit 数据客户端在组合成交订阅之外打开真实的腿成交频道，给 <code>subscribe_trades</code> 传
+<code>params={"subscribe_combo_legs": True}</code>。退订该组合成交流时，Nautilus 也会关闭由这一选择
+开启的腿订阅。</p>
+<p>Deribit 已经按腿发布大宗成交与 Block RFQ，因此适配器通过标准的 1:1 成交路径转发它们。
+大宗与 RFQ 来源的成交在生成的 <code>TradeTick</code> 上如何打标签，见
+<a href=#trade-id-provenance class="">成交 ID 溯源</a>。</p>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=historical-combo-trades>历史组合成交<a href=#historical-combo-trades class=hash-link aria-label=历史组合成交的直接链接 title=历史组合成交的直接链接 translate=no>​</a></h3>
+<p>标准的逐工具成交端点接受组合工具名。要一次调用扫完某种产品类的全部组合，通过
+<code>DeribitHttpClient::inner()</code> 使用 <code>get_last_trades_by_currency</code>：</p>
+<div class="language-rust codeBlockContainer_eTMR theme-code-block" style=--prism-color:#393A34;--prism-background-color:#f6f8fa><div class=codeBlockContent_hafM><pre tabindex=0 class="prism-code language-rust codeBlock_IMvC thin-scrollbar" style=color:#393A34;background-color:#f6f8fa><code class=codeBlockLines_gZDW><div class=token-line style=color:#393A34><span class="token keyword" style=color:#00009f>use</span><span class="token plain"> </span><span class="token namespace" style=opacity:0.7>nautilus_deribit</span><span class="token namespace punctuation" style=opacity:0.7;color:#393A34>::</span><span class="token namespace" style=opacity:0.7>http</span><span class="token namespace punctuation" style=opacity:0.7;color:#393A34>::</span><span class="token punctuation" style=color:#393A34>{</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    </span><span class="token namespace" style=opacity:0.7>models</span><span class="token namespace punctuation" style=opacity:0.7;color:#393A34>::</span><span class="token punctuation" style=color:#393A34>{</span><span class="token class-name">DeribitCurrency</span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain"> </span><span class="token class-name">DeribitProductType</span><span class="token punctuation" style=color:#393A34>}</span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    </span><span class="token namespace" style=opacity:0.7>query</span><span class="token namespace punctuation" style=opacity:0.7;color:#393A34>::</span><span class="token class-name">GetLastTradesByCurrencyParams</span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain"></span><span class="token punctuation" style=color:#393A34>}</span><span class="token punctuation" style=color:#393A34>;</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain" style=display:inline-block></span><br/></div><div class=token-line style=color:#393A34><span class="token plain"></span><span class="token keyword" style=color:#00009f>let</span><span class="token plain"> params </span><span class="token operator" style=color:#393A34>=</span><span class="token plain"> </span><span class="token class-name">GetLastTradesByCurrencyParams</span><span class="token punctuation" style=color:#393A34>::</span><span class="token function" style=color:#d73a49>builder</span><span class="token punctuation" style=color:#393A34>(</span><span class="token punctuation" style=color:#393A34>)</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    </span><span class="token punctuation" style=color:#393A34>.</span><span class="token function" style=color:#d73a49>currency</span><span class="token punctuation" style=color:#393A34>(</span><span class="token class-name">DeribitCurrency</span><span class="token punctuation" style=color:#393A34>::</span><span class="token constant" style=color:#36acaa>BTC</span><span class="token punctuation" style=color:#393A34>)</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    </span><span class="token punctuation" style=color:#393A34>.</span><span class="token function" style=color:#d73a49>kind</span><span class="token punctuation" style=color:#393A34>(</span><span class="token class-name">DeribitProductType</span><span class="token punctuation" style=color:#393A34>::</span><span class="token class-name">FutureCombo</span><span class="token punctuation" style=color:#393A34>)</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    </span><span class="token punctuation" style=color:#393A34>.</span><span class="token function" style=color:#d73a49>count</span><span class="token punctuation" style=color:#393A34>(</span><span class="token number" style=color:#36acaa>50_u32</span><span class="token punctuation" style=color:#393A34>)</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    </span><span class="token punctuation" style=color:#393A34>.</span><span class="token function" style=color:#d73a49>include_old</span><span class="token punctuation" style=color:#393A34>(</span><span class="token boolean" style=color:#36acaa>true</span><span class="token punctuation" style=color:#393A34>)</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    </span><span class="token punctuation" style=color:#393A34>.</span><span class="token function" style=color:#d73a49>build</span><span class="token punctuation" style=color:#393A34>(</span><span class="token punctuation" style=color:#393A34>)</span><span class="token operator" style=color:#393A34>?</span><span class="token punctuation" style=color:#393A34>;</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain"></span><span class="token keyword" style=color:#00009f>let</span><span class="token plain"> resp </span><span class="token operator" style=color:#393A34>=</span><span class="token plain"> client</span><span class="token punctuation" style=color:#393A34>.</span><span class="token function" style=color:#d73a49>inner</span><span class="token punctuation" style=color:#393A34>(</span><span class="token punctuation" style=color:#393A34>)</span><span class="token punctuation" style=color:#393A34>.</span><span class="token function" style=color:#d73a49>get_last_trades_by_currency</span><span class="token punctuation" style=color:#393A34>(</span><span class="token plain">params</span><span class="token punctuation" style=color:#393A34>)</span><span class="token punctuation" style=color:#393A34>.</span><span class="token keyword" style=color:#00009f>await</span><span class="token operator" style=color:#393A34>?</span><span class="token punctuation" style=color:#393A34>;</span><br/></div></code></pre></div></div>
+<p>每个返回的 <code>DeribitPublicTrade</code> 携带 <code>legs: Option&lt;Vec&lt;DeribitTradeLeg>></code>，以及用于关联逐腿
+成交的 <code>combo_id</code> 与 <code>combo_trade_id</code> 字段。</p>
+<h2 class="anchor anchorTargetStickyNavbar_ana5" id=trade-id-provenance>成交 ID 溯源<a href=#trade-id-provenance class=hash-link aria-label="成交 ID 溯源的直接链接" title="成交 ID 溯源的直接链接" translate=no>​</a></h2>
+<p>适配器发出的公共 <code>TradeTick</code>，若成交来自 Block RFQ、大宗交易或组合，会在场所成交 ID 前
+加前缀。需要把它们与普通成交区分的策略，可以对 <code>TradeTick.trade_id</code> 的前缀做模式匹配。
+Deribit 原始 <code>trade_id</code> 在前缀之后原样保留，因此与 Deribit 自己的 ID 对账只需去掉前缀。</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>前缀<th>来源字段<th>含义<tbody><tr><td><code>RFQ-</code><td><code>block_rfq_id</code><td>成交来自 Block RFQ。<tr><td><code>BLK-</code><td><code>block_trade_id</code><td>成交是非 RFQ 的大宗交易。<tr><td><code>COMBO-</code><td><code>combo_id</code><td>父单来自组合工具的逐腿成交。<tr><td><em>无前缀</em><td>（以上皆无）<td>标准成交。</table>
+<p>多个标签同时存在时的优先级：<code>RFQ-</code> > <code>BLK-</code> > <code>COMBO-</code>。Block RFQ 在 Deribit 上本身就是
+大宗交易，因此 RFQ 标签优先。以大宗交易执行的组合打 <code>BLK-</code> 标签，因为大宗流程是更重要的
+对账信号。</p>
+<p>这只适用于公共成交（<code>TradeTick</code>）。<code>FillReport.trade_id</code> 保持不变，与
+<code>get_user_trades_*</code> 的对账照常工作。</p>
+<div class="theme-admonition theme-admonition-note admonition_LYZY alert alert--secondary"><div class=admonitionHeading_pnFY><span class=admonitionIcon_tEzm><svg viewBox="0 0 14 16"><path fill-rule=evenodd d="M6.3 5.69a.942.942 0 0 1-.28-.7c0-.28.09-.52.28-.7.19-.18.42-.28.7-.28.28 0 .52.09.7.28.18.19.28.42.28.7 0 .28-.09.52-.28.7a1 1 0 0 1-.7.3c-.28 0-.52-.11-.7-.3zM8 7.99c-.02-.25-.11-.48-.31-.69-.2-.19-.42-.3-.69-.31H6c-.27.02-.48.13-.69.31-.2.2-.3.44-.31.69h1v3c.02.27.11.5.31.69.2.2.42.31.69.31h1c.27 0 .48-.11.69-.31.2-.19.3-.42.31-.69H8V7.98v.01zM7 2.3c-3.14 0-5.7 2.54-5.7 5.68 0 3.14 2.56 5.7 5.7 5.7s5.7-2.55 5.7-5.7c0-3.15-2.56-5.69-5.7-5.69v.01zM7 .98c3.86 0 7 3.14 7 7s-3.14 7-7 7-7-3.12-7-7 3.14-7 7-7z"/></svg></span>备注</div><div class=admonitionContent_ZwmI><p>这是 NautilusTrader 1.228.0 引入的单向约定。该版本之前录制的回放数据没有前缀。若你跨版本
+存储并比较 <code>trade_id</code> 字符串，请在新数据一侧去掉前缀；或者只在升级后捕获的数据上按前缀
+过滤。</div></div>
+<h2 class="anchor anchorTargetStickyNavbar_ana5" id=market-data>行情数据<a href=#market-data class=hash-link aria-label=行情数据的直接链接 title=行情数据的直接链接 translate=no>​</a></h2>
+<p>实时订阅由 WebSocket 频道提供，历史请求走 HTTP。每个带 <code>{interval}</code> 的频道都通过 <code>interval</code>
+订阅参数与<a href=#order-book-subscriptions class="">订单簿订阅</a>下描述的默认选择规则来解析它。</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>Nautilus 订阅<th>Deribit 频道<th>说明<tbody><tr><td>金融工具<td><code>instrument.state.{kind}.{currency}</code><td><code>kind</code> 与 <code>currency</code> 参数都默认为 <code>any</code>。<tr><td>工具状态<td><code>instrument.state.{kind}.{currency}</code><td>频道由工具 ID 推导；频道上每个工具都会发出。<tr><td>订单簿 delta<td><code>book.{instrument}.raw</code> 或 <code>book.{instrument}.{group}.{depth}.{interval}</code><td>仅 <code>L2_MBP</code>；见<a href=#order-book-subscriptions class="">订单簿订阅</a>。<tr><td>订单簿深度<td><code>book.{instrument}.{group}.10.{interval}</code><td>始终用分组频道，深度固定为 10。<tr><td>报价<td><code>quote.{instrument}</code><td>最优买卖价；该频道不带 interval。<tr><td>成交<td><code>trades.{instrument}.{interval}</code><td>组合行为见<a href=#trade-publishing class="">成交发布</a>。<tr><td>K 线<td><code>chart.trades.{instrument}.{resolution}</code><td>见 <a href=#bars class="">K 线</a>。<tr><td>标记价<td><code>ticker.{instrument}.{interval}</code><td>从 ticker 负载解析。<tr><td>指数价<td><code>ticker.{instrument}.{interval}</code><td>从 ticker 负载解析。<tr><td>期权 Greeks<td><code>ticker.{instrument}.{interval}</code><td>仅限期权。<tr><td>Funding 费率<td><code>perpetual.{instrument}.{interval}</code><td>仅限永续；其他工具会被拒绝。<tr><td>波动率指数<td><code>deribit_volatility_index.{index_name}</code><td>自定义数据；见<a href=#volatility-index class="">波动率指数</a>。</table>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>Nautilus 请求<th>Deribit 端点<th>说明<tbody><tr><td>金融工具<td><code>public/get_instruments</code><td>限定在配置的 <code>product_types</code> 内。<tr><td>成交<td><code>public/get_last_trades_by_instrument_and_time</code><td>接受组合工具名。<tr><td>K 线<td><code>public/get_tradingview_chart_data</code><td>见 <a href=#bars class="">K 线</a>。<tr><td>订单簿快照<td><code>public/get_order_book</code><td>要求客户端缓存中有该工具。<tr><td>期权链参考价<td><code>public/ticker</code><td>内部用于引导动态行权价区间。<tr><td><code>DeribitBookSummary</code><td><code>public/get_book_summary_by_currency</code><td>自定义数据；见<a href=#book-summaries class="">订单簿汇总</a>。</table>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=bars>K 线<a href=#bars class=hash-link aria-label="K 线的直接链接" title="K 线的直接链接" translate=no>​</a></h3>
+<p>Deribit 的 chart 分辨率有 <code>1</code>、<code>3</code>、<code>5</code>、<code>10</code>、<code>15</code>、<code>30</code>、<code>60</code>、<code>120</code>、<code>180</code>、<code>360</code>、<code>720</code>
+分钟，外加 <code>1D</code>。实时与历史两条路径都要求 <code>EXTERNAL</code> 聚合。</p>
+<p>历史请求是严格的：映射不到上述分辨率的 K 线类型会被拒绝，分钟、小时、日之外的聚合也一样。</p>
+<p>实时订阅则向上取整。所请求的步长会<strong>向上</strong>舍入到下一个受支持的分辨率，因此 2 分钟步长会
+打开 Deribit 的 3 分钟频道，6 分钟步长会打开 10 分钟频道。超过 720 分钟的一律变为 <code>1D</code>。
+分钟、小时、日之外的聚合回退为 1 分钟并发出警告。</p>
+<p>每根收到的 K 线都盖上由场所分辨率推导的 <code>BarType</code>，价格类型永远是 <code>LAST</code>。订阅时请使用
+名为受支持分辨率且带 <code>LAST</code> 的 K 线类型，否则 K 线会以与你订阅不同的 <code>BarType</code> 发布，永远
+到不了你的处理器。</p>
+<p><code>Bar.volume</code> 对反向永续和反向期货取自 chart 的 <code>cost</code> 字段（USD），对其余一切（包括标记为
+反向的期权与期权价差）取自 <code>volume</code> 字段（基础货币）。这使每只工具的 <code>Bar.volume</code> 与
+<code>TradeTick.size</code> 保持同一单位。</p>
+<h2 class="anchor anchorTargetStickyNavbar_ana5" id=order-book-subscriptions>订单簿订阅<a href=#order-book-subscriptions class=hash-link aria-label=订单簿订阅的直接链接 title=订单簿订阅的直接链接 translate=no>​</a></h2>
+<p>Deribit 只发布 L2（market-by-price）订单簿数据，因此 <code>subscribe_book_deltas</code> 与
+<code>subscribe_book_depth</code> 会拒绝 <code>BookType.L2_MBP</code> 之外的任何订单簿类型。可用的频道有两族，
+各适合不同场景。</p>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=raw-feeds-tick-by-tick>原始频道（逐笔）<a href=#raw-feeds-tick-by-tick class=hash-link aria-label=原始频道（逐笔）的直接链接 title=原始频道（逐笔）的直接链接 translate=no>​</a></h3>
+<p>原始频道把每一次更新作为单独消息发出。订阅原始订单簿，簿内每一笔挂单插入、更新或删除
+都会收到通知。</p>
+<ul>
+<li class="">要求鉴权连接（防滥用的保护措施）。</li>
+<li class="">需要捕捉每个价格档位变化的高频交易或做市场景用它。</li>
+<li class="">消息量更高。</li>
+<li class="">先给出完整订单簿的一个初始快照，之后是增量 delta。</li>
+</ul>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=aggregated-feeds-batched>聚合频道（批量）<a href=#aggregated-feeds-batched class=hash-link aria-label=聚合频道（批量）的直接链接 title=聚合频道（批量）的直接链接 translate=no>​</a></h3>
+<p>聚合频道按固定间隔（如每 100ms）批量发出更新，把多次订单簿变化合并到一条消息。</p>
+<ul>
+<li class="">无需鉴权即可使用。</li>
+<li class="">多数场景的推荐选择。</li>
+<li class="">消息量更低，更易处理。</li>
+<li class="">未鉴权的默认间隔：100ms。</li>
+<li class="">每条消息都是完整的、限定深度的快照，因此每次更新替换整个订单簿，而不是打补丁。</li>
+</ul>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=subscription-parameters>订阅参数<a href=#subscription-parameters class=hash-link aria-label=订阅参数的直接链接 title=订阅参数的直接链接 translate=no>​</a></h3>
+<p>Nautilus 适配器通过订阅参数支持两类数据源：</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>参数<th>取值<th>说明<tbody><tr><td><code>interval</code><td><code>raw</code>、<code>100ms</code>、<code>agg2</code><td><code>agg2</code> 以约 1 秒间隔批量发出。<code>raw</code> 需要鉴权。<tr><td><code>group</code><td><code>none</code>、价格分组<td>默认 <code>none</code>。只作用于分组的非 raw 订单簿频道。<tr><td><code>depth</code><td><code>1</code>、<code>10</code>、<code>20</code><td>默认 <code>10</code>。分组订单簿频道每边的价格档位数。</table>
+<p>数据客户端按如下规则选择订单簿间隔：</p>
+<ol>
+<li class="">提供了 <code>params["interval"]</code> 时优先使用它。</li>
+<li class="">WebSocket 连接已鉴权且未提供间隔时使用 <code>raw</code>。</li>
+<li class="">连接未鉴权时使用 Deribit 公开的 <code>100ms</code> 分组数据源。</li>
+</ol>
+<div class="language-python codeBlockContainer_eTMR theme-code-block" style=--prism-color:#393A34;--prism-background-color:#f6f8fa><div class=codeBlockContent_hafM><pre tabindex=0 class="prism-code language-python codeBlock_IMvC thin-scrollbar" style=color:#393A34;background-color:#f6f8fa><code class=codeBlockLines_gZDW><div class=token-line style=color:#393A34><span class="token keyword" style=color:#00009f>from</span><span class="token plain"> nautilus_trader</span><span class="token punctuation" style=color:#393A34>.</span><span class="token plain">model </span><span class="token keyword" style=color:#00009f>import</span><span class="token plain"> BookType</span><br/></div><div class=token-line style=color:#393A34><span class="token plain"></span><span class="token keyword" style=color:#00009f>from</span><span class="token plain"> nautilus_trader</span><span class="token punctuation" style=color:#393A34>.</span><span class="token plain">model </span><span class="token keyword" style=color:#00009f>import</span><span class="token plain"> InstrumentId</span><br/></div><div class=token-line style=color:#393A34><span class="token plain" style=display:inline-block></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">instrument_id </span><span class="token operator" style=color:#393A34>=</span><span class="token plain"> InstrumentId</span><span class="token punctuation" style=color:#393A34>.</span><span class="token plain">from_str</span><span class="token punctuation" style=color:#393A34>(</span><span class="token string" style=color:#e3116c>"BTC-PERPETUAL.DERIBIT"</span><span class="token punctuation" style=color:#393A34>)</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain" style=display:inline-block></span><br/></div><div class=token-line style=color:#393A34><span class="token plain"></span><span class="token comment" style=color:#999988;font-style:italic># Public 100ms aggregated feed when no API credentials are configured.</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">strategy</span><span class="token punctuation" style=color:#393A34>.</span><span class="token plain">subscribe_book_deltas</span><span class="token punctuation" style=color:#393A34>(</span><span class="token plain">instrument_id</span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain"> BookType</span><span class="token punctuation" style=color:#393A34>.</span><span class="token plain">L2_MBP</span><span class="token punctuation" style=color:#393A34>)</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain" style=display:inline-block></span><br/></div><div class=token-line style=color:#393A34><span class="token plain"></span><span class="token comment" style=color:#999988;font-style:italic># Raw feed. This is also the authenticated default when no interval is supplied.</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">strategy</span><span class="token punctuation" style=color:#393A34>.</span><span class="token plain">subscribe_book_deltas</span><span class="token punctuation" style=color:#393A34>(</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    instrument_id</span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    BookType</span><span class="token punctuation" style=color:#393A34>.</span><span class="token plain">L2_MBP</span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    params</span><span class="token operator" style=color:#393A34>=</span><span class="token punctuation" style=color:#393A34>{</span><span class="token string" style=color:#e3116c>"interval"</span><span class="token punctuation" style=color:#393A34>:</span><span class="token plain"> </span><span class="token string" style=color:#e3116c>"raw"</span><span class="token punctuation" style=color:#393A34>}</span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain"></span><span class="token punctuation" style=color:#393A34>)</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain" style=display:inline-block></span><br/></div><div class=token-line style=color:#393A34><span class="token plain"></span><span class="token comment" style=color:#999988;font-style:italic># Force an aggregated feed on an authenticated connection.</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">strategy</span><span class="token punctuation" style=color:#393A34>.</span><span class="token plain">subscribe_book_deltas</span><span class="token punctuation" style=color:#393A34>(</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    instrument_id</span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    BookType</span><span class="token punctuation" style=color:#393A34>.</span><span class="token plain">L2_MBP</span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    params</span><span class="token operator" style=color:#393A34>=</span><span class="token punctuation" style=color:#393A34>{</span><span class="token string" style=color:#e3116c>"interval"</span><span class="token punctuation" style=color:#393A34>:</span><span class="token plain"> </span><span class="token string" style=color:#e3116c>"100ms"</span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain"> </span><span class="token string" style=color:#e3116c>"depth"</span><span class="token punctuation" style=color:#393A34>:</span><span class="token plain"> </span><span class="token number" style=color:#36acaa>10</span><span class="token punctuation" style=color:#393A34>}</span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain"></span><span class="token punctuation" style=color:#393A34>)</span><br/></div></code></pre></div></div>
+<div class="theme-admonition theme-admonition-note admonition_LYZY alert alert--secondary"><div class=admonitionHeading_pnFY><span class=admonitionIcon_tEzm><svg viewBox="0 0 14 16"><path fill-rule=evenodd d="M6.3 5.69a.942.942 0 0 1-.28-.7c0-.28.09-.52.28-.7.19-.18.42-.28.7-.28.28 0 .52.09.7.28.18.19.28.42.28.7 0 .28-.09.52-.28.7a1 1 0 0 1-.7.3c-.28 0-.52-.11-.7-.3zM8 7.99c-.02-.25-.11-.48-.31-.69-.2-.19-.42-.3-.69-.31H6c-.27.02-.48.13-.69.31-.2.2-.3.44-.31.69h1v3c.02.27.11.5.31.69.2.2.42.31.69.31h1c.27 0 .48-.11.69-.31.2-.19.3-.42.31-.69H8V7.98v.01zM7 2.3c-3.14 0-5.7 2.54-5.7 5.68 0 3.14 2.56 5.7 5.7 5.7s5.7-2.55 5.7-5.7c0-3.15-2.56-5.69-5.7-5.69v.01zM7 .98c3.86 0 7 3.14 7 7s-3.14 7-7 7-7-3.12-7-7 3.14-7 7-7z"/></svg></span>备注</div><div class=admonitionContent_ZwmI><p>原始订单簿数据源需要已鉴权的 WebSocket 连接。订阅原始数据源之前，请确认已配置 API 凭据。</div></div>
+<div class="theme-admonition theme-admonition-tip admonition_LYZY alert alert--success"><div class=admonitionHeading_pnFY><span class=admonitionIcon_tEzm><svg viewBox="0 0 12 16"><path fill-rule=evenodd d="M6.5 0C3.48 0 1 2.19 1 5c0 .92.55 2.25 1 3 1.34 2.25 1.78 2.78 2 4v1h5v-1c.22-1.22.66-1.75 2-4 .45-.75 1-2.08 1-3 0-2.81-2.48-5-5.5-5zm3.64 7.48c-.25.44-.47.8-.67 1.11-.86 1.41-1.25 2.06-1.45 3.23-.02.05-.02.11-.02.17H5c0-.06 0-.13-.02-.17-.2-1.17-.59-1.83-1.45-3.23-.2-.31-.42-.67-.67-1.11C2.44 6.78 2 5.65 2 5c0-2.2 2.02-4 4.5-4 1.22 0 2.36.42 3.22 1.19C10.55 2.94 11 3.94 11 5c0 .66-.44 1.78-.86 2.48zM4 14h5c-.23 1.14-1.3 2-2.5 2s-2.27-.86-2.5-2z"/></svg></span>提示</div><div class=admonitionContent_ZwmI><p>对多数策略而言，100ms 聚合数据源以更低的消息开销提供足够的粒度。已提供凭据但不需要原始
+逐笔订单簿更新时，设置 <code>params={"interval": "100ms"}</code>。</div></div>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=sequence-gap-recovery>序列缺口恢复<a href=#sequence-gap-recovery class=hash-link aria-label=序列缺口恢复的直接链接 title=序列缺口恢复的直接链接 translate=no>​</a></h3>
+<p>适配器记录它应用的每条订单簿消息的 <code>change_id</code>，并用每个增量更新的 <code>prev_change_id</code> 与之
+核对。只有原始频道的更新携带 <code>prev_change_id</code>。聚合消息是自包含的快照，无需序列检查。</p>
+<p>检测到缺口（漏掉消息），或订单簿消息中某个档位无法转换为 <code>Price</code> 或 <code>Quantity</code>（例如数值
+超出其范围）时，适配器会自动：</p>
+<ol>
+<li class="">丢弃该消息，以及受影响工具的后续所有 delta。</li>
+<li class="">退订该工具的 delta 订单簿频道。</li>
+<li class="">退订得到确认后重新订阅，以获得新快照。</li>
+<li class="">每个重订频道投递出可成功转换的快照后恢复正常处理，并以其重播序列种子。</li>
+</ol>
+<p>重同步期间，策略不会收到过期或不完整的订单簿更新。重同步待定时用户主动退订，会取消重订阅
+而不是重开频道。</p>
+<p>分组订单簿频道（<code>book.{instrument}.{group}.{depth}.{interval}</code>）每个间隔都发送完整快照，
+因此适配器从不重同步它。转换失败的快照会被丢弃，下一条快照替换整个订单簿。</p>
+<div class="theme-admonition theme-admonition-warning admonition_LYZY alert alert--warning"><div class=admonitionHeading_pnFY><span class=admonitionIcon_tEzm><svg viewBox="0 0 16 16"><path fill-rule=evenodd d="M8.893 1.5c-.183-.31-.52-.5-.887-.5s-.703.19-.886.5L.138 13.499a.98.98 0 0 0 0 1.001c.193.31.53.501.886.501h13.964c.367 0 .704-.19.877-.5a1.03 1.03 0 0 0 .01-1.002L8.893 1.5zm.133 11.497H6.987v-2.003h2.039v2.003zm0-3.004H6.987V5.987h2.039v4.006z"/></svg></span>每个工具只订阅一个 delta 订单簿频道</div><div class=admonitionContent_ZwmI><p>同一工具的订单簿频道共享一套序列与重同步状态。一个工具可以有多个 delta 订单簿频道（例如
+<code>raw</code> 与 <code>100ms</code>）。若重同步开始时其中一个仍在等初始快照，该频道可能一直处于退订状态，
+直到下次重连。</div></div>
+<p>档位格式错误（包括无法解析为小数的值）时，适配器记一条警告并跳过该档位。金额按工具的
+数量精度舍入后为零的档位按不存在处理：快照跳过它，增量更新删除它，适配器记一条警告。</p>
+<h2 class="anchor anchorTargetStickyNavbar_ana5" id=funding-rates>Funding 费率<a href=#funding-rates class=hash-link aria-label="Funding 费率的直接链接" title="Funding 费率的直接链接" translate=no>​</a></h2>
+<p>Deribit 持续结算 funding（每几秒一次），而不是像多数交易所那样按固定间隔。因此 Deribit 的
+<code>FundingRateUpdate</code> 上 <code>interval</code> 字段为 <code>None</code>——这种连续模型无法映射为离散周期。</p>
+<h2 class="anchor anchorTargetStickyNavbar_ana5" id=deribit-specific-data>Deribit 专属数据<a href=#deribit-specific-data class=hash-link aria-label="Deribit 专属数据的直接链接" title="Deribit 专属数据的直接链接" translate=no>​</a></h2>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=book-summaries>订单簿汇总<a href=#book-summaries class=hash-link aria-label=订单簿汇总的直接链接 title=订单簿汇总的直接链接 translate=no>​</a></h3>
+<p>请求 <code>DeribitBookSummary</code> 自定义数据，可按货币与产品类别过滤，拉取一份批量快照。响应的每
+一项包含 Nautilus 工具 ID、隐含波动率、未平仓合约量、价格、成交量，以及
+<code>public/get_book_summary_by_currency</code> 返回的其他字段。</p>
+<p>Actor 或策略通过一次 <code>on_historical_data</code> 回调收到完整响应。每一项是 <code>CustomData</code> 包装，
+其 <code>data</code> 字段内含一个 <code>DeribitBookSummary</code>：</p>
+<div class="language-python codeBlockContainer_eTMR theme-code-block" style=--prism-color:#393A34;--prism-background-color:#f6f8fa><div class=codeBlockContent_hafM><pre tabindex=0 class="prism-code language-python codeBlock_IMvC thin-scrollbar" style=color:#393A34;background-color:#f6f8fa><code class=codeBlockLines_gZDW><div class=token-line style=color:#393A34><span class="token keyword" style=color:#00009f>from</span><span class="token plain"> nautilus_trader</span><span class="token punctuation" style=color:#393A34>.</span><span class="token plain">adapters</span><span class="token punctuation" style=color:#393A34>.</span><span class="token plain">deribit </span><span class="token keyword" style=color:#00009f>import</span><span class="token plain"> DERIBIT_CLIENT_ID</span><br/></div><div class=token-line style=color:#393A34><span class="token plain"></span><span class="token keyword" style=color:#00009f>from</span><span class="token plain"> nautilus_trader</span><span class="token punctuation" style=color:#393A34>.</span><span class="token plain">adapters</span><span class="token punctuation" style=color:#393A34>.</span><span class="token plain">deribit </span><span class="token keyword" style=color:#00009f>import</span><span class="token plain"> DeribitBookSummary</span><br/></div><div class=token-line style=color:#393A34><span class="token plain"></span><span class="token keyword" style=color:#00009f>from</span><span class="token plain"> nautilus_trader</span><span class="token punctuation" style=color:#393A34>.</span><span class="token plain">model </span><span class="token keyword" style=color:#00009f>import</span><span class="token plain"> CustomData</span><br/></div><div class=token-line style=color:#393A34><span class="token plain"></span><span class="token keyword" style=color:#00009f>from</span><span class="token plain"> nautilus_trader</span><span class="token punctuation" style=color:#393A34>.</span><span class="token plain">model </span><span class="token keyword" style=color:#00009f>import</span><span class="token plain"> DataType</span><br/></div><div class=token-line style=color:#393A34><span class="token plain" style=display:inline-block></span><br/></div><div class=token-line style=color:#393A34><span class="token plain" style=display:inline-block></span><br/></div><div class=token-line style=color:#393A34><span class="token plain"></span><span class="token keyword" style=color:#00009f>def</span><span class="token plain"> </span><span class="token function" style=color:#d73a49>on_start</span><span class="token punctuation" style=color:#393A34>(</span><span class="token plain">self</span><span class="token punctuation" style=color:#393A34>)</span><span class="token plain"> </span><span class="token operator" style=color:#393A34>-</span><span class="token operator" style=color:#393A34>></span><span class="token plain"> </span><span class="token boolean" style=color:#36acaa>None</span><span class="token punctuation" style=color:#393A34>:</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    self</span><span class="token punctuation" style=color:#393A34>.</span><span class="token plain">request_data</span><span class="token punctuation" style=color:#393A34>(</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">        DataType</span><span class="token punctuation" style=color:#393A34>(</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">            DeribitBookSummary</span><span class="token punctuation" style=color:#393A34>.</span><span class="token plain">__name__</span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">            metadata</span><span class="token operator" style=color:#393A34>=</span><span class="token punctuation" style=color:#393A34>{</span><span class="token string" style=color:#e3116c>"currency"</span><span class="token punctuation" style=color:#393A34>:</span><span class="token plain"> </span><span class="token string" style=color:#e3116c>"BTC"</span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain"> </span><span class="token string" style=color:#e3116c>"kind"</span><span class="token punctuation" style=color:#393A34>:</span><span class="token plain"> </span><span class="token string" style=color:#e3116c>"option"</span><span class="token punctuation" style=color:#393A34>}</span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">        </span><span class="token punctuation" style=color:#393A34>)</span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">        DERIBIT_CLIENT_ID</span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    </span><span class="token punctuation" style=color:#393A34>)</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain" style=display:inline-block></span><br/></div><div class=token-line style=color:#393A34><span class="token plain" style=display:inline-block></span><br/></div><div class=token-line style=color:#393A34><span class="token plain"></span><span class="token keyword" style=color:#00009f>def</span><span class="token plain"> </span><span class="token function" style=color:#d73a49>on_historical_data</span><span class="token punctuation" style=color:#393A34>(</span><span class="token plain">self</span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain"> data</span><span class="token punctuation" style=color:#393A34>:</span><span class="token plain"> </span><span class="token builtin">list</span><span class="token punctuation" style=color:#393A34>[</span><span class="token plain">CustomData</span><span class="token punctuation" style=color:#393A34>]</span><span class="token punctuation" style=color:#393A34>)</span><span class="token plain"> </span><span class="token operator" style=color:#393A34>-</span><span class="token operator" style=color:#393A34>></span><span class="token plain"> </span><span class="token boolean" style=color:#36acaa>None</span><span class="token punctuation" style=color:#393A34>:</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    </span><span class="token keyword" style=color:#00009f>for</span><span class="token plain"> item </span><span class="token keyword" style=color:#00009f>in</span><span class="token plain"> data</span><span class="token punctuation" style=color:#393A34>:</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">        summary </span><span class="token operator" style=color:#393A34>=</span><span class="token plain"> item</span><span class="token punctuation" style=color:#393A34>.</span><span class="token plain">data</span><br/></div><div class=token-line style=color:#393A34><span class="token plain">        </span><span class="token keyword" style=color:#00009f>if</span><span class="token plain"> </span><span class="token builtin">isinstance</span><span class="token punctuation" style=color:#393A34>(</span><span class="token plain">summary</span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain"> DeribitBookSummary</span><span class="token punctuation" style=color:#393A34>)</span><span class="token punctuation" style=color:#393A34>:</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">            self</span><span class="token punctuation" style=color:#393A34>.</span><span class="token plain">log</span><span class="token punctuation" style=color:#393A34>.</span><span class="token plain">info</span><span class="token punctuation" style=color:#393A34>(</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">                </span><span class="token string-interpolation string" style=color:#e3116c>f"</span><span class="token string-interpolation interpolation punctuation" style=color:#393A34>{</span><span class="token string-interpolation interpolation">summary</span><span class="token string-interpolation interpolation punctuation" style=color:#393A34>.</span><span class="token string-interpolation interpolation">instrument_id</span><span class="token string-interpolation interpolation punctuation" style=color:#393A34>}</span><span class="token string-interpolation string" style=color:#e3116c>: mark_iv=</span><span class="token string-interpolation interpolation punctuation" style=color:#393A34>{</span><span class="token string-interpolation interpolation">summary</span><span class="token string-interpolation interpolation punctuation" style=color:#393A34>.</span><span class="token string-interpolation interpolation">mark_iv</span><span class="token string-interpolation interpolation punctuation" style=color:#393A34>}</span><span class="token string-interpolation string" style=color:#e3116c>, "</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">                </span><span class="token string-interpolation string" style=color:#e3116c>f"open_interest=</span><span class="token string-interpolation interpolation punctuation" style=color:#393A34>{</span><span class="token string-interpolation interpolation">summary</span><span class="token string-interpolation interpolation punctuation" style=color:#393A34>.</span><span class="token string-interpolation interpolation">open_interest</span><span class="token string-interpolation interpolation punctuation" style=color:#393A34>}</span><span class="token string-interpolation string" style=color:#e3116c>"</span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">            </span><span class="token punctuation" style=color:#393A34>)</span><br/></div></code></pre></div></div>
+<p>元数据字段 <code>currency</code> 是必需的。可选的 <code>kind</code> 字段默认为 <code>option</code>。由 Decimal 支撑的场所
+字段（如 <code>mark_iv</code> 与 <code>open_interest</code>）在 Python 侧以字符串或 <code>None</code> 暴露。空响应会以空
+列表调用一次 <code>on_historical_data</code>。场所请求失败时，记完错误后同样以空列表调用该回调。尚未
+到达场所就被拒绝的请求（例如缺少 <code>currency</code>）不会产生回调。</p>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=volatility-index>波动率指数<a href=#volatility-index class=hash-link aria-label=波动率指数的直接链接 title=波动率指数的直接链接 translate=no>​</a></h3>
+<p>适配器从 Deribit 的 <code>deribit_volatility_index.{index_name}</code> WebSocket 频道发出
+<code>DeribitVolatilityIndex</code> 自定义数据。Deribit 提供 <code>btc_usd</code>、<code>eth_usd</code> 等波动率指数流。</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>字段<th>类型<th>说明<tbody><tr><td><code>index_name</code><td><code>str</code><td>Deribit 波动率指数名称，例如 <code>btc_usd</code>。<tr><td><code>volatility</code><td><code>float</code><td>当前波动率指数值。<tr><td><code>ts_event</code><td><code>int</code><td>更新发生时刻的 UNIX 纳秒时间戳。<tr><td><code>ts_init</code><td><code>int</code><td>对象构建时刻的 UNIX 纳秒时间戳。</table>
+<p>Actor 或策略用 <code>DataType(DeribitVolatilityIndex.__name__)</code> 订阅，<code>index_name</code> 元数据键是
+必需的：</p>
+<div class="language-python codeBlockContainer_eTMR theme-code-block" style=--prism-color:#393A34;--prism-background-color:#f6f8fa><div class=codeBlockContent_hafM><pre tabindex=0 class="prism-code language-python codeBlock_IMvC thin-scrollbar" style=color:#393A34;background-color:#f6f8fa><code class=codeBlockLines_gZDW><div class=token-line style=color:#393A34><span class="token keyword" style=color:#00009f>from</span><span class="token plain"> nautilus_trader</span><span class="token punctuation" style=color:#393A34>.</span><span class="token plain">adapters</span><span class="token punctuation" style=color:#393A34>.</span><span class="token plain">deribit </span><span class="token keyword" style=color:#00009f>import</span><span class="token plain"> DeribitVolatilityIndex</span><br/></div><div class=token-line style=color:#393A34><span class="token plain"></span><span class="token keyword" style=color:#00009f>from</span><span class="token plain"> nautilus_trader</span><span class="token punctuation" style=color:#393A34>.</span><span class="token plain">model </span><span class="token keyword" style=color:#00009f>import</span><span class="token plain"> ClientId</span><br/></div><div class=token-line style=color:#393A34><span class="token plain"></span><span class="token keyword" style=color:#00009f>from</span><span class="token plain"> nautilus_trader</span><span class="token punctuation" style=color:#393A34>.</span><span class="token plain">model </span><span class="token keyword" style=color:#00009f>import</span><span class="token plain"> DataType</span><br/></div><div class=token-line style=color:#393A34><span class="token plain" style=display:inline-block></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">self</span><span class="token punctuation" style=color:#393A34>.</span><span class="token plain">subscribe_data</span><span class="token punctuation" style=color:#393A34>(</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    data_type</span><span class="token operator" style=color:#393A34>=</span><span class="token plain">DataType</span><span class="token punctuation" style=color:#393A34>(</span><span class="token plain">DeribitVolatilityIndex</span><span class="token punctuation" style=color:#393A34>.</span><span class="token plain">__name__</span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain"> metadata</span><span class="token operator" style=color:#393A34>=</span><span class="token punctuation" style=color:#393A34>{</span><span class="token string" style=color:#e3116c>"index_name"</span><span class="token punctuation" style=color:#393A34>:</span><span class="token plain"> </span><span class="token string" style=color:#e3116c>"btc_usd"</span><span class="token punctuation" style=color:#393A34>}</span><span class="token punctuation" style=color:#393A34>)</span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    client_id</span><span class="token operator" style=color:#393A34>=</span><span class="token plain">ClientId</span><span class="token punctuation" style=color:#393A34>.</span><span class="token plain">from_str</span><span class="token punctuation" style=color:#393A34>(</span><span class="token string" style=color:#e3116c>"DERIBIT"</span><span class="token punctuation" style=color:#393A34>)</span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain"></span><span class="token punctuation" style=color:#393A34>)</span><br/></div></code></pre></div></div>
+<h2 class="anchor anchorTargetStickyNavbar_ana5" id=orders-capability>订单能力<a href=#orders-capability class=hash-link aria-label=订单能力的直接链接 title=订单能力的直接链接 translate=no>​</a></h2>
+<p>下面是 Deribit 支持的订单类型、执行指示与有效期选项。</p>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=order-types>订单类型<a href=#order-types class=hash-link aria-label=订单类型的直接链接 title=订单类型的直接链接 translate=no>​</a></h3>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>Nautilus 订单类型<th>Deribit 订单类型<th>支持<th>说明<tbody><tr><td><code>MARKET</code><td><code>market</code><td>✓<td>按市价立即成交。<tr><td><code>LIMIT</code><td><code>limit</code><td>✓<td>按指定价或更优价成交。<tr><td><code>STOP_MARKET</code><td><code>stop_market</code><td>✓<td>触发后的条件市价单。<tr><td><code>STOP_LIMIT</code><td><code>stop_limit</code><td>✓<td>触发后的条件限价单。<tr><td><code>MARKET_IF_TOUCHED</code><td><code>take_market</code><td>✓<td>止盈风格的市价单。<tr><td><code>LIMIT_IF_TOUCHED</code><td><code>take_limit</code><td>✓<td>止盈风格的限价单。<tr><td><code>TRAILING_STOP_MARKET</code><td><code>trailing_stop</code><td>-<td><em>目前未实现</em>。<tr><td><code>TRAILING_STOP_LIMIT</code><td>N/A<td>-<td><em>Deribit 不支持</em>。<tr><td><code>MARKET_TO_LIMIT</code><td><code>market_limit</code><td>-<td><em>目前未实现</em>。</table>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=execution-instructions>执行指示<a href=#execution-instructions class=hash-link aria-label=执行指示的直接链接 title=执行指示的直接链接 translate=no>​</a></h3>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>指示<th>支持<th>说明<tbody><tr><td><code>post_only</code><td>✓<td>若订单会吃掉流动性则拒绝该订单。使用 <code>reject_post_only=true</code>。<tr><td><code>reduce_only</code><td>✓<td>订单只能减少已有持仓。</table>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=time-in-force>有效期<a href=#time-in-force class=hash-link aria-label=有效期的直接链接 title=有效期的直接链接 translate=no>​</a></h3>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>有效期<th>支持<th>说明<tbody><tr><td><code>GTC</code><td>✓<td>撤销前有效（<code>good_til_cancelled</code>）。<tr><td><code>GTD</code><td>✓<td>当日有效。UTC 8:00 到期（<code>good_til_day</code>）。<tr><td><code>IOC</code><td>✓<td>立即成交否则撤销（<code>immediate_or_cancel</code>）。<tr><td><code>FOK</code><td>✓<td>全部成交否则撤销（<code>fill_or_kill</code>）。</table>
+<p>Deribit 只对限价风格的订单应用有效期。适配器对 <code>MARKET</code>、<code>STOP_MARKET</code> 和
+<code>MARKET_IF_TOUCHED</code> 订单省略 <code>time_in_force</code>，因为 Deribit 在市价风格的订单类型上会拒绝该
+参数。</p>
+<div class="theme-admonition theme-admonition-note admonition_LYZY alert alert--secondary"><div class=admonitionHeading_pnFY><span class=admonitionIcon_tEzm><svg viewBox="0 0 14 16"><path fill-rule=evenodd d="M6.3 5.69a.942.942 0 0 1-.28-.7c0-.28.09-.52.28-.7.19-.18.42-.28.7-.28.28 0 .52.09.7.28.18.19.28.42.28.7 0 .28-.09.52-.28.7a1 1 0 0 1-.7.3c-.28 0-.52-.11-.7-.3zM8 7.99c-.02-.25-.11-.48-.31-.69-.2-.19-.42-.3-.69-.31H6c-.27.02-.48.13-.69.31-.2.2-.3.44-.31.69h1v3c.02.27.11.5.31.69.2.2.42.31.69.31h1c.27 0 .48-.11.69-.31.2-.19.3-.42.31-.69H8V7.98v.01zM7 2.3c-3.14 0-5.7 2.54-5.7 5.68 0 3.14 2.56 5.7 5.7 5.7s5.7-2.55 5.7-5.7c0-3.15-2.56-5.69-5.7-5.69v.01zM7 .98c3.86 0 7 3.14 7 7s-3.14 7-7 7-7-3.12-7-7 3.14-7 7-7z"/></svg></span>备注</div><div class=admonitionContent_ZwmI><p><strong>Deribit 上的 GTD</strong>：与其他接受任意到期时间的交易所不同，
+Deribit 的 <code>good_til_day</code> 总是在当日或次日的 UTC 8:00 到期。自定义到期时间会被记为警告，
+订单将采用交易所固定的到期行为。</div></div>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=trigger-types>触发类型<a href=#trigger-types class=hash-link aria-label=触发类型的直接链接 title=触发类型的直接链接 translate=no>​</a></h3>
+<p>条件订单（止损单）支持多种触发价来源：</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>触发类型<th>支持<th>说明<tbody><tr><td><code>last_price</code><td>✓<td>使用最新成交价。<code>DEFAULT</code> 也用它。<tr><td><code>mark_price</code><td>✓<td>使用标记价格。<tr><td><code>index_price</code><td>✓<td>使用标的指数价格。</table>
+<p>其他任何 Nautilus 触发类型都会从请求中丢弃而不是做映射。Deribit 要求止损与止盈订单必须带
+<code>trigger</code>，因此条件订单请使用上述三种之一。</p>
+<div class="language-python codeBlockContainer_eTMR theme-code-block" style=--prism-color:#393A34;--prism-background-color:#f6f8fa><div class=codeBlockContent_hafM><pre tabindex=0 class="prism-code language-python codeBlock_IMvC thin-scrollbar" style=color:#393A34;background-color:#f6f8fa><code class=codeBlockLines_gZDW><div class=token-line style=color:#393A34><span class="token comment" style=color:#999988;font-style:italic># Example: Stop loss using mark price trigger</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">stop_order </span><span class="token operator" style=color:#393A34>=</span><span class="token plain"> order_factory</span><span class="token punctuation" style=color:#393A34>.</span><span class="token plain">stop_market</span><span class="token punctuation" style=color:#393A34>(</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    instrument_id</span><span class="token operator" style=color:#393A34>=</span><span class="token plain">instrument_id</span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    order_side</span><span class="token operator" style=color:#393A34>=</span><span class="token plain">OrderSide</span><span class="token punctuation" style=color:#393A34>.</span><span class="token plain">SELL</span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    quantity</span><span class="token operator" style=color:#393A34>=</span><span class="token plain">Quantity</span><span class="token punctuation" style=color:#393A34>.</span><span class="token plain">from_str</span><span class="token punctuation" style=color:#393A34>(</span><span class="token string" style=color:#e3116c>"0.1"</span><span class="token punctuation" style=color:#393A34>)</span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    trigger_price</span><span class="token operator" style=color:#393A34>=</span><span class="token plain">Price</span><span class="token punctuation" style=color:#393A34>.</span><span class="token plain">from_str</span><span class="token punctuation" style=color:#393A34>(</span><span class="token string" style=color:#e3116c>"45000.0"</span><span class="token punctuation" style=color:#393A34>)</span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    trigger_type</span><span class="token operator" style=color:#393A34>=</span><span class="token plain">TriggerType</span><span class="token punctuation" style=color:#393A34>.</span><span class="token plain">MARK_PRICE</span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain">  </span><span class="token comment" style=color:#999988;font-style:italic># Use mark price for trigger</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain"></span><span class="token punctuation" style=color:#393A34>)</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">strategy</span><span class="token punctuation" style=color:#393A34>.</span><span class="token plain">submit_order</span><span class="token punctuation" style=color:#393A34>(</span><span class="token plain">stop_order</span><span class="token punctuation" style=color:#393A34>)</span><br/></div></code></pre></div></div>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=batch-operations>批量操作<a href=#batch-operations class=hash-link aria-label=批量操作的直接链接 title=批量操作的直接链接 translate=no>​</a></h3>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>操作<th>支持<th>说明<tbody><tr><td>提交订单列表<td>✓<td>每笔订单作为独立的 Deribit 订单发送。场所层没有原子批量。<tr><td>按订单 ID 批量撤销<td>✓<td>对每个场所订单 ID 分别发送 <code>private/cancel</code> 请求。<tr><td>按工具撤销全部<td>✓<td>未提供方向过滤时使用 <code>private/cancel_all_by_instrument</code>。<tr><td>按方向过滤的撤销全部<td>✓<td>先在本地过滤缓存的未结订单，再逐一撤销匹配的订单。<tr><td>批量修改<td>-<td><em>目前未实现</em>：支持单笔订单修改。</table>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=post-only-behavior>Post-only 行为<a href=#post-only-behavior class=hash-link aria-label="Post-only 行为的直接链接" title="Post-only 行为的直接链接" translate=no>​</a></h3>
+<p>Deribit 提供两种 post-only 模式：</p>
+<ol>
+<li class=""><strong>价格调整（Deribit 默认）</strong>：若 post-only 订单会跨过价差成交，Deribit 自动把价格调整到
+价差内一个 tick。</li>
+<li class=""><strong>拒绝模式</strong>：订单若会跨过价差则立即拒绝。</li>
+</ol>
+<p>Nautilus 适配器使用<strong>拒绝模式</strong>（<code>reject_post_only=true</code>）以获得确定性行为。post-only 订单
+若会吃掉流动性，会以错误码 <code>11054</code> 被拒绝，并发出 <code>OrderRejected</code> 事件，其
+<code>due_post_only</code> 标志置为 <code>true</code>。</p>
+<p>这让策略可以区分：</p>
+<ul>
+<li class="">因违反 post-only（试图吃掉流动性）而被拒的订单。</li>
+<li class="">因其他原因（保证金不足、价格无效等）被拒的订单。</li>
+</ul>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=order-modification>订单修改<a href=#order-modification class=hash-link aria-label=订单修改的直接链接 title=订单修改的直接链接 translate=no>​</a></h3>
+<p>适配器使用 Deribit 原生的 <code>private/edit</code> 端点，而不是撤销加重下。这带来若干好处：</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>好处<th>说明<tbody><tr><td>单次请求<td>比撤销 + 新下单更快、延迟更低。<tr><td>保留队列优先级<td>只减少数量或保持同价时保住队列位置。<tr><td>保持成交历史<td>部分成交仍关联同一个订单 ID。</table>
+<p><strong>队列优先级规则</strong>：</p>
+<ul>
+<li class=""><strong>只减少数量</strong>：保留队列位置。</li>
+<li class=""><strong>价格不变</strong>：保留队列位置。</li>
+<li class=""><strong>增加数量或改变价格</strong>：失去队列位置（按新订单处理）。</li>
+</ul>
+<p>修改命令必须携带场所订单 ID 和一个价格。缺少任一项时，适配器在本地拒绝该命令，不会到达
+Deribit。数量是可选的，缺省回退到缓存订单的当前数量。</p>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=position-management>持仓管理<a href=#position-management class=hash-link aria-label=持仓管理的直接链接 title=持仓管理的直接链接 translate=no>​</a></h3>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>特性<th>支持<th>说明<tbody><tr><td>查询持仓<td>✓<td>为对账从 <code>private/get_positions</code> 拉取。<tr><td>持仓模式<td>-<td><em>Deribit 不支持</em>：仅净持仓模式。<tr><td>杠杆控制<td>-<td><em>Deribit 不支持</em>：没有直接的杠杆设置。<tr><td>保证金模式<td>-<td><em>目前未实现</em>：Deribit 暴露账户保证金模式。</table>
+<p>执行客户端订阅 <code>user.orders</code>、<code>user.trades</code> 和 <code>user.portfolio</code>（余额与保证金），而不是
+Deribit 的合并频道 <code>user.changes</code>，因此没有持仓推送到达适配器。实时持仓状态由 Nautilus 根据
+<code>user.trades</code> 上的成交维护，<code>private/get_positions</code> 提供对账比对用的场所快照。</p>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=order-querying>订单查询<a href=#order-querying class=hash-link aria-label=订单查询的直接链接 title=订单查询的直接链接 translate=no>​</a></h3>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>特性<th>支持<th>说明<tbody><tr><td>查询未结订单<td>✓<td>列出全部活动订单。<tr><td>查询订单历史<td>✓<td>历史订单数据。<tr><td>订单状态更新<td>✓<td>实时订单状态变化。<tr><td>成交历史<td>✓<td>执行与成交报告。</table>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=contingent-orders>条件关联订单<a href=#contingent-orders class=hash-link aria-label=条件关联订单的直接链接 title=条件关联订单的直接链接 translate=no>​</a></h3>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>特性<th>支持<th>说明<tbody><tr><td>订单列表<td>✓<td>作为独立订单依次提交；场所层没有原子列表。<tr><td>原生关联订单<td>-<td><em>目前未实现</em>：Deribit 暴露 <code>linked_order_type</code>。<tr><td>OCO 订单<td>-<td><em>目前未实现</em>：Deribit 暴露 <code>one_cancels_other</code>。<tr><td>括弧订单（bracket）<td>-<td><em>目前未实现</em>：Deribit 暴露 <code>one_triggers_one_cancels_other</code>。<tr><td>条件止损单<td>✓<td>止损市价与止损限价订单。<tr><td>条件止盈单<td>✓<td>触价市价（MARKET_IF_TOUCHED）与触价限价（LIMIT_IF_TOUCHED）订单。</table>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=liquidation-handling>强平处理<a href=#liquidation-handling class=hash-link aria-label=强平处理的直接链接 title=强平处理的直接链接 translate=no>​</a></h3>
+<p>Deribit 为任何由强平触发的成交打标签。在 <code>user.trades</code> 流和 <code>private/get_user_trades_*</code>
+端点上，可选的 <code>liquidation</code> 字段指出被强平的是哪一边：</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>取值<th>含义<tbody><tr><td><code>"M"</code><td>挂单方（maker）被强平。<tr><td><code>"T"</code><td>吃单方（taker）被强平。<tr><td><code>"MT"</code><td>双方都被强平。<tr><td>缺失<td>普通非强平成交。</table>
+<p>对每一笔带强平标签的成交，适配器记一条警告，附上工具、成交 ID、订单 ID 与强平方向，然后
+通过正常管线发出 <code>FillReport</code>。Deribit 不运营独立于「强平 + 保险基金 / 组合保证金」流程的
+ADL 机制，因此没有单独的 ADL 信号需要呈现。</p>
+<p>上游参考：</p>
+<ul>
+<li class=""><a href=https://docs.deribit.com/subscriptions/user/usertradesinstrument_nameinterval target=_blank rel="noopener noreferrer" class=""><code>user.trades.{instrument_name}.{interval}</code> 频道</a></li>
+<li class=""><a href=https://support.deribit.com/hc/en-us/articles/25944769313309-Liquidations target=_blank rel="noopener noreferrer" class="">强平文档</a></li>
+</ul>
+<h2 class="anchor anchorTargetStickyNavbar_ana5" id=rate-limiting>速率限制<a href=#rate-limiting class=hash-link aria-label=速率限制的直接链接 title=速率限制的直接链接 translate=no>​</a></h2>
+<p>Deribit 使用基于信用（credit）的、按端点区分的速率限制。Deribit 官方的限制是权威的，且会
+因端点、账户层级和当前场所策略而异。适配器增加本地令牌桶以减少可避免的限流，但不取代
+Deribit 自己的服务端检查。</p>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=http-limits>HTTP 限制<a href=#http-limits class=hash-link aria-label="HTTP 限制的直接链接" title="HTTP 限制的直接链接" translate=no>​</a></h3>
+<p>每个 HTTP 请求消耗全局桶，以及一个以 <code>deribit:{method}</code> 为键、使用全局限额的按方法桶。若
+JSON-RPC 方法属于订单或账户类别，它还会消耗对应的桶。</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>桶 / 键<th>适配器桶<th>说明<tbody><tr><td><code>deribit:global</code><td>20 请求/秒，突发 100<td>应用于每个 HTTP 请求。<tr><td><code>deribit:orders</code><td>5 请求/秒，突发 20<td>直接驱动 HTTP 客户端时的撮合引擎方法。<tr><td><code>deribit:account</code><td>5 请求/秒，突发 5<td>账户、持仓、订单状态与用户成交端点。<tr><td><code>deribit:{method}</code><td>20 请求/秒，突发 100<td>按方法桶；回退到全局限额。</table>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=websocket-limits>WebSocket 限制<a href=#websocket-limits class=hash-link aria-label="WebSocket 限制的直接链接" title="WebSocket 限制的直接链接" translate=no>​</a></h3>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>操作<th>适配器桶<th>说明<tbody><tr><td>订阅/退订<td>3 请求/秒，突发 10<td>也是所有非订单 WebSocket 请求的默认桶。<tr><td>订单操作<td>5 请求/秒，突发 20<td>通过 WebSocket 的买入、卖出、编辑与撤销。</table>
+<div class="theme-admonition theme-admonition-note admonition_LYZY alert alert--secondary"><div class=admonitionHeading_pnFY><span class=admonitionIcon_tEzm><svg viewBox="0 0 14 16"><path fill-rule=evenodd d="M6.3 5.69a.942.942 0 0 1-.28-.7c0-.28.09-.52.28-.7.19-.18.42-.28.7-.28.28 0 .52.09.7.28.18.19.28.42.28.7 0 .28-.09.52-.28.7a1 1 0 0 1-.7.3c-.28 0-.52-.11-.7-.3zM8 7.99c-.02-.25-.11-.48-.31-.69-.2-.19-.42-.3-.69-.31H6c-.27.02-.48.13-.69.31-.2.2-.3.44-.31.69h1v3c.02.27.11.5.31.69.2.2.42.31.69.31h1c.27 0 .48-.11.69-.31.2-.19.3-.42.31-.69H8V7.98v.01zM7 2.3c-3.14 0-5.7 2.54-5.7 5.68 0 3.14 2.56 5.7 5.7 5.7s5.7-2.55 5.7-5.7c0-3.15-2.56-5.69-5.7-5.69v.01zM7 .98c3.86 0 7 3.14 7 7s-3.14 7-7 7-7-3.12-7-7 3.14-7 7-7z"/></svg></span>备注</div><div class=admonitionContent_ZwmI><p>Nautilus 适配器使用 WebSocket（而非 HTTP）提交订单以降低延迟。订单操作受
+<code>DERIBIT_WS_ORDER_QUOTA</code>（5 请求/秒，突发 20）限制。</div></div>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=credit-based-system-details>信用制体系的细节<a href=#credit-based-system-details class=hash-link aria-label=信用制体系的细节的直接链接 title=信用制体系的细节的直接链接 translate=no>​</a></h3>
+<p>Deribit 持续补充非撮合引擎信用。当前公开文档列出的默认非撮合引擎池如下：</p>
+<p><strong>非撮合引擎请求</strong>：</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>参数<th>取值<th>说明<tbody><tr><td>每请求成本<td>500 信用<td>每次 API 调用消耗信用。<tr><td>池上限<td>50,000 信用<td>允许 100 次请求的突发。<tr><td>补充速率<td>10,000 信用/秒<td>约 20 次/秒的持续请求速率。</table>
+<p><strong>撮合引擎请求（默认层级）</strong>：</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>参数<th>取值<th>说明<tbody><tr><td>持续速率<td>5 请求/秒<td>连续速率限制。<tr><td>突发容量<td>20 次请求<td>触发限流前的最大突发。</table>
+<p>做市商与高交易量交易者可以按 7 天交易量层级获得更高的撮合引擎限额。</p>
+<p>Deribit 的某些端点有更严格的方法级限制。例如当前场所文档列出
+<code>public/get_instruments</code> 为 1 请求/秒、突发 50 次，订阅方法约为 3.3 请求/秒、突发 10 次。
+请把 <code>product_types</code> 限定在你需要的产品族内，并避免在实盘系统中反复全量重载工具。</p>
+<p>Nautilus 适配器实现了覆盖面较广的令牌桶限流器，配置如下：</p>
+<ul>
+<li class=""><code>DERIBIT_HTTP_REST_QUOTA</code>：20 请求/秒，突发 100（全局与按方法的 HTTP）</li>
+<li class=""><code>DERIBIT_HTTP_ORDER_QUOTA</code>：5 请求/秒，突发 20（撮合引擎 HTTP）</li>
+<li class=""><code>DERIBIT_HTTP_ACCOUNT_QUOTA</code>：5 请求/秒，突发 5（账户 HTTP）</li>
+<li class=""><code>DERIBIT_WS_ORDER_QUOTA</code>：5 请求/秒，突发 20（撮合引擎 WebSocket）</li>
+<li class=""><code>DERIBIT_WS_SUBSCRIPTION_QUOTA</code>：3 请求/秒，突发 10（订阅、退订及其他非订单请求）</li>
+</ul>
+<p>更多细节见<a href=https://docs.deribit.com/articles/rate-limits target=_blank rel="noopener noreferrer" class="">速率限制文章</a>。</p>
+<div class="theme-admonition theme-admonition-warning admonition_LYZY alert alert--warning"><div class=admonitionHeading_pnFY><span class=admonitionIcon_tEzm><svg viewBox="0 0 16 16"><path fill-rule=evenodd d="M8.893 1.5c-.183-.31-.52-.5-.887-.5s-.703.19-.886.5L.138 13.499a.98.98 0 0 0 0 1.001c.193.31.53.501.886.501h13.964c.367 0 .704-.19.877-.5a1.03 1.03 0 0 0 .01-1.002L8.893 1.5zm.133 11.497H6.987v-2.003h2.039v2.003zm0-3.004H6.987V5.987h2.039v4.006z"/></svg></span>注意</div><div class=admonitionContent_ZwmI><p>超出允许的配额时，Deribit 返回错误码 <code>10028</code>（too_many_requests）。反复违规可能导致临时
+限流。</div></div>
+<h2 class="anchor anchorTargetStickyNavbar_ana5" id=connection-management>连接管理<a href=#connection-management class=hash-link aria-label=连接管理的直接链接 title=连接管理的直接链接 translate=no>​</a></h2>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=platform-limits>平台限制<a href=#platform-limits class=hash-link aria-label=平台限制的直接链接 title=平台限制的直接链接 translate=no>​</a></h3>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>限制<th>Deribit 当前指引<tbody><tr><td>每个 API key 或登录的活动会话数<td>16<tr><td>每 IP 的会话与连接级连接数<td>32<tr><td>每个浏览器会话的 Web 应用连接数<td>2</table>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=session-based-authentication>基于会话的鉴权<a href=#session-based-authentication class=hash-link aria-label=基于会话的鉴权的直接链接 title=基于会话的鉴权的直接链接 translate=no>​</a></h3>
+<p>适配器为数据与执行客户端使用<strong>相互独立的 WebSocket 会话</strong>，各自带自己的鉴权范围：</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>客户端<th>会话名称<th>用途<tbody><tr><td>数据客户端<td><code>nautilus-data</code><td>行情数据订阅（原始数据源需要鉴权）。<tr><td>执行客户端<td><code>nautilus-execution</code><td>订单操作（买入、卖出、编辑、撤销）。</table>
+<p><strong>鉴权流程</strong>：</p>
+<ol>
+<li class="">WebSocket 连接到 Deribit。</li>
+<li class="">客户端使用带会话范围的 <code>client_signature</code> 授权类型完成鉴权。</li>
+<li class="">令牌在过期前刷新。</li>
+<li class="">重连时以指数退避重试重新鉴权（至多 3 次）。全部尝试失败时，只恢复公开频道的订阅。</li>
+</ol>
+<p>这种基于会话的方式带来：</p>
+<ul>
+<li class="">按客户端类型独立管理令牌。</li>
+<li class="">隔离故障域（数据侧鉴权失败不影响执行）。</li>
+<li class="">在 Deribit 会话日志中有清晰的审计线索。</li>
+</ul>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=best-practices>最佳实践<a href=#best-practices class=hash-link aria-label=最佳实践的直接链接 title=最佳实践的直接链接 translate=no>​</a></h3>
+<p>适配器遵循 Deribit 的
+<a href=https://docs.deribit.com/articles/connection-management-best-practices target=_blank rel="noopener noreferrer" class="">推荐连接实践</a>：</p>
+<ol>
+<li class=""><strong>使用 WebSocket 订阅</strong>获取实时数据而非 REST 轮询，请求更少、延迟更低、速率限制消耗
+更少。</li>
+<li class=""><strong>对所有连接做鉴权</strong>（在提供了凭据时）。已鉴权用户享有更高速率限制，也更不容易被按 IP
+限流。</li>
+<li class=""><strong>实现心跳</strong>（默认 30 秒间隔）以维持连接健康、尽早发现断连。</li>
+<li class=""><strong>自动处理重连</strong>，包括重新鉴权与订阅恢复。</li>
+</ol>
+<div class="theme-admonition theme-admonition-tip admonition_LYZY alert alert--success"><div class=admonitionHeading_pnFY><span class=admonitionIcon_tEzm><svg viewBox="0 0 12 16"><path fill-rule=evenodd d="M6.5 0C3.48 0 1 2.19 1 5c0 .92.55 2.25 1 3 1.34 2.25 1.78 2.78 2 4v1h5v-1c.22-1.22.66-1.75 2-4 .45-.75 1-2.08 1-3 0-2.81-2.48-5-5.5-5zm3.64 7.48c-.25.44-.47.8-.67 1.11-.86 1.41-1.25 2.06-1.45 3.23-.02.05-.02.11-.02.17H5c0-.06 0-.13-.02-.17-.2-1.17-.59-1.83-1.45-3.23-.2-.31-.42-.67-.67-1.11C2.44 6.78 2 5.65 2 5c0-2.2 2.02-4 4.5-4 1.22 0 2.36.42 3.22 1.19C10.55 2.94 11 3.94 11 5c0 .66-.44 1.78-.86 2.48zM4 14h5c-.23 1.14-1.3 2-2.5 2s-2.27-.86-2.5-2z"/></svg></span>提示</div><div class=admonitionContent_ZwmI><p>即使只访问公开数据也请提供 API 凭据。已鉴权连接拥有更高限额，且高负载期间 Deribit 会先
+联系已鉴权客户端再施加限制。</div></div>
+<div class="theme-admonition theme-admonition-note admonition_LYZY alert alert--secondary"><div class=admonitionHeading_pnFY><span class=admonitionIcon_tEzm><svg viewBox="0 0 14 16"><path fill-rule=evenodd d="M6.3 5.69a.942.942 0 0 1-.28-.7c0-.28.09-.52.28-.7.19-.18.42-.28.7-.28.28 0 .52.09.7.28.18.19.28.42.28.7 0 .28-.09.52-.28.7a1 1 0 0 1-.7.3c-.28 0-.52-.11-.7-.3zM8 7.99c-.02-.25-.11-.48-.31-.69-.2-.19-.42-.3-.69-.31H6c-.27.02-.48.13-.69.31-.2.2-.3.44-.31.69h1v3c.02.27.11.5.31.69.2.2.42.31.69.31h1c.27 0 .48-.11.69-.31.2-.19.3-.42.31-.69H8V7.98v.01zM7 2.3c-3.14 0-5.7 2.54-5.7 5.68 0 3.14 2.56 5.7 5.7 5.7s5.7-2.55 5.7-5.7c0-3.15-2.56-5.69-5.7-5.69v.01zM7 .98c3.86 0 7 3.14 7 7s-3.14 7-7 7-7-3.12-7-7 3.14-7 7-7z"/></svg></span>备注</div><div class=admonitionContent_ZwmI><p>适配器默认使用 30 秒心跳间隔。Deribit 要求 WebSocket 心跳间隔至少 10 秒。</div></div>
+<h2 class="anchor anchorTargetStickyNavbar_ana5" id=authentication>鉴权<a href=#authentication class=hash-link aria-label=鉴权的直接链接 title=鉴权的直接链接 translate=no>​</a></h2>
+<p>Deribit 对私有端点使用带 HMAC-SHA256 签名的 API key 鉴权。</p>
+<p>创建 API 凭据的步骤：</p>
+<ol>
+<li class="">登录你的 Deribit 账户：<a href=https://www.deribit.com target=_blank rel="noopener noreferrer" class="">deribit.com</a>
+（testnet 用 <a href=https://test.deribit.com target=_blank rel="noopener noreferrer" class="">test.deribit.com</a>）。</li>
+<li class="">进入 <strong>Account</strong> -> <strong>API</strong>。</li>
+<li class="">点击 <strong>Add new key</strong> 并配置权限：
+<ul>
+<li class="">启用 <strong>read</strong> 以访问行情数据</li>
+<li class="">启用 <strong>trade</strong> 以执行订单</li>
+<li class="">需要访问账户余额时启用 <strong>wallet</strong></li>
+</ul>
+</li>
+<li class="">记下你的 <strong>Client ID</strong>（API key）与 <strong>Client Secret</strong>（API secret）。</li>
+</ol>
+<div class="theme-admonition theme-admonition-warning admonition_LYZY alert alert--warning"><div class=admonitionHeading_pnFY><span class=admonitionIcon_tEzm><svg viewBox="0 0 16 16"><path fill-rule=evenodd d="M8.893 1.5c-.183-.31-.52-.5-.887-.5s-.703.19-.886.5L.138 13.499a.98.98 0 0 0 0 1.001c.193.31.53.501.886.501h13.964c.367 0 .704-.19.877-.5a1.03 1.03 0 0 0 .01-1.002L8.893 1.5zm.133 11.497H6.987v-2.003h2.039v2.003zm0-3.004H6.987V5.987h2.039v4.006z"/></svg></span>注意</div><div class=admonitionContent_ZwmI><p>妥善保管 API secret。绝不外传，也绝不提交进版本控制。</div></div>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=api-key-scopes>API key 范围<a href=#api-key-scopes class=hash-link aria-label="API key 范围的直接链接" title="API key 范围的直接链接" translate=no>​</a></h3>
+<p>Deribit 上每个 API key 都被分配一个默认访问范围，它定义最大权限。
+<a href=https://docs.deribit.com/articles/creating-api-key target=_blank rel="noopener noreferrer" class="">创建 API key</a>时请配置合适的权限：</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>范围<th>用于<tbody><tr><td><code>account:read</code><td>账户信息、组合数据。<tr><td><code>trade:read</code><td>查看订单与持仓。<tr><td><code>trade:read_write</code><td>下单、改单与撤单。<tr><td><code>wallet:read</code><td>查看余额与交易历史。</table>
+<p><strong>交易的建议最小集合</strong>：<code>account:read</code>、<code>trade:read_write</code>、<code>wallet:read</code></p>
+<div class="theme-admonition theme-admonition-tip admonition_LYZY alert alert--success"><div class=admonitionHeading_pnFY><span class=admonitionIcon_tEzm><svg viewBox="0 0 12 16"><path fill-rule=evenodd d="M6.5 0C3.48 0 1 2.19 1 5c0 .92.55 2.25 1 3 1.34 2.25 1.78 2.78 2 4v1h5v-1c.22-1.22.66-1.75 2-4 .45-.75 1-2.08 1-3 0-2.81-2.48-5-5.5-5zm3.64 7.48c-.25.44-.47.8-.67 1.11-.86 1.41-1.25 2.06-1.45 3.23-.02.05-.02.11-.02.17H5c0-.06 0-.13-.02-.17-.2-1.17-.59-1.83-1.45-3.23-.2-.31-.42-.67-.67-1.11C2.44 6.78 2 5.65 2 5c0-2.2 2.02-4 4.5-4 1.22 0 2.36.42 3.22 1.19C10.55 2.94 11 3.94 11 5c0 .66-.44 1.78-.86 2.48zM4 14h5c-.23 1.14-1.3 2-2.5 2s-2.27-.86-2.5-2z"/></svg></span>提示</div><div class=admonitionContent_ZwmI><p>遵循最小权限原则。只做数据访问（行情数据、不交易）时，创建不含 <code>trade:read_write</code> 的
+只读 key。</div></div>
+<h2 class="anchor anchorTargetStickyNavbar_ana5" id=testnet>测试网<a href=#testnet class=hash-link aria-label=测试网的直接链接 title=测试网的直接链接 translate=no>​</a></h2>
+<p>Deribit 提供测试网环境，可以在没有真实资金的情况下测试策略。使用测试网时，在客户端配置中
+设置 <code>environment=DeribitEnvironment.TESTNET</code>：</p>
+<div class="language-python codeBlockContainer_eTMR theme-code-block" style=--prism-color:#393A34;--prism-background-color:#f6f8fa><div class=codeBlockContent_hafM><pre tabindex=0 class="prism-code language-python codeBlock_IMvC thin-scrollbar" style=color:#393A34;background-color:#f6f8fa><code class=codeBlockLines_gZDW><div class=token-line style=color:#393A34><span class="token keyword" style=color:#00009f>from</span><span class="token plain"> nautilus_trader</span><span class="token punctuation" style=color:#393A34>.</span><span class="token plain">adapters</span><span class="token punctuation" style=color:#393A34>.</span><span class="token plain">deribit </span><span class="token keyword" style=color:#00009f>import</span><span class="token plain"> DeribitDataClientConfig</span><br/></div><div class=token-line style=color:#393A34><span class="token plain"></span><span class="token keyword" style=color:#00009f>from</span><span class="token plain"> nautilus_trader</span><span class="token punctuation" style=color:#393A34>.</span><span class="token plain">adapters</span><span class="token punctuation" style=color:#393A34>.</span><span class="token plain">deribit </span><span class="token keyword" style=color:#00009f>import</span><span class="token plain"> DeribitEnvironment</span><br/></div><div class=token-line style=color:#393A34><span class="token plain"></span><span class="token keyword" style=color:#00009f>from</span><span class="token plain"> nautilus_trader</span><span class="token punctuation" style=color:#393A34>.</span><span class="token plain">adapters</span><span class="token punctuation" style=color:#393A34>.</span><span class="token plain">deribit </span><span class="token keyword" style=color:#00009f>import</span><span class="token plain"> DeribitExecutionClientConfig</span><br/></div><div class=token-line style=color:#393A34><span class="token plain"></span><span class="token keyword" style=color:#00009f>from</span><span class="token plain"> nautilus_trader</span><span class="token punctuation" style=color:#393A34>.</span><span class="token plain">adapters</span><span class="token punctuation" style=color:#393A34>.</span><span class="token plain">deribit </span><span class="token keyword" style=color:#00009f>import</span><span class="token plain"> DeribitProductType</span><br/></div><div class=token-line style=color:#393A34><span class="token plain"></span><span class="token keyword" style=color:#00009f>from</span><span class="token plain"> nautilus_trader</span><span class="token punctuation" style=color:#393A34>.</span><span class="token plain">model </span><span class="token keyword" style=color:#00009f>import</span><span class="token plain"> AccountId</span><br/></div><div class=token-line style=color:#393A34><span class="token plain" style=display:inline-block></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">product_types </span><span class="token operator" style=color:#393A34>=</span><span class="token plain"> </span><span class="token punctuation" style=color:#393A34>[</span><span class="token plain">DeribitProductType</span><span class="token punctuation" style=color:#393A34>.</span><span class="token plain">FUTURE</span><span class="token punctuation" style=color:#393A34>]</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">account_id </span><span class="token operator" style=color:#393A34>=</span><span class="token plain"> AccountId</span><span class="token punctuation" style=color:#393A34>.</span><span class="token plain">from_str</span><span class="token punctuation" style=color:#393A34>(</span><span class="token string" style=color:#e3116c>"DERIBIT-001"</span><span class="token punctuation" style=color:#393A34>)</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain" style=display:inline-block></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">data_config </span><span class="token operator" style=color:#393A34>=</span><span class="token plain"> DeribitDataClientConfig</span><span class="token punctuation" style=color:#393A34>(</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    product_types</span><span class="token operator" style=color:#393A34>=</span><span class="token plain">product_types</span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    environment</span><span class="token operator" style=color:#393A34>=</span><span class="token plain">DeribitEnvironment</span><span class="token punctuation" style=color:#393A34>.</span><span class="token plain">TESTNET</span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain"></span><span class="token punctuation" style=color:#393A34>)</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain" style=display:inline-block></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">exec_config </span><span class="token operator" style=color:#393A34>=</span><span class="token plain"> DeribitExecutionClientConfig</span><span class="token punctuation" style=color:#393A34>(</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    account_id</span><span class="token operator" style=color:#393A34>=</span><span class="token plain">account_id</span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    product_types</span><span class="token operator" style=color:#393A34>=</span><span class="token plain">product_types</span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    environment</span><span class="token operator" style=color:#393A34>=</span><span class="token plain">DeribitEnvironment</span><span class="token punctuation" style=color:#393A34>.</span><span class="token plain">TESTNET</span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain"></span><span class="token punctuation" style=color:#393A34>)</span><br/></div></code></pre></div></div>
+<p>启用测试网模式时：</p>
+<ul>
+<li class="">HTTP 请求使用 <code>https://test.deribit.com</code>。</li>
+<li class="">WebSocket 连接使用 <code>wss://test.deribit.com/ws/api/v2</code>。</li>
+<li class="">凭据从 <code>DERIBIT_TESTNET_API_KEY</code> 与 <code>DERIBIT_TESTNET_API_SECRET</code> 环境变量加载。</li>
+</ul>
+<div class="theme-admonition theme-admonition-note admonition_LYZY alert alert--secondary"><div class=admonitionHeading_pnFY><span class=admonitionIcon_tEzm><svg viewBox="0 0 14 16"><path fill-rule=evenodd d="M6.3 5.69a.942.942 0 0 1-.28-.7c0-.28.09-.52.28-.7.19-.18.42-.28.7-.28.28 0 .52.09.7.28.18.19.28.42.28.7 0 .28-.09.52-.28.7a1 1 0 0 1-.7.3c-.28 0-.52-.11-.7-.3zM8 7.99c-.02-.25-.11-.48-.31-.69-.2-.19-.42-.3-.69-.31H6c-.27.02-.48.13-.69.31-.2.2-.3.44-.31.69h1v3c.02.27.11.5.31.69.2.2.42.31.69.31h1c.27 0 .48-.11.69-.31.2-.19.3-.42.31-.69H8V7.98v.01zM7 2.3c-3.14 0-5.7 2.54-5.7 5.68 0 3.14 2.56 5.7 5.7 5.7s5.7-2.55 5.7-5.7c0-3.15-2.56-5.69-5.7-5.69v.01zM7 .98c3.86 0 7 3.14 7 7s-3.14 7-7 7-7-3.12-7-7 3.14-7 7-7z"/></svg></span>备注</div><div class=admonitionContent_ZwmI><p>测试网 API key 与生产环境的 key 是分开的。请通过 <a href=https://test.deribit.com target=_blank rel="noopener noreferrer" class="">test.deribit.com</a>
+的测试网界面专门为测试网创建 API key。</div></div>
+<h2 class="anchor anchorTargetStickyNavbar_ana5" id=configuration>配置<a href=#configuration class=hash-link aria-label=配置的直接链接 title=配置的直接链接 translate=no>​</a></h2>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=data-client-configuration-options>数据客户端配置选项<a href=#data-client-configuration-options class=hash-link aria-label=数据客户端配置选项的直接链接 title=数据客户端配置选项的直接链接 translate=no>​</a></h3>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>选项<th>默认值<th>说明<tbody><tr><td><code>api_key</code><td><code>None</code><td>Deribit API key。省略时从环境变量加载。<tr><td><code>api_secret</code><td><code>None</code><td>Deribit API secret。省略时从环境变量加载。<tr><td><code>product_types</code><td><code>[FUTURE]</code><td>要加载的产品类型。<tr><td><code>environment</code><td><code>MAINNET</code><td>环境枚举（<code>MAINNET</code> 或 <code>TESTNET</code>）。<tr><td><code>base_url_http</code><td><code>None</code><td>HTTP JSON-RPC 基础 URL 的覆盖值。<tr><td><code>base_url_ws</code><td><code>None</code><td>WebSocket 基础 URL 的覆盖值。<tr><td><code>proxy_url</code><td><code>None</code><td>HTTP 与 WebSocket 传输的可选代理 URL。<tr><td><code>http_timeout_secs</code><td><code>60</code><td>HTTP 调用的请求超时（秒）。<tr><td><code>max_retries</code><td><code>3</code><td>可恢复错误的最大重试次数。<tr><td><code>retry_delay_initial_ms</code><td><code>1,000</code><td>重试前的初始延迟（毫秒）。<tr><td><code>retry_delay_max_ms</code><td><code>10,000</code><td>重试之间的最大延迟（毫秒）。<tr><td><code>heartbeat_interval_secs</code><td><code>30</code><td>WebSocket 心跳间隔。<tr><td><code>auth_timeout_secs</code><td><code>None</code><td>等待 WebSocket 鉴权结果的秒数；未设置表示 30。<tr><td><code>update_instruments_interval_mins</code><td><code>60</code><td>接受该参数但尚未生效；工具只在连接时加载一次。<tr><td><code>auto_load_missing_instruments</code><td><code>False</code><td>订阅时懒加载未缓存的工具。<tr><td><code>transport_backend</code><td><code>Sockudo</code><td>WebSocket 传输后端。</table>
+<h4 class="anchor anchorTargetStickyNavbar_ana5" id=lazy-load-on-subscribe>订阅时懒加载<a href=#lazy-load-on-subscribe class=hash-link aria-label=订阅时懒加载的直接链接 title=订阅时懒加载的直接链接 translate=no>​</a></h4>
+<p><code>subscribe_*</code> 命令在发送 WebSocket 订阅之前先查本地缓存中的工具，处理器才能解析入站帧。
+<code>auto_load_missing_instruments = False</code>（默认值）时，若订阅的工具没有被配置的
+<code>product_types</code> 预加载，该订阅返回错误。它不会先静默成功、再在处理器处丢弃后续帧。</p>
+<p>要在首次订阅时加载缺失的工具，设置 <code>auto_load_missing_instruments = True</code>。客户端通过
+HTTP 拉取该工具、为 WebSocket 处理器缓存做种子，然后转发订阅。HTTP 失败会被记日志，
+WebSocket 订阅会被跳过。</p>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=execution-client-configuration-options>执行客户端配置选项<a href=#execution-client-configuration-options class=hash-link aria-label=执行客户端配置选项的直接链接 title=执行客户端配置选项的直接链接 translate=no>​</a></h3>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>选项<th>默认值<th>说明<tbody><tr><td><code>account_id</code><td>必需<td>生成报告与事件所用的 Nautilus 账户 ID。<tr><td><code>api_key</code><td><code>None</code><td>Deribit API key。省略时从环境变量加载。<tr><td><code>api_secret</code><td><code>None</code><td>Deribit API secret。省略时从环境变量加载。<tr><td><code>product_types</code><td><code>[FUTURE]</code><td>要加载的产品类型。<tr><td><code>environment</code><td><code>MAINNET</code><td>环境枚举（<code>MAINNET</code> 或 <code>TESTNET</code>）。<tr><td><code>base_url_http</code><td><code>None</code><td>HTTP JSON-RPC 基础 URL 的覆盖值。<tr><td><code>base_url_ws</code><td><code>None</code><td>WebSocket 基础 URL 的覆盖值。<tr><td><code>proxy_url</code><td><code>None</code><td>HTTP 与 WebSocket 传输的可选代理 URL。<tr><td><code>http_timeout_secs</code><td><code>60</code><td>HTTP 调用的请求超时（秒）。<tr><td><code>max_retries</code><td><code>3</code><td>可恢复错误的最大重试次数。<tr><td><code>retry_delay_initial_ms</code><td><code>1,000</code><td>重试前的初始延迟（毫秒）。<tr><td><code>retry_delay_max_ms</code><td><code>10,000</code><td>重试之间的最大延迟（毫秒）。<tr><td><code>auth_timeout_secs</code><td><code>None</code><td>等待 WebSocket 鉴权结果的秒数；未设置表示 30。<tr><td><code>transport_backend</code><td><code>Sockudo</code><td>WebSocket 传输后端。</table>
+<p><code>transport_backend</code> 在 <code>Sockudo</code> 与 <code>Tungstenite</code> 两种 WebSocket 传输之间选择。启用了
+<code>transport-sockudo</code> Cargo feature 时默认是 <code>Sockudo</code>，已发布的 Python wheel 即如此。没有该
+feature 的 Rust 构建默认使用 <code>Tungstenite</code>。</p>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=production-configuration>生产环境配置<a href=#production-configuration class=hash-link aria-label=生产环境配置的直接链接 title=生产环境配置的直接链接 translate=no>​</a></h3>
+<p>下面是一个使用 Deribit 数据与执行客户端的实盘节点示例：</p>
+<div class="language-python codeBlockContainer_eTMR theme-code-block" style=--prism-color:#393A34;--prism-background-color:#f6f8fa><div class=codeBlockContent_hafM><pre tabindex=0 class="prism-code language-python codeBlock_IMvC thin-scrollbar" style=color:#393A34;background-color:#f6f8fa><code class=codeBlockLines_gZDW><div class=token-line style=color:#393A34><span class="token keyword" style=color:#00009f>from</span><span class="token plain"> nautilus_trader</span><span class="token punctuation" style=color:#393A34>.</span><span class="token plain">adapters</span><span class="token punctuation" style=color:#393A34>.</span><span class="token plain">deribit </span><span class="token keyword" style=color:#00009f>import</span><span class="token plain"> DeribitDataClientConfig</span><br/></div><div class=token-line style=color:#393A34><span class="token plain"></span><span class="token keyword" style=color:#00009f>from</span><span class="token plain"> nautilus_trader</span><span class="token punctuation" style=color:#393A34>.</span><span class="token plain">adapters</span><span class="token punctuation" style=color:#393A34>.</span><span class="token plain">deribit </span><span class="token keyword" style=color:#00009f>import</span><span class="token plain"> DeribitDataClientFactory</span><br/></div><div class=token-line style=color:#393A34><span class="token plain"></span><span class="token keyword" style=color:#00009f>from</span><span class="token plain"> nautilus_trader</span><span class="token punctuation" style=color:#393A34>.</span><span class="token plain">adapters</span><span class="token punctuation" style=color:#393A34>.</span><span class="token plain">deribit </span><span class="token keyword" style=color:#00009f>import</span><span class="token plain"> DeribitEnvironment</span><br/></div><div class=token-line style=color:#393A34><span class="token plain"></span><span class="token keyword" style=color:#00009f>from</span><span class="token plain"> nautilus_trader</span><span class="token punctuation" style=color:#393A34>.</span><span class="token plain">adapters</span><span class="token punctuation" style=color:#393A34>.</span><span class="token plain">deribit </span><span class="token keyword" style=color:#00009f>import</span><span class="token plain"> DeribitExecutionClientConfig</span><br/></div><div class=token-line style=color:#393A34><span class="token plain"></span><span class="token keyword" style=color:#00009f>from</span><span class="token plain"> nautilus_trader</span><span class="token punctuation" style=color:#393A34>.</span><span class="token plain">adapters</span><span class="token punctuation" style=color:#393A34>.</span><span class="token plain">deribit </span><span class="token keyword" style=color:#00009f>import</span><span class="token plain"> DeribitExecutionClientFactory</span><br/></div><div class=token-line style=color:#393A34><span class="token plain"></span><span class="token keyword" style=color:#00009f>from</span><span class="token plain"> nautilus_trader</span><span class="token punctuation" style=color:#393A34>.</span><span class="token plain">adapters</span><span class="token punctuation" style=color:#393A34>.</span><span class="token plain">deribit </span><span class="token keyword" style=color:#00009f>import</span><span class="token plain"> DeribitProductType</span><br/></div><div class=token-line style=color:#393A34><span class="token plain"></span><span class="token keyword" style=color:#00009f>from</span><span class="token plain"> nautilus_trader</span><span class="token punctuation" style=color:#393A34>.</span><span class="token plain">common </span><span class="token keyword" style=color:#00009f>import</span><span class="token plain"> Environment</span><br/></div><div class=token-line style=color:#393A34><span class="token plain"></span><span class="token keyword" style=color:#00009f>from</span><span class="token plain"> nautilus_trader</span><span class="token punctuation" style=color:#393A34>.</span><span class="token plain">live </span><span class="token keyword" style=color:#00009f>import</span><span class="token plain"> LiveNode</span><br/></div><div class=token-line style=color:#393A34><span class="token plain"></span><span class="token keyword" style=color:#00009f>from</span><span class="token plain"> nautilus_trader</span><span class="token punctuation" style=color:#393A34>.</span><span class="token plain">model </span><span class="token keyword" style=color:#00009f>import</span><span class="token plain"> AccountId</span><br/></div><div class=token-line style=color:#393A34><span class="token plain"></span><span class="token keyword" style=color:#00009f>from</span><span class="token plain"> nautilus_trader</span><span class="token punctuation" style=color:#393A34>.</span><span class="token plain">model </span><span class="token keyword" style=color:#00009f>import</span><span class="token plain"> TraderId</span><br/></div><div class=token-line style=color:#393A34><span class="token plain" style=display:inline-block></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">product_types </span><span class="token operator" style=color:#393A34>=</span><span class="token plain"> </span><span class="token punctuation" style=color:#393A34>[</span><span class="token plain">DeribitProductType</span><span class="token punctuation" style=color:#393A34>.</span><span class="token plain">FUTURE</span><span class="token punctuation" style=color:#393A34>]</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">trader_id </span><span class="token operator" style=color:#393A34>=</span><span class="token plain"> TraderId</span><span class="token punctuation" style=color:#393A34>.</span><span class="token plain">from_str</span><span class="token punctuation" style=color:#393A34>(</span><span class="token string" style=color:#e3116c>"TRADER-001"</span><span class="token punctuation" style=color:#393A34>)</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">account_id </span><span class="token operator" style=color:#393A34>=</span><span class="token plain"> AccountId</span><span class="token punctuation" style=color:#393A34>.</span><span class="token plain">from_str</span><span class="token punctuation" style=color:#393A34>(</span><span class="token string" style=color:#e3116c>"DERIBIT-001"</span><span class="token punctuation" style=color:#393A34>)</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain" style=display:inline-block></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">node </span><span class="token operator" style=color:#393A34>=</span><span class="token plain"> </span><span class="token punctuation" style=color:#393A34>(</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    LiveNode</span><span class="token punctuation" style=color:#393A34>.</span><span class="token plain">builder</span><span class="token punctuation" style=color:#393A34>(</span><span class="token string" style=color:#e3116c>"DERIBIT-NODE-001"</span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain"> trader_id</span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain"> Environment</span><span class="token punctuation" style=color:#393A34>.</span><span class="token plain">LIVE</span><span class="token punctuation" style=color:#393A34>)</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    </span><span class="token punctuation" style=color:#393A34>.</span><span class="token plain">add_data_client</span><span class="token punctuation" style=color:#393A34>(</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">        </span><span class="token boolean" style=color:#36acaa>None</span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">        DeribitDataClientFactory</span><span class="token punctuation" style=color:#393A34>(</span><span class="token punctuation" style=color:#393A34>)</span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">        DeribitDataClientConfig</span><span class="token punctuation" style=color:#393A34>(</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">            product_types</span><span class="token operator" style=color:#393A34>=</span><span class="token plain">product_types</span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">            environment</span><span class="token operator" style=color:#393A34>=</span><span class="token plain">DeribitEnvironment</span><span class="token punctuation" style=color:#393A34>.</span><span class="token plain">MAINNET</span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">            api_key</span><span class="token operator" style=color:#393A34>=</span><span class="token boolean" style=color:#36acaa>None</span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">            api_secret</span><span class="token operator" style=color:#393A34>=</span><span class="token boolean" style=color:#36acaa>None</span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">        </span><span class="token punctuation" style=color:#393A34>)</span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    </span><span class="token punctuation" style=color:#393A34>)</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    </span><span class="token punctuation" style=color:#393A34>.</span><span class="token plain">add_exec_client</span><span class="token punctuation" style=color:#393A34>(</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">        </span><span class="token boolean" style=color:#36acaa>None</span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">        DeribitExecutionClientFactory</span><span class="token punctuation" style=color:#393A34>(</span><span class="token punctuation" style=color:#393A34>)</span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">        DeribitExecutionClientConfig</span><span class="token punctuation" style=color:#393A34>(</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">            account_id</span><span class="token operator" style=color:#393A34>=</span><span class="token plain">account_id</span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">            product_types</span><span class="token operator" style=color:#393A34>=</span><span class="token plain">product_types</span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">            environment</span><span class="token operator" style=color:#393A34>=</span><span class="token plain">DeribitEnvironment</span><span class="token punctuation" style=color:#393A34>.</span><span class="token plain">MAINNET</span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">            api_key</span><span class="token operator" style=color:#393A34>=</span><span class="token boolean" style=color:#36acaa>None</span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">            api_secret</span><span class="token operator" style=color:#393A34>=</span><span class="token boolean" style=color:#36acaa>None</span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">        </span><span class="token punctuation" style=color:#393A34>)</span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    </span><span class="token punctuation" style=color:#393A34>)</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    </span><span class="token punctuation" style=color:#393A34>.</span><span class="token plain">build</span><span class="token punctuation" style=color:#393A34>(</span><span class="token punctuation" style=color:#393A34>)</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain"></span><span class="token punctuation" style=color:#393A34>)</span><br/></div></code></pre></div></div>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=api-credentials>API 凭据<a href=#api-credentials class=hash-link aria-label="API 凭据的直接链接" title="API 凭据的直接链接" translate=no>​</a></h3>
+<p>向 Deribit 客户端提供凭据有多种方式。或者把对应值传入配置对象，或者设置以下环境变量：</p>
+<p>Deribit 实盘（生产）客户端：</p>
+<ul>
+<li class=""><code>DERIBIT_API_KEY</code></li>
+<li class=""><code>DERIBIT_API_SECRET</code></li>
+</ul>
+<p>Deribit 测试网客户端：</p>
+<ul>
+<li class=""><code>DERIBIT_TESTNET_API_KEY</code></li>
+<li class=""><code>DERIBIT_TESTNET_API_SECRET</code></li>
+</ul>
+<div class="theme-admonition theme-admonition-tip admonition_LYZY alert alert--success"><div class=admonitionHeading_pnFY><span class=admonitionIcon_tEzm><svg viewBox="0 0 12 16"><path fill-rule=evenodd d="M6.5 0C3.48 0 1 2.19 1 5c0 .92.55 2.25 1 3 1.34 2.25 1.78 2.78 2 4v1h5v-1c.22-1.22.66-1.75 2-4 .45-.75 1-2.08 1-3 0-2.81-2.48-5-5.5-5zm3.64 7.48c-.25.44-.47.8-.67 1.11-.86 1.41-1.25 2.06-1.45 3.23-.02.05-.02.11-.02.17H5c0-.06 0-.13-.02-.17-.2-1.17-.59-1.83-1.45-3.23-.2-.31-.42-.67-.67-1.11C2.44 6.78 2 5.65 2 5c0-2.2 2.02-4 4.5-4 1.22 0 2.36.42 3.22 1.19C10.55 2.94 11 3.94 11 5c0 .66-.44 1.78-.86 2.48zM4 14h5c-.23 1.14-1.3 2-2.5 2s-2.27-.86-2.5-2z"/></svg></span>提示</div><div class=admonitionContent_ZwmI><p>推荐使用环境变量管理凭据。</div></div>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=product-types>产品类型<a href=#product-types class=hash-link aria-label=产品类型的直接链接 title=产品类型的直接链接 translate=no>​</a></h3>
+<p><code>product_types</code> 配置项控制加载哪些 Deribit 产品族。<code>DeribitProductType</code> 枚举可用的选项：</p>
+<ul>
+<li class=""><code>DeribitProductType.FUTURE</code> —— 永续与到期期货。</li>
+<li class=""><code>DeribitProductType.OPTION</code> —— 买权与卖权期权。</li>
+<li class=""><code>DeribitProductType.SPOT</code> —— 现货交易对。</li>
+<li class=""><code>DeribitProductType.FUTURE_COMBO</code> —— 期货价差工具。</li>
+<li class=""><code>DeribitProductType.OPTION_COMBO</code> —— 期权价差工具。</li>
+</ul>
+<p>加载多个产品类型的示例：</p>
+<div class="language-python codeBlockContainer_eTMR theme-code-block" style=--prism-color:#393A34;--prism-background-color:#f6f8fa><div class=codeBlockContent_hafM><pre tabindex=0 class="prism-code language-python codeBlock_IMvC thin-scrollbar" style=color:#393A34;background-color:#f6f8fa><code class=codeBlockLines_gZDW><div class=token-line style=color:#393A34><span class="token keyword" style=color:#00009f>from</span><span class="token plain"> nautilus_trader</span><span class="token punctuation" style=color:#393A34>.</span><span class="token plain">adapters</span><span class="token punctuation" style=color:#393A34>.</span><span class="token plain">deribit </span><span class="token keyword" style=color:#00009f>import</span><span class="token plain"> DeribitDataClientConfig</span><br/></div><div class=token-line style=color:#393A34><span class="token plain"></span><span class="token keyword" style=color:#00009f>from</span><span class="token plain"> nautilus_trader</span><span class="token punctuation" style=color:#393A34>.</span><span class="token plain">adapters</span><span class="token punctuation" style=color:#393A34>.</span><span class="token plain">deribit </span><span class="token keyword" style=color:#00009f>import</span><span class="token plain"> DeribitProductType</span><br/></div><div class=token-line style=color:#393A34><span class="token plain" style=display:inline-block></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">config </span><span class="token operator" style=color:#393A34>=</span><span class="token plain"> DeribitDataClientConfig</span><span class="token punctuation" style=color:#393A34>(</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    product_types</span><span class="token operator" style=color:#393A34>=</span><span class="token punctuation" style=color:#393A34>[</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">        DeribitProductType</span><span class="token punctuation" style=color:#393A34>.</span><span class="token plain">FUTURE</span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">        DeribitProductType</span><span class="token punctuation" style=color:#393A34>.</span><span class="token plain">OPTION</span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    </span><span class="token punctuation" style=color:#393A34>]</span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    </span><span class="token comment" style=color:#999988;font-style:italic># ... other config</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain"></span><span class="token punctuation" style=color:#393A34>)</span><br/></div></code></pre></div></div>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=base-urls>基础 URL<a href=#base-urls class=hash-link aria-label="基础 URL的直接链接" title="基础 URL的直接链接" translate=no>​</a></h3>
+<p><code>environment</code> 选项选择以下默认值。设置 <code>base_url_http</code> 或 <code>base_url_ws</code> 可把对应传输指向
+别处，例如本地代理或抓包工具。</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>环境<th>HTTP URL<th>WebSocket URL<tbody><tr><td>生产环境<td><code>https://www.deribit.com</code><td><code>wss://www.deribit.com/ws/api/v2</code><tr><td>测试网<td><code>https://test.deribit.com</code><td><code>wss://test.deribit.com/ws/api/v2</code></table>
+<h2 class="anchor anchorTargetStickyNavbar_ana5" id=server-infrastructure>服务器基础设施<a href=#server-infrastructure class=hash-link aria-label=服务器基础设施的直接链接 title=服务器基础设施的直接链接 translate=no>​</a></h2>
+<p>Deribit 的撮合引擎位于<strong>英国斯劳的 Equinix LD4</strong>。对延迟敏感的策略，考虑部署在伦敦或邻近
+地区。机构客户可直接从 Deribit 获得托管与交叉连接选项。</p>
+<p>对多数通过互联网连接的用户，适配器内置的重试逻辑、心跳监控与自动重连处理足以提供可靠的
+连接。</p>
+<p>更多细节见<a href=https://support.deribit.com/hc/en-us/articles/25944617582877-Server-Infrastructure target=_blank rel="noopener noreferrer" class="">服务器基础设施文章</a>。</p>
+<h2 class="anchor anchorTargetStickyNavbar_ana5" id=contributing>参与贡献<a href=#contributing class=hash-link aria-label=参与贡献的直接链接 title=参与贡献的直接链接 translate=no>​</a></h2>
+<div class="theme-admonition theme-admonition-info admonition_LYZY alert alert--info"><div class=admonitionHeading_pnFY><span class=admonitionIcon_tEzm><svg viewBox="0 0 14 16"><path fill-rule=evenodd d="M7 2.3c3.14 0 5.7 2.56 5.7 5.7s-2.56 5.7-5.7 5.7A5.71 5.71 0 0 1 1.3 8c0-3.14 2.56-5.7 5.7-5.7zM7 1C3.14 1 0 4.14 0 8s3.14 7 7 7 7-3.14 7-7-3.14-7-7-7zm1 3H6v5h2V4zm0 6H6v2h2v-2z"/></svg></span>信息</div><div class=admonitionContent_ZwmI><p>要获取更多特性或为 Deribit 适配器做贡献，请见我们的
+<a href=https://github.com/nautechsystems/nautilus_trader/blob/develop/CONTRIBUTING.md target=_blank rel="noopener noreferrer" class="">贡献指南</a>。</div></div></div><footer class="theme-doc-footer docusaurus-mt-lg"><div class="row margin-top--sm theme-doc-footer-edit-meta-row"><div class="col noPrint_MRkS"><a href=https://github.com/Aloento/NautilusTraderDoc/tree/main/docs/integrations/deribit.md target=_blank rel="noopener noreferrer" class=theme-edit-this-page><svg fill=currentColor height=20 width=20 viewBox="0 0 40 40" class=iconEdit_RPSQ aria-hidden=true><g><path d="m34.5 11.7l-3 3.1-6.3-6.3 3.1-3q0.5-0.5 1.2-0.5t1.1 0.5l3.9 3.9q0.5 0.4 0.5 1.1t-0.5 1.2z m-29.5 17.1l18.4-18.5 6.3 6.3-18.4 18.4h-6.3v-6.2z"/></g></svg>编辑此页</a></div><div class="col lastUpdated_oZSl"><span class=theme-last-updated>最后<!-- -->于 <b><time datetime=2026-10-14T22:30:30.000Z itemprop=dateModified>2026年10月14日</time></b> <!-- -->更新</span></div></div></footer></article><nav class="docusaurus-mt-lg pagination-nav" aria-label=文件选项卡><a class="pagination-nav__link pagination-nav__link--prev" href=/integrations/databento><div class=pagination-nav__sublabel>上一页</div><div class=pagination-nav__label>Databento</div></a><a class="pagination-nav__link pagination-nav__link--next" href=/integrations/derive><div class=pagination-nav__sublabel>下一页</div><div class=pagination-nav__label>Derive</div></a></nav></div></div><div class="col col--3"><div class="tableOfContents_LyLZ thin-scrollbar theme-doc-toc-desktop"><ul class="table-of-contents table-of-contents__left-border"><li><a href=#overview class="table-of-contents__link toc-highlight">概览</a><li><a href=#examples class="table-of-contents__link toc-highlight">示例</a><li><a href=#deribit-documentation class="table-of-contents__link toc-highlight">Deribit 文档</a><li><a href=#product-support class="table-of-contents__link toc-highlight">产品支持</a><li><a href=#symbology class="table-of-contents__link toc-highlight">符号体系</a><ul><li><a href=#quantity-units class="table-of-contents__link toc-highlight">数量单位</a><li><a href=#perpetual-futures class="table-of-contents__link toc-highlight">永续期货</a><li><a href=#dated-futures class="table-of-contents__link toc-highlight">到期期货</a><li><a href=#options class="table-of-contents__link toc-highlight">期权</a><li><a href=#spot class="table-of-contents__link toc-highlight">现货</a><li><a href=#future-combos class="table-of-contents__link toc-highlight">期货组合</a><li><a href=#option-combos class="table-of-contents__link toc-highlight">期权组合</a></ul><li><a href=#traded-expirations class="table-of-contents__link toc-highlight">可交易到期日</a><li><a href=#combo-instruments class="table-of-contents__link toc-highlight">组合工具</a><ul><li><a href=#trade-publishing class="table-of-contents__link toc-highlight">成交发布</a><li><a href=#historical-combo-trades class="table-of-contents__link toc-highlight">历史组合成交</a></ul><li><a href=#trade-id-provenance class="table-of-contents__link toc-highlight">成交 ID 溯源</a><li><a href=#market-data class="table-of-contents__link toc-highlight">行情数据</a><ul><li><a href=#bars class="table-of-contents__link toc-highlight">K 线</a></ul><li><a href=#order-book-subscriptions class="table-of-contents__link toc-highlight">订单簿订阅</a><ul><li><a href=#raw-feeds-tick-by-tick class="table-of-contents__link toc-highlight">原始频道（逐笔）</a><li><a href=#aggregated-feeds-batched class="table-of-contents__link toc-highlight">聚合频道（批量）</a><li><a href=#subscription-parameters class="table-of-contents__link toc-highlight">订阅参数</a><li><a href=#sequence-gap-recovery class="table-of-contents__link toc-highlight">序列缺口恢复</a></ul><li><a href=#funding-rates class="table-of-contents__link toc-highlight">Funding 费率</a><li><a href=#deribit-specific-data class="table-of-contents__link toc-highlight">Deribit 专属数据</a><ul><li><a href=#book-summaries class="table-of-contents__link toc-highlight">订单簿汇总</a><li><a href=#volatility-index class="table-of-contents__link toc-highlight">波动率指数</a></ul><li><a href=#orders-capability class="table-of-contents__link toc-highlight">订单能力</a><ul><li><a href=#order-types class="table-of-contents__link toc-highlight">订单类型</a><li><a href=#execution-instructions class="table-of-contents__link toc-highlight">执行指示</a><li><a href=#time-in-force class="table-of-contents__link toc-highlight">有效期</a><li><a href=#trigger-types class="table-of-contents__link toc-highlight">触发类型</a><li><a href=#batch-operations class="table-of-contents__link toc-highlight">批量操作</a><li><a href=#post-only-behavior class="table-of-contents__link toc-highlight">Post-only 行为</a><li><a href=#order-modification class="table-of-contents__link toc-highlight">订单修改</a><li><a href=#position-management class="table-of-contents__link toc-highlight">持仓管理</a><li><a href=#order-querying class="table-of-contents__link toc-highlight">订单查询</a><li><a href=#contingent-orders class="table-of-contents__link toc-highlight">条件关联订单</a><li><a href=#liquidation-handling class="table-of-contents__link toc-highlight">强平处理</a></ul><li><a href=#rate-limiting class="table-of-contents__link toc-highlight">速率限制</a><ul><li><a href=#http-limits class="table-of-contents__link toc-highlight">HTTP 限制</a><li><a href=#websocket-limits class="table-of-contents__link toc-highlight">WebSocket 限制</a><li><a href=#credit-based-system-details class="table-of-contents__link toc-highlight">信用制体系的细节</a></ul><li><a href=#connection-management class="table-of-contents__link toc-highlight">连接管理</a><ul><li><a href=#platform-limits class="table-of-contents__link toc-highlight">平台限制</a><li><a href=#session-based-authentication class="table-of-contents__link toc-highlight">基于会话的鉴权</a><li><a href=#best-practices class="table-of-contents__link toc-highlight">最佳实践</a></ul><li><a href=#authentication class="table-of-contents__link toc-highlight">鉴权</a><ul><li><a href=#api-key-scopes class="table-of-contents__link toc-highlight">API key 范围</a></ul><li><a href=#testnet class="table-of-contents__link toc-highlight">测试网</a><li><a href=#configuration class="table-of-contents__link toc-highlight">配置</a><ul><li><a href=#data-client-configuration-options class="table-of-contents__link toc-highlight">数据客户端配置选项</a><li><a href=#execution-client-configuration-options class="table-of-contents__link toc-highlight">执行客户端配置选项</a><li><a href=#production-configuration class="table-of-contents__link toc-highlight">生产环境配置</a><li><a href=#api-credentials class="table-of-contents__link toc-highlight">API 凭据</a><li><a href=#product-types class="table-of-contents__link toc-highlight">产品类型</a><li><a href=#base-urls class="table-of-contents__link toc-highlight">基础 URL</a></ul><li><a href=#server-infrastructure class="table-of-contents__link toc-highlight">服务器基础设施</a><li><a href=#contributing class="table-of-contents__link toc-highlight">参与贡献</a></ul></div></div></div></div></main></div></div></div><footer class="theme-layout-footer footer footer--dark"><div class="container container-fluid"><div class="row footer__links"><div class="theme-layout-footer-column col footer__col"><div class=footer__title></div><ul class="footer__items clean-list"><li class=footer__item><a href=https://github.com/nautechsystems/nautilus_trader target=_blank rel="noopener noreferrer" class=footer__link-item>Official GitHub<svg width=13.5 height=13.5 aria-label="(opens in new tab)" class=iconExternalLink_qUHo><use href=#theme-svg-external-link /></svg></a><li class=footer__item><a href=https://nautilustrader.io/docs target=_blank rel="noopener noreferrer" class=footer__link-item>Official Documentation<svg width=13.5 height=13.5 aria-label="(opens in new tab)" class=iconExternalLink_qUHo><use href=#theme-svg-external-link /></svg></a></ul></div></div><div class="footer__bottom text--center"><div class=footer__copyright>© 2026 Nautech Systems Pty Ltd. All rights reserved.</div></div></div></footer></div></body>

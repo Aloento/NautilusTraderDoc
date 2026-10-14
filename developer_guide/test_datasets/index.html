@@ -1,0 +1,377 @@
+<!doctype html><html lang=zh dir=ltr class="docs-wrapper plugin-docs plugin-id-default docs-version-current docs-doc-page docs-doc-id-developer_guide/test_datasets" data-has-hydrated=false><head><meta charset=UTF-8><meta name=generator content="Docusaurus v3.10.2"><title data-rh=true>测试数据集 | NautilusTrader 文档</title><meta data-rh=true name=viewport content="width=device-width, initial-scale=1.0"/><meta data-rh=true name=twitter:card content=summary_large_image /><meta data-rh=true property=og:url content=https://nautilus.aloen.to/developer_guide/test_datasets /><meta data-rh=true property=og:locale content=zh /><meta data-rh=true name=docusaurus_locale content=zh /><meta data-rh=true name=docsearch:language content=zh /><meta data-rh=true name=docusaurus_version content=current /><meta data-rh=true name=docusaurus_tag content=docs-default-current /><meta data-rh=true name=docsearch:version content=current /><meta data-rh=true name=docsearch:docusaurus_tag content=docs-default-current /><meta data-rh=true property=og:title content="测试数据集 | NautilusTrader 文档"/><meta data-rh=true name=description content=test-datasets} /><meta data-rh=true property=og:description content=test-datasets} /><link data-rh=true rel=icon href=/logo.png /><link data-rh=true rel=canonical href=https://nautilus.aloen.to/developer_guide/test_datasets /><link data-rh=true rel=alternate href=https://nautilus.aloen.to/developer_guide/test_datasets hreflang=zh /><link data-rh=true rel=alternate href=https://nautilus.aloen.to/developer_guide/test_datasets hreflang=x-default /><script data-rh=true type=application/ld+json>{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","item":"https://nautilus.aloen.to/developer_guide/","name":"开发者指南","position":1},{"@type":"ListItem","item":"https://nautilus.aloen.to/developer_guide/test_datasets","name":"测试数据集","position":2}]}</script><link rel=stylesheet href=/assets/css/styles.adb7ea18.css /><script src=/assets/js/runtime~main.71ac0794.js defer></script><script src=/assets/js/main.d978d0f2.js defer></script></head><body><svg style="display: none;"><defs>
+<symbol id=theme-svg-external-link viewBox="0 0 24 24"><path fill=currentColor d="M21 13v10h-21v-19h12v2h-10v15h17v-8h2zm3-12h-10.988l4.035 4-6.977 7.07 2.828 2.828 6.977-7.07 4.125 4.172v-11z"/></symbol>
+</defs></svg>
+<script>!function(){var t=function(){try{return new URLSearchParams(window.location.search).get("docusaurus-theme")}catch(t){}}()||function(){try{return window.localStorage.getItem("theme-2e3")}catch(t){}}();document.documentElement.setAttribute("data-theme",t||(window.matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light")),document.documentElement.setAttribute("data-theme-choice",t||"system")}(),function(){try{for(var[t,e]of new URLSearchParams(window.location.search).entries())if(t.startsWith("docusaurus-data-")){var a=t.replace("docusaurus-data-","data-");document.documentElement.setAttribute(a,e)}}catch(t){}}()</script><div id=__docusaurus><link rel=preload as=image href=/logo.png /><div role=region aria-label=跳到主要内容><a class=skipToContent_zuOI href=#__docusaurus_skipToContent_fallback>跳到主要内容</a></div><nav aria-label=主导航 class="theme-layout-navbar navbar navbar--fixed-top"><div class=navbar__inner><div class="theme-layout-navbar-left navbar__items"><button aria-label=切换导航栏 aria-expanded=false class="navbar__toggle clean-btn" type=button><svg width=30 height=30 viewBox="0 0 30 30" aria-hidden=true><path stroke=currentColor stroke-linecap=round stroke-miterlimit=10 stroke-width=2 d="M4 7h22M4 15h22M4 23h22"/></svg></button><a class=navbar__brand href=/><div class=navbar__logo><img src=/logo.png alt="NautilusTrader Logo" class="themedComponent_q2_Y themedComponent--light_Nejn"/><img src=/logo.png alt="NautilusTrader Logo" class="themedComponent_q2_Y themedComponent--dark_JjIb"/></div><b class="navbar__title text--truncate">NautilusTrader</b></a><a aria-current=page class="navbar__item navbar__link navbar__link--active" href=/getting_started/>文档</a></div><div class="theme-layout-navbar-right navbar__items navbar__items--right"><a href=https://github.com/Aloento/NautilusTraderDoc target=_blank rel="noopener noreferrer" class="navbar__item navbar__link">GitHub<svg width=13.5 height=13.5 aria-label="(opens in new tab)" class=iconExternalLink_qUHo><use href=#theme-svg-external-link /></svg></a><div class="toggle_hHmI colorModeToggle_rOOn"><button class="clean-btn toggleButton_wEhT toggleButtonDisabled_yOOP" type=button disabled title="system mode" aria-label="切换浅色/暗黑模式（当前为system mode）"><svg viewBox="0 0 24 24" width=24 height=24 aria-hidden=true class="toggleIcon_Kt6U lightToggleIcon_Zfeh"><path fill=currentColor d="M12,9c1.65,0,3,1.35,3,3s-1.35,3-3,3s-3-1.35-3-3S10.35,9,12,9 M12,7c-2.76,0-5,2.24-5,5s2.24,5,5,5s5-2.24,5-5 S14.76,7,12,7L12,7z M2,13l2,0c0.55,0,1-0.45,1-1s-0.45-1-1-1l-2,0c-0.55,0-1,0.45-1,1S1.45,13,2,13z M20,13l2,0c0.55,0,1-0.45,1-1 s-0.45-1-1-1l-2,0c-0.55,0-1,0.45-1,1S19.45,13,20,13z M11,2v2c0,0.55,0.45,1,1,1s1-0.45,1-1V2c0-0.55-0.45-1-1-1S11,1.45,11,2z M11,20v2c0,0.55,0.45,1,1,1s1-0.45,1-1v-2c0-0.55-0.45-1-1-1C11.45,19,11,19.45,11,20z M5.99,4.58c-0.39-0.39-1.03-0.39-1.41,0 c-0.39,0.39-0.39,1.03,0,1.41l1.06,1.06c0.39,0.39,1.03,0.39,1.41,0s0.39-1.03,0-1.41L5.99,4.58z M18.36,16.95 c-0.39-0.39-1.03-0.39-1.41,0c-0.39,0.39-0.39,1.03,0,1.41l1.06,1.06c0.39,0.39,1.03,0.39,1.41,0c0.39-0.39,0.39-1.03,0-1.41 L18.36,16.95z M19.42,5.99c0.39-0.39,0.39-1.03,0-1.41c-0.39-0.39-1.03-0.39-1.41,0l-1.06,1.06c-0.39,0.39-0.39,1.03,0,1.41 s1.03,0.39,1.41,0L19.42,5.99z M7.05,18.36c0.39-0.39,0.39-1.03,0-1.41c-0.39-0.39-1.03-0.39-1.41,0l-1.06,1.06 c-0.39,0.39-0.39,1.03,0,1.41s1.03,0.39,1.41,0L7.05,18.36z"/></svg><svg viewBox="0 0 24 24" width=24 height=24 aria-hidden=true class="toggleIcon_Kt6U darkToggleIcon_XgQr"><path fill=currentColor d="M9.37,5.51C9.19,6.15,9.1,6.82,9.1,7.5c0,4.08,3.32,7.4,7.4,7.4c0.68,0,1.35-0.09,1.99-0.27C17.45,17.19,14.93,19,12,19 c-3.86,0-7-3.14-7-7C5,9.07,6.81,6.55,9.37,5.51z M12,3c-4.97,0-9,4.03-9,9s4.03,9,9,9s9-4.03,9-9c0-0.46-0.04-0.92-0.1-1.36 c-0.98,1.37-2.58,2.26-4.4,2.26c-2.98,0-5.4-2.42-5.4-5.4c0-1.81,0.89-3.42,2.26-4.4C12.92,3.04,12.46,3,12,3L12,3z"/></svg><svg viewBox="0 0 24 24" width=24 height=24 aria-hidden=true class="toggleIcon_Kt6U systemToggleIcon_BvUi"><path fill=currentColor d="m12 21c4.971 0 9-4.029 9-9s-4.029-9-9-9-9 4.029-9 9 4.029 9 9 9zm4.95-13.95c1.313 1.313 2.05 3.093 2.05 4.95s-0.738 3.637-2.05 4.95c-1.313 1.313-3.093 2.05-4.95 2.05v-14c1.857 0 3.637 0.737 4.95 2.05z"/></svg></button></div><div class=navbarSearchContainer_watl></div></div></div><div role=presentation class=navbar-sidebar__backdrop></div></nav><div id=__docusaurus_skipToContent_fallback class="theme-layout-main main-wrapper mainWrapper_R72Q"><div class=docsWrapper_XQ9b><button aria-label=回到顶部 class="clean-btn theme-back-to-top-button backToTopButton_MbnX" type=button></button><div class=docRoot_aqOB><aside class="theme-doc-sidebar-container docSidebarContainer_sI2e"><div class=sidebarViewport_TzTy><div class=sidebar_CbEe><nav aria-label=文档侧边栏 class="menu thin-scrollbar menu_ChRF"><ul class="theme-doc-sidebar-menu menu__list"><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-1 menu__list-item menu__list-item--collapsed"><div class=menu__list-item-collapsible><a class="categoryLink_Muyc menu__link menu__link--sublist" href=/getting_started/><span class=categoryLinkLabel_mAcL>快速开始</span></a><button aria-label="展开侧边栏分类 '快速开始'" aria-expanded=false type=button class="clean-btn menu__caret"></button></div><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-1 menu__list-item menu__list-item--collapsed"><div class=menu__list-item-collapsible><a class="categoryLink_Muyc menu__link menu__link--sublist" href=/concepts/><span class=categoryLinkLabel_mAcL>核心概念</span></a><button aria-label="展开侧边栏分类 '核心概念'" aria-expanded=false type=button class="clean-btn menu__caret"></button></div><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-1 menu__list-item menu__list-item--collapsed"><div class=menu__list-item-collapsible><a class="categoryLink_Muyc menu__link menu__link--sublist" href=/integrations/><span class=categoryLinkLabel_mAcL>交易所与集成</span></a><button aria-label="展开侧边栏分类 '交易所与集成'" aria-expanded=false type=button class="clean-btn menu__caret"></button></div><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-1 menu__list-item menu__list-item--collapsed"><div class=menu__list-item-collapsible><a class="categoryLink_Muyc menu__link menu__link--sublist" href=/how_to/><span class=categoryLinkLabel_mAcL>操作指南</span></a><button aria-label="展开侧边栏分类 '操作指南'" aria-expanded=false type=button class="clean-btn menu__caret"></button></div><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-1 menu__list-item menu__list-item--collapsed"><div class=menu__list-item-collapsible><a class="categoryLink_Muyc menu__link menu__link--sublist" href=/tutorials/><span class=categoryLinkLabel_mAcL>教程</span></a><button aria-label="展开侧边栏分类 '教程'" aria-expanded=false type=button class="clean-btn menu__caret"></button></div><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-1 menu__list-item"><div class=menu__list-item-collapsible><a class="categoryLink_Muyc menu__link menu__link--sublist menu__link--active" href=/developer_guide/><span class=categoryLinkLabel_mAcL>开发者指南</span></a><button aria-label="折叠侧边栏分类 '开发者指南'" aria-expanded=true type=button class="clean-btn menu__caret"></button></div><ul class=menu__list><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/developer_guide/adapters><span class=linkLabel_lYjD>适配器</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/developer_guide/benchmarking><span class=linkLabel_lYjD>基准测试</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/developer_guide/callback_dispatch><span class=linkLabel_lYjD>回调派发契约</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/developer_guide/coding_standards><span class=linkLabel_lYjD>编码规范</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/developer_guide/design_principles><span class=linkLabel_lYjD>设计原则</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/developer_guide/docs><span class=linkLabel_lYjD>文档风格</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/developer_guide/environment_setup><span class=linkLabel_lYjD>环境搭建</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/developer_guide/ffi><span class=linkLabel_lYjD>FFI 内存契约</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/developer_guide/markdown_style><span class=linkLabel_lYjD>Markdown 风格</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/developer_guide/plugins><span class=linkLabel_lYjD>插件</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/developer_guide/python><span class=linkLabel_lYjD>Python</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/developer_guide/python_adapters><span class=linkLabel_lYjD>Python 适配器接口</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/developer_guide/releases><span class=linkLabel_lYjD>发布</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/developer_guide/runtime_conformance><span class=linkLabel_lYjD>运行时一致性契约</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/developer_guide/rust><span class=linkLabel_lYjD>Rust</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/developer_guide/security><span class=linkLabel_lYjD>安全架构</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/developer_guide/shell><span class=linkLabel_lYjD>Shell 脚本</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/developer_guide/spec_data_testing><span class=linkLabel_lYjD>数据测试规范</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/developer_guide/spec_exec_testing><span class=linkLabel_lYjD>执行测试规范</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class="menu__link menu__link--active" aria-current=page tabindex=0 href=/developer_guide/test_datasets><span class=linkLabel_lYjD>测试数据集</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/developer_guide/testing><span class=linkLabel_lYjD>测试</span></a></ul><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-1 menu__list-item menu__list-item--collapsed"><div class=menu__list-item-collapsible><a class="categoryLink_Muyc menu__link menu__link--sublist" href=/api_reference/><span class=categoryLinkLabel_mAcL>API 参考</span></a><button aria-label="展开侧边栏分类 'API 参考'" aria-expanded=false type=button class="clean-btn menu__caret"></button></div></ul></nav></div></div></aside><main class=docMainContainer_sLF8><div class="container padding-top--md padding-bottom--lg"><div class=row><div class="col docItemCol_ZRft"><div class=docItemContainer_KOP5><article><nav class="theme-doc-breadcrumbs breadcrumbsContainer_d5rS" aria-label=页面路径><ul class=breadcrumbs><li class=breadcrumbs__item><a aria-label=主页面 class=breadcrumbs__link href=/><svg viewBox="0 0 24 24" class=breadcrumbHomeIcon_XgF2><path d="M10 19v-5h4v5c0 .55.45 1 1 1h3c.55 0 1-.45 1-1v-7h1.7c.46 0 .68-.57.33-.87L12.67 3.6c-.38-.34-.96-.34-1.34 0l-8.36 7.53c-.34.3-.13.87.33.87H5v7c0 .55.45 1 1 1h3c.55 0 1-.45 1-1z" fill=currentColor /></svg></a><li class=breadcrumbs__item><a class=breadcrumbs__link href=/developer_guide/><span>开发者指南</span></a><li class="breadcrumbs__item breadcrumbs__item--active"><span class=breadcrumbs__link>测试数据集</span></ul></nav><div class="tocCollapsible_bgaJ theme-doc-toc-mobile tocMobile_FhT_"><button type=button class="clean-btn tocCollapsibleButton_F8AY">本页总览</button></div><div class="theme-doc-markdown markdown"><header><h1>测试数据集</h1></header>
+<p>本页定义整理、存储与使用外部数据集（作为测试夹具）的目标标准。新数据集应遵循
+这些标准；早于本策略的既有数据集记录在<a href=#legacy-datasets class="">遗留数据集</a>下。</p>
+<h2 class="anchor anchorTargetStickyNavbar_ana5" id=dataset-categories>数据集类别<a href=#dataset-categories class=hash-link aria-label=数据集类别的直接链接 title=数据集类别的直接链接 translate=no>​</a></h2>
+<p><strong>小数据</strong>（&lt; 1 MB）连同 <code>metadata.json</code> 直接提交到 <code>test_data/&lt;source>/</code>。
+这类文件无需网络访问即可随时使用。</p>
+<p><strong>大数据</strong>（> 1 MB）以 Parquet 形式托管在 R2 测试数据桶中，SHA-256 校验和记录在
+<code>test_data/large/checksums.json</code>。运行用到大数据的测试之前，从仓库根目录准备夹具：</p>
+<div class="language-bash codeBlockContainer_eTMR theme-code-block" style=--prism-color:#393A34;--prism-background-color:#f6f8fa><div class=codeBlockContent_hafM><pre tabindex=0 class="prism-code language-bash codeBlock_IMvC thin-scrollbar" style=color:#393A34;background-color:#f6f8fa><code class=codeBlockLines_gZDW><div class=token-line style=color:#393A34><span class="token plain">cargo run --locked -p nautilus-testkit --bin prepare-test-data</span><br/></div></code></pre></div></div>
+<p>该命令下载缺失的文件，并校验被跟踪的校验和清单中的每个夹具。校验和不同的缓存文件
+会被替换，清单本身不变；校验和不匹配的下载会被拒绝并删除。CI 在恢复测试数据缓存后
+运行这一步。</p>
+<p><code>ensure_test_data_exists()</code> 只检查本地文件是否存在。缺少所需夹具的测试会失败，
+并在消息中指明准备命令，但不会下载数据。准备步骤与测试都遵循 <code>TEST_DATA_ROOT_PATH</code>。</p>
+<p><strong>用户自取数据</strong>适用于供应商许可、授权模式或访问控制不允许 NautilusTrader 公开
+再分发的场合。这一限制同时覆盖公开仓库与公开 R2 桶。该模式下，仓库只保存清单、
+获取说明与转换代码。每个用户用自己的供应商账号下载源数据并在本地转换。</p>
+<p>符合下列任一条件时使用用户自取模型：</p>
+<ul>
+<li class="">供应商要求每个用户持有自己的账号、API 密钥或历史数据许可。</li>
+<li class="">许可允许内部使用，但未明确允许再分派生夹具。</li>
+<li class="">数据集适合示例或选择性启用的集成测试，但不适合默认 CI。</li>
+</ul>
+<h2 class="anchor anchorTargetStickyNavbar_ana5" id=required-metadata>必需元数据<a href=#required-metadata class=hash-link aria-label=必需元数据的直接链接 title=必需元数据的直接链接 translate=no>​</a></h2>
+<p>每个存储或再分发具体产物的整理数据集，其 <code>metadata.json</code> 至少包含：</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>字段<th>说明<tbody><tr><td><code>file</code><td>数据集的文件名。<tr><td><code>sha256</code><td>文件的 SHA-256 哈希。<tr><td><code>size_bytes</code><td>文件字节大小。<tr><td><code>original_url</code><td>原始源数据的下载 URL。<tr><td><code>licence</code><td>许可条款与任何再分发限制。<tr><td><code>added_at</code><td>数据集整理完成时的 ISO 8601 时间戳。</table>
+<p>这些字段与 <code>scripts/curate-dataset.sh</code> 的输出一致。想要更完整的出处记录，
+推荐额外添加：</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>字段<th>说明<tbody><tr><td><code>instrument</code><td>覆盖的工具代码。<tr><td><code>date</code><td>覆盖的交易日。<tr><td><code>format</code><td>存储格式（如 "Nautilus OrderBookDelta Parquet"）。<tr><td><code>original_file</code><td>转换前的供应商原始文件名。<tr><td><code>parser</code><td>转换所用的解析器（如 "itchy 0.3.4"）。</table>
+<p>用户自取数据集在适用时使用同样的元数据字段，并应额外包含：</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>字段<th>说明<tbody><tr><td><code>distribution</code><td>必须为 <code>"user-fetch"</code>。<tr><td><code>fetch_method</code><td>用户如何获取源数据（API、网页门户、CLI 等）。<tr><td><code>fetch_reference</code><td>面向用户下载流程的 URL 或文档引用。<tr><td><code>auth</code><td>所需的凭据或授权（如有）。<tr><td><code>transform_version</code><td>构建最终文件的本地转换管线版本。<tr><td><code>redistribution</code><td>简述该数据集的再分发限制。<tr><td><code>public_mirror</code><td>受限的供应商数据集必须为 <code>false</code>。</table>
+<p>关于用户自取数据集：</p>
+<ul>
+<li class="">没有单一提交或镜像的产物时，<code>metadata.json</code> 可以省略 <code>file</code>、<code>sha256</code> 与
+<code>size_bytes</code>。此时 <code>manifest.json</code> 的 <code>target_files</code> 是本地输出文件的权威来源。</li>
+<li class="">供应商可能为每个用户账号或每次请求生成不同的文件。此时 <code>original_url</code> 可以指向
+供应商的下载入口，而不是具体文件的 URL。</li>
+</ul>
+<p>其他元数据字段在适用时仍推荐填写。特别是用户自取数据集仍应记录 <code>licence</code> 与
+<code>added_at</code>。</p>
+<h2 class="anchor anchorTargetStickyNavbar_ana5" id=storage-format>存储格式<a href=#storage-format class=hash-link aria-label=存储格式的直接链接 title=存储格式的直接链接 translate=no>​</a></h2>
+<p>新数据集应存为 <strong>Nautilus Parquet</strong>（不是供应商原始格式）。这能保证：</p>
+<ul>
+<li class="">所有测试数据集的数据类型一致。</li>
+<li class="">测试时无需解析供应商格式。</li>
+<li class="">就许可而言，衍生作品状态清晰。</li>
+</ul>
+<p>使用 ZSTD 压缩（级别 3）与 1M 行组。</p>
+<p>用户自取数据集经过本地转换后也应是 Nautilus Parquet。供应商原始文件既不进仓库，
+也不进公开 R2 桶。</p>
+<h2 class="anchor anchorTargetStickyNavbar_ana5" id=naming-convention>命名约定<a href=#naming-convention class=hash-link aria-label=命名约定的直接链接 title=命名约定的直接链接 translate=no>​</a></h2>
+<div class="language-text codeBlockContainer_eTMR theme-code-block" style=--prism-color:#393A34;--prism-background-color:#f6f8fa><div class=codeBlockContent_hafM><pre tabindex=0 class="prism-code language-text codeBlock_IMvC thin-scrollbar" style=color:#393A34;background-color:#f6f8fa><code class=codeBlockLines_gZDW><div class=token-line style=color:#393A34><span class="token plain">&lt;source>_&lt;instrument>_&lt;date>_&lt;datatype>.parquet</span><br/></div></code></pre></div></div>
+<p>示例：</p>
+<ul>
+<li class=""><code>itch_AAPL_2019-01-30_deltas.parquet</code></li>
+<li class=""><code>tardis_BTCUSDT_2020-09-01_depth10.parquet</code></li>
+<li class=""><code>histdata_EURUSD.SIM_2020-01_quotes.parquet</code></li>
+</ul>
+<h2 class="anchor anchorTargetStickyNavbar_ana5" id=curation-workflow>整理流程<a href=#curation-workflow class=hash-link aria-label=整理流程的直接链接 title=整理流程的直接链接 translate=no>​</a></h2>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=simple-files-single-download>简单文件（单次下载）<a href=#simple-files-single-download class=hash-link aria-label=简单文件（单次下载）的直接链接 title=简单文件（单次下载）的直接链接 translate=no>​</a></h3>
+<p>使用 <code>scripts/curate-dataset.sh</code>：</p>
+<div class="language-bash codeBlockContainer_eTMR theme-code-block" style=--prism-color:#393A34;--prism-background-color:#f6f8fa><div class=codeBlockContent_hafM><pre tabindex=0 class="prism-code language-bash codeBlock_IMvC thin-scrollbar" style=color:#393A34;background-color:#f6f8fa><code class=codeBlockLines_gZDW><div class=token-line style=color:#393A34><span class="token plain">scripts/curate-dataset.sh &lt;slug> &lt;filename> &lt;download-url> &lt;license></span><br/></div></code></pre></div></div>
+<p>它创建一个带版本的目录（<code>v1/&lt;slug>/</code>），内含该文件、<code>LICENSE.txt</code>，
+以及包含上述必需字段的 <code>metadata.json</code>。</p>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=complex-pipelines-parse-transform>复杂管线（解析 + 转换）<a href=#complex-pipelines-parse-transform class=hash-link aria-label="复杂管线（解析 + 转换）的直接链接" title="复杂管线（解析 + 转换）的直接链接" translate=no>​</a></h3>
+<p>需要格式转换的数据集（如二进制 ITCH 转 Parquet）：</p>
+<ol>
+<li class="">在 <code>crates/testkit/src/&lt;source>/</code> 中写一个整理函数，用 <code>#[cfg(test)]</code>
+或 <code>#[ignore]</code> 测试门控。</li>
+<li class="">函数负责：下载、解析、过滤、转换为 NautilusTrader 类型、写出 Parquet。</li>
+<li class="">把 Parquet 文件与 <code>metadata.json</code> 输出到本地目录。</li>
+<li class="">手工上传到 R2，然后把校验和加入 <code>checksums.json</code>。</li>
+</ol>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=user-fetched-pipelines-restricted-redistribution>用户自取管线（受限再分发）<a href=#user-fetched-pipelines-restricted-redistribution class=hash-link aria-label=用户自取管线（受限再分发）的直接链接 title=用户自取管线（受限再分发）的直接链接 translate=no>​</a></h3>
+<p>NautilusTrader 无法再分发的数据集：</p>
+<ol>
+<li class="">提交清单与 <code>metadata.json</code>，但不要提交真实的供应商数据或转换出的 Parquet 输出。</li>
+<li class="">提供一个本地获取命令或脚本，使用用户自己的供应商凭据、授权或已购买的历史文件。</li>
+<li class="">在本地把供应商数据转换为 Nautilus Parquet。</li>
+<li class="">结果文件存放在被 git 忽略的本地缓存路径。</li>
+<li class="">让测试与示例选择性启用；数据集缺失时应干净地跳过。</li>
+</ol>
+<p>新数据集默认的分发优先顺序是：</p>
+<ol>
+<li class="">提交进仓库的小数据。</li>
+<li class="">公开 R2 的大数据。</li>
+<li class="">用户自取数据。</li>
+</ol>
+<p>只有当前两种选择在供应商条款下都不可接受时，才选择用户自取。</p>
+<p>禁止：</p>
+<ul>
+<li class="">把受限的供应商数据集上传到公开 R2 桶。</li>
+<li class="">再分发权利不明确时，把供应商衍生的真实 Parquet 文件提交进仓库。</li>
+<li class="">让默认 CI 依赖供应商凭据或付费的历史数据访问。</li>
+</ul>
+<p>许可允许内部共享时，可以维护一个私有镜像供内部 CI 或员工使用。那是独立的
+运维路径，不属于公开测试数据标准的一部分。</p>
+<h2 class="anchor anchorTargetStickyNavbar_ana5" id=adding-a-new-dataset>添加新数据集<a href=#adding-a-new-dataset class=hash-link aria-label=添加新数据集的直接链接 title=添加新数据集的直接链接 translate=no>​</a></h2>
+<ol>
+<li class="">按上述流程整理数据。</li>
+<li class="">写好含全部必需字段的 <code>metadata.json</code>。</li>
+<li class="">小数据：提交到 <code>test_data/&lt;source>/</code>。</li>
+<li class="">大数据：把 Parquet 上传到 R2，把校验和加入 <code>test_data/large/checksums.json</code>。</li>
+<li class="">用户自取数据：只提交清单与获取说明。源数据与衍生数据既不进仓库，也不进公开 R2 桶。</li>
+<li class="">需要时在 <code>crates/testkit/src/common.rs</code> 添加共享的测试数据路径函数。</li>
+<li class="">编写使用该数据集的测试。</li>
+</ol>
+<p>用户自取数据优先采用这种布局：</p>
+<div class="language-text codeBlockContainer_eTMR theme-code-block" style=--prism-color:#393A34;--prism-background-color:#f6f8fa><div class=codeBlockContent_hafM><pre tabindex=0 class="prism-code language-text codeBlock_IMvC thin-scrollbar" style=color:#393A34;background-color:#f6f8fa><code class=codeBlockLines_gZDW><div class=token-line style=color:#393A34><span class="token plain">test_data/&lt;source>/&lt;slug>/</span><br/></div><div class=token-line style=color:#393A34><span class="token plain">  metadata.json</span><br/></div><div class=token-line style=color:#393A34><span class="token plain">  manifest.json</span><br/></div><div class=token-line style=color:#393A34><span class="token plain">  README.md</span><br/></div></code></pre></div></div>
+<p>生成的产物统一缓存在 <code>test_data/local/&lt;source>/&lt;slug>/</code>。确需本地保留时，
+供应商原始下载放在同一缓存路径下的同级 <code>vendor/</code> 目录。</p>
+<p>清单应机器可读且稳定，记录在另一台机器上复现获取与转换步骤所需的最少信息。</p>
+<p><code>metadata.json</code> 是出处、许可与再分发规则的权威来源；<code>manifest.json</code> 是获取输入、
+命令、缓存位置与输出文件的权威来源。</p>
+<p>推荐的清单字段：</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>字段<th>说明<tbody><tr><td><code>slug</code><td>稳定的数据集标识。<tr><td><code>vendor</code><td>供应商或交易场所名称。<tr><td><code>source_type</code><td><code>api</code>、<code>portal-download</code>、<code>purchased-archive</code> 等。<tr><td><code>source_filters</code><td>代码、事件 ID、市场 ID、日期范围或文件名。<tr><td><code>target_files</code><td>转换后预期的输出 Nautilus Parquet 文件。<tr><td><code>cache_dir</code><td>相对 <code>test_data/local/</code> 的本地输出位置。<tr><td><code>fetch_command</code><td>建议的获取命令或脚本入口。<tr><td><code>transform_command</code><td>建议的本地转换命令。<tr><td><code>env</code><td>所需的环境变量。<tr><td><code>notes</code><td>给用户的简短运维说明。</table>
+<p>依赖用户自取数据的测试应当：</p>
+<ul>
+<li class="">与默认 CI 测试分开标记或分组。</li>
+<li class="">本地数据集缺失时以清晰的消息跳过。</li>
+<li class="">除非用户显式启用，否则不访问网络。</li>
+<li class="">复用稳定的本地缓存路径，让每台机器只获取一次。</li>
+</ul>
+<p>基于 pytest 的测试优先用这样的守卫：</p>
+<div class="language-python codeBlockContainer_eTMR theme-code-block" style=--prism-color:#393A34;--prism-background-color:#f6f8fa><div class=codeBlockContent_hafM><pre tabindex=0 class="prism-code language-python codeBlock_IMvC thin-scrollbar" style=color:#393A34;background-color:#f6f8fa><code class=codeBlockLines_gZDW><div class=token-line style=color:#393A34><span class="token keyword" style=color:#00009f>if</span><span class="token plain"> </span><span class="token keyword" style=color:#00009f>not</span><span class="token plain"> filepath</span><span class="token punctuation" style=color:#393A34>.</span><span class="token plain">exists</span><span class="token punctuation" style=color:#393A34>(</span><span class="token punctuation" style=color:#393A34>)</span><span class="token punctuation" style=color:#393A34>:</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    pytest</span><span class="token punctuation" style=color:#393A34>.</span><span class="token plain">skip</span><span class="token punctuation" style=color:#393A34>(</span><span class="token string-interpolation string" style=color:#e3116c>f"User-fetched test data not found: </span><span class="token string-interpolation interpolation punctuation" style=color:#393A34>{</span><span class="token string-interpolation interpolation">filepath</span><span class="token string-interpolation interpolation punctuation" style=color:#393A34>}</span><span class="token string-interpolation string" style=color:#e3116c>"</span><span class="token punctuation" style=color:#393A34>)</span><br/></div></code></pre></div></div>
+<p>默认 CI 不预期运行、需手工准备数据集的 Rust 测试，优先用 <code>#[ignore]</code>。</p>
+<h2 class="anchor anchorTargetStickyNavbar_ana5" id=regenerating-datasets>重新生成数据集<a href=#regenerating-datasets class=hash-link aria-label=重新生成数据集的直接链接 title=重新生成数据集的直接链接 translate=no>​</a></h2>
+<p>模式变更使某个大型 Parquet 文件失效时，从原始源数据重新生成，用下文的整理测试。
+重新生成后：</p>
+<ol>
+<li class=""><code>sha256sum /tmp/&lt;output_file>.parquet</code></li>
+<li class="">用新的哈希更新 <code>test_data/large/checksums.json</code>。</li>
+<li class="">更新对应的 <code>metadata.json</code>（sha256、size_bytes）。</li>
+<li class="">把 Parquet 文件上传到 R2。</li>
+<li class="">用重新生成的文件替换 <code>test_data/large/</code> 中的缓存文件，然后运行准备命令验证；
+设置了 <code>TEST_DATA_ROOT_PATH</code> 时使用其下的对应缓存。</li>
+<li class="">提交 <code>checksums.json</code> 与 <code>metadata.json</code>（这也会使 CI 缓存失效）。</li>
+</ol>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=itch-aapl-l3-deltas>ITCH AAPL L3 增量<a href=#itch-aapl-l3-deltas class=hash-link aria-label="ITCH AAPL L3 增量的直接链接" title="ITCH AAPL L3 增量的直接链接" translate=no>​</a></h3>
+<p>来源：来自 NASDAQ EMI 的 <code>01302019.NASDAQ_ITCH50.gz</code>（约 4.4 GB）。</p>
+<div class="language-bash codeBlockContainer_eTMR theme-code-block" style=--prism-color:#393A34;--prism-background-color:#f6f8fa><div class=codeBlockContent_hafM><pre tabindex=0 class="prism-code language-bash codeBlock_IMvC thin-scrollbar" style=color:#393A34;background-color:#f6f8fa><code class=codeBlockLines_gZDW><div class=token-line style=color:#393A34><span class="token plain"># Download source (keep a local copy, this is a large file)</span><br/></div><div class=token-line style=color:#393A34><span class="token plain">wget -O ~/Downloads/01302019.NASDAQ_ITCH50.gz \</span><br/></div><div class=token-line style=color:#393A34><span class="token plain">  "https://emi.nasdaq.com/ITCH/Nasdaq%20ITCH/01302019.NASDAQ_ITCH50.gz"</span><br/></div><div class=token-line style=color:#393A34><span class="token plain" style=display:inline-block></span><br/></div><div class=token-line style=color:#393A34><span class="token plain"># Curation test expects source at /tmp</span><br/></div><div class=token-line style=color:#393A34><span class="token plain">ln -sf ~/Downloads/01302019.NASDAQ_ITCH50.gz /tmp/01302019.NASDAQ_ITCH50.gz</span><br/></div><div class=token-line style=color:#393A34><span class="token plain" style=display:inline-block></span><br/></div><div class=token-line style=color:#393A34><span class="token plain"># Regenerate parquet (output: /tmp/itch_AAPL.XNAS_2019-01-30_deltas.parquet)</span><br/></div><div class=token-line style=color:#393A34><span class="token plain">cargo test -p nautilus-testkit --lib test_curate_aapl_itch -- --ignored --nocapture</span><br/></div></code></pre></div></div>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=tardis-deribit-btc-perpetual-l2-deltas>Tardis Deribit BTC-PERPETUAL L2 增量<a href=#tardis-deribit-btc-perpetual-l2-deltas class=hash-link aria-label="Tardis Deribit BTC-PERPETUAL L2 增量的直接链接" title="Tardis Deribit BTC-PERPETUAL L2 增量的直接链接" translate=no>​</a></h3>
+<p>来源：来自 <a href=https://tardis.dev/ target=_blank rel="noopener noreferrer" class="">Tardis</a> 的
+<code>tardis_deribit_incremental_book_L2_2020-04-01_BTC-PERPETUAL.csv.gz</code>。
+每月首日的数据可作为免费样例获取（无需 API 密钥）。</p>
+<div class="language-bash codeBlockContainer_eTMR theme-code-block" style=--prism-color:#393A34;--prism-background-color:#f6f8fa><div class=codeBlockContent_hafM><pre tabindex=0 class="prism-code language-bash codeBlock_IMvC thin-scrollbar" style=color:#393A34;background-color:#f6f8fa><code class=codeBlockLines_gZDW><div class=token-line style=color:#393A34><span class="token plain"># Download source (free sample, no API key needed)</span><br/></div><div class=token-line style=color:#393A34><span class="token plain">wget -O test_data/large/tardis_deribit_incremental_book_L2_2020-04-01_BTC-PERPETUAL.csv.gz \</span><br/></div><div class=token-line style=color:#393A34><span class="token plain">  "https://datasets.tardis.dev/v1/deribit/incremental_book_L2/2020/04/01/BTC-PERPETUAL.csv.gz"</span><br/></div><div class=token-line style=color:#393A34><span class="token plain" style=display:inline-block></span><br/></div><div class=token-line style=color:#393A34><span class="token plain"># Regenerate parquet (output: /tmp/tardis_BTC-PERPETUAL.DERIBIT_2020-04-01_deltas.parquet)</span><br/></div><div class=token-line style=color:#393A34><span class="token plain">cargo test -p nautilus-tardis --features arrow test_curate_deribit_deltas -- --ignored --nocapture</span><br/></div></code></pre></div></div>
+<h2 class="anchor anchorTargetStickyNavbar_ana5" id=tutorial-test-data>教程测试数据<a href=#tutorial-test-data class=hash-link aria-label=教程测试数据的直接链接 title=教程测试数据的直接链接 translate=no>​</a></h2>
+<p>若干教程与指南会加载用户提供的行情数据。<code>NAUTILUS_DATA_DIR</code> 环境变量可覆盖它们的
+基础数据路径。这类文件用 <code>test_data/local/</code> 作为被 git 忽略的仓库本地存放位置。</p>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=directory-layout>目录布局<a href=#directory-layout class=hash-link aria-label=目录布局的直接链接 title=目录布局的直接链接 translate=no>​</a></h3>
+<div class="language-text codeBlockContainer_eTMR theme-code-block" style=--prism-color:#393A34;--prism-background-color:#f6f8fa><div class=codeBlockContent_hafM><pre tabindex=0 class="prism-code language-text codeBlock_IMvC thin-scrollbar" style=color:#393A34;background-color:#f6f8fa><code class=codeBlockLines_gZDW><div class=token-line style=color:#393A34><span class="token plain">test_data/local/</span><br/></div><div class=token-line style=color:#393A34><span class="token plain">  Binance/</span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    BTCUSDT_T_DEPTH_2022-11-01_depth_snap.csv</span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    BTCUSDT_T_DEPTH_2022-11-01_depth_update.csv</span><br/></div><div class=token-line style=color:#393A34><span class="token plain">  Bybit/</span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    2024-12-01_XRPUSDT_ob500.data.zip</span><br/></div><div class=token-line style=color:#393A34><span class="token plain">  HISTDATA/</span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    DAT_ASCII_EURUSD_T_202001.csv.gz</span><br/></div></code></pre></div></div>
+<p><code>test_data/local/</code> 目录被 gitignore。预期文件缺失时，教程脚本会以缺数据消息停止。</p>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=obtaining-the-data>获取数据<a href=#obtaining-the-data class=hash-link aria-label=获取数据的直接链接 title=获取数据的直接链接 translate=no>​</a></h3>
+<p><strong>Binance 深度快照</strong>来自
+<a href=https://data.binance.vision/ target=_blank rel="noopener noreferrer" class="">Binance public data portal</a>。下载 2022-11-01 的
+BTCUSDT T_DEPTH 文件，把 snap 与 update 两个 CSV 放到 <code>test_data/local/Binance/</code>。
+测试用其中一部分行（如前 10,000 行）就够。</p>
+<p><strong>Bybit ob500 订单簿数据</strong>来自 Bybit CDN：</p>
+<div class="language-bash codeBlockContainer_eTMR theme-code-block" style=--prism-color:#393A34;--prism-background-color:#f6f8fa><div class=codeBlockContent_hafM><pre tabindex=0 class="prism-code language-bash codeBlock_IMvC thin-scrollbar" style=color:#393A34;background-color:#f6f8fa><code class=codeBlockLines_gZDW><div class=token-line style=color:#393A34><span class="token plain">curl -L "https://quote-saver.bycsi.com/orderbook/linear/XRPUSDT/2024-12-01_XRPUSDT_ob500.data.zip" \</span><br/></div><div class=token-line style=color:#393A34><span class="token plain">  -o test_data/local/Bybit/2024-12-01_XRPUSDT_ob500.data.zip</span><br/></div></code></pre></div></div>
+<p>完整文件约 360 MB。测试时可只取前几百行，重新打包成更小的 zip。</p>
+<p><strong>HISTDATA 逐笔数据</strong>来自 <a href=https://www.histdata.com/ target=_blank rel="noopener noreferrer" class="">histdata.com</a>。下载
+EUR/USD 任意月份的 ASCII 逐笔数据，把 CSV（或 <code>.csv.gz</code>）放到
+<code>test_data/local/HISTDATA/</code>。</p>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=running-the-tutorials>运行教程<a href=#running-the-tutorials class=hash-link aria-label=运行教程的直接链接 title=运行教程的直接链接 translate=no>​</a></h3>
+<p>构建 Python 包，然后从仓库根目录运行教程源文件：</p>
+<div class="language-bash codeBlockContainer_eTMR theme-code-block" style=--prism-color:#393A34;--prism-background-color:#f6f8fa><div class=codeBlockContent_hafM><pre tabindex=0 class="prism-code language-bash codeBlock_IMvC thin-scrollbar" style=color:#393A34;background-color:#f6f8fa><code class=codeBlockLines_gZDW><div class=token-line style=color:#393A34><span class="token plain">make build-debug</span><br/></div><div class=token-line style=color:#393A34><span class="token plain">NAUTILUS_DATA_DIR="$PWD/test_data/local" \</span><br/></div><div class=token-line style=color:#393A34><span class="token plain">  uv run --project python --no-sync python docs/tutorials/backtest_orderbook_binance.py</span><br/></div><div class=token-line style=color:#393A34><span class="token plain">NAUTILUS_DATA_DIR="$PWD/test_data/local" \</span><br/></div><div class=token-line style=color:#393A34><span class="token plain">  uv run --project python --no-sync python docs/tutorials/backtest_orderbook_bybit.py</span><br/></div></code></pre></div></div>
+<h2 class="anchor anchorTargetStickyNavbar_ana5" id=legacy-datasets>遗留数据集<a href=#legacy-datasets class=hash-link aria-label=遗留数据集的直接链接 title=遗留数据集的直接链接 translate=no>​</a></h2>
+<p>这些数据集早于本策略，使用供应商原始格式（CSV/CSV.gz）且没有 <code>metadata.json</code>。
+它们对既有测试仍然有效。新数据集应遵循上文的 Parquet 标准。</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>数据集<th>来源<th>格式<th>位置<th>状态<tbody><tr><td>Tardis Deribit L2 deltas<td>Tardis<td>Parquet (large)<td><code>test_data/large/</code><td>Curated<tr><td>ITCH AAPL L3 deltas<td>NASDAQ<td>Parquet (large)<td><code>test_data/large/</code><td>Curated<tr><td>HISTDATA EURUSD.SIM quotes<td>HISTDATA<td>Parquet (large)<td><code>test_data/large/</code><td>Migrated<tr><td>Tardis Deribit L2<td>Tardis<td>CSV (checked in)<td><code>test_data/tardis/</code><td>Legacy<tr><td>Tardis Binance snapshots<td>Tardis<td>CSV.gz (large)<td><code>test_data/large/</code><td>Legacy<tr><td>Tardis Bitmex trades<td>Tardis<td>CSV.gz (large)<td><code>test_data/large/</code><td>Legacy</table>
+<p>原先的 <code>nautechsystems/nautilus_data</code> 目录对应上表的 HISTDATA EURUSD.SIM Parquet
+文件。HISTDATA 原始 CSV 文件仍属于用户自取。</div><footer class="theme-doc-footer docusaurus-mt-lg"><div class="row margin-top--sm theme-doc-footer-edit-meta-row"><div class="col noPrint_MRkS"><a href=https://github.com/Aloento/NautilusTraderDoc/tree/main/docs/developer_guide/test_datasets.md target=_blank rel="noopener noreferrer" class=theme-edit-this-page><svg fill=currentColor height=20 width=20 viewBox="0 0 40 40" class=iconEdit_RPSQ aria-hidden=true><g><path d="m34.5 11.7l-3 3.1-6.3-6.3 3.1-3q0.5-0.5 1.2-0.5t1.1 0.5l3.9 3.9q0.5 0.4 0.5 1.1t-0.5 1.2z m-29.5 17.1l18.4-18.5 6.3 6.3-18.4 18.4h-6.3v-6.2z"/></g></svg>编辑此页</a></div><div class="col lastUpdated_oZSl"><span class=theme-last-updated>最后<!-- -->于 <b><time datetime=2026-10-14T22:30:30.000Z itemprop=dateModified>2026年10月14日</time></b> <!-- -->更新</span></div></div></footer></article><nav class="docusaurus-mt-lg pagination-nav" aria-label=文件选项卡><a class="pagination-nav__link pagination-nav__link--prev" href=/developer_guide/spec_exec_testing><div class=pagination-nav__sublabel>上一页</div><div class=pagination-nav__label>执行测试规范</div></a><a class="pagination-nav__link pagination-nav__link--next" href=/developer_guide/testing><div class=pagination-nav__sublabel>下一页</div><div class=pagination-nav__label>测试</div></a></nav></div></div><div class="col col--3"><div class="tableOfContents_LyLZ thin-scrollbar theme-doc-toc-desktop"><ul class="table-of-contents table-of-contents__left-border"><li><a href=#dataset-categories class="table-of-contents__link toc-highlight">数据集类别</a><li><a href=#required-metadata class="table-of-contents__link toc-highlight">必需元数据</a><li><a href=#storage-format class="table-of-contents__link toc-highlight">存储格式</a><li><a href=#naming-convention class="table-of-contents__link toc-highlight">命名约定</a><li><a href=#curation-workflow class="table-of-contents__link toc-highlight">整理流程</a><ul><li><a href=#simple-files-single-download class="table-of-contents__link toc-highlight">简单文件（单次下载）</a><li><a href=#complex-pipelines-parse-transform class="table-of-contents__link toc-highlight">复杂管线（解析 + 转换）</a><li><a href=#user-fetched-pipelines-restricted-redistribution class="table-of-contents__link toc-highlight">用户自取管线（受限再分发）</a></ul><li><a href=#adding-a-new-dataset class="table-of-contents__link toc-highlight">添加新数据集</a><li><a href=#regenerating-datasets class="table-of-contents__link toc-highlight">重新生成数据集</a><ul><li><a href=#itch-aapl-l3-deltas class="table-of-contents__link toc-highlight">ITCH AAPL L3 增量</a><li><a href=#tardis-deribit-btc-perpetual-l2-deltas class="table-of-contents__link toc-highlight">Tardis Deribit BTC-PERPETUAL L2 增量</a></ul><li><a href=#tutorial-test-data class="table-of-contents__link toc-highlight">教程测试数据</a><ul><li><a href=#directory-layout class="table-of-contents__link toc-highlight">目录布局</a><li><a href=#obtaining-the-data class="table-of-contents__link toc-highlight">获取数据</a><li><a href=#running-the-tutorials class="table-of-contents__link toc-highlight">运行教程</a></ul><li><a href=#legacy-datasets class="table-of-contents__link toc-highlight">遗留数据集</a></ul></div></div></div></div></main></div></div></div><footer class="theme-layout-footer footer footer--dark"><div class="container container-fluid"><div class="row footer__links"><div class="theme-layout-footer-column col footer__col"><div class=footer__title></div><ul class="footer__items clean-list"><li class=footer__item><a href=https://github.com/nautechsystems/nautilus_trader target=_blank rel="noopener noreferrer" class=footer__link-item>Official GitHub<svg width=13.5 height=13.5 aria-label="(opens in new tab)" class=iconExternalLink_qUHo><use href=#theme-svg-external-link /></svg></a><li class=footer__item><a href=https://nautilustrader.io/docs target=_blank rel="noopener noreferrer" class=footer__link-item>Official Documentation<svg width=13.5 height=13.5 aria-label="(opens in new tab)" class=iconExternalLink_qUHo><use href=#theme-svg-external-link /></svg></a></ul></div></div><div class="footer__bottom text--center"><div class=footer__copyright>© 2026 Nautech Systems Pty Ltd. All rights reserved.</div></div></div></footer></div></body>

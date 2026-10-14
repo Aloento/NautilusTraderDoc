@@ -1,0 +1,427 @@
+<!doctype html><html lang=zh dir=ltr class="docs-wrapper plugin-docs plugin-id-default docs-version-current docs-doc-page docs-doc-id-concepts/accounting" data-has-hydrated=false><head><meta charset=UTF-8><meta name=generator content="Docusaurus v3.10.2"><title data-rh=true>核算 | NautilusTrader 文档</title><meta data-rh=true name=viewport content="width=device-width, initial-scale=1.0"/><meta data-rh=true name=twitter:card content=summary_large_image /><meta data-rh=true property=og:url content=https://nautilus.aloen.to/concepts/accounting /><meta data-rh=true property=og:locale content=zh /><meta data-rh=true name=docusaurus_locale content=zh /><meta data-rh=true name=docsearch:language content=zh /><meta data-rh=true name=docusaurus_version content=current /><meta data-rh=true name=docusaurus_tag content=docs-default-current /><meta data-rh=true name=docsearch:version content=current /><meta data-rh=true name=docsearch:docusaurus_tag content=docs-default-current /><meta data-rh=true property=og:title content="核算 | NautilusTrader 文档"/><meta data-rh=true name=description content=accounting} /><meta data-rh=true property=og:description content=accounting} /><link data-rh=true rel=icon href=/logo.png /><link data-rh=true rel=canonical href=https://nautilus.aloen.to/concepts/accounting /><link data-rh=true rel=alternate href=https://nautilus.aloen.to/concepts/accounting hreflang=zh /><link data-rh=true rel=alternate href=https://nautilus.aloen.to/concepts/accounting hreflang=x-default /><script data-rh=true type=application/ld+json>{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","item":"https://nautilus.aloen.to/concepts/","name":"核心概念","position":1},{"@type":"ListItem","item":"https://nautilus.aloen.to/concepts/accounting","name":"核算","position":2}]}</script><link rel=stylesheet href=/assets/css/styles.adb7ea18.css /><script src=/assets/js/runtime~main.71ac0794.js defer></script><script src=/assets/js/main.d978d0f2.js defer></script></head><body><svg style="display: none;"><defs>
+<symbol id=theme-svg-external-link viewBox="0 0 24 24"><path fill=currentColor d="M21 13v10h-21v-19h12v2h-10v15h17v-8h2zm3-12h-10.988l4.035 4-6.977 7.07 2.828 2.828 6.977-7.07 4.125 4.172v-11z"/></symbol>
+</defs></svg>
+<script>!function(){var t=function(){try{return new URLSearchParams(window.location.search).get("docusaurus-theme")}catch(t){}}()||function(){try{return window.localStorage.getItem("theme-2e3")}catch(t){}}();document.documentElement.setAttribute("data-theme",t||(window.matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light")),document.documentElement.setAttribute("data-theme-choice",t||"system")}(),function(){try{for(var[t,e]of new URLSearchParams(window.location.search).entries())if(t.startsWith("docusaurus-data-")){var a=t.replace("docusaurus-data-","data-");document.documentElement.setAttribute(a,e)}}catch(t){}}()</script><div id=__docusaurus><link rel=preload as=image href=/logo.png /><div role=region aria-label=跳到主要内容><a class=skipToContent_zuOI href=#__docusaurus_skipToContent_fallback>跳到主要内容</a></div><nav aria-label=主导航 class="theme-layout-navbar navbar navbar--fixed-top"><div class=navbar__inner><div class="theme-layout-navbar-left navbar__items"><button aria-label=切换导航栏 aria-expanded=false class="navbar__toggle clean-btn" type=button><svg width=30 height=30 viewBox="0 0 30 30" aria-hidden=true><path stroke=currentColor stroke-linecap=round stroke-miterlimit=10 stroke-width=2 d="M4 7h22M4 15h22M4 23h22"/></svg></button><a class=navbar__brand href=/><div class=navbar__logo><img src=/logo.png alt="NautilusTrader Logo" class="themedComponent_q2_Y themedComponent--light_Nejn"/><img src=/logo.png alt="NautilusTrader Logo" class="themedComponent_q2_Y themedComponent--dark_JjIb"/></div><b class="navbar__title text--truncate">NautilusTrader</b></a><a aria-current=page class="navbar__item navbar__link navbar__link--active" href=/getting_started/>文档</a></div><div class="theme-layout-navbar-right navbar__items navbar__items--right"><a href=https://github.com/Aloento/NautilusTraderDoc target=_blank rel="noopener noreferrer" class="navbar__item navbar__link">GitHub<svg width=13.5 height=13.5 aria-label="(opens in new tab)" class=iconExternalLink_qUHo><use href=#theme-svg-external-link /></svg></a><div class="toggle_hHmI colorModeToggle_rOOn"><button class="clean-btn toggleButton_wEhT toggleButtonDisabled_yOOP" type=button disabled title="system mode" aria-label="切换浅色/暗黑模式（当前为system mode）"><svg viewBox="0 0 24 24" width=24 height=24 aria-hidden=true class="toggleIcon_Kt6U lightToggleIcon_Zfeh"><path fill=currentColor d="M12,9c1.65,0,3,1.35,3,3s-1.35,3-3,3s-3-1.35-3-3S10.35,9,12,9 M12,7c-2.76,0-5,2.24-5,5s2.24,5,5,5s5-2.24,5-5 S14.76,7,12,7L12,7z M2,13l2,0c0.55,0,1-0.45,1-1s-0.45-1-1-1l-2,0c-0.55,0-1,0.45-1,1S1.45,13,2,13z M20,13l2,0c0.55,0,1-0.45,1-1 s-0.45-1-1-1l-2,0c-0.55,0-1,0.45-1,1S19.45,13,20,13z M11,2v2c0,0.55,0.45,1,1,1s1-0.45,1-1V2c0-0.55-0.45-1-1-1S11,1.45,11,2z M11,20v2c0,0.55,0.45,1,1,1s1-0.45,1-1v-2c0-0.55-0.45-1-1-1C11.45,19,11,19.45,11,20z M5.99,4.58c-0.39-0.39-1.03-0.39-1.41,0 c-0.39,0.39-0.39,1.03,0,1.41l1.06,1.06c0.39,0.39,1.03,0.39,1.41,0s0.39-1.03,0-1.41L5.99,4.58z M18.36,16.95 c-0.39-0.39-1.03-0.39-1.41,0c-0.39,0.39-0.39,1.03,0,1.41l1.06,1.06c0.39,0.39,1.03,0.39,1.41,0c0.39-0.39,0.39-1.03,0-1.41 L18.36,16.95z M19.42,5.99c0.39-0.39,0.39-1.03,0-1.41c-0.39-0.39-1.03-0.39-1.41,0l-1.06,1.06c-0.39,0.39-0.39,1.03,0,1.41 s1.03,0.39,1.41,0L19.42,5.99z M7.05,18.36c0.39-0.39,0.39-1.03,0-1.41c-0.39-0.39-1.03-0.39-1.41,0l-1.06,1.06 c-0.39,0.39-0.39,1.03,0,1.41s1.03,0.39,1.41,0L7.05,18.36z"/></svg><svg viewBox="0 0 24 24" width=24 height=24 aria-hidden=true class="toggleIcon_Kt6U darkToggleIcon_XgQr"><path fill=currentColor d="M9.37,5.51C9.19,6.15,9.1,6.82,9.1,7.5c0,4.08,3.32,7.4,7.4,7.4c0.68,0,1.35-0.09,1.99-0.27C17.45,17.19,14.93,19,12,19 c-3.86,0-7-3.14-7-7C5,9.07,6.81,6.55,9.37,5.51z M12,3c-4.97,0-9,4.03-9,9s4.03,9,9,9s9-4.03,9-9c0-0.46-0.04-0.92-0.1-1.36 c-0.98,1.37-2.58,2.26-4.4,2.26c-2.98,0-5.4-2.42-5.4-5.4c0-1.81,0.89-3.42,2.26-4.4C12.92,3.04,12.46,3,12,3L12,3z"/></svg><svg viewBox="0 0 24 24" width=24 height=24 aria-hidden=true class="toggleIcon_Kt6U systemToggleIcon_BvUi"><path fill=currentColor d="m12 21c4.971 0 9-4.029 9-9s-4.029-9-9-9-9 4.029-9 9 4.029 9 9 9zm4.95-13.95c1.313 1.313 2.05 3.093 2.05 4.95s-0.738 3.637-2.05 4.95c-1.313 1.313-3.093 2.05-4.95 2.05v-14c1.857 0 3.637 0.737 4.95 2.05z"/></svg></button></div><div class=navbarSearchContainer_watl></div></div></div><div role=presentation class=navbar-sidebar__backdrop></div></nav><div id=__docusaurus_skipToContent_fallback class="theme-layout-main main-wrapper mainWrapper_R72Q"><div class=docsWrapper_XQ9b><button aria-label=回到顶部 class="clean-btn theme-back-to-top-button backToTopButton_MbnX" type=button></button><div class=docRoot_aqOB><aside class="theme-doc-sidebar-container docSidebarContainer_sI2e"><div class=sidebarViewport_TzTy><div class=sidebar_CbEe><nav aria-label=文档侧边栏 class="menu thin-scrollbar menu_ChRF"><ul class="theme-doc-sidebar-menu menu__list"><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-1 menu__list-item menu__list-item--collapsed"><div class=menu__list-item-collapsible><a class="categoryLink_Muyc menu__link menu__link--sublist" href=/getting_started/><span class=categoryLinkLabel_mAcL>快速开始</span></a><button aria-label="展开侧边栏分类 '快速开始'" aria-expanded=false type=button class="clean-btn menu__caret"></button></div><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-1 menu__list-item"><div class=menu__list-item-collapsible><a class="categoryLink_Muyc menu__link menu__link--sublist menu__link--active" href=/concepts/><span class=categoryLinkLabel_mAcL>核心概念</span></a><button aria-label="折叠侧边栏分类 '核心概念'" aria-expanded=true type=button class="clean-btn menu__caret"></button></div><ul class=menu__list><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-2 menu__list-item menu__list-item--collapsed"><div class=menu__list-item-collapsible><a class="categoryLink_Muyc menu__link menu__link--sublist" tabindex=0 href=/concepts/instruments/><span class=categoryLinkLabel_mAcL>金融工具</span></a><button aria-label="展开侧边栏分类 '金融工具'" aria-expanded=false type=button class="clean-btn menu__caret"></button></div><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-2 menu__list-item menu__list-item--collapsed"><div class=menu__list-item-collapsible><a class="categoryLink_Muyc menu__link menu__link--sublist" tabindex=0 href=/concepts/orders/><span class=categoryLinkLabel_mAcL>订单</span></a><button aria-label="展开侧边栏分类 '订单'" aria-expanded=false type=button class="clean-btn menu__caret"></button></div><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-2 menu__list-item menu__list-item--collapsed"><div class=menu__list-item-collapsible><a class="categoryLink_Muyc menu__link menu__link--sublist" tabindex=0 href=/concepts/data/><span class=categoryLinkLabel_mAcL>数据</span></a><button aria-label="展开侧边栏分类 '数据'" aria-expanded=false type=button class="clean-btn menu__caret"></button></div><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-2 menu__list-item menu__list-item--collapsed"><div class=menu__list-item-collapsible><a class="categoryLink_Muyc menu__link menu__link--sublist" tabindex=0 href=/concepts/backtesting/><span class=categoryLinkLabel_mAcL>回测</span></a><button aria-label="展开侧边栏分类 '回测'" aria-expanded=false type=button class="clean-btn menu__caret"></button></div><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-2 menu__list-item menu__list-item--collapsed"><div class=menu__list-item-collapsible><a class="categoryLink_Muyc menu__link menu__link--sublist" tabindex=0 href=/concepts/events/><span class=categoryLinkLabel_mAcL>事件</span></a><button aria-label="展开侧边栏分类 '事件'" aria-expanded=false type=button class="clean-btn menu__caret"></button></div><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-2 menu__list-item menu__list-item--collapsed"><div class=menu__list-item-collapsible><a class="categoryLink_Muyc menu__link menu__link--sublist" tabindex=0 href=/concepts/execution/><span class=categoryLinkLabel_mAcL>执行</span></a><button aria-label="展开侧边栏分类 '执行'" aria-expanded=false type=button class="clean-btn menu__caret"></button></div><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class="menu__link menu__link--active" aria-current=page tabindex=0 href=/concepts/accounting><span class=linkLabel_lYjD>核算</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/concepts/actors><span class=linkLabel_lYjD>Actors</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/concepts/adapters><span class=linkLabel_lYjD>适配器</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/concepts/architecture><span class=linkLabel_lYjD>架构</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/concepts/behavioral_models><span class=linkLabel_lYjD>行为模型</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/concepts/cache><span class=linkLabel_lYjD>缓存</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/concepts/configuration><span class=linkLabel_lYjD>配置</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/concepts/continuous_futures><span class=linkLabel_lYjD>连续期货</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/concepts/custom_data><span class=linkLabel_lYjD>自定义数据</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/concepts/dst><span class=linkLabel_lYjD>DST</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/concepts/event_sourcing><span class=linkLabel_lYjD>事件溯源</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/concepts/greeks><span class=linkLabel_lYjD>Greeks</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/concepts/live><span class=linkLabel_lYjD>实时交易</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/concepts/logging><span class=linkLabel_lYjD>日志</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/concepts/message_bus><span class=linkLabel_lYjD>消息总线</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/concepts/networking><span class=linkLabel_lYjD>网络</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/concepts/options><span class=linkLabel_lYjD>期权</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/concepts/order_book><span class=linkLabel_lYjD>订单簿</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/concepts/overview><span class=linkLabel_lYjD>概览</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/concepts/portfolio><span class=linkLabel_lYjD>组合</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/concepts/positions><span class=linkLabel_lYjD>持仓</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/concepts/python><span class=linkLabel_lYjD>Python</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/concepts/reports><span class=linkLabel_lYjD>报告</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/concepts/rust><span class=linkLabel_lYjD>Rust</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/concepts/strategies><span class=linkLabel_lYjD>策略</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/concepts/synthetics><span class=linkLabel_lYjD>合成工具</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/concepts/value_types><span class=linkLabel_lYjD>值类型</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/concepts/visualization><span class=linkLabel_lYjD>可视化</span></a></ul><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-1 menu__list-item menu__list-item--collapsed"><div class=menu__list-item-collapsible><a class="categoryLink_Muyc menu__link menu__link--sublist" href=/integrations/><span class=categoryLinkLabel_mAcL>交易所与集成</span></a><button aria-label="展开侧边栏分类 '交易所与集成'" aria-expanded=false type=button class="clean-btn menu__caret"></button></div><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-1 menu__list-item menu__list-item--collapsed"><div class=menu__list-item-collapsible><a class="categoryLink_Muyc menu__link menu__link--sublist" href=/how_to/><span class=categoryLinkLabel_mAcL>操作指南</span></a><button aria-label="展开侧边栏分类 '操作指南'" aria-expanded=false type=button class="clean-btn menu__caret"></button></div><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-1 menu__list-item menu__list-item--collapsed"><div class=menu__list-item-collapsible><a class="categoryLink_Muyc menu__link menu__link--sublist" href=/tutorials/><span class=categoryLinkLabel_mAcL>教程</span></a><button aria-label="展开侧边栏分类 '教程'" aria-expanded=false type=button class="clean-btn menu__caret"></button></div><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-1 menu__list-item menu__list-item--collapsed"><div class=menu__list-item-collapsible><a class="categoryLink_Muyc menu__link menu__link--sublist" href=/developer_guide/><span class=categoryLinkLabel_mAcL>开发者指南</span></a><button aria-label="展开侧边栏分类 '开发者指南'" aria-expanded=false type=button class="clean-btn menu__caret"></button></div><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-1 menu__list-item menu__list-item--collapsed"><div class=menu__list-item-collapsible><a class="categoryLink_Muyc menu__link menu__link--sublist" href=/api_reference/><span class=categoryLinkLabel_mAcL>API 参考</span></a><button aria-label="展开侧边栏分类 'API 参考'" aria-expanded=false type=button class="clean-btn menu__caret"></button></div></ul></nav></div></div></aside><main class=docMainContainer_sLF8><div class="container padding-top--md padding-bottom--lg"><div class=row><div class="col docItemCol_ZRft"><div class=docItemContainer_KOP5><article><nav class="theme-doc-breadcrumbs breadcrumbsContainer_d5rS" aria-label=页面路径><ul class=breadcrumbs><li class=breadcrumbs__item><a aria-label=主页面 class=breadcrumbs__link href=/><svg viewBox="0 0 24 24" class=breadcrumbHomeIcon_XgF2><path d="M10 19v-5h4v5c0 .55.45 1 1 1h3c.55 0 1-.45 1-1v-7h1.7c.46 0 .68-.57.33-.87L12.67 3.6c-.38-.34-.96-.34-1.34 0l-8.36 7.53c-.34.3-.13.87.33.87H5v7c0 .55.45 1 1 1h3c.55 0 1-.45 1-1z" fill=currentColor /></svg></a><li class=breadcrumbs__item><a class=breadcrumbs__link href=/concepts/><span>核心概念</span></a><li class="breadcrumbs__item breadcrumbs__item--active"><span class=breadcrumbs__link>核算</span></ul></nav><div class="tocCollapsible_bgaJ theme-doc-toc-mobile tocMobile_FhT_"><button type=button class="clean-btn tocCollapsibleButton_F8AY">本页总览</button></div><div class="theme-doc-markdown markdown"><header><h1>核算</h1></header>
+<p>核算子系统为平台对接的每个账户跟踪余额、保证金与盈亏。本指南介绍数据模型、
+策略使用的查询 API，以及适配器作者必须遵循、以在各场所间保持一致的约定。</p>
+<p>内容同时适用于回测与实时交易。回测专属的配置（初始余额、按场所选择保证金模型）
+见<a class="" href=/concepts/backtesting/>回测</a>。</p>
+<h2 class="anchor anchorTargetStickyNavbar_ana5" id=account-types>账户类型<a href=#account-types class=hash-link aria-label=账户类型的直接链接 title=账户类型的直接链接 translate=no>​</a></h2>
+<p>实时交易与回测中，向引擎挂载场所时通过 <code>account_type</code> 选择 Cash、Margin 或 Betting。</p>
+<p>Wallet 建模链上钱包状态，由 Blockchain 适配器选用。其执行客户端支持本地签名的
+Uniswap V3 市价交换，但尚未达到生产可用。</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>账户类型<th>典型场景<th>引擎锁定的内容<tbody><tr><td>Cash<td>现货交易（例如 BTC/USDT、股票）<td>待成交买单的名义价值；待成交卖单的基础资产数量。<tr><td>Margin<td>衍生品或任何允许杠杆的产品<td>每笔订单的初始保证金，加未平仓持仓的维持保证金。<tr><td>Betting<td>体育博彩、做庄<td>场所要求的投注额。无杠杆。<tr><td>Wallet<td>区块链钱包（DeFi）<td>为待成交订单在本地预留的金额。无杠杆、无借贷。</table>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=cash-accounts>Cash 账户<a href=#cash-accounts class=hash-link aria-label="Cash 账户的直接链接" title="Cash 账户的直接链接" translate=no>​</a></h3>
+<p>Cash 账户<strong>全额结算交易</strong>，没有杠杆，因而不存在保证金概念。锁定余额反映为待成交
+订单预留的价值：每笔待成交买单的名义价值，以及每笔待成交卖单将交付的数量。</p>
+<p>卖出交付的是工具的基础资产，预留因而应记在该资产上。<code>base_currency()</code> 为
+<code>None</code> 的工具（二元期权、股票等）不建模这种资产：这类工具的待成交卖单
+<strong>不锁定任何东西</strong>，其所得也不会与可用计价余额比对。</p>
+<p>若按订单数量在计价币种上预留，就等于把股数或合约数当作金钱，锁定这笔销售
+永不消耗的抵押品；再把销售所得与可用抵押品比对，会因为缺少这笔销售自己
+入账的余额而拒单。</p>
+<p>实时交易中，这类工具的可用库存不在本地跟踪或检查，并发卖出也不例外，
+由场所负责执行，任何拒绝经正常订单生命周期送达。这一边界是有意为之：
+在本地复现场所的库存检查，需要适配器收不到的逐资产余额。
+有基础资产的工具的买入预留与卖出检查不变。</p>
+<h4 class="anchor anchorTargetStickyNavbar_ana5" id=simulated-short-selling-checks>模拟卖空检查<a href=#simulated-short-selling-checks class=hash-link aria-label=模拟卖空检查的直接链接 title=模拟卖空检查的直接链接 translate=no>​</a></h4>
+<p>回测与沙箱中，现金账户上每笔股票或二元期权卖单在提交时检查：订单剩余数量
+不得超过所选持仓中的多头库存，包括已成交但尚未更新到持仓的部分。
+减少或平掉该持仓的卖单仍然有效。</p>
+<p>对按计价金额给出的卖单，检查用订单价格或当前买价折算合约数。
+触发式市价单与移动止损单成交时的转换价可能不同，合约数量随之变化。</p>
+<p>入场订单只有随成交逐步为其后续出场订单贡献库存。<code>oto_full_trigger</code>
+默认为 <code>false</code>，因此部分成交后全量出场可能被拒绝。设为 <code>true</code>
+则出场要等全额入场成交后才释放。持仓更新被延迟时同样适用。</p>
+<p>这项提交时检查不为其他在途卖单预留库存，也不在数量后续变化时重新校验。</p>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=margin-accounts>Margin 账户<a href=#margin-accounts class=hash-link aria-label="Margin 账户的直接链接" title="Margin 账户的直接链接" translate=no>​</a></h3>
+<p>Margin 账户支持需要抵押品的工具，如期货或带杠杆的加密永续。它跟踪账户余额，
+为在途订单与持仓预留保证金，并可按工具配置杠杆。引擎在两个范围内跟踪保证金，
+见下文<a href=#margin-scopes class="">保证金范围</a>。</p>
+<p><strong>术语</strong>：</p>
+<ul>
+<li class=""><strong>杠杆</strong>：相对账户净值放大敞口。杠杆越高，潜在收益与风险都越高。</li>
+<li class=""><strong>初始保证金</strong>：提交订单时预留的抵押品。</li>
+<li class=""><strong>维持保证金</strong>：保持未平仓持仓所需的最低抵押品。</li>
+<li class=""><strong>锁定余额</strong>：作为抵押品预留的资金，不可用于新订单。</li>
+</ul>
+<div class="theme-admonition theme-admonition-note admonition_LYZY alert alert--secondary"><div class=admonitionHeading_pnFY><span class=admonitionIcon_tEzm><svg viewBox="0 0 14 16"><path fill-rule=evenodd d="M6.3 5.69a.942.942 0 0 1-.28-.7c0-.28.09-.52.28-.7.19-.18.42-.28.7-.28.28 0 .52.09.7.28.18.19.28.42.28.7 0 .28-.09.52-.28.7a1 1 0 0 1-.7.3c-.28 0-.52-.11-.7-.3zM8 7.99c-.02-.25-.11-.48-.31-.69-.2-.19-.42-.3-.69-.31H6c-.27.02-.48.13-.69.31-.2.2-.3.44-.31.69h1v3c.02.27.11.5.31.69.2.2.42.31.69.31h1c.27 0 .48-.11.69-.31.2-.19.3-.42.31-.69H8V7.98v.01zM7 2.3c-3.14 0-5.7 2.54-5.7 5.68 0 3.14 2.56 5.7 5.7 5.7s5.7-2.55 5.7-5.7c0-3.15-2.56-5.69-5.7-5.69v.01zM7 .98c3.86 0 7 3.14 7 7s-3.14 7-7 7-7-3.12-7-7 3.14-7 7-7z"/></svg></span>备注</div><div class=admonitionContent_ZwmI><p>只减仓订单只能降低敞口，因此不计入现金账户的 <code>balance_locked</code>，
+也不增加保证金账户的初始保证金。Wallet 订单仍预留输入资产，
+因为链上交易无论是否减仓都会消耗该资产。</div></div>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=betting-accounts>Betting 账户<a href=#betting-accounts class=hash-link aria-label="Betting 账户的直接链接" title="Betting 账户的直接链接" translate=no>​</a></h3>
+<p>Betting 账户专用于以固定金额博取固定赔付的场所（预测市场、体育博彩）。
+引擎只锁定场所要求的投注额，杠杆与保证金不适用。</p>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=wallet-accounts>Wallet 账户<a href=#wallet-accounts class=hash-link aria-label="Wallet 账户的直接链接" title="Wallet 账户的直接链接" translate=no>​</a></h3>
+<p>Wallet 账户表示区块链钱包：无杠杆、多币种的 native 与 ERC-20 代币余额，
+没有保证金，也没有借贷。</p>
+<p>对于报告式状态：</p>
+<ul>
+<li class=""><code>total</code> 是观察到的链上余额。</li>
+<li class=""><code>locked</code> 跟踪本地待成交订单的预留。</li>
+<li class=""><code>free = total - locked</code>。</li>
+</ul>
+<p>账户状态事件<strong>只贡献 total</strong>：账户忽略传入的 <code>locked</code> 与 <code>free</code>，
+保留本地预留并重新推导 <code>free</code>。实时启动时，它根据已提交和未成交订单
+重建这些瞬时预留。</p>
+<p>改单待确认期间，账户按借记币种预留其观察到的全部余额——待确认事件不携带
+请求的条款。若预留额超过最新观察到的 total，<code>locked</code> 以 <code>total</code>
+封顶，<code>free</code> 保持为零，直到余额或预留变化。</p>
+<p>total 为负的余额会被拒绝而非应用。ERC-20 allowance 是对支出方的授权，
+从不表示为余额或锁定资金。</p>
+<h2 class="anchor anchorTargetStickyNavbar_ana5" id=balance-model>余额模型<a href=#balance-model class=hash-link aria-label=余额模型的直接链接 title=余额模型的直接链接 translate=no>​</a></h2>
+<p><code>AccountBalance</code> 在同一币种下持有三个值：</p>
+<ul>
+<li class=""><code>total</code>：场所报告的总余额数字（依场所而定，可能是钱包余额、净清算值或保证金余额）。</li>
+<li class=""><code>locked</code>：为在途订单与持仓预留的金额。</li>
+<li class=""><code>free</code>：可用于新订单的金额（<code>total - locked</code>）。</li>
+</ul>
+<p><strong>余额不变式</strong> <code>total == locked + free</code> 必须在币种精度下恒成立。</p>
+<p>Python 的 <code>AccountBalance(total, locked, free)</code> 构造函数要求一次给足三个字段。
+用 Rust 编写的适配器代码另有强制该不变式的派生构造函数。只要场所只报告三者中的
+两个，就应优先使用它们而非 <code>AccountBalance::new</code>：</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>Rust 构造函数<th>使用场景<tbody><tr><td><code>AccountBalance::from_total_and_locked</code><td>场所报告 total 与 locked，<code>free</code> 由两者推出。<tr><td><code>AccountBalance::from_total_and_free</code><td>场所报告 total 与 free，<code>locked</code> 由两者推出。<tr><td><code>AccountBalance::new</code><td>三个值均已知且一致（测试、直通路径）。</table>
+<p><code>total >= 0</code> 时，每个派生构造函数把场所报告的字段钳制到 <code>[0, total]</code>，
+场所舍入造成的瞬时越界不会让账户处于破损状态。</p>
+<h2 class="anchor anchorTargetStickyNavbar_ana5" id=currency-and-valuation-contracts>币种与估值约定<a href=#currency-and-valuation-contracts class=hash-link aria-label=币种与估值约定的直接链接 title=币种与估值约定的直接链接 translate=no>​</a></h2>
+<p>核算数值在显式转换成功前保持其源币种。这防止有效数字被标上错误币种，
+也防止不可得的值被当作零。</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>数值<th>币种约定<tbody><tr><td>工具成本币种<td>反向合约为基础币种，quanto 合约为结算币种，其余为计价币种。<tr><td>持仓盈亏<td>开仓时确定的工具成本币种。<tr><td>计算式锁定与保证金<td>各计算金额自身的币种，独立换算。<tr><td>组合聚合<td>原生分桶，或换算成功后的账户基础币种。</table>
+<p>聚合只合并可兼容的 <code>Money</code> 值。没有基础币种的账户保持各原生币种独立分桶。
+单工具已实现盈亏查询遇到混合币种时返回"不可得"，而不是强行合并。</p>
+<p>核算与估值路径还遵循这些规则：</p>
+<ul>
+<li class="">无效或不可表示的名义值、盈亏、手续费、锁定余额与保证金结果会产生错误、
+不可得值或未估价状态，不会以零替代。已实现盈亏重算失败时，
+先前缓存的结果也会一并清除。</li>
+<li class="">对没有基础币种的多币种现金账户，<code>equity()</code> 对已入账的非反向基础资产只计一次。
+<code>mark_values()</code> 仍是持仓总值查询，包含该资产。</li>
+<li class="">MTM 快照区分沿用的陈旧输入与从未有完整估值数据的持仓。
+陈旧价格元数据只覆盖未平仓的工具与持仓方向的组合。</li>
+</ul>
+<p>净值公式、价格与汇率选择、快照元数据、缺失价格查询范围见
+<a class="" href=/concepts/portfolio#equity-and-mark-to-market>组合</a>。</p>
+<h2 class="anchor anchorTargetStickyNavbar_ana5" id=margin-scopes>保证金范围<a href=#margin-scopes class=hash-link aria-label=保证金范围的直接链接 title=保证金范围的直接链接 translate=no>​</a></h2>
+<p><code>MarginBalance</code> 有四个字段：<code>initial</code>、<code>maintenance</code>、<code>currency</code>，
+以及一个 <code>Optional[InstrumentId]</code>，用于选择两个范围之一。</p>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=per-instrument-scope>按工具范围<a href=#per-instrument-scope class=hash-link aria-label=按工具范围的直接链接 title=按工具范围的直接链接 translate=no>​</a></h3>
+<p><code>MarginBalance.instrument_id</code> 设为具体工具。适用于：</p>
+<ul>
+<li class="">逐仓保证金（按持仓的抵押品）。</li>
+<li class="">回测或计算式保证金：<code>AccountsManager</code> 按工具根据在途订单与持仓
+在本地推导保证金。</li>
+</ul>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=account-wide-scope>账户级范围<a href=#account-wide-scope class=hash-link aria-label=账户级范围的直接链接 title=账户级范围的直接链接 translate=no>​</a></h3>
+<p><code>MarginBalance.instrument_id</code> 为 <code>None</code>，条目以 <code>currency</code>
+（抵押品币种）为键。适用于按抵押币种报告单一汇总值的全仓（cross-margin）场所。
+场所可能发出一条账户级条目（单抵押品全仓）或多条（每种抵押币一条）。</p>
+<p>两个范围在同一 <code>MarginAccount</code> 上以独立的内部存储并存。<code>AccountState</code>
+事件可以携带任一或两个范围的条目。<code>MarginAccount.apply()</code> 依据
+<code>instrument_id</code> 是否设置，把每个条目路由到正确的存储。</p>
+<div class="theme-admonition theme-admonition-warning admonition_LYZY alert alert--warning"><div class=admonitionHeading_pnFY><span class=admonitionIcon_tEzm><svg viewBox="0 0 16 16"><path fill-rule=evenodd d="M8.893 1.5c-.183-.31-.52-.5-.887-.5s-.703.19-.886.5L.138 13.499a.98.98 0 0 0 0 1.001c.193.31.53.501.886.501h13.964c.367 0 .704-.19.877-.5a1.03 1.03 0 0 0 .01-1.002L8.893 1.5zm.133 11.497H6.987v-2.003h2.039v2.003zm0-3.004H6.987V5.987h2.039v4.006z"/></svg></span>注意</div><div class=admonitionContent_ZwmI><p><code>MarginAccount.apply()</code> 用传入事件<strong>替换</strong>两个保证金存储，不与旧状态合并。
+事件既无余额也无保证金时，原有存储保持不变。<p>发送部分快照的适配器必须在每次更新中带上每个活动保证金条目，
+否则这些条目会被丢弃，直到下一个完整快照。<p>事件携带的余额按币种替换对应存储条目，事件未涉及的币种保留。</div></div>
+<h2 class="anchor anchorTargetStickyNavbar_ana5" id=strategy-query-api>策略查询 API<a href=#strategy-query-api class=hash-link aria-label="策略查询 API的直接链接" title="策略查询 API的直接链接" translate=no>​</a></h2>
+<p>按场所的报告形态选择匹配的查询。场所按工具报告保证金就按 <code>InstrumentId</code> 查，
+按账户级报告就按 <code>Currency</code> 查。</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>范围<th>查询<tbody><tr><td>按工具<td><code>margin</code>、<code>initial_margin</code>、<code>maintenance_margin</code><tr><td>账户级<td><code>account_margin</code>、<code>account_initial_margin</code>、<code>account_maintenance_margin</code><tr><td>两个范围<td><code>total_initial_margin</code>、<code>total_maintenance_margin</code></table>
+<p>下列签名描述 Python 绑定。点查询在条目缺失时返回 <code>None</code>；
+汇总查询始终返回 <code>Money</code>（无匹配时为该币种的零值）。</p>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=per-instrument-queries-marginaccount>按工具查询（<code>MarginAccount</code>）<a href=#per-instrument-queries-marginaccount class=hash-link aria-label=per-instrument-queries-marginaccount的直接链接 title=per-instrument-queries-marginaccount的直接链接 translate=no>​</a></h3>
+<ul>
+<li class=""><code>margin(instrument_id) -> MarginBalance | None</code></li>
+<li class=""><code>initial_margin(instrument_id) -> Money | None</code></li>
+<li class=""><code>maintenance_margin(instrument_id) -> Money | None</code></li>
+<li class=""><code>margins() -> dict[InstrumentId, MarginBalance]</code>（全部按工具条目）</li>
+<li class=""><code>initial_margins() -> dict[InstrumentId, Money]</code></li>
+<li class=""><code>maintenance_margins() -> dict[InstrumentId, Money]</code></li>
+</ul>
+<p>这些方法只看到按工具存储。在全仓场所上它们返回空字典或 <code>None</code>，
+请使用下面的账户级查询。</p>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=account-wide-queries-marginaccount>账户级查询（<code>MarginAccount</code>）<a href=#account-wide-queries-marginaccount class=hash-link aria-label=account-wide-queries-marginaccount的直接链接 title=account-wide-queries-marginaccount的直接链接 translate=no>​</a></h3>
+<ul>
+<li class=""><code>account_margin(currency) -> MarginBalance | None</code></li>
+<li class=""><code>account_initial_margin(currency) -> Money | None</code></li>
+<li class=""><code>account_maintenance_margin(currency) -> Money | None</code></li>
+<li class=""><code>account_margins() -> dict[Currency, MarginBalance]</code>（全部账户级条目）</li>
+<li class=""><code>account_initial_margins() -> dict[Currency, Money]</code></li>
+<li class=""><code>account_maintenance_margins() -> dict[Currency, Money]</code></li>
+</ul>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=totals-marginaccount>合计（<code>MarginAccount</code>）<a href=#totals-marginaccount class=hash-link aria-label=totals-marginaccount的直接链接 title=totals-marginaccount的直接链接 translate=no>​</a></h3>
+<p>以下方法对指定币种汇总按工具与账户级条目：</p>
+<ul>
+<li class=""><code>total_initial_margin(currency) -> Money</code></li>
+<li class=""><code>total_maintenance_margin(currency) -> Money</code></li>
+</ul>
+<p>策略所在的场所可能两种范围并存（例如逐仓持仓与全仓抵押品同在场）时很有用。</p>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=python-binding-boundary>Python 绑定边界<a href=#python-binding-boundary class=hash-link aria-label="Python 绑定边界的直接链接" title="Python 绑定边界的直接链接" translate=no>​</a></h3>
+<p>这一查询界面不暴露 Rust 内部变更方法
+<code>update_margin</code>、<code>clear_margin</code>、<code>clear_account_margin</code>、<code>clear_initial_margin</code>、
+<code>clear_maintenance_margin</code>、<code>set_margin_model</code>。Python 暴露其他变更方法，
+包括 <code>update_initial_margin</code>、<code>update_maintenance_margin</code>、
+<code>set_default_leverage</code>、<code>set_leverage</code>。</p>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=portfolio-level-queries>组合级查询<a href=#portfolio-level-queries class=hash-link aria-label=组合级查询的直接链接 title=组合级查询的直接链接 translate=no>​</a></h3>
+<p>保证金查询：</p>
+<ul>
+<li class=""><code>portfolio.instrument_initial_margins(venue=..., account_id=...) -> dict[InstrumentId, Money] | None</code></li>
+<li class=""><code>portfolio.instrument_maintenance_margins(venue=..., account_id=...) -> dict[InstrumentId, Money] | None</code></li>
+</ul>
+<p><code>account_id</code> 选定该账户。只给场所时，只有该场所下恰好签发一个账户才能解析；
+多个账户共享场所时请传 <code>account_id</code>。</p>
+<p>保证金账户可解析时，这两个方法返回与
+<code>MarginAccount.initial_margins</code>、<code>MarginAccount.maintenance_margins</code>
+相同的按工具金额视图；没有可解析的保证金账户时返回 <code>None</code>。</p>
+<p>全仓场所的账户级数据，直接经
+<code>portfolio.account(venue=venue).account_initial_margin(ccy)</code> 查询账户。
+返回的账户是<strong>脱离的快照</strong>，不能变更 Portfolio 状态。</p>
+<p>盈亏、敞口、盯市与净值查询都接受 <code>venue</code> 和可选 <code>account_id</code>
+来限定多账户场所：</p>
+<ul>
+<li class=""><code>portfolio.unrealized_pnls(venue=..., account_id=..., target_currency=...) -> dict[Currency, Money]</code></li>
+<li class=""><code>portfolio.realized_pnls(venue=..., account_id=..., target_currency=...) -> dict[Currency, Money]</code></li>
+<li class=""><code>portfolio.total_pnls(venue=..., account_id=..., target_currency=...) -> dict[Currency, Money]</code></li>
+<li class=""><code>portfolio.net_exposures(venue=..., account_id=..., target_currency=...) -> dict[Currency, Money] | None</code></li>
+<li class=""><code>portfolio.mark_values(venue=..., account_id=...) -> dict[Currency, Money]</code></li>
+<li class=""><code>portfolio.equity(venue=..., account_id=...) -> dict[Currency, Money]</code></li>
+<li class=""><code>portfolio.missing_price_instruments(venue, account_id=...) -> list[InstrumentId]</code></li>
+</ul>
+<p>两个范围参数同时给出时，必须指向同一账户。缺失价格、目标币种换算失败或
+算术溢出会使整个受影响集合失效：查询绝不返回部分或混合币种的合计。</p>
+<p>净值公式、价格回退链、基础币种换算行为、警告仅一次的缺失价格跟踪器，
+见<a class="" href=/concepts/portfolio#equity-and-mark-to-market>组合指南</a>。</p>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=worked-examples>实例<a href=#worked-examples class=hash-link aria-label=实例的直接链接 title=实例的直接链接 translate=no>​</a></h3>
+<p>单抵押品全仓（一条账户级条目）：</p>
+<div class="language-python codeBlockContainer_eTMR theme-code-block" style=--prism-color:#393A34;--prism-background-color:#f6f8fa><div class=codeBlockContent_hafM><pre tabindex=0 class="prism-code language-python codeBlock_IMvC thin-scrollbar" style=color:#393A34;background-color:#f6f8fa><code class=codeBlockLines_gZDW><div class=token-line style=color:#393A34><span class="token plain">usdc_margin </span><span class="token operator" style=color:#393A34>=</span><span class="token plain"> margin_account</span><span class="token punctuation" style=color:#393A34>.</span><span class="token plain">account_initial_margin</span><span class="token punctuation" style=color:#393A34>(</span><span class="token plain">USDC</span><span class="token punctuation" style=color:#393A34>)</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">usdc_total </span><span class="token operator" style=color:#393A34>=</span><span class="token plain"> margin_account</span><span class="token punctuation" style=color:#393A34>.</span><span class="token plain">total_initial_margin</span><span class="token punctuation" style=color:#393A34>(</span><span class="token plain">USDC</span><span class="token punctuation" style=color:#393A34>)</span><br/></div></code></pre></div></div>
+<p>按币全仓（每种抵押币一条）：</p>
+<div class="language-python codeBlockContainer_eTMR theme-code-block" style=--prism-color:#393A34;--prism-background-color:#f6f8fa><div class=codeBlockContent_hafM><pre tabindex=0 class="prism-code language-python codeBlock_IMvC thin-scrollbar" style=color:#393A34;background-color:#f6f8fa><code class=codeBlockLines_gZDW><div class=token-line style=color:#393A34><span class="token keyword" style=color:#00009f>for</span><span class="token plain"> ccy</span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain"> margin_balance </span><span class="token keyword" style=color:#00009f>in</span><span class="token plain"> margin_account</span><span class="token punctuation" style=color:#393A34>.</span><span class="token plain">account_margins</span><span class="token punctuation" style=color:#393A34>(</span><span class="token punctuation" style=color:#393A34>)</span><span class="token punctuation" style=color:#393A34>.</span><span class="token plain">items</span><span class="token punctuation" style=color:#393A34>(</span><span class="token punctuation" style=color:#393A34>)</span><span class="token punctuation" style=color:#393A34>:</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    </span><span class="token keyword" style=color:#00009f>print</span><span class="token punctuation" style=color:#393A34>(</span><span class="token plain">ccy</span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain"> margin_balance</span><span class="token punctuation" style=color:#393A34>.</span><span class="token plain">initial</span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain"> margin_balance</span><span class="token punctuation" style=color:#393A34>.</span><span class="token plain">maintenance</span><span class="token punctuation" style=color:#393A34>)</span><br/></div></code></pre></div></div>
+<h2 class="anchor anchorTargetStickyNavbar_ana5" id=margin-models>保证金模型<a href=#margin-models class=hash-link aria-label=保证金模型的直接链接 title=保证金模型的直接链接 translate=no>​</a></h2>
+<p>NautilusTrader 为计算路径（回测，以及以 <code>calculate_account_state=True</code>
+运行以做对账的实时策略）提供灵活的保证金计算模型。场所报告的保证金
+直接进入账户的 <code>margins</code> 或 <code>account_margins</code> 存储，不经过模型。</p>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=overview>概览<a href=#overview class=hash-link aria-label=概览的直接链接 title=概览的直接链接 translate=no>​</a></h3>
+<p>不同场所对待杠杆的方式不同：</p>
+<ul>
+<li class=""><strong>传统券商</strong>（例如 Interactive Brokers）：保证金比例固定，与杠杆无关。</li>
+<li class=""><strong>加密交易所</strong>（Binance 等）：杠杆可能降低保证金要求。</li>
+</ul>
+<p>两个内置模型都按工具 <code>margin_init</code> 与 <code>margin_maint</code> 字段对名义值取百分比
+计算保证金，区别只在杠杆是否降低预留额。对真正按合约固定保证金的场所
+（CME / ICE），设置 <code>instrument.margin_init</code> 与 <code>margin_maint</code>，
+让百分比还原出目标金额。</p>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=hedging-mode-netting>HEDGING 模式的轧差<a href=#hedging-mode-netting class=hash-link aria-label="HEDGING 模式的轧差的直接链接" title="HEDGING 模式的轧差的直接链接" translate=no>​</a></h3>
+<p><code>OmsType.HEDGING</code> 下，新持仓 ID 的首笔成交开启一个 <code>Position</code>，
+后续成交更新该持仓，因此账户可就同一工具持有多个未平仓子持仓。
+账户管理器按 <code>ts_opened</code> 顺序把这些子持仓轧差到一个假想的 NETTING 持仓上，
+再对轧差后的净带符号数量与平均开仓价运行一次保证金模型。</p>
+<p>重放遵循与 <code>Position.apply</code> 相同的规则：</p>
+<ul>
+<li class="">同方向成交得到数量加权的平均开仓价。</li>
+<li class="">反方向成交按既有均价部分平仓。</li>
+<li class="">穿越零位的成交使剩余部分采用该笔成交的价格。</li>
+</ul>
+<p><code>ts_opened</code> 相同的子持仓按 <code>(ts_opened, position_id)</code> 顺序折叠，
+结果不依赖缓存迭代顺序。</p>
+<p>在相同保证金模型与杠杆下，只要折叠后的净数量与平均开仓价一致，HEDGING 与
+NETTING 的维持保证金就一致。保证金要求随<strong>净经济敞口</strong>缩放。</p>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=available-models>可用模型<a href=#available-models class=hash-link aria-label=可用模型的直接链接 title=可用模型的直接链接 translate=no>​</a></h3>
+<h4 class="anchor anchorTargetStickyNavbar_ana5" id=standardmarginmodel><code>StandardMarginModel</code><a href=#standardmarginmodel class=hash-link aria-label=standardmarginmodel的直接链接 title=standardmarginmodel的直接链接 translate=no>​</a></h4>
+<p><strong>使用固定百分比、不除以杠杆</strong>，与传统券商行为一致。</p>
+<div class="language-python codeBlockContainer_eTMR theme-code-block" style=--prism-color:#393A34;--prism-background-color:#f6f8fa><div class=codeBlockContent_hafM><pre tabindex=0 class="prism-code language-python codeBlock_IMvC thin-scrollbar" style=color:#393A34;background-color:#f6f8fa><code class=codeBlockLines_gZDW><div class=token-line style=color:#393A34><span class="token comment" style=color:#999988;font-style:italic># Fixed percentages - leverage ignored</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">margin </span><span class="token operator" style=color:#393A34>=</span><span class="token plain"> notional </span><span class="token operator" style=color:#393A34>*</span><span class="token plain"> instrument</span><span class="token punctuation" style=color:#393A34>.</span><span class="token plain">margin_init</span><br/></div></code></pre></div></div>
+<ul>
+<li class="">初始保证金：<code>notional_value * instrument.margin_init</code></li>
+<li class="">维持保证金：<code>notional_value * instrument.margin_maint</code></li>
+</ul>
+<p><strong>适用场景</strong>：传统券商（Interactive Brokers）、保证金要求固定的外汇经纪商。</p>
+<h4 class="anchor anchorTargetStickyNavbar_ana5" id=leveragedmarginmodel><code>LeveragedMarginModel</code><a href=#leveragedmarginmodel class=hash-link aria-label=leveragedmarginmodel的直接链接 title=leveragedmarginmodel的直接链接 translate=no>​</a></h4>
+<p>把保证金要求<strong>除以杠杆</strong>。</p>
+<div class="language-python codeBlockContainer_eTMR theme-code-block" style=--prism-color:#393A34;--prism-background-color:#f6f8fa><div class=codeBlockContent_hafM><pre tabindex=0 class="prism-code language-python codeBlock_IMvC thin-scrollbar" style=color:#393A34;background-color:#f6f8fa><code class=codeBlockLines_gZDW><div class=token-line style=color:#393A34><span class="token comment" style=color:#999988;font-style:italic># Leverage reduces margin requirements</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">adjusted_notional </span><span class="token operator" style=color:#393A34>=</span><span class="token plain"> notional </span><span class="token operator" style=color:#393A34>/</span><span class="token plain"> leverage</span><br/></div><div class=token-line style=color:#393A34><span class="token plain">margin </span><span class="token operator" style=color:#393A34>=</span><span class="token plain"> adjusted_notional </span><span class="token operator" style=color:#393A34>*</span><span class="token plain"> instrument</span><span class="token punctuation" style=color:#393A34>.</span><span class="token plain">margin_init</span><br/></div></code></pre></div></div>
+<ul>
+<li class="">初始保证金：<code>(notional_value / leverage) * instrument.margin_init</code></li>
+<li class="">维持保证金：<code>(notional_value / leverage) * instrument.margin_maint</code></li>
+</ul>
+<p><strong>适用场景</strong>：按杠杆降低保证金的加密交易所，以及杠杆影响保证金要求的场所。</p>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=default-behavior>默认行为<a href=#default-behavior class=hash-link aria-label=默认行为的直接链接 title=默认行为的直接链接 translate=no>​</a></h3>
+<p><code>MarginAccount</code> 默认使用 <code>LeveragedMarginModel</code>。回测把
+<code>StandardMarginModel</code> 直接传给 <code>BacktestVenueConfig.margin_model</code> 即可选用。</p>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=worked-example-eurusd>实例：EUR/USD<a href=#worked-example-eurusd class=hash-link aria-label=实例：EUR/USD的直接链接 title=实例：EUR/USD的直接链接 translate=no>​</a></h3>
+<ul>
+<li class=""><strong>工具</strong>：EUR/USD</li>
+<li class=""><strong>数量</strong>：100,000 EUR</li>
+<li class=""><strong>价格</strong>：1.10000</li>
+<li class=""><strong>名义值</strong>：$110,000</li>
+<li class=""><strong>杠杆</strong>：50x</li>
+<li class=""><strong><code>instrument.margin_init</code></strong>：3%</li>
+</ul>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>模型<th>计算<th>结果<th>百分比<tbody><tr><td>Standard<td>$110,000 × 0.03<td>$3,300<td>3.00%<tr><td>Leveraged<td>($110,000 ÷ 50) × 0.03<td>$66<td>0.06%</table>
+<p>在 $1,000 的账户上：Standard 模型会拒单，Leveraged 模型允许成交。</p>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=python-model-selection>Python 模型选择<a href=#python-model-selection class=hash-link aria-label="Python 模型选择的直接链接" title="Python 模型选择的直接链接" translate=no>​</a></h3>
+<p>把 <code>StandardMarginModel()</code> 或 <code>LeveragedMarginModel()</code> 直接传给回测场所。
+Python 绑定不接受自定义保证金模型子类或 <code>MarginModelConfig</code> 包装。
+见<a class="" href=/concepts/backtesting/accounts-and-margin#margin-models>回测</a>。</p>
+<h2 class="anchor anchorTargetStickyNavbar_ana5" id=adapter-convention>适配器约定<a href=#adapter-convention class=hash-link aria-label=适配器约定的直接链接 title=适配器约定的直接链接 translate=no>​</a></h2>
+<p>实时适配器把场所响应翻译为 <code>AccountBalance</code> 与
+<code>MarginBalance</code> 实例。适配器作者必须遵循以下约定：</p>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=building-accountbalance>构建 <code>AccountBalance</code><a href=#building-accountbalance class=hash-link aria-label=building-accountbalance的直接链接 title=building-accountbalance的直接链接 translate=no>​</a></h3>
+<p>优先使用派生构造函数，让钳制与 <code>total == locked + free</code> 不变式在中央得到强制。
+手工算好三个字段再传给 <code>AccountBalance::new</code>，只适用于三个值都已权威已知的
+直通路径（例如测试）。</p>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=building-marginbalance>构建 <code>MarginBalance</code><a href=#building-marginbalance class=hash-link aria-label=building-marginbalance的直接链接 title=building-marginbalance的直接链接 translate=no>​</a></h3>
+<p>选择与场所报告形态匹配的范围：</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>场所报告<th>范围<th>发出方式<tbody><tr><td>按工具（逐仓持仓）<td>按工具<td><code>MarginBalance::new(initial, maint, Some(id))</code><tr><td>每种抵押品一条汇总（全仓）<td>账户级<td><code>MarginBalance::new(initial, maint, None)</code><tr><td>多条汇总，每种抵押品一条<td>账户级<td>每种币种一条 <code>instrument_id=None</code> 的 <code>MarginBalance</code></table>
+<div class="theme-admonition theme-admonition-info admonition_LYZY alert alert--info"><div class=admonitionHeading_pnFY><span class=admonitionIcon_tEzm><svg viewBox="0 0 14 16"><path fill-rule=evenodd d="M7 2.3c3.14 0 5.7 2.56 5.7 5.7s-2.56 5.7-5.7 5.7A5.71 5.71 0 0 1 1.3 8c0-3.14 2.56-5.7 5.7-5.7zM7 1C3.14 1 0 4.14 0 8s3.14 7 7 7 7-3.14 7-7-3.14-7-7-7zm1 3H6v5h2V4zm0 6H6v2h2v-2z"/></svg></span>信息</div><div class=admonitionContent_ZwmI><p>不使用合成的 <code>ACCOUNT.{VENUE}</code> 或 <code>ACCOUNT-{COIN}.{VENUE}</code>
+<code>InstrumentId</code> 占位符。账户级条目携带 <code>instrument_id=None</code>，
+以 <code>currency</code> 为键。</div></div>
+<h2 class="anchor anchorTargetStickyNavbar_ana5" id=related-guides>相关指南<a href=#related-guides class=hash-link aria-label=相关指南的直接链接 title=相关指南的直接链接 translate=no>​</a></h2>
+<ul>
+<li class=""><a class="" href=/concepts/backtesting/>回测</a>：初始余额、保证金模型与回测专属的账户
+设置。</li>
+<li class=""><a class="" href=/concepts/portfolio>组合</a>：组合级盈亏、敞口与币种换算。</li>
+<li class=""><a class="" href=/concepts/positions>持仓</a>：持仓生命周期、聚合与盈亏。</li>
+<li class=""><a class="" href=/concepts/adapters>适配器</a>：适配器作者的要求与最佳实践。</li>
+<li class=""><a class="" href=/integrations/blockchain>区块链</a>：选用 Wallet 账户的适配器
+及其执行状态。</li>
+</ul></div><footer class="theme-doc-footer docusaurus-mt-lg"><div class="row margin-top--sm theme-doc-footer-edit-meta-row"><div class="col noPrint_MRkS"><a href=https://github.com/Aloento/NautilusTraderDoc/tree/main/docs/concepts/accounting.md target=_blank rel="noopener noreferrer" class=theme-edit-this-page><svg fill=currentColor height=20 width=20 viewBox="0 0 40 40" class=iconEdit_RPSQ aria-hidden=true><g><path d="m34.5 11.7l-3 3.1-6.3-6.3 3.1-3q0.5-0.5 1.2-0.5t1.1 0.5l3.9 3.9q0.5 0.4 0.5 1.1t-0.5 1.2z m-29.5 17.1l18.4-18.5 6.3 6.3-18.4 18.4h-6.3v-6.2z"/></g></svg>编辑此页</a></div><div class="col lastUpdated_oZSl"><span class=theme-last-updated>最后<!-- -->于 <b><time datetime=2026-10-14T22:30:30.000Z itemprop=dateModified>2026年10月14日</time></b> <!-- -->更新</span></div></div></footer></article><nav class="docusaurus-mt-lg pagination-nav" aria-label=文件选项卡><a class="pagination-nav__link pagination-nav__link--prev" href=/concepts/execution/reconciliation><div class=pagination-nav__sublabel>上一页</div><div class=pagination-nav__label>执行对账</div></a><a class="pagination-nav__link pagination-nav__link--next" href=/concepts/actors><div class=pagination-nav__sublabel>下一页</div><div class=pagination-nav__label>Actors</div></a></nav></div></div><div class="col col--3"><div class="tableOfContents_LyLZ thin-scrollbar theme-doc-toc-desktop"><ul class="table-of-contents table-of-contents__left-border"><li><a href=#account-types class="table-of-contents__link toc-highlight">账户类型</a><ul><li><a href=#cash-accounts class="table-of-contents__link toc-highlight">Cash 账户</a><li><a href=#margin-accounts class="table-of-contents__link toc-highlight">Margin 账户</a><li><a href=#betting-accounts class="table-of-contents__link toc-highlight">Betting 账户</a><li><a href=#wallet-accounts class="table-of-contents__link toc-highlight">Wallet 账户</a></ul><li><a href=#balance-model class="table-of-contents__link toc-highlight">余额模型</a><li><a href=#currency-and-valuation-contracts class="table-of-contents__link toc-highlight">币种与估值约定</a><li><a href=#margin-scopes class="table-of-contents__link toc-highlight">保证金范围</a><ul><li><a href=#per-instrument-scope class="table-of-contents__link toc-highlight">按工具范围</a><li><a href=#account-wide-scope class="table-of-contents__link toc-highlight">账户级范围</a></ul><li><a href=#strategy-query-api class="table-of-contents__link toc-highlight">策略查询 API</a><ul><li><a href=#per-instrument-queries-marginaccount class="table-of-contents__link toc-highlight">按工具查询（<code>MarginAccount</code>）</a><li><a href=#account-wide-queries-marginaccount class="table-of-contents__link toc-highlight">账户级查询（<code>MarginAccount</code>）</a><li><a href=#totals-marginaccount class="table-of-contents__link toc-highlight">合计（<code>MarginAccount</code>）</a><li><a href=#python-binding-boundary class="table-of-contents__link toc-highlight">Python 绑定边界</a><li><a href=#portfolio-level-queries class="table-of-contents__link toc-highlight">组合级查询</a><li><a href=#worked-examples class="table-of-contents__link toc-highlight">实例</a></ul><li><a href=#margin-models class="table-of-contents__link toc-highlight">保证金模型</a><ul><li><a href=#overview class="table-of-contents__link toc-highlight">概览</a><li><a href=#hedging-mode-netting class="table-of-contents__link toc-highlight">HEDGING 模式的轧差</a><li><a href=#available-models class="table-of-contents__link toc-highlight">可用模型</a><li><a href=#default-behavior class="table-of-contents__link toc-highlight">默认行为</a><li><a href=#worked-example-eurusd class="table-of-contents__link toc-highlight">实例：EUR/USD</a><li><a href=#python-model-selection class="table-of-contents__link toc-highlight">Python 模型选择</a></ul><li><a href=#adapter-convention class="table-of-contents__link toc-highlight">适配器约定</a><ul><li><a href=#building-accountbalance class="table-of-contents__link toc-highlight">构建 <code>AccountBalance</code></a><li><a href=#building-marginbalance class="table-of-contents__link toc-highlight">构建 <code>MarginBalance</code></a></ul><li><a href=#related-guides class="table-of-contents__link toc-highlight">相关指南</a></ul></div></div></div></div></main></div></div></div><footer class="theme-layout-footer footer footer--dark"><div class="container container-fluid"><div class="row footer__links"><div class="theme-layout-footer-column col footer__col"><div class=footer__title></div><ul class="footer__items clean-list"><li class=footer__item><a href=https://github.com/nautechsystems/nautilus_trader target=_blank rel="noopener noreferrer" class=footer__link-item>Official GitHub<svg width=13.5 height=13.5 aria-label="(opens in new tab)" class=iconExternalLink_qUHo><use href=#theme-svg-external-link /></svg></a><li class=footer__item><a href=https://nautilustrader.io/docs target=_blank rel="noopener noreferrer" class=footer__link-item>Official Documentation<svg width=13.5 height=13.5 aria-label="(opens in new tab)" class=iconExternalLink_qUHo><use href=#theme-svg-external-link /></svg></a></ul></div></div><div class="footer__bottom text--center"><div class=footer__copyright>© 2026 Nautech Systems Pty Ltd. All rights reserved.</div></div></div></footer></div></body>

@@ -1,0 +1,805 @@
+<!doctype html><html lang=zh dir=ltr class="docs-wrapper plugin-docs plugin-id-default docs-version-current docs-doc-page docs-doc-id-concepts/rust" data-has-hydrated=false><head><meta charset=UTF-8><meta name=generator content="Docusaurus v3.10.2"><title data-rh=true>Rust | NautilusTrader 文档</title><meta data-rh=true name=viewport content="width=device-width, initial-scale=1.0"/><meta data-rh=true name=twitter:card content=summary_large_image /><meta data-rh=true property=og:url content=https://nautilus.aloen.to/concepts/rust /><meta data-rh=true property=og:locale content=zh /><meta data-rh=true name=docusaurus_locale content=zh /><meta data-rh=true name=docsearch:language content=zh /><meta data-rh=true name=docusaurus_version content=current /><meta data-rh=true name=docusaurus_tag content=docs-default-current /><meta data-rh=true name=docsearch:version content=current /><meta data-rh=true name=docsearch:docusaurus_tag content=docs-default-current /><meta data-rh=true property=og:title content="Rust | NautilusTrader 文档"/><meta data-rh=true name=description content="Nautilus 在 crates/ 目录下有完整的 Rust 实现。不用 Python 也能编写 actor、策略，运行回测和实时交易。领域模型与 Python 包共用，Python 用户组件通过 PyO3 运行在同一个 Rust 引擎上。"/><meta data-rh=true property=og:description content="Nautilus 在 crates/ 目录下有完整的 Rust 实现。不用 Python 也能编写 actor、策略，运行回测和实时交易。领域模型与 Python 包共用，Python 用户组件通过 PyO3 运行在同一个 Rust 引擎上。"/><link data-rh=true rel=icon href=/logo.png /><link data-rh=true rel=canonical href=https://nautilus.aloen.to/concepts/rust /><link data-rh=true rel=alternate href=https://nautilus.aloen.to/concepts/rust hreflang=zh /><link data-rh=true rel=alternate href=https://nautilus.aloen.to/concepts/rust hreflang=x-default /><script data-rh=true type=application/ld+json>{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","item":"https://nautilus.aloen.to/concepts/","name":"核心概念","position":1},{"@type":"ListItem","item":"https://nautilus.aloen.to/concepts/rust","name":"Rust","position":2}]}</script><link rel=stylesheet href=/assets/css/styles.adb7ea18.css /><script src=/assets/js/runtime~main.71ac0794.js defer></script><script src=/assets/js/main.d978d0f2.js defer></script></head><body><svg style="display: none;"><defs>
+<symbol id=theme-svg-external-link viewBox="0 0 24 24"><path fill=currentColor d="M21 13v10h-21v-19h12v2h-10v15h17v-8h2zm3-12h-10.988l4.035 4-6.977 7.07 2.828 2.828 6.977-7.07 4.125 4.172v-11z"/></symbol>
+</defs></svg>
+<script>!function(){var t=function(){try{return new URLSearchParams(window.location.search).get("docusaurus-theme")}catch(t){}}()||function(){try{return window.localStorage.getItem("theme-2e3")}catch(t){}}();document.documentElement.setAttribute("data-theme",t||(window.matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light")),document.documentElement.setAttribute("data-theme-choice",t||"system")}(),function(){try{for(var[t,e]of new URLSearchParams(window.location.search).entries())if(t.startsWith("docusaurus-data-")){var a=t.replace("docusaurus-data-","data-");document.documentElement.setAttribute(a,e)}}catch(t){}}()</script><div id=__docusaurus><link rel=preload as=image href=/logo.png /><div role=region aria-label=跳到主要内容><a class=skipToContent_zuOI href=#__docusaurus_skipToContent_fallback>跳到主要内容</a></div><nav aria-label=主导航 class="theme-layout-navbar navbar navbar--fixed-top"><div class=navbar__inner><div class="theme-layout-navbar-left navbar__items"><button aria-label=切换导航栏 aria-expanded=false class="navbar__toggle clean-btn" type=button><svg width=30 height=30 viewBox="0 0 30 30" aria-hidden=true><path stroke=currentColor stroke-linecap=round stroke-miterlimit=10 stroke-width=2 d="M4 7h22M4 15h22M4 23h22"/></svg></button><a class=navbar__brand href=/><div class=navbar__logo><img src=/logo.png alt="NautilusTrader Logo" class="themedComponent_q2_Y themedComponent--light_Nejn"/><img src=/logo.png alt="NautilusTrader Logo" class="themedComponent_q2_Y themedComponent--dark_JjIb"/></div><b class="navbar__title text--truncate">NautilusTrader</b></a><a aria-current=page class="navbar__item navbar__link navbar__link--active" href=/getting_started/>文档</a></div><div class="theme-layout-navbar-right navbar__items navbar__items--right"><a href=https://github.com/Aloento/NautilusTraderDoc target=_blank rel="noopener noreferrer" class="navbar__item navbar__link">GitHub<svg width=13.5 height=13.5 aria-label="(opens in new tab)" class=iconExternalLink_qUHo><use href=#theme-svg-external-link /></svg></a><div class="toggle_hHmI colorModeToggle_rOOn"><button class="clean-btn toggleButton_wEhT toggleButtonDisabled_yOOP" type=button disabled title="system mode" aria-label="切换浅色/暗黑模式（当前为system mode）"><svg viewBox="0 0 24 24" width=24 height=24 aria-hidden=true class="toggleIcon_Kt6U lightToggleIcon_Zfeh"><path fill=currentColor d="M12,9c1.65,0,3,1.35,3,3s-1.35,3-3,3s-3-1.35-3-3S10.35,9,12,9 M12,7c-2.76,0-5,2.24-5,5s2.24,5,5,5s5-2.24,5-5 S14.76,7,12,7L12,7z M2,13l2,0c0.55,0,1-0.45,1-1s-0.45-1-1-1l-2,0c-0.55,0-1,0.45-1,1S1.45,13,2,13z M20,13l2,0c0.55,0,1-0.45,1-1 s-0.45-1-1-1l-2,0c-0.55,0-1,0.45-1,1S19.45,13,20,13z M11,2v2c0,0.55,0.45,1,1,1s1-0.45,1-1V2c0-0.55-0.45-1-1-1S11,1.45,11,2z M11,20v2c0,0.55,0.45,1,1,1s1-0.45,1-1v-2c0-0.55-0.45-1-1-1C11.45,19,11,19.45,11,20z M5.99,4.58c-0.39-0.39-1.03-0.39-1.41,0 c-0.39,0.39-0.39,1.03,0,1.41l1.06,1.06c0.39,0.39,1.03,0.39,1.41,0s0.39-1.03,0-1.41L5.99,4.58z M18.36,16.95 c-0.39-0.39-1.03-0.39-1.41,0c-0.39,0.39-0.39,1.03,0,1.41l1.06,1.06c0.39,0.39,1.03,0.39,1.41,0c0.39-0.39,0.39-1.03,0-1.41 L18.36,16.95z M19.42,5.99c0.39-0.39,0.39-1.03,0-1.41c-0.39-0.39-1.03-0.39-1.41,0l-1.06,1.06c-0.39,0.39-0.39,1.03,0,1.41 s1.03,0.39,1.41,0L19.42,5.99z M7.05,18.36c0.39-0.39,0.39-1.03,0-1.41c-0.39-0.39-1.03-0.39-1.41,0l-1.06,1.06 c-0.39,0.39-0.39,1.03,0,1.41s1.03,0.39,1.41,0L7.05,18.36z"/></svg><svg viewBox="0 0 24 24" width=24 height=24 aria-hidden=true class="toggleIcon_Kt6U darkToggleIcon_XgQr"><path fill=currentColor d="M9.37,5.51C9.19,6.15,9.1,6.82,9.1,7.5c0,4.08,3.32,7.4,7.4,7.4c0.68,0,1.35-0.09,1.99-0.27C17.45,17.19,14.93,19,12,19 c-3.86,0-7-3.14-7-7C5,9.07,6.81,6.55,9.37,5.51z M12,3c-4.97,0-9,4.03-9,9s4.03,9,9,9s9-4.03,9-9c0-0.46-0.04-0.92-0.1-1.36 c-0.98,1.37-2.58,2.26-4.4,2.26c-2.98,0-5.4-2.42-5.4-5.4c0-1.81,0.89-3.42,2.26-4.4C12.92,3.04,12.46,3,12,3L12,3z"/></svg><svg viewBox="0 0 24 24" width=24 height=24 aria-hidden=true class="toggleIcon_Kt6U systemToggleIcon_BvUi"><path fill=currentColor d="m12 21c4.971 0 9-4.029 9-9s-4.029-9-9-9-9 4.029-9 9 4.029 9 9 9zm4.95-13.95c1.313 1.313 2.05 3.093 2.05 4.95s-0.738 3.637-2.05 4.95c-1.313 1.313-3.093 2.05-4.95 2.05v-14c1.857 0 3.637 0.737 4.95 2.05z"/></svg></button></div><div class=navbarSearchContainer_watl></div></div></div><div role=presentation class=navbar-sidebar__backdrop></div></nav><div id=__docusaurus_skipToContent_fallback class="theme-layout-main main-wrapper mainWrapper_R72Q"><div class=docsWrapper_XQ9b><button aria-label=回到顶部 class="clean-btn theme-back-to-top-button backToTopButton_MbnX" type=button></button><div class=docRoot_aqOB><aside class="theme-doc-sidebar-container docSidebarContainer_sI2e"><div class=sidebarViewport_TzTy><div class=sidebar_CbEe><nav aria-label=文档侧边栏 class="menu thin-scrollbar menu_ChRF"><ul class="theme-doc-sidebar-menu menu__list"><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-1 menu__list-item menu__list-item--collapsed"><div class=menu__list-item-collapsible><a class="categoryLink_Muyc menu__link menu__link--sublist" href=/getting_started/><span class=categoryLinkLabel_mAcL>快速开始</span></a><button aria-label="展开侧边栏分类 '快速开始'" aria-expanded=false type=button class="clean-btn menu__caret"></button></div><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-1 menu__list-item"><div class=menu__list-item-collapsible><a class="categoryLink_Muyc menu__link menu__link--sublist menu__link--active" href=/concepts/><span class=categoryLinkLabel_mAcL>核心概念</span></a><button aria-label="折叠侧边栏分类 '核心概念'" aria-expanded=true type=button class="clean-btn menu__caret"></button></div><ul class=menu__list><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-2 menu__list-item menu__list-item--collapsed"><div class=menu__list-item-collapsible><a class="categoryLink_Muyc menu__link menu__link--sublist" tabindex=0 href=/concepts/instruments/><span class=categoryLinkLabel_mAcL>金融工具</span></a><button aria-label="展开侧边栏分类 '金融工具'" aria-expanded=false type=button class="clean-btn menu__caret"></button></div><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-2 menu__list-item menu__list-item--collapsed"><div class=menu__list-item-collapsible><a class="categoryLink_Muyc menu__link menu__link--sublist" tabindex=0 href=/concepts/orders/><span class=categoryLinkLabel_mAcL>订单</span></a><button aria-label="展开侧边栏分类 '订单'" aria-expanded=false type=button class="clean-btn menu__caret"></button></div><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-2 menu__list-item menu__list-item--collapsed"><div class=menu__list-item-collapsible><a class="categoryLink_Muyc menu__link menu__link--sublist" tabindex=0 href=/concepts/data/><span class=categoryLinkLabel_mAcL>数据</span></a><button aria-label="展开侧边栏分类 '数据'" aria-expanded=false type=button class="clean-btn menu__caret"></button></div><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-2 menu__list-item menu__list-item--collapsed"><div class=menu__list-item-collapsible><a class="categoryLink_Muyc menu__link menu__link--sublist" tabindex=0 href=/concepts/backtesting/><span class=categoryLinkLabel_mAcL>回测</span></a><button aria-label="展开侧边栏分类 '回测'" aria-expanded=false type=button class="clean-btn menu__caret"></button></div><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-2 menu__list-item menu__list-item--collapsed"><div class=menu__list-item-collapsible><a class="categoryLink_Muyc menu__link menu__link--sublist" tabindex=0 href=/concepts/events/><span class=categoryLinkLabel_mAcL>事件</span></a><button aria-label="展开侧边栏分类 '事件'" aria-expanded=false type=button class="clean-btn menu__caret"></button></div><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-2 menu__list-item menu__list-item--collapsed"><div class=menu__list-item-collapsible><a class="categoryLink_Muyc menu__link menu__link--sublist" tabindex=0 href=/concepts/execution/><span class=categoryLinkLabel_mAcL>执行</span></a><button aria-label="展开侧边栏分类 '执行'" aria-expanded=false type=button class="clean-btn menu__caret"></button></div><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/concepts/accounting><span class=linkLabel_lYjD>核算</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/concepts/actors><span class=linkLabel_lYjD>Actors</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/concepts/adapters><span class=linkLabel_lYjD>适配器</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/concepts/architecture><span class=linkLabel_lYjD>架构</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/concepts/behavioral_models><span class=linkLabel_lYjD>行为模型</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/concepts/cache><span class=linkLabel_lYjD>缓存</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/concepts/configuration><span class=linkLabel_lYjD>配置</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/concepts/continuous_futures><span class=linkLabel_lYjD>连续期货</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/concepts/custom_data><span class=linkLabel_lYjD>自定义数据</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/concepts/dst><span class=linkLabel_lYjD>DST</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/concepts/event_sourcing><span class=linkLabel_lYjD>事件溯源</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/concepts/greeks><span class=linkLabel_lYjD>Greeks</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/concepts/live><span class=linkLabel_lYjD>实时交易</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/concepts/logging><span class=linkLabel_lYjD>日志</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/concepts/message_bus><span class=linkLabel_lYjD>消息总线</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/concepts/networking><span class=linkLabel_lYjD>网络</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/concepts/options><span class=linkLabel_lYjD>期权</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/concepts/order_book><span class=linkLabel_lYjD>订单簿</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/concepts/overview><span class=linkLabel_lYjD>概览</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/concepts/portfolio><span class=linkLabel_lYjD>组合</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/concepts/positions><span class=linkLabel_lYjD>持仓</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/concepts/python><span class=linkLabel_lYjD>Python</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/concepts/reports><span class=linkLabel_lYjD>报告</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class="menu__link menu__link--active" aria-current=page tabindex=0 href=/concepts/rust><span class=linkLabel_lYjD>Rust</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/concepts/strategies><span class=linkLabel_lYjD>策略</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/concepts/synthetics><span class=linkLabel_lYjD>合成工具</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/concepts/value_types><span class=linkLabel_lYjD>值类型</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/concepts/visualization><span class=linkLabel_lYjD>可视化</span></a></ul><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-1 menu__list-item menu__list-item--collapsed"><div class=menu__list-item-collapsible><a class="categoryLink_Muyc menu__link menu__link--sublist" href=/integrations/><span class=categoryLinkLabel_mAcL>交易所与集成</span></a><button aria-label="展开侧边栏分类 '交易所与集成'" aria-expanded=false type=button class="clean-btn menu__caret"></button></div><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-1 menu__list-item menu__list-item--collapsed"><div class=menu__list-item-collapsible><a class="categoryLink_Muyc menu__link menu__link--sublist" href=/how_to/><span class=categoryLinkLabel_mAcL>操作指南</span></a><button aria-label="展开侧边栏分类 '操作指南'" aria-expanded=false type=button class="clean-btn menu__caret"></button></div><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-1 menu__list-item menu__list-item--collapsed"><div class=menu__list-item-collapsible><a class="categoryLink_Muyc menu__link menu__link--sublist" href=/tutorials/><span class=categoryLinkLabel_mAcL>教程</span></a><button aria-label="展开侧边栏分类 '教程'" aria-expanded=false type=button class="clean-btn menu__caret"></button></div><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-1 menu__list-item menu__list-item--collapsed"><div class=menu__list-item-collapsible><a class="categoryLink_Muyc menu__link menu__link--sublist" href=/developer_guide/><span class=categoryLinkLabel_mAcL>开发者指南</span></a><button aria-label="展开侧边栏分类 '开发者指南'" aria-expanded=false type=button class="clean-btn menu__caret"></button></div><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-1 menu__list-item menu__list-item--collapsed"><div class=menu__list-item-collapsible><a class="categoryLink_Muyc menu__link menu__link--sublist" href=/api_reference/><span class=categoryLinkLabel_mAcL>API 参考</span></a><button aria-label="展开侧边栏分类 'API 参考'" aria-expanded=false type=button class="clean-btn menu__caret"></button></div></ul></nav></div></div></aside><main class=docMainContainer_sLF8><div class="container padding-top--md padding-bottom--lg"><div class=row><div class="col docItemCol_ZRft"><div class=docItemContainer_KOP5><article><nav class="theme-doc-breadcrumbs breadcrumbsContainer_d5rS" aria-label=页面路径><ul class=breadcrumbs><li class=breadcrumbs__item><a aria-label=主页面 class=breadcrumbs__link href=/><svg viewBox="0 0 24 24" class=breadcrumbHomeIcon_XgF2><path d="M10 19v-5h4v5c0 .55.45 1 1 1h3c.55 0 1-.45 1-1v-7h1.7c.46 0 .68-.57.33-.87L12.67 3.6c-.38-.34-.96-.34-1.34 0l-8.36 7.53c-.34.3-.13.87.33.87H5v7c0 .55.45 1 1 1h3c.55 0 1-.45 1-1z" fill=currentColor /></svg></a><li class=breadcrumbs__item><a class=breadcrumbs__link href=/concepts/><span>核心概念</span></a><li class="breadcrumbs__item breadcrumbs__item--active"><span class=breadcrumbs__link>Rust</span></ul></nav><div class="tocCollapsible_bgaJ theme-doc-toc-mobile tocMobile_FhT_"><button type=button class="clean-btn tocCollapsibleButton_F8AY">本页总览</button></div><div class="theme-doc-markdown markdown"><header><h1>Rust</h1></header>
+<p>Nautilus 在 <code>crates/</code> 目录下有完整的 Rust 实现。不用 Python 也能编写 actor、策略，运行回测和实时交易。领域模型与 Python 包共用，Python 用户组件通过 PyO3 运行在同一个 Rust 引擎上。</p>
+<div class="theme-admonition theme-admonition-warning admonition_LYZY alert alert--warning"><div class=admonitionHeading_pnFY><span class=admonitionIcon_tEzm><svg viewBox="0 0 16 16"><path fill-rule=evenodd d="M8.893 1.5c-.183-.31-.52-.5-.887-.5s-.703.19-.886.5L.138 13.499a.98.98 0 0 0 0 1.001c.193.31.53.501.886.501h13.964c.367 0 .704-.19.877-.5a1.03 1.03 0 0 0 .01-1.002L8.893 1.5zm.133 11.497H6.987v-2.003h2.039v2.003zm0-3.004H6.987V5.987h2.039v4.006z"/></svg></span>注意</div><div class=admonitionContent_ZwmI><p>Rust API 仍在积极开发中。方法签名和 trait 要求可能随版本变化。</div></div>
+<h2 class="anchor anchorTargetStickyNavbar_ana5" id=system-implementations>系统实现<a href=#system-implementations class=hash-link aria-label=系统实现的直接链接 title=系统实现的直接链接 translate=no>​</a></h2>
+<p>Nautilus 有两条路径，按期望的编写与部署方式选择。</p>
+<ul>
+<li class=""><strong>Rust</strong>：<code>crates/</code> 下的纯 Rust，无需 Python 即可运行。</li>
+<li class=""><strong>Python</strong>：<a class="" href=/concepts/python>Python 用户组件</a>通过 <code>python/nautilus_trader/</code> 下的 PyO3 绑定运行在 Rust 核心上。</li>
+</ul>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=capability-matrix>能力矩阵<a href=#capability-matrix class=hash-link aria-label=能力矩阵的直接链接 title=能力矩阵的直接链接 translate=no>​</a></h3>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>组件<th>Rust<th>Python<tbody><tr><td>Strategy<td>✓<td>✓<tr><td>Actor<td>✓<td>✓<tr><td>DataEngine<td>✓<td>✓<tr><td>ExecutionEngine<td>✓<td>✓<tr><td>RiskEngine<td>✓<td>✓<tr><td>BacktestEngine<td>✓<td>✓<tr><td>BacktestNode<td>✓<td>✓<tr><td>LiveNode<td>✓<td>✓<tr><td>OrderEmulator<td>✓<td>✓<tr><td>撮合引擎<td>✓<td>✓<tr><td>Portfolio<td>✓<td>✓<tr><td>账户<td>✓<td>✓<tr><td>Cache<td>✓<td>✓<tr><td>MessageBus<td>✓<td>✓<tr><td>数据目录<td>✓<td>✓<tr><td>指标<td>✓<td>✓<tr><td>执行算法<td>TWAP<td>TWAP<tr><td>Controller<td>-<td>✓<tr><td>Tearsheets<td>-<td>✓</table>
+<div class="theme-admonition theme-admonition-note admonition_LYZY alert alert--secondary"><div class=admonitionHeading_pnFY><span class=admonitionIcon_tEzm><svg viewBox="0 0 14 16"><path fill-rule=evenodd d="M6.3 5.69a.942.942 0 0 1-.28-.7c0-.28.09-.52.28-.7.19-.18.42-.28.7-.28.28 0 .52.09.7.28.18.19.28.42.28.7 0 .28-.09.52-.28.7a1 1 0 0 1-.7.3c-.28 0-.52-.11-.7-.3zM8 7.99c-.02-.25-.11-.48-.31-.69-.2-.19-.42-.3-.69-.31H6c-.27.02-.48.13-.69.31-.2.2-.3.44-.31.69h1v3c.02.27.11.5.31.69.2.2.42.31.69.31h1c.27 0 .48-.11.69-.31.2-.19.3-.42.31-.69H8V7.98v.01zM7 2.3c-3.14 0-5.7 2.54-5.7 5.68 0 3.14 2.56 5.7 5.7 5.7s5.7-2.55 5.7-5.7c0-3.15-2.56-5.69-5.7-5.69v.01zM7 .98c3.86 0 7 3.14 7 7s-3.14 7-7 7-7-3.12-7-7 3.14-7 7-7z"/></svg></span>备注</div><div class=admonitionContent_ZwmI><p>Controller 运行时以 Rust 实现，为 Python 的 <code>Controller</code> 基类提供支持。矩阵中对 Rust 标记为缺失，是因为受支持的注册路径（可导入的 controller 配置）仅限 Python。</div></div>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=adapters>适配器<a href=#adapters class=hash-link aria-label=适配器的直接链接 title=适配器的直接链接 translate=no>​</a></h3>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>适配器<th>Rust<th>Python<tbody><tr><td>Architect AX<td>✓<td>✓<tr><td>Betfair<td>✓<td>✓<tr><td>Binance<td>✓<td>✓<tr><td>Blockchain<td>✓<td>✓<tr><td>Bybit<td>✓<td>✓<tr><td>Coinbase<td>✓<td>✓<tr><td>Databento<td>✓<td>✓<tr><td>Deribit<td>✓<td>✓<tr><td>Derive<td>✓<td>✓<tr><td>dYdX<td>✓<td>✓<tr><td>Hyperliquid<td>✓<td>✓<tr><td>Interactive Brokers<td>✓<td>✓<tr><td>Kraken<td>✓<td>✓<tr><td>Lighter<td>✓<td>✓<tr><td>OKX<td>✓<td>✓<tr><td>Polymarket<td>✓<td>✓<tr><td>Sandbox<td>✓<td>✓<tr><td>Tardis<td>✓<td>✓</table>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=choosing-a-path>如何选择<a href=#choosing-a-path class=hash-link aria-label=如何选择的直接链接 title=如何选择的直接链接 translate=no>​</a></h3>
+<ul>
+<li class=""><strong>Rust</strong> 提供无 Python 运行时的原生性能。核心交易功能全部可用。适合对延迟敏感的部署，或偏好编译型语言的团队。</li>
+<li class=""><strong>Python</strong> 保留 Python 的编写体验。用户组件（actor、策略）运行在 Rust 核心上完成数据处理与执行。</li>
+</ul>
+<h2 class="anchor anchorTargetStickyNavbar_ana5" id=project-setup>项目设置<a href=#project-setup class=hash-link aria-label=项目设置的直接链接 title=项目设置的直接链接 translate=no>​</a></h2>
+<p>Nautilus 的 crate 已发布到
+<a href=https://crates.io/crates/nautilus-backtest target=_blank rel="noopener noreferrer" class="">crates.io</a>。把它们加入你的
+<code>Cargo.toml</code>：</p>
+<div class="language-toml codeBlockContainer_eTMR theme-code-block" style=--prism-color:#393A34;--prism-background-color:#f6f8fa><div class=codeBlockContent_hafM><pre tabindex=0 class="prism-code language-toml codeBlock_IMvC thin-scrollbar" style=color:#393A34;background-color:#f6f8fa><code class=codeBlockLines_gZDW><div class=token-line style=color:#393A34><span class="token plain">[dependencies]</span><br/></div><div class=token-line style=color:#393A34><span class="token plain">nautilus-backtest = "0.65"</span><br/></div><div class=token-line style=color:#393A34><span class="token plain">nautilus-common = "0.65"</span><br/></div><div class=token-line style=color:#393A34><span class="token plain">nautilus-execution = "0.65"</span><br/></div><div class=token-line style=color:#393A34><span class="token plain">nautilus-model = { version = "0.65", features = ["test-support"] }</span><br/></div><div class=token-line style=color:#393A34><span class="token plain">nautilus-trading = { version = "0.65", features = ["examples"] }</span><br/></div><div class=token-line style=color:#393A34><span class="token plain" style=display:inline-block></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">anyhow = "1"</span><br/></div><div class=token-line style=color:#393A34><span class="token plain">log = "0.4"</span><br/></div></code></pre></div></div>
+<p>实时交易需加上 live crate 和你所用交易场所的适配器：</p>
+<div class="language-toml codeBlockContainer_eTMR theme-code-block" style=--prism-color:#393A34;--prism-background-color:#f6f8fa><div class=codeBlockContent_hafM><pre tabindex=0 class="prism-code language-toml codeBlock_IMvC thin-scrollbar" style=color:#393A34;background-color:#f6f8fa><code class=codeBlockLines_gZDW><div class=token-line style=color:#393A34><span class="token plain">[dependencies]</span><br/></div><div class=token-line style=color:#393A34><span class="token plain">nautilus-live = "0.65"</span><br/></div><div class=token-line style=color:#393A34><span class="token plain">nautilus-okx = "0.65"</span><br/></div></code></pre></div></div>
+<p>要跟随最新开发分支，把所有 Nautilus 依赖指向同一个 git 源，避免 crates.io 与 git 版本之间的类型不匹配：</p>
+<div class="language-toml codeBlockContainer_eTMR theme-code-block" style=--prism-color:#393A34;--prism-background-color:#f6f8fa><div class=codeBlockContent_hafM><pre tabindex=0 class="prism-code language-toml codeBlock_IMvC thin-scrollbar" style=color:#393A34;background-color:#f6f8fa><code class=codeBlockLines_gZDW><div class=token-line style=color:#393A34><span class="token plain">[dependencies]</span><br/></div><div class=token-line style=color:#393A34><span class="token plain">nautilus-backtest = { git = "https://github.com/nautechsystems/nautilus_trader.git", branch = "develop" }</span><br/></div><div class=token-line style=color:#393A34><span class="token plain">nautilus-common = { git = "https://github.com/nautechsystems/nautilus_trader.git", branch = "develop" }</span><br/></div><div class=token-line style=color:#393A34><span class="token plain">nautilus-execution = { git = "https://github.com/nautechsystems/nautilus_trader.git", branch = "develop" }</span><br/></div><div class=token-line style=color:#393A34><span class="token plain">nautilus-model = { git = "https://github.com/nautechsystems/nautilus_trader.git", branch = "develop", features = ["test-support"] }</span><br/></div><div class=token-line style=color:#393A34><span class="token plain">nautilus-trading = { git = "https://github.com/nautechsystems/nautilus_trader.git", branch = "develop", features = ["examples"] }</span><br/></div></code></pre></div></div>
+<p>最低支持 Rust 版本（MSRV）为 <strong>1.99.0</strong>。</p>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=feature-flags>Feature 标志<a href=#feature-flags class=hash-link aria-label="Feature 标志的直接链接" title="Feature 标志的直接链接" translate=no>​</a></h3>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>标志<th>Crate<th>效果<tbody><tr><td><code>high-precision</code><td><code>nautilus-model</code><td>16 位定点精度（默认 9 位）。<tr><td><code>test-support</code><td><code>nautilus-model</code><td>测试夹具、builder、specs 和默认值。<tr><td><code>examples</code><td><code>nautilus-trading</code><td>示例策略（<code>EmaCross</code>、<code>GridMarketMaker</code>）。<tr><td><code>streaming</code><td><code>nautilus-backtest</code><td><code>BacktestNode</code> 基于数据目录的数据流式加载。<tr><td><code>defi</code><td><code>nautilus-model</code><td>DeFi 数据类型。隐含 <code>high-precision</code>。</table>
+<div class="theme-admonition theme-admonition-tip admonition_LYZY alert alert--success"><div class=admonitionHeading_pnFY><span class=admonitionIcon_tEzm><svg viewBox="0 0 12 16"><path fill-rule=evenodd d="M6.5 0C3.48 0 1 2.19 1 5c0 .92.55 2.25 1 3 1.34 2.25 1.78 2.78 2 4v1h5v-1c.22-1.22.66-1.75 2-4 .45-.75 1-2.08 1-3 0-2.81-2.48-5-5.5-5zm3.64 7.48c-.25.44-.47.8-.67 1.11-.86 1.41-1.25 2.06-1.45 3.23-.02.05-.02.11-.02.17H5c0-.06 0-.13-.02-.17-.2-1.17-.59-1.83-1.45-3.23-.2-.31-.42-.67-.67-1.11C2.44 6.78 2 5.65 2 5c0-2.2 2.02-4 4.5-4 1.22 0 2.36.42 3.22 1.19C10.55 2.94 11 3.94 11 5c0 .66-.44 1.78-.86 2.48zM4 14h5c-.23 1.14-1.3 2-2.5 2s-2.27-.86-2.5-2z"/></svg></span>提示</div><div class=admonitionContent_ZwmI><p>标准 9 位精度足以应对大多数传统金融工具。
+加密货币场所的价格或数量需要超过九位小数时，启用 <code>high-precision</code>。</div></div>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=memory-allocator>内存分配器<a href=#memory-allocator class=hash-link aria-label=内存分配器的直接链接 title=内存分配器的直接链接 translate=no>​</a></h3>
+<p><code>nautilus</code> CLI 和 Python wheel 使用 <a href=https://crates.io/crates/mimalloc target=_blank rel="noopener noreferrer" class="">mimalloc</a> 承担 Rust
+分配。Rust 二进制自行选择分配器，因此你的二进制要匹配的话需自行加入 mimalloc：</p>
+<div class="language-toml codeBlockContainer_eTMR theme-code-block" style=--prism-color:#393A34;--prism-background-color:#f6f8fa><div class=codeBlockContent_hafM><pre tabindex=0 class="prism-code language-toml codeBlock_IMvC thin-scrollbar" style=color:#393A34;background-color:#f6f8fa><code class=codeBlockLines_gZDW><div class=token-line style=color:#393A34><span class="token plain">[dependencies]</span><br/></div><div class=token-line style=color:#393A34><span class="token plain">mimalloc = "0.1"</span><br/></div></code></pre></div></div>
+<div class="language-rust codeBlockContainer_eTMR theme-code-block" style=--prism-color:#393A34;--prism-background-color:#f6f8fa><div class=codeBlockContent_hafM><pre tabindex=0 class="prism-code language-rust codeBlock_IMvC thin-scrollbar" style=color:#393A34;background-color:#f6f8fa><code class=codeBlockLines_gZDW><div class=token-line style=color:#393A34><span class="token keyword" style=color:#00009f>use</span><span class="token plain"> </span><span class="token namespace" style=opacity:0.7>mimalloc</span><span class="token namespace punctuation" style=opacity:0.7;color:#393A34>::</span><span class="token class-name">MiMalloc</span><span class="token punctuation" style=color:#393A34>;</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain"></span><span class="token keyword" style=color:#00009f>use</span><span class="token plain"> </span><span class="token namespace" style=opacity:0.7>nautilus_common</span><span class="token namespace punctuation" style=opacity:0.7;color:#393A34>::</span><span class="token namespace" style=opacity:0.7>logging</span><span class="token namespace punctuation" style=opacity:0.7;color:#393A34>::</span><span class="token namespace" style=opacity:0.7>headers</span><span class="token namespace punctuation" style=opacity:0.7;color:#393A34>::</span><span class="token plain">register_allocator_mimalloc</span><span class="token punctuation" style=color:#393A34>;</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain" style=display:inline-block></span><br/></div><div class=token-line style=color:#393A34><span class="token plain"></span><span class="token attribute attr-name" style=color:#00a4db>#[global_allocator]</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain"></span><span class="token keyword" style=color:#00009f>static</span><span class="token plain"> </span><span class="token constant" style=color:#36acaa>GLOBAL</span><span class="token punctuation" style=color:#393A34>:</span><span class="token plain"> </span><span class="token class-name">MiMalloc</span><span class="token plain"> </span><span class="token operator" style=color:#393A34>=</span><span class="token plain"> </span><span class="token class-name">MiMalloc</span><span class="token punctuation" style=color:#393A34>;</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain" style=display:inline-block></span><br/></div><div class=token-line style=color:#393A34><span class="token plain"></span><span class="token keyword" style=color:#00009f>fn</span><span class="token plain"> </span><span class="token function-definition function" style=color:#d73a49>main</span><span class="token punctuation" style=color:#393A34>(</span><span class="token punctuation" style=color:#393A34>)</span><span class="token plain"> </span><span class="token punctuation" style=color:#393A34>{</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    </span><span class="token function" style=color:#d73a49>register_allocator_mimalloc</span><span class="token punctuation" style=color:#393A34>(</span><span class="token punctuation" style=color:#393A34>)</span><span class="token punctuation" style=color:#393A34>;</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain"></span><span class="token punctuation" style=color:#393A34>}</span><br/></div></code></pre></div></div>
+<p>声明 <code>GLOBAL</code> 即选用 mimalloc。在 <code>main</code> 开头、构造 Nautilus 节点之前调用 <code>register_allocator_mimalloc</code>，
+版本头部即可报告 <code>allocator: mimalloc &lt;version></code>。注册<strong>只更新头部元数据</strong>，
+并不选择分配器。</p>
+<p>使用默认系统分配器也可以。比较分配器选择时，请在你的负载和平台上实测吞吐量与常驻内存。
+背景见<a class="" href=/concepts/architecture#memory-allocation>架构指南</a>。</p>
+<h2 class="anchor anchorTargetStickyNavbar_ana5" id=actors>Actor<a href=#actors class=hash-link aria-label=Actor的直接链接 title=Actor的直接链接 translate=no>​</a></h2>
+<p>actor 接收行情、自定义数据/信号和系统事件，但不管理订单。实现 <code>DataActor</code> trait，并用 <code>nautilus_actor!</code> 把你的 <code>DataActorCore</code> 字段接入运行时契约。你的类型要实现或派生 <code>Debug</code>，宏负责提供原生的运行时接线。</p>
+<p>用户代码通常使用 <code>DataActor</code> 的门面（facade）方法完成订阅、缓存访问和时钟访问。</p>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=handler-methods>Handler 方法<a href=#handler-methods class=hash-link aria-label="Handler 方法的直接链接" title="Handler 方法的直接链接" translate=no>​</a></h3>
+<p>重写 <code>DataActor</code> trait 上的任意 handler 即可接收对应的数据或事件。所有 handler 都有默认空实现，只需重写用到的。</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>Handler<th>接收内容<tbody><tr><td><code>on_start</code><td>actor 已启动。<tr><td><code>on_stop</code><td>actor 已停止。<tr><td><code>on_quote</code><td><code>QuoteTick</code><tr><td><code>on_trade</code><td><code>TradeTick</code><tr><td><code>on_bar</code><td><code>Bar</code><tr><td><code>on_book_deltas</code><td><code>OrderBookDeltas</code><tr><td><code>on_book</code><td><code>OrderBook</code>（按间隔）<tr><td><code>on_instrument</code><td><code>InstrumentAny</code><tr><td><code>on_mark_price</code><td><code>MarkPriceUpdate</code><tr><td><code>on_index_price</code><td><code>IndexPriceUpdate</code><tr><td><code>on_funding_rate</code><td><code>FundingRateUpdate</code><tr><td><code>on_option_greeks</code><td><code>OptionGreeks</code><tr><td><code>on_option_chain</code><td><code>OptionChainSlice</code><tr><td><code>on_instrument_status</code><td><code>InstrumentStatus</code><tr><td><code>on_time_event</code><td><code>TimeEvent</code></table>
+<p>分步教程见
+<a class="" href=/how_to/write_rust_actor>编写 Actor（Rust）</a>操作指南。
+完整示例见
+<a href=https://github.com/nautechsystems/nautilus_trader/tree/develop/crates/trading/src/examples/actors/imbalance target=_blank rel="noopener noreferrer" class=""><code>BookImbalanceActor</code></a>。</p>
+<h2 class="anchor anchorTargetStickyNavbar_ana5" id=strategies>策略<a href=#strategies class=hash-link aria-label=策略的直接链接 title=策略的直接链接 translate=no>​</a></h2>
+<p>策略在 actor 之上增加订单管理。实现 <code>DataActor</code> 处理数据，并用 <code>nautilus_strategy!</code> 把你的 <code>StrategyCore</code> 字段接入策略运行时契约。<code>StrategyCore</code> 存储运行时的策略状态；运行时注册需要宏生成的原生接线。</p>
+<p>常规策略逻辑通过 <code>Strategy</code> 方法和 <code>self</code> 上的门面方法访问该状态。策略还会重写 <code>Strategy</code> trait 上的订单事件 handler，如 <code>on_order_filled</code>（<code>OrderFilled</code>）和 <code>on_order_canceled</code>（<code>OrderCanceled</code>）。</p>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=order-management>订单管理<a href=#order-management class=hash-link aria-label=订单管理的直接链接 title=订单管理的直接链接 translate=no>​</a></h3>
+<p><code>Strategy</code> trait 通过门面提供订单方法：</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>方法<th>动作<tbody><tr><td><code>submit_order</code><td>向交易场所提交新订单。<tr><td><code>submit_order_list</code><td>提交一组或有订单（contingent orders）。<tr><td><code>modify_order</code><td>修改价格、数量或触发价。<tr><td><code>cancel_order</code><td>撤销指定订单。<tr><td><code>cancel_orders</code><td>撤销一批按条件筛选的订单。<tr><td><code>cancel_all_orders</code><td>撤销某金融工具的全部订单。<tr><td><code>close_position</code><td>用市价单平掉持仓。<tr><td><code>close_all_positions</code><td>平掉全部未平仓持仓。</table>
+<p><code>OrderApi</code>（通过 <code>self.order()</code> 访问）用于构建订单和订单列表：</p>
+<ul>
+<li class=""><code>generate_client_order_id</code></li>
+<li class=""><code>generate_order_list_id</code></li>
+<li class=""><code>market</code></li>
+<li class=""><code>limit</code></li>
+<li class=""><code>stop_market</code></li>
+<li class=""><code>stop_limit</code></li>
+<li class=""><code>market_to_limit</code></li>
+<li class=""><code>market_if_touched</code></li>
+<li class=""><code>limit_if_touched</code></li>
+<li class=""><code>trailing_stop_market</code></li>
+<li class=""><code>trailing_stop_limit</code></li>
+<li class=""><code>bracket</code></li>
+<li class=""><code>create_list</code></li>
+</ul>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=cache-and-clock-access>缓存与时钟访问<a href=#cache-and-clock-access class=hash-link aria-label=缓存与时钟访问的直接链接 title=缓存与时钟访问的直接链接 translate=no>​</a></h3>
+<p>缓存和时钟访问通过不同接口报告借用冲突：</p>
+<ul>
+<li class="">缓存门面的 <code>try_*</code> 查找遇到借用冲突时返回查找错误的 <code>Access</code> 变体。<code>NotFound</code> 仍表示请求的数据不存在。</li>
+<li class="">缓存门面的 <code>get()</code> 方法和原生支撑的时钟调度方法通过 <code>anyhow::Result</code> 返回访问错误。</li>
+<li class="">现有的"保证不失败"访问器冲突时仍会 panic。</li>
+</ul>
+<p>重试前先释放冲突的借用。这些错误不会推迟回调，也不会改变回调的投递顺序。</p>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=core-wiring-macros>核心接线宏<a href=#core-wiring-macros class=hash-link aria-label=核心接线宏的直接链接 title=核心接线宏的直接链接 translate=no>​</a></h3>
+<p>Rust 的 actor、策略和执行算法把运行时核心保留为结构体字段，宏告诉 trait 该字段在哪里。</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>宏<th>核心字段<th>生成内容<tbody><tr><td><code>nautilus_actor!(Type)</code><td><code>DataActorCore</code><td>运行时接线。<tr><td><code>nautilus_strategy!(Type)</code><td><code>StrategyCore</code><td>运行时接线和 <code>Strategy</code>。<tr><td><code>nautilus_execution_algorithm!(Type, { ... })</code><td><code>ExecutionAlgorithmCore</code><td>运行时接线和算法。</table>
+<p>宏默认期望一个名为 <code>core</code> 的字段，必要时把字段名作为第二个参数传入。宏不会让 actor、策略或 <code>StrategyCore</code> deref 到运行时内部。执行算法宏要求传入 <code>on_order()</code> 实现块，因为该方法定义算法必需的订单处理。</p>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=native-traits>原生 trait<a href=#native-traits class=hash-link aria-label="原生 trait的直接链接" title="原生 trait的直接链接" translate=no>​</a></h3>
+<p>默认使用门面方法：</p>
+<ul>
+<li class=""><code>actor_id()</code></li>
+<li class=""><code>trader_id()</code></li>
+<li class=""><code>is_registered()</code></li>
+<li class=""><code>config()</code></li>
+<li class=""><code>strategy_id()</code></li>
+<li class=""><code>clock()</code></li>
+<li class=""><code>cache()</code></li>
+<li class=""><code>order()</code></li>
+<li class=""><code>portfolio()</code></li>
+</ul>
+<p><code>DataActorNative</code>、<code>StrategyNative</code> 和 <code>ExecutionAlgorithmNative</code> 用于门面之下的原生专有访问。本节记录的是引擎、运行时和显式延迟敏感的原生 Rust 代码，不是可移植的编写路径。</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>编写路径<th>用原生 trait？<th>常规 API<tbody><tr><td>原生 Rust 二进制<td>仅在需要时<td><code>Strategy</code> 和 <code>DataActor</code> 门面。<tr><td>从 Python 启动的 Rust<td>仅在需要时<td>与原生 Rust 相同。<tr><td>Python 编写的组件<td>否<td>只用门面。</table>
+<p>原生 trait 暴露借用的核心状态、<code>Rc&lt;RefCell&lt;_>></code> 和运行时引用。当原生 Rust 代码在明确的延迟敏感路径上有意接受这些借用规则时才使用它们。</p>
+<p>引擎、运行时、注册、PyO3 和 testkit 代码在需要 actor-core、strategy-core 或 execution-algorithm-core 访问时可以导入 <code>DataActorNative</code>、<code>StrategyNative</code> 或 <code>ExecutionAlgorithmNative</code>。这些类型不跨越 Python 边界。不要在普通的可移植 actor、策略或执行算法逻辑，以及 Python 编写的组件中使用它们。</p>
+<p><code>ExecutionAlgorithmCore</code> 拥有一个 <code>DataActorCore</code>，但不会 deref 到它。
+常规执行算法逻辑应使用 <code>id()</code>、<code>actor_id()</code>、
+<code>trader_id()</code>、<code>clock()</code> 和 <code>cache()</code>。只有代码确实需要原生执行算法状态时，才使用 <code>ExecutionAlgorithmNative</code>。</p>
+<p>选择最小的原生句柄，并让每次借用保持最小作用域。常规策略订单构造用 <code>order()</code>，只有原生代码确实需要原始可变工厂借用时才用
+<code>order_factory()</code>。</p>
+<h4 class="anchor anchorTargetStickyNavbar_ana5" id=dataactornative-methods><code>DataActorNative</code> 方法<a href=#dataactornative-methods class=hash-link aria-label=dataactornative-methods的直接链接 title=dataactornative-methods的直接链接 translate=no>​</a></h4>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>原生方法<th>返回类型<th>适用场景<tbody><tr><td><code>core()</code><td><code>&DataActorCore</code><td>读取 actor 内部状态。<tr><td><code>core_mut()</code><td><code>&mut DataActorCore</code><td>修改 actor 内部状态。<tr><td><code>clock_mut()</code><td><code>RefMut&lt;'_, dyn Clock></code><td>需要可变的时钟借用。<tr><td><code>clock_rc()</code><td><code>Rc&lt;RefCell&lt;dyn Clock>></code><td>存储或传递共享时钟。<tr><td><code>cache_ref()</code><td><code>Ref&lt;'_, Cache></code><td>需要短暂的实时缓存读取。<tr><td><code>cache_rc()</code><td><code>Rc&lt;RefCell&lt;Cache>></code><td>修改、存储或传递缓存。</table>
+<p>用 <code>try_cache_ref()</code> 和 <code>try_clock_mut()</code> 处理失败的原生借用而不 panic。<code>ComponentAccessError</code> 从 <code>nautilus_common::component</code> 导入：</p>
+<ul>
+<li class="">缓存被可变借用时，<code>try_cache_ref()</code> 返回 <code>ComponentAccessError::ReadConflict</code>。</li>
+<li class="">时钟已被借用时，<code>try_clock_mut()</code> 返回 <code>ComponentAccessError::WriteConflict</code>。</li>
+<li class="">注册尚未提供该资源时，两者都返回 <code>ComponentAccessError::NotRegistered</code>。</li>
+</ul>
+<p>错误会指出涉及的资源和尝试的操作。回调重入可能引发冲突，但仅有冲突并不能断定就是重入所致。消息含义与纠正措施见<a class="" href=/developer_guide/callback_dispatch#reentrancy-and-dispatch-diagnostics>重入诊断</a>。</p>
+<h4 class="anchor anchorTargetStickyNavbar_ana5" id=strategynative-methods><code>StrategyNative</code> 方法<a href=#strategynative-methods class=hash-link aria-label=strategynative-methods的直接链接 title=strategynative-methods的直接链接 translate=no>​</a></h4>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>原生方法<th>返回类型<th>适用场景<tbody><tr><td><code>strategy_core()</code><td><code>&StrategyCore</code><td>读取策略内部状态。<tr><td><code>strategy_core_mut()</code><td><code>&mut StrategyCore</code><td>修改策略内部状态。<tr><td><code>order_factory()</code><td><code>RefMut&lt;'_, OrderFactory></code><td>需要原始可变工厂借用。<tr><td><code>order_factory_rc()</code><td><code>Rc&lt;RefCell&lt;OrderFactory>></code><td>存储或传递工厂。<tr><td><code>portfolio_rc()</code><td><code>Rc&lt;RefCell&lt;Portfolio>></code><td>存储或传递投资组合。</table>
+<h4 class="anchor anchorTargetStickyNavbar_ana5" id=executionalgorithmnative-methods><code>ExecutionAlgorithmNative</code> 方法<a href=#executionalgorithmnative-methods class=hash-link aria-label=executionalgorithmnative-methods的直接链接 title=executionalgorithmnative-methods的直接链接 translate=no>​</a></h4>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>原生方法<th>返回类型<th>适用场景<tbody><tr><td><code>exec_algorithm_core()</code><td><code>&ExecutionAlgorithmCore</code><td>读取执行算法内部状态。<tr><td><code>exec_algorithm_core_mut()</code><td><code>&mut ExecutionAlgorithmCore</code><td>修改执行算法内部状态。</table>
+<p>分步教程见
+<a class="" href=/how_to/write_rust_strategy>编写策略（Rust）</a>操作指南。
+完整示例见
+<a href=https://github.com/nautechsystems/nautilus_trader/tree/develop/crates/trading/src/examples/strategies/ema_cross target=_blank rel="noopener noreferrer" class=""><code>EmaCross</code></a>
+和
+<a href=https://github.com/nautechsystems/nautilus_trader/tree/develop/crates/trading/src/examples/strategies/grid_mm target=_blank rel="noopener noreferrer" class=""><code>GridMarketMaker</code></a>。</p>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=running-rust-components>运行 Rust 组件<a href=#running-rust-components class=hash-link aria-label="运行 Rust 组件的直接链接" title="运行 Rust 组件的直接链接" translate=no>​</a></h3>
+<p>Rust 策略和 actor 有两条运行路径。下面的示例使用策略，捆绑的 actor 走同样的模式：纯 Rust 用 <code>add_actor</code>，从 Python 用 <code>add_builtin_actor</code>。</p>
+<h4 class="anchor anchorTargetStickyNavbar_ana5" id=pure-rust>纯 Rust<a href=#pure-rust class=hash-link aria-label="纯 Rust的直接链接" title="纯 Rust的直接链接" translate=no>​</a></h4>
+<p>用 Rust 编写策略和 <code>main</code> 函数，<code>cargo build</code> 构建独立二进制。这条路径不需要 Python 运行时。</p>
+<div class="language-rust codeBlockContainer_eTMR theme-code-block" style=--prism-color:#393A34;--prism-background-color:#f6f8fa><div class=codeBlockContent_hafM><pre tabindex=0 class="prism-code language-rust codeBlock_IMvC thin-scrollbar" style=color:#393A34;background-color:#f6f8fa><code class=codeBlockLines_gZDW><div class=token-line style=color:#393A34><span class="token keyword" style=color:#00009f>let</span><span class="token plain"> strategy </span><span class="token operator" style=color:#393A34>=</span><span class="token plain"> </span><span class="token class-name">GridMarketMaker</span><span class="token punctuation" style=color:#393A34>::</span><span class="token function" style=color:#d73a49>new</span><span class="token punctuation" style=color:#393A34>(</span><span class="token plain">config</span><span class="token punctuation" style=color:#393A34>)</span><span class="token punctuation" style=color:#393A34>;</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">node</span><span class="token punctuation" style=color:#393A34>.</span><span class="token function" style=color:#d73a49>add_strategy</span><span class="token punctuation" style=color:#393A34>(</span><span class="token plain">strategy</span><span class="token punctuation" style=color:#393A34>)</span><span class="token operator" style=color:#393A34>?</span><span class="token punctuation" style=color:#393A34>;</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">node</span><span class="token punctuation" style=color:#393A34>.</span><span class="token function" style=color:#d73a49>run</span><span class="token punctuation" style=color:#393A34>(</span><span class="token punctuation" style=color:#393A34>)</span><span class="token punctuation" style=color:#393A34>.</span><span class="token keyword" style=color:#00009f>await</span><span class="token operator" style=color:#393A34>?</span><span class="token punctuation" style=color:#393A34>;</span><br/></div></code></pre></div></div>
+<p>完整流程见
+<a class="" href=/how_to/run_rust_live_trading>运行实时交易（Rust）</a>。</p>
+<h4 class="anchor anchorTargetStickyNavbar_ana5" id=built-in-examples-from-python>从 Python 使用内置示例<a href=#built-in-examples-from-python class=hash-link aria-label="从 Python 使用内置示例的直接链接" title="从 Python 使用内置示例的直接链接" translate=no>​</a></h4>
+<p>向 <code>add_builtin_strategy</code> 传入类型名和配置，即可从 Python 注册内置示例策略。这条路径的存在，是为了让捆绑示例策略代码在 Rust 与 Python 的文档、示例和测试中保持单一来源。它不是添加原生策略的一等扩展路径，自定义原生组件请用纯 Rust。</p>
+<div class="language-python codeBlockContainer_eTMR theme-code-block" style=--prism-color:#393A34;--prism-background-color:#f6f8fa><div class=codeBlockContent_hafM><pre tabindex=0 class="prism-code language-python codeBlock_IMvC thin-scrollbar" style=color:#393A34;background-color:#f6f8fa><code class=codeBlockLines_gZDW><div class=token-line style=color:#393A34><span class="token keyword" style=color:#00009f>from</span><span class="token plain"> nautilus_trader</span><span class="token punctuation" style=color:#393A34>.</span><span class="token plain">trading </span><span class="token keyword" style=color:#00009f>import</span><span class="token plain"> GridMarketMakerConfig</span><br/></div><div class=token-line style=color:#393A34><span class="token plain" style=display:inline-block></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">config </span><span class="token operator" style=color:#393A34>=</span><span class="token plain"> GridMarketMakerConfig</span><span class="token punctuation" style=color:#393A34>(</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    instrument_id</span><span class="token operator" style=color:#393A34>=</span><span class="token plain">InstrumentId</span><span class="token punctuation" style=color:#393A34>.</span><span class="token plain">from_str</span><span class="token punctuation" style=color:#393A34>(</span><span class="token string" style=color:#e3116c>"BTC-USDT-SWAP.OKX"</span><span class="token punctuation" style=color:#393A34>)</span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    max_position</span><span class="token operator" style=color:#393A34>=</span><span class="token plain">Quantity</span><span class="token punctuation" style=color:#393A34>.</span><span class="token plain">from_str</span><span class="token punctuation" style=color:#393A34>(</span><span class="token string" style=color:#e3116c>"10.0"</span><span class="token punctuation" style=color:#393A34>)</span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    trade_size</span><span class="token operator" style=color:#393A34>=</span><span class="token plain">Quantity</span><span class="token punctuation" style=color:#393A34>.</span><span class="token plain">from_str</span><span class="token punctuation" style=color:#393A34>(</span><span class="token string" style=color:#e3116c>"0.1"</span><span class="token punctuation" style=color:#393A34>)</span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    num_levels</span><span class="token operator" style=color:#393A34>=</span><span class="token number" style=color:#36acaa>5</span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    grid_step_bps</span><span class="token operator" style=color:#393A34>=</span><span class="token number" style=color:#36acaa>15</span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain"></span><span class="token punctuation" style=color:#393A34>)</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain" style=display:inline-block></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">node</span><span class="token punctuation" style=color:#393A34>.</span><span class="token plain">add_builtin_strategy</span><span class="token punctuation" style=color:#393A34>(</span><span class="token string" style=color:#e3116c>"GridMarketMaker"</span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain"> config</span><span class="token punctuation" style=color:#393A34>)</span><br/></div></code></pre></div></div>
+<p>内置策略配置：</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>配置<th>策略<tbody><tr><td><code>CompositeMarketMakerConfig</code><td><code>CompositeMarketMaker</code><tr><td><code>DeltaNeutralVolConfig</code><td><code>DeltaNeutralVol</code><tr><td><code>EmaCrossConfig</code><td><code>EmaCross</code><tr><td><code>ExecTesterConfig</code><td><code>ExecTester</code><tr><td><code>GridMarketMakerConfig</code><td><code>GridMarketMaker</code><tr><td><code>HurstVpinDirectionalConfig</code><td><code>HurstVpinDirectional</code></table>
+<p>示例和测试使用的 actor 走 <code>add_builtin_actor</code>，遵循同样的"仅限捆绑"规则。</p>
+<p>内置 actor 配置（通过 <code>add_builtin_actor</code>）：</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>配置<th>Actor<tbody><tr><td><code>BookImbalanceActorConfig</code><td><code>BookImbalanceActor</code><tr><td><code>DataTesterConfig</code><td><code>DataTester</code></table>
+<h2 class="anchor anchorTargetStickyNavbar_ana5" id=backtesting>回测<a href=#backtesting class=hash-link aria-label=回测的直接链接 title=回测的直接链接 translate=no>​</a></h2>
+<p>两套 API 的带注释教程见
+<a class="" href=/how_to/run_rust_backtest>运行回测（Rust）</a>操作指南。</p>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=backtestengine-low-level-api><code>BacktestEngine</code>（低层 API）<a href=#backtestengine-low-level-api class=hash-link aria-label=backtestengine-low-level-api的直接链接 title=backtestengine-low-level-api的直接链接 translate=no>​</a></h3>
+<p>构造引擎、添加交易场所和金融工具、加载数据、注册策略，然后运行。完整可运行示例：</p>
+<div class="language-bash codeBlockContainer_eTMR theme-code-block" style=--prism-color:#393A34;--prism-background-color:#f6f8fa><div class=codeBlockContent_hafM><pre tabindex=0 class="prism-code language-bash codeBlock_IMvC thin-scrollbar" style=color:#393A34;background-color:#f6f8fa><code class=codeBlockLines_gZDW><div class=token-line style=color:#393A34><span class="token plain">cargo run -p nautilus-backtest --features examples --example engine-ema-cross</span><br/></div></code></pre></div></div>
+<p>源码：
+<a href=https://github.com/nautechsystems/nautilus_trader/tree/develop/crates/backtest/examples/engine_ema_cross.rs target=_blank rel="noopener noreferrer" class=""><code>crates/backtest/examples/engine_ema_cross.rs</code></a></p>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=backtestnode-high-level-api><code>BacktestNode</code>（高层 API）<a href=#backtestnode-high-level-api class=hash-link aria-label=backtestnode-high-level-api的直接链接 title=backtestnode-high-level-api的直接链接 translate=no>​</a></h3>
+<p>从 <code>ParquetDataCatalog</code> 加载数据，支持按可配置的分块大小流式读取。需要为 <code>nautilus-backtest</code> 启用 <code>streaming</code> feature。完整可运行示例：</p>
+<div class="language-bash codeBlockContainer_eTMR theme-code-block" style=--prism-color:#393A34;--prism-background-color:#f6f8fa><div class=codeBlockContent_hafM><pre tabindex=0 class="prism-code language-bash codeBlock_IMvC thin-scrollbar" style=color:#393A34;background-color:#f6f8fa><code class=codeBlockLines_gZDW><div class=token-line style=color:#393A34><span class="token plain">cargo run -p nautilus-backtest --features examples,streaming --example node-ema-cross</span><br/></div></code></pre></div></div>
+<p>源码：
+<a href=https://github.com/nautechsystems/nautilus_trader/tree/develop/crates/backtest/examples/node_ema_cross.rs target=_blank rel="noopener noreferrer" class=""><code>crates/backtest/examples/node_ema_cross.rs</code></a></p>
+<h2 class="anchor anchorTargetStickyNavbar_ana5" id=live-trading>实时交易<a href=#live-trading class=hash-link aria-label=实时交易的直接链接 title=实时交易的直接链接 translate=no>​</a></h2>
+<p>带注释的教程见
+<a class="" href=/how_to/run_rust_live_trading>运行实时交易（Rust）</a>操作指南。</p>
+<p><code>LiveNode</code> 通过适配器客户端连接真实交易场所和数据源。用 builder 模式配置数据与执行客户端，<code>run()</code> 启动异步事件循环。各适配器提供自己的工厂和配置类型。</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>适配器<th>示例<tbody><tr><td>Architect AX<td><code>crates/adapters/architect_ax/examples/</code><tr><td>Betfair<td><code>crates/adapters/betfair/examples/</code><tr><td>Binance<td><code>crates/adapters/binance/examples/</code><tr><td>Blockchain<td><code>crates/adapters/blockchain/examples/</code><tr><td>Bybit<td><code>crates/adapters/bybit/examples/</code><tr><td>Coinbase<td><code>crates/adapters/coinbase/examples/</code><tr><td>Databento<td><code>crates/adapters/databento/examples/</code><tr><td>Deribit<td><code>crates/adapters/deribit/examples/</code><tr><td>Derive<td><code>crates/adapters/derive/examples/</code><tr><td>dYdX<td><code>crates/adapters/dydx/examples/</code><tr><td>Hyperliquid<td><code>crates/adapters/hyperliquid/examples/</code><tr><td>Interactive Brokers<td><code>crates/adapters/interactive_brokers/examples/</code><tr><td>Kraken<td><code>crates/adapters/kraken/examples/</code><tr><td>Lighter<td><code>crates/adapters/lighter/examples/</code><tr><td>OKX<td><code>crates/adapters/okx/examples/</code><tr><td>Polymarket<td><code>crates/adapters/polymarket/examples/</code><tr><td>Sandbox<td><code>crates/adapters/sandbox/examples/</code><tr><td>Tardis<td><code>crates/adapters/tardis/examples/</code></table>
+<p>多数适配器都带有 <code>node_data_tester.rs</code> 和 <code>node_exec_tester.rs</code>
+示例，用于针对真实交易场所测试数据请求、数据流和订单执行。</p>
+<h2 class="anchor anchorTargetStickyNavbar_ana5" id=related-guides>相关指南<a href=#related-guides class=hash-link aria-label=相关指南的直接链接 title=相关指南的直接链接 translate=no>​</a></h2>
+<ul>
+<li class=""><a class="" href=/concepts/python>Python</a> - Python 所有权、运行时与公共 API 边界。</li>
+<li class=""><a class="" href=/how_to/write_rust_actor>编写 Actor（Rust）</a> - Actor 分步教程。</li>
+<li class=""><a class="" href=/how_to/write_rust_strategy>编写策略（Rust）</a> - 策略分步教程。</li>
+<li class=""><a class="" href=/how_to/run_rust_backtest>运行回测（Rust）</a> - BacktestEngine 与 BacktestNode 用法。</li>
+<li class=""><a class="" href=/how_to/run_rust_live_trading>运行实时交易（Rust）</a> - LiveNode 设置与场所连接。</li>
+<li class=""><a class="" href=/concepts/architecture>架构</a> - 系统设计与数据/执行流。</li>
+<li class=""><a class="" href=/concepts/actors>Actor</a> - Actor 概念（Python 与 Rust 通用）。</li>
+<li class=""><a class="" href=/concepts/strategies>策略</a> - 策略概念与 handler 参考。</li>
+<li class=""><a class="" href=/concepts/events/>事件</a> - 事件类型与 handler 分发。</li>
+<li class=""><a class="" href=/concepts/backtesting/>回测</a> - 回测概念与撮合引擎行为。</li>
+</ul></div><footer class="theme-doc-footer docusaurus-mt-lg"><div class="row margin-top--sm theme-doc-footer-edit-meta-row"><div class="col noPrint_MRkS"><a href=https://github.com/Aloento/NautilusTraderDoc/tree/main/docs/concepts/rust.md target=_blank rel="noopener noreferrer" class=theme-edit-this-page><svg fill=currentColor height=20 width=20 viewBox="0 0 40 40" class=iconEdit_RPSQ aria-hidden=true><g><path d="m34.5 11.7l-3 3.1-6.3-6.3 3.1-3q0.5-0.5 1.2-0.5t1.1 0.5l3.9 3.9q0.5 0.4 0.5 1.1t-0.5 1.2z m-29.5 17.1l18.4-18.5 6.3 6.3-18.4 18.4h-6.3v-6.2z"/></g></svg>编辑此页</a></div><div class="col lastUpdated_oZSl"><span class=theme-last-updated>最后<!-- -->于 <b><time datetime=2026-10-14T22:30:30.000Z itemprop=dateModified>2026年10月14日</time></b> <!-- -->更新</span></div></div></footer></article><nav class="docusaurus-mt-lg pagination-nav" aria-label=文件选项卡><a class="pagination-nav__link pagination-nav__link--prev" href=/concepts/reports><div class=pagination-nav__sublabel>上一页</div><div class=pagination-nav__label>报告</div></a><a class="pagination-nav__link pagination-nav__link--next" href=/concepts/strategies><div class=pagination-nav__sublabel>下一页</div><div class=pagination-nav__label>策略</div></a></nav></div></div><div class="col col--3"><div class="tableOfContents_LyLZ thin-scrollbar theme-doc-toc-desktop"><ul class="table-of-contents table-of-contents__left-border"><li><a href=#system-implementations class="table-of-contents__link toc-highlight">系统实现</a><ul><li><a href=#capability-matrix class="table-of-contents__link toc-highlight">能力矩阵</a><li><a href=#adapters class="table-of-contents__link toc-highlight">适配器</a><li><a href=#choosing-a-path class="table-of-contents__link toc-highlight">如何选择</a></ul><li><a href=#project-setup class="table-of-contents__link toc-highlight">项目设置</a><ul><li><a href=#feature-flags class="table-of-contents__link toc-highlight">Feature 标志</a><li><a href=#memory-allocator class="table-of-contents__link toc-highlight">内存分配器</a></ul><li><a href=#actors class="table-of-contents__link toc-highlight">Actor</a><ul><li><a href=#handler-methods class="table-of-contents__link toc-highlight">Handler 方法</a></ul><li><a href=#strategies class="table-of-contents__link toc-highlight">策略</a><ul><li><a href=#order-management class="table-of-contents__link toc-highlight">订单管理</a><li><a href=#cache-and-clock-access class="table-of-contents__link toc-highlight">缓存与时钟访问</a><li><a href=#core-wiring-macros class="table-of-contents__link toc-highlight">核心接线宏</a><li><a href=#native-traits class="table-of-contents__link toc-highlight">原生 trait</a><li><a href=#running-rust-components class="table-of-contents__link toc-highlight">运行 Rust 组件</a></ul><li><a href=#backtesting class="table-of-contents__link toc-highlight">回测</a><ul><li><a href=#backtestengine-low-level-api class="table-of-contents__link toc-highlight"><code>BacktestEngine</code>（低层 API）</a><li><a href=#backtestnode-high-level-api class="table-of-contents__link toc-highlight"><code>BacktestNode</code>（高层 API）</a></ul><li><a href=#live-trading class="table-of-contents__link toc-highlight">实时交易</a><li><a href=#related-guides class="table-of-contents__link toc-highlight">相关指南</a></ul></div></div></div></div></main></div></div></div><footer class="theme-layout-footer footer footer--dark"><div class="container container-fluid"><div class="row footer__links"><div class="theme-layout-footer-column col footer__col"><div class=footer__title></div><ul class="footer__items clean-list"><li class=footer__item><a href=https://github.com/nautechsystems/nautilus_trader target=_blank rel="noopener noreferrer" class=footer__link-item>Official GitHub<svg width=13.5 height=13.5 aria-label="(opens in new tab)" class=iconExternalLink_qUHo><use href=#theme-svg-external-link /></svg></a><li class=footer__item><a href=https://nautilustrader.io/docs target=_blank rel="noopener noreferrer" class=footer__link-item>Official Documentation<svg width=13.5 height=13.5 aria-label="(opens in new tab)" class=iconExternalLink_qUHo><use href=#theme-svg-external-link /></svg></a></ul></div></div><div class="footer__bottom text--center"><div class=footer__copyright>© 2026 Nautech Systems Pty Ltd. All rights reserved.</div></div></div></footer></div></body>

@@ -1,0 +1,139 @@
+<!doctype html><html lang=zh dir=ltr class="docs-wrapper plugin-docs plugin-id-default docs-version-current docs-doc-page docs-doc-id-developer_guide/design_principles" data-has-hydrated=false><head><meta charset=UTF-8><meta name=generator content="Docusaurus v3.10.2"><title data-rh=true>设计原则 | NautilusTrader 文档</title><meta data-rh=true name=viewport content="width=device-width, initial-scale=1.0"/><meta data-rh=true name=twitter:card content=summary_large_image /><meta data-rh=true property=og:url content=https://nautilus.aloen.to/developer_guide/design_principles /><meta data-rh=true property=og:locale content=zh /><meta data-rh=true name=docusaurus_locale content=zh /><meta data-rh=true name=docsearch:language content=zh /><meta data-rh=true name=docusaurus_version content=current /><meta data-rh=true name=docusaurus_tag content=docs-default-current /><meta data-rh=true name=docsearch:version content=current /><meta data-rh=true name=docsearch:docusaurus_tag content=docs-default-current /><meta data-rh=true property=og:title content="设计原则 | NautilusTrader 文档"/><meta data-rh=true name=description content=design-principles} /><meta data-rh=true property=og:description content=design-principles} /><link data-rh=true rel=icon href=/logo.png /><link data-rh=true rel=canonical href=https://nautilus.aloen.to/developer_guide/design_principles /><link data-rh=true rel=alternate href=https://nautilus.aloen.to/developer_guide/design_principles hreflang=zh /><link data-rh=true rel=alternate href=https://nautilus.aloen.to/developer_guide/design_principles hreflang=x-default /><script data-rh=true type=application/ld+json>{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","item":"https://nautilus.aloen.to/developer_guide/","name":"开发者指南","position":1},{"@type":"ListItem","item":"https://nautilus.aloen.to/developer_guide/design_principles","name":"设计原则","position":2}]}</script><link rel=stylesheet href=/assets/css/styles.adb7ea18.css /><script src=/assets/js/runtime~main.71ac0794.js defer></script><script src=/assets/js/main.d978d0f2.js defer></script></head><body><svg style="display: none;"><defs>
+<symbol id=theme-svg-external-link viewBox="0 0 24 24"><path fill=currentColor d="M21 13v10h-21v-19h12v2h-10v15h17v-8h2zm3-12h-10.988l4.035 4-6.977 7.07 2.828 2.828 6.977-7.07 4.125 4.172v-11z"/></symbol>
+</defs></svg>
+<script>!function(){var t=function(){try{return new URLSearchParams(window.location.search).get("docusaurus-theme")}catch(t){}}()||function(){try{return window.localStorage.getItem("theme-2e3")}catch(t){}}();document.documentElement.setAttribute("data-theme",t||(window.matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light")),document.documentElement.setAttribute("data-theme-choice",t||"system")}(),function(){try{for(var[t,e]of new URLSearchParams(window.location.search).entries())if(t.startsWith("docusaurus-data-")){var a=t.replace("docusaurus-data-","data-");document.documentElement.setAttribute(a,e)}}catch(t){}}()</script><div id=__docusaurus><link rel=preload as=image href=/logo.png /><div role=region aria-label=跳到主要内容><a class=skipToContent_zuOI href=#__docusaurus_skipToContent_fallback>跳到主要内容</a></div><nav aria-label=主导航 class="theme-layout-navbar navbar navbar--fixed-top"><div class=navbar__inner><div class="theme-layout-navbar-left navbar__items"><button aria-label=切换导航栏 aria-expanded=false class="navbar__toggle clean-btn" type=button><svg width=30 height=30 viewBox="0 0 30 30" aria-hidden=true><path stroke=currentColor stroke-linecap=round stroke-miterlimit=10 stroke-width=2 d="M4 7h22M4 15h22M4 23h22"/></svg></button><a class=navbar__brand href=/><div class=navbar__logo><img src=/logo.png alt="NautilusTrader Logo" class="themedComponent_q2_Y themedComponent--light_Nejn"/><img src=/logo.png alt="NautilusTrader Logo" class="themedComponent_q2_Y themedComponent--dark_JjIb"/></div><b class="navbar__title text--truncate">NautilusTrader</b></a><a aria-current=page class="navbar__item navbar__link navbar__link--active" href=/getting_started/>文档</a></div><div class="theme-layout-navbar-right navbar__items navbar__items--right"><a href=https://github.com/Aloento/NautilusTraderDoc target=_blank rel="noopener noreferrer" class="navbar__item navbar__link">GitHub<svg width=13.5 height=13.5 aria-label="(opens in new tab)" class=iconExternalLink_qUHo><use href=#theme-svg-external-link /></svg></a><div class="toggle_hHmI colorModeToggle_rOOn"><button class="clean-btn toggleButton_wEhT toggleButtonDisabled_yOOP" type=button disabled title="system mode" aria-label="切换浅色/暗黑模式（当前为system mode）"><svg viewBox="0 0 24 24" width=24 height=24 aria-hidden=true class="toggleIcon_Kt6U lightToggleIcon_Zfeh"><path fill=currentColor d="M12,9c1.65,0,3,1.35,3,3s-1.35,3-3,3s-3-1.35-3-3S10.35,9,12,9 M12,7c-2.76,0-5,2.24-5,5s2.24,5,5,5s5-2.24,5-5 S14.76,7,12,7L12,7z M2,13l2,0c0.55,0,1-0.45,1-1s-0.45-1-1-1l-2,0c-0.55,0-1,0.45-1,1S1.45,13,2,13z M20,13l2,0c0.55,0,1-0.45,1-1 s-0.45-1-1-1l-2,0c-0.55,0-1,0.45-1,1S19.45,13,20,13z M11,2v2c0,0.55,0.45,1,1,1s1-0.45,1-1V2c0-0.55-0.45-1-1-1S11,1.45,11,2z M11,20v2c0,0.55,0.45,1,1,1s1-0.45,1-1v-2c0-0.55-0.45-1-1-1C11.45,19,11,19.45,11,20z M5.99,4.58c-0.39-0.39-1.03-0.39-1.41,0 c-0.39,0.39-0.39,1.03,0,1.41l1.06,1.06c0.39,0.39,1.03,0.39,1.41,0s0.39-1.03,0-1.41L5.99,4.58z M18.36,16.95 c-0.39-0.39-1.03-0.39-1.41,0c-0.39,0.39-0.39,1.03,0,1.41l1.06,1.06c0.39,0.39,1.03,0.39,1.41,0c0.39-0.39,0.39-1.03,0-1.41 L18.36,16.95z M19.42,5.99c0.39-0.39,0.39-1.03,0-1.41c-0.39-0.39-1.03-0.39-1.41,0l-1.06,1.06c-0.39,0.39-0.39,1.03,0,1.41 s1.03,0.39,1.41,0L19.42,5.99z M7.05,18.36c0.39-0.39,0.39-1.03,0-1.41c-0.39-0.39-1.03-0.39-1.41,0l-1.06,1.06 c-0.39,0.39-0.39,1.03,0,1.41s1.03,0.39,1.41,0L7.05,18.36z"/></svg><svg viewBox="0 0 24 24" width=24 height=24 aria-hidden=true class="toggleIcon_Kt6U darkToggleIcon_XgQr"><path fill=currentColor d="M9.37,5.51C9.19,6.15,9.1,6.82,9.1,7.5c0,4.08,3.32,7.4,7.4,7.4c0.68,0,1.35-0.09,1.99-0.27C17.45,17.19,14.93,19,12,19 c-3.86,0-7-3.14-7-7C5,9.07,6.81,6.55,9.37,5.51z M12,3c-4.97,0-9,4.03-9,9s4.03,9,9,9s9-4.03,9-9c0-0.46-0.04-0.92-0.1-1.36 c-0.98,1.37-2.58,2.26-4.4,2.26c-2.98,0-5.4-2.42-5.4-5.4c0-1.81,0.89-3.42,2.26-4.4C12.92,3.04,12.46,3,12,3L12,3z"/></svg><svg viewBox="0 0 24 24" width=24 height=24 aria-hidden=true class="toggleIcon_Kt6U systemToggleIcon_BvUi"><path fill=currentColor d="m12 21c4.971 0 9-4.029 9-9s-4.029-9-9-9-9 4.029-9 9 4.029 9 9 9zm4.95-13.95c1.313 1.313 2.05 3.093 2.05 4.95s-0.738 3.637-2.05 4.95c-1.313 1.313-3.093 2.05-4.95 2.05v-14c1.857 0 3.637 0.737 4.95 2.05z"/></svg></button></div><div class=navbarSearchContainer_watl></div></div></div><div role=presentation class=navbar-sidebar__backdrop></div></nav><div id=__docusaurus_skipToContent_fallback class="theme-layout-main main-wrapper mainWrapper_R72Q"><div class=docsWrapper_XQ9b><button aria-label=回到顶部 class="clean-btn theme-back-to-top-button backToTopButton_MbnX" type=button></button><div class=docRoot_aqOB><aside class="theme-doc-sidebar-container docSidebarContainer_sI2e"><div class=sidebarViewport_TzTy><div class=sidebar_CbEe><nav aria-label=文档侧边栏 class="menu thin-scrollbar menu_ChRF"><ul class="theme-doc-sidebar-menu menu__list"><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-1 menu__list-item menu__list-item--collapsed"><div class=menu__list-item-collapsible><a class="categoryLink_Muyc menu__link menu__link--sublist" href=/getting_started/><span class=categoryLinkLabel_mAcL>快速开始</span></a><button aria-label="展开侧边栏分类 '快速开始'" aria-expanded=false type=button class="clean-btn menu__caret"></button></div><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-1 menu__list-item menu__list-item--collapsed"><div class=menu__list-item-collapsible><a class="categoryLink_Muyc menu__link menu__link--sublist" href=/concepts/><span class=categoryLinkLabel_mAcL>核心概念</span></a><button aria-label="展开侧边栏分类 '核心概念'" aria-expanded=false type=button class="clean-btn menu__caret"></button></div><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-1 menu__list-item menu__list-item--collapsed"><div class=menu__list-item-collapsible><a class="categoryLink_Muyc menu__link menu__link--sublist" href=/integrations/><span class=categoryLinkLabel_mAcL>交易所与集成</span></a><button aria-label="展开侧边栏分类 '交易所与集成'" aria-expanded=false type=button class="clean-btn menu__caret"></button></div><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-1 menu__list-item menu__list-item--collapsed"><div class=menu__list-item-collapsible><a class="categoryLink_Muyc menu__link menu__link--sublist" href=/how_to/><span class=categoryLinkLabel_mAcL>操作指南</span></a><button aria-label="展开侧边栏分类 '操作指南'" aria-expanded=false type=button class="clean-btn menu__caret"></button></div><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-1 menu__list-item menu__list-item--collapsed"><div class=menu__list-item-collapsible><a class="categoryLink_Muyc menu__link menu__link--sublist" href=/tutorials/><span class=categoryLinkLabel_mAcL>教程</span></a><button aria-label="展开侧边栏分类 '教程'" aria-expanded=false type=button class="clean-btn menu__caret"></button></div><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-1 menu__list-item"><div class=menu__list-item-collapsible><a class="categoryLink_Muyc menu__link menu__link--sublist menu__link--active" href=/developer_guide/><span class=categoryLinkLabel_mAcL>开发者指南</span></a><button aria-label="折叠侧边栏分类 '开发者指南'" aria-expanded=true type=button class="clean-btn menu__caret"></button></div><ul class=menu__list><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/developer_guide/adapters><span class=linkLabel_lYjD>适配器</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/developer_guide/benchmarking><span class=linkLabel_lYjD>基准测试</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/developer_guide/callback_dispatch><span class=linkLabel_lYjD>回调派发契约</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/developer_guide/coding_standards><span class=linkLabel_lYjD>编码规范</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class="menu__link menu__link--active" aria-current=page tabindex=0 href=/developer_guide/design_principles><span class=linkLabel_lYjD>设计原则</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/developer_guide/docs><span class=linkLabel_lYjD>文档风格</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/developer_guide/environment_setup><span class=linkLabel_lYjD>环境搭建</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/developer_guide/ffi><span class=linkLabel_lYjD>FFI 内存契约</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/developer_guide/markdown_style><span class=linkLabel_lYjD>Markdown 风格</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/developer_guide/plugins><span class=linkLabel_lYjD>插件</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/developer_guide/python><span class=linkLabel_lYjD>Python</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/developer_guide/python_adapters><span class=linkLabel_lYjD>Python 适配器接口</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/developer_guide/releases><span class=linkLabel_lYjD>发布</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/developer_guide/runtime_conformance><span class=linkLabel_lYjD>运行时一致性契约</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/developer_guide/rust><span class=linkLabel_lYjD>Rust</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/developer_guide/security><span class=linkLabel_lYjD>安全架构</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/developer_guide/shell><span class=linkLabel_lYjD>Shell 脚本</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/developer_guide/spec_data_testing><span class=linkLabel_lYjD>数据测试规范</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/developer_guide/spec_exec_testing><span class=linkLabel_lYjD>执行测试规范</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/developer_guide/test_datasets><span class=linkLabel_lYjD>测试数据集</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/developer_guide/testing><span class=linkLabel_lYjD>测试</span></a></ul><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-1 menu__list-item menu__list-item--collapsed"><div class=menu__list-item-collapsible><a class="categoryLink_Muyc menu__link menu__link--sublist" href=/api_reference/><span class=categoryLinkLabel_mAcL>API 参考</span></a><button aria-label="展开侧边栏分类 'API 参考'" aria-expanded=false type=button class="clean-btn menu__caret"></button></div></ul></nav></div></div></aside><main class=docMainContainer_sLF8><div class="container padding-top--md padding-bottom--lg"><div class=row><div class="col docItemCol_ZRft"><div class=docItemContainer_KOP5><article><nav class="theme-doc-breadcrumbs breadcrumbsContainer_d5rS" aria-label=页面路径><ul class=breadcrumbs><li class=breadcrumbs__item><a aria-label=主页面 class=breadcrumbs__link href=/><svg viewBox="0 0 24 24" class=breadcrumbHomeIcon_XgF2><path d="M10 19v-5h4v5c0 .55.45 1 1 1h3c.55 0 1-.45 1-1v-7h1.7c.46 0 .68-.57.33-.87L12.67 3.6c-.38-.34-.96-.34-1.34 0l-8.36 7.53c-.34.3-.13.87.33.87H5v7c0 .55.45 1 1 1h3c.55 0 1-.45 1-1z" fill=currentColor /></svg></a><li class=breadcrumbs__item><a class=breadcrumbs__link href=/developer_guide/><span>开发者指南</span></a><li class="breadcrumbs__item breadcrumbs__item--active"><span class=breadcrumbs__link>设计原则</span></ul></nav><div class="tocCollapsible_bgaJ theme-doc-toc-mobile tocMobile_FhT_"><button type=button class="clean-btn tocCollapsibleButton_F8AY">本页总览</button></div><div class="theme-doc-markdown markdown"><header><h1>设计原则</h1></header>
+<p>本页定义指导 NautilusTrader 设计、实现与评审的原则、策略与取舍。
+<a class="" href=/concepts/architecture>架构</a>描述的是组件与运行时结构。</p>
+<p>这些策略并不宣告每条既有路径都已然符合。各具体指南描述现状与限度。
+<a class="" href=/developer_guide/runtime_conformance>运行时一致性契约</a>把选定要求映射到源码、代表性检查与
+实现限度。</p>
+<h2 class="anchor anchorTargetStickyNavbar_ana5" id=design-priorities>设计优先级<a href=#design-priorities class=hash-link aria-label=设计优先级的直接链接 title=设计优先级的直接链接 translate=no>​</a></h2>
+<p>设计决策大致按以下顺序权衡这些质量属性：</p>
+<ul>
+<li class="">可靠性</li>
+<li class="">性能</li>
+<li class="">模块化</li>
+<li class="">可测试性</li>
+<li class="">可维护性</li>
+<li class="">可部署性</li>
+</ul>
+<p>性能改进必须保留关键不变式及其要求的验证。可测试性与可维护性支撑可靠性，
+可部署性影响安全上线、配置与恢复。优先级排序不意味着这些品质可以取舍。</p>
+<h2 class="anchor anchorTargetStickyNavbar_ana5" id=data-integrity-and-failure>数据完整性与失败<a href=#data-integrity-and-failure class=hash-link aria-label=数据完整性与失败的直接链接 title=数据完整性与失败的直接链接 translate=no>​</a></h2>
+<p>对交易操作，NautilusTrader 把数据完整性置于可用性之上。算术与数据处理边界
+返回错误或 panic，而不是静默接受可能影响交易决策的非法值。</p>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=invalid-operations>非法操作<a href=#invalid-operations class=hash-link aria-label=非法操作的直接链接 title=非法操作的直接链接 translate=no>​</a></h3>
+<p>遇到下列情形，系统按 API 契约快速失败——返回错误或 panic：</p>
+<ul>
+<li class="">时间戳、价格或数量的运算超出有效范围导致的算术上溢或下溢。</li>
+<li class="">反序列化中的非法数据，包括行情数据或配置中的 NaN、无穷值、越界值。</li>
+<li class="">类型转换失败，例如只接受正值之处（时间戳、数量）出现负值。</li>
+<li class="">价格、时间戳或精度值的畸形输入解析。</li>
+</ul>
+<p>在交易系统中，一个错误的价格、时间戳或数量可能传导成：</p>
+<ul>
+<li class="">错误的仓位规模或风险计算。</li>
+<li class="">以错误价格发出的订单。</li>
+<li class="">产生误导性结果的回测。</li>
+<li class="">无声的财务损失。</li>
+</ul>
+<p>在非法操作处失败带来：</p>
+<ul>
+<li class=""><strong>无静默损坏</strong>：受检输入在非法值传播之前就被拒绝。</li>
+<li class=""><strong>即时反馈</strong>：调用方在契约被违反的那一点收到错误，或进程终止。</li>
+<li class=""><strong>诊断上下文</strong>：错误与 panic 消息指明被拒绝的操作或值。</li>
+<li class=""><strong>确定性行为</strong>：在确定性顺序与配置下，同样的非法输入产生同样的失败。
+非确定性输入仍可能改变结果。</li>
+</ul>
+<p>预期的网络、存储、业务校验与用户输入失败有明确的错误出口。不可恢复的不变式
+违规则在非法状态传播之前停止该操作或进程。panic 与可失败 API 的行为定义见
+<a class="" href=/developer_guide/rust#failure-contract-examples>Rust 错误契约</a>。</p>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=failure-containment>失败遏制<a href=#failure-containment class=hash-link aria-label=失败遏制的直接链接 title=失败遏制的直接链接 translate=no>​</a></h3>
+<p>停止完整性已无法确立的最小范围，前提是其余系统能安全继续。隔离成立时，
+被拒绝的输入或失败的操作不必停下无关组件。不可信的共享状态可能要求停止节点。
+遏制要遵循该 API 的失败契约与已证实的隔离边界，不能假定某组件能从任意 panic
+中恢复。</p>
+<p>停止进程不会取消交易场所上的活动订单，也不会消除敞口。恢复必须先确立交易场所状态，
+再决定哪些后续动作是安全的。</p>
+<h2 class="anchor anchorTargetStickyNavbar_ana5" id=executable-invariants>可执行不变式<a href=#executable-invariants class=hash-link aria-label=可执行不变式的直接链接 title=可执行不变式的直接链接 translate=no>​</a></h2>
+<p>NautilusTrader 在高保障实践上对关键路径渐进采用。可执行不变式验证行为是否
+符合业务要求：</p>
+<ul>
+<li class="">识别高影响组件（包括核心领域类型以及风险与执行流程），用平实的语言陈述其不变式。</li>
+<li class="">把这些不变式固化为可执行检查（单元测试、属性测试、fuzzer 与静态断言），在 CI 中运行。</li>
+<li class="">通过类型与显式的失败契约强制所有权与状态不变式。形式化工具的收益配得上成本时再引入。</li>
+<li class="">要求集成方保留既有关键路径的不变式，并为其引入或改变的不变式补充可执行覆盖。</li>
+</ul>
+<p>这一方式给高风险流程额外审视，而不把同样的保障成本摊到每条路径上。</p>
+<p>延伸阅读：<a href=https://highassurance.rs/ target=_blank rel="noopener noreferrer" class="">High Assurance Rust</a>。</p>
+<h2 class="anchor anchorTargetStickyNavbar_ana5" id=message-immutability>消息不可变性<a href=#message-immutability class=hash-link aria-label=消息不可变性的直接链接 title=消息不可变性的直接链接 translate=no>​</a></h2>
+<p>消息（请求、响应、事件与命令）创建后不可变。其字段在消息余下的生命周期中
+保持不变。由这一不变式派生的所有权规则见
+<a class="" href=/concepts/message_bus#message-integrity>消息总线：消息完整性</a>。</p>
+<p>这一不变式保护系统依赖的若干性质：</p>
+<ul>
+<li class=""><strong>稳定的输入</strong>：每个消费者看到的消息载荷都相同。重放一个序列时，能还原出
+最初的逻辑输入，供回测、事件重建与回归测试使用。</li>
+<li class=""><strong>时间完整性</strong>：消息保留其生产者在创建时刻报告、观测、请求或推断的内容，
+可用的出处一并保留。不可变性并不证明生产者的信息为真；更正需要显式的新记录。</li>
+<li class=""><strong>更安全的并发</strong>：读者不必协调以防护消息载荷被后续改写，消除了共享状态周围
+一类常见的竞态来源。</li>
+<li class=""><strong>可调试、可审计</strong>：日志、跟踪、重放工具与死信检视保留原始载荷，从而可以追查
+系统收到或创建了的是什么、发生于何时，以及系统用它做了什么。</li>
+<li class=""><strong>清晰的所有权边界</strong>：组件把进入的消息当作输入。需要不同表示时，显式派生新的
+本地状态或新消息。</li>
+<li class=""><strong>更稳健的分布式</strong>：序列化的消息本来就以副本跨越进程与服务边界，内存模型
+沿用同一条所有权规则，与现实一致。</li>
+</ul>
+<h2 class="anchor anchorTargetStickyNavbar_ana5" id=evidence-and-authority>证据与权威<a href=#evidence-and-authority class=hash-link aria-label=证据与权威的直接链接 title=证据与权威的直接链接 translate=no>​</a></h2>
+<p>区分外部报告、本地观测、推断与策略决策。由它们派生状态时，保留各自的出处与
+不确定性。一个合法的数值或状态转换，本身并不确立某项交易场所事实。证据缺失时，
+不能因为超时或重试上限到期就把它当作已确认的结果。</p>
+<p><a class="" href=/concepts/execution/policies>执行策略</a>把这一规则应用于命令结果、对账，
+以及保留历史的限度。</p>
+<h2 class="anchor anchorTargetStickyNavbar_ana5" id=controlled-nondeterminism>受控的非确定性<a href=#controlled-nondeterminism class=hash-link aria-label=受控的非确定性的直接链接 title=受控的非确定性的直接链接 translate=no>​</a></h2>
+<p>让时间、随机性、输入顺序与外部影响在其消费边界处显式化。可复现的测试必须
+控制影响其断言的那些来源，并保留调查失败所需的输入、种子与配置。任何确定性
+保证都要写明其成立所依赖的二进制、平台与输入条件。</p>
+<p><a class="" href=/concepts/dst>DST 契约</a>定义了种子控制执行的支持范围。实时的交易场所行为
+与独立的外部输入留在该保证之外。</p>
+<h2 class="anchor anchorTargetStickyNavbar_ana5" id=bounded-resource-use>有界的资源使用<a href=#bounded-resource-use class=hash-link aria-label=有界的资源使用的直接链接 title=有界的资源使用的直接链接 translate=no>​</a></h2>
+<p>队列、重试、保留历史与回调链的设计要带上显式的资源预算与耗尽行为。内存用量
+会波动时，除了条目数还要计入载荷大小。约束工作量而不只是存储，防止一个能
+持续补充的队列独占执行。</p>
+<p>按受影响的契约选择背压、拒绝或安全终止。过载不得静默丢失必要的状态转换，
+也不得把部分应用的操作呈现为已完成。这些是设计要求。既有路径仍可能是无界的，
+如<a class="" href=/concepts/live#dispatch-priority-and-overload-behavior>实时派发与过载行为</a>所述。</p>
+<h2 class="anchor anchorTargetStickyNavbar_ana5" id=recovery-after-failure>故障后的恢复<a href=#recovery-after-failure class=hash-link aria-label=故障后的恢复的直接链接 title=故障后的恢复的直接链接 translate=no>​</a></h2>
+<p>不可恢复的故障不得让系统继续在可能无效的状态上运行。正常启动包含配置好的
+状态恢复，因此重启走的就是普通启动的同一条初始化路径。恢复依赖保留的状态与
+后备存储的持久性。</p>
+<p>进程故障后的重启由外部 supervisor 负责。恢复以尽量缩短停机为目标，其时长取决于
+要恢复的状态与后备存储。执行恢复必须对账交易场所状态，而不是盲目重试交易场所命令。
+正常运行保留优雅关停；不可恢复的故障可能让清理不再安全。</p>
+<p>进程与持久化边界的说明见<a class="" href=/concepts/architecture#crash-only-design>运行时故障与恢复</a>。</p>
+<h2 class="anchor anchorTargetStickyNavbar_ana5" id=domain-and-integration-boundaries>领域与集成边界<a href=#domain-and-integration-boundaries class=hash-link aria-label=领域与集成边界的直接链接 title=领域与集成边界的直接链接 translate=no>​</a></h2>
+<p>领域类型与契约定义交易行为。组件经由显式接口与不可变消息通信。
+端口与适配器把交易场所传输与后备存储实现挡在共享交易核心之外，
+因此自定义集成保留同样的领域契约。</p>
+<h2 class="anchor anchorTargetStickyNavbar_ana5" id=backtest-and-live-behavior>回测与实时行为<a href=#backtest-and-live-behavior class=hash-link aria-label=回测与实时行为的直接链接 title=回测与实时行为的直接链接 translate=no>​</a></h2>
+<p>回测、沙箱与实时环境共享核心交易组件与行为契约。同一份策略与执行算法代码
+可在这些环境间运行。实时执行还会引入交易场所、传输、时序、持久化、外部活动与
+对账行为，模拟未必能复现。代码共享不意味着不同的输入或运行条件会得出相同结果。</p>
+<p><a class="" href=/concepts/architecture#common-core>通用核心</a>提供各引擎与接口，
+<a class="" href=/concepts/behavioral_models>行为模型</a>定义模型实现如何进入运行时。</p>
+<h2 class="anchor anchorTargetStickyNavbar_ana5" id=queued-callback-dispatch-requirements>排队回调派发要求<a href=#queued-callback-dispatch-requirements class=hash-link aria-label=排队回调派发要求的直接链接 title=排队回调派发要求的直接链接 translate=no>​</a></h2>
+<p>规范的 actor 与策略投递必须保持发布顺序、组件独占访问与生命周期资格，
+并做到有界进展。重入不得改变排序规则。有序投递并不意味着存在按事件时间
+切成的缓存快照。</p>
+<p>运行时在一小组显式的所有权边界上掌控排空调度，时机是外层可变借用结束之后。
+各个派发、flush 与生命周期方法不得各自持有排空策略。失败处理与清理交给现有的
+生命周期所有者。只在能降低复杂度、又保留回测结算与实时让出规则的地方，
+才共享调度代码。</p>
+<p>同步核心与回测中的确定性回调顺序是必须满足的启用准则。要通过真实的 native 与
+Python 组件验证精确序列，覆盖嵌套发布、扇出、回调生成的命令、同一时间戳的工作，
+以及跨有界排空遍历的续作。仅凭最终的计数与余额无法确立顺序。</p>
+<p>这些是排队派发的要求，不是对既有同步路径的保证。
+<a class="" href=/developer_guide/callback_dispatch>回调派发契约</a>规定维护时机、所有权边界、生命周期失效
+与排空行为。<a class="" href=/developer_guide/runtime_conformance#callback-ordering-and-ownership>运行时一致性契约</a>
+记录实现覆盖与尚未完成的启用要求。</div><footer class="theme-doc-footer docusaurus-mt-lg"><div class="row margin-top--sm theme-doc-footer-edit-meta-row"><div class="col noPrint_MRkS"><a href=https://github.com/Aloento/NautilusTraderDoc/tree/main/docs/developer_guide/design_principles.md target=_blank rel="noopener noreferrer" class=theme-edit-this-page><svg fill=currentColor height=20 width=20 viewBox="0 0 40 40" class=iconEdit_RPSQ aria-hidden=true><g><path d="m34.5 11.7l-3 3.1-6.3-6.3 3.1-3q0.5-0.5 1.2-0.5t1.1 0.5l3.9 3.9q0.5 0.4 0.5 1.1t-0.5 1.2z m-29.5 17.1l18.4-18.5 6.3 6.3-18.4 18.4h-6.3v-6.2z"/></g></svg>编辑此页</a></div><div class="col lastUpdated_oZSl"><span class=theme-last-updated>最后<!-- -->于 <b><time datetime=2026-10-14T22:30:30.000Z itemprop=dateModified>2026年10月14日</time></b> <!-- -->更新</span></div></div></footer></article><nav class="docusaurus-mt-lg pagination-nav" aria-label=文件选项卡><a class="pagination-nav__link pagination-nav__link--prev" href=/developer_guide/coding_standards><div class=pagination-nav__sublabel>上一页</div><div class=pagination-nav__label>编码规范</div></a><a class="pagination-nav__link pagination-nav__link--next" href=/developer_guide/docs><div class=pagination-nav__sublabel>下一页</div><div class=pagination-nav__label>文档风格</div></a></nav></div></div><div class="col col--3"><div class="tableOfContents_LyLZ thin-scrollbar theme-doc-toc-desktop"><ul class="table-of-contents table-of-contents__left-border"><li><a href=#design-priorities class="table-of-contents__link toc-highlight">设计优先级</a><li><a href=#data-integrity-and-failure class="table-of-contents__link toc-highlight">数据完整性与失败</a><ul><li><a href=#invalid-operations class="table-of-contents__link toc-highlight">非法操作</a><li><a href=#failure-containment class="table-of-contents__link toc-highlight">失败遏制</a></ul><li><a href=#executable-invariants class="table-of-contents__link toc-highlight">可执行不变式</a><li><a href=#message-immutability class="table-of-contents__link toc-highlight">消息不可变性</a><li><a href=#evidence-and-authority class="table-of-contents__link toc-highlight">证据与权威</a><li><a href=#controlled-nondeterminism class="table-of-contents__link toc-highlight">受控的非确定性</a><li><a href=#bounded-resource-use class="table-of-contents__link toc-highlight">有界的资源使用</a><li><a href=#recovery-after-failure class="table-of-contents__link toc-highlight">故障后的恢复</a><li><a href=#domain-and-integration-boundaries class="table-of-contents__link toc-highlight">领域与集成边界</a><li><a href=#backtest-and-live-behavior class="table-of-contents__link toc-highlight">回测与实时行为</a><li><a href=#queued-callback-dispatch-requirements class="table-of-contents__link toc-highlight">排队回调派发要求</a></ul></div></div></div></div></main></div></div></div><footer class="theme-layout-footer footer footer--dark"><div class="container container-fluid"><div class="row footer__links"><div class="theme-layout-footer-column col footer__col"><div class=footer__title></div><ul class="footer__items clean-list"><li class=footer__item><a href=https://github.com/nautechsystems/nautilus_trader target=_blank rel="noopener noreferrer" class=footer__link-item>Official GitHub<svg width=13.5 height=13.5 aria-label="(opens in new tab)" class=iconExternalLink_qUHo><use href=#theme-svg-external-link /></svg></a><li class=footer__item><a href=https://nautilustrader.io/docs target=_blank rel="noopener noreferrer" class=footer__link-item>Official Documentation<svg width=13.5 height=13.5 aria-label="(opens in new tab)" class=iconExternalLink_qUHo><use href=#theme-svg-external-link /></svg></a></ul></div></div><div class="footer__bottom text--center"><div class=footer__copyright>© 2026 Nautech Systems Pty Ltd. All rights reserved.</div></div></div></footer></div></body>

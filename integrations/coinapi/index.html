@@ -1,0 +1,763 @@
+<!doctype html><html lang=zh dir=ltr class="docs-wrapper plugin-docs plugin-id-default docs-version-current docs-doc-page docs-doc-id-integrations/coinapi" data-has-hydrated=false><head><meta charset=UTF-8><meta name=generator content="Docusaurus v3.10.2"><title data-rh=true>CoinAPI | NautilusTrader 文档</title><meta data-rh=true name=viewport content="width=device-width, initial-scale=1.0"/><meta data-rh=true name=twitter:card content=summary_large_image /><meta data-rh=true property=og:url content=https://nautilus.aloen.to/integrations/coinapi /><meta data-rh=true property=og:locale content=zh /><meta data-rh=true name=docusaurus_locale content=zh /><meta data-rh=true name=docsearch:language content=zh /><meta data-rh=true name=docusaurus_version content=current /><meta data-rh=true name=docusaurus_tag content=docs-default-current /><meta data-rh=true name=docsearch:version content=current /><meta data-rh=true name=docsearch:docusaurus_tag content=docs-default-current /><meta data-rh=true property=og:title content="CoinAPI | NautilusTrader 文档"/><meta data-rh=true name=description content="CoinAPI（API Bricks 旗下）提供跨多家交易所的实时与历史加密货币行情数据。其 REST 和 WebSocket API 以统一的数据格式暴露成交、报价、订单簿和 OHLCV bar。"/><meta data-rh=true property=og:description content="CoinAPI（API Bricks 旗下）提供跨多家交易所的实时与历史加密货币行情数据。其 REST 和 WebSocket API 以统一的数据格式暴露成交、报价、订单簿和 OHLCV bar。"/><link data-rh=true rel=icon href=/logo.png /><link data-rh=true rel=canonical href=https://nautilus.aloen.to/integrations/coinapi /><link data-rh=true rel=alternate href=https://nautilus.aloen.to/integrations/coinapi hreflang=zh /><link data-rh=true rel=alternate href=https://nautilus.aloen.to/integrations/coinapi hreflang=x-default /><script data-rh=true type=application/ld+json>{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","item":"https://nautilus.aloen.to/integrations/","name":"交易所与集成","position":1},{"@type":"ListItem","item":"https://nautilus.aloen.to/integrations/coinapi","name":"CoinAPI","position":2}]}</script><link rel=stylesheet href=/assets/css/styles.adb7ea18.css /><script src=/assets/js/runtime~main.71ac0794.js defer></script><script src=/assets/js/main.d978d0f2.js defer></script></head><body><svg style="display: none;"><defs>
+<symbol id=theme-svg-external-link viewBox="0 0 24 24"><path fill=currentColor d="M21 13v10h-21v-19h12v2h-10v15h17v-8h2zm3-12h-10.988l4.035 4-6.977 7.07 2.828 2.828 6.977-7.07 4.125 4.172v-11z"/></symbol>
+</defs></svg>
+<script>!function(){var t=function(){try{return new URLSearchParams(window.location.search).get("docusaurus-theme")}catch(t){}}()||function(){try{return window.localStorage.getItem("theme-2e3")}catch(t){}}();document.documentElement.setAttribute("data-theme",t||(window.matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light")),document.documentElement.setAttribute("data-theme-choice",t||"system")}(),function(){try{for(var[t,e]of new URLSearchParams(window.location.search).entries())if(t.startsWith("docusaurus-data-")){var a=t.replace("docusaurus-data-","data-");document.documentElement.setAttribute(a,e)}}catch(t){}}()</script><div id=__docusaurus><link rel=preload as=image href=/logo.png /><div role=region aria-label=跳到主要内容><a class=skipToContent_zuOI href=#__docusaurus_skipToContent_fallback>跳到主要内容</a></div><nav aria-label=主导航 class="theme-layout-navbar navbar navbar--fixed-top"><div class=navbar__inner><div class="theme-layout-navbar-left navbar__items"><button aria-label=切换导航栏 aria-expanded=false class="navbar__toggle clean-btn" type=button><svg width=30 height=30 viewBox="0 0 30 30" aria-hidden=true><path stroke=currentColor stroke-linecap=round stroke-miterlimit=10 stroke-width=2 d="M4 7h22M4 15h22M4 23h22"/></svg></button><a class=navbar__brand href=/><div class=navbar__logo><img src=/logo.png alt="NautilusTrader Logo" class="themedComponent_q2_Y themedComponent--light_Nejn"/><img src=/logo.png alt="NautilusTrader Logo" class="themedComponent_q2_Y themedComponent--dark_JjIb"/></div><b class="navbar__title text--truncate">NautilusTrader</b></a><a aria-current=page class="navbar__item navbar__link navbar__link--active" href=/getting_started/>文档</a></div><div class="theme-layout-navbar-right navbar__items navbar__items--right"><a href=https://github.com/Aloento/NautilusTraderDoc target=_blank rel="noopener noreferrer" class="navbar__item navbar__link">GitHub<svg width=13.5 height=13.5 aria-label="(opens in new tab)" class=iconExternalLink_qUHo><use href=#theme-svg-external-link /></svg></a><div class="toggle_hHmI colorModeToggle_rOOn"><button class="clean-btn toggleButton_wEhT toggleButtonDisabled_yOOP" type=button disabled title="system mode" aria-label="切换浅色/暗黑模式（当前为system mode）"><svg viewBox="0 0 24 24" width=24 height=24 aria-hidden=true class="toggleIcon_Kt6U lightToggleIcon_Zfeh"><path fill=currentColor d="M12,9c1.65,0,3,1.35,3,3s-1.35,3-3,3s-3-1.35-3-3S10.35,9,12,9 M12,7c-2.76,0-5,2.24-5,5s2.24,5,5,5s5-2.24,5-5 S14.76,7,12,7L12,7z M2,13l2,0c0.55,0,1-0.45,1-1s-0.45-1-1-1l-2,0c-0.55,0-1,0.45-1,1S1.45,13,2,13z M20,13l2,0c0.55,0,1-0.45,1-1 s-0.45-1-1-1l-2,0c-0.55,0-1,0.45-1,1S19.45,13,20,13z M11,2v2c0,0.55,0.45,1,1,1s1-0.45,1-1V2c0-0.55-0.45-1-1-1S11,1.45,11,2z M11,20v2c0,0.55,0.45,1,1,1s1-0.45,1-1v-2c0-0.55-0.45-1-1-1C11.45,19,11,19.45,11,20z M5.99,4.58c-0.39-0.39-1.03-0.39-1.41,0 c-0.39,0.39-0.39,1.03,0,1.41l1.06,1.06c0.39,0.39,1.03,0.39,1.41,0s0.39-1.03,0-1.41L5.99,4.58z M18.36,16.95 c-0.39-0.39-1.03-0.39-1.41,0c-0.39,0.39-0.39,1.03,0,1.41l1.06,1.06c0.39,0.39,1.03,0.39,1.41,0c0.39-0.39,0.39-1.03,0-1.41 L18.36,16.95z M19.42,5.99c0.39-0.39,0.39-1.03,0-1.41c-0.39-0.39-1.03-0.39-1.41,0l-1.06,1.06c-0.39,0.39-0.39,1.03,0,1.41 s1.03,0.39,1.41,0L19.42,5.99z M7.05,18.36c0.39-0.39,0.39-1.03,0-1.41c-0.39-0.39-1.03-0.39-1.41,0l-1.06,1.06 c-0.39,0.39-0.39,1.03,0,1.41s1.03,0.39,1.41,0L7.05,18.36z"/></svg><svg viewBox="0 0 24 24" width=24 height=24 aria-hidden=true class="toggleIcon_Kt6U darkToggleIcon_XgQr"><path fill=currentColor d="M9.37,5.51C9.19,6.15,9.1,6.82,9.1,7.5c0,4.08,3.32,7.4,7.4,7.4c0.68,0,1.35-0.09,1.99-0.27C17.45,17.19,14.93,19,12,19 c-3.86,0-7-3.14-7-7C5,9.07,6.81,6.55,9.37,5.51z M12,3c-4.97,0-9,4.03-9,9s4.03,9,9,9s9-4.03,9-9c0-0.46-0.04-0.92-0.1-1.36 c-0.98,1.37-2.58,2.26-4.4,2.26c-2.98,0-5.4-2.42-5.4-5.4c0-1.81,0.89-3.42,2.26-4.4C12.92,3.04,12.46,3,12,3L12,3z"/></svg><svg viewBox="0 0 24 24" width=24 height=24 aria-hidden=true class="toggleIcon_Kt6U systemToggleIcon_BvUi"><path fill=currentColor d="m12 21c4.971 0 9-4.029 9-9s-4.029-9-9-9-9 4.029-9 9 4.029 9 9 9zm4.95-13.95c1.313 1.313 2.05 3.093 2.05 4.95s-0.738 3.637-2.05 4.95c-1.313 1.313-3.093 2.05-4.95 2.05v-14c1.857 0 3.637 0.737 4.95 2.05z"/></svg></button></div><div class=navbarSearchContainer_watl></div></div></div><div role=presentation class=navbar-sidebar__backdrop></div></nav><div id=__docusaurus_skipToContent_fallback class="theme-layout-main main-wrapper mainWrapper_R72Q"><div class=docsWrapper_XQ9b><button aria-label=回到顶部 class="clean-btn theme-back-to-top-button backToTopButton_MbnX" type=button></button><div class=docRoot_aqOB><aside class="theme-doc-sidebar-container docSidebarContainer_sI2e"><div class=sidebarViewport_TzTy><div class=sidebar_CbEe><nav aria-label=文档侧边栏 class="menu thin-scrollbar menu_ChRF"><ul class="theme-doc-sidebar-menu menu__list"><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-1 menu__list-item menu__list-item--collapsed"><div class=menu__list-item-collapsible><a class="categoryLink_Muyc menu__link menu__link--sublist" href=/getting_started/><span class=categoryLinkLabel_mAcL>快速开始</span></a><button aria-label="展开侧边栏分类 '快速开始'" aria-expanded=false type=button class="clean-btn menu__caret"></button></div><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-1 menu__list-item menu__list-item--collapsed"><div class=menu__list-item-collapsible><a class="categoryLink_Muyc menu__link menu__link--sublist" href=/concepts/><span class=categoryLinkLabel_mAcL>核心概念</span></a><button aria-label="展开侧边栏分类 '核心概念'" aria-expanded=false type=button class="clean-btn menu__caret"></button></div><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-1 menu__list-item"><div class=menu__list-item-collapsible><a class="categoryLink_Muyc menu__link menu__link--sublist menu__link--active" href=/integrations/><span class=categoryLinkLabel_mAcL>交易所与集成</span></a><button aria-label="折叠侧边栏分类 '交易所与集成'" aria-expanded=true type=button class="clean-btn menu__caret"></button></div><ul class=menu__list><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/integrations/architect_ax><span class=linkLabel_lYjD>AX Exchange</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/integrations/betfair><span class=linkLabel_lYjD>Betfair</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/integrations/binance><span class=linkLabel_lYjD>Binance</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/integrations/blockchain><span class=linkLabel_lYjD>区块链</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/integrations/bybit><span class=linkLabel_lYjD>Bybit</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class="menu__link menu__link--active" aria-current=page tabindex=0 href=/integrations/coinapi><span class=linkLabel_lYjD>CoinAPI</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/integrations/coinbase><span class=linkLabel_lYjD>Coinbase</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/integrations/databento><span class=linkLabel_lYjD>Databento</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/integrations/deribit><span class=linkLabel_lYjD>Deribit</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/integrations/derive><span class=linkLabel_lYjD>Derive</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/integrations/dydx><span class=linkLabel_lYjD>dYdX</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/integrations/hyperliquid><span class=linkLabel_lYjD>Hyperliquid</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/integrations/interactive_brokers><span class=linkLabel_lYjD>Interactive Brokers</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/integrations/kraken><span class=linkLabel_lYjD>Kraken</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/integrations/lighter><span class=linkLabel_lYjD>Lighter</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/integrations/okx><span class=linkLabel_lYjD>OKX</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/integrations/polymarket><span class=linkLabel_lYjD>Polymarket</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/integrations/tardis><span class=linkLabel_lYjD>Tardis</span></a></ul><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-1 menu__list-item menu__list-item--collapsed"><div class=menu__list-item-collapsible><a class="categoryLink_Muyc menu__link menu__link--sublist" href=/how_to/><span class=categoryLinkLabel_mAcL>操作指南</span></a><button aria-label="展开侧边栏分类 '操作指南'" aria-expanded=false type=button class="clean-btn menu__caret"></button></div><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-1 menu__list-item menu__list-item--collapsed"><div class=menu__list-item-collapsible><a class="categoryLink_Muyc menu__link menu__link--sublist" href=/tutorials/><span class=categoryLinkLabel_mAcL>教程</span></a><button aria-label="展开侧边栏分类 '教程'" aria-expanded=false type=button class="clean-btn menu__caret"></button></div><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-1 menu__list-item menu__list-item--collapsed"><div class=menu__list-item-collapsible><a class="categoryLink_Muyc menu__link menu__link--sublist" href=/developer_guide/><span class=categoryLinkLabel_mAcL>开发者指南</span></a><button aria-label="展开侧边栏分类 '开发者指南'" aria-expanded=false type=button class="clean-btn menu__caret"></button></div><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-1 menu__list-item menu__list-item--collapsed"><div class=menu__list-item-collapsible><a class="categoryLink_Muyc menu__link menu__link--sublist" href=/api_reference/><span class=categoryLinkLabel_mAcL>API 参考</span></a><button aria-label="展开侧边栏分类 'API 参考'" aria-expanded=false type=button class="clean-btn menu__caret"></button></div></ul></nav></div></div></aside><main class=docMainContainer_sLF8><div class="container padding-top--md padding-bottom--lg"><div class=row><div class="col docItemCol_ZRft"><div class=docItemContainer_KOP5><article><nav class="theme-doc-breadcrumbs breadcrumbsContainer_d5rS" aria-label=页面路径><ul class=breadcrumbs><li class=breadcrumbs__item><a aria-label=主页面 class=breadcrumbs__link href=/><svg viewBox="0 0 24 24" class=breadcrumbHomeIcon_XgF2><path d="M10 19v-5h4v5c0 .55.45 1 1 1h3c.55 0 1-.45 1-1v-7h1.7c.46 0 .68-.57.33-.87L12.67 3.6c-.38-.34-.96-.34-1.34 0l-8.36 7.53c-.34.3-.13.87.33.87H5v7c0 .55.45 1 1 1h3c.55 0 1-.45 1-1z" fill=currentColor /></svg></a><li class=breadcrumbs__item><a class=breadcrumbs__link href=/integrations/><span>交易所与集成</span></a><li class="breadcrumbs__item breadcrumbs__item--active"><span class=breadcrumbs__link>CoinAPI</span></ul></nav><div class="tocCollapsible_bgaJ theme-doc-toc-mobile tocMobile_FhT_"><button type=button class="clean-btn tocCollapsibleButton_F8AY">本页总览</button></div><div class="theme-doc-markdown markdown"><header><h1>CoinAPI</h1></header>
+<p><a href="https://www.coinapi.io/products/market-data-api?ref=nautilus" target=_blank rel="noopener noreferrer" class="">CoinAPI</a>（<a href="https://www.apibricks.io/?ref=nautilus" target=_blank rel="noopener noreferrer" class="">API Bricks</a> 旗下）提供跨多家交易所的实时与历史加密货币行情数据。其 REST 和 WebSocket API 以统一的数据格式暴露成交、报价、订单簿和 OHLCV bar。</p>
+<p>NautilusTrader 适配器支持实时行情、历史请求，以及加载已下载的扁平文件（flat file）。它没有执行客户端、账户管理或订单路由。</p>
+<h2 class="anchor anchorTargetStickyNavbar_ana5" id=overview>概览<a href=#overview class=hash-link aria-label=概览的直接链接 title=概览的直接链接 translate=no>​</a></h2>
+<p>适配器以 Rust 实现并提供 Python 绑定，不需要外部 CoinAPI 客户端库。通过实时节点配置，使用以下 Python 组件：</p>
+<ul>
+<li class=""><code>CoinApiDataClientConfig</code>：实时数据客户端配置。</li>
+<li class=""><code>CoinApiInstrumentSelection</code>：要加载的交易所、金融工具和元数据过滤器。</li>
+<li class=""><code>CoinApiDataClientFactory</code>：注册到节点 builder 的工厂。</li>
+</ul>
+<p>Rust crate 还暴露 <code>CoinApiHttpClient</code> 和 <code>CoinApiWebSocketClient</code>，供直接访问 API。</p>
+<h2 class="anchor anchorTargetStickyNavbar_ana5" id=examples>示例<a href=#examples class=hash-link aria-label=示例的直接链接 title=示例的直接链接 translate=no>​</a></h2>
+<ul>
+<li class=""><a href=https://github.com/nautechsystems/nautilus_trader/tree/develop/examples/live/coinapi/ target=_blank rel="noopener noreferrer" class="">Python 示例</a></li>
+<li class=""><a href=https://github.com/nautechsystems/nautilus_trader/tree/develop/crates/adapters/coinapi/examples/ target=_blank rel="noopener noreferrer" class="">Rust 示例</a></li>
+</ul>
+<p>示例加载 Coinbase 的 BTC/USD，流式接收报价、成交和一分钟 bar，并请求近期 bar。它们使用 10 点信用额度的 REST 预算和精度 3 的价格覆盖。请按你的数据源修改金融工具和订阅设置，更换金融工具时同步更新精度覆盖。历史数据可能落后于实时数据流，因此请求近期 bar 可能返回空记录。</p>
+<h2 class="anchor anchorTargetStickyNavbar_ana5" id=coinapi-documentation>CoinAPI 文档<a href=#coinapi-documentation class=hash-link aria-label="CoinAPI 文档的直接链接" title="CoinAPI 文档的直接链接" translate=no>​</a></h2>
+<ul>
+<li class=""><a href="https://www.coinapi.io/products/market-data-api/docs/rest-api?ref=nautilus" target=_blank rel="noopener noreferrer" class="">Market Data REST API</a>。</li>
+<li class=""><a href="https://www.coinapi.io/products/market-data-api/docs/websocket?ref=nautilus" target=_blank rel="noopener noreferrer" class="">WebSocket V1 API</a>。</li>
+<li class=""><a href="https://www.coinapi.io/products/flat-files?ref=nautilus" target=_blank rel="noopener noreferrer" class="">Flat Files</a>。</li>
+</ul>
+<h2 class="anchor anchorTargetStickyNavbar_ana5" id=supported-capabilities>支持的能力<a href=#supported-capabilities class=hash-link aria-label=支持的能力的直接链接 title=支持的能力的直接链接 translate=no>​</a></h2>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>能力<th>接口<th>状态<tbody><tr><td>现货、永续、期货金融工具<td>REST 元数据<td>原生«场所金融工具» ID。<tr><td>订单簿 delta<td>WebSocket<td>L2（<code>book</code>）与 L3（<code>book_l3</code>），带缺口恢复。<tr><td>固定深度订单簿快照<td>WebSocket<td>最多 50 档的 L2（<code>book5</code>、<code>book20</code>、<code>book50</code>）。<tr><td>当前订单簿快照<td>REST<td>L2 快照请求。<tr><td>历史订单簿快照<td>REST<td>不支持。<tr><td>报价 tick<td>WebSocket 与历史 REST<td>实时数据流与历史请求。<tr><td>成交 tick<td>WebSocket 与历史 REST<td>实时数据流与历史请求。<tr><td>OHLCV bar<td>WebSocket 与历史 REST<td>实时数据流与历史请求。<tr><td>已下载的扁平文件<td>S3 CSV 导出<td>Rust 与 Python 加载器。<tr><td>执行、订单与账户报告<td>无<td>超出范围。</table>
+<p>订单簿类型：</p>
+<ul>
+<li class="">L2 market-by-price（MBP）：按价格档位聚合数量。</li>
+<li class="">L3 market-by-order（MBO）：数据源和协议提供时的逐笔订单。</li>
+</ul>
+<p>固定深度订阅使用能覆盖请求深度的最小通道。L3 要求逐笔订单 ID：聚合的 <code>book_l3</code> 条目若没有 ID，转换失败并启动恢复。对只上报聚合档位的来源，L3 订单簿永远不会同步。</p>
+<p>期权、资金费率与未平仓量指标、FIX、扁平文件下载、Hyperliquid L4 数据和代币化股票都在此适配器范围之外。CoinAPI EMS 执行是独立产品。</p>
+<h2 class="anchor anchorTargetStickyNavbar_ana5" id=integrator-attribution>集成方署名<a href=#integrator-attribution class=hash-link aria-label=集成方署名的直接链接 title=集成方署名的直接链接 translate=no>​</a></h2>
+<p>REST 请求和 WebSocket 连接都携带固定推荐头 <code>X-Referrer: nautilus</code>，重试和重连同样如此。它没有配置覆盖，也不携带任何凭据或账户数据。</p>
+<p>要把新账户推荐到 NautilusTrader，请通过
+<a href="https://console.apibricks.io/?ref=nautilus" target=_blank rel="noopener noreferrer" class="">API Bricks console</a> 注册。注册推荐与 API 请求推荐是两套独立机制，见
+<a href="https://www.apibricks.io/platform/docs/general/referral?ref=nautilus" target=_blank rel="noopener noreferrer" class="">API Bricks 推荐文档</a>。</p>
+<h2 class="anchor anchorTargetStickyNavbar_ana5" id=authentication-and-environments>认证与环境<a href=#authentication-and-environments class=hash-link aria-label=认证与环境的直接链接 title=认证与环境的直接链接 translate=no>​</a></h2>
+<p>在数据客户端配置中设置 <code>api_key</code>，或不设置以读取 <code>COINAPI_API_KEY</code>。构造时拒绝缺失的键，以及含可见 ASCII 之外字符的键。REST 请求与 WebSocket 升级用 <code>X-CoinAPI-Key</code> 认证。<code>hello</code> 帧不携带凭据。凭据在日志和错误中始终保持脱敏。导入 Python 包既不读取凭据也不发起连接。</p>
+<p>生产环境使用加密的 REST 和 WebSocket 端点。Sandbox 访问未经确认。请使用生产环境 Market Data API 密钥。无需配置执行账户。</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>接口<th>生产端点<th>角色<tbody><tr><td>REST<td><code>https://rest.coinapi.io/v1/</code><td>主 GeoDNS 端点。<tr><td>REST<td><code>https://api-emea.coinapi.io/v1/</code><td>可选区域端点。<tr><td>REST<td><code>https://api-apac.coinapi.io/v1/</code><td>可选区域端点。<tr><td>REST<td><code>https://api-ncsa.coinapi.io/v1/</code><td>可选区域端点。<tr><td>WebSocket V1<td><code>wss://ws.coinapi.io/v1/</code><td>主流式数据端点。</table>
+<p>REST 默认使用 GeoDNS。设置 <code>base_url_http</code> 可选定区域端点。适配器不会自动切换区域。见 CoinAPI 的
+<a href="https://www.coinapi.io/products/market-data-api/docs/rest-api/rest-high-availability?ref=nautilus" target=_blank rel="noopener noreferrer" class="">REST 可用性指南</a>和
+<a href="https://www.coinapi.io/products/market-data-api/docs/websocket/endpoints?ref=nautilus" target=_blank rel="noopener noreferrer" class="">WebSocket 端点</a>。</p>
+<h2 class="anchor anchorTargetStickyNavbar_ana5" id=using-coinapi-with-native-adapters>与原生适配器共用 CoinAPI<a href=#using-coinapi-with-native-adapters class=hash-link aria-label="与原生适配器共用 CoinAPI的直接链接" title="与原生适配器共用 CoinAPI的直接链接" translate=no>​</a></h2>
+<p>CoinAPI 使用原生«场所金融工具» ID，如 <code>BTCUSDT.BINANCE</code>，数据客户端 ID 为 <code>COINAPI</code>。节点有多个数据客户端时，CoinAPI 的请求与订阅要传 <code>client_id=COINAPI_CLIENT_ID</code>。未显式传客户端 ID 的请求走场所或默认路由。CoinAPI 可以作为默认数据客户端。</p>
+<div class="theme-admonition theme-admonition-warning admonition_LYZY alert alert--warning"><div class=admonitionHeading_pnFY><span class=admonitionIcon_tEzm><svg viewBox="0 0 16 16"><path fill-rule=evenodd d="M8.893 1.5c-.183-.31-.52-.5-.887-.5s-.703.19-.886.5L.138 13.499a.98.98 0 0 0 0 1.001c.193.31.53.501.886.501h13.964c.367 0 .704-.19.877-.5a1.03 1.03 0 0 0 .01-1.002L8.893 1.5zm.133 11.497H6.987v-2.003h2.039v2.003zm0-3.004H6.987V5.987h2.039v4.006z"/></svg></span>注意</div><div class=admonitionContent_ZwmI><p>每个金融工具在每个节点只能有一个定义来源。CoinAPI 与原生适配器要配置互不相交的金融工具集合，包括启动加载和刷新。即便定义一致，共享同一金融工具也不受支持。不同的客户端 ID 不能为同一金融工具隔离定义或数据流，适配器也不会自动检测或解决这类冲突。</div></div>
+<p>组合多个提供商前，先检查原生金融工具的加载默认值。例如 Binance 默认 <code>load_all=True</code>，要改为 <code>False</code> 并提供不重叠的 <code>load_ids</code>。原生适配器的场所路由保留给其余金融工具。</p>
+<p>CoinAPI 的价格与数量分辨率描述的是它自己的数据，可能与场所的交易增量不同。<code>0.1</code> 和 <code>0.5</code> 两个 tick 都用一位小数，但允许的价格不同。原生定义还携带交易约束，包括数量与名义金额限制。不要用 CoinAPI 元数据替换这些约束。</p>
+<h2 class="anchor anchorTargetStickyNavbar_ana5" id=instruments-and-symbology>金融工具与代码体系<a href=#instruments-and-symbology class=hash-link aria-label=金融工具与代码体系的直接链接 title=金融工具与代码体系的直接链接 translate=no>​</a></h2>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=supported-instruments>支持的金融工具<a href=#supported-instruments class=hash-link aria-label=支持的金融工具的直接链接 title=支持的金融工具的直接链接 translate=no>​</a></h3>
+<p>数据客户端从下列交易所加载现货、永续和到期期货金融工具。现货金融工具成为 <code>CurrencyPair</code>，加密货币永续成为 <code>CryptoPerpetual</code>，加密货币期货成为 <code>CryptoFuture</code>。Binance USD-M 的商品与股票永续（如 <code>XAUUSDT</code>）成为 <code>PerpetualContract</code>。</p>
+<p>无效、不支持或有歧义的定义会被跳过。多个定义映射到同一原生金融工具 ID 时，全部跳过。选定的金融工具无法加载会导致连接失败。</p>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=metadata>元数据<a href=#metadata class=hash-link aria-label=元数据的直接链接 title=元数据的直接链接 translate=no>​</a></h3>
+<p>CoinAPI 的 <code>price_precision</code> 和 <code>size_precision</code> 元数据值是价格和数量增量，不是小数位数，也不保证等于场所交易增量。适配器从这些分辨率推导精度，支持可选的<a href=#price-precision-overrides class="">价格精度覆盖</a>。</p>
+<p>基础与计价货币使用 CoinAPI 规范化的资产代码。乘数来自 <code>future_contract_unit</code>，期货到期时间来自 <code>future_delivery_time</code>。激活时间用 CoinAPI 的 <code>data_start</code> 覆盖日期，那不是场所上架时间。货币代码和金融工具类别可能与原生适配器的定义不同。</p>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=symbol-mappings>代码映射<a href=#symbol-mappings class=hash-link aria-label=代码映射的直接链接 title=代码映射的直接链接 translate=no>​</a></h3>
+<p>配置选择时请使用下面的原生 <code>InstrumentId</code> 形式。反向合约以基础货币结算，线性合约以计价货币结算。适配器根据场所的产品惯例判定这些属性，而不是 CoinAPI 的 inverse 标志。</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>CoinAPI 交易所<th>代码类型<th>场所代码形式<th>原生 <code>InstrumentId</code><th>合约<tbody><tr><td><code>BINANCE</code><td><code>SPOT</code><td><code>BTCUSDT</code><td><code>BTCUSDT.BINANCE</code><td>现货<tr><td><code>BINANCEFTS</code><td><code>PERPETUAL</code><td><code>BTCUSDT</code><td><code>BTCUSDT-PERP.BINANCE</code><td>线性<tr><td><code>BINANCEFTS</code><td><code>FUTURES</code><td><code>BTCUSDT_261225</code><td><code>BTCUSDT_261225.BINANCE</code><td>线性<tr><td><code>BYBITSPOT</code><td><code>SPOT</code><td><code>BTCUSDT</code><td><code>BTCUSDT-SPOT.BYBIT</code><td>现货<tr><td><code>BYBIT</code><td><code>PERPETUAL</code><td><code>BTCUSDT</code><td><code>BTCUSDT-LINEAR.BYBIT</code><td>线性<tr><td><code>BYBIT</code><td><code>FUTURES</code><td><code>BTCUSDT-30OCT26</code><td><code>BTCUSDT-30OCT26-LINEAR.BYBIT</code><td>线性<tr><td><code>BYBITINVERSE</code><td><code>PERPETUAL</code><td><code>BTCUSD</code><td><code>BTCUSD-INVERSE.BYBIT</code><td>反向<tr><td><code>BYBITINVERSE</code><td><code>FUTURES</code><td><code>BTCUSDZ26</code><td><code>BTCUSDZ26-INVERSE.BYBIT</code><td>反向<tr><td><code>OKEX</code><td><code>SPOT</code><td><code>BTC-USDT</code><td><code>BTC-USDT.OKX</code><td>现货<tr><td><code>OKEX</code><td><code>PERPETUAL</code><td><code>BTC-USD-SWAP</code><td><code>BTC-USD-SWAP.OKX</code><td>USD 为反向，其余线性<tr><td><code>OKEX</code><td><code>FUTURES</code><td><code>BTC-USD-261225</code><td><code>BTC-USD-261225.OKX</code><td>USD 为反向，其余线性<tr><td><code>COINBASE</code><td><code>SPOT</code><td><code>BTC-USD</code><td><code>BTC-USD.COINBASE</code><td>现货<tr><td><code>KRAKEN</code><td><code>SPOT</code><td><code>XBT/USD</code><td><code>BTC/USD.KRAKEN</code><td>现货<tr><td><code>KRAKENFTS</code><td><code>PERPETUAL</code><td><code>PI_XBTUSD</code><td><code>PI_XBTUSD.KRAKEN</code><td><code>PI_</code> 反向，<code>PF_</code> 线性</table>
+<p>仅支持表中列出的交易所与产品形式。原生代码必须与提供商的资产和到期元数据一致。Kraken 现货中，<code>XBT</code> 映射为 <code>BTC</code>，<code>XDG</code> 映射为 <code>DOGE</code>。适配器保留完整的 CoinAPI <code>symbol_id</code>（含消歧后缀），用于数据请求与订阅。</p>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=unsupported-contracts>不支持的合约<a href=#unsupported-contracts class=hash-link aria-label=不支持的合约的直接链接 title=不支持的合约的直接链接 translate=no>​</a></h3>
+<p>其他交易所和代码类型不支持，包括 Binance COIN-M（<code>BINANCEFTSC</code>）：CoinAPI 把 <code>BTCUSD_PERP</code> 报为一张币的合约单位，而原生 Binance 合约是 100 USD。</p>
+<p>Kraken 到期期货（<code>KRAKENFTS</code> 的 <code>FUTURES</code>）同样不支持。CoinAPI 上报交割日午夜 UTC，而 Kraken 的最后交易时间随产品而异：<code>FF_</code> 为 08:00 UTC，<code>FI_</code> 合约为 15:00 或 16:00 UTC。</p>
+<p>其他被拒绝的形式包括 Bybit USDC 合约、OKX 以 USD 保证金的期货（如 <code>BTC-USD_UM-261225</code>），以及计价货币为 <code>USD</code> 且有歧义的 Binance 交割 ID（如 <code>BTCUSD_261225.BINANCE</code>）。代码形似受支持的原生 ID，本身并不能证明该产品受支持。</p>
+<h2 class="anchor anchorTargetStickyNavbar_ana5" id=data-subscriptions>数据订阅<a href=#data-subscriptions class=hash-link aria-label=数据订阅的直接链接 title=数据订阅的直接链接 translate=no>​</a></h2>
+<p>订阅要求客户端已连接、金融工具已加载，并使用 <code>connect</code> 载入的 <code>symbol_id</code>。所有订阅共用<a href=#raw-websocket-streams class="">原生 WebSocket 数据流</a>一节描述的单一 WebSocket 连接。</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>订阅<th>CoinAPI 类型<th>事件<th><code>ts_event</code><th><code>ts_init</code><tbody><tr><td>L2 簿 delta<td><code>book</code><td><code>OrderBookDeltas</code><td><code>time_exchange</code><td><code>time_coinapi</code><tr><td>L3 簿 delta<td><code>book_l3</code><td><code>OrderBookDeltas</code><td><code>time_exchange</code><td><code>time_coinapi</code><tr><td>簿深度<td><code>book5</code>、<code>book20</code>、<code>book50</code><td><code>OrderBookDepth</code><td><code>time_exchange</code><td><code>time_coinapi</code><tr><td>报价<td><code>quote</code><td><code>QuoteTick</code><td><code>time_exchange</code><td><code>time_coinapi</code><tr><td>成交<td><code>trade</code><td><code>TradeTick</code><td><code>time_exchange</code><td><code>time_coinapi</code><tr><td>Bar<td><code>ohlcv</code><td><code>Bar</code><td><code>time_period_end</code><td>发出时用适配器时钟。</table>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=trade-aggressor-sides>成交主动方<a href=#trade-aggressor-sides class=hash-link aria-label=成交主动方的直接链接 title=成交主动方的直接链接 translate=no>​</a></h3>
+<p>只有交易所上报了主动方向时，成交的 aggressor side 才是 <code>BUY</code> 或 <code>SELL</code>。CoinAPI 的 <code>BUY_ESTIMATED</code> 和 <code>SELL_ESTIMATED</code> 是它自己的推断，因此与 <code>UNKNOWN</code> 和无法识别的值一起映射为 <code>NoAggressor</code>。</p>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=bars>Bar<a href=#bars class=hash-link aria-label=Bar的直接链接 title=Bar的直接链接 translate=no>​</a></h3>
+<p>Bar 订阅接受外部收盘价 bar 类型，CoinAPI 流式周期支持：</p>
+<ul>
+<li class="">1、2、3、4、5、6、10、15、20、30 秒或分钟。</li>
+<li class="">1、2、3、4、6、8、12 小时。</li>
+<li class="">1 天。</li>
+</ul>
+<p>客户端拒绝内部聚合及其他规格。</p>
+<p>CoinAPI 在看到一个属于下一周期的时间戳时发送当期累计 OHLCV，且在周期更新期间每五秒发送一次。这些累计值不带收盘标志。客户端为每个周期保留最新一次更新，收到更晚周期的更新时发出该周期的 bar。重连时丢弃保留的周期——错过的更新可能让其不完整——bar 订阅开始时同样丢弃。</p>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=subscription-changes>订阅变更<a href=#subscription-changes class=hash-link aria-label=订阅变更的直接链接 title=订阅变更的直接链接 translate=no>​</a></h3>
+<p>订阅变更按调用顺序执行，共用一条 WebSocket 连接。CoinAPI 不确认范围变更。首个匹配的数据到达即确认订阅生效。</p>
+<p>变更之间至少间隔两秒，以满足 CoinAPI 的订阅限额。排队变更和订单簿恢复会进一步推迟。退订全部数据流会关闭连接。之后的订阅会新建连接并保留该节奏。</p>
+<p>连接失败一秒后重试，间隔翻倍、最多 30 秒，直到成功或断开。后续订阅变更排在待处理批次之后。传输重连会自动恢复订阅。CoinAPI <code>error</code> 会终止数据流且不再重订阅，下一次订阅将新建连接。</p>
+<h2 class="anchor anchorTargetStickyNavbar_ana5" id=order-books>订单簿<a href=#order-books class=hash-link aria-label=订单簿的直接链接 title=订单簿的直接链接 translate=no>​</a></h2>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=channels-and-depths>通道与深度<a href=#channels-and-depths class=hash-link aria-label=通道与深度的直接链接 title=通道与深度的直接链接 translate=no>​</a></h3>
+<p><code>L2_MBP</code> delta 订阅流式接收 CoinAPI <code>book</code>，<code>L3_MBO</code> 订阅流式接收 <code>book_l3</code>。<code>L1_MBP</code> 被拒绝。两个通道都发送完整订单簿，因此 delta 订阅忽略 <code>depth</code>。</p>
+<p>深度订阅只接受 <code>L2_MBP</code>，使用 <code>book5</code>、<code>book20</code>、<code>book50</code> 中能覆盖请求深度（默认 10 档）的最小通道。深度超过 50 被拒绝。每条深度消息列出完整的顶部档位、带 <code>F_SNAPSHOT</code> 标志，且订单计数为零，因为 CoinAPI 不报告该值。</p>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=channel-conflicts>通道冲突<a href=#channel-conflicts class=hash-link aria-label=通道冲突的直接链接 title=通道冲突的直接链接 translate=no>​</a></h3>
+<p>CoinAPI 每条连接只允许一种订单簿类型，因此同一客户端上的所有订单簿订阅必须使用同一通道。需要另一通道的第二个订阅会失败，例如 L3 与 L2 delta 并存，或深度 5 与深度 20 并存。同一金融工具的第二个订阅若深度不同也会失败。要切换通道，先退订当前订单簿。</p>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=snapshot-and-delta-events>快照与 delta 事件<a href=#snapshot-and-delta-events class=hash-link aria-label="快照与 delta 事件的直接链接" title="快照与 delta 事件的直接链接" translate=no>​</a></h3>
+<p>delta 流以快照开始：一个 <code>Clear</code> 后每档一个 <code>Add</code>，全部带 <code>F_SNAPSHOT</code> 标志，最后一个 delta 带 <code>F_LAST</code>。每次更新变成一个以 <code>F_LAST</code> 结尾的 <code>OrderBookDeltas</code> 事件。对 L3 订单簿，CoinAPI 的 <code>SUBTRACT</code> 和 <code>MATCH</code> 数量表示被移除的量，因此客户端跟踪每笔订单的剩余数量，数量耗尽即删除该订单。</p>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=sequence-numbers>序号<a href=#sequence-numbers class=hash-link aria-label=序号的直接链接 title=序号的直接链接 translate=no>​</a></h3>
+<p>CoinAPI 每条连接从 1 开始为订单簿数据流编号，每次重启数据流都重新开始编号。数据客户端让对外发出的序号在重启与重连之间保持递增，因此受管 <code>OrderBook</code> 可以直接消费该数据流。</p>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=recovery>恢复<a href=#recovery class=hash-link aria-label=恢复的直接链接 title=恢复的直接链接 translate=no>​</a></h3>
+<p>恢复只适用于 delta 订阅。序号缺口、首个快照之前到达的更新、或无效档位，都会停止订单簿输出，直到客户端收到有效的替代快照。等待期间收到的更新被丢弃。</p>
+<p>深度订阅收到的都是完整快照。客户端丢弃无效的深度消息并告警，下一条有效消息直接替换，不做恢复尝试，也没有快照期限。</p>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=snapshot-deadlines-and-retry-limits>快照期限与重试上限<a href=#snapshot-deadlines-and-retry-limits class=hash-link aria-label=快照期限与重试上限的直接链接 title=快照期限与重试上限的直接链接 translate=no>​</a></h3>
+<p><code>book_snapshot_timeout_secs</code> 设置订阅、重连或开始恢复后等待快照的时长，默认 10 秒，<code>0</code> 表示禁用期限。快照缺失会启动或重试恢复。退订会取消恢复，CoinAPI <code>error</code> 会终止全部订单簿数据流。</p>
+<p>订单簿重启至少间隔五秒，重启待处理期间其他订阅变更排队等待。恢复在 180 秒内最多尝试八次，带退避与抖动；此后持续重试直到接受一个快照，重试间隔从一分钟翻倍到十五分钟。重连后等新的订单簿快照到达才恢复输出。</p>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=effects-on-other-streams>对其他数据流的影响<a href=#effects-on-other-streams class=hash-link aria-label=对其他数据流的影响的直接链接 title=对其他数据流的影响的直接链接 translate=no>​</a></h3>
+<p>订阅了其他金融工具时，恢复某个订单簿会把受影响金融工具的所有数据流暂停约两秒。跨越暂停区间的保留 OHLCV 周期会被丢弃，以免发布不完整的 bar。</p>
+<p>当受影响金融工具是唯一订阅的金融工具时，其报价、成交和 bar 在订单簿恢复期间继续输出。若订单簿是唯一订阅，恢复保持连接打开，不额外发布成交数据流。</p>
+<h2 class="anchor anchorTargetStickyNavbar_ana5" id=historical-requests>历史请求<a href=#historical-requests class=hash-link aria-label=历史请求的直接链接 title=历史请求的直接链接 translate=no>​</a></h2>
+<p>历史请求需要已连接的客户端和已加载的金融工具，并使用其存储的 <code>symbol_id</code>。响应保留 correlation ID、请求的客户端 ID、金融工具或 bar 类型、<code>start</code>、<code>end</code> 和 <code>params</code>。缺省的客户端 ID 取适配器 ID，缺省的 <code>end</code> 保持缺省。</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>请求<th>CoinAPI 端点<th>响应<th><code>ts_event</code><th><code>ts_init</code><tbody><tr><td>成交<td><code>/trades/{symbol_id}/history</code><td><code>TradeTick</code><td><code>time_exchange</code><td><code>time_exchange</code><tr><td>报价<td><code>/quotes/{symbol_id}/history</code><td><code>QuoteTick</code><td><code>time_exchange</code><td><code>time_exchange</code><tr><td>Bar<td><code>/ohlcv/{symbol_id}/history</code><td><code>Bar</code><td><code>time_period_end</code><td><code>time_period_end</code><tr><td>订单簿快照<td><code>/orderbooks/{symbol_id}/current</code><td>L2 <code>OrderBook</code><td><code>time_exchange</code><td>不适用。</table>
+<p>历史报价、成交和 bar 的 <code>ts_init</code> 与 <code>ts_event</code> 都用事件时间，因此响应过滤保留请求的场所时间窗口。</p>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=time-windows-and-limits>时间窗口与限额<a href=#time-windows-and-limits class=hash-link aria-label=时间窗口与限额的直接链接 title=时间窗口与限额的直接链接 translate=no>​</a></h3>
+<p>成交、报价和 bar 请求要求 <code>start</code>，按 [<code>start</code>, <code>end</code>) 翻页，<code>end</code> 缺省时取当前时间。<code>limit</code> 从 <code>start</code> 起计数，封顶返回的记录数。翻页规则见
+<a href=#raw-http-requests class="">原生 HTTP 请求</a>，信用额度预算截断响应时客户端记录警告。</p>
+<p>请求边界向上取整到 CoinAPI 的 100 纳秒时间戳分辨率，保持对该时间网格上记录的选取不变。</p>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=history-lag>历史延迟<a href=#history-lag class=hash-link aria-label=历史延迟的直接链接 title=历史延迟的直接链接 translate=no>​</a></h3>
+<p>CoinAPI 的历史端点落后于实时数据流。即使实时流正常，最近的时间窗口也可能返回空记录或不完整结果。遇到这种情况就请求更早的窗口，例如前一天。适配器只使用历史端点，不回退到最新数据端点。</p>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=closed-bars>已收盘 bar<a href=#closed-bars class=hash-link aria-label="已收盘 bar的直接链接" title="已收盘 bar的直接链接" translate=no>​</a></h3>
+<p>Bar 请求接受与 bar 订阅相同的 bar 类型。响应只包含在 <code>end</code> 之前、且在响应到达时已经收盘的周期。进行中的周期绝不会作为 bar 返回。<code>limit</code> 在剔除之前按 CoinAPI 周期计数。</p>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=current-book-snapshots>当前订单簿快照<a href=#current-book-snapshots class=hash-link aria-label=当前订单簿快照的直接链接 title=当前订单簿快照的直接链接 translate=no>​</a></h3>
+<p>订单簿快照请求把 <code>depth</code> 作为 <code>limit_levels</code> 传入，或省略以使用 CoinAPI 默认深度。比金融工具精度更细的档位会导致整个快照被拒绝，而不是返回残缺订单簿。</p>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=failed-requests>失败请求<a href=#failed-requests class=hash-link aria-label=失败请求的直接链接 title=失败请求的直接链接 translate=no>​</a></h3>
+<p>失败的请求记录错误，不发送响应。</p>
+<h2 class="anchor anchorTargetStickyNavbar_ana5" id=precision>精度<a href=#precision class=hash-link aria-label=精度的直接链接 title=精度的直接链接 translate=no>​</a></h2>
+<p>客户端按金融工具的价格与数量精度转换价格和数量。这些精度来自 CoinAPI 的数据分辨率，可能落后于数据流，因此小数位更多的值会被丢弃并告警，而不是四舍五入。末尾零不计入小数位。历史响应对每条记录应用同样规则，并把丢弃条数汇总为一条警告。</p>
+<p>OHLCV 成交量对微小数值尾巴有一个有界例外。仅当调整同时满足以下两条上限时，客户端才按金融工具的数量精度做四舍六入五成双（half to even）：</p>
+<ul>
+<li class="">不超过上报成交量的 <code>1e-15</code> 倍。</li>
+<li class="">不超过该精度下一个最小单位的 <code>1e-6</code> 倍。</li>
+</ul>
+<p>数量精度为 8 时，绝对上限是 <code>0.00000000000001</code>。负成交量和更大的精度失配会被拒绝。价格保持精确转换规则。</p>
+<p>绝对上限不随成交量增长而放宽，因此更大的聚合成交量即便尾巴满足相对上限，仍可能被拒绝。</p>
+<p>比配置精度更细的订单簿档位会拒绝整条消息。delta 订阅启动恢复，深度订阅丢弃该消息。若 CoinAPI 的价格分辨率对数据流太粗，设置<a href=#price-precision-overrides class="">价格精度覆盖</a>。数量精度没有覆盖项。</p>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=price-precision-overrides>价格精度覆盖<a href=#price-precision-overrides class=hash-link aria-label=价格精度覆盖的直接链接 title=价格精度覆盖的直接链接 translate=no>​</a></h3>
+<p>用 <code>price_precisions</code> 替换所选金融工具的价格精度。客户端在构建金融工具时应用它，因此定义、数据流和历史响应都使用该精度。为选择范围之外的金融工具、或超过 Nautilus 最大精度设置覆盖，会在构造时报错。数量精度没有覆盖项。</p>
+<div class="language-python codeBlockContainer_eTMR theme-code-block" style=--prism-color:#393A34;--prism-background-color:#f6f8fa><div class=codeBlockContent_hafM><pre tabindex=0 class="prism-code language-python codeBlock_IMvC thin-scrollbar" style=color:#393A34;background-color:#f6f8fa><code class=codeBlockLines_gZDW><div class=token-line style=color:#393A34><span class="token plain">data_config </span><span class="token operator" style=color:#393A34>=</span><span class="token plain"> CoinApiDataClientConfig</span><span class="token punctuation" style=color:#393A34>(</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    instruments</span><span class="token operator" style=color:#393A34>=</span><span class="token punctuation" style=color:#393A34>[</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">        CoinApiInstrumentSelection</span><span class="token punctuation" style=color:#393A34>(</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">            </span><span class="token string" style=color:#e3116c>"COINBASE"</span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">            </span><span class="token punctuation" style=color:#393A34>[</span><span class="token plain">InstrumentId</span><span class="token punctuation" style=color:#393A34>.</span><span class="token plain">from_str</span><span class="token punctuation" style=color:#393A34>(</span><span class="token string" style=color:#e3116c>"LTC-USD.COINBASE"</span><span class="token punctuation" style=color:#393A34>)</span><span class="token punctuation" style=color:#393A34>]</span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">            filter_symbol_id</span><span class="token operator" style=color:#393A34>=</span><span class="token string" style=color:#e3116c>"COINBASE_SPOT_LTC_USD"</span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">        </span><span class="token punctuation" style=color:#393A34>)</span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    </span><span class="token punctuation" style=color:#393A34>]</span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    price_precisions</span><span class="token operator" style=color:#393A34>=</span><span class="token punctuation" style=color:#393A34>{</span><span class="token plain">InstrumentId</span><span class="token punctuation" style=color:#393A34>.</span><span class="token plain">from_str</span><span class="token punctuation" style=color:#393A34>(</span><span class="token string" style=color:#e3116c>"LTC-USD.COINBASE"</span><span class="token punctuation" style=color:#393A34>)</span><span class="token punctuation" style=color:#393A34>:</span><span class="token plain"> </span><span class="token number" style=color:#36acaa>3</span><span class="token punctuation" style=color:#393A34>}</span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain"></span><span class="token punctuation" style=color:#393A34>)</span><br/></div></code></pre></div></div>
+<p>Rust 中，把同样的映射传给 <code>CoinApiDataClientConfig::builder().price_precisions(...)</code>。</p>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=ohlcv-precision-warnings>OHLCV 精度警告<a href=#ohlcv-precision-warnings class=hash-link aria-label="OHLCV 精度警告的直接链接" title="OHLCV 精度警告的直接链接" translate=no>​</a></h3>
+<div class="theme-admonition theme-admonition-warning admonition_LYZY alert alert--warning"><div class=admonitionHeading_pnFY><span class=admonitionIcon_tEzm><svg viewBox="0 0 16 16"><path fill-rule=evenodd d="M8.893 1.5c-.183-.31-.52-.5-.887-.5s-.703.19-.886.5L.138 13.499a.98.98 0 0 0 0 1.001c.193.31.53.501.886.501h13.964c.367 0 .704-.19.877-.5a1.03 1.03 0 0 0 .01-1.002L8.893 1.5zm.133 11.497H6.987v-2.003h2.039v2.003zm0-3.004H6.987V5.987h2.039v4.006z"/></svg></span>注意</div><div class=admonitionContent_ZwmI><p>CoinAPI 的 OHLCV 价格可能比金融工具元数据允许的小数位更多，即便成交价格能装下。例如 <code>84761.955</code> 这个 BTC/USD OHLCV 价格装不进 <code>0.01</code> 分辨率。设置合适的 <code>price_precisions</code> 覆盖，避免丢失 bar。<p>历史 OHLCV 成交量也可能带微小数值尾巴，如 <code>1.2582318399999999</code> 对应 <code>1.25823184</code>。客户端在<a href=#precision class="">有界容差</a>内接受它们，更大的失配仍会丢弃该 bar。</div></div>
+<h2 class="anchor anchorTargetStickyNavbar_ana5" id=connection-lifecycle>连接生命周期<a href=#connection-lifecycle class=hash-link aria-label=连接生命周期的直接链接 title=连接生命周期的直接链接 translate=no>​</a></h2>
+<p><code>disconnect</code> 先取消待处理的订阅与请求，再关闭连接。排队的订阅无法重新打开连接，被取消的请求不发送响应。之后 <code>connect</code> 会重新加载金融工具并允许新的订阅与请求。<code>stop</code>、<code>reset</code> 和 <code>dispose</code> 取消待处理工作并直接丢弃连接，不做等待。</p>
+<h2 class="anchor anchorTargetStickyNavbar_ana5" id=usage-and-access-constraints>使用与访问限制<a href=#usage-and-access-constraints class=hash-link aria-label=使用与访问限制的直接链接 title=使用与访问限制的直接链接 translate=no>​</a></h2>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=account-limits>账户限额<a href=#account-limits class=hash-link aria-label=账户限额的直接链接 title=账户限额的直接链接 translate=no>​</a></h3>
+<p>REST 用量受并发限制和数据信用额度约束，WebSocket 用量按数据传输量计量。选择数据源前，先确认账户的权益、连接配额和
+<a href="https://www.coinapi.io/products/market-data-api/pricing?ref=nautilus" target=_blank rel="noopener noreferrer" class="">当前定价</a>。套餐的传输额度不保证能访问每个通道或来源。</p>
+<p>下表是截至 2026 年 10 月定价页列出的每日额度，变化与超额费用以链接页面为准。</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>套餐<th>REST 信用额度<th>Tier 1 传输<th>Tier 2 传输<tbody><tr><td>Pay As You Go<td>按量计费<td>按量计费<td>按量计费<tr><td>Startup<td>1,000<td>32 GiB<td>按量计费<tr><td>Streamer<td>10,000<td>128 GiB<td>1 GiB<tr><td>Pro<td>100,000<td>512 GiB<td>64 GiB<tr><td>Enterprise<td>定制<td>定制<td>定制</table>
+<p>CoinAPI 把成交、报价和 L2 订单簿归为 Tier 1，OHLCV 归为 Tier 2，见
+<a href="https://www.coinapi.io/products/market-data-api/faq?ref=nautilus" target=_blank rel="noopener noreferrer" class="">用量 FAQ</a>。其
+<a href="https://www.coinapi.io/blog/tier-1-vs-tier-2-market-data-level-3-order-book?ref=nautilus" target=_blank rel="noopener noreferrer" class="">L3 定价指南</a>把持续 L3 数据流归为 Tier 2。请针对所选数据源确认计费与访问权限。</p>
+<p>每个客户端使用一条 WebSocket 连接。同一账户上的其他节点或客户端可能占用其可用连接槽，导致 HTTP 429。请减少并发连接以适配账户限额。耗尽硬限额的 REST 配额同样返回 HTTP 429。</p>
+<div class="theme-admonition theme-admonition-warning admonition_LYZY alert alert--warning"><div class=admonitionHeading_pnFY><span class=admonitionIcon_tEzm><svg viewBox="0 0 16 16"><path fill-rule=evenodd d="M8.893 1.5c-.183-.31-.52-.5-.887-.5s-.703.19-.886.5L.138 13.499a.98.98 0 0 0 0 1.001c.193.31.53.501.886.501h13.964c.367 0 .704-.19.877-.5a1.03 1.03 0 0 0 .01-1.002L8.893 1.5zm.133 11.497H6.987v-2.003h2.039v2.003zm0-3.004H6.987V5.987h2.039v4.006z"/></svg></span>注意</div><div class=admonitionContent_ZwmI><p>CoinAPI 会把会话内的数据类型、交易代码和 bar 周期做组合。十个金融工具的成交加一个金融工具的订单簿，可能传输全部十个金融工具的订单簿。适配器会过滤掉未请求的组合，但它们的传输仍会计费。在同一客户端上组合数据源时请考虑这一点。</div></div>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=local-credit-budget>本地信用额度预算<a href=#local-credit-budget class=hash-link aria-label=本地信用额度预算的直接链接 title=本地信用额度预算的直接链接 translate=no>​</a></h3>
+<p>数据客户端的 <code>credit_budget</code> 限制单个客户端实例可消耗的信用额度，默认 100。每次金融工具元数据尝试无论响应大小都消耗 1 点本地信用。用 <code>filter_symbol_id</code> 减少传输与解析开销。规划要为全部历史请求留出额度：区间请求到预算上限即停止，返回截断的响应。批量历史请用下载的<a href=#flat-files class="">扁平文件</a>避免重复 REST 请求，并比较其传输成本与 REST 信用。</p>
+<p><code>max_concurrent_requests</code> 限制并发 REST 请求数。本地信用预算作用于客户端整个生命周期，与 CoinAPI 计费相互独立。每次尝试为历史请求预留 <code>ceil(limit / 100)</code> 点信用，无记录上限的请求预留 1 点。</p>
+<p>CoinAPI 按每 100 条返回记录对历史请求计费。因此成功的历史页会退回超出 <code>ceil(records / 100)</code> 的未用预留。本地最低计费为 1 点。失败、重试和被取消的尝试不予退回。客户端在 HTTP 429 时退避，在 HTTP 403 时快速失败。见
+<a href="https://www.coinapi.io/products/market-data-api/docs/api-limits-and-billing-metrics?ref=nautilus" target=_blank rel="noopener noreferrer" class="">API 限额与计费参考</a>。</p>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=backfills>历史回填<a href=#backfills class=hash-link aria-label=历史回填的直接链接 title=历史回填的直接链接 translate=no>​</a></h3>
+<p>历史请求要设置明确的记录上限和时间窗口。没有记录上限时，一个请求的首屏就可能预留剩余的全部信用预算，让其他请求无额度可用。每个历史页都有自己的 REST 重试预算。</p>
+<p>批量历史请比较 REST 信用成本与下载的<a href=#flat-files class="">扁平文件</a>。HTTP 调用更少未必意味着计费信用更少。文件需另行下载后再加载，适配器不会列出或下载 S3 对象。</p>
+<h2 class="anchor anchorTargetStickyNavbar_ana5" id=raw-http-requests>原生 HTTP 请求<a href=#raw-http-requests class=hash-link aria-label="原生 HTTP 请求的直接链接" title="原生 HTTP 请求的直接链接" translate=no>​</a></h2>
+<p>直接访问 Rust 时，<code>CoinApiHttpClient</code> 接受 <code>SecretString</code> API 密钥和 <code>CoinApiHttpConfig</code>。基础 URL 含 <code>/v1/</code>。认证用 <code>X-CoinAPI-Key</code>。拒绝重定向。客户端忽略系统代理环境变量，除非设置 <code>proxy_url</code>，否则直连。</p>
+<p>原生客户端暴露交易所与活跃金融工具元数据、历史成交/报价/OHLCV，以及单金融工具当前 L2 和 L3 订单簿。金融数值保持精确的十进制表示，超出 <code>Decimal</code> 精度的值解析失败而不是舍入。</p>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=single-pages-and-ranges>单页与区间<a href=#single-pages-and-ranges class=hash-link aria-label=单页与区间的直接链接 title=单页与区间的直接链接 translate=no>​</a></h3>
+<p><code>get_trades</code>、<code>get_quotes</code> 和 <code>get_ohlcv</code> 对一个明确的时间窗口和 <code>[1, 100000]</code> 内的记录上限返回一页。满页不代表窗口已取完。<code>get_trades_range</code>、<code>get_quotes_range</code> 和 <code>get_ohlcv_range</code> 对整个 <code>HistoryRange</code> 翻页，其可选上限限制总记录数，可以超过 100,000。</p>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=time-boundaries>时间边界<a href=#time-boundaries class=hash-link aria-label=时间边界的直接链接 title=时间边界的直接链接 translate=no>​</a></h3>
+<p>成交与报价区间按场所时间选取 <code>[time_start, time_end)</code>。OHLCV 区间按周期起始时间选取周期。数据客户端还会剔除未收盘的周期。窗口之外的记录会被过滤。</p>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=pagination>翻页<a href=#pagination class=hash-link aria-label=翻页的直接链接 title=翻页的直接链接 translate=no>​</a></h3>
+<h4 class="anchor anchorTargetStickyNavbar_ana5" id=page-sizes-and-completion>页大小与完成条件<a href=#page-sizes-and-completion class=hash-link aria-label=页大小与完成条件的直接链接 title=页大小与完成条件的直接链接 translate=no>​</a></h4>
+<p>每页请求剩余请求上限、100,000 条最大值和剩余信用预算中能装下的最大 limit。短页、或达到请求上限的满页都会结束区间。默认 100 点信用预算下每页最多 10,000 条，因此跨页续取需要更大的预算。</p>
+<h4 class="anchor anchorTargetStickyNavbar_ana5" id=records-sharing-a-timestamp>共享时间戳的记录<a href=#records-sharing-a-timestamp class=hash-link aria-label=共享时间戳的记录的直接链接 title=共享时间戳的记录的直接链接 translate=no>​</a></h4>
+<p>满页需要续取时，翻页会重读页尾的时间戳分组以避免页边界重复记录。若同一时间戳的记录占满整页导致游标无法推进，或某页不是升序，翻页失败。</p>
+<h4 class="anchor anchorTargetStickyNavbar_ana5" id=records-outside-the-window>窗口之外的记录<a href=#records-outside-the-window class=hash-link aria-label=窗口之外的记录的直接链接 title=窗口之外的记录的直接链接 translate=no>​</a></h4>
+<p>窗口之外的记录被丢弃。窗口内没有成交时，CoinAPI 的 OHLCV 会返回同一 UTC 日的邻近周期；只含这类周期的一页即结束区间。</p>
+<h4 class="anchor anchorTargetStickyNavbar_ana5" id=credit-exhaustion-and-concurrent-ranges>信用耗尽与并发区间<a href=#credit-exhaustion-and-concurrent-ranges class=hash-link aria-label=信用耗尽与并发区间的直接链接 title=信用耗尽与并发区间的直接链接 translate=no>​</a></h4>
+<p>信用预算不够支付下一页时，结果携带已收集的记录并置 <code>is_truncated=true</code>。失败的尝试保留其预留后，预算可能不足。首屏就没有足够信用时请求失败。同一客户端上的区间请求逐个执行，因此每个请求在先前区间结清信用之后再确定自己的页大小。</p>
+<h2 class="anchor anchorTargetStickyNavbar_ana5" id=raw-websocket-streams>原生 WebSocket 数据流<a href=#raw-websocket-streams class=hash-link aria-label="原生 WebSocket 数据流的直接链接" title="原生 WebSocket 数据流的直接链接" translate=no>​</a></h2>
+<p>直接访问 Rust 时，<code>CoinApiWebSocketClient</code> 接受 API 密钥和 <code>CoinApiWebSocketConfig</code>，返回消息接收端。默认端点为 <code>wss://ws.coinapi.io/v1/</code>。<code>Subscription</code> 指定数据类型、精确完整的 CoinAPI <code>symbol_id</code>，以及需要时的 OHLCV 周期。</p>
+<p>客户端解码 <code>trade</code>、<code>quote</code>、<code>book</code>、<code>book5</code>、<code>book20</code>、<code>book50</code>、<code>book_l3</code> 和 <code>ohlcv</code>。它保留十进制值，记录并丢弃畸形帧，忽略元数据流。订阅变更在入队后即返回，收到匹配数据即确认订阅。<a href=#subscription-changes class="">订阅节奏</a>、<a href=#channel-conflicts class="">订单簿通道限制</a>和<a href=#account-limits class="">会计费的组合范围</a>同样适用于该客户端。</p>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=reconnects-and-errors>重连与错误<a href=#reconnects-and-errors class=hash-link aria-label=重连与错误的直接链接 title=重连与错误的直接链接 translate=no>​</a></h3>
+<p>五秒没有消息即触发重连。第一次尝试立即进行，之后从一秒退避到 30 秒、逐步翻倍并附加最多 500 毫秒抖动。只有一个连接槽的账户，重连可能持续收到 HTTP 429，直到 CoinAPI 释放旧连接。</p>
+<p>重连恢复订阅范围并发出 <code>CoinApiWsMessage::Reconnected</code>。原生订单簿序号按连接重新开始编号，重连后要清空订单簿状态。数据客户端会自动处理订单簿状态与序号连续性。</p>
+<p>服务端 <code>reconnect</code> 通知不打断数据流，客户端在服务端关闭时才重连。CoinAPI <code>error</code> 发出 <code>CoinApiWsMessage::Error</code>、清空全部订阅并结束连接且不重连，下一次订阅新建连接。认证错误可能在 WebSocket 升级成功之后才到达。关闭或丢弃客户端会关闭其连接。</p>
+<h2 class="anchor anchorTargetStickyNavbar_ana5" id=flat-files>扁平文件<a href=#flat-files class=hash-link aria-label=扁平文件的直接链接 title=扁平文件的直接链接 translate=no>​</a></h2>
+<p>CoinAPI <a href="https://www.coinapi.io/products/flat-files?ref=nautilus" target=_blank rel="noopener noreferrer" class="">Flat Files</a> 是经 S3 兼容 API 提供的按天或按小时的 <code>.csv.gz</code> 导出。适配器把已下载的文件加载为 Nautilus 数据，不负责列出或下载。加载器沿用 Tardis CSV 加载器的模式：每个 <code>load_*</code> 函数返回整个文件，每个 <code>stream_*</code> 函数分块产出。两者都接受可选的价格与数量精度以及记录 <code>limit</code>。</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>模式<th>加载<th>流式<th>输出<tbody><tr><td><code>T-TRADES</code><td><code>load_coinapi_trades</code><td><code>stream_coinapi_trades</code><td><code>TradeTick</code><tr><td><code>T-QUOTES</code><td><code>load_coinapi_quotes</code><td><code>stream_coinapi_quotes</code><td><code>QuoteTick</code><tr><td><code>T-LIMITBOOK_FULL</code><td><code>load_coinapi_deltas</code><td><code>stream_coinapi_deltas</code><td><code>OrderBookDelta</code><tr><td><code>T-OHLCV_ACTIVE_CONSOLIDATED</code><td><code>CoinApiOhlcvLoader.load_bars</code><td>无<td><code>Bar</code></table>
+<p>Rust 中对应 <code>nautilus_coinapi::csv::{load_trades, stream_trades, ...}</code> 和 <code>CoinApiOhlcvLoader::load_bars</code>。</p>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=order-book-example>订单簿示例<a href=#order-book-example class=hash-link aria-label=订单簿示例的直接链接 title=订单簿示例的直接链接 translate=no>​</a></h3>
+<p>load 调用从 <code>D-20250901</code> 推导日期。stream 读取的是重命名后的文件，所以要显式传 <code>date</code>，并为金融工具的增量设置精度而不是推断。这些精度必须容纳每一个值：更细的值会让流失败，而不是被舍入。</p>
+<div class="language-rust codeBlockContainer_eTMR theme-code-block" style=--prism-color:#393A34;--prism-background-color:#f6f8fa><div class=codeBlockContent_hafM><pre tabindex=0 class="prism-code language-rust codeBlock_IMvC thin-scrollbar" style=color:#393A34;background-color:#f6f8fa><code class=codeBlockLines_gZDW><div class=token-line style=color:#393A34><span class="token keyword" style=color:#00009f>use</span><span class="token plain"> </span><span class="token namespace" style=opacity:0.7>jiff</span><span class="token namespace punctuation" style=opacity:0.7;color:#393A34>::</span><span class="token namespace" style=opacity:0.7>civil</span><span class="token namespace punctuation" style=opacity:0.7;color:#393A34>::</span><span class="token plain">date</span><span class="token punctuation" style=color:#393A34>;</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain"></span><span class="token keyword" style=color:#00009f>use</span><span class="token plain"> </span><span class="token namespace" style=opacity:0.7>nautilus_coinapi</span><span class="token namespace punctuation" style=opacity:0.7;color:#393A34>::</span><span class="token namespace" style=opacity:0.7>csv</span><span class="token namespace punctuation" style=opacity:0.7;color:#393A34>::</span><span class="token punctuation" style=color:#393A34>{</span><span class="token plain">load_deltas</span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain"> stream_deltas</span><span class="token punctuation" style=color:#393A34>}</span><span class="token punctuation" style=color:#393A34>;</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain"></span><span class="token keyword" style=color:#00009f>use</span><span class="token plain"> </span><span class="token namespace" style=opacity:0.7>nautilus_model</span><span class="token namespace punctuation" style=opacity:0.7;color:#393A34>::</span><span class="token namespace" style=opacity:0.7>identifiers</span><span class="token namespace punctuation" style=opacity:0.7;color:#393A34>::</span><span class="token class-name">InstrumentId</span><span class="token punctuation" style=color:#393A34>;</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain" style=display:inline-block></span><br/></div><div class=token-line style=color:#393A34><span class="token plain"></span><span class="token keyword" style=color:#00009f>let</span><span class="token plain"> instrument_id </span><span class="token operator" style=color:#393A34>=</span><span class="token plain"> </span><span class="token class-name">InstrumentId</span><span class="token punctuation" style=color:#393A34>::</span><span class="token function" style=color:#d73a49>from</span><span class="token punctuation" style=color:#393A34>(</span><span class="token string" style=color:#e3116c>"BTC-USD.COINBASE"</span><span class="token punctuation" style=color:#393A34>)</span><span class="token punctuation" style=color:#393A34>;</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain" style=display:inline-block></span><br/></div><div class=token-line style=color:#393A34><span class="token plain"></span><span class="token keyword" style=color:#00009f>let</span><span class="token plain"> path </span><span class="token operator" style=color:#393A34>=</span><span class="token plain"> </span><span class="token string" style=color:#e3116c>"T-LIMITBOOK_FULL/D-20250901/E-COINBASE/IDDI-27576+SC-COINBASE_SPOT_BTC_USD+S-BTC__002DUSD.csv.gz"</span><span class="token punctuation" style=color:#393A34>;</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain"></span><span class="token keyword" style=color:#00009f>let</span><span class="token plain"> deltas </span><span class="token operator" style=color:#393A34>=</span><span class="token plain"> </span><span class="token function" style=color:#d73a49>load_deltas</span><span class="token punctuation" style=color:#393A34>(</span><span class="token plain">path</span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain"> instrument_id</span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain"> </span><span class="token class-name">None</span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain"> </span><span class="token class-name">None</span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain"> </span><span class="token class-name">None</span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain"> </span><span class="token class-name">None</span><span class="token punctuation" style=color:#393A34>)</span><span class="token operator" style=color:#393A34>?</span><span class="token punctuation" style=color:#393A34>;</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain" style=display:inline-block></span><br/></div><div class=token-line style=color:#393A34><span class="token plain"></span><span class="token keyword" style=color:#00009f>let</span><span class="token plain"> chunks </span><span class="token operator" style=color:#393A34>=</span><span class="token plain"> </span><span class="token function" style=color:#d73a49>stream_deltas</span><span class="token punctuation" style=color:#393A34>(</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    </span><span class="token string" style=color:#e3116c>"coinbase_btc_usd_book.csv.gz"</span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    instrument_id</span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    </span><span class="token class-name">Some</span><span class="token punctuation" style=color:#393A34>(</span><span class="token function" style=color:#d73a49>date</span><span class="token punctuation" style=color:#393A34>(</span><span class="token number" style=color:#36acaa>2025</span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain"> </span><span class="token number" style=color:#36acaa>9</span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain"> </span><span class="token number" style=color:#36acaa>1</span><span class="token punctuation" style=color:#393A34>)</span><span class="token punctuation" style=color:#393A34>)</span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    </span><span class="token number" style=color:#36acaa>100_000</span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain">    </span><span class="token comment" style=color:#999988;font-style:italic>// chunk_size</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    </span><span class="token class-name">Some</span><span class="token punctuation" style=color:#393A34>(</span><span class="token number" style=color:#36acaa>2</span><span class="token punctuation" style=color:#393A34>)</span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain">    </span><span class="token comment" style=color:#999988;font-style:italic>// price_precision</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    </span><span class="token class-name">Some</span><span class="token punctuation" style=color:#393A34>(</span><span class="token number" style=color:#36acaa>8</span><span class="token punctuation" style=color:#393A34>)</span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain">    </span><span class="token comment" style=color:#999988;font-style:italic>// size_precision</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    </span><span class="token class-name">None</span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain">       </span><span class="token comment" style=color:#999988;font-style:italic>// limit</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain"></span><span class="token punctuation" style=color:#393A34>)</span><span class="token operator" style=color:#393A34>?</span><span class="token punctuation" style=color:#393A34>;</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain" style=display:inline-block></span><br/></div><div class=token-line style=color:#393A34><span class="token plain"></span><span class="token keyword" style=color:#00009f>for</span><span class="token plain"> chunk </span><span class="token keyword" style=color:#00009f>in</span><span class="token plain"> chunks </span><span class="token punctuation" style=color:#393A34>{</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    </span><span class="token keyword" style=color:#00009f>let</span><span class="token plain"> deltas </span><span class="token operator" style=color:#393A34>=</span><span class="token plain"> chunk</span><span class="token operator" style=color:#393A34>?</span><span class="token punctuation" style=color:#393A34>;</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain"></span><span class="token punctuation" style=color:#393A34>}</span><br/></div></code></pre></div></div>
+<div class="language-python codeBlockContainer_eTMR theme-code-block" style=--prism-color:#393A34;--prism-background-color:#f6f8fa><div class=codeBlockContent_hafM><pre tabindex=0 class="prism-code language-python codeBlock_IMvC thin-scrollbar" style=color:#393A34;background-color:#f6f8fa><code class=codeBlockLines_gZDW><div class=token-line style=color:#393A34><span class="token keyword" style=color:#00009f>import</span><span class="token plain"> datetime</span><br/></div><div class=token-line style=color:#393A34><span class="token plain" style=display:inline-block></span><br/></div><div class=token-line style=color:#393A34><span class="token plain"></span><span class="token keyword" style=color:#00009f>from</span><span class="token plain"> nautilus_trader</span><span class="token punctuation" style=color:#393A34>.</span><span class="token plain">adapters</span><span class="token punctuation" style=color:#393A34>.</span><span class="token plain">coinapi </span><span class="token keyword" style=color:#00009f>import</span><span class="token plain"> load_coinapi_deltas</span><br/></div><div class=token-line style=color:#393A34><span class="token plain"></span><span class="token keyword" style=color:#00009f>from</span><span class="token plain"> nautilus_trader</span><span class="token punctuation" style=color:#393A34>.</span><span class="token plain">adapters</span><span class="token punctuation" style=color:#393A34>.</span><span class="token plain">coinapi </span><span class="token keyword" style=color:#00009f>import</span><span class="token plain"> stream_coinapi_deltas</span><br/></div><div class=token-line style=color:#393A34><span class="token plain"></span><span class="token keyword" style=color:#00009f>from</span><span class="token plain"> nautilus_trader</span><span class="token punctuation" style=color:#393A34>.</span><span class="token plain">model </span><span class="token keyword" style=color:#00009f>import</span><span class="token plain"> InstrumentId</span><br/></div><div class=token-line style=color:#393A34><span class="token plain" style=display:inline-block></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">instrument_id </span><span class="token operator" style=color:#393A34>=</span><span class="token plain"> InstrumentId</span><span class="token punctuation" style=color:#393A34>.</span><span class="token plain">from_str</span><span class="token punctuation" style=color:#393A34>(</span><span class="token string" style=color:#e3116c>"BTC-USD.COINBASE"</span><span class="token punctuation" style=color:#393A34>)</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain" style=display:inline-block></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">path </span><span class="token operator" style=color:#393A34>=</span><span class="token plain"> </span><span class="token string" style=color:#e3116c>"T-LIMITBOOK_FULL/D-20250901/E-COINBASE/IDDI-27576+SC-COINBASE_SPOT_BTC_USD+S-BTC__002DUSD.csv.gz"</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">deltas </span><span class="token operator" style=color:#393A34>=</span><span class="token plain"> load_coinapi_deltas</span><span class="token punctuation" style=color:#393A34>(</span><span class="token plain">path</span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain"> instrument_id</span><span class="token punctuation" style=color:#393A34>)</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain" style=display:inline-block></span><br/></div><div class=token-line style=color:#393A34><span class="token plain"></span><span class="token keyword" style=color:#00009f>for</span><span class="token plain"> chunk </span><span class="token keyword" style=color:#00009f>in</span><span class="token plain"> stream_coinapi_deltas</span><span class="token punctuation" style=color:#393A34>(</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    </span><span class="token string" style=color:#e3116c>"coinbase_btc_usd_book.csv.gz"</span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    instrument_id</span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    date</span><span class="token operator" style=color:#393A34>=</span><span class="token plain">datetime</span><span class="token punctuation" style=color:#393A34>.</span><span class="token plain">date</span><span class="token punctuation" style=color:#393A34>(</span><span class="token number" style=color:#36acaa>2025</span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain"> </span><span class="token number" style=color:#36acaa>9</span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain"> </span><span class="token number" style=color:#36acaa>1</span><span class="token punctuation" style=color:#393A34>)</span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    price_precision</span><span class="token operator" style=color:#393A34>=</span><span class="token number" style=color:#36acaa>2</span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    size_precision</span><span class="token operator" style=color:#393A34>=</span><span class="token number" style=color:#36acaa>8</span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain"></span><span class="token punctuation" style=color:#393A34>)</span><span class="token punctuation" style=color:#393A34>:</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    </span><span class="token punctuation" style=color:#393A34>.</span><span class="token punctuation" style=color:#393A34>.</span><span class="token punctuation" style=color:#393A34>.</span><br/></div></code></pre></div></div>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=bars-example>Bar 示例<a href=#bars-example class=hash-link aria-label="Bar 示例的直接链接" title="Bar 示例的直接链接" translate=no>​</a></h3>
+<p><code>CoinApiOhlcvLoader</code> 把数字 <code>symbol_id</code> 映射到金融工具。<code>27576</code> 是 <code>COINBASE_SPOT_BTC_USD</code> 的 REST <code>symbol_id_int</code>。它从 <code>TP-1MIN</code> 读取周期，跳过未映射的代码。Rust 还提供 <code>CoinApiOhlcvLoader::from_symbols</code>，从元数据构建映射。</p>
+<div class="language-rust codeBlockContainer_eTMR theme-code-block" style=--prism-color:#393A34;--prism-background-color:#f6f8fa><div class=codeBlockContent_hafM><pre tabindex=0 class="prism-code language-rust codeBlock_IMvC thin-scrollbar" style=color:#393A34;background-color:#f6f8fa><code class=codeBlockLines_gZDW><div class=token-line style=color:#393A34><span class="token keyword" style=color:#00009f>use</span><span class="token plain"> </span><span class="token namespace" style=opacity:0.7>nautilus_coinapi</span><span class="token namespace punctuation" style=opacity:0.7;color:#393A34>::</span><span class="token namespace" style=opacity:0.7>csv</span><span class="token namespace punctuation" style=opacity:0.7;color:#393A34>::</span><span class="token class-name">CoinApiOhlcvLoader</span><span class="token punctuation" style=color:#393A34>;</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain"></span><span class="token keyword" style=color:#00009f>use</span><span class="token plain"> </span><span class="token namespace" style=opacity:0.7>nautilus_model</span><span class="token namespace punctuation" style=opacity:0.7;color:#393A34>::</span><span class="token namespace" style=opacity:0.7>identifiers</span><span class="token namespace punctuation" style=opacity:0.7;color:#393A34>::</span><span class="token class-name">InstrumentId</span><span class="token punctuation" style=color:#393A34>;</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain" style=display:inline-block></span><br/></div><div class=token-line style=color:#393A34><span class="token plain"></span><span class="token keyword" style=color:#00009f>let</span><span class="token plain"> loader </span><span class="token operator" style=color:#393A34>=</span><span class="token plain"> </span><span class="token class-name">CoinApiOhlcvLoader</span><span class="token punctuation" style=color:#393A34>::</span><span class="token function" style=color:#d73a49>new</span><span class="token punctuation" style=color:#393A34>(</span><span class="token punctuation" style=color:#393A34>[</span><span class="token punctuation" style=color:#393A34>(</span><span class="token number" style=color:#36acaa>27_576</span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain"> </span><span class="token class-name">InstrumentId</span><span class="token punctuation" style=color:#393A34>::</span><span class="token function" style=color:#d73a49>from</span><span class="token punctuation" style=color:#393A34>(</span><span class="token string" style=color:#e3116c>"BTC-USD.COINBASE"</span><span class="token punctuation" style=color:#393A34>)</span><span class="token punctuation" style=color:#393A34>)</span><span class="token punctuation" style=color:#393A34>]</span><span class="token punctuation" style=color:#393A34>)</span><span class="token punctuation" style=color:#393A34>;</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain"></span><span class="token keyword" style=color:#00009f>let</span><span class="token plain"> bars </span><span class="token operator" style=color:#393A34>=</span><span class="token plain"> loader</span><span class="token punctuation" style=color:#393A34>.</span><span class="token function" style=color:#d73a49>load_bars</span><span class="token punctuation" style=color:#393A34>(</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    </span><span class="token string" style=color:#e3116c>"T-OHLCV_ACTIVE_CONSOLIDATED/D-20250911/E-COINBASE/TP-1MIN.csv.gz"</span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    </span><span class="token class-name">None</span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain">   </span><span class="token comment" style=color:#999988;font-style:italic>// period_id, read from the file name</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    </span><span class="token class-name">None</span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain">   </span><span class="token comment" style=color:#999988;font-style:italic>// limit</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain"></span><span class="token punctuation" style=color:#393A34>)</span><span class="token operator" style=color:#393A34>?</span><span class="token punctuation" style=color:#393A34>;</span><br/></div></code></pre></div></div>
+<div class="language-python codeBlockContainer_eTMR theme-code-block" style=--prism-color:#393A34;--prism-background-color:#f6f8fa><div class=codeBlockContent_hafM><pre tabindex=0 class="prism-code language-python codeBlock_IMvC thin-scrollbar" style=color:#393A34;background-color:#f6f8fa><code class=codeBlockLines_gZDW><div class=token-line style=color:#393A34><span class="token keyword" style=color:#00009f>from</span><span class="token plain"> nautilus_trader</span><span class="token punctuation" style=color:#393A34>.</span><span class="token plain">adapters</span><span class="token punctuation" style=color:#393A34>.</span><span class="token plain">coinapi </span><span class="token keyword" style=color:#00009f>import</span><span class="token plain"> CoinApiOhlcvLoader</span><br/></div><div class=token-line style=color:#393A34><span class="token plain"></span><span class="token keyword" style=color:#00009f>from</span><span class="token plain"> nautilus_trader</span><span class="token punctuation" style=color:#393A34>.</span><span class="token plain">model </span><span class="token keyword" style=color:#00009f>import</span><span class="token plain"> InstrumentId</span><br/></div><div class=token-line style=color:#393A34><span class="token plain" style=display:inline-block></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">loader </span><span class="token operator" style=color:#393A34>=</span><span class="token plain"> CoinApiOhlcvLoader</span><span class="token punctuation" style=color:#393A34>(</span><span class="token punctuation" style=color:#393A34>{</span><span class="token number" style=color:#36acaa>27576</span><span class="token punctuation" style=color:#393A34>:</span><span class="token plain"> InstrumentId</span><span class="token punctuation" style=color:#393A34>.</span><span class="token plain">from_str</span><span class="token punctuation" style=color:#393A34>(</span><span class="token string" style=color:#e3116c>"BTC-USD.COINBASE"</span><span class="token punctuation" style=color:#393A34>)</span><span class="token punctuation" style=color:#393A34>}</span><span class="token punctuation" style=color:#393A34>)</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">bars </span><span class="token operator" style=color:#393A34>=</span><span class="token plain"> loader</span><span class="token punctuation" style=color:#393A34>.</span><span class="token plain">load_bars</span><span class="token punctuation" style=color:#393A34>(</span><span class="token string" style=color:#e3116c>"T-OHLCV_ACTIVE_CONSOLIDATED/D-20250911/E-COINBASE/TP-1MIN.csv.gz"</span><span class="token punctuation" style=color:#393A34>)</span><br/></div></code></pre></div></div>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=file-layout>文件布局<a href=#file-layout class=hash-link aria-label=文件布局的直接链接 title=文件布局的直接链接 translate=no>​</a></h3>
+<h4 class="anchor anchorTargetStickyNavbar_ana5" id=symbol-files>代码文件<a href=#symbol-files class=hash-link aria-label=代码文件的直接链接 title=代码文件的直接链接 translate=no>​</a></h4>
+<p>加载器接受带表头的分号分隔文件。成交、报价和订单簿文件每个只含一个金融工具，路径形如
+<code>T-{SCHEMA}/D-{YYYYMMDD|YYYYMMDDHH}/E-{EXCHANGE}/IDDI-{ID}+SC-{SYMBOL_ID}+S-{EXCHANGE_SYMBOL}.csv.gz</code>。
+每个文件要传入显式的 <code>instrument_id</code>。</p>
+<p>CoinAPI 还记载了逗号分隔、订单簿时间戳为完整日期时间、或订单簿更新类型为数字的导出变体。这些加载器要求分号分隔、订单簿时间戳为时分秒、更新类型为 <code>SNAPSHOT</code>、<code>ADD</code>、<code>SET</code> 这类名称。其他布局请先转换再加载，见
+<a href="https://www.coinapi.io/products/flat-files/docs/datasets/limitbook?ref=nautilus" target=_blank rel="noopener noreferrer" class="">完整订单簿数据集指南</a>。</p>
+<h4 class="anchor anchorTargetStickyNavbar_ana5" id=buckets-and-retention>存储桶与保留<a href=#buckets-and-retention class=hash-link aria-label=存储桶与保留的直接链接 title=存储桶与保留的直接链接 translate=no>​</a></h4>
+<p><code>coinapi</code> 桶存放历史数据：2026-06-09 之前按天分区，该日期起成交、报价和完整订单簿按小时分区。<code>coinapi-daily-tail</code> 桶只存放前一天的按天成交、报价和完整订单簿文件，保留 24 小时。它不是归档，也不含 OHLCV。见
+<a href="https://www.coinapi.io/products/flat-files/docs/datasets?ref=nautilus" target=_blank rel="noopener noreferrer" class="">文件结构</a>。</p>
+<h4 class="anchor anchorTargetStickyNavbar_ana5" id=ohlcv-files>OHLCV 文件<a href=#ohlcv-files class=hash-link aria-label="OHLCV 文件的直接链接" title="OHLCV 文件的直接链接" translate=no>​</a></h4>
+<p><a href="https://www.coinapi.io/products/flat-files/docs/datasets/ohlcv?ref=nautilus" target=_blank rel="noopener noreferrer" class="">OHLCV 数据集指南</a>记载 <code>coinapi</code> 桶中的全交易所按天文件，路径为
+<code>T-OHLCV_ACTIVE_CONSOLIDATED/D-{YYYYMMDD}/E-{EXCHANGE}/TP-{PERIOD}.csv.gz</code>，每个周期一个文件，周期取 <code>1SEC</code>、<code>1MIN</code>、<code>1HRS</code> 或 <code>1DAY</code>。每行的数字 <code>symbol_id</code> 就是 REST <code>symbol_id_int</code>。加载器把它映射到金融工具、跳过未映射的行，并在未传 <code>period_id</code> 时从 <code>TP-</code> 读取周期。通用文件结构页还列出按小时的 OHLCV 路径，下载时请确认实际存在的对象。两种布局都由加载器从行内读取时间戳。</p>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=order-book-data>订单簿数据<a href=#order-book-data class=hash-link aria-label=订单簿数据的直接链接 title=订单簿数据的直接链接 translate=no>​</a></h3>
+<p>含订单 ID 的订单簿文件产出 L3 market-by-order delta，不含的产出 L2 market-by-price delta。例如 Coinbase 现货文件含订单 ID，Binance 现货文件只描述价格档位。应用 delta 时请使用对应的 <code>BookType</code>。</p>
+<p>初始快照发出一个 <code>Clear</code> 后跟一串 <code>Add</code> delta，全部带 <code>F_SNAPSHOT</code>。同一场所时间戳的后续更新构成一个以 <code>F_LAST</code> 结尾的事件。流式分块通常在事件边界结束，可能超过 <code>chunk_size</code>。记录 <code>limit</code> 可能把最后一个事件截短——其最后一个 delta 仍带 <code>F_LAST</code>，因此设了 limit 的加载可能留下不完整的订单簿。</p>
+<p>L3 成交更新会削减订单剩余数量，归零即删除。删除后的订单 ID 可能被后续 add 复用。对未知订单的其他更新（删除除外）记录日志并跳过。</p>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=timestamps>时间戳<a href=#timestamps class=hash-link aria-label=时间戳的直接链接 title=时间戳的直接链接 translate=no>​</a></h3>
+<p>成交、报价和 OHLCV 行携带不带时区的 UTC 日期时间，如 <code>2025-09-01T00:00:00.1780000</code>。订单簿行只有时分秒，如 <code>00:00:00.0140000</code>。因此订单簿加载器用文件的 <code>D-</code> 分区为每行定日期；文件不在 <code>D-</code> 分区下时用 <code>date</code>。快照时间戳晚于首个更新时，它携带的是前一天的收盘时刻，日期要回退一天。<code>time_coinapi</code> 比 <code>time_exchange</code> 小超过半天时，说明它落在午夜之后，日期要前移一天。</p>
+<p><code>ts_event</code> 取 <code>time_exchange</code>，<code>ts_init</code> 取 <code>time_coinapi</code>。bar 两者都取 <code>time_period_end</code>。</p>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=precision-1>精度<a href=#precision-1 class=hash-link aria-label=精度的直接链接 title=精度的直接链接 translate=no>​</a></h3>
+<p>价格和数量从文本精确转换。<code>load_*</code> 从读取的全部行推断未指定的精度，设了 <code>limit</code> 时以它为界。<code>stream_*</code> 采样前一万行，后续值需要舍入时抛错。文件精度未知时请显式传入精度。OHLCV 加载器按金融工具推断精度，成交量有下述例外。</p>
+<p>CoinAPI 默认使用<a class="" href=/getting_started/installation#precision-mode>高精度模式</a>：16 位小数而非 9 位，以容纳加密货币数量和 CoinAPI 成交量。OHLCV 的 <code>sx_sum</code> 可能带与浮点噪声一致的数值尾巴，如 <code>689.5507347100003</code>。加载器按构建版本的最大精度对成交量做四舍六入五成双，只改动超出该精度的值，例如标准精度构建下的本例。它拒绝负的源成交量和舍入后归零的正成交量。源值为零的成交量保持有效。</p>
+<h2 class="anchor anchorTargetStickyNavbar_ana5" id=configuration>配置<a href=#configuration class=hash-link aria-label=配置的直接链接 title=配置的直接链接 translate=no>​</a></h2>
+<p>把 <code>CoinApiDataClientFactory</code> 和 <code>CoinApiDataClientConfig</code> 注册到节点 builder。默认客户端 ID 是 <code>COINAPI</code>，自定义客户端名会用作其客户端 ID。</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>字段<th>默认值<th>用途<tbody><tr><td><code>api_key</code><td><code>None</code><td>API 密钥；<code>None</code> 读取 <code>COINAPI_API_KEY</code>。<tr><td><code>base_url_http</code><td><code>None</code><td>REST URL 覆盖，含 <code>/v1/</code>。<tr><td><code>base_url_ws</code><td><code>None</code><td>WebSocket URL 覆盖。<tr><td><code>proxy_url</code><td><code>None</code><td>REST 与 WebSocket 的显式 HTTP(S) 代理。<tr><td><code>instruments</code><td>空<td>连接时加载的金融工具选择。<tr><td><code>credit_budget</code><td><code>100</code><td>该客户端的本地生命周期 REST 信用额度。<tr><td><code>max_retries</code><td><code>3</code><td>失败 REST 请求的最大重试次数。<tr><td><code>http_timeout_secs</code><td><code>30</code><td>单次尝试的 REST 超时，含并发准入。<tr><td><code>max_concurrent_requests</code><td><code>1</code><td>最大并发 REST 请求数。<tr><td><code>retry_delay_initial_ms</code><td>1,000<td>初始 REST 重试延迟。<tr><td><code>retry_delay_max_ms</code><td>10,000<td>REST 退避上限；提供商的重试延迟可能超过它。<tr><td><code>retry_max_elapsed_ms</code><td>120,000<td>每次 REST GET 的总预算，含准入与重试。<tr><td><code>transport_backend</code><td><code>Sockudo</code><td>共享 WebSocket 后端，也可选 <code>Tungstenite</code>。<tr><td><code>book_snapshot_timeout_secs</code><td><code>10</code><td>等待订单簿快照的秒数，<code>0</code> 禁用。<tr><td><code>price_precisions</code><td>空<td>按金融工具 ID 的价格精度覆盖。</table>
+<p>配置拒绝未知字段。不设置 URL 覆盖时使用生产端点。Sockudo 是默认 WebSocket 后端，设 <code>transport_backend=TransportBackend.TUNGSTENITE</code> 改用 Tungstenite，<code>TransportBackend</code> 从 <code>nautilus_trader.network</code> 导入。</p>
+<p><code>proxy_url</code> 让两种传输都走显式 HTTP(S) 代理，系统环境代理仍然禁用。URL 必须包含 <code>http://</code> 或 <code>https://</code>。SOCKS URL 在客户端构造时报错。代理凭据在 Rust debug 输出中保持脱敏，Python getter 也不暴露它。Python 的 <code>has_proxy_url</code> 属性报告是否配置了显式代理。</p>
+<p><code>credit_budget</code>、<code>max_concurrent_requests</code>、<code>retry_max_elapsed_ms</code> 和 <code>http_timeout_secs</code> 必须为正。每个历史页有自己的 REST 重试预算。初始重试延迟必须为正，且最大值不得低于初始延迟。无效的退避设置在客户端构造时报错。单次尝试超时包含等待并发准入的时间，但不含重试延迟；总时长预算两者都包含。</p>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=python-configuration>Python 配置<a href=#python-configuration class=hash-link aria-label="Python 配置的直接链接" title="Python 配置的直接链接" translate=no>​</a></h3>
+<p><code>nautilus_trader.adapters.coinapi</code> 包导出 <code>CoinApiDataClientConfig</code>、<code>CoinApiInstrumentSelection</code>、<code>CoinApiDataClientFactory</code> 以及 <code>COINAPI</code> 和 <code>COINAPI_CLIENT_ID</code> 常量。配置以关键字参数接收上述字段，并把除 <code>api_key</code> 和 <code>proxy_url</code> 外的每个字段暴露为只读属性。其字符串表示省略所有值。金融工具选择接收交易所、金融工具 ID 列表，以及可选的 <code>filter_symbol_id</code> 和 <code>filter_asset_id</code> 过滤器。</p>
+<div class="language-python codeBlockContainer_eTMR theme-code-block" style=--prism-color:#393A34;--prism-background-color:#f6f8fa><div class=codeBlockContent_hafM><pre tabindex=0 class="prism-code language-python codeBlock_IMvC thin-scrollbar" style=color:#393A34;background-color:#f6f8fa><code class=codeBlockLines_gZDW><div class=token-line style=color:#393A34><span class="token keyword" style=color:#00009f>from</span><span class="token plain"> nautilus_trader</span><span class="token punctuation" style=color:#393A34>.</span><span class="token plain">adapters</span><span class="token punctuation" style=color:#393A34>.</span><span class="token plain">coinapi </span><span class="token keyword" style=color:#00009f>import</span><span class="token plain"> CoinApiDataClientConfig</span><br/></div><div class=token-line style=color:#393A34><span class="token plain"></span><span class="token keyword" style=color:#00009f>from</span><span class="token plain"> nautilus_trader</span><span class="token punctuation" style=color:#393A34>.</span><span class="token plain">adapters</span><span class="token punctuation" style=color:#393A34>.</span><span class="token plain">coinapi </span><span class="token keyword" style=color:#00009f>import</span><span class="token plain"> CoinApiDataClientFactory</span><br/></div><div class=token-line style=color:#393A34><span class="token plain"></span><span class="token keyword" style=color:#00009f>from</span><span class="token plain"> nautilus_trader</span><span class="token punctuation" style=color:#393A34>.</span><span class="token plain">adapters</span><span class="token punctuation" style=color:#393A34>.</span><span class="token plain">coinapi </span><span class="token keyword" style=color:#00009f>import</span><span class="token plain"> CoinApiInstrumentSelection</span><br/></div><div class=token-line style=color:#393A34><span class="token plain"></span><span class="token keyword" style=color:#00009f>from</span><span class="token plain"> nautilus_trader</span><span class="token punctuation" style=color:#393A34>.</span><span class="token plain">common </span><span class="token keyword" style=color:#00009f>import</span><span class="token plain"> Environment</span><br/></div><div class=token-line style=color:#393A34><span class="token plain"></span><span class="token keyword" style=color:#00009f>from</span><span class="token plain"> nautilus_trader</span><span class="token punctuation" style=color:#393A34>.</span><span class="token plain">live </span><span class="token keyword" style=color:#00009f>import</span><span class="token plain"> LiveNode</span><br/></div><div class=token-line style=color:#393A34><span class="token plain"></span><span class="token keyword" style=color:#00009f>from</span><span class="token plain"> nautilus_trader</span><span class="token punctuation" style=color:#393A34>.</span><span class="token plain">model </span><span class="token keyword" style=color:#00009f>import</span><span class="token plain"> InstrumentId</span><br/></div><div class=token-line style=color:#393A34><span class="token plain"></span><span class="token keyword" style=color:#00009f>from</span><span class="token plain"> nautilus_trader</span><span class="token punctuation" style=color:#393A34>.</span><span class="token plain">model </span><span class="token keyword" style=color:#00009f>import</span><span class="token plain"> TraderId</span><br/></div><div class=token-line style=color:#393A34><span class="token plain" style=display:inline-block></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">instrument_id </span><span class="token operator" style=color:#393A34>=</span><span class="token plain"> InstrumentId</span><span class="token punctuation" style=color:#393A34>.</span><span class="token plain">from_str</span><span class="token punctuation" style=color:#393A34>(</span><span class="token string" style=color:#e3116c>"BTC-USD.COINBASE"</span><span class="token punctuation" style=color:#393A34>)</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain" style=display:inline-block></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">data_config </span><span class="token operator" style=color:#393A34>=</span><span class="token plain"> CoinApiDataClientConfig</span><span class="token punctuation" style=color:#393A34>(</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    instruments</span><span class="token operator" style=color:#393A34>=</span><span class="token punctuation" style=color:#393A34>[</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">        CoinApiInstrumentSelection</span><span class="token punctuation" style=color:#393A34>(</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">            </span><span class="token string" style=color:#e3116c>"COINBASE"</span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">            </span><span class="token punctuation" style=color:#393A34>[</span><span class="token plain">instrument_id</span><span class="token punctuation" style=color:#393A34>]</span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">            filter_symbol_id</span><span class="token operator" style=color:#393A34>=</span><span class="token string" style=color:#e3116c>"COINBASE_SPOT_BTC_USD"</span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">        </span><span class="token punctuation" style=color:#393A34>)</span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    </span><span class="token punctuation" style=color:#393A34>]</span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    price_precisions</span><span class="token operator" style=color:#393A34>=</span><span class="token punctuation" style=color:#393A34>{</span><span class="token plain">instrument_id</span><span class="token punctuation" style=color:#393A34>:</span><span class="token plain"> </span><span class="token number" style=color:#36acaa>3</span><span class="token punctuation" style=color:#393A34>}</span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain"></span><span class="token punctuation" style=color:#393A34>)</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain" style=display:inline-block></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">node </span><span class="token operator" style=color:#393A34>=</span><span class="token plain"> </span><span class="token punctuation" style=color:#393A34>(</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    LiveNode</span><span class="token punctuation" style=color:#393A34>.</span><span class="token plain">builder</span><span class="token punctuation" style=color:#393A34>(</span><span class="token string" style=color:#e3116c>"COINAPI-001"</span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain"> TraderId</span><span class="token punctuation" style=color:#393A34>(</span><span class="token string" style=color:#e3116c>"TESTER-001"</span><span class="token punctuation" style=color:#393A34>)</span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain"> Environment</span><span class="token punctuation" style=color:#393A34>.</span><span class="token plain">LIVE</span><span class="token punctuation" style=color:#393A34>)</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    </span><span class="token punctuation" style=color:#393A34>.</span><span class="token plain">add_data_client</span><span class="token punctuation" style=color:#393A34>(</span><span class="token boolean" style=color:#36acaa>None</span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain"> CoinApiDataClientFactory</span><span class="token punctuation" style=color:#393A34>(</span><span class="token punctuation" style=color:#393A34>)</span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain"> data_config</span><span class="token punctuation" style=color:#393A34>)</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    </span><span class="token punctuation" style=color:#393A34>.</span><span class="token plain">build</span><span class="token punctuation" style=color:#393A34>(</span><span class="token punctuation" style=color:#393A34>)</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain"></span><span class="token punctuation" style=color:#393A34>)</span><br/></div></code></pre></div></div>
+<p>工厂在 <code>build</code> 期间创建客户端，无效的凭据、端点或代理 URL、零并发数、时长预算或单次超时、无效的退避设置都会在此报错。示例从 <code>COINAPI_API_KEY</code> 读取密钥，并把 BTC/USD 价格精度覆盖为 3 以容纳三位小数的 OHLCV 价格，见<a href=#precision class="">精度</a>。通用节点搭建见
+<a class="" href=/how_to/configure_live_trading>配置实时交易</a>。</p>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=instrument-selections>金融工具选择<a href=#instrument-selections class=hash-link aria-label=金融工具选择的直接链接 title=金融工具选择的直接链接 translate=no>​</a></h3>
+<p>每个 <code>CoinApiInstrumentSelection</code> 指定一个 CoinAPI 交易所、要加载的原生金融工具 ID，以及可选的 <code>filter_symbol_id</code> 和 <code>filter_asset_id</code> 元数据过滤器。构造时拒绝空 ID 列表、映射到其他 CoinAPI 交易所的 ID，以及被选择多次的 ID。用 <code>filter_symbol_id</code> 限制元数据的传输与解析量。每次请求尝试无论响应大小都消耗 1 点本地信用。</p>
+<p>连接时每个选择加载一次，任何选定金融工具缺失都会导致失败。只有选定的金融工具会被发布。用显式选择保持 CoinAPI 与原生适配器的<a href=#using-coinapi-with-native-adapters class="">互不相交</a>。</p>
+<p>金融工具请求始终从 CoinAPI 获取，并刷新用于流转换的定义和用于 REST 请求的 <code>symbol_id</code>。订阅沿用 <code>connect</code> 加载的 ID，传输重连后也一样。要让订阅使用刷新的 ID，需要断开并重连数据客户端。</p>
+<ul>
+<li class=""><code>request_instrument</code> 只接受配置过的 ID，其他 ID 返回错误。</li>
+<li class=""><code>request_instruments</code> 返回所请求场所的已配置金融工具；请求未指明场所时返回全部已配置金融工具。响应中未被请求的场所带 <code>COINAPI</code> 场所。</li>
+<li class="">请求没有配置金融工具的场所时，直接返回空响应，不发起 REST 调用。</li>
+</ul>
+<h2 class="anchor anchorTargetStickyNavbar_ana5" id=troubleshooting>故障排查<a href=#troubleshooting class=hash-link aria-label=故障排查的直接链接 title=故障排查的直接链接 translate=no>​</a></h2>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>症状<th>可能原因<th>处理措施<tbody><tr><td>构建时报 <code>CoinAPI API key not configured</code><td><code>api_key</code> 与 <code>COINAPI_API_KEY</code> 都未设置。<td>设置其中之一。<tr><td><code>subscription change failed, retrying</code> 伴随 HTTP 429<td>账户唯一连接被其他客户端或节点占用。<td>停掉另一路连接；客户端会重试直到 CoinAPI 释放连接槽。<tr><td><code>WsHelloPerIp</code> 错误后无数据<td>该 IP 发出的 <code>hello</code> 消息过多（含其他客户端）。<td>降低该 IP 的订阅变更频率；下一次订阅会重连。<tr><td><code>Conflicting CoinAPI book subscription</code><td>该金融工具已在流式另一订单簿通道或深度。<td>先退订其订单簿，或改用相同的通道与深度。<tr><td><code>CoinAPI streams one book channel per connection</code><td>另一金融工具在流式不同的订单簿通道。<td>改用当前通道，或先退订全部订单簿。<tr><td>反复出现 <code>Invalid book message</code> 警告<td>订单簿档位超出金融工具精度，或 L3 条目缺少订单 ID。<td>必要时覆盖价格精度；对没有订单 ID 的数据源改用 L2。<tr><td><code>Dropping CoinAPI</code> 报价/成交/bar 警告<td>价格或数量超出金融工具精度；OHLCV 成交量需要的舍入超出容差。<td>必要时覆盖价格精度；数量精度与成交量容差没有覆盖项。<tr><td>请求最近一小时的历史返回空<td>历史可能落后于实时数据，近期历史可能尚未可用。<td>请求更早的窗口。<tr><td><code>credit budget truncated</code> 历史警告<td>区间请求进行到一半时信用预算耗尽。<td>调大 <code>credit_budget</code> 或缩小时间窗口。</table>
+<h2 class="anchor anchorTargetStickyNavbar_ana5" id=limitations>局限<a href=#limitations class=hash-link aria-label=局限的直接链接 title=局限的直接链接 translate=no>​</a></h2>
+<ul>
+<li class="">不支持历史订单簿快照和自动区域 REST 故障切换。</li>
+<li class="">Sandbox 访问未经确认。</li>
+<li class="">数量精度只来自 CoinAPI 元数据，没有覆盖项。</li>
+<li class="">不支持自动金融工具更新、状态事件、指标和期权。</li>
+<li class="">适配器加载已下载的扁平文件，但不会列出或下载 S3 对象。</li>
+</ul>
+<h2 class="anchor anchorTargetStickyNavbar_ana5" id=contributing>参与贡献<a href=#contributing class=hash-link aria-label=参与贡献的直接链接 title=参与贡献的直接链接 translate=no>​</a></h2>
+<div class="theme-admonition theme-admonition-info admonition_LYZY alert alert--info"><div class=admonitionHeading_pnFY><span class=admonitionIcon_tEzm><svg viewBox="0 0 14 16"><path fill-rule=evenodd d="M7 2.3c3.14 0 5.7 2.56 5.7 5.7s-2.56 5.7-5.7 5.7A5.71 5.71 0 0 1 1.3 8c0-3.14 2.56-5.7 5.7-5.7zM7 1C3.14 1 0 4.14 0 8s3.14 7 7 7 7-3.14 7-7-3.14-7-7-7zm1 3H6v5h2V4zm0 6H6v2h2v-2z"/></svg></span>信息</div><div class=admonitionContent_ZwmI><p>为 CoinAPI 适配器做贡献，见
+<a href=https://github.com/nautechsystems/nautilus_trader/blob/develop/CONTRIBUTING.md target=_blank rel="noopener noreferrer" class="">贡献指南</a>。</div></div></div><footer class="theme-doc-footer docusaurus-mt-lg"><div class="row margin-top--sm theme-doc-footer-edit-meta-row"><div class="col noPrint_MRkS"><a href=https://github.com/Aloento/NautilusTraderDoc/tree/main/docs/integrations/coinapi.md target=_blank rel="noopener noreferrer" class=theme-edit-this-page><svg fill=currentColor height=20 width=20 viewBox="0 0 40 40" class=iconEdit_RPSQ aria-hidden=true><g><path d="m34.5 11.7l-3 3.1-6.3-6.3 3.1-3q0.5-0.5 1.2-0.5t1.1 0.5l3.9 3.9q0.5 0.4 0.5 1.1t-0.5 1.2z m-29.5 17.1l18.4-18.5 6.3 6.3-18.4 18.4h-6.3v-6.2z"/></g></svg>编辑此页</a></div><div class="col lastUpdated_oZSl"><span class=theme-last-updated>最后<!-- -->于 <b><time datetime=2026-10-14T22:30:30.000Z itemprop=dateModified>2026年10月14日</time></b> <!-- -->更新</span></div></div></footer></article><nav class="docusaurus-mt-lg pagination-nav" aria-label=文件选项卡><a class="pagination-nav__link pagination-nav__link--prev" href=/integrations/bybit><div class=pagination-nav__sublabel>上一页</div><div class=pagination-nav__label>Bybit</div></a><a class="pagination-nav__link pagination-nav__link--next" href=/integrations/coinbase><div class=pagination-nav__sublabel>下一页</div><div class=pagination-nav__label>Coinbase</div></a></nav></div></div><div class="col col--3"><div class="tableOfContents_LyLZ thin-scrollbar theme-doc-toc-desktop"><ul class="table-of-contents table-of-contents__left-border"><li><a href=#overview class="table-of-contents__link toc-highlight">概览</a><li><a href=#examples class="table-of-contents__link toc-highlight">示例</a><li><a href=#coinapi-documentation class="table-of-contents__link toc-highlight">CoinAPI 文档</a><li><a href=#supported-capabilities class="table-of-contents__link toc-highlight">支持的能力</a><li><a href=#integrator-attribution class="table-of-contents__link toc-highlight">集成方署名</a><li><a href=#authentication-and-environments class="table-of-contents__link toc-highlight">认证与环境</a><li><a href=#using-coinapi-with-native-adapters class="table-of-contents__link toc-highlight">与原生适配器共用 CoinAPI</a><li><a href=#instruments-and-symbology class="table-of-contents__link toc-highlight">金融工具与代码体系</a><ul><li><a href=#supported-instruments class="table-of-contents__link toc-highlight">支持的金融工具</a><li><a href=#metadata class="table-of-contents__link toc-highlight">元数据</a><li><a href=#symbol-mappings class="table-of-contents__link toc-highlight">代码映射</a><li><a href=#unsupported-contracts class="table-of-contents__link toc-highlight">不支持的合约</a></ul><li><a href=#data-subscriptions class="table-of-contents__link toc-highlight">数据订阅</a><ul><li><a href=#trade-aggressor-sides class="table-of-contents__link toc-highlight">成交主动方</a><li><a href=#bars class="table-of-contents__link toc-highlight">Bar</a><li><a href=#subscription-changes class="table-of-contents__link toc-highlight">订阅变更</a></ul><li><a href=#order-books class="table-of-contents__link toc-highlight">订单簿</a><ul><li><a href=#channels-and-depths class="table-of-contents__link toc-highlight">通道与深度</a><li><a href=#channel-conflicts class="table-of-contents__link toc-highlight">通道冲突</a><li><a href=#snapshot-and-delta-events class="table-of-contents__link toc-highlight">快照与 delta 事件</a><li><a href=#sequence-numbers class="table-of-contents__link toc-highlight">序号</a><li><a href=#recovery class="table-of-contents__link toc-highlight">恢复</a><li><a href=#snapshot-deadlines-and-retry-limits class="table-of-contents__link toc-highlight">快照期限与重试上限</a><li><a href=#effects-on-other-streams class="table-of-contents__link toc-highlight">对其他数据流的影响</a></ul><li><a href=#historical-requests class="table-of-contents__link toc-highlight">历史请求</a><ul><li><a href=#time-windows-and-limits class="table-of-contents__link toc-highlight">时间窗口与限额</a><li><a href=#history-lag class="table-of-contents__link toc-highlight">历史延迟</a><li><a href=#closed-bars class="table-of-contents__link toc-highlight">已收盘 bar</a><li><a href=#current-book-snapshots class="table-of-contents__link toc-highlight">当前订单簿快照</a><li><a href=#failed-requests class="table-of-contents__link toc-highlight">失败请求</a></ul><li><a href=#precision class="table-of-contents__link toc-highlight">精度</a><ul><li><a href=#price-precision-overrides class="table-of-contents__link toc-highlight">价格精度覆盖</a><li><a href=#ohlcv-precision-warnings class="table-of-contents__link toc-highlight">OHLCV 精度警告</a></ul><li><a href=#connection-lifecycle class="table-of-contents__link toc-highlight">连接生命周期</a><li><a href=#usage-and-access-constraints class="table-of-contents__link toc-highlight">使用与访问限制</a><ul><li><a href=#account-limits class="table-of-contents__link toc-highlight">账户限额</a><li><a href=#local-credit-budget class="table-of-contents__link toc-highlight">本地信用额度预算</a><li><a href=#backfills class="table-of-contents__link toc-highlight">历史回填</a></ul><li><a href=#raw-http-requests class="table-of-contents__link toc-highlight">原生 HTTP 请求</a><ul><li><a href=#single-pages-and-ranges class="table-of-contents__link toc-highlight">单页与区间</a><li><a href=#time-boundaries class="table-of-contents__link toc-highlight">时间边界</a><li><a href=#pagination class="table-of-contents__link toc-highlight">翻页</a></ul><li><a href=#raw-websocket-streams class="table-of-contents__link toc-highlight">原生 WebSocket 数据流</a><ul><li><a href=#reconnects-and-errors class="table-of-contents__link toc-highlight">重连与错误</a></ul><li><a href=#flat-files class="table-of-contents__link toc-highlight">扁平文件</a><ul><li><a href=#order-book-example class="table-of-contents__link toc-highlight">订单簿示例</a><li><a href=#bars-example class="table-of-contents__link toc-highlight">Bar 示例</a><li><a href=#file-layout class="table-of-contents__link toc-highlight">文件布局</a><li><a href=#order-book-data class="table-of-contents__link toc-highlight">订单簿数据</a><li><a href=#timestamps class="table-of-contents__link toc-highlight">时间戳</a><li><a href=#precision-1 class="table-of-contents__link toc-highlight">精度</a></ul><li><a href=#configuration class="table-of-contents__link toc-highlight">配置</a><ul><li><a href=#python-configuration class="table-of-contents__link toc-highlight">Python 配置</a><li><a href=#instrument-selections class="table-of-contents__link toc-highlight">金融工具选择</a></ul><li><a href=#troubleshooting class="table-of-contents__link toc-highlight">故障排查</a><li><a href=#limitations class="table-of-contents__link toc-highlight">局限</a><li><a href=#contributing class="table-of-contents__link toc-highlight">参与贡献</a></ul></div></div></div></div></main></div></div></div><footer class="theme-layout-footer footer footer--dark"><div class="container container-fluid"><div class="row footer__links"><div class="theme-layout-footer-column col footer__col"><div class=footer__title></div><ul class="footer__items clean-list"><li class=footer__item><a href=https://github.com/nautechsystems/nautilus_trader target=_blank rel="noopener noreferrer" class=footer__link-item>Official GitHub<svg width=13.5 height=13.5 aria-label="(opens in new tab)" class=iconExternalLink_qUHo><use href=#theme-svg-external-link /></svg></a><li class=footer__item><a href=https://nautilustrader.io/docs target=_blank rel="noopener noreferrer" class=footer__link-item>Official Documentation<svg width=13.5 height=13.5 aria-label="(opens in new tab)" class=iconExternalLink_qUHo><use href=#theme-svg-external-link /></svg></a></ul></div></div><div class="footer__bottom text--center"><div class=footer__copyright>© 2026 Nautech Systems Pty Ltd. All rights reserved.</div></div></div></footer></div></body>

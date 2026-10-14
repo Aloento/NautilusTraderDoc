@@ -1,0 +1,595 @@
+<!doctype html><html lang=zh dir=ltr class="docs-wrapper plugin-docs plugin-id-default docs-version-current docs-doc-page docs-doc-id-developer_guide/python_adapters" data-has-hydrated=false><head><meta charset=UTF-8><meta name=generator content="Docusaurus v3.10.2"><title data-rh=true>Python 适配器接口 | NautilusTrader 文档</title><meta data-rh=true name=viewport content="width=device-width, initial-scale=1.0"/><meta data-rh=true name=twitter:card content=summary_large_image /><meta data-rh=true property=og:url content=https://nautilus.aloen.to/developer_guide/python_adapters /><meta data-rh=true property=og:locale content=zh /><meta data-rh=true name=docusaurus_locale content=zh /><meta data-rh=true name=docsearch:language content=zh /><meta data-rh=true name=docusaurus_version content=current /><meta data-rh=true name=docusaurus_tag content=docs-default-current /><meta data-rh=true name=docsearch:version content=current /><meta data-rh=true name=docsearch:docusaurus_tag content=docs-default-current /><meta data-rh=true property=og:title content="Python 适配器接口 | NautilusTrader 文档"/><meta data-rh=true name=description content=python-adapter-interface} /><meta data-rh=true property=og:description content=python-adapter-interface} /><link data-rh=true rel=icon href=/logo.png /><link data-rh=true rel=canonical href=https://nautilus.aloen.to/developer_guide/python_adapters /><link data-rh=true rel=alternate href=https://nautilus.aloen.to/developer_guide/python_adapters hreflang=zh /><link data-rh=true rel=alternate href=https://nautilus.aloen.to/developer_guide/python_adapters hreflang=x-default /><script data-rh=true type=application/ld+json>{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","item":"https://nautilus.aloen.to/developer_guide/","name":"开发者指南","position":1},{"@type":"ListItem","item":"https://nautilus.aloen.to/developer_guide/python_adapters","name":"Python 适配器接口","position":2}]}</script><link rel=stylesheet href=/assets/css/styles.adb7ea18.css /><script src=/assets/js/runtime~main.71ac0794.js defer></script><script src=/assets/js/main.d978d0f2.js defer></script></head><body><svg style="display: none;"><defs>
+<symbol id=theme-svg-external-link viewBox="0 0 24 24"><path fill=currentColor d="M21 13v10h-21v-19h12v2h-10v15h17v-8h2zm3-12h-10.988l4.035 4-6.977 7.07 2.828 2.828 6.977-7.07 4.125 4.172v-11z"/></symbol>
+</defs></svg>
+<script>!function(){var t=function(){try{return new URLSearchParams(window.location.search).get("docusaurus-theme")}catch(t){}}()||function(){try{return window.localStorage.getItem("theme-2e3")}catch(t){}}();document.documentElement.setAttribute("data-theme",t||(window.matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light")),document.documentElement.setAttribute("data-theme-choice",t||"system")}(),function(){try{for(var[t,e]of new URLSearchParams(window.location.search).entries())if(t.startsWith("docusaurus-data-")){var a=t.replace("docusaurus-data-","data-");document.documentElement.setAttribute(a,e)}}catch(t){}}()</script><div id=__docusaurus><link rel=preload as=image href=/logo.png /><div role=region aria-label=跳到主要内容><a class=skipToContent_zuOI href=#__docusaurus_skipToContent_fallback>跳到主要内容</a></div><nav aria-label=主导航 class="theme-layout-navbar navbar navbar--fixed-top"><div class=navbar__inner><div class="theme-layout-navbar-left navbar__items"><button aria-label=切换导航栏 aria-expanded=false class="navbar__toggle clean-btn" type=button><svg width=30 height=30 viewBox="0 0 30 30" aria-hidden=true><path stroke=currentColor stroke-linecap=round stroke-miterlimit=10 stroke-width=2 d="M4 7h22M4 15h22M4 23h22"/></svg></button><a class=navbar__brand href=/><div class=navbar__logo><img src=/logo.png alt="NautilusTrader Logo" class="themedComponent_q2_Y themedComponent--light_Nejn"/><img src=/logo.png alt="NautilusTrader Logo" class="themedComponent_q2_Y themedComponent--dark_JjIb"/></div><b class="navbar__title text--truncate">NautilusTrader</b></a><a aria-current=page class="navbar__item navbar__link navbar__link--active" href=/getting_started/>文档</a></div><div class="theme-layout-navbar-right navbar__items navbar__items--right"><a href=https://github.com/Aloento/NautilusTraderDoc target=_blank rel="noopener noreferrer" class="navbar__item navbar__link">GitHub<svg width=13.5 height=13.5 aria-label="(opens in new tab)" class=iconExternalLink_qUHo><use href=#theme-svg-external-link /></svg></a><div class="toggle_hHmI colorModeToggle_rOOn"><button class="clean-btn toggleButton_wEhT toggleButtonDisabled_yOOP" type=button disabled title="system mode" aria-label="切换浅色/暗黑模式（当前为system mode）"><svg viewBox="0 0 24 24" width=24 height=24 aria-hidden=true class="toggleIcon_Kt6U lightToggleIcon_Zfeh"><path fill=currentColor d="M12,9c1.65,0,3,1.35,3,3s-1.35,3-3,3s-3-1.35-3-3S10.35,9,12,9 M12,7c-2.76,0-5,2.24-5,5s2.24,5,5,5s5-2.24,5-5 S14.76,7,12,7L12,7z M2,13l2,0c0.55,0,1-0.45,1-1s-0.45-1-1-1l-2,0c-0.55,0-1,0.45-1,1S1.45,13,2,13z M20,13l2,0c0.55,0,1-0.45,1-1 s-0.45-1-1-1l-2,0c-0.55,0-1,0.45-1,1S19.45,13,20,13z M11,2v2c0,0.55,0.45,1,1,1s1-0.45,1-1V2c0-0.55-0.45-1-1-1S11,1.45,11,2z M11,20v2c0,0.55,0.45,1,1,1s1-0.45,1-1v-2c0-0.55-0.45-1-1-1C11.45,19,11,19.45,11,20z M5.99,4.58c-0.39-0.39-1.03-0.39-1.41,0 c-0.39,0.39-0.39,1.03,0,1.41l1.06,1.06c0.39,0.39,1.03,0.39,1.41,0s0.39-1.03,0-1.41L5.99,4.58z M18.36,16.95 c-0.39-0.39-1.03-0.39-1.41,0c-0.39,0.39-0.39,1.03,0,1.41l1.06,1.06c0.39,0.39,1.03,0.39,1.41,0c0.39-0.39,0.39-1.03,0-1.41 L18.36,16.95z M19.42,5.99c0.39-0.39,0.39-1.03,0-1.41c-0.39-0.39-1.03-0.39-1.41,0l-1.06,1.06c-0.39,0.39-0.39,1.03,0,1.41 s1.03,0.39,1.41,0L19.42,5.99z M7.05,18.36c0.39-0.39,0.39-1.03,0-1.41c-0.39-0.39-1.03-0.39-1.41,0l-1.06,1.06 c-0.39,0.39-0.39,1.03,0,1.41s1.03,0.39,1.41,0L7.05,18.36z"/></svg><svg viewBox="0 0 24 24" width=24 height=24 aria-hidden=true class="toggleIcon_Kt6U darkToggleIcon_XgQr"><path fill=currentColor d="M9.37,5.51C9.19,6.15,9.1,6.82,9.1,7.5c0,4.08,3.32,7.4,7.4,7.4c0.68,0,1.35-0.09,1.99-0.27C17.45,17.19,14.93,19,12,19 c-3.86,0-7-3.14-7-7C5,9.07,6.81,6.55,9.37,5.51z M12,3c-4.97,0-9,4.03-9,9s4.03,9,9,9s9-4.03,9-9c0-0.46-0.04-0.92-0.1-1.36 c-0.98,1.37-2.58,2.26-4.4,2.26c-2.98,0-5.4-2.42-5.4-5.4c0-1.81,0.89-3.42,2.26-4.4C12.92,3.04,12.46,3,12,3L12,3z"/></svg><svg viewBox="0 0 24 24" width=24 height=24 aria-hidden=true class="toggleIcon_Kt6U systemToggleIcon_BvUi"><path fill=currentColor d="m12 21c4.971 0 9-4.029 9-9s-4.029-9-9-9-9 4.029-9 9 4.029 9 9 9zm4.95-13.95c1.313 1.313 2.05 3.093 2.05 4.95s-0.738 3.637-2.05 4.95c-1.313 1.313-3.093 2.05-4.95 2.05v-14c1.857 0 3.637 0.737 4.95 2.05z"/></svg></button></div><div class=navbarSearchContainer_watl></div></div></div><div role=presentation class=navbar-sidebar__backdrop></div></nav><div id=__docusaurus_skipToContent_fallback class="theme-layout-main main-wrapper mainWrapper_R72Q"><div class=docsWrapper_XQ9b><button aria-label=回到顶部 class="clean-btn theme-back-to-top-button backToTopButton_MbnX" type=button></button><div class=docRoot_aqOB><aside class="theme-doc-sidebar-container docSidebarContainer_sI2e"><div class=sidebarViewport_TzTy><div class=sidebar_CbEe><nav aria-label=文档侧边栏 class="menu thin-scrollbar menu_ChRF"><ul class="theme-doc-sidebar-menu menu__list"><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-1 menu__list-item menu__list-item--collapsed"><div class=menu__list-item-collapsible><a class="categoryLink_Muyc menu__link menu__link--sublist" href=/getting_started/><span class=categoryLinkLabel_mAcL>快速开始</span></a><button aria-label="展开侧边栏分类 '快速开始'" aria-expanded=false type=button class="clean-btn menu__caret"></button></div><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-1 menu__list-item menu__list-item--collapsed"><div class=menu__list-item-collapsible><a class="categoryLink_Muyc menu__link menu__link--sublist" href=/concepts/><span class=categoryLinkLabel_mAcL>核心概念</span></a><button aria-label="展开侧边栏分类 '核心概念'" aria-expanded=false type=button class="clean-btn menu__caret"></button></div><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-1 menu__list-item menu__list-item--collapsed"><div class=menu__list-item-collapsible><a class="categoryLink_Muyc menu__link menu__link--sublist" href=/integrations/><span class=categoryLinkLabel_mAcL>交易所与集成</span></a><button aria-label="展开侧边栏分类 '交易所与集成'" aria-expanded=false type=button class="clean-btn menu__caret"></button></div><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-1 menu__list-item menu__list-item--collapsed"><div class=menu__list-item-collapsible><a class="categoryLink_Muyc menu__link menu__link--sublist" href=/how_to/><span class=categoryLinkLabel_mAcL>操作指南</span></a><button aria-label="展开侧边栏分类 '操作指南'" aria-expanded=false type=button class="clean-btn menu__caret"></button></div><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-1 menu__list-item menu__list-item--collapsed"><div class=menu__list-item-collapsible><a class="categoryLink_Muyc menu__link menu__link--sublist" href=/tutorials/><span class=categoryLinkLabel_mAcL>教程</span></a><button aria-label="展开侧边栏分类 '教程'" aria-expanded=false type=button class="clean-btn menu__caret"></button></div><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-1 menu__list-item"><div class=menu__list-item-collapsible><a class="categoryLink_Muyc menu__link menu__link--sublist menu__link--active" href=/developer_guide/><span class=categoryLinkLabel_mAcL>开发者指南</span></a><button aria-label="折叠侧边栏分类 '开发者指南'" aria-expanded=true type=button class="clean-btn menu__caret"></button></div><ul class=menu__list><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/developer_guide/adapters><span class=linkLabel_lYjD>适配器</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/developer_guide/benchmarking><span class=linkLabel_lYjD>基准测试</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/developer_guide/callback_dispatch><span class=linkLabel_lYjD>回调派发契约</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/developer_guide/coding_standards><span class=linkLabel_lYjD>编码规范</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/developer_guide/design_principles><span class=linkLabel_lYjD>设计原则</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/developer_guide/docs><span class=linkLabel_lYjD>文档风格</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/developer_guide/environment_setup><span class=linkLabel_lYjD>环境搭建</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/developer_guide/ffi><span class=linkLabel_lYjD>FFI 内存契约</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/developer_guide/markdown_style><span class=linkLabel_lYjD>Markdown 风格</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/developer_guide/plugins><span class=linkLabel_lYjD>插件</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/developer_guide/python><span class=linkLabel_lYjD>Python</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class="menu__link menu__link--active" aria-current=page tabindex=0 href=/developer_guide/python_adapters><span class=linkLabel_lYjD>Python 适配器接口</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/developer_guide/releases><span class=linkLabel_lYjD>发布</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/developer_guide/runtime_conformance><span class=linkLabel_lYjD>运行时一致性契约</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/developer_guide/rust><span class=linkLabel_lYjD>Rust</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/developer_guide/security><span class=linkLabel_lYjD>安全架构</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/developer_guide/shell><span class=linkLabel_lYjD>Shell 脚本</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/developer_guide/spec_data_testing><span class=linkLabel_lYjD>数据测试规范</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/developer_guide/spec_exec_testing><span class=linkLabel_lYjD>执行测试规范</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/developer_guide/test_datasets><span class=linkLabel_lYjD>测试数据集</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/developer_guide/testing><span class=linkLabel_lYjD>测试</span></a></ul><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-1 menu__list-item menu__list-item--collapsed"><div class=menu__list-item-collapsible><a class="categoryLink_Muyc menu__link menu__link--sublist" href=/api_reference/><span class=categoryLinkLabel_mAcL>API 参考</span></a><button aria-label="展开侧边栏分类 'API 参考'" aria-expanded=false type=button class="clean-btn menu__caret"></button></div></ul></nav></div></div></aside><main class=docMainContainer_sLF8><div class="container padding-top--md padding-bottom--lg"><div class=row><div class="col docItemCol_ZRft"><div class=docItemContainer_KOP5><article><nav class="theme-doc-breadcrumbs breadcrumbsContainer_d5rS" aria-label=页面路径><ul class=breadcrumbs><li class=breadcrumbs__item><a aria-label=主页面 class=breadcrumbs__link href=/><svg viewBox="0 0 24 24" class=breadcrumbHomeIcon_XgF2><path d="M10 19v-5h4v5c0 .55.45 1 1 1h3c.55 0 1-.45 1-1v-7h1.7c.46 0 .68-.57.33-.87L12.67 3.6c-.38-.34-.96-.34-1.34 0l-8.36 7.53c-.34.3-.13.87.33.87H5v7c0 .55.45 1 1 1h3c.55 0 1-.45 1-1z" fill=currentColor /></svg></a><li class=breadcrumbs__item><a class=breadcrumbs__link href=/developer_guide/><span>开发者指南</span></a><li class="breadcrumbs__item breadcrumbs__item--active"><span class=breadcrumbs__link>Python 适配器接口</span></ul></nav><div class="tocCollapsible_bgaJ theme-doc-toc-mobile tocMobile_FhT_"><button type=button class="clean-btn tocCollapsibleButton_F8AY">本页总览</button></div><div class="theme-doc-markdown markdown"><header><h1>Python 适配器接口</h1></header>
+<p>要在独立的 Python 包中实现自定义实时适配器，使用本指南。该包可以拥有自己的
+Rust/PyO3 扩展。本指南涵盖客户端接口、注册与运行时契约。平台总览见
+<a class="" href=/concepts/adapters>适配器</a>；树内 Rust 适配器见
+<a class="" href=/developer_guide/adapters>Rust 适配器指南</a>。</p>
+<p>自定义客户端运行在节点的 Python 事件循环上，通过 PyO3 与 Rust 引擎交换类型化对象。
+客户端从 <code>nautilus_trader.live.clients</code> 派生：</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>基类<th>职责<tbody><tr><td><code>DataClient</code><td>数据订阅与历史请求。<tr><td><code>MarketDataClient</code><td><code>DataClient</code> 的命名特化。钩子与行为完全相同。<tr><td><code>ExecutionClient</code><td>订单命令、账户更新与对账报告。</table>
+<p>从<a href=https://github.com/nautechsystems/nautilus_trader/blob/develop/examples/live/_template/README.md target=_blank rel="noopener noreferrer" class="">确定性适配器模板</a>起步。
+<a href=#independent-rustpyo3-packages class="">独立 Rust/PyO3 包</a>一节展示扩展如何使用同一接口。</p>
+<h2 class="anchor anchorTargetStickyNavbar_ana5" id=registration-and-configuration>注册与配置<a href=#registration-and-configuration class=hash-link aria-label=注册与配置的直接链接 title=注册与配置的直接链接 translate=no>​</a></h2>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=define-a-factory>定义工厂<a href=#define-a-factory class=hash-link aria-label=定义工厂的直接链接 title=定义工厂的直接链接 translate=no>​</a></h3>
+<p>从 <code>nautilus_trader.live.clients</code> 派生 <code>DataClientFactory</code> 或
+<code>ExecutionClientFactory</code>。注册其子类（带静态 <code>create</code> 方法）或其实例均可。</p>
+<p>数据工厂实现 <code>create(*, name, config, cache, clock)</code>。执行工厂还会收到
+<code>trader_id</code>。工厂<strong>同步</strong>返回相应的客户端子类。客户端持有传入的 config 与
+cache 对象。节点在接受客户端之前校验其注册名与执行身份。</p>
+<p>从仓库根目录运行下面的示例，注册模板的数据客户端：</p>
+<div class="language-python codeBlockContainer_eTMR theme-code-block" style=--prism-color:#393A34;--prism-background-color:#f6f8fa><div class=codeBlockContent_hafM><pre tabindex=0 class="prism-code language-python codeBlock_IMvC thin-scrollbar" style=color:#393A34;background-color:#f6f8fa><code class=codeBlockLines_gZDW><div class=token-line style=color:#393A34><span class="token keyword" style=color:#00009f>from</span><span class="token plain"> nautilus_trader</span><span class="token punctuation" style=color:#393A34>.</span><span class="token plain">config </span><span class="token keyword" style=color:#00009f>import</span><span class="token plain"> DataClientConfig</span><br/></div><div class=token-line style=color:#393A34><span class="token plain"></span><span class="token keyword" style=color:#00009f>from</span><span class="token plain"> nautilus_trader</span><span class="token punctuation" style=color:#393A34>.</span><span class="token plain">live </span><span class="token keyword" style=color:#00009f>import</span><span class="token plain"> LiveNodeBuilder</span><br/></div><div class=token-line style=color:#393A34><span class="token plain"></span><span class="token keyword" style=color:#00009f>from</span><span class="token plain"> nautilus_trader</span><span class="token punctuation" style=color:#393A34>.</span><span class="token plain">live</span><span class="token punctuation" style=color:#393A34>.</span><span class="token plain">clients </span><span class="token keyword" style=color:#00009f>import</span><span class="token plain"> DataClientFactory</span><br/></div><div class=token-line style=color:#393A34><span class="token plain"></span><span class="token keyword" style=color:#00009f>from</span><span class="token plain"> examples</span><span class="token punctuation" style=color:#393A34>.</span><span class="token plain">live</span><span class="token punctuation" style=color:#393A34>.</span><span class="token plain">_template</span><span class="token punctuation" style=color:#393A34>.</span><span class="token plain">constants </span><span class="token keyword" style=color:#00009f>import</span><span class="token plain"> VENUE</span><br/></div><div class=token-line style=color:#393A34><span class="token plain"></span><span class="token keyword" style=color:#00009f>from</span><span class="token plain"> examples</span><span class="token punctuation" style=color:#393A34>.</span><span class="token plain">live</span><span class="token punctuation" style=color:#393A34>.</span><span class="token plain">_template</span><span class="token punctuation" style=color:#393A34>.</span><span class="token plain">data </span><span class="token keyword" style=color:#00009f>import</span><span class="token plain"> TemplateDataClient</span><br/></div><div class=token-line style=color:#393A34><span class="token plain"></span><span class="token keyword" style=color:#00009f>from</span><span class="token plain"> examples</span><span class="token punctuation" style=color:#393A34>.</span><span class="token plain">live</span><span class="token punctuation" style=color:#393A34>.</span><span class="token plain">_template</span><span class="token punctuation" style=color:#393A34>.</span><span class="token plain">providers </span><span class="token keyword" style=color:#00009f>import</span><span class="token plain"> TemplateInstrumentProvider</span><br/></div><div class=token-line style=color:#393A34><span class="token plain" style=display:inline-block></span><br/></div><div class=token-line style=color:#393A34><span class="token plain" style=display:inline-block></span><br/></div><div class=token-line style=color:#393A34><span class="token plain"></span><span class="token keyword" style=color:#00009f>class</span><span class="token plain"> </span><span class="token class-name">ExampleFactory</span><span class="token punctuation" style=color:#393A34>(</span><span class="token plain">DataClientFactory</span><span class="token punctuation" style=color:#393A34>)</span><span class="token punctuation" style=color:#393A34>:</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    </span><span class="token decorator annotation punctuation" style=color:#393A34>@staticmethod</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    </span><span class="token keyword" style=color:#00009f>def</span><span class="token plain"> </span><span class="token function" style=color:#d73a49>create</span><span class="token punctuation" style=color:#393A34>(</span><span class="token operator" style=color:#393A34>*</span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain"> name</span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain"> config</span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain"> cache</span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain"> clock</span><span class="token punctuation" style=color:#393A34>)</span><span class="token punctuation" style=color:#393A34>:</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">        </span><span class="token keyword" style=color:#00009f>return</span><span class="token plain"> TemplateDataClient</span><span class="token punctuation" style=color:#393A34>(</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">            name</span><span class="token operator" style=color:#393A34>=</span><span class="token plain">name</span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">            config</span><span class="token operator" style=color:#393A34>=</span><span class="token plain">config</span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">            cache</span><span class="token operator" style=color:#393A34>=</span><span class="token plain">cache</span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">            clock</span><span class="token operator" style=color:#393A34>=</span><span class="token plain">clock</span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">            venue</span><span class="token operator" style=color:#393A34>=</span><span class="token plain">VENUE</span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">            instrument_provider</span><span class="token operator" style=color:#393A34>=</span><span class="token plain">TemplateInstrumentProvider</span><span class="token punctuation" style=color:#393A34>(</span><span class="token plain">config</span><span class="token punctuation" style=color:#393A34>.</span><span class="token plain">instrument_provider</span><span class="token punctuation" style=color:#393A34>)</span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">        </span><span class="token punctuation" style=color:#393A34>)</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain" style=display:inline-block></span><br/></div><div class=token-line style=color:#393A34><span class="token plain" style=display:inline-block></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">builder </span><span class="token operator" style=color:#393A34>=</span><span class="token plain"> LiveNodeBuilder</span><span class="token punctuation" style=color:#393A34>.</span><span class="token plain">from_config</span><span class="token punctuation" style=color:#393A34>(</span><span class="token string" style=color:#e3116c>"example"</span><span class="token punctuation" style=color:#393A34>)</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">builder </span><span class="token operator" style=color:#393A34>=</span><span class="token plain"> builder</span><span class="token punctuation" style=color:#393A34>.</span><span class="token plain">add_data_client</span><span class="token punctuation" style=color:#393A34>(</span><span class="token string" style=color:#e3116c>"TEMPLATE"</span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain"> ExampleFactory</span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain"> DataClientConfig</span><span class="token punctuation" style=color:#393A34>(</span><span class="token punctuation" style=color:#393A34>)</span><span class="token punctuation" style=color:#393A34>)</span><br/></div></code></pre></div></div>
+<p>模板同时提供执行客户端及其工厂。节点配置与策略保持在适配器包之外。</p>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=register-clients-with-the-node>向节点注册客户端<a href=#register-clients-with-the-node class=hash-link aria-label=向节点注册客户端的直接链接 title=向节点注册客户端的直接链接 translate=no>​</a></h3>
+<p><strong>直接注册</strong>用 <code>LiveNodeBuilder.add_data_client(name, factory, config)</code> 或
+<code>add_exec_client(...)</code>。显式的第四个参数 <code>routing</code> 会覆盖 <code>config.routing</code>。</p>
+<p><strong>基于配置的注册</strong>：</p>
+<ol>
+<li class="">把名称到配置的映射放进 <code>LiveNodeConfig(data_clients=..., exec_clients=...)</code>。</li>
+<li class="">向 <code>LiveNode.build(name, config, ...)</code> 或
+<code>LiveNodeBuilder.from_config(name, config, ...)</code> 提供 <code>data_factories</code>
+与 <code>exec_factories</code>。</li>
+</ol>
+<p>工厂查找先查完整客户端名，再查第一个连字符之前的前缀。提供的工厂优先于
+可 import 配置自带的工厂描述符。交易场所与默认路由经由与直接注册相同的 builder
+路径，使用各配置的 <code>RoutingConfig</code>。</p>
+<p>两条注册路径都保持这些规则：</p>
+<ul>
+<li class=""><strong>native 与自定义客户端可以共享一个节点。</strong> 注册区分 native 工厂与 Python
+工厂，自定义 config 不经过 native config 的向下转型。</li>
+<li class=""><strong>重名即失败。</strong> 每个注册的客户端需要独立的名字。</li>
+<li class=""><strong>构建失败保留 Python 客户端注册。</strong> 节点处置失败尝试的客户端，
+重试时创建全新的客户端实例。</li>
+</ul>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=define-adapter-configuration>定义适配器配置<a href=#define-adapter-configuration class=hash-link aria-label=定义适配器配置的直接链接 title=定义适配器配置的直接链接 translate=no>​</a></h3>
+<p>适配器字段从 <code>DataClientConfig</code> 或 <code>ExecutionClientConfig</code> 派生。继承来的
+native 构造函数处理公共字段。适配器的字段在 Python <code>__init__</code> 中声明为关键字
+参数，并用 <code>**kwargs</code> 接收公共字段。工厂收到的是原始子类的实例。</p>
+<p>配置或工厂需要按 import 路径加载时，从 <code>nautilus_trader.config</code> import
+<code>ImportableConfig</code> 与 <code>ImportableFactoryConfig</code>。</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>操作<th>结果<tbody><tr><td><code>config.dict()</code><td>保留 Python 值的配置字段。<tr><td><code>config.json()</code><td>JSON 字节。<tr><td><code>config.to_importable(factory)</code><td>带 <code>module:qualified_name</code> 路径的 <code>ImportableConfig</code>。<tr><td><code>ImportableFactoryConfig(path).create()</code><td>import 工厂并无参构造。</table>
+<p><code>ImportableConfig.json()</code>、<code>parse()</code> 与 <code>create()</code> 提供可 import 的往返。
+函数内定义的类不可 import。</p>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=serialize-configuration>序列化配置<a href=#serialize-configuration class=hash-link aria-label=序列化配置的直接链接 title=序列化配置的直接链接 translate=no>​</a></h3>
+<p>运行时资源不要放进配置对象。实例字段（包括下划线前缀的字段）都参与序列化，
+<code>ClassVar</code> 元数据不参与。</p>
+<p>JSON 序列化支持：</p>
+<ul>
+<li class="">原生 JSON 值。</li>
+<li class="">常见的路由与工具提供者配置。</li>
+<li class="">以字符串编码的 <code>Decimal</code> 值。</li>
+<li class="">带 <code>from_str</code> 的领域值。</li>
+</ul>
+<p>给适配器字段加注解，以还原领域值与 decimal，包括列表、字典与可选类型内部的值。
+<code>Any</code> 保留解码后的 JSON 值。不支持的值抛出 <code>TypeError</code>。</p>
+<div class="theme-admonition theme-admonition-warning admonition_LYZY alert alert--warning"><div class=admonitionHeading_pnFY><span class=admonitionIcon_tEzm><svg viewBox="0 0 16 16"><path fill-rule=evenodd d="M8.893 1.5c-.183-.31-.52-.5-.887-.5s-.703.19-.886.5L.138 13.499a.98.98 0 0 0 0 1.001c.193.31.53.501.886.501h13.964c.367 0 .704-.19.877-.5a1.03 1.03 0 0 0 .01-1.002L8.893 1.5zm.133 11.497H6.987v-2.003h2.039v2.003zm0-3.004H6.987V5.987h2.039v4.006z"/></svg></span>序列化凭据</div><div class=admonitionContent_ZwmI><p>序列化配置也会序列化其中包含的凭据，要保护好序列化结果。</div></div>
+<h2 class="anchor anchorTargetStickyNavbar_ana5" id=startup-scheduling-and-shutdown>启动、调度与关停<a href=#startup-scheduling-and-shutdown class=hash-link aria-label=启动、调度与关停的直接链接 title=启动、调度与关停的直接链接 translate=no>​</a></h2>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=bind-resources-at-startup>启动时绑定资源<a href=#bind-resources-at-startup class=hash-link aria-label=启动时绑定资源的直接链接 title=启动时绑定资源的直接链接 translate=no>​</a></h3>
+<p>构造函数与工厂<strong>不得启动任务、捕获事件循环或打开网络资源</strong>。
+构造期间 <code>client.loop</code> 为 <code>None</code>。声明了 <code>loop</code> 参数的 v1 风格工厂会收到 <code>None</code>。</p>
+<p>启动会在 <code>_connect</code> 之前把每个自定义客户端绑定到实际运行的循环。依赖循环的
+会话、锁与网络客户端，在该异步钩子内创建。</p>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=choose-a-launch-mode>选择启动模式<a href=#choose-a-launch-mode class=hash-link aria-label=选择启动模式的直接链接 title=选择启动模式的直接链接 translate=no>​</a></h3>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>启动模式<th>事件循环<th>信号所有权<tbody><tr><td>带自定义客户端的 <code>node.run()</code><td>在调用线程上创建并驱动 asyncio。<td>完成后恢复信号处理器。<tr><td><code>await node.run_async()</code><td>使用宿主的运行循环。<td>宿主应用掌管自己的信号。</table>
+<p>两种模式都保持 Rust 节点的启动、对账、维护与关停路径不变。纯 native 的
+<code>run()</code> 保留其 native 执行路径。</p>
+<p>在活动的事件循环里调用阻塞的 <code>run()</code> 会在消耗节点之前抛出。已有循环内用
+<code>run_async()</code>。</p>
+<div class="theme-admonition theme-admonition-warning admonition_LYZY alert alert--warning"><div class=admonitionHeading_pnFY><span class=admonitionIcon_tEzm><svg viewBox="0 0 16 16"><path fill-rule=evenodd d="M8.893 1.5c-.183-.31-.52-.5-.887-.5s-.703.19-.886.5L.138 13.499a.98.98 0 0 0 0 1.001c.193.31.53.501.886.501h13.964c.367 0 .704-.19.877-.5a1.03 1.03 0 0 0 .01-1.002L8.893 1.5zm.133 11.497H6.987v-2.003h2.039v2.003zm0-3.004H6.987V5.987h2.039v4.006z"/></svg></span>数据库缓存后端</div><div class=admonitionContent_ZwmI><p>自定义 Python 客户端在两种启动模式下都不支持 Redis/PostgreSQL 缓存后备。
+两种模式都驱动 asyncio，后备的阻塞 worker 调用会拖住事件循环。
+纯 native 节点可以在 <code>run()</code> 下使用数据库后备。</div></div>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=schedule-background-work>调度后台工作<a href=#schedule-background-work class=hash-link aria-label=调度后台工作的直接链接 title=调度后台工作的直接链接 translate=no>​</a></h3>
+<p>适配器的后台工作用 <code>self.create_task(coroutine, name)</code>。运行时：</p>
+<ul>
+<li class="">保留客户端与每个任务，直到取到终态结果。</li>
+<li class="">推迟首次对协程的轮询，即使使用了 eager 任务工厂。</li>
+<li class="">未被 await 的操作失败会连同客户端与操作名记录日志。</li>
+</ul>
+<p>直接经 asyncio 或外部库创建的任务仍由那段代码负责，在 <code>_disconnect</code> 中
+把它们 join 掉。</p>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=process-commands-in-order>按序处理命令<a href=#process-commands-in-order class=hash-link aria-label=按序处理命令的直接链接 title=按序处理命令的直接链接 translate=no>​</a></h3>
+<p>命令与订阅变更共享一个 <strong>FIFO 队列</strong>，每个客户端最多容纳 <strong>1,024 个等待中的
+操作</strong>。队列满时拒绝继续准入。操作失败会先记录日志，再运行队列中的下一个操作。</p>
+<p>历史请求与被 await 的对账操作独立运行，因此网络等待不会阻塞命令准入。
+每个命令钩子保持有界：它会拖延该客户端后面的命令。</p>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=disconnect-and-drain-tasks>断开连接并排空任务<a href=#disconnect-and-drain-tasks class=hash-link aria-label=断开连接并排空任务的直接链接 title=断开连接并排空任务的直接链接 translate=no>​</a></h3>
+<p>节点在停止后有一段宽限期，先于断开连接，让策略关停期间的撤单能进入正常命令
+路径。随后断开连接时：</p>
+<ol>
+<li class="">关闭准入，带着诊断信息丢弃队列中的命令。</li>
+<li class="">取消当前活动命令。</li>
+<li class="">调用 <code>_disconnect</code>，适配器在此关闭网络资源并 join 自己拥有的工作。</li>
+</ol>
+<p>节点以其配置的超时约束断开连接的时长。运行时的取消请求<strong>每个任务至多一次</strong>，
+并在排空期间对任务加 shield，因此 supervisor 反复取消不会打断异步清理。
+截止期到了只报告清理未完成，不再发出下一次取消。</p>
+<p>被独立取消的命令允许队列中的下一个操作运行，准入保持开启。</p>
+<div class="theme-admonition theme-admonition-warning admonition_LYZY alert alert--warning"><div class=admonitionHeading_pnFY><span class=admonitionIcon_tEzm><svg viewBox="0 0 16 16"><path fill-rule=evenodd d="M8.893 1.5c-.183-.31-.52-.5-.887-.5s-.703.19-.886.5L.138 13.499a.98.98 0 0 0 0 1.001c.193.31.53.501.886.501h13.964c.367 0 .704-.19.877-.5a1.03 1.03 0 0 0 .01-1.002L8.893 1.5zm.133 11.497H6.987v-2.003h2.039v2.003zm0-3.004H6.987V5.987h2.039v4.006z"/></svg></span>取消不是完成</div><div class=admonitionContent_ZwmI><p>抗拒取消的任务仍处于监管之下，清理未完成会被报告——包括宿主过早关闭循环的
+情形。先 await 完节点，再关闭宿主循环。</div></div>
+<p>处置会使输出与缓存视图失效，因此迟到的工作无法向后续节点发数据。
+一个客户端实例及其绑定的提供者只属于<strong>一次节点运行</strong>。</p>
+<h2 class="anchor anchorTargetStickyNavbar_ana5" id=read-only-cache-and-typed-output>只读缓存与类型化输出<a href=#read-only-cache-and-typed-output class=hash-link aria-label=只读缓存与类型化输出的直接链接 title=只读缓存与类型化输出的直接链接 translate=no>​</a></h2>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=inspect-core-state>查看核心状态<a href=#inspect-core-state class=hash-link aria-label=查看核心状态的直接链接 title=查看核心状态的直接链接 translate=no>​</a></h3>
+<p>工厂收到的是 <code>ClientCache</code>——所属核心缓存的<strong>只读视图</strong>。工具、订单、账户、
+持仓、订单簿与查询集合都是所有权的快照。改动返回的对象不会改变核心状态。
+适配器不会拿到可变的缓存、引擎或原始 dispatch 句柄。</p>
+<p>缓存访问发生在以下情形时抛出 Python 异常：</p>
+<ul>
+<li class="">在另一个线程上。</li>
+<li class="">处置之后。</li>
+<li class="">与核心的不兼容借用期间。</li>
+</ul>
+<p>读取方法包括：</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>状态<th>方法<tbody><tr><td>工具<td><code>instrument</code>、<code>instruments</code>、<code>instrument_ids</code><tr><td>报价与订单簿<td><code>quote</code>、<code>order_book</code><tr><td>账户与持仓<td><code>account</code>、<code>position</code>、<code>positions_open</code><tr><td>订单<td><code>order</code>、<code>order_list</code>、<code>orders</code>、<code>orders_open</code>、<code>orders_inflight</code><tr><td>订单查询<td><code>orders_open_count</code>、<code>client_order_ids_open</code>、订单标识映射<tr><td>存储字节<td><code>get</code></table>
+<p>读取历史报价用 <code>quote(instrument_id, index=0)</code>。<code>get</code> 返回字节值列表，
+与 v2 缓存绑定一致。</p>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=send-typed-output>发送类型化输出<a href=#send-typed-output class=hash-link aria-label=发送类型化输出的直接链接 title=发送类型化输出的直接链接 translate=no>​</a></h3>
+<p>客户端的输出方法<strong>把类型化值排入队列等待核心处理</strong>。核心始终是交易状态的
+唯一写入者。</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>输出<th>客户端方法<tbody><tr><td>工具定义<td><code>_handle_instrument</code><tr><td>流式数据<td><code>_handle_data</code><tr><td>历史响应<td><code>_handle_response</code><tr><td>执行事件<td><code>generate_account_state</code>、<code>generate_order_*</code>、<code>_handle_event</code><tr><td>对账报告<td><code>_handle_report</code></table>
+<p><code>_handle_data</code> 接受来自 <code>nautilus_trader.model</code> 的这些类型：</p>
+<ul>
+<li class=""><strong>报价、成交与 bar</strong>：<code>QuoteTick</code>、<code>TradeTick</code>、<code>Bar</code>。</li>
+<li class=""><strong>订单簿</strong>：<code>OrderBookDelta</code>、<code>OrderBookDeltas</code>、<code>OrderBookDepth</code>。</li>
+<li class=""><strong>价格与资金费率</strong>：<code>MarkPriceUpdate</code>、<code>IndexPriceUpdate</code>、<code>FundingRateUpdate</code>。</li>
+<li class=""><strong>期权与工具事件</strong>：<code>OptionGreeks</code>、<code>InstrumentStatus</code>、<code>InstrumentClose</code>。</li>
+<li class=""><strong>自定义数据</strong>：<code>CustomData</code>。</li>
+</ul>
+<p><code>_handle_report</code> 接受来自 <code>nautilus_trader.model</code> 的 <code>OrderStatusReport</code>、
+<code>FillReport</code>、<code>PositionStatusReport</code> 或 <code>ExecutionMassStatus</code>。其可选的
+<code>fills</code> 列表只能伴随 <code>OrderStatusReport</code>。报告的账户身份、批量报告的
+客户端/交易场所身份，以及嵌套报告的归属，都必须与注册的客户端一致。</p>
+<h2 class="anchor anchorTargetStickyNavbar_ana5" id=data-client-hooks>数据客户端钩子<a href=#data-client-hooks class=hash-link aria-label=数据客户端钩子的直接链接 title=数据客户端钩子的直接链接 translate=no>​</a></h2>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=subscriptions-and-requests>订阅与请求<a href=#subscriptions-and-requests class=hash-link aria-label=订阅与请求的直接链接 title=订阅与请求的直接链接 translate=no>​</a></h3>
+<p>每个钩子都是 async 的，接收来自 <code>nautilus_trader.live</code> 的所有权独占、不可变的
+命令或请求。嵌套的参数会被复制。为交易场所支持的能力重写对应钩子，未实现的钩子
+抛出 <code>NotImplementedError</code>。交易场所订阅的确认与重连后的重放记录在适配器本地状态中。</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>家族<th>Subscribe/unsubscribe 后缀<th>历史请求后缀<tbody><tr><td>自定义数据<td>无后缀<td><code>data</code><tr><td>工具<td><code>instruments</code>、<code>instrument</code><td><code>instruments</code>、<code>instrument</code><tr><td>订单簿<td><code>book_deltas</code>、<code>book_depth</code><td><code>book_snapshot</code>、<code>book_deltas</code>、<code>book_depth</code><tr><td>报价与成交<td><code>quotes</code>、<code>trades</code><td><code>quotes</code>、<code>trades</code><tr><td>基准价<td><code>mark_prices</code>、<code>index_prices</code><td><em>不支持</em><tr><td>资金费率<td><code>funding_rates</code><td><code>funding_rates</code><tr><td>Bar<td><code>bars</code><td><code>bars</code><tr><td>工具事件<td><code>instrument_status</code>、<code>instrument_close</code><td><em>不支持</em><tr><td>期权<td><code>option_greeks</code><td><code>option_chain_reference_price</code></table>
+<p>例如，报价订阅调用 <code>_subscribe_quotes(command)</code> 与
+<code>_unsubscribe_quotes(command)</code>；报价历史调用 <code>_request_quotes(request)</code>。</p>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=historical-responses>历史响应<a href=#historical-responses class=hash-link aria-label=历史响应的直接链接 title=历史响应的直接链接 translate=no>​</a></h3>
+<p>构造匹配的类型化响应时，保留请求 ID、参数、时间边界与载荷身份。
+<code>nautilus_trader.live</code> 中的响应类有：</p>
+<ul>
+<li class=""><strong>自定义数据与工具</strong>：<code>CustomDataResponse</code>、<code>InstrumentResponse</code>、<code>InstrumentsResponse</code>。</li>
+<li class=""><strong>订单簿</strong>：<code>BookResponse</code>、<code>BookDeltasResponse</code>、<code>BookDepthResponse</code>。</li>
+<li class=""><strong>报价与成交</strong>：<code>QuotesResponse</code>、<code>TradesResponse</code>。</li>
+<li class=""><strong>资金费率与 bar</strong>：<code>FundingRatesResponse</code>、<code>BarsResponse</code>。</li>
+<li class=""><strong>期权</strong>：<code>OptionChainReferencePriceResponse</code>。</li>
+</ul>
+<p><strong>空响应同样会走完适配器的响应路径</strong>。带时间窗的请求暴露 UTC 的 <code>start</code>/<code>end</code>
+datetime 与精确的 <code>start_ns</code>/<code>end_ns</code>；响应边界使用整数纳秒。
+<code>RequestBookSnapshot</code> 与 <code>RequestOptionChainReferencePrice</code> 没有时间窗字段。</p>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=instrument-providers>工具提供者<a href=#instrument-providers class=hash-link aria-label=工具提供者的直接链接 title=工具提供者的直接链接 translate=no>​</a></h3>
+<p><code>InstrumentProvider</code> 存储适配器本地的工具与货币。重写 <code>load_all_async</code>、
+<code>load_ids_async</code> 或 <code>load_async</code>。<code>initialize(reload=False)</code> 使用
+<code>InstrumentProviderConfig</code>，并在加载失败后重试。</p>
+<p>同步加载方法的行为取决于提供者的绑定：</p>
+<ul>
+<li class=""><strong>绑定了客户端</strong>：调度受监管的工作。</li>
+<li class=""><strong>未绑定、且不在活动事件循环内</strong>：同步执行加载。</li>
+<li class=""><strong>未绑定、且处于活动事件循环内</strong>：改为 await 异步方法。</li>
+</ul>
+<p>加载出的工具经由客户端输出发送，以填充核心缓存。</p>
+<h2 class="anchor anchorTargetStickyNavbar_ana5" id=execution-client-hooks>执行客户端钩子<a href=#execution-client-hooks class=hash-link aria-label=执行客户端钩子的直接链接 title=执行客户端钩子的直接链接 translate=no>​</a></h2>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=construct-the-client>构造客户端<a href=#construct-the-client class=hash-link aria-label=构造客户端的直接链接 title=构造客户端的直接链接 translate=no>​</a></h3>
+<p>把工厂的 <code>name</code>、<code>config</code>、<code>cache</code>、<code>clock</code> 与 <code>trader_id</code> 传给
+<code>ExecutionClient</code>。执行客户端还需要来自 <code>nautilus_trader.model</code> 的这些必填值：</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>参数<th>类型<tbody><tr><td><code>venue</code><td><code>Venue</code><tr><td><code>account_id</code><td><code>AccountId</code><tr><td><code>account_type</code><td><code>AccountType</code><tr><td><code>oms_type</code><td><code>OmsType</code></table>
+<p><code>base_currency</code> 与 <code>instrument_provider</code> 可选。数据客户端可以使用
+<code>venue=None</code>。</p>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=generate-reconciliation-reports>生成对账报告<a href=#generate-reconciliation-reports class=hash-link aria-label=生成对账报告的直接链接 title=生成对账报告的直接链接 translate=no>​</a></h3>
+<p>实现这些对账钩子：</p>
+<ul>
+<li class=""><code>_generate_order_status_report</code></li>
+<li class=""><code>_generate_order_status_reports</code></li>
+<li class=""><code>_generate_fill_reports</code></li>
+<li class=""><code>_generate_position_status_reports</code></li>
+</ul>
+<p>返回类型化的报告、列表，或方法规定的可选结果。
+<code>_generate_mass_status(lookback_mins)</code> 默认用所属节点的时钟组合各批量方法，
+模拟 native 行为；重写时返回 <code>ExecutionMassStatus</code>。
+<strong>传播出来的报告失败会使启动对账失败。</strong></p>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=handle-order-commands>处理订单命令<a href=#handle-order-commands class=hash-link aria-label=处理订单命令的直接链接 title=处理订单命令的直接链接 translate=no>​</a></h3>
+<p>重写交易场所支持的钩子：</p>
+<ul>
+<li class=""><strong>提交</strong>：<code>_submit_order</code>、<code>_submit_order_list</code>。</li>
+<li class=""><strong>修改</strong>：<code>_modify_order</code>。</li>
+<li class=""><strong>撤销</strong>：<code>_cancel_order</code>、<code>_cancel_all_orders</code>。</li>
+<li class=""><strong>查询</strong>：<code>_query_account</code>、<code>_query_order</code>。</li>
+</ul>
+<p><code>_batch_modify_orders</code> 与 <code>_batch_cancel_orders</code> 默认按序调用对应的单笔订单
+钩子。交易场所有批量端点时重写它们。</p>
+<p>命令保留 native 的标识与参数、correlation/causation ID、时间戳，以及嵌套订单
+或批量成员。</p>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=make-synchronous-decisions-and-receive-notifications>同步决策与接收通知<a href=#make-synchronous-decisions-and-receive-notifications class=hash-link aria-label=同步决策与接收通知的直接链接 title=同步决策与接收通知的直接链接 translate=no>​</a></h3>
+<p><code>_handles_order_venue</code>、<code>_provides_bulk_position_coverage</code> 与
+<code>_calculate_commission</code> 是同步决策钩子，<strong>必须不做 I/O、迅速返回</strong>。
+佣金返回 <code>Money</code>，或返回 <code>None</code> 使用核心回退逻辑。
+<code>position_reconciliation_tolerance</code> 在构造时接受非负 <code>Decimal</code>。</p>
+<p><code>_on_instrument</code> 与 <code>_register_external_order</code> 是异步通知，经命令队列准入。
+注册时间来自对账元数据，不一定等于订单的初始化事件时间。</p>
+<h2 class="anchor anchorTargetStickyNavbar_ana5" id=migration-from-v1>从 v1 迁移<a href=#migration-from-v1 class=hash-link aria-label="从 v1 迁移的直接链接" title="从 v1 迁移的直接链接" translate=no>​</a></h2>
+<p>该接口用 v2 的名称与所有权规则恢复了实时适配器能力，但不能让未改动的
+Cython 适配器保持源码兼容。</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>V1 界面<th>V2 替代<th>迁移细节<tbody><tr><td><code>LiveDataClient</code><td><code>DataClient</code><td>从 <code>nautilus_trader.live.clients</code> import。<tr><td><code>LiveMarketDataClient</code><td><code>MarketDataClient</code><td>同一模块。<tr><td><code>LiveExecutionClient</code><td><code>ExecutionClient</code><td>同一模块。<tr><td><code>quote_ticks</code> / <code>trade_ticks</code> 钩子<td><code>quotes</code> / <code>trades</code> 钩子<td>类型化的 v2 命令。<tr><td><code>order_book_*</code> 钩子<td><code>book_*</code> 钩子<td>深度订阅用 <code>book_depth</code>。<tr><td><code>_request</code><td><code>_request_data</code><td>自定义数据请求。<tr><td><code>_handle_*</code> 历史方法<td><code>_handle_response(typed_response)</code><td>保留 correlation 与边界。<tr><td><code>_send_*</code> 执行方法<td><code>_handle_event</code> / <code>_handle_report</code><td>校验所有者身份。<tr><td>缓存写入<td>排队的工具与事件<td>变更由核心应用。<tr><td>订阅跟踪方法<td>适配器本地订阅状态<td>依交易场所确认更新。<tr><td>构造函数的事件循环<td>启动绑定之后的 <code>client.loop</code><td>资源在 <code>_connect</code> 中创建。<tr><td><code>cancel_pending_tasks</code><td>受监管的节点断开<td>取消不是终态完成。<tr><td><code>run_after_delay</code><td>带 <code>asyncio.sleep</code> 的协程<td>通过 <code>create_task</code> 调度。</table>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=remaining-differences-and-limitations>剩余差异与限制<a href=#remaining-differences-and-limitations class=hash-link aria-label=剩余差异与限制的直接链接 title=剩余差异与限制的直接链接 translate=no>​</a></h3>
+<ul>
+<li class=""><strong>远期价格</strong>：v2 期权系列用 <code>RequestOptionChainReferencePrice</code> 及其匹配响应。</li>
+<li class=""><strong>DeFi</strong>：native 的区块/池订阅与池快照不在本 Python 接口之内。</li>
+<li class=""><strong>历史请求</strong>：<a href=https://github.com/nautechsystems/nautilus_trader/blob/develop/MIGRATION_V2.md#known-limitations target=_blank rel="noopener noreferrer" class="">已知迁移限制</a>
+中关于请求合并/完成的限制仍然适用。</li>
+<li class=""><strong>自定义发布与订阅</strong>：同样受上述迁移限制。客户端通过类型化数据输出发送
+<code>CustomData</code>，不暴露组件的 <code>publish_message</code> 或 topic 订阅方法。</li>
+<li class=""><strong>数据库缓存后备</strong>：自定义 Python 客户端在两种启动模式下都不支持。见
+<a href=#startup-scheduling-and-shutdown class="">启动</a>与<a class="" href=/concepts/live#hosted-event-loops>宿主事件循环</a>。</li>
+<li class=""><strong>修订 bar</strong>：Config 保留了 <code>handle_revised_bars</code>。若后续时间条的 <code>ts_event</code>
+相同，v2 核心缓存会替换缓存中的 bar，更旧的 bar 被跳过。v1 的
+<code>Bar.is_revision</code> 标记仍然不存在。修订 bar 是否会发出，仍由适配器层的过滤决定。</li>
+<li class=""><strong>网络</strong>：本接口不恢复已移除的 HTTP/WebSocket 绑定。</li>
+</ul>
+<h2 class="anchor anchorTargetStickyNavbar_ana5" id=independent-rustpyo3-packages>独立 Rust/PyO3 包<a href=#independent-rustpyo3-packages class=hash-link aria-label="独立 Rust/PyO3 包的直接链接" title="独立 Rust/PyO3 包的直接链接" translate=no>​</a></h2>
+<p>适配器可以把交易场所实现放在独立的 Rust/PyO3 扩展中。其 Python 门面派生相同的
+客户端基类，通过与纯 Python 适配器相同的工厂注册。扩展针对 PyO3 编译，
+并从已安装的 wheel import NautilusTrader 的模型类。</p>
+<div class="theme-admonition theme-admonition-warning admonition_LYZY alert alert--warning"><div class=admonitionHeading_pnFY><span class=admonitionIcon_tEzm><svg viewBox="0 0 16 16"><path fill-rule=evenodd d="M8.893 1.5c-.183-.31-.52-.5-.887-.5s-.703.19-.886.5L.138 13.499a.98.98 0 0 0 0 1.001c.193.31.53.501.886.501h13.964c.367 0 .704-.19.877-.5a1.03 1.03 0 0 0 .01-1.002L8.893 1.5zm.133 11.497H6.987v-2.003h2.039v2.003zm0-3.004H6.987V5.987h2.039v4.006z"/></svg></span>使用已安装 wheel 的模型类</div><div class=admonitionContent_ZwmI><p>所有传递的领域值必须是这些类的实例。不要链接第二套 Nautilus 模型
+pyclass，也不要在扩展模块之间传递 native Rust trait 对象。集成边界是
+Python 协议，不是共享的 Rust ABI。</div></div>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=package-layout-and-dependencies>包布局与依赖<a href=#package-layout-and-dependencies class=hash-link aria-label=包布局与依赖的直接链接 title=包布局与依赖的直接链接 translate=no>​</a></h3>
+<p>适配器保留在自己的项目中，布局如下：</p>
+<div class="language-text codeBlockContainer_eTMR theme-code-block" style=--prism-color:#393A34;--prism-background-color:#f6f8fa><div class=codeBlockContent_hafM><pre tabindex=0 class="prism-code language-text codeBlock_IMvC thin-scrollbar" style=color:#393A34;background-color:#f6f8fa><code class=codeBlockLines_gZDW><div class=token-line style=color:#393A34><span class="token plain">external-adapter/</span><br/></div><div class=token-line style=color:#393A34><span class="token plain">  Cargo.toml</span><br/></div><div class=token-line style=color:#393A34><span class="token plain">  pyproject.toml</span><br/></div><div class=token-line style=color:#393A34><span class="token plain">  src/lib.rs</span><br/></div><div class=token-line style=color:#393A34><span class="token plain">  external_adapter/__init__.py</span><br/></div></code></pre></div></div>
+<p>把库配置为 Python 扩展。例如 <code>Cargo.toml</code> 可以包含：</p>
+<div class="language-toml codeBlockContainer_eTMR theme-code-block" style=--prism-color:#393A34;--prism-background-color:#f6f8fa><div class=codeBlockContent_hafM><pre tabindex=0 class="prism-code language-toml codeBlock_IMvC thin-scrollbar" style=color:#393A34;background-color:#f6f8fa><code class=codeBlockLines_gZDW><div class=token-line style=color:#393A34><span class="token plain">[package]</span><br/></div><div class=token-line style=color:#393A34><span class="token plain">name = "external-adapter"</span><br/></div><div class=token-line style=color:#393A34><span class="token plain">version = "0.1.0"</span><br/></div><div class=token-line style=color:#393A34><span class="token plain">edition = "2024"</span><br/></div><div class=token-line style=color:#393A34><span class="token plain">publish = false</span><br/></div><div class=token-line style=color:#393A34><span class="token plain" style=display:inline-block></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">[lib]</span><br/></div><div class=token-line style=color:#393A34><span class="token plain">name = "_backend"</span><br/></div><div class=token-line style=color:#393A34><span class="token plain">crate-type = ["cdylib"]</span><br/></div><div class=token-line style=color:#393A34><span class="token plain" style=display:inline-block></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">[dependencies]</span><br/></div><div class=token-line style=color:#393A34><span class="token plain">pyo3 = { version = "=0.29.2", features = ["extension-module"] }</span><br/></div><div class=token-line style=color:#393A34><span class="token plain" style=display:inline-block></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">[workspace]</span><br/></div></code></pre></div></div>
+<p>空的 workspace 让 Cargo 解析保持独立，即便本项目位于另一个 Cargo workspace
+之下。适配器的依赖锁文件与审计策略也留在自己的项目里。</p>
+<p>在 <code>pyproject.toml</code> 中配置 Python 包：</p>
+<div class="language-toml codeBlockContainer_eTMR theme-code-block" style=--prism-color:#393A34;--prism-background-color:#f6f8fa><div class=codeBlockContent_hafM><pre tabindex=0 class="prism-code language-toml codeBlock_IMvC thin-scrollbar" style=color:#393A34;background-color:#f6f8fa><code class=codeBlockLines_gZDW><div class=token-line style=color:#393A34><span class="token plain">[build-system]</span><br/></div><div class=token-line style=color:#393A34><span class="token plain">requires = ["maturin==1.15.0"]</span><br/></div><div class=token-line style=color:#393A34><span class="token plain">build-backend = "maturin"</span><br/></div><div class=token-line style=color:#393A34><span class="token plain" style=display:inline-block></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">[project]</span><br/></div><div class=token-line style=color:#393A34><span class="token plain">name = "external-adapter"</span><br/></div><div class=token-line style=color:#393A34><span class="token plain">version = "0.1.0"</span><br/></div><div class=token-line style=color:#393A34><span class="token plain">requires-python = ">=3.13,&lt;3.15"</span><br/></div><div class=token-line style=color:#393A34><span class="token plain">dependencies = ["nautilus-trader"]</span><br/></div><div class=token-line style=color:#393A34><span class="token plain" style=display:inline-block></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">[tool.maturin]</span><br/></div><div class=token-line style=color:#393A34><span class="token plain">module-name = "external_adapter._backend"</span><br/></div><div class=token-line style=color:#393A34><span class="token plain">python-source = "."</span><br/></div></code></pre></div></div>
+<p>这些构建版本与被演示的 PyO3 边界匹配。NautilusTrader 的依赖范围按你的适配器
+测试所覆盖的发布版本设定。</p>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=exchange-wheel-owned-objects>交换 wheel 所有的对象<a href=#exchange-wheel-owned-objects class=hash-link aria-label="交换 wheel 所有的对象的直接链接" title="交换 wheel 所有的对象的直接链接" translate=no>​</a></h3>
+<p>传入的命令用 <code>Bound&lt;'_, PyAny></code>，返回给 Python 的对象用 <code>Py&lt;PyAny></code>。
+在附着到 Python 的状态下 import 类、读取类型化的命令属性，并用这些 import
+来的类构造输出。下面的方法演示 <code>#[pymethods]</code> 实现内部的转换：</p>
+<div class="language-rust codeBlockContainer_eTMR theme-code-block" style=--prism-color:#393A34;--prism-background-color:#f6f8fa><div class=codeBlockContent_hafM><pre tabindex=0 class="prism-code language-rust codeBlock_IMvC thin-scrollbar" style=color:#393A34;background-color:#f6f8fa><code class=codeBlockLines_gZDW><div class=token-line style=color:#393A34><span class="token keyword" style=color:#00009f>fn</span><span class="token plain"> </span><span class="token function-definition function" style=color:#d73a49>quote</span><span class="token punctuation" style=color:#393A34>(</span><span class="token operator" style=color:#393A34>&</span><span class="token keyword" style=color:#00009f>self</span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain"> py</span><span class="token punctuation" style=color:#393A34>:</span><span class="token plain"> </span><span class="token class-name">Python</span><span class="token operator" style=color:#393A34>&lt;</span><span class="token lifetime-annotation symbol" style=color:#36acaa>'_</span><span class="token operator" style=color:#393A34>></span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain"> command</span><span class="token punctuation" style=color:#393A34>:</span><span class="token plain"> </span><span class="token operator" style=color:#393A34>&</span><span class="token class-name">Bound</span><span class="token operator" style=color:#393A34>&lt;</span><span class="token lifetime-annotation symbol" style=color:#36acaa>'_</span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain"> </span><span class="token class-name">PyAny</span><span class="token operator" style=color:#393A34>></span><span class="token punctuation" style=color:#393A34>)</span><span class="token plain"> </span><span class="token punctuation" style=color:#393A34>-></span><span class="token plain"> </span><span class="token class-name">PyResult</span><span class="token operator" style=color:#393A34>&lt;</span><span class="token class-name">Py</span><span class="token operator" style=color:#393A34>&lt;</span><span class="token class-name">PyAny</span><span class="token operator" style=color:#393A34>>></span><span class="token plain"> </span><span class="token punctuation" style=color:#393A34>{</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    </span><span class="token keyword" style=color:#00009f>let</span><span class="token plain"> model </span><span class="token operator" style=color:#393A34>=</span><span class="token plain"> py</span><span class="token punctuation" style=color:#393A34>.</span><span class="token function" style=color:#d73a49>import</span><span class="token punctuation" style=color:#393A34>(</span><span class="token string" style=color:#e3116c>"nautilus_trader.model"</span><span class="token punctuation" style=color:#393A34>)</span><span class="token operator" style=color:#393A34>?</span><span class="token punctuation" style=color:#393A34>;</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    </span><span class="token keyword" style=color:#00009f>let</span><span class="token plain"> values </span><span class="token operator" style=color:#393A34>=</span><span class="token plain"> </span><span class="token class-name">PyDict</span><span class="token punctuation" style=color:#393A34>::</span><span class="token function" style=color:#d73a49>new</span><span class="token punctuation" style=color:#393A34>(</span><span class="token plain">py</span><span class="token punctuation" style=color:#393A34>)</span><span class="token punctuation" style=color:#393A34>;</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    values</span><span class="token punctuation" style=color:#393A34>.</span><span class="token function" style=color:#d73a49>set_item</span><span class="token punctuation" style=color:#393A34>(</span><span class="token string" style=color:#e3116c>"instrument_id"</span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain"> command</span><span class="token punctuation" style=color:#393A34>.</span><span class="token function" style=color:#d73a49>getattr</span><span class="token punctuation" style=color:#393A34>(</span><span class="token string" style=color:#e3116c>"instrument_id"</span><span class="token punctuation" style=color:#393A34>)</span><span class="token operator" style=color:#393A34>?</span><span class="token punctuation" style=color:#393A34>)</span><span class="token operator" style=color:#393A34>?</span><span class="token punctuation" style=color:#393A34>;</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    </span><span class="token keyword" style=color:#00009f>for</span><span class="token plain"> </span><span class="token punctuation" style=color:#393A34>(</span><span class="token plain">name</span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain"> value</span><span class="token punctuation" style=color:#393A34>)</span><span class="token plain"> </span><span class="token keyword" style=color:#00009f>in</span><span class="token plain"> </span><span class="token punctuation" style=color:#393A34>[</span><span class="token punctuation" style=color:#393A34>(</span><span class="token string" style=color:#e3116c>"bid_price"</span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain"> </span><span class="token string" style=color:#e3116c>"1.12345"</span><span class="token punctuation" style=color:#393A34>)</span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain"> </span><span class="token punctuation" style=color:#393A34>(</span><span class="token string" style=color:#e3116c>"ask_price"</span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain"> </span><span class="token string" style=color:#e3116c>"1.12349"</span><span class="token punctuation" style=color:#393A34>)</span><span class="token punctuation" style=color:#393A34>]</span><span class="token plain"> </span><span class="token punctuation" style=color:#393A34>{</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">        values</span><span class="token punctuation" style=color:#393A34>.</span><span class="token function" style=color:#d73a49>set_item</span><span class="token punctuation" style=color:#393A34>(</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">            name</span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">            model</span><span class="token punctuation" style=color:#393A34>.</span><span class="token function" style=color:#d73a49>getattr</span><span class="token punctuation" style=color:#393A34>(</span><span class="token string" style=color:#e3116c>"Price"</span><span class="token punctuation" style=color:#393A34>)</span><span class="token operator" style=color:#393A34>?</span><span class="token punctuation" style=color:#393A34>.</span><span class="token function" style=color:#d73a49>call_method1</span><span class="token punctuation" style=color:#393A34>(</span><span class="token string" style=color:#e3116c>"from_str"</span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain"> </span><span class="token punctuation" style=color:#393A34>(</span><span class="token plain">value</span><span class="token punctuation" style=color:#393A34>,</span><span class="token punctuation" style=color:#393A34>)</span><span class="token punctuation" style=color:#393A34>)</span><span class="token operator" style=color:#393A34>?</span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">        </span><span class="token punctuation" style=color:#393A34>)</span><span class="token operator" style=color:#393A34>?</span><span class="token punctuation" style=color:#393A34>;</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    </span><span class="token punctuation" style=color:#393A34>}</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    </span><span class="token keyword" style=color:#00009f>for</span><span class="token plain"> </span><span class="token punctuation" style=color:#393A34>(</span><span class="token plain">name</span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain"> value</span><span class="token punctuation" style=color:#393A34>)</span><span class="token plain"> </span><span class="token keyword" style=color:#00009f>in</span><span class="token plain"> </span><span class="token punctuation" style=color:#393A34>[</span><span class="token punctuation" style=color:#393A34>(</span><span class="token string" style=color:#e3116c>"bid_size"</span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain"> </span><span class="token string" style=color:#e3116c>"17000"</span><span class="token punctuation" style=color:#393A34>)</span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain"> </span><span class="token punctuation" style=color:#393A34>(</span><span class="token string" style=color:#e3116c>"ask_size"</span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain"> </span><span class="token string" style=color:#e3116c>"23000"</span><span class="token punctuation" style=color:#393A34>)</span><span class="token punctuation" style=color:#393A34>]</span><span class="token plain"> </span><span class="token punctuation" style=color:#393A34>{</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">        values</span><span class="token punctuation" style=color:#393A34>.</span><span class="token function" style=color:#d73a49>set_item</span><span class="token punctuation" style=color:#393A34>(</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">            name</span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">            model</span><span class="token punctuation" style=color:#393A34>.</span><span class="token function" style=color:#d73a49>getattr</span><span class="token punctuation" style=color:#393A34>(</span><span class="token string" style=color:#e3116c>"Quantity"</span><span class="token punctuation" style=color:#393A34>)</span><span class="token operator" style=color:#393A34>?</span><span class="token punctuation" style=color:#393A34>.</span><span class="token function" style=color:#d73a49>call_method1</span><span class="token punctuation" style=color:#393A34>(</span><span class="token string" style=color:#e3116c>"from_str"</span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain"> </span><span class="token punctuation" style=color:#393A34>(</span><span class="token plain">value</span><span class="token punctuation" style=color:#393A34>,</span><span class="token punctuation" style=color:#393A34>)</span><span class="token punctuation" style=color:#393A34>)</span><span class="token operator" style=color:#393A34>?</span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">        </span><span class="token punctuation" style=color:#393A34>)</span><span class="token operator" style=color:#393A34>?</span><span class="token punctuation" style=color:#393A34>;</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    </span><span class="token punctuation" style=color:#393A34>}</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    values</span><span class="token punctuation" style=color:#393A34>.</span><span class="token function" style=color:#d73a49>set_item</span><span class="token punctuation" style=color:#393A34>(</span><span class="token string" style=color:#e3116c>"ts_event"</span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain"> </span><span class="token number" style=color:#36acaa>19</span><span class="token punctuation" style=color:#393A34>)</span><span class="token operator" style=color:#393A34>?</span><span class="token punctuation" style=color:#393A34>;</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    values</span><span class="token punctuation" style=color:#393A34>.</span><span class="token function" style=color:#d73a49>set_item</span><span class="token punctuation" style=color:#393A34>(</span><span class="token string" style=color:#e3116c>"ts_init"</span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain"> </span><span class="token number" style=color:#36acaa>29</span><span class="token punctuation" style=color:#393A34>)</span><span class="token operator" style=color:#393A34>?</span><span class="token punctuation" style=color:#393A34>;</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    </span><span class="token class-name">Ok</span><span class="token punctuation" style=color:#393A34>(</span><span class="token plain">model</span><span class="token punctuation" style=color:#393A34>.</span><span class="token function" style=color:#d73a49>getattr</span><span class="token punctuation" style=color:#393A34>(</span><span class="token string" style=color:#e3116c>"QuoteTick"</span><span class="token punctuation" style=color:#393A34>)</span><span class="token operator" style=color:#393A34>?</span><span class="token punctuation" style=color:#393A34>.</span><span class="token function" style=color:#d73a49>call</span><span class="token punctuation" style=color:#393A34>(</span><span class="token punctuation" style=color:#393A34>(</span><span class="token punctuation" style=color:#393A34>)</span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain"> </span><span class="token class-name">Some</span><span class="token punctuation" style=color:#393A34>(</span><span class="token operator" style=color:#393A34>&</span><span class="token plain">values</span><span class="token punctuation" style=color:#393A34>)</span><span class="token punctuation" style=color:#393A34>)</span><span class="token operator" style=color:#393A34>?</span><span class="token punctuation" style=color:#393A34>.</span><span class="token function" style=color:#d73a49>unbind</span><span class="token punctuation" style=color:#393A34>(</span><span class="token punctuation" style=color:#393A34>)</span><span class="token punctuation" style=color:#393A34>)</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain"></span><span class="token punctuation" style=color:#393A34>}</span><br/></div></code></pre></div></div>
+<p>import <code>pyo3::{prelude::*, types::PyDict}</code>，并在名为 <code>_backend</code> 的
+<code>#[pymodule]</code> 函数中导出所在的类。示例值是确定性的；交易场所实现填入自己收到的
+价格、数量与纳秒时间戳。价格、数量与金额要用精确的 decimal 值或字符串构造，
+不经过浮点往返。</p>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=delegate-from-python-client-hooks>从 Python 客户端钩子委托<a href=#delegate-from-python-client-hooks class=hash-link aria-label="从 Python 客户端钩子委托的直接链接" title="从 Python 客户端钩子委托的直接链接" translate=no>​</a></h3>
+<p>Python 门面 import 后端，并在客户端钩子中委托给它。对于带上述方法的
+<code>Backend</code> 类，报价钩子是：</p>
+<div class="language-python codeBlockContainer_eTMR theme-code-block" style=--prism-color:#393A34;--prism-background-color:#f6f8fa><div class=codeBlockContent_hafM><pre tabindex=0 class="prism-code language-python codeBlock_IMvC thin-scrollbar" style=color:#393A34;background-color:#f6f8fa><code class=codeBlockLines_gZDW><div class=token-line style=color:#393A34><span class="token keyword" style=color:#00009f>from</span><span class="token plain"> external_adapter</span><span class="token punctuation" style=color:#393A34>.</span><span class="token plain">_backend </span><span class="token keyword" style=color:#00009f>import</span><span class="token plain"> Backend</span><br/></div><div class=token-line style=color:#393A34><span class="token plain" style=display:inline-block></span><br/></div><div class=token-line style=color:#393A34><span class="token plain" style=display:inline-block></span><br/></div><div class=token-line style=color:#393A34><span class="token plain"></span><span class="token keyword" style=color:#00009f>async</span><span class="token plain"> </span><span class="token keyword" style=color:#00009f>def</span><span class="token plain"> </span><span class="token function" style=color:#d73a49>_subscribe_quotes</span><span class="token punctuation" style=color:#393A34>(</span><span class="token plain">self</span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain"> command</span><span class="token punctuation" style=color:#393A34>)</span><span class="token punctuation" style=color:#393A34>:</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    self</span><span class="token punctuation" style=color:#393A34>.</span><span class="token plain">_handle_data</span><span class="token punctuation" style=color:#393A34>(</span><span class="token plain">Backend</span><span class="token punctuation" style=color:#393A34>(</span><span class="token punctuation" style=color:#393A34>)</span><span class="token punctuation" style=color:#393A34>.</span><span class="token plain">quote</span><span class="token punctuation" style=color:#393A34>(</span><span class="token plain">command</span><span class="token punctuation" style=color:#393A34>)</span><span class="token punctuation" style=color:#393A34>)</span><br/></div></code></pre></div></div>
+<p>该钩子挂在 <code>MarketDataClient</code> 子类上：</p>
+<ul>
+<li class="">先发布工具定义，再发布其行情数据。</li>
+<li class="">实现连接与断开钩子。</li>
+<li class="">提供用节点给出的 name、config、cache、clock 构造子类的
+<code>DataClientFactory</code>。</li>
+<li class="">客户端保留持有交易场所持久状态的后端。</li>
+</ul>
+<p><a href=https://github.com/nautechsystems/nautilus_trader/blob/develop/examples/live/_template/README.md target=_blank rel="noopener noreferrer" class="">Python 模板</a>
+演示了钩子与工厂注册。</p>
+<p>执行适配器对 <code>ExecutionClient</code> 与 <code>ExecutionClientFactory</code> 用同样的模式。
+读取 <code>command.order</code>，通过客户端的 <code>generate_*</code> 方法发出提交、接受、拒绝与
+成交事件。对账钩子返回文档规定的报告类型。保留客户端/账户身份、请求
+correlation、精确的佣金值与事件顺序。从 Rust 调用并不改变这些契约。</p>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=lifecycle-and-cache-ownership>生命周期与缓存所有权<a href=#lifecycle-and-cache-ownership class=hash-link aria-label=生命周期与缓存所有权的直接链接 title=生命周期与缓存所有权的直接链接 translate=no>​</a></h3>
+<p>Python 调用与缓存访问都留在节点的所有者线程与事件循环上。GIL 允许访问
+Python 对象，但并不授权另一个线程使用节点的缓存或输出能力。传入的缓存是
+只读的，返回的可变快照也不会改动核心。类型化输出经由客户端发送，由同步
+核心应用状态变更。</p>
+<p>扩展遵循与 Python 适配器相同的生命周期：</p>
+<ul>
+<li class=""><strong>构造</strong>：只保留配置，不启动网络工作。</li>
+<li class=""><strong>连接</strong>：在 <code>_connect</code> 中创建绑定循环的资源。</li>
+<li class=""><strong>后台工作</strong>：Python 任务通过 <code>self.create_task</code> 调度。</li>
+<li class=""><strong>断开</strong>：在 <code>_disconnect</code> 中关闭资源；停止扩展拥有的 Rust worker 或网络
+任务，并取回其终态结果。</li>
+</ul>
+<p>不要把可用的缓存/输出能力保留到节点拆除之后。失败以 Python 异常传播，
+让客户端运行时能够监管它们。</p>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=build-and-verify-installed-wheels>构建并验证已安装的 wheel<a href=#build-and-verify-installed-wheels class=hash-link aria-label="构建并验证已安装的 wheel的直接链接" title="构建并验证已安装的 wheel的直接链接" translate=no>​</a></h3>
+<p>先把 maturin 装进兼容的 CPython 构建解释器。若 Cargo 会发现另一个解释器，
+用 <code>PYO3_PYTHON</code> 指定构建解释器。在适配器自己的项目中，以有界的 Cargo
+并发构建 wheel：</p>
+<div class="language-bash codeBlockContainer_eTMR theme-code-block" style=--prism-color:#393A34;--prism-background-color:#f6f8fa><div class=codeBlockContent_hafM><pre tabindex=0 class="prism-code language-bash codeBlock_IMvC thin-scrollbar" style=color:#393A34;background-color:#f6f8fa><code class=codeBlockLines_gZDW><div class=token-line style=color:#393A34><span class="token plain">CARGO_BUILD_JOBS=4 python -m maturin build --out dist</span><br/></div></code></pre></div></div>
+<p>在全新环境中安装适配器 wheel 与标准（非 editable）的 NautilusTrader wheel。
+从两棵源码树之外运行这些命令时使用绝对 wheel 路径：</p>
+<div class="language-bash codeBlockContainer_eTMR theme-code-block" style=--prism-color:#393A34;--prism-background-color:#f6f8fa><div class=codeBlockContent_hafM><pre tabindex=0 class="prism-code language-bash codeBlock_IMvC thin-scrollbar" style=color:#393A34;background-color:#f6f8fa><code class=codeBlockLines_gZDW><div class=token-line style=color:#393A34><span class="token plain">python -m venv /tmp/adapter-check</span><br/></div><div class=token-line style=color:#393A34><span class="token plain">/tmp/adapter-check/bin/python -m pip install /absolute/path/nautilus_trader.whl /absolute/path/adapter.whl</span><br/></div><div class=token-line style=color:#393A34><span class="token plain">/tmp/adapter-check/bin/python -I /absolute/path/verify_adapter.py</span><br/></div></code></pre></div></div>
+<p>把 wheel 占位符替换为生成的完整 wheel 文件名。Windows 上使用虚拟环境的
+<code>Scripts/python.exe</code> 路径。</p>
+<p>验证脚本应当检查：</p>
+<ul>
+<li class=""><strong>import 隔离</strong>：<code>nautilus_trader</code>、适配器包及其后端都解析到
+<code>sys.prefix</code> 之下。editable 安装会掩盖打包或扩展身份缺陷。</li>
+<li class=""><strong>启动模式</strong>：<code>node.run()</code> 与宿主式 <code>run_async()</code> 都能工作。</li>
+<li class=""><strong>数据送达</strong>：报价能到达策略与核心缓存。</li>
+<li class=""><strong>对账</strong>：对账能完成。</li>
+<li class=""><strong>执行</strong>：提交的订单产生预期的成交数量、价格、佣金与最终缓存订单状态。</li>
+<li class=""><strong>关停</strong>：资源关闭，且之后的适配器输出被阻止。</li>
+</ul>
+<p>改动适配器协议或扩展支持的 NautilusTrader 版本时，运行这项已安装 wheel 检查。</div><footer class="theme-doc-footer docusaurus-mt-lg"><div class="row margin-top--sm theme-doc-footer-edit-meta-row"><div class="col noPrint_MRkS"><a href=https://github.com/Aloento/NautilusTraderDoc/tree/main/docs/developer_guide/python_adapters.md target=_blank rel="noopener noreferrer" class=theme-edit-this-page><svg fill=currentColor height=20 width=20 viewBox="0 0 40 40" class=iconEdit_RPSQ aria-hidden=true><g><path d="m34.5 11.7l-3 3.1-6.3-6.3 3.1-3q0.5-0.5 1.2-0.5t1.1 0.5l3.9 3.9q0.5 0.4 0.5 1.1t-0.5 1.2z m-29.5 17.1l18.4-18.5 6.3 6.3-18.4 18.4h-6.3v-6.2z"/></g></svg>编辑此页</a></div><div class="col lastUpdated_oZSl"><span class=theme-last-updated>最后<!-- -->于 <b><time datetime=2026-10-14T22:30:30.000Z itemprop=dateModified>2026年10月14日</time></b> <!-- -->更新</span></div></div></footer></article><nav class="docusaurus-mt-lg pagination-nav" aria-label=文件选项卡><a class="pagination-nav__link pagination-nav__link--prev" href=/developer_guide/python><div class=pagination-nav__sublabel>上一页</div><div class=pagination-nav__label>Python</div></a><a class="pagination-nav__link pagination-nav__link--next" href=/developer_guide/releases><div class=pagination-nav__sublabel>下一页</div><div class=pagination-nav__label>发布</div></a></nav></div></div><div class="col col--3"><div class="tableOfContents_LyLZ thin-scrollbar theme-doc-toc-desktop"><ul class="table-of-contents table-of-contents__left-border"><li><a href=#registration-and-configuration class="table-of-contents__link toc-highlight">注册与配置</a><ul><li><a href=#define-a-factory class="table-of-contents__link toc-highlight">定义工厂</a><li><a href=#register-clients-with-the-node class="table-of-contents__link toc-highlight">向节点注册客户端</a><li><a href=#define-adapter-configuration class="table-of-contents__link toc-highlight">定义适配器配置</a><li><a href=#serialize-configuration class="table-of-contents__link toc-highlight">序列化配置</a></ul><li><a href=#startup-scheduling-and-shutdown class="table-of-contents__link toc-highlight">启动、调度与关停</a><ul><li><a href=#bind-resources-at-startup class="table-of-contents__link toc-highlight">启动时绑定资源</a><li><a href=#choose-a-launch-mode class="table-of-contents__link toc-highlight">选择启动模式</a><li><a href=#schedule-background-work class="table-of-contents__link toc-highlight">调度后台工作</a><li><a href=#process-commands-in-order class="table-of-contents__link toc-highlight">按序处理命令</a><li><a href=#disconnect-and-drain-tasks class="table-of-contents__link toc-highlight">断开连接并排空任务</a></ul><li><a href=#read-only-cache-and-typed-output class="table-of-contents__link toc-highlight">只读缓存与类型化输出</a><ul><li><a href=#inspect-core-state class="table-of-contents__link toc-highlight">查看核心状态</a><li><a href=#send-typed-output class="table-of-contents__link toc-highlight">发送类型化输出</a></ul><li><a href=#data-client-hooks class="table-of-contents__link toc-highlight">数据客户端钩子</a><ul><li><a href=#subscriptions-and-requests class="table-of-contents__link toc-highlight">订阅与请求</a><li><a href=#historical-responses class="table-of-contents__link toc-highlight">历史响应</a><li><a href=#instrument-providers class="table-of-contents__link toc-highlight">工具提供者</a></ul><li><a href=#execution-client-hooks class="table-of-contents__link toc-highlight">执行客户端钩子</a><ul><li><a href=#construct-the-client class="table-of-contents__link toc-highlight">构造客户端</a><li><a href=#generate-reconciliation-reports class="table-of-contents__link toc-highlight">生成对账报告</a><li><a href=#handle-order-commands class="table-of-contents__link toc-highlight">处理订单命令</a><li><a href=#make-synchronous-decisions-and-receive-notifications class="table-of-contents__link toc-highlight">同步决策与接收通知</a></ul><li><a href=#migration-from-v1 class="table-of-contents__link toc-highlight">从 v1 迁移</a><ul><li><a href=#remaining-differences-and-limitations class="table-of-contents__link toc-highlight">剩余差异与限制</a></ul><li><a href=#independent-rustpyo3-packages class="table-of-contents__link toc-highlight">独立 Rust/PyO3 包</a><ul><li><a href=#package-layout-and-dependencies class="table-of-contents__link toc-highlight">包布局与依赖</a><li><a href=#exchange-wheel-owned-objects class="table-of-contents__link toc-highlight">交换 wheel 所有的对象</a><li><a href=#delegate-from-python-client-hooks class="table-of-contents__link toc-highlight">从 Python 客户端钩子委托</a><li><a href=#lifecycle-and-cache-ownership class="table-of-contents__link toc-highlight">生命周期与缓存所有权</a><li><a href=#build-and-verify-installed-wheels class="table-of-contents__link toc-highlight">构建并验证已安装的 wheel</a></ul></ul></div></div></div></div></main></div></div></div><footer class="theme-layout-footer footer footer--dark"><div class="container container-fluid"><div class="row footer__links"><div class="theme-layout-footer-column col footer__col"><div class=footer__title></div><ul class="footer__items clean-list"><li class=footer__item><a href=https://github.com/nautechsystems/nautilus_trader target=_blank rel="noopener noreferrer" class=footer__link-item>Official GitHub<svg width=13.5 height=13.5 aria-label="(opens in new tab)" class=iconExternalLink_qUHo><use href=#theme-svg-external-link /></svg></a><li class=footer__item><a href=https://nautilustrader.io/docs target=_blank rel="noopener noreferrer" class=footer__link-item>Official Documentation<svg width=13.5 height=13.5 aria-label="(opens in new tab)" class=iconExternalLink_qUHo><use href=#theme-svg-external-link /></svg></a></ul></div></div><div class="footer__bottom text--center"><div class=footer__copyright>© 2026 Nautech Systems Pty Ltd. All rights reserved.</div></div></div></footer></div></body>

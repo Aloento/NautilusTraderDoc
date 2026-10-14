@@ -1,0 +1,475 @@
+<!doctype html><html lang=zh dir=ltr class="docs-wrapper plugin-docs plugin-id-default docs-version-current docs-doc-page docs-doc-id-concepts/events/index" data-has-hydrated=false><head><meta charset=UTF-8><meta name=generator content="Docusaurus v3.10.2"><title data-rh=true>事件 | NautilusTrader 文档</title><meta data-rh=true name=viewport content="width=device-width, initial-scale=1.0"/><meta data-rh=true name=twitter:card content=summary_large_image /><meta data-rh=true property=og:url content=https://nautilus.aloen.to/concepts/events/ /><meta data-rh=true property=og:locale content=zh /><meta data-rh=true name=docusaurus_locale content=zh /><meta data-rh=true name=docsearch:language content=zh /><meta data-rh=true name=docusaurus_version content=current /><meta data-rh=true name=docusaurus_tag content=docs-default-current /><meta data-rh=true name=docsearch:version content=current /><meta data-rh=true name=docsearch:docusaurus_tag content=docs-default-current /><meta data-rh=true property=og:title content="事件 | NautilusTrader 文档"/><meta data-rh=true name=description content=events} /><meta data-rh=true property=og:description content=events} /><link data-rh=true rel=icon href=/logo.png /><link data-rh=true rel=canonical href=https://nautilus.aloen.to/concepts/events/ /><link data-rh=true rel=alternate href=https://nautilus.aloen.to/concepts/events/ hreflang=zh /><link data-rh=true rel=alternate href=https://nautilus.aloen.to/concepts/events/ hreflang=x-default /><script data-rh=true type=application/ld+json>{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","item":"https://nautilus.aloen.to/concepts/","name":"核心概念","position":1},{"@type":"ListItem","item":"https://nautilus.aloen.to/concepts/events/","name":"事件","position":2}]}</script><link rel=stylesheet href=/assets/css/styles.adb7ea18.css /><script src=/assets/js/runtime~main.71ac0794.js defer></script><script src=/assets/js/main.d978d0f2.js defer></script></head><body><svg style="display: none;"><defs>
+<symbol id=theme-svg-external-link viewBox="0 0 24 24"><path fill=currentColor d="M21 13v10h-21v-19h12v2h-10v15h17v-8h2zm3-12h-10.988l4.035 4-6.977 7.07 2.828 2.828 6.977-7.07 4.125 4.172v-11z"/></symbol>
+</defs></svg>
+<script>!function(){var t=function(){try{return new URLSearchParams(window.location.search).get("docusaurus-theme")}catch(t){}}()||function(){try{return window.localStorage.getItem("theme-2e3")}catch(t){}}();document.documentElement.setAttribute("data-theme",t||(window.matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light")),document.documentElement.setAttribute("data-theme-choice",t||"system")}(),function(){try{for(var[t,e]of new URLSearchParams(window.location.search).entries())if(t.startsWith("docusaurus-data-")){var a=t.replace("docusaurus-data-","data-");document.documentElement.setAttribute(a,e)}}catch(t){}}()</script><div id=__docusaurus><link rel=preload as=image href=/logo.png /><div role=region aria-label=跳到主要内容><a class=skipToContent_zuOI href=#__docusaurus_skipToContent_fallback>跳到主要内容</a></div><nav aria-label=主导航 class="theme-layout-navbar navbar navbar--fixed-top"><div class=navbar__inner><div class="theme-layout-navbar-left navbar__items"><button aria-label=切换导航栏 aria-expanded=false class="navbar__toggle clean-btn" type=button><svg width=30 height=30 viewBox="0 0 30 30" aria-hidden=true><path stroke=currentColor stroke-linecap=round stroke-miterlimit=10 stroke-width=2 d="M4 7h22M4 15h22M4 23h22"/></svg></button><a class=navbar__brand href=/><div class=navbar__logo><img src=/logo.png alt="NautilusTrader Logo" class="themedComponent_q2_Y themedComponent--light_Nejn"/><img src=/logo.png alt="NautilusTrader Logo" class="themedComponent_q2_Y themedComponent--dark_JjIb"/></div><b class="navbar__title text--truncate">NautilusTrader</b></a><a aria-current=page class="navbar__item navbar__link navbar__link--active" href=/getting_started/>文档</a></div><div class="theme-layout-navbar-right navbar__items navbar__items--right"><a href=https://github.com/Aloento/NautilusTraderDoc target=_blank rel="noopener noreferrer" class="navbar__item navbar__link">GitHub<svg width=13.5 height=13.5 aria-label="(opens in new tab)" class=iconExternalLink_qUHo><use href=#theme-svg-external-link /></svg></a><div class="toggle_hHmI colorModeToggle_rOOn"><button class="clean-btn toggleButton_wEhT toggleButtonDisabled_yOOP" type=button disabled title="system mode" aria-label="切换浅色/暗黑模式（当前为system mode）"><svg viewBox="0 0 24 24" width=24 height=24 aria-hidden=true class="toggleIcon_Kt6U lightToggleIcon_Zfeh"><path fill=currentColor d="M12,9c1.65,0,3,1.35,3,3s-1.35,3-3,3s-3-1.35-3-3S10.35,9,12,9 M12,7c-2.76,0-5,2.24-5,5s2.24,5,5,5s5-2.24,5-5 S14.76,7,12,7L12,7z M2,13l2,0c0.55,0,1-0.45,1-1s-0.45-1-1-1l-2,0c-0.55,0-1,0.45-1,1S1.45,13,2,13z M20,13l2,0c0.55,0,1-0.45,1-1 s-0.45-1-1-1l-2,0c-0.55,0-1,0.45-1,1S19.45,13,20,13z M11,2v2c0,0.55,0.45,1,1,1s1-0.45,1-1V2c0-0.55-0.45-1-1-1S11,1.45,11,2z M11,20v2c0,0.55,0.45,1,1,1s1-0.45,1-1v-2c0-0.55-0.45-1-1-1C11.45,19,11,19.45,11,20z M5.99,4.58c-0.39-0.39-1.03-0.39-1.41,0 c-0.39,0.39-0.39,1.03,0,1.41l1.06,1.06c0.39,0.39,1.03,0.39,1.41,0s0.39-1.03,0-1.41L5.99,4.58z M18.36,16.95 c-0.39-0.39-1.03-0.39-1.41,0c-0.39,0.39-0.39,1.03,0,1.41l1.06,1.06c0.39,0.39,1.03,0.39,1.41,0c0.39-0.39,0.39-1.03,0-1.41 L18.36,16.95z M19.42,5.99c0.39-0.39,0.39-1.03,0-1.41c-0.39-0.39-1.03-0.39-1.41,0l-1.06,1.06c-0.39,0.39-0.39,1.03,0,1.41 s1.03,0.39,1.41,0L19.42,5.99z M7.05,18.36c0.39-0.39,0.39-1.03,0-1.41c-0.39-0.39-1.03-0.39-1.41,0l-1.06,1.06 c-0.39,0.39-0.39,1.03,0,1.41s1.03,0.39,1.41,0L7.05,18.36z"/></svg><svg viewBox="0 0 24 24" width=24 height=24 aria-hidden=true class="toggleIcon_Kt6U darkToggleIcon_XgQr"><path fill=currentColor d="M9.37,5.51C9.19,6.15,9.1,6.82,9.1,7.5c0,4.08,3.32,7.4,7.4,7.4c0.68,0,1.35-0.09,1.99-0.27C17.45,17.19,14.93,19,12,19 c-3.86,0-7-3.14-7-7C5,9.07,6.81,6.55,9.37,5.51z M12,3c-4.97,0-9,4.03-9,9s4.03,9,9,9s9-4.03,9-9c0-0.46-0.04-0.92-0.1-1.36 c-0.98,1.37-2.58,2.26-4.4,2.26c-2.98,0-5.4-2.42-5.4-5.4c0-1.81,0.89-3.42,2.26-4.4C12.92,3.04,12.46,3,12,3L12,3z"/></svg><svg viewBox="0 0 24 24" width=24 height=24 aria-hidden=true class="toggleIcon_Kt6U systemToggleIcon_BvUi"><path fill=currentColor d="m12 21c4.971 0 9-4.029 9-9s-4.029-9-9-9-9 4.029-9 9 4.029 9 9 9zm4.95-13.95c1.313 1.313 2.05 3.093 2.05 4.95s-0.738 3.637-2.05 4.95c-1.313 1.313-3.093 2.05-4.95 2.05v-14c1.857 0 3.637 0.737 4.95 2.05z"/></svg></button></div><div class=navbarSearchContainer_watl></div></div></div><div role=presentation class=navbar-sidebar__backdrop></div></nav><div id=__docusaurus_skipToContent_fallback class="theme-layout-main main-wrapper mainWrapper_R72Q"><div class=docsWrapper_XQ9b><button aria-label=回到顶部 class="clean-btn theme-back-to-top-button backToTopButton_MbnX" type=button></button><div class=docRoot_aqOB><aside class="theme-doc-sidebar-container docSidebarContainer_sI2e"><div class=sidebarViewport_TzTy><div class=sidebar_CbEe><nav aria-label=文档侧边栏 class="menu thin-scrollbar menu_ChRF"><ul class="theme-doc-sidebar-menu menu__list"><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-1 menu__list-item menu__list-item--collapsed"><div class=menu__list-item-collapsible><a class="categoryLink_Muyc menu__link menu__link--sublist" href=/getting_started/><span class=categoryLinkLabel_mAcL>快速开始</span></a><button aria-label="展开侧边栏分类 '快速开始'" aria-expanded=false type=button class="clean-btn menu__caret"></button></div><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-1 menu__list-item"><div class=menu__list-item-collapsible><a class="categoryLink_Muyc menu__link menu__link--sublist menu__link--active" href=/concepts/><span class=categoryLinkLabel_mAcL>核心概念</span></a><button aria-label="折叠侧边栏分类 '核心概念'" aria-expanded=true type=button class="clean-btn menu__caret"></button></div><ul class=menu__list><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-2 menu__list-item menu__list-item--collapsed"><div class=menu__list-item-collapsible><a class="categoryLink_Muyc menu__link menu__link--sublist" tabindex=0 href=/concepts/instruments/><span class=categoryLinkLabel_mAcL>金融工具</span></a><button aria-label="展开侧边栏分类 '金融工具'" aria-expanded=false type=button class="clean-btn menu__caret"></button></div><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-2 menu__list-item menu__list-item--collapsed"><div class=menu__list-item-collapsible><a class="categoryLink_Muyc menu__link menu__link--sublist" tabindex=0 href=/concepts/orders/><span class=categoryLinkLabel_mAcL>订单</span></a><button aria-label="展开侧边栏分类 '订单'" aria-expanded=false type=button class="clean-btn menu__caret"></button></div><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-2 menu__list-item menu__list-item--collapsed"><div class=menu__list-item-collapsible><a class="categoryLink_Muyc menu__link menu__link--sublist" tabindex=0 href=/concepts/data/><span class=categoryLinkLabel_mAcL>数据</span></a><button aria-label="展开侧边栏分类 '数据'" aria-expanded=false type=button class="clean-btn menu__caret"></button></div><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-2 menu__list-item menu__list-item--collapsed"><div class=menu__list-item-collapsible><a class="categoryLink_Muyc menu__link menu__link--sublist" tabindex=0 href=/concepts/backtesting/><span class=categoryLinkLabel_mAcL>回测</span></a><button aria-label="展开侧边栏分类 '回测'" aria-expanded=false type=button class="clean-btn menu__caret"></button></div><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-2 menu__list-item"><div class="menu__list-item-collapsible menu__list-item-collapsible--active"><a class="categoryLink_Muyc menu__link menu__link--sublist menu__link--active" aria-current=page tabindex=0 href=/concepts/events/><span class=categoryLinkLabel_mAcL>事件</span></a><button aria-label="折叠侧边栏分类 '事件'" aria-expanded=true type=button class="clean-btn menu__caret"></button></div><ul class=menu__list><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-3 menu__list-item"><a class=menu__link tabindex=0 href=/concepts/events/account_state><span class=linkLabel_lYjD>AccountState</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-3 menu__list-item"><a class=menu__link tabindex=0 href=/concepts/events/order_accepted><span class=linkLabel_lYjD>OrderAccepted</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-3 menu__list-item"><a class=menu__link tabindex=0 href=/concepts/events/order_cancel_rejected><span class=linkLabel_lYjD>OrderCancelRejected</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-3 menu__list-item"><a class=menu__link tabindex=0 href=/concepts/events/order_canceled><span class=linkLabel_lYjD>OrderCanceled</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-3 menu__list-item"><a class=menu__link tabindex=0 href=/concepts/events/order_denied><span class=linkLabel_lYjD>OrderDenied</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-3 menu__list-item"><a class=menu__link tabindex=0 href=/concepts/events/order_emulated><span class=linkLabel_lYjD>OrderEmulated</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-3 menu__list-item"><a class=menu__link tabindex=0 href=/concepts/events/order_expired><span class=linkLabel_lYjD>OrderExpired</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-3 menu__list-item"><a class=menu__link tabindex=0 href=/concepts/events/order_fill_voided><span class=linkLabel_lYjD>OrderFillVoided</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-3 menu__list-item"><a class=menu__link tabindex=0 href=/concepts/events/order_filled><span class=linkLabel_lYjD>OrderFilled</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-3 menu__list-item"><a class=menu__link tabindex=0 href=/concepts/events/order_initialized><span class=linkLabel_lYjD>OrderInitialized</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-3 menu__list-item"><a class=menu__link tabindex=0 href=/concepts/events/order_modify_rejected><span class=linkLabel_lYjD>OrderModifyRejected</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-3 menu__list-item"><a class=menu__link tabindex=0 href=/concepts/events/order_pending_cancel><span class=linkLabel_lYjD>OrderPendingCancel</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-3 menu__list-item"><a class=menu__link tabindex=0 href=/concepts/events/order_pending_update><span class=linkLabel_lYjD>OrderPendingUpdate</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-3 menu__list-item"><a class=menu__link tabindex=0 href=/concepts/events/order_rejected><span class=linkLabel_lYjD>OrderRejected</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-3 menu__list-item"><a class=menu__link tabindex=0 href=/concepts/events/order_released><span class=linkLabel_lYjD>OrderReleased</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-3 menu__list-item"><a class=menu__link tabindex=0 href=/concepts/events/order_submitted><span class=linkLabel_lYjD>OrderSubmitted</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-3 menu__list-item"><a class=menu__link tabindex=0 href=/concepts/events/order_triggered><span class=linkLabel_lYjD>OrderTriggered</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-3 menu__list-item"><a class=menu__link tabindex=0 href=/concepts/events/order_updated><span class=linkLabel_lYjD>OrderUpdated</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-3 menu__list-item"><a class=menu__link tabindex=0 href=/concepts/events/position_changed><span class=linkLabel_lYjD>PositionChanged</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-3 menu__list-item"><a class=menu__link tabindex=0 href=/concepts/events/position_closed><span class=linkLabel_lYjD>PositionClosed</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-3 menu__list-item"><a class=menu__link tabindex=0 href=/concepts/events/position_opened><span class=linkLabel_lYjD>PositionOpened</span></a></ul><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-2 menu__list-item menu__list-item--collapsed"><div class=menu__list-item-collapsible><a class="categoryLink_Muyc menu__link menu__link--sublist" tabindex=0 href=/concepts/execution/><span class=categoryLinkLabel_mAcL>执行</span></a><button aria-label="展开侧边栏分类 '执行'" aria-expanded=false type=button class="clean-btn menu__caret"></button></div><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/concepts/accounting><span class=linkLabel_lYjD>核算</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/concepts/actors><span class=linkLabel_lYjD>Actors</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/concepts/adapters><span class=linkLabel_lYjD>适配器</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/concepts/architecture><span class=linkLabel_lYjD>架构</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/concepts/behavioral_models><span class=linkLabel_lYjD>行为模型</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/concepts/cache><span class=linkLabel_lYjD>缓存</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/concepts/configuration><span class=linkLabel_lYjD>配置</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/concepts/continuous_futures><span class=linkLabel_lYjD>连续期货</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/concepts/custom_data><span class=linkLabel_lYjD>自定义数据</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/concepts/dst><span class=linkLabel_lYjD>DST</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/concepts/event_sourcing><span class=linkLabel_lYjD>事件溯源</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/concepts/greeks><span class=linkLabel_lYjD>Greeks</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/concepts/live><span class=linkLabel_lYjD>实时交易</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/concepts/logging><span class=linkLabel_lYjD>日志</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/concepts/message_bus><span class=linkLabel_lYjD>消息总线</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/concepts/networking><span class=linkLabel_lYjD>网络</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/concepts/options><span class=linkLabel_lYjD>期权</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/concepts/order_book><span class=linkLabel_lYjD>订单簿</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/concepts/overview><span class=linkLabel_lYjD>概览</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/concepts/portfolio><span class=linkLabel_lYjD>组合</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/concepts/positions><span class=linkLabel_lYjD>持仓</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/concepts/python><span class=linkLabel_lYjD>Python</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/concepts/reports><span class=linkLabel_lYjD>报告</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/concepts/rust><span class=linkLabel_lYjD>Rust</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/concepts/strategies><span class=linkLabel_lYjD>策略</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/concepts/synthetics><span class=linkLabel_lYjD>合成工具</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/concepts/value_types><span class=linkLabel_lYjD>值类型</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/concepts/visualization><span class=linkLabel_lYjD>可视化</span></a></ul><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-1 menu__list-item menu__list-item--collapsed"><div class=menu__list-item-collapsible><a class="categoryLink_Muyc menu__link menu__link--sublist" href=/integrations/><span class=categoryLinkLabel_mAcL>交易所与集成</span></a><button aria-label="展开侧边栏分类 '交易所与集成'" aria-expanded=false type=button class="clean-btn menu__caret"></button></div><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-1 menu__list-item menu__list-item--collapsed"><div class=menu__list-item-collapsible><a class="categoryLink_Muyc menu__link menu__link--sublist" href=/how_to/><span class=categoryLinkLabel_mAcL>操作指南</span></a><button aria-label="展开侧边栏分类 '操作指南'" aria-expanded=false type=button class="clean-btn menu__caret"></button></div><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-1 menu__list-item menu__list-item--collapsed"><div class=menu__list-item-collapsible><a class="categoryLink_Muyc menu__link menu__link--sublist" href=/tutorials/><span class=categoryLinkLabel_mAcL>教程</span></a><button aria-label="展开侧边栏分类 '教程'" aria-expanded=false type=button class="clean-btn menu__caret"></button></div><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-1 menu__list-item menu__list-item--collapsed"><div class=menu__list-item-collapsible><a class="categoryLink_Muyc menu__link menu__link--sublist" href=/developer_guide/><span class=categoryLinkLabel_mAcL>开发者指南</span></a><button aria-label="展开侧边栏分类 '开发者指南'" aria-expanded=false type=button class="clean-btn menu__caret"></button></div><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-1 menu__list-item menu__list-item--collapsed"><div class=menu__list-item-collapsible><a class="categoryLink_Muyc menu__link menu__link--sublist" href=/api_reference/><span class=categoryLinkLabel_mAcL>API 参考</span></a><button aria-label="展开侧边栏分类 'API 参考'" aria-expanded=false type=button class="clean-btn menu__caret"></button></div></ul></nav></div></div></aside><main class=docMainContainer_sLF8><div class="container padding-top--md padding-bottom--lg"><div class=row><div class="col docItemCol_ZRft"><div class=docItemContainer_KOP5><article><nav class="theme-doc-breadcrumbs breadcrumbsContainer_d5rS" aria-label=页面路径><ul class=breadcrumbs><li class=breadcrumbs__item><a aria-label=主页面 class=breadcrumbs__link href=/><svg viewBox="0 0 24 24" class=breadcrumbHomeIcon_XgF2><path d="M10 19v-5h4v5c0 .55.45 1 1 1h3c.55 0 1-.45 1-1v-7h1.7c.46 0 .68-.57.33-.87L12.67 3.6c-.38-.34-.96-.34-1.34 0l-8.36 7.53c-.34.3-.13.87.33.87H5v7c0 .55.45 1 1 1h3c.55 0 1-.45 1-1z" fill=currentColor /></svg></a><li class=breadcrumbs__item><a class=breadcrumbs__link href=/concepts/><span>核心概念</span></a><li class="breadcrumbs__item breadcrumbs__item--active"><span class=breadcrumbs__link>事件</span></ul></nav><div class="tocCollapsible_bgaJ theme-doc-toc-mobile tocMobile_FhT_"><button type=button class="clean-btn tocCollapsibleButton_F8AY">本页总览</button></div><div class="theme-doc-markdown markdown"><header><h1>事件</h1></header>
+<p>NautilusTrader 把执行、持仓、账户和时间的变化建模为事件。<code>MessageBus</code> 把这些事件路由给相关组件，并在支持的地方送达策略处理函数。本篇介绍事件类型、它们的分发方式，以及成交与成交更正如何产生持仓事件。</p>
+<h2 class="anchor anchorTargetStickyNavbar_ana5" id=event-categories>事件类别<a href=#event-categories class=hash-link aria-label=事件类别的直接链接 title=事件类别的直接链接 translate=no>​</a></h2>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>类别<th>示例<th>来源<tbody><tr><td>订单<td><code>OrderAccepted</code>、<code>OrderFilled</code>、<code>OrderCanceled</code><td>执行流水线<tr><td>持仓<td><code>PositionOpened</code>、<code>PositionAdjusted</code><td>成交与记账变化<tr><td>账户<td><code>AccountState</code><td><code>ExecutionClient</code> / <code>Portfolio</code><tr><td>时间<td><code>TimeEvent</code><td><code>Clock</code>（定时器与提醒）</table>
+<h2 class="anchor anchorTargetStickyNavbar_ana5" id=handler-dispatch>处理函数分发<a href=#handler-dispatch class=hash-link aria-label=处理函数分发的直接链接 title=处理函数分发的直接链接 translate=no>​</a></h2>
+<p>事件到达策略时，系统按固定顺序调用处理函数。<strong>专用处理函数</strong>先于<strong>汇总处理函数</strong>执行，因此可以任选一种粒度，或两者都用。</p>
+<p>策略只在<strong>运行期间</strong>把事件交给处理函数。启动前或停止后到达的事件不会分发。</p>
+<p>Python 数据 actor 不暴露订单事件回调，也不暴露原始消息总线。要把派生值从策略传给数据 actor，使用信号。参见
+<a class="" href=/concepts/actors#order-event-handling>Actor：订单事件处理</a>。</p>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=order-events>订单事件<a href=#order-events class=hash-link aria-label=订单事件的直接链接 title=订单事件的直接链接 translate=no>​</a></h3>
+<ol>
+<li class="">专用处理函数（例如 <code>on_order_filled</code>）。</li>
+<li class=""><code>on_order_event</code>（接收全部订单事件）。</li>
+</ol>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=position-events>持仓事件<a href=#position-events class=hash-link aria-label=持仓事件的直接链接 title=持仓事件的直接链接 translate=no>​</a></h3>
+<p>分发给策略的持仓生命周期事件：</p>
+<ol>
+<li class="">专用处理函数（例如 <code>on_position_opened</code>）。</li>
+<li class=""><code>on_position_event</code>（接收全部分发的持仓生命周期事件）。</li>
+</ol>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=time-events>时间事件<a href=#time-events class=hash-link aria-label=时间事件的直接链接 title=时间事件的直接链接 translate=no>​</a></h3>
+<p>定时器和提醒产出 <code>TimeEvent</code> 对象。调用 <code>set_timer</code> 或 <code>set_time_alert</code> 时传入 <code>callback</code>，可把事件定向到自己的方法。</p>
+<p>省略 callback 时：</p>
+<ul>
+<li class="">若同名回调此前已注册，则沿用该回调。</li>
+<li class="">否则事件送到 <code>on_time_event</code>。</li>
+</ul>
+<h2 class="anchor anchorTargetStickyNavbar_ana5" id=order-events-1>订单事件<a href=#order-events-1 class=hash-link aria-label=订单事件的直接链接 title=订单事件的直接链接 translate=no>​</a></h2>
+<p>订单事件负责初始化订单、改变其状态或更正其成交历史。执行流水线先把事件应用到订单和 <code>Cache</code>，再发布到 <code>MessageBus</code>。下表列出主要状态迁移。部分成交、外部和触发式订单还有其他迁移，见完整的<a class="" href=/concepts/orders/#order-state-flow>订单状态流</a>。</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>事件<th>主要迁移<th>处理函数<tbody><tr><td><a class="" href=/concepts/events/order_initialized><code>OrderInitialized</code></a><td>创建或实化订单<td><code>on_order_initialized</code><tr><td><a class="" href=/concepts/events/order_denied><code>OrderDenied</code></a><td>Initialized -> Denied<td><code>on_order_denied</code><tr><td><a class="" href=/concepts/events/order_emulated><code>OrderEmulated</code></a><td>Initialized -> Emulated<td><code>on_order_emulated</code><tr><td><a class="" href=/concepts/events/order_released><code>OrderReleased</code></a><td>Emulated -> Released<td><code>on_order_released</code><tr><td><a class="" href=/concepts/events/order_submitted><code>OrderSubmitted</code></a><td>Initialized/Released -> Submitted<td><code>on_order_submitted</code><tr><td><a class="" href=/concepts/events/order_accepted><code>OrderAccepted</code></a><td>Submitted -> Accepted<td><code>on_order_accepted</code><tr><td><a class="" href=/concepts/events/order_rejected><code>OrderRejected</code></a><td>Submitted -> Rejected<td><code>on_order_rejected</code><tr><td><a class="" href=/concepts/events/order_triggered><code>OrderTriggered</code></a><td>Accepted -> Triggered<td><code>on_order_triggered</code><tr><td><a class="" href=/concepts/events/order_pending_update><code>OrderPendingUpdate</code></a><td>Accepted -> PendingUpdate<td><code>on_order_pending_update</code><tr><td><a class="" href=/concepts/events/order_pending_cancel><code>OrderPendingCancel</code></a><td>Accepted -> PendingCancel<td><code>on_order_pending_cancel</code><tr><td><a class="" href=/concepts/events/order_updated><code>OrderUpdated</code></a><td>PendingUpdate -> 原状态<td><code>on_order_updated</code><tr><td><a class="" href=/concepts/events/order_modify_rejected><code>OrderModifyRejected</code></a><td>PendingUpdate -> 原状态<td><code>on_order_modify_rejected</code><tr><td><a class="" href=/concepts/events/order_cancel_rejected><code>OrderCancelRejected</code></a><td>PendingCancel -> 原状态<td><code>on_order_cancel_rejected</code><tr><td><a class="" href=/concepts/events/order_canceled><code>OrderCanceled</code></a><td>PendingCancel/Accepted -> Canceled<td><code>on_order_canceled</code><tr><td><a class="" href=/concepts/events/order_expired><code>OrderExpired</code></a><td>Accepted -> Expired<td><code>on_order_expired</code><tr><td><a class="" href=/concepts/events/order_filled><code>OrderFilled</code></a><td>Accepted -> Filled/PartiallyFilled<td><code>on_order_filled</code><tr><td><a class="" href=/concepts/events/order_fill_voided><code>OrderFillVoided</code></a><td>更正已知成交，或对未知成交断言终态<td><code>on_order_fill_voided</code></table>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=common-python-order-event-fields>Python 订单事件的公共字段<a href=#common-python-order-event-fields class=hash-link aria-label="Python 订单事件的公共字段的直接链接" title="Python 订单事件的公共字段的直接链接" translate=no>​</a></h3>
+<p>每个具体的 Python 订单事件都暴露以下字段：</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>字段<th>说明<tbody><tr><td><code>trader_id</code><td>Trader 实例标识。<tr><td><code>strategy_id</code><td>订单关联的策略。<tr><td><code>instrument_id</code><td>订单所属金融工具。<tr><td><code>client_order_id</code><td>客户端分配的订单标识。<tr><td><code>event_id</code><td>事件唯一标识。<tr><td><code>ts_event</code><td>事件发生时刻的 UNIX 纳秒时间戳。<tr><td><code>ts_init</code><td>事件初始化时刻的 UNIX 纳秒时间戳。<tr><td><code>causation_id</code><td>引发本事件的源事件或报告（若已知）。</table>
+<p>各订单事件页面会列出其特有字段。<code>venue_order_id</code>、<code>account_id</code> 和 <code>reconciliation</code> 只在暴露这些字段的 Python 事件类上出现。例如
+<a class="" href=/concepts/events/order_filled><code>OrderFilled</code></a> 额外有 <code>last_qty</code>、<code>last_px</code>、<code>trade_id</code> 和 <code>commission</code>。
+<a class="" href=/concepts/events/order_fill_voided><code>OrderFillVoided</code></a> 标识被更正的那笔成交，并携带其累计作废数量。</p>
+<h2 class="anchor anchorTargetStickyNavbar_ana5" id=position-events-1>持仓事件<a href=#position-events-1 class=hash-link aria-label=持仓事件的直接链接 title=持仓事件的直接链接 translate=no>​</a></h2>
+<p>持仓生命周期事件描述由成交和成交更正引起的缓存持仓变化。<code>ExecutionEngine</code> 处理每个 <code>OrderFilled</code>，更新或创建持仓，并发出对应的生命周期事件。</p>
+<p>当 <code>OrderFillVoided</code> 更正一笔已本地应用的成交时，引擎会按剩余的有效成交历史重建每个受影响的缓存持仓，不会发出反向成交。发布更正后，若被更正的持仓仍然持有，引擎发出 <code>PositionChanged</code>；若已平掉，则发出 <code>PositionClosed</code>。只涉及订单的更正不产生持仓事件。</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>事件<th>触发时机<th>处理函数<tbody><tr><td><a class="" href=/concepts/events/position_opened><code>PositionOpened</code></a><td>成交创建了新持仓。<td><code>on_position_opened</code><tr><td><a class="" href=/concepts/events/position_changed><code>PositionChanged</code></a><td>成交或更正改变了持仓中数量。<td><code>on_position_changed</code><tr><td><a class="" href=/concepts/events/position_closed><code>PositionClosed</code></a><td>成交或更正使数量归零。<td><code>on_position_closed</code></table>
+<div class="theme-admonition theme-admonition-warning admonition_LYZY alert alert--warning"><div class=admonitionHeading_pnFY><span class=admonitionIcon_tEzm><svg viewBox="0 0 16 16"><path fill-rule=evenodd d="M8.893 1.5c-.183-.31-.52-.5-.887-.5s-.703.19-.886.5L.138 13.499a.98.98 0 0 0 0 1.001c.193.31.53.501.886.501h13.964c.367 0 .704-.19.877-.5a1.03 1.03 0 0 0 .01-1.002L8.893 1.5zm.133 11.497H6.987v-2.003h2.039v2.003zm0-3.004H6.987V5.987h2.039v4.006z"/></svg></span>PositionAdjusted 不会送达任何持仓处理函数</div><div class=admonitionContent_ZwmI><p><a class="" href=/concepts/positions#position-adjustments><code>PositionAdjusted</code></a> 记录常规成交之外的数量或已实现盈亏变化，例如以基础货币计的手续费和资金费。<code>ExecutionEngine</code> 会发布它，但 <code>on_position_event</code> 和任何专用处理函数都收不到。要查看记录的历史，检查 <code>position.adjustments()</code>。</div></div>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=from-fill-to-position-the-causal-chain>从成交到持仓：因果链<a href=#from-fill-to-position-the-causal-chain class=hash-link aria-label=从成交到持仓：因果链的直接链接 title=从成交到持仓：因果链的直接链接 translate=no>​</a></h3>
+<p>下图展示单个 <code>OrderFilled</code> 事件如何产生持仓事件，即订单管理与持仓跟踪之间的衔接。</p>
+<!-- -->
+<p>逐步说明：</p>
+<ol>
+<li class=""><strong>成交到达</strong>：<code>ExecutionEngine</code> 经执行流水线收到 <code>OrderFilled</code> 事件。</li>
+<li class=""><strong>订单状态</strong>：引擎把成交应用到订单对象，并把更新后的订单写回 <code>Cache</code>。</li>
+<li class=""><strong>持仓 ID</strong>：引擎根据 OMS 类型和策略配置确定这笔成交归属哪个持仓。</li>
+<li class=""><strong>持仓生命周期</strong>：引擎按以下三种方式之一创建或更新持仓：
+<ul>
+<li class=""><strong>该 ID 尚无持仓</strong>：引擎根据成交创建 <code>Position</code>，加入 <code>Cache</code>，发出 <code>PositionOpened</code>。</li>
+<li class=""><strong>持仓存在且成交后仍持有</strong>：引擎把成交应用到持仓，更新 <code>Cache</code>，发出 <code>PositionChanged</code>。</li>
+<li class=""><strong>持仓存在且被关闭</strong>（数量归零）：引擎应用成交，更新 <code>Cache</code>，发出 <code>PositionClosed</code>。</li>
+</ul>
+</li>
+<li class=""><strong>持仓反转</strong>：成交使持仓反向时（例如对 10 手多头卖出 15 手），引擎把成交拆成两部分：一部分平掉原持仓（<code>PositionClosed</code>），另一部分开出新持仓（<code>PositionOpened</code>）。</li>
+</ol>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=position-event-fields>持仓事件字段<a href=#position-event-fields class=hash-link aria-label=持仓事件字段的直接链接 title=持仓事件字段的直接链接 translate=no>​</a></h3>
+<p>三个持仓生命周期事件类共用一组核心字段，并随持仓推进暴露更多字段。对勾表示该 Python 类暴露此字段；短横表示该类没有此字段。</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>字段<th>Opened<th>Changed<th>Closed<th>说明<tbody><tr><td><code>trader_id</code><td>✓<td>✓<td>✓<td>Trader 实例标识。<tr><td><code>strategy_id</code><td>✓<td>✓<td>✓<td>持仓所属策略。<tr><td><code>instrument_id</code><td>✓<td>✓<td>✓<td>持仓所属金融工具。<tr><td><code>position_id</code><td>✓<td>✓<td>✓<td>持仓唯一标识。<tr><td><code>account_id</code><td>✓<td>✓<td>✓<td>持仓所属账户。<tr><td><code>opening_order_id</code><td>✓<td>✓<td>✓<td>开仓订单。<tr><td><code>closing_order_id</code><td>-<td>-<td>✓<td>平仓订单。<tr><td><code>entry</code><td>✓<td>✓<td>✓<td>开仓成交的方向。<tr><td><code>side</code><td>✓<td>✓<td>✓<td>当前持仓方向。<tr><td><code>signed_qty</code><td>✓<td>✓<td>✓<td>带符号数量（负数为空头）。<tr><td><code>quantity</code><td>✓<td>✓<td>✓<td>不带符号的持仓数量。<tr><td><code>peak_quantity</code><td>-<td>✓<td>✓<td>历史最大持仓量。<tr><td><code>peak_qty</code><td>-<td>✓<td>✓<td><code>peak_quantity</code> 的兼容别名。<tr><td><code>last_qty</code><td>✓<td>✓<td>✓<td>本次成交或更正的数量。<tr><td><code>last_px</code><td>✓<td>✓<td>✓<td>本次成交或更正的价格。<tr><td><code>currency</code><td>✓<td>✓<td>✓<td>持仓的计价货币。<tr><td><code>avg_px_open</code><td>✓<td>✓<td>✓<td>平均开仓价。<tr><td><code>avg_px_close</code><td>-<td>✓<td>✓<td>平均平仓价（若有）。<tr><td><code>realized_return</code><td>-<td>✓<td>✓<td>已实现收益率（比值）。<tr><td><code>realized_pnl</code><td>✓<td>✓<td>✓<td>当前周期的已实现盈亏（成本货币计）。<tr><td><code>unrealized_pnl</code><td>-<td>✓<td>✓<td>引擎置为零。<tr><td><code>duration</code><td>-<td>-<td>✓<td>持有时长（纳秒）。<tr><td><code>ts_opened</code><td>-<td>✓<td>✓<td>持仓开仓时间戳。<tr><td><code>ts_closed</code><td>-<td>-<td>✓<td>持仓平仓时间戳。<tr><td><code>event_id</code><td>✓<td>✓<td>✓<td>事件唯一标识。<tr><td><code>ts_event</code><td>✓<td>✓<td>✓<td>触发事件的时间戳。<tr><td><code>ts_init</code><td>✓<td>✓<td>✓<td>事件创建时间戳。</table>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=tracing-orders-to-positions>从订单追溯到持仓<a href=#tracing-orders-to-positions class=hash-link aria-label=从订单追溯到持仓的直接链接 title=从订单追溯到持仓的直接链接 translate=no>​</a></h3>
+<p><code>Cache</code> 提供在订单与持仓之间导航的方法：</p>
+<div class="language-python codeBlockContainer_eTMR theme-code-block" style=--prism-color:#393A34;--prism-background-color:#f6f8fa><div class=codeBlockContent_hafM><pre tabindex=0 class="prism-code language-python codeBlock_IMvC thin-scrollbar" style=color:#393A34;background-color:#f6f8fa><code class=codeBlockLines_gZDW><div class=token-line style=color:#393A34><span class="token comment" style=color:#999988;font-style:italic># From a position, find all orders that contributed fills</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">orders </span><span class="token operator" style=color:#393A34>=</span><span class="token plain"> self</span><span class="token punctuation" style=color:#393A34>.</span><span class="token plain">cache</span><span class="token punctuation" style=color:#393A34>.</span><span class="token plain">orders_for_position</span><span class="token punctuation" style=color:#393A34>(</span><span class="token plain">position</span><span class="token punctuation" style=color:#393A34>.</span><span class="token builtin">id</span><span class="token punctuation" style=color:#393A34>)</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain" style=display:inline-block></span><br/></div><div class=token-line style=color:#393A34><span class="token plain"></span><span class="token comment" style=color:#999988;font-style:italic># From an order, find the position it belongs to</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">position </span><span class="token operator" style=color:#393A34>=</span><span class="token plain"> self</span><span class="token punctuation" style=color:#393A34>.</span><span class="token plain">cache</span><span class="token punctuation" style=color:#393A34>.</span><span class="token plain">position_for_order</span><span class="token punctuation" style=color:#393A34>(</span><span class="token plain">order</span><span class="token punctuation" style=color:#393A34>.</span><span class="token plain">client_order_id</span><span class="token punctuation" style=color:#393A34>)</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain" style=display:inline-block></span><br/></div><div class=token-line style=color:#393A34><span class="token plain"></span><span class="token comment" style=color:#999988;font-style:italic># The opening order is stored directly on the position</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">opening_order_id </span><span class="token operator" style=color:#393A34>=</span><span class="token plain"> position</span><span class="token punctuation" style=color:#393A34>.</span><span class="token plain">opening_order_id</span><br/></div></code></pre></div></div>
+<h2 class="anchor anchorTargetStickyNavbar_ana5" id=account-events>账户事件<a href=#account-events class=hash-link aria-label=账户事件的直接链接 title=账户事件的直接链接 translate=no>​</a></h2>
+<p><code>AccountState</code> 事件表示余额与保证金快照。触发时机：</p>
+<ul>
+<li class="">交易场所上报账户更新（经执行客户端）。</li>
+<li class="">持仓更新后 <code>Portfolio</code> 重新计算账户状态（针对启用了 <code>calculate_account_state</code> 的保证金账户）。</li>
+</ul>
+<p>账户状态包含余额、保证金、账户类型和基础货币。<code>Portfolio</code> 内部订阅这些事件，以维护敞口和余额跟踪。完整字段列表见
+<a class="" href=/concepts/events/account_state><code>AccountState</code></a>。</p>
+<h2 class="anchor anchorTargetStickyNavbar_ana5" id=related-guides>相关指南<a href=#related-guides class=hash-link aria-label=相关指南的直接链接 title=相关指南的直接链接 translate=no>​</a></h2>
+<ul>
+<li class=""><a class="" href=/concepts/orders/>订单</a> - 订单类型与状态机。</li>
+<li class=""><a class="" href=/concepts/positions>持仓</a> - 持仓生命周期与盈亏。</li>
+<li class=""><a class="" href=/concepts/execution/>执行</a> - 执行流程与风控检查。</li>
+<li class=""><a class="" href=/concepts/strategies>策略</a> - 策略中的处理函数实现。</li>
+<li class=""><a class="" href=/concepts/architecture>架构</a> - 数据与执行流模式。</li>
+</ul></div><footer class="theme-doc-footer docusaurus-mt-lg"><div class="row margin-top--sm theme-doc-footer-edit-meta-row"><div class="col noPrint_MRkS"><a href=https://github.com/Aloento/NautilusTraderDoc/tree/main/docs/concepts/events/index.md target=_blank rel="noopener noreferrer" class=theme-edit-this-page><svg fill=currentColor height=20 width=20 viewBox="0 0 40 40" class=iconEdit_RPSQ aria-hidden=true><g><path d="m34.5 11.7l-3 3.1-6.3-6.3 3.1-3q0.5-0.5 1.2-0.5t1.1 0.5l3.9 3.9q0.5 0.4 0.5 1.1t-0.5 1.2z m-29.5 17.1l18.4-18.5 6.3 6.3-18.4 18.4h-6.3v-6.2z"/></g></svg>编辑此页</a></div><div class="col lastUpdated_oZSl"><span class=theme-last-updated>最后<!-- -->于 <b><time datetime=2026-10-14T22:30:30.000Z itemprop=dateModified>2026年10月14日</time></b> <!-- -->更新</span></div></div></footer></article><nav class="docusaurus-mt-lg pagination-nav" aria-label=文件选项卡><a class="pagination-nav__link pagination-nav__link--prev" href=/concepts/backtesting/trade-execution><div class=pagination-nav__sublabel>上一页</div><div class=pagination-nav__label>基于成交的执行</div></a><a class="pagination-nav__link pagination-nav__link--next" href=/concepts/events/account_state><div class=pagination-nav__sublabel>下一页</div><div class=pagination-nav__label>AccountState</div></a></nav></div></div><div class="col col--3"><div class="tableOfContents_LyLZ thin-scrollbar theme-doc-toc-desktop"><ul class="table-of-contents table-of-contents__left-border"><li><a href=#event-categories class="table-of-contents__link toc-highlight">事件类别</a><li><a href=#handler-dispatch class="table-of-contents__link toc-highlight">处理函数分发</a><ul><li><a href=#order-events class="table-of-contents__link toc-highlight">订单事件</a><li><a href=#position-events class="table-of-contents__link toc-highlight">持仓事件</a><li><a href=#time-events class="table-of-contents__link toc-highlight">时间事件</a></ul><li><a href=#order-events-1 class="table-of-contents__link toc-highlight">订单事件</a><ul><li><a href=#common-python-order-event-fields class="table-of-contents__link toc-highlight">Python 订单事件的公共字段</a></ul><li><a href=#position-events-1 class="table-of-contents__link toc-highlight">持仓事件</a><ul><li><a href=#from-fill-to-position-the-causal-chain class="table-of-contents__link toc-highlight">从成交到持仓：因果链</a><li><a href=#position-event-fields class="table-of-contents__link toc-highlight">持仓事件字段</a><li><a href=#tracing-orders-to-positions class="table-of-contents__link toc-highlight">从订单追溯到持仓</a></ul><li><a href=#account-events class="table-of-contents__link toc-highlight">账户事件</a><li><a href=#related-guides class="table-of-contents__link toc-highlight">相关指南</a></ul></div></div></div></div></main></div></div></div><footer class="theme-layout-footer footer footer--dark"><div class="container container-fluid"><div class="row footer__links"><div class="theme-layout-footer-column col footer__col"><div class=footer__title></div><ul class="footer__items clean-list"><li class=footer__item><a href=https://github.com/nautechsystems/nautilus_trader target=_blank rel="noopener noreferrer" class=footer__link-item>Official GitHub<svg width=13.5 height=13.5 aria-label="(opens in new tab)" class=iconExternalLink_qUHo><use href=#theme-svg-external-link /></svg></a><li class=footer__item><a href=https://nautilustrader.io/docs target=_blank rel="noopener noreferrer" class=footer__link-item>Official Documentation<svg width=13.5 height=13.5 aria-label="(opens in new tab)" class=iconExternalLink_qUHo><use href=#theme-svg-external-link /></svg></a></ul></div></div><div class="footer__bottom text--center"><div class=footer__copyright>© 2026 Nautech Systems Pty Ltd. All rights reserved.</div></div></div></footer></div></body>

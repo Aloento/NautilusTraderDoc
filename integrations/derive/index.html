@@ -1,0 +1,1551 @@
+<!doctype html><html lang=zh dir=ltr class="docs-wrapper plugin-docs plugin-id-default docs-version-current docs-doc-page docs-doc-id-integrations/derive" data-has-hydrated=false><head><meta charset=UTF-8><meta name=generator content="Docusaurus v3.10.2"><title data-rh=true>Derive | NautilusTrader 文档</title><meta data-rh=true name=viewport content="width=device-width, initial-scale=1.0"/><meta data-rh=true name=twitter:card content=summary_large_image /><meta data-rh=true property=og:url content=https://nautilus.aloen.to/integrations/derive /><meta data-rh=true property=og:locale content=zh /><meta data-rh=true name=docusaurus_locale content=zh /><meta data-rh=true name=docsearch:language content=zh /><meta data-rh=true name=docusaurus_version content=current /><meta data-rh=true name=docusaurus_tag content=docs-default-current /><meta data-rh=true name=docsearch:version content=current /><meta data-rh=true name=docsearch:docusaurus_tag content=docs-default-current /><meta data-rh=true property=og:title content="Derive | NautilusTrader 文档"/><meta data-rh=true name=description content="Derive（前身是 Lyra）是一个去中心化衍生品场所，提供欧式期权与现金结算（以 USDC）的永续互换，也是最大的链上期权市场之一。交易运行在由用户 EOA 或多签账户拥有的子账户上，抵押物留在用户自托管中，订单则通过场所的订单簿撮合。"/><meta data-rh=true property=og:description content="Derive（前身是 Lyra）是一个去中心化衍生品场所，提供欧式期权与现金结算（以 USDC）的永续互换，也是最大的链上期权市场之一。交易运行在由用户 EOA 或多签账户拥有的子账户上，抵押物留在用户自托管中，订单则通过场所的订单簿撮合。"/><link data-rh=true rel=icon href=/logo.png /><link data-rh=true rel=canonical href=https://nautilus.aloen.to/integrations/derive /><link data-rh=true rel=alternate href=https://nautilus.aloen.to/integrations/derive hreflang=zh /><link data-rh=true rel=alternate href=https://nautilus.aloen.to/integrations/derive hreflang=x-default /><script data-rh=true type=application/ld+json>{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","item":"https://nautilus.aloen.to/integrations/","name":"交易所与集成","position":1},{"@type":"ListItem","item":"https://nautilus.aloen.to/integrations/derive","name":"Derive","position":2}]}</script><link rel=stylesheet href=/assets/css/styles.adb7ea18.css /><script src=/assets/js/runtime~main.71ac0794.js defer></script><script src=/assets/js/main.d978d0f2.js defer></script></head><body><svg style="display: none;"><defs>
+<symbol id=theme-svg-external-link viewBox="0 0 24 24"><path fill=currentColor d="M21 13v10h-21v-19h12v2h-10v15h17v-8h2zm3-12h-10.988l4.035 4-6.977 7.07 2.828 2.828 6.977-7.07 4.125 4.172v-11z"/></symbol>
+</defs></svg>
+<script>!function(){var t=function(){try{return new URLSearchParams(window.location.search).get("docusaurus-theme")}catch(t){}}()||function(){try{return window.localStorage.getItem("theme-2e3")}catch(t){}}();document.documentElement.setAttribute("data-theme",t||(window.matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light")),document.documentElement.setAttribute("data-theme-choice",t||"system")}(),function(){try{for(var[t,e]of new URLSearchParams(window.location.search).entries())if(t.startsWith("docusaurus-data-")){var a=t.replace("docusaurus-data-","data-");document.documentElement.setAttribute(a,e)}}catch(t){}}()</script><div id=__docusaurus><link rel=preload as=image href=/logo.png /><div role=region aria-label=跳到主要内容><a class=skipToContent_zuOI href=#__docusaurus_skipToContent_fallback>跳到主要内容</a></div><nav aria-label=主导航 class="theme-layout-navbar navbar navbar--fixed-top"><div class=navbar__inner><div class="theme-layout-navbar-left navbar__items"><button aria-label=切换导航栏 aria-expanded=false class="navbar__toggle clean-btn" type=button><svg width=30 height=30 viewBox="0 0 30 30" aria-hidden=true><path stroke=currentColor stroke-linecap=round stroke-miterlimit=10 stroke-width=2 d="M4 7h22M4 15h22M4 23h22"/></svg></button><a class=navbar__brand href=/><div class=navbar__logo><img src=/logo.png alt="NautilusTrader Logo" class="themedComponent_q2_Y themedComponent--light_Nejn"/><img src=/logo.png alt="NautilusTrader Logo" class="themedComponent_q2_Y themedComponent--dark_JjIb"/></div><b class="navbar__title text--truncate">NautilusTrader</b></a><a aria-current=page class="navbar__item navbar__link navbar__link--active" href=/getting_started/>文档</a></div><div class="theme-layout-navbar-right navbar__items navbar__items--right"><a href=https://github.com/Aloento/NautilusTraderDoc target=_blank rel="noopener noreferrer" class="navbar__item navbar__link">GitHub<svg width=13.5 height=13.5 aria-label="(opens in new tab)" class=iconExternalLink_qUHo><use href=#theme-svg-external-link /></svg></a><div class="toggle_hHmI colorModeToggle_rOOn"><button class="clean-btn toggleButton_wEhT toggleButtonDisabled_yOOP" type=button disabled title="system mode" aria-label="切换浅色/暗黑模式（当前为system mode）"><svg viewBox="0 0 24 24" width=24 height=24 aria-hidden=true class="toggleIcon_Kt6U lightToggleIcon_Zfeh"><path fill=currentColor d="M12,9c1.65,0,3,1.35,3,3s-1.35,3-3,3s-3-1.35-3-3S10.35,9,12,9 M12,7c-2.76,0-5,2.24-5,5s2.24,5,5,5s5-2.24,5-5 S14.76,7,12,7L12,7z M2,13l2,0c0.55,0,1-0.45,1-1s-0.45-1-1-1l-2,0c-0.55,0-1,0.45-1,1S1.45,13,2,13z M20,13l2,0c0.55,0,1-0.45,1-1 s-0.45-1-1-1l-2,0c-0.55,0-1,0.45-1,1S19.45,13,20,13z M11,2v2c0,0.55,0.45,1,1,1s1-0.45,1-1V2c0-0.55-0.45-1-1-1S11,1.45,11,2z M11,20v2c0,0.55,0.45,1,1,1s1-0.45,1-1v-2c0-0.55-0.45-1-1-1C11.45,19,11,19.45,11,20z M5.99,4.58c-0.39-0.39-1.03-0.39-1.41,0 c-0.39,0.39-0.39,1.03,0,1.41l1.06,1.06c0.39,0.39,1.03,0.39,1.41,0s0.39-1.03,0-1.41L5.99,4.58z M18.36,16.95 c-0.39-0.39-1.03-0.39-1.41,0c-0.39,0.39-0.39,1.03,0,1.41l1.06,1.06c0.39,0.39,1.03,0.39,1.41,0c0.39-0.39,0.39-1.03,0-1.41 L18.36,16.95z M19.42,5.99c0.39-0.39,0.39-1.03,0-1.41c-0.39-0.39-1.03-0.39-1.41,0l-1.06,1.06c-0.39,0.39-0.39,1.03,0,1.41 s1.03,0.39,1.41,0L19.42,5.99z M7.05,18.36c0.39-0.39,0.39-1.03,0-1.41c-0.39-0.39-1.03-0.39-1.41,0l-1.06,1.06 c-0.39,0.39-0.39,1.03,0,1.41s1.03,0.39,1.41,0L7.05,18.36z"/></svg><svg viewBox="0 0 24 24" width=24 height=24 aria-hidden=true class="toggleIcon_Kt6U darkToggleIcon_XgQr"><path fill=currentColor d="M9.37,5.51C9.19,6.15,9.1,6.82,9.1,7.5c0,4.08,3.32,7.4,7.4,7.4c0.68,0,1.35-0.09,1.99-0.27C17.45,17.19,14.93,19,12,19 c-3.86,0-7-3.14-7-7C5,9.07,6.81,6.55,9.37,5.51z M12,3c-4.97,0-9,4.03-9,9s4.03,9,9,9s9-4.03,9-9c0-0.46-0.04-0.92-0.1-1.36 c-0.98,1.37-2.58,2.26-4.4,2.26c-2.98,0-5.4-2.42-5.4-5.4c0-1.81,0.89-3.42,2.26-4.4C12.92,3.04,12.46,3,12,3L12,3z"/></svg><svg viewBox="0 0 24 24" width=24 height=24 aria-hidden=true class="toggleIcon_Kt6U systemToggleIcon_BvUi"><path fill=currentColor d="m12 21c4.971 0 9-4.029 9-9s-4.029-9-9-9-9 4.029-9 9 4.029 9 9 9zm4.95-13.95c1.313 1.313 2.05 3.093 2.05 4.95s-0.738 3.637-2.05 4.95c-1.313 1.313-3.093 2.05-4.95 2.05v-14c1.857 0 3.637 0.737 4.95 2.05z"/></svg></button></div><div class=navbarSearchContainer_watl></div></div></div><div role=presentation class=navbar-sidebar__backdrop></div></nav><div id=__docusaurus_skipToContent_fallback class="theme-layout-main main-wrapper mainWrapper_R72Q"><div class=docsWrapper_XQ9b><button aria-label=回到顶部 class="clean-btn theme-back-to-top-button backToTopButton_MbnX" type=button></button><div class=docRoot_aqOB><aside class="theme-doc-sidebar-container docSidebarContainer_sI2e"><div class=sidebarViewport_TzTy><div class=sidebar_CbEe><nav aria-label=文档侧边栏 class="menu thin-scrollbar menu_ChRF"><ul class="theme-doc-sidebar-menu menu__list"><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-1 menu__list-item menu__list-item--collapsed"><div class=menu__list-item-collapsible><a class="categoryLink_Muyc menu__link menu__link--sublist" href=/getting_started/><span class=categoryLinkLabel_mAcL>快速开始</span></a><button aria-label="展开侧边栏分类 '快速开始'" aria-expanded=false type=button class="clean-btn menu__caret"></button></div><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-1 menu__list-item menu__list-item--collapsed"><div class=menu__list-item-collapsible><a class="categoryLink_Muyc menu__link menu__link--sublist" href=/concepts/><span class=categoryLinkLabel_mAcL>核心概念</span></a><button aria-label="展开侧边栏分类 '核心概念'" aria-expanded=false type=button class="clean-btn menu__caret"></button></div><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-1 menu__list-item"><div class=menu__list-item-collapsible><a class="categoryLink_Muyc menu__link menu__link--sublist menu__link--active" href=/integrations/><span class=categoryLinkLabel_mAcL>交易所与集成</span></a><button aria-label="折叠侧边栏分类 '交易所与集成'" aria-expanded=true type=button class="clean-btn menu__caret"></button></div><ul class=menu__list><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/integrations/architect_ax><span class=linkLabel_lYjD>AX Exchange</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/integrations/betfair><span class=linkLabel_lYjD>Betfair</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/integrations/binance><span class=linkLabel_lYjD>Binance</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/integrations/blockchain><span class=linkLabel_lYjD>区块链</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/integrations/bybit><span class=linkLabel_lYjD>Bybit</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/integrations/coinapi><span class=linkLabel_lYjD>CoinAPI</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/integrations/coinbase><span class=linkLabel_lYjD>Coinbase</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/integrations/databento><span class=linkLabel_lYjD>Databento</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/integrations/deribit><span class=linkLabel_lYjD>Deribit</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class="menu__link menu__link--active" aria-current=page tabindex=0 href=/integrations/derive><span class=linkLabel_lYjD>Derive</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/integrations/dydx><span class=linkLabel_lYjD>dYdX</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/integrations/hyperliquid><span class=linkLabel_lYjD>Hyperliquid</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/integrations/interactive_brokers><span class=linkLabel_lYjD>Interactive Brokers</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/integrations/kraken><span class=linkLabel_lYjD>Kraken</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/integrations/lighter><span class=linkLabel_lYjD>Lighter</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/integrations/okx><span class=linkLabel_lYjD>OKX</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/integrations/polymarket><span class=linkLabel_lYjD>Polymarket</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/integrations/tardis><span class=linkLabel_lYjD>Tardis</span></a></ul><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-1 menu__list-item menu__list-item--collapsed"><div class=menu__list-item-collapsible><a class="categoryLink_Muyc menu__link menu__link--sublist" href=/how_to/><span class=categoryLinkLabel_mAcL>操作指南</span></a><button aria-label="展开侧边栏分类 '操作指南'" aria-expanded=false type=button class="clean-btn menu__caret"></button></div><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-1 menu__list-item menu__list-item--collapsed"><div class=menu__list-item-collapsible><a class="categoryLink_Muyc menu__link menu__link--sublist" href=/tutorials/><span class=categoryLinkLabel_mAcL>教程</span></a><button aria-label="展开侧边栏分类 '教程'" aria-expanded=false type=button class="clean-btn menu__caret"></button></div><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-1 menu__list-item menu__list-item--collapsed"><div class=menu__list-item-collapsible><a class="categoryLink_Muyc menu__link menu__link--sublist" href=/developer_guide/><span class=categoryLinkLabel_mAcL>开发者指南</span></a><button aria-label="展开侧边栏分类 '开发者指南'" aria-expanded=false type=button class="clean-btn menu__caret"></button></div><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-1 menu__list-item menu__list-item--collapsed"><div class=menu__list-item-collapsible><a class="categoryLink_Muyc menu__link menu__link--sublist" href=/api_reference/><span class=categoryLinkLabel_mAcL>API 参考</span></a><button aria-label="展开侧边栏分类 'API 参考'" aria-expanded=false type=button class="clean-btn menu__caret"></button></div></ul></nav></div></div></aside><main class=docMainContainer_sLF8><div class="container padding-top--md padding-bottom--lg"><div class=row><div class="col docItemCol_ZRft"><div class=docItemContainer_KOP5><article><nav class="theme-doc-breadcrumbs breadcrumbsContainer_d5rS" aria-label=页面路径><ul class=breadcrumbs><li class=breadcrumbs__item><a aria-label=主页面 class=breadcrumbs__link href=/><svg viewBox="0 0 24 24" class=breadcrumbHomeIcon_XgF2><path d="M10 19v-5h4v5c0 .55.45 1 1 1h3c.55 0 1-.45 1-1v-7h1.7c.46 0 .68-.57.33-.87L12.67 3.6c-.38-.34-.96-.34-1.34 0l-8.36 7.53c-.34.3-.13.87.33.87H5v7c0 .55.45 1 1 1h3c.55 0 1-.45 1-1z" fill=currentColor /></svg></a><li class=breadcrumbs__item><a class=breadcrumbs__link href=/integrations/><span>交易所与集成</span></a><li class="breadcrumbs__item breadcrumbs__item--active"><span class=breadcrumbs__link>Derive</span></ul></nav><div class="tocCollapsible_bgaJ theme-doc-toc-mobile tocMobile_FhT_"><button type=button class="clean-btn tocCollapsibleButton_F8AY">本页总览</button></div><div class="theme-doc-markdown markdown"><header><h1>Derive</h1></header>
+<p>Derive（前身是 Lyra）是一个去中心化衍生品场所，提供欧式期权与现金结算（以 USDC）的永续互换，也是最大的链上期权市场之一。交易运行在由用户 EOA 或多签账户拥有的子账户上，抵押物留在用户自托管中，订单则通过场所的订单簿撮合。</p>
+<p>v3 API 把操作打包成批，以便在以太坊上结算。订单链下撮合、链上结算，把订单簿执行与自托管结合在一起。订单使用 EIP-712 typed-data 签名，签名密钥是限定到某个子账户的 session key。这样签名密钥与钱包所有者保持分离，用户可以轮换或吊销访问权限而无需转移资金。</p>
+<h2 class="anchor anchorTargetStickyNavbar_ana5" id=overview>概览<a href=#overview class=hash-link aria-label=概览的直接链接 title=概览的直接链接 translate=no>​</a></h2>
+<p>Derive 适配器（adapter）用 Rust 实现，位于 <code>crates/adapters/derive</code>。它提供：</p>
+<ul>
+<li class=""><code>DeriveHttpClient</code>：到 <code>api.derive.xyz/v3</code>（主网）或 <code>testnet.api.derive.xyz/v3</code>（测试网）的低层 REST 连接。</li>
+<li class=""><code>DeriveWebSocketClient</code>：带订阅跟踪、重连与签名下单的 JSON-RPC WebSocket 传输。</li>
+<li class=""><code>DeriveInstrumentProvider</code>：按币种拉取并缓存金融工具。</li>
+<li class=""><code>DeriveDataClient</code>：实时行情客户端。</li>
+<li class=""><code>DeriveDataClientFactory</code>：供 live node builder 使用的数据客户端工厂。</li>
+<li class=""><code>DeriveExecutionClient</code>：负责签名下单、撤单、查询与报告流程的实时执行客户端。</li>
+<li class=""><code>DeriveExecutionClientFactory</code>：供 live node builder 使用的执行客户端工厂。</li>
+</ul>
+<p>执行流程针对场所的按动作模块合约（per-action module contracts）使用 EIP-712 typed-data 签名。</p>
+<p><code>nautilus_trader.adapters.derive</code> 提供的 Python 接口：</p>
+<ul>
+<li class=""><code>DeriveDataClientConfig</code>、<code>DeriveExecutionClientConfig</code></li>
+<li class=""><code>DeriveDataClientFactory</code>、<code>DeriveExecutionClientFactory</code></li>
+<li class=""><code>DeriveEnvironment</code></li>
+<li class=""><code>DERIVE</code>、<code>DERIVE_CLIENT_ID</code> 与 <code>DERIVE_VENUE</code></li>
+</ul>
+<h2 class="anchor anchorTargetStickyNavbar_ana5" id=examples>示例<a href=#examples class=hash-link aria-label=示例的直接链接 title=示例的直接链接 translate=no>​</a></h2>
+<ul>
+<li class=""><a href=https://github.com/nautechsystems/nautilus_trader/tree/develop/examples/live/derive/ target=_blank rel="noopener noreferrer" class="">Python 示例</a></li>
+<li class=""><a href=https://github.com/nautechsystems/nautilus_trader/tree/develop/crates/adapters/derive/examples/ target=_blank rel="noopener noreferrer" class="">Rust 示例</a></li>
+</ul>
+<h2 class="anchor anchorTargetStickyNavbar_ana5" id=derive-documentation>Derive 文档<a href=#derive-documentation class=hash-link aria-label="Derive 文档的直接链接" title="Derive 文档的直接链接" translate=no>​</a></h2>
+<p>Derive 在 <a href=https://docs.derive.xyz target=_blank rel="noopener noreferrer" class="">docs.derive.xyz</a> 发布 API 文档。除本指南外，细节以它为准。</p>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=v3-deployment-and-migration>V3 部署与迁移<a href=#v3-deployment-and-migration class=hash-link aria-label="V3 部署与迁移的直接链接" title="V3 部署与迁移的直接链接" translate=no>​</a></h3>
+<p>Derive 的<a href=https://x.com/DeriveXYZ/status/2107605164131852434 target=_blank rel="noopener noreferrer" class="">迁移完成公告</a>宣布 v3 迁移已于 2026 年 10 月 6 日完成。
+<a href=https://forums.derive.xyz/t/dip-launch-derive-v3/322 target=_blank rel="noopener noreferrer" class="">迁移提案</a>描述了此后关停 Derive Chain 的安排。这些来源没有给出 v2 API 的确切退役日期，也没有说明 v2 仍可作为回退。</p>
+<p>启动执行前，先确认迁移后的 owner、已注资的子账户与 session key 权限。V3 使用最终 owner 的 EOA 或以太坊多签作为 <code>wallet_address</code>，取代中间的 Derive Wallet。迁移提案按风险 universe 拆分标准保证金子账户，因此要确认 v3 的 <code>subaccount_id</code>：不要假设 v2 的 ID 选中的就是预期的余额与持仓。组合保证金子账户一对一迁移。</p>
+<p>迁移过来的 v2 admin key 获得 trading、同 owner 转账、withdrawal 与 liquidation 范围，有效期上限为 genesis（即 v3 启动状态）之后 28 天；它们不会获得 <code>admin</code>、<code>set_session_key</code> 或跨 owner 转账权限。V2 只读与账户 key 迁移时不带协议范围，无法交易。通过 <code>private/session_keys</code> 检查 key 当前的有效期、范围与被许可的子账户。迁移的 key 不满足执行要求时，owner 要自行签发带范围的 v3 key：EOA 调用 <code>private/set_session_key</code>，合约 owner 提交链上的 Set Session Key 动作。见 <a href=#testnet-onboarding class="">Testnet 接入</a> 与 <a href=#mainnet-onboarding class="">Mainnet 接入</a>。</p>
+<h2 class="anchor anchorTargetStickyNavbar_ana5" id=products>产品<a href=#products class=hash-link aria-label=产品的直接链接 title=产品的直接链接 translate=no>​</a></h2>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>产品类型<th>支持<th>备注<tbody><tr><td>ERC-20 现货<td>✓<td>USDC 计价的 <code>CurrencyPair</code>；实时 v3 限制见<a href=#spot-behavior class="">现货行为</a>。<tr><td>永续互换<td>✓<td>以 USDC 现金结算，按币种上市，例如 <code>ETH-PERP</code>。<tr><td>期权（看涨 / 看跌）<td>✓<td>欧式期权，符号形如 <code>{CURRENCY}-{EXPIRY}-{STRIKE}-{C|P}</code>。</table>
+<h2 class="anchor anchorTargetStickyNavbar_ana5" id=symbology>符号体系<a href=#symbology class=hash-link aria-label=符号体系的直接链接 title=符号体系的直接链接 translate=no>​</a></h2>
+<p>Derive 金融工具使用场所原生符号加 <code>.DERIVE</code> 后缀：</p>
+<ul>
+<li class="">现货：<code>ETH-USDC.DERIVE</code>（基础货币，计价货币）。</li>
+<li class="">永续：<code>ETH-PERP.DERIVE</code>、<code>BTC-PERP.DERIVE</code>。</li>
+<li class="">期权：<code>ETH-20260626-3000-C.DERIVE</code>（币种、到期日、行权价、类型）。</li>
+</ul>
+<p>符号中第一个连字符分隔的段是基础货币。provider 会为每种产品类型和配置的币种翻完
+<code>public/get_all_instruments</code> 的每一页。启用 <code>auto_load_missing_instruments</code>（默认）时，订阅
+新币种会触发一次惰性 REST 拉取。</p>
+<p>设置 <code>include_expired</code> 后，provider 按金融工具名称合并期权的活动与过期挂牌，同一期权在两种
+挂牌中都存在（临近到期）时保留活动定义。永续与现货挂牌忽略该设置。</p>
+<p>适配器按场所的 <code>instrument_type</code>（<code>perp</code>、<code>option</code>、<code>erc20</code>）路由，而不是按符号后缀，因此
+现货对没有特殊的符号解析。现货复用与永续、期权相同的 Trade 模块签名路径。
+<code>crates/adapters/derive/test_data/spot/</code> 下的 fixture 记录了现货金融工具、订单簿、ticker 与
+成交的字段形态，把解析器与执行路径钉在这些形态上。</p>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=spot-behavior>现货行为<a href=#spot-behavior class=hash-link aria-label=现货行为的直接链接 title=现货行为的直接链接 translate=no>​</a></h3>
+<div class="theme-admonition theme-admonition-warning admonition_LYZY alert alert--warning"><div class=admonitionHeading_pnFY><span class=admonitionIcon_tEzm><svg viewBox="0 0 16 16"><path fill-rule=evenodd d="M8.893 1.5c-.183-.31-.52-.5-.887-.5s-.703.19-.886.5L.138 13.499a.98.98 0 0 0 0 1.001c.193.31.53.501.886.501h13.964c.367 0 .704-.19.877-.5a1.03 1.03 0 0 0 .01-1.002L8.893 1.5zm.133 11.497H6.987v-2.003h2.039v2.003zm0-3.004H6.987V5.987h2.039v4.006z"/></svg></span>注意</div><div class=admonitionContent_ZwmI><p>V3 测试网可以接受并撤销被动挂单的 <code>ETH-USDC</code> 限价单。公共现货成交帧、被跟踪的成交手续费，
+以及现货重启后的对账在 v3 上仍未验证。主网的下单/撤单在 v3 迁移前做过手工验证。当前
+<code>ETH-USDC</code> 的最小数量是 <code>0.1 ETH</code>。空的现货簿无法有界地成交最小数量。</div></div>
+<ul>
+<li class=""><strong>成交稀疏</strong>：公共现货成交频道（<code>trades.erc20.ETH</code>、<code>trades.ETH-USDC</code>）能成功订阅，但
+成交量可能很低，成交帧会稀疏。</li>
+<li class=""><strong>簿为空</strong>：场所仍会广播 ticker 与订单簿帧，但最优档为零。任一侧价格或数量为零时，适配器
+不发报价。见<a href=#quotes class="">报价</a>。成交帧由撮合驱动、与簿状态无关，因此把簿打空的成交仍会发事件。</li>
+<li class=""><strong>Standard Margin</strong>：现货订单按初始保证金比例计保证金，不是全额名义价值。</li>
+</ul>
+<h2 class="anchor anchorTargetStickyNavbar_ana5" id=environments>环境<a href=#environments class=hash-link aria-label=环境的直接链接 title=环境的直接链接 translate=no>​</a></h2>
+<p>在任一客户端配置上用 <code>DeriveEnvironment</code> 枚举设置环境。</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>环境<th>配置<th>REST<th>WebSocket<tbody><tr><td>主网<td><code>DeriveEnvironment::Mainnet</code><td><code>https://api.derive.xyz/v3</code><td><code>wss://api.derive.xyz/v3/ws</code><tr><td>测试网<td><code>DeriveEnvironment::Testnet</code><td><code>https://testnet.api.derive.xyz/v3</code><td><code>wss://testnet.api.derive.xyz/v3/ws</code></table>
+<div class="theme-admonition theme-admonition-important admonition_LYZY alert alert--info"><div class=admonitionHeading_pnFY><span class=admonitionIcon_tEzm><svg viewBox="0 0 14 16"><path fill-rule=evenodd d="M7 2.3c3.14 0 5.7 2.56 5.7 5.7s-2.56 5.7-5.7 5.7A5.71 5.71 0 0 1 1.3 8c0-3.14 2.56-5.7 5.7-5.7zM7 1C3.14 1 0 4.14 0 8s3.14 7 7 7 7-3.14 7-7-3.14-7-7-7zm1 3H6v5h2V4zm0 6H6v2h2v-2z"/></svg></span>important</div><div class=admonitionContent_ZwmI><p>测试网使用以太坊 Sepolia，有独立的 session key 和余额。<strong>主网与测试网的 API key 不能互换。</strong></div></div>
+<p>公共行情数据（簿、ticker、成交）不需要凭据。</p>
+<p>从 v2 升级时，把 <code>wallet_address</code> 或钱包环境变量里旧的 Derive Wallet 地址换成 owner 的 EOA
+或多签地址。见 <a href=#v3-deployment-and-migration class="">V3 部署与迁移</a>。</p>
+<p>两条网络的 EIP-712 domain separator、Action typehash 与 Trade 模块地址都内置在
+<code>crates/adapters/derive/src/common/consts.rs</code>，并对照 Derive 的
+<a href=https://docs.derive.xyz/authentication/action-signing target=_blank rel="noopener noreferrer" class="">v3 动作签名参考</a>跟踪更新。主网用以太坊
+chain 1，测试网用 Sepolia chain 11155111，两者共用同一 Trade 模块地址。owner 是 EOA 或多签，
+session key 提供签名者地址。<code>DeriveExecutionClientConfig::domain_separator</code>、<code>action_typehash</code>
+与 <code>trade_module_address</code> 接受按实例的覆盖，优先于内置值。</p>
+<p>订单、触发订单与替换请求按 1e18 定点缩放对七个词的 Trade ABI 签名。金融输入（含末尾的零）
+必须不超过 12 位小数。超出精度会报错，而不是截断被签名的值。请求发送的就是构造签名时使用的
+同一组十进制值。</p>
+<p>动作 nonce 使用 UNIX 纳秒，在请求与响应中以十进制字符串传输。分配器在同一进程内按钱包与
+子账户共享一条单调递增流，跨客户端实例生效，与钱包大小写无关。时钟回拨时，只要最后一个 nonce
+仍在本地时间一小时之内，就把它前移。适配器采用闭区间订单窗口
+[本地时间减 90 天，本地时间加 1 小时]，这是场所文档化 120 天窗口内保守的回看幅度。本地时间
+近似服务器时钟，因此时钟偏差仍可能导致场所拒绝。登录时间戳用毫秒，签名有效期用秒。</p>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=switch-an-existing-deployment-to-v3>把现有部署切换到 v3<a href=#switch-an-existing-deployment-to-v3 class=hash-link aria-label="把现有部署切换到 v3的直接链接" title="把现有部署切换到 v3的直接链接" translate=no>​</a></h3>
+<ol>
+<li class="">停止提交订单，对账现有订单、成交、余额与持仓。</li>
+<li class="">确认 v3 的 owner 地址、已注资的子账户、session key 的有效期与范围，以及环境。</li>
+<li class="">用 v3 默认值连接，确认公共行情与认证后的账户读取正常。</li>
+<li class="">在启用策略前，于测试网与主网用显式的价格、手续费与敞口边界验证最小数量执行。</li>
+</ol>
+<p>账户读取或签名失败时，停止执行，对照所选环境检查 owner、子账户、key 权限与签名常量。重连后
+先对账场所状态，再恢复下单。只把 URL 改回 v2 不是恢复手段：本适配器使用 v3 请求模式、
+纳秒 nonce 与 v3 签名，不支持 v2 API。</p>
+<p>V2 的触发订单与 TWAP 订单不会延续到 v3。重建预期的触发订单前先检查场所状态。本适配器
+不提交 TWAP 订单。</p>
+<h2 class="anchor anchorTargetStickyNavbar_ana5" id=testnet-onboarding>Testnet 接入<a href=#testnet-onboarding class=hash-link aria-label="Testnet 接入的直接链接" title="Testnet 接入的直接链接" translate=no>​</a></h2>
+<p>达到执行客户端可提交签名订单这一步所需的步骤：</p>
+<ol>
+<li class="">
+<p><strong>登录测试网控制台。</strong> 打开
+<a href=https://testnet.app.derive.xyz/ target=_blank rel="noopener noreferrer" class="">testnet.app.derive.xyz</a> 并连接 owner 的 EOA 或多签。</p>
+</li>
+<li class="">
+<p><strong>复制 owner 钱包地址。</strong> 用你的 EOA 或多签地址作为 <code>wallet_address</code>，客户端通过
+<code>X-DeriveWallet</code> 头发送它。V3 没有单独的 Derive Wallet 地址。</p>
+</li>
+<li class="">
+<p><strong>为子账户注资。</strong> 按 Derive 的
+<a href=https://docs.derive.xyz/getting-started/depositing target=_blank rel="noopener noreferrer" class="">充值指南</a>在 Sepolia 上铸造测试抵押物并
+充值。首笔充值会创建账户与子账户。把已注资子账户的整数 ID 复制为 <code>subaccount_id</code>。订单
+需要足够的抵押物覆盖其保证金。</p>
+</li>
+<li class="">
+<p><strong>生成 session key。</strong> 按 Derive 的
+<a href=https://docs.derive.xyz/authentication/session-keys target=_blank rel="noopener noreferrer" class="">session key 指南</a>注册一个协议范围为
+<code>trade:orderbook:all</code>（或更窄的产品范围）、限定到该已注资子账户的 key。单独的链下
+<code>account_info</code> 能力不授予交易权限。选择有效期并通过 <code>private/session_keys</code> 核对记录。
+把原始 secp256k1 私钥复制为 <code>session_key</code>。它只留在本地，并在 <code>Debug</code> 输出中被打码。</p>
+<p>要吊销一个 key，用过去或零有效期重新注册它。吊销有 [5, 15] 分钟的最小冷却期，不会立即
+生效。</p>
+</li>
+<li class="">
+<p><strong>设置环境变量。</strong> 导出测试网模式下客户端读取的三个值（或直接在
+<code>DeriveExecutionClientConfig</code> 上传入，此时配置字段优先）：</p>
+<div class="language-bash codeBlockContainer_eTMR theme-code-block" style=--prism-color:#393A34;--prism-background-color:#f6f8fa><div class=codeBlockContent_hafM><pre tabindex=0 class="prism-code language-bash codeBlock_IMvC thin-scrollbar" style=color:#393A34;background-color:#f6f8fa><code class=codeBlockLines_gZDW><div class=token-line style=color:#393A34><span class="token plain">export DERIVE_TESTNET_WALLET_ADDRESS="0x..."  # owner EOA or multisig</span><br/></div><div class=token-line style=color:#393A34><span class="token plain">export DERIVE_TESTNET_SESSION_PRIVATE_KEY="0x..."  # secp256k1 session-key private key</span><br/></div><div class=token-line style=color:#393A34><span class="token plain">export DERIVE_TESTNET_SUBACCOUNT_ID="12345"  # integer subaccount id</span><br/></div></code></pre></div></div>
+</li>
+</ol>
+<p>EOA owner 通过 <code>private/set_session_key</code> 注册 key。多签或合约 owner 必须先给账户注资，再从
+owner 合约在 Sepolia 或以太坊上提交 Set Session Key 动作。账户不存在时，链上注册会被忽略。
+按场所的<a href=https://docs.derive.xyz/authentication/contract-owned-accounts target=_blank rel="noopener noreferrer" class="">多签指南</a>操作。</p>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=minimum-funding>最小注资<a href=#minimum-funding class=hash-link aria-label=最小注资的直接链接 title=最小注资的直接链接 translate=no>​</a></h3>
+<p>注资必须覆盖场所的初始保证金要求与挂单占用。订单能否被接受还取决于场所的价格、数量与执行
+规则。按场所的保证金数值来估算最小可行测试所需的注资：</p>
+<ul>
+<li class=""><strong>冒烟测试（提交并撤销，不成交）</strong>：注资至少要覆盖按金融工具 <code>minimum_amount</code> 挂被动单
+所需的保证金。</li>
+<li class=""><strong>期权</strong>：按场所对该被动单的保证金要求估算充值额度。<code>public/get_instrument</code> 提供合约细节
+但不报告初始保证金要求。</li>
+</ul>
+<p>要做成交往返，需覆盖场所的保证金要求、手续费和一段有界的价格波动。使用当前可成交报价、最小
+可行数量、<code>max_fee_per_contract</code>，以及限价或有界的 <code>market_order_slippage_bps</code>。用
+reduce-only 市价单或 <code>IOC</code>/<code>FOK</code> 订单平掉观察到的永续或期权敞口，现货敞口用反向订单平掉，
+并确认没有留下挂单或持仓。</p>
+<p>订单规模上限与 taker 例外见<a href=#instrument-loading class="">金融工具加载</a>。</p>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=check-account-health>检查账户健康<a href=#check-account-health class=hash-link aria-label=检查账户健康的直接链接 title=检查账户健康的直接链接 translate=no>​</a></h3>
+<p>注资后用 <code>private/get_subaccount</code> 确认：计入目标敞口的初始保证金后，<code>initial_margin</code> 仍为
+正。两个健康字段都在场所的风险扣减之后计入抵押物授信与持仓盯市价值：</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>场所字段<th>含义<th>为负的后果<tbody><tr><td><code>initial_margin</code><td>带符号的净初始保证金健康度<td>场所会拒绝会让该值变负的增加风险的订单。<tr><td><code>maintenance_margin</code><td>带符号的净维持保证金健康度<td>子账户面临强平风险。</table>
+<p>适配器的 <code>query_account</code> 命令把这份快照作为 <code>AccountState</code> 事件发出，策略层可据此检查当前
+健康度。这些净健康度数值不含挂单占用，为正并不能证明还能接受另一笔订单。场所的
+<code>private/order_quote</code> 会对拟定订单返回前后初始保证金健康度；实际的订单接受仍是权威。映射见
+<a href=#account-state class="">账户状态</a>。</p>
+<h2 class="anchor anchorTargetStickyNavbar_ana5" id=mainnet-onboarding>Mainnet 接入<a href=#mainnet-onboarding class=hash-link aria-label="Mainnet 接入的直接链接" title="Mainnet 接入的直接链接" translate=no>​</a></h2>
+<p>主网接入与测试网步骤相同，只是换成生产控制台，并使用真实资金。</p>
+<ol>
+<li class="">
+<p><strong>登录主网控制台。</strong> 打开 <a href=https://app.derive.xyz/ target=_blank rel="noopener noreferrer" class="">app.derive.xyz</a> 并连接 owner 的 EOA
+或多签钱包。</p>
+</li>
+<li class="">
+<p><strong>复制 owner 钱包地址。</strong> 用 EOA 或多签地址作为 <code>wallet_address</code>，客户端用它认证，它也
+是签名动作的 owner。</p>
+</li>
+<li class="">
+<p><strong>注资或选择子账户。</strong> 按 Derive 的
+<a href=https://docs.derive.xyz/getting-started/depositing target=_blank rel="noopener noreferrer" class="">充值指南</a>在以太坊上充值 USDC 或受支持
+的抵押物。首笔充值会创建账户与子账户。把已注资子账户的整数 ID 复制为 <code>subaccount_id</code>，
+并通过 <code>private/get_subaccount</code> 确认充值已计入抵押物余额。适配器的 <code>query_account</code> 会在
+<code>AccountState.info.collaterals</code> 中暴露建模后的行。</p>
+<p>按<a href=#check-account-health class="">检查账户健康</a>所述，检查发出元数据中的 <code>net_initial_margin</code> 与
+<code>net_maintenance_margin</code>。净健康度为正并不能证明订单会被接受。</p>
+</li>
+<li class="">
+<p><strong>生成主网 session key。</strong> 按 Derive 的
+<a href=https://docs.derive.xyz/authentication/session-keys target=_blank rel="noopener noreferrer" class="">session key 指南</a>注册一个协议范围为
+<code>trade:orderbook:all</code>（或更窄的产品范围）、限定到该子账户的 key，并通过
+<code>private/session_keys</code> 核对其范围与有效期。合约 owner 使用
+<a href=#testnet-onboarding class="">Testnet 接入</a>描述的链上注册（主网在以太坊上）。复制原始 secp256k1
+私钥。探索性测试运行优先用短有效期 key。</p>
+<p>要吊销一个 key，用过去或零有效期重新注册它。吊销有 [5, 15] 分钟的最小冷却期，不会立即
+生效。</p>
+</li>
+<li class="">
+<p><strong>设置环境变量。</strong> 导出三个主网值（或直接在 <code>DeriveExecutionClientConfig</code> 上传入，此时
+配置字段优先）：</p>
+<div class="language-bash codeBlockContainer_eTMR theme-code-block" style=--prism-color:#393A34;--prism-background-color:#f6f8fa><div class=codeBlockContent_hafM><pre tabindex=0 class="prism-code language-bash codeBlock_IMvC thin-scrollbar" style=color:#393A34;background-color:#f6f8fa><code class=codeBlockLines_gZDW><div class=token-line style=color:#393A34><span class="token plain">export DERIVE_WALLET_ADDRESS="0x..."  # owner EOA or multisig</span><br/></div><div class=token-line style=color:#393A34><span class="token plain">export DERIVE_SESSION_PRIVATE_KEY="0x..."  # secp256k1 session-key private key</span><br/></div><div class=token-line style=color:#393A34><span class="token plain">export DERIVE_SUBACCOUNT_ID="12345"  # integer subaccount id</span><br/></div></code></pre></div></div>
+</li>
+</ol>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=select-the-example-network>选择示例网络<a href=#select-the-example-network class=hash-link aria-label=选择示例网络的直接链接 title=选择示例网络的直接链接 translate=no>​</a></h3>
+<div class="theme-admonition theme-admonition-warning admonition_LYZY alert alert--warning"><div class=admonitionHeading_pnFY><span class=admonitionIcon_tEzm><svg viewBox="0 0 16 16"><path fill-rule=evenodd d="M8.893 1.5c-.183-.31-.52-.5-.887-.5s-.703.19-.886.5L.138 13.499a.98.98 0 0 0 0 1.001c.193.31.53.501.886.501h13.964c.367 0 .704-.19.877-.5a1.03 1.03 0 0 0 .01-1.002L8.893 1.5zm.133 11.497H6.987v-2.003h2.039v2.003zm0-3.004H6.987V5.987h2.039v4.006z"/></svg></span>注意</div><div class=admonitionContent_ZwmI><p>每个 Rust 示例（<code>node_data_tester</code>、<code>node_exec_tester</code>、<code>node_delta_neutral</code>）都在文件开头附近
+用 <code>const DERIVE_ENVIRONMENT: DeriveEnvironment</code> 字面量固定网络。<strong>每次运行前都要检查这个
+常量</strong>，切换网络时要改它。示例不从环境读取网络。</div></div>
+<p>生产部署通过 <code>DeriveDataClientConfig::environment</code> / <code>DeriveExecutionClientConfig::environment</code>
+选择网络。</p>
+<h2 class="anchor anchorTargetStickyNavbar_ana5" id=referral-code-attribution>推荐码归因<a href=#referral-code-attribution class=hash-link aria-label=推荐码归因的直接链接 title=推荐码归因的直接链接 translate=no>​</a></h2>
+<p>每笔签名的订单、替换与触发订单都携带硬编码的 NautilusTrader 推荐码。Derive 用自身收入为推荐
+计划出资，因此归因不增加交易成本、无需审批、也不可配置。这帮助我们了解该集成的真实用量，
+并安排后续维护的优先级。</p>
+<h2 class="anchor anchorTargetStickyNavbar_ana5" id=capabilities>能力<a href=#capabilities class=hash-link aria-label=能力的直接链接 title=能力的直接链接 translate=no>​</a></h2>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=market-data>行情数据<a href=#market-data class=hash-link aria-label=行情数据的直接链接 title=行情数据的直接链接 translate=no>​</a></h3>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>能力<th>支持<th>备注<tbody><tr><td>请求金融工具（REST）<td>✓<td><code>public/get_instrument</code>；加载单个金融工具到本地缓存。<tr><td>请求全部金融工具（REST）<td>✓<td>按币种分页调用 <code>public/get_all_instruments</code>。<tr><td>金融工具订阅<td>-<td>*不支持。*使用配置的 REST 刷新间隔。<tr><td>订单簿增量（L2_MBP）<td>✓<td>频道：<code>orderbook.{instrument}.{group}.{depth}</code>。<tr><td>订单簿深度（L2_MBP）<td>✓<td>同一订单簿频道，<code>depth=10</code>。<tr><td>定时订单簿<td>-<td>*不支持。*在本地由增量维护定时簿。<tr><td>订单簿快照（REST）<td>-<td>*不支持。*场所没有簿快照端点。<tr><td>历史簿增量（REST）<td>-<td>*不支持。*场所没有历史簿端点。<tr><td>报价（<code>ticker_slim</code>）<td>✓<td>频道：<code>ticker_slim.{instrument}.{interval}</code>。<tr><td>报价快照（REST）<td>✓<td>一次性 <code>public/get_tickers</code>；发出单个 <code>QuoteTick</code>。<tr><td>历史报价（REST）<td>-<td>*不支持。*场所只提供 ticker 快照。<tr><td>成交<td>✓<td>频道：<code>trades.{instrument_type}.{currency}</code>。<tr><td>历史成交（REST）<td>✓<td>按时间顺序并去重；<code>limit</code> 保留最新的成交。<tr><td>K 线 / OHLC（REST）<td>✓<td>已收盘的分钟、小时、日、周 K 线，时间戳为桶收盘时刻。<tr><td>K 线 / OHLC（WS）<td>-<td>*不支持。*场所没有 candle 订阅频道。<tr><td>标记价流<td>✓<td>由 <code>ticker_slim</code> 派生；与报价共用订阅。<tr><td>指数价流<td>✓<td>由 <code>ticker_slim</code> 派生；与报价共用订阅。<tr><td>资金费率流<td>✓<td>由永续 ticker 的资金费率字段派生。<tr><td>资金费率历史（REST）<td>✓<td>按永续的时间顺序；<code>limit</code> 保留最新的有效行。<tr><td>金融工具状态<td>-<td>*不支持。*金融工具定义携带 <code>is_active</code>。<tr><td>金融工具收市<td>-<td>*不支持。*场所仅通过 REST 发布期权结算。<tr><td>期权 Greeks<td>✓<td>由期权 ticker 的 <code>option_pricing</code> 派生。<tr><td>期权链<td>✓<td>由报价与 Greeks 聚合；<code>public/get_tickers</code> 用于 ATM 引导。</table>
+<h4 class="anchor anchorTargetStickyNavbar_ana5" id=quotes>报价<a href=#quotes class=hash-link aria-label=报价的直接链接 title=报价的直接链接 translate=no>​</a></h4>
+<p>WebSocket ticker 为永续、期权与现货报告完整快照。任一侧价格或数量为零时，适配器清空该
+金融工具的内部报价状态，不发 <code>QuoteTick</code>（以 DEBUG 记录）。快照两侧都给出非零价格与数量时
+恢复报价。</p>
+<p>最后发出的报价仍以原时间戳留在 Nautilus 缓存中。抑制报价输出不会撤回缓存中的那份报价。其他
+已订阅的 ticker 字段——包括标记价与指数价、资金费率与期权 Greeks——继续独立发出。</p>
+<h4 class="anchor anchorTargetStickyNavbar_ana5" id=instrument-loading>金融工具加载<a href=#instrument-loading class=hash-link aria-label=金融工具加载的直接链接 title=金融工具加载的直接链接 translate=no>​</a></h4>
+<p><code>request_instrument</code> 对所请求的 <code>InstrumentId</code> 调用 <code>public/get_instrument</code>，在发出响应前先
+缓存返回的定义。缓存的金融工具携带后续报价、成交、簿与 K 线解析所用的精度与增量字段。</p>
+<p>永续、期权与现货的数量字段映射如下：</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>Derive 字段<th>Nautilus 字段<th>处理方式<tbody><tr><td><code>minimum_amount</code><td><code>info["minimum_amount"]</code><td>作为场所元数据保留；<code>min_quantity</code> 保持未设置。<tr><td><code>amount_step</code><td><code>size_increment</code><td>订单数量增量。<tr><td><code>maximum_amount</code><td><code>max_quantity</code><td>最大订单数量。</table>
+<div class="theme-admonition theme-admonition-important admonition_LYZY alert alert--info"><div class=admonitionHeading_pnFY><span class=admonitionIcon_tEzm><svg viewBox="0 0 14 16"><path fill-rule=evenodd d="M7 2.3c3.14 0 5.7 2.56 5.7 5.7s-2.56 5.7-5.7 5.7A5.71 5.71 0 0 1 1.3 8c0-3.14 2.56-5.7 5.7-5.7zM7 1C3.14 1 0 4.14 0 8s3.14 7 7 7 7-3.14 7-7-3.14-7-7-7zm1 3H6v5h2V4zm0 6H6v2h2v-2z"/></svg></span>important</div><div class=admonitionContent_ZwmI><p>Derive 可以让 taker 订单以低于 <code>minimum_amount</code> 的数量成交，而会挂在簿上的订单可能被
+<code>11012: Invalid amount</code> 拒绝。<strong>低于最小数量的订单是否有效由 Derive 判定。</strong></div></div>
+<p>金融工具加载把场所错误码 <code>12001</code> 视为该产品类型的空结果，因此某个币种缺少永续、期权或现货
+挂牌不会阻塞它的其他产品。无法解析为领域金融工具的行会记日志并跳过，有效的行继续加载。响应
+字段畸形会让该币种的拉取整体失败。初始加载期间的拉取错误也会导致连接失败。</p>
+<h4 class="anchor anchorTargetStickyNavbar_ana5" id=historical-data>历史数据<a href=#historical-data class=hash-link aria-label=历史数据的直接链接 title=历史数据的直接链接 translate=no>​</a></h4>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>数据<th>REST 端点<tbody><tr><td>成交<td><code>public/get_trade_history</code><tr><td>K 线<td><code>public/get_tradingview_chart_data</code><tr><td>资金费率<td><code>public/get_funding_rate_history</code></table>
+<h5 class="anchor anchorTargetStickyNavbar_ana5" id=trade-direction-and-deduplication>成交方向与去重<a href=#trade-direction-and-deduplication class=hash-link aria-label=成交方向与去重的直接链接 title=成交方向与去重的直接链接 translate=no>​</a></h5>
+<p>公共 REST 历史与 WebSocket 成交可能在同一 <code>trade_id</code> 下返回 maker 行与 taker 行，每行的
+<code>direction</code> 是该参与方的方向。适配器取 taker 的方向作为主动方方向，并把 maker 行的方向
+取反，与行的先后无关。实时 v3 maker WebSocket 行的映射仍未验证。<code>liquidity_role</code> 缺失或
+无法识别时，适配器把 <code>direction</code> 当作 taker 的方向。</p>
+<p>历史成交请求在单次请求内按成交 ID 各发出一个 <code>TradeTick</code>。实时馈送会在 ID 仍留在最近 4,096
+笔成交缓存内时抑制成对的行与重连回放。自动重连保留这份缓存；显式断开或重置会清空它。</p>
+<h5 class="anchor anchorTargetStickyNavbar_ana5" id=bar-requirements-and-time-bounds>K 线要求与时间边界<a href=#bar-requirements-and-time-bounds class=hash-link aria-label="K 线要求与时间边界的直接链接" title="K 线要求与时间边界的直接链接" translate=no>​</a></h5>
+<ul>
+<li class=""><strong>聚合与价格</strong>：K 线要求 <code>EXTERNAL</code> 聚合与 <code>PriceType::Last</code>，因为 Derive 的 candle 基于
+成交。</li>
+<li class=""><strong>周期</strong>：场所支持 1、5、15、30 分钟，1、4、8 小时，1 天与 1 周的步长。其他 K 线规格在
+请求发出前就被拒绝。</li>
+<li class=""><strong>时间边界</strong>：K 线的 <code>end</code> 边界在场所侧按桶的起始时间筛选。响应会省略收盘时刻晚于请求时刻
+的桶，包括场所返回的尚未收盘的那个桶。</li>
+</ul>
+<h4 class="anchor anchorTargetStickyNavbar_ana5" id=order-book-feeds>订单簿馈送<a href=#order-book-feeds class=hash-link aria-label=订单簿馈送的直接链接 title=订单簿馈送的直接链接 translate=no>​</a></h4>
+<p>Derive 通过同一个 <code>orderbook.{instrument}.{group}.{depth}</code> 频道家族提供簿增量与深度快照。
+<code>subscribe_book_deltas</code> 把快照 delta 作为 <code>OrderBookDeltas</code> 发出，<code>subscribe_book_depth</code> 固定
+<code>depth=10</code> 并发出 <code>OrderBookDepth</code> 快照。</p>
+<p>每个分组的<a href=https://docs.derive.xyz/subscriptions target=_blank rel="noopener noreferrer" class="">簿更新</a>都是完整快照。频道参数一致的 delta
+与 depth 消费者共享订阅与恢复状态，频道保持活跃直到最后一个消费者退订。</p>
+<p>该馈送没有变更 ID，因此适配器用其毫秒时间戳作为输出序列：</p>
+<p>-适配器只接受严格新于最后接受时间戳的时间戳，跨重连同样如此。</p>
+<ul>
+<li class="">递进的空快照会清空簿，并计为一次更新。</li>
+</ul>
+<p>Derive 文档没有承诺时间戳有序。<code>publish_id</code> 在重新订阅后可能重新开始。</p>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=execution>执行<a href=#execution class=hash-link aria-label=执行的直接链接 title=执行的直接链接 translate=no>​</a></h3>
+<p>Derive 使用配置的 session key 做认证执行：</p>
+<ul>
+<li class="">订单提交与替换请求携带本地生成的 EIP-712 签名。</li>
+<li class="">实时执行客户端通过认证 WebSocket 发送订单写操作，并通过私有频道接收账户、订单、成交与
+余额更新。</li>
+<li class="">报告生成、账户刷新与金融工具查询使用 REST。</li>
+</ul>
+<h4 class="anchor anchorTargetStickyNavbar_ana5" id=fills-and-settlement>成交与结算<a href=#fills-and-settlement class=hash-link aria-label=成交与结算的直接链接 title=成交与结算的直接链接 translate=no>​</a></h4>
+<p>适配器以 <code>trade_id</code> 与 <code>order_id</code> 作为执行身份吸收实时与历史成交。数量、价格与手续费按
+<code>Decimal</code> 解码。手续费按 USDC 的 Nautilus 精度取整。</p>
+<p>订单状态与私有成交报告在订单标签是有效的 Nautilus 标识时把它用作 <code>client_order_id</code>。无法
+表示的标签会被适配器连同 warning 一起省略，保留场所身份与金融数值。对账可以按场所订单
+ID 解析这些成交。</p>
+<p>必需金融数值为 null、空或缺失时解码失败。私有成交数组跳过畸形行并记 warning。非法的金融
+wire 值会让整条公共 WebSocket 帧或整个公共 REST 页被拒。无法表示的必需成交或订单 ID 会让
+该行解析失败，适配器记 warning 并继续处理其余行。</p>
+<p>结算元数据不会阻止成交生效。执行首次到达时，<code>batch_status</code> 与以太坊 L1 batch 的 <code>tx_hash</code>
+可能为 null。私有成交模式要求 <code>op_uuid</code>，适配器也接受它缺失。已发布的 batch 阶段及其
+对应的 <code>Error</code> 状态描述的是某个 batch 阶段的结算进展或失败。batch 阶段报错时，适配器
+不会冲销或作废成交。参见场所的 <a href=https://docs.derive.xyz/changelog target=_blank rel="noopener noreferrer" class="">API changelog</a>。</p>
+<p>私有自成交 ID 的唯一性，以及 <code>trade_fee</code> 是否包含非零的外部订单 <code>extra_fee</code>，都未经验证。
+私有成交按 <code>trade_id</code> 去重，因此完整的自成交核算依赖场所给两条腿分配不同的 ID。适配器不
+提交 <code>extra_fee</code>。</p>
+<p>成交频道没有结算状态过滤：适配器订阅 <code>trades.{instrument_type}.{currency}</code> 与
+<code>{subaccount_id}.trades</code>。成交报告查询会跳过实时已发出成交缓存中的 ID，并在同一查询的页内
+与页间对重复 ID 去重。查询某笔成交不会把它记为已发出。核心对账使用持久化的订单成交 ID，
+以拒绝回放或重启后重复应用成交。</p>
+<p>实时分派在改变订单状态之前先构造成交报告与手续费。手续费转换失败会让该成交保持未处理，以便
+回放重试。只有在投递成功后，适配器才把该成交 ID 记为已发出。投递失败会保留原生成交记录。</p>
+<p>对被跟踪的订单，原生成交可能先于确认到达，从而建立其首个场所绑定。适配器会先发
+<code>OrderAccepted</code> 再发 <code>OrderFilled</code>。方向与被跟踪订单冲突的成交会一直保持待定，即使该订单
+之后进入终态。</p>
+<p>私有成交更新可能早于 REST 历史或持仓读取反映的时间到达。结算进展不会在适配器中触发额外
+的历史轮询。</p>
+<div class="theme-admonition theme-admonition-note admonition_LYZY alert alert--secondary"><div class=admonitionHeading_pnFY><span class=admonitionIcon_tEzm><svg viewBox="0 0 14 16"><path fill-rule=evenodd d="M6.3 5.69a.942.942 0 0 1-.28-.7c0-.28.09-.52.28-.7.19-.18.42-.28.7-.28.28 0 .52.09.7.28.18.19.28.42.28.7 0 .28-.09.52-.28.7a1 1 0 0 1-.7.3c-.28 0-.52-.11-.7-.3zM8 7.99c-.02-.25-.11-.48-.31-.69-.2-.19-.42-.3-.69-.31H6c-.27.02-.48.13-.69.31-.2.2-.3.44-.31.69h1v3c.02.27.11.5.31.69.2.2.42.31.69.31h1c.27 0 .48-.11.69-.31.2-.19.3-.42.31-.69H8V7.98v.01zM7 2.3c-3.14 0-5.7 2.54-5.7 5.68 0 3.14 2.56 5.7 5.7 5.7s5.7-2.55 5.7-5.7c0-3.15-2.56-5.69-5.7-5.69v.01zM7 .98c3.86 0 7 3.14 7 7s-3.14 7-7 7-7-3.12-7-7 3.14-7 7-7z"/></svg></span>备注</div><div class=admonitionContent_ZwmI><p><code>DeriveHttpClient</code> 也暴露用于工具与测试的 HTTP 下单方法。</div></div>
+<p>永续、期权与 ERC-20 现货对都使用 Derive Trade 模块。现货没有单独的签名路径，除下文的
+reduce-only 保护外，对账把现货金融工具与其他金融工具类别同等对待。</p>
+<p>适配器支持常规的 <code>private/order</code> 请求：<code>GTC</code>、<code>IOC</code> 或 <code>FOK</code> 有效期的 <code>LIMIT</code> 与
+<code>MARKET</code> 订单；也支持把 Derive 触发订单用于下述 Nautilus 原生的止损与 if-touched 订单类型。
+不支持的 Nautilus 订单类型会在提交前于本地以 <code>OrderDenied</code> 拒绝，因此不可能在场所成交。</p>
+<div class="theme-admonition theme-admonition-important admonition_LYZY alert alert--info"><div class=admonitionHeading_pnFY><span class=admonitionIcon_tEzm><svg viewBox="0 0 14 16"><path fill-rule=evenodd d="M7 2.3c3.14 0 5.7 2.56 5.7 5.7s-2.56 5.7-5.7 5.7A5.71 5.71 0 0 1 1.3 8c0-3.14 2.56-5.7 5.7-5.7zM7 1C3.14 1 0 4.14 0 8s3.14 7 7 7 7-3.14 7-7-3.14-7-7-7zm1 3H6v5h2V4zm0 6H6v2h2v-2z"/></svg></span>important</div><div class=admonitionContent_ZwmI><p>**市价单提交前必须有缓存的报价。**没有报价时适配器发出 <code>OrderDenied</code>，绝不做签名。</div></div>
+<p>异步提交任务解析出金融工具后，会刷新当前 ticker 快照，并从刷新后的报价推导出带滑点边界的
+签名 <code>limit_price</code>。</p>
+<h4 class="anchor anchorTargetStickyNavbar_ana5" id=replacing-regular-orders>替换普通订单<a href=#replacing-regular-orders class=hash-link aria-label=替换普通订单的直接链接 title=替换普通订单的直接链接 translate=no>​</a></h4>
+<p>Derive 把普通订单的修改实现为撤销-替换（cancel-replace）。适配器在多个原生场所订单 ID
+之间保持同一个 client order 身份，并在路由子成交之前发出 <code>OrderUpdated</code>。命令使用当前的
+场所绑定，而延迟到达的成交保留其原本的场所订单 ID。</p>
+<p>替换数量是请求的毛数量减去全部已证实的先前成交。例如，替换一笔已成交 <code>0.3</code>、毛目标为 <code>1.5</code>
+的订单，子单签名数量为 <code>1.2</code>。请求还会把 <code>expected_filled_amount</code> 设为观察到的当前腿成交
+上限。若目标的已成交量超过该值，Derive 的
+<a href=https://docs.derive.xyz/trading/order-types#replace-atomic-cancel-+-replace target=_blank rel="noopener noreferrer" class="">replace 保护</a>
+会拒绝该 replace。逻辑订单报告包含累计成交、全部所需原生平均值齐备时的数量加权均价，以及
+最早的原生创建时间戳作为接受时刻。</p>
+<h4 class="anchor anchorTargetStickyNavbar_ana5" id=startup-reconciliation>启动对账<a href=#startup-reconciliation class=hash-link aria-label=启动对账的直接链接 title=启动对账的直接链接 translate=no>​</a></h4>
+<p>私有流开始之前，执行客户端先发布账户状态；加载原生组合与缓存活动订单所需的金融工具定义；
+等待引擎缓存观察到这些定义后才开始私有流；从缓存的订单事件恢复所持有的活动订单上下文
+（包括已知的场所 ID 与已处理的成交 ID）；再针对这些金融工具的原生挂单与历史校验活动订单。
+历史元数据的缺口不会妨碍这一绑定检查。</p>
+<p>私有订阅确认后，处理流更新之前，它会再次刷新账户状态与所需金融工具定义，以闭合初始组合
+快照与订阅确认之间的时间窗。</p>
+<p><code>private/get_order</code> 对已知场所 ID 返回 <code>11006</code> 时，适配器会在分页的
+<code>private/get_order_history</code> 中查找该确切 ID，不会从订单标签推断未经证实的替换绑定。未决的
+后继订单会阻塞启动或报告生成；也会拒绝单笔撤销与修改命令，并在发送前让批量撤销与
+<code>cancel_all_orders</code> 返回错误。状态变更类的歧义请求保持不重放。</p>
+<p>进程仍保留替换所用的 nonce 与目标时，原生 REST 行可以用与 WebSocket 行相同的父 ID 与 nonce
+检查来解析它。替换历史读取从保留 nonce 时间戳前一小时开始，以容纳场所接受的未来 nonce
+窗口。后继订单缺失并不能证明替换失败。进程重启后，缓存的 <code>PendingUpdate</code> 事件不含足够
+证据来自动解析有歧义的替换。</p>
+<p>若未决的替换阻止了启动：</p>
+<ol>
+<li class="">停止交易节点，保留其缓存与订单事件历史。</li>
+<li class="">通过场所的账户工具检查该子账户的原生订单、成交与持仓，按原生 ID 与替换谱系匹配自有订单。
+标签匹配本身不能确立对后继订单的所有权。</li>
+<li class="">处理掉未决的场所订单，并在恢复交易前把缓存订单状态与已确认的原生记录对账。适配器不为
+这种情况提供自动缓存修复。只清掉 <code>PendingUpdate</code> 不能确立替换的结果。</li>
+</ol>
+<p>Mass status 保留原生替换腿与成交。对未缓存的替换链，启动对账会恢复已证实的实时后继订单，
+连同累计成交与原生场所订单 ID。恢复出的替换后继订单支持查询、修改与撤销。重连快照让未缓存的
+替换报告保持原生形态，不重建这些链。</p>
+<p>若未缓存的替换链开始在有界回看起点之前，mass status 会把完整历史窗口延伸到其首腿。mass
+status 会按确切场所 ID 拉取历史与挂单中缺失的成交伴生记录（包括未缓存订单），并把它们保留在
+回看窗口之外。</p>
+<p>已缓存的腿保留身份与替换检查。历史与挂单谱系显示标签在一条替换链之外被复用的未缓存订单与
+成交会省略 client order ID。该检查使用历史与挂单的谱系。活动挂单保留其 ID。</p>
+<p><strong>恢复限制</strong>：</p>
+<ul>
+<li class="">启动会校验子账户上全部带标签的未缓存替换链（在引擎过滤器生效之前），包括其他机器人的
+链。无效的链可能阻止启动。长链会拉长历史读取，可能超出对账超时。</li>
+<li class="">不要让其他进程替换本节点已收养的订单。启动会为跟踪登记所有已收养的挂单。没有本地待处理
+修改的外部替换会让绑定保持未决，阻塞报告与命令，直到原生状态对账完毕且节点重启。</li>
+<li class="">有界快照在历史失败、或回退后仍缺少未缓存伴生记录时，把覆盖范围标记为不完整。历史失败会
+跳过伴生查找。</li>
+<li class="">启动恢复未缓存的替换链需要完整的订单、成交与持仓来源，且原生成交须与每条前腿及累计成交
+数量相符，否则请求失败。</li>
+<li class="">身份矛盾或替换谱系非法会使请求失败，包括有界快照。历史可用时，缓存伴生记录不可用、或
+除 <code>11006</code> 以外的查找错误同样会使请求失败。</li>
+</ul>
+<p>只查活动订单的请求返回活动订单。对已知被替换腿的请求返回当前逻辑订单。单笔与批量查询对未缓存
+的替换链返回原生报告，启动对账会恢复该链。</p>
+<p>无界重连快照在某个来源失败、记录丢失、或成交没有匹配的订单报告时失败。带推断精度的保留历史
+行不会让快照失败。有界快照保留有效的报告，把元数据缺口或丢失记录标记为覆盖不完整。若场所
+在分页期间改变私有历史的记录数或页数，适配器丢弃本次扫描并最多重启两次；再次出现数量变化
+则请求失败。</p>
+<h4 class="anchor anchorTargetStickyNavbar_ana5" id=margin-model-selection>保证金模型选择<a href=#margin-model-selection class=hash-link aria-label=保证金模型选择的直接链接 title=保证金模型选择的直接链接 translate=no>​</a></h4>
+<p>把 <code>DeriveExecutionClientConfig.subaccount_id</code> 设为现有的 Standard Margin（<code>SM</code>）或 Portfolio
+Margin（<code>PM2</code>）子账户。每个子账户绑定其创建时选定的 manager 与风险 universe，适配器从
+<code>private/get_subaccount</code> 读取这些标识。同一套账户查询、订单、持仓报告与重连路径服务于两种
+模型。按该 manager 支持的产品配置数据客户端的币种。</p>
+<p>连接前先通过场所的账户工具创建或注资子账户。适配器不改变它们的保证金模型，也不复刻场所的
+组合风险引擎。受支持的抵押物与金融工具见 Derive 的
+<a href=https://docs.derive.xyz/trading/managers-and-risk-universes target=_blank rel="noopener noreferrer" class="">manager 与风险 universe</a>。</p>
+<p>默认的原生风险引擎按金融工具用所需货币对照可用余额检查初始保证金，不使用 Derive 的 PM2
+净健康度元数据做订单准入或组合规模计算。因此场所 PM2 健康度为正，并不能确立用另一种货币
+的抵押物可做原生准入。跨货币抵押物与非零维持保证金授信（<code>mm_credits</code>）下的实时行为仍未
+验证。</p>
+<h4 class="anchor anchorTargetStickyNavbar_ana5" id=account-state>账户状态<a href=#account-state class=hash-link aria-label=账户状态的直接链接 title=账户状态的直接链接 translate=no>​</a></h4>
+<p>Derive 在子账户层面持有保证金。<code>AccountState</code> 把抵押物余额、保证金要求与净账户健康度分
+开设：</p>
+<h5 class="anchor anchorTargetStickyNavbar_ana5" id=collateral-balances>抵押物余额<a href=#collateral-balances class=hash-link aria-label=抵押物余额的直接链接 title=抵押物余额的直接链接 translate=no>​</a></h5>
+<ul>
+<li class=""><code>total</code> 是抵押物 <code>amount</code>（例如 USDC 或 ETH），按注册货币的精度取整。</li>
+<li class=""><code>locked</code> 为零。待处理的 vault 存款冻结由适配器保留在元数据中。</li>
+<li class=""><code>free</code> 等于取整后的 <code>total</code>。</li>
+<li class=""><code>AccountState.info.collaterals</code> 保留每条抵押物行的子集，以精确小数字符串表示。</li>
+<li class=""><code>collaterals[].initial_margin</code> 是该抵押物贡献的美元授信，不是锁定资金。</li>
+</ul>
+<h5 class="anchor anchorTargetStickyNavbar_ana5" id=margin-requirements>保证金要求<a href=#margin-requirements class=hash-link aria-label=保证金要求的直接链接 title=保证金要求的直接链接 translate=no>​</a></h5>
+<p>适配器发出一个账户级的 <code>MarginBalance</code>：</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>Nautilus 字段<th>派生的美元需求<tbody><tr><td><code>initial</code><td><code>positions_value - positions_initial_margin - open_orders_margin</code><tr><td><code>maintenance</code><td><code>positions_value - positions_maintenance_margin</code></table>
+<p>来源的 <code>positions_*_margin</code> 字段是带符号的健康度贡献，已含持仓盯市价值；从 <code>positions_value</code>
+中减去它们即得到对应的风险需求。<code>open_orders_margin</code> 是挂单占用的带符号扣减，因此会增大
+提取出的初始需求。适配器使用子账户聚合值（保留场所的组合抵消），不发出按金融工具的保证金
+余额。</p>
+<p>发出的需求按原生 USD 精度取整（两位小数，逢半向偶数取整）。子账户的 <code>currency</code> 数组不决定
+其计价单位。建模的来源值保留在 <code>AccountState.info</code> 中。适配器不计算抵押物折扣，也不对
+<code>mm_credits</code> 另做调整。</p>
+<div class="theme-admonition theme-admonition-warning admonition_LYZY alert alert--warning"><div class=admonitionHeading_pnFY><span class=admonitionIcon_tEzm><svg viewBox="0 0 16 16"><path fill-rule=evenodd d="M8.893 1.5c-.183-.31-.52-.5-.887-.5s-.703.19-.886.5L.138 13.499a.98.98 0 0 0 0 1.001c.193.31.53.501.886.501h13.964c.367 0 .704-.19.877-.5a1.03 1.03 0 0 0 .01-1.002L8.893 1.5zm.133 11.497H6.987v-2.003h2.039v2.003zm0-3.004H6.987V5.987h2.039v4.006z"/></svg></span>注意</div><div class=admonitionContent_ZwmI><p><code>AccountState.info</code> 中的 <code>net_initial_margin</code> 与 <code>net_maintenance_margin</code> 报告当前净健康度
+（含持仓盯市价值），不含挂单占用。前后初始保证金健康度要用场所的订单报价查询。额外订单能否
+执行，以实际的订单接受结果为准。</div></div>
+<h5 class="anchor anchorTargetStickyNavbar_ana5" id=account-metadata>账户元数据<a href=#account-metadata class=hash-link aria-label=账户元数据的直接链接 title=账户元数据的直接链接 translate=no>​</a></h5>
+<p><code>AccountState.info</code> 携带账户标识、带符号的净健康度与精确风险值：</p>
+<ul>
+<li class=""><code>net_initial_margin</code> 与 <code>net_maintenance_margin</code> 是净健康度。</li>
+<li class=""><code>positions_value</code> 是持仓盯市总值。</li>
+<li class=""><code>positions_initial_margin</code> 与 <code>positions_maintenance_margin</code> 是带符号的持仓健康度贡献。</li>
+<li class=""><code>open_orders_margin</code> 是挂单占用对初始健康度的带符号扣减。</li>
+<li class=""><code>margin_type</code> 与 <code>manager_id</code> 标识保证金模型；<code>risk_universe_id</code> 标识其风险 universe。</li>
+<li class=""><code>currency</code> 保留场所的货币数组。</li>
+<li class=""><code>collaterals</code> 保留每条抵押物行的子集，以精确小数字符串表示。</li>
+<li class=""><code>mm_credits</code> 是风险 universe 损失社会化带来的维持保证金授信。</li>
+<li class=""><code>projected_margin_change</code> 保留下一次期权到期一分钟后 <code>net_maintenance_margin</code> 的预计变化。</li>
+<li class=""><code>vault_deposit_holds</code> 保留待处理的冻结，包括原生数量与目标 vault ID。</li>
+<li class=""><code>is_under_liquidation</code> 是强平状态。</li>
+</ul>
+<p>建模的小数以 JSON 字符串表示，在 <code>Decimal</code> 范围与其 28 位最大标度内精确；超出该标度的来源
+值在解码时取整。原生余额也会把小于其货币精度的数量取整为零。在意这种精度时使用抵押物
+元数据。场所没有说明待处理的 vault 冻结是否计入抵押物数量，因此适配器既不从中扣除，也
+不额外加上。</p>
+<p>快照被标记为 <code>failed_to_fetch</code> 或缺少必需字段时，不发 <code>AccountState</code>、初始连接失败，并跳过
+重连后的 mass status。畸形的嵌套行——包括超出原生 <code>Quantity</code> 精度或范围的持仓——会让整个
+账户快照失败。持仓报告请求还要求数量适配缓存金融工具的数量精度。单个持仓转换失败会拒掉整个
+mass status，包括其中的订单与成交报告，以保留缓存持仓，避免把缺失的持仓报告当成平仓。</p>
+<p>持仓报告保留场所的均价开仓价。对永续，该价格包含开仓手续费，可能与按真实成交价重建的均价
+不同。适配器对永续使用
+<a class="" href=/concepts/execution/reconciliation#reported-entry-averages><code>AvgPxReconciliation::OpeningOnly</code></a>：
+持仓数量相符时，不要求成交推导的均价等于报告的均价。真实成交价、数量与手续费保持不变。
+Nautilus 不把手续费计入持仓均价，而是从已实现盈亏中扣除。其他金融工具类型保持默认的均价
+对账。</p>
+<p>成交历史缺失时，恢复流程按报告的均价开一个合成持仓，按金融工具价格精度取整。历史不完整时，
+合成恢复可能给出近似的成本基础。需要精确的按成交核算时，把对账回看设置得足以覆盖当前持仓的
+开仓成交。</p>
+<h4 class="anchor anchorTargetStickyNavbar_ana5" id=conditional-orders>条件订单<a href=#conditional-orders class=hash-link aria-label=条件订单的直接链接 title=条件订单的直接链接 translate=no>​</a></h4>
+<p>Derive 触发订单使用带触发字段的 <code>private/order</code>。场所为其分配订单 id 并以
+<code>order_status=untriggered</code> 保存，直到其触发工作进程提交签名的子订单。因此对账同时读取
+<code>private/get_open_orders</code> 与 <code>private/get_trigger_orders</code>。</p>
+<p>实时 v3 触发器的执行、以及历史或持仓视图滞后时的漏更新恢复仍未验证。重连或重启成功并不能
+证明这些场景。</p>
+<h5 class="anchor anchorTargetStickyNavbar_ana5" id=signature-expiry>签名有效期<a href=#signature-expiry class=hash-link aria-label=签名有效期的直接链接 title=签名有效期的直接链接 translate=no>​</a></h5>
+<p>API v3 接受生命周期在 [10 秒, 120 天] 内的订单签名。MMP 订单最长 15 分钟。适配器保持
+MMP 关闭，触发订单用固定 31 天有效期签名。<code>signature_expiry_secs</code> 控制普通订单与替换，
+必须大于 10 秒以容纳签名延迟，上限 120 天。参见
+<a href=https://docs.derive.xyz/authentication/action-signing target=_blank rel="noopener noreferrer" class="">动作签名</a>。</p>
+<h5 class="anchor anchorTargetStickyNavbar_ana5" id=supported-types>支持的类型<a href=#supported-types class=hash-link aria-label=支持的类型的直接链接 title=支持的类型的直接链接 translate=no>​</a></h5>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>Nautilus 订单类型<th>支持<th>Derive <code>order_type</code><th>Derive <code>trigger_type</code><th>备注<tbody><tr><td><code>StopMarket</code><td>✓<td><code>market</code><td><code>stoploss</code><td>以触发价作为边界。<tr><td><code>StopLimit</code><td>✓<td><code>limit</code><td><code>stoploss</code><td>发送限价与触发价。<tr><td><code>MarketIfTouched</code><td>✓<td><code>market</code><td><code>takeprofit</code><td>以触发价作为边界。<tr><td><code>LimitIfTouched</code><td>✓<td><code>limit</code><td><code>takeprofit</code><td>发送限价与触发价。<tr><td><code>MarketToLimit</code><td>-<td>-<td>-<td><em>Derive 不支持</em>。<tr><td>移动止损<td>-<td>-<td>-<td><em>Derive 不支持</em>。<tr><td>TWAP / algo / RFQ<td>-<td>-<td>-<td><em>本适配器不暴露</em>。</table>
+<p>适配器把 Nautilus 的 <code>TriggerType::Default</code> 与 <code>TriggerType::MarkPrice</code> 映射到 Derive 的
+<code>trigger_price_type=mark</code>。Derive 的错误码文档说明指数价与最新成交价触发类型不受支持，因此
+适配器对 <code>IndexPrice</code>、<code>LastPrice</code>、<code>BidAsk</code> 及其他触发价类型在提交前本地以
+<code>OrderDenied</code> 拒绝。</p>
+<h5 class="anchor anchorTargetStickyNavbar_ana5" id=updating-a-trigger>更新触发单<a href=#updating-a-trigger class=hash-link aria-label=更新触发单的直接链接 title=更新触发单的直接链接 translate=no>​</a></h5>
+<p>Derive 错误码 <code>11054</code> 说明触发订单不能替换别的订单、也不能被替换。因此适配器以
+<code>OrderModifyRejected</code> 事件拒绝针对触发订单的 Nautilus 修改请求。要更新触发单，请撤销后
+重新提交。</p>
+<h5 class="anchor anchorTargetStickyNavbar_ana5" id=trigger-price-offsets>触发价偏移<a href=#trigger-price-offsets class=hash-link aria-label=触发价偏移的直接链接 title=触发价偏移的直接链接 translate=no>​</a></h5>
+<p>Derive 会校验触发价的方向：触发价没有按预期方向位于当前价格之外时，以错误码 <code>11051</code> 拒绝。
+触发价在订单签名时即固定，因此快市或高价金融工具上过小的偏移，可能在场所收到前漂移到错误的
+一侧。</p>
+<div class="theme-admonition theme-admonition-warning admonition_LYZY alert alert--warning"><div class=admonitionHeading_pnFY><span class=admonitionIcon_tEzm><svg viewBox="0 0 16 16"><path fill-rule=evenodd d="M8.893 1.5c-.183-.31-.52-.5-.887-.5s-.703.19-.886.5L.138 13.499a.98.98 0 0 0 0 1.001c.193.31.53.501.886.501h13.964c.367 0 .704-.19.877-.5a1.03 1.03 0 0 0 .01-1.002L8.893 1.5zm.133 11.497H6.987v-2.003h2.039v2.003zm0-3.004H6.987V5.987h2.039v4.006z"/></svg></span>注意</div><div class=admonitionContent_ZwmI><p>触发偏移要留出足以覆盖提交期间预期价格波动的幅度（对 <code>ETH-PERP</code> 而言是几十美元，而不是
+几美分）。偏移过小会产生无谓的 <code>11051</code> 拒绝。</div></div>
+<h4 class="anchor anchorTargetStickyNavbar_ana5" id=bulk-cancellation>批量撤单<a href=#bulk-cancellation class=hash-link aria-label=批量撤单的直接链接 title=批量撤单的直接链接 translate=no>​</a></h4>
+<h5 class="anchor anchorTargetStickyNavbar_ana5" id=selection-and-routing>选择与路由<a href=#selection-and-routing class=hash-link aria-label=选择与路由的直接链接 title=选择与路由的直接链接 translate=no>​</a></h5>
+<p>Derive 支持 <code>Strategy</code> 暴露的两种多订单撤销方式。</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>Strategy 方法<th>支持<th>参数<th>备注<tbody><tr><td><code>cancel_orders(...)</code><td>✓<td><code>client_order_ids</code>、<code>client_id</code>、<code>params</code><td>所有订单必须使用同一金融工具。<tr><td><code>cancel_all_orders(...)</code><td>✓<td><code>instrument_id</code>、<code>order_side</code>、<code>client_id</code>、<code>strategy_only</code>、<code>params</code><td>默认只作用于调用策略的订单。</table>
+<p>Derive 执行客户端按如下方式应用这些方法：</p>
+<ul>
+<li class=""><strong>显式订单</strong>：<code>cancel_orders</code> 逐个撤销请求的普通或触发订单。</li>
+<li class=""><strong>仅本策略</strong>：<code>strategy_only=True</code> 的 <code>cancel_all_orders</code> 把缓存中匹配的结果展开为逐个撤销。</li>
+<li class=""><strong>按方向过滤</strong>：<code>strategy_only=False</code> 且带 Buy 或 Sell 过滤时，<code>cancel_all_orders</code> 从缓存中
+选出配置的执行客户端、账户、精确金融工具与该方向的普通与触发挂单，然后逐个撤销。它从不扩大
+到双向。</li>
+<li class=""><strong>双向</strong>：<code>strategy_only=False</code> 且无方向过滤时，<code>cancel_all_orders</code> 从同一执行客户端、账户与
+金融工具范围选出匹配的挂起触发单并逐个撤销，再对普通订单发送 <code>private/cancel_by_instrument</code>。
+它从不发送 <code>private/cancel_all</code>。</li>
+</ul>
+<p><code>cancel_all_orders</code> 直接从缓存选取符合条件的订单，不刷新场所状态。对每个选中的订单，执行
+客户端当前的场所绑定优先于缓存的 ID。待触发的触发单使用 <code>private/cancel_trigger_order</code>；
+已激活触发单的逐个撤销使用 <code>private/cancel</code>。双向模式把已激活的触发单留给
+<code>private/cancel_by_instrument</code>。客户端在限速之后再次检查激活状态，把等待期间才激活的触发单
+先经 <code>private/cancel</code> 路由，再入队请求。</p>
+<h5 class="anchor anchorTargetStickyNavbar_ana5" id=failure-handling>失败处理<a href=#failure-handling class=hash-link aria-label=失败处理的直接链接 title=失败处理的直接链接 translate=no>​</a></h5>
+<p><code>strategy_only=False</code> 时，若选中的订单既没有当前绑定也没有缓存的场所订单 ID，
+<code>cancel_all_orders</code> 保守失败：整条命令记 warning，不发送任何撤销请求，也不发出订单事件。</p>
+<p><code>private/cancel_by_instrument</code> 只撤销普通挂单。成功响应且 <code>cancelled_orders == 0</code> 是预期的
+空操作，以 debug 级别记录。</p>
+<p>触发单撤销失败会记 warning，但不妨碍随后的按金融工具普通撤单。批量请求失败时没有可发出的
+逐单结果，观测到的订单状态仍由私有频道更新与后续对账负责。</p>
+<h4 class="anchor anchorTargetStickyNavbar_ana5" id=execution-instructions>执行指令<a href=#execution-instructions class=hash-link aria-label=执行指令的直接链接 title=执行指令的直接链接 translate=no>​</a></h4>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>指令<th>支持<th>Derive 取值<th>备注<tbody><tr><td><code>post_only</code><td>✓<td><code>post_only</code><td>要求 <code>GTC</code>；会吃流动性时被拒。<tr><td><code>reduce_only</code><td>✓<td><code>reduce_only</code><td>永续与期权，仅限市价或 <code>IOC</code>/<code>FOK</code>；现货拒绝。</table>
+<h4 class="anchor anchorTargetStickyNavbar_ana5" id=time-in-force>有效期<a href=#time-in-force class=hash-link aria-label=有效期的直接链接 title=有效期的直接链接 translate=no>​</a></h4>
+<p>Derive 文档把 <code>gtc</code>、<code>post_only</code>、<code>fok</code> 与 <code>ioc</code> 列为其 <code>time_in_force</code> 取值。没有 Derive 对应
+项的 Nautilus 取值在提交前本地以 <code>OrderDenied</code> 拒绝。Derive 把 post-only 作为一种
+<code>time_in_force</code> 取值暴露，因此 <code>post_only</code> 不能与 <code>IOC</code> 或 <code>FOK</code> 组合。</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>有效期<th>支持<th>Derive 取值<th>备注<tbody><tr><td><code>GTC</code><td>✓<td><code>gtc</code><td>撤销前有效。<tr><td><code>IOC</code><td>✓<td><code>ioc</code><td>立即成交其余撤销。<tr><td><code>FOK</code><td>✓<td><code>fok</code><td>全部成交或撤销。<tr><td><code>GTD</code><td>-<td>-<td><em>Derive 不支持</em>。<tr><td><code>DAY</code><td>-<td>-<td><em>Derive 不支持</em>。<tr><td><code>AT_THE_OPEN</code><td>-<td>-<td><em>Derive 不支持</em>。<tr><td><code>AT_THE_CLOSE</code><td>-<td>-<td><em>Derive 不支持</em>。</table>
+<h4 class="anchor anchorTargetStickyNavbar_ana5" id=spot-reduce-only-orders>现货 reduce-only 订单<a href=#spot-reduce-only-orders class=hash-link aria-label="现货 reduce-only 订单的直接链接" title="现货 reduce-only 订单的直接链接" translate=no>​</a></h4>
+<p>Derive 现货没有持仓概念，因此 reduce-only 的现货订单永远减不了任何东西。场所总会以错误码
+<code>11025</code> 拒绝它。适配器在已知金融工具是现货时会避免这次往返：已缓存的现货金融工具以
+<code>OrderDenied</code> 拒绝；惰性解析出的现货金融工具在提交时以 <code>OrderRejected</code> 拒绝。</p>
+<p>永续与期权的 reduce-only 订单仍会送到场所，其结果取决于子账户的持仓状态。<code>derive-flatten</code>
+可执行程序只平衍生品持仓、绝不碰现货，因为平掉现货余额会把基础资产倒进另一种计价货币。</p>
+<h5 class="anchor anchorTargetStickyNavbar_ana5" id=reduce-only-time-in-force-limits>reduce-only 的有效期限制<a href=#reduce-only-time-in-force-limits class=hash-link aria-label="reduce-only 的有效期限制的直接链接" title="reduce-only 的有效期限制的直接链接" translate=no>​</a></h5>
+<p>Derive 只在市价单或不挂簿的限价单（<code>IOC</code>/<code>FOK</code>）上遵守 <code>reduce_only</code>。带 <code>reduce_only</code> 的
+<code>GTC</code> 或 post-only 挂单会在提交前本地拒绝。直接对场所提交则以
+<code>11024 Reduce only not supported with this time in force</code> 失败。</p>
+<div class="theme-admonition theme-admonition-warning admonition_LYZY alert alert--warning"><div class=admonitionHeading_pnFY><span class=admonitionIcon_tEzm><svg viewBox="0 0 16 16"><path fill-rule=evenodd d="M8.893 1.5c-.183-.31-.52-.5-.887-.5s-.703.19-.886.5L.138 13.499a.98.98 0 0 0 0 1.001c.193.31.53.501.886.501h13.964c.367 0 .704-.19.877-.5a1.03 1.03 0 0 0 .01-1.002L8.893 1.5zm.133 11.497H6.987v-2.003h2.039v2.003zm0-3.004H6.987V5.987h2.039v4.006z"/></svg></span>注意</div><div class=admonitionContent_ZwmI><p>止盈腿是 reduce-only <code>GTC</code> 限价单的 Nautilus 括号单无法挂在 Derive 上：入场腿与止损腿能提交，
+但适配器会在本地拒绝止盈腿。目标是 Derive 时，请改用 reduce-only 的 <code>IOC</code>/<code>FOK</code> 平仓单或
+非 reduce-only 的止盈单。</div></div>
+<h4 class="anchor anchorTargetStickyNavbar_ana5" id=order-rejection-semantics>订单拒绝语义<a href=#order-rejection-semantics class=hash-link aria-label=订单拒绝语义的直接链接 title=订单拒绝语义的直接链接 translate=no>​</a></h4>
+<p>状态变更类写操作（<code>submit_order</code>、<code>modify_order</code>、<code>cancel_order</code>）通过 WebSocket 发送一次，
+<strong>不会重放</strong>。WebSocket 请求的结果决定适配器是发出终态拒绝，还是等待对账。</p>
+<h5 class="anchor anchorTargetStickyNavbar_ana5" id=definitive-failures>确定性失败<a href=#definitive-failures class=hash-link aria-label=确定性失败的直接链接 title=确定性失败的直接链接 translate=no>​</a></h5>
+<p>对确定性的场所失败，适配器发出终态拒绝事件（<code>OrderRejected</code>、<code>OrderModifyRejected</code>、
+<code>OrderCancelRejected</code>）：</p>
+<ul>
+<li class="">签名动作类拒绝，例如参数非法、保证金不足或订单未知。</li>
+<li class="">场所业务码，例如 <code>11009 Zero liquidity</code>。</li>
+<li class="">post-only 穿越拒绝（<code>11008 Post only order cannot cross the market</code>），以
+<code>due_post_only=true</code> 的 <code>OrderRejected</code> 报告。</li>
+<li class="">限流响应（<code>-32000 Rate limit exceeded</code>）：网关在撮合引擎看到之前就拒绝请求。</li>
+<li class=""><code>private/cancel_by_label</code> 成功响应且 <code>cancelled_orders == 0</code>，表示没有挂单匹配该 client
+order ID 标签。</li>
+</ul>
+<p><code>cancelled_orders == -1</code> 的无范围 <code>private/cancel_by_label</code> 响应表示请求已被确认。计数为正
+时同样要等待私有订单更新。两种响应在没有确认订单状态前都不产生 <code>OrderCanceled</code> 事件。
+<code>query_order</code> 使用共享的订单状态查找做对账。</p>
+<h5 class="anchor anchorTargetStickyNavbar_ana5" id=post-only-classification>post-only 分类<a href=#post-only-classification class=hash-link aria-label="post-only 分类的直接链接" title="post-only 分类的直接链接" translate=no>​</a></h5>
+<p>对已到达场所的 post-only 订单，Derive 以 JSON-RPC <code>11008</code>、消息
+<code>Post only order cannot cross the market</code> 拒绝穿越的订单。适配器给该终态拒绝标记
+<code>due_post_only=true</code>。若 WebSocket/订单报告的拒绝携带相同原因，被跟踪订单的路径套用同一
+分类。不支持的 post-only IOC/FOK 组合在本地产生的 <code>OrderDenied</code> 事件不带 <code>due_post_only</code>，
+因为它们不是场所的穿越拒绝。</p>
+<p>面向策略的拒绝原因会剥掉标记与控制字符、归一化空白，并最多保留 256 个字符。JSON-RPC 原因
+保留原生错误码与消息，但不含异常前缀与结构化诊断负载。日志保留原始错误。</p>
+<h5 class="anchor anchorTargetStickyNavbar_ana5" id=ambiguous-outcomes>结果不明确的情况<a href=#ambiguous-outcomes class=hash-link aria-label=结果不明确的情况的直接链接 title=结果不明确的情况的直接链接 translate=no>​</a></h5>
+<p>写操作结果不明确时，适配器不发终态事件，交由 WebSocket 对账或后续状态报告定论。不明确
+集合刻意保持很窄：</p>
+<ul>
+<li class=""><code>-32603</code>，通用的 JSON-RPC 内部错误。</li>
+<li class=""><code>9000</code> 与 <code>9001</code>，确认超时，需先查询订单状态再重新提交。</li>
+<li class="">无法解码的响应（动作可能已被处理）。</li>
+<li class="">响应成功但其场所订单 ID 无法表示。适配器保留已知的命令身份与待处理替换状态供对账使用；
+若该 ID 始终无法表示，状态与成交报告就无法跟踪该场所订单，请用日志中记录的命令身份去检查
+场所状态。</li>
+<li class="">请求超时、重连时丢失的响应，以及传输错误。</li>
+</ul>
+<p>这一区分保护订单生命周期的两侧：错误的终态拒绝会让引擎把活动订单当成已拒绝；错误地判为不明
+确，则会让从未挂出的订单永远停在 <code>Submitted</code>，因为不会再有 WebSocket 帧到达。</p>
+<h2 class="anchor anchorTargetStickyNavbar_ana5" id=rate-limiting>限流<a href=#rate-limiting class=hash-link aria-label=限流的直接链接 title=限流的直接链接 translate=no>​</a></h2>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=budget-scopes-and-refill>配额范围与补充<a href=#budget-scopes-and-refill class=hash-link aria-label=配额范围与补充的直接链接 title=配额范围与补充的直接链接 translate=no>​</a></h3>
+<p>Derive v3 应用<a href=https://docs.derive.xyz/rate-limits target=_blank rel="noopener noreferrer" class="">两层限流</a>。请求配额使用固定的五秒窗口。
+金融工具订单配额持续补充，容量等于其配置的补充速率五秒的量。耗尽的金融工具桶在默认速率下
+一秒获得一个令牌。窗口边界不会把整个容量补满。</p>
+<p>同一 API 主机上认证的 HTTP 与 WebSocket 客户端，在多个 session key 与子账户之间共享钱包
+配额。公共请求（包括 WebSocket 登录）按 API 主机共享一份独立的进程内配额，这里保守地假设
+只有一个源 IP。走不同代理的客户端仍共享该额度，不同进程中的客户端必须自行协调总流量。
+API 主机不同的自定义 URL 使用独立的限流状态。</p>
+<p>请求窗口对齐到共享限流器的创建时刻，因为场所的窗口相位不可观测。本地边界两侧的突发可能落进
+同一个场所窗口，传输队列延迟发出时尤其如此。超出配额的流量会被场所以
+<code>-32000 Rate limit exceeded</code> 拒绝，适配器把它呈现为确定性拒绝（见
+<a href=#order-rejection-semantics class="">订单拒绝语义</a>）。</p>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=request-buckets>请求桶<a href=#request-buckets class=hash-link aria-label=请求桶的直接链接 title=请求桶的直接链接 translate=no>​</a></h3>
+<p>下表给出参考默认值与适配器的按标签撤销额度。部署取值与协商后的额度可能不同。实时请求
+配额可用 <code>public/getRateLimits</code> 读取，该端点不报告金融工具配额。测试网上，HTTP 端点即使带
+认证头也报告公共 IP 额度，而认证的 WebSocket 报告钱包额度。</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>桶<th>范围<th>参考额度<tbody><tr><td>撮合类<td>钱包<td>5 秒窗口 5 次请求<tr><td>非撮合类（已认证）<td>钱包<td>5 秒窗口 25 次请求<tr><td>公共请求<td>IP<td>5 秒窗口 25 次请求<tr><td><code>private/cancel_all</code><td>钱包与方法<td>5 秒窗口 5 次请求<tr><td><code>private/cancel_by_label</code> 端点<td>钱包与方法<td>适配器：每窗口 50 次请求<tr><td>金融工具订单（永续/现货）<td>钱包与金融工具<td>1 令牌/秒，容量 5<tr><td>金融工具订单（期权）<td>钱包与金融工具<td>1 令牌/秒，容量 5</table>
+<p>场所还限制每个 IP 的并发 WebSocket 连接数，公布的参考值是四条连接，但部署取值各有不同。</p>
+<p><a href=https://docs.derive.xyz/integrators/trading/rate-limits target=_blank rel="noopener noreferrer" class="">集成方参考</a>给无范围标签撤销公布的是
+10 TPS，规范参考文档没有给出该端点的数字额度，适配器为其标签撤销端点预算保留 10 TPS。</p>
+<h4 class="anchor anchorTargetStickyNavbar_ana5" id=matching-write-allocation>撮合类写操作的配额<a href=#matching-write-allocation class=hash-link aria-label=撮合类写操作的配额的直接链接 title=撮合类写操作的配额的直接链接 translate=no>​</a></h4>
+<p>订单、替换、撤销、按 nonce 撤销与按金融工具撤销请求同时消耗撮合类请求配额与所给金融工具的
+令牌桶。按金融工具的配置适用于永续、现货与期权，与钱包的撮合额度相互独立。</p>
+<p>适配器按规范限流参考，对 <code>cancel_by_label</code> 同时按撮合与端点两种配额限速。请求体包含
+<code>instrument_name</code> 的原始 HTTP 请求同样消耗金融工具额度。类型化的标签撤销参数目前只支持无
+范围调用。测试网当前只对带范围的标签撤销收取撮合配额，适配器对无范围调用保留更严格的
+文档规则。<code>cancel_all</code> 只使用它的端点配额。</p>
+<p><code>cancel_trigger_order</code> 与触发单读取使用非撮合配额。触发单创建走 <code>private/order</code>，并在签名
+之前预约撮合配额。</p>
+<p>首次显式给出的钱包与金融工具设置作用于共享限流器，之后构造时未设置的选项会沿用它们；冲突的
+显式设置会被限流器忽略并记 warning。共享配额的欠账跨重连与客户端重建保留。</p>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=signing-and-venue-responses>签名与场所响应<a href=#signing-and-venue-responses class=hash-link aria-label=签名与场所响应的直接链接 title=签名与场所响应的直接链接 translate=no>​</a></h3>
+<p>HTTP 认证头与 WebSocket 登录时间戳在限速等待之后才签名。执行客户端在生成 nonce 与 EIP-712
+签名之前，先预约 WebSocket 的订单创建与替换配额。持有中的预约占用金融工具容量直到实际发送，
+被放弃的预约会退回其未使用的请求与金融工具额度。</p>
+<p>已预约的 WebSocket 发送在签名后不再二次等待。若一次预约跨越了请求窗口边界，适配器立即
+从当前请求窗口扣减；该窗口已满时，在把写操作入队之前返回确定性的本地限流错误。金融工具额度
+只扣减一次。</p>
+<p>HTTP 下单方法与直接的 WebSocket 签名下单方法接受已签名的请求体。调用方必须把限速延迟计入
+这些签名的有效期内。</p>
+<p>场所限流仍是确定性拒绝。传输失败、超时与结果不明确的写操作要靠对账解决。适配器不会盲目
+重试签名写操作。</p>
+<h2 class="anchor anchorTargetStickyNavbar_ana5" id=websocket-recovery>WebSocket 恢复<a href=#websocket-recovery class=hash-link aria-label="WebSocket 恢复的直接链接" title="WebSocket 恢复的直接链接" translate=no>​</a></h2>
+<p>数据与执行客户端在对端关闭、传输错误或心跳超时后自动重连。适配器每 30 秒发送一次协议
+Ping 帧，并把 60 秒内没有任何入站帧视为连接已死。所选传输可能更早报告 Pong 丢失。传输层
+以指数退避加抖动重试连接。</p>
+<p>恢复按这个顺序完成：</p>
+<ol>
+<li class="">传输重连。若再次断开，恢复跟随最新的连接。</li>
+<li class="">带凭据的会话重新登录，然后每个会话按频道顺序回放其已确认与待处理的订阅；待处理与已确认
+的退订不回放。</li>
+<li class="">执行客户端在 runner 线程上捕获当前自有订单上下文，刷新账户状态，然后为订单、成交与持仓
+生成 mass status。账户快照被拒时跳过 mass status；持仓转换失败会拒掉整个 mass status。</li>
+</ol>
+<p>自定义主机必须处理 runner 的时间事件消息，以便在重连时刷新缓存的订单上下文。刷新使用配置的
+<code>ws_timeout_secs</code> 期限。没有时间事件发送器时，客户端保留其初始上下文，并在终态绑定被逐出后
+拒绝做对账。</p>
+<p>状态变更请求遵循<a href=#order-rejection-semantics class="">订单拒绝语义</a>：适配器只发送一次，从不重放。
+登录或订阅恢复连续三次失败后，客户端记录错误、把自己标记为已断开，并停止该 WebSocket 会话。</p>
+<p><code>ws_timeout_secs</code> 作用于单个 WebSocket 操作与重连后的缓存刷新，不作用于心跳检测与重连退避。</p>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=order-book-recovery>订单簿恢复<a href=#order-book-recovery class=hash-link aria-label=订单簿恢复的直接链接 title=订单簿恢复的直接链接 translate=no>​</a></h3>
+<p>订单簿的恢复独立于会话恢复。以下情形之后恢复启动：</p>
+<ul>
+<li class=""><code>book_snapshot_timeout_secs</code>（默认 <code>10</code> 秒）内没有初始或重连后的快照。</li>
+<li class=""><code>book_stale_threshold_secs</code>（默认 <code>120</code> 秒）内没有收到递进的快照。</li>
+</ul>
+<p>把任一选项设为 <code>0</code> 即禁用对应计时器。按预期的更新频率选择陈旧阈值：重复的时间戳不会刷新
+新鲜度，递进的空快照会。</p>
+<p>必需的价格或数量字段为 null 或空时解码失败并启动恢复。这类快照不发布 delta 也不发布深度，
+不刷新新鲜度也不推进已接受的时间戳，无法完成恢复。</p>
+<p>恢复会退订并重新订阅受影响的频道，只在收到其订阅确认之后才接受快照。它遵循
+<a class="" href=/developer_guide/adapters#recovery-state-and-retry-budgets>共享重试预算与上限</a>，
+直到快照被接受或频道被移除。</p>
+<ul>
+<li class="">重连保留恢复事件及其预算。</li>
+<li class="">最后一个消费者退订或客户端关闭会取消恢复与待处理写操作。</li>
+<li class="">禁用快照期限时，初始重试预算仍封顶在 180 秒，后续每次尝试封顶 60 秒。<code>ws_timeout_secs</code>
+仍然约束每次 RPC。</li>
+</ul>
+<div class="theme-admonition theme-admonition-warning admonition_LYZY alert alert--warning"><div class=admonitionHeading_pnFY><span class=admonitionIcon_tEzm><svg viewBox="0 0 16 16"><path fill-rule=evenodd d="M8.893 1.5c-.183-.31-.52-.5-.887-.5s-.703.19-.886.5L.138 13.499a.98.98 0 0 0 0 1.001c.193.31.53.501.886.501h13.964c.367 0 .704-.19.877-.5a1.03 1.03 0 0 0 .01-1.002L8.893 1.5zm.133 11.497H6.987v-2.003h2.039v2.003zm0-3.004H6.987V5.987h2.039v4.006z"/></svg></span>注意</div><div class=admonitionContent_ZwmI><p>Derive 的通知没有订阅代次。适配器会拒绝本地队列中已过期的帧与非递增时间戳，但无法识别
+时间戳超过最后接受时间戳的旧订阅的延迟通知。</div></div>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=live-recovery-validation>实时恢复验证<a href=#live-recovery-validation class=hash-link aria-label=实时恢复验证的直接链接 title=实时恢复验证的直接链接 translate=no>​</a></h3>
+<p><code>derive-book-stress</code> 检查 Derive 测试网的公共数据，不提交订单。它按簿流契约校验 depth-10 的
+<code>ETH-PERP</code> 与 <code>ETH-USDC</code> 簿，并与每份中继场所快照的独立重建结果比对，包括空的现货快照。</p>
+<p>测试网 WebSocket 流与公共金融工具 REST API 必须可达。在仓库根目录运行：</p>
+<div class="language-bash codeBlockContainer_eTMR theme-code-block" style=--prism-color:#393A34;--prism-background-color:#f6f8fa><div class=codeBlockContent_hafM><pre tabindex=0 class="prism-code language-bash codeBlock_IMvC thin-scrollbar" style=color:#393A34;background-color:#f6f8fa><code class=codeBlockLines_gZDW><div class=token-line style=color:#393A34><span class="token plain">CARGO_BUILD_JOBS=4 bash scripts/strip-adapter-env.bash \</span><br/></div><div class=token-line style=color:#393A34><span class="token plain">  cargo test -p nautilus-derive --features examples --test derive-book-stress -- \</span><br/></div><div class=token-line style=color:#393A34><span class="token plain">  --scenario initial --timeout 2 --rounds 60</span><br/></div></code></pre></div></div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th><code>--scenario</code><th>参数<th>检查内容<tbody><tr><td><code>churn</code><td>默认<td>陈旧簿、延迟帧、恢复期间重连、退订/重订，以及非法时间戳。<tr><td><code>initial</code><td><code>--timeout 2</code><td>丢弃两个初始快照，然后运行 <code>churn</code>。<tr><td><code>disabled</code><td><code>--timeout 0</code><td>两个计时器都禁用时，安静簿跨强制重连的表现。<tr><td><code>edges</code><td><code>--timeout 1</code><td>耗尽八次尝试预算、迟到快照的接受，以及永久拒绝后的重试。</table>
+<ul>
+<li class=""><code>--timeout</code> 设置快照超时秒数，<code>0</code> 禁用期限。除 <code>disabled</code>（两个计时器都禁用）外，陈旧
+阈值都是四秒。</li>
+<li class=""><code>--rounds</code> 设置 churn 或 disabled 的轮数（默认 <code>20</code>）；<code>edges</code> 只运行一次。</li>
+</ul>
+<p>每个场景都检查有界关闭；除 <code>disabled</code> 外，所有场景都会在恢复期间启动关闭。共享参数与输出见
+<a class="" href=/developer_guide/spec_data_testing#stress-harnesses>压力测试工具</a>。</p>
+<h2 class="anchor anchorTargetStickyNavbar_ana5" id=deterministic-simulation-testing>确定性仿真测试<a href=#deterministic-simulation-testing class=hash-link aria-label=确定性仿真测试的直接链接 title=确定性仿真测试的直接链接 translate=no>​</a></h2>
+<p>Rust 适配器通过共享的时钟、任务、重试与传输缝，以 <code>cfg(madsim)</code> 支持 <code>simulation</code>。配置
+受控的 <code>http://</code> 与 <code>ws://</code> 端点，并选择 <code>TransportBackend::Tungstenite</code>。固定的合成凭据支持
+私有本地 peer 测试。</p>
+<p>受审的运行时切片覆盖这些路径：</p>
+<ul>
+<li class="">公共单金融工具查询（<code>public/get_instrument</code>）到领域构造。</li>
+<li class="">公共 ticker 订阅到完整的报价构造。</li>
+<li class="">簿与成交的订阅请求。</li>
+<li class="">私有登录与撤销请求。</li>
+<li class="">重连时的订阅回放、命令/帧调度与关闭。</li>
+</ul>
+<p><code>crates/adapters/derive/tests/integration/dst.rs</code> 中的集成测试钉住 wire 字节、登录签名与领域
+字段（含 ticker 间隔），并输出 <code>DST_TRACE</code> 与 <code>DST_DOMAIN</code> 记录，供下游在相同种子、配置与
+peer 脚本下跨新鲜进程比对。<code>cargo-test-sim</code> 运行仓库内的断言；新鲜进程比对留在下游 DST
+工具链，按<a class="" href=/concepts/dst#adapter-dst-contract>适配器 DST 契约</a>的规定。</p>
+<p>静态闸门覆盖 <code>crates/adapters/derive/src/</code> 下这些生产路径：</p>
+<ul>
+<li class=""><code>book/recovery.rs</code> 与 <code>book/sync.rs</code>。</li>
+<li class=""><code>common/parse.rs</code>、<code>common/rate_limit.rs</code>、<code>config.rs</code>、<code>data.rs</code>、<code>execution.rs</code> 与
+<code>providers.rs</code>。</li>
+<li class=""><code>http/client.rs</code>、<code>http/models.rs</code>、<code>http/query.rs</code> 与 <code>http/parse.rs</code>。</li>
+<li class=""><code>signing/encoding.rs</code>、<code>signing/nonce.rs</code>、<code>signing/auth.rs</code>、<code>signing/eip712.rs</code> 与
+<code>signing/modules/trade.rs</code>。</li>
+<li class=""><code>websocket/client.rs</code>、<code>websocket/dispatch.rs</code>、<code>websocket/handler.rs</code>、<code>websocket/messages.rs</code>
+与 <code>websocket/parse.rs</code>。</li>
+</ul>
+<p>常量、枚举、错误、端点默认值、模块声明、仅做构造的工厂、重试分类器、凭据与签名上下文解析，
+以及 WebSocket 上下文容器保持在静态路径清单之外。这些文件不引入独立的异步、时钟或随机性
+边界。凭据解析只使用传入的配置或声明的环境输入。Python 与 FFI、TLS、实盘场所状态、完整的
+数据/执行客户端生命周期、签名下单与替换、触发执行，以及其他未审计的运行时切片，都在这份
+仿真声明之外。静态覆盖不为这些切片确立运行时证明。</p>
+<h2 class="anchor anchorTargetStickyNavbar_ana5" id=subscription-parameters>订阅参数<a href=#subscription-parameters class=hash-link aria-label=订阅参数的直接链接 title=订阅参数的直接链接 translate=no>​</a></h2>
+<p><code>subscribe_book_deltas</code> 与 <code>subscribe_book_depth</code> 接受这些 <code>subscribe_params</code> 键：</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>键<th>类型<th>默认值<th>允许取值<tbody><tr><td><code>group</code><td>string<td><code>"1"</code><td><code>"1"</code>、<code>"10"</code>、<code>"100"</code><tr><td><code>depth</code><td>string<td><code>"10"</code><td><code>"1"</code>、<code>"10"</code>、<code>"20"</code>、<code>"100"</code></table>
+<p><code>subscribe_quotes</code> 接受：</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>键<th>类型<th>默认值<th>允许取值<tbody><tr><td><code>interval</code><td>string<td><code>"1000"</code><td><code>"100"</code>、<code>"1000"</code></table>
+<p>未知取值在订阅时即被拒绝。</p>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=shared-ticker-subscription>共享 ticker 订阅<a href=#shared-ticker-subscription class=hash-link aria-label="共享 ticker 订阅的直接链接" title="共享 ticker 订阅的直接链接" translate=no>​</a></h3>
+<p>报价、标记价、指数价、资金费率与期权 Greeks 都派生自同一个
+<code>ticker_slim.{instrument}.{interval}</code> WebSocket 订阅。适配器对底层 WS 订阅调用做引用计数：</p>
+<ul>
+<li class="">该金融工具第一个订阅的馈送打开频道。</li>
+<li class="">最后一个退订关闭它。</li>
+</ul>
+<div class="theme-admonition theme-admonition-note admonition_LYZY alert alert--secondary"><div class=admonitionHeading_pnFY><span class=admonitionIcon_tEzm><svg viewBox="0 0 14 16"><path fill-rule=evenodd d="M6.3 5.69a.942.942 0 0 1-.28-.7c0-.28.09-.52.28-.7.19-.18.42-.28.7-.28.28 0 .52.09.7.28.18.19.28.42.28.7 0 .28-.09.52-.28.7a1 1 0 0 1-.7.3c-.28 0-.52-.11-.7-.3zM8 7.99c-.02-.25-.11-.48-.31-.69-.2-.19-.42-.3-.69-.31H6c-.27.02-.48.13-.69.31-.2.2-.3.44-.31.69h1v3c.02.27.11.5.31.69.2.2.42.31.69.31h1c.27 0 .48-.11.69-.31.2-.19.3-.42.31-.69H8V7.98v.01zM7 2.3c-3.14 0-5.7 2.54-5.7 5.68 0 3.14 2.56 5.7 5.7 5.7s5.7-2.55 5.7-5.7c0-3.15-2.56-5.69-5.7-5.69v.01zM7 .98c3.86 0 7 3.14 7 7s-3.14 7-7 7-7-3.12-7-7 3.14-7 7-7z"/></svg></span>备注</div><div class=admonitionContent_ZwmI><p>**以第一个订阅的 <code>interval</code> 为准。**之后用不同 interval 订阅的馈送共用已存在的频道。</div></div>
+<h4 class="anchor anchorTargetStickyNavbar_ana5" id=ticker-fields>ticker 字段<a href=#ticker-fields class=hash-link aria-label="ticker 字段的直接链接" title="ticker 字段的直接链接" translate=no>​</a></h4>
+<p>标记价、指数价、资金费率与期权 Greeks 都读取 ticker 负载中的字段。完整 ticker 形态与紧凑的
+<code>ticker_slim</code> 形态都携带这些字段，因此派生馈送在两种形态上都能工作：</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>字段<th>存在性<th>馈送行为<tbody><tr><td><code>mark_price</code>、<code>index_price</code><td>必需<td>字段缺失会使反序列化失败并记日志，不会静默丢弃。<tr><td><code>funding_rate</code><td>可选；仅永续<td>为资金费率事件提供数据。<tr><td><code>option_pricing</code><td>可选；仅期权<td>为期权 Greeks 提供数据。<tr><td>买价/卖价<td>两种形态都有<td>报价馈送两种形态都能工作。</table>
+<h4 class="anchor anchorTargetStickyNavbar_ana5" id=instrument-class-restrictions>金融工具类别限制<a href=#instrument-class-restrictions class=hash-link aria-label=金融工具类别限制的直接链接 title=金融工具类别限制的直接链接 translate=no>​</a></h4>
+<p>资金费率只对永续有意义，期权 Greeks 只对期权有意义。订阅与金融工具类别不匹配的馈送（例如给
+期权订阅资金费率）时，适配器接受该订阅：WebSocket 订阅会打开，但解析器对该馈送不返回任何
+事件。场所负载对非永续省略资金费率字段，对非期权省略 <code>option_pricing</code>。订阅衍生品专属馈送前
+先确认金融工具类别。</p>
+<h2 class="anchor anchorTargetStickyNavbar_ana5" id=configuration>配置<a href=#configuration class=hash-link aria-label=配置的直接链接 title=配置的直接链接 translate=no>​</a></h2>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=data-client-configuration-options>数据客户端配置项<a href=#data-client-configuration-options class=hash-link aria-label=数据客户端配置项的直接链接 title=数据客户端配置项的直接链接 translate=no>​</a></h3>
+<p>类/结构体：<code>DeriveDataClientConfig</code>。</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>配置项<th>默认值<th>说明<tbody><tr><td><code>base_url_rest</code><td><code>None</code><td>REST 基准 URL 覆盖。<tr><td><code>base_url_ws</code><td><code>None</code><td>WebSocket 基准 URL 覆盖。<tr><td><code>proxy_url</code><td><code>None</code><td>HTTP 与 WebSocket 传输的可选代理 URL。<tr><td><code>environment</code><td><code>Mainnet</code><td>网络选择（Python 中为 <code>MAINNET</code> 或 <code>TESTNET</code>）。<tr><td><code>http_timeout_secs</code><td><code>10</code><td>REST 请求超时（秒）。<tr><td><code>ws_timeout_secs</code><td><code>None</code><td>按操作的 WebSocket 超时（登录、订阅、读、写），单位秒；未设置时用 10 秒。<tr><td><code>book_snapshot_timeout_secs</code><td><code>10</code><td>快照等待（秒）；<code>0</code> 禁用期限。<tr><td><code>book_stale_threshold_secs</code><td><code>120</code><td>多久没有递进快照就启动恢复（秒）；<code>0</code> 禁用该计时器。<tr><td><code>update_instruments_interval_mins</code><td><code>60</code><td>金融工具刷新间隔（分钟）。<tr><td><code>currencies</code><td><code>[]</code><td>连接时批量加载的币种；为空表示按需惰性加载。<tr><td><code>include_expired</code><td><code>false</code><td>从 <code>public/get_all_instruments</code> 合并期权的活动与过期挂牌。<tr><td><code>auto_load_missing_instruments</code><td><code>true</code><td>发送订阅请求前惰性加载未知的金融工具。<tr><td><code>transport_backend</code><td><code>Sockudo</code><td>启用 <code>transport-sockudo</code> 时使用的 WebSocket 传输。</table>
+<div class="theme-admonition theme-admonition-important admonition_LYZY alert alert--info"><div class=admonitionHeading_pnFY><span class=admonitionIcon_tEzm><svg viewBox="0 0 14 16"><path fill-rule=evenodd d="M7 2.3c3.14 0 5.7 2.56 5.7 5.7s-2.56 5.7-5.7 5.7A5.71 5.71 0 0 1 1.3 8c0-3.14 2.56-5.7 5.7-5.7zM7 1C3.14 1 0 4.14 0 8s3.14 7 7 7 7-3.14 7-7-3.14-7-7-7zm1 3H6v5h2V4zm0 6H6v2h2v-2z"/></svg></span>important</div><div class=admonitionContent_ZwmI><p>**<code>auto_load_missing_instruments</code> 只覆盖订阅命令。**请求报价、成交、K 线或资金费率之前，
+先批量加载该金融工具的币种，或先订阅。</div></div>
+<ul>
+<li class="">金融工具尚未缓存时，<code>request_quotes</code>、<code>request_trades</code>、<code>request_bars</code> 与
+<code>request_funding_rates</code> 会失败。</li>
+<li class=""><code>request_instrument</code> 是例外：它总会拉取 <code>public/get_instrument</code>。</li>
+<li class="">期权链订阅需要该系列中已缓存的期权，用来获取初始参考价。</li>
+</ul>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=execution-client-configuration-options>执行客户端配置项<a href=#execution-client-configuration-options class=hash-link aria-label=执行客户端配置项的直接链接 title=执行客户端配置项的直接链接 translate=no>​</a></h3>
+<p>类/结构体：<code>DeriveExecutionClientConfig</code>。</p>
+<h4 class="anchor anchorTargetStickyNavbar_ana5" id=account-and-credentials>账户与凭据<a href=#account-and-credentials class=hash-link aria-label=账户与凭据的直接链接 title=账户与凭据的直接链接 translate=no>​</a></h4>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>配置项<th>默认值<th>说明<tbody><tr><td><code>account_id</code><td><code>DERIVE-001</code><td>Nautilus 账户标识。<tr><td><code>wallet_address</code><td><code>None</code><td>owner 的 EOA 或多签地址；未设置时回退到下列环境变量。<tr><td><code>session_key</code><td><code>None</code><td>secp256k1 session key 私钥；未设置时回退到下列环境变量。<tr><td><code>subaccount_id</code><td><code>None</code><td>Derive 子账户 id；未设置时回退到下列环境变量。</table>
+<h4 class="anchor anchorTargetStickyNavbar_ana5" id=connectivity-and-retries>连接与重试<a href=#connectivity-and-retries class=hash-link aria-label=连接与重试的直接链接 title=连接与重试的直接链接 translate=no>​</a></h4>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>配置项<th>默认值<th>说明<tbody><tr><td><code>base_url_rest</code><td><code>None</code><td>REST 基准 URL 覆盖。<tr><td><code>base_url_ws</code><td><code>None</code><td>WebSocket 基准 URL 覆盖。<tr><td><code>proxy_url</code><td><code>None</code><td>HTTP 与 WebSocket 传输的可选代理 URL。<tr><td><code>environment</code><td><code>Mainnet</code><td>网络选择（Python 中为 <code>MAINNET</code> 或 <code>TESTNET</code>）。<tr><td><code>http_timeout_secs</code><td><code>10</code><td>REST 请求超时（秒）。<tr><td><code>ws_timeout_secs</code><td><code>None</code><td>按操作的 WebSocket 超时（登录、订阅、读、写），单位秒；未设置时用 10 秒。<tr><td><code>transport_backend</code><td><code>Sockudo</code><td>启用 <code>transport-sockudo</code> 时使用的 WebSocket 传输。<tr><td><code>max_retries</code><td><code>3</code><td>幂等 REST 读取的重试次数。订单写操作只发一次，永不重放。<tr><td><code>retry_delay_initial_ms</code><td><code>100</code><td>初始重试延迟（毫秒）。<tr><td><code>retry_delay_max_ms</code><td><code>5,000</code><td>退避的最大延迟（毫秒）。</table>
+<p>构建禁用了 <code>transport-sockudo</code> feature 时，默认传输回退到 <code>Tungstenite</code>。</p>
+<p>HTTP 读取时，<code>Retry-After</code> 设定的最小延迟可能超过 <code>retry_delay_max_ms</code>。若该延迟放不进剩余
+的 180 秒重试预算，客户端不重试，直接返回原始错误。</p>
+<h4 class="anchor anchorTargetStickyNavbar_ana5" id=order-signing-and-pricing>订单签名与定价<a href=#order-signing-and-pricing class=hash-link aria-label=订单签名与定价的直接链接 title=订单签名与定价的直接链接 translate=no>​</a></h4>
+<div class="theme-admonition theme-admonition-important admonition_LYZY alert alert--info"><div class=admonitionHeading_pnFY><span class=admonitionIcon_tEzm><svg viewBox="0 0 14 16"><path fill-rule=evenodd d="M7 2.3c3.14 0 5.7 2.56 5.7 5.7s-2.56 5.7-5.7 5.7A5.71 5.71 0 0 1 1.3 8c0-3.14 2.56-5.7 5.7-5.7zM7 1C3.14 1 0 4.14 0 8s3.14 7 7 7 7-3.14 7-7-3.14-7-7-7zm1 3H6v5h2V4zm0 6H6v2h2v-2z"/></svg></span>important</div><div class=admonitionContent_ZwmI><p><code>max_fee_per_contract</code> 必填且必须大于零。该字段缺失或非正时，执行客户端的构造在创建场所
+客户端之前就会失败。</div></div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>配置项<th>默认值<th>说明<tbody><tr><td><code>max_fee_per_contract</code><td>必填<td>签入每笔订单的正值单合约 USDC 手续费上限。<tr><td><code>domain_separator</code><td><code>None</code><td>可选的 EIP-712 domain separator 覆盖。<tr><td><code>action_typehash</code><td><code>None</code><td>可选的 EIP-712 action typehash 覆盖。<tr><td><code>trade_module_address</code><td><code>None</code><td>可选的 Trade 模块合约地址覆盖。<tr><td><code>signature_expiry_secs</code><td><code>600</code><td>订单/替换的 TTL；必须大于 10 秒且不超过 120 天。触发单固定用 31 天。<tr><td><code>market_order_slippage_bps</code><td><code>50</code><td>市价单限价价的滑点边界。</table>
+<h4 class="anchor anchorTargetStickyNavbar_ana5" id=matching-request-limits>撮合类请求限制<a href=#matching-request-limits class=hash-link aria-label=撮合类请求限制的直接链接 title=撮合类请求限制的直接链接 translate=no>​</a></h4>
+<p>两个限制未设置时默认为<strong>每秒 1 次请求</strong>。协商到的取值要分别设置：钱包额度用固定窗口，金融
+工具额度持续补充。同一 API 主机上同一钱包的客户端共享首次显式设置的值。调高钱包额度前先
+核实实时请求配额；金融工具配额无法通过 <code>public/getRateLimits</code> 查到。</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>配置项<th>默认值<th>说明<tbody><tr><td><code>max_matching_requests_per_second</code><td><code>None</code><td>钱包撮合类请求每秒次数。<tr><td><code>max_per_instrument_matching_requests_per_second</code><td><code>None</code><td>每钱包/金融工具的令牌补充速率（每秒）。</table>
+<h4 class="anchor anchorTargetStickyNavbar_ana5" id=credential-environment-variables>凭据环境变量<a href=#credential-environment-variables class=hash-link aria-label=凭据环境变量的直接链接 title=凭据环境变量的直接链接 translate=no>​</a></h4>
+<p><code>wallet_address</code>、<code>session_key</code> 与 <code>subaccount_id</code> 未设置时回退到环境变量：</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>字段<th>主网变量<th>测试网变量<tbody><tr><td><code>wallet_address</code><td><code>DERIVE_WALLET_ADDRESS</code><td><code>DERIVE_TESTNET_WALLET_ADDRESS</code><tr><td><code>session_key</code><td><code>DERIVE_SESSION_PRIVATE_KEY</code><td><code>DERIVE_TESTNET_SESSION_PRIVATE_KEY</code><tr><td><code>subaccount_id</code><td><code>DERIVE_SUBACCOUNT_ID</code><td><code>DERIVE_TESTNET_SUBACCOUNT_ID</code></table>
+<p>session key 是注册到钱包上用于 API 签名的 secp256k1 私钥。<code>session_key</code> 字段在 <code>Debug</code> 输出
+与 Python <code>repr</code> 中被打码。</p>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=python-live-node>Python 实时节点<a href=#python-live-node class=hash-link aria-label="Python 实时节点的直接链接" title="Python 实时节点的直接链接" translate=no>​</a></h3>
+<p>Python 节点使用 <code>LiveNode.builder(...)</code> 并传入具体的工厂实例。节点提供 trader 标识，
+<code>DeriveExecutionClientConfig</code> 提供账户标识。</p>
+<div class="language-python codeBlockContainer_eTMR theme-code-block" style=--prism-color:#393A34;--prism-background-color:#f6f8fa><div class=codeBlockContent_hafM><pre tabindex=0 class="prism-code language-python codeBlock_IMvC thin-scrollbar" style=color:#393A34;background-color:#f6f8fa><code class=codeBlockLines_gZDW><div class=token-line style=color:#393A34><span class="token keyword" style=color:#00009f>from</span><span class="token plain"> decimal </span><span class="token keyword" style=color:#00009f>import</span><span class="token plain"> Decimal</span><br/></div><div class=token-line style=color:#393A34><span class="token plain" style=display:inline-block></span><br/></div><div class=token-line style=color:#393A34><span class="token plain"></span><span class="token keyword" style=color:#00009f>from</span><span class="token plain"> nautilus_trader</span><span class="token punctuation" style=color:#393A34>.</span><span class="token plain">adapters</span><span class="token punctuation" style=color:#393A34>.</span><span class="token plain">derive </span><span class="token keyword" style=color:#00009f>import</span><span class="token plain"> DeriveDataClientConfig</span><br/></div><div class=token-line style=color:#393A34><span class="token plain"></span><span class="token keyword" style=color:#00009f>from</span><span class="token plain"> nautilus_trader</span><span class="token punctuation" style=color:#393A34>.</span><span class="token plain">adapters</span><span class="token punctuation" style=color:#393A34>.</span><span class="token plain">derive </span><span class="token keyword" style=color:#00009f>import</span><span class="token plain"> DeriveDataClientFactory</span><br/></div><div class=token-line style=color:#393A34><span class="token plain"></span><span class="token keyword" style=color:#00009f>from</span><span class="token plain"> nautilus_trader</span><span class="token punctuation" style=color:#393A34>.</span><span class="token plain">adapters</span><span class="token punctuation" style=color:#393A34>.</span><span class="token plain">derive </span><span class="token keyword" style=color:#00009f>import</span><span class="token plain"> DeriveEnvironment</span><br/></div><div class=token-line style=color:#393A34><span class="token plain"></span><span class="token keyword" style=color:#00009f>from</span><span class="token plain"> nautilus_trader</span><span class="token punctuation" style=color:#393A34>.</span><span class="token plain">adapters</span><span class="token punctuation" style=color:#393A34>.</span><span class="token plain">derive </span><span class="token keyword" style=color:#00009f>import</span><span class="token plain"> DeriveExecutionClientConfig</span><br/></div><div class=token-line style=color:#393A34><span class="token plain"></span><span class="token keyword" style=color:#00009f>from</span><span class="token plain"> nautilus_trader</span><span class="token punctuation" style=color:#393A34>.</span><span class="token plain">adapters</span><span class="token punctuation" style=color:#393A34>.</span><span class="token plain">derive </span><span class="token keyword" style=color:#00009f>import</span><span class="token plain"> DeriveExecutionClientFactory</span><br/></div><div class=token-line style=color:#393A34><span class="token plain"></span><span class="token keyword" style=color:#00009f>from</span><span class="token plain"> nautilus_trader</span><span class="token punctuation" style=color:#393A34>.</span><span class="token plain">common </span><span class="token keyword" style=color:#00009f>import</span><span class="token plain"> Environment</span><br/></div><div class=token-line style=color:#393A34><span class="token plain"></span><span class="token keyword" style=color:#00009f>from</span><span class="token plain"> nautilus_trader</span><span class="token punctuation" style=color:#393A34>.</span><span class="token plain">live </span><span class="token keyword" style=color:#00009f>import</span><span class="token plain"> LiveNode</span><br/></div><div class=token-line style=color:#393A34><span class="token plain"></span><span class="token keyword" style=color:#00009f>from</span><span class="token plain"> nautilus_trader</span><span class="token punctuation" style=color:#393A34>.</span><span class="token plain">model </span><span class="token keyword" style=color:#00009f>import</span><span class="token plain"> AccountId</span><br/></div><div class=token-line style=color:#393A34><span class="token plain"></span><span class="token keyword" style=color:#00009f>from</span><span class="token plain"> nautilus_trader</span><span class="token punctuation" style=color:#393A34>.</span><span class="token plain">model </span><span class="token keyword" style=color:#00009f>import</span><span class="token plain"> TraderId</span><br/></div><div class=token-line style=color:#393A34><span class="token plain" style=display:inline-block></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">trader_id </span><span class="token operator" style=color:#393A34>=</span><span class="token plain"> TraderId</span><span class="token punctuation" style=color:#393A34>(</span><span class="token string" style=color:#e3116c>"TESTER-001"</span><span class="token punctuation" style=color:#393A34>)</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain" style=display:inline-block></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">data_config </span><span class="token operator" style=color:#393A34>=</span><span class="token plain"> DeriveDataClientConfig</span><span class="token punctuation" style=color:#393A34>(</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    environment</span><span class="token operator" style=color:#393A34>=</span><span class="token plain">DeriveEnvironment</span><span class="token punctuation" style=color:#393A34>.</span><span class="token plain">TESTNET</span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    currencies</span><span class="token operator" style=color:#393A34>=</span><span class="token punctuation" style=color:#393A34>[</span><span class="token string" style=color:#e3116c>"ETH"</span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain"> </span><span class="token string" style=color:#e3116c>"BTC"</span><span class="token punctuation" style=color:#393A34>]</span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain"></span><span class="token punctuation" style=color:#393A34>)</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain" style=display:inline-block></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">exec_config </span><span class="token operator" style=color:#393A34>=</span><span class="token plain"> DeriveExecutionClientConfig</span><span class="token punctuation" style=color:#393A34>(</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    account_id</span><span class="token operator" style=color:#393A34>=</span><span class="token plain">AccountId</span><span class="token punctuation" style=color:#393A34>(</span><span class="token string" style=color:#e3116c>"DERIVE-001"</span><span class="token punctuation" style=color:#393A34>)</span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    environment</span><span class="token operator" style=color:#393A34>=</span><span class="token plain">DeriveEnvironment</span><span class="token punctuation" style=color:#393A34>.</span><span class="token plain">TESTNET</span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    max_fee_per_contract</span><span class="token operator" style=color:#393A34>=</span><span class="token plain">Decimal</span><span class="token punctuation" style=color:#393A34>(</span><span class="token string" style=color:#e3116c>"1000"</span><span class="token punctuation" style=color:#393A34>)</span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain"></span><span class="token punctuation" style=color:#393A34>)</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain" style=display:inline-block></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">node </span><span class="token operator" style=color:#393A34>=</span><span class="token plain"> </span><span class="token punctuation" style=color:#393A34>(</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    LiveNode</span><span class="token punctuation" style=color:#393A34>.</span><span class="token plain">builder</span><span class="token punctuation" style=color:#393A34>(</span><span class="token string" style=color:#e3116c>"DERIVE-001"</span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain"> trader_id</span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain"> Environment</span><span class="token punctuation" style=color:#393A34>.</span><span class="token plain">LIVE</span><span class="token punctuation" style=color:#393A34>)</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    </span><span class="token punctuation" style=color:#393A34>.</span><span class="token plain">add_data_client</span><span class="token punctuation" style=color:#393A34>(</span><span class="token boolean" style=color:#36acaa>None</span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain"> DeriveDataClientFactory</span><span class="token punctuation" style=color:#393A34>(</span><span class="token punctuation" style=color:#393A34>)</span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain"> data_config</span><span class="token punctuation" style=color:#393A34>)</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    </span><span class="token punctuation" style=color:#393A34>.</span><span class="token plain">add_exec_client</span><span class="token punctuation" style=color:#393A34>(</span><span class="token boolean" style=color:#36acaa>None</span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain"> DeriveExecutionClientFactory</span><span class="token punctuation" style=color:#393A34>(</span><span class="token punctuation" style=color:#393A34>)</span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain"> exec_config</span><span class="token punctuation" style=color:#393A34>)</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    </span><span class="token punctuation" style=color:#393A34>.</span><span class="token plain">build</span><span class="token punctuation" style=color:#393A34>(</span><span class="token punctuation" style=color:#393A34>)</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain"></span><span class="token punctuation" style=color:#393A34>)</span><br/></div></code></pre></div></div>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=rust-data-client>Rust 数据客户端<a href=#rust-data-client class=hash-link aria-label="Rust 数据客户端的直接链接" title="Rust 数据客户端的直接链接" translate=no>​</a></h3>
+<div class="language-rust codeBlockContainer_eTMR theme-code-block" style=--prism-color:#393A34;--prism-background-color:#f6f8fa><div class=codeBlockContent_hafM><pre tabindex=0 class="prism-code language-rust codeBlock_IMvC thin-scrollbar" style=color:#393A34;background-color:#f6f8fa><code class=codeBlockLines_gZDW><div class=token-line style=color:#393A34><span class="token keyword" style=color:#00009f>use</span><span class="token plain"> </span><span class="token namespace" style=opacity:0.7>nautilus_derive</span><span class="token namespace punctuation" style=opacity:0.7;color:#393A34>::</span><span class="token punctuation" style=color:#393A34>{</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    </span><span class="token namespace" style=opacity:0.7>common</span><span class="token namespace punctuation" style=opacity:0.7;color:#393A34>::</span><span class="token namespace" style=opacity:0.7>enums</span><span class="token namespace punctuation" style=opacity:0.7;color:#393A34>::</span><span class="token class-name">DeriveEnvironment</span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    </span><span class="token namespace" style=opacity:0.7>config</span><span class="token namespace punctuation" style=opacity:0.7;color:#393A34>::</span><span class="token class-name">DeriveDataClientConfig</span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain"></span><span class="token punctuation" style=color:#393A34>}</span><span class="token punctuation" style=color:#393A34>;</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain" style=display:inline-block></span><br/></div><div class=token-line style=color:#393A34><span class="token plain"></span><span class="token keyword" style=color:#00009f>let</span><span class="token plain"> config </span><span class="token operator" style=color:#393A34>=</span><span class="token plain"> </span><span class="token class-name">DeriveDataClientConfig</span><span class="token plain"> </span><span class="token punctuation" style=color:#393A34>{</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    environment</span><span class="token punctuation" style=color:#393A34>:</span><span class="token plain"> </span><span class="token class-name">DeriveEnvironment</span><span class="token punctuation" style=color:#393A34>::</span><span class="token class-name">Testnet</span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    currencies</span><span class="token punctuation" style=color:#393A34>:</span><span class="token plain"> </span><span class="token macro property" style=color:#36acaa>vec!</span><span class="token punctuation" style=color:#393A34>[</span><span class="token string" style=color:#e3116c>"ETH"</span><span class="token punctuation" style=color:#393A34>.</span><span class="token function" style=color:#d73a49>to_string</span><span class="token punctuation" style=color:#393A34>(</span><span class="token punctuation" style=color:#393A34>)</span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain"> </span><span class="token string" style=color:#e3116c>"BTC"</span><span class="token punctuation" style=color:#393A34>.</span><span class="token function" style=color:#d73a49>to_string</span><span class="token punctuation" style=color:#393A34>(</span><span class="token punctuation" style=color:#393A34>)</span><span class="token punctuation" style=color:#393A34>]</span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    </span><span class="token punctuation" style=color:#393A34>..</span><span class="token class-name">Default</span><span class="token punctuation" style=color:#393A34>::</span><span class="token function" style=color:#d73a49>default</span><span class="token punctuation" style=color:#393A34>(</span><span class="token punctuation" style=color:#393A34>)</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain"></span><span class="token punctuation" style=color:#393A34>}</span><span class="token punctuation" style=color:#393A34>;</span><br/></div></code></pre></div></div>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=rust-execution-client>Rust 执行客户端<a href=#rust-execution-client class=hash-link aria-label="Rust 执行客户端的直接链接" title="Rust 执行客户端的直接链接" translate=no>​</a></h3>
+<div class="language-rust codeBlockContainer_eTMR theme-code-block" style=--prism-color:#393A34;--prism-background-color:#f6f8fa><div class=codeBlockContent_hafM><pre tabindex=0 class="prism-code language-rust codeBlock_IMvC thin-scrollbar" style=color:#393A34;background-color:#f6f8fa><code class=codeBlockLines_gZDW><div class=token-line style=color:#393A34><span class="token keyword" style=color:#00009f>use</span><span class="token plain"> </span><span class="token namespace" style=opacity:0.7>nautilus_derive</span><span class="token namespace punctuation" style=opacity:0.7;color:#393A34>::</span><span class="token punctuation" style=color:#393A34>{</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    </span><span class="token namespace" style=opacity:0.7>common</span><span class="token namespace punctuation" style=opacity:0.7;color:#393A34>::</span><span class="token namespace" style=opacity:0.7>enums</span><span class="token namespace punctuation" style=opacity:0.7;color:#393A34>::</span><span class="token class-name">DeriveEnvironment</span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    </span><span class="token namespace" style=opacity:0.7>config</span><span class="token namespace punctuation" style=opacity:0.7;color:#393A34>::</span><span class="token class-name">DeriveExecutionClientConfig</span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain"></span><span class="token punctuation" style=color:#393A34>}</span><span class="token punctuation" style=color:#393A34>;</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain"></span><span class="token keyword" style=color:#00009f>use</span><span class="token plain"> </span><span class="token namespace" style=opacity:0.7>rust_decimal</span><span class="token namespace punctuation" style=opacity:0.7;color:#393A34>::</span><span class="token class-name">Decimal</span><span class="token punctuation" style=color:#393A34>;</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain" style=display:inline-block></span><br/></div><div class=token-line style=color:#393A34><span class="token plain"></span><span class="token keyword" style=color:#00009f>let</span><span class="token plain"> config </span><span class="token operator" style=color:#393A34>=</span><span class="token plain"> </span><span class="token class-name">DeriveExecutionClientConfig</span><span class="token plain"> </span><span class="token punctuation" style=color:#393A34>{</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    wallet_address</span><span class="token punctuation" style=color:#393A34>:</span><span class="token plain"> </span><span class="token class-name">Some</span><span class="token punctuation" style=color:#393A34>(</span><span class="token string" style=color:#e3116c>"0x..."</span><span class="token punctuation" style=color:#393A34>.</span><span class="token function" style=color:#d73a49>to_string</span><span class="token punctuation" style=color:#393A34>(</span><span class="token punctuation" style=color:#393A34>)</span><span class="token punctuation" style=color:#393A34>)</span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    session_key</span><span class="token punctuation" style=color:#393A34>:</span><span class="token plain"> </span><span class="token class-name">Some</span><span class="token punctuation" style=color:#393A34>(</span><span class="token string" style=color:#e3116c>"0x..."</span><span class="token punctuation" style=color:#393A34>.</span><span class="token function" style=color:#d73a49>into</span><span class="token punctuation" style=color:#393A34>(</span><span class="token punctuation" style=color:#393A34>)</span><span class="token punctuation" style=color:#393A34>)</span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    subaccount_id</span><span class="token punctuation" style=color:#393A34>:</span><span class="token plain"> </span><span class="token class-name">Some</span><span class="token punctuation" style=color:#393A34>(</span><span class="token number" style=color:#36acaa>1</span><span class="token punctuation" style=color:#393A34>)</span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    environment</span><span class="token punctuation" style=color:#393A34>:</span><span class="token plain"> </span><span class="token class-name">DeriveEnvironment</span><span class="token punctuation" style=color:#393A34>::</span><span class="token class-name">Testnet</span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    max_fee_per_contract</span><span class="token punctuation" style=color:#393A34>:</span><span class="token plain"> </span><span class="token class-name">Some</span><span class="token punctuation" style=color:#393A34>(</span><span class="token class-name">Decimal</span><span class="token punctuation" style=color:#393A34>::</span><span class="token function" style=color:#d73a49>from</span><span class="token punctuation" style=color:#393A34>(</span><span class="token number" style=color:#36acaa>1000</span><span class="token punctuation" style=color:#393A34>)</span><span class="token punctuation" style=color:#393A34>)</span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    </span><span class="token punctuation" style=color:#393A34>..</span><span class="token class-name">Default</span><span class="token punctuation" style=color:#393A34>::</span><span class="token function" style=color:#d73a49>default</span><span class="token punctuation" style=color:#393A34>(</span><span class="token punctuation" style=color:#393A34>)</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain"></span><span class="token punctuation" style=color:#393A34>}</span><span class="token punctuation" style=color:#393A34>;</span><br/></div></code></pre></div></div>
+<h2 class="anchor anchorTargetStickyNavbar_ana5" id=known-limitations>已知限制<a href=#known-limitations class=hash-link aria-label=已知限制的直接链接 title=已知限制的直接链接 translate=no>​</a></h2>
+<ul>
+<li class=""><code>request_instruments</code> 要求 <code>DeriveDataClientConfig::currencies</code> 中至少配置一个币种。适配器
+按每个配置的币种过滤 <code>public/get_all_instruments</code>，不枚举币种全集。</li>
+<li class="">场所不推送金融工具状态、金融工具收市或 candle 订阅。金融工具定义携带 <code>is_active</code> 与计划的
+启用/停用时间戳，K 线只能通过 REST 获取。</li>
+<li class="">场所没有暴露簿快照 REST 端点，也没有历史簿增量与历史报价端点。见上文能力表。</li>
+<li class="">Derive 官方 REST 文档自 2025 年 12 月 1 日起把 <code>public/get_ticker</code> 标记为废弃，改用
+<code>public/get_tickers</code>。适配器用 <code>public/get_tickers</code> 做报价快照与期权链参考价引导。</li>
+</ul></div><footer class="theme-doc-footer docusaurus-mt-lg"><div class="row margin-top--sm theme-doc-footer-edit-meta-row"><div class="col noPrint_MRkS"><a href=https://github.com/Aloento/NautilusTraderDoc/tree/main/docs/integrations/derive.md target=_blank rel="noopener noreferrer" class=theme-edit-this-page><svg fill=currentColor height=20 width=20 viewBox="0 0 40 40" class=iconEdit_RPSQ aria-hidden=true><g><path d="m34.5 11.7l-3 3.1-6.3-6.3 3.1-3q0.5-0.5 1.2-0.5t1.1 0.5l3.9 3.9q0.5 0.4 0.5 1.1t-0.5 1.2z m-29.5 17.1l18.4-18.5 6.3 6.3-18.4 18.4h-6.3v-6.2z"/></g></svg>编辑此页</a></div><div class="col lastUpdated_oZSl"><span class=theme-last-updated>最后<!-- -->于 <b><time datetime=2026-10-14T22:30:30.000Z itemprop=dateModified>2026年10月14日</time></b> <!-- -->更新</span></div></div></footer></article><nav class="docusaurus-mt-lg pagination-nav" aria-label=文件选项卡><a class="pagination-nav__link pagination-nav__link--prev" href=/integrations/deribit><div class=pagination-nav__sublabel>上一页</div><div class=pagination-nav__label>Deribit</div></a><a class="pagination-nav__link pagination-nav__link--next" href=/integrations/dydx><div class=pagination-nav__sublabel>下一页</div><div class=pagination-nav__label>dYdX</div></a></nav></div></div><div class="col col--3"><div class="tableOfContents_LyLZ thin-scrollbar theme-doc-toc-desktop"><ul class="table-of-contents table-of-contents__left-border"><li><a href=#overview class="table-of-contents__link toc-highlight">概览</a><li><a href=#examples class="table-of-contents__link toc-highlight">示例</a><li><a href=#derive-documentation class="table-of-contents__link toc-highlight">Derive 文档</a><ul><li><a href=#v3-deployment-and-migration class="table-of-contents__link toc-highlight">V3 部署与迁移</a></ul><li><a href=#products class="table-of-contents__link toc-highlight">产品</a><li><a href=#symbology class="table-of-contents__link toc-highlight">符号体系</a><ul><li><a href=#spot-behavior class="table-of-contents__link toc-highlight">现货行为</a></ul><li><a href=#environments class="table-of-contents__link toc-highlight">环境</a><ul><li><a href=#switch-an-existing-deployment-to-v3 class="table-of-contents__link toc-highlight">把现有部署切换到 v3</a></ul><li><a href=#testnet-onboarding class="table-of-contents__link toc-highlight">Testnet 接入</a><ul><li><a href=#minimum-funding class="table-of-contents__link toc-highlight">最小注资</a><li><a href=#check-account-health class="table-of-contents__link toc-highlight">检查账户健康</a></ul><li><a href=#mainnet-onboarding class="table-of-contents__link toc-highlight">Mainnet 接入</a><ul><li><a href=#select-the-example-network class="table-of-contents__link toc-highlight">选择示例网络</a></ul><li><a href=#referral-code-attribution class="table-of-contents__link toc-highlight">推荐码归因</a><li><a href=#capabilities class="table-of-contents__link toc-highlight">能力</a><ul><li><a href=#market-data class="table-of-contents__link toc-highlight">行情数据</a><li><a href=#execution class="table-of-contents__link toc-highlight">执行</a></ul><li><a href=#rate-limiting class="table-of-contents__link toc-highlight">限流</a><ul><li><a href=#budget-scopes-and-refill class="table-of-contents__link toc-highlight">配额范围与补充</a><li><a href=#request-buckets class="table-of-contents__link toc-highlight">请求桶</a><li><a href=#signing-and-venue-responses class="table-of-contents__link toc-highlight">签名与场所响应</a></ul><li><a href=#websocket-recovery class="table-of-contents__link toc-highlight">WebSocket 恢复</a><ul><li><a href=#order-book-recovery class="table-of-contents__link toc-highlight">订单簿恢复</a><li><a href=#live-recovery-validation class="table-of-contents__link toc-highlight">实时恢复验证</a></ul><li><a href=#deterministic-simulation-testing class="table-of-contents__link toc-highlight">确定性仿真测试</a><li><a href=#subscription-parameters class="table-of-contents__link toc-highlight">订阅参数</a><ul><li><a href=#shared-ticker-subscription class="table-of-contents__link toc-highlight">共享 ticker 订阅</a></ul><li><a href=#configuration class="table-of-contents__link toc-highlight">配置</a><ul><li><a href=#data-client-configuration-options class="table-of-contents__link toc-highlight">数据客户端配置项</a><li><a href=#execution-client-configuration-options class="table-of-contents__link toc-highlight">执行客户端配置项</a><li><a href=#python-live-node class="table-of-contents__link toc-highlight">Python 实时节点</a><li><a href=#rust-data-client class="table-of-contents__link toc-highlight">Rust 数据客户端</a><li><a href=#rust-execution-client class="table-of-contents__link toc-highlight">Rust 执行客户端</a></ul><li><a href=#known-limitations class="table-of-contents__link toc-highlight">已知限制</a></ul></div></div></div></div></main></div></div></div><footer class="theme-layout-footer footer footer--dark"><div class="container container-fluid"><div class="row footer__links"><div class="theme-layout-footer-column col footer__col"><div class=footer__title></div><ul class="footer__items clean-list"><li class=footer__item><a href=https://github.com/nautechsystems/nautilus_trader target=_blank rel="noopener noreferrer" class=footer__link-item>Official GitHub<svg width=13.5 height=13.5 aria-label="(opens in new tab)" class=iconExternalLink_qUHo><use href=#theme-svg-external-link /></svg></a><li class=footer__item><a href=https://nautilustrader.io/docs target=_blank rel="noopener noreferrer" class=footer__link-item>Official Documentation<svg width=13.5 height=13.5 aria-label="(opens in new tab)" class=iconExternalLink_qUHo><use href=#theme-svg-external-link /></svg></a></ul></div></div><div class="footer__bottom text--center"><div class=footer__copyright>© 2026 Nautech Systems Pty Ltd. All rights reserved.</div></div></div></footer></div></body>

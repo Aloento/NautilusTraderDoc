@@ -1,171 +1,724 @@
-<!doctype html>
-<html lang="zh" dir="ltr" class="docs-wrapper plugin-docs plugin-id-default docs-version-current docs-doc-page docs-doc-id-concepts/execution" data-has-hydrated="false">
-<head>
-<meta charset="UTF-8">
-<meta name="generator" content="Docusaurus v3.9.1">
-<title data-rh="true">执行 | NautilusTrader 文档</title><meta data-rh="true" name="viewport" content="width=device-width,initial-scale=1"><meta data-rh="true" name="twitter:card" content="summary_large_image"><meta data-rh="true" property="og:url" content="https://nautilus.aloen.to/concepts/execution"><meta data-rh="true" property="og:locale" content="zh"><meta data-rh="true" name="docusaurus_locale" content="zh"><meta data-rh="true" name="docsearch:language" content="zh"><meta data-rh="true" name="docusaurus_version" content="current"><meta data-rh="true" name="docusaurus_tag" content="docs-default-current"><meta data-rh="true" name="docsearch:version" content="current"><meta data-rh="true" name="docsearch:docusaurus_tag" content="docs-default-current"><meta data-rh="true" property="og:title" content="执行 | NautilusTrader 文档"><meta data-rh="true" name="description" content="NautilusTrader 能够为多个策略和多个交易场所（每个实例）同时处理交易执行和订单管理。执行流程涉及多个相互作用的组件，理解命令与事件等执行消息的可能流向至关重要。"><meta data-rh="true" property="og:description" content="NautilusTrader 能够为多个策略和多个交易场所（每个实例）同时处理交易执行和订单管理。执行流程涉及多个相互作用的组件，理解命令与事件等执行消息的可能流向至关重要。"><link data-rh="true" rel="icon" href="/logo.png"><link data-rh="true" rel="canonical" href="https://nautilus.aloen.to/concepts/execution"><link data-rh="true" rel="alternate" href="https://nautilus.aloen.to/concepts/execution" hreflang="zh"><link data-rh="true" rel="alternate" href="https://nautilus.aloen.to/concepts/execution" hreflang="x-default"><script data-rh="true" type="application/ld+json">{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"概念","item":"https://nautilus.aloen.to/concepts/"},{"@type":"ListItem","position":2,"name":"执行","item":"https://nautilus.aloen.to/concepts/execution"}]}</script><link rel="stylesheet" href="/assets/css/styles.33db920f.css">
-<script src="/assets/js/runtime~main.7f15ce23.js" defer="defer"></script>
-<script src="/assets/js/main.7a54437b.js" defer="defer"></script>
-</head>
-<body class="navigation-with-keyboard">
-<svg style="display: none;"><defs>
-<symbol id="theme-svg-external-link" viewBox="0 0 24 24"><path fill="currentColor" d="M21 13v10h-21v-19h12v2h-10v15h17v-8h2zm3-12h-10.988l4.035 4-6.977 7.07 2.828 2.828 6.977-7.07 4.125 4.172v-11z"/></symbol>
+<!doctype html><html lang=zh dir=ltr class="docs-wrapper plugin-docs plugin-id-default docs-version-current docs-doc-page docs-doc-id-concepts/execution/index" data-has-hydrated=false><head><meta charset=UTF-8><meta name=generator content="Docusaurus v3.10.2"><title data-rh=true>执行 | NautilusTrader 文档</title><meta data-rh=true name=viewport content="width=device-width, initial-scale=1.0"/><meta data-rh=true name=twitter:card content=summary_large_image /><meta data-rh=true property=og:url content=https://nautilus.aloen.to/concepts/execution/ /><meta data-rh=true property=og:locale content=zh /><meta data-rh=true name=docusaurus_locale content=zh /><meta data-rh=true name=docsearch:language content=zh /><meta data-rh=true name=docusaurus_version content=current /><meta data-rh=true name=docusaurus_tag content=docs-default-current /><meta data-rh=true name=docsearch:version content=current /><meta data-rh=true name=docsearch:docusaurus_tag content=docs-default-current /><meta data-rh=true property=og:title content="执行 | NautilusTrader 文档"/><meta data-rh=true name=description content=execution} /><meta data-rh=true property=og:description content=execution} /><link data-rh=true rel=icon href=/logo.png /><link data-rh=true rel=canonical href=https://nautilus.aloen.to/concepts/execution/ /><link data-rh=true rel=alternate href=https://nautilus.aloen.to/concepts/execution/ hreflang=zh /><link data-rh=true rel=alternate href=https://nautilus.aloen.to/concepts/execution/ hreflang=x-default /><script data-rh=true type=application/ld+json>{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","item":"https://nautilus.aloen.to/concepts/","name":"核心概念","position":1},{"@type":"ListItem","item":"https://nautilus.aloen.to/concepts/execution/","name":"执行","position":2}]}</script><link rel=stylesheet href=/assets/css/styles.adb7ea18.css /><script src=/assets/js/runtime~main.71ac0794.js defer></script><script src=/assets/js/main.d978d0f2.js defer></script></head><body><svg style="display: none;"><defs>
+<symbol id=theme-svg-external-link viewBox="0 0 24 24"><path fill=currentColor d="M21 13v10h-21v-19h12v2h-10v15h17v-8h2zm3-12h-10.988l4.035 4-6.977 7.07 2.828 2.828 6.977-7.07 4.125 4.172v-11z"/></symbol>
 </defs></svg>
-<script>!function(){var t=function(){try{return new URLSearchParams(window.location.search).get("docusaurus-theme")}catch(t){}}()||function(){try{return window.localStorage.getItem("theme")}catch(t){}}();document.documentElement.setAttribute("data-theme",t||(window.matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light")),document.documentElement.setAttribute("data-theme-choice",t||"system")}(),function(){try{const c=new URLSearchParams(window.location.search).entries();for(var[t,e]of c)if(t.startsWith("docusaurus-data-")){var a=t.replace("docusaurus-data-","data-");document.documentElement.setAttribute(a,e)}}catch(t){}}()</script><div id="__docusaurus"><link rel="preload" as="image" href="/logo.png"><div role="region" aria-label="跳到主要内容"><a class="skipToContent__uWo" href="#__docusaurus_skipToContent_fallback">跳到主要内容</a></div><nav aria-label="主导航" class="theme-layout-navbar navbar navbar--fixed-top"><div class="navbar__inner"><div class="theme-layout-navbar-left navbar__items"><button aria-label="切换导航栏" aria-expanded="false" class="navbar__toggle clean-btn" type="button"><svg width="30" height="30" viewBox="0 0 30 30" aria-hidden="true"><path stroke="currentColor" stroke-linecap="round" stroke-miterlimit="10" stroke-width="2" d="M4 7h22M4 15h22M4 23h22"></path></svg></button><a class="navbar__brand" href="/"><div class="navbar__logo"><img src="/logo.png" alt="NautilusTrader Logo" class="themedComponent_WkLn themedComponent--light_cjoX"><img src="/logo.png" alt="NautilusTrader Logo" class="themedComponent_WkLn themedComponent--dark_jZId"></div><b class="navbar__title text--truncate">NautilusTrader</b></a><a aria-current="page" class="navbar__item navbar__link navbar__link--active" href="/api_reference/">文档</a></div><div class="theme-layout-navbar-right navbar__items navbar__items--right"><a href="https://github.com/Aloento/NautilusTraderDoc" target="_blank" rel="noopener noreferrer" class="navbar__item navbar__link">GitHub<svg width="13.5" height="13.5" aria-label="(opens in new tab)" class="iconExternalLink_KfBJ"><use href="#theme-svg-external-link"></use></svg></a><div class="toggle_RWFU colorModeToggle_sA1q"><button class="clean-btn toggleButton_qjfc toggleButtonDisabled_cpNp" type="button" disabled="" title="system mode" aria-label="切换浅色/暗黑模式（当前为system mode）"><svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true" class="toggleIcon_CetX lightToggleIcon_UYsV"><path fill="currentColor" d="M12,9c1.65,0,3,1.35,3,3s-1.35,3-3,3s-3-1.35-3-3S10.35,9,12,9 M12,7c-2.76,0-5,2.24-5,5s2.24,5,5,5s5-2.24,5-5 S14.76,7,12,7L12,7z M2,13l2,0c0.55,0,1-0.45,1-1s-0.45-1-1-1l-2,0c-0.55,0-1,0.45-1,1S1.45,13,2,13z M20,13l2,0c0.55,0,1-0.45,1-1 s-0.45-1-1-1l-2,0c-0.55,0-1,0.45-1,1S19.45,13,20,13z M11,2v2c0,0.55,0.45,1,1,1s1-0.45,1-1V2c0-0.55-0.45-1-1-1S11,1.45,11,2z M11,20v2c0,0.55,0.45,1,1,1s1-0.45,1-1v-2c0-0.55-0.45-1-1-1C11.45,19,11,19.45,11,20z M5.99,4.58c-0.39-0.39-1.03-0.39-1.41,0 c-0.39,0.39-0.39,1.03,0,1.41l1.06,1.06c0.39,0.39,1.03,0.39,1.41,0s0.39-1.03,0-1.41L5.99,4.58z M18.36,16.95 c-0.39-0.39-1.03-0.39-1.41,0c-0.39,0.39-0.39,1.03,0,1.41l1.06,1.06c0.39,0.39,1.03,0.39,1.41,0c0.39-0.39,0.39-1.03,0-1.41 L18.36,16.95z M19.42,5.99c0.39-0.39,0.39-1.03,0-1.41c-0.39-0.39-1.03-0.39-1.41,0l-1.06,1.06c-0.39,0.39-0.39,1.03,0,1.41 s1.03,0.39,1.41,0L19.42,5.99z M7.05,18.36c0.39-0.39,0.39-1.03,0-1.41c-0.39-0.39-1.03-0.39-1.41,0l-1.06,1.06 c-0.39,0.39-0.39,1.03,0,1.41s1.03,0.39,1.41,0L7.05,18.36z"></path></svg><svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true" class="toggleIcon_CetX darkToggleIcon_i1s2"><path fill="currentColor" d="M9.37,5.51C9.19,6.15,9.1,6.82,9.1,7.5c0,4.08,3.32,7.4,7.4,7.4c0.68,0,1.35-0.09,1.99-0.27C17.45,17.19,14.93,19,12,19 c-3.86,0-7-3.14-7-7C5,9.07,6.81,6.55,9.37,5.51z M12,3c-4.97,0-9,4.03-9,9s4.03,9,9,9s9-4.03,9-9c0-0.46-0.04-0.92-0.1-1.36 c-0.98,1.37-2.58,2.26-4.4,2.26c-2.98,0-5.4-2.42-5.4-5.4c0-1.81,0.89-3.42,2.26-4.4C12.92,3.04,12.46,3,12,3L12,3z"></path></svg><svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true" class="toggleIcon_CetX systemToggleIcon_yIQx"><path fill="currentColor" d="m12 21c4.971 0 9-4.029 9-9s-4.029-9-9-9-9 4.029-9 9 4.029 9 9 9zm4.95-13.95c1.313 1.313 2.05 3.093 2.05 4.95s-0.738 3.637-2.05 4.95c-1.313 1.313-3.093 2.05-4.95 2.05v-14c1.857 0 3.637 0.737 4.95 2.05z"></path></svg></button></div><div class="navbarSearchContainer_PsjF"></div></div></div><div role="presentation" class="navbar-sidebar__backdrop"></div></nav><div id="__docusaurus_skipToContent_fallback" class="theme-layout-main main-wrapper mainWrapper_jk42"><div class="docsWrapper_KWBO"><button aria-label="回到顶部" class="clean-btn theme-back-to-top-button backToTopButton_XpKL" type="button"></button><div class="docRoot_joIP"><aside class="theme-doc-sidebar-container docSidebarContainer_DOen"><div class="sidebarViewport_j7YP"><div class="sidebar_nPgc"><nav aria-label="文档侧边栏" class="menu thin-scrollbar menu_MTDt"><ul class="theme-doc-sidebar-menu menu__list"><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-1 menu__list-item menu__list-item--collapsed"><div class="menu__list-item-collapsible"><a class="categoryLink_GgI9 menu__link menu__link--sublist" href="/api_reference/"><span title="Python API" class="categoryLinkLabel_XKxb">Python API</span></a><button aria-label="展开侧边栏分类 &#x27;Python API&#x27;" aria-expanded="false" type="button" class="clean-btn menu__caret"></button></div></li><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-1 menu__list-item"><div class="menu__list-item-collapsible"><a class="categoryLink_GgI9 menu__link menu__link--sublist menu__link--active" href="/concepts/"><span title="概念" class="categoryLinkLabel_XKxb">概念</span></a><button aria-label="折叠侧边栏分类 &#x27;概念&#x27;" aria-expanded="true" type="button" class="clean-btn menu__caret"></button></div><ul class="menu__list"><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class="menu__link" tabindex="0" href="/concepts/actors"><span title="Actors" class="linkLabel_CNtA">Actors</span></a></li><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class="menu__link" tabindex="0" href="/concepts/adapters"><span title="适配器" class="linkLabel_CNtA">适配器</span></a></li><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class="menu__link" tabindex="0" href="/concepts/architecture"><span title="架构" class="linkLabel_CNtA">架构</span></a></li><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class="menu__link" tabindex="0" href="/concepts/backtesting"><span title="回测" class="linkLabel_CNtA">回测</span></a></li><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class="menu__link" tabindex="0" href="/concepts/cache"><span title="Cache" class="linkLabel_CNtA">Cache</span></a></li><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class="menu__link" tabindex="0" href="/concepts/data"><span title="数据" class="linkLabel_CNtA">数据</span></a></li><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class="menu__link menu__link--active" aria-current="page" tabindex="0" href="/concepts/execution"><span title="执行" class="linkLabel_CNtA">执行</span></a></li><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class="menu__link" tabindex="0" href="/concepts/instruments"><span title="合约与交易品种" class="linkLabel_CNtA">合约与交易品种</span></a></li><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class="menu__link" tabindex="0" href="/concepts/live"><span title="Live 交易" class="linkLabel_CNtA">Live 交易</span></a></li><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class="menu__link" tabindex="0" href="/concepts/logging"><span title="日志" class="linkLabel_CNtA">日志</span></a></li><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class="menu__link" tabindex="0" href="/concepts/message_bus"><span title="消息总线" class="linkLabel_CNtA">消息总线</span></a></li><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class="menu__link" tabindex="0" href="/concepts/orders"><span title="订单" class="linkLabel_CNtA">订单</span></a></li><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class="menu__link" tabindex="0" href="/concepts/overview"><span title="概览" class="linkLabel_CNtA">概览</span></a></li><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class="menu__link" tabindex="0" href="/concepts/portfolio"><span title="投资组合" class="linkLabel_CNtA">投资组合</span></a></li><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class="menu__link" tabindex="0" href="/concepts/positions"><span title="持仓" class="linkLabel_CNtA">持仓</span></a></li><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class="menu__link" tabindex="0" href="/concepts/reports"><span title="报告" class="linkLabel_CNtA">报告</span></a></li><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class="menu__link" tabindex="0" href="/concepts/strategies"><span title="策略" class="linkLabel_CNtA">策略</span></a></li></ul></li><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-1 menu__list-item menu__list-item--collapsed"><div class="menu__list-item-collapsible"><a class="categoryLink_GgI9 menu__link menu__link--sublist" href="/developer_guide/"><span title="开发者指南" class="categoryLinkLabel_XKxb">开发者指南</span></a><button aria-label="展开侧边栏分类 &#x27;开发者指南&#x27;" aria-expanded="false" type="button" class="clean-btn menu__caret"></button></div></li><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-1 menu__list-item menu__list-item--collapsed"><div class="menu__list-item-collapsible"><a class="categoryLink_GgI9 menu__link menu__link--sublist" href="/getting_started/"><span title="入门" class="categoryLinkLabel_XKxb">入门</span></a><button aria-label="展开侧边栏分类 &#x27;入门&#x27;" aria-expanded="false" type="button" class="clean-btn menu__caret"></button></div></li><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-1 menu__list-item menu__list-item--collapsed"><div class="menu__list-item-collapsible"><a class="categoryLink_GgI9 menu__link menu__link--sublist" href="/integrations/"><span title="集成" class="categoryLinkLabel_XKxb">集成</span></a><button aria-label="展开侧边栏分类 &#x27;集成&#x27;" aria-expanded="false" type="button" class="clean-btn menu__caret"></button></div></li><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-1 menu__list-item menu__list-item--collapsed"><div class="menu__list-item-collapsible"><a class="categoryLink_GgI9 menu__link menu__link--sublist" href="/tutorials/"><span title="教程" class="categoryLinkLabel_XKxb">教程</span></a><button aria-label="展开侧边栏分类 &#x27;教程&#x27;" aria-expanded="false" type="button" class="clean-btn menu__caret"></button></div></li></ul></nav></div></div></aside><main class="docMainContainer_bw1l"><div class="container padding-top--md padding-bottom--lg"><div class="row"><div class="col docItemCol_PIhC"><div class="docItemContainer_pFw3"><article><nav class="theme-doc-breadcrumbs breadcrumbsContainer_HRKZ" aria-label="页面路径"><ul class="breadcrumbs"><li class="breadcrumbs__item"><a aria-label="主页面" class="breadcrumbs__link" href="/"><svg viewBox="0 0 24 24" class="breadcrumbHomeIcon_sX5c"><path d="M10 19v-5h4v5c0 .55.45 1 1 1h3c.55 0 1-.45 1-1v-7h1.7c.46 0 .68-.57.33-.87L12.67 3.6c-.38-.34-.96-.34-1.34 0l-8.36 7.53c-.34.3-.13.87.33.87H5v7c0 .55.45 1 1 1h3c.55 0 1-.45 1-1z" fill="currentColor"></path></svg></a></li><li class="breadcrumbs__item"><a class="breadcrumbs__link" href="/concepts/"><span>概念</span></a></li><li class="breadcrumbs__item breadcrumbs__item--active"><span class="breadcrumbs__link">执行</span></li></ul></nav><div class="tocCollapsible_DhUt theme-doc-toc-mobile tocMobile_Izjv"><button type="button" class="clean-btn tocCollapsibleButton_eYR5">本页总览</button></div><div class="theme-doc-markdown markdown"><header><h1>执行</h1></header>
-<p>NautilusTrader 能够为多个策略和多个交易场所（每个实例）同时处理交易执行和订单管理。执行流程涉及多个相互作用的组件，理解命令与事件等执行消息的可能流向至关重要。</p>
-<p>主要的执行相关组件包括：</p>
+<script>!function(){var t=function(){try{return new URLSearchParams(window.location.search).get("docusaurus-theme")}catch(t){}}()||function(){try{return window.localStorage.getItem("theme-2e3")}catch(t){}}();document.documentElement.setAttribute("data-theme",t||(window.matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light")),document.documentElement.setAttribute("data-theme-choice",t||"system")}(),function(){try{for(var[t,e]of new URLSearchParams(window.location.search).entries())if(t.startsWith("docusaurus-data-")){var a=t.replace("docusaurus-data-","data-");document.documentElement.setAttribute(a,e)}}catch(t){}}()</script><div id=__docusaurus><link rel=preload as=image href=/logo.png /><div role=region aria-label=跳到主要内容><a class=skipToContent_zuOI href=#__docusaurus_skipToContent_fallback>跳到主要内容</a></div><nav aria-label=主导航 class="theme-layout-navbar navbar navbar--fixed-top"><div class=navbar__inner><div class="theme-layout-navbar-left navbar__items"><button aria-label=切换导航栏 aria-expanded=false class="navbar__toggle clean-btn" type=button><svg width=30 height=30 viewBox="0 0 30 30" aria-hidden=true><path stroke=currentColor stroke-linecap=round stroke-miterlimit=10 stroke-width=2 d="M4 7h22M4 15h22M4 23h22"/></svg></button><a class=navbar__brand href=/><div class=navbar__logo><img src=/logo.png alt="NautilusTrader Logo" class="themedComponent_q2_Y themedComponent--light_Nejn"/><img src=/logo.png alt="NautilusTrader Logo" class="themedComponent_q2_Y themedComponent--dark_JjIb"/></div><b class="navbar__title text--truncate">NautilusTrader</b></a><a aria-current=page class="navbar__item navbar__link navbar__link--active" href=/getting_started/>文档</a></div><div class="theme-layout-navbar-right navbar__items navbar__items--right"><a href=https://github.com/Aloento/NautilusTraderDoc target=_blank rel="noopener noreferrer" class="navbar__item navbar__link">GitHub<svg width=13.5 height=13.5 aria-label="(opens in new tab)" class=iconExternalLink_qUHo><use href=#theme-svg-external-link /></svg></a><div class="toggle_hHmI colorModeToggle_rOOn"><button class="clean-btn toggleButton_wEhT toggleButtonDisabled_yOOP" type=button disabled title="system mode" aria-label="切换浅色/暗黑模式（当前为system mode）"><svg viewBox="0 0 24 24" width=24 height=24 aria-hidden=true class="toggleIcon_Kt6U lightToggleIcon_Zfeh"><path fill=currentColor d="M12,9c1.65,0,3,1.35,3,3s-1.35,3-3,3s-3-1.35-3-3S10.35,9,12,9 M12,7c-2.76,0-5,2.24-5,5s2.24,5,5,5s5-2.24,5-5 S14.76,7,12,7L12,7z M2,13l2,0c0.55,0,1-0.45,1-1s-0.45-1-1-1l-2,0c-0.55,0-1,0.45-1,1S1.45,13,2,13z M20,13l2,0c0.55,0,1-0.45,1-1 s-0.45-1-1-1l-2,0c-0.55,0-1,0.45-1,1S19.45,13,20,13z M11,2v2c0,0.55,0.45,1,1,1s1-0.45,1-1V2c0-0.55-0.45-1-1-1S11,1.45,11,2z M11,20v2c0,0.55,0.45,1,1,1s1-0.45,1-1v-2c0-0.55-0.45-1-1-1C11.45,19,11,19.45,11,20z M5.99,4.58c-0.39-0.39-1.03-0.39-1.41,0 c-0.39,0.39-0.39,1.03,0,1.41l1.06,1.06c0.39,0.39,1.03,0.39,1.41,0s0.39-1.03,0-1.41L5.99,4.58z M18.36,16.95 c-0.39-0.39-1.03-0.39-1.41,0c-0.39,0.39-0.39,1.03,0,1.41l1.06,1.06c0.39,0.39,1.03,0.39,1.41,0c0.39-0.39,0.39-1.03,0-1.41 L18.36,16.95z M19.42,5.99c0.39-0.39,0.39-1.03,0-1.41c-0.39-0.39-1.03-0.39-1.41,0l-1.06,1.06c-0.39,0.39-0.39,1.03,0,1.41 s1.03,0.39,1.41,0L19.42,5.99z M7.05,18.36c0.39-0.39,0.39-1.03,0-1.41c-0.39-0.39-1.03-0.39-1.41,0l-1.06,1.06 c-0.39,0.39-0.39,1.03,0,1.41s1.03,0.39,1.41,0L7.05,18.36z"/></svg><svg viewBox="0 0 24 24" width=24 height=24 aria-hidden=true class="toggleIcon_Kt6U darkToggleIcon_XgQr"><path fill=currentColor d="M9.37,5.51C9.19,6.15,9.1,6.82,9.1,7.5c0,4.08,3.32,7.4,7.4,7.4c0.68,0,1.35-0.09,1.99-0.27C17.45,17.19,14.93,19,12,19 c-3.86,0-7-3.14-7-7C5,9.07,6.81,6.55,9.37,5.51z M12,3c-4.97,0-9,4.03-9,9s4.03,9,9,9s9-4.03,9-9c0-0.46-0.04-0.92-0.1-1.36 c-0.98,1.37-2.58,2.26-4.4,2.26c-2.98,0-5.4-2.42-5.4-5.4c0-1.81,0.89-3.42,2.26-4.4C12.92,3.04,12.46,3,12,3L12,3z"/></svg><svg viewBox="0 0 24 24" width=24 height=24 aria-hidden=true class="toggleIcon_Kt6U systemToggleIcon_BvUi"><path fill=currentColor d="m12 21c4.971 0 9-4.029 9-9s-4.029-9-9-9-9 4.029-9 9 4.029 9 9 9zm4.95-13.95c1.313 1.313 2.05 3.093 2.05 4.95s-0.738 3.637-2.05 4.95c-1.313 1.313-3.093 2.05-4.95 2.05v-14c1.857 0 3.637 0.737 4.95 2.05z"/></svg></button></div><div class=navbarSearchContainer_watl></div></div></div><div role=presentation class=navbar-sidebar__backdrop></div></nav><div id=__docusaurus_skipToContent_fallback class="theme-layout-main main-wrapper mainWrapper_R72Q"><div class=docsWrapper_XQ9b><button aria-label=回到顶部 class="clean-btn theme-back-to-top-button backToTopButton_MbnX" type=button></button><div class=docRoot_aqOB><aside class="theme-doc-sidebar-container docSidebarContainer_sI2e"><div class=sidebarViewport_TzTy><div class=sidebar_CbEe><nav aria-label=文档侧边栏 class="menu thin-scrollbar menu_ChRF"><ul class="theme-doc-sidebar-menu menu__list"><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-1 menu__list-item menu__list-item--collapsed"><div class=menu__list-item-collapsible><a class="categoryLink_Muyc menu__link menu__link--sublist" href=/getting_started/><span class=categoryLinkLabel_mAcL>快速开始</span></a><button aria-label="展开侧边栏分类 '快速开始'" aria-expanded=false type=button class="clean-btn menu__caret"></button></div><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-1 menu__list-item"><div class=menu__list-item-collapsible><a class="categoryLink_Muyc menu__link menu__link--sublist menu__link--active" href=/concepts/><span class=categoryLinkLabel_mAcL>核心概念</span></a><button aria-label="折叠侧边栏分类 '核心概念'" aria-expanded=true type=button class="clean-btn menu__caret"></button></div><ul class=menu__list><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-2 menu__list-item menu__list-item--collapsed"><div class=menu__list-item-collapsible><a class="categoryLink_Muyc menu__link menu__link--sublist" tabindex=0 href=/concepts/instruments/><span class=categoryLinkLabel_mAcL>金融工具</span></a><button aria-label="展开侧边栏分类 '金融工具'" aria-expanded=false type=button class="clean-btn menu__caret"></button></div><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-2 menu__list-item menu__list-item--collapsed"><div class=menu__list-item-collapsible><a class="categoryLink_Muyc menu__link menu__link--sublist" tabindex=0 href=/concepts/orders/><span class=categoryLinkLabel_mAcL>订单</span></a><button aria-label="展开侧边栏分类 '订单'" aria-expanded=false type=button class="clean-btn menu__caret"></button></div><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-2 menu__list-item menu__list-item--collapsed"><div class=menu__list-item-collapsible><a class="categoryLink_Muyc menu__link menu__link--sublist" tabindex=0 href=/concepts/data/><span class=categoryLinkLabel_mAcL>数据</span></a><button aria-label="展开侧边栏分类 '数据'" aria-expanded=false type=button class="clean-btn menu__caret"></button></div><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-2 menu__list-item menu__list-item--collapsed"><div class=menu__list-item-collapsible><a class="categoryLink_Muyc menu__link menu__link--sublist" tabindex=0 href=/concepts/backtesting/><span class=categoryLinkLabel_mAcL>回测</span></a><button aria-label="展开侧边栏分类 '回测'" aria-expanded=false type=button class="clean-btn menu__caret"></button></div><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-2 menu__list-item menu__list-item--collapsed"><div class=menu__list-item-collapsible><a class="categoryLink_Muyc menu__link menu__link--sublist" tabindex=0 href=/concepts/events/><span class=categoryLinkLabel_mAcL>事件</span></a><button aria-label="展开侧边栏分类 '事件'" aria-expanded=false type=button class="clean-btn menu__caret"></button></div><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-2 menu__list-item"><div class="menu__list-item-collapsible menu__list-item-collapsible--active"><a class="categoryLink_Muyc menu__link menu__link--sublist menu__link--active" aria-current=page tabindex=0 href=/concepts/execution/><span class=categoryLinkLabel_mAcL>执行</span></a><button aria-label="折叠侧边栏分类 '执行'" aria-expanded=true type=button class="clean-btn menu__caret"></button></div><ul class=menu__list><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-3 menu__list-item"><a class=menu__link tabindex=0 href=/concepts/execution/algorithms><span class=linkLabel_lYjD>执行算法</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-3 menu__list-item"><a class=menu__link tabindex=0 href=/concepts/execution/policies><span class=linkLabel_lYjD>执行策略</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-3 menu__list-item"><a class=menu__link tabindex=0 href=/concepts/execution/reconciliation><span class=linkLabel_lYjD>执行对账</span></a></ul><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/concepts/accounting><span class=linkLabel_lYjD>核算</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/concepts/actors><span class=linkLabel_lYjD>Actors</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/concepts/adapters><span class=linkLabel_lYjD>适配器</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/concepts/architecture><span class=linkLabel_lYjD>架构</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/concepts/behavioral_models><span class=linkLabel_lYjD>行为模型</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/concepts/cache><span class=linkLabel_lYjD>缓存</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/concepts/configuration><span class=linkLabel_lYjD>配置</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/concepts/continuous_futures><span class=linkLabel_lYjD>连续期货</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/concepts/custom_data><span class=linkLabel_lYjD>自定义数据</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/concepts/dst><span class=linkLabel_lYjD>DST</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/concepts/event_sourcing><span class=linkLabel_lYjD>事件溯源</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/concepts/greeks><span class=linkLabel_lYjD>Greeks</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/concepts/live><span class=linkLabel_lYjD>实时交易</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/concepts/logging><span class=linkLabel_lYjD>日志</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/concepts/message_bus><span class=linkLabel_lYjD>消息总线</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/concepts/networking><span class=linkLabel_lYjD>网络</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/concepts/options><span class=linkLabel_lYjD>期权</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/concepts/order_book><span class=linkLabel_lYjD>订单簿</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/concepts/overview><span class=linkLabel_lYjD>概览</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/concepts/portfolio><span class=linkLabel_lYjD>组合</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/concepts/positions><span class=linkLabel_lYjD>持仓</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/concepts/python><span class=linkLabel_lYjD>Python</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/concepts/reports><span class=linkLabel_lYjD>报告</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/concepts/rust><span class=linkLabel_lYjD>Rust</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/concepts/strategies><span class=linkLabel_lYjD>策略</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/concepts/synthetics><span class=linkLabel_lYjD>合成工具</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/concepts/value_types><span class=linkLabel_lYjD>值类型</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/concepts/visualization><span class=linkLabel_lYjD>可视化</span></a></ul><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-1 menu__list-item menu__list-item--collapsed"><div class=menu__list-item-collapsible><a class="categoryLink_Muyc menu__link menu__link--sublist" href=/integrations/><span class=categoryLinkLabel_mAcL>交易所与集成</span></a><button aria-label="展开侧边栏分类 '交易所与集成'" aria-expanded=false type=button class="clean-btn menu__caret"></button></div><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-1 menu__list-item menu__list-item--collapsed"><div class=menu__list-item-collapsible><a class="categoryLink_Muyc menu__link menu__link--sublist" href=/how_to/><span class=categoryLinkLabel_mAcL>操作指南</span></a><button aria-label="展开侧边栏分类 '操作指南'" aria-expanded=false type=button class="clean-btn menu__caret"></button></div><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-1 menu__list-item menu__list-item--collapsed"><div class=menu__list-item-collapsible><a class="categoryLink_Muyc menu__link menu__link--sublist" href=/tutorials/><span class=categoryLinkLabel_mAcL>教程</span></a><button aria-label="展开侧边栏分类 '教程'" aria-expanded=false type=button class="clean-btn menu__caret"></button></div><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-1 menu__list-item menu__list-item--collapsed"><div class=menu__list-item-collapsible><a class="categoryLink_Muyc menu__link menu__link--sublist" href=/developer_guide/><span class=categoryLinkLabel_mAcL>开发者指南</span></a><button aria-label="展开侧边栏分类 '开发者指南'" aria-expanded=false type=button class="clean-btn menu__caret"></button></div><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-1 menu__list-item menu__list-item--collapsed"><div class=menu__list-item-collapsible><a class="categoryLink_Muyc menu__link menu__link--sublist" href=/api_reference/><span class=categoryLinkLabel_mAcL>API 参考</span></a><button aria-label="展开侧边栏分类 'API 参考'" aria-expanded=false type=button class="clean-btn menu__caret"></button></div></ul></nav></div></div></aside><main class=docMainContainer_sLF8><div class="container padding-top--md padding-bottom--lg"><div class=row><div class="col docItemCol_ZRft"><div class=docItemContainer_KOP5><article><nav class="theme-doc-breadcrumbs breadcrumbsContainer_d5rS" aria-label=页面路径><ul class=breadcrumbs><li class=breadcrumbs__item><a aria-label=主页面 class=breadcrumbs__link href=/><svg viewBox="0 0 24 24" class=breadcrumbHomeIcon_XgF2><path d="M10 19v-5h4v5c0 .55.45 1 1 1h3c.55 0 1-.45 1-1v-7h1.7c.46 0 .68-.57.33-.87L12.67 3.6c-.38-.34-.96-.34-1.34 0l-8.36 7.53c-.34.3-.13.87.33.87H5v7c0 .55.45 1 1 1h3c.55 0 1-.45 1-1z" fill=currentColor /></svg></a><li class=breadcrumbs__item><a class=breadcrumbs__link href=/concepts/><span>核心概念</span></a><li class="breadcrumbs__item breadcrumbs__item--active"><span class=breadcrumbs__link>执行</span></ul></nav><div class="tocCollapsible_bgaJ theme-doc-toc-mobile tocMobile_FhT_"><button type=button class="clean-btn tocCollapsibleButton_F8AY">本页总览</button></div><div class="theme-doc-markdown markdown"><header><h1>执行</h1></header>
+<p>NautilusTrader 在多个策略与多个交易场所之间协调订单提交、风控检查、场所执行、一致性对账和持仓更新。本页介绍支撑执行的组件与消息流。</p>
+<p>按你要回答的问题选用执行指南：</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>问题<th>指南<tbody><tr><td>哪些组件处理订单命令？<td>本页：<a href=#execution-flow class="">执行流程</a>。<tr><td>订单可以有哪些状态和迁移？<td><a class="" href=/concepts/orders/#order-state-flow>订单：订单状态流</a>。<tr><td>哪些策略治理场所边界的执行？<td><a class="" href=/concepts/execution/policies>执行策略</a>。<tr><td>执行算法如何拆分并管理订单？<td><a class="" href=/concepts/execution/algorithms>执行算法</a>。<tr><td>实时状态如何恢复并保持一致？<td><a class="" href=/concepts/execution/reconciliation>执行对账</a>。<tr><td>如何配置实时节点？<td><a class="" href=/how_to/configure_live_trading>实时节点配置</a>。<tr><td>实时节点如何调度与监控执行？<td><a class="" href=/concepts/live>实时交易</a>。</table>
+<p>主要执行组件：</p>
 <ul>
-<li><code>Strategy</code></li>
-<li><code>ExecAlgorithm</code>（执行算法）</li>
-<li><code>OrderEmulator</code></li>
-<li><code>RiskEngine</code></li>
-<li><code>ExecutionEngine</code> 或 <code>LiveExecutionEngine</code></li>
-<li><code>ExecutionClient</code> 或 <code>LiveExecutionClient</code></li>
+<li class=""><code>Strategy</code></li>
+<li class=""><code>ExecutionAlgorithm</code></li>
+<li class=""><code>OrderEmulator</code></li>
+<li class=""><code>RiskEngine</code></li>
+<li class=""><code>ExecutionEngine</code></li>
+<li class=""><code>ExecutionClient</code></li>
 </ul>
-<h2 class="anchor anchorWithStickyNavbar_RpWm" id="执行流程">执行流程<a href="#执行流程" class="hash-link" aria-label="执行流程的直接链接" title="执行流程的直接链接" translate="no">​</a></h2>
-<p><code>Strategy</code> 基类继承自 <code>Actor</code>，因此包含了所有通用的数据相关方法。它还提供了一组用于管理订单和交易执行的方法：</p>
+<h2 class="anchor anchorTargetStickyNavbar_ana5" id=execution-flow>执行流程<a href=#execution-flow class=hash-link aria-label=执行流程的直接链接 title=执行流程的直接链接 translate=no>​</a></h2>
+<p><code>Strategy</code> 在数据 actor 能力之上增加了订单与执行管理方法：</p>
 <ul>
-<li><code>submit_order(...)</code></li>
-<li><code>submit_order_list(...)</code></li>
-<li><code>modify_order(...)</code></li>
-<li><code>cancel_order(...)</code></li>
-<li><code>cancel_orders(...)</code></li>
-<li><code>cancel_all_orders(...)</code></li>
-<li><code>close_position(...)</code></li>
-<li><code>close_all_positions(...)</code></li>
-<li><code>query_account(...)</code></li>
-<li><code>query_order(...)</code></li>
+<li class=""><code>submit_order(...)</code></li>
+<li class=""><code>submit_order_list(...)</code></li>
+<li class=""><code>modify_order(...)</code></li>
+<li class=""><code>cancel_order(...)</code></li>
+<li class=""><code>cancel_orders(...)</code></li>
+<li class=""><code>cancel_all_orders(...)</code></li>
+<li class=""><code>close_position(...)</code></li>
+<li class=""><code>close_all_positions(...)</code></li>
+<li class=""><code>query_account(...)</code></li>
+<li class=""><code>query_order(...)</code></li>
 </ul>
-<p>这些方法在内部会构造必要的执行命令，并通过消息总线（point-to-point）发送到相关组件，同时发布相应的事件（例如新订单初始化事件 <code>OrderInitialized</code>）。</p>
-<p>一般的执行流如下（箭头表示消息在消息总线上的流向）：</p>
-<p><code>Strategy</code> -&gt; <code>OrderEmulator</code> -&gt; <code>ExecAlgorithm</code> -&gt; <code>RiskEngine</code> -&gt; <code>ExecutionEngine</code> -&gt; <code>ExecutionClient</code></p>
-<p><code>OrderEmulator</code> 与 <code>ExecAlgorithm</code> 是可选环节，是否参与取决于具体订单参数（下面会说明）。</p>
-<p>下面的示意图展示了 Nautilus 执行组件之间命令与事件的消息流：</p>
-<div class="language-text codeBlockContainer_euGm theme-code-block" style="--prism-color:#393A34;--prism-background-color:#f6f8fa"><div class="codeBlockContent_zF3K"><pre tabindex="0" class="prism-code language-text codeBlock_G1mO thin-scrollbar" style="color:#393A34;background-color:#f6f8fa"><code class="codeBlockLines_QZRj"><span class="token-line" style="color:#393A34"><span class="token plain">                  ┌───────────────────┐</span><br></span><span class="token-line" style="color:#393A34"><span class="token plain">                  │                   │</span><br></span><span class="token-line" style="color:#393A34"><span class="token plain">                  │                   │</span><br></span><span class="token-line" style="color:#393A34"><span class="token plain">                  │                   │</span><br></span><span class="token-line" style="color:#393A34"><span class="token plain">          ┌───────►   OrderEmulator   ├────────────┐</span><br></span><span class="token-line" style="color:#393A34"><span class="token plain">          │       │                   │            │</span><br></span><span class="token-line" style="color:#393A34"><span class="token plain">          │       │                   │            │</span><br></span><span class="token-line" style="color:#393A34"><span class="token plain">          │       │                   │            │</span><br></span><span class="token-line" style="color:#393A34"><span class="token plain">┌─────────┴──┐    └─────▲──────┬──────┘            │</span><br></span><span class="token-line" style="color:#393A34"><span class="token plain">│            │          │      │           ┌───────▼────────┐   ┌─────────────────────┐   ┌─────────────────────┐</span><br></span><span class="token-line" style="color:#393A34"><span class="token plain">│            │          │      │           │                │   │                     │   │                     │</span><br></span><span class="token-line" style="color:#393A34"><span class="token plain">│            ├──────────┼──────┼───────────►                ├───►                     ├───►                     │</span><br></span><span class="token-line" style="color:#393A34"><span class="token plain">│  Strategy  │          │      │           │                │   │                     │   │                     │</span><br></span><span class="token-line" style="color:#393A34"><span class="token plain">│            │          │      │           │   RiskEngine   │   │   ExecutionEngine   │   │   ExecutionClient   │</span><br></span><span class="token-line" style="color:#393A34"><span class="token plain">│            ◄──────────┼──────┼───────────┤                ◄───┤                     ◄───┤                     │</span><br></span><span class="token-line" style="color:#393A34"><span class="token plain">│            │          │      │           │                │   │                     │   │                     │</span><br></span><span class="token-line" style="color:#393A34"><span class="token plain">│            │          │      │           │                │   │                     │   │                     │</span><br></span><span class="token-line" style="color:#393A34"><span class="token plain">└─────────┬──┘    ┌─────┴──────▼──────┐    └───────▲────────┘   └─────────────────────┘   └─────────────────────┘</span><br></span><span class="token-line" style="color:#393A34"><span class="token plain">          │       │                   │            │</span><br></span><span class="token-line" style="color:#393A34"><span class="token plain">          │       │                   │            │</span><br></span><span class="token-line" style="color:#393A34"><span class="token plain">          │       │                   │            │</span><br></span><span class="token-line" style="color:#393A34"><span class="token plain">          └───────►   ExecAlgorithm   ├────────────┘</span><br></span><span class="token-line" style="color:#393A34"><span class="token plain">                  │                   │</span><br></span><span class="token-line" style="color:#393A34"><span class="token plain">                  │                   │</span><br></span><span class="token-line" style="color:#393A34"><span class="token plain">                  │                   │</span><br></span><span class="token-line" style="color:#393A34"><span class="token plain">                  └───────────────────┘</span><br></span><span class="token-line" style="color:#393A34"><span class="token plain" style="display:inline-block"></span><br></span></code></pre></div></div>
-<h2 class="anchor anchorWithStickyNavbar_RpWm" id="订单管理系统oms">订单管理系统（OMS）<a href="#订单管理系统oms" class="hash-link" aria-label="订单管理系统（OMS）的直接链接" title="订单管理系统（OMS）的直接链接" translate="no">​</a></h2>
-<p>订单管理系统（Order Management System，简称 OMS）类型指的是用于为合约分配订单并跟踪该合约有关头寸的方法。OMS 类型适用于策略端和交易场所（无论是模拟还是实盘）。即使某个交易场所没有明确声明使用哪种方式，系统内部总会生效某种 OMS 类型。可以通过 <code>OmsType</code> 枚举为组件指定 OMS 类型。</p>
-<p><code>OmsType</code> 枚举包含三种取值：</p>
+<p>这些方法经消息总线发送点对点执行命令。创建订单时还会发布 <code>OrderInitialized</code> 等事件。</p>
+<p>命令走不同的路由：</p>
 <ul>
-<li><code>UNSPECIFIED</code>：默认由应用场景决定（详见下文）</li>
-<li><code>NETTING</code>：对每个 instrument ID 合并为单一头寸</li>
-<li><code>HEDGING</code>：对每个 instrument ID 支持多笔头寸（可同时存在多头与空头）</li>
+<li class=""><code>submit_order(...)</code>：模拟订单路由到 <code>OrderEmulator</code>；设置了 <code>exec_algorithm_id</code> 时路由到 <code>ExecutionAlgorithm</code>；其余路由到 <code>RiskEngine</code>。</li>
+<li class=""><code>submit_order_list(...)</code>：按模拟与 <code>exec_algorithm_id</code> 做同样的分支。</li>
+<li class="">模拟订单的 <code>modify_order(...)</code> 路由到 <code>OrderEmulator</code>。非模拟订单在带有 <code>exec_algorithm_id</code> 且仍在本地系统内活跃时路由到 <code>ExecutionAlgorithm</code>，否则路由到 <code>RiskEngine</code>。</li>
+<li class="">撤销与查询命令按命令和订单状态，可直接路由到 <code>OrderEmulator</code>、<code>ExecutionAlgorithm</code> 或 <code>ExecutionEngine</code>。</li>
 </ul>
-<p>下表描述了策略端与交易场所不同配置组合下的适用场景。当策略与场所的 OMS 类型不一致时，<code>ExecutionEngine</code> 会在接收到 <code>OrderFilled</code> 事件时覆写或分配 <code>position_id</code>。这里的“虚拟头寸（virtual position）”指的是存在于 Nautilus 系统中但并非真实存在于交易场所的头寸 ID。</p>
-<table><thead><tr><th style="text-align:left">Strategy OMS</th><th style="text-align:left">Venue OMS</th><th style="text-align:left">说明</th></tr></thead><tbody><tr><td style="text-align:left"><code>NETTING</code></td><td style="text-align:left"><code>NETTING</code></td><td style="text-align:left">策略采用场所的原生 OMS 类型，针对每个 instrument ID 使用单一 position ID。</td></tr><tr><td style="text-align:left"><code>HEDGING</code></td><td style="text-align:left"><code>HEDGING</code></td><td style="text-align:left">策略采用场所的原生 OMS 类型，针对每个 instrument ID 支持多个 position ID（包括 <code>LONG</code> 与 <code>SHORT</code>）。</td></tr><tr><td style="text-align:left"><code>NETTING</code></td><td style="text-align:left"><code>HEDGING</code></td><td style="text-align:left">策略覆盖了场所的原生 OMS 类型。场所按 instrument ID 跟踪多个头寸，但 Nautilus 在策略端以单一 position ID 维护头寸。</td></tr><tr><td style="text-align:left"><code>HEDGING</code></td><td style="text-align:left"><code>NETTING</code></td><td style="text-align:left">策略覆盖了场所的原生 OMS 类型。场所仅按 instrument ID 跟踪单一头寸，但 Nautilus 在策略端维护多个 position ID。</td></tr></tbody></table>
-<div class="theme-admonition theme-admonition-note admonition_lEzE alert alert--secondary"><div class="admonitionHeading_aAf0"><span class="admonitionIcon_xtBN"><svg viewBox="0 0 14 16"><path fill-rule="evenodd" d="M6.3 5.69a.942.942 0 0 1-.28-.7c0-.28.09-.52.28-.7.19-.18.42-.28.7-.28.28 0 .52.09.7.28.18.19.28.42.28.7 0 .28-.09.52-.28.7a1 1 0 0 1-.7.3c-.28 0-.52-.11-.7-.3zM8 7.99c-.02-.25-.11-.48-.31-.69-.2-.19-.42-.3-.69-.31H6c-.27.02-.48.13-.69.31-.2.2-.3.44-.31.69h1v3c.02.27.11.5.31.69.2.2.42.31.69.31h1c.27 0 .48-.11.69-.31.2-.19.3-.42.31-.69H8V7.98v.01zM7 2.3c-3.14 0-5.7 2.54-5.7 5.68 0 3.14 2.56 5.7 5.7 5.7s5.7-2.55 5.7-5.7c0-3.15-2.56-5.69-5.7-5.69v.01zM7 .98c3.86 0 7 3.14 7 7s-3.14 7-7 7-7-3.12-7-7 3.14-7 7-7z"></path></svg></span>备注</div><div class="admonitionContent_Vfkp"><p>为策略和场所分别配置不同的 OMS 类型会增加平台复杂度，但可以支持更丰富的交易风格与偏好（见上表）。</p></div></div>
-<p>OMS 配置示例：</p>
+<p>新订单通常进入以下路径之一：</p>
+<p><code>Strategy</code> -> <code>OrderEmulator</code> 或 <code>ExecutionAlgorithm</code> 或 <code>RiskEngine</code></p>
+<p>后续流向：</p>
+<p><code>OrderEmulator</code> -> <code>ExecutionAlgorithm</code> 或 <code>ExecutionEngine</code></p>
+<p><code>ExecutionAlgorithm</code> -> <code>RiskEngine</code> -> <code>ExecutionEngine</code> -> <code>ExecutionClient</code></p>
+<!-- -->
+<p>执行路径在到达执行引擎与客户端之前，按模拟与算法路由分流。</p>
+<h2 class="anchor anchorTargetStickyNavbar_ana5" id=order-management-system-oms>订单管理系统（OMS）<a href=#order-management-system-oms class=hash-link aria-label=订单管理系统（OMS）的直接链接 title=订单管理系统（OMS）的直接链接 translate=no>​</a></h2>
+<p><strong>订单管理系统</strong>（OMS）类型决定某工具的订单如何映射到持仓。策略和场所——无论模拟还是实时——都使用 <code>OmsType</code>
+枚举定义的 OMS 类型。</p>
+<p><code>OmsType</code> 枚举有三个变体：</p>
 <ul>
-<li>多数加密货币交易所使用 <code>NETTING</code> 模式（每个市场一个头寸）。在策略层仍可能希望跟踪多个“虚拟”头寸。</li>
-<li>某些外汇 ECN 或经纪商采用 <code>HEDGING</code> 模式，允许同时存在多笔多头与空头头寸；而交易者可能只关心货币对的净头寸（NET）。</li>
+<li class=""><code>UNSPECIFIED</code>：策略使用其所属执行客户端的 OMS 类型。</li>
+<li class=""><code>NETTING</code>：持仓按工具与策略合并为一个持仓。</li>
+<li class=""><code>HEDGING</code>：同一工具与策略可以同时持有多个持仓。</li>
 </ul>
-<div class="theme-admonition theme-admonition-info admonition_lEzE alert alert--info"><div class="admonitionHeading_aAf0"><span class="admonitionIcon_xtBN"><svg viewBox="0 0 14 16"><path fill-rule="evenodd" d="M7 2.3c3.14 0 5.7 2.56 5.7 5.7s-2.56 5.7-5.7 5.7A5.71 5.71 0 0 1 1.3 8c0-3.14 2.56-5.7 5.7-5.7zM7 1C3.14 1 0 4.14 0 8s3.14 7 7 7 7-3.14 7-7-3.14-7-7-7zm1 3H6v5h2V4zm0 6H6v2h2v-2z"></path></svg></span>信息</div><div class="admonitionContent_Vfkp"><p>目前 Nautilus 尚不支持场所端的某些对冲模式（例如 Binance 的 <code>BOTH</code> 与 <code>LONG/SHORT</code> 模式中按方向 netting 的情形）。建议将 Binance 账户配置为 <code>BOTH</code>，以便采用单一净头寸。</p></div></div>
-<h3 class="anchor anchorWithStickyNavbar_RpWm" id="oms-配置说明">OMS 配置说明<a href="#oms-配置说明" class="hash-link" aria-label="OMS 配置说明的直接链接" title="OMS 配置说明的直接链接" translate="no">​</a></h3>
-<p>如果没有在配置中通过 <code>oms_type</code> 明确指定策略的 OMS 类型，则其默认为 <code>UNSPECIFIED</code>。这意味着 <code>ExecutionEngine</code> 不会覆盖场所的 <code>position_id</code>，OMS 类型将遵从交易场所的设置。</p>
-<div class="theme-admonition theme-admonition-tip admonition_lEzE alert alert--success"><div class="admonitionHeading_aAf0"><span class="admonitionIcon_xtBN"><svg viewBox="0 0 12 16"><path fill-rule="evenodd" d="M6.5 0C3.48 0 1 2.19 1 5c0 .92.55 2.25 1 3 1.34 2.25 1.78 2.78 2 4v1h5v-1c.22-1.22.66-1.75 2-4 .45-.75 1-2.08 1-3 0-2.81-2.48-5-5.5-5zm3.64 7.48c-.25.44-.47.8-.67 1.11-.86 1.41-1.25 2.06-1.45 3.23-.02.05-.02.11-.02.17H5c0-.06 0-.13-.02-.17-.2-1.17-.59-1.83-1.45-3.23-.2-.31-.42-.67-.67-1.11C2.44 6.78 2 5.65 2 5c0-2.2 2.02-4 4.5-4 1.22 0 2.36.42 3.22 1.19C10.55 2.94 11 3.94 11 5c0 .66-.44 1.78-.86 2.48zM4 14h5c-.23 1.14-1.3 2-2.5 2s-2.27-.86-2.5-2z"></path></svg></span>提示</div><div class="admonitionContent_Vfkp"><p>在配置回测时，可以为交易场所指定 <code>oms_type</code>。为了提高回测的准确性，建议尽量与该交易场所实际使用的 OMS 类型保持一致。</p></div></div>
-<h2 class="anchor anchorWithStickyNavbar_RpWm" id="风控引擎risk-engine">风控引擎（Risk engine）<a href="#风控引擎risk-engine" class="hash-link" aria-label="风控引擎（Risk engine）的直接链接" title="风控引擎（Risk engine）的直接链接" translate="no">​</a></h2>
-<p><code>RiskEngine</code> 是 Nautilus 系统（包括回测、沙箱和实盘）中的核心组件。除非在 <code>RiskEngineConfig</code> 中显式地绕过，所有订单命令与事件都会经过 <code>RiskEngine</code> 的校验。</p>
-<p><code>RiskEngine</code> 内置了若干下单前（pre-trade）的风控检查，包括但不限于：</p>
+<p>策略与场所 OMS 类型不一致时，<code>ExecutionEngine</code> 会在 <code>OrderFilled</code> 事件上指派或改写 <code>position_id</code>。<strong>虚拟持仓</strong>只存在于 NautilusTrader，场所侧没有对应的独立持仓。</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>策略 OMS<th>场所 OMS<th>结果<tbody><tr><td><code>NETTING</code><td><code>NETTING</code><td>每个工具与策略一个持仓。<tr><td><code>HEDGING</code><td><code>HEDGING</code><td>每个工具与策略多个持仓。<tr><td><code>NETTING</code><td><code>HEDGING</code><td>跨场所持仓的一个虚拟持仓。<tr><td><code>HEDGING</code><td><code>NETTING</code><td>针对场所单一净额持仓的多个虚拟持仓。</table>
+<p>成交解析到了另一工具的缓存持仓时，<code>ExecutionEngine</code> 记录错误并丢弃该成交。订单保持非终态，以便后续合法成交仍可应用。</p>
+<p>削减继承而来的仓位见<a class="" href=/concepts/execution/reconciliation#reducing-external-positions>削减外部持仓</a>。</p>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=oms-configuration>OMS 配置<a href=#oms-configuration class=hash-link aria-label="OMS 配置的直接链接" title="OMS 配置的直接链接" translate=no>​</a></h3>
+<p>策略省略 <code>oms_type</code> 或使用 <code>UNSPECIFIED</code> 时，<code>ExecutionEngine</code> 采用所属执行客户端的 OMS 类型。显式的 <code>NETTING</code> 或 <code>HEDGING</code> 策略覆盖具有更高优先级。</p>
+<p>引擎按操作识别归属：</p>
 <ul>
-<li>价格精度是否符合合约要求。</li>
-<li>价格是否为正（期权类合约可能例外）。</li>
-<li>数量精度是否符合合约要求。</li>
-<li>是否低于合约的最大名义金额（max notional）。</li>
-<li>是否在合约允许的最小或最大下单量范围内。</li>
-<li>当订单带有 <code>reduce_only</code> 执行指令时，仅允许减仓操作。</li>
+<li class=""><strong>提交校验</strong>：使用命令路由选定的客户端。</li>
+<li class=""><strong>成交处理</strong>：使用缓存订单记录的客户端来源。来源不可用时，使用账户与成交匹配、且处理该成交工具场所的<strong>唯一一个</strong>已注册客户端。该账户查找也覆盖没有缓存订单的组合腿成交。</li>
 </ul>
-<p>若任一风控检查不通过，系统会生成 <code>OrderDenied</code> 事件，从而关闭该订单并阻止其继续流转。该事件会包含可供人类阅读的拒单原因说明。</p>
-<h3 class="anchor anchorWithStickyNavbar_RpWm" id="交易状态trading-state">交易状态（Trading state）<a href="#交易状态trading-state" class="hash-link" aria-label="交易状态（Trading state）的直接链接" title="交易状态（Trading state）的直接链接" translate="no">​</a></h3>
-<p>此外，系统的当前交易状态会影响订单处理流程。</p>
-<p><code>TradingState</code> 枚举包含三种状态：</p>
+<p>对关联订单的成交，已存在的缓存持仓保持其记录的 OMS 类型。</p>
+<p>归属缺失或有歧义时，成交按 <code>NETTING</code> 处理，除非策略提供显式覆盖。场所和默认命令路由不选择成交的 OMS 类型。配置回测场所时，使用被建模场所实际采用的 OMS 类型。</p>
+<p>场所持仓模式可能需要适配器特有配置，例如
+<a class="" href=/integrations/binance#futures-hedge-mode>Binance Futures 对冲模式</a>。</p>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=custom-position-ids-and-netting>自定义持仓 ID 与 NETTING<a href=#custom-position-ids-and-netting class=hash-link aria-label="自定义持仓 ID 与 NETTING的直接链接" title="自定义持仓 ID 与 NETTING的直接链接" translate=no>​</a></h3>
+<p>自定义持仓 ID 只在 <code>HEDGING</code> OMS 下有效。<code>NETTING</code> 下每个工具与策略只有一个持仓，ID 是形如 <code>{instrument_id}-{strategy_id}</code> 的确定性值。</p>
+<p><code>ExecutionEngine</code> 在提交时执行该规则。有效 OMS 解析为 <code>NETTING</code> 时，<code>submit_order</code>（或 <code>submit_order_list</code>）传入的
+<code>position_id</code> 必须匹配 <code>{instrument_id}-{strategy_id}</code>。不匹配则拒绝订单，<code>OrderDenied</code> 事件会说明不匹配之处。</p>
+<p>该规则仍允许常见的平仓写法：<code>Strategy.close_position(position)</code> 转发
+<code>position.id</code>，在 <code>NETTING</code> 下它恰好就是确定性 ID，因此被接受。要用任意 ID 标记或划分持仓，把策略配置为
+<code>oms_type=HEDGING</code>。</p>
+<p>对 <code>submit_order_list</code>，只要传入 <code>position_id</code>，引擎还会拒绝任何跨工具的混合列表，与 OMS 无关。持仓属于单一工具，这种组合会被拒绝并给出显式的 <code>OrderDenied</code> 原因。跨工具组合的更多注意事项见
+<a class="" href=/concepts/orders/advanced#order-lists>订单列表</a>。</p>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=position-replay-across-netting-cycles>NETTING 跨周期的持仓回放<a href=#position-replay-across-netting-cycles class=hash-link aria-label="NETTING 跨周期的持仓回放的直接链接" title="NETTING 跨周期的持仓回放的直接链接" translate=no>​</a></h3>
+<p><code>NETTING</code> 下引擎在平仓与重开周期之间复用同一个持仓 ID，因此持仓的回放日志会累积该 ID 上曾应用的每笔成交。
+<code>ExecutionEngineConfig.carry_replay_events_on_reopen</code> 选项控制该日志是否跨重开保留：</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th><code>carry_replay_events_on_reopen</code><th>行为<tbody><tr><td><code>False</code>（默认）<td>只保留当前周期状态，约束逐笔成交开销。<tr><td><code>True</code><td>早先的成交仍可更正，但持仓状态可能持续增长。</table>
 <ul>
-<li><code>ACTIVE</code>：正常运行。</li>
-<li><code>HALTED</code>：暂停接收/处理新的订单命令，直到状态变化。</li>
-<li><code>REDUCING</code>：仅处理取消或会导致减仓的命令。</li>
+<li class=""><strong>实时交易</strong>：<code>LiveExecutionEngineConfig</code> 始终携带回放日志（<code>True</code>），使引用更早周期的场所
+<a class="" href=/concepts/events/order_fill_voided><code>OrderFillVoided</code></a> 仍可解析。</li>
+<li class=""><strong>回测</strong>：模拟交易所从不发成交作废，回测采用有界的默认值。</li>
+<li class=""><strong>自定义或外部执行客户端</strong>：客户端若可能更正早前周期的成交，需显式启用该选项。没有携带的日志时，引擎找不到匹配的持仓片段，会拒绝更正。</li>
 </ul>
-<div class="theme-admonition theme-admonition-info admonition_lEzE alert alert--info"><div class="admonitionHeading_aAf0"><span class="admonitionIcon_xtBN"><svg viewBox="0 0 14 16"><path fill-rule="evenodd" d="M7 2.3c3.14 0 5.7 2.56 5.7 5.7s-2.56 5.7-5.7 5.7A5.71 5.71 0 0 1 1.3 8c0-3.14 2.56-5.7 5.7-5.7zM7 1C3.14 1 0 4.14 0 8s3.14 7 7 7 7-3.14 7-7-3.14-7-7-7zm1 3H6v5h2V4zm0 6H6v2h2v-2z"></path></svg></span>信息</div><div class="admonitionContent_Vfkp"><p>更多细节见 <code>RiskEngineConfig</code> 的 <a href="/api_reference/config#risk">API Reference</a>。</p></div></div>
-<h2 class="anchor anchorWithStickyNavbar_RpWm" id="执行算法execution-algorithms">执行算法（Execution algorithms）<a href="#执行算法execution-algorithms" class="hash-link" aria-label="执行算法（Execution algorithms）的直接链接" title="执行算法（Execution algorithms）的直接链接" translate="no">​</a></h2>
-<p>平台支持自定义执行算法组件，并提供了一些内置算法，例如时间加权平均价格（TWAP, Time-Weighted Average Price）。</p>
-<h3 class="anchor anchorWithStickyNavbar_RpWm" id="twap时间加权平均价格">TWAP（时间加权平均价格）<a href="#twap时间加权平均价格" class="hash-link" aria-label="TWAP（时间加权平均价格）的直接链接" title="TWAP（时间加权平均价格）的直接链接" translate="no">​</a></h3>
-<p>TWAP 执行算法旨在将大额委托的执行均匀分散到指定的时间区间内。算法接收代表总量与方向的主订单（primary order），然后将其拆分为多个子订单（child/secondary orders），在时间区间内以固定间隔下发执行。</p>
-<p>这样可以减小主订单对市场的冲击，避免在某一时刻集中成交过大成交量。</p>
-<p>算法会立即提交第一笔子订单，最后一笔提交则是在时间窗口结束时的主订单。</p>
-<p>下面以位于 <code>/examples/algorithms/twap.py</code> 的 TWAP 实现为例，演示如何在一个已初始化的 <code>BacktestEngine</code> 中初始化并注册一个 TWAP 执行算法：</p>
-<div class="language-python codeBlockContainer_euGm theme-code-block" style="--prism-color:#393A34;--prism-background-color:#f6f8fa"><div class="codeBlockContent_zF3K"><pre tabindex="0" class="prism-code language-python codeBlock_G1mO thin-scrollbar" style="color:#393A34;background-color:#f6f8fa"><code class="codeBlockLines_QZRj"><span class="token-line" style="color:#393A34"><span class="token keyword" style="color:#00009f">from</span><span class="token plain"> nautilus_trader</span><span class="token punctuation" style="color:#393A34">.</span><span class="token plain">examples</span><span class="token punctuation" style="color:#393A34">.</span><span class="token plain">algorithms</span><span class="token punctuation" style="color:#393A34">.</span><span class="token plain">twap </span><span class="token keyword" style="color:#00009f">import</span><span class="token plain"> TWAPExecAlgorithm</span><br></span><span class="token-line" style="color:#393A34"><span class="token plain" style="display:inline-block"></span><br></span><span class="token-line" style="color:#393A34"><span class="token plain"></span><span class="token comment" style="color:#999988;font-style:italic"># `engine` 是一个已初始化的 BacktestEngine 实例</span><span class="token plain"></span><br></span><span class="token-line" style="color:#393A34"><span class="token plain">exec_algorithm </span><span class="token operator" style="color:#393A34">=</span><span class="token plain"> TWAPExecAlgorithm</span><span class="token punctuation" style="color:#393A34">(</span><span class="token punctuation" style="color:#393A34">)</span><span class="token plain"></span><br></span><span class="token-line" style="color:#393A34"><span class="token plain">engine</span><span class="token punctuation" style="color:#393A34">.</span><span class="token plain">add_exec_algorithm</span><span class="token punctuation" style="color:#393A34">(</span><span class="token plain">exec_algorithm</span><span class="token punctuation" style="color:#393A34">)</span><br></span></code></pre></div></div>
-<p>该算法需要指定两个参数：</p>
+<p>已实现盈亏快照跟随更正走。触及更早周期的成交作废会跨周期边界重建持仓，改变其归档快照所描述的边界。于是引擎把这些快照结算进更正后历史自身的已平周期，已实现盈亏对每个周期只计一次。只涉及当前周期的作废不影响归档。参见
+<a class="" href=/concepts/positions#position-snapshotting>持仓快照</a>。</p>
+<h2 class="anchor anchorTargetStickyNavbar_ana5" id=risk-engine>风控引擎<a href=#risk-engine class=hash-link aria-label=风控引擎的直接链接 title=风控引擎的直接链接 translate=no>​</a></h2>
+<p><code>RiskEngine</code> 是每个 Nautilus 系统的组件，覆盖回测、sandbox 和实时环境。它位于提交与修改路径上，也接收来自 <code>OrderEmulator</code> 的 <code>OrderReleased</code> 等订单事件。撤销与查询命令直接路由给其他执行组件，不经过 <code>RiskEngine</code>。</p>
+<p>除非在 <code>RiskEngineConfig</code> 中旁路，引擎会校验：</p>
 <ul>
-<li><code>horizon_secs</code></li>
-<li><code>interval_secs</code></li>
+<li class="">工具的价格与触发价精度。</li>
+<li class="">价格为正，除非工具允许负价（期货、期权、期货价差、期权价差和现货商品）。反向期货与期货价差仍要求正价。</li>
+<li class="">数量精度及基础数量的上下限。</li>
+<li class="">GTD 订单尚未过期。</li>
+<li class=""><code>reduce_only</code> 订单不会增加所引用的持仓。</li>
+<li class="">引擎级 <code>max_notional_per_order</code> 限额，以及工具的 <code>min_notional</code> 和 <code>max_notional</code> 字段，按名义金额量级比较。</li>
+<li class="">非保证金账户的现金账户余额影响。</li>
+<li class="">提交与修改的速率限制。</li>
+<li class="">交易状态限制（<code>ACTIVE</code>、<code>HALTED</code>、<code>REDUCING</code>）。</li>
 </ul>
-<p>其中 <code>horizon_secs</code> 表示执行的总时间（秒），<code>interval_secs</code> 表示每次下发子订单之间的时间间隔（秒）。这些参数决定了主订单将如何被拆分为一系列子订单。</p>
-<div class="language-python codeBlockContainer_euGm theme-code-block" style="--prism-color:#393A34;--prism-background-color:#f6f8fa"><div class="codeBlockContent_zF3K"><pre tabindex="0" class="prism-code language-python codeBlock_G1mO thin-scrollbar" style="color:#393A34;background-color:#f6f8fa"><code class="codeBlockLines_QZRj"><span class="token-line" style="color:#393A34"><span class="token keyword" style="color:#00009f">from</span><span class="token plain"> decimal </span><span class="token keyword" style="color:#00009f">import</span><span class="token plain"> Decimal</span><br></span><span class="token-line" style="color:#393A34"><span class="token plain"></span><span class="token keyword" style="color:#00009f">from</span><span class="token plain"> nautilus_trader</span><span class="token punctuation" style="color:#393A34">.</span><span class="token plain">model</span><span class="token punctuation" style="color:#393A34">.</span><span class="token plain">data </span><span class="token keyword" style="color:#00009f">import</span><span class="token plain"> BarType</span><br></span><span class="token-line" style="color:#393A34"><span class="token plain"></span><span class="token keyword" style="color:#00009f">from</span><span class="token plain"> nautilus_trader</span><span class="token punctuation" style="color:#393A34">.</span><span class="token plain">test_kit</span><span class="token punctuation" style="color:#393A34">.</span><span class="token plain">providers </span><span class="token keyword" style="color:#00009f">import</span><span class="token plain"> TestInstrumentProvider</span><br></span><span class="token-line" style="color:#393A34"><span class="token plain"></span><span class="token keyword" style="color:#00009f">from</span><span class="token plain"> nautilus_trader</span><span class="token punctuation" style="color:#393A34">.</span><span class="token plain">examples</span><span class="token punctuation" style="color:#393A34">.</span><span class="token plain">strategies</span><span class="token punctuation" style="color:#393A34">.</span><span class="token plain">ema_cross_twap </span><span class="token keyword" style="color:#00009f">import</span><span class="token plain"> EMACrossTWAP</span><span class="token punctuation" style="color:#393A34">,</span><span class="token plain"> EMACrossTWAPConfig</span><br></span><span class="token-line" style="color:#393A34"><span class="token plain" style="display:inline-block"></span><br></span><span class="token-line" style="color:#393A34"><span class="token plain"></span><span class="token comment" style="color:#999988;font-style:italic"># 配置策略</span><span class="token plain"></span><br></span><span class="token-line" style="color:#393A34"><span class="token plain">config </span><span class="token operator" style="color:#393A34">=</span><span class="token plain"> EMACrossTWAPConfig</span><span class="token punctuation" style="color:#393A34">(</span><span class="token plain"></span><br></span><span class="token-line" style="color:#393A34"><span class="token plain">    instrument_id</span><span class="token operator" style="color:#393A34">=</span><span class="token plain">TestInstrumentProvider</span><span class="token punctuation" style="color:#393A34">.</span><span class="token plain">ethusdt_binance</span><span class="token punctuation" style="color:#393A34">(</span><span class="token punctuation" style="color:#393A34">)</span><span class="token punctuation" style="color:#393A34">.</span><span class="token builtin">id</span><span class="token punctuation" style="color:#393A34">,</span><span class="token plain"></span><br></span><span class="token-line" style="color:#393A34"><span class="token plain">    bar_type</span><span class="token operator" style="color:#393A34">=</span><span class="token plain">BarType</span><span class="token punctuation" style="color:#393A34">.</span><span class="token plain">from_str</span><span class="token punctuation" style="color:#393A34">(</span><span class="token string" style="color:#e3116c">&quot;ETHUSDT.BINANCE-250-TICK-LAST-INTERNAL&quot;</span><span class="token punctuation" style="color:#393A34">)</span><span class="token punctuation" style="color:#393A34">,</span><span class="token plain"></span><br></span><span class="token-line" style="color:#393A34"><span class="token plain">    trade_size</span><span class="token operator" style="color:#393A34">=</span><span class="token plain">Decimal</span><span class="token punctuation" style="color:#393A34">(</span><span class="token string" style="color:#e3116c">&quot;0.05&quot;</span><span class="token punctuation" style="color:#393A34">)</span><span class="token punctuation" style="color:#393A34">,</span><span class="token plain"></span><br></span><span class="token-line" style="color:#393A34"><span class="token plain">    fast_ema_period</span><span class="token operator" style="color:#393A34">=</span><span class="token number" style="color:#36acaa">10</span><span class="token punctuation" style="color:#393A34">,</span><span class="token plain"></span><br></span><span class="token-line" style="color:#393A34"><span class="token plain">    slow_ema_period</span><span class="token operator" style="color:#393A34">=</span><span class="token number" style="color:#36acaa">20</span><span class="token punctuation" style="color:#393A34">,</span><span class="token plain"></span><br></span><span class="token-line" style="color:#393A34"><span class="token plain">    twap_horizon_secs</span><span class="token operator" style="color:#393A34">=</span><span class="token number" style="color:#36acaa">10.0</span><span class="token punctuation" style="color:#393A34">,</span><span class="token plain">   </span><span class="token comment" style="color:#999988;font-style:italic"># 执行算法参数（总时间，秒）</span><span class="token plain"></span><br></span><span class="token-line" style="color:#393A34"><span class="token plain">    twap_interval_secs</span><span class="token operator" style="color:#393A34">=</span><span class="token number" style="color:#36acaa">2.5</span><span class="token punctuation" style="color:#393A34">,</span><span class="token plain">    </span><span class="token comment" style="color:#999988;font-style:italic"># 执行算法参数（订单间隔，秒）</span><span class="token plain"></span><br></span><span class="token-line" style="color:#393A34"><span class="token plain"></span><span class="token punctuation" style="color:#393A34">)</span><span class="token plain"></span><br></span><span class="token-line" style="color:#393A34"><span class="token plain" style="display:inline-block"></span><br></span><span class="token-line" style="color:#393A34"><span class="token plain"></span><span class="token comment" style="color:#999988;font-style:italic"># 实例化策略</span><span class="token plain"></span><br></span><span class="token-line" style="color:#393A34"><span class="token plain">strategy </span><span class="token operator" style="color:#393A34">=</span><span class="token plain"> EMACrossTWAP</span><span class="token punctuation" style="color:#393A34">(</span><span class="token plain">config</span><span class="token operator" style="color:#393A34">=</span><span class="token plain">config</span><span class="token punctuation" style="color:#393A34">)</span><br></span></code></pre></div></div>
-<p>也可以在下单时动态指定这些参数，根据实时市场状况计算 horizon 与 interval。在这种情况下，策略配置参数可以提供给某个执行模型，由模型决定具体的时间与间隔。</p>
-<div class="theme-admonition theme-admonition-info admonition_lEzE alert alert--info"><div class="admonitionHeading_aAf0"><span class="admonitionIcon_xtBN"><svg viewBox="0 0 14 16"><path fill-rule="evenodd" d="M7 2.3c3.14 0 5.7 2.56 5.7 5.7s-2.56 5.7-5.7 5.7A5.71 5.71 0 0 1 1.3 8c0-3.14 2.56-5.7 5.7-5.7zM7 1C3.14 1 0 4.14 0 8s3.14 7 7 7 7-3.14 7-7-3.14-7-7-7zm1 3H6v5h2V4zm0 6H6v2h2v-2z"></path></svg></span>信息</div><div class="admonitionContent_Vfkp"><p>执行算法参数数量不限。参数只需为以字符串为键、原始类型值（如 int、float、string）为值的字典（可序列化传输）。</p></div></div>
-<h3 class="anchor anchorWithStickyNavbar_RpWm" id="编写自定义执行算法">编写自定义执行算法<a href="#编写自定义执行算法" class="hash-link" aria-label="编写自定义执行算法的直接链接" title="编写自定义执行算法的直接链接" translate="no">​</a></h3>
-<p>要实现自定义执行算法，需要定义一个继承自 <code>ExecAlgorithm</code> 的类。</p>
-<p>执行算法本身是一个 <code>Actor</code>，因此可以：</p>
+<p>提交时风控检查失败，系统生成带标准化<a href=#order-denied-reasons class="">原因代码</a>的 <code>OrderDenied</code> 事件。修改时风控检查失败，生成 <code>OrderModifyRejected</code> 事件。</p>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=account-selection>账户选择<a href=#account-selection class=hash-link aria-label=账户选择的直接链接 title=账户选择的直接链接 translate=no>​</a></h3>
+<p>余额、保证金和持仓检查使用即将执行该命令的执行客户端的账户，早于 <code>OrderSubmitted</code> 为订单指派账户。风控引擎按以下顺序选择账户：</p>
+<ol>
+<li class="">已有账户的订单（例如正在修改的订单）使用该账户。</li>
+<li class="">面向外部客户端（<code>external_clients</code>）的命令，仅当该场所下签发了唯一一个账户时才使用场所账户。</li>
+<li class=""><code>client_id</code> 点名已注册执行客户端的命令，使用该客户端的账户。</li>
+<li class="">其他命令使用工具场所路由到的客户端的账户，再退到默认客户端的账户。<code>client_id</code> 既不指向已注册也不指向外部客户端的命令，执行引擎也按同样的方式路由。</li>
+<li class="">既无场所路由也无默认客户端的命令，仅当该场所下签发了唯一一个账户时才使用场所账户。</li>
+</ol>
+<p>订单列表从命令的 <code>client_id</code> 与工具中选出唯一账户。解析不出账户，或选定客户端的账户尚未进入缓存时，风控引擎以 <code>VALIDATION_FAILED</code> 拒绝订单或驳回修改，绝不回退到其他账户。持仓与挂单只在属于所选账户时，才计入减仓类检查。</p>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=whole-position-conditional-exits>整仓条件出场<a href=#whole-position-conditional-exits class=hash-link aria-label=整仓条件出场的直接链接 title=整仓条件出场的直接链接 translate=no>​</a></h3>
+<p>部分执行客户端支持条件出场：触发时刻由场所根据未平持仓决定平仓数量。Nautilus 订单仍携带一个占位数量供本地校验。<code>RiskEngineConfig</code> 与
+<code>LiveRiskEngineConfig</code> 的 <code>full_position_exit_venues</code> 设置列出的场所，其执行客户端执行这种语义。默认为空。</p>
+<p>只有以下条件全部成立，订单才符合占位数量豁免：</p>
 <ul>
-<li>请求并订阅数据。</li>
-<li>访问 <code>Cache</code>。</li>
-<li>使用 <code>Clock</code> 设置时间提醒或定时器。</li>
+<li class="">订单单独提交，不在订单列表中。</li>
+<li class="">其场所列于 <code>full_position_exit_venues</code>。</li>
+<li class="">使用受支持的期货或永续工具。</li>
+<li class="">是带触发价且 <code>close_position=true</code> 的 <code>StopMarket</code> 或 <code>MarketIfTouched</code> 订单。</li>
+<li class="">占位数量为正，且 <code>reduce_only=true</code>。</li>
+<li class="">命令、订单与关联的缓存持仓使用同一工具与持仓 ID。</li>
+<li class="">关联持仓属于<a href=#account-selection class="">所选账户</a>。</li>
+<li class="">关联持仓未平、订单方向为平仓方向，且占位数量不超过持仓数量。</li>
 </ul>
-<p>此外，执行算法还能：</p>
+<p>对符合条件出场单，风控引擎按下表处理：</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>风险检查<th>处理方式<tbody><tr><td>数量精度与为正<td>强制执行。<tr><td>价格与触发价精度及为正<td>强制执行。<tr><td>GTD 过期、交易状态限制与提交速率限制<td>强制执行。<tr><td>持仓敞口、保证金与余额<td>按减仓处理。<tr><td>工具数量上下限<td>对占位数量跳过。<tr><td>工具名义金额上下限<td>对占位名义额跳过。<tr><td>配置的 <code>max_notional_per_order</code><td>对占位名义额跳过。<tr><td>不符合条件的订单<td>照常适用全部常规风险检查。</table>
+<p>只有当下游执行客户端确实执行整仓平仓时才把场所加入白名单。受支持的配置示例见
+<a class="" href=/integrations/binance#close-position>Binance Futures 平仓订单</a>。</p>
+<div class="theme-admonition theme-admonition-warning admonition_LYZY alert alert--warning"><div class=admonitionHeading_pnFY><span class=admonitionIcon_tEzm><svg viewBox="0 0 16 16"><path fill-rule=evenodd d="M8.893 1.5c-.183-.31-.52-.5-.887-.5s-.703.19-.886.5L.138 13.499a.98.98 0 0 0 0 1.001c.193.31.53.501.886.501h13.964c.367 0 .704-.19.877-.5a1.03 1.03 0 0 0 .01-1.002L8.893 1.5zm.133 11.497H6.987v-2.003h2.039v2.003zm0-3.004H6.987V5.987h2.039v4.006z"/></svg></span>注意</div><div class=admonitionContent_ZwmI><p>模拟交易所不解释 <code>close_position</code>，也不会用未平持仓数量替换占位数量。把模拟回测场所留在 <code>full_position_exit_venues</code> 之外。回测出场请用显式数量加 <code>reduce_only</code> 建模。</div></div>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=trading-state>交易状态<a href=#trading-state class=hash-link aria-label=交易状态的直接链接 title=交易状态的直接链接 translate=no>​</a></h3>
+<p>状态的限制逐级收紧：</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>状态<th style=text-align:right>数值<th>允许的命令<tbody><tr><td><code>ACTIVE</code><td style=text-align:right>1<td>提交、修改、撤销与查询命令正常操作。<tr><td><code>REDUCING</code><td style=text-align:right>2<td>合格的单笔 reduce-only 提交、撤销与查询。<tr><td><code>HALTED</code><td style=text-align:right>3<td>仅撤销与查询。不允许新提交与修改。</table>
+<p><code>REDUCING</code> 下，单笔 <code>SubmitOrder</code> 只有全部满足以下条件才合格：</p>
 <ul>
-<li>访问中心化的 <code>Portfolio</code>。</li>
-<li>从接收到的主订单（primary/original order）生成并派生二级订单（secondary orders）。</li>
+<li class="">订单设置了 <code>reduce_only=true</code>。</li>
+<li class="">命令与订单指明同一工具。</li>
+<li class="">传入的持仓 ID 与订单在<a href=#account-selection class="">所选账户</a>上的缓存未平持仓一致。</li>
+<li class="">订单方向与持仓相反。</li>
+<li class="">提交数量不超过缓存持仓数量。</li>
 </ul>
-<p>当执行算法被注册并且系统运行时，会通过消息总线接收发送给其 <code>ExecAlgorithmId</code> 的订单（通过订单参数 <code>exec_algorithm_id</code> 指定）。订单还可能携带 <code>exec_algorithm_params</code>，其类型为 <code>dict[str, Any]</code>。</p>
-<div class="theme-admonition theme-admonition-warning admonition_lEzE alert alert--warning"><div class="admonitionHeading_aAf0"><span class="admonitionIcon_xtBN"><svg viewBox="0 0 16 16"><path fill-rule="evenodd" d="M8.893 1.5c-.183-.31-.52-.5-.887-.5s-.703.19-.886.5L.138 13.499a.98.98 0 0 0 0 1.001c.193.31.53.501.886.501h13.964c.367 0 .704-.19.877-.5a1.03 1.03 0 0 0 .01-1.002L8.893 1.5zm.133 11.497H6.987v-2.003h2.039v2.003zm0-3.004H6.987V5.987h2.039v4.006z"></path></svg></span>注意</div><div class="admonitionContent_Vfkp"><p>由于 <code>exec_algorithm_params</code> 是一个灵活的字典，务必对字典中的键值对进行充分校验（至少需确认该字典不为 <code>None</code> 且所有必要参数存在），以保证算法运行正确。</p></div></div>
-<p>接收订单会触发执行算法的 <code>on_order(...)</code> 方法。此时该订单被视为主订单（primary/original order）：</p>
-<div class="language-python codeBlockContainer_euGm theme-code-block" style="--prism-color:#393A34;--prism-background-color:#f6f8fa"><div class="codeBlockContent_zF3K"><pre tabindex="0" class="prism-code language-python codeBlock_G1mO thin-scrollbar" style="color:#393A34;background-color:#f6f8fa"><code class="codeBlockLines_QZRj"><span class="token-line" style="color:#393A34"><span class="token keyword" style="color:#00009f">from</span><span class="token plain"> nautilus_trader</span><span class="token punctuation" style="color:#393A34">.</span><span class="token plain">model</span><span class="token punctuation" style="color:#393A34">.</span><span class="token plain">orders</span><span class="token punctuation" style="color:#393A34">.</span><span class="token plain">base </span><span class="token keyword" style="color:#00009f">import</span><span class="token plain"> Order</span><br></span><span class="token-line" style="color:#393A34"><span class="token plain" style="display:inline-block"></span><br></span><span class="token-line" style="color:#393A34"><span class="token plain"></span><span class="token keyword" style="color:#00009f">def</span><span class="token plain"> </span><span class="token function" style="color:#d73a49">on_order</span><span class="token punctuation" style="color:#393A34">(</span><span class="token plain">self</span><span class="token punctuation" style="color:#393A34">,</span><span class="token plain"> order</span><span class="token punctuation" style="color:#393A34">:</span><span class="token plain"> Order</span><span class="token punctuation" style="color:#393A34">)</span><span class="token plain"> </span><span class="token operator" style="color:#393A34">-</span><span class="token operator" style="color:#393A34">&gt;</span><span class="token plain"> </span><span class="token boolean" style="color:#36acaa">None</span><span class="token punctuation" style="color:#393A34">:</span><span class="token plain"></span><br></span><span class="token-line" style="color:#393A34"><span class="token plain">    </span><span class="token comment" style="color:#999988;font-style:italic"># 在此处处理订单</span><br></span></code></pre></div></div>
-<p>当算法准备生成二级订单时，可以调用下列方法之一：</p>
+<p>订单列表与修改一律拒绝。</p>
+<p>风控引擎在把命令转发给执行层之前应用这些规则。</p>
+<div class="theme-admonition theme-admonition-warning admonition_LYZY alert alert--warning"><div class=admonitionHeading_pnFY><span class=admonitionIcon_tEzm><svg viewBox="0 0 16 16"><path fill-rule=evenodd d="M8.893 1.5c-.183-.31-.52-.5-.887-.5s-.703.19-.886.5L.138 13.499a.98.98 0 0 0 0 1.001c.193.31.53.501.886.501h13.964c.367 0 .704-.19.877-.5a1.03 1.03 0 0 0 .01-1.002L8.893 1.5zm.133 11.497H6.987v-2.003h2.039v2.003zm0-3.004H6.987V5.987h2.039v4.006z"/></svg></span>旁路交易状态检查</div><div class=admonitionContent_ZwmI><p>启用 <code>RiskEngineConfig.bypass</code> 后不再强制执行交易状态。执行客户端仍遵循
+<a class="" href=/concepts/adapters#reduce-only-execution-contract>reduce-only 要么发送要么拒绝的契约</a>。</div></div>
+<p>配置细节见
+<a href=https://nautilustrader.io/docs/python-api-latest/config.html#nautilus_trader.risk.RiskEngineConfig target=_blank rel="noopener noreferrer" class=""><code>RiskEngineConfig</code> API 参考</a>。</p>
+<h2 class="anchor anchorTargetStickyNavbar_ana5" id=execution-algorithms>执行算法<a href=#execution-algorithms class=hash-link aria-label=执行算法的直接链接 title=执行算法的直接链接 translate=no>​</a></h2>
+<p><code>ExecutionAlgorithm</code> 接收按 <code>exec_algorithm_id</code> 选中的主订单，并可将其拆分为更小的派生订单。NautilusTrader 支持自定义算法，并内置原生 Rust 实现的 TWAP。</p>
+<p>TWAP 配置、自定义算法、派生订单行为与缓存查询见
+<a class="" href=/concepts/execution/algorithms>执行算法</a>。</p>
+<h2 class="anchor anchorTargetStickyNavbar_ana5" id=cancel-all-routing>全部撤销的路由<a href=#cancel-all-routing class=hash-link aria-label=全部撤销的路由的直接链接 title=全部撤销的路由的直接链接 translate=no>​</a></h2>
+<p><code>Strategy.cancel_all_orders(...)</code> 支持限定到策略的撤销与宽范围撤销：</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th><code>strategy_only</code><th>策略产出<th>范围<th>下游路由<tbody><tr><td><code>True</code><td>每个匹配订单一个 <code>CancelOrder</code>。<td>与调用策略关联的匹配订单。<td>每个订单走各自的常规撤销路由。<tr><td><code>False</code><td>一个根 <code>CancelAllOrders</code>，即使本地没有匹配。<td>单一已解析执行客户端与账户的匹配订单。<td>执行引擎创建所需的子命令。</table>
+<p>宽模式在策略检查自己的缓存之前先行委托。因此即使 NautilusTrader 本地没有匹配订单，命令仍会到达已解析的执行客户端。这样场所的批量撤销端点可以移除场所存在但本地缓存缺失的订单。适配器提供这种端点时，单条命令还能减少撤销请求量。</p>
+<p>对本地执行客户端，<code>ExecutionEngine</code> 按以下顺序把根命令解析为恰好一个客户端：</p>
+<ol>
+<li class="">显式的 <code>client_id</code>（当其标识已注册的本地客户端时）。</li>
+<li class="">工具场所路由到的客户端。</li>
+<li class="">默认执行客户端。</li>
+</ol>
+<p>然后引擎为选定的客户端及其账户创建新的子命令：</p>
 <ul>
-<li><code>spawn_market(...)</code>（生成 <code>MARKET</code> 市价单）</li>
-<li><code>spawn_market_to_limit(...)</code>（生成 <code>MARKET_TO_LIMIT</code> 单）</li>
-<li><code>spawn_limit(...)</code>（生成 <code>LIMIT</code> 限价单）</li>
+<li class="">执行客户端一个 <code>CancelAllOrders</code>，覆盖匹配的场所订单。</li>
+<li class=""><code>OrderEmulator</code> 一个 <code>CancelAllOrders</code>，覆盖匹配的模拟订单。</li>
+<li class="">每个合格的活跃本地执行算法订单一个 <code>CancelOrder</code>。</li>
 </ul>
-<div class="theme-admonition theme-admonition-note admonition_lEzE alert alert--secondary"><div class="admonitionHeading_aAf0"><span class="admonitionIcon_xtBN"><svg viewBox="0 0 14 16"><path fill-rule="evenodd" d="M6.3 5.69a.942.942 0 0 1-.28-.7c0-.28.09-.52.28-.7.19-.18.42-.28.7-.28.28 0 .52.09.7.28.18.19.28.42.28.7 0 .28-.09.52-.28.7a1 1 0 0 1-.7.3c-.28 0-.52-.11-.7-.3zM8 7.99c-.02-.25-.11-.48-.31-.69-.2-.19-.42-.3-.69-.31H6c-.27.02-.48.13-.69.31-.2.2-.3.44-.31.69h1v3c.02.27.11.5.31.69.2.2.42.31.69.31h1c.27 0 .48-.11.69-.31.2-.19.3-.42.31-.69H8V7.98v.01zM7 2.3c-3.14 0-5.7 2.54-5.7 5.68 0 3.14 2.56 5.7 5.7 5.7s5.7-2.55 5.7-5.7c0-3.15-2.56-5.69-5.7-5.69v.01zM7 .98c3.86 0 7 3.14 7 7s-3.14 7-7 7-7-3.12-7-7 3.14-7 7-7z"></path></svg></span>备注</div><div class="admonitionContent_Vfkp"><p>未来版本可能会增加更多的订单类型以满足需求。</p></div></div>
-<p>上述方法均以主订单（primary/original <code>Order</code>）作为第一个参数。生成二级订单时，主订单的剩余数量会被减少相应的 <code>quantity</code>（这部分会成为生成订单的数量）。</p>
-<div class="theme-admonition theme-admonition-warning admonition_lEzE alert alert--warning"><div class="admonitionHeading_aAf0"><span class="admonitionIcon_xtBN"><svg viewBox="0 0 16 16"><path fill-rule="evenodd" d="M8.893 1.5c-.183-.31-.52-.5-.887-.5s-.703.19-.886.5L.138 13.499a.98.98 0 0 0 0 1.001c.193.31.53.501.886.501h13.964c.367 0 .704-.19.877-.5a1.03 1.03 0 0 0 .01-1.002L8.893 1.5zm.133 11.497H6.987v-2.003h2.039v2.003zm0-3.004H6.987V5.987h2.039v4.006z"></path></svg></span>注意</div><div class="admonitionContent_Vfkp"><p>必须确保主订单剩余数量足够（系统会对此进行校验）。</p></div></div>
-<p>当生成所需数量的二级订单并完成执行逻辑后，算法通常会在最后发送主订单本身（original order）。</p>
-<h3 class="anchor anchorWithStickyNavbar_RpWm" id="派生spawned订单">派生（spawned）订单<a href="#派生spawned订单" class="hash-link" aria-label="派生（spawned）订单的直接链接" title="派生（spawned）订单的直接链接" translate="no">​</a></h3>
-<p>所有由执行算法派生出的二级订单都会携带 <code>exec_spawn_id</code>，该值即为主订单的 <code>ClientOrderId</code>。派生订单的 <code>client_order_id</code> 则基于该主订单 ID 按下列约定生成：</p>
+<!-- -->
+<p>宽模式在扇出之前选定一个客户端，从不向所有执行客户端广播。要在多个客户端上撤销，对每个客户端各调用一次
+<code>cancel_all_orders(...)</code>。</p>
+<p>每个子命令有新的命令 ID，复制根命令的参数，与根操作关联，并把根命令记录为自身的原因。工具与可选方向过滤器应用于每条本地路由。选定的执行账户同样限定撮合引擎的撤销范围，包括 <code>SUBMITTED</code> 及其他可撤销在途状态中的订单。</p>
+<p>客户端归属适用于本地模拟订单与执行算法订单：</p>
 <ul>
-<li><code>exec_spawn_id</code>（主订单的 <code>client_order_id</code> 值）</li>
-<li><code>spawn_sequence</code>（派生订单的序号）</li>
+<li class="">已指派给其他客户端的订单保持不动。</li>
+<li class="">根命令省略 <code>client_id</code> 时，匹配的未指派订单在本地撤销前由引擎选定的客户端认领。</li>
+<li class="">根命令提供 <code>client_id</code> 时，未指派订单保持不动，因为引擎无法推断它们属于该显式客户端。</li>
+<li class="">模拟订单按其交易工具匹配，即使其触发价来自另一个工具。</li>
 </ul>
-<div class="language-text codeBlockContainer_euGm theme-code-block" style="--prism-color:#393A34;--prism-background-color:#f6f8fa"><div class="codeBlockContent_zF3K"><pre tabindex="0" class="prism-code language-text codeBlock_G1mO thin-scrollbar" style="color:#393A34;background-color:#f6f8fa"><code class="codeBlockLines_QZRj"><span class="token-line" style="color:#393A34"><span class="token plain">{exec_spawn_id}-E{spawn_sequence}</span><br></span></code></pre></div></div>
-<p>例如：<code>O-20230404-001-000-E1</code>（表示第一笔派生订单）</p>
-<div class="theme-admonition theme-admonition-note admonition_lEzE alert alert--secondary"><div class="admonitionHeading_aAf0"><span class="admonitionIcon_xtBN"><svg viewBox="0 0 14 16"><path fill-rule="evenodd" d="M6.3 5.69a.942.942 0 0 1-.28-.7c0-.28.09-.52.28-.7.19-.18.42-.28.7-.28.28 0 .52.09.7.28.18.19.28.42.28.7 0 .28-.09.52-.28.7a1 1 0 0 1-.7.3c-.28 0-.52-.11-.7-.3zM8 7.99c-.02-.25-.11-.48-.31-.69-.2-.19-.42-.3-.69-.31H6c-.27.02-.48.13-.69.31-.2.2-.3.44-.31.69h1v3c.02.27.11.5.31.69.2.2.42.31.69.31h1c.27 0 .48-.11.69-.31.2-.19.3-.42.31-.69H8V7.98v.01zM7 2.3c-3.14 0-5.7 2.54-5.7 5.68 0 3.14 2.56 5.7 5.7 5.7s5.7-2.55 5.7-5.7c0-3.15-2.56-5.69-5.7-5.69v.01zM7 .98c3.86 0 7 3.14 7 7s-3.14 7-7 7-7-3.12-7-7 3.14-7 7-7z"></path></svg></span>备注</div><div class="admonitionContent_Vfkp"><p>使用“primary / secondary（或 spawn）” 的术语是为了避免与“parent / child（父/子）”等或有（contingent）订单术语产生混淆（执行算法也可能会处理或有订单）。</p></div></div>
-<h3 class="anchor anchorWithStickyNavbar_RpWm" id="管理执行算法生成的订单">管理执行算法生成的订单<a href="#管理执行算法生成的订单" class="hash-link" aria-label="管理执行算法生成的订单的直接链接" title="管理执行算法生成的订单的直接链接" translate="no">​</a></h3>
-<p><code>Cache</code> 提供了若干方法，帮助跟踪执行算法相关的订单活动。调用下面的方法可以根据过滤条件返回符合条件的执行算法订单列表：</p>
-<div class="language-python codeBlockContainer_euGm theme-code-block" style="--prism-color:#393A34;--prism-background-color:#f6f8fa"><div class="codeBlockContent_zF3K"><pre tabindex="0" class="prism-code language-python codeBlock_G1mO thin-scrollbar" style="color:#393A34;background-color:#f6f8fa"><code class="codeBlockLines_QZRj"><span class="token-line" style="color:#393A34"><span class="token keyword" style="color:#00009f">def</span><span class="token plain"> </span><span class="token function" style="color:#d73a49">orders_for_exec_algorithm</span><span class="token punctuation" style="color:#393A34">(</span><span class="token plain"></span><br></span><span class="token-line" style="color:#393A34"><span class="token plain">    self</span><span class="token punctuation" style="color:#393A34">,</span><span class="token plain"></span><br></span><span class="token-line" style="color:#393A34"><span class="token plain">    exec_algorithm_id</span><span class="token punctuation" style="color:#393A34">:</span><span class="token plain"> ExecAlgorithmId</span><span class="token punctuation" style="color:#393A34">,</span><span class="token plain"></span><br></span><span class="token-line" style="color:#393A34"><span class="token plain">    venue</span><span class="token punctuation" style="color:#393A34">:</span><span class="token plain"> Venue </span><span class="token operator" style="color:#393A34">|</span><span class="token plain"> </span><span class="token boolean" style="color:#36acaa">None</span><span class="token plain"> </span><span class="token operator" style="color:#393A34">=</span><span class="token plain"> </span><span class="token boolean" style="color:#36acaa">None</span><span class="token punctuation" style="color:#393A34">,</span><span class="token plain"></span><br></span><span class="token-line" style="color:#393A34"><span class="token plain">    instrument_id</span><span class="token punctuation" style="color:#393A34">:</span><span class="token plain"> InstrumentId </span><span class="token operator" style="color:#393A34">|</span><span class="token plain"> </span><span class="token boolean" style="color:#36acaa">None</span><span class="token plain"> </span><span class="token operator" style="color:#393A34">=</span><span class="token plain"> </span><span class="token boolean" style="color:#36acaa">None</span><span class="token punctuation" style="color:#393A34">,</span><span class="token plain"></span><br></span><span class="token-line" style="color:#393A34"><span class="token plain">    strategy_id</span><span class="token punctuation" style="color:#393A34">:</span><span class="token plain"> StrategyId </span><span class="token operator" style="color:#393A34">|</span><span class="token plain"> </span><span class="token boolean" style="color:#36acaa">None</span><span class="token plain"> </span><span class="token operator" style="color:#393A34">=</span><span class="token plain"> </span><span class="token boolean" style="color:#36acaa">None</span><span class="token punctuation" style="color:#393A34">,</span><span class="token plain"></span><br></span><span class="token-line" style="color:#393A34"><span class="token plain">    side</span><span class="token punctuation" style="color:#393A34">:</span><span class="token plain"> OrderSide </span><span class="token operator" style="color:#393A34">=</span><span class="token plain"> OrderSide</span><span class="token punctuation" style="color:#393A34">.</span><span class="token plain">NO_ORDER_SIDE</span><span class="token punctuation" style="color:#393A34">,</span><span class="token plain"></span><br></span><span class="token-line" style="color:#393A34"><span class="token plain"></span><span class="token punctuation" style="color:#393A34">)</span><span class="token plain"> </span><span class="token operator" style="color:#393A34">-</span><span class="token operator" style="color:#393A34">&gt;</span><span class="token plain"> </span><span class="token builtin">list</span><span class="token punctuation" style="color:#393A34">[</span><span class="token plain">Order</span><span class="token punctuation" style="color:#393A34">]</span><span class="token punctuation" style="color:#393A34">:</span><br></span></code></pre></div></div>
-<p>还可以更细粒度地查询某一执行序列/派生系列的订单。调用下面的方法会返回给定 <code>exec_spawn_id</code> 的所有订单（如果存在）：</p>
-<div class="language-python codeBlockContainer_euGm theme-code-block" style="--prism-color:#393A34;--prism-background-color:#f6f8fa"><div class="codeBlockContent_zF3K"><pre tabindex="0" class="prism-code language-python codeBlock_G1mO thin-scrollbar" style="color:#393A34;background-color:#f6f8fa"><code class="codeBlockLines_QZRj"><span class="token-line" style="color:#393A34"><span class="token keyword" style="color:#00009f">def</span><span class="token plain"> </span><span class="token function" style="color:#d73a49">orders_for_exec_spawn</span><span class="token punctuation" style="color:#393A34">(</span><span class="token plain">self</span><span class="token punctuation" style="color:#393A34">,</span><span class="token plain"> exec_spawn_id</span><span class="token punctuation" style="color:#393A34">:</span><span class="token plain"> ClientOrderId</span><span class="token punctuation" style="color:#393A34">)</span><span class="token plain"> </span><span class="token operator" style="color:#393A34">-</span><span class="token operator" style="color:#393A34">&gt;</span><span class="token plain"> </span><span class="token builtin">list</span><span class="token punctuation" style="color:#393A34">[</span><span class="token plain">Order</span><span class="token punctuation" style="color:#393A34">]</span><span class="token punctuation" style="color:#393A34">:</span><br></span></code></pre></div></div>
-<div class="theme-admonition theme-admonition-note admonition_lEzE alert alert--secondary"><div class="admonitionHeading_aAf0"><span class="admonitionIcon_xtBN"><svg viewBox="0 0 14 16"><path fill-rule="evenodd" d="M6.3 5.69a.942.942 0 0 1-.28-.7c0-.28.09-.52.28-.7.19-.18.42-.28.7-.28.28 0 .52.09.7.28.18.19.28.42.28.7 0 .28-.09.52-.28.7a1 1 0 0 1-.7.3c-.28 0-.52-.11-.7-.3zM8 7.99c-.02-.25-.11-.48-.31-.69-.2-.19-.42-.3-.69-.31H6c-.27.02-.48.13-.69.31-.2.2-.3.44-.31.69h1v3c.02.27.11.5.31.69.2.2.42.31.69.31h1c.27 0 .48-.11.69-.31.2-.19.3-.42.31-.69H8V7.98v.01zM7 2.3c-3.14 0-5.7 2.54-5.7 5.68 0 3.14 2.56 5.7 5.7 5.7s5.7-2.55 5.7-5.7c0-3.15-2.56-5.69-5.7-5.69v.01zM7 .98c3.86 0 7 3.14 7 7s-3.14 7-7 7-7-3.12-7-7 3.14-7 7-7z"></path></svg></span>备注</div><div class="admonitionContent_Vfkp"><p>返回结果中也会包含主订单本身（original/primary order）。</p></div></div>
-<h2 class="anchor anchorWithStickyNavbar_RpWm" id="自有订单簿own-order-books">自有订单簿（Own order books）<a href="#自有订单簿own-order-books" class="hash-link" aria-label="自有订单簿（Own order books）的直接链接" title="自有订单簿（Own order books）的直接链接" translate="no">​</a></h2>
-<p>自有订单簿是仅跟踪自身（用户）委托、按价位组织的 L3 级别订单簿，独立于交易所的公共订单簿维护。</p>
-<h3 class="anchor anchorWithStickyNavbar_RpWm" id="目的">目的<a href="#目的" class="hash-link" aria-label="目的的直接链接" title="目的的直接链接" translate="no">​</a></h3>
-<p>自有订单簿的用途包括：</p>
+<p>显式配置的外部执行客户端原样收到根命令，该边界之后所需的扇出由外部客户端自行负责。</p>
+<h2 class="anchor anchorTargetStickyNavbar_ana5" id=command-outcomes>命令结果<a href=#command-outcomes class=hash-link aria-label=命令结果的直接链接 title=命令结果的直接链接 translate=no>​</a></h2>
+<p>执行命令区分确定的本地失败、确定的场所结果与未知的实时结果。未知结果保持在途，等待流更新、轮询、查询或对账。重试耗尽后可以稍后施加合成终态对账事件。</p>
+<p>证据类别、投递与重试限制、持久化边界与终态对账来源见
+<a class="" href=/concepts/execution/policies#command-outcomes>执行策略</a>。持续对账流程见
+<a class="" href=/concepts/execution/reconciliation#runtime-checks>运行时检查</a>。</p>
+<h2 class="anchor anchorTargetStickyNavbar_ana5" id=order-denied-reasons>订单拒绝原因<a href=#order-denied-reasons class=hash-link aria-label=订单拒绝原因的直接链接 title=订单拒绝原因的直接链接 translate=no>​</a></h2>
+<p>本地拒绝（<code>OrderDenied</code>）携带标准化的 <code>CATEGORY_CONDITION</code> 原因代码，可附诊断后缀。只有开头的代码是规范的。消息有以下几种形式：</p>
 <ul>
-<li>实时监控你的委托在交易所公共订单簿中的状态。</li>
-<li>在提交前通过检查某个价位的可用流动性来验证下单的合理性。</li>
-<li>帮助防止自成交（self-trading），识别已存在自身委托的价位。</li>
-<li>支持依赖队列位置（queue position）的高级订单管理策略。</li>
-<li>在实盘交易时，支持内部状态与交易所状态的对账。</li>
+<li class="">无需诊断后缀时：<code>CODE</code>。</li>
+<li class="">单个类型值或自由文本诊断：<code>CODE: value</code>。</li>
+<li class="">多个类型值需要区分：<code>CODE: key=value, key=value</code>。</li>
+<li class="">一个类型值后接自由文本诊断：<code>CODE: value; free text</code>。</li>
 </ul>
-<h3 class="anchor anchorWithStickyNavbar_RpWm" id="生命周期">生命周期<a href="#生命周期" class="hash-link" aria-label="生命周期的直接链接" title="生命周期的直接链接" translate="no">​</a></h3>
-<p>自有订单簿按合约维度维护，并会在订单生命周期中自动更新：订单提交或被接受时加入；修改时更新；成交、取消、拒单或过期时移除。</p>
-<p>只有带价格的订单才会出现在自有订单簿中。市价单和其它没有显式价格的订单类型无法按价位定位，因此不纳入自有订单簿。</p>
-<h3 class="anchor anchorWithStickyNavbar_RpWm" id="安全的取消查询safe-cancellation-queries">安全的取消查询（Safe cancellation queries）<a href="#安全的取消查询safe-cancellation-queries" class="hash-link" aria-label="安全的取消查询（Safe cancellation queries）的直接链接" title="安全的取消查询（Safe cancellation queries）的直接链接" translate="no">​</a></h3>
-<p>在查询自有订单簿以获取要取消的订单时，应使用一个排除 <code>PENDING_CANCEL</code> 状态的 <code>status</code> 过滤器，以避免对已在取消中的订单再次发起取消请求。</p>
-<div class="theme-admonition theme-admonition-warning admonition_lEzE alert alert--warning"><div class="admonitionHeading_aAf0"><span class="admonitionIcon_xtBN"><svg viewBox="0 0 16 16"><path fill-rule="evenodd" d="M8.893 1.5c-.183-.31-.52-.5-.887-.5s-.703.19-.886.5L.138 13.499a.98.98 0 0 0 0 1.001c.193.31.53.501.886.501h13.964c.367 0 .704-.19.877-.5a1.03 1.03 0 0 0 .01-1.002L8.893 1.5zm.133 11.497H6.987v-2.003h2.039v2.003zm0-3.004H6.987V5.987h2.039v4.006z"></path></svg></span>注意</div><div class="admonitionContent_Vfkp"><p>在状态过滤器中包含 <code>PENDING_CANCEL</code> 可能导致：</p><ul>
-<li>对同一笔订单发起重复的取消请求。</li>
-<li>造成未平仓订单计数虚增（<code>PENDING_CANCEL</code> 状态的订单在确认取消前仍被视为“未平仓”）。</li>
-<li>当多个策略尝试取消同一订单时，可能导致订单状态爆炸（state explosion）。</li>
-</ul></div></div>
-<p>很多方法暴露了可选参数 <code>accepted_buffer_ns</code>，这是一个基于时间的保护窗口，仅返回那些其 <code>ts_accepted</code> 至少早于当前时间该缓冲窗口时长（以纳秒计）的订单。尚未被场所接受的订单其 <code>ts_accepted = 0</code>，因此在缓冲窗口过去后才会被包含。若需要排除这些在途订单（inflight orders），必须同时配合显式的状态过滤（例如只包含 <code>ACCEPTED</code> / <code>PARTIALLY_FILLED</code>）。</p>
-<h3 class="anchor anchorWithStickyNavbar_RpWm" id="审计">审计<a href="#审计" class="hash-link" aria-label="审计的直接链接" title="审计的直接链接" translate="no">​</a></h3>
-<p>在实盘交易中，可以定期将自有订单簿与 <code>Cache</code> 的订单索引进行审计，以确保一致性。审计机制会验证已关闭的订单是否被正确移除，以及在场所延迟窗口期内已提交但尚未被接受的在途订单仍被追踪。</p>
-<p>审计周期可以通过实盘交易配置中的 <code>own_books_audit_interval_secs</code> 参数进行设置。</p></div><footer class="theme-doc-footer docusaurus-mt-lg"><div class="row margin-top--sm theme-doc-footer-edit-meta-row"><div class="col"><a href="https://github.com/Aloento/NautilusTraderDoc/tree/main/docs/concepts/execution.md" target="_blank" rel="noopener noreferrer" class="theme-edit-this-page"><svg fill="currentColor" height="20" width="20" viewBox="0 0 40 40" class="iconEdit_F7ru" aria-hidden="true"><g><path d="m34.5 11.7l-3 3.1-6.3-6.3 3.1-3q0.5-0.5 1.2-0.5t1.1 0.5l3.9 3.9q0.5 0.4 0.5 1.1t-0.5 1.2z m-29.5 17.1l18.4-18.5 6.3 6.3-18.4 18.4h-6.3v-6.2z"></path></g></svg>编辑此页</a></div><div class="col lastUpdated_GNoA"></div></div></footer></article><nav class="docusaurus-mt-lg pagination-nav" aria-label="文件选项卡"><a class="pagination-nav__link pagination-nav__link--prev" href="/concepts/data"><div class="pagination-nav__sublabel">上一页</div><div class="pagination-nav__label">数据</div></a><a class="pagination-nav__link pagination-nav__link--next" href="/concepts/instruments"><div class="pagination-nav__sublabel">下一页</div><div class="pagination-nav__label">合约与交易品种</div></a></nav></div></div><div class="col col--3"><div class="tableOfContents_pg_n thin-scrollbar theme-doc-toc-desktop"><ul class="table-of-contents table-of-contents__left-border"><li><a href="#执行流程" class="table-of-contents__link toc-highlight">执行流程</a></li><li><a href="#订单管理系统oms" class="table-of-contents__link toc-highlight">订单管理系统（OMS）</a><ul><li><a href="#oms-配置说明" class="table-of-contents__link toc-highlight">OMS 配置说明</a></li></ul></li><li><a href="#风控引擎risk-engine" class="table-of-contents__link toc-highlight">风控引擎（Risk engine）</a><ul><li><a href="#交易状态trading-state" class="table-of-contents__link toc-highlight">交易状态（Trading state）</a></li></ul></li><li><a href="#执行算法execution-algorithms" class="table-of-contents__link toc-highlight">执行算法（Execution algorithms）</a><ul><li><a href="#twap时间加权平均价格" class="table-of-contents__link toc-highlight">TWAP（时间加权平均价格）</a></li><li><a href="#编写自定义执行算法" class="table-of-contents__link toc-highlight">编写自定义执行算法</a></li><li><a href="#派生spawned订单" class="table-of-contents__link toc-highlight">派生（spawned）订单</a></li><li><a href="#管理执行算法生成的订单" class="table-of-contents__link toc-highlight">管理执行算法生成的订单</a></li></ul></li><li><a href="#自有订单簿own-order-books" class="table-of-contents__link toc-highlight">自有订单簿（Own order books）</a><ul><li><a href="#目的" class="table-of-contents__link toc-highlight">目的</a></li><li><a href="#生命周期" class="table-of-contents__link toc-highlight">生命周期</a></li><li><a href="#安全的取消查询safe-cancellation-queries" class="table-of-contents__link toc-highlight">安全的取消查询（Safe cancellation queries）</a></li><li><a href="#审计" class="table-of-contents__link toc-highlight">审计</a></li></ul></li></ul></div></div></div></div></main></div></div></div><footer class="theme-layout-footer footer footer--dark"><div class="container container-fluid"><div class="row footer__links"><div class="theme-layout-footer-column col footer__col"><div class="footer__title"></div><ul class="footer__items clean-list"><li class="footer__item"><a href="https://github.com/nautechsystems/nautilus_trader" target="_blank" rel="noopener noreferrer" class="footer__link-item">Official GitHub<svg width="13.5" height="13.5" aria-label="(opens in new tab)" class="iconExternalLink_KfBJ"><use href="#theme-svg-external-link"></use></svg></a></li><li class="footer__item"><a href="https://nautilustrader.io/docs" target="_blank" rel="noopener noreferrer" class="footer__link-item">Official Documentation<svg width="13.5" height="13.5" aria-label="(opens in new tab)" class="iconExternalLink_KfBJ"><use href="#theme-svg-external-link"></use></svg></a></li></ul></div></div><div class="footer__bottom text--center"><div class="footer__copyright">© 2025 Nautech Systems Pty Ltd. All rights reserved.</div></div></div></footer></div>
-</body>
-</html>
+<p>下表覆盖执行算法与客户端发出的本地拒绝，以及风控引擎和执行引擎发出的拒绝。这些代码是本地拒绝订单的权威依据。</p>
+<p><code>OrderRejected</code> 的原因取决于来源：</p>
+<ul>
+<li class=""><strong>场所确认的拒绝</strong>：携带场所提供的含义。适配器在发出前去掉协议包装并限制不可信的场所文本，但不将其替换为标准化的本地拒绝代码。</li>
+<li class=""><strong>合成对账拒绝</strong>：使用
+<a class="" href=/concepts/execution/policies#terminal-reconciliation-provenance>终态对账来源</a>下记录的原因。</li>
+</ul>
+<p>价格与数量检查也可在 <code>OrderModifyRejected</code> 上发出这些代码开头的理由：</p>
+<ul>
+<li class=""><code>PRICE_PRECISION_EXCEEDS_MAXIMUM</code></li>
+<li class=""><code>PRICE_NOT_POSITIVE</code></li>
+<li class=""><code>QUANTITY_PRECISION_EXCEEDS_MAXIMUM</code></li>
+<li class=""><code>QUANTITY_EXCEEDS_MAXIMUM</code></li>
+<li class=""><code>QUANTITY_BELOW_MINIMUM</code></li>
+</ul>
+<p>价格类原因中，<code>field</code> 为 <code>PRICE</code> 或 <code>TRIGGER_PRICE</code>，指明被拒绝的命令字段。其他修改拒绝原因仍为自由格式，
+<code>OrderDeniedCode</code> 不对其分类。</p>
+<p><code>OrderRejected.due_post_only</code> 仅当场所证据证明 post-only 订单会穿越或立即匹配时才是 <code>true</code>，其他场所拒绝保持 <code>false</code>。</p>
+<!-- -->
+<!-- -->
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>代码<th>说明<tbody><tr><td><code>PRICE_PRECISION_EXCEEDS_MAXIMUM</code><td>价格精度超过工具上限。<tr><td><code>PRICE_NOT_POSITIVE</code><td>价格不为正。<tr><td><code>QUANTITY_PRECISION_EXCEEDS_MAXIMUM</code><td>数量精度超过工具上限。<tr><td><code>QUANTITY_CONVERSION_FAILED</code><td>订单数量无法转换为风控检查所需形式。<tr><td><code>QUANTITY_EXCEEDS_MAXIMUM</code><td>有效订单数量超过工具上限。<tr><td><code>QUANTITY_BELOW_MINIMUM</code><td>有效订单数量低于工具下限。<tr><td><code>INVALID_MAX_NOTIONAL_PER_ORDER</code><td>配置的单笔最大名义金额非法。<tr><td><code>MISSING_EXPIRE_TIME</code><td>GTD 订单缺少过期时间。<tr><td><code>EXPIRE_TIME_IN_PAST</code><td>订单的过期时间在过去。<tr><td><code>MISSING_TRAILING_OFFSET_TYPE</code><td>订单缺少必需的追踪偏移类型。<tr><td><code>UNSUPPORTED_TRAILING_OFFSET_TYPE</code><td>订单的追踪偏移类型不受支持。<tr><td><code>MISSING_TRIGGER_TYPE</code><td>订单缺少必需的触发类型。<tr><td><code>MISSING_TRAILING_OFFSET</code><td>订单缺少必需的追踪偏移。<tr><td><code>INSTRUMENT_NOT_FOUND</code><td>缓存中未找到该金融工具。<tr><td><code>POSITION_NOT_FOUND</code><td>未找到 reduce-only 订单对应的持仓。<tr><td><code>MARKET_PRICE_UNAVAILABLE</code><td>订单风控检查没有可用市场价格。<tr><td><code>TRAILING_STOP_CALCULATION_FAILED</code><td>无法计算追踪止损触发价。<tr><td><code>NOTIONAL_CALCULATION_FAILED</code><td>无法计算订单名义金额。<tr><td><code>NOTIONAL_BELOW_MINIMUM</code><td>订单名义金额低于工具下限。<tr><td><code>NOTIONAL_EXCEEDS_MAXIMUM</code><td>订单名义金额超过工具上限。<tr><td><code>NOTIONAL_EXCEEDS_MAX_PER_ORDER</code><td>订单名义金额超过配置的单笔上限。<tr><td><code>NOTIONAL_EXCEEDS_FREE_BALANCE</code><td>订单名义金额超过账户可用余额。<tr><td><code>INITIAL_MARGIN_CALCULATION_FAILED</code><td>无法计算订单初始保证金。<tr><td><code>INITIAL_MARGIN_EXCEEDS_FREE_BALANCE</code><td>订单初始保证金超过账户可用余额。<tr><td><code>BETTING_BALANCE_LOCKED_CALCULATION_FAILED</code><td>无法计算投注订单需锁定的余额。<tr><td><code>CUMULATIVE_NOTIONAL_EXCEEDS_FREE_BALANCE</code><td>累计订单名义金额超过账户可用余额。<tr><td><code>CUMULATIVE_INITIAL_MARGIN_CALCULATION_FAILED</code><td>无法计算累计初始保证金。<tr><td><code>CUMULATIVE_INITIAL_MARGIN_EXCEEDS_FREE_BALANCE</code><td>累计初始保证金超过账户可用余额。<tr><td><code>REDUCE_ONLY_WOULD_INCREASE_POSITION</code><td>reduce-only 订单将增加持仓。<tr><td><code>ORDER_LIST_INCOMPLETE</code><td>缓存中订单列表缺少成员订单。<tr><td><code>ORDER_LIST_DENIED</code><td>订单因其订单列表未通过风控检查而被拒绝。<tr><td><code>TRADING_HALTED</code><td>交易已暂停；新提交与修改被拒绝。<tr><td><code>TRADING_STATE_REDUCING</code><td>交易处于只减仓状态；仅允许合格的 reduce-only 提交。<tr><td><code>RATE_LIMIT_EXCEEDED</code><td>超出订单提交速率限制。<tr><td><code>STREAM_RECONCILING</code><td>执行流不可用或正在恢复；恢复后重试。<tr><td><code>NO_EXECUTION_CLIENT</code><td>未找到处理该路由命令的执行客户端。<tr><td><code>CLIENT_VENUE_MISMATCH</code><td>执行客户端不处理该订单的场所。<tr><td><code>SUBMIT_FAILED</code><td>向执行客户端提交订单失败。<tr><td><code>INVALID_CLIENT_ORDER_ID</code><td>客户端订单 ID 对该场所非法。<tr><td><code>INVALID_POSITION_ID</code><td>传入的持仓 ID 对该订单提交非法。<tr><td><code>UNSUPPORTED_ORDER_LIST</code><td>场所不支持所请求的订单列表。<tr><td><code>UNSUPPORTED_ORDER_TYPE</code><td>订单类型不受支持。<tr><td><code>UNSUPPORTED_REDUCE_ONLY</code><td>执行客户端或场所不支持所请求的 reduce-only 指令。<tr><td><code>UNSUPPORTED_TIME_IN_FORCE</code><td>订单的有效期类型不受支持。<tr><td><code>UNSUPPORTED_TP_SL</code><td>场所不支持所请求的止盈/止损参数。<tr><td><code>VALIDATION_FAILED</code><td>订单在提交前的校验失败。</table>
+<!-- -->
+<h2 class="anchor anchorTargetStickyNavbar_ana5" id=own-order-books>自有订单簿<a href=#own-order-books class=hash-link aria-label=自有订单簿的直接链接 title=自有订单簿的直接链接 translate=no>​</a></h2>
+<p>启用 <code>manage_own_order_books</code> 后，<code>ExecutionEngine</code> 为每个工具维护自己挂单的逐笔委托（MBO/L3）视图。策略可以把它从公开订单簿中扣减，估计净可用流动性。生命周期、查询、过滤与审计见<a class="" href=/concepts/order_book#own-order-book>自有订单簿</a>。</p>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=safe-cancellation-queries>安全的撤销查询<a href=#safe-cancellation-queries class=hash-link aria-label=安全的撤销查询的直接链接 title=安全的撤销查询的直接链接 translate=no>​</a></h3>
+<p>查询自有订单簿寻找撤销候选时，<code>status</code> 过滤器要排除 <code>PENDING_CANCEL</code>。</p>
+<div class="theme-admonition theme-admonition-warning admonition_LYZY alert alert--warning"><div class=admonitionHeading_pnFY><span class=admonitionIcon_tEzm><svg viewBox="0 0 16 16"><path fill-rule=evenodd d="M8.893 1.5c-.183-.31-.52-.5-.887-.5s-.703.19-.886.5L.138 13.499a.98.98 0 0 0 0 1.001c.193.31.53.501.886.501h13.964c.367 0 .704-.19.877-.5a1.03 1.03 0 0 0 .01-1.002L8.893 1.5zm.133 11.497H6.987v-2.003h2.039v2.003zm0-3.004H6.987V5.987h2.039v4.006z"/></svg></span>注意</div><div class=admonitionContent_ZwmI><p>包含 <code>PENDING_CANCEL</code> 可能发出重复撤销请求，并反复选中已在等待确认的订单。</div></div>
+<h2 class="anchor anchorTargetStickyNavbar_ana5" id=overfills>超量成交<a href=#overfills class=hash-link aria-label=超量成交的直接链接 title=超量成交的直接链接 translate=no>​</a></h2>
+<p><strong>超量成交</strong>（overfill）指订单累计成交量超过其原始数量。例如 100 单位的订单累计成交 110 单位，超量 10 单位。</p>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=how-overfills-occur>超量成交如何发生<a href=#how-overfills-occur class=hash-link aria-label=超量成交如何发生的直接链接 title=超量成交如何发生的直接链接 translate=no>​</a></h3>
+<p>上报数量超过订单数量时，引擎观察到超量成交。它可能代表真实的场所结果、不同 trade ID 下的重复投递，或场所报告不一致。仅凭数量无法定位原因。</p>
+<p>实时成交可以经两个通道到达：</p>
+<ul>
+<li class="">经 WebSocket 到达的实时成交事件。</li>
+<li class="">周期性对账：向场所轮询成交历史与持仓状态。</li>
+</ul>
+<p>稳定的 <code>trade_id</code> 让引擎跨两个通道对同一笔成交去重。若同一逻辑成交带着不同 ID 到达，引擎把报告当作不同成交处理。配置细节见
+<a class="" href=/how_to/configure_live_trading#continuous-reconciliation>持续对账</a>。</p>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=system-behavior>系统行为<a href=#system-behavior class=hash-link aria-label=系统行为的直接链接 title=系统行为的直接链接 translate=no>​</a></h3>
+<p><code>ExecutionEngine</code> 在应用每笔成交事件前检查潜在超量：把订单当前 <code>filled_qty</code> 加上新来的 <code>last_qty</code>，与原始 <code>quantity</code> 比较。</p>
+<p><code>allow_overfills</code> 配置项（默认：<code>False</code>）控制超量的处理方式：</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th><code>allow_overfills</code><th>行为<tbody><tr><td><code>False</code><td>记录日志并拒绝该成交。独立的对账成交可能先抬高数量。<tr><td><code>True</code><td>记录警告、应用成交，并把超出部分记入 <code>overfill_qty</code>。</table>
+<p><code>allow_overfills</code> 为 false 且执行客户端允许该超量时，引擎把订单数量抬高到"已成交量加这笔成交"，然后应用该成交；已全成的订单不抬高。适配器成交事件、随订单报告打包的成交、以及 live-manager 投影的成交不走这次抬高。</p>
+<p>允许超量时，订单的 <code>overfill_qty</code> 字段跟踪超出数量。订单迁移为 <code>FILLED</code> 状态，<code>leaves_qty</code> 钳制为零。</p>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=duplicate-fill-detection>重复成交检测<a href=#duplicate-fill-detection class=hash-link aria-label=重复成交检测的直接链接 title=重复成交检测的直接链接 translate=no>​</a></h3>
+<p><code>Order</code> 模型对每个 <code>trade_id</code> 只允许一笔带数量的成交。以该成交最新记录价格重复的成交作为重复被拒绝。以新价格重复的成交只重述该笔计入 <code>avg_px</code> 的价格，不改变数量、状态或原始存储的成交记录。</p>
+<h4 class="anchor anchorTargetStickyNavbar_ana5" id=core-engine-path>核心引擎路径<a href=#core-engine-path class=hash-link aria-label=核心引擎路径的直接链接 title=核心引擎路径的直接链接 translate=no>​</a></h4>
+<p>应用成交前，<code>ExecutionEngine</code> 调用 <code>Order.is_duplicate_fill()</code>，对该 <code>trade_id</code> 的最新成交比较：</p>
+<ul>
+<li class=""><code>trade_id</code></li>
+<li class=""><code>order_side</code></li>
+<li class=""><code>last_px</code></li>
+<li class=""><code>last_qty</code></li>
+</ul>
+<p>完全一致时跳过并警告。<code>trade_id</code> 相同但价格不同，视为价格重述：订单重述自身均价，引擎重述持仓均价，都不施加数量。其他字段不一致时，<code>Order.apply()</code> 拒绝这个被复用的 ID，引擎记录日志并丢弃该成交。</p>
+<h4 class="anchor anchorTargetStickyNavbar_ana5" id=reconciliation-path>对账路径<a href=#reconciliation-path class=hash-link aria-label=对账路径的直接链接 title=对账路径的直接链接 translate=no>​</a></h4>
+<p>对账路径在生成 <code>OrderFilled</code> 事件之前先检查 <code>trade_id</code>。该 ID 已存在于订单上时直接丢弃报告，不论其价格或数量。</p>
+<p>合成与推断的对账成交使用确定性 ID。重启后重放同样的输入会产生同样的 <code>trade_id</code>，从而被去重。</p>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=declined-fill-notification>被拒成交的通知<a href=#declined-fill-notification class=hash-link aria-label=被拒成交的通知的直接链接 title=被拒成交的通知的直接链接 translate=no>​</a></h3>
+<p><code>ExecutionEngine</code> 拒绝（而非应用）<code>OrderFilled</code> 或 <code>OrderFillVoided</code> 时，会原样发布到 <code>events.order_fill_declined.{instrument_id}</code>。例如重复成交、超量成交，或找不到对应订单的事件。需要跟踪自己成交与更正是否被应用的适配器可以订阅该主题。</p>
+<p>每个拒绝点都会记录原因，但发布的事件不携带原因。对账投影（只更新订单）不在此主题发布。</p>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=configuration>配置<a href=#configuration class=hash-link aria-label=配置的直接链接 title=配置的直接链接 translate=no>​</a></h3>
+<p>实时交易中，在 <code>LiveExecutionEngineConfig</code> 启用超量容忍：</p>
+<div class="language-python codeBlockContainer_eTMR theme-code-block" style=--prism-color:#393A34;--prism-background-color:#f6f8fa><div class=codeBlockContent_hafM><pre tabindex=0 class="prism-code language-python codeBlock_IMvC thin-scrollbar" style=color:#393A34;background-color:#f6f8fa><code class=codeBlockLines_gZDW><div class=token-line style=color:#393A34><span class="token keyword" style=color:#00009f>from</span><span class="token plain"> nautilus_trader</span><span class="token punctuation" style=color:#393A34>.</span><span class="token plain">config </span><span class="token keyword" style=color:#00009f>import</span><span class="token plain"> LiveExecutionEngineConfig</span><br/></div><div class=token-line style=color:#393A34><span class="token plain" style=display:inline-block></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">config </span><span class="token operator" style=color:#393A34>=</span><span class="token plain"> LiveExecutionEngineConfig</span><span class="token punctuation" style=color:#393A34>(</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    allow_overfills</span><span class="token operator" style=color:#393A34>=</span><span class="token boolean" style=color:#36acaa>True</span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain"></span><span class="token punctuation" style=color:#393A34>)</span><br/></div></code></pre></div></div>
+<div class="theme-admonition theme-admonition-warning admonition_LYZY alert alert--warning"><div class=admonitionHeading_pnFY><span class=admonitionIcon_tEzm><svg viewBox="0 0 16 16"><path fill-rule=evenodd d="M8.893 1.5c-.183-.31-.52-.5-.887-.5s-.703.19-.886.5L.138 13.499a.98.98 0 0 0 0 1.001c.193.31.53.501.886.501h13.964c.367 0 .704-.19.877-.5a1.03 1.03 0 0 0 .01-1.002L8.893 1.5zm.133 11.497H6.987v-2.003h2.039v2.003zm0-3.004H6.987V5.987h2.039v4.006z"/></svg></span>注意</div><div class=admonitionContent_ZwmI><p>该设置要依据场所的执行契约来选。默认 <code>False</code> 保护本地状态，但场所的合法超量成交后可能留下差异。<code>True</code> 会应用超出数量，但不能替代重复成交检测。用
+<a class="" href=/concepts/execution/reconciliation>执行对账</a>检测差异。</div></div>
+<h2 class="anchor anchorTargetStickyNavbar_ana5" id=fill-corrections>成交更正<a href=#fill-corrections class=hash-link aria-label=成交更正的直接链接 title=成交更正的直接链接 translate=no>​</a></h2>
+<p>部分场所可以在事后削减或作废一笔成交。Nautilus 将其记录为
+<a class="" href=/concepts/events/order_fill_voided><code>OrderFillVoided</code></a> 事件，绝不记为反向成交。事件标识原始成交，并携带累计作废数量与手续费更正。</p>
+<p>执行引擎重建受影响的订单与持仓，刷新组合的持仓与盈亏缓存，然后把更正发布给策略和执行算法。支持成交更正的适配器在作废后会请求权威的账户刷新。</p>
+<p>适配器必须在重开的更正、或使订单保持可执行的部分更正之前，发布被引用的成交。本地没有成交时，非重开的更正让整笔订单进入终态，即使 <code>voided_qty</code> 小于订单数量。之后挂单状态报告不会重开 <code>VOIDED</code>。完整契约见
+<a class="" href=/concepts/events/order_fill_voided#contract><code>OrderFillVoided</code> 契约</a>。</p>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=how-voided-fills-occur>成交作废的成因<a href=#how-voided-fills-occur class=hash-link aria-label=成交作废的成因的直接链接 title=成交作废的成因的直接链接 translate=no>​</a></h3>
+<p>作废是场所对自己已上报成交的动作。各资产类别反复出现下列成因：</p>
+<ul>
+<li class=""><strong>错误执行审查</strong>：场所撤销与成交时点市场状况明显不符的成交，也撤销因交易所系统故障产生的成交。</li>
+<li class=""><strong>结算失败</strong>：已撮合的交易未能结算，成交从未产生经济效力。</li>
+<li class=""><strong>事件作废</strong>：底层事件被放弃或竞争对手撤出，已撮合的仓位不再承载敞口。</li>
+<li class=""><strong>交易后重述</strong>：场所在清算中重述成交的数量或手续费。</li>
+</ul>
+<p>场所价格调整使用一条新 <code>OrderFilled</code>：同一 <code>trade_id</code>、新价格。它重述成交的记账价格而不改变撮合数量。<code>OrderFillVoided</code> 本身更正的是数量，不是价格。</p>
+<p>断点（break）到达客户端的方式因场所而异。FIX 场所通过
+<a href=https://www.onixs.biz/fix-dictionary/5.0.sp2/tagnum_150.html target=_blank rel="noopener noreferrer" class=""><code>ExecType &lt;150></code></a> 的
+<code>H</code>（trade cancel）和 <code>G</code>（trade correct）值传递。带外通知的场所，其断点要靠
+<a class="" href=/concepts/execution/reconciliation>执行对账</a>浮出水面。</p>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=venue-references>场所参考<a href=#venue-references class=hash-link aria-label=场所参考的直接链接 title=场所参考的直接链接 translate=no>​</a></h3>
+<p>各场所公布其行动条件：</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>场所<th>机制<th>参考<tbody><tr><td>Nasdaq<td>明显错误交易（Rule 11890）。<td><a href="https://www.nasdaqtrader.com/Trader.aspx?id=ClearlyErroneous" target=_blank rel="noopener noreferrer" class="">明显错误交易政策</a>。<tr><td>NYSE<td>明显错误成交（Rule 7.10）。<td><a href=https://www.nyse.com/trade/cee target=_blank rel="noopener noreferrer" class="">明显错误成交审查</a>。<tr><td>Cboe 美股指<td>明显错误成交（BZX Rule 11.17）。<td><a href=https://www.cboe.com/us/equities/trading/cee_form/ target=_blank rel="noopener noreferrer" class="">明显错误成交表单</a>。<tr><td>CME Group<td>交易取消与价格调整（Rule 588）。<td><a href=https://www.cmegroup.com/rulebook/CME/I/5/5.pdf target=_blank rel="noopener noreferrer" class="">CME 规则手册第 5 章</a>。<tr><td>Betfair<td>作废注单，按累计作废数量（<code>sv</code>）上报。<td><a href=https://support.developer.betfair.com/hc/en-us/articles/360000391492-How-are-void-bets-treated-by-the-Stream-API target=_blank rel="noopener noreferrer" class="">Stream API 的作废注单</a>。<tr><td>Polymarket<td>链上回滚或重组后的 <code>FAILED</code> 成交状态。<td><a href=https://docs.polymarket.com/developers/CLOB/websocket/user-channel target=_blank rel="noopener noreferrer" class="">用户频道</a>。</table>
+<p>Nautilus 适配器在场所通过其所订阅的流发布作废时发出 <code>OrderFillVoided</code>。受支持的适配器与来源：</p>
+<ul>
+<li class=""><a class="" href=/integrations/betfair#voided-fills>Betfair</a>：订单变更消息的 <code>sv</code> 字段。</li>
+<li class=""><a class="" href=/integrations/polymarket#trades>Polymarket</a>：用户频道的成交状态。</li>
+</ul>
+<h2 class="anchor anchorTargetStickyNavbar_ana5" id=related-guides>相关指南<a href=#related-guides class=hash-link aria-label=相关指南的直接链接 title=相关指南的直接链接 translate=no>​</a></h2>
+<ul>
+<li class=""><a class="" href=/concepts/events/>事件</a>：订单与持仓事件类型及分发。</li>
+<li class=""><a class="" href=/concepts/execution/algorithms>执行算法</a>：TWAP、自定义算法与派生订单。</li>
+<li class=""><a class="" href=/concepts/execution/policies>执行策略</a>：投递、状态、持久化与恢复
+边界。</li>
+<li class=""><a class="" href=/concepts/execution/reconciliation>执行对账</a>：实时状态恢复与运行时一致性检查。</li>
+<li class=""><a class="" href=/concepts/order_book>订单簿</a>：公开与自有订单簿行为。</li>
+<li class=""><a class="" href=/concepts/orders/>订单</a>：订单类型与管理。</li>
+<li class=""><a class="" href=/concepts/positions>持仓</a>：由成交驱动的持仓跟踪。</li>
+<li class=""><a class="" href=/concepts/strategies>策略</a>：策略的订单提交。</li>
+</ul></div><footer class="theme-doc-footer docusaurus-mt-lg"><div class="row margin-top--sm theme-doc-footer-edit-meta-row"><div class="col noPrint_MRkS"><a href=https://github.com/Aloento/NautilusTraderDoc/tree/main/docs/concepts/execution/index.md target=_blank rel="noopener noreferrer" class=theme-edit-this-page><svg fill=currentColor height=20 width=20 viewBox="0 0 40 40" class=iconEdit_RPSQ aria-hidden=true><g><path d="m34.5 11.7l-3 3.1-6.3-6.3 3.1-3q0.5-0.5 1.2-0.5t1.1 0.5l3.9 3.9q0.5 0.4 0.5 1.1t-0.5 1.2z m-29.5 17.1l18.4-18.5 6.3 6.3-18.4 18.4h-6.3v-6.2z"/></g></svg>编辑此页</a></div><div class="col lastUpdated_oZSl"><span class=theme-last-updated>最后<!-- -->于 <b><time datetime=2026-10-14T22:30:30.000Z itemprop=dateModified>2026年10月14日</time></b> <!-- -->更新</span></div></div></footer></article><nav class="docusaurus-mt-lg pagination-nav" aria-label=文件选项卡><a class="pagination-nav__link pagination-nav__link--prev" href=/concepts/events/position_opened><div class=pagination-nav__sublabel>上一页</div><div class=pagination-nav__label>PositionOpened</div></a><a class="pagination-nav__link pagination-nav__link--next" href=/concepts/execution/algorithms><div class=pagination-nav__sublabel>下一页</div><div class=pagination-nav__label>执行算法</div></a></nav></div></div><div class="col col--3"><div class="tableOfContents_LyLZ thin-scrollbar theme-doc-toc-desktop"><ul class="table-of-contents table-of-contents__left-border"><li><a href=#execution-flow class="table-of-contents__link toc-highlight">执行流程</a><li><a href=#order-management-system-oms class="table-of-contents__link toc-highlight">订单管理系统（OMS）</a><ul><li><a href=#oms-configuration class="table-of-contents__link toc-highlight">OMS 配置</a><li><a href=#custom-position-ids-and-netting class="table-of-contents__link toc-highlight">自定义持仓 ID 与 NETTING</a><li><a href=#position-replay-across-netting-cycles class="table-of-contents__link toc-highlight">NETTING 跨周期的持仓回放</a></ul><li><a href=#risk-engine class="table-of-contents__link toc-highlight">风控引擎</a><ul><li><a href=#account-selection class="table-of-contents__link toc-highlight">账户选择</a><li><a href=#whole-position-conditional-exits class="table-of-contents__link toc-highlight">整仓条件出场</a><li><a href=#trading-state class="table-of-contents__link toc-highlight">交易状态</a></ul><li><a href=#execution-algorithms class="table-of-contents__link toc-highlight">执行算法</a><li><a href=#cancel-all-routing class="table-of-contents__link toc-highlight">全部撤销的路由</a><li><a href=#command-outcomes class="table-of-contents__link toc-highlight">命令结果</a><li><a href=#order-denied-reasons class="table-of-contents__link toc-highlight">订单拒绝原因</a><li><a href=#own-order-books class="table-of-contents__link toc-highlight">自有订单簿</a><ul><li><a href=#safe-cancellation-queries class="table-of-contents__link toc-highlight">安全的撤销查询</a></ul><li><a href=#overfills class="table-of-contents__link toc-highlight">超量成交</a><ul><li><a href=#how-overfills-occur class="table-of-contents__link toc-highlight">超量成交如何发生</a><li><a href=#system-behavior class="table-of-contents__link toc-highlight">系统行为</a><li><a href=#duplicate-fill-detection class="table-of-contents__link toc-highlight">重复成交检测</a><li><a href=#declined-fill-notification class="table-of-contents__link toc-highlight">被拒成交的通知</a><li><a href=#configuration class="table-of-contents__link toc-highlight">配置</a></ul><li><a href=#fill-corrections class="table-of-contents__link toc-highlight">成交更正</a><ul><li><a href=#how-voided-fills-occur class="table-of-contents__link toc-highlight">成交作废的成因</a><li><a href=#venue-references class="table-of-contents__link toc-highlight">场所参考</a></ul><li><a href=#related-guides class="table-of-contents__link toc-highlight">相关指南</a></ul></div></div></div></div></main></div></div></div><footer class="theme-layout-footer footer footer--dark"><div class="container container-fluid"><div class="row footer__links"><div class="theme-layout-footer-column col footer__col"><div class=footer__title></div><ul class="footer__items clean-list"><li class=footer__item><a href=https://github.com/nautechsystems/nautilus_trader target=_blank rel="noopener noreferrer" class=footer__link-item>Official GitHub<svg width=13.5 height=13.5 aria-label="(opens in new tab)" class=iconExternalLink_qUHo><use href=#theme-svg-external-link /></svg></a><li class=footer__item><a href=https://nautilustrader.io/docs target=_blank rel="noopener noreferrer" class=footer__link-item>Official Documentation<svg width=13.5 height=13.5 aria-label="(opens in new tab)" class=iconExternalLink_qUHo><use href=#theme-svg-external-link /></svg></a></ul></div></div><div class="footer__bottom text--center"><div class=footer__copyright>© 2026 Nautech Systems Pty Ltd. All rights reserved.</div></div></div></footer></div></body>

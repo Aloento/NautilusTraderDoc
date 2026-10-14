@@ -1,0 +1,1906 @@
+<!doctype html><html lang=zh dir=ltr class="docs-wrapper plugin-docs plugin-id-default docs-version-current docs-doc-page docs-doc-id-developer_guide/spec_data_testing" data-has-hydrated=false><head><meta charset=UTF-8><meta name=generator content="Docusaurus v3.10.2"><title data-rh=true>数据测试规范 | NautilusTrader 文档</title><meta data-rh=true name=viewport content="width=device-width, initial-scale=1.0"/><meta data-rh=true name=twitter:card content=summary_large_image /><meta data-rh=true property=og:url content=https://nautilus.aloen.to/developer_guide/spec_data_testing /><meta data-rh=true property=og:locale content=zh /><meta data-rh=true name=docusaurus_locale content=zh /><meta data-rh=true name=docsearch:language content=zh /><meta data-rh=true name=docusaurus_version content=current /><meta data-rh=true name=docusaurus_tag content=docs-default-current /><meta data-rh=true name=docsearch:version content=current /><meta data-rh=true name=docsearch:docusaurus_tag content=docs-default-current /><meta data-rh=true property=og:title content="数据测试规范 | NautilusTrader 文档"/><meta data-rh=true name=description content=data-testing-spec} /><meta data-rh=true property=og:description content=data-testing-spec} /><link data-rh=true rel=icon href=/logo.png /><link data-rh=true rel=canonical href=https://nautilus.aloen.to/developer_guide/spec_data_testing /><link data-rh=true rel=alternate href=https://nautilus.aloen.to/developer_guide/spec_data_testing hreflang=zh /><link data-rh=true rel=alternate href=https://nautilus.aloen.to/developer_guide/spec_data_testing hreflang=x-default /><script data-rh=true type=application/ld+json>{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","item":"https://nautilus.aloen.to/developer_guide/","name":"开发者指南","position":1},{"@type":"ListItem","item":"https://nautilus.aloen.to/developer_guide/spec_data_testing","name":"数据测试规范","position":2}]}</script><link rel=stylesheet href=/assets/css/styles.adb7ea18.css /><script src=/assets/js/runtime~main.71ac0794.js defer></script><script src=/assets/js/main.d978d0f2.js defer></script></head><body><svg style="display: none;"><defs>
+<symbol id=theme-svg-external-link viewBox="0 0 24 24"><path fill=currentColor d="M21 13v10h-21v-19h12v2h-10v15h17v-8h2zm3-12h-10.988l4.035 4-6.977 7.07 2.828 2.828 6.977-7.07 4.125 4.172v-11z"/></symbol>
+</defs></svg>
+<script>!function(){var t=function(){try{return new URLSearchParams(window.location.search).get("docusaurus-theme")}catch(t){}}()||function(){try{return window.localStorage.getItem("theme-2e3")}catch(t){}}();document.documentElement.setAttribute("data-theme",t||(window.matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light")),document.documentElement.setAttribute("data-theme-choice",t||"system")}(),function(){try{for(var[t,e]of new URLSearchParams(window.location.search).entries())if(t.startsWith("docusaurus-data-")){var a=t.replace("docusaurus-data-","data-");document.documentElement.setAttribute(a,e)}}catch(t){}}()</script><div id=__docusaurus><link rel=preload as=image href=/logo.png /><div role=region aria-label=跳到主要内容><a class=skipToContent_zuOI href=#__docusaurus_skipToContent_fallback>跳到主要内容</a></div><nav aria-label=主导航 class="theme-layout-navbar navbar navbar--fixed-top"><div class=navbar__inner><div class="theme-layout-navbar-left navbar__items"><button aria-label=切换导航栏 aria-expanded=false class="navbar__toggle clean-btn" type=button><svg width=30 height=30 viewBox="0 0 30 30" aria-hidden=true><path stroke=currentColor stroke-linecap=round stroke-miterlimit=10 stroke-width=2 d="M4 7h22M4 15h22M4 23h22"/></svg></button><a class=navbar__brand href=/><div class=navbar__logo><img src=/logo.png alt="NautilusTrader Logo" class="themedComponent_q2_Y themedComponent--light_Nejn"/><img src=/logo.png alt="NautilusTrader Logo" class="themedComponent_q2_Y themedComponent--dark_JjIb"/></div><b class="navbar__title text--truncate">NautilusTrader</b></a><a aria-current=page class="navbar__item navbar__link navbar__link--active" href=/getting_started/>文档</a></div><div class="theme-layout-navbar-right navbar__items navbar__items--right"><a href=https://github.com/Aloento/NautilusTraderDoc target=_blank rel="noopener noreferrer" class="navbar__item navbar__link">GitHub<svg width=13.5 height=13.5 aria-label="(opens in new tab)" class=iconExternalLink_qUHo><use href=#theme-svg-external-link /></svg></a><div class="toggle_hHmI colorModeToggle_rOOn"><button class="clean-btn toggleButton_wEhT toggleButtonDisabled_yOOP" type=button disabled title="system mode" aria-label="切换浅色/暗黑模式（当前为system mode）"><svg viewBox="0 0 24 24" width=24 height=24 aria-hidden=true class="toggleIcon_Kt6U lightToggleIcon_Zfeh"><path fill=currentColor d="M12,9c1.65,0,3,1.35,3,3s-1.35,3-3,3s-3-1.35-3-3S10.35,9,12,9 M12,7c-2.76,0-5,2.24-5,5s2.24,5,5,5s5-2.24,5-5 S14.76,7,12,7L12,7z M2,13l2,0c0.55,0,1-0.45,1-1s-0.45-1-1-1l-2,0c-0.55,0-1,0.45-1,1S1.45,13,2,13z M20,13l2,0c0.55,0,1-0.45,1-1 s-0.45-1-1-1l-2,0c-0.55,0-1,0.45-1,1S19.45,13,20,13z M11,2v2c0,0.55,0.45,1,1,1s1-0.45,1-1V2c0-0.55-0.45-1-1-1S11,1.45,11,2z M11,20v2c0,0.55,0.45,1,1,1s1-0.45,1-1v-2c0-0.55-0.45-1-1-1C11.45,19,11,19.45,11,20z M5.99,4.58c-0.39-0.39-1.03-0.39-1.41,0 c-0.39,0.39-0.39,1.03,0,1.41l1.06,1.06c0.39,0.39,1.03,0.39,1.41,0s0.39-1.03,0-1.41L5.99,4.58z M18.36,16.95 c-0.39-0.39-1.03-0.39-1.41,0c-0.39,0.39-0.39,1.03,0,1.41l1.06,1.06c0.39,0.39,1.03,0.39,1.41,0c0.39-0.39,0.39-1.03,0-1.41 L18.36,16.95z M19.42,5.99c0.39-0.39,0.39-1.03,0-1.41c-0.39-0.39-1.03-0.39-1.41,0l-1.06,1.06c-0.39,0.39-0.39,1.03,0,1.41 s1.03,0.39,1.41,0L19.42,5.99z M7.05,18.36c0.39-0.39,0.39-1.03,0-1.41c-0.39-0.39-1.03-0.39-1.41,0l-1.06,1.06 c-0.39,0.39-0.39,1.03,0,1.41s1.03,0.39,1.41,0L7.05,18.36z"/></svg><svg viewBox="0 0 24 24" width=24 height=24 aria-hidden=true class="toggleIcon_Kt6U darkToggleIcon_XgQr"><path fill=currentColor d="M9.37,5.51C9.19,6.15,9.1,6.82,9.1,7.5c0,4.08,3.32,7.4,7.4,7.4c0.68,0,1.35-0.09,1.99-0.27C17.45,17.19,14.93,19,12,19 c-3.86,0-7-3.14-7-7C5,9.07,6.81,6.55,9.37,5.51z M12,3c-4.97,0-9,4.03-9,9s4.03,9,9,9s9-4.03,9-9c0-0.46-0.04-0.92-0.1-1.36 c-0.98,1.37-2.58,2.26-4.4,2.26c-2.98,0-5.4-2.42-5.4-5.4c0-1.81,0.89-3.42,2.26-4.4C12.92,3.04,12.46,3,12,3L12,3z"/></svg><svg viewBox="0 0 24 24" width=24 height=24 aria-hidden=true class="toggleIcon_Kt6U systemToggleIcon_BvUi"><path fill=currentColor d="m12 21c4.971 0 9-4.029 9-9s-4.029-9-9-9-9 4.029-9 9 4.029 9 9 9zm4.95-13.95c1.313 1.313 2.05 3.093 2.05 4.95s-0.738 3.637-2.05 4.95c-1.313 1.313-3.093 2.05-4.95 2.05v-14c1.857 0 3.637 0.737 4.95 2.05z"/></svg></button></div><div class=navbarSearchContainer_watl></div></div></div><div role=presentation class=navbar-sidebar__backdrop></div></nav><div id=__docusaurus_skipToContent_fallback class="theme-layout-main main-wrapper mainWrapper_R72Q"><div class=docsWrapper_XQ9b><button aria-label=回到顶部 class="clean-btn theme-back-to-top-button backToTopButton_MbnX" type=button></button><div class=docRoot_aqOB><aside class="theme-doc-sidebar-container docSidebarContainer_sI2e"><div class=sidebarViewport_TzTy><div class=sidebar_CbEe><nav aria-label=文档侧边栏 class="menu thin-scrollbar menu_ChRF"><ul class="theme-doc-sidebar-menu menu__list"><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-1 menu__list-item menu__list-item--collapsed"><div class=menu__list-item-collapsible><a class="categoryLink_Muyc menu__link menu__link--sublist" href=/getting_started/><span class=categoryLinkLabel_mAcL>快速开始</span></a><button aria-label="展开侧边栏分类 '快速开始'" aria-expanded=false type=button class="clean-btn menu__caret"></button></div><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-1 menu__list-item menu__list-item--collapsed"><div class=menu__list-item-collapsible><a class="categoryLink_Muyc menu__link menu__link--sublist" href=/concepts/><span class=categoryLinkLabel_mAcL>核心概念</span></a><button aria-label="展开侧边栏分类 '核心概念'" aria-expanded=false type=button class="clean-btn menu__caret"></button></div><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-1 menu__list-item menu__list-item--collapsed"><div class=menu__list-item-collapsible><a class="categoryLink_Muyc menu__link menu__link--sublist" href=/integrations/><span class=categoryLinkLabel_mAcL>交易所与集成</span></a><button aria-label="展开侧边栏分类 '交易所与集成'" aria-expanded=false type=button class="clean-btn menu__caret"></button></div><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-1 menu__list-item menu__list-item--collapsed"><div class=menu__list-item-collapsible><a class="categoryLink_Muyc menu__link menu__link--sublist" href=/how_to/><span class=categoryLinkLabel_mAcL>操作指南</span></a><button aria-label="展开侧边栏分类 '操作指南'" aria-expanded=false type=button class="clean-btn menu__caret"></button></div><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-1 menu__list-item menu__list-item--collapsed"><div class=menu__list-item-collapsible><a class="categoryLink_Muyc menu__link menu__link--sublist" href=/tutorials/><span class=categoryLinkLabel_mAcL>教程</span></a><button aria-label="展开侧边栏分类 '教程'" aria-expanded=false type=button class="clean-btn menu__caret"></button></div><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-1 menu__list-item"><div class=menu__list-item-collapsible><a class="categoryLink_Muyc menu__link menu__link--sublist menu__link--active" href=/developer_guide/><span class=categoryLinkLabel_mAcL>开发者指南</span></a><button aria-label="折叠侧边栏分类 '开发者指南'" aria-expanded=true type=button class="clean-btn menu__caret"></button></div><ul class=menu__list><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/developer_guide/adapters><span class=linkLabel_lYjD>适配器</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/developer_guide/benchmarking><span class=linkLabel_lYjD>基准测试</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/developer_guide/callback_dispatch><span class=linkLabel_lYjD>回调派发契约</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/developer_guide/coding_standards><span class=linkLabel_lYjD>编码规范</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/developer_guide/design_principles><span class=linkLabel_lYjD>设计原则</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/developer_guide/docs><span class=linkLabel_lYjD>文档风格</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/developer_guide/environment_setup><span class=linkLabel_lYjD>环境搭建</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/developer_guide/ffi><span class=linkLabel_lYjD>FFI 内存契约</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/developer_guide/markdown_style><span class=linkLabel_lYjD>Markdown 风格</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/developer_guide/plugins><span class=linkLabel_lYjD>插件</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/developer_guide/python><span class=linkLabel_lYjD>Python</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/developer_guide/python_adapters><span class=linkLabel_lYjD>Python 适配器接口</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/developer_guide/releases><span class=linkLabel_lYjD>发布</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/developer_guide/runtime_conformance><span class=linkLabel_lYjD>运行时一致性契约</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/developer_guide/rust><span class=linkLabel_lYjD>Rust</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/developer_guide/security><span class=linkLabel_lYjD>安全架构</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/developer_guide/shell><span class=linkLabel_lYjD>Shell 脚本</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class="menu__link menu__link--active" aria-current=page tabindex=0 href=/developer_guide/spec_data_testing><span class=linkLabel_lYjD>数据测试规范</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/developer_guide/spec_exec_testing><span class=linkLabel_lYjD>执行测试规范</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/developer_guide/test_datasets><span class=linkLabel_lYjD>测试数据集</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/developer_guide/testing><span class=linkLabel_lYjD>测试</span></a></ul><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-1 menu__list-item menu__list-item--collapsed"><div class=menu__list-item-collapsible><a class="categoryLink_Muyc menu__link menu__link--sublist" href=/api_reference/><span class=categoryLinkLabel_mAcL>API 参考</span></a><button aria-label="展开侧边栏分类 'API 参考'" aria-expanded=false type=button class="clean-btn menu__caret"></button></div></ul></nav></div></div></aside><main class=docMainContainer_sLF8><div class="container padding-top--md padding-bottom--lg"><div class=row><div class="col docItemCol_ZRft"><div class=docItemContainer_KOP5><article><nav class="theme-doc-breadcrumbs breadcrumbsContainer_d5rS" aria-label=页面路径><ul class=breadcrumbs><li class=breadcrumbs__item><a aria-label=主页面 class=breadcrumbs__link href=/><svg viewBox="0 0 24 24" class=breadcrumbHomeIcon_XgF2><path d="M10 19v-5h4v5c0 .55.45 1 1 1h3c.55 0 1-.45 1-1v-7h1.7c.46 0 .68-.57.33-.87L12.67 3.6c-.38-.34-.96-.34-1.34 0l-8.36 7.53c-.34.3-.13.87.33.87H5v7c0 .55.45 1 1 1h3c.55 0 1-.45 1-1z" fill=currentColor /></svg></a><li class=breadcrumbs__item><a class=breadcrumbs__link href=/developer_guide/><span>开发者指南</span></a><li class="breadcrumbs__item breadcrumbs__item--active"><span class=breadcrumbs__link>数据测试规范</span></ul></nav><div class="tocCollapsible_bgaJ theme-doc-toc-mobile tocMobile_FhT_"><button type=button class="clean-btn tocCollapsibleButton_F8AY">本页总览</button></div><div class="theme-doc-markdown markdown"><header><h1>数据测试规范</h1></header>
+<p>使用这份测试矩阵，配合 Rust 的 <code>DataTester</code> actor 验证适配器的数据功能。Python 将其作为内置 actor 暴露，通过
+<code>nautilus_trader.testkit.DataTesterConfig</code> 配置；Rust 代码从 <code>nautilus_testkit::testers</code> 导入。用例使用带前缀的
+ID（例如 TC-D01），按功能分组。</p>
+<p><strong>每个适配器必须通过与其支持的数据类型相对应的那部分测试。</strong></p>
+<p>测试组按数据派生程度从低到高排列：先金融工具和原始订单簿数据，再报价、成交、K 线和衍生品数据。
+通过第 1-4 组的适配器即视为达到基线数据合规。</p>
+<p>适配器特有的数据行为（自定义通道、限流、快照语义等）写在各适配器自己的指南里，不写在这里。</p>
+<h2 class="anchor anchorTargetStickyNavbar_ana5" id=prerequisites>前置条件<a href=#prerequisites class=hash-link aria-label=前置条件的直接链接 title=前置条件的直接链接 translate=no>​</a></h2>
+<p>运行数据测试前：</p>
+<ul>
+<li class="">目标金融工具可用，且能通过 instrument provider 加载。</li>
+<li class="">被测数据在交易场所需要鉴权时，通过环境变量设置 API 凭证（<code>{VENUE}_API_KEY</code>、<code>{VENUE}_API_SECRET</code>）。</li>
+<li class="">交易场所若提供 demo/testnet 模式，使用该环境下创建的凭证。演示环境与生产环境的 API key 通常相互独立、
+不可互换。用错凭证会导致鉴权错误（如 HTTP 401）。</li>
+</ul>
+<p><strong>Python 节点搭建</strong>：</p>
+<p>使用 <code>nautilus_trader.live.LiveNode</code>。若需在节点构建前注册适配器客户端工厂，调用 <code>LiveNode.builder(...)</code>。</p>
+<div class="language-python codeBlockContainer_eTMR theme-code-block" style=--prism-color:#393A34;--prism-background-color:#f6f8fa><div class=codeBlockContent_hafM><pre tabindex=0 class="prism-code language-python codeBlock_IMvC thin-scrollbar" style=color:#393A34;background-color:#f6f8fa><code class=codeBlockLines_gZDW><div class=token-line style=color:#393A34><span class="token keyword" style=color:#00009f>from</span><span class="token plain"> nautilus_trader</span><span class="token punctuation" style=color:#393A34>.</span><span class="token plain">common </span><span class="token keyword" style=color:#00009f>import</span><span class="token plain"> Environment</span><br/></div><div class=token-line style=color:#393A34><span class="token plain"></span><span class="token keyword" style=color:#00009f>from</span><span class="token plain"> nautilus_trader</span><span class="token punctuation" style=color:#393A34>.</span><span class="token plain">config </span><span class="token keyword" style=color:#00009f>import</span><span class="token plain"> LiveDataEngineConfig</span><br/></div><div class=token-line style=color:#393A34><span class="token plain"></span><span class="token keyword" style=color:#00009f>from</span><span class="token plain"> nautilus_trader</span><span class="token punctuation" style=color:#393A34>.</span><span class="token plain">live </span><span class="token keyword" style=color:#00009f>import</span><span class="token plain"> LiveNode</span><br/></div><div class=token-line style=color:#393A34><span class="token plain"></span><span class="token keyword" style=color:#00009f>from</span><span class="token plain"> nautilus_trader</span><span class="token punctuation" style=color:#393A34>.</span><span class="token plain">model </span><span class="token keyword" style=color:#00009f>import</span><span class="token plain"> TraderId</span><br/></div><div class=token-line style=color:#393A34><span class="token plain"></span><span class="token keyword" style=color:#00009f>from</span><span class="token plain"> nautilus_trader</span><span class="token punctuation" style=color:#393A34>.</span><span class="token plain">testkit </span><span class="token keyword" style=color:#00009f>import</span><span class="token plain"> DataTesterConfig</span><br/></div><div class=token-line style=color:#393A34><span class="token plain" style=display:inline-block></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">node </span><span class="token operator" style=color:#393A34>=</span><span class="token plain"> </span><span class="token punctuation" style=color:#393A34>(</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    LiveNode</span><span class="token punctuation" style=color:#393A34>.</span><span class="token plain">builder</span><span class="token punctuation" style=color:#393A34>(</span><span class="token string" style=color:#e3116c>"TESTER-001"</span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain"> TraderId</span><span class="token punctuation" style=color:#393A34>(</span><span class="token string" style=color:#e3116c>"TESTER-001"</span><span class="token punctuation" style=color:#393A34>)</span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain"> Environment</span><span class="token punctuation" style=color:#393A34>.</span><span class="token plain">SANDBOX</span><span class="token punctuation" style=color:#393A34>)</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    </span><span class="token punctuation" style=color:#393A34>.</span><span class="token plain">with_data_engine_config</span><span class="token punctuation" style=color:#393A34>(</span><span class="token plain">LiveDataEngineConfig</span><span class="token punctuation" style=color:#393A34>(</span><span class="token plain">time_bars_build_with_no_updates</span><span class="token operator" style=color:#393A34>=</span><span class="token boolean" style=color:#36acaa>False</span><span class="token punctuation" style=color:#393A34>)</span><span class="token punctuation" style=color:#393A34>)</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    </span><span class="token punctuation" style=color:#393A34>.</span><span class="token plain">add_data_client</span><span class="token punctuation" style=color:#393A34>(</span><span class="token boolean" style=color:#36acaa>None</span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain"> adapter_data_client_factory</span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain"> data_client_config</span><span class="token punctuation" style=color:#393A34>)</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    </span><span class="token punctuation" style=color:#393A34>.</span><span class="token plain">build</span><span class="token punctuation" style=color:#393A34>(</span><span class="token punctuation" style=color:#393A34>)</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain"></span><span class="token punctuation" style=color:#393A34>)</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain" style=display:inline-block></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">tester_config </span><span class="token operator" style=color:#393A34>=</span><span class="token plain"> DataTesterConfig</span><span class="token punctuation" style=color:#393A34>(</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    client_id</span><span class="token operator" style=color:#393A34>=</span><span class="token plain">client_id</span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    instrument_ids</span><span class="token operator" style=color:#393A34>=</span><span class="token punctuation" style=color:#393A34>[</span><span class="token plain">instrument_id</span><span class="token punctuation" style=color:#393A34>]</span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    subscribe_quotes</span><span class="token operator" style=color:#393A34>=</span><span class="token boolean" style=color:#36acaa>True</span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain"></span><span class="token punctuation" style=color:#393A34>)</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">node</span><span class="token punctuation" style=color:#393A34>.</span><span class="token plain">add_builtin_actor</span><span class="token punctuation" style=color:#393A34>(</span><span class="token string" style=color:#e3116c>"DataTester"</span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain"> tester_config</span><span class="token punctuation" style=color:#393A34>)</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain"></span><span class="token comment" style=color:#999988;font-style:italic># Register remaining components, then start or run</span><br/></div></code></pre></div></div>
+<p><strong>Rust 节点搭建</strong>（参考：<code>crates/adapters/{adapter}/examples/node_data_tester.rs</code>）：</p>
+<div class="language-rust codeBlockContainer_eTMR theme-code-block" style=--prism-color:#393A34;--prism-background-color:#f6f8fa><div class=codeBlockContent_hafM><pre tabindex=0 class="prism-code language-rust codeBlock_IMvC thin-scrollbar" style=color:#393A34;background-color:#f6f8fa><code class=codeBlockLines_gZDW><div class=token-line style=color:#393A34><span class="token keyword" style=color:#00009f>use</span><span class="token plain"> </span><span class="token namespace" style=opacity:0.7>nautilus_testkit</span><span class="token namespace punctuation" style=opacity:0.7;color:#393A34>::</span><span class="token namespace" style=opacity:0.7>testers</span><span class="token namespace punctuation" style=opacity:0.7;color:#393A34>::</span><span class="token punctuation" style=color:#393A34>{</span><span class="token class-name">DataTester</span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain"> </span><span class="token class-name">DataTesterConfig</span><span class="token punctuation" style=color:#393A34>}</span><span class="token punctuation" style=color:#393A34>;</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain" style=display:inline-block></span><br/></div><div class=token-line style=color:#393A34><span class="token plain"></span><span class="token keyword" style=color:#00009f>let</span><span class="token plain"> tester_config </span><span class="token operator" style=color:#393A34>=</span><span class="token plain"> </span><span class="token class-name">DataTesterConfig</span><span class="token punctuation" style=color:#393A34>::</span><span class="token function" style=color:#d73a49>builder</span><span class="token punctuation" style=color:#393A34>(</span><span class="token punctuation" style=color:#393A34>)</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    </span><span class="token punctuation" style=color:#393A34>.</span><span class="token function" style=color:#d73a49>client_id</span><span class="token punctuation" style=color:#393A34>(</span><span class="token plain">client_id</span><span class="token punctuation" style=color:#393A34>)</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    </span><span class="token punctuation" style=color:#393A34>.</span><span class="token function" style=color:#d73a49>instrument_ids</span><span class="token punctuation" style=color:#393A34>(</span><span class="token macro property" style=color:#36acaa>vec!</span><span class="token punctuation" style=color:#393A34>[</span><span class="token plain">instrument_id</span><span class="token punctuation" style=color:#393A34>]</span><span class="token punctuation" style=color:#393A34>)</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    </span><span class="token punctuation" style=color:#393A34>.</span><span class="token function" style=color:#d73a49>subscribe_quotes</span><span class="token punctuation" style=color:#393A34>(</span><span class="token boolean" style=color:#36acaa>true</span><span class="token punctuation" style=color:#393A34>)</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    </span><span class="token punctuation" style=color:#393A34>.</span><span class="token function" style=color:#d73a49>build</span><span class="token punctuation" style=color:#393A34>(</span><span class="token punctuation" style=color:#393A34>)</span><span class="token operator" style=color:#393A34>?</span><span class="token punctuation" style=color:#393A34>;</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain"></span><span class="token keyword" style=color:#00009f>let</span><span class="token plain"> tester </span><span class="token operator" style=color:#393A34>=</span><span class="token plain"> </span><span class="token class-name">DataTester</span><span class="token punctuation" style=color:#393A34>::</span><span class="token function" style=color:#d73a49>new</span><span class="token punctuation" style=color:#393A34>(</span><span class="token plain">tester_config</span><span class="token punctuation" style=color:#393A34>)</span><span class="token punctuation" style=color:#393A34>;</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">node</span><span class="token punctuation" style=color:#393A34>.</span><span class="token function" style=color:#d73a49>add_actor</span><span class="token punctuation" style=color:#393A34>(</span><span class="token plain">tester</span><span class="token punctuation" style=color:#393A34>)</span><span class="token operator" style=color:#393A34>?</span><span class="token punctuation" style=color:#393A34>;</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">node</span><span class="token punctuation" style=color:#393A34>.</span><span class="token function" style=color:#d73a49>run</span><span class="token punctuation" style=color:#393A34>(</span><span class="token punctuation" style=color:#393A34>)</span><span class="token punctuation" style=color:#393A34>.</span><span class="token keyword" style=color:#00009f>await</span><span class="token operator" style=color:#393A34>?</span><span class="token punctuation" style=color:#393A34>;</span><br/></div></code></pre></div></div>
+<h2 class="anchor anchorTargetStickyNavbar_ana5" id=timestamp-scale>时间戳量纲<a href=#timestamp-scale class=hash-link aria-label=时间戳量纲的直接链接 title=时间戳量纲的直接链接 translate=no>​</a></h2>
+<p>Nautilus 以 Unix 纳秒（<code>UnixNanos</code>）存储 <code>ts_event</code> 和 <code>ts_init</code>。凡是携带这两个字段的数据消息都必须使用该
+量纲，不能残留秒、毫秒或微秒。</p>
+<ul>
+<li class="">小于 <code>10^16</code> 的值不可能是合法的 Unix 纳秒时间戳（<code>10^16</code> ns 约为 1970-01-01 之后 116 天），通常说明适配器
+没有把交易场所的量纲转换过来。</li>
+<li class="">转换正确的秒级交易场所时间以 <code>000000000</code> 结尾，仍然算通过：那是精度粗，不是量纲错误。</li>
+<li class="">实时流的 <code>ts_event</code> 应接近会话的挂钟时间。历史请求的结果可以更久远，只要量纲是纳秒就仍然有效。</li>
+<li class=""><code>ts_init</code> 是 Nautilus 创建对象时的本地时钟。交易场所时钟超前时，<code>ts_event</code> 略大于 <code>ts_init</code> 是可能的。</li>
+</ul>
+<p>以下数据类型（含各自的历史批量数据）的 <code>ts_event</code> 或 <code>ts_init</code> 未通过量纲检查时，<code>DataTester</code> 会发出警告：</p>
+<ul>
+<li class="">金融工具、instrument status 和 instrument close。</li>
+<li class="">订单簿增量和订单簿深度。</li>
+<li class="">报价、成交和 K 线。</li>
+<li class="">标记价格、指数价格和资金费率。</li>
+<li class="">期权希腊值。</li>
+</ul>
+<p><code>on_book</code> 中重建出的订单簿不做检查。产生警告的用例一律按失败处理。</p>
+<hr/>
+<h2 class="anchor anchorTargetStickyNavbar_ana5" id=order-book-sync-conformance>订单簿同步合规<a href=#order-book-sync-conformance class=hash-link aria-label=订单簿同步合规的直接链接 title=订单簿同步合规的直接链接 translate=no>​</a></h2>
+<p>从交易场所数据流维护订单簿的适配器，必须在交易场所和网络故障下保持输出合法。单元测试和集成测试无法复现
+交易场所的时序，因此改动订单簿同步与恢复机制时，既要通过确定性的模型检查，也要针对真实交易场所做实时验证。</p>
+<p>此处的<strong>实时验证</strong>指只观察行情：订阅、请求、注入故障。验证期间不要下单。**暗簿（dark book）**指订阅后
+始终收不到数据的订单簿。</p>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=book-stream-contract>订单簿数据流契约<a href=#book-stream-contract class=hash-link aria-label=订单簿数据流契约的直接链接 title=订单簿数据流契约的直接链接 translate=no>​</a></h3>
+<p><code>nautilus_live::book::conformance</code> 中的 <code>BookStreamChecker</code>（由 <code>nautilus-live</code> 的 <code>test-support</code> feature
+启用）对每个发出的 <code>OrderBookDeltas</code> 批次应用该契约：</p>
+<ul>
+<li class="">批次以 <code>F_LAST</code> 结束。每个 <code>F_LAST</code> 闭合一个事件组，且每组结束后订单簿都必须通过完整性检查，因为消费者
+在这些边界处观察订单簿。</li>
+<li class="">快照组是一个 <code>Clear</code> 后接若干 <code>Add</code> 增量，全部带 <code>F_SNAPSHOT</code> 标志。单独的 <code>Clear</code> 是空快照。</li>
+<li class="">增量组既不带 <code>F_SNAPSHOT</code> 也不带 <code>Clear</code>，且位于快照之后。</li>
+<li class="">当交易场所序列号在单个快照 episode 内单调递增时，每个增量组的序列号应大于前一组。OKX 的 <code>seqId</code> 可能重置；
+Polymarket、Hyperliquid、Betfair 和 AX Exchange 的订单簿不带交易场所序列号。因此这些交易场所的检查器
+跳过该规则，依赖 oracle。</li>
+<li class="">订单簿退订完成后不再发出任何内容。</li>
+</ul>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=validation-levels>验证级别<a href=#validation-levels class=hash-link aria-label=验证级别的直接链接 title=验证级别的直接链接 translate=no>​</a></h3>
+<p>按改动中风险最高的方面选择级别。级别越高，包含以下各级的全部要求。</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>级别<th>触发条件<th>方法<th>验收标准<tbody><tr><td>L0 模型<td>任何对 <code>BookSync</code>、<code>BookRecovery</code> 或适配器对其使用的改动<td>针对参考模型做单簿状态机的属性测试，外加植入的回归用例<td>属性测试通过；回退已知修复（如 gap 所有权规则）时会失败<tr><td>L1 合规<td>任何对已验证过的同步/恢复代码的改动<td>重跑该交易场所的压力测试装置或既有 oracle<td>在既定标准上 PASS，零检查器违规、零暗簿、零无法解释的错误<tr><td>L2 边界探测<td>边界行为变化（超时、禁用路径、预算耗尽、重试上限）<td>定向边界场景，覆盖每个新的调参极端值<td>所有场景通过；禁用路径保持静默；预算耗尽后到达上限，迟到快照仍能恢复订单簿<tr><td>L3 竞态探测<td>并发或顺序变化（门控、epoch、重连交互），或任何实时发现的竞态修复<td>独立 oracle 下做故障注入加订阅抖动<td>数十次强制恢复全部完成且零暗簿；上报的竞态场景通过且不再复发<tr><td>L4 完整验证<td>新的同步/恢复实现<td>L1-L3 加上持续的抖动与重连故障浸泡<td>浸泡全程保持各级标准；恢复延迟有界</table>
+<p>L0 属性测试是 <code>crates/live/src/book/sync.rs</code> 中的 <code>schedule_keeps_sync_contract</code>。随改动记录级别、交易场所、
+oracle 和结果。实时验证发现的修复从发现它的级别重新开始：重跑必须达到同一标准，不能降低。</p>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=fault-catalog>故障目录<a href=#fault-catalog class=hash-link aria-label=故障目录的直接链接 title=故障目录的直接链接 translate=no>​</a></h3>
+<p>无论属于哪个<a class="" href=/developer_guide/adapters#order-book-recovery-ownership>恢复家族</a>，每个适配器都必须产生下列结果：</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>故障<th>要求的结果<tbody><tr><td>序列号缺口<td>输出在缺口处停止，仅在新鲜快照替换订单簿后恢复。<tr><td>快照缺失或迟到<td>快照截止时间触发或重试恢复。两次尝试之间接受了快照则结束恢复。<tr><td>恢复无法启动<td>订单簿保持无主状态，在下一帧再次请求恢复。被拒绝的任务会取消其已认领的 episode。<tr><td>替换被拒绝<td>恢复重试。分类器判定为永久性的错误跳过预算、直接按上限重试。<tr><td>重试预算耗尽<td>记录一次错误日志，然后按上限重试直到快照被接受。<tr><td>恢复中途重连<td>进行中的恢复保留其预算、所有权和写入中的操作，其下一次上限等待立即结束。其他订单簿从新鲜快照重新同步。<tr><td>恢复期间退订<td>恢复及其挂起写入停止，订单簿不再发出任何内容。</table>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=forcing-techniques>构造手段<a href=#forcing-techniques class=hash-link aria-label=构造手段的直接链接 title=构造手段的直接链接 translate=no>​</a></h3>
+<p>优先构造不同的时序组合，而不是单纯堆消息量。只有当探测能强制出测试套件无法产生的时序（恢复中途重连、快照与
+门控开启赛跑、退订与进行中的订阅赛跑）时，它才值得保留。仅靠消息数量不足以支撑一个探测。</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>手段<th>施压点<th>被证明有效的数字<th>实际捕获的问题<tbody><tr><td>订阅抖动（轮换退订/重订阅，周期性全量切换）<td>恢复发起、门控/epoch 轮换、写入中取消的竞态<td>10-15 分钟运行配 20 秒 tick。数十次（40+）强制恢复且零暗簿<td>无法恢复的重复订阅缺陷（迫使重新设计）<tr><td>流量冻结（切断隧道约 40 秒）<td>死连接检测、重连重放、重连后恢复<td>每次运行 2-3 次冻结，间隔数分钟<td>验证完全丢包下的重连恢复。尚未捕获缺陷<tr><td>代理故障注入（按规则丢弃/扣留/切断帧）<td>缺口处理、扣留帧释放、oracle 合规<td>每次运行数千个 oracle 批次（6k+）、逐轮缺口计数<td>超时缩放导致的装置竞态（观测窗口 vs 新默认值）<tr><td>调参极端值（0 加一个较短的非默认值）<td>禁用截止时间的分支、参数端到端传递<td>每个极端值一次短运行（4-5 分钟）并叠加抖动<td>在线确认了评审发现的零超时修复；验证参数传递<tr><td>客户端主动重连（公共重连命令，随后继续施压）<td>不动宿主机网络的重连恢复<td>5+ 次连续重连/对账通过<td>验证无宿主机故障下的恢复。尚未捕获缺陷<tr><td>竞态场景串行重复<td>调度敏感性<td>5+ 次连续通过；确定性装置重复 100 次<td>偶发失败、单次通过掩盖的flake</table>
+<p>每个交易场所都要经由其服务的网络位置接入。Polymarket 按地区限制访问；OKX、Lighter、Binance、Hyperliquid 和
+AX Exchange 校验直连。长时间运行前先确认该路由能送达交易场所数据：socket 能连上但交易场所可能一直沉默。
+交易场所线上永远不产生的分支应放进捕获报文的确定性装置，而不是实时运行。</p>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=oracles>Oracle<a href=#oracles class=hash-link aria-label=Oracle的直接链接 title=Oracle的直接链接 translate=no>​</a></h3>
+<p>oracle 是对交易场所真实状态的独立重建，通过 <code>BookStreamChecker::verify</code> 与发出的订单簿比对：</p>
+<ul>
+<li class="">从独立连接或 REST 快照构建，绝不使用适配器自身的状态。</li>
+<li class="">在已对齐的交易场所序列号处比对。无法对齐的样本跳过，不算通过。</li>
+<li class="">快照 episode 在其快照之后的某次比对成功时计为已验证。带 <code>Coverage::Episodes</code> 的装置（如 OKX）在每批到达时
+即验证，任一 episode 未验证则整个会话失败。带 <code>Coverage::Samples</code> 的装置（如 Binance）事后按 update ID
+匹配 oracle 样本，因此它报告的是 oracle 检查和未匹配样本，而非 episode 覆盖率。</li>
+</ul>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=stress-harnesses>压力测试装置<a href=#stress-harnesses class=hash-link aria-label=压力测试装置的直接链接 title=压力测试装置的直接链接 translate=no>​</a></h3>
+<p>压力测试装置是修改订单簿同步与恢复代码时使用的开发工具。它们不属于发布的 crate，也不在 CI 中运行。装置使用的
+<code>BookStreamChecker</code> 随 <code>nautilus-live</code> 的 <code>test-support</code> feature 发布，其他测试可以套用同一契约。</p>
+<p>使用共享订单簿机制的适配器，其实时装置放在 <code>crates/adapters/&lt;venue>/tests/stress/book_stress.rs</code>，注册为名为
+<code>&lt;venue>-book-stress</code> 的测试 target：</p>
+<div class="language-toml codeBlockContainer_eTMR theme-code-block" style=--prism-color:#393A34;--prism-background-color:#f6f8fa><div class=codeBlockContent_hafM><pre tabindex=0 class="prism-code language-toml codeBlock_IMvC thin-scrollbar" style=color:#393A34;background-color:#f6f8fa><code class=codeBlockLines_gZDW><div class=token-line style=color:#393A34><span class="token plain">[[test]]</span><br/></div><div class=token-line style=color:#393A34><span class="token plain">name = "okx-book-stress"</span><br/></div><div class=token-line style=color:#393A34><span class="token plain">path = "tests/stress/book_stress.rs"</span><br/></div><div class=token-line style=color:#393A34><span class="token plain">harness = false</span><br/></div><div class=token-line style=color:#393A34><span class="token plain">test = false</span><br/></div><div class=token-line style=color:#393A34><span class="token plain">required-features = ["examples"]</span><br/></div></code></pre></div></div>
+<p><code>harness = false</code> 让该 target 自己掌控 runtime 和参数，<code>test = false</code> 使其不进入默认的 <code>cargo test</code> 和 nextest
+运行。在 crate 的 dev-dependencies 中加入带 <code>test-support</code> feature 的 <code>nautilus-live</code>。</p>
+<p>共享机制是 <code>crates/live/tests/book/stress/</code> 下的测试源码，各装置通过 path include 将其编译进来：</p>
+<div class="language-rust codeBlockContainer_eTMR theme-code-block" style=--prism-color:#393A34;--prism-background-color:#f6f8fa><div class=codeBlockContent_hafM><pre tabindex=0 class="prism-code language-rust codeBlock_IMvC thin-scrollbar" style=color:#393A34;background-color:#f6f8fa><code class=codeBlockLines_gZDW><div class=token-line style=color:#393A34><span class="token attribute attr-name" style=color:#00a4db>#[path = </span><span class="token attribute attr-name string" style=color:#e3116c>"../../../../live/tests/book/stress/mod.rs"</span><span class="token attribute attr-name" style=color:#00a4db>]</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain"></span><span class="token keyword" style=color:#00009f>mod</span><span class="token plain"> </span><span class="token module-declaration namespace" style=opacity:0.7>stress</span><span class="token punctuation" style=color:#393A34>;</span><br/></div></code></pre></div></div>
+<p>共享模块负责运行装置，交易场所只需实现 <code>StressVenue</code> 提供自己的部件：</p>
+<ul>
+<li class="">一个 <code>WireCodec</code>，把每个交易场所帧分类为订单簿快照、订单簿更新或退订确认。它在应用任何故障之前先把帧记入
+oracle。它还能改写帧以植入序列缺口或带内不匹配，并对适配器的订阅返回交易场所拒绝。</li>
+<li class="">代理路由、数据客户端配置，以及任何额外代理路由（如 REST 快照代理）。</li>
+<li class="">每个发出批次的 oracle 比对、订单簿健康的判定条件，以及启动自检。</li>
+<li class="">针对 <code>Session</code> 编写的场景。</li>
+</ul>
+<p><code>FaultProxy</code> 将适配器的 WebSocket 流量转发给交易场所。若某路由的上游 URL 不是 WebSocket URL，它以裸 TCP 转发
+CRLF 分隔的行。行路由只提供代理地址，交易场所的 <code>WireCodec::connect</code> 自行打开上游连接（例如经 TLS）。</p>
+<p>代理按订单簿应用 <code>Fault</code> 规则（丢弃快照或更新、篡改、扣留、静默、退订时切断、拒绝订阅），并支持连接级的切断
+与冻结。<code>Session</code> 让每个发出的批次经过 <code>BookStreamChecker</code> 和 oracle，等待订单簿自愈。关闭时检查所有 socket
+和重连句柄均已释放。</p>
+<p>各装置接受同一组参数，交易场所可另加自己的参数。<code>--help</code> 会列出：</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>参数<th>含义<th>默认值<tbody><tr><td><code>--scenario NAME</code><td>要运行的场景。<td><code>churn</code><tr><td><code>--timeout SECS</code><td><code>book_snapshot_timeout_secs</code>。<code>0</code> 禁用快照截止时间。<td><code>10</code><tr><td><code>--rounds N</code><td>压力轮数。<td>交易场所默认值</table>
+<p>显式运行装置，并剥离适配器环境变量：</p>
+<div class="language-bash codeBlockContainer_eTMR theme-code-block" style=--prism-color:#393A34;--prism-background-color:#f6f8fa><div class=codeBlockContent_hafM><pre tabindex=0 class="prism-code language-bash codeBlock_IMvC thin-scrollbar" style=color:#393A34;background-color:#f6f8fa><code class=codeBlockLines_gZDW><div class=token-line style=color:#393A34><span class="token plain">CARGO_BUILD_JOBS=16 bash scripts/strip-adapter-env.bash \</span><br/></div><div class=token-line style=color:#393A34><span class="token plain">  cargo test -p nautilus-okx --features examples --test okx-book-stress -- --timeout 10 --rounds 18</span><br/></div></code></pre></div></div>
+<p>Betfair 只向已登录账户推送行情，因此其装置需在设置 Betfair 凭证后运行。参见
+<a class="" href=/integrations/betfair#live-recovery-validation>Live recovery validation</a>。AX Exchange 的行情同样需要
+鉴权，因此其装置从环境读取 sandbox 凭证，且不经包装脚本直接运行。</p>
+<p>装置向 stderr 每个事件写一行，行首是固定单词：</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>行首<th>含义<tbody><tr><td><code>START</code><td>交易场所和参数。<tr><td><code>CHECK</code><td>启动自检或场景探测通过。<tr><td><code>ROUND</code><td>一个压力轮结束，附计数器。<tr><td><code>SHUTDOWN</code><td>会话干净停止，附计数器和 oracle 覆盖率。<tr><td><code>PASS</code><td>运行完成。永远是成功运行的最后一行。<tr><td><code>FAIL</code><td>某检查失败或任一线程 panic。进程以状态码 1 退出。</table>
+<p>截止时间失败时会报告每个代理路由收到的交易场所帧，以区分路由静默与适配器故障。</p>
+<p><strong>自检</strong>：<code>harness = false</code> 的 target 无法运行 <code>#[test]</code> 函数，因此交易场所要在任何交易场所流量发生前，于
+<code>StressVenue::self_check</code> 中证明自己的报文解析和 oracle。共享代理、参数解析和裸订单簿在 <code>nautilus-live</code> 的
+<code>book</code> 测试 target 中带有单元测试，用
+<code>cargo nextest run -p nautilus-live --features test-support --test book</code> 运行。</p>
+<p><strong>装置文档</strong>：在适配器的集成指南中添加 <code>Live recovery validation</code> 标题，写明其检查项、注入的故障、运行命令、
+场景、参数和所需端点。OKX、Binance、Lighter、Polymarket、Hyperliquid、Bybit、Betfair 和 AX Exchange 提供装置。</p>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=in-band-verification>带内验证<a href=#in-band-verification class=hash-link aria-label=带内验证的直接链接 title=带内验证的直接链接 translate=no>​</a></h3>
+<p>交易场所若发布订单簿校验和或哈希，就对其进行验证，不匹配按缺口处理。无需外部 oracle，即可发现序列检查漏掉的
+覆盖数据中的损坏。</p>
+<ul>
+<li class=""><strong>Kraken</strong>：启用 <code>validate_l2_checksum</code> 和 <code>validate_l3_checksum</code> 时（两者均为默认），验证每条现货 L2
+<code>book</code> 和 L3 消息的 CRC32 校验和。</li>
+<li class=""><strong>Polymarket</strong>：验证携带哈希及其完整原像的每个订单簿快照上的哈希。参见
+<a class="" href=/integrations/polymarket#book-snapshot-validation>book snapshot validation</a>。</li>
+<li class=""><strong>OKX</strong>：<code>books</code> 帧的 <code>checksum</code> 为零，验证因此改为依赖 oracle。</li>
+</ul>
+<hr/>
+<p>下面每组先给汇总表格，随后是详细测试卡片。
+测试 ID 采用间隔编号，便于插入新用例而无需重排。</p>
+<hr/>
+<h2 class="anchor anchorTargetStickyNavbar_ana5" id=group-1-instruments>第 1 组：金融工具<a href=#group-1-instruments class=hash-link aria-label="第 1 组：金融工具的直接链接" title="第 1 组：金融工具的直接链接" translate=no>​</a></h2>
+<p>先验证金融工具的加载与订阅，再测试行情数据流。</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>TC<th>名称<th>描述<th>跳过条件<tbody><tr><td>TC-D01<td>请求金融工具<td>加载某交易场所的全部金融工具。<td>从不<tr><td>TC-D02<td>订阅金融工具<td>订阅金融工具更新。<td>不支持工具订阅<tr><td>TC-D03<td>加载指定金融工具<td>按 ID 加载单个金融工具。<td>从不</table>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=tc-d01-request-instruments>TC-D01：请求金融工具<a href=#tc-d01-request-instruments class=hash-link aria-label=TC-D01：请求金融工具的直接链接 title=TC-D01：请求金融工具的直接链接 translate=no>​</a></h3>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>字段<th>值<tbody><tr><td><strong>前置条件</strong><td>适配器已连接。<tr><td><strong>操作</strong><td>DataTester 启动时请求该交易场所的全部金融工具。<tr><td><strong>事件序列</strong><td><code>on_instruments</code> 回调收到金融工具列表。<tr><td><strong>通过标准</strong><td>至少收到一个金融工具。每个都有合法 symbol、价格精度和数量增量。<tr><td><strong>跳过条件</strong><td>从不。</table>
+<p><strong>Python 配置</strong>：</p>
+<div class="language-python codeBlockContainer_eTMR theme-code-block" style=--prism-color:#393A34;--prism-background-color:#f6f8fa><div class=codeBlockContent_hafM><pre tabindex=0 class="prism-code language-python codeBlock_IMvC thin-scrollbar" style=color:#393A34;background-color:#f6f8fa><code class=codeBlockLines_gZDW><div class=token-line style=color:#393A34><span class="token plain">DataTesterConfig</span><span class="token punctuation" style=color:#393A34>(</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    instrument_ids</span><span class="token operator" style=color:#393A34>=</span><span class="token punctuation" style=color:#393A34>[</span><span class="token plain">instrument_id</span><span class="token punctuation" style=color:#393A34>]</span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    request_instruments</span><span class="token operator" style=color:#393A34>=</span><span class="token boolean" style=color:#36acaa>True</span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain"></span><span class="token punctuation" style=color:#393A34>)</span><br/></div></code></pre></div></div>
+<p><strong>Rust 配置</strong>：</p>
+<div class="language-rust codeBlockContainer_eTMR theme-code-block" style=--prism-color:#393A34;--prism-background-color:#f6f8fa><div class=codeBlockContent_hafM><pre tabindex=0 class="prism-code language-rust codeBlock_IMvC thin-scrollbar" style=color:#393A34;background-color:#f6f8fa><code class=codeBlockLines_gZDW><div class=token-line style=color:#393A34><span class="token class-name">DataTesterConfig</span><span class="token punctuation" style=color:#393A34>::</span><span class="token function" style=color:#d73a49>builder</span><span class="token punctuation" style=color:#393A34>(</span><span class="token punctuation" style=color:#393A34>)</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    </span><span class="token punctuation" style=color:#393A34>.</span><span class="token function" style=color:#d73a49>client_id</span><span class="token punctuation" style=color:#393A34>(</span><span class="token plain">client_id</span><span class="token punctuation" style=color:#393A34>)</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    </span><span class="token punctuation" style=color:#393A34>.</span><span class="token function" style=color:#d73a49>instrument_ids</span><span class="token punctuation" style=color:#393A34>(</span><span class="token macro property" style=color:#36acaa>vec!</span><span class="token punctuation" style=color:#393A34>[</span><span class="token plain">instrument_id</span><span class="token punctuation" style=color:#393A34>]</span><span class="token punctuation" style=color:#393A34>)</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    </span><span class="token punctuation" style=color:#393A34>.</span><span class="token function" style=color:#d73a49>request_instruments</span><span class="token punctuation" style=color:#393A34>(</span><span class="token boolean" style=color:#36acaa>true</span><span class="token punctuation" style=color:#393A34>)</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    </span><span class="token punctuation" style=color:#393A34>.</span><span class="token function" style=color:#d73a49>build</span><span class="token punctuation" style=color:#393A34>(</span><span class="token punctuation" style=color:#393A34>)</span><span class="token operator" style=color:#393A34>?</span><br/></div></code></pre></div></div>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=tc-d02-subscribe-instrument>TC-D02：订阅金融工具<a href=#tc-d02-subscribe-instrument class=hash-link aria-label=TC-D02：订阅金融工具的直接链接 title=TC-D02：订阅金融工具的直接链接 translate=no>​</a></h3>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>字段<th>值<tbody><tr><td><strong>前置条件</strong><td>适配器已连接，金融工具已加载。<tr><td><strong>操作</strong><td>DataTester 订阅金融工具更新。<tr><td><strong>事件序列</strong><td><code>on_instrument</code> 回调收到金融工具。<tr><td><strong>通过标准</strong><td>收到的金融工具 <code>instrument_id</code> 正确、字段合法。<tr><td><strong>跳过条件</strong><td>适配器不支持金融工具订阅。</table>
+<p><strong>Python 配置</strong>：</p>
+<div class="language-python codeBlockContainer_eTMR theme-code-block" style=--prism-color:#393A34;--prism-background-color:#f6f8fa><div class=codeBlockContent_hafM><pre tabindex=0 class="prism-code language-python codeBlock_IMvC thin-scrollbar" style=color:#393A34;background-color:#f6f8fa><code class=codeBlockLines_gZDW><div class=token-line style=color:#393A34><span class="token plain">DataTesterConfig</span><span class="token punctuation" style=color:#393A34>(</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    instrument_ids</span><span class="token operator" style=color:#393A34>=</span><span class="token punctuation" style=color:#393A34>[</span><span class="token plain">instrument_id</span><span class="token punctuation" style=color:#393A34>]</span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    subscribe_instrument</span><span class="token operator" style=color:#393A34>=</span><span class="token boolean" style=color:#36acaa>True</span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain"></span><span class="token punctuation" style=color:#393A34>)</span><br/></div></code></pre></div></div>
+<p><strong>Rust 配置</strong>：</p>
+<div class="language-rust codeBlockContainer_eTMR theme-code-block" style=--prism-color:#393A34;--prism-background-color:#f6f8fa><div class=codeBlockContent_hafM><pre tabindex=0 class="prism-code language-rust codeBlock_IMvC thin-scrollbar" style=color:#393A34;background-color:#f6f8fa><code class=codeBlockLines_gZDW><div class=token-line style=color:#393A34><span class="token class-name">DataTesterConfig</span><span class="token punctuation" style=color:#393A34>::</span><span class="token function" style=color:#d73a49>builder</span><span class="token punctuation" style=color:#393A34>(</span><span class="token punctuation" style=color:#393A34>)</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    </span><span class="token punctuation" style=color:#393A34>.</span><span class="token function" style=color:#d73a49>client_id</span><span class="token punctuation" style=color:#393A34>(</span><span class="token plain">client_id</span><span class="token punctuation" style=color:#393A34>)</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    </span><span class="token punctuation" style=color:#393A34>.</span><span class="token function" style=color:#d73a49>instrument_ids</span><span class="token punctuation" style=color:#393A34>(</span><span class="token macro property" style=color:#36acaa>vec!</span><span class="token punctuation" style=color:#393A34>[</span><span class="token plain">instrument_id</span><span class="token punctuation" style=color:#393A34>]</span><span class="token punctuation" style=color:#393A34>)</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    </span><span class="token punctuation" style=color:#393A34>.</span><span class="token function" style=color:#d73a49>subscribe_instrument</span><span class="token punctuation" style=color:#393A34>(</span><span class="token boolean" style=color:#36acaa>true</span><span class="token punctuation" style=color:#393A34>)</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    </span><span class="token punctuation" style=color:#393A34>.</span><span class="token function" style=color:#d73a49>build</span><span class="token punctuation" style=color:#393A34>(</span><span class="token punctuation" style=color:#393A34>)</span><span class="token operator" style=color:#393A34>?</span><br/></div></code></pre></div></div>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=tc-d03-load-specific-instrument>TC-D03：加载指定金融工具<a href=#tc-d03-load-specific-instrument class=hash-link aria-label=TC-D03：加载指定金融工具的直接链接 title=TC-D03：加载指定金融工具的直接链接 translate=no>​</a></h3>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>字段<th>值<tbody><tr><td><strong>前置条件</strong><td>适配器已连接。<tr><td><strong>操作</strong><td>通过 instrument provider 按 <code>InstrumentId</code> 加载指定金融工具。<tr><td><strong>事件序列</strong><td>加载后金融工具在 cache 中可用。<tr><td><strong>通过标准</strong><td>加载的金融工具 ID、价格精度、数量增量和交易规则均正确。<tr><td><strong>跳过条件</strong><td>从不。</table>
+<p><strong>注意事项</strong>：</p>
+<ul>
+<li class="">该用例直接测试 instrument provider 的 <code>load</code> / <code>load_async</code> 方法。</li>
+<li class="">用 <code>self.cache.instrument(instrument_id)</code> 确认金融工具已缓存且可取。</li>
+</ul>
+<hr/>
+<h2 class="anchor anchorTargetStickyNavbar_ana5" id=group-2-order-book>第 2 组：订单簿<a href=#group-2-order-book class=hash-link aria-label="第 2 组：订单簿的直接链接" title="第 2 组：订单簿的直接链接" translate=no>​</a></h2>
+<p>测试订单簿订阅模式与快照请求。</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>TC<th>名称<th>描述<th>跳过条件<tbody><tr><td>TC-D10<td>订阅订单簿增量<td>以流式接收 <code>OrderBookDeltas</code> 更新。<td>不支持订单簿<tr><td>TC-D11<td>按间隔订阅订单簿<td>周期性 <code>OrderBook</code> 快照。<td>不支持订单簿<tr><td>TC-D12<td>订阅订单簿深度<td><code>OrderBookDepth</code> 快照。<td>不支持订单簿深度<tr><td>TC-D13<td>请求订单簿快照<td>一次性订单簿快照请求。<td>不支持快照请求<tr><td>TC-D14<td>由增量维护本地订单簿<td>从增量流构建本地订单簿。<td>不支持订单簿</table>
+<p>Python 在这些场景使用 <code>BookType.L2_MBP</code>。适配器需要其他订单簿表示时，Rust builder 可覆盖 <code>book_type</code>。</p>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=tc-d10-subscribe-book-deltas>TC-D10：订阅订单簿增量<a href=#tc-d10-subscribe-book-deltas class=hash-link aria-label=TC-D10：订阅订单簿增量的直接链接 title=TC-D10：订阅订单簿增量的直接链接 translate=no>​</a></h3>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>字段<th>值<tbody><tr><td><strong>前置条件</strong><td>适配器已连接，金融工具已加载。<tr><td><strong>操作</strong><td>DataTester 订阅订单簿增量。<tr><td><strong>事件序列</strong><td><code>on_book_deltas</code> 中收到 <code>OrderBookDeltas</code> 事件。<tr><td><strong>通过标准</strong><td>收到的增量 instrument ID 合法，且至少一条增量包含 bid/ask 更新。<tr><td><strong>跳过条件</strong><td>适配器不支持订单簿数据。</table>
+<p><strong>Python 配置</strong>：</p>
+<div class="language-python codeBlockContainer_eTMR theme-code-block" style=--prism-color:#393A34;--prism-background-color:#f6f8fa><div class=codeBlockContent_hafM><pre tabindex=0 class="prism-code language-python codeBlock_IMvC thin-scrollbar" style=color:#393A34;background-color:#f6f8fa><code class=codeBlockLines_gZDW><div class=token-line style=color:#393A34><span class="token plain">DataTesterConfig</span><span class="token punctuation" style=color:#393A34>(</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    instrument_ids</span><span class="token operator" style=color:#393A34>=</span><span class="token punctuation" style=color:#393A34>[</span><span class="token plain">instrument_id</span><span class="token punctuation" style=color:#393A34>]</span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    subscribe_book_deltas</span><span class="token operator" style=color:#393A34>=</span><span class="token boolean" style=color:#36acaa>True</span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain"></span><span class="token punctuation" style=color:#393A34>)</span><br/></div></code></pre></div></div>
+<p><strong>Rust 配置</strong>：</p>
+<div class="language-rust codeBlockContainer_eTMR theme-code-block" style=--prism-color:#393A34;--prism-background-color:#f6f8fa><div class=codeBlockContent_hafM><pre tabindex=0 class="prism-code language-rust codeBlock_IMvC thin-scrollbar" style=color:#393A34;background-color:#f6f8fa><code class=codeBlockLines_gZDW><div class=token-line style=color:#393A34><span class="token class-name">DataTesterConfig</span><span class="token punctuation" style=color:#393A34>::</span><span class="token function" style=color:#d73a49>builder</span><span class="token punctuation" style=color:#393A34>(</span><span class="token punctuation" style=color:#393A34>)</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    </span><span class="token punctuation" style=color:#393A34>.</span><span class="token function" style=color:#d73a49>client_id</span><span class="token punctuation" style=color:#393A34>(</span><span class="token plain">client_id</span><span class="token punctuation" style=color:#393A34>)</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    </span><span class="token punctuation" style=color:#393A34>.</span><span class="token function" style=color:#d73a49>instrument_ids</span><span class="token punctuation" style=color:#393A34>(</span><span class="token macro property" style=color:#36acaa>vec!</span><span class="token punctuation" style=color:#393A34>[</span><span class="token plain">instrument_id</span><span class="token punctuation" style=color:#393A34>]</span><span class="token punctuation" style=color:#393A34>)</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    </span><span class="token punctuation" style=color:#393A34>.</span><span class="token function" style=color:#d73a49>subscribe_book_deltas</span><span class="token punctuation" style=color:#393A34>(</span><span class="token boolean" style=color:#36acaa>true</span><span class="token punctuation" style=color:#393A34>)</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    </span><span class="token punctuation" style=color:#393A34>.</span><span class="token function" style=color:#d73a49>book_type</span><span class="token punctuation" style=color:#393A34>(</span><span class="token class-name">BookType</span><span class="token punctuation" style=color:#393A34>::</span><span class="token constant" style=color:#36acaa>L2_MBP</span><span class="token punctuation" style=color:#393A34>)</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    </span><span class="token punctuation" style=color:#393A34>.</span><span class="token function" style=color:#d73a49>build</span><span class="token punctuation" style=color:#393A34>(</span><span class="token punctuation" style=color:#393A34>)</span><span class="token operator" style=color:#393A34>?</span><br/></div></code></pre></div></div>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=tc-d11-subscribe-book-at-interval>TC-D11：按间隔订阅订单簿<a href=#tc-d11-subscribe-book-at-interval class=hash-link aria-label=TC-D11：按间隔订阅订单簿的直接链接 title=TC-D11：按间隔订阅订单簿的直接链接 translate=no>​</a></h3>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>字段<th>值<tbody><tr><td><strong>前置条件</strong><td>适配器已连接，金融工具已加载。<tr><td><strong>操作</strong><td>DataTester 订阅周期性订单簿快照。<tr><td><strong>事件序列</strong><td>按配置间隔在 <code>on_book</code> 中收到 <code>OrderBook</code> 事件。<tr><td><strong>通过标准</strong><td>收到含 bid/ask 档位的订单簿快照。更新大致按配置间隔到达。<tr><td><strong>跳过条件</strong><td>适配器不支持订单簿数据。</table>
+<p><strong>Python 配置</strong>：</p>
+<div class="language-python codeBlockContainer_eTMR theme-code-block" style=--prism-color:#393A34;--prism-background-color:#f6f8fa><div class=codeBlockContent_hafM><pre tabindex=0 class="prism-code language-python codeBlock_IMvC thin-scrollbar" style=color:#393A34;background-color:#f6f8fa><code class=codeBlockLines_gZDW><div class=token-line style=color:#393A34><span class="token plain">DataTesterConfig</span><span class="token punctuation" style=color:#393A34>(</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    instrument_ids</span><span class="token operator" style=color:#393A34>=</span><span class="token punctuation" style=color:#393A34>[</span><span class="token plain">instrument_id</span><span class="token punctuation" style=color:#393A34>]</span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    subscribe_book_at_interval</span><span class="token operator" style=color:#393A34>=</span><span class="token boolean" style=color:#36acaa>True</span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    book_depth</span><span class="token operator" style=color:#393A34>=</span><span class="token number" style=color:#36acaa>10</span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    book_interval_ms</span><span class="token operator" style=color:#393A34>=</span><span class="token number" style=color:#36acaa>1000</span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain"></span><span class="token punctuation" style=color:#393A34>)</span><br/></div></code></pre></div></div>
+<p><strong>Rust 配置</strong>：</p>
+<div class="language-rust codeBlockContainer_eTMR theme-code-block" style=--prism-color:#393A34;--prism-background-color:#f6f8fa><div class=codeBlockContent_hafM><pre tabindex=0 class="prism-code language-rust codeBlock_IMvC thin-scrollbar" style=color:#393A34;background-color:#f6f8fa><code class=codeBlockLines_gZDW><div class=token-line style=color:#393A34><span class="token class-name">DataTesterConfig</span><span class="token punctuation" style=color:#393A34>::</span><span class="token function" style=color:#d73a49>builder</span><span class="token punctuation" style=color:#393A34>(</span><span class="token punctuation" style=color:#393A34>)</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    </span><span class="token punctuation" style=color:#393A34>.</span><span class="token function" style=color:#d73a49>client_id</span><span class="token punctuation" style=color:#393A34>(</span><span class="token plain">client_id</span><span class="token punctuation" style=color:#393A34>)</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    </span><span class="token punctuation" style=color:#393A34>.</span><span class="token function" style=color:#d73a49>instrument_ids</span><span class="token punctuation" style=color:#393A34>(</span><span class="token macro property" style=color:#36acaa>vec!</span><span class="token punctuation" style=color:#393A34>[</span><span class="token plain">instrument_id</span><span class="token punctuation" style=color:#393A34>]</span><span class="token punctuation" style=color:#393A34>)</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    </span><span class="token punctuation" style=color:#393A34>.</span><span class="token function" style=color:#d73a49>subscribe_book_at_interval</span><span class="token punctuation" style=color:#393A34>(</span><span class="token boolean" style=color:#36acaa>true</span><span class="token punctuation" style=color:#393A34>)</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    </span><span class="token punctuation" style=color:#393A34>.</span><span class="token function" style=color:#d73a49>book_type</span><span class="token punctuation" style=color:#393A34>(</span><span class="token class-name">BookType</span><span class="token punctuation" style=color:#393A34>::</span><span class="token constant" style=color:#36acaa>L2_MBP</span><span class="token punctuation" style=color:#393A34>)</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    </span><span class="token punctuation" style=color:#393A34>.</span><span class="token function" style=color:#d73a49>book_depth</span><span class="token punctuation" style=color:#393A34>(</span><span class="token number" style=color:#36acaa>10</span><span class="token punctuation" style=color:#393A34>)</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    </span><span class="token punctuation" style=color:#393A34>.</span><span class="token function" style=color:#d73a49>book_interval_ms</span><span class="token punctuation" style=color:#393A34>(</span><span class="token number" style=color:#36acaa>1000</span><span class="token punctuation" style=color:#393A34>)</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    </span><span class="token punctuation" style=color:#393A34>.</span><span class="token function" style=color:#d73a49>build</span><span class="token punctuation" style=color:#393A34>(</span><span class="token punctuation" style=color:#393A34>)</span><span class="token operator" style=color:#393A34>?</span><br/></div></code></pre></div></div>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=tc-d12-subscribe-book-depth>TC-D12：订阅订单簿深度<a href=#tc-d12-subscribe-book-depth class=hash-link aria-label=TC-D12：订阅订单簿深度的直接链接 title=TC-D12：订阅订单簿深度的直接链接 translate=no>​</a></h3>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>字段<th>值<tbody><tr><td><strong>前置条件</strong><td>适配器已连接，金融工具已加载。<tr><td><strong>操作</strong><td>DataTester 订阅 <code>OrderBookDepth</code> 快照。<tr><td><strong>事件序列</strong><td><code>on_book_depth</code> 中收到 <code>OrderBookDepth</code> 事件。<tr><td><strong>通过标准</strong><td>深度快照遵守请求的档位上限，价格排序正确。<tr><td><strong>跳过条件</strong><td>适配器不支持订单簿深度订阅。</table>
+<p>选择交易场所支持的深度，其上限见适配器指南。<code>book_depth</code> 作用于全部已启用的订单簿订阅和订单簿快照请求；
+省略时使用适配器默认值。</p>
+<ul>
+<li class="">深度与增量或间隔订单簿同时运行时，DataTester 以 <code>managed=False</code> 订阅深度，避免覆盖由增量维护的订单簿。</li>
+<li class="">只启用深度时，其 managed 设置跟随 <code>manage_book</code>。</li>
+</ul>
+<p><strong>Python 配置</strong>：</p>
+<div class="language-python codeBlockContainer_eTMR theme-code-block" style=--prism-color:#393A34;--prism-background-color:#f6f8fa><div class=codeBlockContent_hafM><pre tabindex=0 class="prism-code language-python codeBlock_IMvC thin-scrollbar" style=color:#393A34;background-color:#f6f8fa><code class=codeBlockLines_gZDW><div class=token-line style=color:#393A34><span class="token plain">DataTesterConfig</span><span class="token punctuation" style=color:#393A34>(</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    instrument_ids</span><span class="token operator" style=color:#393A34>=</span><span class="token punctuation" style=color:#393A34>[</span><span class="token plain">instrument_id</span><span class="token punctuation" style=color:#393A34>]</span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    subscribe_book_depth</span><span class="token operator" style=color:#393A34>=</span><span class="token boolean" style=color:#36acaa>True</span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain"></span><span class="token punctuation" style=color:#393A34>)</span><br/></div></code></pre></div></div>
+<p><strong>Rust 配置</strong>：</p>
+<div class="language-rust codeBlockContainer_eTMR theme-code-block" style=--prism-color:#393A34;--prism-background-color:#f6f8fa><div class=codeBlockContent_hafM><pre tabindex=0 class="prism-code language-rust codeBlock_IMvC thin-scrollbar" style=color:#393A34;background-color:#f6f8fa><code class=codeBlockLines_gZDW><div class=token-line style=color:#393A34><span class="token class-name">DataTesterConfig</span><span class="token punctuation" style=color:#393A34>::</span><span class="token function" style=color:#d73a49>builder</span><span class="token punctuation" style=color:#393A34>(</span><span class="token punctuation" style=color:#393A34>)</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    </span><span class="token punctuation" style=color:#393A34>.</span><span class="token function" style=color:#d73a49>client_id</span><span class="token punctuation" style=color:#393A34>(</span><span class="token plain">client_id</span><span class="token punctuation" style=color:#393A34>)</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    </span><span class="token punctuation" style=color:#393A34>.</span><span class="token function" style=color:#d73a49>instrument_ids</span><span class="token punctuation" style=color:#393A34>(</span><span class="token macro property" style=color:#36acaa>vec!</span><span class="token punctuation" style=color:#393A34>[</span><span class="token plain">instrument_id</span><span class="token punctuation" style=color:#393A34>]</span><span class="token punctuation" style=color:#393A34>)</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    </span><span class="token punctuation" style=color:#393A34>.</span><span class="token function" style=color:#d73a49>subscribe_book_depth</span><span class="token punctuation" style=color:#393A34>(</span><span class="token boolean" style=color:#36acaa>true</span><span class="token punctuation" style=color:#393A34>)</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    </span><span class="token punctuation" style=color:#393A34>.</span><span class="token function" style=color:#d73a49>book_type</span><span class="token punctuation" style=color:#393A34>(</span><span class="token class-name">BookType</span><span class="token punctuation" style=color:#393A34>::</span><span class="token constant" style=color:#36acaa>L2_MBP</span><span class="token punctuation" style=color:#393A34>)</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    </span><span class="token punctuation" style=color:#393A34>.</span><span class="token function" style=color:#d73a49>build</span><span class="token punctuation" style=color:#393A34>(</span><span class="token punctuation" style=color:#393A34>)</span><span class="token operator" style=color:#393A34>?</span><br/></div></code></pre></div></div>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=tc-d13-request-book-snapshot>TC-D13：请求订单簿快照<a href=#tc-d13-request-book-snapshot class=hash-link aria-label=TC-D13：请求订单簿快照的直接链接 title=TC-D13：请求订单簿快照的直接链接 translate=no>​</a></h3>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>字段<th>值<tbody><tr><td><strong>前置条件</strong><td>适配器已连接，金融工具已加载。<tr><td><strong>操作</strong><td>DataTester 请求一次性订单簿快照。<tr><td><strong>事件序列</strong><td>通过历史数据回调收到订单簿快照。<tr><td><strong>通过标准</strong><td>快照包含价格与数量均合法的 bid/ask 档位。<tr><td><strong>跳过条件</strong><td>适配器不支持订单簿快照请求。</table>
+<p><strong>Python 配置</strong>：</p>
+<div class="language-python codeBlockContainer_eTMR theme-code-block" style=--prism-color:#393A34;--prism-background-color:#f6f8fa><div class=codeBlockContent_hafM><pre tabindex=0 class="prism-code language-python codeBlock_IMvC thin-scrollbar" style=color:#393A34;background-color:#f6f8fa><code class=codeBlockLines_gZDW><div class=token-line style=color:#393A34><span class="token plain">DataTesterConfig</span><span class="token punctuation" style=color:#393A34>(</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    instrument_ids</span><span class="token operator" style=color:#393A34>=</span><span class="token punctuation" style=color:#393A34>[</span><span class="token plain">instrument_id</span><span class="token punctuation" style=color:#393A34>]</span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    request_book_snapshot</span><span class="token operator" style=color:#393A34>=</span><span class="token boolean" style=color:#36acaa>True</span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    book_depth</span><span class="token operator" style=color:#393A34>=</span><span class="token number" style=color:#36acaa>10</span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain"></span><span class="token punctuation" style=color:#393A34>)</span><br/></div></code></pre></div></div>
+<p><strong>Rust 配置</strong>：</p>
+<div class="language-rust codeBlockContainer_eTMR theme-code-block" style=--prism-color:#393A34;--prism-background-color:#f6f8fa><div class=codeBlockContent_hafM><pre tabindex=0 class="prism-code language-rust codeBlock_IMvC thin-scrollbar" style=color:#393A34;background-color:#f6f8fa><code class=codeBlockLines_gZDW><div class=token-line style=color:#393A34><span class="token class-name">DataTesterConfig</span><span class="token punctuation" style=color:#393A34>::</span><span class="token function" style=color:#d73a49>builder</span><span class="token punctuation" style=color:#393A34>(</span><span class="token punctuation" style=color:#393A34>)</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    </span><span class="token punctuation" style=color:#393A34>.</span><span class="token function" style=color:#d73a49>client_id</span><span class="token punctuation" style=color:#393A34>(</span><span class="token plain">client_id</span><span class="token punctuation" style=color:#393A34>)</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    </span><span class="token punctuation" style=color:#393A34>.</span><span class="token function" style=color:#d73a49>instrument_ids</span><span class="token punctuation" style=color:#393A34>(</span><span class="token macro property" style=color:#36acaa>vec!</span><span class="token punctuation" style=color:#393A34>[</span><span class="token plain">instrument_id</span><span class="token punctuation" style=color:#393A34>]</span><span class="token punctuation" style=color:#393A34>)</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    </span><span class="token punctuation" style=color:#393A34>.</span><span class="token function" style=color:#d73a49>request_book_snapshot</span><span class="token punctuation" style=color:#393A34>(</span><span class="token boolean" style=color:#36acaa>true</span><span class="token punctuation" style=color:#393A34>)</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    </span><span class="token punctuation" style=color:#393A34>.</span><span class="token function" style=color:#d73a49>book_depth</span><span class="token punctuation" style=color:#393A34>(</span><span class="token number" style=color:#36acaa>10</span><span class="token punctuation" style=color:#393A34>)</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    </span><span class="token punctuation" style=color:#393A34>.</span><span class="token function" style=color:#d73a49>build</span><span class="token punctuation" style=color:#393A34>(</span><span class="token punctuation" style=color:#393A34>)</span><span class="token operator" style=color:#393A34>?</span><br/></div></code></pre></div></div>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=tc-d14-managed-book-from-deltas>TC-D14：由增量维护本地订单簿<a href=#tc-d14-managed-book-from-deltas class=hash-link aria-label=TC-D14：由增量维护本地订单簿的直接链接 title=TC-D14：由增量维护本地订单簿的直接链接 translate=no>​</a></h3>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>字段<th>值<tbody><tr><td><strong>前置条件</strong><td>适配器已连接，金融工具已加载，订单簿增量正在流入。<tr><td><strong>操作</strong><td>DataTester 以 <code>manage_book=True</code> 订阅增量，从增量流构建本地订单簿。<tr><td><strong>事件序列</strong><td><code>OrderBookDeltas</code> 应用到本地 <code>OrderBook</code>，按配置深度记录订单簿日志。<tr><td><strong>通过标准</strong><td>本地订单簿由增量正确构建。bid 档位递减，ask 档位递增；初始快照后订单簿非空。<tr><td><strong>跳过条件</strong><td>适配器不支持订单簿数据。</table>
+<p><strong>注意事项</strong>：</p>
+<ul>
+<li class="">受管订单簿会把每条增量应用到 actor 维护的 <code>OrderBook</code> 实例上。</li>
+<li class="">用 <code>book_levels_to_print</code> 控制日志详细程度。</li>
+</ul>
+<p><strong>Python 配置</strong>：</p>
+<div class="language-python codeBlockContainer_eTMR theme-code-block" style=--prism-color:#393A34;--prism-background-color:#f6f8fa><div class=codeBlockContent_hafM><pre tabindex=0 class="prism-code language-python codeBlock_IMvC thin-scrollbar" style=color:#393A34;background-color:#f6f8fa><code class=codeBlockLines_gZDW><div class=token-line style=color:#393A34><span class="token plain">DataTesterConfig</span><span class="token punctuation" style=color:#393A34>(</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    instrument_ids</span><span class="token operator" style=color:#393A34>=</span><span class="token punctuation" style=color:#393A34>[</span><span class="token plain">instrument_id</span><span class="token punctuation" style=color:#393A34>]</span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    subscribe_book_deltas</span><span class="token operator" style=color:#393A34>=</span><span class="token boolean" style=color:#36acaa>True</span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    manage_book</span><span class="token operator" style=color:#393A34>=</span><span class="token boolean" style=color:#36acaa>True</span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    book_levels_to_print</span><span class="token operator" style=color:#393A34>=</span><span class="token number" style=color:#36acaa>10</span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain"></span><span class="token punctuation" style=color:#393A34>)</span><br/></div></code></pre></div></div>
+<p><strong>Rust 配置</strong>：</p>
+<div class="language-rust codeBlockContainer_eTMR theme-code-block" style=--prism-color:#393A34;--prism-background-color:#f6f8fa><div class=codeBlockContent_hafM><pre tabindex=0 class="prism-code language-rust codeBlock_IMvC thin-scrollbar" style=color:#393A34;background-color:#f6f8fa><code class=codeBlockLines_gZDW><div class=token-line style=color:#393A34><span class="token class-name">DataTesterConfig</span><span class="token punctuation" style=color:#393A34>::</span><span class="token function" style=color:#d73a49>builder</span><span class="token punctuation" style=color:#393A34>(</span><span class="token punctuation" style=color:#393A34>)</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    </span><span class="token punctuation" style=color:#393A34>.</span><span class="token function" style=color:#d73a49>client_id</span><span class="token punctuation" style=color:#393A34>(</span><span class="token plain">client_id</span><span class="token punctuation" style=color:#393A34>)</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    </span><span class="token punctuation" style=color:#393A34>.</span><span class="token function" style=color:#d73a49>instrument_ids</span><span class="token punctuation" style=color:#393A34>(</span><span class="token macro property" style=color:#36acaa>vec!</span><span class="token punctuation" style=color:#393A34>[</span><span class="token plain">instrument_id</span><span class="token punctuation" style=color:#393A34>]</span><span class="token punctuation" style=color:#393A34>)</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    </span><span class="token punctuation" style=color:#393A34>.</span><span class="token function" style=color:#d73a49>subscribe_book_deltas</span><span class="token punctuation" style=color:#393A34>(</span><span class="token boolean" style=color:#36acaa>true</span><span class="token punctuation" style=color:#393A34>)</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    </span><span class="token punctuation" style=color:#393A34>.</span><span class="token function" style=color:#d73a49>manage_book</span><span class="token punctuation" style=color:#393A34>(</span><span class="token boolean" style=color:#36acaa>true</span><span class="token punctuation" style=color:#393A34>)</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    </span><span class="token punctuation" style=color:#393A34>.</span><span class="token function" style=color:#d73a49>book_type</span><span class="token punctuation" style=color:#393A34>(</span><span class="token class-name">BookType</span><span class="token punctuation" style=color:#393A34>::</span><span class="token constant" style=color:#36acaa>L2_MBP</span><span class="token punctuation" style=color:#393A34>)</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    </span><span class="token punctuation" style=color:#393A34>.</span><span class="token function" style=color:#d73a49>build</span><span class="token punctuation" style=color:#393A34>(</span><span class="token punctuation" style=color:#393A34>)</span><span class="token operator" style=color:#393A34>?</span><br/></div></code></pre></div></div>
+<p><code>DataTesterConfig</code> 暴露了 <code>request_book_deltas</code>，但 <code>DataTester</code> 尚未发出该历史请求。在测试器实现该请求路径
+之前，通过自定义 actor 测试适配器的历史订单簿增量支持。</p>
+<hr/>
+<h2 class="anchor anchorTargetStickyNavbar_ana5" id=group-3-quotes>第 3 组：报价<a href=#group-3-quotes class=hash-link aria-label="第 3 组：报价的直接链接" title="第 3 组：报价的直接链接" translate=no>​</a></h2>
+<p>测试报价逐笔（tick）订阅与历史请求。</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>TC<th>名称<th>描述<th>跳过条件<tbody><tr><td>TC-D20<td>订阅报价<td>验证启动后有 <code>QuoteTick</code> 事件流入。<td>从不<tr><td>TC-D21<td>请求历史报价<td>请求历史报价逐笔数据。<td>无历史报价</table>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=tc-d20-subscribe-quotes>TC-D20：订阅报价<a href=#tc-d20-subscribe-quotes class=hash-link aria-label=TC-D20：订阅报价的直接链接 title=TC-D20：订阅报价的直接链接 translate=no>​</a></h3>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>字段<th>值<tbody><tr><td><strong>前置条件</strong><td>适配器已连接，金融工具已加载。<tr><td><strong>操作</strong><td>DataTester 启动时订阅报价。<tr><td><strong>事件序列</strong><td><code>on_quote</code> 中收到 <code>QuoteTick</code> 事件。<tr><td><strong>通过标准</strong><td>至少收到一个 <code>QuoteTick</code>，bid/ask 价格与数量合法，且 bid &lt; ask。<tr><td><strong>跳过条件</strong><td>从不。</table>
+<p><strong>Python 配置</strong>：</p>
+<div class="language-python codeBlockContainer_eTMR theme-code-block" style=--prism-color:#393A34;--prism-background-color:#f6f8fa><div class=codeBlockContent_hafM><pre tabindex=0 class="prism-code language-python codeBlock_IMvC thin-scrollbar" style=color:#393A34;background-color:#f6f8fa><code class=codeBlockLines_gZDW><div class=token-line style=color:#393A34><span class="token plain">DataTesterConfig</span><span class="token punctuation" style=color:#393A34>(</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    instrument_ids</span><span class="token operator" style=color:#393A34>=</span><span class="token punctuation" style=color:#393A34>[</span><span class="token plain">instrument_id</span><span class="token punctuation" style=color:#393A34>]</span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    subscribe_quotes</span><span class="token operator" style=color:#393A34>=</span><span class="token boolean" style=color:#36acaa>True</span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain"></span><span class="token punctuation" style=color:#393A34>)</span><br/></div></code></pre></div></div>
+<p><strong>Rust 配置</strong>：</p>
+<div class="language-rust codeBlockContainer_eTMR theme-code-block" style=--prism-color:#393A34;--prism-background-color:#f6f8fa><div class=codeBlockContent_hafM><pre tabindex=0 class="prism-code language-rust codeBlock_IMvC thin-scrollbar" style=color:#393A34;background-color:#f6f8fa><code class=codeBlockLines_gZDW><div class=token-line style=color:#393A34><span class="token class-name">DataTesterConfig</span><span class="token punctuation" style=color:#393A34>::</span><span class="token function" style=color:#d73a49>builder</span><span class="token punctuation" style=color:#393A34>(</span><span class="token punctuation" style=color:#393A34>)</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    </span><span class="token punctuation" style=color:#393A34>.</span><span class="token function" style=color:#d73a49>client_id</span><span class="token punctuation" style=color:#393A34>(</span><span class="token plain">client_id</span><span class="token punctuation" style=color:#393A34>)</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    </span><span class="token punctuation" style=color:#393A34>.</span><span class="token function" style=color:#d73a49>instrument_ids</span><span class="token punctuation" style=color:#393A34>(</span><span class="token macro property" style=color:#36acaa>vec!</span><span class="token punctuation" style=color:#393A34>[</span><span class="token plain">instrument_id</span><span class="token punctuation" style=color:#393A34>]</span><span class="token punctuation" style=color:#393A34>)</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    </span><span class="token punctuation" style=color:#393A34>.</span><span class="token function" style=color:#d73a49>subscribe_quotes</span><span class="token punctuation" style=color:#393A34>(</span><span class="token boolean" style=color:#36acaa>true</span><span class="token punctuation" style=color:#393A34>)</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    </span><span class="token punctuation" style=color:#393A34>.</span><span class="token function" style=color:#d73a49>build</span><span class="token punctuation" style=color:#393A34>(</span><span class="token punctuation" style=color:#393A34>)</span><span class="token operator" style=color:#393A34>?</span><br/></div></code></pre></div></div>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=tc-d21-request-historical-quotes>TC-D21：请求历史报价<a href=#tc-d21-request-historical-quotes class=hash-link aria-label=TC-D21：请求历史报价的直接链接 title=TC-D21：请求历史报价的直接链接 translate=no>​</a></h3>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>字段<th>值<tbody><tr><td><strong>前置条件</strong><td>适配器已连接，金融工具已加载。<tr><td><strong>操作</strong><td>DataTester 请求历史报价逐笔数据。<tr><td><strong>事件序列</strong><td>通过 <code>on_historical_quotes</code> 收到历史报价批次。<tr><td><strong>通过标准</strong><td>收到的报价时间戳、bid/ask 价格和数量均合法。<tr><td><strong>跳过条件</strong><td>适配器不支持历史报价请求。</table>
+<p><strong>Python 配置</strong>：</p>
+<div class="language-python codeBlockContainer_eTMR theme-code-block" style=--prism-color:#393A34;--prism-background-color:#f6f8fa><div class=codeBlockContent_hafM><pre tabindex=0 class="prism-code language-python codeBlock_IMvC thin-scrollbar" style=color:#393A34;background-color:#f6f8fa><code class=codeBlockLines_gZDW><div class=token-line style=color:#393A34><span class="token plain">DataTesterConfig</span><span class="token punctuation" style=color:#393A34>(</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    instrument_ids</span><span class="token operator" style=color:#393A34>=</span><span class="token punctuation" style=color:#393A34>[</span><span class="token plain">instrument_id</span><span class="token punctuation" style=color:#393A34>]</span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    request_quotes</span><span class="token operator" style=color:#393A34>=</span><span class="token boolean" style=color:#36acaa>True</span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain"></span><span class="token punctuation" style=color:#393A34>)</span><br/></div></code></pre></div></div>
+<hr/>
+<h2 class="anchor anchorTargetStickyNavbar_ana5" id=group-4-trades>第 4 组：成交<a href=#group-4-trades class=hash-link aria-label="第 4 组：成交的直接链接" title="第 4 组：成交的直接链接" translate=no>​</a></h2>
+<p>测试成交逐笔（tick）订阅与历史请求。</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>TC<th>名称<th>描述<th>跳过条件<tbody><tr><td>TC-D30<td>订阅成交<td>验证启动后有 <code>TradeTick</code> 事件流入。<td>从不<tr><td>TC-D31<td>请求历史成交<td>请求历史成交逐笔数据。<td>无历史成交</table>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=tc-d30-subscribe-trades>TC-D30：订阅成交<a href=#tc-d30-subscribe-trades class=hash-link aria-label=TC-D30：订阅成交的直接链接 title=TC-D30：订阅成交的直接链接 translate=no>​</a></h3>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>字段<th>值<tbody><tr><td><strong>前置条件</strong><td>适配器已连接，金融工具已加载。<tr><td><strong>操作</strong><td>DataTester 启动时订阅成交。<tr><td><strong>事件序列</strong><td><code>on_trade</code> 中收到 <code>TradeTick</code> 事件。<tr><td><strong>通过标准</strong><td>至少收到一个 <code>TradeTick</code>，价格、数量和主动成交方向均合法。<tr><td><strong>跳过条件</strong><td>从不。</table>
+<p><strong>Python 配置</strong>：</p>
+<div class="language-python codeBlockContainer_eTMR theme-code-block" style=--prism-color:#393A34;--prism-background-color:#f6f8fa><div class=codeBlockContent_hafM><pre tabindex=0 class="prism-code language-python codeBlock_IMvC thin-scrollbar" style=color:#393A34;background-color:#f6f8fa><code class=codeBlockLines_gZDW><div class=token-line style=color:#393A34><span class="token plain">DataTesterConfig</span><span class="token punctuation" style=color:#393A34>(</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    instrument_ids</span><span class="token operator" style=color:#393A34>=</span><span class="token punctuation" style=color:#393A34>[</span><span class="token plain">instrument_id</span><span class="token punctuation" style=color:#393A34>]</span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    subscribe_trades</span><span class="token operator" style=color:#393A34>=</span><span class="token boolean" style=color:#36acaa>True</span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain"></span><span class="token punctuation" style=color:#393A34>)</span><br/></div></code></pre></div></div>
+<p><strong>Rust 配置</strong>：</p>
+<div class="language-rust codeBlockContainer_eTMR theme-code-block" style=--prism-color:#393A34;--prism-background-color:#f6f8fa><div class=codeBlockContent_hafM><pre tabindex=0 class="prism-code language-rust codeBlock_IMvC thin-scrollbar" style=color:#393A34;background-color:#f6f8fa><code class=codeBlockLines_gZDW><div class=token-line style=color:#393A34><span class="token class-name">DataTesterConfig</span><span class="token punctuation" style=color:#393A34>::</span><span class="token function" style=color:#d73a49>builder</span><span class="token punctuation" style=color:#393A34>(</span><span class="token punctuation" style=color:#393A34>)</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    </span><span class="token punctuation" style=color:#393A34>.</span><span class="token function" style=color:#d73a49>client_id</span><span class="token punctuation" style=color:#393A34>(</span><span class="token plain">client_id</span><span class="token punctuation" style=color:#393A34>)</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    </span><span class="token punctuation" style=color:#393A34>.</span><span class="token function" style=color:#d73a49>instrument_ids</span><span class="token punctuation" style=color:#393A34>(</span><span class="token macro property" style=color:#36acaa>vec!</span><span class="token punctuation" style=color:#393A34>[</span><span class="token plain">instrument_id</span><span class="token punctuation" style=color:#393A34>]</span><span class="token punctuation" style=color:#393A34>)</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    </span><span class="token punctuation" style=color:#393A34>.</span><span class="token function" style=color:#d73a49>subscribe_trades</span><span class="token punctuation" style=color:#393A34>(</span><span class="token boolean" style=color:#36acaa>true</span><span class="token punctuation" style=color:#393A34>)</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    </span><span class="token punctuation" style=color:#393A34>.</span><span class="token function" style=color:#d73a49>build</span><span class="token punctuation" style=color:#393A34>(</span><span class="token punctuation" style=color:#393A34>)</span><span class="token operator" style=color:#393A34>?</span><br/></div></code></pre></div></div>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=tc-d31-request-historical-trades>TC-D31：请求历史成交<a href=#tc-d31-request-historical-trades class=hash-link aria-label=TC-D31：请求历史成交的直接链接 title=TC-D31：请求历史成交的直接链接 translate=no>​</a></h3>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>字段<th>值<tbody><tr><td><strong>前置条件</strong><td>适配器已连接，金融工具已加载。<tr><td><strong>操作</strong><td>DataTester 请求历史成交逐笔数据。<tr><td><strong>事件序列</strong><td>通过 <code>on_historical_trades</code> 收到历史成交批次。<tr><td><strong>通过标准</strong><td>收到的成交时间戳、价格、数量和成交 ID 均合法。<tr><td><strong>跳过条件</strong><td>适配器不支持历史成交请求。</table>
+<p><strong>Python 配置</strong>：</p>
+<div class="language-python codeBlockContainer_eTMR theme-code-block" style=--prism-color:#393A34;--prism-background-color:#f6f8fa><div class=codeBlockContent_hafM><pre tabindex=0 class="prism-code language-python codeBlock_IMvC thin-scrollbar" style=color:#393A34;background-color:#f6f8fa><code class=codeBlockLines_gZDW><div class=token-line style=color:#393A34><span class="token plain">DataTesterConfig</span><span class="token punctuation" style=color:#393A34>(</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    instrument_ids</span><span class="token operator" style=color:#393A34>=</span><span class="token punctuation" style=color:#393A34>[</span><span class="token plain">instrument_id</span><span class="token punctuation" style=color:#393A34>]</span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    request_trades</span><span class="token operator" style=color:#393A34>=</span><span class="token boolean" style=color:#36acaa>True</span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain"></span><span class="token punctuation" style=color:#393A34>)</span><br/></div></code></pre></div></div>
+<p><strong>Rust 配置</strong>：</p>
+<div class="language-rust codeBlockContainer_eTMR theme-code-block" style=--prism-color:#393A34;--prism-background-color:#f6f8fa><div class=codeBlockContent_hafM><pre tabindex=0 class="prism-code language-rust codeBlock_IMvC thin-scrollbar" style=color:#393A34;background-color:#f6f8fa><code class=codeBlockLines_gZDW><div class=token-line style=color:#393A34><span class="token class-name">DataTesterConfig</span><span class="token punctuation" style=color:#393A34>::</span><span class="token function" style=color:#d73a49>builder</span><span class="token punctuation" style=color:#393A34>(</span><span class="token punctuation" style=color:#393A34>)</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    </span><span class="token punctuation" style=color:#393A34>.</span><span class="token function" style=color:#d73a49>client_id</span><span class="token punctuation" style=color:#393A34>(</span><span class="token plain">client_id</span><span class="token punctuation" style=color:#393A34>)</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    </span><span class="token punctuation" style=color:#393A34>.</span><span class="token function" style=color:#d73a49>instrument_ids</span><span class="token punctuation" style=color:#393A34>(</span><span class="token macro property" style=color:#36acaa>vec!</span><span class="token punctuation" style=color:#393A34>[</span><span class="token plain">instrument_id</span><span class="token punctuation" style=color:#393A34>]</span><span class="token punctuation" style=color:#393A34>)</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    </span><span class="token punctuation" style=color:#393A34>.</span><span class="token function" style=color:#d73a49>request_trades</span><span class="token punctuation" style=color:#393A34>(</span><span class="token boolean" style=color:#36acaa>true</span><span class="token punctuation" style=color:#393A34>)</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    </span><span class="token punctuation" style=color:#393A34>.</span><span class="token function" style=color:#d73a49>build</span><span class="token punctuation" style=color:#393A34>(</span><span class="token punctuation" style=color:#393A34>)</span><span class="token operator" style=color:#393A34>?</span><br/></div></code></pre></div></div>
+<hr/>
+<h2 class="anchor anchorTargetStickyNavbar_ana5" id=group-5-bars>第 5 组：K 线<a href=#group-5-bars class=hash-link aria-label="第 5 组：K 线的直接链接" title="第 5 组：K 线的直接链接" translate=no>​</a></h2>
+<p>测试 K 线订阅与历史请求。</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>TC<th>名称<th>描述<th>跳过条件<tbody><tr><td>TC-D40<td>订阅 K 线<td>验证启动后有 <code>Bar</code> 事件流入。<td>不支持 K 线<tr><td>TC-D41<td>请求历史 K 线<td>请求历史 OHLCV K 线。<td>无历史 K 线</table>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=tc-d40-subscribe-bars>TC-D40：订阅 K 线<a href=#tc-d40-subscribe-bars class=hash-link aria-label="TC-D40：订阅 K 线的直接链接" title="TC-D40：订阅 K 线的直接链接" translate=no>​</a></h3>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>字段<th>值<tbody><tr><td><strong>前置条件</strong><td>适配器已连接，金融工具已加载，K 线类型已配置。<tr><td><strong>操作</strong><td>DataTester 订阅已配置 <code>BarType</code> 的 K 线。<tr><td><strong>事件序列</strong><td><code>on_bar</code> 中收到 <code>Bar</code> 事件。<tr><td><strong>通过标准</strong><td>至少收到一个 <code>Bar</code>，OHLCV 值合法：high >= low、high >= open、high >= close。<tr><td><strong>跳过条件</strong><td>适配器不支持 K 线订阅。</table>
+<p><strong>Python 配置</strong>：</p>
+<div class="language-python codeBlockContainer_eTMR theme-code-block" style=--prism-color:#393A34;--prism-background-color:#f6f8fa><div class=codeBlockContent_hafM><pre tabindex=0 class="prism-code language-python codeBlock_IMvC thin-scrollbar" style=color:#393A34;background-color:#f6f8fa><code class=codeBlockLines_gZDW><div class=token-line style=color:#393A34><span class="token plain">DataTesterConfig</span><span class="token punctuation" style=color:#393A34>(</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    instrument_ids</span><span class="token operator" style=color:#393A34>=</span><span class="token punctuation" style=color:#393A34>[</span><span class="token plain">instrument_id</span><span class="token punctuation" style=color:#393A34>]</span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    bar_types</span><span class="token operator" style=color:#393A34>=</span><span class="token punctuation" style=color:#393A34>[</span><span class="token plain">BarType</span><span class="token punctuation" style=color:#393A34>.</span><span class="token plain">from_str</span><span class="token punctuation" style=color:#393A34>(</span><span class="token string" style=color:#e3116c>"BTCUSDT-PERP.VENUE-1-MINUTE-LAST-EXTERNAL"</span><span class="token punctuation" style=color:#393A34>)</span><span class="token punctuation" style=color:#393A34>]</span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    subscribe_bars</span><span class="token operator" style=color:#393A34>=</span><span class="token boolean" style=color:#36acaa>True</span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain"></span><span class="token punctuation" style=color:#393A34>)</span><br/></div></code></pre></div></div>
+<p><strong>Rust 配置</strong>：</p>
+<div class="language-rust codeBlockContainer_eTMR theme-code-block" style=--prism-color:#393A34;--prism-background-color:#f6f8fa><div class=codeBlockContent_hafM><pre tabindex=0 class="prism-code language-rust codeBlock_IMvC thin-scrollbar" style=color:#393A34;background-color:#f6f8fa><code class=codeBlockLines_gZDW><div class=token-line style=color:#393A34><span class="token class-name">DataTesterConfig</span><span class="token punctuation" style=color:#393A34>::</span><span class="token function" style=color:#d73a49>builder</span><span class="token punctuation" style=color:#393A34>(</span><span class="token punctuation" style=color:#393A34>)</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    </span><span class="token punctuation" style=color:#393A34>.</span><span class="token function" style=color:#d73a49>client_id</span><span class="token punctuation" style=color:#393A34>(</span><span class="token plain">client_id</span><span class="token punctuation" style=color:#393A34>)</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    </span><span class="token punctuation" style=color:#393A34>.</span><span class="token function" style=color:#d73a49>instrument_ids</span><span class="token punctuation" style=color:#393A34>(</span><span class="token macro property" style=color:#36acaa>vec!</span><span class="token punctuation" style=color:#393A34>[</span><span class="token plain">instrument_id</span><span class="token punctuation" style=color:#393A34>]</span><span class="token punctuation" style=color:#393A34>)</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    </span><span class="token punctuation" style=color:#393A34>.</span><span class="token function" style=color:#d73a49>bar_types</span><span class="token punctuation" style=color:#393A34>(</span><span class="token macro property" style=color:#36acaa>vec!</span><span class="token punctuation" style=color:#393A34>[</span><span class="token plain">bar_type</span><span class="token punctuation" style=color:#393A34>]</span><span class="token punctuation" style=color:#393A34>)</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    </span><span class="token punctuation" style=color:#393A34>.</span><span class="token function" style=color:#d73a49>subscribe_bars</span><span class="token punctuation" style=color:#393A34>(</span><span class="token boolean" style=color:#36acaa>true</span><span class="token punctuation" style=color:#393A34>)</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    </span><span class="token punctuation" style=color:#393A34>.</span><span class="token function" style=color:#d73a49>build</span><span class="token punctuation" style=color:#393A34>(</span><span class="token punctuation" style=color:#393A34>)</span><span class="token operator" style=color:#393A34>?</span><br/></div></code></pre></div></div>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=tc-d41-request-historical-bars>TC-D41：请求历史 K 线<a href=#tc-d41-request-historical-bars class=hash-link aria-label="TC-D41：请求历史 K 线的直接链接" title="TC-D41：请求历史 K 线的直接链接" translate=no>​</a></h3>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>字段<th>值<tbody><tr><td><strong>前置条件</strong><td>适配器已连接，金融工具已加载，K 线类型已配置。<tr><td><strong>操作</strong><td>DataTester 请求已配置 <code>BarType</code> 的历史 K 线。<tr><td><strong>事件序列</strong><td>通过回调收到历史 K 线。<tr><td><strong>通过标准</strong><td>收到的 K 线 OHLCV 值合法，时间戳递增。<tr><td><strong>跳过条件</strong><td>适配器不支持历史 K 线请求。</table>
+<p><strong>Python 配置</strong>：</p>
+<div class="language-python codeBlockContainer_eTMR theme-code-block" style=--prism-color:#393A34;--prism-background-color:#f6f8fa><div class=codeBlockContent_hafM><pre tabindex=0 class="prism-code language-python codeBlock_IMvC thin-scrollbar" style=color:#393A34;background-color:#f6f8fa><code class=codeBlockLines_gZDW><div class=token-line style=color:#393A34><span class="token plain">DataTesterConfig</span><span class="token punctuation" style=color:#393A34>(</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    instrument_ids</span><span class="token operator" style=color:#393A34>=</span><span class="token punctuation" style=color:#393A34>[</span><span class="token plain">instrument_id</span><span class="token punctuation" style=color:#393A34>]</span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    bar_types</span><span class="token operator" style=color:#393A34>=</span><span class="token punctuation" style=color:#393A34>[</span><span class="token plain">BarType</span><span class="token punctuation" style=color:#393A34>.</span><span class="token plain">from_str</span><span class="token punctuation" style=color:#393A34>(</span><span class="token string" style=color:#e3116c>"BTCUSDT-PERP.VENUE-1-MINUTE-LAST-EXTERNAL"</span><span class="token punctuation" style=color:#393A34>)</span><span class="token punctuation" style=color:#393A34>]</span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    request_bars</span><span class="token operator" style=color:#393A34>=</span><span class="token boolean" style=color:#36acaa>True</span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain"></span><span class="token punctuation" style=color:#393A34>)</span><br/></div></code></pre></div></div>
+<p><strong>Rust 配置</strong>：</p>
+<div class="language-rust codeBlockContainer_eTMR theme-code-block" style=--prism-color:#393A34;--prism-background-color:#f6f8fa><div class=codeBlockContent_hafM><pre tabindex=0 class="prism-code language-rust codeBlock_IMvC thin-scrollbar" style=color:#393A34;background-color:#f6f8fa><code class=codeBlockLines_gZDW><div class=token-line style=color:#393A34><span class="token class-name">DataTesterConfig</span><span class="token punctuation" style=color:#393A34>::</span><span class="token function" style=color:#d73a49>builder</span><span class="token punctuation" style=color:#393A34>(</span><span class="token punctuation" style=color:#393A34>)</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    </span><span class="token punctuation" style=color:#393A34>.</span><span class="token function" style=color:#d73a49>client_id</span><span class="token punctuation" style=color:#393A34>(</span><span class="token plain">client_id</span><span class="token punctuation" style=color:#393A34>)</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    </span><span class="token punctuation" style=color:#393A34>.</span><span class="token function" style=color:#d73a49>instrument_ids</span><span class="token punctuation" style=color:#393A34>(</span><span class="token macro property" style=color:#36acaa>vec!</span><span class="token punctuation" style=color:#393A34>[</span><span class="token plain">instrument_id</span><span class="token punctuation" style=color:#393A34>]</span><span class="token punctuation" style=color:#393A34>)</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    </span><span class="token punctuation" style=color:#393A34>.</span><span class="token function" style=color:#d73a49>bar_types</span><span class="token punctuation" style=color:#393A34>(</span><span class="token macro property" style=color:#36acaa>vec!</span><span class="token punctuation" style=color:#393A34>[</span><span class="token plain">bar_type</span><span class="token punctuation" style=color:#393A34>]</span><span class="token punctuation" style=color:#393A34>)</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    </span><span class="token punctuation" style=color:#393A34>.</span><span class="token function" style=color:#d73a49>request_bars</span><span class="token punctuation" style=color:#393A34>(</span><span class="token boolean" style=color:#36acaa>true</span><span class="token punctuation" style=color:#393A34>)</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    </span><span class="token punctuation" style=color:#393A34>.</span><span class="token function" style=color:#d73a49>build</span><span class="token punctuation" style=color:#393A34>(</span><span class="token punctuation" style=color:#393A34>)</span><span class="token operator" style=color:#393A34>?</span><br/></div></code></pre></div></div>
+<hr/>
+<h2 class="anchor anchorTargetStickyNavbar_ana5" id=group-6-derivatives-data>第 6 组：衍生品数据<a href=#group-6-derivatives-data class=hash-link aria-label="第 6 组：衍生品数据的直接链接" title="第 6 组：衍生品数据的直接链接" translate=no>​</a></h2>
+<p>测试衍生品专属数据流：标记价格、指数价格和资金费率。</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>TC<th>名称<th>描述<th>跳过条件<tbody><tr><td>TC-D50<td>订阅标记价格<td><code>MarkPriceUpdate</code> 事件。<td>非衍生品<tr><td>TC-D51<td>订阅指数价格<td><code>IndexPriceUpdate</code> 事件。<td>非衍生品<tr><td>TC-D52<td>订阅资金费率<td><code>FundingRateUpdate</code> 事件。<td>非永续合约<tr><td>TC-D53<td>请求历史资金费率<td>历史资金费率数据。<td>非永续合约</table>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=tc-d50-subscribe-mark-prices>TC-D50：订阅标记价格<a href=#tc-d50-subscribe-mark-prices class=hash-link aria-label=TC-D50：订阅标记价格的直接链接 title=TC-D50：订阅标记价格的直接链接 translate=no>​</a></h3>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>字段<th>值<tbody><tr><td><strong>前置条件</strong><td>适配器已连接，衍生品金融工具已加载。<tr><td><strong>操作</strong><td>DataTester 订阅标记价格更新。<tr><td><strong>事件序列</strong><td><code>on_mark_price</code> 中收到 <code>MarkPriceUpdate</code> 事件。<tr><td><strong>通过标准</strong><td>至少收到一个 <code>MarkPriceUpdate</code>，instrument ID 和标记价格合法。<tr><td><strong>跳过条件</strong><td>金融工具不是衍生品，或适配器不提供标记价格。</table>
+<p><strong>Python 配置</strong>：</p>
+<div class="language-python codeBlockContainer_eTMR theme-code-block" style=--prism-color:#393A34;--prism-background-color:#f6f8fa><div class=codeBlockContent_hafM><pre tabindex=0 class="prism-code language-python codeBlock_IMvC thin-scrollbar" style=color:#393A34;background-color:#f6f8fa><code class=codeBlockLines_gZDW><div class=token-line style=color:#393A34><span class="token plain">DataTesterConfig</span><span class="token punctuation" style=color:#393A34>(</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    instrument_ids</span><span class="token operator" style=color:#393A34>=</span><span class="token punctuation" style=color:#393A34>[</span><span class="token plain">instrument_id</span><span class="token punctuation" style=color:#393A34>]</span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    subscribe_mark_prices</span><span class="token operator" style=color:#393A34>=</span><span class="token boolean" style=color:#36acaa>True</span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain"></span><span class="token punctuation" style=color:#393A34>)</span><br/></div></code></pre></div></div>
+<p><strong>Rust 配置</strong>：</p>
+<div class="language-rust codeBlockContainer_eTMR theme-code-block" style=--prism-color:#393A34;--prism-background-color:#f6f8fa><div class=codeBlockContent_hafM><pre tabindex=0 class="prism-code language-rust codeBlock_IMvC thin-scrollbar" style=color:#393A34;background-color:#f6f8fa><code class=codeBlockLines_gZDW><div class=token-line style=color:#393A34><span class="token class-name">DataTesterConfig</span><span class="token punctuation" style=color:#393A34>::</span><span class="token function" style=color:#d73a49>builder</span><span class="token punctuation" style=color:#393A34>(</span><span class="token punctuation" style=color:#393A34>)</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    </span><span class="token punctuation" style=color:#393A34>.</span><span class="token function" style=color:#d73a49>client_id</span><span class="token punctuation" style=color:#393A34>(</span><span class="token plain">client_id</span><span class="token punctuation" style=color:#393A34>)</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    </span><span class="token punctuation" style=color:#393A34>.</span><span class="token function" style=color:#d73a49>instrument_ids</span><span class="token punctuation" style=color:#393A34>(</span><span class="token macro property" style=color:#36acaa>vec!</span><span class="token punctuation" style=color:#393A34>[</span><span class="token plain">instrument_id</span><span class="token punctuation" style=color:#393A34>]</span><span class="token punctuation" style=color:#393A34>)</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    </span><span class="token punctuation" style=color:#393A34>.</span><span class="token function" style=color:#d73a49>subscribe_mark_prices</span><span class="token punctuation" style=color:#393A34>(</span><span class="token boolean" style=color:#36acaa>true</span><span class="token punctuation" style=color:#393A34>)</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    </span><span class="token punctuation" style=color:#393A34>.</span><span class="token function" style=color:#d73a49>build</span><span class="token punctuation" style=color:#393A34>(</span><span class="token punctuation" style=color:#393A34>)</span><span class="token operator" style=color:#393A34>?</span><br/></div></code></pre></div></div>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=tc-d51-subscribe-index-prices>TC-D51：订阅指数价格<a href=#tc-d51-subscribe-index-prices class=hash-link aria-label=TC-D51：订阅指数价格的直接链接 title=TC-D51：订阅指数价格的直接链接 translate=no>​</a></h3>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>字段<th>值<tbody><tr><td><strong>前置条件</strong><td>适配器已连接，衍生品金融工具已加载。<tr><td><strong>操作</strong><td>DataTester 订阅指数价格更新。<tr><td><strong>事件序列</strong><td><code>on_index_price</code> 中收到 <code>IndexPriceUpdate</code> 事件。<tr><td><strong>通过标准</strong><td>至少收到一个 <code>IndexPriceUpdate</code>，instrument ID 和指数价格合法。<tr><td><strong>跳过条件</strong><td>金融工具不是衍生品，或适配器不提供指数价格。</table>
+<p><strong>Python 配置</strong>：</p>
+<div class="language-python codeBlockContainer_eTMR theme-code-block" style=--prism-color:#393A34;--prism-background-color:#f6f8fa><div class=codeBlockContent_hafM><pre tabindex=0 class="prism-code language-python codeBlock_IMvC thin-scrollbar" style=color:#393A34;background-color:#f6f8fa><code class=codeBlockLines_gZDW><div class=token-line style=color:#393A34><span class="token plain">DataTesterConfig</span><span class="token punctuation" style=color:#393A34>(</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    instrument_ids</span><span class="token operator" style=color:#393A34>=</span><span class="token punctuation" style=color:#393A34>[</span><span class="token plain">instrument_id</span><span class="token punctuation" style=color:#393A34>]</span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    subscribe_index_prices</span><span class="token operator" style=color:#393A34>=</span><span class="token boolean" style=color:#36acaa>True</span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain"></span><span class="token punctuation" style=color:#393A34>)</span><br/></div></code></pre></div></div>
+<p><strong>Rust 配置</strong>：</p>
+<div class="language-rust codeBlockContainer_eTMR theme-code-block" style=--prism-color:#393A34;--prism-background-color:#f6f8fa><div class=codeBlockContent_hafM><pre tabindex=0 class="prism-code language-rust codeBlock_IMvC thin-scrollbar" style=color:#393A34;background-color:#f6f8fa><code class=codeBlockLines_gZDW><div class=token-line style=color:#393A34><span class="token class-name">DataTesterConfig</span><span class="token punctuation" style=color:#393A34>::</span><span class="token function" style=color:#d73a49>builder</span><span class="token punctuation" style=color:#393A34>(</span><span class="token punctuation" style=color:#393A34>)</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    </span><span class="token punctuation" style=color:#393A34>.</span><span class="token function" style=color:#d73a49>client_id</span><span class="token punctuation" style=color:#393A34>(</span><span class="token plain">client_id</span><span class="token punctuation" style=color:#393A34>)</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    </span><span class="token punctuation" style=color:#393A34>.</span><span class="token function" style=color:#d73a49>instrument_ids</span><span class="token punctuation" style=color:#393A34>(</span><span class="token macro property" style=color:#36acaa>vec!</span><span class="token punctuation" style=color:#393A34>[</span><span class="token plain">instrument_id</span><span class="token punctuation" style=color:#393A34>]</span><span class="token punctuation" style=color:#393A34>)</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    </span><span class="token punctuation" style=color:#393A34>.</span><span class="token function" style=color:#d73a49>subscribe_index_prices</span><span class="token punctuation" style=color:#393A34>(</span><span class="token boolean" style=color:#36acaa>true</span><span class="token punctuation" style=color:#393A34>)</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    </span><span class="token punctuation" style=color:#393A34>.</span><span class="token function" style=color:#d73a49>build</span><span class="token punctuation" style=color:#393A34>(</span><span class="token punctuation" style=color:#393A34>)</span><span class="token operator" style=color:#393A34>?</span><br/></div></code></pre></div></div>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=tc-d52-subscribe-funding-rates>TC-D52：订阅资金费率<a href=#tc-d52-subscribe-funding-rates class=hash-link aria-label=TC-D52：订阅资金费率的直接链接 title=TC-D52：订阅资金费率的直接链接 translate=no>​</a></h3>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>字段<th>值<tbody><tr><td><strong>前置条件</strong><td>适配器已连接，永续合约金融工具已加载。<tr><td><strong>操作</strong><td>DataTester 订阅资金费率更新。<tr><td><strong>事件序列</strong><td><code>on_funding_rate</code> 中收到 <code>FundingRateUpdate</code> 事件。<tr><td><strong>通过标准</strong><td>至少收到一个 <code>FundingRateUpdate</code>，instrument ID 和费率合法。<tr><td><strong>跳过条件</strong><td>金融工具不是永续合约，或适配器不提供资金费率。</table>
+<p><strong>Python 配置</strong>：</p>
+<div class="language-python codeBlockContainer_eTMR theme-code-block" style=--prism-color:#393A34;--prism-background-color:#f6f8fa><div class=codeBlockContent_hafM><pre tabindex=0 class="prism-code language-python codeBlock_IMvC thin-scrollbar" style=color:#393A34;background-color:#f6f8fa><code class=codeBlockLines_gZDW><div class=token-line style=color:#393A34><span class="token plain">DataTesterConfig</span><span class="token punctuation" style=color:#393A34>(</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    instrument_ids</span><span class="token operator" style=color:#393A34>=</span><span class="token punctuation" style=color:#393A34>[</span><span class="token plain">instrument_id</span><span class="token punctuation" style=color:#393A34>]</span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    subscribe_funding_rates</span><span class="token operator" style=color:#393A34>=</span><span class="token boolean" style=color:#36acaa>True</span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain"></span><span class="token punctuation" style=color:#393A34>)</span><br/></div></code></pre></div></div>
+<p><strong>Rust 配置</strong>：</p>
+<div class="language-rust codeBlockContainer_eTMR theme-code-block" style=--prism-color:#393A34;--prism-background-color:#f6f8fa><div class=codeBlockContent_hafM><pre tabindex=0 class="prism-code language-rust codeBlock_IMvC thin-scrollbar" style=color:#393A34;background-color:#f6f8fa><code class=codeBlockLines_gZDW><div class=token-line style=color:#393A34><span class="token class-name">DataTesterConfig</span><span class="token punctuation" style=color:#393A34>::</span><span class="token function" style=color:#d73a49>builder</span><span class="token punctuation" style=color:#393A34>(</span><span class="token punctuation" style=color:#393A34>)</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    </span><span class="token punctuation" style=color:#393A34>.</span><span class="token function" style=color:#d73a49>client_id</span><span class="token punctuation" style=color:#393A34>(</span><span class="token plain">client_id</span><span class="token punctuation" style=color:#393A34>)</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    </span><span class="token punctuation" style=color:#393A34>.</span><span class="token function" style=color:#d73a49>instrument_ids</span><span class="token punctuation" style=color:#393A34>(</span><span class="token macro property" style=color:#36acaa>vec!</span><span class="token punctuation" style=color:#393A34>[</span><span class="token plain">instrument_id</span><span class="token punctuation" style=color:#393A34>]</span><span class="token punctuation" style=color:#393A34>)</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    </span><span class="token punctuation" style=color:#393A34>.</span><span class="token function" style=color:#d73a49>subscribe_funding_rates</span><span class="token punctuation" style=color:#393A34>(</span><span class="token boolean" style=color:#36acaa>true</span><span class="token punctuation" style=color:#393A34>)</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    </span><span class="token punctuation" style=color:#393A34>.</span><span class="token function" style=color:#d73a49>build</span><span class="token punctuation" style=color:#393A34>(</span><span class="token punctuation" style=color:#393A34>)</span><span class="token operator" style=color:#393A34>?</span><br/></div></code></pre></div></div>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=tc-d53-request-historical-funding-rates>TC-D53：请求历史资金费率<a href=#tc-d53-request-historical-funding-rates class=hash-link aria-label=TC-D53：请求历史资金费率的直接链接 title=TC-D53：请求历史资金费率的直接链接 translate=no>​</a></h3>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>字段<th>值<tbody><tr><td><strong>前置条件</strong><td>适配器已连接，永续合约金融工具已加载。<tr><td><strong>操作</strong><td>DataTester 请求历史资金费率（默认回看 7 天）。<tr><td><strong>事件序列</strong><td>通过回调收到历史资金费率。<tr><td><strong>通过标准</strong><td>收到的资金费率时间戳和费率值合法。<tr><td><strong>跳过条件</strong><td>金融工具不是永续合约，或适配器不支持历史资金费率请求。</table>
+<p><strong>Python 配置</strong>：</p>
+<div class="language-python codeBlockContainer_eTMR theme-code-block" style=--prism-color:#393A34;--prism-background-color:#f6f8fa><div class=codeBlockContent_hafM><pre tabindex=0 class="prism-code language-python codeBlock_IMvC thin-scrollbar" style=color:#393A34;background-color:#f6f8fa><code class=codeBlockLines_gZDW><div class=token-line style=color:#393A34><span class="token plain">DataTesterConfig</span><span class="token punctuation" style=color:#393A34>(</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    instrument_ids</span><span class="token operator" style=color:#393A34>=</span><span class="token punctuation" style=color:#393A34>[</span><span class="token plain">instrument_id</span><span class="token punctuation" style=color:#393A34>]</span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    request_funding_rates</span><span class="token operator" style=color:#393A34>=</span><span class="token boolean" style=color:#36acaa>True</span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain"></span><span class="token punctuation" style=color:#393A34>)</span><br/></div></code></pre></div></div>
+<p><strong>Rust 配置</strong>：</p>
+<div class="language-rust codeBlockContainer_eTMR theme-code-block" style=--prism-color:#393A34;--prism-background-color:#f6f8fa><div class=codeBlockContent_hafM><pre tabindex=0 class="prism-code language-rust codeBlock_IMvC thin-scrollbar" style=color:#393A34;background-color:#f6f8fa><code class=codeBlockLines_gZDW><div class=token-line style=color:#393A34><span class="token class-name">DataTesterConfig</span><span class="token punctuation" style=color:#393A34>::</span><span class="token function" style=color:#d73a49>builder</span><span class="token punctuation" style=color:#393A34>(</span><span class="token punctuation" style=color:#393A34>)</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    </span><span class="token punctuation" style=color:#393A34>.</span><span class="token function" style=color:#d73a49>client_id</span><span class="token punctuation" style=color:#393A34>(</span><span class="token plain">client_id</span><span class="token punctuation" style=color:#393A34>)</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    </span><span class="token punctuation" style=color:#393A34>.</span><span class="token function" style=color:#d73a49>instrument_ids</span><span class="token punctuation" style=color:#393A34>(</span><span class="token macro property" style=color:#36acaa>vec!</span><span class="token punctuation" style=color:#393A34>[</span><span class="token plain">instrument_id</span><span class="token punctuation" style=color:#393A34>]</span><span class="token punctuation" style=color:#393A34>)</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    </span><span class="token punctuation" style=color:#393A34>.</span><span class="token function" style=color:#d73a49>request_funding_rates</span><span class="token punctuation" style=color:#393A34>(</span><span class="token boolean" style=color:#36acaa>true</span><span class="token punctuation" style=color:#393A34>)</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    </span><span class="token punctuation" style=color:#393A34>.</span><span class="token function" style=color:#d73a49>build</span><span class="token punctuation" style=color:#393A34>(</span><span class="token punctuation" style=color:#393A34>)</span><span class="token operator" style=color:#393A34>?</span><br/></div></code></pre></div></div>
+<hr/>
+<h2 class="anchor anchorTargetStickyNavbar_ana5" id=group-7-instrument-status>第 7 组：金融工具状态<a href=#group-7-instrument-status class=hash-link aria-label="第 7 组：金融工具状态的直接链接" title="第 7 组：金融工具状态的直接链接" translate=no>​</a></h2>
+<p>测试金融工具状态与收盘事件订阅。</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>TC<th>名称<th>描述<th>跳过条件<tbody><tr><td>TC-D60<td>订阅金融工具状态<td><code>InstrumentStatus</code> 事件。<td>不支持状态<tr><td>TC-D61<td>订阅金融工具收盘<td><code>InstrumentClose</code> 事件。<td>不支持收盘事件</table>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=tc-d60-subscribe-instrument-status>TC-D60：订阅金融工具状态<a href=#tc-d60-subscribe-instrument-status class=hash-link aria-label=TC-D60：订阅金融工具状态的直接链接 title=TC-D60：订阅金融工具状态的直接链接 translate=no>​</a></h3>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>字段<th>值<tbody><tr><td><strong>前置条件</strong><td>适配器已连接，金融工具已加载。<tr><td><strong>操作</strong><td>DataTester 订阅金融工具状态更新。<tr><td><strong>事件序列</strong><td><code>on_instrument_status</code> 中收到 <code>InstrumentStatus</code> 事件。<tr><td><strong>通过标准</strong><td>收到的状态事件携带合法的 <code>MarketStatusAction</code>（如 <code>Trading</code>）。<tr><td><strong>跳过条件</strong><td>适配器不支持金融工具状态订阅。</table>
+<p><strong>注意事项</strong>：</p>
+<ul>
+<li class="">状态事件可能只在状态变化时触发（如停牌 -> 复牌）。</li>
+<li class="">正常交易时段内，订阅时可能收到 <code>Trading</code> 状态。</li>
+</ul>
+<p><strong>Python 配置</strong>：</p>
+<div class="language-python codeBlockContainer_eTMR theme-code-block" style=--prism-color:#393A34;--prism-background-color:#f6f8fa><div class=codeBlockContent_hafM><pre tabindex=0 class="prism-code language-python codeBlock_IMvC thin-scrollbar" style=color:#393A34;background-color:#f6f8fa><code class=codeBlockLines_gZDW><div class=token-line style=color:#393A34><span class="token plain">DataTesterConfig</span><span class="token punctuation" style=color:#393A34>(</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    instrument_ids</span><span class="token operator" style=color:#393A34>=</span><span class="token punctuation" style=color:#393A34>[</span><span class="token plain">instrument_id</span><span class="token punctuation" style=color:#393A34>]</span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    subscribe_instrument_status</span><span class="token operator" style=color:#393A34>=</span><span class="token boolean" style=color:#36acaa>True</span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain"></span><span class="token punctuation" style=color:#393A34>)</span><br/></div></code></pre></div></div>
+<p><strong>Rust 配置</strong>：</p>
+<div class="language-rust codeBlockContainer_eTMR theme-code-block" style=--prism-color:#393A34;--prism-background-color:#f6f8fa><div class=codeBlockContent_hafM><pre tabindex=0 class="prism-code language-rust codeBlock_IMvC thin-scrollbar" style=color:#393A34;background-color:#f6f8fa><code class=codeBlockLines_gZDW><div class=token-line style=color:#393A34><span class="token class-name">DataTesterConfig</span><span class="token punctuation" style=color:#393A34>::</span><span class="token function" style=color:#d73a49>builder</span><span class="token punctuation" style=color:#393A34>(</span><span class="token punctuation" style=color:#393A34>)</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    </span><span class="token punctuation" style=color:#393A34>.</span><span class="token function" style=color:#d73a49>client_id</span><span class="token punctuation" style=color:#393A34>(</span><span class="token plain">client_id</span><span class="token punctuation" style=color:#393A34>)</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    </span><span class="token punctuation" style=color:#393A34>.</span><span class="token function" style=color:#d73a49>instrument_ids</span><span class="token punctuation" style=color:#393A34>(</span><span class="token macro property" style=color:#36acaa>vec!</span><span class="token punctuation" style=color:#393A34>[</span><span class="token plain">instrument_id</span><span class="token punctuation" style=color:#393A34>]</span><span class="token punctuation" style=color:#393A34>)</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    </span><span class="token punctuation" style=color:#393A34>.</span><span class="token function" style=color:#d73a49>subscribe_instrument_status</span><span class="token punctuation" style=color:#393A34>(</span><span class="token boolean" style=color:#36acaa>true</span><span class="token punctuation" style=color:#393A34>)</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    </span><span class="token punctuation" style=color:#393A34>.</span><span class="token function" style=color:#d73a49>build</span><span class="token punctuation" style=color:#393A34>(</span><span class="token punctuation" style=color:#393A34>)</span><span class="token operator" style=color:#393A34>?</span><br/></div></code></pre></div></div>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=tc-d61-subscribe-instrument-close>TC-D61：订阅金融工具收盘<a href=#tc-d61-subscribe-instrument-close class=hash-link aria-label=TC-D61：订阅金融工具收盘的直接链接 title=TC-D61：订阅金融工具收盘的直接链接 translate=no>​</a></h3>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>字段<th>值<tbody><tr><td><strong>前置条件</strong><td>适配器已连接，金融工具已加载。<tr><td><strong>操作</strong><td>DataTester 订阅金融工具收盘事件。<tr><td><strong>事件序列</strong><td><code>on_instrument_close</code> 中收到 <code>InstrumentClose</code> 事件。<tr><td><strong>通过标准</strong><td>收到的收盘事件携带合法的收盘价和收盘类型。<tr><td><strong>跳过条件</strong><td>适配器不支持金融工具收盘订阅。</table>
+<p><strong>注意事项</strong>：</p>
+<ul>
+<li class="">传统市场的收盘事件通常在交易时段结束时触发。</li>
+<li class="">7×24 小时运行的加密交易场所通常不会触发，除非适配器合成每日收盘。</li>
+</ul>
+<p><strong>Python 配置</strong>：</p>
+<div class="language-python codeBlockContainer_eTMR theme-code-block" style=--prism-color:#393A34;--prism-background-color:#f6f8fa><div class=codeBlockContent_hafM><pre tabindex=0 class="prism-code language-python codeBlock_IMvC thin-scrollbar" style=color:#393A34;background-color:#f6f8fa><code class=codeBlockLines_gZDW><div class=token-line style=color:#393A34><span class="token plain">DataTesterConfig</span><span class="token punctuation" style=color:#393A34>(</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    instrument_ids</span><span class="token operator" style=color:#393A34>=</span><span class="token punctuation" style=color:#393A34>[</span><span class="token plain">instrument_id</span><span class="token punctuation" style=color:#393A34>]</span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    subscribe_instrument_close</span><span class="token operator" style=color:#393A34>=</span><span class="token boolean" style=color:#36acaa>True</span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain"></span><span class="token punctuation" style=color:#393A34>)</span><br/></div></code></pre></div></div>
+<p><strong>Rust 配置</strong>：</p>
+<div class="language-rust codeBlockContainer_eTMR theme-code-block" style=--prism-color:#393A34;--prism-background-color:#f6f8fa><div class=codeBlockContent_hafM><pre tabindex=0 class="prism-code language-rust codeBlock_IMvC thin-scrollbar" style=color:#393A34;background-color:#f6f8fa><code class=codeBlockLines_gZDW><div class=token-line style=color:#393A34><span class="token class-name">DataTesterConfig</span><span class="token punctuation" style=color:#393A34>::</span><span class="token function" style=color:#d73a49>builder</span><span class="token punctuation" style=color:#393A34>(</span><span class="token punctuation" style=color:#393A34>)</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    </span><span class="token punctuation" style=color:#393A34>.</span><span class="token function" style=color:#d73a49>client_id</span><span class="token punctuation" style=color:#393A34>(</span><span class="token plain">client_id</span><span class="token punctuation" style=color:#393A34>)</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    </span><span class="token punctuation" style=color:#393A34>.</span><span class="token function" style=color:#d73a49>instrument_ids</span><span class="token punctuation" style=color:#393A34>(</span><span class="token macro property" style=color:#36acaa>vec!</span><span class="token punctuation" style=color:#393A34>[</span><span class="token plain">instrument_id</span><span class="token punctuation" style=color:#393A34>]</span><span class="token punctuation" style=color:#393A34>)</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    </span><span class="token punctuation" style=color:#393A34>.</span><span class="token function" style=color:#d73a49>subscribe_instrument_close</span><span class="token punctuation" style=color:#393A34>(</span><span class="token boolean" style=color:#36acaa>true</span><span class="token punctuation" style=color:#393A34>)</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    </span><span class="token punctuation" style=color:#393A34>.</span><span class="token function" style=color:#d73a49>build</span><span class="token punctuation" style=color:#393A34>(</span><span class="token punctuation" style=color:#393A34>)</span><span class="token operator" style=color:#393A34>?</span><br/></div></code></pre></div></div>
+<hr/>
+<h2 class="anchor anchorTargetStickyNavbar_ana5" id=group-8-option-greeks>第 8 组：期权希腊值<a href=#group-8-option-greeks class=hash-link aria-label="第 8 组：期权希腊值的直接链接" title="第 8 组：期权希腊值的直接链接" translate=no>​</a></h2>
+<p>测试期权希腊值与期权链订阅。</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>TC<th>名称<th>描述<th>跳过条件<tbody><tr><td>TC-D62<td>订阅期权希腊值<td>单个金融工具的 <code>OptionGreeks</code> 数据。<td>不支持希腊值<tr><td>TC-D63<td>订阅期权链<td>某个 series 的 <code>OptionChainSlice</code> 快照。<td>不支持期权链</table>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=tc-d62-subscribe-option-greeks>TC-D62：订阅期权希腊值<a href=#tc-d62-subscribe-option-greeks class=hash-link aria-label=TC-D62：订阅期权希腊值的直接链接 title=TC-D62：订阅期权希腊值的直接链接 translate=no>​</a></h3>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>字段<th>值<tbody><tr><td><strong>前置条件</strong><td>适配器已连接，期权金融工具已加载。<tr><td><strong>操作</strong><td>DataTester 订阅期权希腊值更新。<tr><td><strong>事件序列</strong><td><code>on_option_greeks</code> 中收到 <code>OptionGreeks</code> 事件。<tr><td><strong>通过标准</strong><td>收到的希腊值 delta、gamma、vega、theta 均合法。<tr><td><strong>跳过条件</strong><td>适配器不支持期权希腊值订阅。</table>
+<p><strong>注意事项</strong>：</p>
+<ul>
+<li class="">希腊值仅对期权金融工具可用。</li>
+<li class="">数值取决于交易场所的定价模型，可能每次报价变化都会更新。</li>
+<li class="">部分交易场所（Bybit、Deribit）按单个金融工具订阅；OKX 按 instrument family 订阅，再过滤出请求的金融工具。</li>
+<li class="">交易场所不提供 <code>rho</code> 时其值可能为零（Bybit、OKX）。</li>
+<li class="">依交易场所通道不同，<code>underlying_price</code> 和 <code>open_interest</code> 可能为 <code>None</code>。</li>
+</ul>
+<p><strong>Python 配置</strong>：</p>
+<div class="language-python codeBlockContainer_eTMR theme-code-block" style=--prism-color:#393A34;--prism-background-color:#f6f8fa><div class=codeBlockContent_hafM><pre tabindex=0 class="prism-code language-python codeBlock_IMvC thin-scrollbar" style=color:#393A34;background-color:#f6f8fa><code class=codeBlockLines_gZDW><div class=token-line style=color:#393A34><span class="token plain">DataTesterConfig</span><span class="token punctuation" style=color:#393A34>(</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    instrument_ids</span><span class="token operator" style=color:#393A34>=</span><span class="token punctuation" style=color:#393A34>[</span><span class="token plain">instrument_id</span><span class="token punctuation" style=color:#393A34>]</span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    subscribe_option_greeks</span><span class="token operator" style=color:#393A34>=</span><span class="token boolean" style=color:#36acaa>True</span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain"></span><span class="token punctuation" style=color:#393A34>)</span><br/></div></code></pre></div></div>
+<p><strong>Rust 配置</strong>：</p>
+<div class="language-rust codeBlockContainer_eTMR theme-code-block" style=--prism-color:#393A34;--prism-background-color:#f6f8fa><div class=codeBlockContent_hafM><pre tabindex=0 class="prism-code language-rust codeBlock_IMvC thin-scrollbar" style=color:#393A34;background-color:#f6f8fa><code class=codeBlockLines_gZDW><div class=token-line style=color:#393A34><span class="token class-name">DataTesterConfig</span><span class="token punctuation" style=color:#393A34>::</span><span class="token function" style=color:#d73a49>builder</span><span class="token punctuation" style=color:#393A34>(</span><span class="token punctuation" style=color:#393A34>)</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    </span><span class="token punctuation" style=color:#393A34>.</span><span class="token function" style=color:#d73a49>client_id</span><span class="token punctuation" style=color:#393A34>(</span><span class="token plain">client_id</span><span class="token punctuation" style=color:#393A34>)</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    </span><span class="token punctuation" style=color:#393A34>.</span><span class="token function" style=color:#d73a49>instrument_ids</span><span class="token punctuation" style=color:#393A34>(</span><span class="token macro property" style=color:#36acaa>vec!</span><span class="token punctuation" style=color:#393A34>[</span><span class="token plain">instrument_id</span><span class="token punctuation" style=color:#393A34>]</span><span class="token punctuation" style=color:#393A34>)</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    </span><span class="token punctuation" style=color:#393A34>.</span><span class="token function" style=color:#d73a49>subscribe_option_greeks</span><span class="token punctuation" style=color:#393A34>(</span><span class="token boolean" style=color:#36acaa>true</span><span class="token punctuation" style=color:#393A34>)</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    </span><span class="token punctuation" style=color:#393A34>.</span><span class="token function" style=color:#d73a49>build</span><span class="token punctuation" style=color:#393A34>(</span><span class="token punctuation" style=color:#393A34>)</span><span class="token operator" style=color:#393A34>?</span><br/></div></code></pre></div></div>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=tc-d63-subscribe-option-chain>TC-D63：订阅期权链<a href=#tc-d63-subscribe-option-chain class=hash-link aria-label=TC-D63：订阅期权链的直接链接 title=TC-D63：订阅期权链的直接链接 translate=no>​</a></h3>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>字段<th>值<tbody><tr><td><strong>前置条件</strong><td>适配器已连接，该 series 的期权金融工具已加载。<tr><td><strong>操作</strong><td>DataTester 订阅某个 series 的期权链快照。<tr><td><strong>事件序列</strong><td><code>on_option_chain</code> 中收到 <code>OptionChainSlice</code> 快照。<tr><td><strong>通过标准</strong><td>期权链快照包含匹配该 series 的金融工具的希腊值。<tr><td><strong>跳过条件</strong><td>适配器不支持期权链订阅。</table>
+<p><strong>注意事项</strong>：</p>
+<ul>
+<li class="">期权链订阅由 DataEngine 管理，其内部会按金融工具创建报价和希腊值订阅。</li>
+<li class="">动态行权价区间在金融工具订阅开始前需要一个 ATM 价格。DataEngine 会请求一个初始参考价，否则等待实时
+期权希腊值。</li>
+<li class="">暂不能通过 <code>DataTesterConfig</code> 配置。需要手动搭建 actor，使用 <code>subscribe_option_chain</code> 和
+<code>OptionSeriesId</code>。</li>
+</ul>
+<hr/>
+<h2 class="anchor anchorTargetStickyNavbar_ana5" id=group-9-lifecycle>第 9 组：生命周期<a href=#group-9-lifecycle class=hash-link aria-label="第 9 组：生命周期的直接链接" title="第 9 组：生命周期的直接链接" translate=no>​</a></h2>
+<p>测试 actor 生命周期行为：退订处理、退役清理和自定义参数。</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>TC<th>名称<th>描述<th>跳过条件<tbody><tr><td>TC-D70<td>停止时退订<td>actor 停止时退订数据流。<td>不支持退订<tr><td>TC-D71<td>自定义订阅参数<td>适配器特有的订阅参数。<td>不适用<tr><td>TC-D72<td>自定义请求参数<td>适配器特有的请求参数。<td>不适用<tr><td>TC-D73<td>退役清理<td>释放 actor 持有的数据订阅。<td>不适用<tr><td>TC-D74<td>DeFi 共享池需求<td>共享池数据流保留至最后一个持有者。<td>不支持 DeFi<tr><td>TC-D75<td>DeFi 引导取消<td>丢弃已取消池引导的快照。<td>不支持 DeFi</table>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=tc-d70-unsubscribe-on-stop>TC-D70：停止时退订<a href=#tc-d70-unsubscribe-on-stop class=hash-link aria-label=TC-D70：停止时退订的直接链接 title=TC-D70：停止时退订的直接链接 translate=no>​</a></h3>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>字段<th>值<tbody><tr><td><strong>前置条件</strong><td>存在活跃数据订阅（报价、成交、订单簿）。<tr><td><strong>操作</strong><td>以 <code>can_unsubscribe=True</code>（默认）停止 actor。<tr><td><strong>事件序列</strong><td>数据订阅被移除，不再收到数据事件。<tr><td><strong>通过标准</strong><td>干净退订；日志无错误；停止后无数据事件。<tr><td><strong>跳过条件</strong><td>适配器不支持退订。</table>
+<p><strong>Python 配置</strong>：</p>
+<div class="language-python codeBlockContainer_eTMR theme-code-block" style=--prism-color:#393A34;--prism-background-color:#f6f8fa><div class=codeBlockContent_hafM><pre tabindex=0 class="prism-code language-python codeBlock_IMvC thin-scrollbar" style=color:#393A34;background-color:#f6f8fa><code class=codeBlockLines_gZDW><div class=token-line style=color:#393A34><span class="token plain">DataTesterConfig</span><span class="token punctuation" style=color:#393A34>(</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    instrument_ids</span><span class="token operator" style=color:#393A34>=</span><span class="token punctuation" style=color:#393A34>[</span><span class="token plain">instrument_id</span><span class="token punctuation" style=color:#393A34>]</span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    subscribe_quotes</span><span class="token operator" style=color:#393A34>=</span><span class="token boolean" style=color:#36acaa>True</span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    subscribe_trades</span><span class="token operator" style=color:#393A34>=</span><span class="token boolean" style=color:#36acaa>True</span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    can_unsubscribe</span><span class="token operator" style=color:#393A34>=</span><span class="token boolean" style=color:#36acaa>True</span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain"></span><span class="token punctuation" style=color:#393A34>)</span><br/></div></code></pre></div></div>
+<p><strong>Rust 配置</strong>：</p>
+<div class="language-rust codeBlockContainer_eTMR theme-code-block" style=--prism-color:#393A34;--prism-background-color:#f6f8fa><div class=codeBlockContent_hafM><pre tabindex=0 class="prism-code language-rust codeBlock_IMvC thin-scrollbar" style=color:#393A34;background-color:#f6f8fa><code class=codeBlockLines_gZDW><div class=token-line style=color:#393A34><span class="token class-name">DataTesterConfig</span><span class="token punctuation" style=color:#393A34>::</span><span class="token function" style=color:#d73a49>builder</span><span class="token punctuation" style=color:#393A34>(</span><span class="token punctuation" style=color:#393A34>)</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    </span><span class="token punctuation" style=color:#393A34>.</span><span class="token function" style=color:#d73a49>client_id</span><span class="token punctuation" style=color:#393A34>(</span><span class="token plain">client_id</span><span class="token punctuation" style=color:#393A34>)</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    </span><span class="token punctuation" style=color:#393A34>.</span><span class="token function" style=color:#d73a49>instrument_ids</span><span class="token punctuation" style=color:#393A34>(</span><span class="token macro property" style=color:#36acaa>vec!</span><span class="token punctuation" style=color:#393A34>[</span><span class="token plain">instrument_id</span><span class="token punctuation" style=color:#393A34>]</span><span class="token punctuation" style=color:#393A34>)</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    </span><span class="token punctuation" style=color:#393A34>.</span><span class="token function" style=color:#d73a49>subscribe_quotes</span><span class="token punctuation" style=color:#393A34>(</span><span class="token boolean" style=color:#36acaa>true</span><span class="token punctuation" style=color:#393A34>)</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    </span><span class="token punctuation" style=color:#393A34>.</span><span class="token function" style=color:#d73a49>subscribe_trades</span><span class="token punctuation" style=color:#393A34>(</span><span class="token boolean" style=color:#36acaa>true</span><span class="token punctuation" style=color:#393A34>)</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    </span><span class="token punctuation" style=color:#393A34>.</span><span class="token function" style=color:#d73a49>can_unsubscribe</span><span class="token punctuation" style=color:#393A34>(</span><span class="token boolean" style=color:#36acaa>true</span><span class="token punctuation" style=color:#393A34>)</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    </span><span class="token punctuation" style=color:#393A34>.</span><span class="token function" style=color:#d73a49>build</span><span class="token punctuation" style=color:#393A34>(</span><span class="token punctuation" style=color:#393A34>)</span><span class="token operator" style=color:#393A34>?</span><br/></div></code></pre></div></div>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=tc-d71-custom-subscribe-params>TC-D71：自定义订阅参数<a href=#tc-d71-custom-subscribe-params class=hash-link aria-label=TC-D71：自定义订阅参数的直接链接 title=TC-D71：自定义订阅参数的直接链接 translate=no>​</a></h3>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>字段<th>值<tbody><tr><td><strong>前置条件</strong><td>适配器已连接，且接受额外的订阅参数。<tr><td><strong>操作</strong><td>携带适配器特有的 <code>subscribe_params</code> 进行订阅。<tr><td><strong>事件序列</strong><td>订阅建立，自定义参数已生效。<tr><td><strong>通过标准</strong><td>在适配器特有参数生效的情况下数据正常流入。<tr><td><strong>跳过条件</strong><td>不适用（适配器特有）。</table>
+<p><strong>Rust 配置</strong>：</p>
+<div class="language-rust codeBlockContainer_eTMR theme-code-block" style=--prism-color:#393A34;--prism-background-color:#f6f8fa><div class=codeBlockContent_hafM><pre tabindex=0 class="prism-code language-rust codeBlock_IMvC thin-scrollbar" style=color:#393A34;background-color:#f6f8fa><code class=codeBlockLines_gZDW><div class=token-line style=color:#393A34><span class="token keyword" style=color:#00009f>use</span><span class="token plain"> </span><span class="token namespace" style=opacity:0.7>nautilus_core</span><span class="token namespace punctuation" style=opacity:0.7;color:#393A34>::</span><span class="token class-name">Params</span><span class="token punctuation" style=color:#393A34>;</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain"></span><span class="token keyword" style=color:#00009f>use</span><span class="token plain"> </span><span class="token namespace" style=opacity:0.7>serde_json</span><span class="token namespace punctuation" style=opacity:0.7;color:#393A34>::</span><span class="token plain">json</span><span class="token punctuation" style=color:#393A34>;</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain" style=display:inline-block></span><br/></div><div class=token-line style=color:#393A34><span class="token plain"></span><span class="token keyword" style=color:#00009f>let</span><span class="token plain"> </span><span class="token keyword" style=color:#00009f>mut</span><span class="token plain"> subscribe_params </span><span class="token operator" style=color:#393A34>=</span><span class="token plain"> </span><span class="token class-name">Params</span><span class="token punctuation" style=color:#393A34>::</span><span class="token function" style=color:#d73a49>new</span><span class="token punctuation" style=color:#393A34>(</span><span class="token punctuation" style=color:#393A34>)</span><span class="token punctuation" style=color:#393A34>;</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">subscribe_params</span><span class="token punctuation" style=color:#393A34>.</span><span class="token function" style=color:#d73a49>insert</span><span class="token punctuation" style=color:#393A34>(</span><span class="token string" style=color:#e3116c>"key"</span><span class="token punctuation" style=color:#393A34>.</span><span class="token function" style=color:#d73a49>to_string</span><span class="token punctuation" style=color:#393A34>(</span><span class="token punctuation" style=color:#393A34>)</span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain"> </span><span class="token macro property" style=color:#36acaa>json!</span><span class="token punctuation" style=color:#393A34>(</span><span class="token string" style=color:#e3116c>"value"</span><span class="token punctuation" style=color:#393A34>)</span><span class="token punctuation" style=color:#393A34>)</span><span class="token punctuation" style=color:#393A34>;</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain" style=display:inline-block></span><br/></div><div class=token-line style=color:#393A34><span class="token plain"></span><span class="token class-name">DataTesterConfig</span><span class="token punctuation" style=color:#393A34>::</span><span class="token function" style=color:#d73a49>builder</span><span class="token punctuation" style=color:#393A34>(</span><span class="token punctuation" style=color:#393A34>)</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    </span><span class="token punctuation" style=color:#393A34>.</span><span class="token function" style=color:#d73a49>client_id</span><span class="token punctuation" style=color:#393A34>(</span><span class="token plain">client_id</span><span class="token punctuation" style=color:#393A34>)</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    </span><span class="token punctuation" style=color:#393A34>.</span><span class="token function" style=color:#d73a49>instrument_ids</span><span class="token punctuation" style=color:#393A34>(</span><span class="token macro property" style=color:#36acaa>vec!</span><span class="token punctuation" style=color:#393A34>[</span><span class="token plain">instrument_id</span><span class="token punctuation" style=color:#393A34>]</span><span class="token punctuation" style=color:#393A34>)</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    </span><span class="token punctuation" style=color:#393A34>.</span><span class="token function" style=color:#d73a49>subscribe_quotes</span><span class="token punctuation" style=color:#393A34>(</span><span class="token boolean" style=color:#36acaa>true</span><span class="token punctuation" style=color:#393A34>)</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    </span><span class="token punctuation" style=color:#393A34>.</span><span class="token function" style=color:#d73a49>subscribe_params</span><span class="token punctuation" style=color:#393A34>(</span><span class="token plain">subscribe_params</span><span class="token punctuation" style=color:#393A34>)</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    </span><span class="token punctuation" style=color:#393A34>.</span><span class="token function" style=color:#d73a49>build</span><span class="token punctuation" style=color:#393A34>(</span><span class="token punctuation" style=color:#393A34>)</span><span class="token operator" style=color:#393A34>?</span><br/></div></code></pre></div></div>
+<p><strong>注意事项</strong>：</p>
+<ul>
+<li class=""><code>subscribe_params</code> 对 DataTester 不透明，原样透传给适配器。</li>
+<li class="">Python 的 <code>DataTesterConfig</code> 构造函数未暴露这个仅 Rust 可用的字段。</li>
+<li class="">支持的参数参见适配器指南。</li>
+</ul>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=tc-d72-custom-request-params>TC-D72：自定义请求参数<a href=#tc-d72-custom-request-params class=hash-link aria-label=TC-D72：自定义请求参数的直接链接 title=TC-D72：自定义请求参数的直接链接 translate=no>​</a></h3>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>字段<th>值<tbody><tr><td><strong>前置条件</strong><td>适配器已连接，且接受额外的请求参数。<tr><td><strong>操作</strong><td>携带适配器特有的 <code>request_params</code> 请求数据。<tr><td><strong>事件序列</strong><td>请求完成，自定义参数已生效。<tr><td><strong>通过标准</strong><td>在适配器特有参数生效的情况下收到历史数据。<tr><td><strong>跳过条件</strong><td>不适用（适配器特有）。</table>
+<p><strong>Rust 配置</strong>：</p>
+<div class="language-rust codeBlockContainer_eTMR theme-code-block" style=--prism-color:#393A34;--prism-background-color:#f6f8fa><div class=codeBlockContent_hafM><pre tabindex=0 class="prism-code language-rust codeBlock_IMvC thin-scrollbar" style=color:#393A34;background-color:#f6f8fa><code class=codeBlockLines_gZDW><div class=token-line style=color:#393A34><span class="token keyword" style=color:#00009f>use</span><span class="token plain"> </span><span class="token namespace" style=opacity:0.7>nautilus_core</span><span class="token namespace punctuation" style=opacity:0.7;color:#393A34>::</span><span class="token class-name">Params</span><span class="token punctuation" style=color:#393A34>;</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain"></span><span class="token keyword" style=color:#00009f>use</span><span class="token plain"> </span><span class="token namespace" style=opacity:0.7>serde_json</span><span class="token namespace punctuation" style=opacity:0.7;color:#393A34>::</span><span class="token plain">json</span><span class="token punctuation" style=color:#393A34>;</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain" style=display:inline-block></span><br/></div><div class=token-line style=color:#393A34><span class="token plain"></span><span class="token keyword" style=color:#00009f>let</span><span class="token plain"> </span><span class="token keyword" style=color:#00009f>mut</span><span class="token plain"> request_params </span><span class="token operator" style=color:#393A34>=</span><span class="token plain"> </span><span class="token class-name">Params</span><span class="token punctuation" style=color:#393A34>::</span><span class="token function" style=color:#d73a49>new</span><span class="token punctuation" style=color:#393A34>(</span><span class="token punctuation" style=color:#393A34>)</span><span class="token punctuation" style=color:#393A34>;</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">request_params</span><span class="token punctuation" style=color:#393A34>.</span><span class="token function" style=color:#d73a49>insert</span><span class="token punctuation" style=color:#393A34>(</span><span class="token string" style=color:#e3116c>"key"</span><span class="token punctuation" style=color:#393A34>.</span><span class="token function" style=color:#d73a49>to_string</span><span class="token punctuation" style=color:#393A34>(</span><span class="token punctuation" style=color:#393A34>)</span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain"> </span><span class="token macro property" style=color:#36acaa>json!</span><span class="token punctuation" style=color:#393A34>(</span><span class="token string" style=color:#e3116c>"value"</span><span class="token punctuation" style=color:#393A34>)</span><span class="token punctuation" style=color:#393A34>)</span><span class="token punctuation" style=color:#393A34>;</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain" style=display:inline-block></span><br/></div><div class=token-line style=color:#393A34><span class="token plain"></span><span class="token class-name">DataTesterConfig</span><span class="token punctuation" style=color:#393A34>::</span><span class="token function" style=color:#d73a49>builder</span><span class="token punctuation" style=color:#393A34>(</span><span class="token punctuation" style=color:#393A34>)</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    </span><span class="token punctuation" style=color:#393A34>.</span><span class="token function" style=color:#d73a49>client_id</span><span class="token punctuation" style=color:#393A34>(</span><span class="token plain">client_id</span><span class="token punctuation" style=color:#393A34>)</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    </span><span class="token punctuation" style=color:#393A34>.</span><span class="token function" style=color:#d73a49>instrument_ids</span><span class="token punctuation" style=color:#393A34>(</span><span class="token macro property" style=color:#36acaa>vec!</span><span class="token punctuation" style=color:#393A34>[</span><span class="token plain">instrument_id</span><span class="token punctuation" style=color:#393A34>]</span><span class="token punctuation" style=color:#393A34>)</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    </span><span class="token punctuation" style=color:#393A34>.</span><span class="token function" style=color:#d73a49>request_quotes</span><span class="token punctuation" style=color:#393A34>(</span><span class="token boolean" style=color:#36acaa>true</span><span class="token punctuation" style=color:#393A34>)</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    </span><span class="token punctuation" style=color:#393A34>.</span><span class="token function" style=color:#d73a49>request_params</span><span class="token punctuation" style=color:#393A34>(</span><span class="token plain">request_params</span><span class="token punctuation" style=color:#393A34>)</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    </span><span class="token punctuation" style=color:#393A34>.</span><span class="token function" style=color:#d73a49>build</span><span class="token punctuation" style=color:#393A34>(</span><span class="token punctuation" style=color:#393A34>)</span><span class="token operator" style=color:#393A34>?</span><br/></div></code></pre></div></div>
+<p><strong>注意事项</strong>：</p>
+<ul>
+<li class=""><code>request_params</code> 对 DataTester 不透明，原样透传给适配器。</li>
+<li class="">Python 的 <code>DataTesterConfig</code> 构造函数未暴露这个仅 Rust 可用的字段。</li>
+<li class="">支持的参数参见适配器指南。</li>
+</ul>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=tc-d73-retirement-cleanup>TC-D73：退役清理<a href=#tc-d73-retirement-cleanup class=hash-link aria-label=TC-D73：退役清理的直接链接 title=TC-D73：退役清理的直接链接 translate=no>​</a></h3>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>字段<th>值<tbody><tr><td><strong>前置条件</strong><td>某 actor 拥有交易场所支撑的订阅；两个 actor 共享一个内部聚合的 K 线。<tr><td><strong>操作</strong><td>先退役第一个 actor，再通过 trader 退役第二个 actor。<tr><td><strong>事件序列</strong><td><code>on_dispose</code> 完成；退订命令已发出；actor 已注销。<tr><td><strong>通过标准</strong><td>第一次退役后共享数据保持活跃；最后一次退役释放保留的路由，且不留退役 actor 的处理器。<tr><td><strong>跳过条件</strong><td>不适用。</table>
+<p>第一个 actor 退役后，共享 K 线必须保持活跃；最后一个 actor 退役后必须停止。</p>
+<p><strong>注意事项</strong>：</p>
+<ul>
+<li class=""><code>DataTesterConfig</code> 不覆盖多 actor 退役场景。需手动创建两个 actor，再通过 Python
+<code>Controller.remove_actor</code> 或 Rust <code>Trader::remove_actor</code> 移除。</li>
+<li class="">若 <code>on_dispose</code> 失败，actor 必须保持注册且订阅完好，使后续退役能释放订阅，且不再调用失败的钩子。</li>
+<li class=""><code>on_stop</code> 或 <code>on_fault</code> 失败不得阻塞退役：必须仍能从对应的过渡状态完成处置和注销。</li>
+</ul>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=tc-d74-defi-shared-pool-demand>TC-D74：DeFi 共享池需求<a href=#tc-d74-defi-shared-pool-demand class=hash-link aria-label="TC-D74：DeFi 共享池需求的直接链接" title="TC-D74：DeFi 共享池需求的直接链接" translate=no>​</a></h3>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>字段<th>值<tbody><tr><td><strong>前置条件</strong><td>一个 DeFi 数据客户端。两个 actor 以相同或部分重叠的订阅类型订阅同一个池。<tr><td><strong>操作</strong><td>以每种顺序退役或退订其中一个 actor，再处理另一个。<tr><td><strong>事件序列</strong><td>第一次释放不向客户端发出共享类型的退订；最后一次释放执行退订并停止池更新器。<tr><td><strong>通过标准</strong><td>在最后一次释放之前，池事件持续送达剩余的 actor 和 profiler；之后不再有任何事件。<tr><td><strong>跳过条件</strong><td>适配器不提供 DeFi 池订阅。</table>
+<p>需覆盖以下重叠情形：</p>
+<ul>
+<li class="">两个 actor 使用同一订阅类型，按任一顺序退役。</li>
+<li class=""><code>SubscribePool</code> 与每个更窄的类型（swap、流动性更新、fee collect、flash 事件）组合，按两种顺序退订。
+只要任一订阅仍在，更窄的事件过滤器必须保持生效。</li>
+<li class="">两个数据客户端订阅同一个池。每个客户端各自维护自己的需求，池更新器在两者都释放前保持活跃。</li>
+</ul>
+<p><strong>注意事项</strong>：</p>
+<ul>
+<li class=""><code>DataTesterConfig</code> 不覆盖 DeFi 池订阅。需手动创建 actor。</li>
+<li class="">一个 actor 的重复退订不得释放另一个 actor 的需求。</li>
+</ul>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=tc-d75-defi-bootstrap-cancel>TC-D75：DeFi 引导取消<a href=#tc-d75-defi-bootstrap-cancel class=hash-link aria-label="TC-D75：DeFi 引导取消的直接链接" title="TC-D75：DeFi 引导取消的直接链接" translate=no>​</a></h3>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>字段<th>值<tbody><tr><td><strong>前置条件</strong><td>一个 DeFi 数据客户端。池中金融工具不在 cache 里，因此订阅会请求池快照。<tr><td><strong>操作</strong><td>先订阅，在池定义到达前释放最后一个持有者，然后再次订阅。<tr><td><strong>事件序列</strong><td>发出两次快照请求；第一次的响应在第二次订阅之后才到达。<tr><td><strong>通过标准</strong><td>引擎丢弃第一次响应；只有对应当前请求的响应会安装 profiler。<tr><td><strong>跳过条件</strong><td>适配器不提供池快照。</table>
+<p><strong>注意事项</strong>：</p>
+<ul>
+<li class="">只有池不在 cache 中时，第二次订阅才会请求新快照。一旦第一次请求的池定义到达，后续订阅会直接用缓存的池
+构建 profiler，因此该用例需要延迟响应。</li>
+<li class="">引擎重置或断开连接同样会取消进行中的引导。之后到达的响应不得安装 profiler。</li>
+</ul>
+<hr/>
+<h2 class="anchor anchorTargetStickyNavbar_ana5" id=datatester-configuration-reference>DataTester 配置参考<a href=#datatester-configuration-reference class=hash-link aria-label="DataTester 配置参考的直接链接" title="DataTester 配置参考的直接链接" translate=no>​</a></h2>
+<p>Python 构造函数接受下列参数，默认值为构造完成后的解析值。历史报价、成交和 K 线请求的回看窗口为一小时，
+资金费率请求为七天。回看窗口不能通过 <code>DataTesterConfig</code> 配置。</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>参数<th>类型<th>默认值<th>影响的组<tbody><tr><td><code>actor_id</code><td><code>ActorId?</code><td><code>None</code><td>全部<tr><td><code>client_id</code><td><code>ClientId?</code><td><code>None</code><td>全部<tr><td><code>instrument_ids</code><td><code>list[InstrumentId]</code><td><code>[]</code><td>全部<tr><td><code>bar_types</code><td><code>list[BarType]?</code><td><code>None</code><td>5<tr><td><code>subscribe_book_deltas</code><td><code>bool</code><td><code>False</code><td>2<tr><td><code>subscribe_book_depth</code><td><code>bool</code><td><code>False</code><td>2<tr><td><code>subscribe_book_at_interval</code><td><code>bool</code><td><code>False</code><td>2<tr><td><code>subscribe_quotes</code><td><code>bool</code><td><code>False</code><td>3<tr><td><code>subscribe_trades</code><td><code>bool</code><td><code>False</code><td>4<tr><td><code>subscribe_mark_prices</code><td><code>bool</code><td><code>False</code><td>6<tr><td><code>subscribe_index_prices</code><td><code>bool</code><td><code>False</code><td>6<tr><td><code>subscribe_funding_rates</code><td><code>bool</code><td><code>False</code><td>6<tr><td><code>subscribe_bars</code><td><code>bool</code><td><code>False</code><td>5<tr><td><code>subscribe_instrument</code><td><code>bool</code><td><code>False</code><td>1<tr><td><code>subscribe_instrument_status</code><td><code>bool</code><td><code>False</code><td>7<tr><td><code>subscribe_instrument_close</code><td><code>bool</code><td><code>False</code><td>7<tr><td><code>subscribe_option_greeks</code><td><code>bool</code><td><code>False</code><td>8<tr><td><code>can_unsubscribe</code><td><code>bool</code><td><code>True</code><td>9<tr><td><code>request_instruments</code><td><code>bool</code><td><code>False</code><td>1<tr><td><code>request_book_snapshot</code><td><code>bool</code><td><code>False</code><td>2<tr><td><code>request_book_deltas</code><td><code>bool</code><td><code>False</code><td>尚未实现<tr><td><code>request_quotes</code><td><code>bool</code><td><code>False</code><td>3<tr><td><code>request_trades</code><td><code>bool</code><td><code>False</code><td>4<tr><td><code>request_bars</code><td><code>bool</code><td><code>False</code><td>5<tr><td><code>request_funding_rates</code><td><code>bool</code><td><code>False</code><td>6<tr><td><code>book_depth</code><td><code>PositiveInt?</code><td><code>None</code><td>2<tr><td><code>book_interval_ms</code><td><code>PositiveInt</code><td><code>1000</code><td>2<tr><td><code>book_levels_to_print</code><td><code>PositiveInt</code><td><code>10</code><td>2<tr><td><code>manage_book</code><td><code>bool</code><td><code>True</code><td>2<tr><td><code>log_data</code><td><code>bool</code><td><code>True</code><td>全部<tr><td><code>stats_interval_secs</code><td><code>int</code><td><code>5</code><td>全部<tr><td><code>log_events</code><td><code>bool</code><td><code>True</code><td>全部<tr><td><code>log_commands</code><td><code>bool</code><td><code>True</code><td>全部</table>
+<p>Rust builder 还暴露以下参数：</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>参数<th>类型<th>默认值<th>影响的组<tbody><tr><td><code>book_type</code><td><code>BookType</code><td><code>L2_MBP</code><td>2<tr><td><code>subscribe_params</code><td><code>Params?</code><td><code>None</code><td>9<tr><td><code>request_params</code><td><code>Params?</code><td><code>None</code><td>9</table></div><footer class="theme-doc-footer docusaurus-mt-lg"><div class="row margin-top--sm theme-doc-footer-edit-meta-row"><div class="col noPrint_MRkS"><a href=https://github.com/Aloento/NautilusTraderDoc/tree/main/docs/developer_guide/spec_data_testing.md target=_blank rel="noopener noreferrer" class=theme-edit-this-page><svg fill=currentColor height=20 width=20 viewBox="0 0 40 40" class=iconEdit_RPSQ aria-hidden=true><g><path d="m34.5 11.7l-3 3.1-6.3-6.3 3.1-3q0.5-0.5 1.2-0.5t1.1 0.5l3.9 3.9q0.5 0.4 0.5 1.1t-0.5 1.2z m-29.5 17.1l18.4-18.5 6.3 6.3-18.4 18.4h-6.3v-6.2z"/></g></svg>编辑此页</a></div><div class="col lastUpdated_oZSl"><span class=theme-last-updated>最后<!-- -->于 <b><time datetime=2026-10-14T22:30:30.000Z itemprop=dateModified>2026年10月14日</time></b> <!-- -->更新</span></div></div></footer></article><nav class="docusaurus-mt-lg pagination-nav" aria-label=文件选项卡><a class="pagination-nav__link pagination-nav__link--prev" href=/developer_guide/shell><div class=pagination-nav__sublabel>上一页</div><div class=pagination-nav__label>Shell 脚本</div></a><a class="pagination-nav__link pagination-nav__link--next" href=/developer_guide/spec_exec_testing><div class=pagination-nav__sublabel>下一页</div><div class=pagination-nav__label>执行测试规范</div></a></nav></div></div><div class="col col--3"><div class="tableOfContents_LyLZ thin-scrollbar theme-doc-toc-desktop"><ul class="table-of-contents table-of-contents__left-border"><li><a href=#prerequisites class="table-of-contents__link toc-highlight">前置条件</a><li><a href=#timestamp-scale class="table-of-contents__link toc-highlight">时间戳量纲</a><li><a href=#order-book-sync-conformance class="table-of-contents__link toc-highlight">订单簿同步合规</a><ul><li><a href=#book-stream-contract class="table-of-contents__link toc-highlight">订单簿数据流契约</a><li><a href=#validation-levels class="table-of-contents__link toc-highlight">验证级别</a><li><a href=#fault-catalog class="table-of-contents__link toc-highlight">故障目录</a><li><a href=#forcing-techniques class="table-of-contents__link toc-highlight">构造手段</a><li><a href=#oracles class="table-of-contents__link toc-highlight">Oracle</a><li><a href=#stress-harnesses class="table-of-contents__link toc-highlight">压力测试装置</a><li><a href=#in-band-verification class="table-of-contents__link toc-highlight">带内验证</a></ul><li><a href=#group-1-instruments class="table-of-contents__link toc-highlight">第 1 组：金融工具</a><ul><li><a href=#tc-d01-request-instruments class="table-of-contents__link toc-highlight">TC-D01：请求金融工具</a><li><a href=#tc-d02-subscribe-instrument class="table-of-contents__link toc-highlight">TC-D02：订阅金融工具</a><li><a href=#tc-d03-load-specific-instrument class="table-of-contents__link toc-highlight">TC-D03：加载指定金融工具</a></ul><li><a href=#group-2-order-book class="table-of-contents__link toc-highlight">第 2 组：订单簿</a><ul><li><a href=#tc-d10-subscribe-book-deltas class="table-of-contents__link toc-highlight">TC-D10：订阅订单簿增量</a><li><a href=#tc-d11-subscribe-book-at-interval class="table-of-contents__link toc-highlight">TC-D11：按间隔订阅订单簿</a><li><a href=#tc-d12-subscribe-book-depth class="table-of-contents__link toc-highlight">TC-D12：订阅订单簿深度</a><li><a href=#tc-d13-request-book-snapshot class="table-of-contents__link toc-highlight">TC-D13：请求订单簿快照</a><li><a href=#tc-d14-managed-book-from-deltas class="table-of-contents__link toc-highlight">TC-D14：由增量维护本地订单簿</a></ul><li><a href=#group-3-quotes class="table-of-contents__link toc-highlight">第 3 组：报价</a><ul><li><a href=#tc-d20-subscribe-quotes class="table-of-contents__link toc-highlight">TC-D20：订阅报价</a><li><a href=#tc-d21-request-historical-quotes class="table-of-contents__link toc-highlight">TC-D21：请求历史报价</a></ul><li><a href=#group-4-trades class="table-of-contents__link toc-highlight">第 4 组：成交</a><ul><li><a href=#tc-d30-subscribe-trades class="table-of-contents__link toc-highlight">TC-D30：订阅成交</a><li><a href=#tc-d31-request-historical-trades class="table-of-contents__link toc-highlight">TC-D31：请求历史成交</a></ul><li><a href=#group-5-bars class="table-of-contents__link toc-highlight">第 5 组：K 线</a><ul><li><a href=#tc-d40-subscribe-bars class="table-of-contents__link toc-highlight">TC-D40：订阅 K 线</a><li><a href=#tc-d41-request-historical-bars class="table-of-contents__link toc-highlight">TC-D41：请求历史 K 线</a></ul><li><a href=#group-6-derivatives-data class="table-of-contents__link toc-highlight">第 6 组：衍生品数据</a><ul><li><a href=#tc-d50-subscribe-mark-prices class="table-of-contents__link toc-highlight">TC-D50：订阅标记价格</a><li><a href=#tc-d51-subscribe-index-prices class="table-of-contents__link toc-highlight">TC-D51：订阅指数价格</a><li><a href=#tc-d52-subscribe-funding-rates class="table-of-contents__link toc-highlight">TC-D52：订阅资金费率</a><li><a href=#tc-d53-request-historical-funding-rates class="table-of-contents__link toc-highlight">TC-D53：请求历史资金费率</a></ul><li><a href=#group-7-instrument-status class="table-of-contents__link toc-highlight">第 7 组：金融工具状态</a><ul><li><a href=#tc-d60-subscribe-instrument-status class="table-of-contents__link toc-highlight">TC-D60：订阅金融工具状态</a><li><a href=#tc-d61-subscribe-instrument-close class="table-of-contents__link toc-highlight">TC-D61：订阅金融工具收盘</a></ul><li><a href=#group-8-option-greeks class="table-of-contents__link toc-highlight">第 8 组：期权希腊值</a><ul><li><a href=#tc-d62-subscribe-option-greeks class="table-of-contents__link toc-highlight">TC-D62：订阅期权希腊值</a><li><a href=#tc-d63-subscribe-option-chain class="table-of-contents__link toc-highlight">TC-D63：订阅期权链</a></ul><li><a href=#group-9-lifecycle class="table-of-contents__link toc-highlight">第 9 组：生命周期</a><ul><li><a href=#tc-d70-unsubscribe-on-stop class="table-of-contents__link toc-highlight">TC-D70：停止时退订</a><li><a href=#tc-d71-custom-subscribe-params class="table-of-contents__link toc-highlight">TC-D71：自定义订阅参数</a><li><a href=#tc-d72-custom-request-params class="table-of-contents__link toc-highlight">TC-D72：自定义请求参数</a><li><a href=#tc-d73-retirement-cleanup class="table-of-contents__link toc-highlight">TC-D73：退役清理</a><li><a href=#tc-d74-defi-shared-pool-demand class="table-of-contents__link toc-highlight">TC-D74：DeFi 共享池需求</a><li><a href=#tc-d75-defi-bootstrap-cancel class="table-of-contents__link toc-highlight">TC-D75：DeFi 引导取消</a></ul><li><a href=#datatester-configuration-reference class="table-of-contents__link toc-highlight">DataTester 配置参考</a></ul></div></div></div></div></main></div></div></div><footer class="theme-layout-footer footer footer--dark"><div class="container container-fluid"><div class="row footer__links"><div class="theme-layout-footer-column col footer__col"><div class=footer__title></div><ul class="footer__items clean-list"><li class=footer__item><a href=https://github.com/nautechsystems/nautilus_trader target=_blank rel="noopener noreferrer" class=footer__link-item>Official GitHub<svg width=13.5 height=13.5 aria-label="(opens in new tab)" class=iconExternalLink_qUHo><use href=#theme-svg-external-link /></svg></a><li class=footer__item><a href=https://nautilustrader.io/docs target=_blank rel="noopener noreferrer" class=footer__link-item>Official Documentation<svg width=13.5 height=13.5 aria-label="(opens in new tab)" class=iconExternalLink_qUHo><use href=#theme-svg-external-link /></svg></a></ul></div></div><div class="footer__bottom text--center"><div class=footer__copyright>© 2026 Nautech Systems Pty Ltd. All rights reserved.</div></div></div></footer></div></body>

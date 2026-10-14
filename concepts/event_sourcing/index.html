@@ -1,0 +1,427 @@
+<!doctype html><html lang=zh dir=ltr class="docs-wrapper plugin-docs plugin-id-default docs-version-current docs-doc-page docs-doc-id-concepts/event_sourcing" data-has-hydrated=false><head><meta charset=UTF-8><meta name=generator content="Docusaurus v3.10.2"><title data-rh=true>事件溯源 | NautilusTrader 文档</title><meta data-rh=true name=viewport content="width=device-width, initial-scale=1.0"/><meta data-rh=true name=twitter:card content=summary_large_image /><meta data-rh=true property=og:url content=https://nautilus.aloen.to/concepts/event_sourcing /><meta data-rh=true property=og:locale content=zh /><meta data-rh=true name=docusaurus_locale content=zh /><meta data-rh=true name=docsearch:language content=zh /><meta data-rh=true name=docusaurus_version content=current /><meta data-rh=true name=docusaurus_tag content=docs-default-current /><meta data-rh=true name=docsearch:version content=current /><meta data-rh=true name=docsearch:docusaurus_tag content=docs-default-current /><meta data-rh=true property=og:title content="事件溯源 | NautilusTrader 文档"/><meta data-rh=true name=description content=event-sourcing} /><meta data-rh=true property=og:description content=event-sourcing} /><link data-rh=true rel=icon href=/logo.png /><link data-rh=true rel=canonical href=https://nautilus.aloen.to/concepts/event_sourcing /><link data-rh=true rel=alternate href=https://nautilus.aloen.to/concepts/event_sourcing hreflang=zh /><link data-rh=true rel=alternate href=https://nautilus.aloen.to/concepts/event_sourcing hreflang=x-default /><script data-rh=true type=application/ld+json>{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","item":"https://nautilus.aloen.to/concepts/","name":"核心概念","position":1},{"@type":"ListItem","item":"https://nautilus.aloen.to/concepts/event_sourcing","name":"事件溯源","position":2}]}</script><link rel=stylesheet href=/assets/css/styles.adb7ea18.css /><script src=/assets/js/runtime~main.71ac0794.js defer></script><script src=/assets/js/main.d978d0f2.js defer></script></head><body><svg style="display: none;"><defs>
+<symbol id=theme-svg-external-link viewBox="0 0 24 24"><path fill=currentColor d="M21 13v10h-21v-19h12v2h-10v15h17v-8h2zm3-12h-10.988l4.035 4-6.977 7.07 2.828 2.828 6.977-7.07 4.125 4.172v-11z"/></symbol>
+</defs></svg>
+<script>!function(){var t=function(){try{return new URLSearchParams(window.location.search).get("docusaurus-theme")}catch(t){}}()||function(){try{return window.localStorage.getItem("theme-2e3")}catch(t){}}();document.documentElement.setAttribute("data-theme",t||(window.matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light")),document.documentElement.setAttribute("data-theme-choice",t||"system")}(),function(){try{for(var[t,e]of new URLSearchParams(window.location.search).entries())if(t.startsWith("docusaurus-data-")){var a=t.replace("docusaurus-data-","data-");document.documentElement.setAttribute(a,e)}}catch(t){}}()</script><div id=__docusaurus><link rel=preload as=image href=/logo.png /><div role=region aria-label=跳到主要内容><a class=skipToContent_zuOI href=#__docusaurus_skipToContent_fallback>跳到主要内容</a></div><nav aria-label=主导航 class="theme-layout-navbar navbar navbar--fixed-top"><div class=navbar__inner><div class="theme-layout-navbar-left navbar__items"><button aria-label=切换导航栏 aria-expanded=false class="navbar__toggle clean-btn" type=button><svg width=30 height=30 viewBox="0 0 30 30" aria-hidden=true><path stroke=currentColor stroke-linecap=round stroke-miterlimit=10 stroke-width=2 d="M4 7h22M4 15h22M4 23h22"/></svg></button><a class=navbar__brand href=/><div class=navbar__logo><img src=/logo.png alt="NautilusTrader Logo" class="themedComponent_q2_Y themedComponent--light_Nejn"/><img src=/logo.png alt="NautilusTrader Logo" class="themedComponent_q2_Y themedComponent--dark_JjIb"/></div><b class="navbar__title text--truncate">NautilusTrader</b></a><a aria-current=page class="navbar__item navbar__link navbar__link--active" href=/getting_started/>文档</a></div><div class="theme-layout-navbar-right navbar__items navbar__items--right"><a href=https://github.com/Aloento/NautilusTraderDoc target=_blank rel="noopener noreferrer" class="navbar__item navbar__link">GitHub<svg width=13.5 height=13.5 aria-label="(opens in new tab)" class=iconExternalLink_qUHo><use href=#theme-svg-external-link /></svg></a><div class="toggle_hHmI colorModeToggle_rOOn"><button class="clean-btn toggleButton_wEhT toggleButtonDisabled_yOOP" type=button disabled title="system mode" aria-label="切换浅色/暗黑模式（当前为system mode）"><svg viewBox="0 0 24 24" width=24 height=24 aria-hidden=true class="toggleIcon_Kt6U lightToggleIcon_Zfeh"><path fill=currentColor d="M12,9c1.65,0,3,1.35,3,3s-1.35,3-3,3s-3-1.35-3-3S10.35,9,12,9 M12,7c-2.76,0-5,2.24-5,5s2.24,5,5,5s5-2.24,5-5 S14.76,7,12,7L12,7z M2,13l2,0c0.55,0,1-0.45,1-1s-0.45-1-1-1l-2,0c-0.55,0-1,0.45-1,1S1.45,13,2,13z M20,13l2,0c0.55,0,1-0.45,1-1 s-0.45-1-1-1l-2,0c-0.55,0-1,0.45-1,1S19.45,13,20,13z M11,2v2c0,0.55,0.45,1,1,1s1-0.45,1-1V2c0-0.55-0.45-1-1-1S11,1.45,11,2z M11,20v2c0,0.55,0.45,1,1,1s1-0.45,1-1v-2c0-0.55-0.45-1-1-1C11.45,19,11,19.45,11,20z M5.99,4.58c-0.39-0.39-1.03-0.39-1.41,0 c-0.39,0.39-0.39,1.03,0,1.41l1.06,1.06c0.39,0.39,1.03,0.39,1.41,0s0.39-1.03,0-1.41L5.99,4.58z M18.36,16.95 c-0.39-0.39-1.03-0.39-1.41,0c-0.39,0.39-0.39,1.03,0,1.41l1.06,1.06c0.39,0.39,1.03,0.39,1.41,0c0.39-0.39,0.39-1.03,0-1.41 L18.36,16.95z M19.42,5.99c0.39-0.39,0.39-1.03,0-1.41c-0.39-0.39-1.03-0.39-1.41,0l-1.06,1.06c-0.39,0.39-0.39,1.03,0,1.41 s1.03,0.39,1.41,0L19.42,5.99z M7.05,18.36c0.39-0.39,0.39-1.03,0-1.41c-0.39-0.39-1.03-0.39-1.41,0l-1.06,1.06 c-0.39,0.39-0.39,1.03,0,1.41s1.03,0.39,1.41,0L7.05,18.36z"/></svg><svg viewBox="0 0 24 24" width=24 height=24 aria-hidden=true class="toggleIcon_Kt6U darkToggleIcon_XgQr"><path fill=currentColor d="M9.37,5.51C9.19,6.15,9.1,6.82,9.1,7.5c0,4.08,3.32,7.4,7.4,7.4c0.68,0,1.35-0.09,1.99-0.27C17.45,17.19,14.93,19,12,19 c-3.86,0-7-3.14-7-7C5,9.07,6.81,6.55,9.37,5.51z M12,3c-4.97,0-9,4.03-9,9s4.03,9,9,9s9-4.03,9-9c0-0.46-0.04-0.92-0.1-1.36 c-0.98,1.37-2.58,2.26-4.4,2.26c-2.98,0-5.4-2.42-5.4-5.4c0-1.81,0.89-3.42,2.26-4.4C12.92,3.04,12.46,3,12,3L12,3z"/></svg><svg viewBox="0 0 24 24" width=24 height=24 aria-hidden=true class="toggleIcon_Kt6U systemToggleIcon_BvUi"><path fill=currentColor d="m12 21c4.971 0 9-4.029 9-9s-4.029-9-9-9-9 4.029-9 9 4.029 9 9 9zm4.95-13.95c1.313 1.313 2.05 3.093 2.05 4.95s-0.738 3.637-2.05 4.95c-1.313 1.313-3.093 2.05-4.95 2.05v-14c1.857 0 3.637 0.737 4.95 2.05z"/></svg></button></div><div class=navbarSearchContainer_watl></div></div></div><div role=presentation class=navbar-sidebar__backdrop></div></nav><div id=__docusaurus_skipToContent_fallback class="theme-layout-main main-wrapper mainWrapper_R72Q"><div class=docsWrapper_XQ9b><button aria-label=回到顶部 class="clean-btn theme-back-to-top-button backToTopButton_MbnX" type=button></button><div class=docRoot_aqOB><aside class="theme-doc-sidebar-container docSidebarContainer_sI2e"><div class=sidebarViewport_TzTy><div class=sidebar_CbEe><nav aria-label=文档侧边栏 class="menu thin-scrollbar menu_ChRF"><ul class="theme-doc-sidebar-menu menu__list"><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-1 menu__list-item menu__list-item--collapsed"><div class=menu__list-item-collapsible><a class="categoryLink_Muyc menu__link menu__link--sublist" href=/getting_started/><span class=categoryLinkLabel_mAcL>快速开始</span></a><button aria-label="展开侧边栏分类 '快速开始'" aria-expanded=false type=button class="clean-btn menu__caret"></button></div><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-1 menu__list-item"><div class=menu__list-item-collapsible><a class="categoryLink_Muyc menu__link menu__link--sublist menu__link--active" href=/concepts/><span class=categoryLinkLabel_mAcL>核心概念</span></a><button aria-label="折叠侧边栏分类 '核心概念'" aria-expanded=true type=button class="clean-btn menu__caret"></button></div><ul class=menu__list><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-2 menu__list-item menu__list-item--collapsed"><div class=menu__list-item-collapsible><a class="categoryLink_Muyc menu__link menu__link--sublist" tabindex=0 href=/concepts/instruments/><span class=categoryLinkLabel_mAcL>金融工具</span></a><button aria-label="展开侧边栏分类 '金融工具'" aria-expanded=false type=button class="clean-btn menu__caret"></button></div><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-2 menu__list-item menu__list-item--collapsed"><div class=menu__list-item-collapsible><a class="categoryLink_Muyc menu__link menu__link--sublist" tabindex=0 href=/concepts/orders/><span class=categoryLinkLabel_mAcL>订单</span></a><button aria-label="展开侧边栏分类 '订单'" aria-expanded=false type=button class="clean-btn menu__caret"></button></div><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-2 menu__list-item menu__list-item--collapsed"><div class=menu__list-item-collapsible><a class="categoryLink_Muyc menu__link menu__link--sublist" tabindex=0 href=/concepts/data/><span class=categoryLinkLabel_mAcL>数据</span></a><button aria-label="展开侧边栏分类 '数据'" aria-expanded=false type=button class="clean-btn menu__caret"></button></div><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-2 menu__list-item menu__list-item--collapsed"><div class=menu__list-item-collapsible><a class="categoryLink_Muyc menu__link menu__link--sublist" tabindex=0 href=/concepts/backtesting/><span class=categoryLinkLabel_mAcL>回测</span></a><button aria-label="展开侧边栏分类 '回测'" aria-expanded=false type=button class="clean-btn menu__caret"></button></div><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-2 menu__list-item menu__list-item--collapsed"><div class=menu__list-item-collapsible><a class="categoryLink_Muyc menu__link menu__link--sublist" tabindex=0 href=/concepts/events/><span class=categoryLinkLabel_mAcL>事件</span></a><button aria-label="展开侧边栏分类 '事件'" aria-expanded=false type=button class="clean-btn menu__caret"></button></div><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-2 menu__list-item menu__list-item--collapsed"><div class=menu__list-item-collapsible><a class="categoryLink_Muyc menu__link menu__link--sublist" tabindex=0 href=/concepts/execution/><span class=categoryLinkLabel_mAcL>执行</span></a><button aria-label="展开侧边栏分类 '执行'" aria-expanded=false type=button class="clean-btn menu__caret"></button></div><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/concepts/accounting><span class=linkLabel_lYjD>核算</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/concepts/actors><span class=linkLabel_lYjD>Actors</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/concepts/adapters><span class=linkLabel_lYjD>适配器</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/concepts/architecture><span class=linkLabel_lYjD>架构</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/concepts/behavioral_models><span class=linkLabel_lYjD>行为模型</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/concepts/cache><span class=linkLabel_lYjD>缓存</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/concepts/configuration><span class=linkLabel_lYjD>配置</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/concepts/continuous_futures><span class=linkLabel_lYjD>连续期货</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/concepts/custom_data><span class=linkLabel_lYjD>自定义数据</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/concepts/dst><span class=linkLabel_lYjD>DST</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class="menu__link menu__link--active" aria-current=page tabindex=0 href=/concepts/event_sourcing><span class=linkLabel_lYjD>事件溯源</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/concepts/greeks><span class=linkLabel_lYjD>Greeks</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/concepts/live><span class=linkLabel_lYjD>实时交易</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/concepts/logging><span class=linkLabel_lYjD>日志</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/concepts/message_bus><span class=linkLabel_lYjD>消息总线</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/concepts/networking><span class=linkLabel_lYjD>网络</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/concepts/options><span class=linkLabel_lYjD>期权</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/concepts/order_book><span class=linkLabel_lYjD>订单簿</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/concepts/overview><span class=linkLabel_lYjD>概览</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/concepts/portfolio><span class=linkLabel_lYjD>组合</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/concepts/positions><span class=linkLabel_lYjD>持仓</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/concepts/python><span class=linkLabel_lYjD>Python</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/concepts/reports><span class=linkLabel_lYjD>报告</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/concepts/rust><span class=linkLabel_lYjD>Rust</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/concepts/strategies><span class=linkLabel_lYjD>策略</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/concepts/synthetics><span class=linkLabel_lYjD>合成工具</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/concepts/value_types><span class=linkLabel_lYjD>值类型</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/concepts/visualization><span class=linkLabel_lYjD>可视化</span></a></ul><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-1 menu__list-item menu__list-item--collapsed"><div class=menu__list-item-collapsible><a class="categoryLink_Muyc menu__link menu__link--sublist" href=/integrations/><span class=categoryLinkLabel_mAcL>交易所与集成</span></a><button aria-label="展开侧边栏分类 '交易所与集成'" aria-expanded=false type=button class="clean-btn menu__caret"></button></div><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-1 menu__list-item menu__list-item--collapsed"><div class=menu__list-item-collapsible><a class="categoryLink_Muyc menu__link menu__link--sublist" href=/how_to/><span class=categoryLinkLabel_mAcL>操作指南</span></a><button aria-label="展开侧边栏分类 '操作指南'" aria-expanded=false type=button class="clean-btn menu__caret"></button></div><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-1 menu__list-item menu__list-item--collapsed"><div class=menu__list-item-collapsible><a class="categoryLink_Muyc menu__link menu__link--sublist" href=/tutorials/><span class=categoryLinkLabel_mAcL>教程</span></a><button aria-label="展开侧边栏分类 '教程'" aria-expanded=false type=button class="clean-btn menu__caret"></button></div><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-1 menu__list-item menu__list-item--collapsed"><div class=menu__list-item-collapsible><a class="categoryLink_Muyc menu__link menu__link--sublist" href=/developer_guide/><span class=categoryLinkLabel_mAcL>开发者指南</span></a><button aria-label="展开侧边栏分类 '开发者指南'" aria-expanded=false type=button class="clean-btn menu__caret"></button></div><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-1 menu__list-item menu__list-item--collapsed"><div class=menu__list-item-collapsible><a class="categoryLink_Muyc menu__link menu__link--sublist" href=/api_reference/><span class=categoryLinkLabel_mAcL>API 参考</span></a><button aria-label="展开侧边栏分类 'API 参考'" aria-expanded=false type=button class="clean-btn menu__caret"></button></div></ul></nav></div></div></aside><main class=docMainContainer_sLF8><div class="container padding-top--md padding-bottom--lg"><div class=row><div class="col docItemCol_ZRft"><div class=docItemContainer_KOP5><article><nav class="theme-doc-breadcrumbs breadcrumbsContainer_d5rS" aria-label=页面路径><ul class=breadcrumbs><li class=breadcrumbs__item><a aria-label=主页面 class=breadcrumbs__link href=/><svg viewBox="0 0 24 24" class=breadcrumbHomeIcon_XgF2><path d="M10 19v-5h4v5c0 .55.45 1 1 1h3c.55 0 1-.45 1-1v-7h1.7c.46 0 .68-.57.33-.87L12.67 3.6c-.38-.34-.96-.34-1.34 0l-8.36 7.53c-.34.3-.13.87.33.87H5v7c0 .55.45 1 1 1h3c.55 0 1-.45 1-1z" fill=currentColor /></svg></a><li class=breadcrumbs__item><a class=breadcrumbs__link href=/concepts/><span>核心概念</span></a><li class="breadcrumbs__item breadcrumbs__item--active"><span class=breadcrumbs__link>事件溯源</span></ul></nav><div class="tocCollapsible_bgaJ theme-doc-toc-mobile tocMobile_FhT_"><button type=button class="clean-btn tocCollapsibleButton_F8AY">本页总览</button></div><div class="theme-doc-markdown markdown"><header><h1>事件溯源</h1></header>
+<p>事件溯源为 NautilusTrader 提供一份持久、有序的记录，保存改变引擎状态的消息。事件存储在系统边界处记录这些消息。读取器、回放工具和校验器随后使用同一份日志重建当时发生的事，并重建状态。</p>
+<p><strong>核心原则</strong>：</p>
+<ul>
+<li class="">事件存储是影响状态历史的持久权威。</li>
+<li class="">缓存是 write-through 投影，不是事实来源。</li>
+<li class="">缓存回放把捕获的历史应用到缓存自有状态上，从而重建状态。</li>
+<li class="">行情数据留在数据目录中。事件存储记录影响状态的消息。</li>
+<li class="">外部 I/O 只有被 Nautilus 捕获为命令、原始报告或其他影响状态的输入时，才可回放。</li>
+</ul>
+<div class="theme-admonition theme-admonition-note admonition_LYZY alert alert--secondary"><div class=admonitionHeading_pnFY><span class=admonitionIcon_tEzm><svg viewBox="0 0 14 16"><path fill-rule=evenodd d="M6.3 5.69a.942.942 0 0 1-.28-.7c0-.28.09-.52.28-.7.19-.18.42-.28.7-.28.28 0 .52.09.7.28.18.19.28.42.28.7 0 .28-.09.52-.28.7a1 1 0 0 1-.7.3c-.28 0-.52-.11-.7-.3zM8 7.99c-.02-.25-.11-.48-.31-.69-.2-.19-.42-.3-.69-.31H6c-.27.02-.48.13-.69.31-.2.2-.3.44-.31.69h1v3c.02.27.11.5.31.69.2.2.42.31.69.31h1c.27 0 .48-.11.69-.31.2-.19.3-.42.31-.69H8V7.98v.01zM7 2.3c-3.14 0-5.7 2.54-5.7 5.68 0 3.14 2.56 5.7 5.7 5.7s5.7-2.55 5.7-5.7c0-3.15-2.56-5.69-5.7-5.69v.01zM7 .98c3.86 0 7 3.14 7 7s-3.14 7-7 7-7-3.12-7-7 3.14-7 7-7z"/></svg></span>备注</div><div class=admonitionContent_ZwmI><p>事件存储的捕获、回放、校验、恢复和保留规划都有针对性测试覆盖，但 API 面仍在演进。请把本页当作设计契约，把
+<a href=https://github.com/nautechsystems/nautilus_trader/blob/develop/crates/event_store/README.md target=_blank rel="noopener noreferrer" class=""><code>nautilus-event-store</code> README</a>
+和 <a href=https://docs.rs/nautilus-event-store target=_blank rel="noopener noreferrer" class="">docs.rs</a> 当作 API 参考。</div></div>
+<h2 class="anchor anchorTargetStickyNavbar_ana5" id=why-event-sourcing>为什么要事件溯源<a href=#why-event-sourcing class=hash-link aria-label=为什么要事件溯源的直接链接 title=为什么要事件溯源的直接链接 translate=no>​</a></h2>
+<p>缓存回答"现在什么是真的"，事件存储回答"Nautilus 怎么走到这一步"。它为读取器、回放工具和校验器提供按运行划分的完整历史。这份历史无需策略逻辑、场所查询或活动缓存，就能解释过去的状态。</p>
+<p>事件存储为以下事项提供持久基础：</p>
+<ul>
+<li class="">在回放或归档前证明一个已封存（sealed）的运行是否干净。</li>
+<li class="">检查某个订单或组件意图背后确切的命令、报告与事件序列。</li>
+<li class="">从捕获的历史重建缓存状态，包括一个快照锚点加上本次运行的尾部。</li>
+<li class="">追踪一个意图，看它在引擎侧引发了哪些后续消息。</li>
+<li class="">进程退出或写入器停摆后，在下一次运行开始前封存旧的运行文件。</li>
+</ul>
+<h2 class="anchor anchorTargetStickyNavbar_ana5" id=terms>术语<a href=#terms class=hash-link aria-label=术语的直接链接 title=术语的直接链接 translate=no>​</a></h2>
+<ul>
+<li class=""><strong>Run（运行）</strong>：一个实例、一个二进制、一份配置对应的一次内核会话。</li>
+<li class=""><strong>Entry（条目）</strong>：一条捕获的消息加回放元数据。</li>
+<li class=""><code>seq</code>：写入器分配的每运行序号，用作回放顺序。</li>
+<li class=""><strong>High-watermark（高水位线）</strong>：后端已持久确认的最大 <code>seq</code>。</li>
+<li class=""><strong>快照锚点</strong>：随缓存快照一起记录的高水位线。</li>
+<li class=""><strong>Headers（头部）</strong>：随捕获消息传播的关联（correlation）与因果（causation）元数据。</li>
+</ul>
+<h2 class="anchor anchorTargetStickyNavbar_ana5" id=what-the-store-records>存储记录什么<a href=#what-the-store-records class=hash-link aria-label=存储记录什么的直接链接 title=存储记录什么的直接链接 translate=no>​</a></h2>
+<p>事件存储为单个交易实例的单次运行记录影响状态的消息总线流量。运行从内核启动开始，到进程正常停止或崩溃时结束。</p>
+<p><strong>捕获的条目包括</strong>：</p>
+<ul>
+<li class="">执行命令，如提交、修改、撤销。</li>
+<li class="">定义 actor 或策略观察窗口的数据订阅命令。</li>
+<li class="">触发的时间事件，以及生成的订单、持仓、账户事件。</li>
+<li class="">对账合成派生事件之前的原始场所执行报告。</li>
+<li class="">由这些原始报告产生的对账输出。</li>
+<li class="">跨越消息总线且影响状态的请求/响应消息，或其与审计相关的元数据。</li>
+<li class="">运行生命周期条目，如 <code>RunStarted</code> 和 <code>RunEnded</code>。</li>
+</ul>
+<p>流式行情观察留在数据目录中。事件存储记录命令流、原始报告、生成事件和元数据，凭它们可回放引擎对那个世界的反应。</p>
+<p>两条捕获规则把数据响应与工具收盘同流式观察区分开：</p>
+<ul>
+<li class=""><strong>数据响应</strong>：对引擎请求的每个响应都会被捕获，包括订单簿、期权链参考价和自定义数据响应。其中只有 <a href=#cache-replay class="">缓存回放</a> 一节列出的类型有回写缓存状态的规则，其余仅作检查记录。</li>
+<li class=""><strong>Instrument close</strong>：每次发布的 <code>InstrumentClose</code> 都会被捕获，因为合约到期会使持仓结算。</li>
+</ul>
+<h2 class="anchor anchorTargetStickyNavbar_ana5" id=boundaries>边界<a href=#boundaries class=hash-link aria-label=边界的直接链接 title=边界的直接链接 translate=no>​</a></h2>
+<p>事件存储有意保持窄范围：</p>
+<ul>
+<li class="">不取代数据目录。</li>
+<li class="">不提供分析或 OLAP 查询。</li>
+<li class="">不把多个 trader 实例聚合成共识日志。</li>
+<li class="">尚未定义脱敏、静态加密或防篡改证明。</li>
+</ul>
+<h2 class="anchor anchorTargetStickyNavbar_ana5" id=capture-flow>捕获流程<a href=#capture-flow class=hash-link aria-label=捕获流程的直接链接 title=捕获流程的直接链接 translate=no>​</a></h2>
+<p>捕获发生在消息总线分发边界，因此采样点（tap）能在下游 handler 观察到每条影响状态的消息之前先看到它。</p>
+<!-- -->
+<p>捕获从喂养下游 handler 的同一次分发上分叉，读取器永远只访问持久后端。</p>
+<p>捕获是<strong>异步的</strong>，不是分发的准入门。捕获成功即把条目入队给写入器。写入器线程随后分配下一个 <code>seq</code>、提交一个批次，并在后端确认持久后推进高水位线。</p>
+<p>读取器通过一个没有追加操作的接口扫描已封存或运行中的后端。</p>
+<p>写入器经有界通道接收条目，有两条不同的失败路径：</p>
+<ul>
+<li class=""><strong>背压</strong>：提交受阻超过配置的 <code>halt_threshold</code> 时触发停摆（halt）信号。背压绝不静默丢弃已接受的条目。</li>
+<li class=""><strong>后端提交失败</strong>：写入器触发停摆信号、丢弃待提交批次并结束其循环。这些条目永远不会持久。</li>
+</ul>
+<div class="theme-admonition theme-admonition-warning admonition_LYZY alert alert--warning"><div class=admonitionHeading_pnFY><span class=admonitionIcon_tEzm><svg viewBox="0 0 16 16"><path fill-rule=evenodd d="M8.893 1.5c-.183-.31-.52-.5-.887-.5s-.703.19-.886.5L.138 13.499a.98.98 0 0 0 0 1.001c.193.31.53.501.886.501h13.964c.367 0 .704-.19.877-.5a1.03 1.03 0 0 0 .01-1.002L8.893 1.5zm.133 11.497H6.987v-2.003h2.039v2.003zm0-3.004H6.987V5.987h2.039v4.006z"/></svg></span>注意</div><div class=admonitionContent_ZwmI><p><strong>fail-stop 不会打断运行</strong>。采样点记录失败日志，消息照常送达其 handler。一旦停摆，采样点停止记录，该会话剩余部分处于未捕获状态。<p>没有运行时组件轮询停摆信号去停止 trader。下次启动时的恢复清扫会封存该运行，尾部干净时记为 <code>CrashedRecovered</code>。</div></div>
+<p>有些消息预期会跨过多个采样点可见的边界：</p>
+<ul>
+<li class="">执行引擎把订单事件发往 portfolio 端点，同时在策略 topic 上发布同一事件。</li>
+<li class="">交易命令从策略到风控再到执行逐跳传递。</li>
+</ul>
+<p>同一条消息的重复分发落在同一个引擎周期内。因此捕获适配器会对照近期捕获消息身份（event id、command id）的有界窗口去重。每条逻辑消息只成为一个条目，回放不会重复应用同一事件。</p>
+<h2 class="anchor anchorTargetStickyNavbar_ana5" id=lifecycle-options>生命周期选项<a href=#lifecycle-options class=hash-link aria-label=生命周期选项的直接链接 title=生命周期选项的直接链接 translate=no>​</a></h2>
+<p><code>EventStoreConfig</code> 是可序列化的运行策略。进程级构造策略位于 <code>EventStoreLifecycleOptions</code>，高级调用方通过 <code>EventStoreLifecycle::boot_with_options(...)</code> 传入。</p>
+<p>默认情况下，生命周期打开 <code>RedbBackend</code>，并安装默认的编码器与数据标记提取器注册表。生命周期选项可替换三者中任意一个：</p>
+<ul>
+<li class="">编码器注册表，或按运行构建注册表的工厂；在总线采样点开始捕获之前应用。</li>
+<li class="">后端打开器（backend opener），为新运行返回任意 <code>EventStore</code> 实现。</li>
+<li class="">针对配置的标记类的数据标记提取器注册表工厂。</li>
+</ul>
+<p>后端打开器是内存捕获的模拟安全路径。DST harness 或聚焦测试可以通过正常生命周期打开 <code>MemoryBackend</code>，使用同样的总线采样点与写入器语义，封存后在进程内读取捕获条目。用 <code>MemoryBackend</code> 打开器时，捕获不需要 <code>redb</code> 运行文件。</p>
+<p>在 <code>cfg(madsim)</code> 下，写入器对每次提交同步落盘，因此捕获的 <code>seq</code> 顺序是确定的。</p>
+<h2 class="anchor anchorTargetStickyNavbar_ana5" id=entry-model>条目模型<a href=#entry-model class=hash-link aria-label=条目模型的直接链接 title=条目模型的直接链接 translate=no>​</a></h2>
+<p>每个事件存储条目是一条捕获消息加元数据：</p>
+<ul>
+<li class=""><code>seq</code>：每运行回放顺序的权威。</li>
+<li class=""><code>ts_init</code>：捕获消息上的领域时间戳。</li>
+<li class=""><code>ts_publish</code>：总线接受或写入器接收的时间戳。</li>
+<li class=""><code>topic</code>：总线主题或逻辑端点。</li>
+<li class=""><code>payload_type</code>：编码后的消息类型。</li>
+<li class=""><code>payload</code>：编码后的消息字节。</li>
+<li class=""><code>headers</code>：关联与因果元数据。</li>
+<li class=""><code>entry_hash</code>：条目内容的规范化哈希。</li>
+</ul>
+<p>回放按 <code>seq</code> 排序。时间戳帮助解释运行，但不覆盖 <code>seq</code>。</p>
+<p>二级索引支持按 <code>client_order_id</code> 和 <code>venue_order_id</code> 查找。当有具体的检查调用方需要按 <code>correlation_id</code> 查找时，可以增加相应索引。在那之前，关联扫描可以遍历捕获流。</p>
+<h2 class="anchor anchorTargetStickyNavbar_ana5" id=correlation-model>关联模型<a href=#correlation-model class=hash-link aria-label=关联模型的直接链接 title=关联模型的直接链接 translate=no>​</a></h2>
+<p>目标模型用三层身份区分作用域、血缘和消息身份：</p>
+<ul>
+<li class=""><code>correlation_id</code>：逻辑工作流或链条。</li>
+<li class=""><code>causation_id</code>：直接导致本消息的父消息。</li>
+<li class=""><code>command_id</code>、<code>event_id</code> 或 <code>report_id</code>：本条消息自身的身份。</li>
+</ul>
+<!-- -->
+<p>一个 <code>correlation_id</code> 贯穿整个工作流，<code>causation_id</code> 则把每条消息链接到其直接父消息。</p>
+<div class="theme-admonition theme-admonition-warning admonition_LYZY alert alert--warning"><div class=admonitionHeading_pnFY><span class=admonitionIcon_tEzm><svg viewBox="0 0 16 16"><path fill-rule=evenodd d="M8.893 1.5c-.183-.31-.52-.5-.887-.5s-.703.19-.886.5L.138 13.499a.98.98 0 0 0 0 1.001c.193.31.53.501.886.501h13.964c.367 0 .704-.19.877-.5a1.03 1.03 0 0 0 .01-1.002L8.893 1.5zm.133 11.497H6.987v-2.003h2.039v2.003zm0-3.004H6.987V5.987h2.039v4.006z"/></svg></span>注意</div><div class=admonitionContent_ZwmI><p><strong>头部传播尚不完整</strong>，因此多数捕获条目的头部为空。请把上面的图当作设计契约，而不是对已捕获运行内容的描述。<p>默认编码器注册表为交易命令、数据命令和数据响应注册了提取器，提取器原样转发消息携带的内容。实际情况：<ul>
+<li class=""><strong>数据消息</strong>：只有数据请求与数据响应能产出非空头部。请求贡献其 <code>request_id</code>；响应携带必需的 <code>correlation_id</code>。</li>
+<li class=""><strong>交易命令</strong>：树内生产者不设置 <code>correlation_id</code> 和 <code>causation_id</code>。</li>
+<li class=""><strong>事件与报告</strong>：订单、持仓、账户事件、执行报告和时间事件没有提取器。</li>
+</ul></div></div>
+<p>头部有内容时，运维人员可以回答两个常见问题：</p>
+<ul>
+<li class="">"显示这个工作流的全部消息"：按 <code>correlation_id</code> 过滤或扫描。</li>
+<li class="">"显示这个事件为什么发生"：沿 <code>causation_id</code> 回溯到直接父消息。</li>
+</ul>
+<h2 class="anchor anchorTargetStickyNavbar_ana5" id=run-files-and-manifests>运行文件与清单<a href=#run-files-and-manifests class=hash-link aria-label=运行文件与清单的直接链接 title=运行文件与清单的直接链接 translate=no>​</a></h2>
+<p>默认后端是 <code>redb</code>，按运行存放一个文件：</p>
+<div class="language-text codeBlockContainer_eTMR theme-code-block" style=--prism-color:#393A34;--prism-background-color:#f6f8fa><div class=codeBlockContent_hafM><pre tabindex=0 class="prism-code language-text codeBlock_IMvC thin-scrollbar" style=color:#393A34;background-color:#f6f8fa><code class=codeBlockLines_gZDW><div class=token-line style=color:#393A34><span class="token plain">&lt;base>/&lt;instance_id>/&lt;run_id>.redb</span><br/></div></code></pre></div></div>
+<p>每个运行文件包含：</p>
+<ul>
+<li class="">以 <code>seq</code> 为键的条目。</li>
+<li class="">订单标识符的二级索引。</li>
+<li class="">运行开始时写入、结束时封存的清单（manifest）。</li>
+<li class="">可选的快照锚点，用于缓存恢复。</li>
+</ul>
+<p>清单记录运行身份与可复现性输入：</p>
+<ul>
+<li class="">
+<p>运行身份：</p>
+<ul>
+<li class=""><code>run_id</code></li>
+<li class=""><code>parent_run_id</code></li>
+<li class=""><code>instance_id</code></li>
+</ul>
+</li>
+<li class="">
+<p>构建身份：</p>
+<ul>
+<li class=""><code>binary_hash</code></li>
+<li class=""><code>schema_version</code></li>
+<li class=""><code>crate_versions</code></li>
+<li class=""><code>feature_flags</code></li>
+<li class=""><code>adapter_versions</code></li>
+</ul>
+</li>
+<li class="">
+<p>配置身份：</p>
+<ul>
+<li class=""><code>config_hash</code></li>
+<li class=""><code>registered_components</code></li>
+<li class=""><code>seed</code></li>
+</ul>
+</li>
+<li class="">
+<p>生命周期状态：</p>
+<ul>
+<li class=""><code>start_ts_init</code></li>
+<li class=""><code>end_ts_init</code></li>
+<li class=""><code>high_watermark</code></li>
+<li class=""><code>status</code></li>
+</ul>
+</li>
+</ul>
+<p>运行状态取 <code>Running</code>、<code>Ended</code>、<code>CrashedRecovered</code> 或 <code>Quarantined</code> 之一。</p>
+<h2 class="anchor anchorTargetStickyNavbar_ana5" id=run-lifecycle>运行生命周期<a href=#run-lifecycle class=hash-link aria-label=运行生命周期的直接链接 title=运行生命周期的直接链接 translate=no>​</a></h2>
+<!-- -->
+<p>运行以 <code>RunStarted</code> 打开、以 <code>RunEnded</code> 关闭。快照锚点是清单保持 <code>Running</code> 期间记录的可选节点。</p>
+<ul>
+<li class=""><code>RunStarted</code> 是全新运行的第一个条目。同进程内重复 <code>open()</code> 会先封存当前会话，再开始新运行。</li>
+<li class="">清单处于 <code>Running</code> 时，总线采样点记录影响状态的条目；缓存快照可对照持久高水位线记录锚点。</li>
+<li class="">干净关闭、内核 drop 或 reset/rerun 封存会追加 <code>RunEnded</code>，并把清单封存为 <code>Ended</code>。</li>
+<li class="">fail-stop（停摆）的会话跳过进程内封存，由下次启动的恢复清扫接管。停摆信号的作用域限于触发它的运行；后续 <code>open()</code> 会重新装载新的信号，因此一次停摆不会毒化同进程内的后续运行。</li>
+</ul>
+<h2 class="anchor anchorTargetStickyNavbar_ana5" id=recovery-sealing>恢复封存<a href=#recovery-sealing class=hash-link aria-label=恢复封存的直接链接 title=恢复封存的直接链接 translate=no>​</a></h2>
+<p>前驱（predecessor）指同一实例较旧的运行文件，其清单仍写着 <code>Running</code>。这意味着上一个进程没有走完正常生命周期，或写入器在清单封存完成前就停摆了。</p>
+<!-- -->
+<p>启动恢复扫描每个 <code>Running</code> 前驱，按持久尾部决定最终清单状态：</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>持久尾部<th>封存状态<th>可作父运行<tbody><tr><td>无条目<td><code>CrashedRecovered</code><td>是<tr><td>干净、不含 <code>RunEnded</code><td><code>CrashedRecovered</code><td>是<tr><td>干净、以 <code>RunEnded</code> 结尾<td><code>Ended</code><td>否<tr><td>哈希不匹配、缺口或结构性故障<td><code>Quarantined</code><td>否</table>
+<p>清扫绝不会因某个运行文件损坏就让 trader 无法启动：</p>
+<ul>
+<li class=""><strong>修复</strong>：硬杀（SIGKILL、OOM kill 或断电）之后，redb 拒绝以只读方式打开该运行文件。列目录时退回可写打开，redb 会在恢复继续之前先执行其修复过程。</li>
+<li class=""><strong>跳过并重试</strong>：文件仍打不开或缺少清单时，恢复跳过它并记录错误，下次启动再试。恢复与保留照常处理健康的运行。</li>
+</ul>
+<p>只有 <code>CrashedRecovered</code> 前驱会成为 <code>parent_run_id</code>。配置了 <code>replay_from_run_id</code> 时，校验通过后它覆盖恢复出的父运行。</p>
+<p>只读校验器另行检查已封存的运行而不修改它们，并报告 <code>quarantine=not-performed</code>。</p>
+<h2 class="anchor anchorTargetStickyNavbar_ana5" id=replay-inputs>回放输入<a href=#replay-inputs class=hash-link aria-label=回放输入的直接链接 title=回放输入的直接链接 translate=no>​</a></h2>
+<p>回放只遵循一条排序规则：按 <code>seq</code> 顺序应用事件存储条目。<code>ts_init</code> 和 <code>ts_publish</code> 解释消息何时发生，但 <code>seq</code> 才是持久的回放顺序。</p>
+<p>Rust 回放输入 API 把规划与执行分开：</p>
+<ul>
+<li class="">仅事件存储的回放输入只返回条目。</li>
+<li class="">连接目录的回放输入额外加入调用方选定的目录切片，用于上下文分析。</li>
+</ul>
+<p>目录规划器接受显式的 <code>CatalogSliceSelector</code> 和只读 <code>ReplayCatalog</code>：</p>
+<ul>
+<li class=""><strong>规划</strong>：除非选择器提供显式边界，否则从事件存储扫描解析目录时间边界。它报告缺失的目录切片，并保持 <code>seq</code> 作为条目排序的权威。</li>
+<li class=""><strong>加载</strong>：返回 <code>ReplayInputs</code>，事件存储条目按 <code>seq</code> 排序，目录记录按所选切片分组。</li>
+</ul>
+<p>Rust 调用方可以启用默认关闭的 <code>persistence</code> feature，用 <code>nautilus_event_store::ParquetReplayCatalog</code> 包装 <code>ParquetDataCatalog</code>，从而规划选定的目录文件与按文件名推导的时间区间。该桥接把 <code>quotes</code>、<code>trades</code> 和 <code>bars</code> 加载为类型化的 <code>CatalogReplayRecord</code>。</p>
+<div class="theme-admonition theme-admonition-note admonition_LYZY alert alert--secondary"><div class=admonitionHeading_pnFY><span class=admonitionIcon_tEzm><svg viewBox="0 0 14 16"><path fill-rule=evenodd d="M6.3 5.69a.942.942 0 0 1-.28-.7c0-.28.09-.52.28-.7.19-.18.42-.28.7-.28.28 0 .52.09.7.28.18.19.28.42.28.7 0 .28-.09.52-.28.7a1 1 0 0 1-.7.3c-.28 0-.52-.11-.7-.3zM8 7.99c-.02-.25-.11-.48-.31-.69-.2-.19-.42-.3-.69-.31H6c-.27.02-.48.13-.69.31-.2.2-.3.44-.31.69h1v3c.02.27.11.5.31.69.2.2.42.31.69.31h1c.27 0 .48-.11.69-.31.2-.19.3-.42.31-.69H8V7.98v.01zM7 2.3c-3.14 0-5.7 2.54-5.7 5.68 0 3.14 2.56 5.7 5.7 5.7s5.7-2.55 5.7-5.7c0-3.15-2.56-5.69-5.7-5.69v.01zM7 .98c3.86 0 7 3.14 7 7s-3.14 7-7 7-7-3.12-7-7 3.14-7 7-7z"/></svg></span>备注</div><div class=admonitionContent_ZwmI><p>持久化桥接是只读的：它使用目录的发现与查询 API，但<strong>不向目录写入</strong>。不支持的目录类会导致加载失败，直到回放为该类别加入类型化负载契约。</div></div>
+<p>这些 API <strong>不会</strong>：</p>
+<ul>
+<li class="">打开实时场所客户端</li>
+<li class="">运行策略或 actor</li>
+<li class="">重新执行对账</li>
+<li class="">删除文件</li>
+<li class="">重放时钟的注册/取消生命周期</li>
+</ul>
+<h2 class="anchor anchorTargetStickyNavbar_ana5" id=cache-replay>缓存回放<a href=#cache-replay class=hash-link aria-label=缓存回放的直接链接 title=缓存回放的直接链接 translate=no>​</a></h2>
+<p>内核管理的回放使用 <code>EventStoreConfig::replay_from_run_id</code>。设置后，内核从已封存的运行恢复缓存状态，并把该运行记为新子运行的父运行。它跳过实时引擎、客户端、启动流程和场所对账。</p>
+<p><strong>回放要求</strong>：</p>
+<ul>
+<li class="">被隔离（Quarantined）的运行会被拒绝。</li>
+<li class="">回放要求 <code>load_state=true</code>。禁用时，内核记录错误并直接返回，既不恢复缓存也不打开子运行。</li>
+</ul>
+<p>缓存回放加载器<strong>只处理状态</strong>。它恢复缓存自有的快照，按 <code>seq</code> 顺序扫描事件存储尾部，解码受支持的、影响缓存的负载，并直接应用到 <code>Cache</code>。受支持的负载包括：</p>
+<ul>
+<li class="">合成的账户、订单和持仓事件</li>
+<li class="">捕获的订单列表</li>
+<li class="">金融工具、报价、成交、资金费率和 bar 的完整数据响应</li>
+<li class="">Instrument close：与实时执行一样结算二元期权持仓。结算之后回放的成交或成交作废会更新其订单，但不更新已结算的持仓</li>
+</ul>
+<p>加载器<strong>不会</strong>：</p>
+<ul>
+<li class="">把回放条目发布到实时消息总线</li>
+<li class="">运行策略或 actor 代码</li>
+<li class="">查询交易场所</li>
+<li class="">执行对账</li>
+<li class="">重新推导标识符</li>
+<li class="">重新装载时钟</li>
+</ul>
+<p>在这条路径上，触发的 <code>TimeEvent</code> 和原始场所报告只是检查记录。回放应用的是运行中后续捕获的合成订单、持仓和账户事件。</p>
+<h2 class="anchor anchorTargetStickyNavbar_ana5" id=data-marker-sidecar>数据标记边车<a href=#data-marker-sidecar class=hash-link aria-label=数据标记边车的直接链接 title=数据标记边车的直接链接 translate=no>​</a></h2>
+<div class="theme-admonition theme-admonition-note admonition_LYZY alert alert--secondary"><div class=admonitionHeading_pnFY><span class=admonitionIcon_tEzm><svg viewBox="0 0 14 16"><path fill-rule=evenodd d="M6.3 5.69a.942.942 0 0 1-.28-.7c0-.28.09-.52.28-.7.19-.18.42-.28.7-.28.28 0 .52.09.7.28.18.19.28.42.28.7 0 .28-.09.52-.28.7a1 1 0 0 1-.7.3c-.28 0-.52-.11-.7-.3zM8 7.99c-.02-.25-.11-.48-.31-.69-.2-.19-.42-.3-.69-.31H6c-.27.02-.48.13-.69.31-.2.2-.3.44-.31.69h1v3c.02.27.11.5.31.69.2.2.42.31.69.31h1c.27 0 .48-.11.69-.31.2-.19.3-.42.31-.69H8V7.98v.01zM7 2.3c-3.14 0-5.7 2.54-5.7 5.68 0 3.14 2.56 5.7 5.7 5.7s5.7-2.55 5.7-5.7c0-3.15-2.56-5.69-5.7-5.69v.01zM7 .98c3.86 0 7 3.14 7 7s-3.14 7-7 7-7-3.12-7-7 3.14-7 7-7z"/></svg></span>备注</div><div class=admonitionContent_ZwmI><p>标记边车（marker sidecar）通过 <code>EventStoreConfig.data_markers</code> 选择性启用，默认关闭。</div></div>
+<p>精确的数据交付顺序不是从目录时间戳推断的。标记边车把消息总线分发边界观察到的数据记录在 <code>&lt;base>/&lt;instance_id>/&lt;run_id>.markers.redb</code>，与事件存储运行文件并列。它不把完整行情负载写进 <code>EventStoreEntry</code> 行。</p>
+<p>边车只支持一条审计声明：启用标记捕获后，Nautilus 在该运行的总线边界按 <code>marker_seq</code> 顺序观察到数据交付。每个标记携带足以回联候选目录行的身份信息。它不能：</p>
+<ul>
+<li class="">证明仅凭目录时间戳就能定义总线顺序。</li>
+<li class="">目录行缺失或被改动时重建那个数据点。</li>
+<li class="">证明 Nautilus 观察到消息之前场所的发送顺序。</li>
+<li class="">对未启用标记捕获的运行说明任何情况。</li>
+<li class="">保证每条观察到的数据消息都产生了标记。</li>
+</ul>
+<p>边车用完整性换取与交易路径的隔离，因此不继承条目写入器的背压契约。标记提交发现有界通道已满时直接丢弃该标记，而不是阻塞调用方或停摆运行。其序号会进入一条缺口（gap）记录：</p>
+<ul>
+<li class=""><code>Overflow</code>：后续某次提交把被丢弃的区间刷出。</li>
+<li class=""><code>WriterClosed</code>：被丢弃区间仍待处理时写入器关闭。</li>
+</ul>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=ordering-and-identity>顺序与身份<a href=#ordering-and-identity class=hash-link aria-label=顺序与身份的直接链接 title=顺序与身份的直接链接 translate=no>​</a></h3>
+<p>标记不消耗事件存储的 <code>seq</code> 值，也不在条目表中制造缺口。每个标记有自己单调递增的 <code>marker_seq</code>，外加 <code>event_seq_before</code>——标记被观察到之前分配的最大事件存储 <code>seq</code>。对影响状态的条目，事件存储 <code>seq</code> 仍是回放顺序的权威。</p>
+<p>分析已封存运行时：</p>
+<ul>
+<li class="">标记之后的下一个事件存储条目由 <code>event_seq_before + 1</code> 推出。</li>
+<li class=""><code>event_seq_before</code> 相同的标记按 <code>marker_seq</code> 排序。</li>
+</ul>
+<p>边车有两类标记：</p>
+<ul>
+<li class=""><strong>游标快照</strong>：<code>DataCursorSnapshot</code> 是默认捕获模式。每个快照记录 <code>marker_seq</code>、<code>event_seq_before</code>、<code>ts_init</code>，以及自上一个快照以来前进的 <code>StreamCursor</code> 条目。<code>StreamCursor</code> 携带流 <code>slot</code>、该 slot 见过的最大 <code>ts_init</code>（<code>ts_init_hi</code>）和记录 <code>count</code>。<code>StreamDictEntry</code> 把每个 <code>slot</code> 映射到其 <code>data_cls</code>（<code>BookDeltas</code>、<code>BookDepth</code>、<code>Quote</code>、<code>Trade</code>、<code>Bar</code>）和工具 <code>identifier</code>。</li>
+<li class=""><strong>高保真标记</strong>：<code>HiFiMarker</code> 通过 <code>DataMarkerConfig.high_fidelity</code> 按工具选择性启用。每条记录 <code>marker_seq</code>、<code>event_seq_before</code>、<code>slot</code>、<code>ts_event</code>、<code>ts_init</code>、<code>same_ts_ordinal</code>，以及对规范化类型化行字段计算的 32 字节 <code>record_fingerprint</code>。</li>
+</ul>
+<p><code>same_ts_ordinal</code> 和 <code>record_fingerprint</code> 用于区分同一时间戳的重复数据，且无需存储价格、数量、尺寸或 MessagePack 负载。同一键和时间戳的两条目录行可能字节完全相同。此时边车能证明 Nautilus 按某个标记顺序观察到两次交付；但目录压实（compaction）重写行顺序之后，它无法指认唯一的物理目录行。</p>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=verification-and-replay-boundaries>校验与回放边界<a href=#verification-and-replay-boundaries class=hash-link aria-label=校验与回放边界的直接链接 title=校验与回放边界的直接链接 translate=no>​</a></h3>
+<p>标记校验证明 <code>marker_seq</code> 序列全部有据可查，已记录的缺口计为覆盖。<strong>读缺口记录</strong>才能知道丢了什么。</p>
+<p>稳定的契约是标记 schema、选择性启用的捕获与读取原语、标记序列校验和目录连接规则。分析工具可以基于该契约选择窗口、解释场所专有数据、对标记排序或聚类、出具报告、打包运行束。</p>
+<p>禁用标记捕获时不会安装数据标记写入器。缓存回放和实时重启都不读这个边车。快照尾部回放仍按 <code>seq</code> 顺序应用事件存储条目；实时重启仍从缓存自有状态加事件存储父链接启动。</p>
+<h2 class="anchor anchorTargetStickyNavbar_ana5" id=snapshot-anchored-recovery>快照锚定恢复<a href=#snapshot-anchored-recovery class=hash-link aria-label=快照锚定恢复的直接链接 title=快照锚定恢复的直接链接 translate=no>​</a></h2>
+<p>缓存快照归缓存所有，事件存储只保存快照锚点：快照时的高水位线、指名快照的不透明 <code>blob_ref</code>（缓存所有），以及该 blob 的缓存所有 <code>content_hash</code>。</p>
+<!-- -->
+<p>恢复加载锚点指名的快照，然后只应用锚点高水位线之后的条目。</p>
+<p>各恢复场景按消息推进到的程度排列：</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>故障点<th>恢复行为<tbody><tr><td>入队之前<td>消息从未到达写入器，适用生产者的重试策略。<tr><td>入队之后、提交之前<td>在途批次未持久，高水位线不会推进。<tr><td>提交之后、快照锚点之前<td>加载上一个快照并重放尾部。<tr><td>快照锚点之后<td>加载最新快照并重放锚点之后的条目。</table>
+<div class="theme-admonition theme-admonition-info admonition_LYZY alert alert--info"><div class=admonitionHeading_pnFY><span class=admonitionIcon_tEzm><svg viewBox="0 0 14 16"><path fill-rule=evenodd d="M7 2.3c3.14 0 5.7 2.56 5.7 5.7s-2.56 5.7-5.7 5.7A5.71 5.71 0 0 1 1.3 8c0-3.14 2.56-5.7 5.7-5.7zM7 1C3.14 1 0 4.14 0 8s3.14 7 7 7 7-3.14 7-7-3.14-7-7-7zm1 3H6v5h2V4zm0 6H6v2h2v-2z"/></svg></span>信息</div><div class=admonitionContent_ZwmI><p>实时重启目前仍走"快照加对账"。只有当捕获覆盖和回放规则覆盖每条影响状态的路径之后，事件存储恢复才会成为实时重启路径。</div></div>
+<p>回放正确性依赖四项检查：</p>
+<ul>
+<li class="">条目以不可变的 <code>seq</code> 寻址。</li>
+<li class="">写入拒绝乱序提交。</li>
+<li class="">读取器能发现高水位线内部的缺口。</li>
+<li class="">快照重放规划会拒绝指向持久高水位线之后的锚点。</li>
+</ul>
+<h2 class="anchor anchorTargetStickyNavbar_ana5" id=retention-planning>保留规划<a href=#retention-planning class=hash-link aria-label=保留规划的直接链接 title=保留规划的直接链接 translate=no>​</a></h2>
+<p>保留以完整运行文件为回收单位。事件存储暴露一个非破坏性规划器：列出已封存运行的清单，检查其最新快照锚点状态，返回候选运行文件，由 supervisor 或运维进程之后回收。</p>
+<p>规划器支持三种模式：</p>
+<ul>
+<li class=""><code>Full</code>：保留每个已封存运行，不返回回收候选。</li>
+<li class=""><code>Bounded { keep_last }</code>：保留最新的若干已封存运行，并至少保留一个已知良好的恢复点。</li>
+<li class=""><code>SnapshotAnchored</code>：只回收早于最新已知良好恢复点的已封存运行。</li>
+</ul>
+<p>已知良好恢复点指一个已封存、非 <code>Quarantined</code> 的运行，其快照锚点有效，且锚点高水位线不超过该运行的持久高水位线。规划器对照磁盘上的最后条目做比较，而非清单记录值，因此尾部被裁剪过的运行不能算恢复点。</p>
+<p><strong>保留保障</strong>：</p>
+<ul>
+<li class=""><code>Running</code> 的运行永远不会被列为已封存运行或回收候选。</li>
+<li class="">缺失、损坏或无效的快照锚点不算恢复点。无法证明至少保留一个结构有效的恢复点时，规划器不返回候选。</li>
+</ul>
+<p><strong>校验局限</strong>：规划器从不加载快照 blob，检查止于锚点，因此无法排除 blob 缺失或被改动导致的恢复失败。</p>
+<h2 class="anchor anchorTargetStickyNavbar_ana5" id=integrity-and-verification>完整性与校验<a href=#integrity-and-verification class=hash-link aria-label=完整性与校验的直接链接 title=完整性与校验的直接链接 translate=no>​</a></h2>
+<p>每个条目携带覆盖其完整内容的规范化哈希。读取器和校验器重算哈希并报告不匹配。校验器还检查清单/高水位线状态，并对照条目表验证二级索引，报告解码失败或指向持久高水位线之后的快照锚点。</p>
+<div class="theme-admonition theme-admonition-warning admonition_LYZY alert alert--warning"><div class=admonitionHeading_pnFY><span class=admonitionIcon_tEzm><svg viewBox="0 0 16 16"><path fill-rule=evenodd d="M8.893 1.5c-.183-.31-.52-.5-.887-.5s-.703.19-.886.5L.138 13.499a.98.98 0 0 0 0 1.001c.193.31.53.501.886.501h13.964c.367 0 .704-.19.877-.5a1.03 1.03 0 0 0 .01-1.002L8.893 1.5zm.133 11.497H6.987v-2.003h2.039v2.003zm0-3.004H6.987V5.987h2.039v4.006z"/></svg></span>注意</div><div class=admonitionContent_ZwmI><p><code>clean</code> 结论证明的是结构完整，不是可恢复性或捕获完整性：<ul>
+<li class="">校验器检查快照锚点，但从不加载或哈希其指名的 blob。blob 缺失或被改动的运行仍会校验为 clean，却会在恢复时失败。保留规划器基于同样的"仅锚点"证据挑选恢复点。</li>
+<li class="">标记校验把已记录缺口计为覆盖，因此在背压下丢过标记的运行仍校验为 clean。</li>
+<li class="">会话中途 fail-stop 的运行，就其已捕获的部分校验为 clean，对停摆之后的消息不作任何说明。</li>
+</ul></div></div>
+<p>运行校验与调用方进程隔离。这一点很重要：某些损坏的 <code>redb</code> 文件会在打开或首次读取时 panic，而 release 构建使用 <code>panic = "abort"</code>。校验器把扫描放到工作子进程中运行，坏文件只会 abort 工作进程，不影响调用方。</p>
+<p>校验一个已封存的运行文件：</p>
+<div class="language-bash codeBlockContainer_eTMR theme-code-block" style=--prism-color:#393A34;--prism-background-color:#f6f8fa><div class=codeBlockContent_hafM><pre tabindex=0 class="prism-code language-bash codeBlock_IMvC thin-scrollbar" style=color:#393A34;background-color:#f6f8fa><code class=codeBlockLines_gZDW><div class=token-line style=color:#393A34><span class="token plain">cargo run -p nautilus-event-store --bin verify -- ./event_store/trader-001/1700000000-cafe0001.redb</span><br/></div></code></pre></div></div>
+<p>干净的输出形如：</p>
+<div class="language-text codeBlockContainer_eTMR theme-code-block" style=--prism-color:#393A34;--prism-background-color:#f6f8fa><div class=codeBlockContent_hafM><pre tabindex=0 class="prism-code language-text codeBlock_IMvC thin-scrollbar" style=color:#393A34;background-color:#f6f8fa><code class=codeBlockLines_gZDW><div class=token-line style=color:#393A34><span class="token plain">clean run_id=1700000000-cafe0001 status=Ended high_watermark=3 entries_scanned=3 markers=absent</span><br/></div></code></pre></div></div>
+<p>损坏的输出包含 <code>quarantine=not-performed</code>：</p>
+<div class="language-text codeBlockContainer_eTMR theme-code-block" style=--prism-color:#393A34;--prism-background-color:#f6f8fa><div class=codeBlockContent_hafM><pre tabindex=0 class="prism-code language-text codeBlock_IMvC thin-scrollbar" style=color:#393A34;background-color:#f6f8fa><code class=codeBlockLines_gZDW><div class=token-line style=color:#393A34><span class="token plain">corrupt run_id=1700000000-cafe0001 status=Ended high_watermark=3 entries_scanned=3 findings=1 marker_findings=0 markers=absent quarantine=not-performed</span><br/></div><div class=token-line style=color:#393A34><span class="token plain">- hash mismatch at seq 2</span><br/></div></code></pre></div></div>
+<p><code>markers=</code> 字段报告边车扫描结果：</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>值<th>含义<tbody><tr><td><code>absent</code><td>运行文件旁没有 <code>&lt;run_id>.markers.redb</code>。<tr><td><code>clean</code> 或 <code>corrupt</code><td>边车已读取，附快照、高保真标记、缺口和字典条目的扫描计数。<tr><td><code>error</code><td>边车存在但无法打开或扫描。</table>
+<p>退出码：</p>
+<ul>
+<li class=""><code>0</code>：运行干净。</li>
+<li class=""><code>1</code>：运行存在损坏发现，或工作进程 abort、超时。</li>
+<li class=""><code>2</code>：校验器无法打开或无法针对请求的文件运行。</li>
+</ul>
+<p>大型已封存运行可加大工作进程超时：</p>
+<div class="language-bash codeBlockContainer_eTMR theme-code-block" style=--prism-color:#393A34;--prism-background-color:#f6f8fa><div class=codeBlockContent_hafM><pre tabindex=0 class="prism-code language-bash codeBlock_IMvC thin-scrollbar" style=color:#393A34;background-color:#f6f8fa><code class=codeBlockLines_gZDW><div class=token-line style=color:#393A34><span class="token plain">env NAUTILUS_EVENT_STORE_VERIFY_TIMEOUT_SECS=120 \</span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    cargo run -p nautilus-event-store --bin verify -- ./event_store/trader-001/1700000000-cafe0001.redb</span><br/></div></code></pre></div></div>
+<p>在 Rust 中读取已封存运行：</p>
+<div class="language-rust codeBlockContainer_eTMR theme-code-block" style=--prism-color:#393A34;--prism-background-color:#f6f8fa><div class=codeBlockContent_hafM><pre tabindex=0 class="prism-code language-rust codeBlock_IMvC thin-scrollbar" style=color:#393A34;background-color:#f6f8fa><code class=codeBlockLines_gZDW><div class=token-line style=color:#393A34><span class="token keyword" style=color:#00009f>use</span><span class="token plain"> </span><span class="token namespace" style=opacity:0.7>nautilus_event_store</span><span class="token namespace punctuation" style=opacity:0.7;color:#393A34>::</span><span class="token punctuation" style=color:#393A34>{</span><span class="token class-name">EventStoreReader</span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain"> </span><span class="token class-name">RedbBackend</span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain"> </span><span class="token class-name">ScanDirection</span><span class="token punctuation" style=color:#393A34>}</span><span class="token punctuation" style=color:#393A34>;</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain" style=display:inline-block></span><br/></div><div class=token-line style=color:#393A34><span class="token plain"></span><span class="token keyword" style=color:#00009f>fn</span><span class="token plain"> </span><span class="token function-definition function" style=color:#d73a49>inspect_run</span><span class="token punctuation" style=color:#393A34>(</span><span class="token punctuation" style=color:#393A34>)</span><span class="token plain"> </span><span class="token punctuation" style=color:#393A34>-></span><span class="token plain"> </span><span class="token class-name">Result</span><span class="token operator" style=color:#393A34>&lt;</span><span class="token punctuation" style=color:#393A34>(</span><span class="token punctuation" style=color:#393A34>)</span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain"> </span><span class="token class-name">Box</span><span class="token operator" style=color:#393A34>&lt;</span><span class="token keyword" style=color:#00009f>dyn</span><span class="token plain"> </span><span class="token namespace" style=opacity:0.7>std</span><span class="token namespace punctuation" style=opacity:0.7;color:#393A34>::</span><span class="token namespace" style=opacity:0.7>error</span><span class="token namespace punctuation" style=opacity:0.7;color:#393A34>::</span><span class="token class-name">Error</span><span class="token operator" style=color:#393A34>>></span><span class="token plain"> </span><span class="token punctuation" style=color:#393A34>{</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    </span><span class="token keyword" style=color:#00009f>let</span><span class="token plain"> backend </span><span class="token operator" style=color:#393A34>=</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">        </span><span class="token class-name">RedbBackend</span><span class="token punctuation" style=color:#393A34>::</span><span class="token function" style=color:#d73a49>open_sealed_file</span><span class="token punctuation" style=color:#393A34>(</span><span class="token string" style=color:#e3116c>"./event_store/trader-001/1700000000-cafe0001.redb"</span><span class="token punctuation" style=color:#393A34>)</span><span class="token operator" style=color:#393A34>?</span><span class="token punctuation" style=color:#393A34>;</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    </span><span class="token keyword" style=color:#00009f>let</span><span class="token plain"> reader </span><span class="token operator" style=color:#393A34>=</span><span class="token plain"> </span><span class="token class-name">EventStoreReader</span><span class="token punctuation" style=color:#393A34>::</span><span class="token function" style=color:#d73a49>new</span><span class="token punctuation" style=color:#393A34>(</span><span class="token plain">backend</span><span class="token punctuation" style=color:#393A34>)</span><span class="token punctuation" style=color:#393A34>;</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    </span><span class="token keyword" style=color:#00009f>let</span><span class="token plain"> high_watermark </span><span class="token operator" style=color:#393A34>=</span><span class="token plain"> reader</span><span class="token punctuation" style=color:#393A34>.</span><span class="token function" style=color:#d73a49>high_watermark</span><span class="token punctuation" style=color:#393A34>(</span><span class="token punctuation" style=color:#393A34>)</span><span class="token operator" style=color:#393A34>?</span><span class="token punctuation" style=color:#393A34>;</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain" style=display:inline-block></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    </span><span class="token keyword" style=color:#00009f>for</span><span class="token plain"> entry </span><span class="token keyword" style=color:#00009f>in</span><span class="token plain"> reader</span><span class="token punctuation" style=color:#393A34>.</span><span class="token function" style=color:#d73a49>scan_range</span><span class="token punctuation" style=color:#393A34>(</span><span class="token number" style=color:#36acaa>1</span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain"> high_watermark</span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain"> </span><span class="token class-name">ScanDirection</span><span class="token punctuation" style=color:#393A34>::</span><span class="token class-name">Forward</span><span class="token punctuation" style=color:#393A34>)</span><span class="token plain"> </span><span class="token punctuation" style=color:#393A34>{</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">        </span><span class="token keyword" style=color:#00009f>let</span><span class="token plain"> entry </span><span class="token operator" style=color:#393A34>=</span><span class="token plain"> entry</span><span class="token operator" style=color:#393A34>?</span><span class="token punctuation" style=color:#393A34>;</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">        </span><span class="token macro property" style=color:#36acaa>println!</span><span class="token punctuation" style=color:#393A34>(</span><span class="token string" style=color:#e3116c>"{} {}"</span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain"> entry</span><span class="token punctuation" style=color:#393A34>.</span><span class="token plain">seq</span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain"> entry</span><span class="token punctuation" style=color:#393A34>.</span><span class="token plain">topic</span><span class="token punctuation" style=color:#393A34>)</span><span class="token punctuation" style=color:#393A34>;</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    </span><span class="token punctuation" style=color:#393A34>}</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain" style=display:inline-block></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    </span><span class="token class-name">Ok</span><span class="token punctuation" style=color:#393A34>(</span><span class="token punctuation" style=color:#393A34>(</span><span class="token punctuation" style=color:#393A34>)</span><span class="token punctuation" style=color:#393A34>)</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain"></span><span class="token punctuation" style=color:#393A34>}</span><br/></div></code></pre></div></div>
+<div class="theme-admonition theme-admonition-note admonition_LYZY alert alert--secondary"><div class=admonitionHeading_pnFY><span class=admonitionIcon_tEzm><svg viewBox="0 0 14 16"><path fill-rule=evenodd d="M6.3 5.69a.942.942 0 0 1-.28-.7c0-.28.09-.52.28-.7.19-.18.42-.28.7-.28.28 0 .52.09.7.28.18.19.28.42.28.7 0 .28-.09.52-.28.7a1 1 0 0 1-.7.3c-.28 0-.52-.11-.7-.3zM8 7.99c-.02-.25-.11-.48-.31-.69-.2-.19-.42-.3-.69-.31H6c-.27.02-.48.13-.69.31-.2.2-.3.44-.31.69h1v3c.02.27.11.5.31.69.2.2.42.31.69.31h1c.27 0 .48-.11.69-.31.2-.19.3-.42.31-.69H8V7.98v.01zM7 2.3c-3.14 0-5.7 2.54-5.7 5.68 0 3.14 2.56 5.7 5.7 5.7s5.7-2.55 5.7-5.7c0-3.15-2.56-5.69-5.7-5.69v.01zM7 .98c3.86 0 7 3.14 7 7s-3.14 7-7 7-7-3.12-7-7 3.14-7 7-7z"/></svg></span>备注</div><div class=admonitionContent_ZwmI><p>校验器报告损坏但不修改运行文件。隔离（quarantine）是运维或 supervisor 的策略。</div></div>
+<h2 class="anchor anchorTargetStickyNavbar_ana5" id=verification-coverage>校验覆盖<a href=#verification-coverage class=hash-link aria-label=校验覆盖的直接链接 title=校验覆盖的直接链接 translate=no>​</a></h2>
+<p>事件存储测试套件为 alpha 面固定以下核心正确性保证：</p>
+<ul>
+<li class="">默认编码器注册表覆盖经审计的、影响状态的捕获面。</li>
+<li class="">触发的 <code>TimeEvent</code> 经 <code>TimeEventHandler::run</code> 命中已安装的事件存储采样点。</li>
+<li class="">写入器在有界背压下停摆，而不是丢弃已接受的条目。</li>
+<li class="">条目哈希校验能发现字节级负载损坏。</li>
+<li class="">进程隔离校验把截断或尾部清零的运行文件报告为损坏。</li>
+<li class="">对生成的捕获事件流，缓存回放重建出与实时缓存相同的账户、订单和持仓观察状态。</li>
+<li class="">跨多个总线边界分发的同一订单事件只捕获一次。</li>
+<li class="">解码失败或指向持久高水位线之后的快照锚点会作为校验器发现上报，而不是校验为 clean。</li>
+<li class="">连接目录的回放输入规划覆盖所选切片、缺失切片、时间边界和事件存储 <code>seq</code> 排序。</li>
+<li class="">崩溃恢复按持久尾部把 <code>Running</code> 前驱封存为 <code>Ended</code>、<code>CrashedRecovered</code> 或 <code>Quarantined</code>，只有 <code>CrashedRecovered</code> 运行成为父运行。</li>
+<li class="">启动恢复修复硬崩溃的运行文件，跳过不可读的文件而不是让整个清扫失败。</li>
+</ul>
+<h2 class="anchor anchorTargetStickyNavbar_ana5" id=relationship-to-dst>与 DST 的关系<a href=#relationship-to-dst class=hash-link aria-label="与 DST 的关系的直接链接" title="与 DST 的关系的直接链接" translate=no>​</a></h2>
+<p>事件存储与<a class="" href=/concepts/dst>确定性模拟测试</a>（DST）解决回放中不同的部分。</p>
+<ul>
+<li class="">事件存储提供捕获的输入历史。</li>
+<li class="">DST 控制调度、时间、种子化随机数及其他范围内的非确定性。</li>
+</ul>
+<p>两者结合，可让一次运行在确定性模拟范围内复现引擎行为。清单在捕获日志之外，还记录标识这种运行的输入：<code>seed</code>、<code>binary_hash</code>、<code>config_hash</code> 和 <code>schema_version</code>。</p>
+<p>在 <code>cfg(madsim)</code> 下，写入器同步提交而不派生写入线程。模拟 harness 通过生命周期选项提供 <code>MemoryBackend</code> 打开器时，捕获留在进程内，不需要 <code>redb</code> 文件。在该高级选项路径之外，redb 仍是默认的持久后端。</p>
+<p>适配器网络 I/O 保持在比特级一致回放之外，除非 Nautilus 把相关原始输入捕获下来并经确定性接口路由。</div><footer class="theme-doc-footer docusaurus-mt-lg"><div class="row margin-top--sm theme-doc-footer-edit-meta-row"><div class="col noPrint_MRkS"><a href=https://github.com/Aloento/NautilusTraderDoc/tree/main/docs/concepts/event_sourcing.md target=_blank rel="noopener noreferrer" class=theme-edit-this-page><svg fill=currentColor height=20 width=20 viewBox="0 0 40 40" class=iconEdit_RPSQ aria-hidden=true><g><path d="m34.5 11.7l-3 3.1-6.3-6.3 3.1-3q0.5-0.5 1.2-0.5t1.1 0.5l3.9 3.9q0.5 0.4 0.5 1.1t-0.5 1.2z m-29.5 17.1l18.4-18.5 6.3 6.3-18.4 18.4h-6.3v-6.2z"/></g></svg>编辑此页</a></div><div class="col lastUpdated_oZSl"><span class=theme-last-updated>最后<!-- -->于 <b><time datetime=2026-10-14T22:30:30.000Z itemprop=dateModified>2026年10月14日</time></b> <!-- -->更新</span></div></div></footer></article><nav class="docusaurus-mt-lg pagination-nav" aria-label=文件选项卡><a class="pagination-nav__link pagination-nav__link--prev" href=/concepts/dst><div class=pagination-nav__sublabel>上一页</div><div class=pagination-nav__label>DST</div></a><a class="pagination-nav__link pagination-nav__link--next" href=/concepts/greeks><div class=pagination-nav__sublabel>下一页</div><div class=pagination-nav__label>Greeks</div></a></nav></div></div><div class="col col--3"><div class="tableOfContents_LyLZ thin-scrollbar theme-doc-toc-desktop"><ul class="table-of-contents table-of-contents__left-border"><li><a href=#why-event-sourcing class="table-of-contents__link toc-highlight">为什么要事件溯源</a><li><a href=#terms class="table-of-contents__link toc-highlight">术语</a><li><a href=#what-the-store-records class="table-of-contents__link toc-highlight">存储记录什么</a><li><a href=#boundaries class="table-of-contents__link toc-highlight">边界</a><li><a href=#capture-flow class="table-of-contents__link toc-highlight">捕获流程</a><li><a href=#lifecycle-options class="table-of-contents__link toc-highlight">生命周期选项</a><li><a href=#entry-model class="table-of-contents__link toc-highlight">条目模型</a><li><a href=#correlation-model class="table-of-contents__link toc-highlight">关联模型</a><li><a href=#run-files-and-manifests class="table-of-contents__link toc-highlight">运行文件与清单</a><li><a href=#run-lifecycle class="table-of-contents__link toc-highlight">运行生命周期</a><li><a href=#recovery-sealing class="table-of-contents__link toc-highlight">恢复封存</a><li><a href=#replay-inputs class="table-of-contents__link toc-highlight">回放输入</a><li><a href=#cache-replay class="table-of-contents__link toc-highlight">缓存回放</a><li><a href=#data-marker-sidecar class="table-of-contents__link toc-highlight">数据标记边车</a><ul><li><a href=#ordering-and-identity class="table-of-contents__link toc-highlight">顺序与身份</a><li><a href=#verification-and-replay-boundaries class="table-of-contents__link toc-highlight">校验与回放边界</a></ul><li><a href=#snapshot-anchored-recovery class="table-of-contents__link toc-highlight">快照锚定恢复</a><li><a href=#retention-planning class="table-of-contents__link toc-highlight">保留规划</a><li><a href=#integrity-and-verification class="table-of-contents__link toc-highlight">完整性与校验</a><li><a href=#verification-coverage class="table-of-contents__link toc-highlight">校验覆盖</a><li><a href=#relationship-to-dst class="table-of-contents__link toc-highlight">与 DST 的关系</a></ul></div></div></div></div></main></div></div></div><footer class="theme-layout-footer footer footer--dark"><div class="container container-fluid"><div class="row footer__links"><div class="theme-layout-footer-column col footer__col"><div class=footer__title></div><ul class="footer__items clean-list"><li class=footer__item><a href=https://github.com/nautechsystems/nautilus_trader target=_blank rel="noopener noreferrer" class=footer__link-item>Official GitHub<svg width=13.5 height=13.5 aria-label="(opens in new tab)" class=iconExternalLink_qUHo><use href=#theme-svg-external-link /></svg></a><li class=footer__item><a href=https://nautilustrader.io/docs target=_blank rel="noopener noreferrer" class=footer__link-item>Official Documentation<svg width=13.5 height=13.5 aria-label="(opens in new tab)" class=iconExternalLink_qUHo><use href=#theme-svg-external-link /></svg></a></ul></div></div><div class="footer__bottom text--center"><div class=footer__copyright>© 2026 Nautech Systems Pty Ltd. All rights reserved.</div></div></div></footer></div></body>

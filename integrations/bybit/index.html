@@ -1,184 +1,1508 @@
-<!doctype html>
-<html lang="zh" dir="ltr" class="docs-wrapper plugin-docs plugin-id-default docs-version-current docs-doc-page docs-doc-id-integrations/bybit" data-has-hydrated="false">
-<head>
-<meta charset="UTF-8">
-<meta name="generator" content="Docusaurus v3.9.1">
-<title data-rh="true">Bybit | NautilusTrader 文档</title><meta data-rh="true" name="viewport" content="width=device-width,initial-scale=1"><meta data-rh="true" name="twitter:card" content="summary_large_image"><meta data-rh="true" property="og:url" content="https://nautilus.aloen.to/integrations/bybit"><meta data-rh="true" property="og:locale" content="zh"><meta data-rh="true" name="docusaurus_locale" content="zh"><meta data-rh="true" name="docsearch:language" content="zh"><meta data-rh="true" name="docusaurus_version" content="current"><meta data-rh="true" name="docusaurus_tag" content="docs-default-current"><meta data-rh="true" name="docsearch:version" content="current"><meta data-rh="true" name="docsearch:docusaurus_tag" content="docs-default-current"><meta data-rh="true" property="og:title" content="Bybit | NautilusTrader 文档"><meta data-rh="true" name="description" content="Bybit 成立于 2018 年，是按日交易量和未平仓合约（open interest）计算的加密货币交易所中规模较大的平台之一。本集成旨在支持与 Bybit 的实时行情接入（market data ingest）和订单执行（order execution）。"><meta data-rh="true" property="og:description" content="Bybit 成立于 2018 年，是按日交易量和未平仓合约（open interest）计算的加密货币交易所中规模较大的平台之一。本集成旨在支持与 Bybit 的实时行情接入（market data ingest）和订单执行（order execution）。"><link data-rh="true" rel="icon" href="/logo.png"><link data-rh="true" rel="canonical" href="https://nautilus.aloen.to/integrations/bybit"><link data-rh="true" rel="alternate" href="https://nautilus.aloen.to/integrations/bybit" hreflang="zh"><link data-rh="true" rel="alternate" href="https://nautilus.aloen.to/integrations/bybit" hreflang="x-default"><script data-rh="true" type="application/ld+json">{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"集成","item":"https://nautilus.aloen.to/integrations/"},{"@type":"ListItem","position":2,"name":"Bybit","item":"https://nautilus.aloen.to/integrations/bybit"}]}</script><link rel="stylesheet" href="/assets/css/styles.33db920f.css">
-<script src="/assets/js/runtime~main.7f15ce23.js" defer="defer"></script>
-<script src="/assets/js/main.7a54437b.js" defer="defer"></script>
-</head>
-<body class="navigation-with-keyboard">
-<svg style="display: none;"><defs>
-<symbol id="theme-svg-external-link" viewBox="0 0 24 24"><path fill="currentColor" d="M21 13v10h-21v-19h12v2h-10v15h17v-8h2zm3-12h-10.988l4.035 4-6.977 7.07 2.828 2.828 6.977-7.07 4.125 4.172v-11z"/></symbol>
+<!doctype html><html lang=zh dir=ltr class="docs-wrapper plugin-docs plugin-id-default docs-version-current docs-doc-page docs-doc-id-integrations/bybit" data-has-hydrated=false><head><meta charset=UTF-8><meta name=generator content="Docusaurus v3.10.2"><title data-rh=true>Bybit | NautilusTrader 文档</title><meta data-rh=true name=viewport content="width=device-width, initial-scale=1.0"/><meta data-rh=true name=twitter:card content=summary_large_image /><meta data-rh=true property=og:url content=https://nautilus.aloen.to/integrations/bybit /><meta data-rh=true property=og:locale content=zh /><meta data-rh=true name=docusaurus_locale content=zh /><meta data-rh=true name=docsearch:language content=zh /><meta data-rh=true name=docusaurus_version content=current /><meta data-rh=true name=docusaurus_tag content=docs-default-current /><meta data-rh=true name=docsearch:version content=current /><meta data-rh=true name=docsearch:docusaurus_tag content=docs-default-current /><meta data-rh=true property=og:title content="Bybit | NautilusTrader 文档"/><meta data-rh=true name=description content="Bybit 成立于 2018 年，是按日交易量与加密资产及加密衍生品未平仓合约量计最大的加密货币"/><meta data-rh=true property=og:description content="Bybit 成立于 2018 年，是按日交易量与加密资产及加密衍生品未平仓合约量计最大的加密货币"/><link data-rh=true rel=icon href=/logo.png /><link data-rh=true rel=canonical href=https://nautilus.aloen.to/integrations/bybit /><link data-rh=true rel=alternate href=https://nautilus.aloen.to/integrations/bybit hreflang=zh /><link data-rh=true rel=alternate href=https://nautilus.aloen.to/integrations/bybit hreflang=x-default /><script data-rh=true type=application/ld+json>{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","item":"https://nautilus.aloen.to/integrations/","name":"交易所与集成","position":1},{"@type":"ListItem","item":"https://nautilus.aloen.to/integrations/bybit","name":"Bybit","position":2}]}</script><link rel=stylesheet href=/assets/css/styles.adb7ea18.css /><script src=/assets/js/runtime~main.71ac0794.js defer></script><script src=/assets/js/main.d978d0f2.js defer></script></head><body><svg style="display: none;"><defs>
+<symbol id=theme-svg-external-link viewBox="0 0 24 24"><path fill=currentColor d="M21 13v10h-21v-19h12v2h-10v15h17v-8h2zm3-12h-10.988l4.035 4-6.977 7.07 2.828 2.828 6.977-7.07 4.125 4.172v-11z"/></symbol>
 </defs></svg>
-<script>!function(){var t=function(){try{return new URLSearchParams(window.location.search).get("docusaurus-theme")}catch(t){}}()||function(){try{return window.localStorage.getItem("theme")}catch(t){}}();document.documentElement.setAttribute("data-theme",t||(window.matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light")),document.documentElement.setAttribute("data-theme-choice",t||"system")}(),function(){try{const c=new URLSearchParams(window.location.search).entries();for(var[t,e]of c)if(t.startsWith("docusaurus-data-")){var a=t.replace("docusaurus-data-","data-");document.documentElement.setAttribute(a,e)}}catch(t){}}()</script><div id="__docusaurus"><link rel="preload" as="image" href="/logo.png"><div role="region" aria-label="跳到主要内容"><a class="skipToContent__uWo" href="#__docusaurus_skipToContent_fallback">跳到主要内容</a></div><nav aria-label="主导航" class="theme-layout-navbar navbar navbar--fixed-top"><div class="navbar__inner"><div class="theme-layout-navbar-left navbar__items"><button aria-label="切换导航栏" aria-expanded="false" class="navbar__toggle clean-btn" type="button"><svg width="30" height="30" viewBox="0 0 30 30" aria-hidden="true"><path stroke="currentColor" stroke-linecap="round" stroke-miterlimit="10" stroke-width="2" d="M4 7h22M4 15h22M4 23h22"></path></svg></button><a class="navbar__brand" href="/"><div class="navbar__logo"><img src="/logo.png" alt="NautilusTrader Logo" class="themedComponent_WkLn themedComponent--light_cjoX"><img src="/logo.png" alt="NautilusTrader Logo" class="themedComponent_WkLn themedComponent--dark_jZId"></div><b class="navbar__title text--truncate">NautilusTrader</b></a><a aria-current="page" class="navbar__item navbar__link navbar__link--active" href="/api_reference/">文档</a></div><div class="theme-layout-navbar-right navbar__items navbar__items--right"><a href="https://github.com/Aloento/NautilusTraderDoc" target="_blank" rel="noopener noreferrer" class="navbar__item navbar__link">GitHub<svg width="13.5" height="13.5" aria-label="(opens in new tab)" class="iconExternalLink_KfBJ"><use href="#theme-svg-external-link"></use></svg></a><div class="toggle_RWFU colorModeToggle_sA1q"><button class="clean-btn toggleButton_qjfc toggleButtonDisabled_cpNp" type="button" disabled="" title="system mode" aria-label="切换浅色/暗黑模式（当前为system mode）"><svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true" class="toggleIcon_CetX lightToggleIcon_UYsV"><path fill="currentColor" d="M12,9c1.65,0,3,1.35,3,3s-1.35,3-3,3s-3-1.35-3-3S10.35,9,12,9 M12,7c-2.76,0-5,2.24-5,5s2.24,5,5,5s5-2.24,5-5 S14.76,7,12,7L12,7z M2,13l2,0c0.55,0,1-0.45,1-1s-0.45-1-1-1l-2,0c-0.55,0-1,0.45-1,1S1.45,13,2,13z M20,13l2,0c0.55,0,1-0.45,1-1 s-0.45-1-1-1l-2,0c-0.55,0-1,0.45-1,1S19.45,13,20,13z M11,2v2c0,0.55,0.45,1,1,1s1-0.45,1-1V2c0-0.55-0.45-1-1-1S11,1.45,11,2z M11,20v2c0,0.55,0.45,1,1,1s1-0.45,1-1v-2c0-0.55-0.45-1-1-1C11.45,19,11,19.45,11,20z M5.99,4.58c-0.39-0.39-1.03-0.39-1.41,0 c-0.39,0.39-0.39,1.03,0,1.41l1.06,1.06c0.39,0.39,1.03,0.39,1.41,0s0.39-1.03,0-1.41L5.99,4.58z M18.36,16.95 c-0.39-0.39-1.03-0.39-1.41,0c-0.39,0.39-0.39,1.03,0,1.41l1.06,1.06c0.39,0.39,1.03,0.39,1.41,0c0.39-0.39,0.39-1.03,0-1.41 L18.36,16.95z M19.42,5.99c0.39-0.39,0.39-1.03,0-1.41c-0.39-0.39-1.03-0.39-1.41,0l-1.06,1.06c-0.39,0.39-0.39,1.03,0,1.41 s1.03,0.39,1.41,0L19.42,5.99z M7.05,18.36c0.39-0.39,0.39-1.03,0-1.41c-0.39-0.39-1.03-0.39-1.41,0l-1.06,1.06 c-0.39,0.39-0.39,1.03,0,1.41s1.03,0.39,1.41,0L7.05,18.36z"></path></svg><svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true" class="toggleIcon_CetX darkToggleIcon_i1s2"><path fill="currentColor" d="M9.37,5.51C9.19,6.15,9.1,6.82,9.1,7.5c0,4.08,3.32,7.4,7.4,7.4c0.68,0,1.35-0.09,1.99-0.27C17.45,17.19,14.93,19,12,19 c-3.86,0-7-3.14-7-7C5,9.07,6.81,6.55,9.37,5.51z M12,3c-4.97,0-9,4.03-9,9s4.03,9,9,9s9-4.03,9-9c0-0.46-0.04-0.92-0.1-1.36 c-0.98,1.37-2.58,2.26-4.4,2.26c-2.98,0-5.4-2.42-5.4-5.4c0-1.81,0.89-3.42,2.26-4.4C12.92,3.04,12.46,3,12,3L12,3z"></path></svg><svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true" class="toggleIcon_CetX systemToggleIcon_yIQx"><path fill="currentColor" d="m12 21c4.971 0 9-4.029 9-9s-4.029-9-9-9-9 4.029-9 9 4.029 9 9 9zm4.95-13.95c1.313 1.313 2.05 3.093 2.05 4.95s-0.738 3.637-2.05 4.95c-1.313 1.313-3.093 2.05-4.95 2.05v-14c1.857 0 3.637 0.737 4.95 2.05z"></path></svg></button></div><div class="navbarSearchContainer_PsjF"></div></div></div><div role="presentation" class="navbar-sidebar__backdrop"></div></nav><div id="__docusaurus_skipToContent_fallback" class="theme-layout-main main-wrapper mainWrapper_jk42"><div class="docsWrapper_KWBO"><button aria-label="回到顶部" class="clean-btn theme-back-to-top-button backToTopButton_XpKL" type="button"></button><div class="docRoot_joIP"><aside class="theme-doc-sidebar-container docSidebarContainer_DOen"><div class="sidebarViewport_j7YP"><div class="sidebar_nPgc"><nav aria-label="文档侧边栏" class="menu thin-scrollbar menu_MTDt"><ul class="theme-doc-sidebar-menu menu__list"><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-1 menu__list-item menu__list-item--collapsed"><div class="menu__list-item-collapsible"><a class="categoryLink_GgI9 menu__link menu__link--sublist" href="/api_reference/"><span title="Python API" class="categoryLinkLabel_XKxb">Python API</span></a><button aria-label="展开侧边栏分类 &#x27;Python API&#x27;" aria-expanded="false" type="button" class="clean-btn menu__caret"></button></div></li><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-1 menu__list-item menu__list-item--collapsed"><div class="menu__list-item-collapsible"><a class="categoryLink_GgI9 menu__link menu__link--sublist" href="/concepts/"><span title="概念" class="categoryLinkLabel_XKxb">概念</span></a><button aria-label="展开侧边栏分类 &#x27;概念&#x27;" aria-expanded="false" type="button" class="clean-btn menu__caret"></button></div></li><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-1 menu__list-item menu__list-item--collapsed"><div class="menu__list-item-collapsible"><a class="categoryLink_GgI9 menu__link menu__link--sublist" href="/developer_guide/"><span title="开发者指南" class="categoryLinkLabel_XKxb">开发者指南</span></a><button aria-label="展开侧边栏分类 &#x27;开发者指南&#x27;" aria-expanded="false" type="button" class="clean-btn menu__caret"></button></div></li><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-1 menu__list-item menu__list-item--collapsed"><div class="menu__list-item-collapsible"><a class="categoryLink_GgI9 menu__link menu__link--sublist" href="/getting_started/"><span title="入门" class="categoryLinkLabel_XKxb">入门</span></a><button aria-label="展开侧边栏分类 &#x27;入门&#x27;" aria-expanded="false" type="button" class="clean-btn menu__caret"></button></div></li><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-1 menu__list-item"><div class="menu__list-item-collapsible"><a class="categoryLink_GgI9 menu__link menu__link--sublist menu__link--active" href="/integrations/"><span title="集成" class="categoryLinkLabel_XKxb">集成</span></a><button aria-label="折叠侧边栏分类 &#x27;集成&#x27;" aria-expanded="true" type="button" class="clean-btn menu__caret"></button></div><ul class="menu__list"><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class="menu__link" tabindex="0" href="/integrations/betfair"><span title="Betfair" class="linkLabel_CNtA">Betfair</span></a></li><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class="menu__link" tabindex="0" href="/integrations/binance"><span title="Binance" class="linkLabel_CNtA">Binance</span></a></li><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class="menu__link" tabindex="0" href="/integrations/bitmex"><span title="BitMEX" class="linkLabel_CNtA">BitMEX</span></a></li><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class="menu__link" tabindex="0" href="/integrations/blockchain"><span title="Blockchain" class="linkLabel_CNtA">Blockchain</span></a></li><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class="menu__link menu__link--active" aria-current="page" tabindex="0" href="/integrations/bybit"><span title="Bybit" class="linkLabel_CNtA">Bybit</span></a></li><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class="menu__link" tabindex="0" href="/integrations/coinbase_intx"><span title="Coinbase International" class="linkLabel_CNtA">Coinbase International</span></a></li><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class="menu__link" tabindex="0" href="/integrations/databento"><span title="Databento" class="linkLabel_CNtA">Databento</span></a></li><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class="menu__link" tabindex="0" href="/integrations/dydx"><span title="dYdX" class="linkLabel_CNtA">dYdX</span></a></li><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class="menu__link" tabindex="0" href="/integrations/hyperliquid"><span title="Hyperliquid" class="linkLabel_CNtA">Hyperliquid</span></a></li><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class="menu__link" tabindex="0" href="/integrations/ib"><span title="Interactive Brokers" class="linkLabel_CNtA">Interactive Brokers</span></a></li><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class="menu__link" tabindex="0" href="/integrations/okx"><span title="OKX" class="linkLabel_CNtA">OKX</span></a></li><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class="menu__link" tabindex="0" href="/integrations/polymarket"><span title="Polymarket" class="linkLabel_CNtA">Polymarket</span></a></li><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class="menu__link" tabindex="0" href="/integrations/tardis"><span title="Tardis" class="linkLabel_CNtA">Tardis</span></a></li></ul></li><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-1 menu__list-item menu__list-item--collapsed"><div class="menu__list-item-collapsible"><a class="categoryLink_GgI9 menu__link menu__link--sublist" href="/tutorials/"><span title="教程" class="categoryLinkLabel_XKxb">教程</span></a><button aria-label="展开侧边栏分类 &#x27;教程&#x27;" aria-expanded="false" type="button" class="clean-btn menu__caret"></button></div></li></ul></nav></div></div></aside><main class="docMainContainer_bw1l"><div class="container padding-top--md padding-bottom--lg"><div class="row"><div class="col docItemCol_PIhC"><div class="docItemContainer_pFw3"><article><nav class="theme-doc-breadcrumbs breadcrumbsContainer_HRKZ" aria-label="页面路径"><ul class="breadcrumbs"><li class="breadcrumbs__item"><a aria-label="主页面" class="breadcrumbs__link" href="/"><svg viewBox="0 0 24 24" class="breadcrumbHomeIcon_sX5c"><path d="M10 19v-5h4v5c0 .55.45 1 1 1h3c.55 0 1-.45 1-1v-7h1.7c.46 0 .68-.57.33-.87L12.67 3.6c-.38-.34-.96-.34-1.34 0l-8.36 7.53c-.34.3-.13.87.33.87H5v7c0 .55.45 1 1 1h3c.55 0 1-.45 1-1z" fill="currentColor"></path></svg></a></li><li class="breadcrumbs__item"><a class="breadcrumbs__link" href="/integrations/"><span>集成</span></a></li><li class="breadcrumbs__item breadcrumbs__item--active"><span class="breadcrumbs__link">Bybit</span></li></ul></nav><div class="tocCollapsible_DhUt theme-doc-toc-mobile tocMobile_Izjv"><button type="button" class="clean-btn tocCollapsibleButton_eYR5">本页总览</button></div><div class="theme-doc-markdown markdown"><header><h1>Bybit</h1></header>
-<p>Bybit 成立于 2018 年，是按日交易量和未平仓合约（open interest）计算的加密货币交易所中规模较大的平台之一。本集成旨在支持与 Bybit 的实时行情接入（market data ingest）和订单执行（order execution）。</p>
-<h2 class="anchor anchorWithStickyNavbar_RpWm" id="示例">示例<a href="#示例" class="hash-link" aria-label="示例的直接链接" title="示例的直接链接" translate="no">​</a></h2>
-<p>可在仓库中找到 Bybit 的实时示例脚本：<a href="https://github.com/nautechsystems/nautilus_trader/tree/develop/examples/live/bybit/" target="_blank" rel="noopener noreferrer">examples/live/bybit</a>。</p>
-<h2 class="anchor anchorWithStickyNavbar_RpWm" id="概览">概览<a href="#概览" class="hash-link" aria-label="概览的直接链接" title="概览的直接链接" translate="no">​</a></h2>
-<p>本指南假设使用者需要同时配置实时行情订阅与交易执行。Bybit 适配器包含若干可单独使用或组合使用的组件，具体取决于使用场景：</p>
+<script>!function(){var t=function(){try{return new URLSearchParams(window.location.search).get("docusaurus-theme")}catch(t){}}()||function(){try{return window.localStorage.getItem("theme-2e3")}catch(t){}}();document.documentElement.setAttribute("data-theme",t||(window.matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light")),document.documentElement.setAttribute("data-theme-choice",t||"system")}(),function(){try{for(var[t,e]of new URLSearchParams(window.location.search).entries())if(t.startsWith("docusaurus-data-")){var a=t.replace("docusaurus-data-","data-");document.documentElement.setAttribute(a,e)}}catch(t){}}()</script><div id=__docusaurus><link rel=preload as=image href=/logo.png /><div role=region aria-label=跳到主要内容><a class=skipToContent_zuOI href=#__docusaurus_skipToContent_fallback>跳到主要内容</a></div><nav aria-label=主导航 class="theme-layout-navbar navbar navbar--fixed-top"><div class=navbar__inner><div class="theme-layout-navbar-left navbar__items"><button aria-label=切换导航栏 aria-expanded=false class="navbar__toggle clean-btn" type=button><svg width=30 height=30 viewBox="0 0 30 30" aria-hidden=true><path stroke=currentColor stroke-linecap=round stroke-miterlimit=10 stroke-width=2 d="M4 7h22M4 15h22M4 23h22"/></svg></button><a class=navbar__brand href=/><div class=navbar__logo><img src=/logo.png alt="NautilusTrader Logo" class="themedComponent_q2_Y themedComponent--light_Nejn"/><img src=/logo.png alt="NautilusTrader Logo" class="themedComponent_q2_Y themedComponent--dark_JjIb"/></div><b class="navbar__title text--truncate">NautilusTrader</b></a><a aria-current=page class="navbar__item navbar__link navbar__link--active" href=/getting_started/>文档</a></div><div class="theme-layout-navbar-right navbar__items navbar__items--right"><a href=https://github.com/Aloento/NautilusTraderDoc target=_blank rel="noopener noreferrer" class="navbar__item navbar__link">GitHub<svg width=13.5 height=13.5 aria-label="(opens in new tab)" class=iconExternalLink_qUHo><use href=#theme-svg-external-link /></svg></a><div class="toggle_hHmI colorModeToggle_rOOn"><button class="clean-btn toggleButton_wEhT toggleButtonDisabled_yOOP" type=button disabled title="system mode" aria-label="切换浅色/暗黑模式（当前为system mode）"><svg viewBox="0 0 24 24" width=24 height=24 aria-hidden=true class="toggleIcon_Kt6U lightToggleIcon_Zfeh"><path fill=currentColor d="M12,9c1.65,0,3,1.35,3,3s-1.35,3-3,3s-3-1.35-3-3S10.35,9,12,9 M12,7c-2.76,0-5,2.24-5,5s2.24,5,5,5s5-2.24,5-5 S14.76,7,12,7L12,7z M2,13l2,0c0.55,0,1-0.45,1-1s-0.45-1-1-1l-2,0c-0.55,0-1,0.45-1,1S1.45,13,2,13z M20,13l2,0c0.55,0,1-0.45,1-1 s-0.45-1-1-1l-2,0c-0.55,0-1,0.45-1,1S19.45,13,20,13z M11,2v2c0,0.55,0.45,1,1,1s1-0.45,1-1V2c0-0.55-0.45-1-1-1S11,1.45,11,2z M11,20v2c0,0.55,0.45,1,1,1s1-0.45,1-1v-2c0-0.55-0.45-1-1-1C11.45,19,11,19.45,11,20z M5.99,4.58c-0.39-0.39-1.03-0.39-1.41,0 c-0.39,0.39-0.39,1.03,0,1.41l1.06,1.06c0.39,0.39,1.03,0.39,1.41,0s0.39-1.03,0-1.41L5.99,4.58z M18.36,16.95 c-0.39-0.39-1.03-0.39-1.41,0c-0.39,0.39-0.39,1.03,0,1.41l1.06,1.06c0.39,0.39,1.03,0.39,1.41,0c0.39-0.39,0.39-1.03,0-1.41 L18.36,16.95z M19.42,5.99c0.39-0.39,0.39-1.03,0-1.41c-0.39-0.39-1.03-0.39-1.41,0l-1.06,1.06c-0.39,0.39-0.39,1.03,0,1.41 s1.03,0.39,1.41,0L19.42,5.99z M7.05,18.36c0.39-0.39,0.39-1.03,0-1.41c-0.39-0.39-1.03-0.39-1.41,0l-1.06,1.06 c-0.39,0.39-0.39,1.03,0,1.41s1.03,0.39,1.41,0L7.05,18.36z"/></svg><svg viewBox="0 0 24 24" width=24 height=24 aria-hidden=true class="toggleIcon_Kt6U darkToggleIcon_XgQr"><path fill=currentColor d="M9.37,5.51C9.19,6.15,9.1,6.82,9.1,7.5c0,4.08,3.32,7.4,7.4,7.4c0.68,0,1.35-0.09,1.99-0.27C17.45,17.19,14.93,19,12,19 c-3.86,0-7-3.14-7-7C5,9.07,6.81,6.55,9.37,5.51z M12,3c-4.97,0-9,4.03-9,9s4.03,9,9,9s9-4.03,9-9c0-0.46-0.04-0.92-0.1-1.36 c-0.98,1.37-2.58,2.26-4.4,2.26c-2.98,0-5.4-2.42-5.4-5.4c0-1.81,0.89-3.42,2.26-4.4C12.92,3.04,12.46,3,12,3L12,3z"/></svg><svg viewBox="0 0 24 24" width=24 height=24 aria-hidden=true class="toggleIcon_Kt6U systemToggleIcon_BvUi"><path fill=currentColor d="m12 21c4.971 0 9-4.029 9-9s-4.029-9-9-9-9 4.029-9 9 4.029 9 9 9zm4.95-13.95c1.313 1.313 2.05 3.093 2.05 4.95s-0.738 3.637-2.05 4.95c-1.313 1.313-3.093 2.05-4.95 2.05v-14c1.857 0 3.637 0.737 4.95 2.05z"/></svg></button></div><div class=navbarSearchContainer_watl></div></div></div><div role=presentation class=navbar-sidebar__backdrop></div></nav><div id=__docusaurus_skipToContent_fallback class="theme-layout-main main-wrapper mainWrapper_R72Q"><div class=docsWrapper_XQ9b><button aria-label=回到顶部 class="clean-btn theme-back-to-top-button backToTopButton_MbnX" type=button></button><div class=docRoot_aqOB><aside class="theme-doc-sidebar-container docSidebarContainer_sI2e"><div class=sidebarViewport_TzTy><div class=sidebar_CbEe><nav aria-label=文档侧边栏 class="menu thin-scrollbar menu_ChRF"><ul class="theme-doc-sidebar-menu menu__list"><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-1 menu__list-item menu__list-item--collapsed"><div class=menu__list-item-collapsible><a class="categoryLink_Muyc menu__link menu__link--sublist" href=/getting_started/><span class=categoryLinkLabel_mAcL>快速开始</span></a><button aria-label="展开侧边栏分类 '快速开始'" aria-expanded=false type=button class="clean-btn menu__caret"></button></div><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-1 menu__list-item menu__list-item--collapsed"><div class=menu__list-item-collapsible><a class="categoryLink_Muyc menu__link menu__link--sublist" href=/concepts/><span class=categoryLinkLabel_mAcL>核心概念</span></a><button aria-label="展开侧边栏分类 '核心概念'" aria-expanded=false type=button class="clean-btn menu__caret"></button></div><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-1 menu__list-item"><div class=menu__list-item-collapsible><a class="categoryLink_Muyc menu__link menu__link--sublist menu__link--active" href=/integrations/><span class=categoryLinkLabel_mAcL>交易所与集成</span></a><button aria-label="折叠侧边栏分类 '交易所与集成'" aria-expanded=true type=button class="clean-btn menu__caret"></button></div><ul class=menu__list><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/integrations/architect_ax><span class=linkLabel_lYjD>AX Exchange</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/integrations/betfair><span class=linkLabel_lYjD>Betfair</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/integrations/binance><span class=linkLabel_lYjD>Binance</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/integrations/blockchain><span class=linkLabel_lYjD>区块链</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class="menu__link menu__link--active" aria-current=page tabindex=0 href=/integrations/bybit><span class=linkLabel_lYjD>Bybit</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/integrations/coinapi><span class=linkLabel_lYjD>CoinAPI</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/integrations/coinbase><span class=linkLabel_lYjD>Coinbase</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/integrations/databento><span class=linkLabel_lYjD>Databento</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/integrations/deribit><span class=linkLabel_lYjD>Deribit</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/integrations/derive><span class=linkLabel_lYjD>Derive</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/integrations/dydx><span class=linkLabel_lYjD>dYdX</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/integrations/hyperliquid><span class=linkLabel_lYjD>Hyperliquid</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/integrations/interactive_brokers><span class=linkLabel_lYjD>Interactive Brokers</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/integrations/kraken><span class=linkLabel_lYjD>Kraken</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/integrations/lighter><span class=linkLabel_lYjD>Lighter</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/integrations/okx><span class=linkLabel_lYjD>OKX</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/integrations/polymarket><span class=linkLabel_lYjD>Polymarket</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/integrations/tardis><span class=linkLabel_lYjD>Tardis</span></a></ul><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-1 menu__list-item menu__list-item--collapsed"><div class=menu__list-item-collapsible><a class="categoryLink_Muyc menu__link menu__link--sublist" href=/how_to/><span class=categoryLinkLabel_mAcL>操作指南</span></a><button aria-label="展开侧边栏分类 '操作指南'" aria-expanded=false type=button class="clean-btn menu__caret"></button></div><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-1 menu__list-item menu__list-item--collapsed"><div class=menu__list-item-collapsible><a class="categoryLink_Muyc menu__link menu__link--sublist" href=/tutorials/><span class=categoryLinkLabel_mAcL>教程</span></a><button aria-label="展开侧边栏分类 '教程'" aria-expanded=false type=button class="clean-btn menu__caret"></button></div><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-1 menu__list-item menu__list-item--collapsed"><div class=menu__list-item-collapsible><a class="categoryLink_Muyc menu__link menu__link--sublist" href=/developer_guide/><span class=categoryLinkLabel_mAcL>开发者指南</span></a><button aria-label="展开侧边栏分类 '开发者指南'" aria-expanded=false type=button class="clean-btn menu__caret"></button></div><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-1 menu__list-item menu__list-item--collapsed"><div class=menu__list-item-collapsible><a class="categoryLink_Muyc menu__link menu__link--sublist" href=/api_reference/><span class=categoryLinkLabel_mAcL>API 参考</span></a><button aria-label="展开侧边栏分类 'API 参考'" aria-expanded=false type=button class="clean-btn menu__caret"></button></div></ul></nav></div></div></aside><main class=docMainContainer_sLF8><div class="container padding-top--md padding-bottom--lg"><div class=row><div class="col docItemCol_ZRft"><div class=docItemContainer_KOP5><article><nav class="theme-doc-breadcrumbs breadcrumbsContainer_d5rS" aria-label=页面路径><ul class=breadcrumbs><li class=breadcrumbs__item><a aria-label=主页面 class=breadcrumbs__link href=/><svg viewBox="0 0 24 24" class=breadcrumbHomeIcon_XgF2><path d="M10 19v-5h4v5c0 .55.45 1 1 1h3c.55 0 1-.45 1-1v-7h1.7c.46 0 .68-.57.33-.87L12.67 3.6c-.38-.34-.96-.34-1.34 0l-8.36 7.53c-.34.3-.13.87.33.87H5v7c0 .55.45 1 1 1h3c.55 0 1-.45 1-1z" fill=currentColor /></svg></a><li class=breadcrumbs__item><a class=breadcrumbs__link href=/integrations/><span>交易所与集成</span></a><li class="breadcrumbs__item breadcrumbs__item--active"><span class=breadcrumbs__link>Bybit</span></ul></nav><div class="tocCollapsible_bgaJ theme-doc-toc-mobile tocMobile_FhT_"><button type=button class="clean-btn tocCollapsibleButton_F8AY">本页总览</button></div><div class="theme-doc-markdown markdown"><header><h1>Bybit</h1></header>
+<p>Bybit 成立于 2018 年，是按日交易量与加密资产及加密衍生品未平仓合约量计最大的加密货币
+交易所之一。</p>
+<p>NautilusTrader 提供 Bybit 集成，用于实时行情数据与执行。适配器以 Rust 实现，通过相同的
+公开配置、工厂与数据类型暴露给 Python。</p>
+<h2 class="anchor anchorTargetStickyNavbar_ana5" id=examples>示例<a href=#examples class=hash-link aria-label=示例的直接链接 title=示例的直接链接 translate=no>​</a></h2>
 <ul>
-<li><code>BybitHttpClient</code>：底层 HTTP API 连接。</li>
-<li><code>BybitWebSocketClient</code>：底层 WebSocket API 连接。</li>
-<li><code>BybitInstrumentProvider</code>：合约/标的解析与加载功能。</li>
-<li><code>BybitDataClient</code>：行情数据订阅管理器。</li>
-<li><code>BybitExecutionClient</code>：账户管理与交易执行网关。</li>
-<li><code>BybitLiveDataClientFactory</code>：Bybit 数据客户端的工厂（供 trading node builder 使用）。</li>
-<li><code>BybitLiveExecClientFactory</code>：Bybit 执行客户端的工厂（供 trading node builder 使用）。</li>
+<li class=""><a href=https://github.com/nautechsystems/nautilus_trader/tree/develop/examples/live/bybit/ target=_blank rel="noopener noreferrer" class="">Python 示例</a></li>
+<li class=""><a href=https://github.com/nautechsystems/nautilus_trader/tree/develop/crates/adapters/bybit/examples/ target=_blank rel="noopener noreferrer" class="">Rust 示例</a></li>
 </ul>
-<div class="theme-admonition theme-admonition-note admonition_lEzE alert alert--secondary"><div class="admonitionHeading_aAf0"><span class="admonitionIcon_xtBN"><svg viewBox="0 0 14 16"><path fill-rule="evenodd" d="M6.3 5.69a.942.942 0 0 1-.28-.7c0-.28.09-.52.28-.7.19-.18.42-.28.7-.28.28 0 .52.09.7.28.18.19.28.42.28.7 0 .28-.09.52-.28.7a1 1 0 0 1-.7.3c-.28 0-.52-.11-.7-.3zM8 7.99c-.02-.25-.11-.48-.31-.69-.2-.19-.42-.3-.69-.31H6c-.27.02-.48.13-.69.31-.2.2-.3.44-.31.69h1v3c.02.27.11.5.31.69.2.2.42.31.69.31h1c.27 0 .48-.11.69-.31.2-.19.3-.42.31-.69H8V7.98v.01zM7 2.3c-3.14 0-5.7 2.54-5.7 5.68 0 3.14 2.56 5.7 5.7 5.7s5.7-2.55 5.7-5.7c0-3.15-2.56-5.69-5.7-5.69v.01zM7 .98c3.86 0 7 3.14 7 7s-3.14 7-7 7-7-3.12-7-7 3.14-7 7-7z"></path></svg></span>备注</div><div class="admonitionContent_Vfkp"><p>大多数用户只需为实时交易节点（live trading node）定义配置（如下示例），通常无需直接操作这些底层组件。</p></div></div>
-<h2 class="anchor anchorWithStickyNavbar_RpWm" id="bybit-官方文档">Bybit 官方文档<a href="#bybit-官方文档" class="hash-link" aria-label="Bybit 官方文档的直接链接" title="Bybit 官方文档的直接链接" translate="no">​</a></h2>
-<p>Bybit 提供了详尽的用户文档，详见 Bybit 帮助中心（Bybit help center）。建议结合本集成指南同时参阅 Bybit 官方文档以获得完整细节。</p>
-<h2 class="anchor anchorWithStickyNavbar_RpWm" id="产品类型products">产品类型（Products）<a href="#产品类型products" class="hash-link" aria-label="产品类型（Products）的直接链接" title="产品类型（Products）的直接链接" translate="no">​</a></h2>
-<p>在此上下文中，product 指一组相关 instrument 类型的统称。</p>
-<div class="theme-admonition theme-admonition-note admonition_lEzE alert alert--secondary"><div class="admonitionHeading_aAf0"><span class="admonitionIcon_xtBN"><svg viewBox="0 0 14 16"><path fill-rule="evenodd" d="M6.3 5.69a.942.942 0 0 1-.28-.7c0-.28.09-.52.28-.7.19-.18.42-.28.7-.28.28 0 .52.09.7.28.18.19.28.42.28.7 0 .28-.09.52-.28.7a1 1 0 0 1-.7.3c-.28 0-.52-.11-.7-.3zM8 7.99c-.02-.25-.11-.48-.31-.69-.2-.19-.42-.3-.69-.31H6c-.27.02-.48.13-.69.31-.2.2-.3.44-.31.69h1v3c.02.27.11.5.31.69.2.2.42.31.69.31h1c.27 0 .48-.11.69-.31.2-.19.3-.42.31-.69H8V7.98v.01zM7 2.3c-3.14 0-5.7 2.54-5.7 5.68 0 3.14 2.56 5.7 5.7 5.7s5.7-2.55 5.7-5.7c0-3.15-2.56-5.69-5.7-5.69v.01zM7 .98c3.86 0 7 3.14 7 7s-3.14 7-7 7-7-3.12-7-7 3.14-7 7-7z"></path></svg></span>备注</div><div class="admonitionContent_Vfkp"><p>在 Bybit v5 API 中，product 也被称为 <code>category</code>。</p></div></div>
-<p>Bybit 支持的 product 类型包括：</p>
-<table><thead><tr><th>产品类型</th><th>支持</th><th>备注</th></tr></thead><tbody><tr><td>现货（Spot cryptocurrencies）</td><td>✓</td><td>原生现货市场，支持保证金（margin）。</td></tr><tr><td>线性永续合约（Linear perpetual）</td><td>✓</td><td>以 USDT/USDC 挂钩的永续合约。</td></tr><tr><td>线性期货（Linear futures）</td><td>✓</td><td>交割结算的线性期货。</td></tr><tr><td>反向永续合约（Inverse perpetual）</td><td>✓</td><td>以币本位（coin-margined）的永续合约。</td></tr><tr><td>反向期货（Inverse futures）</td><td>✓</td><td>以币本位的交割期货。</td></tr><tr><td>期权（Option contracts）</td><td>✓</td><td>以 USDC 结算的期权。</td></tr></tbody></table>
-<h2 class="anchor anchorWithStickyNavbar_RpWm" id="符号约定symbology">符号约定（Symbology）<a href="#符号约定symbology" class="hash-link" aria-label="符号约定（Symbology）的直接链接" title="符号约定（Symbology）的直接链接" translate="no">​</a></h2>
-<p>为区分不同的 product 类型，Nautilus 在 instrument ID 的符号上使用特定的后缀：</p>
+<h2 class="anchor anchorTargetStickyNavbar_ana5" id=overview>概览<a href=#overview class=hash-link aria-label=概览的直接链接 title=概览的直接链接 translate=no>​</a></h2>
+<p>本指南假设交易者同时配置实时行情数据源与交易执行。Bybit 适配器包含多个组件，按用例不同
+可以一起用，也可以单独用。</p>
 <ul>
-<li><code>-SPOT</code>：现货（Spot）</li>
-<li><code>-LINEAR</code>：线性永续/期货（Perpetual / Futures）</li>
-<li><code>-INVERSE</code>：反向永续/期货（Inverse）</li>
-<li><code>-OPTION</code>：期权（Option）</li>
+<li class=""><code>BybitDataClientConfig</code> 与 <code>BybitExecutionClientConfig</code>：实盘客户端配置。</li>
+<li class=""><code>BybitDataClientFactory</code> 与 <code>BybitExecutionClientFactory</code>：交易节点客户端工厂。</li>
+<li class=""><code>BybitDataClient</code>：行情数据源管理器，由数据客户端工厂构建。</li>
+<li class=""><code>BybitExecutionClient</code>：账户管理与交易执行网关，由执行客户端工厂构建。</li>
+<li class=""><code>BybitHttpClient</code>：底层 HTTP API 连接。</li>
+<li class=""><code>BybitWebSocketClient</code>：面向 Rust 调用方的底层 WebSocket API 连接。</li>
+<li class=""><code>BybitLiquidation</code>：线性与反向合约公开强平的自定义数据，见<a href=#liquidations class="">强平</a>。</li>
+<li class=""><code>BYBIT</code>、<code>BYBIT_CLIENT_ID</code>、<code>BYBIT_VENUE</code>：公开标识符。</li>
+<li class=""><code>BybitEnvironment</code>、<code>BybitProductType</code>、<code>BybitMarginMode</code>、<code>BybitPositionIdx</code>、
+<code>BybitPositionMode</code>：配置与订单参数使用的公开枚举。</li>
 </ul>
-<p>这些后缀需追加到 Bybit 的原始 symbol 字符串以标识具体的产品类型。例如：</p>
+<div class="theme-admonition theme-admonition-note admonition_LYZY alert alert--secondary"><div class=admonitionHeading_pnFY><span class=admonitionIcon_tEzm><svg viewBox="0 0 14 16"><path fill-rule=evenodd d="M6.3 5.69a.942.942 0 0 1-.28-.7c0-.28.09-.52.28-.7.19-.18.42-.28.7-.28.28 0 .52.09.7.28.18.19.28.42.28.7 0 .28-.09.52-.28.7a1 1 0 0 1-.7.3c-.28 0-.52-.11-.7-.3zM8 7.99c-.02-.25-.11-.48-.31-.69-.2-.19-.42-.3-.69-.31H6c-.27.02-.48.13-.69.31-.2.2-.3.44-.31.69h1v3c.02.27.11.5.31.69.2.2.42.31.69.31h1c.27 0 .48-.11.69-.31.2-.19.3-.42.31-.69H8V7.98v.01zM7 2.3c-3.14 0-5.7 2.54-5.7 5.68 0 3.14 2.56 5.7 5.7 5.7s5.7-2.55 5.7-5.7c0-3.15-2.56-5.69-5.7-5.69v.01zM7 .98c3.86 0 7 3.14 7 7s-3.14 7-7 7-7-3.12-7-7 3.14-7 7-7z"/></svg></span>备注</div><div class=admonitionContent_ZwmI><p>多数用户按下面的方式配置实盘交易节点即可，无需直接使用底层组件。</div></div>
+<h2 class="anchor anchorTargetStickyNavbar_ana5" id=bybit-documentation>Bybit 文档<a href=#bybit-documentation class=hash-link aria-label="Bybit 文档的直接链接" title="Bybit 文档的直接链接" translate=no>​</a></h2>
+<p>请结合本 NautilusTrader 集成指南阅读
+<a href=https://www.bybit.com/en/help-center target=_blank rel="noopener noreferrer" class="">Bybit 帮助中心</a>。</p>
+<h2 class="anchor anchorTargetStickyNavbar_ana5" id=products>产品<a href=#products class=hash-link aria-label=产品的直接链接 title=产品的直接链接 translate=no>​</a></h2>
+<p>产品（product）是一组相关工具类型的统称。</p>
+<div class="theme-admonition theme-admonition-note admonition_LYZY alert alert--secondary"><div class=admonitionHeading_pnFY><span class=admonitionIcon_tEzm><svg viewBox="0 0 14 16"><path fill-rule=evenodd d="M6.3 5.69a.942.942 0 0 1-.28-.7c0-.28.09-.52.28-.7.19-.18.42-.28.7-.28.28 0 .52.09.7.28.18.19.28.42.28.7 0 .28-.09.52-.28.7a1 1 0 0 1-.7.3c-.28 0-.52-.11-.7-.3zM8 7.99c-.02-.25-.11-.48-.31-.69-.2-.19-.42-.3-.69-.31H6c-.27.02-.48.13-.69.31-.2.2-.3.44-.31.69h1v3c.02.27.11.5.31.69.2.2.42.31.69.31h1c.27 0 .48-.11.69-.31.2-.19.3-.42.31-.69H8V7.98v.01zM7 2.3c-3.14 0-5.7 2.54-5.7 5.68 0 3.14 2.56 5.7 5.7 5.7s5.7-2.55 5.7-5.7c0-3.15-2.56-5.69-5.7-5.69v.01zM7 .98c3.86 0 7 3.14 7 7s-3.14 7-7 7-7-3.12-7-7 3.14-7 7-7z"/></svg></span>备注</div><div class=admonitionContent_ZwmI><p>产品在 Bybit v5 API 中也被称为 <code>category</code>。</div></div>
+<p>Bybit 支持以下产品类型：</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>产品类型<th>支持<th>说明<tbody><tr><td>现货加密货币<td>✓<td>支持保证金的原生现货市场。<tr><td>线性永续合约<td>✓<td>USDT/USDC 保证金的永续互换。<tr><td>线性期货合约<td>✓<td>实物交割结算的线性期货。<tr><td>反向永续合约<td>✓<td>币本位保证金的永续互换。<tr><td>反向期货合约<td>✓<td>币本位保证金的交割期货。<tr><td>期权合约<td>✓<td>以 USDT 或 USDC 结算的欧式期权。</table>
+<h2 class="anchor anchorTargetStickyNavbar_ana5" id=symbology>符号体系<a href=#symbology class=hash-link aria-label=符号体系的直接链接 title=符号体系的直接链接 translate=no>​</a></h2>
+<p>为区分 Bybit 上不同的产品类型，Nautilus 为 symbol 使用特定的产品类别后缀：</p>
 <ul>
-<li>以太/泰达现货对可表示为 <code>ETHUSDT-SPOT</code>。</li>
-<li>BTCUSDT 永续合约可表示为 <code>BTCUSDT-LINEAR</code>。</li>
-<li>BTCUSD 反向永续合约可表示为 <code>BTCUSD-INVERSE</code>。</li>
+<li class=""><code>-SPOT</code>：现货加密货币</li>
+<li class=""><code>-LINEAR</code>：永续与期货合约</li>
+<li class=""><code>-INVERSE</code>：反向永续与反向期货合约</li>
+<li class=""><code>-OPTION</code>：期权合约</li>
 </ul>
-<h2 class="anchor anchorWithStickyNavbar_RpWm" id="订单能力orders-capability">订单能力（Orders capability）<a href="#订单能力orders-capability" class="hash-link" aria-label="订单能力（Orders capability）的直接链接" title="订单能力（Orders capability）的直接链接" translate="no">​</a></h2>
-<p>Bybit 支持灵活的触发类型组合，从而扩展了 Nautilus 的订单能力。下表中的订单类型既可以用作开仓也可以用作平仓（except trailing stops，因其依赖于与仓位相关的 API）。</p>
-<h3 class="anchor anchorWithStickyNavbar_RpWm" id="订单类型">订单类型<a href="#订单类型" class="hash-link" aria-label="订单类型的直接链接" title="订单类型的直接链接" translate="no">​</a></h3>
-<table><thead><tr><th>订单类型（Order Type）</th><th>Spot</th><th>Linear</th><th>Inverse</th><th>备注</th></tr></thead><tbody><tr><td><code>MARKET</code></td><td>✓</td><td>✓</td><td>✓</td><td>支持按报价量（quote quantity）</td></tr><tr><td><code>LIMIT</code></td><td>✓</td><td>✓</td><td>✓</td><td></td></tr><tr><td><code>STOP_MARKET</code></td><td>✓</td><td>✓</td><td>✓</td><td></td></tr><tr><td><code>STOP_LIMIT</code></td><td>✓</td><td>✓</td><td>✓</td><td></td></tr><tr><td><code>MARKET_IF_TOUCHED</code></td><td>✓</td><td>✓</td><td>✓</td><td></td></tr><tr><td><code>LIMIT_IF_TOUCHED</code></td><td>✓</td><td>✓</td><td>✓</td><td></td></tr><tr><td><code>TRAILING_STOP_MARKET</code></td><td>-</td><td>✓</td><td>✓</td><td>现货不支持（<em>Not supported for Spot</em>）</td></tr></tbody></table>
-<h3 class="anchor anchorWithStickyNavbar_RpWm" id="执行指令execution-instructions">执行指令（Execution instructions）<a href="#执行指令execution-instructions" class="hash-link" aria-label="执行指令（Execution instructions）的直接链接" title="执行指令（Execution instructions）的直接链接" translate="no">​</a></h3>
-<table><thead><tr><th>指令（Instruction）</th><th>Spot</th><th>Linear</th><th>Inverse</th><th>备注</th></tr></thead><tbody><tr><td><code>post_only</code></td><td>✓</td><td>✓</td><td>✓</td><td>仅在 <code>LIMIT</code> 订单上支持。</td></tr><tr><td><code>reduce_only</code></td><td>-</td><td>✓</td><td>✓</td><td>现货不支持（<em>Not supported for Spot</em>）。</td></tr></tbody></table>
-<h3 class="anchor anchorWithStickyNavbar_RpWm" id="有效期time-in-force">有效期（Time in force）<a href="#有效期time-in-force" class="hash-link" aria-label="有效期（Time in force）的直接链接" title="有效期（Time in force）的直接链接" translate="no">​</a></h3>
-<table><thead><tr><th>有效期（Time in force）</th><th>Spot</th><th>Linear</th><th>Inverse</th><th>备注</th></tr></thead><tbody><tr><td><code>GTC</code></td><td>✓</td><td>✓</td><td>✓</td><td>Good Till Canceled（持续挂单）</td></tr><tr><td><code>GTD</code></td><td>-</td><td>-</td><td>-</td><td>不支持（<em>Not supported</em>）</td></tr><tr><td><code>FOK</code></td><td>✓</td><td>✓</td><td>✓</td><td>Fill or Kill（全部成交或取消）</td></tr><tr><td><code>IOC</code></td><td>✓</td><td>✓</td><td>✓</td><td>Immediate or Cancel（立即成交或取消）</td></tr></tbody></table>
-<h3 class="anchor anchorWithStickyNavbar_RpWm" id="高级订单功能advanced-order-features">高级订单功能（Advanced order features）<a href="#高级订单功能advanced-order-features" class="hash-link" aria-label="高级订单功能（Advanced order features）的直接链接" title="高级订单功能（Advanced order features）的直接链接" translate="no">​</a></h3>
-<table><thead><tr><th>功能（Feature）</th><th>Spot</th><th>Linear</th><th>Inverse</th><th>备注</th></tr></thead><tbody><tr><td>Order Modification</td><td>✓</td><td>✓</td><td>✓</td><td>支持价格与数量修改。</td></tr><tr><td>Bracket/OCO Orders</td><td>✓</td><td>✓</td><td>✓</td><td>仅 UI 支持；API 使用者需自行实现。</td></tr><tr><td>Iceberg Orders</td><td>✓</td><td>✓</td><td>✓</td><td>每个账户最多 10 个，且每个 symbol 最多 1 个。</td></tr></tbody></table>
-<h3 class="anchor anchorWithStickyNavbar_RpWm" id="批量操作batch-operations">批量操作（Batch operations）<a href="#批量操作batch-operations" class="hash-link" aria-label="批量操作（Batch operations）的直接链接" title="批量操作（Batch operations）的直接链接" translate="no">​</a></h3>
-<table><thead><tr><th>操作（Operation）</th><th>Spot</th><th>Linear</th><th>Inverse</th><th>备注</th></tr></thead><tbody><tr><td>Batch Submit</td><td>✓</td><td>✓</td><td>✓</td><td>在单次请求中提交多笔订单。</td></tr><tr><td>Batch Modify</td><td>✓</td><td>✓</td><td>✓</td><td>在单次请求中修改多笔订单。</td></tr><tr><td>Batch Cancel</td><td>✓</td><td>✓</td><td>✓</td><td>在单次请求中取消多笔订单。</td></tr></tbody></table>
-<h3 class="anchor anchorWithStickyNavbar_RpWm" id="仓位管理position-management">仓位管理（Position management）<a href="#仓位管理position-management" class="hash-link" aria-label="仓位管理（Position management）的直接链接" title="仓位管理（Position management）的直接链接" translate="no">​</a></h3>
-<table><thead><tr><th>功能（Feature）</th><th>Spot</th><th>Linear</th><th>Inverse</th><th>备注</th></tr></thead><tbody><tr><td>Query positions</td><td>-</td><td>✓</td><td>✓</td><td>实时仓位更新。</td></tr><tr><td>Position mode</td><td>-</td><td>✓</td><td>✓</td><td>单向（One-Way）与对冲（Hedge）模式。</td></tr><tr><td>Leverage control</td><td>-</td><td>✓</td><td>✓</td><td>支持针对不同 symbol 的杠杆动态调整。</td></tr><tr><td>Margin mode</td><td>-</td><td>✓</td><td>✓</td><td>Cross 与 Isolated 保证金模式。</td></tr></tbody></table>
-<h3 class="anchor anchorWithStickyNavbar_RpWm" id="订单查询order-querying">订单查询（Order querying）<a href="#订单查询order-querying" class="hash-link" aria-label="订单查询（Order querying）的直接链接" title="订单查询（Order querying）的直接链接" translate="no">​</a></h3>
-<table><thead><tr><th>功能（Feature）</th><th>Spot</th><th>Linear</th><th>Inverse</th><th>备注</th></tr></thead><tbody><tr><td>Query open orders</td><td>✓</td><td>✓</td><td>✓</td><td>列出所有未成交/未撤销的活动订单。</td></tr><tr><td>Query order history</td><td>✓</td><td>✓</td><td>✓</td><td>订单历史数据。</td></tr><tr><td>Order status updates</td><td>✓</td><td>✓</td><td>✓</td><td>实时订单状态变更。</td></tr><tr><td>Trade history</td><td>✓</td><td>✓</td><td>✓</td><td>成交与回填（fill）报告。</td></tr></tbody></table>
-<h3 class="anchor anchorWithStickyNavbar_RpWm" id="或有订单contingent-orders">或有订单（Contingent orders）<a href="#或有订单contingent-orders" class="hash-link" aria-label="或有订单（Contingent orders）的直接链接" title="或有订单（Contingent orders）的直接链接" translate="no">​</a></h3>
-<table><thead><tr><th>功能（Feature）</th><th>Spot</th><th>Linear</th><th>Inverse</th><th>备注</th></tr></thead><tbody><tr><td>Order lists</td><td>-</td><td>-</td><td>-</td><td>不支持（<em>Not supported</em>）。</td></tr><tr><td>OCO orders</td><td>✓</td><td>✓</td><td>✓</td><td>仅 UI 支持；API 使用者需自行实现。</td></tr><tr><td>Bracket orders</td><td>✓</td><td>✓</td><td>✓</td><td>仅 UI 支持；API 使用者需自行实现。</td></tr><tr><td>Conditional orders</td><td>✓</td><td>✓</td><td>✓</td><td>包括 stop 与 limit-if-touched 类型。</td></tr></tbody></table>
-<h3 class="anchor anchorWithStickyNavbar_RpWm" id="订单参数order-parameters">订单参数（Order parameters）<a href="#订单参数order-parameters" class="hash-link" aria-label="订单参数（Order parameters）的直接链接" title="订单参数（Order parameters）的直接链接" translate="no">​</a></h3>
-<p>提交订单时可通过 <code>params</code> 字典自定义单笔订单的额外参数：</p>
-<table><thead><tr><th>参数（Parameter）</th><th>类型（Type）</th><th>说明（Description）</th></tr></thead><tbody><tr><td><code>is_leverage</code></td><td><code>bool</code></td><td>仅适用于 SPOT 产品。若为 <code>True</code> 则为该订单启用保证金交易（借贷），默认：<code>False</code>。详见 Bybit 的 isLeverage 文档。</td></tr></tbody></table>
-<h4 class="anchor anchorWithStickyNavbar_RpWm" id="示例spot-保证金交易">示例：SPOT 保证金交易<a href="#示例spot-保证金交易" class="hash-link" aria-label="示例：SPOT 保证金交易的直接链接" title="示例：SPOT 保证金交易的直接链接" translate="no">​</a></h4>
-<div class="language-python codeBlockContainer_euGm theme-code-block" style="--prism-color:#393A34;--prism-background-color:#f6f8fa"><div class="codeBlockContent_zF3K"><pre tabindex="0" class="prism-code language-python codeBlock_G1mO thin-scrollbar" style="color:#393A34;background-color:#f6f8fa"><code class="codeBlockLines_QZRj"><span class="token-line" style="color:#393A34"><span class="token comment" style="color:#999988;font-style:italic"># Submit a SPOT order with margin enabled</span><span class="token plain"></span><br></span><span class="token-line" style="color:#393A34"><span class="token plain">order </span><span class="token operator" style="color:#393A34">=</span><span class="token plain"> strategy</span><span class="token punctuation" style="color:#393A34">.</span><span class="token plain">order_factory</span><span class="token punctuation" style="color:#393A34">.</span><span class="token plain">market</span><span class="token punctuation" style="color:#393A34">(</span><span class="token plain"></span><br></span><span class="token-line" style="color:#393A34"><span class="token plain">    instrument_id</span><span class="token operator" style="color:#393A34">=</span><span class="token plain">InstrumentId</span><span class="token punctuation" style="color:#393A34">.</span><span class="token plain">from_str</span><span class="token punctuation" style="color:#393A34">(</span><span class="token string" style="color:#e3116c">&quot;BTCUSDT-SPOT.BYBIT&quot;</span><span class="token punctuation" style="color:#393A34">)</span><span class="token punctuation" style="color:#393A34">,</span><span class="token plain"></span><br></span><span class="token-line" style="color:#393A34"><span class="token plain">    order_side</span><span class="token operator" style="color:#393A34">=</span><span class="token plain">OrderSide</span><span class="token punctuation" style="color:#393A34">.</span><span class="token plain">BUY</span><span class="token punctuation" style="color:#393A34">,</span><span class="token plain"></span><br></span><span class="token-line" style="color:#393A34"><span class="token plain">    quantity</span><span class="token operator" style="color:#393A34">=</span><span class="token plain">Quantity</span><span class="token punctuation" style="color:#393A34">.</span><span class="token plain">from_str</span><span class="token punctuation" style="color:#393A34">(</span><span class="token string" style="color:#e3116c">&quot;0.1&quot;</span><span class="token punctuation" style="color:#393A34">)</span><span class="token punctuation" style="color:#393A34">,</span><span class="token plain"></span><br></span><span class="token-line" style="color:#393A34"><span class="token plain">    params</span><span class="token operator" style="color:#393A34">=</span><span class="token punctuation" style="color:#393A34">{</span><span class="token string" style="color:#e3116c">&quot;is_leverage&quot;</span><span class="token punctuation" style="color:#393A34">:</span><span class="token plain"> </span><span class="token boolean" style="color:#36acaa">True</span><span class="token punctuation" style="color:#393A34">}</span><span class="token plain">  </span><span class="token comment" style="color:#999988;font-style:italic"># Enable margin for this order</span><span class="token plain"></span><br></span><span class="token-line" style="color:#393A34"><span class="token plain"></span><span class="token punctuation" style="color:#393A34">)</span><span class="token plain"></span><br></span><span class="token-line" style="color:#393A34"><span class="token plain">strategy</span><span class="token punctuation" style="color:#393A34">.</span><span class="token plain">submit_order</span><span class="token punctuation" style="color:#393A34">(</span><span class="token plain">order</span><span class="token punctuation" style="color:#393A34">)</span><br></span></code></pre></div></div>
-<div class="theme-admonition theme-admonition-note admonition_lEzE alert alert--secondary"><div class="admonitionHeading_aAf0"><span class="admonitionIcon_xtBN"><svg viewBox="0 0 14 16"><path fill-rule="evenodd" d="M6.3 5.69a.942.942 0 0 1-.28-.7c0-.28.09-.52.28-.7.19-.18.42-.28.7-.28.28 0 .52.09.7.28.18.19.28.42.28.7 0 .28-.09.52-.28.7a1 1 0 0 1-.7.3c-.28 0-.52-.11-.7-.3zM8 7.99c-.02-.25-.11-.48-.31-.69-.2-.19-.42-.3-.69-.31H6c-.27.02-.48.13-.69.31-.2.2-.3.44-.31.69h1v3c.02.27.11.5.31.69.2.2.42.31.69.31h1c.27 0 .48-.11.69-.31.2-.19.3-.42.31-.69H8V7.98v.01zM7 2.3c-3.14 0-5.7 2.54-5.7 5.68 0 3.14 2.56 5.7 5.7 5.7s5.7-2.55 5.7-5.7c0-3.15-2.56-5.69-5.7-5.69v.01zM7 .98c3.86 0 7 3.14 7 7s-3.14 7-7 7-7-3.12-7-7 3.14-7 7-7z"></path></svg></span>备注</div><div class="admonitionContent_Vfkp"><p>若在 params 中未设置 <code>is_leverage=True</code>，SPOT 订单只会使用你的可用余额，不会借入资金（即便你的 Bybit 账号开启了自动借贷）。</p></div></div>
-<p>完整的参数和示例（包括 <code>is_leverage</code>）请参见仓库示例：bybit_exec_tester.py。</p>
-<h3 class="anchor anchorWithStickyNavbar_RpWm" id="spot-交易限制">SPOT 交易限制<a href="#spot-交易限制" class="hash-link" aria-label="SPOT 交易限制的直接链接" title="SPOT 交易限制的直接链接" translate="no">​</a></h3>
-<p>由于交易所侧不跟踪现货仓位，下列限制适用于 SPOT 产品：</p>
+<p>这些后缀必须拼接到 Bybit 原始 symbol 字符串之后，才能确定工具 ID 对应的具体产品类型。
+例如：</p>
 <ul>
-<li><code>reduce_only</code> 指令不被支持。</li>
-<li>Trailing stop（追踪止损）订单不被支持。</li>
+<li class="">Ether/Tether 现货货币对用 <code>-SPOT</code> 标识，如 <code>ETHUSDT-SPOT</code>。</li>
+<li class="">BTCUSDT 永续期货合约用 <code>-LINEAR</code> 标识，如 <code>BTCUSDT-LINEAR</code>。</li>
+<li class="">BTCUSD 反向永续期货合约用 <code>-INVERSE</code> 标识，如 <code>BTCUSD-INVERSE</code>。</li>
+<li class="">一只 BTC USDT 结算的卖权期权：<code>BTC-27MAR26-70000-P-USDT-OPTION</code>。</li>
+<li class="">一只 ETH USDC 结算的买权期权：<code>ETH-28FEB25-2800-C-OPTION</code>。</li>
 </ul>
-<h3 class="anchor anchorWithStickyNavbar_RpWm" id="追踪止损trailing-stops">追踪止损（Trailing stops）<a href="#追踪止损trailing-stops" class="hash-link" aria-label="追踪止损（Trailing stops）的直接链接" title="追踪止损（Trailing stops）的直接链接" translate="no">​</a></h3>
-<p>Bybit 的追踪止损在场内侧并不带有 client order ID（不过存在 <code>venue_order_id</code>）。这是因为追踪止损与某个合并后的仓位（netted position）相关联。使用追踪止损时请注意：</p>
+<p>Bybit 的期权 symbol 对 USDT 结算合约包含结算货币（例如
+<code>BTC-27MAR26-70000-P-USDT</code>），但对 USDC 结算合约省略它（例如
+<code>ETH-28FEB25-2800-C</code>）。适配器在 API 返回的任何 symbol 后追加 <code>-OPTION</code>。</p>
+<h2 class="anchor anchorTargetStickyNavbar_ana5" id=instrument-loading>工具加载<a href=#instrument-loading class=hash-link aria-label=工具加载的直接链接 title=工具加载的直接链接 translate=no>​</a></h2>
+<p>数据与执行客户端在连接时加载其配置 <code>product_types</code> 的全部工具。默认是 <code>LINEAR</code>。请把订阅
+或订单需要的每个产品类型都包含进去。</p>
+<h2 class="anchor anchorTargetStickyNavbar_ana5" id=environments>环境<a href=#environments class=hash-link aria-label=环境的直接链接 title=环境的直接链接 translate=no>​</a></h2>
+<p>Bybit 提供三种交易环境。用客户端配置上的 <code>environment</code> 枚举选择合适的
+环境。</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>环境<th>配置<th>说明<tbody><tr><td><strong>主网</strong><td><code>BybitEnvironment.MAINNET</code><td>用真实资金的生产交易。<tr><td><strong>Demo</strong><td><code>BybitEnvironment.DEMO</code><td>在主网基础设施上用模拟资金练习交易。<tr><td><strong>测试网</strong><td><code>BybitEnvironment.TESTNET</code><td>用于开发与集成测试的独立测试网络。</table>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=mainnet-production>主网（生产环境）<a href=#mainnet-production class=hash-link aria-label=主网（生产环境）的直接链接 title=主网（生产环境）的直接链接 translate=no>​</a></h3>
+<p>用真实资金做实盘交易时的默认环境。</p>
+<div class="language-python codeBlockContainer_eTMR theme-code-block" style=--prism-color:#393A34;--prism-background-color:#f6f8fa><div class=codeBlockContent_hafM><pre tabindex=0 class="prism-code language-python codeBlock_IMvC thin-scrollbar" style=color:#393A34;background-color:#f6f8fa><code class=codeBlockLines_gZDW><div class=token-line style=color:#393A34><span class="token keyword" style=color:#00009f>from</span><span class="token plain"> nautilus_trader</span><span class="token punctuation" style=color:#393A34>.</span><span class="token plain">adapters</span><span class="token punctuation" style=color:#393A34>.</span><span class="token plain">bybit </span><span class="token keyword" style=color:#00009f>import</span><span class="token plain"> BybitEnvironment</span><br/></div><div class=token-line style=color:#393A34><span class="token plain"></span><span class="token keyword" style=color:#00009f>from</span><span class="token plain"> nautilus_trader</span><span class="token punctuation" style=color:#393A34>.</span><span class="token plain">adapters</span><span class="token punctuation" style=color:#393A34>.</span><span class="token plain">bybit </span><span class="token keyword" style=color:#00009f>import</span><span class="token plain"> BybitExecutionClientConfig</span><br/></div><div class=token-line style=color:#393A34><span class="token plain" style=display:inline-block></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">config </span><span class="token operator" style=color:#393A34>=</span><span class="token plain"> BybitExecutionClientConfig</span><span class="token punctuation" style=color:#393A34>(</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    api_key</span><span class="token operator" style=color:#393A34>=</span><span class="token string" style=color:#e3116c>"YOUR_API_KEY"</span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    api_secret</span><span class="token operator" style=color:#393A34>=</span><span class="token string" style=color:#e3116c>"YOUR_API_SECRET"</span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    environment</span><span class="token operator" style=color:#393A34>=</span><span class="token plain">BybitEnvironment</span><span class="token punctuation" style=color:#393A34>.</span><span class="token plain">MAINNET</span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain"></span><span class="token punctuation" style=color:#393A34>)</span><br/></div></code></pre></div></div>
+<p>环境变量：<code>BYBIT_API_KEY</code>、<code>BYBIT_API_SECRET</code></p>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=demo-trading>Demo 交易<a href=#demo-trading class=hash-link aria-label="Demo 交易的直接链接" title="Demo 交易的直接链接" translate=no>​</a></h3>
+<p>Demo 交易在 Bybit 的主网基础设施上使用模拟资金。请在
+<a href=https://www.bybit.com/en/demo-trading target=_blank rel="noopener noreferrer" class="">Bybit demo 交易页面</a>创建 demo API key。</p>
+<div class="language-python codeBlockContainer_eTMR theme-code-block" style=--prism-color:#393A34;--prism-background-color:#f6f8fa><div class=codeBlockContent_hafM><pre tabindex=0 class="prism-code language-python codeBlock_IMvC thin-scrollbar" style=color:#393A34;background-color:#f6f8fa><code class=codeBlockLines_gZDW><div class=token-line style=color:#393A34><span class="token keyword" style=color:#00009f>from</span><span class="token plain"> nautilus_trader</span><span class="token punctuation" style=color:#393A34>.</span><span class="token plain">adapters</span><span class="token punctuation" style=color:#393A34>.</span><span class="token plain">bybit </span><span class="token keyword" style=color:#00009f>import</span><span class="token plain"> BybitEnvironment</span><br/></div><div class=token-line style=color:#393A34><span class="token plain"></span><span class="token keyword" style=color:#00009f>from</span><span class="token plain"> nautilus_trader</span><span class="token punctuation" style=color:#393A34>.</span><span class="token plain">adapters</span><span class="token punctuation" style=color:#393A34>.</span><span class="token plain">bybit </span><span class="token keyword" style=color:#00009f>import</span><span class="token plain"> BybitExecutionClientConfig</span><br/></div><div class=token-line style=color:#393A34><span class="token plain" style=display:inline-block></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">config </span><span class="token operator" style=color:#393A34>=</span><span class="token plain"> BybitExecutionClientConfig</span><span class="token punctuation" style=color:#393A34>(</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    api_key</span><span class="token operator" style=color:#393A34>=</span><span class="token string" style=color:#e3116c>"YOUR_DEMO_API_KEY"</span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    api_secret</span><span class="token operator" style=color:#393A34>=</span><span class="token string" style=color:#e3116c>"YOUR_DEMO_API_SECRET"</span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    environment</span><span class="token operator" style=color:#393A34>=</span><span class="token plain">BybitEnvironment</span><span class="token punctuation" style=color:#393A34>.</span><span class="token plain">DEMO</span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain"></span><span class="token punctuation" style=color:#393A34>)</span><br/></div></code></pre></div></div>
+<p>环境变量：<code>BYBIT_DEMO_API_KEY</code>、<code>BYBIT_DEMO_API_SECRET</code></p>
+<div class="theme-admonition theme-admonition-warning admonition_LYZY alert alert--warning"><div class=admonitionHeading_pnFY><span class=admonitionIcon_tEzm><svg viewBox="0 0 16 16"><path fill-rule=evenodd d="M8.893 1.5c-.183-.31-.52-.5-.887-.5s-.703.19-.886.5L.138 13.499a.98.98 0 0 0 0 1.001c.193.31.53.501.886.501h13.964c.367 0 .704-.19.877-.5a1.03 1.03 0 0 0 .01-1.002L8.893 1.5zm.133 11.497H6.987v-2.003h2.039v2.003zm0-3.004H6.987V5.987h2.039v4.006z"/></svg></span>注意</div><div class=admonitionContent_ZwmI><p><strong>Demo 环境的限制</strong>：<ul>
+<li class="">Demo 交易<strong>不支持</strong> WebSocket Trade API。NautilusTrader 在 demo 模式自动改用 HTTP REST
+API 做订单操作，包括订单列表与批量撤销——它们以独立请求发送。</li>
+<li class="">新订单上的原生 TP/SL 与期权参数（<code>order_iv</code>、<code>mmp</code>）在 demo 中经由 HTTP 下单端点可用。</li>
+<li class="">自定义 TP/SL 触发价 <code>tp_trigger_price</code> 与 <code>sl_trigger_price</code> 在 demo 中不支持（设置了
+它们的订单会被拒绝）。下单端点无法携带它们。</li>
+<li class="">Demo 私有流使用 <code>wss://stream-demo.bybit.com</code>，但公开行情使用 Bybit 主网的公开流
+<code>wss://stream.bybit.com</code>。</li>
+</ul></div></div>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=testnet>测试网<a href=#testnet class=hash-link aria-label=测试网的直接链接 title=测试网的直接链接 translate=no>​</a></h3>
+<p>用于开发与集成测试的独立测试网络。</p>
+<div class="language-python codeBlockContainer_eTMR theme-code-block" style=--prism-color:#393A34;--prism-background-color:#f6f8fa><div class=codeBlockContent_hafM><pre tabindex=0 class="prism-code language-python codeBlock_IMvC thin-scrollbar" style=color:#393A34;background-color:#f6f8fa><code class=codeBlockLines_gZDW><div class=token-line style=color:#393A34><span class="token keyword" style=color:#00009f>from</span><span class="token plain"> nautilus_trader</span><span class="token punctuation" style=color:#393A34>.</span><span class="token plain">adapters</span><span class="token punctuation" style=color:#393A34>.</span><span class="token plain">bybit </span><span class="token keyword" style=color:#00009f>import</span><span class="token plain"> BybitEnvironment</span><br/></div><div class=token-line style=color:#393A34><span class="token plain"></span><span class="token keyword" style=color:#00009f>from</span><span class="token plain"> nautilus_trader</span><span class="token punctuation" style=color:#393A34>.</span><span class="token plain">adapters</span><span class="token punctuation" style=color:#393A34>.</span><span class="token plain">bybit </span><span class="token keyword" style=color:#00009f>import</span><span class="token plain"> BybitExecutionClientConfig</span><br/></div><div class=token-line style=color:#393A34><span class="token plain" style=display:inline-block></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">config </span><span class="token operator" style=color:#393A34>=</span><span class="token plain"> BybitExecutionClientConfig</span><span class="token punctuation" style=color:#393A34>(</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    api_key</span><span class="token operator" style=color:#393A34>=</span><span class="token string" style=color:#e3116c>"YOUR_TESTNET_API_KEY"</span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    api_secret</span><span class="token operator" style=color:#393A34>=</span><span class="token string" style=color:#e3116c>"YOUR_TESTNET_API_SECRET"</span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    environment</span><span class="token operator" style=color:#393A34>=</span><span class="token plain">BybitEnvironment</span><span class="token punctuation" style=color:#393A34>.</span><span class="token plain">TESTNET</span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain"></span><span class="token punctuation" style=color:#393A34>)</span><br/></div></code></pre></div></div>
+<p>环境变量：<code>BYBIT_TESTNET_API_KEY</code>、<code>BYBIT_TESTNET_API_SECRET</code></p>
+<div class="theme-admonition theme-admonition-note admonition_LYZY alert alert--secondary"><div class=admonitionHeading_pnFY><span class=admonitionIcon_tEzm><svg viewBox="0 0 14 16"><path fill-rule=evenodd d="M6.3 5.69a.942.942 0 0 1-.28-.7c0-.28.09-.52.28-.7.19-.18.42-.28.7-.28.28 0 .52.09.7.28.18.19.28.42.28.7 0 .28-.09.52-.28.7a1 1 0 0 1-.7.3c-.28 0-.52-.11-.7-.3zM8 7.99c-.02-.25-.11-.48-.31-.69-.2-.19-.42-.3-.69-.31H6c-.27.02-.48.13-.69.31-.2.2-.3.44-.31.69h1v3c.02.27.11.5.31.69.2.2.42.31.69.31h1c.27 0 .48-.11.69-.31.2-.19.3-.42.31-.69H8V7.98v.01zM7 2.3c-3.14 0-5.7 2.54-5.7 5.68 0 3.14 2.56 5.7 5.7 5.7s5.7-2.55 5.7-5.7c0-3.15-2.56-5.69-5.7-5.69v.01zM7 .98c3.86 0 7 3.14 7 7s-3.14 7-7 7-7-3.12-7-7 3.14-7 7-7z"/></svg></span>备注</div><div class=admonitionContent_ZwmI><p>测试网支持全部交易特性，包括 WebSocket Trade API。它与主网使用完全独立的基础设施，
+因此行情数据与流动性与生产环境差异很大。</div></div>
+<p>设置 <code>environment=BybitEnvironment.TESTNET</code> 时，适配器自动解析 Bybit 文档中的测试网端点：</p>
 <ul>
-<li>支持 <code>reduce_only</code> 指令。</li>
-<li>当与追踪止损关联的仓位被平仓时，追踪止损会在场内自动“停用”（close）。</li>
-<li>无法查询尚未打开的追踪止损订单（<code>venue_order_id</code> 在此之前未知）。</li>
-<li>你可以在 GUI 中手动调整触发价格，调整会同步更新 Nautilus 中对应的订单。</li>
+<li class="">REST API：<code>https://api-testnet.bybit.com</code></li>
+<li class="">公开 WebSocket：<code>wss://stream-testnet.bybit.com/v5/public/{spot|linear|inverse|option}</code></li>
+<li class="">私有 WebSocket：<code>wss://stream-testnet.bybit.com/v5/private</code></li>
+<li class="">Trade WebSocket：<code>wss://stream-testnet.bybit.com/v5/trade</code></li>
 </ul>
-<h2 class="anchor anchorWithStickyNavbar_RpWm" id="速率限制rate-limiting">速率限制（Rate limiting）<a href="#速率限制rate-limiting" class="hash-link" aria-label="速率限制（Rate limiting）的直接链接" title="速率限制（Rate limiting）的直接链接" translate="no">​</a></h2>
-<p>每次 HTTP 调用会消耗全局 token 桶以及任何特定 key 的配额（keyed quota）。当某个桶超出限额时，请求会被自动排队，因此通常无需手动限流。下表列出了常见端点的速率限制：</p>
-<table><thead><tr><th>Key / Endpoint</th><th>限制（requests/sec）</th><th>备注</th></tr></thead><tbody><tr><td><code>bybit:global</code></td><td>120</td><td>全交易所维度：600 req / 5 s 的上限。</td></tr><tr><td><code>/v5/market/kline</code></td><td>20</td><td>历史数据查询的速率稍低于全局配额。</td></tr><tr><td><code>/v5/market/trades</code></td><td>24</td><td>与全局配额匹配。</td></tr><tr><td><code>/v5/order/create</code></td><td>10</td><td>标准下单请求。</td></tr><tr><td><code>/v5/order/cancel</code></td><td>10</td><td>单笔撤单。</td></tr><tr><td><code>/v5/order/create-batch</code></td><td>5</td><td>批量下单接口。</td></tr><tr><td><code>/v5/order/cancel-batch</code></td><td>5</td><td>批量撤单接口。</td></tr><tr><td><code>/v5/order/cancel-all</code></td><td>2</td><td>全书（full book）撤单，用于符合 Bybit 指南的场景。</td></tr></tbody></table>
-<div class="theme-admonition theme-admonition-warning admonition_lEzE alert alert--warning"><div class="admonitionHeading_aAf0"><span class="admonitionIcon_xtBN"><svg viewBox="0 0 16 16"><path fill-rule="evenodd" d="M8.893 1.5c-.183-.31-.52-.5-.887-.5s-.703.19-.886.5L.138 13.499a.98.98 0 0 0 0 1.001c.193.31.53.501.886.501h13.964c.367 0 .704-.19.877-.5a1.03 1.03 0 0 0 .01-1.002L8.893 1.5zm.133 11.497H6.987v-2.003h2.039v2.003zm0-3.004H6.987V5.987h2.039v4.006z"></path></svg></span>注意</div><div class="admonitionContent_Vfkp"><p>当触发速率限制时，Bybit 会返回错误码 <code>10016</code>，若持续不做退避（back-off）可能会临时封禁该 IP。</p></div></div>
-<div class="theme-admonition theme-admonition-info admonition_lEzE alert alert--info"><div class="admonitionHeading_aAf0"><span class="admonitionIcon_xtBN"><svg viewBox="0 0 14 16"><path fill-rule="evenodd" d="M7 2.3c3.14 0 5.7 2.56 5.7 5.7s-2.56 5.7-5.7 5.7A5.71 5.71 0 0 1 1.3 8c0-3.14 2.56-5.7 5.7-5.7zM7 1C3.14 1 0 4.14 0 8s3.14 7 7 7 7-3.14 7-7-3.14-7-7-7zm1 3H6v5h2V4zm0 6H6v2h2v-2z"></path></svg></span>信息</div><div class="admonitionContent_Vfkp"><p>更多关于速率限制的细节，请参阅官方文档：Bybit Rate Limit。</p></div></div>
-<h3 class="anchor anchorWithStickyNavbar_RpWm" id="数据客户端data-clients">数据客户端（Data clients）<a href="#数据客户端data-clients" class="hash-link" aria-label="数据客户端（Data clients）的直接链接" title="数据客户端（Data clients）的直接链接" translate="no">​</a></h3>
-<p>如果未指定 product types，则会默认加载并可用所有产品类型。</p>
-<h3 class="anchor anchorWithStickyNavbar_RpWm" id="执行客户端execution-clients">执行客户端（Execution clients）<a href="#执行客户端execution-clients" class="hash-link" aria-label="执行客户端（Execution clients）的直接链接" title="执行客户端（Execution clients）的直接链接" translate="no">​</a></h3>
-<p>适配器会根据配置的 product types 自动判定账户类型：</p>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=testnet-setup>测试网设置<a href=#testnet-setup class=hash-link aria-label=测试网设置的直接链接 title=测试网设置的直接链接 translate=no>​</a></h3>
+<p>设置 Bybit 测试网账户与凭据的步骤：</p>
+<ol>
+<li class="">
+<p>在桌面浏览器中打开 <a href=https://testnet.bybit.com target=_blank rel="noopener noreferrer" class="">testnet.bybit.com</a>。</p>
+</li>
+<li class="">
+<p>新建一个测试网账户，或登录你已有的测试网账户。</p>
+</li>
+<li class="">
+<p>从 <strong>Assets -> Assets Overview -> Request Test Coins</strong> 申领测试币，让账户有余额可测。</p>
+</li>
+<li class="">
+<p>打开 <a href=https://testnet.bybit.com/app/user/api-management target=_blank rel="noopener noreferrer" class="">testnet.bybit.com/app/user/api-management</a>
+的 <strong>API Management</strong>。</p>
+</li>
+<li class="">
+<p>点击 <strong>Create New Key</strong>。</p>
+</li>
+<li class="">
+<p>按你的用例勾选所需权限。</p>
+</li>
+<li class="">
+<p>完成 2FA 提示并复制 API key 与 secret。</p>
+</li>
+<li class="">
+<p>在 shell 中导出凭据：</p>
+<div class="language-bash codeBlockContainer_eTMR theme-code-block" style=--prism-color:#393A34;--prism-background-color:#f6f8fa><div class=codeBlockContent_hafM><pre tabindex=0 class="prism-code language-bash codeBlock_IMvC thin-scrollbar" style=color:#393A34;background-color:#f6f8fa><code class=codeBlockLines_gZDW><div class=token-line style=color:#393A34><span class="token plain">export BYBIT_TESTNET_API_KEY="YOUR_TESTNET_API_KEY"</span><br/></div><div class=token-line style=color:#393A34><span class="token plain">export BYBIT_TESTNET_API_SECRET="YOUR_TESTNET_API_SECRET"</span><br/></div></code></pre></div></div>
+</li>
+</ol>
+<p>Bybit 当前的测试网指引还说明：</p>
 <ul>
-<li><strong>仅 SPOT</strong>：使用 <code>CASH</code> 账户类型，并启用借贷支持（borrowing support）。</li>
-<li><strong>衍生品或混合产品</strong>：使用 <code>MARGIN</code> 账户类型（UTA — Unified Trading Account）。</li>
+<li class="">API key 在网站上创建，不能在移动应用里创建。</li>
+<li class="">新用户在注册后的头 48 小时内可能无法创建 API key。</li>
+<li class="">测试网与主网是分离的，不要向测试网账户存入真实资金。</li>
+<li class="">Bybit 目前只文档化了通过桌面浏览器进行的测试网账户设置。</li>
 </ul>
-<p>这意味着你可以在统一交易账户（UTA）中同时交易现货与衍生品，这也是大多数 Bybit 用户采用的标准账户类型。</p>
-<div class="theme-admonition theme-admonition-info admonition_lEzE alert alert--info"><div class="admonitionHeading_aAf0"><span class="admonitionIcon_xtBN"><svg viewBox="0 0 14 16"><path fill-rule="evenodd" d="M7 2.3c3.14 0 5.7 2.56 5.7 5.7s-2.56 5.7-5.7 5.7A5.71 5.71 0 0 1 1.3 8c0-3.14 2.56-5.7 5.7-5.7zM7 1C3.14 1 0 4.14 0 8s3.14 7 7 7 7-3.14 7-7-3.14-7-7-7zm1 3H6v5h2V4zm0 6H6v2h2v-2z"></path></svg></span>信息</div><div class="admonitionContent_Vfkp"><p><strong>统一交易账户（Unified Trading Accounts, UTA）与 SPOT 保证金交易</strong></p><p>大多数 Bybit 用户现在使用 UTA，Bybit 也鼓励新用户使用这一账户类型；经典账户视为旧版。关于 UTA 下的 SPOT 保证金交易：</p><ul>
-<li>借贷并<strong>不会自动开启</strong>，需要在 API 层或账户配置中显式启用。</li>
-<li>若要通过 API 使用 SPOT 保证金，必须在订单参数中提交 <code>is_leverage=True</code>（参见 Bybit 文档）。</li>
-<li>若你的 Bybit 账户启用了自动借贷/自动还款（auto-borrow/auto-repay），则场内会自动为此类订单进行借还操作。</li>
-<li>若未启用自动借贷，则需通过 Bybit 的界面手动管理借贷。</li>
-</ul><p><strong>重要提示</strong>：Nautilus 的 Bybit 适配器对 SPOT 订单的默认值为 <code>is_leverage=False</code>，即默认不会使用保证金，除非你显式开启。</p></div></div>
-<h2 class="anchor anchorWithStickyNavbar_RpWm" id="费用货币fee-currency-logic">费用货币（Fee currency logic）<a href="#费用货币fee-currency-logic" class="hash-link" aria-label="费用货币（Fee currency logic）的直接链接" title="费用货币（Fee currency logic）的直接链接" translate="no">​</a></h2>
-<p>了解 Bybit 如何确定交易费用的计价货币对准确记账与仓位追踪非常重要。费用货币的规则在现货与衍生品之间有所不同。</p>
-<h3 class="anchor anchorWithStickyNavbar_RpWm" id="spot-交易费用">SPOT 交易费用<a href="#spot-交易费用" class="hash-link" aria-label="SPOT 交易费用的直接链接" title="SPOT 交易费用的直接链接" translate="no">​</a></h3>
-<p>对于 SPOT 交易，费用的计价货币取决于订单方向以及该笔费用是否为 maker rebate（负费）：</p>
-<h4 class="anchor anchorWithStickyNavbar_RpWm" id="正常费用正值">正常费用（正值）<a href="#正常费用正值" class="hash-link" aria-label="正常费用（正值）的直接链接" title="正常费用（正值）的直接链接" translate="no">​</a></h4>
+<h2 class="anchor anchorTargetStickyNavbar_ana5" id=quotes-and-order-books>报价与订单簿<a href=#quotes-and-order-books class=hash-link aria-label=报价与订单簿的直接链接 title=报价与订单簿的直接链接 translate=no>​</a></h2>
+<p>对 SPOT、LINEAR 和 INVERSE 产品，报价订阅使用 Bybit 深度为 1 的订单簿快照。该数据源以
+文档记载的 10ms 推送频率提供最优买卖价与数量。见
+<a href=https://bybit-exchange.github.io/docs/v5/websocket/public/orderbook target=_blank rel="noopener noreferrer" class="">Bybit 订单簿规范</a>。
+OPTION 报价使用 ticker 流。</p>
+<p>报价与深度 1 订单簿订阅共用同一个 WebSocket 主题。退订其中一个时，只要另一个仍订阅着，
+主题就保持活跃。更深度的订单簿订阅使用自己的主题，与深度 1 报价流并存，因此增加订单簿
+delta 不会改变报价来源。订单簿 delta 只来自所请求的深度。每个工具只订阅一个订单簿深度，
+换选另一个深度之前先退订现有订单簿。</p>
+<h2 class="anchor anchorTargetStickyNavbar_ana5" id=order-book-recovery>订单簿恢复<a href=#order-book-recovery class=hash-link aria-label=订单簿恢复的直接链接 title=订单簿恢复的直接链接 translate=no>​</a></h2>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=sequence-validation>序列校验<a href=#sequence-validation class=hash-link aria-label=序列校验的直接链接 title=序列校验的直接链接 translate=no>​</a></h3>
+<p>每个 delta 必须携带紧跟订单簿最后接受帧之后的更新 ID <code>u</code>。任何其他 delta 都会抑制订单簿
+输出并请求恢复。在首个快照之前就到达订单簿的 delta 同样如此——例如快重订阅之前发出的更新
+可能先到达新订阅。只有当既没有进行中的恢复、也没有快照死线占用该订单簿时，请求才会启动
+恢复。</p>
+<p>每个快照都替换整个订单簿，这是
+<a href=https://bybit-exchange.github.io/docs/v5/websocket/public/orderbook target=_blank rel="noopener noreferrer" class="">Bybit 订单簿约定</a>
+要求的。场所会在每次订阅后和服务重启后各发送一个快照——服务重启可能把 <code>u</code> 重置为 1——
+而深度 1 只推送快照。替换快照携带的更新 ID 可能低于订单簿最后一个 delta，因为场所从更早
+的状态服务它。之后 delta 从该快照继续。在订单簿的订阅或替换写入仍在途时到达的快照会被
+丢弃。</p>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=snapshot-deadlines>快照死线<a href=#snapshot-deadlines class=hash-link aria-label=快照死线的直接链接 title=快照死线的直接链接 translate=no>​</a></h3>
+<p>初始与恢复订阅在订阅写入完成后，最多等待 <code>book_snapshot_timeout_secs</code>（默认 <strong>10 秒</strong>）
+获取快照。重连 socket 上的订单簿从重连时刻起等待同样时长。快照缺失会启动或重试恢复。</p>
+<p>把 <code>book_snapshot_timeout_secs</code> 设为 <code>0</code> 可禁用快照死线。缺口仍会启动恢复，但若某次恢复
+尝试的快照始终不到，它会一直等到 180 秒重试预算耗尽。</p>
+<p>深度 1 订单簿与报价共享主题。报价已占用该主题时，订阅订单簿什么都不发送，下一次深度 1
+快照会把它同步。</p>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=retry-limits-and-reconnects>重试上限与重连<a href=#retry-limits-and-reconnects class=hash-link aria-label=重试上限与重连的直接链接 title=重试上限与重连的直接链接 translate=no>​</a></h3>
+<p>恢复在同一连接上退订并重新订阅订单簿的主题，场所会以新快照回应。每个恢复事件在 <strong>180 秒
+内至多八次尝试</strong>，带指数退避与抖动。之后它会一直重试直到接受一个快照。重试间隔从 1 分钟
+翻倍到 15 分钟。恢复不会以失败状态结束。退订与关闭会取消它。</p>
+<p>恢复深度 1 订单簿还会暂停共享主题上的报价，直到替换快照到达。替换订阅被场所拒绝时会记
+日志，并在其快照死线过后重试该次尝试。</p>
+<p>重连会从重放订阅的快照出发，重新同步重连的 product type 的 socket 上的每个订单簿。进行
+中的恢复连同剩余预算一起保留。预算耗尽后正在间隔等待的恢复会在新连接上立即重试。</p>
+<p>客户端无法把初始订阅排队时，会记录错误并释放该订单簿，而不是恢复它。例如订阅可能超出
+期权连接的 topic 上限。已排队的初始订阅写入失败时，立即启动恢复。</p>
+<p>共享的恢复机制与适配器职责见
+<a class="" href=/developer_guide/adapters#order-book-recovery-ownership>订单簿恢复归属</a>。</p>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=live-recovery-validation>实盘恢复验证<a href=#live-recovery-validation class=hash-link aria-label=实盘恢复验证的直接链接 title=实盘恢复验证的直接链接 translate=no>​</a></h3>
+<p><code>bybit-book-stress</code> 工具是订单簿同步与恢复改动用的开发工具。它连接 Bybit 主网公开行情，
+不提交任何订单。它以默认深度 50 对照订单簿流约定检查六个 linear 订单簿，这些检查包括每个
+快照事件内序列递增。它还与场所流前 50 档的独立重建结果做比对。</p>
+<p>在仓库根目录运行：</p>
+<div class="language-bash codeBlockContainer_eTMR theme-code-block" style=--prism-color:#393A34;--prism-background-color:#f6f8fa><div class=codeBlockContent_hafM><pre tabindex=0 class="prism-code language-bash codeBlock_IMvC thin-scrollbar" style=color:#393A34;background-color:#f6f8fa><code class=codeBlockLines_gZDW><div class=token-line style=color:#393A34><span class="token plain">CARGO_BUILD_JOBS=16 bash scripts/strip-adapter-env.bash \</span><br/></div><div class=token-line style=color:#393A34><span class="token plain">  cargo test -p nautilus-bybit --features examples --test bybit-book-stress -- --timeout 10 --rounds 21</span><br/></div></code></pre></div></div>
+<p><code>--scenario</code> 选择运行内容：</p>
 <ul>
-<li><strong>买入（BUY）</strong>：费用以**基础货币（base currency）**计收（例如 BTCUSDT 的买入费用为 BTC）。</li>
-<li><strong>卖出（SELL）</strong>：费用以**计价货币（quote currency）**计收（例如 BTCUSDT 的卖出费用为 USDT）。</li>
+<li class=""><code>churn</code>（默认）：先检查无重连的恢复，然后轮换更新 ID 缺口、丢弃与延迟的快照、在快照前
+切断的重连、恢复期间退订、恢复期间重启，以及 40 秒的流量冻结。</li>
+<li class=""><code>initial</code>：丢弃每个订单簿的首个快照，在全新会话中每轮一次。</li>
+<li class=""><code>turnover</code>：在恢复期间退订并重新订阅订单簿。</li>
+<li class=""><code>boundaries</code>：探测替换切断、重试耗尽进入重试上限，以及重连期间的关闭。超时非零时，还
+会拒绝一次替换与一次重放订阅。</li>
 </ul>
-<h4 class="anchor anchorWithStickyNavbar_RpWm" id="maker-rebate负费的情况">Maker rebate（负费）的情况<a href="#maker-rebate负费的情况" class="hash-link" aria-label="Maker rebate（负费）的情况的直接链接" title="Maker rebate（负费）的情况的直接链接" translate="no">​</a></h4>
-<p>当 maker 费用为负（即返佣）时，计费货币规则会<strong>反向</strong>：</p>
+<p><code>--timeout</code> 设置快照超时秒数，<code>0</code> 表示禁用快照死线。<code>--rounds</code> 设置 <code>churn</code>、<code>initial</code>
+和 <code>turnover</code> 的轮数（默认 21）。<code>boundaries</code> 只跑一遍它的序列。</p>
+<p>该工具需要主网 linear WebSocket 流与公开的 <code>instruments-info</code> REST API。共享的旗标与输出
+格式见<a class="" href=/developer_guide/spec_data_testing#stress-harnesses>压力测试工具</a>。</p>
+<h2 class="anchor anchorTargetStickyNavbar_ana5" id=orders-capability>订单能力<a href=#orders-capability class=hash-link aria-label=订单能力的直接链接 title=订单能力的直接链接 translate=no>​</a></h2>
+<p>Bybit 提供触发类型的灵活组合，能覆盖更多样的 Nautilus 订单。下面列出的所有订单类型
+<em>既可以</em>用作开仓<em>也可以</em>用作平仓。</p>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=order-types>订单类型<a href=#order-types class=hash-link aria-label=订单类型的直接链接 title=订单类型的直接链接 translate=no>​</a></h3>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>订单类型<th>现货<th>线性<th>反向<th>期权<th>说明<tbody><tr><td><code>MARKET</code><td>✓<td>✓<td>✓<td>✓<td>报价数量：仅现货。<tr><td><code>LIMIT</code><td>✓<td>✓<td>✓<td>✓<td><tr><td><code>STOP_MARKET</code><td>✓<td>✓<td>✓<td>-<td><em>期权不支持</em>。<tr><td><code>STOP_LIMIT</code><td>✓<td>✓<td>✓<td>-<td><em>期权不支持</em>。<tr><td><code>MARKET_IF_TOUCHED</code><td>✓<td>✓<td>✓<td>-<td><em>期权不支持</em>。<tr><td><code>LIMIT_IF_TOUCHED</code><td>✓<td>✓<td>✓<td>-<td><em>期权不支持</em>。<tr><td><code>TRAILING_STOP_MARKET</code><td>-<td>-<td>-<td>-<td>见<a href=#trailing-stops class="">移动止损</a>。</table>
+<p>提交时，适配器会在本地以 <code>UNSUPPORTED_ORDER_TYPE</code> 原因拒绝不受支持的订单类型，不会把订单
+发往场所。</p>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=execution-instructions>执行指示<a href=#execution-instructions class=hash-link aria-label=执行指示的直接链接 title=执行指示的直接链接 translate=no>​</a></h3>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>指示<th>现货<th>线性<th>反向<th>期权<th>说明<tbody><tr><td><code>post_only</code><td>✓<td>✓<td>✓<td>✓<td>仅限限价类订单；以 Bybit 的 <code>PostOnly</code> 有效期发送。<tr><td><code>reduce_only</code><td>-<td>✓<td>✓<td>✓<td><em>现货不支持</em>。</table>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=time-in-force>有效期<a href=#time-in-force class=hash-link aria-label=有效期的直接链接 title=有效期的直接链接 translate=no>​</a></h3>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>有效期<th>现货<th>线性<th>反向<th>期权<th>说明<tbody><tr><td><code>GTC</code><td>✓<td>✓<td>✓<td>✓<td>撤销前有效（Good Till Canceled）。<tr><td><code>GTD</code><td>-<td>-<td>-<td>-<td><em>不支持</em>；按 <code>GTC</code> 发送。<tr><td><code>FOK</code><td>✓<td>✓<td>✓<td>✓<td>全部成交否则撤销（Fill or Kill）。<tr><td><code>IOC</code><td>✓<td>✓<td>✓<td>✓<td>立即成交否则撤销（Immediate or Cancel）。</table>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=advanced-order-features>高级订单特性<a href=#advanced-order-features class=hash-link aria-label=高级订单特性的直接链接 title=高级订单特性的直接链接 translate=no>​</a></h3>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>特性<th>现货<th>线性<th>反向<th>期权<th>说明<tbody><tr><td>订单修改<td>✓<td>✓<td>✓<td>✓<td>价格与数量修改。<tr><td>括弧/OCO 订单<td>-<td>-<td>-<td>-<td>未实现；请自行提交各腿。<tr><td>冰山订单<td>-<td>-<td>-<td>-<td>未实现。</table>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=batch-operations>批量操作<a href=#batch-operations class=hash-link aria-label=批量操作的直接链接 title=批量操作的直接链接 translate=no>​</a></h3>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>操作<th>现货<th>线性<th>反向<th>期权<th>说明<tbody><tr><td>批量提交<td>✓<td>✓<td>✓<td>✓<td>单次请求提交多笔订单。<tr><td>批量修改<td>-<td>-<td>-<td>-<td>未接入执行客户端。<tr><td>批量撤销<td>✓<td>✓<td>✓<td>✓<td>单次请求撤销多笔订单。</table>
+<p>批量提交与批量撤销在主网和测试网使用 trade WebSocket。demo 模式下适配器回退为逐个 HTTP
+请求，因为 demo 环境没有 trade WebSocket。</p>
+<p>Bybit 单个批量请求至多接受 10 笔现货订单、20 笔线性或反向订单，或 5 笔期权订单。线性、
+反向与现货批量按订单逐笔消耗 UID 配额，而期权批量只消耗一次请求。适配器默认把现货、线性
+与反向批量按 10 笔一组拆分，使单个请求不会超出标准的滚动 UID 允许量；期权批量按 5 笔一组
+拆分。HTTP 批量撤销方法单次调用至多接受 20 个期权操作。</p>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=position-management>持仓管理<a href=#position-management class=hash-link aria-label=持仓管理的直接链接 title=持仓管理的直接链接 translate=no>​</a></h3>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>特性<th>现货<th>线性<th>反向<th>期权<th>说明<tbody><tr><td>查询持仓<td>-<td>✓<td>✓<td>✓<td>实时持仓更新。<tr><td>持仓模式<td>-<td>✓<td>✓<td>-<td>期权仅支持单向模式。<tr><td>杠杆控制<td>-<td>✓<td>✓<td>-<td>期权不适用。<tr><td>保证金模式<td>-<td>✓<td>✓<td>✓<td><code>ISOLATED_MARGIN</code>、<code>REGULAR_MARGIN</code> 或 <code>PORTFOLIO_MARGIN</code>。</table>
+<p>在执行客户端配置上设置 <code>margin_mode</code>，客户端连接时就会为账户应用一个 <code>BybitMarginMode</code>。</p>
+<h4 class="anchor anchorTargetStickyNavbar_ana5" id=hedge-mode-bothsides>对冲模式（BothSides）<a href=#hedge-mode-bothsides class=hash-link aria-label=对冲模式（BothSides）的直接链接 title=对冲模式（BothSides）的直接链接 translate=no>​</a></h4>
+<p>Bybit 只在 USDT 线性永续上接受双边（Both Sides）模式。请先在 Bybit 配置持仓模式，然后通过
+订单 <code>params</code> 传入 <code>position_idx</code>。多头一侧用 <code>1</code>，空头一侧用 <code>2</code>。单向模式用 <code>0</code> 或省略
+该参数。</p>
+<p>Bybit 在 V5 的
+<a href=https://bybit-exchange.github.io/docs/v5/position/position-mode target=_blank rel="noopener noreferrer" class="">切换持仓模式</a>与
+<a href=https://bybit-exchange.github.io/docs/v5/order/create-order#request-parameters target=_blank rel="noopener noreferrer" class="">下单</a>
+API 文档中记录了这些取值。</p>
+<p><code>positionIdx=0</code>（单向 / Merged Single 模式）的订单与报告不携带场所持仓 ID。对冲模式的索引
+<code>1</code> 与 <code>2</code>，适配器把报告映射到以 <code>-LONG</code> 和 <code>-SHORT</code> 结尾的场所持仓 ID。若 Bybit 执行消息
+省略了 <code>positionIdx</code>，成交携带同一个 ID。</p>
+<p>对冲模式下，<code>positionIdx</code> 标识受影响的持仓，而不是交易方向。因此 reduce-only 的卖出解析为
+多头索引，reduce-only 的买入解析为空头索引。</p>
+<p>要覆盖默认判断，通过 <code>params</code> 传入 <code>position_idx</code>：</p>
+<div class="language-python codeBlockContainer_eTMR theme-code-block" style=--prism-color:#393A34;--prism-background-color:#f6f8fa><div class=codeBlockContent_hafM><pre tabindex=0 class="prism-code language-python codeBlock_IMvC thin-scrollbar" style=color:#393A34;background-color:#f6f8fa><code class=codeBlockLines_gZDW><div class=token-line style=color:#393A34><span class="token plain">params </span><span class="token operator" style=color:#393A34>=</span><span class="token plain"> </span><span class="token punctuation" style=color:#393A34>{</span><span class="token string" style=color:#e3116c>"position_idx"</span><span class="token punctuation" style=color:#393A34>:</span><span class="token plain"> </span><span class="token number" style=color:#36acaa>1</span><span class="token punctuation" style=color:#393A34>}</span><span class="token plain">  </span><span class="token comment" style=color:#999988;font-style:italic># 0 one-way, 1 long, 2 short</span><br/></div></code></pre></div></div>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=risk-events>风险事件<a href=#risk-events class=hash-link aria-label=风险事件的直接链接 title=风险事件的直接链接 translate=no>​</a></h3>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>特性<th>现货<th>线性<th>反向<th>期权<th>说明<tbody><tr><td>强平处理<td>-<td>✓<td>✓<td>✓<td>接管成交被标记为交易所生成。<tr><td>ADL 处理<td>-<td>✓<td>✓<td>✓<td>自动减仓成交被标记并记日志。<tr><td>ADL 排名警告<td>-<td>✓<td>✓<td>✓<td><code>adlRankIndicator >= 4</code> 时记录持仓报告。</table>
+<p>Bybit 发出场所发起的成交时，<code>execType</code> 取以下值：</p>
 <ul>
-<li><strong>买入且为 maker rebate</strong>：返佣以<strong>计价货币</strong>发放（例如 USDT）。</li>
-<li><strong>卖出且为 maker rebate</strong>：返佣以<strong>基础货币</strong>发放（例如 BTC）。</li>
+<li class=""><code>AdlTrade</code>：自动减仓（auto-deleveraging）执行。保险基金无法覆盖损失后，选择一个对手方
+的盈利持仓来平掉资不抵债的对手。</li>
+<li class=""><code>BustTrade</code>：强平接管。保证金耗尽后，强平引擎没收了该持仓。</li>
+<li class=""><code>Delivery</code>：USDC 期货交割。</li>
+<li class=""><code>Settle</code>：反向期货结算。</li>
+<li class=""><code>ForwardSplitSettle</code>：正向拆股的零碎股份结算。</li>
+<li class=""><code>ReverseSplitSettle</code>：反向并股的零碎股份结算。</li>
+<li class=""><code>Dividend</code>：股息分派。</li>
 </ul>
-<div class="theme-admonition theme-admonition-note admonition_lEzE alert alert--secondary"><div class="admonitionHeading_aAf0"><span class="admonitionIcon_xtBN"><svg viewBox="0 0 14 16"><path fill-rule="evenodd" d="M6.3 5.69a.942.942 0 0 1-.28-.7c0-.28.09-.52.28-.7.19-.18.42-.28.7-.28.28 0 .52.09.7.28.18.19.28.42.28.7 0 .28-.09.52-.28.7a1 1 0 0 1-.7.3c-.28 0-.52-.11-.7-.3zM8 7.99c-.02-.25-.11-.48-.31-.69-.2-.19-.42-.3-.69-.31H6c-.27.02-.48.13-.69.31-.2.2-.3.44-.31.69h1v3c.02.27.11.5.31.69.2.2.42.31.69.31h1c.27 0 .48-.11.69-.31.2-.19.3-.42.31-.69H8V7.98v.01zM7 2.3c-3.14 0-5.7 2.54-5.7 5.68 0 3.14 2.56 5.7 5.7 5.7s5.7-2.55 5.7-5.7c0-3.15-2.56-5.69-5.7-5.69v.01zM7 .98c3.86 0 7 3.14 7 7s-3.14 7-7 7-7-3.12-7-7 3.14-7 7-7z"></path></svg></span>备注</div><div class="admonitionContent_Vfkp"><p><strong>Taker 订单永远不会采用反向规则</strong>，即便 maker 费率为负。Taker 费用始终遵循正常的计费规则。</p></div></div>
-<h4 class="anchor anchorWithStickyNavbar_RpWm" id="示例btcusdt-spot">示例：BTCUSDT SPOT<a href="#示例btcusdt-spot" class="hash-link" aria-label="示例：BTCUSDT SPOT的直接链接" title="示例：BTCUSDT SPOT的直接链接" translate="no">​</a></h4>
+<p>场所此前对拆股与并股发出 <code>CorporateAction</code>。在被上述结算与股息类型取代之前录制的执行历史
+里，适配器仍接受它。</p>
+<p>适配器把每一笔标记为交易所生成，并记一条警告，包含执行 ID、symbol、方向、数量与价格。
+成交经由普通的 <code>FillReport</code> 路径流动。由于这些订单的 <code>orderLinkId</code> 为空，执行引擎把它们
+当作外部订单。它们经由工具的活动外部订单认领来分配——该认领最初用
+<code>external_order_instrument_ids</code> 配置；没有认领时分配给 <code>EXTERNAL</code> 策略。</p>
+<p>适配器无法识别的执行类型按 <code>UNKNOWN</code> 处理而不是拒绝，因此场所将来新增的类型仍能流经成交
+路径，而不会被丢弃。</p>
+<p>Funding 结算使用 <code>execType=Funding</code>，但它们是余额调整而非成交。适配器在历史成交报告与标准
+私有 <code>execution</code> 消息中忽略它们，既不发出 <code>FillReport</code>，也不发出 <code>OrderFilled</code> 事件，也
+不改变本地持仓数量。对账期间，funding 记录不计入所请求的成交报告限额。</p>
+<p>Bybit 还通过 <code>adlRankIndicator</code> 字段在持仓更新上发布 ADL 排名。范围从 0（无持仓）到 5
+（下一个被减仓）。只要未结持仓的排名达到 4 或更高，适配器就记一条警告，让你在场所强制
+平仓之前有所反应。</p>
+<p>上游参考：</p>
 <ul>
-<li><strong>以 taker 身份买入 1 BTC（费率 0.1%）</strong>：支付 0.001 BTC 的手续费。</li>
-<li><strong>以 taker 身份卖出 1 BTC（费率 0.1%）</strong>：支付等值的 USDT 手续费。</li>
-<li><strong>以 maker 身份买入 1 BTC（费率 -0.01%）</strong>：获得 USDT 返佣（规则反向）。</li>
-<li><strong>以 maker 身份卖出 1 BTC（费率 -0.01%）</strong>：获得 BTC 返佣（规则反向）。</li>
+<li class=""><a href=https://bybit-exchange.github.io/docs/v5/enum#exectype target=_blank rel="noopener noreferrer" class="">V5 <code>execType</code> 取值</a></li>
+<li class=""><a href=https://bybit-exchange.github.io/docs/v5/enum#createtype target=_blank rel="noopener noreferrer" class="">V5 <code>createType</code> 取值</a></li>
+<li class=""><a href=https://www.bybit.com/en/help-center/article/Liquidation-Process-Derivatives-Trading target=_blank rel="noopener noreferrer" class="">强平机制</a></li>
+<li class=""><a href=https://www.bybit.com/en/help-center/article/Auto-Deleveraging-ADL-Derivatives-Trading target=_blank rel="noopener noreferrer" class="">自动减仓（ADL）机制</a></li>
 </ul>
-<h3 class="anchor anchorWithStickyNavbar_RpWm" id="衍生品交易费用derivatives-trading-fees">衍生品交易费用（Derivatives trading fees）<a href="#衍生品交易费用derivatives-trading-fees" class="hash-link" aria-label="衍生品交易费用（Derivatives trading fees）的直接链接" title="衍生品交易费用（Derivatives trading fees）的直接链接" translate="no">​</a></h3>
-<p>对于所有衍生品（LINEAR、INVERSE、OPTION），费用始终以**结算货币（settlement currency）**计收：</p>
-<table><thead><tr><th>产品类型</th><th>结算货币（Settlement Currency）</th><th>费用货币（Fee Currency）</th></tr></thead><tbody><tr><td>LINEAR</td><td>通常为 USDT</td><td>USDT</td></tr><tr><td>INVERSE</td><td>以基础币为结算（例如 BTCUSD 的 BTC）</td><td>基础币（Base coin）</td></tr><tr><td>OPTION</td><td>以 USDC（历史）或 USDT（自 2025-02 起）</td><td>USDC/USDT</td></tr></tbody></table>
-<h3 class="anchor anchorWithStickyNavbar_RpWm" id="费用计算">费用计算<a href="#费用计算" class="hash-link" aria-label="费用计算的直接链接" title="费用计算的直接链接" translate="no">​</a></h3>
-<p>当 WebSocket 的执行消息没有提供精确的费用金额（<code>execFee</code>）时，适配器按如下规则计算费用：</p>
-<h4 class="anchor anchorWithStickyNavbar_RpWm" id="spot-产品">SPOT 产品<a href="#spot-产品" class="hash-link" aria-label="SPOT 产品的直接链接" title="SPOT 产品的直接链接" translate="no">​</a></h4>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=order-querying>订单查询<a href=#order-querying class=hash-link aria-label=订单查询的直接链接 title=订单查询的直接链接 translate=no>​</a></h3>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>特性<th>现货<th>线性<th>反向<th>期权<th>说明<tbody><tr><td>查询未结订单<td>✓<td>✓<td>✓<td>✓<td>列出全部活动订单。<tr><td>查询订单历史<td>✓<td>✓<td>✓<td>✓<td>历史订单数据。<tr><td>订单状态更新<td>✓<td>✓<td>✓<td>✓<td>实时订单状态变化。<tr><td>成交历史<td>✓<td>✓<td>✓<td>✓<td>执行与成交报告。</table>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=contingent-orders>条件关联订单<a href=#contingent-orders class=hash-link aria-label=条件关联订单的直接链接 title=条件关联订单的直接链接 translate=no>​</a></h3>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>特性<th>现货<th>线性<th>反向<th>期权<th>说明<tbody><tr><td>订单列表<td>✓<td>✓<td>✓<td>✓<td>通过 WebSocket 作为批量提交。<tr><td>OCO 订单<td>-<td>-<td>-<td>-<td>未实现；请自行提交各腿。<tr><td>括弧订单<td>-<td>-<td>-<td>-<td>未实现；请自行提交各腿。<tr><td>条件订单<td>✓<td>✓<td>✓<td>-<td>止损与触价限价订单。</table>
+<p>订单列表在任何腿发送之前作为整体校验。某条腿校验失败时，该腿以其具体原因被拒绝，其余腿以
+<code>ORDER_LIST_DENIED</code> 被拒绝。因此，部分提交的列表不可能到达场所。</p>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=order-parameters>订单参数<a href=#order-parameters class=hash-link aria-label=订单参数的直接链接 title=订单参数的直接链接 translate=no>​</a></h3>
+<p>提交订单时可用 <code>params</code> 字典自定义单笔订单：</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>参数<th>类型<th>说明<tbody><tr><td><code>is_leverage</code><td><code>bool</code><td>仅现货。启用保证金交易（借币）。默认 <code>False</code>。<tr><td><code>take_profit</code><td><code>str</code> 或 <code>float</code><td>TP 触发价。为订单挂上原生 TP。<tr><td><code>stop_loss</code><td><code>str</code> 或 <code>float</code><td>SL 触发价。为订单挂上原生 SL。<tr><td><code>tp_trigger_by</code><td><code>str</code><td>TP 触发类型：<code>"LastPrice"</code>、<code>"IndexPrice"</code> 或 <code>"MarkPrice"</code>。<tr><td><code>sl_trigger_by</code><td><code>str</code><td>SL 触发类型：<code>"LastPrice"</code>、<code>"IndexPrice"</code> 或 <code>"MarkPrice"</code>。<tr><td><code>tp_order_type</code><td><code>str</code><td>TP 执行类型：<code>"Market"</code> 或 <code>"Limit"</code>。<tr><td><code>sl_order_type</code><td><code>str</code><td>SL 执行类型：<code>"Market"</code> 或 <code>"Limit"</code>。<tr><td><code>tp_limit_price</code><td><code>str</code> 或 <code>float</code><td><code>tp_order_type</code> 为 <code>"Limit"</code> 时 TP 的限价。<tr><td><code>sl_limit_price</code><td><code>str</code> 或 <code>float</code><td><code>sl_order_type</code> 为 <code>"Limit"</code> 时 SL 的限价。<tr><td><code>tp_trigger_price</code><td><code>str</code> 或 <code>float</code><td>与 <code>take_profit</code> 一同发送的显式 TP 触发价。<tr><td><code>sl_trigger_price</code><td><code>str</code> 或 <code>float</code><td>与 <code>stop_loss</code> 一同发送的显式 SL 触发价。<tr><td><code>tpsl_mode</code><td><code>str</code><td>TP/SL 模式：<code>"Full"</code> 或 <code>"Partial"</code>。<tr><td><code>close_on_trigger</code><td><code>bool</code><td>TP/SL 触发时平掉仓位。<tr><td><code>position_idx</code><td><code>int</code><td>对冲模式持仓索引。见<a href=#hedge-mode-bothsides class="">对冲模式</a>。<tr><td><code>bbo_side_type</code><td><code>str</code><td>线性/反向 BBO 方向：<code>"Queue"</code> 或 <code>"Counterparty"</code>。<tr><td><code>bbo_level</code><td><code>str</code> 或 <code>int</code><td>线性/反向 BBO 簿档级别：<code>"1"</code> 到 <code>"5"</code>。<tr><td><code>smp_type</code><td><code>str</code><td>自成交防止。见<a href=#self-match-prevention class="">SMP</a>。</table>
+<p>未设置的参数不会出现在请求里，因此 Bybit 自身的默认值生效。</p>
+<div class="theme-admonition theme-admonition-warning admonition_LYZY alert alert--warning"><div class=admonitionHeading_pnFY><span class=admonitionIcon_tEzm><svg viewBox="0 0 16 16"><path fill-rule=evenodd d="M8.893 1.5c-.183-.31-.52-.5-.887-.5s-.703.19-.886.5L.138 13.499a.98.98 0 0 0 0 1.001c.193.31.53.501.886.501h13.964c.367 0 .704-.19.877-.5a1.03 1.03 0 0 0 .01-1.002L8.893 1.5zm.133 11.497H6.987v-2.003h2.039v2.003zm0-3.004H6.987V5.987h2.039v4.006z"/></svg></span>注意</div><div class=admonitionContent_ZwmI><p>Bybit 的 <code>close_on_trigger</code> 参数不是风控引擎所用的通用 <code>close_position</code> 全仓位退出约定。
+适配器发送订单数量，并忽略未知的 <code>close_position</code> 参数。不要基于 <code>close_on_trigger</code> 把
+<code>BYBIT</code> 加进 <code>full_position_exit_venues</code>。让该场所保持不在列表内，普通的数量与名义额检查
+才会生效。</div></div>
+<p>适配器在发出 <code>OrderSubmitted</code> 之前校验这些参数，规则被破坏时以 <code>VALIDATION_FAILED</code> 原因
+拒绝订单：</p>
 <ul>
-<li><strong>BUY 订单</strong>：<code>fee = base_quantity × fee_rate</code></li>
-<li><strong>SELL 订单</strong>：<code>fee = notional_value × fee_rate</code>（其中 <code>notional_value = quantity × price</code>）</li>
+<li class="">每个 TP 覆盖字段（<code>tp_trigger_by</code>、<code>tp_order_type</code>、<code>tp_limit_price</code>、
+<code>tp_trigger_price</code>）都要求 <code>take_profit</code>，每个 SL 覆盖字段同样要求 <code>stop_loss</code>。</li>
+<li class=""><code>tp_order_type="Limit"</code> 要求 <code>tp_limit_price</code>，<code>tp_limit_price</code> 也要求
+<code>tp_order_type="Limit"</code>。<code>sl_order_type</code> 与 <code>sl_limit_price</code> 适用同样的配对规则。</li>
+<li class=""><code>bbo_side_type</code> 与 <code>bbo_level</code> 必须成对提供。</li>
+<li class=""><code>smp_type</code> 必须是 <code>"None"</code>、<code>"CancelMaker"</code>、<code>"CancelTaker"</code> 或 <code>"CancelBoth"</code>，
+匹配时不区分大小写。</li>
 </ul>
-<h4 class="anchor anchorWithStickyNavbar_RpWm" id="衍生品">衍生品<a href="#衍生品" class="hash-link" aria-label="衍生品的直接链接" title="衍生品的直接链接" translate="no">​</a></h4>
+<p>设置了 <code>take_profit</code> 或 <code>stop_loss</code> 但没有 <code>tpsl_mode</code> 时，适配器发送 <code>Full</code>。设置了 TP 或
+SL 价格但没有各自的 <code>tp_trigger_by</code> 或 <code>sl_trigger_by</code> 时，适配器从订单的触发类型推导触发
+类型。</p>
+<div class="theme-admonition theme-admonition-note admonition_LYZY alert alert--secondary"><div class=admonitionHeading_pnFY><span class=admonitionIcon_tEzm><svg viewBox="0 0 14 16"><path fill-rule=evenodd d="M6.3 5.69a.942.942 0 0 1-.28-.7c0-.28.09-.52.28-.7.19-.18.42-.28.7-.28.28 0 .52.09.7.28.18.19.28.42.28.7 0 .28-.09.52-.28.7a1 1 0 0 1-.7.3c-.28 0-.52-.11-.7-.3zM8 7.99c-.02-.25-.11-.48-.31-.69-.2-.19-.42-.3-.69-.31H6c-.27.02-.48.13-.69.31-.2.2-.3.44-.31.69h1v3c.02.27.11.5.31.69.2.2.42.31.69.31h1c.27 0 .48-.11.69-.31.2-.19.3-.42.31-.69H8V7.98v.01zM7 2.3c-3.14 0-5.7 2.54-5.7 5.68 0 3.14 2.56 5.7 5.7 5.7s5.7-2.55 5.7-5.7c0-3.15-2.56-5.69-5.7-5.69v.01zM7 .98c3.86 0 7 3.14 7 7s-3.14 7-7 7-7-3.12-7-7 3.14-7 7-7z"/></svg></span>备注</div><div class=admonitionContent_ZwmI><p>在 demo 中，原生 TP/SL 参数经由 HTTP 下单端点路由，只有一个例外：该端点无法携带自定义
+触发价 <code>tp_trigger_price</code> 与 <code>sl_trigger_price</code>，因此适配器拒绝设置任一价格的订单。
+<code>is_leverage</code> 参数仅适用于现货产品。见
+<a href=https://bybit-exchange.github.io/docs/v5/order/create-order#request-parameters target=_blank rel="noopener noreferrer" class="">Bybit 的 isLeverage 文档</a>。</div></div>
+<p>设置了 <code>bbo_side_type</code> 与 <code>bbo_level</code> 时，Nautilus 发送 Bybit 的 <code>bboSideType</code> 与 <code>bboLevel</code>
+字段，并从 API 请求中省略订单价格。BBO 订单对线性与反向的限价、止损限价、触价限价订单
+可用。</p>
+<h4 class="anchor anchorTargetStickyNavbar_ana5" id=self-match-prevention>自成交防止<a href=#self-match-prevention class=hash-link aria-label=自成交防止的直接链接 title=自成交防止的直接链接 translate=no>​</a></h4>
+<p>自成交防止（self-match prevention，SMP）告诉 Bybit：当你的某个订单会与你自己另一个订单
+成交时该怎么做。Bybit 在订单上接受四个值，下面按其规范的字面拼写展示。适配器匹配时不区分
+大小写，发送时始终使用规范拼写。</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>取值<th>行为<tbody><tr><td><code>None</code><td>不做自成交防止。<tr><td><code>CancelMaker</code><td>撤销挂着的 maker 订单。<tr><td><code>CancelTaker</code><td>撤销进来的 taker 订单。<tr><td><code>CancelBoth</code><td>两笔订单都撤销。</table>
+<p>在执行客户端配置上设置 <code>smp_type</code>，该客户端提交的每笔订单都会带上这个值：</p>
+<div class="language-python codeBlockContainer_eTMR theme-code-block" style=--prism-color:#393A34;--prism-background-color:#f6f8fa><div class=codeBlockContent_hafM><pre tabindex=0 class="prism-code language-python codeBlock_IMvC thin-scrollbar" style=color:#393A34;background-color:#f6f8fa><code class=codeBlockLines_gZDW><div class=token-line style=color:#393A34><span class="token keyword" style=color:#00009f>from</span><span class="token plain"> nautilus_trader</span><span class="token punctuation" style=color:#393A34>.</span><span class="token plain">adapters</span><span class="token punctuation" style=color:#393A34>.</span><span class="token plain">bybit </span><span class="token keyword" style=color:#00009f>import</span><span class="token plain"> BybitExecutionClientConfig</span><br/></div><div class=token-line style=color:#393A34><span class="token plain" style=display:inline-block></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">config </span><span class="token operator" style=color:#393A34>=</span><span class="token plain"> BybitExecutionClientConfig</span><span class="token punctuation" style=color:#393A34>(</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    api_key</span><span class="token operator" style=color:#393A34>=</span><span class="token string" style=color:#e3116c>"YOUR_API_KEY"</span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    api_secret</span><span class="token operator" style=color:#393A34>=</span><span class="token string" style=color:#e3116c>"YOUR_API_SECRET"</span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    smp_type</span><span class="token operator" style=color:#393A34>=</span><span class="token string" style=color:#e3116c>"CancelMaker"</span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain"></span><span class="token punctuation" style=color:#393A34>)</span><br/></div></code></pre></div></div>
+<p>通过订单 <code>params</code> 传入 <code>smp_type</code>，可为单笔订单覆盖配置的默认值：</p>
+<div class="language-python codeBlockContainer_eTMR theme-code-block" style=--prism-color:#393A34;--prism-background-color:#f6f8fa><div class=codeBlockContent_hafM><pre tabindex=0 class="prism-code language-python codeBlock_IMvC thin-scrollbar" style=color:#393A34;background-color:#f6f8fa><code class=codeBlockLines_gZDW><div class=token-line style=color:#393A34><span class="token plain">params </span><span class="token operator" style=color:#393A34>=</span><span class="token plain"> </span><span class="token punctuation" style=color:#393A34>{</span><span class="token string" style=color:#e3116c>"smp_type"</span><span class="token punctuation" style=color:#393A34>:</span><span class="token plain"> </span><span class="token string" style=color:#e3116c>"CancelBoth"</span><span class="token punctuation" style=color:#393A34>}</span><br/></div></code></pre></div></div>
+<p>订单的 <code>smp_type</code> 不是上述四个值之一时，适配器拒绝该订单；客户端配置带其他任何值时也会被
+拒绝。配置与参数都未设置时，适配器省略 <code>smpType</code>，因此 Bybit 自身的默认值生效。Bybit 在
+某些地区会强制覆盖该设置。哈萨克斯坦的衍生品账户强制启用 SMP，无法退出。土耳其、哈萨克斯坦
+和格鲁吉亚的现货账户，在 <code>smpType</code> 省略、为 <code>None</code> 或非法时，Bybit 使用 <code>CancelMaker</code>。</p>
+<p>Bybit 在 V5 的 <a href=https://bybit-exchange.github.io/docs/v5/smp target=_blank rel="noopener noreferrer" class="">SMP 指南</a>中记录了这些取值与
+地区规则。</p>
+<h4 class="anchor anchorTargetStickyNavbar_ana5" id=example-order-with-native-tpsl>示例：带原生 TP/SL 的订单<a href=#example-order-with-native-tpsl class=hash-link aria-label="示例：带原生 TP/SL 的订单的直接链接" title="示例：带原生 TP/SL 的订单的直接链接" translate=no>​</a></h4>
+<div class="language-python codeBlockContainer_eTMR theme-code-block" style=--prism-color:#393A34;--prism-background-color:#f6f8fa><div class=codeBlockContent_hafM><pre tabindex=0 class="prism-code language-python codeBlock_IMvC thin-scrollbar" style=color:#393A34;background-color:#f6f8fa><code class=codeBlockLines_gZDW><div class=token-line style=color:#393A34><span class="token plain">order </span><span class="token operator" style=color:#393A34>=</span><span class="token plain"> strategy</span><span class="token punctuation" style=color:#393A34>.</span><span class="token plain">order_factory</span><span class="token punctuation" style=color:#393A34>.</span><span class="token plain">limit</span><span class="token punctuation" style=color:#393A34>(</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    instrument_id</span><span class="token operator" style=color:#393A34>=</span><span class="token plain">InstrumentId</span><span class="token punctuation" style=color:#393A34>.</span><span class="token plain">from_str</span><span class="token punctuation" style=color:#393A34>(</span><span class="token string" style=color:#e3116c>"BTCUSDT-LINEAR.BYBIT"</span><span class="token punctuation" style=color:#393A34>)</span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    order_side</span><span class="token operator" style=color:#393A34>=</span><span class="token plain">OrderSide</span><span class="token punctuation" style=color:#393A34>.</span><span class="token plain">BUY</span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    quantity</span><span class="token operator" style=color:#393A34>=</span><span class="token plain">Quantity</span><span class="token punctuation" style=color:#393A34>.</span><span class="token plain">from_str</span><span class="token punctuation" style=color:#393A34>(</span><span class="token string" style=color:#e3116c>"0.01"</span><span class="token punctuation" style=color:#393A34>)</span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    price</span><span class="token operator" style=color:#393A34>=</span><span class="token plain">Price</span><span class="token punctuation" style=color:#393A34>.</span><span class="token plain">from_str</span><span class="token punctuation" style=color:#393A34>(</span><span class="token string" style=color:#e3116c>"60000.0"</span><span class="token punctuation" style=color:#393A34>)</span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    params</span><span class="token operator" style=color:#393A34>=</span><span class="token punctuation" style=color:#393A34>{</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">        </span><span class="token string" style=color:#e3116c>"take_profit"</span><span class="token punctuation" style=color:#393A34>:</span><span class="token plain"> </span><span class="token string" style=color:#e3116c>"65000.0"</span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">        </span><span class="token string" style=color:#e3116c>"stop_loss"</span><span class="token punctuation" style=color:#393A34>:</span><span class="token plain"> </span><span class="token string" style=color:#e3116c>"58000.0"</span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">        </span><span class="token string" style=color:#e3116c>"tp_trigger_by"</span><span class="token punctuation" style=color:#393A34>:</span><span class="token plain"> </span><span class="token string" style=color:#e3116c>"LastPrice"</span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">        </span><span class="token string" style=color:#e3116c>"sl_trigger_by"</span><span class="token punctuation" style=color:#393A34>:</span><span class="token plain"> </span><span class="token string" style=color:#e3116c>"LastPrice"</span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    </span><span class="token punctuation" style=color:#393A34>}</span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain"></span><span class="token punctuation" style=color:#393A34>)</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">strategy</span><span class="token punctuation" style=color:#393A34>.</span><span class="token plain">submit_order</span><span class="token punctuation" style=color:#393A34>(</span><span class="token plain">order</span><span class="token punctuation" style=color:#393A34>)</span><br/></div></code></pre></div></div>
+<h4 class="anchor anchorTargetStickyNavbar_ana5" id=example-bbo-order>示例：BBO 订单<a href=#example-bbo-order class=hash-link aria-label="示例：BBO 订单的直接链接" title="示例：BBO 订单的直接链接" translate=no>​</a></h4>
+<div class="language-python codeBlockContainer_eTMR theme-code-block" style=--prism-color:#393A34;--prism-background-color:#f6f8fa><div class=codeBlockContent_hafM><pre tabindex=0 class="prism-code language-python codeBlock_IMvC thin-scrollbar" style=color:#393A34;background-color:#f6f8fa><code class=codeBlockLines_gZDW><div class=token-line style=color:#393A34><span class="token plain">order </span><span class="token operator" style=color:#393A34>=</span><span class="token plain"> strategy</span><span class="token punctuation" style=color:#393A34>.</span><span class="token plain">order_factory</span><span class="token punctuation" style=color:#393A34>.</span><span class="token plain">limit</span><span class="token punctuation" style=color:#393A34>(</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    instrument_id</span><span class="token operator" style=color:#393A34>=</span><span class="token plain">InstrumentId</span><span class="token punctuation" style=color:#393A34>.</span><span class="token plain">from_str</span><span class="token punctuation" style=color:#393A34>(</span><span class="token string" style=color:#e3116c>"BTCUSDT-LINEAR.BYBIT"</span><span class="token punctuation" style=color:#393A34>)</span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    order_side</span><span class="token operator" style=color:#393A34>=</span><span class="token plain">OrderSide</span><span class="token punctuation" style=color:#393A34>.</span><span class="token plain">BUY</span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    quantity</span><span class="token operator" style=color:#393A34>=</span><span class="token plain">Quantity</span><span class="token punctuation" style=color:#393A34>.</span><span class="token plain">from_str</span><span class="token punctuation" style=color:#393A34>(</span><span class="token string" style=color:#e3116c>"0.01"</span><span class="token punctuation" style=color:#393A34>)</span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    price</span><span class="token operator" style=color:#393A34>=</span><span class="token plain">Price</span><span class="token punctuation" style=color:#393A34>.</span><span class="token plain">from_str</span><span class="token punctuation" style=color:#393A34>(</span><span class="token string" style=color:#e3116c>"60000.0"</span><span class="token punctuation" style=color:#393A34>)</span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    params</span><span class="token operator" style=color:#393A34>=</span><span class="token punctuation" style=color:#393A34>{</span><span class="token string" style=color:#e3116c>"bbo_side_type"</span><span class="token punctuation" style=color:#393A34>:</span><span class="token plain"> </span><span class="token string" style=color:#e3116c>"Queue"</span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain"> </span><span class="token string" style=color:#e3116c>"bbo_level"</span><span class="token punctuation" style=color:#393A34>:</span><span class="token plain"> </span><span class="token number" style=color:#36acaa>1</span><span class="token punctuation" style=color:#393A34>}</span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain"></span><span class="token punctuation" style=color:#393A34>)</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">strategy</span><span class="token punctuation" style=color:#393A34>.</span><span class="token plain">submit_order</span><span class="token punctuation" style=color:#393A34>(</span><span class="token plain">order</span><span class="token punctuation" style=color:#393A34>)</span><br/></div></code></pre></div></div>
+<h4 class="anchor anchorTargetStickyNavbar_ana5" id=example-spot-margin-trading>示例：现货保证金交易<a href=#example-spot-margin-trading class=hash-link aria-label=示例：现货保证金交易的直接链接 title=示例：现货保证金交易的直接链接 translate=no>​</a></h4>
+<div class="language-python codeBlockContainer_eTMR theme-code-block" style=--prism-color:#393A34;--prism-background-color:#f6f8fa><div class=codeBlockContent_hafM><pre tabindex=0 class="prism-code language-python codeBlock_IMvC thin-scrollbar" style=color:#393A34;background-color:#f6f8fa><code class=codeBlockLines_gZDW><div class=token-line style=color:#393A34><span class="token comment" style=color:#999988;font-style:italic># Submit a Spot order with margin enabled</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">order </span><span class="token operator" style=color:#393A34>=</span><span class="token plain"> strategy</span><span class="token punctuation" style=color:#393A34>.</span><span class="token plain">order_factory</span><span class="token punctuation" style=color:#393A34>.</span><span class="token plain">market</span><span class="token punctuation" style=color:#393A34>(</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    instrument_id</span><span class="token operator" style=color:#393A34>=</span><span class="token plain">InstrumentId</span><span class="token punctuation" style=color:#393A34>.</span><span class="token plain">from_str</span><span class="token punctuation" style=color:#393A34>(</span><span class="token string" style=color:#e3116c>"BTCUSDT-SPOT.BYBIT"</span><span class="token punctuation" style=color:#393A34>)</span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    order_side</span><span class="token operator" style=color:#393A34>=</span><span class="token plain">OrderSide</span><span class="token punctuation" style=color:#393A34>.</span><span class="token plain">BUY</span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    quantity</span><span class="token operator" style=color:#393A34>=</span><span class="token plain">Quantity</span><span class="token punctuation" style=color:#393A34>.</span><span class="token plain">from_str</span><span class="token punctuation" style=color:#393A34>(</span><span class="token string" style=color:#e3116c>"0.1"</span><span class="token punctuation" style=color:#393A34>)</span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    params</span><span class="token operator" style=color:#393A34>=</span><span class="token punctuation" style=color:#393A34>{</span><span class="token string" style=color:#e3116c>"is_leverage"</span><span class="token punctuation" style=color:#393A34>:</span><span class="token plain"> </span><span class="token boolean" style=color:#36acaa>True</span><span class="token punctuation" style=color:#393A34>}</span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain">  </span><span class="token comment" style=color:#999988;font-style:italic># Enable margin for this order</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain"></span><span class="token punctuation" style=color:#393A34>)</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">strategy</span><span class="token punctuation" style=color:#393A34>.</span><span class="token plain">submit_order</span><span class="token punctuation" style=color:#393A34>(</span><span class="token plain">order</span><span class="token punctuation" style=color:#393A34>)</span><br/></div></code></pre></div></div>
+<div class="theme-admonition theme-admonition-note admonition_LYZY alert alert--secondary"><div class=admonitionHeading_pnFY><span class=admonitionIcon_tEzm><svg viewBox="0 0 14 16"><path fill-rule=evenodd d="M6.3 5.69a.942.942 0 0 1-.28-.7c0-.28.09-.52.28-.7.19-.18.42-.28.7-.28.28 0 .52.09.7.28.18.19.28.42.28.7 0 .28-.09.52-.28.7a1 1 0 0 1-.7.3c-.28 0-.52-.11-.7-.3zM8 7.99c-.02-.25-.11-.48-.31-.69-.2-.19-.42-.3-.69-.31H6c-.27.02-.48.13-.69.31-.2.2-.3.44-.31.69h1v3c.02.27.11.5.31.69.2.2.42.31.69.31h1c.27 0 .48-.11.69-.31.2-.19.3-.42.31-.69H8V7.98v.01zM7 2.3c-3.14 0-5.7 2.54-5.7 5.68 0 3.14 2.56 5.7 5.7 5.7s5.7-2.55 5.7-5.7c0-3.15-2.56-5.69-5.7-5.69v.01zM7 .98c3.86 0 7 3.14 7 7s-3.14 7-7 7-7-3.12-7-7 3.14-7 7-7z"/></svg></span>备注</div><div class=admonitionContent_ZwmI><p>params 中不带 <code>is_leverage=True</code> 时，现货订单使用你的可用余额且不借入资金，即使你的
+Bybit 账户开启了自动借币。</div></div>
+<p>使用订单参数（包括 <code>is_leverage</code>）的完整示例见
+<a href=https://github.com/nautechsystems/nautilus_trader/blob/develop/examples/live/bybit/exec_tester.py target=_blank rel="noopener noreferrer" class="">Python 执行测试器</a>。</p>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=spot-trading-limitations>现货交易限制<a href=#spot-trading-limitations class=hash-link aria-label=现货交易限制的直接链接 title=现货交易限制的直接链接 translate=no>​</a></h3>
+<p>由于场所侧不跟踪持仓，以下限制适用于现货产品：</p>
 <ul>
-<li>所有衍生品：<code>fee = notional_value × fee_rate</code></li>
+<li class=""><code>reduce_only</code> 订单<em>不支持</em>。</li>
+<li class="">移动止损订单<em>不支持</em>。</li>
 </ul>
-<h3 class="anchor anchorWithStickyNavbar_RpWm" id="官方文档">官方文档<a href="#官方文档" class="hash-link" aria-label="官方文档的直接链接" title="官方文档的直接链接" translate="no">​</a></h3>
-<p>关于 Bybit 手续费结构与计费规则的完整细节，请参阅：</p>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=options-trading>期权交易<a href=#options-trading class=hash-link aria-label=期权交易的直接链接 title=期权交易的直接链接 translate=no>​</a></h3>
+<p>Bybit 上架以 USDT 或 USDC 结算的加密货币与美股标的欧式期权，标的包括 BTC、ETH、SOL、
+NVDA 等。适配器使用 <code>CryptoOption</code> 工具类型与 <code>-OPTION</code> symbol 后缀。完整的 symbol 格式见
+<a href=#symbology class="">符号体系一节</a>。</p>
+<h4 class="anchor anchorTargetStickyNavbar_ana5" id=options-data>期权数据<a href=#options-data class=hash-link aria-label=期权数据的直接链接 title=期权数据的直接链接 translate=no>​</a></h4>
+<p>适配器通过 WebSocket ticker 频道支持实时期权行情：</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>数据类型<th>说明<tbody><tr><td>报价（bid/ask）<td>每份期权合约的最优买卖价与数量。<tr><td>Greeks<td>Delta、gamma、vega、theta，外加 bid/ask/mark IV。Bybit 不发布 rho。<tr><td>标记价<td>每份期权合约的交易所标记价。<tr><td>指数价<td>标的指数价格。<tr><td>标的参考价<td>每个到期日用于判定 ATM 的场所参考价。<tr><td>未平仓合约量<td>逐合约的未平仓量。<tr><td>订单簿 delta<td>来自期权订单簿流的 L2 MBP 更新。</table>
+<p>订阅逐工具的 Greeks，或用 ATM 相对的行权价过滤聚合成期权链快照。订阅模式见
+<a class="" href=/concepts/options>期权概念指南</a>，分步演练见
+<a class="" href=/tutorials/options_data_bybit>期权数据教程</a>。NautilusTrader 在本地由 Bybit 的逐合约
+期权行情构建期权链视图。</p>
+<p>期权没有 K 线（kline）数据。Bybit 不为该产品类型提供 kline 流。</p>
+<h4 class="anchor anchorTargetStickyNavbar_ana5" id=options-order-parameters>期权订单参数<a href=#options-order-parameters class=hash-link aria-label=期权订单参数的直接链接 title=期权订单参数的直接链接 translate=no>​</a></h4>
+<p>除标准订单参数外，期权订单还接受：</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>参数<th>类型<th>说明<tbody><tr><td><code>order_iv</code><td><code>str</code> 或 <code>float</code><td>按隐含波动率而非价格下单或改单。<tr><td><code>mmp</code><td><code>bool</code><td>为该订单启用做市商保护（Market Maker Protection）。</table>
+<p>这些参数通过 <code>SubmitOrder</code> 的 <code>params</code> 传入。主网上它们经由 WebSocket trade 频道流动；demo
+上经由 HTTP 下单端点路由。demo 模式不支持按 <code>order_iv</code> 改单。</p>
+<h4 class="anchor anchorTargetStickyNavbar_ana5" id=options-trading-limitations>期权交易限制<a href=#options-trading-limitations class=hash-link aria-label=期权交易限制的直接链接 title=期权交易限制的直接链接 translate=no>​</a></h4>
 <ul>
-<li>Bybit WebSocket Private Execution 文档</li>
-<li>Bybit Spot Fee Currency Instruction 文档</li>
+<li class="">demo 模式不支持按隐含波动率改单（<code>order_iv</code>）及其他仅 WS-trade 可用的特性。</li>
+<li class="">杠杆不可配置。期权买方支付权利金，卖方缴纳保证金。</li>
+<li class="">持仓模式仅单向，不支持对冲模式。</li>
+<li class="">不支持条件订单类型（<code>STOP_MARKET</code>、<code>STOP_LIMIT</code>、<code>MARKET_IF_TOUCHED</code>、
+<code>LIMIT_IF_TOUCHED</code>）。</li>
+<li class="">不支持交易止损（仓位上的 TP/SL）。</li>
+<li class="">Funding 费率不适用于期权。</li>
+<li class="">期权需要统一交易账户（Unified Trading Account，UTA）。</li>
 </ul>
-<h2 class="anchor anchorWithStickyNavbar_RpWm" id="配置">配置<a href="#配置" class="hash-link" aria-label="配置的直接链接" title="配置的直接链接" translate="no">​</a></h2>
-<p>必须在配置中明确指定每个客户端的 product types。</p>
-<h3 class="anchor anchorWithStickyNavbar_RpWm" id="数据客户端配置选项data-client-configuration-options">数据客户端配置选项（Data client configuration options）<a href="#数据客户端配置选项data-client-configuration-options" class="hash-link" aria-label="数据客户端配置选项（Data client configuration options）的直接链接" title="数据客户端配置选项（Data client configuration options）的直接链接" translate="no">​</a></h3>
-<table><thead><tr><th>选项（Option）</th><th>默认值</th><th>描述</th></tr></thead><tbody><tr><td><code>api_key</code></td><td><code>None</code></td><td>API key；若省略则从环境变量 <code>BYBIT_API_KEY</code>/<code>BYBIT_TESTNET_API_KEY</code> 加载。</td></tr><tr><td><code>api_secret</code></td><td><code>None</code></td><td>API secret；若省略则从环境变量 <code>BYBIT_API_SECRET</code>/<code>BYBIT_TESTNET_API_SECRET</code> 加载。</td></tr><tr><td><code>product_types</code></td><td><code>None</code></td><td>要启用的 <code>BybitProductType</code> 序列；为 <code>None</code> 时加载所有产品类型。</td></tr><tr><td><code>base_url_http</code></td><td><code>None</code></td><td>覆盖 REST 基础 URL。</td></tr><tr><td><code>demo</code></td><td><code>False</code></td><td>置为 <code>True</code> 则连接 Bybit demo 环境。</td></tr><tr><td><code>testnet</code></td><td><code>False</code></td><td>置为 <code>True</code> 则连接 Bybit testnet。</td></tr><tr><td><code>update_instruments_interval_mins</code></td><td><code>60</code></td><td>instrument 目录刷新的时间间隔（分钟）。</td></tr><tr><td><code>recv_window_ms</code></td><td><code>5,000</code></td><td>签名 REST 请求的接收窗口（毫秒）。</td></tr><tr><td><code>bars_timestamp_on_close</code></td><td><code>True</code></td><td>柱线时间戳使用区间收盘（<code>True</code>）或开盘（<code>False</code>）。</td></tr><tr><td><code>max_retries</code></td><td><code>None</code></td><td>REST/WebSocket 恢复时的最大重试次数。</td></tr><tr><td><code>retry_delay_initial_ms</code></td><td><code>None</code></td><td>重试间的初始延迟（毫秒）。</td></tr><tr><td><code>retry_delay_max_ms</code></td><td><code>None</code></td><td>重试间的最大延迟（毫秒）。</td></tr></tbody></table>
-<h3 class="anchor anchorWithStickyNavbar_RpWm" id="执行客户端配置选项execution-client-configuration-options">执行客户端配置选项（Execution client configuration options）<a href="#执行客户端配置选项execution-client-configuration-options" class="hash-link" aria-label="执行客户端配置选项（Execution client configuration options）的直接链接" title="执行客户端配置选项（Execution client configuration options）的直接链接" translate="no">​</a></h3>
-<table><thead><tr><th>选项（Option）</th><th>默认值</th><th>描述</th></tr></thead><tbody><tr><td><code>api_key</code></td><td><code>None</code></td><td>API key；若省略则从环境变量 <code>BYBIT_API_KEY</code>/<code>BYBIT_TESTNET_API_KEY</code> 加载。</td></tr><tr><td><code>api_secret</code></td><td><code>None</code></td><td>API secret；若省略则从环境变量 <code>BYBIT_API_SECRET</code>/<code>BYBIT_TESTNET_API_SECRET</code> 加载。</td></tr><tr><td><code>product_types</code></td><td><code>None</code></td><td>要启用的 <code>BybitProductType</code> 序列（注意：SPOT 与衍生品不能混合用于执行）。</td></tr><tr><td><code>base_url_http</code></td><td><code>None</code></td><td>覆盖 REST 基础 URL。</td></tr><tr><td><code>base_url_ws_private</code></td><td><code>None</code></td><td>覆盖私有 WebSocket 基础 URL。</td></tr><tr><td><code>base_url_ws_trade</code></td><td><code>None</code></td><td>覆盖 trade WebSocket 基础 URL。</td></tr><tr><td><code>demo</code></td><td><code>False</code></td><td>置为 <code>True</code> 则连接 Bybit demo 环境。</td></tr><tr><td><code>testnet</code></td><td><code>False</code></td><td>置为 <code>True</code> 则连接 Bybit testnet。</td></tr><tr><td><code>use_gtd</code></td><td><code>False</code></td><td>若为 <code>True</code>，将 GTD 订单重映射为 GTC（Bybit 原生不支持 GTD）。</td></tr><tr><td><code>use_ws_execution_fast</code></td><td><code>False</code></td><td>订阅低延迟执行流（low-latency execution stream）。</td></tr><tr><td><code>use_ws_trade_api</code></td><td><code>False</code></td><td>通过 WebSocket 发送下单请求（而非 HTTP）。</td></tr><tr><td><code>use_http_batch_api</code></td><td><code>False</code></td><td>使用 Bybit 的 HTTP 批量交易 API（需启用 WebSocket 交易）。</td></tr><tr><td><code>use_spot_position_reports</code></td><td><code>False</code></td><td>若为 <code>True</code>，将 SPOT 钱包余额报告作为仓位（positions）。</td></tr><tr><td><code>ignore_uncached_instrument_executions</code></td><td><code>False</code></td><td>忽略针对尚未缓存 instrument 的执行消息。</td></tr><tr><td><code>max_retries</code></td><td><code>None</code></td><td>下单/撤单/修改调用的最大重试次数。</td></tr><tr><td><code>retry_delay_initial_ms</code></td><td><code>None</code></td><td>重试间的初始延迟（毫秒）。</td></tr><tr><td><code>retry_delay_max_ms</code></td><td><code>None</code></td><td>重试间的最大延迟（毫秒）。</td></tr><tr><td><code>recv_window_ms</code></td><td><code>5,000</code></td><td>签名 REST 请求的接收窗口（毫秒）。</td></tr><tr><td><code>ws_trade_timeout_secs</code></td><td><code>5.0</code></td><td>等待 trade WebSocket 确认的超时时间（秒）。</td></tr><tr><td><code>ws_auth_timeout_secs</code></td><td><code>5.0</code></td><td>等待 auth WebSocket 确认的超时时间（秒）。</td></tr><tr><td><code>futures_leverages</code></td><td><code>None</code></td><td><code>BybitSymbol</code> 到杠杆设置的映射。</td></tr><tr><td><code>position_mode</code></td><td><code>None</code></td><td><code>BybitSymbol</code> 到持仓模式（单向 vs 对冲）的映射。</td></tr><tr><td><code>margin_mode</code></td><td><code>None</code></td><td>账户的保证金模式设置。</td></tr></tbody></table>
-<p>最常见的用例是把 Bybit 的数据客户端与执行客户端加入到实时 <code>TradingNode</code> 中。为此，请在你的客户端配置中添加一个 <code>BYBIT</code> 区块：</p>
-<div class="language-python codeBlockContainer_euGm theme-code-block" style="--prism-color:#393A34;--prism-background-color:#f6f8fa"><div class="codeBlockContent_zF3K"><pre tabindex="0" class="prism-code language-python codeBlock_G1mO thin-scrollbar" style="color:#393A34;background-color:#f6f8fa"><code class="codeBlockLines_QZRj"><span class="token-line" style="color:#393A34"><span class="token keyword" style="color:#00009f">from</span><span class="token plain"> nautilus_trader</span><span class="token punctuation" style="color:#393A34">.</span><span class="token plain">adapters</span><span class="token punctuation" style="color:#393A34">.</span><span class="token plain">bybit </span><span class="token keyword" style="color:#00009f">import</span><span class="token plain"> BYBIT</span><br></span><span class="token-line" style="color:#393A34"><span class="token plain"></span><span class="token keyword" style="color:#00009f">from</span><span class="token plain"> nautilus_trader</span><span class="token punctuation" style="color:#393A34">.</span><span class="token plain">adapters</span><span class="token punctuation" style="color:#393A34">.</span><span class="token plain">bybit </span><span class="token keyword" style="color:#00009f">import</span><span class="token plain"> BybitProductType</span><br></span><span class="token-line" style="color:#393A34"><span class="token plain"></span><span class="token keyword" style="color:#00009f">from</span><span class="token plain"> nautilus_trader</span><span class="token punctuation" style="color:#393A34">.</span><span class="token plain">live</span><span class="token punctuation" style="color:#393A34">.</span><span class="token plain">node </span><span class="token keyword" style="color:#00009f">import</span><span class="token plain"> TradingNode</span><br></span><span class="token-line" style="color:#393A34"><span class="token plain" style="display:inline-block"></span><br></span><span class="token-line" style="color:#393A34"><span class="token plain">config </span><span class="token operator" style="color:#393A34">=</span><span class="token plain"> TradingNodeConfig</span><span class="token punctuation" style="color:#393A34">(</span><span class="token plain"></span><br></span><span class="token-line" style="color:#393A34"><span class="token plain">    </span><span class="token punctuation" style="color:#393A34">.</span><span class="token punctuation" style="color:#393A34">.</span><span class="token punctuation" style="color:#393A34">.</span><span class="token punctuation" style="color:#393A34">,</span><span class="token plain">  </span><span class="token comment" style="color:#999988;font-style:italic"># Omitted</span><span class="token plain"></span><br></span><span class="token-line" style="color:#393A34"><span class="token plain">    data_clients</span><span class="token operator" style="color:#393A34">=</span><span class="token punctuation" style="color:#393A34">{</span><span class="token plain"></span><br></span><span class="token-line" style="color:#393A34"><span class="token plain">        BYBIT</span><span class="token punctuation" style="color:#393A34">:</span><span class="token plain"> </span><span class="token punctuation" style="color:#393A34">{</span><span class="token plain"></span><br></span><span class="token-line" style="color:#393A34"><span class="token plain">            </span><span class="token string" style="color:#e3116c">&quot;api_key&quot;</span><span class="token punctuation" style="color:#393A34">:</span><span class="token plain"> </span><span class="token string" style="color:#e3116c">&quot;YOUR_BYBIT_API_KEY&quot;</span><span class="token punctuation" style="color:#393A34">,</span><span class="token plain"></span><br></span><span class="token-line" style="color:#393A34"><span class="token plain">            </span><span class="token string" style="color:#e3116c">&quot;api_secret&quot;</span><span class="token punctuation" style="color:#393A34">:</span><span class="token plain"> </span><span class="token string" style="color:#e3116c">&quot;YOUR_BYBIT_API_SECRET&quot;</span><span class="token punctuation" style="color:#393A34">,</span><span class="token plain"></span><br></span><span class="token-line" style="color:#393A34"><span class="token plain">            </span><span class="token string" style="color:#e3116c">&quot;base_url_http&quot;</span><span class="token punctuation" style="color:#393A34">:</span><span class="token plain"> </span><span class="token boolean" style="color:#36acaa">None</span><span class="token punctuation" style="color:#393A34">,</span><span class="token plain">  </span><span class="token comment" style="color:#999988;font-style:italic"># Override with custom endpoint</span><span class="token plain"></span><br></span><span class="token-line" style="color:#393A34"><span class="token plain">            </span><span class="token string" style="color:#e3116c">&quot;product_types&quot;</span><span class="token punctuation" style="color:#393A34">:</span><span class="token plain"> </span><span class="token punctuation" style="color:#393A34">[</span><span class="token plain">BybitProductType</span><span class="token punctuation" style="color:#393A34">.</span><span class="token plain">LINEAR</span><span class="token punctuation" style="color:#393A34">]</span><span class="token plain"></span><br></span><span class="token-line" style="color:#393A34"><span class="token plain">            </span><span class="token string" style="color:#e3116c">&quot;testnet&quot;</span><span class="token punctuation" style="color:#393A34">:</span><span class="token plain"> </span><span class="token boolean" style="color:#36acaa">False</span><span class="token punctuation" style="color:#393A34">,</span><span class="token plain"></span><br></span><span class="token-line" style="color:#393A34"><span class="token plain">        </span><span class="token punctuation" style="color:#393A34">}</span><span class="token punctuation" style="color:#393A34">,</span><span class="token plain"></span><br></span><span class="token-line" style="color:#393A34"><span class="token plain">    </span><span class="token punctuation" style="color:#393A34">}</span><span class="token punctuation" style="color:#393A34">,</span><span class="token plain"></span><br></span><span class="token-line" style="color:#393A34"><span class="token plain">    exec_clients</span><span class="token operator" style="color:#393A34">=</span><span class="token punctuation" style="color:#393A34">{</span><span class="token plain"></span><br></span><span class="token-line" style="color:#393A34"><span class="token plain">        BYBIT</span><span class="token punctuation" style="color:#393A34">:</span><span class="token plain"> </span><span class="token punctuation" style="color:#393A34">{</span><span class="token plain"></span><br></span><span class="token-line" style="color:#393A34"><span class="token plain">            </span><span class="token string" style="color:#e3116c">&quot;api_key&quot;</span><span class="token punctuation" style="color:#393A34">:</span><span class="token plain"> </span><span class="token string" style="color:#e3116c">&quot;YOUR_BYBIT_API_KEY&quot;</span><span class="token punctuation" style="color:#393A34">,</span><span class="token plain"></span><br></span><span class="token-line" style="color:#393A34"><span class="token plain">            </span><span class="token string" style="color:#e3116c">&quot;api_secret&quot;</span><span class="token punctuation" style="color:#393A34">:</span><span class="token plain"> </span><span class="token string" style="color:#e3116c">&quot;YOUR_BYBIT_API_SECRET&quot;</span><span class="token punctuation" style="color:#393A34">,</span><span class="token plain"></span><br></span><span class="token-line" style="color:#393A34"><span class="token plain">            </span><span class="token string" style="color:#e3116c">&quot;base_url_http&quot;</span><span class="token punctuation" style="color:#393A34">:</span><span class="token plain"> </span><span class="token boolean" style="color:#36acaa">None</span><span class="token punctuation" style="color:#393A34">,</span><span class="token plain">  </span><span class="token comment" style="color:#999988;font-style:italic"># Override with custom endpoint</span><span class="token plain"></span><br></span><span class="token-line" style="color:#393A34"><span class="token plain">            </span><span class="token string" style="color:#e3116c">&quot;product_types&quot;</span><span class="token punctuation" style="color:#393A34">:</span><span class="token plain"> </span><span class="token punctuation" style="color:#393A34">[</span><span class="token plain">BybitProductType</span><span class="token punctuation" style="color:#393A34">.</span><span class="token plain">LINEAR</span><span class="token punctuation" style="color:#393A34">]</span><span class="token plain"></span><br></span><span class="token-line" style="color:#393A34"><span class="token plain">            </span><span class="token string" style="color:#e3116c">&quot;testnet&quot;</span><span class="token punctuation" style="color:#393A34">:</span><span class="token plain"> </span><span class="token boolean" style="color:#36acaa">False</span><span class="token punctuation" style="color:#393A34">,</span><span class="token plain"></span><br></span><span class="token-line" style="color:#393A34"><span class="token plain">        </span><span class="token punctuation" style="color:#393A34">}</span><span class="token punctuation" style="color:#393A34">,</span><span class="token plain"></span><br></span><span class="token-line" style="color:#393A34"><span class="token plain">    </span><span class="token punctuation" style="color:#393A34">}</span><span class="token punctuation" style="color:#393A34">,</span><span class="token plain"></span><br></span><span class="token-line" style="color:#393A34"><span class="token plain"></span><span class="token punctuation" style="color:#393A34">)</span><br></span></code></pre></div></div>
-<p>然后创建一个 <code>TradingNode</code> 并注册客户端工厂：</p>
-<div class="language-python codeBlockContainer_euGm theme-code-block" style="--prism-color:#393A34;--prism-background-color:#f6f8fa"><div class="codeBlockContent_zF3K"><pre tabindex="0" class="prism-code language-python codeBlock_G1mO thin-scrollbar" style="color:#393A34;background-color:#f6f8fa"><code class="codeBlockLines_QZRj"><span class="token-line" style="color:#393A34"><span class="token keyword" style="color:#00009f">from</span><span class="token plain"> nautilus_trader</span><span class="token punctuation" style="color:#393A34">.</span><span class="token plain">adapters</span><span class="token punctuation" style="color:#393A34">.</span><span class="token plain">bybit </span><span class="token keyword" style="color:#00009f">import</span><span class="token plain"> BYBIT</span><br></span><span class="token-line" style="color:#393A34"><span class="token plain"></span><span class="token keyword" style="color:#00009f">from</span><span class="token plain"> nautilus_trader</span><span class="token punctuation" style="color:#393A34">.</span><span class="token plain">adapters</span><span class="token punctuation" style="color:#393A34">.</span><span class="token plain">bybit </span><span class="token keyword" style="color:#00009f">import</span><span class="token plain"> BybitLiveDataClientFactory</span><br></span><span class="token-line" style="color:#393A34"><span class="token plain"></span><span class="token keyword" style="color:#00009f">from</span><span class="token plain"> nautilus_trader</span><span class="token punctuation" style="color:#393A34">.</span><span class="token plain">adapters</span><span class="token punctuation" style="color:#393A34">.</span><span class="token plain">bybit </span><span class="token keyword" style="color:#00009f">import</span><span class="token plain"> BybitLiveExecClientFactory</span><br></span><span class="token-line" style="color:#393A34"><span class="token plain"></span><span class="token keyword" style="color:#00009f">from</span><span class="token plain"> nautilus_trader</span><span class="token punctuation" style="color:#393A34">.</span><span class="token plain">live</span><span class="token punctuation" style="color:#393A34">.</span><span class="token plain">node </span><span class="token keyword" style="color:#00009f">import</span><span class="token plain"> TradingNode</span><br></span><span class="token-line" style="color:#393A34"><span class="token plain" style="display:inline-block"></span><br></span><span class="token-line" style="color:#393A34"><span class="token plain"></span><span class="token comment" style="color:#999988;font-style:italic"># Instantiate the live trading node with a configuration</span><span class="token plain"></span><br></span><span class="token-line" style="color:#393A34"><span class="token plain">node </span><span class="token operator" style="color:#393A34">=</span><span class="token plain"> TradingNode</span><span class="token punctuation" style="color:#393A34">(</span><span class="token plain">config</span><span class="token operator" style="color:#393A34">=</span><span class="token plain">config</span><span class="token punctuation" style="color:#393A34">)</span><span class="token plain"></span><br></span><span class="token-line" style="color:#393A34"><span class="token plain" style="display:inline-block"></span><br></span><span class="token-line" style="color:#393A34"><span class="token plain"></span><span class="token comment" style="color:#999988;font-style:italic"># Register the client factories with the node</span><span class="token plain"></span><br></span><span class="token-line" style="color:#393A34"><span class="token plain">node</span><span class="token punctuation" style="color:#393A34">.</span><span class="token plain">add_data_client_factory</span><span class="token punctuation" style="color:#393A34">(</span><span class="token plain">BYBIT</span><span class="token punctuation" style="color:#393A34">,</span><span class="token plain"> BybitLiveDataClientFactory</span><span class="token punctuation" style="color:#393A34">)</span><span class="token plain"></span><br></span><span class="token-line" style="color:#393A34"><span class="token plain">node</span><span class="token punctuation" style="color:#393A34">.</span><span class="token plain">add_exec_client_factory</span><span class="token punctuation" style="color:#393A34">(</span><span class="token plain">BYBIT</span><span class="token punctuation" style="color:#393A34">,</span><span class="token plain"> BybitLiveExecClientFactory</span><span class="token punctuation" style="color:#393A34">)</span><span class="token plain"></span><br></span><span class="token-line" style="color:#393A34"><span class="token plain" style="display:inline-block"></span><br></span><span class="token-line" style="color:#393A34"><span class="token plain"></span><span class="token comment" style="color:#999988;font-style:italic"># Finally build the node</span><span class="token plain"></span><br></span><span class="token-line" style="color:#393A34"><span class="token plain">node</span><span class="token punctuation" style="color:#393A34">.</span><span class="token plain">build</span><span class="token punctuation" style="color:#393A34">(</span><span class="token punctuation" style="color:#393A34">)</span><br></span></code></pre></div></div>
-<h3 class="anchor anchorWithStickyNavbar_RpWm" id="api-凭证api-credentials">API 凭证（API credentials）<a href="#api-凭证api-credentials" class="hash-link" aria-label="API 凭证（API credentials）的直接链接" title="API 凭证（API credentials）的直接链接" translate="no">​</a></h3>
-<p>向 Bybit 客户端提供凭证有两种方式：直接在配置中传入 <code>api_key</code> 与 <code>api_secret</code>，或通过环境变量传递：</p>
-<p>对于 Bybit live 客户端，可设置环境变量：</p>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=trailing-stops>移动止损<a href=#trailing-stops class=hash-link aria-label=移动止损的直接链接 title=移动止损的直接链接 translate=no>​</a></h3>
+<p>适配器不会把 Nautilus 的 <code>TRAILING_STOP_MARKET</code> 订单提交给 Bybit。提交此类订单会在本地被
+拒绝，原因为 <code>UNSUPPORTED_ORDER_TYPE</code>。</p>
+<p>Bybit 把移动止损建模为净持仓的一个属性，而不是订单。因此移动止损没有场所侧客户订单 ID，
+在它已经开启之前无法查询。确实需要移动止损时，请通过 Bybit 界面挂上，并在 Nautilus 之外
+管理由此产生的仓位退出。</p>
+<h2 class="anchor anchorTargetStickyNavbar_ana5" id=spot-margin-borrowing-and-repayment>现货保证金借币与还款<a href=#spot-margin-borrowing-and-repayment class=hash-link aria-label=现货保证金借币与还款的直接链接 title=现货保证金借币与还款的直接链接 translate=no>​</a></h2>
+<p>NautilusTrader 提供自动的现货保证金借币还款功能，防止在 Bybit 平掉空头仓位之后继续累积
+利息。</p>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=background>背景<a href=#background class=hash-link aria-label=背景的直接链接 title=背景的直接链接 translate=no>​</a></h3>
+<p>启用保证金做现货（<code>is_leverage=True</code>）时，Bybit 在你执行空头仓位时会自动借入币。然而，
+平掉空头（BUY 订单成交）之后，借入的币<strong>不会自动归还</strong>——它们持续按小时计息，直到手动
+还款。放任不管会产生可观的利息成本。</p>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=automatic-repayment-recommended>自动还款（推荐）<a href=#automatic-repayment-recommended class=hash-link aria-label=自动还款（推荐）的直接链接 title=自动还款（推荐）的直接链接 translate=no>​</a></h3>
+<p>执行客户端可以在现货工具上的 BUY 订单完全成交后，自动归还现货保证金借币。该功能默认关闭，
+设置 <code>auto_repay_spot_borrows=True</code> 才启用。</p>
+<p><strong>工作方式</strong>：</p>
+<ol>
+<li class="">现货 BUY 订单在标准 <code>execution</code> 频道上完全成交时，执行客户端尝试归还基础币借币。</li>
+<li class="">还款额以未还借币与该订单各次执行累计获得的基础数量中的较小者为上限。</li>
+<li class="">执行客户端使用 Bybit 的转换式还款（converting repay）端点来覆盖以基础币计的交易费用。
+MNT 被 Bybit 排除在转换式还款之外，对它使用不转换还款（no-convert repay），并从金额中
+扣除以 MNT 计的费用。</li>
+<li class="">请求失败或结果为 <code>FA</code> 状态时只记日志，不会让执行客户端崩溃。结果为 <code>P</code> 状态记为处理中，
+而非完成。</li>
+<li class="">Bybit 处于 UTC 封禁窗口期间，执行客户端会推迟排队的还款。</li>
+</ol>
+<p><strong>示例</strong>：</p>
+<div class="language-python codeBlockContainer_eTMR theme-code-block" style=--prism-color:#393A34;--prism-background-color:#f6f8fa><div class=codeBlockContent_hafM><pre tabindex=0 class="prism-code language-python codeBlock_IMvC thin-scrollbar" style=color:#393A34;background-color:#f6f8fa><code class=codeBlockLines_gZDW><div class=token-line style=color:#393A34><span class="token keyword" style=color:#00009f>from</span><span class="token plain"> nautilus_trader</span><span class="token punctuation" style=color:#393A34>.</span><span class="token plain">adapters</span><span class="token punctuation" style=color:#393A34>.</span><span class="token plain">bybit </span><span class="token keyword" style=color:#00009f>import</span><span class="token plain"> BybitExecutionClientConfig</span><br/></div><div class=token-line style=color:#393A34><span class="token plain" style=display:inline-block></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">config </span><span class="token operator" style=color:#393A34>=</span><span class="token plain"> BybitExecutionClientConfig</span><span class="token punctuation" style=color:#393A34>(</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    api_key</span><span class="token operator" style=color:#393A34>=</span><span class="token string" style=color:#e3116c>"YOUR_API_KEY"</span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    api_secret</span><span class="token operator" style=color:#393A34>=</span><span class="token string" style=color:#e3116c>"YOUR_API_SECRET"</span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    product_types</span><span class="token operator" style=color:#393A34>=</span><span class="token punctuation" style=color:#393A34>[</span><span class="token plain">BybitProductType</span><span class="token punctuation" style=color:#393A34>.</span><span class="token plain">SPOT</span><span class="token punctuation" style=color:#393A34>]</span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    auto_repay_spot_borrows</span><span class="token operator" style=color:#393A34>=</span><span class="token boolean" style=color:#36acaa>True</span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain">  </span><span class="token comment" style=color:#999988;font-style:italic># Opt in; default is False</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain"></span><span class="token punctuation" style=color:#393A34>)</span><br/></div></code></pre></div></div>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=utc-blackout-window>UTC 封禁窗口<a href=#utc-blackout-window class=hash-link aria-label="UTC 封禁窗口的直接链接" title="UTC 封禁窗口的直接链接" translate=no>​</a></h3>
+<p>Bybit 在<strong>每个 UTC 小时的第 4 分钟到第 5 分 30 秒</strong>之间封锁两个还款端点用于利息计算。
+自动还款会把请求留在队列中，并在该小时的第 5 分 31 秒发起。</p>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=auto-repayment-configuration>自动还款配置<a href=#auto-repayment-configuration class=hash-link aria-label=自动还款配置的直接链接 title=自动还款配置的直接链接 translate=no>​</a></h3>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>选项<th>类型<th>默认值<th>说明<tbody><tr><td><code>auto_repay_spot_borrows</code><td><code>bool</code><td><code>False</code><td>为 <code>True</code> 时，BUY 订单完全成交后自动归还现货保证金借币。封禁窗口内还款会被推迟。</table>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=auto-repayment-notes>自动还款注意事项<a href=#auto-repayment-notes class=hash-link aria-label=自动还款注意事项的直接链接 title=自动还款注意事项的直接链接 translate=no>​</a></h3>
 <ul>
-<li><code>BYBIT_API_KEY</code></li>
-<li><code>BYBIT_API_SECRET</code></li>
+<li class="">自动还款只在<strong>现货 BUY 订单</strong>上触发，衍生品类不会。</li>
+<li class="">还款使用转换式还款，MNT 除外——它使用不转换还款。</li>
+<li class="">Bybit 在
+<a href=https://bybit-exchange.github.io/docs/v5/account/repay target=_blank rel="noopener noreferrer" class="">Manual Repay</a> 与
+<a href=https://bybit-exchange.github.io/docs/v5/account/no-convert-repay target=_blank rel="noopener noreferrer" class="">Manual Repay Without Asset Conversion</a>
+中记录了端点限制与结果状态。</li>
+<li class="">除非你的 Bybit 账户启用了自动借币，开空头之前仍需手动借币。</li>
 </ul>
-<p>对于 Bybit demo 客户端，可设置：</p>
+<h2 class="anchor anchorTargetStickyNavbar_ana5" id=funding-rates>Funding 费率<a href=#funding-rates class=hash-link aria-label="Funding 费率的直接链接" title="Funding 费率的直接链接" translate=no>​</a></h2>
+<p>适配器从
+<a href=https://bybit-exchange.github.io/docs/v5/websocket/public/ticker#linear-inverse-perpetual-response target=_blank rel="noopener noreferrer" class="">Linear Ticker</a>
+WebSocket 流接收 funding 费率数据。Bybit 在 ticker 更新中提供 <code>fundingIntervalHour</code> 字段，
+适配器用它填充 <code>FundingRateUpdate</code> 的 <code>interval</code> 字段。</p>
+<p>适配器按 symbol 缓存最近已知的 <code>fundingIntervalHour</code>，因此省略该字段的 ticker 增量更新仍带
+正确的间隔。</p>
+<p>历史 funding 费率请求中，适配器由相邻的 funding 时间戳计算间隔。响应中最旧的一条没有更早的
+时间戳可配对，因此它的间隔未设置。</p>
+<h2 class="anchor anchorTargetStickyNavbar_ana5" id=bybit-specific-data>Bybit 专属数据<a href=#bybit-specific-data class=hash-link aria-label="Bybit 专属数据的直接链接" title="Bybit 专属数据的直接链接" translate=no>​</a></h2>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=liquidations>强平<a href=#liquidations class=hash-link aria-label=强平的直接链接 title=强平的直接链接 translate=no>​</a></h3>
+<p>适配器从 Bybit 公开的
+<a href=https://bybit-exchange.github.io/docs/v5/websocket/public/all-liquidation target=_blank rel="noopener noreferrer" class="">全量强平</a>
+WebSocket 流（<code>allLiquidation.{symbol}</code>）发出 <code>BybitLiquidation</code> 自定义数据。Bybit 只为线性
+与反向合约发布该流，因此适配器拒绝现货与期权的订阅。Bybit 每 500ms 推送一次更新，一条更新
+可能携带多笔强平，适配器为每一笔各发出一个 <code>BybitLiquidation</code>。</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>字段<th>类型<th>说明<tbody><tr><td><code>instrument_id</code><td><code>InstrumentId</code><td>被强平持仓所属的金融工具。<tr><td><code>position_side</code><td><code>PositionSide</code><td>被强平持仓的方向，Bybit 的 <code>Buy</code> 对应 <code>LONG</code>。<tr><td><code>bankruptcy_price</code><td><code>Price</code><td>被强平持仓的破产价。<tr><td><code>quantity</code><td><code>Quantity</code><td>已执行的强平数量。<tr><td><code>ts_event</code><td><code>int</code><td>Bybit 更新该强平时刻的 UNIX 纳秒时间戳。<tr><td><code>ts_init</code><td><code>int</code><td>对象构建时刻的 UNIX 纳秒时间戳。</table>
+<p><code>position_side</code> 是被强平持仓的方向，不是强平订单的方向。Bybit 对被强平的多头报 <code>Buy</code>，对
+被强平的空头报 <code>Sell</code>。<code>bankruptcy_price</code> 是持仓保证金耗尽的价格，不是强平成交的价格。</p>
+<p>Actor 或策略用 <code>DataType(BybitLiquidation.__name__)</code> 订阅，<code>instrument_id</code> 元数据键是必需的：</p>
+<div class="language-python codeBlockContainer_eTMR theme-code-block" style=--prism-color:#393A34;--prism-background-color:#f6f8fa><div class=codeBlockContent_hafM><pre tabindex=0 class="prism-code language-python codeBlock_IMvC thin-scrollbar" style=color:#393A34;background-color:#f6f8fa><code class=codeBlockLines_gZDW><div class=token-line style=color:#393A34><span class="token keyword" style=color:#00009f>from</span><span class="token plain"> nautilus_trader</span><span class="token punctuation" style=color:#393A34>.</span><span class="token plain">adapters</span><span class="token punctuation" style=color:#393A34>.</span><span class="token plain">bybit </span><span class="token keyword" style=color:#00009f>import</span><span class="token plain"> BybitLiquidation</span><br/></div><div class=token-line style=color:#393A34><span class="token plain"></span><span class="token keyword" style=color:#00009f>from</span><span class="token plain"> nautilus_trader</span><span class="token punctuation" style=color:#393A34>.</span><span class="token plain">model </span><span class="token keyword" style=color:#00009f>import</span><span class="token plain"> ClientId</span><br/></div><div class=token-line style=color:#393A34><span class="token plain"></span><span class="token keyword" style=color:#00009f>from</span><span class="token plain"> nautilus_trader</span><span class="token punctuation" style=color:#393A34>.</span><span class="token plain">model </span><span class="token keyword" style=color:#00009f>import</span><span class="token plain"> CustomData</span><br/></div><div class=token-line style=color:#393A34><span class="token plain"></span><span class="token keyword" style=color:#00009f>from</span><span class="token plain"> nautilus_trader</span><span class="token punctuation" style=color:#393A34>.</span><span class="token plain">model </span><span class="token keyword" style=color:#00009f>import</span><span class="token plain"> DataType</span><br/></div><div class=token-line style=color:#393A34><span class="token plain" style=display:inline-block></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">self</span><span class="token punctuation" style=color:#393A34>.</span><span class="token plain">subscribe_data</span><span class="token punctuation" style=color:#393A34>(</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    data_type</span><span class="token operator" style=color:#393A34>=</span><span class="token plain">DataType</span><span class="token punctuation" style=color:#393A34>(</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">        BybitLiquidation</span><span class="token punctuation" style=color:#393A34>.</span><span class="token plain">__name__</span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">        metadata</span><span class="token operator" style=color:#393A34>=</span><span class="token punctuation" style=color:#393A34>{</span><span class="token string" style=color:#e3116c>"instrument_id"</span><span class="token punctuation" style=color:#393A34>:</span><span class="token plain"> </span><span class="token string" style=color:#e3116c>"BTCUSDT-LINEAR.BYBIT"</span><span class="token punctuation" style=color:#393A34>}</span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    </span><span class="token punctuation" style=color:#393A34>)</span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    client_id</span><span class="token operator" style=color:#393A34>=</span><span class="token plain">ClientId</span><span class="token punctuation" style=color:#393A34>(</span><span class="token string" style=color:#e3116c>"BYBIT"</span><span class="token punctuation" style=color:#393A34>)</span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain"></span><span class="token punctuation" style=color:#393A34>)</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain" style=display:inline-block></span><br/></div><div class=token-line style=color:#393A34><span class="token plain" style=display:inline-block></span><br/></div><div class=token-line style=color:#393A34><span class="token plain"></span><span class="token keyword" style=color:#00009f>def</span><span class="token plain"> </span><span class="token function" style=color:#d73a49>on_data</span><span class="token punctuation" style=color:#393A34>(</span><span class="token plain">self</span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain"> data</span><span class="token punctuation" style=color:#393A34>:</span><span class="token plain"> CustomData</span><span class="token punctuation" style=color:#393A34>)</span><span class="token plain"> </span><span class="token operator" style=color:#393A34>-</span><span class="token operator" style=color:#393A34>></span><span class="token plain"> </span><span class="token boolean" style=color:#36acaa>None</span><span class="token punctuation" style=color:#393A34>:</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    liquidation </span><span class="token operator" style=color:#393A34>=</span><span class="token plain"> data</span><span class="token punctuation" style=color:#393A34>.</span><span class="token plain">data</span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    </span><span class="token keyword" style=color:#00009f>if</span><span class="token plain"> </span><span class="token builtin">isinstance</span><span class="token punctuation" style=color:#393A34>(</span><span class="token plain">liquidation</span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain"> BybitLiquidation</span><span class="token punctuation" style=color:#393A34>)</span><span class="token punctuation" style=color:#393A34>:</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">        self</span><span class="token punctuation" style=color:#393A34>.</span><span class="token plain">log</span><span class="token punctuation" style=color:#393A34>.</span><span class="token plain">info</span><span class="token punctuation" style=color:#393A34>(</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">            </span><span class="token string-interpolation string" style=color:#e3116c>f"</span><span class="token string-interpolation interpolation punctuation" style=color:#393A34>{</span><span class="token string-interpolation interpolation">liquidation</span><span class="token string-interpolation interpolation punctuation" style=color:#393A34>.</span><span class="token string-interpolation interpolation">instrument_id</span><span class="token string-interpolation interpolation punctuation" style=color:#393A34>}</span><span class="token string-interpolation string" style=color:#e3116c> </span><span class="token string-interpolation interpolation punctuation" style=color:#393A34>{</span><span class="token string-interpolation interpolation">liquidation</span><span class="token string-interpolation interpolation punctuation" style=color:#393A34>.</span><span class="token string-interpolation interpolation">position_side</span><span class="token string-interpolation interpolation punctuation" style=color:#393A34>}</span><span class="token string-interpolation string" style=color:#e3116c> liquidated: "</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">            </span><span class="token string-interpolation string" style=color:#e3116c>f"</span><span class="token string-interpolation interpolation punctuation" style=color:#393A34>{</span><span class="token string-interpolation interpolation">liquidation</span><span class="token string-interpolation interpolation punctuation" style=color:#393A34>.</span><span class="token string-interpolation interpolation">quantity</span><span class="token string-interpolation interpolation punctuation" style=color:#393A34>}</span><span class="token string-interpolation string" style=color:#e3116c> @ </span><span class="token string-interpolation interpolation punctuation" style=color:#393A34>{</span><span class="token string-interpolation interpolation">liquidation</span><span class="token string-interpolation interpolation punctuation" style=color:#393A34>.</span><span class="token string-interpolation interpolation">bankruptcy_price</span><span class="token string-interpolation interpolation punctuation" style=color:#393A34>}</span><span class="token string-interpolation string" style=color:#e3116c>"</span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">        </span><span class="token punctuation" style=color:#393A34>)</span><br/></div></code></pre></div></div>
+<p>每个发出的 <code>CustomData</code> 都携带订阅时使用的 <code>DataType</code>，因此事件会到达订阅它的 actor 的
+<code>on_data</code>。适配器对每个金融工具只保留一种数据类型；在第一种类型退订之前，对同一金融工具
+用不同数据类型的订阅会被拒绝。</p>
+<p><code>BybitLiquidation</code> 支持以 Arrow/Parquet 持久化到 catalog 的
+<code>data/custom/BybitLiquidation/{identifier}</code> 路径。Rust 构建需要启用 <code>nautilus-bybit</code> 的
+<code>arrow</code> feature 标志才能使用这一持久化。</p>
+<div class="theme-admonition theme-admonition-warning admonition_LYZY alert alert--warning"><div class=admonitionHeading_pnFY><span class=admonitionIcon_tEzm><svg viewBox="0 0 16 16"><path fill-rule=evenodd d="M8.893 1.5c-.183-.31-.52-.5-.887-.5s-.703.19-.886.5L.138 13.499a.98.98 0 0 0 0 1.001c.193.31.53.501.886.501h13.964c.367 0 .704-.19.877-.5a1.03 1.03 0 0 0 .01-1.002L8.893 1.5zm.133 11.497H6.987v-2.003h2.039v2.003zm0-3.004H6.987V5.987h2.039v4.006z"/></svg></span>注意</div><div class=admonitionContent_ZwmI><p>该数据流包含 Bybit 发布的强平事件。把它当作场所上报的信号，而不是经过独立审计、覆盖全所
+每一次强平的事实基准。</div></div>
+<h2 class="anchor anchorTargetStickyNavbar_ana5" id=rate-limiting>速率限制<a href=#rate-limiting class=hash-link aria-label=速率限制的直接链接 title=速率限制的直接链接 translate=no>​</a></h2>
+<p>适配器在创建鉴权时间戳或签名之前，就按精确的滚动窗口对请求排队。同一 API key 与环境下，
+HTTP 客户端与 trade WebSocket 共享 UID 状态。数据与执行客户端使用同一来源与代理时也共享
+IP 状态。</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>范围<th>Bybit 限制<th>适配器行为<tbody><tr><td>HTTP IP<td>每 5 秒 600 请求<td>按来源与代理共享<tr><td>HTTP 与 trade WebSocket UID<td>因端点与产品而异<td>按 API key 与环境共享<tr><td>Trade WebSocket IP<td>每秒 3,000 请求<td>按 WebSocket 来源与代理共享<tr><td>WebSocket 连接尝试<td>每域名每 5 分钟 500 次尝试<td>跨初始连接与重连共享<tr><td>期权订阅<td>每连接 2,000 个参数<td>在订阅状态变化之前拒绝</table>
+<p>UID 限流器涵盖文档记载的低速率账户与用户路由、50 请求的读取路由、按产品的订单路由、
+cancel-all 限制，以及带权重的批量操作。HTTP 与 trade WebSocket 响应会从 <code>X-Bapi-Limit</code>
+更新配置的 UID 限额，跟踪 <code>X-Bapi-Limit-Status</code>，并在剩余额度归零时遵守未来的
+<code>X-Bapi-Limit-Reset-Timestamp</code>。</p>
+<p>执行客户端的 <code>recv_window_ms</code> 同时适用于签名 REST 请求与 trade WebSocket 订单命令。排队的
+WebSocket 订单在所有适用配额放行发送之后才获得时间戳与接收窗口头。重连重试会用全新头部
+重建命令，并使用绑定连接的写入，因此传输层不可能重放过期订单负载。</p>
+<div class="theme-admonition theme-admonition-warning admonition_LYZY alert alert--warning"><div class=admonitionHeading_pnFY><span class=admonitionIcon_tEzm><svg viewBox="0 0 16 16"><path fill-rule=evenodd d="M8.893 1.5c-.183-.31-.52-.5-.887-.5s-.703.19-.886.5L.138 13.499a.98.98 0 0 0 0 1.001c.193.31.53.501.886.501h13.964c.367 0 .704-.19.877-.5a1.03 1.03 0 0 0 .01-1.002L8.893 1.5zm.133 11.497H6.987v-2.003h2.039v2.003zm0-3.004H6.987V5.987h2.039v4.006z"/></svg></span>注意</div><div class=admonitionContent_ZwmI><p>超出 API 速率限制时，Bybit 返回 <code>retCode</code> <code>10006</code>（"Too many visits"）。突破每 5 秒 600
+请求的 IP 上限会返回 HTTP 403，并把该 IP 封禁至少 10 分钟。与之匹配的 403 会丢弃受影响
+的池化 HTTP 会话，并启动共享的 10 分钟冷却。其他 403 响应不会触发冷却。</div></div>
+<div class="theme-admonition theme-admonition-warning admonition_LYZY alert alert--warning"><div class=admonitionHeading_pnFY><span class=admonitionIcon_tEzm><svg viewBox="0 0 16 16"><path fill-rule=evenodd d="M8.893 1.5c-.183-.31-.52-.5-.887-.5s-.703.19-.886.5L.138 13.499a.98.98 0 0 0 0 1.001c.193.31.53.501.886.501h13.964c.367 0 .704-.19.877-.5a1.03 1.03 0 0 0 .01-1.002L8.893 1.5zm.133 11.497H6.987v-2.003h2.039v2.003zm0-3.004H6.987V5.987h2.039v4.006z"/></svg></span>注意</div><div class=admonitionContent_ZwmI><p>协调仅限于进程内。另一个进程或主机使用同一 API key 或公网 IP 时，可能消耗本适配器无法
+提前预留的场所配额。响应头能缩小 UID 限额上的这一差距，但独立进程仍需运维层面的协调。</div></div>
+<p>场所明确的速率限制响应，对受影响的订单操作是终局拒绝。传输超时、服务重启与重复请求标识
+仍受订单对账约束，因为它们无法证明场所是否接受了订单。</p>
+<div class="theme-admonition theme-admonition-info admonition_LYZY alert alert--info"><div class=admonitionHeading_pnFY><span class=admonitionIcon_tEzm><svg viewBox="0 0 14 16"><path fill-rule=evenodd d="M7 2.3c3.14 0 5.7 2.56 5.7 5.7s-2.56 5.7-5.7 5.7A5.71 5.71 0 0 1 1.3 8c0-3.14 2.56-5.7 5.7-5.7zM7 1C3.14 1 0 4.14 0 8s3.14 7 7 7 7-3.14 7-7-3.14-7-7-7zm1 3H6v5h2V4zm0 6H6v2h2v-2z"/></svg></span>信息</div><div class=admonitionContent_ZwmI><p>速率限制的更多细节见官方文档：<a href=https://bybit-exchange.github.io/docs/v5/rate-limit target=_blank rel="noopener noreferrer" class="">https://bybit-exchange.github.io/docs/v5/rate-limit</a>。</div></div>
+<h2 class="anchor anchorTargetStickyNavbar_ana5" id=account-types>账户类型<a href=#account-types class=hash-link aria-label=账户类型的直接链接 title=账户类型的直接链接 translate=no>​</a></h2>
+<p>执行客户端工厂根据配置的产品类型确定账户类型与 OMS 类型：</p>
 <ul>
-<li><code>BYBIT_DEMO_API_KEY</code></li>
-<li><code>BYBIT_DEMO_API_SECRET</code></li>
+<li class=""><strong>仅现货</strong>：<code>CASH</code> 账户类型，配 <code>HEDGING</code> OMS 类型。</li>
+<li class=""><strong>衍生品或混合产品</strong>：<code>MARGIN</code> 账户类型（UTA——统一交易账户），配 <code>NETTING</code> OMS 类型。</li>
 </ul>
-<p>对于 Bybit testnet 客户端，可设置：</p>
+<p>这让你可以在单个统一交易账户中把现货与衍生品一起交易——对多数 Bybit 用户这就是标准账户
+类型。</p>
+<div class="theme-admonition theme-admonition-info admonition_LYZY alert alert--info"><div class=admonitionHeading_pnFY><span class=admonitionIcon_tEzm><svg viewBox="0 0 14 16"><path fill-rule=evenodd d="M7 2.3c3.14 0 5.7 2.56 5.7 5.7s-2.56 5.7-5.7 5.7A5.71 5.71 0 0 1 1.3 8c0-3.14 2.56-5.7 5.7-5.7zM7 1C3.14 1 0 4.14 0 8s3.14 7 7 7 7-3.14 7-7-3.14-7-7-7zm1 3H6v5h2V4zm0 6H6v2h2v-2z"/></svg></span>信息</div><div class=admonitionContent_ZwmI><p><strong>统一交易账户（UTA）与现货保证金交易</strong><p>Bybit 正引导新用户转向统一交易账户，多数用户现在持有的都是 UTA。经典账户被视为遗留
+类型。<p>UTA 账户上做现货保证金交易：<ul>
+<li class="">借币<strong>不会自动启用</strong>——需要显式的 API 配置</li>
+<li class="">通过 API 使用现货保证金，下单参数必须带 <code>is_leverage=True</code>（见
+<a href=https://bybit-exchange.github.io/docs/v5/order/create-order#request-parameters target=_blank rel="noopener noreferrer" class="">Bybit 文档</a>）</li>
+<li class="">若你的 Bybit 账户启用了自动借币/自动还款，场所会为这些保证金订单自动借入/归还资金</li>
+<li class="">未启用自动借币时，你需要通过 Bybit 界面手动管理借币</li>
+</ul><p><strong>重要</strong>：Nautilus 的 Bybit 适配器对现货订单默认 <code>is_leverage=False</code>，因此除非你显式启用，
+它们不会使用保证金。</div></div>
+<h2 class="anchor anchorTargetStickyNavbar_ana5" id=fee-currency-logic>费用货币逻辑<a href=#fee-currency-logic class=hash-link aria-label=费用货币逻辑的直接链接 title=费用货币逻辑的直接链接 translate=no>​</a></h2>
+<p>理解 Bybit 如何决定交易费用的货币，对准确的核算与持仓跟踪很重要。费用货币规则在现货与
+衍生品类产品之间不同。</p>
+<p>适配器直接采用场所 <code>execFee</code> 与 <code>feeCurrency</code> 字段中的费用金额与货币，因此下面的规则描述
+的是 Bybit 报告的行为，不是本地计算。</p>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=spot-trading-fees>现货交易费用<a href=#spot-trading-fees class=hash-link aria-label=现货交易费用的直接链接 title=现货交易费用的直接链接 translate=no>​</a></h3>
+<p>现货交易中，费用货币取决于订单方向，以及该费用是否为返佣（maker 订单的负费用）：</p>
+<h4 class="anchor anchorTargetStickyNavbar_ana5" id=normal-fees-positive>常规费用（正值）<a href=#normal-fees-positive class=hash-link aria-label=常规费用（正值）的直接链接 title=常规费用（正值）的直接链接 translate=no>​</a></h4>
 <ul>
-<li><code>BYBIT_TESTNET_API_KEY</code></li>
-<li><code>BYBIT_TESTNET_API_SECRET</code></li>
+<li class=""><strong>BUY 订单</strong>：费用以<strong>基础货币</strong>收取（如 BTCUSDT 收 BTC）</li>
+<li class=""><strong>SELL 订单</strong>：费用以<strong>报价货币</strong>收取（如 BTCUSDT 收 USDT）</li>
 </ul>
-<div class="theme-admonition theme-admonition-tip admonition_lEzE alert alert--success"><div class="admonitionHeading_aAf0"><span class="admonitionIcon_xtBN"><svg viewBox="0 0 12 16"><path fill-rule="evenodd" d="M6.5 0C3.48 0 1 2.19 1 5c0 .92.55 2.25 1 3 1.34 2.25 1.78 2.78 2 4v1h5v-1c.22-1.22.66-1.75 2-4 .45-.75 1-2.08 1-3 0-2.81-2.48-5-5.5-5zm3.64 7.48c-.25.44-.47.8-.67 1.11-.86 1.41-1.25 2.06-1.45 3.23-.02.05-.02.11-.02.17H5c0-.06 0-.13-.02-.17-.2-1.17-.59-1.83-1.45-3.23-.2-.31-.42-.67-.67-1.11C2.44 6.78 2 5.65 2 5c0-2.2 2.02-4 4.5-4 1.22 0 2.36.42 3.22 1.19C10.55 2.94 11 3.94 11 5c0 .66-.44 1.78-.86 2.48zM4 14h5c-.23 1.14-1.3 2-2.5 2s-2.27-.86-2.5-2z"></path></svg></span>提示</div><div class="admonitionContent_Vfkp"><p>推荐使用环境变量来管理凭证。这样更安全且便于部署。</p></div></div>
-<p>启动交易节点时，你会立即收到凭证是否有效以及是否具备交易权限的确认信息。</p>
-<div class="theme-admonition theme-admonition-info admonition_lEzE alert alert--info"><div class="admonitionHeading_aAf0"><span class="admonitionIcon_xtBN"><svg viewBox="0 0 14 16"><path fill-rule="evenodd" d="M7 2.3c3.14 0 5.7 2.56 5.7 5.7s-2.56 5.7-5.7 5.7A5.71 5.71 0 0 1 1.3 8c0-3.14 2.56-5.7 5.7-5.7zM7 1C3.14 1 0 4.14 0 8s3.14 7 7 7 7-3.14 7-7-3.14-7-7-7zm1 3H6v5h2V4zm0 6H6v2h2v-2z"></path></svg></span>信息</div><div class="admonitionContent_Vfkp"><p>关于 Bybit 适配器的更多功能或贡献方式，请参阅项目的贡献指南（contributing guide）。</p></div></div></div><footer class="theme-doc-footer docusaurus-mt-lg"><div class="row margin-top--sm theme-doc-footer-edit-meta-row"><div class="col"><a href="https://github.com/Aloento/NautilusTraderDoc/tree/main/docs/integrations/bybit.md" target="_blank" rel="noopener noreferrer" class="theme-edit-this-page"><svg fill="currentColor" height="20" width="20" viewBox="0 0 40 40" class="iconEdit_F7ru" aria-hidden="true"><g><path d="m34.5 11.7l-3 3.1-6.3-6.3 3.1-3q0.5-0.5 1.2-0.5t1.1 0.5l3.9 3.9q0.5 0.4 0.5 1.1t-0.5 1.2z m-29.5 17.1l18.4-18.5 6.3 6.3-18.4 18.4h-6.3v-6.2z"></path></g></svg>编辑此页</a></div><div class="col lastUpdated_GNoA"></div></div></footer></article><nav class="docusaurus-mt-lg pagination-nav" aria-label="文件选项卡"><a class="pagination-nav__link pagination-nav__link--prev" href="/integrations/blockchain"><div class="pagination-nav__sublabel">上一页</div><div class="pagination-nav__label">Blockchain</div></a><a class="pagination-nav__link pagination-nav__link--next" href="/integrations/coinbase_intx"><div class="pagination-nav__sublabel">下一页</div><div class="pagination-nav__label">Coinbase International</div></a></nav></div></div><div class="col col--3"><div class="tableOfContents_pg_n thin-scrollbar theme-doc-toc-desktop"><ul class="table-of-contents table-of-contents__left-border"><li><a href="#示例" class="table-of-contents__link toc-highlight">示例</a></li><li><a href="#概览" class="table-of-contents__link toc-highlight">概览</a></li><li><a href="#bybit-官方文档" class="table-of-contents__link toc-highlight">Bybit 官方文档</a></li><li><a href="#产品类型products" class="table-of-contents__link toc-highlight">产品类型（Products）</a></li><li><a href="#符号约定symbology" class="table-of-contents__link toc-highlight">符号约定（Symbology）</a></li><li><a href="#订单能力orders-capability" class="table-of-contents__link toc-highlight">订单能力（Orders capability）</a><ul><li><a href="#订单类型" class="table-of-contents__link toc-highlight">订单类型</a></li><li><a href="#执行指令execution-instructions" class="table-of-contents__link toc-highlight">执行指令（Execution instructions）</a></li><li><a href="#有效期time-in-force" class="table-of-contents__link toc-highlight">有效期（Time in force）</a></li><li><a href="#高级订单功能advanced-order-features" class="table-of-contents__link toc-highlight">高级订单功能（Advanced order features）</a></li><li><a href="#批量操作batch-operations" class="table-of-contents__link toc-highlight">批量操作（Batch operations）</a></li><li><a href="#仓位管理position-management" class="table-of-contents__link toc-highlight">仓位管理（Position management）</a></li><li><a href="#订单查询order-querying" class="table-of-contents__link toc-highlight">订单查询（Order querying）</a></li><li><a href="#或有订单contingent-orders" class="table-of-contents__link toc-highlight">或有订单（Contingent orders）</a></li><li><a href="#订单参数order-parameters" class="table-of-contents__link toc-highlight">订单参数（Order parameters）</a></li><li><a href="#spot-交易限制" class="table-of-contents__link toc-highlight">SPOT 交易限制</a></li><li><a href="#追踪止损trailing-stops" class="table-of-contents__link toc-highlight">追踪止损（Trailing stops）</a></li></ul></li><li><a href="#速率限制rate-limiting" class="table-of-contents__link toc-highlight">速率限制（Rate limiting）</a><ul><li><a href="#数据客户端data-clients" class="table-of-contents__link toc-highlight">数据客户端（Data clients）</a></li><li><a href="#执行客户端execution-clients" class="table-of-contents__link toc-highlight">执行客户端（Execution clients）</a></li></ul></li><li><a href="#费用货币fee-currency-logic" class="table-of-contents__link toc-highlight">费用货币（Fee currency logic）</a><ul><li><a href="#spot-交易费用" class="table-of-contents__link toc-highlight">SPOT 交易费用</a></li><li><a href="#衍生品交易费用derivatives-trading-fees" class="table-of-contents__link toc-highlight">衍生品交易费用（Derivatives trading fees）</a></li><li><a href="#费用计算" class="table-of-contents__link toc-highlight">费用计算</a></li><li><a href="#官方文档" class="table-of-contents__link toc-highlight">官方文档</a></li></ul></li><li><a href="#配置" class="table-of-contents__link toc-highlight">配置</a><ul><li><a href="#数据客户端配置选项data-client-configuration-options" class="table-of-contents__link toc-highlight">数据客户端配置选项（Data client configuration options）</a></li><li><a href="#执行客户端配置选项execution-client-configuration-options" class="table-of-contents__link toc-highlight">执行客户端配置选项（Execution client configuration options）</a></li><li><a href="#api-凭证api-credentials" class="table-of-contents__link toc-highlight">API 凭证（API credentials）</a></li></ul></li></ul></div></div></div></div></main></div></div></div><footer class="theme-layout-footer footer footer--dark"><div class="container container-fluid"><div class="row footer__links"><div class="theme-layout-footer-column col footer__col"><div class="footer__title"></div><ul class="footer__items clean-list"><li class="footer__item"><a href="https://github.com/nautechsystems/nautilus_trader" target="_blank" rel="noopener noreferrer" class="footer__link-item">Official GitHub<svg width="13.5" height="13.5" aria-label="(opens in new tab)" class="iconExternalLink_KfBJ"><use href="#theme-svg-external-link"></use></svg></a></li><li class="footer__item"><a href="https://nautilustrader.io/docs" target="_blank" rel="noopener noreferrer" class="footer__link-item">Official Documentation<svg width="13.5" height="13.5" aria-label="(opens in new tab)" class="iconExternalLink_KfBJ"><use href="#theme-svg-external-link"></use></svg></a></li></ul></div></div><div class="footer__bottom text--center"><div class="footer__copyright">© 2025 Nautech Systems Pty Ltd. All rights reserved.</div></div></div></footer></div>
-</body>
-</html>
+<h4 class="anchor anchorTargetStickyNavbar_ana5" id=maker-rebates-negative-fees>Maker 返佣（负费用）<a href=#maker-rebates-negative-fees class=hash-link aria-label="Maker 返佣（负费用）的直接链接" title="Maker 返佣（负费用）的直接链接" translate=no>​</a></h4>
+<p>maker 费用为负（返佣）时，货币逻辑<strong>反转</strong>：</p>
+<ul>
+<li class=""><strong>带 maker 返佣的 BUY 订单</strong>：返佣以<strong>报价货币</strong>支付（如 BTCUSDT 返 USDT）</li>
+<li class=""><strong>带 maker 返佣的 SELL 订单</strong>：返佣以<strong>基础货币</strong>支付（如 BTCUSDT 返 BTC）</li>
+</ul>
+<div class="theme-admonition theme-admonition-note admonition_LYZY alert alert--secondary"><div class=admonitionHeading_pnFY><span class=admonitionIcon_tEzm><svg viewBox="0 0 14 16"><path fill-rule=evenodd d="M6.3 5.69a.942.942 0 0 1-.28-.7c0-.28.09-.52.28-.7.19-.18.42-.28.7-.28.28 0 .52.09.7.28.18.19.28.42.28.7 0 .28-.09.52-.28.7a1 1 0 0 1-.7.3c-.28 0-.52-.11-.7-.3zM8 7.99c-.02-.25-.11-.48-.31-.69-.2-.19-.42-.3-.69-.31H6c-.27.02-.48.13-.69.31-.2.2-.3.44-.31.69h1v3c.02.27.11.5.31.69.2.2.42.31.69.31h1c.27 0 .48-.11.69-.31.2-.19.3-.42.31-.69H8V7.98v.01zM7 2.3c-3.14 0-5.7 2.54-5.7 5.68 0 3.14 2.56 5.7 5.7 5.7s5.7-2.55 5.7-5.7c0-3.15-2.56-5.69-5.7-5.69v.01zM7 .98c3.86 0 7 3.14 7 7s-3.14 7-7 7-7-3.12-7-7 3.14-7 7-7z"/></svg></span>备注</div><div class=admonitionContent_ZwmI><p><strong>Taker 订单永远不会应用反转逻辑</strong>，即使 maker 费率是负的。Taker 费用始终遵循常规的费用
+货币规则。</div></div>
+<h4 class="anchor anchorTargetStickyNavbar_ana5" id=example-btcusdt-spot>示例：BTCUSDT 现货<a href=#example-btcusdt-spot class=hash-link aria-label="示例：BTCUSDT 现货的直接链接" title="示例：BTCUSDT 现货的直接链接" translate=no>​</a></h4>
+<ul>
+<li class=""><strong>以 taker 买入 1 BTC（0.1% 费率）</strong>：支付 0.001 BTC 作为费用</li>
+<li class=""><strong>以 taker 卖出 1 BTC（0.1% 费率）</strong>：支付等值的 USDT 作为费用</li>
+<li class=""><strong>以 maker 买入 1 BTC（-0.01% 返佣）</strong>：收到 USDT 返佣（反转）</li>
+<li class=""><strong>以 maker 卖出 1 BTC（-0.01% 返佣）</strong>：收到 BTC 返佣（反转）</li>
+</ul>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=derivatives-trading-fees>衍生品交易费用<a href=#derivatives-trading-fees class=hash-link aria-label=衍生品交易费用的直接链接 title=衍生品交易费用的直接链接 translate=no>​</a></h3>
+<p>所有衍生品类产品（LINEAR、INVERSE、OPTION）的费用一律以<strong>结算货币</strong>收取：</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>产品类型<th>结算货币<th>费用货币<tbody><tr><td>LINEAR<td>USDT（通常）<td>USDT<tr><td>INVERSE<td>基础币（如 BTCUSD 的 BTC）<td>基础币<tr><td>OPTION<td>USDT 或 USDC<td>结算币</table>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=missing-fee-data>费用数据缺失<a href=#missing-fee-data class=hash-link aria-label=费用数据缺失的直接链接 title=费用数据缺失的直接链接 translate=no>​</a></h3>
+<p>Bybit 的 <code>execution.fast</code> 私有频道省略费用与执行类型字段，从该频道解析的成交报告因此携带
+零费用。需要精确费用数据时，请订阅标准 <code>execution</code> 频道。</p>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=official-documentation>官方文档<a href=#official-documentation class=hash-link aria-label=官方文档的直接链接 title=官方文档的直接链接 translate=no>​</a></h3>
+<p>Bybit 费用结构与货币规则的完整细节，参阅：</p>
+<ul>
+<li class=""><a href=https://bybit-exchange.github.io/docs/v5/websocket/private/execution target=_blank rel="noopener noreferrer" class="">Bybit WebSocket 私有执行</a></li>
+<li class=""><a href=https://bybit-exchange.github.io/docs/v5/enum#spot-fee-currency-instruction target=_blank rel="noopener noreferrer" class="">Bybit 现货费用货币指令</a></li>
+</ul>
+<h2 class="anchor anchorTargetStickyNavbar_ana5" id=configuration>配置<a href=#configuration class=hash-link aria-label=配置的直接链接 title=配置的直接链接 translate=no>​</a></h2>
+<p>每个客户端的产品类型必须在配置中指明。</p>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=data-client-configuration-options>数据客户端配置选项<a href=#data-client-configuration-options class=hash-link aria-label=数据客户端配置选项的直接链接 title=数据客户端配置选项的直接链接 translate=no>​</a></h3>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>选项<th>默认值<th>说明<tbody><tr><td><code>product_types</code><td><code>[LINEAR]</code><td>要启用的 <code>BybitProductType</code> 值序列。<tr><td><code>environment</code><td><code>MAINNET</code><td>Bybit 环境枚举。用 <code>BybitEnvironment.MAINNET</code>、<code>BybitEnvironment.DEMO</code> 或 <code>BybitEnvironment.TESTNET</code>。<tr><td><code>api_key</code><td><code>None</code><td>API key；省略时从匹配的环境变量加载。<tr><td><code>api_secret</code><td><code>None</code><td>API secret；省略时从匹配的环境变量加载。<tr><td><code>base_url_http</code><td><code>None</code><td>REST 基础 URL 的覆盖值。<tr><td><code>base_url_ws_public</code><td><code>None</code><td>公开 WebSocket URL 的覆盖值。<tr><td><code>base_url_ws_private</code><td><code>None</code><td>私有 WebSocket URL 的覆盖值。<tr><td><code>proxy_url</code><td><code>None</code><td>HTTP 与 WebSocket 传输的可选代理 URL。<tr><td><code>http_timeout_secs</code><td><code>60</code><td>REST 请求超时（秒）。<tr><td><code>max_retries</code><td><code>3</code><td>REST 请求的最大重试次数。<tr><td><code>retry_delay_initial_ms</code><td><code>1,000</code><td>初始重试延迟（毫秒）。<tr><td><code>retry_delay_max_ms</code><td><code>10,000</code><td>最大重试延迟（毫秒）。<tr><td><code>heartbeat_interval_secs</code><td><code>20</code><td>WebSocket 客户端心跳间隔（秒）。<tr><td><code>recv_window_ms</code><td><code>5,000</code><td>签名 REST 请求的接收窗口（毫秒）。<tr><td><code>update_instruments_interval_mins</code><td><code>60</code><td>工具目录刷新间隔（分钟）。<tr><td><code>instrument_status_poll_secs</code><td><code>60</code><td>工具与状态轮询间隔（秒）；<code>0</code> 禁用轮询。<tr><td><code>book_snapshot_timeout_secs</code><td><code>10</code><td>初始、重连与恢复快照的等待；<code>0</code> 禁用。<tr><td><code>transport_backend</code><td><code>Sockudo</code><td>WebSocket 传输后端。<tr><td><code>bars_timestamp_on_close</code><td><code>True</code><td>K 线按区间收盘打时间戳；<code>False</code> 按区间开盘打时间戳。</table>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=execution-client-configuration-options>执行客户端配置选项<a href=#execution-client-configuration-options class=hash-link aria-label=执行客户端配置选项的直接链接 title=执行客户端配置选项的直接链接 translate=no>​</a></h3>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>选项<th>默认值<th>说明<tbody><tr><td><code>product_types</code><td><code>[LINEAR]</code><td>要启用的 <code>BybitProductType</code> 值序列。<tr><td><code>environment</code><td><code>MAINNET</code><td>Bybit 环境枚举。用 <code>BybitEnvironment.MAINNET</code>、<code>BybitEnvironment.DEMO</code> 或 <code>BybitEnvironment.TESTNET</code>。<tr><td><code>api_key</code><td><code>None</code><td>API key；省略时从匹配的环境变量加载。<tr><td><code>api_secret</code><td><code>None</code><td>API secret；省略时从匹配的环境变量加载。<tr><td><code>base_url_http</code><td><code>None</code><td>REST 基础 URL 的覆盖值。<tr><td><code>base_url_ws_private</code><td><code>None</code><td>私有 WebSocket 基础 URL 的覆盖值。<tr><td><code>base_url_ws_trade</code><td><code>None</code><td>trade WebSocket 基础 URL 的覆盖值。<tr><td><code>proxy_url</code><td><code>None</code><td>HTTP 与 WebSocket 传输的可选代理 URL。<tr><td><code>http_timeout_secs</code><td><code>60</code><td>REST 请求超时（秒）。<tr><td><code>max_retries</code><td><code>3</code><td>REST 请求的最大重试次数。<tr><td><code>retry_delay_initial_ms</code><td><code>1,000</code><td>初始重试延迟（毫秒）。<tr><td><code>retry_delay_max_ms</code><td><code>10,000</code><td>最大重试延迟（毫秒）。<tr><td><code>heartbeat_interval_secs</code><td><code>5</code><td>WebSocket 客户端心跳间隔（秒）。<tr><td><code>auth_timeout_secs</code><td><code>None</code><td>可选的 WebSocket 鉴权超时（秒）。<tr><td><code>recv_window_ms</code><td><code>5,000</code><td>签名 REST 与 trade WebSocket 请求的接收窗口（毫秒）。<tr><td><code>account_id</code><td><code>None</code><td>与该客户端关联的可选账户 ID。<tr><td><code>use_spot_position_reports</code><td><code>False</code><td>限定请求时把现货钱包余额报告为持仓；批量报告省略现货（无法归属到交易对）。<tr><td><code>auto_repay_spot_borrows</code><td><code>False</code><td>BUY 订单完全成交后自动归还被跟踪的现货保证金借币。<tr><td><code>margin_mode</code><td><code>None</code><td>账户的统一保证金模式设置。<tr><td><code>smp_type</code><td><code>None</code><td>在每笔订单上发送的自成交防止。见<a href=#self-match-prevention class="">SMP</a>。<tr><td><code>transport_backend</code><td><code>Sockudo</code><td>WebSocket 传输后端。</table>
+<p>编译时的默认值：启用 <code>transport-sockudo</code> Cargo feature 时为 Sockudo，否则为 Tungstenite。</p>
+<p><code>BybitDataClientConfig</code> 与 <code>BybitDataClientFactory</code> 搭配使用，<code>BybitExecutionClientConfig</code> 与
+<code>BybitExecutionClientFactory</code> 搭配使用。当前的 Python 示例展示了数据与执行客户端完整的
+<code>LiveNode.builder(...)</code> 配置。</p>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=api-credentials>API 凭据<a href=#api-credentials class=hash-link aria-label="API 凭据的直接链接" title="API 凭据的直接链接" translate=no>​</a></h3>
+<p>向 Bybit 客户端提供凭据有两种方式：或者把对应的 <code>api_key</code> 与 <code>api_secret</code> 值传入配置对象，
+或者设置以下环境变量：</p>
+<p>Bybit 实盘客户端可设置：</p>
+<ul>
+<li class=""><code>BYBIT_API_KEY</code></li>
+<li class=""><code>BYBIT_API_SECRET</code></li>
+</ul>
+<p>Bybit demo 客户端可设置：</p>
+<ul>
+<li class=""><code>BYBIT_DEMO_API_KEY</code></li>
+<li class=""><code>BYBIT_DEMO_API_SECRET</code></li>
+</ul>
+<p>Bybit 测试网客户端可设置：</p>
+<ul>
+<li class=""><code>BYBIT_TESTNET_API_KEY</code></li>
+<li class=""><code>BYBIT_TESTNET_API_SECRET</code></li>
+</ul>
+<div class="theme-admonition theme-admonition-tip admonition_LYZY alert alert--success"><div class=admonitionHeading_pnFY><span class=admonitionIcon_tEzm><svg viewBox="0 0 12 16"><path fill-rule=evenodd d="M6.5 0C3.48 0 1 2.19 1 5c0 .92.55 2.25 1 3 1.34 2.25 1.78 2.78 2 4v1h5v-1c.22-1.22.66-1.75 2-4 .45-.75 1-2.08 1-3 0-2.81-2.48-5-5.5-5zm3.64 7.48c-.25.44-.47.8-.67 1.11-.86 1.41-1.25 2.06-1.45 3.23-.02.05-.02.11-.02.17H5c0-.06 0-.13-.02-.17-.2-1.17-.59-1.83-1.45-3.23-.2-.31-.42-.67-.67-1.11C2.44 6.78 2 5.65 2 5c0-2.2 2.02-4 4.5-4 1.22 0 2.36.42 3.22 1.19C10.55 2.94 11 3.94 11 5c0 .66-.44 1.78-.86 2.48zM4 14h5c-.23 1.14-1.3 2-2.5 2s-2.27-.86-2.5-2z"/></svg></span>提示</div><div class=admonitionContent_ZwmI><p>推荐使用环境变量管理凭据。</div></div>
+<p>启动交易节点时，你会立即得到凭据是否有效、是否具有交易权限的确认。</p>
+<h2 class="anchor anchorTargetStickyNavbar_ana5" id=contributing>参与贡献<a href=#contributing class=hash-link aria-label=参与贡献的直接链接 title=参与贡献的直接链接 translate=no>​</a></h2>
+<div class="theme-admonition theme-admonition-info admonition_LYZY alert alert--info"><div class=admonitionHeading_pnFY><span class=admonitionIcon_tEzm><svg viewBox="0 0 14 16"><path fill-rule=evenodd d="M7 2.3c3.14 0 5.7 2.56 5.7 5.7s-2.56 5.7-5.7 5.7A5.71 5.71 0 0 1 1.3 8c0-3.14 2.56-5.7 5.7-5.7zM7 1C3.14 1 0 4.14 0 8s3.14 7 7 7 7-3.14 7-7-3.14-7-7-7zm1 3H6v5h2V4zm0 6H6v2h2v-2z"/></svg></span>信息</div><div class=admonitionContent_ZwmI><p>要获取更多特性或为 Bybit 适配器做贡献，请见我们的
+<a href=https://github.com/nautechsystems/nautilus_trader/blob/develop/CONTRIBUTING.md target=_blank rel="noopener noreferrer" class="">贡献指南</a>。</div></div></div><footer class="theme-doc-footer docusaurus-mt-lg"><div class="row margin-top--sm theme-doc-footer-edit-meta-row"><div class="col noPrint_MRkS"><a href=https://github.com/Aloento/NautilusTraderDoc/tree/main/docs/integrations/bybit.md target=_blank rel="noopener noreferrer" class=theme-edit-this-page><svg fill=currentColor height=20 width=20 viewBox="0 0 40 40" class=iconEdit_RPSQ aria-hidden=true><g><path d="m34.5 11.7l-3 3.1-6.3-6.3 3.1-3q0.5-0.5 1.2-0.5t1.1 0.5l3.9 3.9q0.5 0.4 0.5 1.1t-0.5 1.2z m-29.5 17.1l18.4-18.5 6.3 6.3-18.4 18.4h-6.3v-6.2z"/></g></svg>编辑此页</a></div><div class="col lastUpdated_oZSl"><span class=theme-last-updated>最后<!-- -->于 <b><time datetime=2026-10-14T22:30:30.000Z itemprop=dateModified>2026年10月14日</time></b> <!-- -->更新</span></div></div></footer></article><nav class="docusaurus-mt-lg pagination-nav" aria-label=文件选项卡><a class="pagination-nav__link pagination-nav__link--prev" href=/integrations/blockchain><div class=pagination-nav__sublabel>上一页</div><div class=pagination-nav__label>区块链</div></a><a class="pagination-nav__link pagination-nav__link--next" href=/integrations/coinapi><div class=pagination-nav__sublabel>下一页</div><div class=pagination-nav__label>CoinAPI</div></a></nav></div></div><div class="col col--3"><div class="tableOfContents_LyLZ thin-scrollbar theme-doc-toc-desktop"><ul class="table-of-contents table-of-contents__left-border"><li><a href=#examples class="table-of-contents__link toc-highlight">示例</a><li><a href=#overview class="table-of-contents__link toc-highlight">概览</a><li><a href=#bybit-documentation class="table-of-contents__link toc-highlight">Bybit 文档</a><li><a href=#products class="table-of-contents__link toc-highlight">产品</a><li><a href=#symbology class="table-of-contents__link toc-highlight">符号体系</a><li><a href=#instrument-loading class="table-of-contents__link toc-highlight">工具加载</a><li><a href=#environments class="table-of-contents__link toc-highlight">环境</a><ul><li><a href=#mainnet-production class="table-of-contents__link toc-highlight">主网（生产环境）</a><li><a href=#demo-trading class="table-of-contents__link toc-highlight">Demo 交易</a><li><a href=#testnet class="table-of-contents__link toc-highlight">测试网</a><li><a href=#testnet-setup class="table-of-contents__link toc-highlight">测试网设置</a></ul><li><a href=#quotes-and-order-books class="table-of-contents__link toc-highlight">报价与订单簿</a><li><a href=#order-book-recovery class="table-of-contents__link toc-highlight">订单簿恢复</a><ul><li><a href=#sequence-validation class="table-of-contents__link toc-highlight">序列校验</a><li><a href=#snapshot-deadlines class="table-of-contents__link toc-highlight">快照死线</a><li><a href=#retry-limits-and-reconnects class="table-of-contents__link toc-highlight">重试上限与重连</a><li><a href=#live-recovery-validation class="table-of-contents__link toc-highlight">实盘恢复验证</a></ul><li><a href=#orders-capability class="table-of-contents__link toc-highlight">订单能力</a><ul><li><a href=#order-types class="table-of-contents__link toc-highlight">订单类型</a><li><a href=#execution-instructions class="table-of-contents__link toc-highlight">执行指示</a><li><a href=#time-in-force class="table-of-contents__link toc-highlight">有效期</a><li><a href=#advanced-order-features class="table-of-contents__link toc-highlight">高级订单特性</a><li><a href=#batch-operations class="table-of-contents__link toc-highlight">批量操作</a><li><a href=#position-management class="table-of-contents__link toc-highlight">持仓管理</a><li><a href=#risk-events class="table-of-contents__link toc-highlight">风险事件</a><li><a href=#order-querying class="table-of-contents__link toc-highlight">订单查询</a><li><a href=#contingent-orders class="table-of-contents__link toc-highlight">条件关联订单</a><li><a href=#order-parameters class="table-of-contents__link toc-highlight">订单参数</a><li><a href=#spot-trading-limitations class="table-of-contents__link toc-highlight">现货交易限制</a><li><a href=#options-trading class="table-of-contents__link toc-highlight">期权交易</a><li><a href=#trailing-stops class="table-of-contents__link toc-highlight">移动止损</a></ul><li><a href=#spot-margin-borrowing-and-repayment class="table-of-contents__link toc-highlight">现货保证金借币与还款</a><ul><li><a href=#background class="table-of-contents__link toc-highlight">背景</a><li><a href=#automatic-repayment-recommended class="table-of-contents__link toc-highlight">自动还款（推荐）</a><li><a href=#utc-blackout-window class="table-of-contents__link toc-highlight">UTC 封禁窗口</a><li><a href=#auto-repayment-configuration class="table-of-contents__link toc-highlight">自动还款配置</a><li><a href=#auto-repayment-notes class="table-of-contents__link toc-highlight">自动还款注意事项</a></ul><li><a href=#funding-rates class="table-of-contents__link toc-highlight">Funding 费率</a><li><a href=#bybit-specific-data class="table-of-contents__link toc-highlight">Bybit 专属数据</a><ul><li><a href=#liquidations class="table-of-contents__link toc-highlight">强平</a></ul><li><a href=#rate-limiting class="table-of-contents__link toc-highlight">速率限制</a><li><a href=#account-types class="table-of-contents__link toc-highlight">账户类型</a><li><a href=#fee-currency-logic class="table-of-contents__link toc-highlight">费用货币逻辑</a><ul><li><a href=#spot-trading-fees class="table-of-contents__link toc-highlight">现货交易费用</a><li><a href=#derivatives-trading-fees class="table-of-contents__link toc-highlight">衍生品交易费用</a><li><a href=#missing-fee-data class="table-of-contents__link toc-highlight">费用数据缺失</a><li><a href=#official-documentation class="table-of-contents__link toc-highlight">官方文档</a></ul><li><a href=#configuration class="table-of-contents__link toc-highlight">配置</a><ul><li><a href=#data-client-configuration-options class="table-of-contents__link toc-highlight">数据客户端配置选项</a><li><a href=#execution-client-configuration-options class="table-of-contents__link toc-highlight">执行客户端配置选项</a><li><a href=#api-credentials class="table-of-contents__link toc-highlight">API 凭据</a></ul><li><a href=#contributing class="table-of-contents__link toc-highlight">参与贡献</a></ul></div></div></div></div></main></div></div></div><footer class="theme-layout-footer footer footer--dark"><div class="container container-fluid"><div class="row footer__links"><div class="theme-layout-footer-column col footer__col"><div class=footer__title></div><ul class="footer__items clean-list"><li class=footer__item><a href=https://github.com/nautechsystems/nautilus_trader target=_blank rel="noopener noreferrer" class=footer__link-item>Official GitHub<svg width=13.5 height=13.5 aria-label="(opens in new tab)" class=iconExternalLink_qUHo><use href=#theme-svg-external-link /></svg></a><li class=footer__item><a href=https://nautilustrader.io/docs target=_blank rel="noopener noreferrer" class=footer__link-item>Official Documentation<svg width=13.5 height=13.5 aria-label="(opens in new tab)" class=iconExternalLink_qUHo><use href=#theme-svg-external-link /></svg></a></ul></div></div><div class="footer__bottom text--center"><div class=footer__copyright>© 2026 Nautech Systems Pty Ltd. All rights reserved.</div></div></div></footer></div></body>

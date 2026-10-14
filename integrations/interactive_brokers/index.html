@@ -1,0 +1,1065 @@
+<!doctype html><html lang=zh dir=ltr class="docs-wrapper plugin-docs plugin-id-default docs-version-current docs-doc-page docs-doc-id-integrations/interactive_brokers" data-has-hydrated=false><head><meta charset=UTF-8><meta name=generator content="Docusaurus v3.10.2"><title data-rh=true>Interactive Brokers | NautilusTrader 文档</title><meta data-rh=true name=viewport content="width=device-width, initial-scale=1.0"/><meta data-rh=true name=twitter:card content=summary_large_image /><meta data-rh=true property=og:url content=https://nautilus.aloen.to/integrations/interactive_brokers /><meta data-rh=true property=og:locale content=zh /><meta data-rh=true name=docusaurus_locale content=zh /><meta data-rh=true name=docsearch:language content=zh /><meta data-rh=true name=docusaurus_version content=current /><meta data-rh=true name=docusaurus_tag content=docs-default-current /><meta data-rh=true name=docsearch:version content=current /><meta data-rh=true name=docsearch:docusaurus_tag content=docs-default-current /><meta data-rh=true property=og:title content="Interactive Brokers | NautilusTrader 文档"/><meta data-rh=true name=description content="Interactive Brokers 适配器通过 TWS API"/><meta data-rh=true property=og:description content="Interactive Brokers 适配器通过 TWS API"/><link data-rh=true rel=icon href=/logo.png /><link data-rh=true rel=canonical href=https://nautilus.aloen.to/integrations/interactive_brokers /><link data-rh=true rel=alternate href=https://nautilus.aloen.to/integrations/interactive_brokers hreflang=zh /><link data-rh=true rel=alternate href=https://nautilus.aloen.to/integrations/interactive_brokers hreflang=x-default /><script data-rh=true type=application/ld+json>{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","item":"https://nautilus.aloen.to/integrations/","name":"交易所与集成","position":1},{"@type":"ListItem","item":"https://nautilus.aloen.to/integrations/interactive_brokers","name":"Interactive Brokers","position":2}]}</script><link rel=stylesheet href=/assets/css/styles.adb7ea18.css /><script src=/assets/js/runtime~main.71ac0794.js defer></script><script src=/assets/js/main.d978d0f2.js defer></script></head><body><svg style="display: none;"><defs>
+<symbol id=theme-svg-external-link viewBox="0 0 24 24"><path fill=currentColor d="M21 13v10h-21v-19h12v2h-10v15h17v-8h2zm3-12h-10.988l4.035 4-6.977 7.07 2.828 2.828 6.977-7.07 4.125 4.172v-11z"/></symbol>
+</defs></svg>
+<script>!function(){var t=function(){try{return new URLSearchParams(window.location.search).get("docusaurus-theme")}catch(t){}}()||function(){try{return window.localStorage.getItem("theme-2e3")}catch(t){}}();document.documentElement.setAttribute("data-theme",t||(window.matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light")),document.documentElement.setAttribute("data-theme-choice",t||"system")}(),function(){try{for(var[t,e]of new URLSearchParams(window.location.search).entries())if(t.startsWith("docusaurus-data-")){var a=t.replace("docusaurus-data-","data-");document.documentElement.setAttribute(a,e)}}catch(t){}}()</script><div id=__docusaurus><link rel=preload as=image href=/logo.png /><div role=region aria-label=跳到主要内容><a class=skipToContent_zuOI href=#__docusaurus_skipToContent_fallback>跳到主要内容</a></div><nav aria-label=主导航 class="theme-layout-navbar navbar navbar--fixed-top"><div class=navbar__inner><div class="theme-layout-navbar-left navbar__items"><button aria-label=切换导航栏 aria-expanded=false class="navbar__toggle clean-btn" type=button><svg width=30 height=30 viewBox="0 0 30 30" aria-hidden=true><path stroke=currentColor stroke-linecap=round stroke-miterlimit=10 stroke-width=2 d="M4 7h22M4 15h22M4 23h22"/></svg></button><a class=navbar__brand href=/><div class=navbar__logo><img src=/logo.png alt="NautilusTrader Logo" class="themedComponent_q2_Y themedComponent--light_Nejn"/><img src=/logo.png alt="NautilusTrader Logo" class="themedComponent_q2_Y themedComponent--dark_JjIb"/></div><b class="navbar__title text--truncate">NautilusTrader</b></a><a aria-current=page class="navbar__item navbar__link navbar__link--active" href=/getting_started/>文档</a></div><div class="theme-layout-navbar-right navbar__items navbar__items--right"><a href=https://github.com/Aloento/NautilusTraderDoc target=_blank rel="noopener noreferrer" class="navbar__item navbar__link">GitHub<svg width=13.5 height=13.5 aria-label="(opens in new tab)" class=iconExternalLink_qUHo><use href=#theme-svg-external-link /></svg></a><div class="toggle_hHmI colorModeToggle_rOOn"><button class="clean-btn toggleButton_wEhT toggleButtonDisabled_yOOP" type=button disabled title="system mode" aria-label="切换浅色/暗黑模式（当前为system mode）"><svg viewBox="0 0 24 24" width=24 height=24 aria-hidden=true class="toggleIcon_Kt6U lightToggleIcon_Zfeh"><path fill=currentColor d="M12,9c1.65,0,3,1.35,3,3s-1.35,3-3,3s-3-1.35-3-3S10.35,9,12,9 M12,7c-2.76,0-5,2.24-5,5s2.24,5,5,5s5-2.24,5-5 S14.76,7,12,7L12,7z M2,13l2,0c0.55,0,1-0.45,1-1s-0.45-1-1-1l-2,0c-0.55,0-1,0.45-1,1S1.45,13,2,13z M20,13l2,0c0.55,0,1-0.45,1-1 s-0.45-1-1-1l-2,0c-0.55,0-1,0.45-1,1S19.45,13,20,13z M11,2v2c0,0.55,0.45,1,1,1s1-0.45,1-1V2c0-0.55-0.45-1-1-1S11,1.45,11,2z M11,20v2c0,0.55,0.45,1,1,1s1-0.45,1-1v-2c0-0.55-0.45-1-1-1C11.45,19,11,19.45,11,20z M5.99,4.58c-0.39-0.39-1.03-0.39-1.41,0 c-0.39,0.39-0.39,1.03,0,1.41l1.06,1.06c0.39,0.39,1.03,0.39,1.41,0s0.39-1.03,0-1.41L5.99,4.58z M18.36,16.95 c-0.39-0.39-1.03-0.39-1.41,0c-0.39,0.39-0.39,1.03,0,1.41l1.06,1.06c0.39,0.39,1.03,0.39,1.41,0c0.39-0.39,0.39-1.03,0-1.41 L18.36,16.95z M19.42,5.99c0.39-0.39,0.39-1.03,0-1.41c-0.39-0.39-1.03-0.39-1.41,0l-1.06,1.06c-0.39,0.39-0.39,1.03,0,1.41 s1.03,0.39,1.41,0L19.42,5.99z M7.05,18.36c0.39-0.39,0.39-1.03,0-1.41c-0.39-0.39-1.03-0.39-1.41,0l-1.06,1.06 c-0.39,0.39-0.39,1.03,0,1.41s1.03,0.39,1.41,0L7.05,18.36z"/></svg><svg viewBox="0 0 24 24" width=24 height=24 aria-hidden=true class="toggleIcon_Kt6U darkToggleIcon_XgQr"><path fill=currentColor d="M9.37,5.51C9.19,6.15,9.1,6.82,9.1,7.5c0,4.08,3.32,7.4,7.4,7.4c0.68,0,1.35-0.09,1.99-0.27C17.45,17.19,14.93,19,12,19 c-3.86,0-7-3.14-7-7C5,9.07,6.81,6.55,9.37,5.51z M12,3c-4.97,0-9,4.03-9,9s4.03,9,9,9s9-4.03,9-9c0-0.46-0.04-0.92-0.1-1.36 c-0.98,1.37-2.58,2.26-4.4,2.26c-2.98,0-5.4-2.42-5.4-5.4c0-1.81,0.89-3.42,2.26-4.4C12.92,3.04,12.46,3,12,3L12,3z"/></svg><svg viewBox="0 0 24 24" width=24 height=24 aria-hidden=true class="toggleIcon_Kt6U systemToggleIcon_BvUi"><path fill=currentColor d="m12 21c4.971 0 9-4.029 9-9s-4.029-9-9-9-9 4.029-9 9 4.029 9 9 9zm4.95-13.95c1.313 1.313 2.05 3.093 2.05 4.95s-0.738 3.637-2.05 4.95c-1.313 1.313-3.093 2.05-4.95 2.05v-14c1.857 0 3.637 0.737 4.95 2.05z"/></svg></button></div><div class=navbarSearchContainer_watl></div></div></div><div role=presentation class=navbar-sidebar__backdrop></div></nav><div id=__docusaurus_skipToContent_fallback class="theme-layout-main main-wrapper mainWrapper_R72Q"><div class=docsWrapper_XQ9b><button aria-label=回到顶部 class="clean-btn theme-back-to-top-button backToTopButton_MbnX" type=button></button><div class=docRoot_aqOB><aside class="theme-doc-sidebar-container docSidebarContainer_sI2e"><div class=sidebarViewport_TzTy><div class=sidebar_CbEe><nav aria-label=文档侧边栏 class="menu thin-scrollbar menu_ChRF"><ul class="theme-doc-sidebar-menu menu__list"><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-1 menu__list-item menu__list-item--collapsed"><div class=menu__list-item-collapsible><a class="categoryLink_Muyc menu__link menu__link--sublist" href=/getting_started/><span class=categoryLinkLabel_mAcL>快速开始</span></a><button aria-label="展开侧边栏分类 '快速开始'" aria-expanded=false type=button class="clean-btn menu__caret"></button></div><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-1 menu__list-item menu__list-item--collapsed"><div class=menu__list-item-collapsible><a class="categoryLink_Muyc menu__link menu__link--sublist" href=/concepts/><span class=categoryLinkLabel_mAcL>核心概念</span></a><button aria-label="展开侧边栏分类 '核心概念'" aria-expanded=false type=button class="clean-btn menu__caret"></button></div><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-1 menu__list-item"><div class=menu__list-item-collapsible><a class="categoryLink_Muyc menu__link menu__link--sublist menu__link--active" href=/integrations/><span class=categoryLinkLabel_mAcL>交易所与集成</span></a><button aria-label="折叠侧边栏分类 '交易所与集成'" aria-expanded=true type=button class="clean-btn menu__caret"></button></div><ul class=menu__list><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/integrations/architect_ax><span class=linkLabel_lYjD>AX Exchange</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/integrations/betfair><span class=linkLabel_lYjD>Betfair</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/integrations/binance><span class=linkLabel_lYjD>Binance</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/integrations/blockchain><span class=linkLabel_lYjD>区块链</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/integrations/bybit><span class=linkLabel_lYjD>Bybit</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/integrations/coinapi><span class=linkLabel_lYjD>CoinAPI</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/integrations/coinbase><span class=linkLabel_lYjD>Coinbase</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/integrations/databento><span class=linkLabel_lYjD>Databento</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/integrations/deribit><span class=linkLabel_lYjD>Deribit</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/integrations/derive><span class=linkLabel_lYjD>Derive</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/integrations/dydx><span class=linkLabel_lYjD>dYdX</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/integrations/hyperliquid><span class=linkLabel_lYjD>Hyperliquid</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class="menu__link menu__link--active" aria-current=page tabindex=0 href=/integrations/interactive_brokers><span class=linkLabel_lYjD>Interactive Brokers</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/integrations/kraken><span class=linkLabel_lYjD>Kraken</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/integrations/lighter><span class=linkLabel_lYjD>Lighter</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/integrations/okx><span class=linkLabel_lYjD>OKX</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/integrations/polymarket><span class=linkLabel_lYjD>Polymarket</span></a><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class=menu__link tabindex=0 href=/integrations/tardis><span class=linkLabel_lYjD>Tardis</span></a></ul><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-1 menu__list-item menu__list-item--collapsed"><div class=menu__list-item-collapsible><a class="categoryLink_Muyc menu__link menu__link--sublist" href=/how_to/><span class=categoryLinkLabel_mAcL>操作指南</span></a><button aria-label="展开侧边栏分类 '操作指南'" aria-expanded=false type=button class="clean-btn menu__caret"></button></div><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-1 menu__list-item menu__list-item--collapsed"><div class=menu__list-item-collapsible><a class="categoryLink_Muyc menu__link menu__link--sublist" href=/tutorials/><span class=categoryLinkLabel_mAcL>教程</span></a><button aria-label="展开侧边栏分类 '教程'" aria-expanded=false type=button class="clean-btn menu__caret"></button></div><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-1 menu__list-item menu__list-item--collapsed"><div class=menu__list-item-collapsible><a class="categoryLink_Muyc menu__link menu__link--sublist" href=/developer_guide/><span class=categoryLinkLabel_mAcL>开发者指南</span></a><button aria-label="展开侧边栏分类 '开发者指南'" aria-expanded=false type=button class="clean-btn menu__caret"></button></div><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-1 menu__list-item menu__list-item--collapsed"><div class=menu__list-item-collapsible><a class="categoryLink_Muyc menu__link menu__link--sublist" href=/api_reference/><span class=categoryLinkLabel_mAcL>API 参考</span></a><button aria-label="展开侧边栏分类 'API 参考'" aria-expanded=false type=button class="clean-btn menu__caret"></button></div></ul></nav></div></div></aside><main class=docMainContainer_sLF8><div class="container padding-top--md padding-bottom--lg"><div class=row><div class="col docItemCol_ZRft"><div class=docItemContainer_KOP5><article><nav class="theme-doc-breadcrumbs breadcrumbsContainer_d5rS" aria-label=页面路径><ul class=breadcrumbs><li class=breadcrumbs__item><a aria-label=主页面 class=breadcrumbs__link href=/><svg viewBox="0 0 24 24" class=breadcrumbHomeIcon_XgF2><path d="M10 19v-5h4v5c0 .55.45 1 1 1h3c.55 0 1-.45 1-1v-7h1.7c.46 0 .68-.57.33-.87L12.67 3.6c-.38-.34-.96-.34-1.34 0l-8.36 7.53c-.34.3-.13.87.33.87H5v7c0 .55.45 1 1 1h3c.55 0 1-.45 1-1z" fill=currentColor /></svg></a><li class=breadcrumbs__item><a class=breadcrumbs__link href=/integrations/><span>交易所与集成</span></a><li class="breadcrumbs__item breadcrumbs__item--active"><span class=breadcrumbs__link>Interactive Brokers</span></ul></nav><div class="tocCollapsible_bgaJ theme-doc-toc-mobile tocMobile_FhT_"><button type=button class="clean-btn tocCollapsibleButton_F8AY">本页总览</button></div><div class="theme-doc-markdown markdown"><header><h1>Interactive Brokers</h1></header>
+<p>Interactive Brokers 适配器通过 <a href=https://ibkrcampus.com/campus/ibkr-api-page/twsapi-doc/ target=_blank rel="noopener noreferrer" class="">TWS API</a>
+把 NautilusTrader 连接到 Trader Workstation（TWS）或 IB Gateway。它提供实时行情、执行、
+工具发现、历史请求，以及可选的 Docker 化 IB Gateway 管理。</p>
+<p>Python 包已包含该适配器。按<a class="" href=/getting_started/installation>安装指南</a>安装后，使用
+<a href=https://github.com/nautechsystems/nautilus_trader/tree/develop/examples/live/interactive_brokers/ target=_blank rel="noopener noreferrer" class=""><code>examples/live/interactive_brokers</code></a>
+下的示例。</p>
+<h2 class="anchor anchorTargetStickyNavbar_ana5" id=connect-to-tws-or-ib-gateway>连接 TWS 或 IB Gateway<a href=#connect-to-tws-or-ib-gateway class=hash-link aria-label="连接 TWS 或 IB Gateway的直接链接" title="连接 TWS 或 IB Gateway的直接链接" translate=no>​</a></h2>
+<p>启动客户端前，先在 TWS 或 IB Gateway 中启用 socket API 访问。IB 使用以下默认端口：</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>应用<th>模拟交易<th>实盘交易<tbody><tr><td>TWS<td><code>7497</code><td><code>7496</code><tr><td>IB Gateway<td><code>4002</code><td><code>4001</code></table>
+<p>锁定的 <code>ibapi 4.0.1</code> 传输要求 TWS 或 IB Gateway 服务端协议版本<strong>213 或更高</strong>。这里指 API
+协议版本，不是应用的发布号。更旧的服务端不受支持，即使其 TCP 端口能接受连接。
+<a href=https://github.com/nautechsystems/nautilus_trader/issues/4796 target=_blank rel="noopener noreferrer" class="">Issue #4796</a> 记录了 Gateway
+10.41 上协议 187 的这一失败。请先升级 TWS 或 IB Gateway 再连接。</p>
+<p>服务端完成初始握手后，传输会在发送 <code>StartApi</code> 之前拒绝过旧的版本。若旧服务端不回应该握手，
+连接超时同样生效。调大超时并不能增加协议支持。</p>
+<p>适配器默认 <code>127.0.0.1:4002</code>。每个连接到同一 TWS 或 Gateway 会话的进程需要互不相同的 IB API
+<code>client_id</code>。执行客户端 ID 不能是 <code>1000</code> 的整数倍，因为适配器用 <code>client_id % 1000</code> 划分订单
+ID 分区。</p>
+<p>IB 会拒绝小于等于同一 <code>client_id</code> 已用过的订单 ID，且跨会话生效（错误 103）。连接时，执行
+客户端从 IB 的未结与已完成订单中找出其 <code>client_id</code> 用过的最高订单 ID，并从其上开始。只有当
+IB 的下一个有效 ID 落在本客户端的分区内时才会采用它；若 IB 的下一个有效 ID 高于整个分区，
+IB 会拒绝分区内每个 ID，连接随之失败，此时请换用其他 <code>client_id</code>。若已完成订单未在
+<code>request_timeout</code> 内完整送达，连接同样失败。</p>
+<p>IB 只在有限时间内列出已完成订单，因此没有留下任何未结订单的客户端，仍可能从早于该时间窗口
+之前用过的 ID 之下启动。</p>
+<p>数据客户端与执行客户端可以共用一份 provider 配置：</p>
+<div class="language-python codeBlockContainer_eTMR theme-code-block" style=--prism-color:#393A34;--prism-background-color:#f6f8fa><div class=codeBlockContent_hafM><pre tabindex=0 class="prism-code language-python codeBlock_IMvC thin-scrollbar" style=color:#393A34;background-color:#f6f8fa><code class=codeBlockLines_gZDW><div class=token-line style=color:#393A34><span class="token keyword" style=color:#00009f>from</span><span class="token plain"> nautilus_trader</span><span class="token punctuation" style=color:#393A34>.</span><span class="token plain">adapters </span><span class="token keyword" style=color:#00009f>import</span><span class="token plain"> interactive_brokers </span><span class="token keyword" style=color:#00009f>as</span><span class="token plain"> ib</span><br/></div><div class=token-line style=color:#393A34><span class="token plain"></span><span class="token keyword" style=color:#00009f>from</span><span class="token plain"> nautilus_trader</span><span class="token punctuation" style=color:#393A34>.</span><span class="token plain">model </span><span class="token keyword" style=color:#00009f>import</span><span class="token plain"> AccountId</span><br/></div><div class=token-line style=color:#393A34><span class="token plain"></span><span class="token keyword" style=color:#00009f>from</span><span class="token plain"> nautilus_trader</span><span class="token punctuation" style=color:#393A34>.</span><span class="token plain">model </span><span class="token keyword" style=color:#00009f>import</span><span class="token plain"> InstrumentId</span><br/></div><div class=token-line style=color:#393A34><span class="token plain"></span><span class="token keyword" style=color:#00009f>from</span><span class="token plain"> nautilus_trader</span><span class="token punctuation" style=color:#393A34>.</span><span class="token plain">model </span><span class="token keyword" style=color:#00009f>import</span><span class="token plain"> TraderId</span><br/></div><div class=token-line style=color:#393A34><span class="token plain" style=display:inline-block></span><br/></div><div class=token-line style=color:#393A34><span class="token plain" style=display:inline-block></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">trader_id </span><span class="token operator" style=color:#393A34>=</span><span class="token plain"> TraderId</span><span class="token punctuation" style=color:#393A34>.</span><span class="token plain">from_str</span><span class="token punctuation" style=color:#393A34>(</span><span class="token string" style=color:#e3116c>"TRADER-001"</span><span class="token punctuation" style=color:#393A34>)</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">account_id </span><span class="token operator" style=color:#393A34>=</span><span class="token plain"> AccountId</span><span class="token punctuation" style=color:#393A34>.</span><span class="token plain">from_str</span><span class="token punctuation" style=color:#393A34>(</span><span class="token string" style=color:#e3116c>"IB-DU123456"</span><span class="token punctuation" style=color:#393A34>)</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">provider_config </span><span class="token operator" style=color:#393A34>=</span><span class="token plain"> ib</span><span class="token punctuation" style=color:#393A34>.</span><span class="token plain">InteractiveBrokersInstrumentProviderConfig</span><span class="token punctuation" style=color:#393A34>(</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    symbology_method</span><span class="token operator" style=color:#393A34>=</span><span class="token plain">ib</span><span class="token punctuation" style=color:#393A34>.</span><span class="token plain">SymbologyMethod</span><span class="token punctuation" style=color:#393A34>.</span><span class="token plain">SIMPLIFIED</span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    load_ids</span><span class="token operator" style=color:#393A34>=</span><span class="token punctuation" style=color:#393A34>{</span><span class="token plain">InstrumentId</span><span class="token punctuation" style=color:#393A34>.</span><span class="token plain">from_str</span><span class="token punctuation" style=color:#393A34>(</span><span class="token string" style=color:#e3116c>"AAPL.XNAS"</span><span class="token punctuation" style=color:#393A34>)</span><span class="token punctuation" style=color:#393A34>}</span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain"></span><span class="token punctuation" style=color:#393A34>)</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain" style=display:inline-block></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">data_config </span><span class="token operator" style=color:#393A34>=</span><span class="token plain"> ib</span><span class="token punctuation" style=color:#393A34>.</span><span class="token plain">InteractiveBrokersDataClientConfig</span><span class="token punctuation" style=color:#393A34>(</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    host</span><span class="token operator" style=color:#393A34>=</span><span class="token string" style=color:#e3116c>"127.0.0.1"</span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    port</span><span class="token operator" style=color:#393A34>=</span><span class="token number" style=color:#36acaa>7497</span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    client_id</span><span class="token operator" style=color:#393A34>=</span><span class="token number" style=color:#36acaa>101</span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    market_data_type</span><span class="token operator" style=color:#393A34>=</span><span class="token plain">ib</span><span class="token punctuation" style=color:#393A34>.</span><span class="token plain">MarketDataType</span><span class="token punctuation" style=color:#393A34>.</span><span class="token plain">DELAYED_FROZEN</span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    instrument_provider</span><span class="token operator" style=color:#393A34>=</span><span class="token plain">provider_config</span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain"></span><span class="token punctuation" style=color:#393A34>)</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain" style=display:inline-block></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">exec_config </span><span class="token operator" style=color:#393A34>=</span><span class="token plain"> ib</span><span class="token punctuation" style=color:#393A34>.</span><span class="token plain">InteractiveBrokersExecutionClientConfig</span><span class="token punctuation" style=color:#393A34>(</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    host</span><span class="token operator" style=color:#393A34>=</span><span class="token string" style=color:#e3116c>"127.0.0.1"</span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    port</span><span class="token operator" style=color:#393A34>=</span><span class="token number" style=color:#36acaa>7497</span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    client_id</span><span class="token operator" style=color:#393A34>=</span><span class="token number" style=color:#36acaa>102</span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    account_id</span><span class="token operator" style=color:#393A34>=</span><span class="token string" style=color:#e3116c>"DU123456"</span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    instrument_provider</span><span class="token operator" style=color:#393A34>=</span><span class="token plain">provider_config</span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain"></span><span class="token punctuation" style=color:#393A34>)</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain" style=display:inline-block></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">data_factory </span><span class="token operator" style=color:#393A34>=</span><span class="token plain"> ib</span><span class="token punctuation" style=color:#393A34>.</span><span class="token plain">InteractiveBrokersDataClientFactory</span><span class="token punctuation" style=color:#393A34>(</span><span class="token punctuation" style=color:#393A34>)</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">exec_factory </span><span class="token operator" style=color:#393A34>=</span><span class="token plain"> ib</span><span class="token punctuation" style=color:#393A34>.</span><span class="token plain">InteractiveBrokersExecutionClientFactory</span><span class="token punctuation" style=color:#393A34>(</span><span class="token punctuation" style=color:#393A34>)</span><br/></div></code></pre></div></div>
+<p>把这些工厂与配置传给 <code>LiveNode.builder</code>。
+<a href=https://github.com/nautechsystems/nautilus_trader/blob/develop/examples/live/interactive_brokers/connect_with_tws.py target=_blank rel="noopener noreferrer" class=""><code>connect_with_tws.py</code></a>
+示例展示了完整的节点搭建。其默认调用离线构建节点；设置 <code>IB_V2_RUN_NODE=1</code> 才会连接。</p>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=market-data-modes>行情数据模式<a href=#market-data-modes class=hash-link aria-label=行情数据模式的直接链接 title=行情数据模式的直接链接 translate=no>​</a></h3>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>枚举值<th>IB 模式<tbody><tr><td><code>MarketDataType.REALTIME</code><td>实时订阅数据。<tr><td><code>MarketDataType.FROZEN</code><td>收盘后最后可用的实时数据。<tr><td><code>MarketDataType.DELAYED</code><td>延迟数据。<tr><td><code>MarketDataType.DELAYED_FROZEN</code><td>最后可用的延迟数据。</table>
+<p>哪些模式和工具能返回数据仍由 IB 权限决定。延迟或延迟冻结数据可以支持盘后模拟账户检查，
+但不能证明实时 tick 通路可用。</p>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=dockerized-ib-gateway>Docker 化 IB Gateway<a href=#dockerized-ib-gateway class=hash-link aria-label="Docker 化 IB Gateway的直接链接" title="Docker 化 IB Gateway的直接链接" translate=no>​</a></h3>
+<p><code>DockerizedIBGateway</code> 管理
+<a href=https://github.com/gnzsnz/ib-gateway-docker target=_blank rel="noopener noreferrer" class="">gnzsnz IB Gateway 容器</a>。凭据写在配置里，或
+设置 <code>TWS_USERNAME</code> 和 <code>TWS_PASSWORD</code>：</p>
+<div class="language-python codeBlockContainer_eTMR theme-code-block" style=--prism-color:#393A34;--prism-background-color:#f6f8fa><div class=codeBlockContent_hafM><pre tabindex=0 class="prism-code language-python codeBlock_IMvC thin-scrollbar" style=color:#393A34;background-color:#f6f8fa><code class=codeBlockLines_gZDW><div class=token-line style=color:#393A34><span class="token keyword" style=color:#00009f>from</span><span class="token plain"> nautilus_trader</span><span class="token punctuation" style=color:#393A34>.</span><span class="token plain">adapters </span><span class="token keyword" style=color:#00009f>import</span><span class="token plain"> interactive_brokers </span><span class="token keyword" style=color:#00009f>as</span><span class="token plain"> ib</span><br/></div><div class=token-line style=color:#393A34><span class="token plain" style=display:inline-block></span><br/></div><div class=token-line style=color:#393A34><span class="token plain" style=display:inline-block></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">gateway </span><span class="token operator" style=color:#393A34>=</span><span class="token plain"> ib</span><span class="token punctuation" style=color:#393A34>.</span><span class="token plain">DockerizedIBGateway</span><span class="token punctuation" style=color:#393A34>(</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    ib</span><span class="token punctuation" style=color:#393A34>.</span><span class="token plain">DockerizedIBGatewayConfig</span><span class="token punctuation" style=color:#393A34>(</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">        trading_mode</span><span class="token operator" style=color:#393A34>=</span><span class="token plain">ib</span><span class="token punctuation" style=color:#393A34>.</span><span class="token plain">TradingMode</span><span class="token punctuation" style=color:#393A34>.</span><span class="token plain">PAPER</span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">        read_only_api</span><span class="token operator" style=color:#393A34>=</span><span class="token boolean" style=color:#36acaa>True</span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">        timeout</span><span class="token operator" style=color:#393A34>=</span><span class="token number" style=color:#36acaa>300</span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    </span><span class="token punctuation" style=color:#393A34>)</span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain"></span><span class="token punctuation" style=color:#393A34>)</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">gateway</span><span class="token punctuation" style=color:#393A34>.</span><span class="token plain">safe_start_blocking</span><span class="token punctuation" style=color:#393A34>(</span><span class="token punctuation" style=color:#393A34>)</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain" style=display:inline-block></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">data_config </span><span class="token operator" style=color:#393A34>=</span><span class="token plain"> ib</span><span class="token punctuation" style=color:#393A34>.</span><span class="token plain">InteractiveBrokersDataClientConfig</span><span class="token punctuation" style=color:#393A34>(</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    host</span><span class="token operator" style=color:#393A34>=</span><span class="token plain">gateway</span><span class="token punctuation" style=color:#393A34>.</span><span class="token plain">host</span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    port</span><span class="token operator" style=color:#393A34>=</span><span class="token plain">gateway</span><span class="token punctuation" style=color:#393A34>.</span><span class="token plain">port</span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    client_id</span><span class="token operator" style=color:#393A34>=</span><span class="token number" style=color:#36acaa>101</span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain"></span><span class="token punctuation" style=color:#393A34>)</span><br/></div></code></pre></div></div>
+<p>先启动 gateway，再构造会连接的客户端。容器生命周期由 Python 侧的 <code>DockerizedIBGateway</code> 掌管。
+客户端配置只接受 <code>host</code> 和 <code>port</code>。仅当 gateway 必须接受订单时才设置 <code>read_only_api=False</code>。
+就绪判断使用当前容器会话的登录消息，因此早前会话的残留日志不会误报就绪状态。</p>
+<h2 class="anchor anchorTargetStickyNavbar_ana5" id=architecture>架构<a href=#architecture class=hash-link aria-label=架构的直接链接 title=架构的直接链接 translate=no>​</a></h2>
+<p>适配器只有一份 Rust 实现，通过原生 Rust API 和 PyO3 绑定对外暴露。它在 IB 的 TWS API 与
+Nautilus 实时引擎之间做翻译。它不拥有传输层：<code>ibapi</code> 负责 TWS socket 协议并重连。适配器
+拥有领域映射、订阅生命周期和策略（命令、事件、工具转换、频道重订阅、执行对账）。这条边界
+解释了 crate 的布局，也解释了其他适配器常见的 <code>http</code> 和 <code>websocket</code> 模块为何在这里不存在。</p>
+<!-- -->
+<p>相同 <code>(host, port, client_id)</code> 的数据、执行与历史客户端共享一个引用计数的 <code>ibapi</code> 连接。
+对同一 key 的并发获取会收敛到一个连接，最后一个客户端释放句柄后注册表将其移除。</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>模块<th>职责<tbody><tr><td><code>common</code><td>约定、枚举、通用价差 ID、符号体系与共享连接。<tr><td><code>providers</code><td>合约资格确认、链条发现、场所解析与工具缓存。<tr><td><code>data</code><td>实时订阅、历史请求路由、转换与频道恢复。<tr><td><code>execution</code><td>命令、订单状态、更新、报告、条件单、价差与对账。<tr><td><code>historical</code><td>独立的工具、K 线与 tick 请求。<tr><td><code>gateway</code><td>Docker 容器配置、生命周期与就绪检查。<tr><td><code>python</code><td>PyO3 类、枚举、工厂与转换边界。<tr><td><code>config</code><td>类型化的数据、执行、provider 与 gateway 配置。<tr><td><code>factories</code><td><code>DataClientFactory</code> 与 <code>ExecutionClientFactory</code> 的实现。</table>
+<p>与 Nautilus 其余部分的集成面刻意保持很薄。节点 builder 把类型化配置交给每个工厂；工厂构建
+客户端，并从引擎缓存（适配器从不写入）为工具 provider 预置数据。</p>
+<p>数据客户端向引擎发送类型化数据事件（tick、K 线、金融工具，以及相关的请求-响应），执行
+客户端发送类型化执行事件（订单事件、成交与账户状态），二者都经各自的事件通道进入引擎。
+这些通道是进入引擎的唯一路径。适配器把工厂与配置抽取器注册进全局 PyO3 注册表，Python 的
+<code>TradingNode</code> 配置借此到达 Rust 工厂。对账是由执行引擎驱动的拉取接口
+（见<a href=#reconciliation class="">对账</a>）。</p>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=reconnect-and-resubscribe>重连与重新订阅<a href=#reconnect-and-resubscribe class=hash-link aria-label=重连与重新订阅的直接链接 title=重连与重新订阅的直接链接 translate=no>​</a></h3>
+<p><code>ibapi</code> 传输用斐波那契退避重连 socket，尝试次数有上限，达到上限后建立完整会话。TCP 连上
+之后出现的瞬时握手或启动错误会消耗一次尝试并重试，而不是终止恢复。重连成功后，通过向每个
+未结订阅频道投递连接重置错误来重置它们。尝试耗尽后传输关闭，适配器报告断开连接。</p>
+<p>随后每条数据频道等待传输、重新订阅，并带延迟重试失败的重新订阅。一个通用频道驱动器为所有
+频道类型掌管这套生命周期策略，因此报价、成交、深度、K 线、Greeks 与指数价之间的恢复行为
+不会漂移。行情数据农场（market-data farm）通告走同一频道策略，不把农场故障当作 socket
+故障处理。重连后 TWS 会把会话的行情数据类型重置为 realtime。通告监视器在放行恢复的订阅之前，
+先恢复配置的冻结或延迟模式。</p>
+<p>与订单相关的错误帧作为通告在订单更新频道上到达，携带发起订单或请求的 ID。传输的路由层
+投递这些通告而不是解码后的消息变体，因此更新频道跨错误帧保持存活。</p>
+<!-- -->
+<p>报价、成交、深度、K 线、期权 Greeks 与指数价都遵循这一生命周期。深度频道在应用替换订阅的
+数据之前会先清空现有订单簿，防止过期档位残留。若订单更新或全局通告频道终止，执行客户端
+报告断开连接，而不是带着死频道假装健康。</p>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=order-identity-and-cancellation>订单标识与撤销<a href=#order-identity-and-cancellation class=hash-link aria-label=订单标识与撤销的直接链接 title=订单标识与撤销的直接链接 translate=no>​</a></h3>
+<p>不同 broker 永久 ID 共享同一个客户端订单引用时，它们仍是相互独立的物理订单。适配器把每个
+额外订单在自己的客户端订单 ID 下报告：
+<code>DUP-&lt;account length>:&lt;account ID>:PERM-&lt;permanent ID></code>。执行引擎因此将其作为外部订单创建。
+先应用该工具的外部订单认领，否则归 <code>EXTERNAL</code> 策略。未厘清的重复组会阻止修改。</p>
+<p>当成交属于适配器未跟踪的订单（包括这类重复订单）时，适配器先扣留成交，再查询该订单的详情
+与成交记录，然后把订单连同其真实成交一起上报，使引擎按完整数量创建订单。查询受
+<code>request_timeout</code> 和至多 3 秒的双重约束，低于实时节点默认的 <code>position_check_threshold_ms</code>
+（5 秒）。查询失败、返回为空或超时，适配器记录警告并原样转发扣留的成交。</p>
+<p><code>strategy_only=True</code>（默认）时，策略为自己的订单逐个发撤销。<code>strategy_only=False</code> 时，
+cancel-all 在选定账户与方向内按工具全量撤销。带方向过滤的 cancel-all 会跳过 broker 方向
+仍未知的重复订单。撤销原始订单时也会考虑其已知在途的重复订单。</p>
+<p>适配器只撤销配置 API 客户端拥有的、唯一绑定的路由。有歧义或未绑定的订单保持显式未解决状态，
+需要 TWS 绑定或运维介入。单条撤销确认不足以证明整组已完成。</p>
+<p>风控检查与执行使用同一账户路由。账户未解析时，风控引擎拒绝订单，而不是跳过账户检查。</p>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=execution-order-flow>执行订单流<a href=#execution-order-flow class=hash-link aria-label=执行订单流的直接链接 title=执行订单流的直接链接 translate=no>​</a></h3>
+<p>执行客户端按消息方向拆分：出站命令（提交、修改、撤销）、入站场所更新、组合成交组装与账户
+频道是共享同一订单状态所有者的独立模块。该所有者在一把锁后面持有客户端-场所 ID 映射、
+活动订单和有界的终态订单缓存。终态缓存吸收重连后 IB 的成交重放，因此已完成订单被重发的
+成交会被去重而不是重复计入。客户端对每个 Nautilus 订单只做一次转换，应用可选的 IB 标签，
+然后通过 <code>ibapi</code> 提交。</p>
+<!-- -->
+<!-- -->
+<p>每个引擎可见的订单事件都源自更新频道上的场所证据：<code>OrderAccepted</code> 必须有订单状态或
+open-order 消息，绝不基于本地发送成功。与订单绑定的 IB 错误通告针对已跟踪订单解析，并由
+订单状态处理。</p>
+<p>接受之前，<code>[200, 399]</code> 区间的拒绝码发出终态 <code>OrderRejected</code>。其他错误码触发一次场所查询：
+只有 IB 既不在未结也不在已完成中列出该订单时才拒绝。IB 也会对在途订单发送这类码（10349 会
+按订单预设设置有效期）。存在性查询失败、超时或提前结束都会让订单保持在途。</p>
+<p>接受之后，通告在有待定修改时发出 <code>OrderModifyRejected</code>，有待定撤销时发出
+<code>OrderCancelRejected</code>；否则触发一次场所存在性查询，而不是终态事件。IB 用相同的错误码报告
+修改被拒而原订单继续在途，查询因此可以避免误发终态事件。</p>
+<p>警告码 <code>[2100, 2169]</code>、警告形式的订单消息（代码 399 且带 <code>Warning:</code> 行）以及撤销确认（202）
+永远不会使订单终态化。无法路由到单个请求或订单的错误帧由全局通告频道处理。</p>
+<p>有歧义的命令结果通过场所查询厘清。它先从成交历史找回错过的成交，再推断任何终态，因此
+成交绝不会被误报为撤销。cancel-all 优先使用已跟踪的 TWS 订单 ID 而不是永久 ID，让发起的
+客户端无需跨客户端查找即可撤销自己的实盘订单。</p>
+<h2 class="anchor anchorTargetStickyNavbar_ana5" id=data-capabilities>数据能力<a href=#data-capabilities class=hash-link aria-label=数据能力的直接链接 title=数据能力的直接链接 translate=no>​</a></h2>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>Nautilus 数据类型<th>实时订阅<th>历史请求<th>说明<tbody><tr><td>金融工具<td>否<td>是<td>启动加载与显式请求。<tr><td>报价 tick<td>是<td>是<td>逐笔或批量 <code>reqMktData</code>。<tr><td>成交 tick<td>是<td>是<td>逐笔实时与历史成交。<tr><td>K 线<td>是<td>是<td>外部时间 K 线。<tr><td>订单簿 delta<td>是<td>否<td>市场深度，恢复时清空订单簿。<tr><td>指数价<td>是<td>否<td>指数价事件。<tr><td>期权 Greeks<td>是<td>否<td>Greeks 加期权未平仓合约量。</table>
+<p>设置 <code>batch_quotes=False</code> 可优先使用逐笔买卖价订阅。逐笔报价不可用时客户端回退到
+<code>reqMktData</code>；BAG 价差报价始终使用 <code>reqMktData</code>。<code>ignore_quote_tick_size_updates=True</code>
+过滤仅有数量变化的报价事件。</p>
+<p>报价缓存把买价、卖价更新组装成完整报价 tick。IB 的无报价哨兵值（价格 <code>-1</code> 且无数量，或价格
+为零且数量为零）在构建 tick 之前被过滤，并清空受影响的一侧，因此单边行情不会发出过期值，
+而是什么都不发。真实的零价与负价照常通过，包括带数量的 <code>-1</code> 价格——日历价差经常产生它。</p>
+<p>历史数据方面，<code>HistoricalInteractiveBrokersClient</code> 接受一个工具 provider 和数据客户端配置。
+在 Python 中构造该客户端会立即连接，因此要把它放在与请求相同的显式运行开关之后：</p>
+<div class="language-python codeBlockContainer_eTMR theme-code-block" style=--prism-color:#393A34;--prism-background-color:#f6f8fa><div class=codeBlockContent_hafM><pre tabindex=0 class="prism-code language-python codeBlock_IMvC thin-scrollbar" style=color:#393A34;background-color:#f6f8fa><code class=codeBlockLines_gZDW><div class=token-line style=color:#393A34><span class="token keyword" style=color:#00009f>from</span><span class="token plain"> nautilus_trader</span><span class="token punctuation" style=color:#393A34>.</span><span class="token plain">adapters </span><span class="token keyword" style=color:#00009f>import</span><span class="token plain"> interactive_brokers </span><span class="token keyword" style=color:#00009f>as</span><span class="token plain"> ib</span><br/></div><div class=token-line style=color:#393A34><span class="token plain" style=display:inline-block></span><br/></div><div class=token-line style=color:#393A34><span class="token plain" style=display:inline-block></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">provider_config </span><span class="token operator" style=color:#393A34>=</span><span class="token plain"> ib</span><span class="token punctuation" style=color:#393A34>.</span><span class="token plain">InteractiveBrokersInstrumentProviderConfig</span><span class="token punctuation" style=color:#393A34>(</span><span class="token punctuation" style=color:#393A34>)</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">provider </span><span class="token operator" style=color:#393A34>=</span><span class="token plain"> ib</span><span class="token punctuation" style=color:#393A34>.</span><span class="token plain">InteractiveBrokersInstrumentProvider</span><span class="token punctuation" style=color:#393A34>(</span><span class="token plain">provider_config</span><span class="token punctuation" style=color:#393A34>)</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">config </span><span class="token operator" style=color:#393A34>=</span><span class="token plain"> ib</span><span class="token punctuation" style=color:#393A34>.</span><span class="token plain">InteractiveBrokersDataClientConfig</span><span class="token punctuation" style=color:#393A34>(</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    host</span><span class="token operator" style=color:#393A34>=</span><span class="token string" style=color:#e3116c>"127.0.0.1"</span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    port</span><span class="token operator" style=color:#393A34>=</span><span class="token number" style=color:#36acaa>7497</span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    client_id</span><span class="token operator" style=color:#393A34>=</span><span class="token number" style=color:#36acaa>180</span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    market_data_type</span><span class="token operator" style=color:#393A34>=</span><span class="token plain">ib</span><span class="token punctuation" style=color:#393A34>.</span><span class="token plain">MarketDataType</span><span class="token punctuation" style=color:#393A34>.</span><span class="token plain">DELAYED</span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    instrument_provider</span><span class="token operator" style=color:#393A34>=</span><span class="token plain">provider_config</span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain"></span><span class="token punctuation" style=color:#393A34>)</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain" style=display:inline-block></span><br/></div><div class=token-line style=color:#393A34><span class="token plain"></span><span class="token comment" style=color:#999988;font-style:italic># This constructor connects to TWS or IB Gateway.</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">client </span><span class="token operator" style=color:#393A34>=</span><span class="token plain"> ib</span><span class="token punctuation" style=color:#393A34>.</span><span class="token plain">HistoricalInteractiveBrokersClient</span><span class="token punctuation" style=color:#393A34>(</span><span class="token plain">provider</span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain"> config</span><span class="token punctuation" style=color:#393A34>)</span><br/></div></code></pre></div></div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>方法<th>选择器与控制项<tbody><tr><td><code>request_instruments</code><td>接受 Nautilus 金融工具 ID、IB 合约字典，或两者兼有。<tr><td><code>request_bars</code><td>接受 K 线规格字符串、结束时间，以及开始时间或 IB 时长字符串二选一；用合约或工具 ID 选择工具。<tr><td><code>request_ticks</code><td>接受 <code>IbHistoricalTickType.TRADES</code> 或 <code>BID_ASK</code>、有界时间区间、合约或工具 ID、常规时段过滤、超时与结果数量上限。</table>
+<p>历史 tick 请求必须同时给出开始和结束时间。它们从结束时间向回翻页，未给上限时默认封顶 10,000
+条。它们只发送结束边界，因为 IB 会错误解读带双端的请求。它们对 IB 秒级结束编码重复投递的
+边界那一秒做去重。当一秒装下整页、窗口又无法回退时，请求带着警告停止，而不是循环。</p>
+<p>某一段失败的历史 K 线请求返回错误，而不是返回中间有无声空洞的序列。IB 数量为零的历史成交
+tick 在构建要求数量为正的 Nautilus 类型之前被跳过；其他无效转换仍会使请求失败。</p>
+<p>节流、可用历史深度、支持的 K 线大小与常规交易时段过滤都由 IB 控制。对连续期货，IB 会拒绝
+显式的 K 线结束时间；适配器省略它并按请求时间请求一个时长分段，因此结果可能落在请求的
+起止范围之外。</p>
+<h2 class="anchor anchorTargetStickyNavbar_ana5" id=execution-capabilities>执行能力<a href=#execution-capabilities class=hash-link aria-label=执行能力的直接链接 title=执行能力的直接链接 translate=no>​</a></h2>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=order-types>订单类型<a href=#order-types class=hash-link aria-label=订单类型的直接链接 title=订单类型的直接链接 translate=no>​</a></h3>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>Nautilus 订单类型<th>IB 订单类型<th>价格输入<tbody><tr><td><code>MARKET</code><td>Market<td>无。<tr><td><code>LIMIT</code><td>Limit<td>限价。<tr><td><code>MARKET_TO_LIMIT</code><td>Market to limit<td>无。<tr><td><code>STOP_MARKET</code><td>Stop<td>触发价。<tr><td><code>STOP_LIMIT</code><td>Stop limit<td>限价与触发价。<tr><td><code>MARKET_IF_TOUCHED</code><td>Market if touched<td>触发价。<tr><td><code>LIMIT_IF_TOUCHED</code><td>Limit if touched<td>限价与触发价。<tr><td><code>TRAILING_STOP_MARKET</code><td>Trailing stop<td>跟踪偏移与可选触发价。<tr><td><code>TRAILING_STOP_LIMIT</code><td>Trailing stop limit<td>限价与跟踪偏移。</table>
+<p>适配器映射 <code>DAY</code>、<code>GTC</code>、<code>IOC</code>、<code>FOK</code>、<code>GTD</code> 和 <code>AT_THE_OPEN</code> 有效期。带 <code>AT_THE_CLOSE</code> 的
+市价或限价订单转换为对应的收盘市价（market-on-close）或收盘限价（limit-on-close）IB 订单。
+GTD 订单在 IB 订单中包含其 Nautilus 到期时间。</p>
+<p>适配器拒绝 post-only 订单。报价数量仅对反向工具且仅限 BUY 的 <code>MARKET</code> 订单有效，IB 按
+<code>cashQty</code> 为其定数量（其他任何订单类型带现金数量都会被 IB 以错误 10244 拒绝）。跟踪订单支持
+价格偏移和基点偏移，IB 收到的是 trailing percent。这些检查，以及适配器无法为 IB 解析或转换
+的任何订单，都会在适配器向 IB 发出订单之前以带编码原因的 <code>OrderDenied</code> 发出。</p>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=commands-and-order-attributes>命令与订单属性<a href=#commands-and-order-attributes class=hash-link aria-label=命令与订单属性的直接链接 title=命令与订单属性的直接链接 translate=no>​</a></h3>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>能力<th>支持<th>说明<tbody><tr><td>提交订单<td>是<td>单笔订单与通用价差。<tr><td>提交订单列表<td>是<td>包含括号订单与关联订单。<tr><td>修改订单<td>是<td>数量、价格、触发价与 IB 参数更新。<tr><td>撤销订单<td>是<td>使用已跟踪的场所订单状态。<tr><td>撤销全部订单<td>是<td>通过执行客户端限定范围。<tr><td>查询订单<td>是<td>先查未结订单，再查成交，然后才推断撤销。<tr><td>批量状态<td>是<td>订单、成交与持仓。</table>
+<p>给 submit、submit-list 或 modify 命令传 <code>params={"exchange": "IEX"}</code> 可针对该命令覆盖缓存的
+合约交易所。省略或传空值则保留缓存的交易所。</p>
+<p>IB 只接受连同新的跟踪金额一起提交的新跟踪止损价（错误 10067）。要给跟踪止损设置触发价的
+修改必须传 <code>params={"trailing_offset": &lt;offset>}</code>，单位为该订单的偏移单位：<code>PRICE</code> 偏移用价格
+金额，<code>BASIS_POINTS</code> 偏移用基点。与当前值相等的偏移会被 IB 拒绝，不带该参数的触发价修改在
+发出之前就被拒绝。</p>
+<p>IB 专属的订单字段使用以 <code>IBOrderTags:</code> 为前缀、后跟一个 JSON 对象的标签。键使用 <code>ibapi</code> 订单
+字段名的 snake case 或 lower camel case。未知字段会导致订单转换失败。适配器会规范化
+<code>order_type</code>、<code>tif</code> 或 <code>timeInForce</code>、<code>action</code>、<code>oca_type</code>、
+<code>trigger_method</code>、<code>origin</code>、<code>short_sale_slot</code>、<code>volatility_type</code>、
+<code>reference_price_type</code>、<code>rule_80_a</code>、<code>open_close</code> 和 <code>NonGuaranteed</code>。Active、stop、cancel、
+manual 和 good-till 时间戳使用 <code>%Y%m%d %H:%M:%S UTC</code>。</p>
+<p>适配器按 IB 订单 ID 与引用跟踪每个订单，并把每笔成交与订单方向核对。因此标签不能设置
+<code>orderId</code>、<code>clientId</code>、<code>permId</code>、<code>orderRef</code>、<code>totalQuantity</code>、<code>cashQty</code>、<code>parentId</code> 或
+<code>transmit</code>。带标签的 <code>action</code> 必须保持订单方向：SELL 订单可以用 <code>SSHORT</code> 或 <code>SLONG</code>，但不能
+用 <code>BUY</code>。这样的标签会使订单转换失败。</p>
+<p>可选的 <code>conditions</code> 数组接受以下形态：</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>条件<th>必填字段<th>可选字段与默认值<tbody><tr><td><code>price</code><td>无<td><code>conId=0</code>、<code>exchange="SMART"</code>、<code>price=0</code>、<code>isMore=True</code>、<code>triggerMethod=0</code>。<tr><td><code>time</code><td>无<td><code>time=""</code>、<code>isMore=True</code>。<tr><td><code>margin</code><td>无<td><code>percent=0</code>、<code>isMore=True</code>。<tr><td><code>execution</code><td><code>symbol</code><td><code>secType="STK"</code>、<code>exchange="SMART"</code>。<tr><td><code>volume</code><td>无<td><code>conId=0</code>、<code>exchange="SMART"</code>、<code>volume=0</code>、<code>isMore=True</code>。<tr><td><code>percent_change</code><td>无<td><code>conId=0</code>、<code>exchange="SMART"</code>、<code>changePercent=0</code>、<code>isMore=True</code>。</table>
+<p>每个条件都接受 <code>conjunction="and"</code> 或 <code>"or"</code>，默认为 <code>"and"</code>。</p>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=account-state>账户状态<a href=#account-state class=hash-link aria-label=账户状态的直接链接 title=账户状态的直接链接 translate=no>​</a></h3>
+<p>连接时以及每次账户查询时，执行客户端为配置的账户读取一份 <code>reqAccountSummary</code> 快照，把它的
+标签映射为类型化的余额与保证金。随后为同一账户读取一份 <code>reqAccountUpdates</code> 快照，并在 IB
+发出下载结束信号后取消该频道。两份快照的每个原始标签与键都以其 IB 名称落在
+<code>AccountState.info</code> 下，因此 IB 只在 <code>updateAccountValue</code> 上发布的值（例如
+<code>PostExpirationExcess</code> 和 <code>PostExpirationMargin</code>）能与 <code>TotalCashValue</code> 这类汇总标签一起在
+Python 中读取。每种货币只上报一次的键，保留 IB 最后发送的值。</p>
+<h2 class="anchor anchorTargetStickyNavbar_ana5" id=reconciliation>对账<a href=#reconciliation class=hash-link aria-label=对账的直接链接 title=对账的直接链接 translate=no>​</a></h2>
+<p>批量状态请求查询三个相互独立的 IB 来源：</p>
+<ul>
+<li class="">未结与已完成订单产生订单状态报告。</li>
+<li class="">成交与手续费报告配对后产生成交报告。</li>
+<li class="">账户持仓产生持仓状态报告。</li>
+</ul>
+<p>持仓更新不会创建合成的订单状态报告。若 IB 返回一个没有匹配订单或成交历史的持仓，执行引擎
+可以仅凭持仓报告采用该持仓，方法是创建其内部的对账成交。这守住了报告的边界：适配器报告
+场所状态，而引擎掌管厘清其缓存所需的推断状态。</p>
+<p>IB 的持仓均价包含手续费，而依据成交重建的持仓对成交价取平均。适配器从成交窗口之前持有的
+数量开始，重放某工具的成交，包括组合订单各腿的成交。当重放经过平仓或换向时，持仓报告携带
+最后一次换向之后成交的均价，因此跨重启持有的持仓能够对账。</p>
+<p>共享同一时间戳的成交没有已知的执行顺序。若这样一组混合方向或发生换向，入场价将保持未知，
+直到之后某笔成交从平仓开仓或换向。</p>
+<p>重放推断窗口之前持有的数量，因此一笔缺失的成交会改变结果。只有当两个条件同时成立时，报告
+才携带重放出的入场价：</p>
+<ul>
+<li class="">该工具的每笔成交都被解析。</li>
+<li class="">该价格能复现 IB 的均价。</li>
+</ul>
+<p>对此检查，预期均价对多头而言是入场价加上每单位开仓手续费；对空头则是入场价减去这些手续费。
+由换向开的批次不带手续费。</p>
+<p>否则报告保留 IB 的均价，供引擎的对账成交使用。</p>
+<p>连接时，执行客户端解析账户中每个未结持仓的金融工具，并发布缓存中缺失的任何工具。因此，
+即便持仓位于 provider <code>load_ids</code> 之外的合约上，启动时也能恢复，而不会中断节点。</p>
+<p>对于待撤销订单，若它不在未结订单快照中，适配器在发出已撤销事件之前先检查成交历史。终态
+订单状态被逐出后，重放的成交会被去重，包括生成的价差腿成交。</p>
+<p>仅当持仓变化应当驱动期权行权跟踪时，才设置
+<code>track_option_exercise_from_position_update=True</code>。该设置不会恢复合成的持仓派生订单报告。</p>
+<p>重启后，上一会话留在途的订单会作为未结外部订单返回。IB 的 <code>PreSubmitted</code> 状态（例如订单
+等待其 <code>goodAfterTime</code> 时所用）映射为 <code>ACCEPTED</code>。执行客户端从每个恢复订单的 <code>PERM-</code> 场所
+订单 ID 解析出其 IB 订单 ID 并跟踪它，因此后续的 IB 状态更新、成交与撤销都能到达所属策略。
+上一会话已成交的订单从其真实成交对账。适配器对市场类订单不报告价格，因此对账绝不会推断出
+价格为 0 的成交。</p>
+<p>执行查询（<code>reqExecutions</code>）的响应也到达 IB 的订单更新频道。适配器在那里只把非主动推送的
+成交详情当作实时成交，因此启动与周期性的执行查询不会重复应用同一批成交。</p>
+<h2 class="anchor anchorTargetStickyNavbar_ana5" id=symbology-and-instruments>符号体系与金融工具<a href=#symbology-and-instruments class=hash-link aria-label=符号体系与金融工具的直接链接 title=符号体系与金融工具的直接链接 translate=no>​</a></h2>
+<p><code>InteractiveBrokersInstrumentProviderConfig.symbology_method</code> 从两种公开方法中选一种：</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>方法<th>用途<tbody><tr><td><code>SymbologyMethod.SIMPLIFIED</code><td>面向常规工具查找与示例的可读 ID。<tr><td><code>SymbologyMethod.RAW</code><td>保留 IB 证券类型、供显式查找的 ID。</table>
+<p>由此设置构建的单个符号值驱动适配器里每一处映射站点，因此数据、执行与 provider 路径总是
+解析出完全一致的 ID。原始符号（<code>AAPL=STK.SMART</code>）是无损的逃生舱：它保留 IB 本地符号与证券
+类型，用于简化格式规则无法表达的工具，例如复杂的国际上市品种。</p>
+<p>期货与期货期权的 ID 携带 IB 报告的本地符号，如 <code>YMM6.XCBT</code> 和 <code>YMM6 C45000.XCBT</code>。适配器
+不重写合约年份，因此标识符跨目录与缓存保持稳定。</p>
+<p>符号方法控制符号转换。场所选择是独立的一步，按以下优先级：</p>
+<ol>
+<li class="">CFD 与商品合约使用适配器伪场所 <code>IBCFD</code> 和 <code>IBCMDTY</code>。</li>
+<li class="">其他证券类型中，匹配的 <code>symbol_to_mic_venue</code> 前缀胜出。</li>
+<li class="">股票的主要交易所与兼容的缓存场所优先于 SMART 路由。</li>
+<li class="">合约详情可以提供一个非 SMART 的有效交易所。</li>
+<li class=""><code>convert_exchange_to_mic_venue=True</code> 把已知交易所转换为其 MIC。</li>
+<li class="">剩余的 IB 交易所值成为场所。</li>
+</ol>
+<!-- -->
+<p>两种符号方法下，伪场所都属于适配器的命名空间。例如简化符号可以产生 <code>IBDE30.IBCFD</code> 或
+<code>XAUUSD.IBCMDTY</code>，而原始符号会把证券类型加进符号。这些场所优先于 <code>symbol_to_mic_venue</code> 和
+<code>convert_exchange_to_mic_venue</code>。它们并不描述一个单独的 IB 路由机制。</p>
+<p>数据与执行客户端使用同一份 provider 配置，使两者解析出完全一致的 ID。启动时的 <code>load_ids</code>
+和 <code>load_contracts</code> 是必填项：若配置的工具无法解析，客户端初始化会失败。</p>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=provider-configuration>Provider 配置<a href=#provider-configuration class=hash-link aria-label="Provider 配置的直接链接" title="Provider 配置的直接链接" translate=no>​</a></h3>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>选项<th>默认值<th>用途<tbody><tr><td><code>symbology_method</code><td><code>SIMPLIFIED</code><td>选择简化或原始符号转换。<tr><td><code>load_ids</code><td>空<td>启动时加载 Nautilus 金融工具 ID。<tr><td><code>load_contracts</code><td>空<td>启动时加载 IB 合约字典。<tr><td><code>min_expiry_days</code><td><code>None</code><td>链条加载的最小相对到期。<tr><td><code>max_expiry_days</code><td><code>None</code><td>链条加载的最大相对到期。<tr><td><code>build_options_chain</code><td><code>None</code><td>覆盖期权链构建。<tr><td><code>build_futures_chain</code><td><code>None</code><td>覆盖期货链构建。<tr><td><code>cache_validity_days</code><td><code>None</code><td>持久化工具数据的有效期。<tr><td><code>convert_exchange_to_mic_venue</code><td><code>False</code><td>把已知 IB 交易所转换为 MIC 场所。<tr><td><code>symbol_to_mic_venue</code><td>空<td>为匹配符号前缀覆盖场所。<tr><td><code>filter_sec_types</code><td>空<td>排除选定的 IB 证券类型。<tr><td><code>filter_callable</code><td><code>None</code><td>按完全限定的导入路径应用一个 Python 可调用对象。<tr><td><code>cache_path</code><td><code>None</code><td>在选定路径持久化工具缓存。</table>
+<p>合约字典使用 IB 字段名。链条边界是距请求日的天数：</p>
+<div class="language-python codeBlockContainer_eTMR theme-code-block" style=--prism-color:#393A34;--prism-background-color:#f6f8fa><div class=codeBlockContent_hafM><pre tabindex=0 class="prism-code language-python codeBlock_IMvC thin-scrollbar" style=color:#393A34;background-color:#f6f8fa><code class=codeBlockLines_gZDW><div class=token-line style=color:#393A34><span class="token keyword" style=color:#00009f>from</span><span class="token plain"> nautilus_trader</span><span class="token punctuation" style=color:#393A34>.</span><span class="token plain">adapters </span><span class="token keyword" style=color:#00009f>import</span><span class="token plain"> interactive_brokers </span><span class="token keyword" style=color:#00009f>as</span><span class="token plain"> ib</span><br/></div><div class=token-line style=color:#393A34><span class="token plain" style=display:inline-block></span><br/></div><div class=token-line style=color:#393A34><span class="token plain" style=display:inline-block></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">provider_config </span><span class="token operator" style=color:#393A34>=</span><span class="token plain"> ib</span><span class="token punctuation" style=color:#393A34>.</span><span class="token plain">InteractiveBrokersInstrumentProviderConfig</span><span class="token punctuation" style=color:#393A34>(</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    load_contracts</span><span class="token operator" style=color:#393A34>=</span><span class="token punctuation" style=color:#393A34>[</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">        </span><span class="token punctuation" style=color:#393A34>{</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">            </span><span class="token string" style=color:#e3116c>"secType"</span><span class="token punctuation" style=color:#393A34>:</span><span class="token plain"> ib</span><span class="token punctuation" style=color:#393A34>.</span><span class="token plain">IbSecurityType</span><span class="token punctuation" style=color:#393A34>.</span><span class="token plain">STOCK</span><span class="token punctuation" style=color:#393A34>.</span><span class="token plain">as_str</span><span class="token punctuation" style=color:#393A34>(</span><span class="token punctuation" style=color:#393A34>)</span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">            </span><span class="token string" style=color:#e3116c>"symbol"</span><span class="token punctuation" style=color:#393A34>:</span><span class="token plain"> </span><span class="token string" style=color:#e3116c>"SPY"</span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">            </span><span class="token string" style=color:#e3116c>"exchange"</span><span class="token punctuation" style=color:#393A34>:</span><span class="token plain"> </span><span class="token string" style=color:#e3116c>"SMART"</span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">            </span><span class="token string" style=color:#e3116c>"primaryExchange"</span><span class="token punctuation" style=color:#393A34>:</span><span class="token plain"> </span><span class="token string" style=color:#e3116c>"ARCA"</span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">            </span><span class="token string" style=color:#e3116c>"build_options_chain"</span><span class="token punctuation" style=color:#393A34>:</span><span class="token plain"> </span><span class="token boolean" style=color:#36acaa>True</span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">            </span><span class="token string" style=color:#e3116c>"min_expiry_days"</span><span class="token punctuation" style=color:#393A34>:</span><span class="token plain"> </span><span class="token number" style=color:#36acaa>7</span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">            </span><span class="token string" style=color:#e3116c>"max_expiry_days"</span><span class="token punctuation" style=color:#393A34>:</span><span class="token plain"> </span><span class="token number" style=color:#36acaa>45</span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">        </span><span class="token punctuation" style=color:#393A34>}</span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">        </span><span class="token punctuation" style=color:#393A34>{</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">            </span><span class="token string" style=color:#e3116c>"secType"</span><span class="token punctuation" style=color:#393A34>:</span><span class="token plain"> ib</span><span class="token punctuation" style=color:#393A34>.</span><span class="token plain">IbSecurityType</span><span class="token punctuation" style=color:#393A34>.</span><span class="token plain">CONTINUOUS_FUTURE</span><span class="token punctuation" style=color:#393A34>.</span><span class="token plain">as_str</span><span class="token punctuation" style=color:#393A34>(</span><span class="token punctuation" style=color:#393A34>)</span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">            </span><span class="token string" style=color:#e3116c>"symbol"</span><span class="token punctuation" style=color:#393A34>:</span><span class="token plain"> </span><span class="token string" style=color:#e3116c>"ES"</span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">            </span><span class="token string" style=color:#e3116c>"exchange"</span><span class="token punctuation" style=color:#393A34>:</span><span class="token plain"> </span><span class="token string" style=color:#e3116c>"CME"</span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">            </span><span class="token string" style=color:#e3116c>"build_futures_chain"</span><span class="token punctuation" style=color:#393A34>:</span><span class="token plain"> </span><span class="token boolean" style=color:#36acaa>True</span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">            </span><span class="token string" style=color:#e3116c>"min_expiry_days"</span><span class="token punctuation" style=color:#393A34>:</span><span class="token plain"> </span><span class="token number" style=color:#36acaa>30</span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">            </span><span class="token string" style=color:#e3116c>"max_expiry_days"</span><span class="token punctuation" style=color:#393A34>:</span><span class="token plain"> </span><span class="token number" style=color:#36acaa>180</span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">        </span><span class="token punctuation" style=color:#393A34>}</span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    </span><span class="token punctuation" style=color:#393A34>]</span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain"></span><span class="token punctuation" style=color:#393A34>)</span><br/></div></code></pre></div></div>
+<p>不带链条标志时，<code>CONTFUT</code> 表示 IB 的连续期货。IB 把连续期货限制为历史数据，它们不支持
+实时订阅或订单。</p>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=generic-spreads>通用价差<a href=#generic-spreads class=hash-link aria-label=通用价差的直接链接 title=通用价差的直接链接 translate=no>​</a></h3>
+<p>用 <code>new_generic_spread_id</code> 构建价差 ID，不要手工拼写其腿语法。所有腿必须使用同一场所，
+比例符号决定 IB 的腿动作：</p>
+<div class="language-python codeBlockContainer_eTMR theme-code-block" style=--prism-color:#393A34;--prism-background-color:#f6f8fa><div class=codeBlockContent_hafM><pre tabindex=0 class="prism-code language-python codeBlock_IMvC thin-scrollbar" style=color:#393A34;background-color:#f6f8fa><code class=codeBlockLines_gZDW><div class=token-line style=color:#393A34><span class="token keyword" style=color:#00009f>from</span><span class="token plain"> nautilus_trader</span><span class="token punctuation" style=color:#393A34>.</span><span class="token plain">model </span><span class="token keyword" style=color:#00009f>import</span><span class="token plain"> new_generic_spread_id</span><br/></div><div class=token-line style=color:#393A34><span class="token plain" style=display:inline-block></span><br/></div><div class=token-line style=color:#393A34><span class="token plain" style=display:inline-block></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">spread_id </span><span class="token operator" style=color:#393A34>=</span><span class="token plain"> new_generic_spread_id</span><span class="token punctuation" style=color:#393A34>(</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    </span><span class="token punctuation" style=color:#393A34>[</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">        </span><span class="token punctuation" style=color:#393A34>(</span><span class="token plain">long_leg</span><span class="token punctuation" style=color:#393A34>.</span><span class="token builtin">id</span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain"> </span><span class="token number" style=color:#36acaa>1</span><span class="token punctuation" style=color:#393A34>)</span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">        </span><span class="token punctuation" style=color:#393A34>(</span><span class="token plain">short_leg</span><span class="token punctuation" style=color:#393A34>.</span><span class="token builtin">id</span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain"> </span><span class="token operator" style=color:#393A34>-</span><span class="token number" style=color:#36acaa>1</span><span class="token punctuation" style=color:#393A34>)</span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain">    </span><span class="token punctuation" style=color:#393A34>]</span><span class="token punctuation" style=color:#393A34>,</span><span class="token plain"></span><br/></div><div class=token-line style=color:#393A34><span class="token plain"></span><span class="token punctuation" style=color:#393A34>)</span><br/></div></code></pre></div></div>
+<p>在请求价差之前先加载各腿工具。provider 对每条腿做资格确认，构建 IB 的 BAG 合约，并在数据
+订阅或订单提交之前缓存所得的价差工具。</p>
+<p>价差成交从 IB 返回时，是价差订单的一个组合级成交加每条腿一笔成交。每条腿成交成为腿工具上
+归属价差订单策略的一个 <code>OrderFilled</code> 事件，带 <code>-LEG-</code> 客户端订单 ID。执行引擎把它作用于腿
+持仓，而无需一条自己的订单。IB 只为各腿成交发送手续费报告，因此组合级成交的手续费为零。</p>
+<p>连接时，执行客户端加载并发布每个未结或已完成组合订单的价差与腿工具，因此即使节点本身不
+加载该价差，启动对账也能恢复这些订单。启动时的成交报告持有每个组合订单的组合级成交，
+其腿成交被排除在外，腿持仓从 IB 的持仓报告对账。</p>
+<h2 class="anchor anchorTargetStickyNavbar_ana5" id=configuration-reference>配置参考<a href=#configuration-reference class=hash-link aria-label=配置参考的直接链接 title=配置参考的直接链接 translate=no>​</a></h2>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=data-client>数据客户端<a href=#data-client class=hash-link aria-label=数据客户端的直接链接 title=数据客户端的直接链接 translate=no>​</a></h3>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>选项<th>默认值<th>用途<tbody><tr><td><code>host</code><td><code>127.0.0.1</code><td>TWS 或 IB Gateway 主机。<tr><td><code>port</code><td><code>4002</code><td>TWS 或 IB Gateway socket 端口。<tr><td><code>client_id</code><td><code>1</code><td>IB API 客户端 ID。<tr><td><code>use_regular_trading_hours</code><td><code>True</code><td>把请求限制在常规交易时段。<tr><td><code>market_data_type</code><td><code>MarketDataType.REALTIME</code><td>选择实时、冻结、延迟或延迟冻结数据。<tr><td><code>ignore_quote_tick_size_updates</code><td><code>False</code><td>过滤只更新数量的报价变化。<tr><td><code>connection_timeout</code><td><code>300</code> 秒<td>设置 socket 连接超时。<tr><td><code>request_timeout</code><td><code>60</code> 秒<td>设置 IB 请求超时。<tr><td><code>handle_revised_bars</code><td><code>False</code><td>发布未完成 K 线的每次修订，而不是每根完成 K 线发布一次。<tr><td><code>batch_quotes</code><td><code>True</code><td>报价订阅优先使用 <code>reqMktData</code>。<tr><td><code>all_last_trades</code><td><code>True</code><td>包含 AllLast 成交；设为 <code>False</code> 则只请求 Last 成交。<tr><td><code>subscription_idle_timeout_secs</code><td><code>None</code><td>订阅无数据达这么多秒后发出一个自定义数据事件。<tr><td><code>instrument_provider</code><td>默认 provider 配置<td>配置合约与工具加载。<tr><td><code>dockerized_gateway</code><td><code>None</code><td>保留且会被拒绝；请单独启动 gateway。</table>
+<p><code>handle_revised_bars=False</code> 时，IB 持续更新的 K 线在完成时才发布一次。IB 每 5 秒修订一次
+未完成的 K 线，并在 K 线收盘后约半秒发送其最终值，K 线在该更新到达时发布。若没有更新到达
+（因为最后 5 秒没有成交），K 线在收盘 2 秒后、或下一根 K 线首次更新时发布，以先到者为准。</p>
+<p>设置 <code>subscription_idle_timeout_secs</code> 后，每个实时订阅每经过一段不活跃时间发出一次
+<code>InteractiveBrokersSubscriptionIdle</code>。新的行情数据更新会重新武装该通知。通过消息总线订阅
+<code>DataType("InteractiveBrokersSubscriptionIdle")</code> 即可在 <code>on_data</code> 中收到这些事件。每个事件
+标识数据客户端、工具、订阅、超时和最近一次本地数据接收时间。安静的工具或休市的市场也可能
+触发事件。仅有不活跃不会重启订阅。</p>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=execution-client>执行客户端<a href=#execution-client class=hash-link aria-label=执行客户端的直接链接 title=执行客户端的直接链接 translate=no>​</a></h3>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>选项<th>默认值<th>用途<tbody><tr><td><code>host</code><td><code>127.0.0.1</code><td>TWS 或 IB Gateway 主机。<tr><td><code>port</code><td><code>4002</code><td>TWS 或 IB Gateway socket 端口。<tr><td><code>client_id</code><td><code>1</code><td>IB API 客户端 ID。<tr><td><code>account_id</code><td><code>None</code><td>原始 IB 账户代码，如 <code>DU123456</code>。<tr><td><code>connection_timeout</code><td><code>300</code> 秒<td>设置 socket 连接超时。<tr><td><code>request_timeout</code><td><code>60</code> 秒<td>设置 IB 请求超时。<tr><td><code>fetch_all_open_orders</code><td><code>False</code><td>请求会话可见的全部未结订单。<tr><td><code>track_option_exercise_from_position_update</code><td><code>False</code><td>通过持仓更新跟踪期权行权。<tr><td><code>instrument_provider</code><td>默认 provider 配置<td>配置合约与工具加载。<tr><td><code>dockerized_gateway</code><td><code>None</code><td>保留且会被拒绝；请单独启动 gateway。</table>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=dockerized-gateway>Docker 化 gateway<a href=#dockerized-gateway class=hash-link aria-label="Docker 化 gateway的直接链接" title="Docker 化 gateway的直接链接" translate=no>​</a></h3>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>选项<th>默认值<th>用途<tbody><tr><td><code>username</code><td><code>TWS_USERNAME</code><td>设置 IB 登录用户名。<tr><td><code>password</code><td><code>TWS_PASSWORD</code><td>设置 IB 登录密码；调试输出与序列化会隐去它。<tr><td><code>trading_mode</code><td><code>TradingMode.PAPER</code><td>选择模拟或实盘登录与端口映射。<tr><td><code>read_only_api</code><td><code>True</code><td>禁用通过 Gateway API 录入订单。<tr><td><code>timeout</code><td><code>300</code> 秒<td>限定启动就绪时间；有效值 <code>1</code> 到 <code>3600</code>。<tr><td><code>container_image</code><td><code>ghcr.io/gnzsnz/ib-gateway:stable</code><td>选择容器镜像引用。<tr><td><code>vnc_port</code><td><code>None</code><td>在 <code>5900</code> 到 <code>5999</code> 之间的端口暴露 VNC；<code>None</code> 表示禁用。</table>
+<p><code>DockerizedIBGateway</code> 暴露异步与阻塞的 <code>start</code>、<code>safe_start</code> 和 <code>stop</code> 方法，以及
+<code>container_status</code>。safe start 变体会复用就绪的容器，并替换不健康的容器。</p>
+<h2 class="anchor anchorTargetStickyNavbar_ana5" id=python-enum-reference>Python 枚举参考<a href=#python-enum-reference class=hash-link aria-label="Python 枚举参考的直接链接" title="Python 枚举参考的直接链接" translate=no>​</a></h2>
+<p>所有公开的 Python 枚举名使用 <code>SCREAMING_SNAKE_CASE</code>。IB 转换枚举在调用方需要对应线值时暴露
+<code>as_str()</code> 或 <code>as_i32()</code>。</p>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=connection-contracts-and-instruments>连接、合约与金融工具<a href=#connection-contracts-and-instruments class=hash-link aria-label=连接、合约与金融工具的直接链接 title=连接、合约与金融工具的直接链接 translate=no>​</a></h3>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>枚举<th>用途与主要成员<tbody><tr><td><code>ContainerStatus</code><td>Gateway 生命周期：<code>NO_CONTAINER</code>、<code>CONTAINER_CREATED</code>、<code>CONTAINER_STARTING</code>、<code>CONTAINER_STOPPED</code>、<code>NOT_LOGGED_IN</code>、<code>READY</code> 或 <code>UNKNOWN</code>。<tr><td><code>MarketDataType</code><td>订阅模式：<code>REALTIME</code>、<code>FROZEN</code>、<code>DELAYED</code> 或 <code>DELAYED_FROZEN</code>。<tr><td><code>SymbologyMethod</code><td>工具 ID 映射：<code>SIMPLIFIED</code> 或 <code>RAW</code>。<tr><td><code>TradingMode</code><td>Gateway 登录模式：<code>PAPER</code> 或 <code>LIVE</code>。<tr><td><code>IbSecurityType</code><td>IB 合约类型：股票、期权、期货、连续期货、指数、期货期权、外汇、价差、认股权证、债券、商品、新闻、基金、加密货币和 CFD。<tr><td><code>IbOptionRight</code><td>期权方向：<code>CALL</code> 或 <code>PUT</code>。<tr><td><code>IbBondIdentifierKind</code><td>债券标识符：<code>CUSIP</code> 或 <code>ISIN</code>。<tr><td><code>IbFundAssetType</code><td>基金资产分类：无、其他、货币市场、固定收益、多资产、股票、行业、保证型或另类。<tr><td><code>IbFundDistributionPolicyIndicator</code><td>基金分配策略：<code>NONE</code>、<code>ACCUMULATION_FUND</code> 或 <code>INCOME_FUND</code>。</table>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=market-and-historical-data>行情与历史数据<a href=#market-and-historical-data class=hash-link aria-label=行情与历史数据的直接链接 title=行情与历史数据的直接链接 translate=no>​</a></h3>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>枚举<th>用途与主要成员<tbody><tr><td><code>IbHistoricalBarSize</code><td>从一秒到一月的历史 K 线间隔。<tr><td><code>IbHistoricalTickType</code><td>历史 tick：<code>TRADES</code> 或 <code>BID_ASK</code>。<tr><td><code>IbHistoricalWhatToShow</code><td>历史数据源，如成交、中间价、买价、卖价、波动率、费率、时间表或调整后最新价。<tr><td><code>IbRealtimeBarSize</code><td>IB 实时 K 线大小；IB 支持 <code>SEC5</code>。<tr><td><code>IbRealtimeWhatToShow</code><td>实时 K 线来源：<code>TRADES</code>、<code>MIDPOINT</code>、<code>BID</code> 或 <code>ASK</code>。<tr><td><code>IbTradingHours</code><td>常规或延长交易时段。<tr><td><code>IbTickType</code><td>完整的 IB 数值 tick 字段集，包括实时与延迟价格、数量、期权值、收益率、净值和成交量。</table>
+<h3 class="anchor anchorTargetStickyNavbar_ana5" id=orders-and-conditions>订单与条件<a href=#orders-and-conditions class=hash-link aria-label=订单与条件的直接链接 title=订单与条件的直接链接 translate=no>​</a></h3>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>枚举<th>用途与主要成员<tbody><tr><td><code>IbAction</code><td>订单动作与成交方向：买入、卖出、已买、已卖、卖空或卖多。<tr><td><code>IbOrderType</code><td>转换与 <code>IBOrderTags</code> 使用的原生 IB 订单类型；Nautilus 直接支持仅限上面的订单表。<tr><td><code>IbOrderStatus</code><td>从 API pending 到 submitted、pending cancel、canceled、filled 或 inactive 的原生生命周期状态。<tr><td><code>IbTimeInForce</code><td>订单转换使用的 IB 有效期值。<tr><td><code>IbBuilderTimeInForce</code><td>IB 订单构建器接受的有效期值，包括 good-till-crossing 和开盘集合竞价。<tr><td><code>IbOrderOpenClose</code><td>开仓或平仓标记。<tr><td><code>IbOrderOrigin</code><td>客户或自营来源。<tr><td><code>IbShortSaleSlot</code><td>无卖空槽位、券商或第三方。<tr><td><code>IbAuctionStrategy</code><td>Match、improvement 或 transparent 集合竞价策略。<tr><td><code>IbAuctionType</code><td>开盘、收盘或波动率集合竞价。<tr><td><code>IbReferencePriceType</code><td>NBBO 均值或 NBBO。<tr><td><code>IbVolatilityType</code><td>日波动率或年波动率。<tr><td><code>IbRule80A</code><td>IB Rule 80A 账户与代理分类。<tr><td><code>IbOcaType</code><td>无 OCA、连带撤销、连带减仓或不连带减仓。<tr><td><code>IbTriggerMethod</code><td>默认、双买卖价、最新价、双最新价、买卖价或最新价、或中间价。<tr><td><code>IbLiquidity</code><td>无、增加、移除、路由出或显式未知的流动性。<tr><td><code>IbComboLegOpenClose</code><td>相同、开仓、平仓或未知的组合腿标记。<tr><td><code>IbLegAction</code><td>买入或卖出的组合腿动作。<tr><td><code>IbConditionKind</code><td>价格、时间、保证金、执行、成交量或百分比变化条件。<tr><td><code>IbConditionConjunction</code><td><code>AND</code> 或 <code>OR</code>。<tr><td><code>IbExerciseAction</code><td>行权或放弃期权。<tr><td><code>IbTwapStrategyType</code><td>可成交、匹配中间价、匹配同方向或匹配最新价。<tr><td><code>IbRiskAversion</code><td>务必成交、激进、中性或被动。<tr><td><code>IbArticleType</code><td>文本或二进制新闻文章。</table>
+<h2 class="anchor anchorTargetStickyNavbar_ana5" id=test-the-adapter>测试适配器<a href=#test-the-adapter class=hash-link aria-label=测试适配器的直接链接 title=测试适配器的直接链接 translate=no>​</a></h2>
+<p>行情方面，<code>examples/live/interactive_brokers/data_tester.py</code> 用内置的 <code>DataTester</code> Actor 接收
+配置工具的实时数据，Rust 版通过
+<code>cargo run --example ib-data-tester --package nautilus-interactive-brokers --features examples</code>
+运行。两者都连接本地运行的 TWS 或 IB Gateway，不下任何订单。</p>
+<p>Python 示例默认离线构建。它们的运行标志把连接与下单分开。Rust 执行测试器使用同样的边界：</p>
+<div class="language-bash codeBlockContainer_eTMR theme-code-block" style=--prism-color:#393A34;--prism-background-color:#f6f8fa><div class=codeBlockContent_hafM><pre tabindex=0 class="prism-code language-bash codeBlock_IMvC thin-scrollbar" style=color:#393A34;background-color:#f6f8fa><code class=codeBlockLines_gZDW><div class=token-line style=color:#393A34><span class="token plain"># Construct the tester without connecting.</span><br/></div><div class=token-line style=color:#393A34><span class="token plain">cargo run --example ib-exec-tester \</span><br/></div><div class=token-line style=color:#393A34><span class="token plain">  --package nautilus-interactive-brokers \</span><br/></div><div class=token-line style=color:#393A34><span class="token plain">  --features examples</span><br/></div><div class=token-line style=color:#393A34><span class="token plain" style=display:inline-block></span><br/></div><div class=token-line style=color:#393A34><span class="token plain"># Connect in dry-run mode. This can subscribe but cannot submit tester orders.</span><br/></div><div class=token-line style=color:#393A34><span class="token plain">NAUTILUS_IB_ACCOUNT_ID=DU123456 \</span><br/></div><div class=token-line style=color:#393A34><span class="token plain">NAUTILUS_IB_RUN=1 \</span><br/></div><div class=token-line style=color:#393A34><span class="token plain">cargo run --example ib-exec-tester \</span><br/></div><div class=token-line style=color:#393A34><span class="token plain">  --package nautilus-interactive-brokers \</span><br/></div><div class=token-line style=color:#393A34><span class="token plain">  --features examples</span><br/></div><div class=token-line style=color:#393A34><span class="token plain" style=display:inline-block></span><br/></div><div class=token-line style=color:#393A34><span class="token plain"># Submit paper-account stop orders only after the second opt-in.</span><br/></div><div class=token-line style=color:#393A34><span class="token plain">NAUTILUS_IB_ACCOUNT_ID=DU123456 \</span><br/></div><div class=token-line style=color:#393A34><span class="token plain">NAUTILUS_IB_RUN=1 \</span><br/></div><div class=token-line style=color:#393A34><span class="token plain">NAUTILUS_IB_LIVE_ORDERS=1 \</span><br/></div><div class=token-line style=color:#393A34><span class="token plain">NAUTILUS_IB_EXEC_PROFILE=stop \</span><br/></div><div class=token-line style=color:#393A34><span class="token plain">cargo run --example ib-exec-tester \</span><br/></div><div class=token-line style=color:#393A34><span class="token plain">  --package nautilus-interactive-brokers \</span><br/></div><div class=token-line style=color:#393A34><span class="token plain">  --features examples</span><br/></div></code></pre></div></div>
+<p>可用的执行配置文件有 <code>lifecycle</code>、<code>cancel-modify</code>、<code>rejection</code>、<code>options</code>、<code>stop</code>、
+<code>stop-limit</code>、<code>trailing</code>、<code>bracket</code> 和 <code>unsupported-flags</code>。只在为所选配置文件准备的账户和
+工具上运行实盘测试。</p>
+<h2 class="anchor anchorTargetStickyNavbar_ana5" id=troubleshooting>故障排查<a href=#troubleshooting class=hash-link aria-label=故障排查的直接链接 title=故障排查的直接链接 translate=no>​</a></h2>
+<ul>
+<li class="">确认 TWS 或 IB Gateway 正在运行、已登录并配置了 socket API 访问。</li>
+<li class="">确认端口与应用及交易模式匹配。</li>
+<li class="">确认没有其他进程使用相同的 IB API 客户端 ID。</li>
+<li class="">确认账户对所请求的行情数据类型和工具有权限。</li>
+<li class="">有可用的模拟会话时，显式运行被忽略的连接冒烟测试：
+<code>cargo test -p nautilus-interactive-brokers --test connection -- --ignored</code>。</li>
+</ul>
+<p>IB 错误码、节流与连接设置见
+<a href=https://ibkrcampus.com/campus/ibkr-api-page/twsapi-doc/ target=_blank rel="noopener noreferrer" class="">官方 TWS API 参考</a>。</div><footer class="theme-doc-footer docusaurus-mt-lg"><div class="row margin-top--sm theme-doc-footer-edit-meta-row"><div class="col noPrint_MRkS"><a href=https://github.com/Aloento/NautilusTraderDoc/tree/main/docs/integrations/interactive_brokers.md target=_blank rel="noopener noreferrer" class=theme-edit-this-page><svg fill=currentColor height=20 width=20 viewBox="0 0 40 40" class=iconEdit_RPSQ aria-hidden=true><g><path d="m34.5 11.7l-3 3.1-6.3-6.3 3.1-3q0.5-0.5 1.2-0.5t1.1 0.5l3.9 3.9q0.5 0.4 0.5 1.1t-0.5 1.2z m-29.5 17.1l18.4-18.5 6.3 6.3-18.4 18.4h-6.3v-6.2z"/></g></svg>编辑此页</a></div><div class="col lastUpdated_oZSl"><span class=theme-last-updated>最后<!-- -->于 <b><time datetime=2026-10-14T22:30:30.000Z itemprop=dateModified>2026年10月14日</time></b> <!-- -->更新</span></div></div></footer></article><nav class="docusaurus-mt-lg pagination-nav" aria-label=文件选项卡><a class="pagination-nav__link pagination-nav__link--prev" href=/integrations/hyperliquid><div class=pagination-nav__sublabel>上一页</div><div class=pagination-nav__label>Hyperliquid</div></a><a class="pagination-nav__link pagination-nav__link--next" href=/integrations/kraken><div class=pagination-nav__sublabel>下一页</div><div class=pagination-nav__label>Kraken</div></a></nav></div></div><div class="col col--3"><div class="tableOfContents_LyLZ thin-scrollbar theme-doc-toc-desktop"><ul class="table-of-contents table-of-contents__left-border"><li><a href=#connect-to-tws-or-ib-gateway class="table-of-contents__link toc-highlight">连接 TWS 或 IB Gateway</a><ul><li><a href=#market-data-modes class="table-of-contents__link toc-highlight">行情数据模式</a><li><a href=#dockerized-ib-gateway class="table-of-contents__link toc-highlight">Docker 化 IB Gateway</a></ul><li><a href=#architecture class="table-of-contents__link toc-highlight">架构</a><ul><li><a href=#reconnect-and-resubscribe class="table-of-contents__link toc-highlight">重连与重新订阅</a><li><a href=#order-identity-and-cancellation class="table-of-contents__link toc-highlight">订单标识与撤销</a><li><a href=#execution-order-flow class="table-of-contents__link toc-highlight">执行订单流</a></ul><li><a href=#data-capabilities class="table-of-contents__link toc-highlight">数据能力</a><li><a href=#execution-capabilities class="table-of-contents__link toc-highlight">执行能力</a><ul><li><a href=#order-types class="table-of-contents__link toc-highlight">订单类型</a><li><a href=#commands-and-order-attributes class="table-of-contents__link toc-highlight">命令与订单属性</a><li><a href=#account-state class="table-of-contents__link toc-highlight">账户状态</a></ul><li><a href=#reconciliation class="table-of-contents__link toc-highlight">对账</a><li><a href=#symbology-and-instruments class="table-of-contents__link toc-highlight">符号体系与金融工具</a><ul><li><a href=#provider-configuration class="table-of-contents__link toc-highlight">Provider 配置</a><li><a href=#generic-spreads class="table-of-contents__link toc-highlight">通用价差</a></ul><li><a href=#configuration-reference class="table-of-contents__link toc-highlight">配置参考</a><ul><li><a href=#data-client class="table-of-contents__link toc-highlight">数据客户端</a><li><a href=#execution-client class="table-of-contents__link toc-highlight">执行客户端</a><li><a href=#dockerized-gateway class="table-of-contents__link toc-highlight">Docker 化 gateway</a></ul><li><a href=#python-enum-reference class="table-of-contents__link toc-highlight">Python 枚举参考</a><ul><li><a href=#connection-contracts-and-instruments class="table-of-contents__link toc-highlight">连接、合约与金融工具</a><li><a href=#market-and-historical-data class="table-of-contents__link toc-highlight">行情与历史数据</a><li><a href=#orders-and-conditions class="table-of-contents__link toc-highlight">订单与条件</a></ul><li><a href=#test-the-adapter class="table-of-contents__link toc-highlight">测试适配器</a><li><a href=#troubleshooting class="table-of-contents__link toc-highlight">故障排查</a></ul></div></div></div></div></main></div></div></div><footer class="theme-layout-footer footer footer--dark"><div class="container container-fluid"><div class="row footer__links"><div class="theme-layout-footer-column col footer__col"><div class=footer__title></div><ul class="footer__items clean-list"><li class=footer__item><a href=https://github.com/nautechsystems/nautilus_trader target=_blank rel="noopener noreferrer" class=footer__link-item>Official GitHub<svg width=13.5 height=13.5 aria-label="(opens in new tab)" class=iconExternalLink_qUHo><use href=#theme-svg-external-link /></svg></a><li class=footer__item><a href=https://nautilustrader.io/docs target=_blank rel="noopener noreferrer" class=footer__link-item>Official Documentation<svg width=13.5 height=13.5 aria-label="(opens in new tab)" class=iconExternalLink_qUHo><use href=#theme-svg-external-link /></svg></a></ul></div></div><div class="footer__bottom text--center"><div class=footer__copyright>© 2026 Nautech Systems Pty Ltd. All rights reserved.</div></div></div></footer></div></body>
