@@ -1,46 +1,44 @@
 # Interactive Brokers
 
-The Interactive Brokers adapter connects NautilusTrader to Trader Workstation (TWS) or IB Gateway
-through the [TWS API](https://ibkrcampus.com/campus/ibkr-api-page/twsapi-doc/). It provides live
-market data, execution, instrument discovery, historical requests, and optional management of a
-Dockerized IB Gateway.
+Interactive Brokers 适配器通过 [TWS API](https://ibkrcampus.com/campus/ibkr-api-page/twsapi-doc/)
+把 NautilusTrader 连接到 Trader Workstation（TWS）或 IB Gateway。它提供实时行情、执行、
+工具发现、历史请求，以及可选的 Docker 化 IB Gateway 管理。
 
-The Python package includes the adapter. Follow the [installation guide](./../getting_started/installation.md),
-then use the examples under [`examples/live/interactive_brokers`](https://github.com/nautechsystems/nautilus_trader/tree/develop/examples/live/interactive_brokers/).
+Python 包已包含该适配器。按[安装指南](./../getting_started/installation.md)安装后，使用
+[`examples/live/interactive_brokers`](https://github.com/nautechsystems/nautilus_trader/tree/develop/examples/live/interactive_brokers/)
+下的示例。
 
-## Connect to TWS or IB Gateway
+## 连接 TWS 或 IB Gateway {#connect-to-tws-or-ib-gateway}
 
-Enable socket API access in TWS or IB Gateway before starting a client. IB uses these default ports:
+启动客户端前，先在 TWS 或 IB Gateway 中启用 socket API 访问。IB 使用以下默认端口：
 
-| Application | Paper trading | Live trading |
+| 应用        | 模拟交易 | 实盘交易 |
 | ----------- | ------------- | ------------ |
 | TWS         | `7497`        | `7496`       |
 | IB Gateway  | `4002`        | `4001`       |
 
-The pinned `ibapi 4.0.1` transport requires TWS or IB Gateway server protocol version **213 or newer**. This
-is the API protocol version, not the application's release number. Older servers are unsupported even when
-their TCP port accepts connections.
-[Issue #4796](https://github.com/nautechsystems/nautilus_trader/issues/4796) reports this failure with
-protocol 187 on Gateway 10.41. Upgrade TWS or IB Gateway before connecting.
+锁定的 `ibapi 4.0.1` 传输要求 TWS 或 IB Gateway 服务端协议版本**213 或更高**。这里指 API
+协议版本，不是应用的发布号。更旧的服务端不受支持，即使其 TCP 端口能接受连接。
+[Issue #4796](https://github.com/nautechsystems/nautilus_trader/issues/4796) 记录了 Gateway
+10.41 上协议 187 的这一失败。请先升级 TWS 或 IB Gateway 再连接。
 
-The transport rejects an older version before sending `StartApi` when the server completes the initial
-handshake. If an old server does not answer that handshake, the connection timeout also applies. Increasing
-the timeout does not add protocol support.
+服务端完成初始握手后，传输会在发送 `StartApi` 之前拒绝过旧的版本。若旧服务端不回应该握手，
+连接超时同样生效。调大超时并不能增加协议支持。
 
-The adapter defaults to `127.0.0.1:4002`. Each process connected to the same TWS or Gateway session
-needs a distinct IB API `client_id`. An execution client ID cannot be a multiple of `1000` because
-the adapter partitions order IDs with `client_id % 1000`.
+适配器默认 `127.0.0.1:4002`。每个连接到同一 TWS 或 Gateway 会话的进程需要互不相同的 IB API
+`client_id`。执行客户端 ID 不能是 `1000` 的整数倍，因为适配器用 `client_id % 1000` 划分订单
+ID 分区。
 
-IB refuses an order ID at or below one the same `client_id` already used, across sessions (error 103). On
-connect, the execution client starts above its `client_id`'s highest order ID among IB's open and completed
-orders. It keeps IB's next valid ID only when it falls in the client's partition. If IB's next valid ID lies
-above the partition, IB would refuse every ID in it, so connecting fails. Use another `client_id`. Connecting
-also fails if the completed orders do not arrive in full within `request_timeout`.
+IB 会拒绝小于等于同一 `client_id` 已用过的订单 ID，且跨会话生效（错误 103）。连接时，执行
+客户端从 IB 的未结与已完成订单中找出其 `client_id` 用过的最高订单 ID，并从其上开始。只有当
+IB 的下一个有效 ID 落在本客户端的分区内时才会采用它；若 IB 的下一个有效 ID 高于整个分区，
+IB 会拒绝分区内每个 ID，连接随之失败，此时请换用其他 `client_id`。若已完成订单未在
+`request_timeout` 内完整送达，连接同样失败。
 
-IB lists completed orders for a limited period only, so a client that left no order open can still start below
-an ID it used before that period.
+IB 只在有限时间内列出已完成订单，因此没有留下任何未结订单的客户端，仍可能从早于该时间窗口
+之前用过的 ID 之下启动。
 
-The data and execution clients can share one provider configuration:
+数据客户端与执行客户端可以共用一份 provider 配置：
 
 ```python
 from nautilus_trader.adapters import interactive_brokers as ib
@@ -76,28 +74,27 @@ data_factory = ib.InteractiveBrokersDataClientFactory()
 exec_factory = ib.InteractiveBrokersExecutionClientFactory()
 ```
 
-Pass these factories and configs to `LiveNode.builder`. The
+把这些工厂与配置传给 `LiveNode.builder`。
 [`connect_with_tws.py`](https://github.com/nautechsystems/nautilus_trader/blob/develop/examples/live/interactive_brokers/connect_with_tws.py)
-example shows the complete node setup. Its default invocation constructs the node offline. Set
-`IB_V2_RUN_NODE=1` to connect.
+示例展示了完整的节点搭建。其默认调用离线构建节点；设置 `IB_V2_RUN_NODE=1` 才会连接。
 
-### Market data modes
+### 行情数据模式 {#market-data-modes}
 
-| Enum value                      | IB mode                                      |
+| 枚举值                          | IB 模式                                      |
 | ------------------------------- | -------------------------------------------- |
-| `MarketDataType.REALTIME`       | Live subscribed data.                        |
-| `MarketDataType.FROZEN`         | Last available live data after market close. |
-| `MarketDataType.DELAYED`        | Delayed data.                                |
-| `MarketDataType.DELAYED_FROZEN` | Last available delayed data.                 |
+| `MarketDataType.REALTIME`       | 实时订阅数据。                               |
+| `MarketDataType.FROZEN`         | 收盘后最后可用的实时数据。                   |
+| `MarketDataType.DELAYED`        | 延迟数据。                                   |
+| `MarketDataType.DELAYED_FROZEN` | 最后可用的延迟数据。                         |
 
-IB permissions still determine which mode and instruments return data. Delayed or delayed-frozen
-data can support paper-account checks outside market hours, but it does not prove a live tick path.
+哪些模式和工具能返回数据仍由 IB 权限决定。延迟或延迟冻结数据可以支持盘后模拟账户检查，
+但不能证明实时 tick 通路可用。
 
-### Dockerized IB Gateway
+### Docker 化 IB Gateway {#dockerized-ib-gateway}
 
-`DockerizedIBGateway` manages the
-[gnzsnz IB Gateway container](https://github.com/gnzsnz/ib-gateway-docker). Supply credentials in
-the config or set `TWS_USERNAME` and `TWS_PASSWORD`:
+`DockerizedIBGateway` 管理
+[gnzsnz IB Gateway 容器](https://github.com/gnzsnz/ib-gateway-docker)。凭据写在配置里，或
+设置 `TWS_USERNAME` 和 `TWS_PASSWORD`：
 
 ```python
 from nautilus_trader.adapters import interactive_brokers as ib
@@ -119,19 +116,16 @@ data_config = ib.InteractiveBrokersDataClientConfig(
 )
 ```
 
-Start the gateway before constructing clients that connect. Python owns the container lifecycle through
-`DockerizedIBGateway`. The client configs accept only `host` and `port`. Set `read_only_api=False` only when
-the gateway must accept orders. Readiness uses login messages from the current container session, so retained
-logs from an earlier session cannot report a false ready state.
+先启动 gateway，再构造会连接的客户端。容器生命周期由 Python 侧的 `DockerizedIBGateway` 掌管。
+客户端配置只接受 `host` 和 `port`。仅当 gateway 必须接受订单时才设置 `read_only_api=False`。
+就绪判断使用当前容器会话的登录消息，因此早前会话的残留日志不会误报就绪状态。
 
-## Architecture
+## 架构 {#architecture}
 
-The adapter is one Rust implementation exposed through the native Rust API and PyO3 bindings. It translates
-between IB's TWS API and the Nautilus live engines. It does not own a transport: `ibapi` speaks the TWS socket
-protocol and reconnects it. The adapter owns domain mapping, subscription lifecycle, and policy (commands,
-events, instrument conversion, stream resubscription, and execution reconciliation). That boundary explains
-the crate's layout, and it is why the `http` and `websocket` modules standard in other adapters do not exist
-here.
+适配器只有一份 Rust 实现，通过原生 Rust API 和 PyO3 绑定对外暴露。它在 IB 的 TWS API 与
+Nautilus 实时引擎之间做翻译。它不拥有传输层：`ibapi` 负责 TWS socket 协议并重连。适配器
+拥有领域映射、订阅生命周期和策略（命令、事件、工具转换、频道重订阅、执行对账）。这条边界
+解释了 crate 的布局，也解释了其他适配器常见的 `http` 和 `websocket` 模块为何在这里不存在。
 
 ```mermaid
 flowchart LR
@@ -162,51 +156,44 @@ flowchart LR
   PROV --> EXEC
 ```
 
-Data, execution, and historical clients with the same `(host, port, client_id)` share one
-reference-counted `ibapi` connection. Concurrent acquisition for the same key converges on one
-connection, and the registry removes it after the final client releases its handle.
+相同 `(host, port, client_id)` 的数据、执行与历史客户端共享一个引用计数的 `ibapi` 连接。
+对同一 key 的并发获取会收敛到一个连接，最后一个客户端释放句柄后注册表将其移除。
 
-| Module       | Responsibility                                                                    |
+| 模块         | 职责                                                                          |
 | ------------ | --------------------------------------------------------------------------------- |
-| `common`     | Contracts, enums, generic spread IDs, symbology, and shared connections.          |
-| `providers`  | Contract qualification, chain discovery, venue resolution, and instrument cache.  |
-| `data`       | Live subscriptions, historical request routing, conversion, and stream recovery.  |
-| `execution`  | Commands, order state, updates, reports, conditions, spreads, and reconciliation. |
-| `historical` | Standalone instrument, bar, and tick requests.                                    |
-| `gateway`    | Docker container configuration, lifecycle, and readiness.                         |
-| `python`     | PyO3 classes, enums, factories, and conversion boundaries.                        |
-| `config`     | Typed data, execution, provider, and gateway configuration.                       |
-| `factories`  | `DataClientFactory` and `ExecutionClientFactory` implementations.                 |
+| `common`     | 约定、枚举、通用价差 ID、符号体系与共享连接。                                     |
+| `providers`  | 合约资格确认、链条发现、场所解析与工具缓存。                                      |
+| `data`       | 实时订阅、历史请求路由、转换与频道恢复。                                          |
+| `execution`  | 命令、订单状态、更新、报告、条件单、价差与对账。                                  |
+| `historical` | 独立的工具、K 线与 tick 请求。                                                    |
+| `gateway`    | Docker 容器配置、生命周期与就绪检查。                                             |
+| `python`     | PyO3 类、枚举、工厂与转换边界。                                                   |
+| `config`     | 类型化的数据、执行、provider 与 gateway 配置。                                    |
+| `factories`  | `DataClientFactory` 与 `ExecutionClientFactory` 的实现。                          |
 
-The integration surface with the rest of Nautilus is deliberately thin. The node builder hands each factory a
-typed config. The factory builds the client and seeds the instrument provider from the engine cache, which the
-adapter never writes.
+与 Nautilus 其余部分的集成面刻意保持很薄。节点 builder 把类型化配置交给每个工厂；工厂构建
+客户端，并从引擎缓存（适配器从不写入）为工具 provider 预置数据。
 
-The data client sends typed data events (ticks, bars, instruments, and correlated request responses) and the
-execution client sends typed execution events (order events, fills, and account state) into the engines
-through their event channels. These channels are the only paths into the engines. The adapter registers its
-factories and config extractors with the global PyO3 registry, which is how Python `TradingNode`
-configurations reach the Rust factories. Reconciliation is a pull interface driven by the execution engine
-(see [Reconciliation](#reconciliation)).
+数据客户端向引擎发送类型化数据事件（tick、K 线、金融工具，以及相关的请求-响应），执行
+客户端发送类型化执行事件（订单事件、成交与账户状态），二者都经各自的事件通道进入引擎。
+这些通道是进入引擎的唯一路径。适配器把工厂与配置抽取器注册进全局 PyO3 注册表，Python 的
+`TradingNode` 配置借此到达 Rust 工厂。对账是由执行引擎驱动的拉取接口
+（见[对账](#reconciliation)）。
 
-### Reconnect and resubscribe
+### 重连与重新订阅 {#reconnect-and-resubscribe}
 
-The `ibapi` transport reconnects the socket with Fibonacci backoff up to a bounded attempt count, then
-establishes a complete session. A TCP connection followed by a transient handshake or startup error consumes
-an attempt and retries instead of ending recovery. A successful reconnect resets open subscription channels by
-delivering a connection-reset error to each. On exhaustion the transport shuts down and the adapter reports
-disconnected.
+`ibapi` 传输用斐波那契退避重连 socket，尝试次数有上限，达到上限后建立完整会话。TCP 连上
+之后出现的瞬时握手或启动错误会消耗一次尝试并重试，而不是终止恢复。重连成功后，通过向每个
+未结订阅频道投递连接重置错误来重置它们。尝试耗尽后传输关闭，适配器报告断开连接。
 
-Each data stream then waits for the transport, subscribes again, and retries failed resubscriptions with a
-delay. One generic stream driver owns this lifecycle policy for every stream type, so recovery behavior cannot
-drift between quotes, trades, depth, bars, greeks, and index prices. Market-data farm notices use the same
-stream policy without treating a farm outage as a socket failure. TWS resets the session's market-data type to
-realtime after a reconnect. The notice monitor restores the configured frozen or delayed mode before releasing
-recovered subscriptions.
+随后每条数据频道等待传输、重新订阅，并带延迟重试失败的重新订阅。一个通用频道驱动器为所有
+频道类型掌管这套生命周期策略，因此报价、成交、深度、K 线、Greeks 与指数价之间的恢复行为
+不会漂移。行情数据农场（market-data farm）通告走同一频道策略，不把农场故障当作 socket
+故障处理。重连后 TWS 会把会话的行情数据类型重置为 realtime。通告监视器在放行恢复的订阅之前，
+先恢复配置的冻结或延迟模式。
 
-Order-bound error frames arrive on the order update stream as notices with the originating order or request
-ID. The transport's routing layer delivers these notices instead of a decoded message variant. Thus, the
-update stream stays alive across error frames.
+与订单相关的错误帧作为通告在订单更新频道上到达，携带发起订单或请求的 ID。传输的路由层
+投递这些通告而不是解码后的消息变体，因此更新频道跨错误帧保持存活。
 
 ```mermaid
 stateDiagram-v2
@@ -222,46 +209,38 @@ stateDiagram-v2
     Waiting --> [*]: unsubscribe
 ```
 
-Quotes, trades, depth, bars, option greeks, and index prices follow this lifecycle. Before a depth
-stream applies data from a replacement subscription, it clears the existing book so stale levels
-cannot survive. If the order-update or global notice stream ends, the execution client reports
-disconnected instead of appearing healthy with a dead stream.
+报价、成交、深度、K 线、期权 Greeks 与指数价都遵循这一生命周期。深度频道在应用替换订阅的
+数据之前会先清空现有订单簿，防止过期档位残留。若订单更新或全局通告频道终止，执行客户端
+报告断开连接，而不是带着死频道假装健康。
 
-### Order identity and cancellation
+### 订单标识与撤销 {#order-identity-and-cancellation}
 
-Distinct broker permanent IDs sharing one client order reference remain separate physical orders. The adapter
-reports each additional order under its own client order ID:
-`DUP-<account length>:<account ID>:PERM-<permanent ID>`. Thus, the execution engine creates it as an external
-order. The instrument's external order claim applies, or otherwise the `EXTERNAL` strategy. An unresolved
-duplicate group blocks modification.
+不同 broker 永久 ID 共享同一个客户端订单引用时，它们仍是相互独立的物理订单。适配器把每个
+额外订单在自己的客户端订单 ID 下报告：
+`DUP-<account length>:<account ID>:PERM-<permanent ID>`。执行引擎因此将其作为外部订单创建。
+先应用该工具的外部订单认领，否则归 `EXTERNAL` 策略。未厘清的重复组会阻止修改。
 
-When an execution arrives for an order the adapter does not track, including such a duplicate, the
-adapter holds the fill and queries the order's details and executions. It then reports the order
-together with its real fills, so the engine creates the order at its full quantity. The query is
-bounded by `request_timeout` and at most 3 seconds, below the live node's default
-`position_check_threshold_ms` of 5 seconds. If the query fails, returns nothing, or times out, the
-adapter logs a warning and forwards the held fills unchanged.
+当成交属于适配器未跟踪的订单（包括这类重复订单）时，适配器先扣留成交，再查询该订单的详情
+与成交记录，然后把订单连同其真实成交一起上报，使引擎按完整数量创建订单。查询受
+`request_timeout` 和至多 3 秒的双重约束，低于实时节点默认的 `position_check_threshold_ms`
+（5 秒）。查询失败、返回为空或超时，适配器记录警告并原样转发扣留的成交。
 
-With `strategy_only=True` (the default), the strategy issues individual cancellations for its own orders. With
-`strategy_only=False`, cancel-all is instrument-wide within the selected account and side. A side-filtered
-cancel-all skips duplicate orders whose broker side is still unknown. Canceling the original order also
-considers its known working duplicates.
+`strategy_only=True`（默认）时，策略为自己的订单逐个发撤销。`strategy_only=False` 时，
+cancel-all 在选定账户与方向内按工具全量撤销。带方向过滤的 cancel-all 会跳过 broker 方向
+仍未知的重复订单。撤销原始订单时也会考虑其已知在途的重复订单。
 
-The adapter cancels only uniquely bound routes owned by the configured API client. Ambiguous or unbound orders
-remain explicitly unresolved and require TWS binding or operator action. One cancellation confirmation does
-not establish group completion.
+适配器只撤销配置 API 客户端拥有的、唯一绑定的路由。有歧义或未绑定的订单保持显式未解决状态，
+需要 TWS 绑定或运维介入。单条撤销确认不足以证明整组已完成。
 
-Risk checks and execution use the same account routing. The risk engine denies an order whose
-account is unresolved rather than skipping account checks.
+风控检查与执行使用同一账户路由。账户未解析时，风控引擎拒绝订单，而不是跳过账户检查。
 
-### Execution order flow
+### 执行订单流 {#execution-order-flow}
 
-The execution client is split along message direction: outbound commands (submit, modify, cancel), inbound
-venue updates, combo-fill assembly, and account streams are separate modules sharing one order-state owner.
-That owner holds the client-to-venue ID maps, active orders, and a bounded terminal-order cache behind a
-single lock. The terminal cache absorbs IB's execution replays after a reconnect. Thus, a completed order's
-re-sent fills deduplicate instead of duplicating. The client converts each Nautilus order once, applies
-optional IB tags, and then submits it through `ibapi`.
+执行客户端按消息方向拆分：出站命令（提交、修改、撤销）、入站场所更新、组合成交组装与账户
+频道是共享同一订单状态所有者的独立模块。该所有者在一把锁后面持有客户端-场所 ID 映射、
+活动订单和有界的终态订单缓存。终态缓存吸收重连后 IB 的成交重放，因此已完成订单被重发的
+成交会被去重而不是重复计入。客户端对每个 Nautilus 订单只做一次转换，应用可选的 IB 标签，
+然后通过 `ibapi` 提交。
 
 ```mermaid
 sequenceDiagram
@@ -297,54 +276,47 @@ flowchart TD
     Deduplicate --> Event[Emit Nautilus event]
 ```
 
-Every engine-visible order event originates from venue evidence on the update stream: `OrderAccepted` requires
-an order status or open-order message, never local send success. An order-bound IB error notice resolves
-against tracked orders and is handled by order state.
+每个引擎可见的订单事件都源自更新频道上的场所证据：`OrderAccepted` 必须有订单状态或
+open-order 消息，绝不基于本地发送成功。与订单绑定的 IB 错误通告针对已跟踪订单解析，并由
+订单状态处理。
 
-Before acceptance, an order rejection code in `[200, 399]` emits a terminal `OrderRejected`. Any other error
-code triggers a venue query. The order is rejected only when IB lists it neither as open nor as completed. IB
-also sends such codes for working orders (10349 sets the time in force from an order preset). A presence query
-that fails, times out, or ends early leaves the order working.
+接受之前，`[200, 399]` 区间的拒绝码发出终态 `OrderRejected`。其他错误码触发一次场所查询：
+只有 IB 既不在未结也不在已完成中列出该订单时才拒绝。IB 也会对在途订单发送这类码（10349 会
+按订单预设设置有效期）。存在性查询失败、超时或提前结束都会让订单保持在途。
 
-After acceptance, a notice emits `OrderModifyRejected` when a modify is pending or `OrderCancelRejected` when
-a cancel is pending. Otherwise, it triggers a venue presence query rather than a terminal event. IB reports
-modify rejections with the same codes while the original order keeps working, so the query prevents a false
-terminal event.
+接受之后，通告在有待定修改时发出 `OrderModifyRejected`，有待定撤销时发出
+`OrderCancelRejected`；否则触发一次场所存在性查询，而不是终态事件。IB 用相同的错误码报告
+修改被拒而原订单继续在途，查询因此可以避免误发终态事件。
 
-Warning codes in `[2100, 2169]`, warning-form order messages (code 399 with a `Warning:` line), and the cancel
-confirmation (202) never terminalize an order. The global notice stream handles error frames that cannot be
-routed to an individual request or order.
+警告码 `[2100, 2169]`、警告形式的订单消息（代码 399 且带 `Warning:` 行）以及撤销确认（202）
+永远不会使订单终态化。无法路由到单个请求或订单的错误帧由全局通告频道处理。
 
-Ambiguous command outcomes resolve through a venue query. It recovers missed fills from execution history
-before inferring any terminal state. Thus, a fill can never be misreported as a cancellation. Cancel-all
-prefers the tracked TWS order ID over the permanent ID, which lets the originating client cancel its own live
-orders without a cross-client lookup.
+有歧义的命令结果通过场所查询厘清。它先从成交历史找回错过的成交，再推断任何终态，因此
+成交绝不会被误报为撤销。cancel-all 优先使用已跟踪的 TWS 订单 ID 而不是永久 ID，让发起的
+客户端无需跨客户端查找即可撤销自己的实盘订单。
 
-## Data capabilities
+## 数据能力 {#data-capabilities}
 
-| Nautilus data type | Live subscribe | Historical request | Notes                                     |
+| Nautilus 数据类型  | 实时订阅 | 历史请求 | 说明                                      |
 | ------------------ | -------------- | ------------------ | ----------------------------------------- |
-| Instrument         | No             | Yes                | Startup loading and explicit requests.    |
-| Quote tick         | Yes            | Yes                | Tick-by-tick or batched `reqMktData`.     |
-| Trade tick         | Yes            | Yes                | Tick-by-tick live and historical trades.  |
-| Bar                | Yes            | Yes                | External time bars.                       |
-| Book delta         | Yes            | No                 | Market depth with book clear on recovery. |
-| Index price        | Yes            | No                 | Index price events.                       |
-| Option greeks      | Yes            | No                 | Greeks plus option open interest.         |
+| 金融工具           | 否             | 是                 | 启动加载与显式请求。                      |
+| 报价 tick          | 是             | 是                 | 逐笔或批量 `reqMktData`。                 |
+| 成交 tick          | 是             | 是                 | 逐笔实时与历史成交。                      |
+| K 线               | 是             | 是                 | 外部时间 K 线。                           |
+| 订单簿 delta       | 是             | 否                 | 市场深度，恢复时清空订单簿。              |
+| 指数价             | 是             | 否                 | 指数价事件。                              |
+| 期权 Greeks        | 是             | 否                 | Greeks 加期权未平仓合约量。               |
 
-Set `batch_quotes=False` to prefer tick-by-tick bid/ask subscriptions. The client falls back to
-`reqMktData` when tick-by-tick quotes are unavailable, and BAG spread quotes always use
-`reqMktData`. `ignore_quote_tick_size_updates=True` filters quote events whose only change is size.
+设置 `batch_quotes=False` 可优先使用逐笔买卖价订阅。逐笔报价不可用时客户端回退到
+`reqMktData`；BAG 价差报价始终使用 `reqMktData`。`ignore_quote_tick_size_updates=True`
+过滤仅有数量变化的报价事件。
 
-The quote cache assembles bid and ask updates into complete quote ticks. IB no-quote sentinels
-(price `-1` without a size, or a zero price with zero size) are filtered before ticks are built
-and clear the affected book side, so a one-sided market emits nothing rather than stale values.
-Genuine zero and negative prices, including a `-1` price with a size, which calendar spreads
-produce routinely, flow through.
+报价缓存把买价、卖价更新组装成完整报价 tick。IB 的无报价哨兵值（价格 `-1` 且无数量，或价格
+为零且数量为零）在构建 tick 之前被过滤，并清空受影响的一侧，因此单边行情不会发出过期值，
+而是什么都不发。真实的零价与负价照常通过，包括带数量的 `-1` 价格——日历价差经常产生它。
 
-For historical data, `HistoricalInteractiveBrokersClient` accepts an instrument provider and data
-client config. Constructing this Python client connects immediately, so keep it behind the same
-explicit run gate as the request:
+历史数据方面，`HistoricalInteractiveBrokersClient` 接受一个工具 provider 和数据客户端配置。
+在 Python 中构造该客户端会立即连接，因此要把它放在与请求相同的显式运行开关之后：
 
 ```python
 from nautilus_trader.adapters import interactive_brokers as ib
@@ -364,60 +336,55 @@ config = ib.InteractiveBrokersDataClientConfig(
 client = ib.HistoricalInteractiveBrokersClient(provider, config)
 ```
 
-| Method                | Selectors and controls                                                                                                                                       |
+| 方法                  | 选择器与控制项                                                                                                                                                 |
 | --------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `request_instruments` | Accepts Nautilus instrument IDs, IB contract dictionaries, or both.                                                                                          |
-| `request_bars`        | Accepts bar specification strings, an end time, and either a start time or IB duration string; contracts or instrument IDs select the instruments.           |
-| `request_ticks`       | Accepts `IbHistoricalTickType.TRADES` or `BID_ASK`, a bounded time range, contracts or instrument IDs, regular-hours filtering, timeout, and a result limit. |
+| `request_instruments` | 接受 Nautilus 金融工具 ID、IB 合约字典，或两者兼有。                                                                                                           |
+| `request_bars`        | 接受 K 线规格字符串、结束时间，以及开始时间或 IB 时长字符串二选一；用合约或工具 ID 选择工具。                                                                  |
+| `request_ticks`       | 接受 `IbHistoricalTickType.TRADES` 或 `BID_ASK`、有界时间区间、合约或工具 ID、常规时段过滤、超时与结果数量上限。                                              |
 
-Historical tick requests need both a start and an end time. They page backward from the end time, with a
-default cap of 10,000 ticks when no limit is given. They send only an end bound because IB misinterprets
-requests with both bounds. They deduplicate the boundary second that IB's second-resolution end encoding
-re-delivers. When one second holds a full page and the window cannot retreat, the request stops with a warning
-instead of looping.
+历史 tick 请求必须同时给出开始和结束时间。它们从结束时间向回翻页，未给上限时默认封顶 10,000
+条。它们只发送结束边界，因为 IB 会错误解读带双端的请求。它们对 IB 秒级结束编码重复投递的
+边界那一秒做去重。当一秒装下整页、窗口又无法回退时，请求带着警告停止，而不是循环。
 
-A bar request whose segment fails returns an error rather than a series with a silent hole. Historical trade
-ticks with IB's zero size are skipped before constructing the positive-quantity Nautilus type. Other invalid
-conversions still fail the request.
+某一段失败的历史 K 线请求返回错误，而不是返回中间有无声空洞的序列。IB 数量为零的历史成交
+tick 在构建要求数量为正的 Nautilus 类型之前被跳过；其他无效转换仍会使请求失败。
 
-IB controls pacing, available history, supported bar sizes, and regular-trading-hours filtering.
-For continuous futures, IB rejects an explicit bar end time. The adapter omits it and requests one
-duration segment anchored to the request time, so the result can fall outside the requested start
-and end range.
+节流、可用历史深度、支持的 K 线大小与常规交易时段过滤都由 IB 控制。对连续期货，IB 会拒绝
+显式的 K 线结束时间；适配器省略它并按请求时间请求一个时长分段，因此结果可能落在请求的
+起止范围之外。
 
-## Execution capabilities
+## 执行能力 {#execution-capabilities}
 
-### Order types
+### 订单类型 {#order-types}
 
-| Nautilus order type    | IB order type       | Price inputs                          |
+| Nautilus 订单类型      | IB 订单类型           | 价格输入                                |
 | ---------------------- | ------------------- | ------------------------------------- |
-| `MARKET`               | Market              | None.                                 |
-| `LIMIT`                | Limit               | Limit price.                          |
-| `MARKET_TO_LIMIT`      | Market to limit     | None.                                 |
-| `STOP_MARKET`          | Stop                | Trigger price.                        |
-| `STOP_LIMIT`           | Stop limit          | Limit and trigger prices.             |
-| `MARKET_IF_TOUCHED`    | Market if touched   | Trigger price.                        |
-| `LIMIT_IF_TOUCHED`     | Limit if touched    | Limit and trigger prices.             |
-| `TRAILING_STOP_MARKET` | Trailing stop       | Trailing offset and optional trigger. |
-| `TRAILING_STOP_LIMIT`  | Trailing stop limit | Limit and trailing offsets.           |
+| `MARKET`               | Market              | 无。                                  |
+| `LIMIT`                | Limit               | 限价。                                |
+| `MARKET_TO_LIMIT`      | Market to limit     | 无。                                  |
+| `STOP_MARKET`          | Stop                | 触发价。                              |
+| `STOP_LIMIT`           | Stop limit          | 限价与触发价。                        |
+| `MARKET_IF_TOUCHED`    | Market if touched   | 触发价。                              |
+| `LIMIT_IF_TOUCHED`     | Limit if touched    | 限价与触发价。                        |
+| `TRAILING_STOP_MARKET` | Trailing stop       | 跟踪偏移与可选触发价。                |
+| `TRAILING_STOP_LIMIT`  | Trailing stop limit | 限价与跟踪偏移。                      |
 
-The adapter maps `DAY`, `GTC`, `IOC`, `FOK`, `GTD`, and `AT_THE_OPEN` time in force values. A market
-or limit order with `AT_THE_CLOSE` becomes the corresponding market-on-close or limit-on-close IB
-order. GTD orders include their Nautilus expiry time in the IB order.
+适配器映射 `DAY`、`GTC`、`IOC`、`FOK`、`GTD` 和 `AT_THE_OPEN` 有效期。带 `AT_THE_CLOSE` 的
+市价或限价订单转换为对应的收盘市价（market-on-close）或收盘限价（limit-on-close）IB 订单。
+GTD 订单在 IB 订单中包含其 Nautilus 到期时间。
 
-The adapter rejects post-only orders. Quote quantity is valid only for inverse instruments, and
-only on BUY `MARKET` orders, which IB sizes by `cashQty` (IB rejects a cash quantity on any other
-order type with error 10244). Trailing orders support price offsets and basis-point offsets, which
-IB receives as a trailing percent. These checks, and any order the adapter cannot resolve or
-transform for IB, emit coded `OrderDenied` reasons before the adapter sends an order to IB.
+适配器拒绝 post-only 订单。报价数量仅对反向工具且仅限 BUY 的 `MARKET` 订单有效，IB 按
+`cashQty` 为其定数量（其他任何订单类型带现金数量都会被 IB 以错误 10244 拒绝）。跟踪订单支持
+价格偏移和基点偏移，IB 收到的是 trailing percent。这些检查，以及适配器无法为 IB 解析或转换
+的任何订单，都会在适配器向 IB 发出订单之前以带编码原因的 `OrderDenied` 发出。
 
-### Commands and order attributes
+### 命令与订单属性 {#commands-and-order-attributes}
 
-| Capability        | Support | Notes                                                        |
-| ----------------- | ------- | ------------------------------------------------------------ |
-| Submit order      | Yes     | Single orders and generic spreads.                           |
-| Submit order list | Yes     | Includes bracket and linked orders.                          |
-| Modify order      | Yes     | Quantity, price, trigger, and IB parameter updates.          |
+| 能力           | 支持    | 说明                                                         |
+| -------------- | ------- | ------------------------------------------------------------ |
+| 提交订单       | 是      | 单笔订单与通用价差。                                         |
+| 提交订单列表   | 是      | 包含括号订单与关联订单。                                     |
+| 修改订单       | 是      | 数量、价格、触发价与 IB 参数更新。                           |
 | Cancel order      | Yes     | Uses tracked venue order state.                              |
 | Cancel all orders | Yes     | Scoped through the execution client.                         |
 | Query order       | Yes     | Checks open orders, then executions before inferring cancel. |

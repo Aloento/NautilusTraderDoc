@@ -2173,47 +2173,49 @@ pUSD 买单会提交 5.19
 把停机收尾当作尽力而为，先检查持仓与告警再假定账户已平。不足 0.01
 份的场所报告见[持仓报告限制](#limitations-and-considerations)。
 
-## WebSockets
+## WebSocket {#websockets}
 
-`PolymarketWebSocketClient` uses the Nautilus Rust `WebSocketClient`.
+`PolymarketWebSocketClient` 使用 Nautilus Rust 的
+`WebSocketClient`。
 
-### Data
+### 数据 {#data}
 
-The data adapter opens `market` subscriptions dynamically as instruments are requested. It spreads
-those subscriptions across a pool of market WebSocket connections so that no single connection
-carries more than `ws_max_subscriptions` assets. The pool grows lazily (a universe below the cap
-stays on one connection) and closes a secondary connection once it owns no assets.
+数据适配器随金融工具被请求而动态开启
+`market` 订阅。它把这些订阅分散到一个市场
+WebSocket 连接池中，使任何单条连接承载的资产都不超过
+`ws_max_subscriptions`。连接池惰性扩容（资产数低于上限时始终只用一条连接），并在次级连接不再持有任何资产时把它关闭。
 
-The pool does not open a connection when the data client connects, unless `subscribe_new_markets`
-is set. That setting opens the primary connection for new-market discovery. Otherwise the first
-asset subscription opens a connection.
+数据客户端 connect
+时连接池不打开任何连接，除非设置了
+`subscribe_new_markets`——该设置会为发现新市场打开主连接。否则由第一次资产订阅打开连接。
 
-Each connection replays only its own assets on reconnect. A shard reconnect also drops that shard's local
-books. It gates the shard's book deltas (and book-derived `best_bid_ask` tops) until fresh snapshots arrive. A
-one-shot monitor starts recovery if a snapshot is still missing after `book_snapshot_timeout_secs`.
+每条连接重连时只重放自己的资产。分片重连还会丢弃该分片的本地订单簿，并门控该分片的订单簿增量（以及由订单簿派生的
+`best_bid_ask`
+顶部），直到新快照到达。若快照在
+`book_snapshot_timeout_secs`
+之后仍缺失，一次性监视器会启动恢复。
 
-The venue sends a `book` snapshot when an asset is first subscribed and ignores a duplicate subscribe. A book
-delta subscription can join an asset already held by a quote, trade, or resolution subscription. If the book
-has no accepted snapshot, the adapter starts recovery. It does so only if no recovery or post-reconnect
-snapshot wait already covers the book. Recovery cycles the asset's subscription until a valid snapshot
-arrives.
+场所首次订阅某资产时发送
+`book`
+快照，并忽略重复订阅。订单簿增量订阅可以加入已被报价、成交或结算订阅持有的资产。若订单簿没有已接受的快照，且尚无恢复流程或重连后的快照等待覆盖该订单簿，适配器就启动恢复。恢复会反复切换该资产的订阅，直到一份有效快照到达。
 
-A single `price_change` payload can contain interleaved updates for several assets. The adapter
-groups updates by instrument and publishes one atomic order book delta batch per instrument, while
-quote processing remains in the venue payload order.
+单个
+`price_change`
+载荷可以包含多个资产交错的更新。适配器按金融工具分组更新，每个金融工具发布一批原子订单簿增量，而报价处理保持场所载荷中的顺序。
 
-#### Quote ticks
+#### 报价明细 {#quote-ticks}
 
-The adapter exposes one quote tick subscription type. It does not expose separate subscriptions for
-snapshot-derived, price-change-derived, and `best_bid_ask` quotes. Quote, book delta, and trade subscriptions
-for the same instrument share one asset-scoped `market` WebSocket subscription. A book delta subscription
-alone does not emit quote ticks. Quote output remains gated by an active quote subscription.
+适配器只暴露一种报价明细订阅类型，不为快照派生、价格变动派生与
+`best_bid_ask`
+报价分别暴露订阅。同一金融工具的报价、订单簿增量与成交订阅共用一条按资产作用的
+`market` WebSocket
+订阅。仅有订单簿增量订阅不发报价明细。报价输出始终由活跃的报价订阅门控。
 
-| Venue message  | Trigger                                      | Price source                      | Size source                                                 |
-| -------------- | -------------------------------------------- | --------------------------------- | ----------------------------------------------------------- |
-| `book`         | Book snapshot                                | Snapshot best bid and ask         | Snapshot best-level sizes                                   |
-| `price_change` | Subscribed level update                      | Message `best_bid` and `best_ask` | Changed best-level size; previous quote or zero otherwise   |
-| `best_bid_ask` | Top move with `subscribe_new_markets = true` | Direct message best bid and ask   | Maintained-book top or prior quote, depending on book state |
+| 场所消息       | 触发条件                                   | 价格来源                            | 数量来源                                                     |
+| -------------- | ------------------------------------------ | ----------------------------------- | ------------------------------------------------------------ |
+| `book`         | 订单簿快照                                 | 快照的最佳买卖价                    | 快照最佳档数量                                               |
+| `price_change` | 已订阅档位更新                             | 消息的 `best_bid` 与 `best_ask`     | 变动的最佳档数量；否则用上一次的报价或零                     |
+| `best_bid_ask` | `subscribe_new_markets = true` 时顶部移动  | 消息直接给出的最佳买卖价            | 按订单簿状态取维护中订单簿的顶部或上一次报价                 |
 
 ```mermaid
 flowchart LR
@@ -2229,98 +2231,117 @@ flowchart LR
     D --> T[QuoteTick]
 ```
 
-All three venue message paths converge on the same quote tick stream. Deduplication compares prices
-and sizes with the last emitted quote regardless of which message type produced it.
+三条场所消息路径汇入同一条报价明细流。去重把价格与数量同上一次发出的报价比较，不区分
+它来自哪种消息类型。
 
-##### `best_bid_ask` handling
+##### `best_bid_ask` 处理 {#best-bid-ask-handling}
 
-With `subscribe_new_markets` enabled, the venue also sends `best_bid_ask` events when an asset's top of book
-moves. Every market connection requests these asset-scoped events. Only the primary connection forwards global
-new-market and resolution events. The payload carries prices only, so the adapter selects each side's size as
-follows:
+启用
+`subscribe_new_markets`
+后，场所还在某资产订单簿顶部移动时发送
+`best_bid_ask`
+事件。每条市场连接都请求这些按资产作用的事件，只有主连接转发全局的新市场与结算事件。载荷只携带价格，因此适配器按如下规则选取每侧数量：
 
-- With [effective deltas](#effective-deltas), an active book delta subscription, and book updates not
-  gated pending a valid snapshot, a side takes its size from the maintained local book when its top
-  price matches. Before the first snapshot, or when the top does not match, its size is zero.
-- Without effective deltas, or while book updates are gated pending a valid snapshot, a side
-  keeps the previous quote size when its top price matches. A moved or unknown side has zero size.
+- 启用[有效增量](#effective-deltas)、有活跃的订单簿增量订阅、且订单簿更新未因等待有效快照而被门控时，某侧顶部价格与本地维护订单簿一致就从中取数量。首次快照之前，或顶部价格不一致时，数量为
+  零。
+- 未启用有效增量，或订单簿更新因等待有效快照而被门控时，某侧顶部价格一致就沿用上一次
+  报价的数量。移动过或未知的一侧数量为零。
 
-The adapter ignores events older than the last emitted quote or, with effective deltas, the local
-book. It also rejects locked, crossed, out-of-range, and off-grid events.
+适配器忽略早于上一次发出报价、或（启用有效增量时）早于本地订单簿的事件，也拒绝锁定、
+交叉、越界与偏离网格的事件。
 
-An empty price, a bid at or below zero, or an ask at or above one is a missing side. By default,
-`drop_quotes_missing_side` drops the event. When missing sides are allowed, the missing price uses
-the current tick-relative venue bound and its size is zero.
+价格为空、买价不大于零或卖价不小于
+1
+都算缺失一侧。默认
+`drop_quotes_missing_side`
+会丢弃该事件。允许缺失一侧时，缺失的价格用当前随
+tick 变化的场所边界，其数量为零。
 
-#### Book snapshot validation
+#### 订单簿快照校验 {#book-snapshot-validation}
 
-When a `book` snapshot includes a hash and its full preimage, the adapter reproduces it from the
-exact wire values and level order. It logs and rejects a mismatch before the snapshot can:
+`book`
+快照带有哈希及其完整原像时，适配器用精确的线上值与档位顺序复算哈希。不一致时记录并拒绝，
+不让该快照：
 
-- Update local book state.
-- Emit snapshot-derived deltas or quotes.
-- Resume gated book deltas.
+- 更新本地订单簿状态。
+- 发出快照派生的增量或报价。
+- 恢复被门控的订单簿增量。
 
-For book-delta subscribers, a mismatch also starts recovery. The adapter resubscribes until a valid
-snapshot arrives, dropping incremental `price_change` deltas meanwhile. A mismatch during recovery
-fails the attempt and triggers the next resubscribe without waiting for the snapshot deadline.
+对订单簿增量订阅者，不一致还会启动恢复：适配器反复重订阅直到有效快照到达，期间丢弃增量的
+`price_change`
+增量。恢复过程中的不一致让本次尝试失败并立即触发下一次重订阅，不等快照截止时间。
 
-After exhausting its retry budget, recovery retries at intervals that double from one to fifteen minutes.
+重试预算耗尽后，恢复以 1
+分钟起步、翻倍至 15
+分钟的间隔继续重试。
 
-Polymarket also sends hashed book updates that omit fields included in the server's hash preimage,
-such as `tick_size` and `last_trade_price`. The adapter accepts these updates without hash
-verification because their exact hash preimage is unavailable. Snapshots without a hash remain
-compatible.
+Polymarket
+还会发送省略了服务端哈希原像字段（例如
+`tick_size` 与
+`last_trade_price`）的带哈希订单簿更新。适配器不经哈希校验接受这些更新，因为其精确哈希
+原像不可得。无哈希的快照仍然兼容。
 
-#### Price change bursts
+#### 价格变动突发 {#price-change-bursts}
 
-Polymarket reports a match as a burst of `price_change` messages that share one timestamp. When the
-taker order rests a remainder, that remainder arrives first, followed by one removal for each
-opposite-side level it consumed, and a `book` event closes the burst. Each message's `best_bid` and
-`best_ask` already reflect the completed match, so applying the messages one at a time can cross the
-book until the consumed levels are removed.
+Polymarket
+把一次撮合报告为一组共享同一时间戳的
+`price_change`
+消息。吃单挂有余量时，余量先到，随后是它吃掉的每个对手档位各一条删除，最后一个
+`book` 事件收尾这组突发。每条消息的
+`best_bid` 与
+`best_ask`
+已经反映完成的撮合，因此逐条应用消息会让订单簿交叉，直到被吃掉的档位删除。
 
-A book delta subscription keeps a local book from its first accepted snapshot. When a
-`price_change` batch leaves that book crossed, with a bid above an ask, the adapter appends deletes
-for the bids above that asset's `best_bid` and the asks below its `best_ask`. The emitted batch then
-leaves the book uncrossed, and the venue's later removals of those levels delete nothing. Batches
-that leave the book uncrossed, including a book locked at one price, pass through unchanged.
+订单簿增量订阅从首份已接受快照起维护本地订单簿。当一批
+`price_change`
+让该订单簿交叉（买价高于卖价）时，适配器追加删除：高于该资产
+`best_bid` 的买档与低于其
+`best_ask` 的卖档。发出的批次由此保持订单簿不交叉，场所随后删除这些档位时不会删掉任何东西。不造成交叉的批次（包括锁定在单一价格的订单簿）原样通过。
 
-A missing `best_bid` or `best_ask` leaves its side unpruned, and an invalid one skips pruning. The
-adapter logs a warning whenever an emitted batch leaves the book crossed.
+`best_bid` 或
+`best_ask`
+缺失时其对应一侧不做修剪，无效时跳过修剪。发出的批次若仍让订单簿交叉，适配器记录一条警告。
 
-#### Live recovery validation
+#### 实时恢复校验 {#live-recovery-validation}
 
-The `polymarket-book-stress` harness is a development tool for changes to book synchronization and
-recovery. It uses Polymarket public market data, submits no orders, and subscribes one outcome token
-from each of the six open, order-accepting markets with the highest 24-hour volume. Each book has
-its own connection (`ws_max_subscriptions` is 1).
+`polymarket-book-stress`
+工具集是订单簿同步与恢复变更的开发工具。它使用
+Polymarket 公开行情数据，不提交任何订单，并从
+24 小时成交量最高的六个开放、接受订单的市场各订阅一个结果代币。每个订单簿有自己的连接（
+`ws_max_subscriptions` 为 1）。
 
-The harness checks every emitted book against the book stream contract and an independent reconstruction of
-the venue feed's best 20 levels. Polymarket books carry no sequence. Thus, the reconstruction aligns snapshots
-with `book` events and updates with `price_change` events by timestamp. It skips batches it cannot align. A
-session also fails if a book emits no incremental updates after the venue sent it at least 10 `price_change`
-events.
+该工具集按订单簿流契约，以及对场所流最佳 20
+档的独立重建，检查每个发出的订单簿。Polymarket
+订单簿不带序号，因此重建用
+`book` 事件对齐快照、用
+`price_change`
+事件按时间戳对齐更新，并对无法对齐的批次跳过。若某市场向该订单簿发送至少
+10 条 `price_change`
+事件后会话仍未发出任何增量更新，该会话也算失败。
 
-Run it from a network location Polymarket serves. From the repository root, run:
+在 Polymarket
+服务的网络位置运行它。在仓库根目录执行：
 
 ```bash
 CARGO_BUILD_JOBS=16 bash scripts/strip-adapter-env.bash \
   cargo test -p nautilus-polymarket --features examples --test polymarket-book-stress -- --timeout 10 --rounds 12
 ```
 
-`--scenario` selects the run:
+`--scenario` 选择运行方式：
 
-- `churn` (default): one phase per round: a broken snapshot hash, a dropped initial snapshot, a
-  reconnect while a recovering book is held, dropped snapshots after a reconnect, and a restart
-  during recovery.
-- `boundaries`: holds a recovering book through the retry budget, then checks the retry ceiling, a
-  reconnect at the ceiling, unsubscribe during recovery, and shutdown during a reconnect.
+- `churn`（默认）：每轮一个阶段——损坏的快照哈希、丢弃的初始快照、恢复中的订单簿被持有时
+  重连、重连后丢弃快照、以及恢复期间重启。
+- `boundaries`：把恢复中的订单簿扣押到耗尽重试预算，然后检查重试上限、在上限处重连、恢复
+  期间退订、以及重连期间停机。
 
-`--timeout` sets the snapshot timeout in seconds, where `0` disables snapshot deadlines, and
-`--rounds` sets the number of rounds (12 by default). `--tokens` takes comma-separated outcome
-token IDs from six distinct open, order-accepting markets to test instead of the most traded
-markets, since a quiet book can miss the recovery waits.
+`--timeout`
+设置快照超时秒数，`0`
+表示禁用快照截止；`--rounds`
+设置轮数（默认
+12）。`--tokens`
+接受逗号分隔的
+6 个结果代币 ID（来自
+6 个不同的开放、接受订单的市场）来替代成交最活跃的市场，因为清淡的订单簿可能错过恢复等待。
 
 Two venue behaviors limit what the harness can force:
 
