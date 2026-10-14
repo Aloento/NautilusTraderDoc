@@ -1,9 +1,9 @@
 # Position
 
 ```{eval-rst}
-.. automodule:: nautilus_trader.model
-   :no-index:
+.. automodule:: nautilus_trader.model.position
    :show-inheritance:
-   :members: Position, PositionAdjustmentType, PositionSide
+   :inherited-members:
+   :members:
    :member-order: bysource
 ```

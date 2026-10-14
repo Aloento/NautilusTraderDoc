@@ -1,312 +1,163 @@
-# Adapters
+# 适配器
 
-Adapters connect data providers and trading venues to NautilusTrader. They translate venue-specific protocols
-into the domain objects and events used by the data and execution engines. Official Python adapters are
-available from `nautilus_trader.adapters`. The [integration guides](../integrations/index.md) document their
-supported capabilities.
+NautilusTrader 的设计通过适配器（adapter）实现与数据提供者或交易场所（venues）的集成。相关实现位于顶级子包 `adapters` 中。
 
-An adapter typically comprises these components:
+一个集成适配器通常由下列主要组件组成：
 
-```mermaid
-flowchart LR
-    subgraph Venue ["Trading Venue"]
-        API[REST API]
-        WS[WebSocket]
-    end
+- `HttpClient`
+- `WebSocketClient`
+- `InstrumentProvider`
+- `DataClient`
+- `ExecutionClient`
 
-    subgraph Adapter ["Adapter"]
-        HTTP[HttpClient]
-        WSC[WebSocketClient]
-        IP[InstrumentProvider]
-        DC[DataClient]
-        EC[ExecutionClient]
-    end
+## 合约/品种提供器（Instrument providers）
 
-    subgraph Core ["Nautilus Core"]
-        DE[DataEngine]
-        EE[ExecutionEngine]
-    end
+顾名思义，InstrumentProvider 负责解析发布方或交易所的原始 API，并实例化 Nautilus 的 `Instrument` 对象。
 
-    API <--> HTTP
-    WS <--> WSC
-    HTTP --> IP
-    HTTP --> DC
-    HTTP --> EC
-    WSC --> DC
-    WSC --> EC
-    DC <--> DE
-    EC <--> EE
-```
+从 `InstrumentProvider` 获取到的 instrument 的使用场景通常为：
 
-| Component            | Purpose                                                   |
-| -------------------- | --------------------------------------------------------- |
-| `HttpClient`         | REST API communication.                                   |
-| `WebSocketClient`    | Real-time streaming connection.                           |
-| `InstrumentProvider` | Loads and parses instrument definitions from the venue.   |
-| `DataClient`         | Handles market data subscriptions and requests.           |
-| `ExecutionClient`    | Handles order submission, modification, and cancellation. |
+- 独立使用以发现某个集成支持的 instruments，用于研究或回测（research/backtesting）
+- 在 `sandbox` 或 `live` [environment context](architecture.md#environment-contexts) 中被 actor/strategy 消费
 
-## Configuration and routing
+### 研究与回测
 
-Each adapter exposes configuration types and factories for the clients it supports. Configs select
-venue-specific settings such as the product, environment, credentials, and instrument loading
-policy. Factories construct the clients when a `LiveNode` is built. Actors and strategies then use
-the common Nautilus APIs rather than calling adapter transports directly.
-
-A node can register multiple data and execution clients. Pass `client_id` from an actor or strategy
-when a specific client must handle a request, subscription, or order. Without an explicit client,
-the data and execution engines use the venue and default routes configured by the node.
-
-## Custom adapters
-
-You can develop an adapter as a separate Python package without rebuilding NautilusTrader. Custom adapters
-implement the same data and execution responsibilities as built-in adapters, and can run alongside them in one
-`LiveNode`. Strategies continue to use the standard request, subscription, and order APIs. The node routes
-those operations to the registered clients.
-
-A custom package can implement its clients in Python or delegate venue operations to its own Rust/PyO3
-extension. Both use the [Python client interface](../developer_guide/python_adapters.md).
-
-An independent extension exchanges Python objects from the installed NautilusTrader wheel through PyO3 and the
-GIL. It does not require a shared Rust ABI or a second copy of the Nautilus model types. Choose a package
-version tested against your installed NautilusTrader release.
-
-Register the package's factories and configs with the node under distinct client names. Custom configs can
-keep venue-specific fields, and importable configs support loading factories from package paths. Set venue and
-default routes as you would for built-in clients, or select a client explicitly from a strategy.
-
-The [deterministic Python template](../../examples/live/_template/README.md) demonstrates data delivery,
-execution reconciliation, and an order fill without a venue connection.
-
-### Cache and state ownership
-
-Custom clients receive a read-only cache view. They can inspect instruments, quotes, orders,
-accounts, and positions, but cannot mutate the core cache. Returned objects are snapshots: changing
-a snapshot does not change the state seen by strategies or engines.
-
-Adapters operate outside the synchronous core boundary. They submit typed data, responses, and execution
-events for the core to process. Thus, an adapter's output call does not mean that the corresponding cache
-update has already occurred. This keeps cache mutation and engine state transitions under core ownership.
-
-Cache access and output stay bound to the owning node's thread and lifetime. The GIL alone does not permit
-access from another thread or after disposal.
-
-### Running and stopping
-
-Use `node.run()` when the node owns its event loop, or await `node.run_async()` inside an existing
-asyncio application. Both launch modes support custom Python and independent PyO3 clients. The
-node binds clients to the running loop before connection, then uses its normal startup,
-reconciliation, and shutdown sequence. Constructors do not start networking or background tasks.
-
-Commands and subscription changes execute in admission order for each custom client. Historical
-requests and reconciliation can progress separately. A slow command delays later commands for that
-client, and a full command queue rejects new work rather than silently dropping it.
-
-Await shutdown before closing a host event loop. Disconnection stops admission and asks adapter work to
-terminate. Requesting cancellation does not prove that work has finished. Incomplete cleanup is reported.
-Client instances belong to one node run and must not be reused for another.
-
-Redis/PostgreSQL cache backing is unsupported with custom clients in either launch mode. The interface also
-requires migration of v1 Cython adapters rather than accepting their source unchanged.
-
-See the [migration details and remaining limitations](../developer_guide/python_adapters.md#migration-from-v1)
-for historical request completion, revised bars, custom publication/subscription, and networking API
-differences. For independent extensions, see [package construction and installed-wheel
-validation](../developer_guide/python_adapters.md#independent-rustpyo3-packages).
-
-## Instrument providers
-
-Instrument providers load venue definitions and parse them into Nautilus `Instrument` objects.
-Each adapter owns this behavior. Its Python API may expose a standalone loader, a dedicated
-provider config, loading behavior through its client config, or a combination of these.
-
-An `InstrumentProvider` serves two use cases:
-
-- Standalone discovery of available instruments for research or backtesting
-- Runtime loading in a `sandbox` or `live` [environment context](architecture.md#environment-contexts)
-  for actors and strategies
-
-### Research and backtesting
-
-This example loads one Binance USD-M instrument through the public Python API:
+下面示例展示如何在 Binance Futures Testnet 上发现当前可用的 instruments：
 
 ```python
 import asyncio
+import os
 
-from nautilus_trader.adapters.binance import BinanceDataClientConfig
-from nautilus_trader.adapters.binance import BinanceEnvironment
-from nautilus_trader.adapters.binance import BinanceInstrumentProviderConfig
-from nautilus_trader.adapters.binance import BinanceProductType
-from nautilus_trader.adapters.binance import load_binance_instruments
-
-
-async def main() -> None:
-    config = BinanceDataClientConfig(
-        product_type=BinanceProductType.USD_M,
-        environment=BinanceEnvironment.LIVE,
-        instrument_provider=BinanceInstrumentProviderConfig(
-            load_all=False,
-            load_ids=["BTCUSDT-PERP.BINANCE"],
-        ),
-    )
-    instruments = await load_binance_instruments(config)
-
-    for instrument in instruments:
-        print(instrument.id)
+from nautilus_trader.adapters.binance.common.enums import BinanceAccountType
+from nautilus_trader.adapters.binance import get_cached_binance_http_client
+from nautilus_trader.adapters.binance.futures.providers import BinanceFuturesInstrumentProvider
+from nautilus_trader.common.component import LiveClock
 
 
-if __name__ == "__main__":
-    asyncio.run(main())
-```
+clock = LiveClock()
+account_type = BinanceAccountType.USDT_FUTURES
 
-### Live trading
-
-Each integration handles startup loading differently. For example, the Binance provider config can
-load the full catalog:
-
-```python
-from nautilus_trader.adapters.binance import BinanceInstrumentProviderConfig
-
-BinanceInstrumentProviderConfig(load_all=True)
-```
-
-It can instead load only specified instruments:
-
-```python
-BinanceInstrumentProviderConfig(
-    load_all=False,
-    load_ids=["BTCUSDT-PERP.BINANCE", "ETHUSDT-PERP.BINANCE"],
+client = get_cached_binance_http_client(
+    loop=asyncio.get_event_loop(),
+    clock=clock,
+    account_type=account_type,
+    key=os.getenv("BINANCE_FUTURES_TESTNET_API_KEY"),
+    secret=os.getenv("BINANCE_FUTURES_TESTNET_API_SECRET"),
+    is_testnet=True,
 )
+await client.connect()
+
+provider = BinanceFuturesInstrumentProvider(
+    client=client,
+    account_type=BinanceAccountType.USDT_FUTURES,
+)
+
+await provider.load_all_async()
 ```
 
-`load_ids` contains Nautilus instrument IDs, including the venue suffix, rather than raw venue
-symbols.
+### 实盘交易（Live trading）
 
-Instrument-loading settings, defaults, and filters vary by integration. Check the relevant
-integration guide before copying a config between adapters.
+每个集成的实现细节不同。在 `TradingNode` 中配置 `InstrumentProvider` 用于实盘时，通常有两种行为选项：
 
-Subscriptions, order submission, and execution reconciliation do not load instruments by themselves.
-Configure the adapter to load each required instrument at startup, or request it explicitly and wait
-until it reaches the cache before using it. For how reconciliation treats a report whose instrument
-is not loaded, see
-[instrument availability](execution/reconciliation.md#instrument-availability).
-
-## Data clients
-
-Data clients handle market data subscriptions and requests for a venue. They connect to venue APIs
-and normalize incoming data into Nautilus types.
-
-### Requesting data
-
-Actors and strategies can request data using built-in methods. Data returns through callbacks:
+- 启动时自动加载所有 instruments：
 
 ```python
-from collections.abc import Sequence
-from typing import Any
+from nautilus_trader.config import InstrumentProviderConfig
 
-from nautilus_trader.model import Bar
-from nautilus_trader.model import BarType
-from nautilus_trader.model import InstrumentId
-from nautilus_trader.trading import Strategy
-
-
-class MyStrategy(Strategy):
-    def on_start(self) -> None:
-        # Request an instrument definition
-        self.request_instrument(InstrumentId.from_str("BTCUSDT-PERP.BINANCE"))
-
-        # Request historical bars
-        self.request_bars(BarType.from_str("BTCUSDT-PERP.BINANCE-1-HOUR-LAST-EXTERNAL"))
-
-    def on_instrument(self, instrument: Any) -> None:
-        self.log.info(f"Received instrument: {instrument.id}")
-
-    def on_historical_bars(self, bars: Sequence[Bar]) -> None:
-        self.log.info(f"Received {len(bars)} historical bars")
+InstrumentProviderConfig(load_all=True)
 ```
 
-### Subscribing to data
-
-For real-time data, use subscription methods:
+- 或仅加载配置中明确列出的那些 instruments：
 
 ```python
-from nautilus_trader.model import Bar
-from nautilus_trader.model import BarType
-from nautilus_trader.model import InstrumentId
-from nautilus_trader.model import TradeTick
-from nautilus_trader.trading import Strategy
-
-
-class MyStrategy(Strategy):
-    def on_start(self) -> None:
-        # Assumes the instrument has already been loaded into the cache
-        self.subscribe_trades(InstrumentId.from_str("BTCUSDT-PERP.BINANCE"))
-        self.subscribe_bars(BarType.from_str("BTCUSDT-PERP.BINANCE-1-MINUTE-LAST-EXTERNAL"))
-
-    def on_trade(self, trade: TradeTick) -> None:
-        self.log.info(f"Trade: {trade}")
-
-    def on_bar(self, bar: Bar) -> None:
-        self.log.info(f"Bar: {bar}")
+InstrumentProviderConfig(load_ids=["BTCUSDT-PERP.BINANCE", "ETHUSDT-PERP.BINANCE"])
 ```
 
-:::tip
-See the [Actors](actors.md) documentation for a complete reference of available
-request and subscription methods with their corresponding callbacks.
-:::
+## 数据客户端（Data clients）
 
-## Execution clients
+### 请求（Requests）
 
-Execution clients handle order management for a venue. They translate Nautilus order commands
-into venue-specific API calls and process execution reports back into Nautilus events.
+`Actor` 或 `Strategy` 可以通过发送 `DataRequest` 向 `DataClient` 请求自定义数据。如果接收该 `DataRequest` 的客户端实现了相应的处理器，就会把数据返回给 `Actor` 或 `Strategy`。
 
-Responsibilities:
+#### 示例
 
-- Submit, modify, and cancel orders.
-- Process fills and execution reports.
-- Reconcile order state with the venue.
-- Handle account and position updates.
+一个常见例子是请求某个 `Instrument` 的信息，`Actor` 类实现了相应的方法（下方为摘录）。任意 `Actor` 或 `Strategy` 都可以通过 `InstrumentId` 调用 `request_instrument`，向 `DataClient` 请求该 instrument。
 
-Execution clients can declare the lower time limit applied to historical reconciliation and whether the
-required order, fill, and position sources completed. When an adapter supplies this contract, the engine can
-recover authoritative order state. It does not apply historical position or portfolio economics that the
-available evidence cannot support. See
-[Bounded history safety](execution/reconciliation.md#bounded-history-safety).
+在这个例子中，`Actor` 实现了一个独立的方法 `request_instrument`。类似的 `DataRequest` 也可以在 actor/strategy 的任意位置被创建并调用。
 
-### Reduce-only execution contract
+下面是 actor/strategy 中 `request_instrument` 的简化版本：
 
-An execution client **must never silently discard** `reduce_only=true`. It must either send a documented venue
-instruction that enforces the same intent or reject the order before transport. The venue can still reject an
-encoded instruction for these reasons:
+```python
+# nautilus_trader/common/actor.pyx
 
-- The product does not support the instruction.
-- The order would not reduce an open position.
-- Another venue rule makes the combination invalid.
+cpdef void request_instrument(self, InstrumentId instrument_id, ClientId client_id=None):
+    """
+    请求给定 instrument ID 的 `Instrument` 数据。
 
-An equivalent enforcing instruction can replace the literal venue flag. For example, a Binance Futures
-close-all conditional order keeps `reduce_only=true` in the Nautilus order, but the adapter sends
-`closePosition=true` without Binance's incompatible `reduceOnly` field. See
-[Binance Futures close-position orders](../integrations/binance.md#close-position).
+    Parameters
+    ----------
+    instrument_id : InstrumentId
+        请求的 instrument ID。
+    client_id : ClientId, optional
+        指定用于该命令的 client ID。
+        如果为 ``None``，则会从 instrument ID 中的 venue 推断出默认 client。
+    """
+    Condition.not_none(instrument_id, "instrument_id")
 
-Backtest and sandbox matching engines enforce reduce-only when `use_reduce_only` is enabled and
-reject reduce-only orders when it is disabled. Custom execution clients and external routes follow
-the same send-or-reject contract.
+    cdef RequestInstrument request = RequestInstrument(
+        instrument_id=instrument_id,
+        start=None,
+        end=None,
+        client_id=client_id,
+        venue=instrument_id.venue,
+        callback=self._handle_instrument_response,
+        request_id=UUID4(),
+        ts_init=self._clock.timestamp_ns(),
+        params=None,
+    )
 
-Order commands and venue results are asynchronous. `OrderSubmitted` means that the adapter has
-started the submission path, not that the venue has accepted the order. A transport failure can
-leave the outcome unknown, so adapters use stream updates, queries, or reconciliation rather than
-assuming a rejection.
+    self._send_data_req(request)
+```
 
-For a new order, the `ExecutionEngine` uses an explicitly selected client, venue routing, or the
-configured default. Later commands for an existing order return to its originating client when
-known. See the [Execution](execution/) guide for order management from a strategy perspective.
+下面是一个由 `LiveMarketDataClient` 实现的请求处理器的简化示例，负责获取数据并返回给 actor/strategy：
 
-:::tip
-For building a custom adapter, see the [Adapter Developer Guide](../developer_guide/adapters.md).
-:::
+```python
+# nautilus_trader/live/data_client.py
 
-## Related guides
+def request_instrument(self, request: RequestInstrument) -> None:
+    self.create_task(self._request_instrument(request))
 
-- [Live trading](live.md): Configure and run live trading with adapters.
-- [Execution](execution/): Order execution through adapters.
-- [Data](data/): Market data provided by adapters.
+# nautilus_trader/adapters/binance/data.py
+
+async def _request_instrument(self, request: RequestInstrument) -> None:
+    instrument: Instrument | None = self._instrument_provider.find(request.instrument_id)
+
+    if instrument is None:
+        self._log.error(f"Cannot find instrument for {request.instrument_id}")
+        return
+
+    self._handle_instrument(instrument, request.id, request.params)
+```
+
+`DataEngine` 是 Nautilus 中的核心组件之一，它把请求与具体的 `DataClient` 关联起来。
+下面是处理 instrument 请求的简化示例：
+
+```python
+# nautilus_trader/data/engine.pyx
+
+self._msgbus.register(endpoint="DataEngine.request", handler=self.request)
+
+cpdef void request(self, RequestData request):
+    self._handle_request(request)
+
+cpdef void _handle_request(self, RequestData request):
+    cdef DataClient client = self._clients.get(request.client_id)
+
+    if client is None:
+        client = self._routing_map.get(request.venue, self._default_client)
+
+    if isinstance(request, RequestInstrument):
+        self._handle_request_instrument(client, request)
+
+cpdef void _handle_request_instrument(self, DataClient client, RequestInstrument request):
+    client.request_instrument(request)
+```

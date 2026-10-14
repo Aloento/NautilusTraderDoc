@@ -1,257 +1,129 @@
-# Docs Style
+# 文档风格指南
 
-Use this guide for NautilusTrader documentation style and writing practices.
+本指南列出为 NautilusTrader 撰写文档时建议遵循的样式约定与最佳实践。
 
-The [Markdown Style](markdown_style.md) guide is the shared baseline for Markdown syntax and
-formatting, and `.markdownlint.jsonc` enforces its mechanical subset. This guide covers what is
-specific to NautilusTrader documentation rather than repeating that baseline.
+## 总体原则
 
-## General principles
+- 倾向于简单胜于复杂，能简洁表达的就不要冗长；少即是多。
+- 追求简洁但可读性的表述与文档结构。
+- 重视一致性的约定——包括样式、格式与模式。
+- 文档应对不同技术背景的读者都友好且可访问。
 
-- Prefer simple structure and concise, readable prose.
-- Use consistent conventions, style, and patterns.
-- Write for users of varying technical backgrounds.
+## 语言与语气
 
-## Documentation types
+- 尽量使用主动语态（例如使用 “Configure the adapter” 而不是 “The adapter should be configured”）。
+- 描述当前功能时使用现在时。
+- 仅在描述计划中将要实现的功能时使用将来时。
+- 避免不必要的行话；首次出现的技术术语应给出定义。
+- 语言直接且简练，避免像“basically”“simply”“just”这类填充词。
 
-Most pages should fit one of four types
-([Divio documentation system](https://docs.divio.com/documentation-system/)).
-Mixing types in a single page makes it harder to read and harder to maintain.
+## Markdown 表格
 
-| Type             | Purpose                         | Section          |
-| ---------------- | ------------------------------- | ---------------- |
-| **Tutorial**     | Teach by walking through a task | `tutorials/`     |
-| **How-to guide** | Solve a specific problem        | `how_to/`        |
-| **Explanation**  | Clarify design and architecture | `concepts/`      |
-| **Reference**    | Describe the machinery          | `api_reference/` |
+### 列对齐与间距
 
-Two sections are exceptions:
+- 根据每列中最宽内容调整列宽，使列宽对称。
+- 垂直对齐列分隔符（`|`），以提高可读性。
+- 单元格内容周围保持一致的空格。
 
-- `getting_started/` combines tutorial-style walkthroughs with setup instructions for onboarding.
-- `integrations/` pages combine reference (capabilities, symbology) with how-to content (setup,
-  configuration). Thus, each venue page is self-contained.
+### 注释与说明
 
-Standalone how-to content that is not venue-specific belongs in `how_to/`.
+- 所有注释和说明句末应有句点（终止符）。
+- 注释应简明且信息充分。
+- 使用句子式大小写（句首字母大写，专有名词除外）。
 
-### Choosing the right type
-
-- **Does your page walk a newcomer through a learning experience?** Tutorial.
-- **Does it answer "How do I...?" for someone who already knows the system?** How-to guide.
-- **Does it explain why something works the way it does?** Explanation.
-- **Does it list classes, config fields, enums, or capabilities?** Reference.
-
-A tutorial says "do this, then this, then this." The author picks the path.
-A how-to guide says "here is how to achieve X." The reader already knows
-they want X. Keep these distinct:
-
-- Tutorials should not assume prior knowledge.
-- How-to guides should not teach background concepts.
-
-When one type needs to reference another, link to it instead of inlining. For
-example, a how-to guide that configures `LiveNodeConfig` should link to the
-API reference for field definitions rather than listing them again.
-
-## Language and tone
-
-- Use active voice when possible ("Configure the adapter" vs "The adapter should be configured").
-- Write in present tense for describing current functionality.
-- Use future tense only for planned features.
-- Avoid unnecessary jargon. Define technical terms on first use.
-- Be direct and concise. Avoid filler words like "basically", "simply", "just".
-- Use parallel structure in lists. Keep grammatical patterns consistent across items.
-
-## Markdown tables
-
-Table syntax, pipe alignment, and delimiter padding follow the
-[Markdown Style](markdown_style.md#tables) guide.
-
-### Notes and descriptions
-
-- All notes and descriptions should have terminating periods.
-- Keep notes concise but informative.
-- Use sentence case (capitalize only the first letter and proper nouns).
-
-### Example
+### 示例（Markdown 表格）
 
 ```markdown
-| Order Type             | Spot | Margin | USDT Futures | Coin Futures | Notes                   |
-| ---------------------- | ---- | ------ | ------------ | ------------ | ----------------------- |
-| `MARKET`               | ✓    | ✓      | ✓            | ✓            |                         |
-| `STOP_MARKET`          | -    | ✓      | ✓            | ✓            | Not supported for Spot. |
-| `MARKET_IF_TOUCHED`    | -    | -      | ✓            | ✓            | Futures only.           |
+| Order Type          | Spot | Margin | USDT Futures | Coin Futures | Notes                   |
+| ------------------- | ---- | ------ | ------------ | ------------ | ----------------------- |
+| `MARKET`            | ✓    | ✓      | ✓            | ✓            |                         |
+| `STOP_MARKET`       | -    | ✓      | ✓            | ✓            | Not supported for Spot. |
+| `MARKET_IF_TOUCHED` | -    | -      | ✓            | ✓            | Futures only.           |
 ```
 
-### Support indicators
+### 支持标记
 
-- Use `✓` for supported features.
-- Use `-` for unsupported features (not `✗` or other symbols).
-- When adding notes for unsupported features, emphasize with italics: `*Not supported*`.
-- Make unsupported notes specific when the reason matters: use `*Not supported by <venue>*`
-  for venue gaps, or `*Not currently implemented*` for adapter gaps.
-- Leave cells empty when no content is needed.
+- 使用 `✓` 表示支持的功能。
+- 使用 `-` 表示不支持（不要使用 `✗` 或其他符号）。
+- 如果为不支持的功能添加说明，使用斜体强调：`*Not supported*`。
+- 不需要内容的单元格应留空。
 
-## Code references
+## 代码引用
 
-Inline code and fenced code blocks follow the [Markdown Style](markdown_style.md#code) guide.
+- 行内代码、方法名、类名和配置选项请使用反引号（backticks）。
+- 多行示例使用代码块。
+- 引用函数或代码位置时，请使用 `file_path:line_number` 格式，便于定位。
 
-When referencing code locations, use `file_path::function_name` or `file_path::ClassName` rather
-than line numbers, which become stale as code changes.
+## 标题（Headings）
 
-## Headings
+我们遵循以可读性与无障碍为优先的现代文档约定：
 
-Heading style, case, and hierarchy follow the [Markdown Style](markdown_style.md#headings) guide:
-title case for the page heading, sentence case below it.
+- 主页主标题（一级标题，`#`）使用 Title Case（各主要词首字母大写）。
+- 二级及以下子标题使用 Sentence case（句子式大小写）。
+- 无论标题级别，都要将专有名词大写（产品名、技术、公司名、缩写等）。
+- 保持标题层级一致，不要跳级。
 
-NautilusTrader makes one exception for `index.md` pages: headings and navigation links that name
-individual documents use the target document's exact H1 title, including its capitalization.
-General section headings retain sentence case.
+该约定与业界主流文档风格（如 Google Developer Documentation、Microsoft Docs 等）一致，能提升可读性、降低认知负担，并对国际化用户与屏幕阅读器更友好。
 
-Always capitalize proper nouns regardless of heading level (product names, technologies,
-companies, acronyms).
-
-## Lists
-
-List markers, ordering, and indentation follow the [Markdown Style](markdown_style.md#lists) guide.
-
-End list items with periods when they are complete sentences.
-
-## Links and references
-
-Link text, link style, and images follow the
-[Markdown Style](markdown_style.md#links-and-images) guide.
-
-Reference external documentation when appropriate.
-
-## Technical terminology
-
-- Base capability matrices on the Nautilus domain model, not exchange-specific terminology.
-- Mention exchange-specific terms in parentheses or notes when necessary for clarity.
-- Use consistent terminology throughout the documentation.
-
-## Examples and code samples
-
-- Provide practical, working examples.
-- Include necessary imports and context.
-- Use realistic variable names and values.
-- Add comments to explain non-obvious parts of examples.
-
-## Admonitions
-
-Use admonition blocks to highlight important information:
-
-| Admonition   | Purpose                                                       |
-| ------------ | ------------------------------------------------------------- |
-| `:::note`    | Supplementary context that clarifies but is not essential.    |
-| `:::info`    | Important information the reader should be aware of.          |
-| `:::tip`     | Helpful suggestions or best practices.                        |
-| `:::warning` | Potential pitfalls or important caveats.                      |
-| `:::danger`  | Critical issues that could cause data loss or system failure. |
-
-Avoid overusing admonitions. Too many diminish their impact.
-
-## MDX components
-
-The docs site (fumadocs) provides built-in MDX components available in all `.md` files.
-No imports are needed.
-
-### Tabs
-
-Use tabs for language-specific or variant content. List Rust before Python so Rust is the
-default (left-most) tab.
-
-For code examples, add `tab="..."` to consecutive fenced code blocks:
+### 示例
 
 ```markdown
-\`\`\`rust tab="Rust"
-let params = Params::from([("close_position", true.into())]);
-\`\`\`
+# NautilusTrader Developer Guide
 
-\`\`\`python tab="Python"
-strategy.submit_order(order, params={"close_position": True})
-\`\`\`
+## Getting started with Python
+
+## Using the Binance adapter
+
+## REST API implementation
+
+## WebSocket data streaming
+
+## Testing with pytest
 ```
 
-For tables or other content, wrap each variant in `<Tabs>` and `<Tab>`. The instrument Fields
-tables use this so each language shows a single type column instead of side-by-side Rust and
-Python columns. Leave a blank line above and below the inner content so the Markdown renders.
+## 列表
 
-```markdown
-<Tabs items={["Rust", "Python"]}>
-<Tab value="Rust">
+- 无序列表使用短横线（`-`），避免使用 `*` 或 `+`，以保持项目中 Markdown 风格一致。
+- 只有在顺序重要时才使用有序（编号）列表。
+- 嵌套列表保持缩进一致。
+- 当列表项为完整句子时，以句点结尾。
 
-| Field           | Type           | Required/default | Notes                   |
-| --------------- | -------------- | ---------------- | ----------------------- |
-| `instrument_id` | `InstrumentId` | Required         | Stored as `id` in Rust. |
+## 链接与引用
 
-</Tab>
-<Tab value="Python">
+- 使用描述性链接文本（避免使用“click here”或“this link”）。
+- 适当引用外部文档作为补充说明。
+- 确保所有内部链接为相对路径且指向正确位置。
 
-| Field           | Type           | Required/default | Notes |
-| --------------- | -------------- | ---------------- | ----- |
-| `instrument_id` | `InstrumentId` | Required         |       |
+## 技术术语
 
-</Tab>
-</Tabs>
-```
+- 在能力矩阵等处，应以 Nautilus 的领域模型为基准，而非特定交易所的术语。
+- 必要时在括号或注释中说明交易所相关术语以便读者理解。
+- 在文档中保持术语一致性。
 
-### Steps
+## 示例与代码片段
 
-Use `Steps` and `Step` for sequential procedures.
+- 提供实用且可运行的示例。
+- 示例中包含必要的 import 和上下文。
+- 使用贴近真实的变量名与数值。
+- 对非直观部分添加注释说明。
 
-```markdown
-<Steps>
-<Step>
-Configure the adapter.
-</Step>
-<Step>
-Start the trading node.
-</Step>
-</Steps>
-```
+## 警告与提示
 
-### Accordions
+- 对重要信息使用相应的 admonition 块：
+  - `:::note` 用于一般信息。
+  - `:::warning` 用于重要的注意事项或风险说明。
+  - `:::tip` 用于实用建议或小技巧。
 
-Use `Accordions` and `Accordion` for collapsible content.
+## 行长与换行
 
-```markdown
-<Accordions>
-<Accordion title="Advanced configuration">
-Content here.
-</Accordion>
-</Accordions>
-```
+- 行宽建议限制在大约 100–120 字符，以便更好地阅读与差异对比（diff）审阅。
+- 在自然停顿处换行（例如逗号、连词或片语之后）。
+- 避免新行中出现孤立的单词。
+- 代码块与 URL 在必要时可超过行长限制。
 
-### Files
+## API 文档
 
-Use `Files`, `Folder`, and `File` for directory tree visualizations.
-
-```markdown
-<Files>
-<Folder name="src" defaultOpen>
-<File name="main.rs" />
-<File name="lib.rs" />
-</Folder>
-</Files>
-```
-
-### Cards
-
-Use `Cards` and `Card` for linked content grids.
-
-```markdown
-<Cards>
-<Card title="Getting started" href="/latest/getting_started" />
-<Card title="Concepts" href="/latest/concepts" />
-</Cards>
-```
-
-### TypeTable
-
-Use `TypeTable` for parameter or type documentation tables.
-
-## API documentation
-
-- Document parameters and return types clearly.
-- Include usage examples for complex APIs.
-- Explain any side effects or important behavior.
-- Keep parameter descriptions concise but complete.
+- 清晰记录参数与返回值类型。
+- 为复杂 API 提供使用示例。
+- 说明副作用或重要行为细节。
+- 参数描述应简洁且完整。

@@ -1,9 +1,9 @@
 # Objects
 
 ```{eval-rst}
-.. automodule:: nautilus_trader.model
-   :no-index:
+.. automodule:: nautilus_trader.model.objects
    :show-inheritance:
-   :members: Currency, CurrencyType, Money, Price, Quantity
+   :inherited-members:
+   :members:
    :member-order: bysource
 ```

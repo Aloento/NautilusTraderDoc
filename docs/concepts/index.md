@@ -1,171 +1,86 @@
-# Concepts
+# 概念
 
-These guides explain the core components, architecture, and design of NautilusTrader.
+概念指南介绍并阐明了构成 NautilusTrader 平台基础的核心理念、组件与最佳实践。
+这些指南旨在提供概念性与实务性的双重洞察，帮助你理解系统架构、策略设计、数据管理、执行流程等关键要素。
+阅读下面各章可加深对平台的理解，充分发挥 NautilusTrader 的功能。
 
-## Overview
+## [概览](overview.md)
 
-Main features and intended use cases for the platform.
+**概览（Overview）** 一章介绍了平台的主要功能与典型使用场景。
 
-## Architecture
+## [架构](architecture.md)
 
-[Architecture](architecture.md) describes the components, runtime boundaries, and data flows.
+**架构（Architecture）** 一章深入探讨构成平台的基本原理、结构与设计思路，适合开发者、系统架构师或对 NautilusTrader 内部实现感兴趣的读者。
 
-## Actors
+## [Actor（参与者）](actors.md)
 
-The `DataActor` is the base component for interacting with the trading system.
-Covers capabilities and implementation details.
+`Actor` 是与交易系统交互的基础组件。
+**Actor（参与者）** 指南介绍其能力范围与实现细节。
 
-## Strategies
+## [策略](strategies.md)
 
-How to implement trading strategies using the `Strategy` component.
+`Strategy` 在编写与运行交易策略时处于用户体验的核心位置。
+**策略（Strategies）** 指南讲解如何为平台实现策略。
 
-## Instruments
+## [品种/合约（Instruments）](instruments.md)
 
-Instrument definitions for tradable assets and contracts.
+**品种/合约（Instruments）** 指南说明了可交易资产与合约的各种定义规范。
 
-## Synthetics
+## [数据](data.md)
 
-User-defined instruments whose prices are computed by evaluating a numeric expression over component instrument prices.
+NautilusTrader 平台定义了一系列用于交易领域的内置数据类型。
+**数据（Data）** 指南涵盖如何使用内置数据与自定义数据类型。
 
-## Continuous Futures
+## [执行](execution.md)
 
-Consecutive futures contracts form one adjusted bar series through an explicit roll table. The guide covers
-the four adjustment modes, request and subscription flow, and the mid-bar roll boundary policy.
+NautilusTrader 能够在同一实例中为多个策略和交易场所同时处理交易执行与订单管理。
+**执行（Execution）** 指南介绍执行相关组件以及执行消息（命令与事件）的流转。
 
-## Value Types
+## [订单](orders.md)
 
-The immutable numeric types (`Price`, `Quantity`, `Money`) used throughout the platform,
-including their arithmetic behavior, precision handling, and type-specific constraints.
+**订单（Orders）** 指南详述平台支持的订单类型以及每种类型的执行指令。还包含高级订单类型和模拟订单的相关说明。
 
-## Data
+## [持仓](positions.md)
 
-Built-in data types for the trading domain, and how to work with custom data.
+**持仓（Positions）** 指南解释了 NautilusTrader 中持仓的工作方式，包括持仓生命周期、由成交回填聚合产生的持仓、盈亏计算，以及在净额清算（netting）OMS 配置下重要的持仓快照（position snapshot）概念。
 
-## Events
+## [缓存（Cache）](cache.md)
 
-The event types that drive the system: order events, position events, account
-events, and time events. Covers handler dispatch, the causal chain from order
-fills to position events, and tracing orders to positions.
+`Cache` 是用于管理所有交易相关数据的中心内存数据存储。
+**缓存（Cache）** 指南介绍了缓存的能力与最佳实践。
 
-## Event Sourcing
+## [消息总线（Message Bus）](message_bus.md)
 
-The durable event-store log for state-affecting messages, including capture boundaries,
-correlation headers, replay modes, recovery anchors, and verifier behavior.
+`MessageBus` 是支持组件间解耦消息通信的核心系统，包含点对点（point-to-point）、发布/订阅（publish/subscribe）和请求/响应（request/response）等模式。
+**消息总线（Message Bus）** 指南介绍 `MessageBus` 的能力与最佳实践。
 
-## Options
+## [组合/投资组合（Portfolio）](portfolio.md)
 
-Option instrument types, venue-provided Greeks streaming, option chain subscriptions
-with strike range filtering, and snapshot aggregation.
+`Portfolio` 是用于管理与跟踪交易节点或回测中各活跃策略持仓的中央枢纽。
+它会整合来自多个品种的持仓数据，提供对资产、风险暴露与整体表现的统一视图。
+通过本节可以了解 NautilusTrader 如何汇总并更新组合状态以支持有效的交易与风险管理。
 
-## Greeks
+## [报告](reports.md)
 
-Option Greeks (delta, gamma, vega, theta) from two paths: venue-provided real-time Greeks through the
-Rust/PyO3 `OptionGreeks` type and local Black-Scholes computation through `GreeksCalculator`. Local
-computation supports shock scenarios, beta weighting, and portfolio aggregation.
+**报告（Reports）** 指南涵盖平台的报告能力，包括执行报告、组合分析报告、盈亏（P&L）与会计考虑，以及报告在回测后期分析中的使用方式。
 
-## Custom Data
+## [日志记录](logging.md)
 
-How the custom data system works across Python and Rust: registration, persistence,
-Arrow encoding, and runtime routing through actors and strategies.
+平台为回测与实盘交易提供日志记录，使用 Rust 实现的高性能记录器。
 
-## Order Book
+## [回测](backtesting.md)
 
-The high-performance order book, own order tracking, filtered views for net liquidity, and binary market support.
+使用 NautilusTrader 进行回测是通过特定系统实现对交易活动进行有条理的模拟过程。
 
-## Execution
+## [实盘交易（Live Trading）](live.md)
 
-Trade execution and order management across multiple strategies and venues simultaneously (per
-instance), including component and message flow, venue-boundary policies, execution algorithms,
-and reconciliation.
+在 NautilusTrader 中，实盘交易允许交易者将回测过的策略直接在实时环境中运行，而无需更改代码。这种无缝转换保证了一致性与可靠性，但回测与实盘在若干方面仍存在关键差异。
 
-## Orders
+## [适配器（Adapters）](adapters.md)
 
-Available order types, supported execution instructions, advanced order types, and emulated orders.
-
-## Positions
-
-Position lifecycle, aggregation from order fills, PnL calculations, and position snapshotting
-for netting OMS configurations.
-
-## Cache
-
-The `Cache` is the central in-memory store for all trading-related data.
-Covers capabilities and best practices.
-
-## Message Bus
-
-The `MessageBus` enables decoupled messaging between components, supporting point-to-point,
-publish/subscribe, and request/response patterns.
-
-## Accounting
-
-Account types (cash, margin, betting, and wallet), the `AccountBalance` and `MarginBalance` data model, and
-per-instrument versus account-wide margin scopes. The guide also covers the strategy query API, built-in
-margin models, and the adapter convention across live venues.
-
-## Portfolio
-
-The `Portfolio` tracks all positions across strategies and instruments, providing a unified view
-of holdings, risk exposure, and performance.
-
-## Reports
-
-Execution reports, portfolio analysis, PnL accounting, and backtest post-run analysis.
-
-## Logging
-
-High-performance logging for both backtesting and live trading, implemented in Rust.
-
-## Backtesting
-
-Backtest APIs, data and venue setup, execution sequencing, fill simulation,
-accounts, funding, and margin configuration.
-
-## Behavioral Models
-
-[Behavioral Models](behavioral_models.md) explains how Rust and Python model implementations enter
-the runtime.
-
-## Visualization
-
-Interactive tearsheets for analyzing backtest results, including charts, themes, customization options, and
-custom visualizations through the extensible chart registry.
-
-## Configuration
-
-How config structs work across Python and Rust: default resolution, the `T` vs `Option<T>`
-convention, builder patterns, and common fields shared across adapters and engines.
-
-## Live Trading
-
-Running the same strategy and execution-algorithm code in live markets while accounting for venue,
-transport, timing, persistence, external-activity, and reconciliation behavior.
-
-## Adapters
-
-Requirements and best practices for developing integration adapters for data providers and trading venues.
-
-## Networking
-
-Architecture, reliability policy, and performance characteristics for the shared HTTP, WebSocket,
-and raw TCP socket clients.
-
-## Rust
-
-Writing actors, strategies, and running backtests and live trading in pure Rust
-using the `crates/` implementation directly.
-
-## Python
-
-Python application composition and user components running on the Rust core through PyO3,
-including ownership, async execution, and public API boundaries.
-
-## DST
-
-Deterministic simulation testing (DST): the contract for seed-replayable execution and the source-level seams
-that implement it. The guide also covers the pre-commit hook that enforces the contract and the known scope
-boundaries.
+NautilusTrader 的设计支持通过适配器（adapter）集成数据提供商或交易场所。
+**适配器（Adapters）** 指南介绍了开发新集成适配器时的要求与最佳实践。
 
 :::note
-If these guides and the API reference disagree, the API reference is correct.
+应将 [API Reference](../api_reference/index.md) 文档视为平台的权威来源。如果此处概念性说明与 API Reference 存在差异，以 API Reference 为准。我们正致力于让概念文档与 API Reference 保持同步，并将在不久的将来引入文档测试（doc tests）以协助完成此目标。
 :::

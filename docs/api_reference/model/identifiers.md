@@ -1,9 +1,9 @@
 # Identifiers
 
 ```{eval-rst}
-.. automodule:: nautilus_trader.model
-   :no-index:
+.. automodule:: nautilus_trader.model.identifiers
    :show-inheritance:
-   :members: AccountId, ActorId, ClientId, ClientOrderId, ComponentId, ExecAlgorithmId, InstrumentId, OptionSeriesId, OrderListId, PositionId, StrategyId, Symbol, TradeId, TraderId, Venue, VenueOrderId
+   :inherited-members:
+   :members:
    :member-order: bysource
 ```

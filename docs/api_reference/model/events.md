@@ -1,9 +1,29 @@
 # Events
 
 ```{eval-rst}
-.. automodule:: nautilus_trader.model
-   :no-index:
+.. automodule:: nautilus_trader.model.events
+```
+
+```{eval-rst}
+.. automodule:: nautilus_trader.model.events.account
    :show-inheritance:
-   :members: AccountState, OrderAccepted, OrderCancelRejected, OrderCanceled, OrderDenied, OrderEmulated, OrderExpired, OrderFillVoided, OrderFilled, OrderInitialized, OrderModifyRejected, OrderPendingCancel, OrderPendingUpdate, OrderRejected, OrderReleased, OrderSnapshot, OrderSubmitted, OrderTriggered, OrderUpdated, PortfolioSnapshot, PositionAdjusted, PositionChanged, PositionClosed, PositionOpened, PositionSnapshot
+   :inherited-members:
+   :members:
+   :member-order: bysource
+```
+
+```{eval-rst}
+.. automodule:: nautilus_trader.model.events.order
+   :show-inheritance:
+   :inherited-members:
+   :members:
+   :member-order: bysource
+```
+
+```{eval-rst}
+.. automodule:: nautilus_trader.model.events.position
+   :show-inheritance:
+   :inherited-members:
+   :members:
    :member-order: bysource
 ```

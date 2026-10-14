@@ -1,8 +1,0 @@
-{
-  "method": "cancel_order",
-  "params": {
-    "order_id": ["OABCDE-12345-FGHIJ"],
-    "token": "TESTTOKEN"
-  },
-  "req_id": 44
-}

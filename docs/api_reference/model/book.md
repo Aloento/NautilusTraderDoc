@@ -1,9 +1,9 @@
 # Order Book
 
 ```{eval-rst}
-.. automodule:: nautilus_trader.model
-   :no-index:
+.. automodule:: nautilus_trader.model.book
    :show-inheritance:
-   :members: BookAction, BookLevel, BookOrder, BookType, OrderBook, OrderBookDelta, OrderBookDeltas, OrderBookDepth, OwnBookOrder, OwnOrderBook, RecordFlag
+   :inherited-members:
+   :members:
    :member-order: bysource
 ```

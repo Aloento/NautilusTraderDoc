@@ -1,6 +1,0 @@
-{
-  "success": false,
-  "ret_msg": "Invalid topic: invalid.topic.BTCUSDT",
-  "conn_id": "cejreaspqfm9se7usbrg-2xh",
-  "op": "subscribe"
-}

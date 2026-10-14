@@ -1,7 +1,0 @@
-{
-  "rid": 2,
-  "err": {
-    "code": 404,
-    "msg": "no matching orders"
-  }
-}

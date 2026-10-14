@@ -1,6 +1,0 @@
-# Configuration for codespell spell checker
-# Checks for common misspellings in code, documentation, and configuration files
-
-[codespell]
-# Comma-separated list of words to ignore
-ignore-words-list = ACN,ALO,Alo,allTime,amountIn,BadAloPx,CapTable,arange,crate,datas,deques,disjointness,FO,hearbeat,HIGHTER,Implementors,intoto,ot,pre,ser,socio-economic,Superseed,SUPERSEED,te,ThirdParty,trough,usIn,zar,zars

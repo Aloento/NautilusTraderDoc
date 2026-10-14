@@ -1,6 +1,0 @@
-{
-  "op": "error",
-  "code": "auth_required",
-  "channel": "price.crypto.twap",
-  "rid": "s1"
-}

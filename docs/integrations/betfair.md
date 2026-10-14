@@ -1,899 +1,191 @@
 # Betfair
 
-Founded in 2000, Betfair operates the world's largest online betting exchange. This integration
-supports instrument discovery, live market data, account state, order management, and execution
-updates through the Betfair Betting, Accounts, and Exchange Streaming APIs.
+Betfair 成立于 2000 年，运营着全球最大的在线博彩交易所（betting exchange），总部位于伦敦，并在全球设有分支机构。
 
-The adapter is implemented in Rust and exposed to Python at `nautilus_trader.adapters.betfair`, so
-data and execution have the same behavior from either language.
+NautilusTrader 提供了用于集成 Betfair REST API 与 Exchange Streaming API 的适配器（adapter）。
 
-## Overview
+## 安装
 
-The adapter includes several components, which can be used separately or together:
+通过 pip 安装带有 Betfair 支持的 NautilusTrader：
 
-- `BetfairHttpClient`: Low-level Betting and Accounts API connectivity.
-- `BetfairStreamClient`: Low-level Exchange Streaming API connectivity for the market and order streams.
-- `BetfairRaceStreamClient`: Low-level connectivity for the race and cricket data streams.
-- `BetfairInstrumentProvider`: Loads Betfair markets and converts them into Nautilus instruments.
-- `BetfairDataClient`: Market data feed manager.
-- `BetfairExecutionClient`: Account management and bet execution gateway.
-- `BetfairDataClientFactory`: Factory for Betfair data clients.
-- `BetfairExecutionClientFactory`: Factory for Betfair execution clients.
+```bash
+pip install --upgrade "nautilus_trader[betfair]"
+```
 
-:::note
-Most users configure a live trading node and do not need to use these lower-level components directly. The
-Python examples show a complete `LiveNode.builder(...)` configuration for data and execution clients.
+如果从源码构建并包含 Betfair 的扩展：
+
+```bash
+uv sync --all-extras
+```
+
+## 示例
+
+可在仓库中的示例脚本查看实时接入示例：[examples/live/betfair](https://github.com/nautechsystems/nautilus_trader/tree/develop/examples/live/betfair/)。
+
+## Betfair 文档
+
+有关 API 细节与故障排查，请参阅官方的 [Betfair Developer Documentation](https://developer.betfair.com/en/get-started/)。
+
+## 应用密钥（Application keys）
+
+Betfair 要求使用 Application Key 来对 API 请求进行认证。完成注册并为账户充值后，可通过 [API-NG Developer AppKeys Tool](https://apps.betfair.com/visualisers/api-ng-account-operations/) 获取你的应用密钥。
+
+:::info
+也可参考 [Betfair Getting Started - Application Keys](https://betfair-developer-docs.atlassian.net/wiki/spaces/1smk3cen4v3lu3yomq5qye0ni/pages/2687105/Application+Keys) 指南。
 :::
 
-## Installation
+## API 凭证
 
-Install NautilusTrader using the [installation guide](../getting_started/installation.md). The Betfair adapter
-is included in the Python package. No adapter-specific extra is required.
-
-## Examples
-
-- [Python examples](https://github.com/nautechsystems/nautilus_trader/tree/develop/examples/live/betfair/)
-- [Rust examples](https://github.com/nautechsystems/nautilus_trader/tree/develop/crates/adapters/betfair/examples/)
-- [Book imbalance backtest tutorial](../tutorials/backtest_book_imbalance_betfair.md)
-
-## Betfair documentation
-
-- [Betfair Developer Program](https://developer.betfair.com/)
-- [Exchange API Guide](https://developer.betfair.com/exchange-api/)
-- [Application keys](https://betfair-developer-docs.atlassian.net/wiki/spaces/1smk3cen4v3lu3yomq5qye0ni/pages/2687105/Application+Keys)
-- [Interactive login](https://betfair-developer-docs.atlassian.net/wiki/spaces/1smk3cen4v3lu3yomq5qye0ni/pages/2687772/Interactive+Login+-+API+Endpoint)
-
-## Credentials
-
-Betfair requires an application key to authenticate API requests. After registering and funding your
-account, obtain your key with the
-[API-NG Developer AppKeys Tool](https://apps.betfair.com/visualisers/api-ng-account-operations/).
-Betfair assigns two keys per account: a **Live** key, which requires a one-time activation fee, and
-a **Delayed** key for development and testing.
-
-Supply the account credentials through configuration or environment variables:
+可以通过环境变量或客户端配置来提供 Betfair 凭证：
 
 ```bash
 export BETFAIR_USERNAME=<your_username>
 export BETFAIR_PASSWORD=<your_password>
 export BETFAIR_APP_KEY=<your_app_key>
+export BETFAIR_CERTS_DIR=<path_to_certificate_dir>
 ```
 
-The adapter uses Betfair's interactive login endpoint. It does not use client certificates.
-
-## Timestamp policy
-
-The adapter keeps venue event time separate from local initialization time:
-
-- `ts_event` records when Betfair says the event occurred.
-- `ts_init` records when the live adapter received the containing stream message.
-
-Each live stream callback reads the real-time atomic clock once, before decoding the message. Every
-output decoded from that message shares the same `ts_init`.
-
-| Input                  | `ts_event` source                                                                                                                                                                                                     | `ts_init` source                                                              |
-| ---------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------- |
-| Market change (`mcm`)  | Message publish time (`pt`).                                                                                                                                                                                          | Local receipt time.                                                           |
-| Race change (`rcm`)    | Runner or race feed time (`ft`), falling back to the message publish time (`pt`) when `ft` is absent.                                                                                                                 | Local receipt time.                                                           |
-| Cricket change (`ccm`) | Message publish time (`pt`).                                                                                                                                                                                          | Local receipt time.                                                           |
-| Order change (`ocm`)   | The relevant order lifecycle time. Acceptance uses `pd`; fills use `md`, falling back to `pt`; status and cancel events use the latest of `md`, `cd`, or `ld`, falling back to `pt`. OCM-level custom data uses `pt`. | Local receipt time.                                                           |
-| Historical data loader | The same feed-time rules as live data.                                                                                                                                                                                | Message publish time (`pt`), because recorded data has no local receipt time. |
-
-When an OCM arrives during post-reconnect reconciliation, the adapter buffers the message together
-with its captured `ts_init`. Draining the buffer preserves the original receipt time instead of using
-the later replay time.
-
-## Order book recovery
-
-### Market images
-
-The data client streams every subscribed market on one market subscription per connection.
-Subscribing another market rewrites the subscription with every subscribed market, so Betfair
-images all of them again. The client queues each write at once, so subscriptions reach Betfair in
-command order and the latest carries every market.
-
-Betfair images whole markets. A market change with `img` set replaces the books of every runner in the market.
-Thus, the adapter tracks book synchronization per market. A market emits no book deltas until its image
-arrives after the subscription write is queued. A market change that reaches a market before its image, or a
-runner change the adapter cannot parse, suppresses the market's book output and requests a fresh image. A
-request starts recovery only when no running recovery already owns the market.
-
-Each image replaces the book of every runner it carries. A runner that the image's market
-definition lists but the image omits receives an empty snapshot, since an image carries all of the
-market's prices. Betfair change messages carry no per-market sequence, so the stream connection's
-ordering stands in for gap detection. A market whose definition reports `CLOSED` stops tracking,
-since Betfair sends it no further changes or images.
-
-Book subscriptions last until the client disconnects: unsubscribing does not change the market
-subscription.
-
-### Snapshot deadlines
-
-Initial and recovery subscriptions wait up to `book_snapshot_timeout_secs` (default **10 seconds**)
-for each market's image after the subscription write is queued. A missing image starts or retries
-recovery.
-
-Set `book_snapshot_timeout_secs` to `0` to disable snapshot deadlines. A market change before an image still
-starts recovery. If its image never arrives, the recovery attempt waits until the 180-second retry budget
-ends. Each later attempt at the retry ceiling waits up to one minute.
-
-### Retry limits and reconnects
-
-Recovery reissues the market subscription without clocks under a new ID. Each subscription replaces the last,
-so Betfair answers with a fresh image of every subscribed market. A recovery joins a subscription written
-within the snapshot timeout whose image has not started instead of writing another, so markets that need
-recovery together share one image. With snapshot deadlines disabled, every attempt writes.
-
-Each recovery episode makes **up to eight attempts within 180 seconds**, with exponential backoff and jitter.
-It then retries until it accepts an image. The retry interval doubles from one minute to fifteen minutes.
-Recovery never ends in a failed state. Disconnect and shutdown cancel it. A venue rejection of a
-resubscription is logged, and the attempt retries once its snapshot deadline passes.
-
-A reconnect replays the market subscription with its latest `clk` and `initialClk`. Thus, Betfair patches
-synced books in place with `RESUB_DELTA` changes. It images any market it cannot patch. Synced books stay
-synced across the reconnect. A replayed subscription without clocks, such as a recovery subscription whose
-image has not arrived or one cleared after `INVALID_CLOCK`, receives a full image instead. A running recovery
-keeps its remaining budget, and one waiting between attempts after its budget retries at once on the new
-connection.
-
-See [Order book recovery ownership](../developer_guide/adapters.md#order-book-recovery-ownership)
-for the shared recovery machinery and adapter responsibilities.
-
-### Live recovery validation
-
-The `betfair-book-stress` harness is a development tool for changes to book synchronization and
-recovery. It connects to Betfair mainnet market data with account credentials and submits no orders.
-It subscribes every runner of the four most traded match odds markets that start between one hour
-ago and twelve hours ahead. It checks each runner's book against the book stream contract and
-against an independent reconstruction of its best 10 levels from the raw stream lines. The harness
-proxy relays the stream as CRLF-delimited lines, over plain TCP to the adapter and TLS to Betfair.
-
-From the repository root, with `BETFAIR_USERNAME`, `BETFAIR_PASSWORD`, and `BETFAIR_APP_KEY` set for
-a live application key, run:
-
-```bash
-CARGO_BUILD_JOBS=16 cargo test -p nautilus-betfair --features examples \
-  --test betfair-book-stress -- --timeout 10 --rounds 10
-```
-
-A delayed application key conflates the stream to three-minute updates, which outlast the
-harness's recovery limits.
-
-`--scenario` selects the run:
-
-- `churn` (default): rotates unparsable runner changes, rejected resubscriptions, resumed
-  reconnects, a reconnect during recovery, and either a 25-second traffic freeze or a connection
-  cut.
-- `boundaries`: probes retry exhaustion into the retry ceiling and shutdown during reconnects.
-
-`--timeout` sets the snapshot timeout in seconds, where `0` disables snapshot deadlines and the
-rejected-resubscription phase. `--rounds` sets the number of `churn` rounds (10 by default). `boundaries` runs
-its sequence once. `--markets` takes comma-separated open market IDs to test instead.
-
-The harness requires the Exchange Stream API and the Identity, Navigation, and Betting APIs, which
-log in, load the markets' instruments, and select the markets. See [Stress harnesses](../developer_guide/spec_data_testing.md#stress-harnesses) for
-the shared flags and output format.
-
-## Orders capability
-
-Betfair is a betting exchange, so several concepts from traditional financial venues do not apply.
-
-### Order types
-
-| Order Type             | Supported | Notes                                                             |
-| ---------------------- | --------- | ----------------------------------------------------------------- |
-| `MARKET`               | ✓*        | Supports `AT_THE_CLOSE`, which maps to Betfair `MARKET_ON_CLOSE`. |
-| `LIMIT`                | ✓         | Supports regular limit orders and BSP on-close limit orders.      |
-| `STOP_MARKET`          | -         | Not supported.                                                    |
-| `STOP_LIMIT`           | -         | Not supported.                                                    |
-| `MARKET_IF_TOUCHED`    | -         | Not supported.                                                    |
-| `LIMIT_IF_TOUCHED`     | -         | Not supported.                                                    |
-| `TRAILING_STOP_MARKET` | -         | Not supported.                                                    |
-
-Submitting a `MARKET` order with any time in force other than `AT_THE_CLOSE` is rejected, because
-Betfair has no immediate market order.
-
-:::warning
-BSP on-close instructions carry a **liability**, not a stake. For `MARKET_ON_CLOSE` and
-`LIMIT_ON_CLOSE` orders, the adapter sends the order quantity as the Betfair liability. Size a BSP
-order by the amount you are prepared to lose, not by the stake you want matched.
+:::tip
+建议使用环境变量来管理你的凭证。
 :::
 
-BSP bets are irrevocable: once placed, the venue refuses cancel requests for them. While a BSP bet rests, both
-the stream and `listCurrentOrders` report it as `EXECUTION_COMPLETE`. They report zero matched, remaining,
-cancelled, lapsed, and voided sizes, and carry the liability separately. The adapter keeps such a bet
-`ACCEPTED` until BSP reconciliation, where a matched bet resolves `FILLED` and a lapsed bet resolves
-`CANCELED`. An explicit `CancelOrder` or `BatchCancelOrders` on a BSP bet emits `OrderCancelRejected` with the
-venue's `BET_TAKEN_OR_LAPSED` reason rather than closing the order. `CancelAllOrders` emits no per-order
-events, as described under [Cancel all orders](#cancel-all-orders).
-
-### Time in force
-
-| Time in force  | Supported | Notes                                                        |
-| -------------- | --------- | ------------------------------------------------------------ |
-| `GTC`          | ✓         | Maps to Betfair `PERSIST`.                                   |
-| `DAY`          | ✓         | Maps to Betfair `LAPSE`.                                     |
-| `FOK`          | ✓         | Maps to Betfair `FILL_OR_KILL`.                              |
-| `IOC`          | ✓         | Maps to `FILL_OR_KILL` with `min_fill_size=0`.               |
-| `AT_THE_CLOSE` | ✓         | Used for Betfair BSP `LIMIT_ON_CLOSE` and `MARKET_ON_CLOSE`. |
-| `GTD`          | -         | Not supported; the expiry is ignored and maps to `LAPSE`.    |
-
-A `LIMIT` order in `AT_THE_OPEN` mode also routes to `LIMIT_ON_CLOSE`, because Betfair has no
-at-the-open instruction.
-
-### Execution instructions
-
-| Instruction   | Supported | Notes                                 |
-| ------------- | --------- | ------------------------------------- |
-| `post_only`   | -         | Not applicable to a betting exchange. |
-| `reduce_only` | -         | Not applicable to a betting exchange. |
-
-### Advanced order features
-
-| Feature            | Supported | Notes                             |
-| ------------------ | --------- | --------------------------------- |
-| Order Modification | ✓         | Price and size change separately. |
-| Bracket/OCO Orders | -         | Not supported.                    |
-| Iceberg Orders     | -         | Not supported.                    |
-
-### Batch operations
-
-| Operation    | Supported | Notes                                    |
-| ------------ | --------- | ---------------------------------------- |
-| Batch Submit | ✓         | Implemented through `SubmitOrderList`.   |
-| Batch Modify | -         | Not supported.                           |
-| Batch Cancel | ✓         | Implemented through `BatchCancelOrders`. |
-
-### Cancel all orders
-
-Without an order side, `CancelAllOrders` sends one market-wide request and cancels orders for every
-selection in that market.
-
-With an order side, the command selects open cached orders for the exact instrument and side, regardless of
-strategy. These orders must belong to the current execution client and account. This includes reconciled
-external orders assigned to that client and excludes orders with no client assignment. The command uses the
-venue order IDs already held in cache and does not refresh order state first. If any otherwise eligible order
-lacks a cached venue order ID, the command sends no requests. Otherwise, it sends per-bet cancel instructions
-in batches of at most 60.
-
-`CancelAllOrders` does not create per-order cancel commands, so request and instruction failures
-emit no order events. OCM and mass-status reconciliation provide the final order state.
-
-### Position management
-
-| Feature          | Supported | Notes                                          |
-| ---------------- | --------- | ---------------------------------------------- |
-| Query positions  | -         | Exposure is tracked per bet, not per position. |
-| Position mode    | -         | Not applicable to a betting exchange.          |
-| Leverage control | -         | No leverage on a betting exchange.             |
-| Margin mode      | -         | No margin on a betting exchange.               |
-
-Set `position_check_interval_secs=None` on `LiveExecutionEngineConfig`, because Betfair reports no
-venue-side positions to check against.
-
-### Order querying
-
-| Feature               | Supported | Notes                                              |
-| --------------------- | --------- | -------------------------------------------------- |
-| Query open orders     | ✓         | Built from `listCurrentOrders`.                    |
-| Order status updates  | ✓         | Real-time bet state changes from the order stream. |
-| Fill reports          | ✓         | Matched sizes and prices from `listCurrentOrders`. |
-| Cleared order history | -         | The adapter does not request settlement history.   |
-
-`LiveNode` fetches bulk order and fill reports over HTTP on workers. Then, before reconciliation, its main
-thread resolves identities and incremental fills against current OCM state. Startup and post-reconnect mass
-status bypass these hooks.
-
-- Single-order reports return unsupported errors and cannot confirm the absence of cached open orders missing
-  from bulk checks. Missing-order resolution is deferred. OCM updates and mass status remain available.
-  `QueryOrder` still supports inflight checks.
-- Position reports return unsupported errors. [Disable position checks](#position-management).
-
-## Execution control flow
-
-Startup:
-
-1. Connect the HTTP client and fetch initial account funds.
-2. Seed OCM state from cached orders.
-3. Connect the Betfair execution stream and subscribe to order updates.
-4. Generate order and fill reports from the same `listCurrentOrders` observations.
-5. Reconcile order and fill reports into the execution engine.
-
-Cached open orders with venue identity are restored as already accepted. The adapter also restores
-retained identity for up to 10,000 recent closed cached orders. Neither path emits another
-`OrderAccepted`.
-
-On every stream reconnect, the adapter repeats the order-and-fill mass-status fetch over a recent
-window. It halts new-order submissions after transport loss or a server `connectionClosed` status
-until the latest recovery generation dispatches its mass status.
-
-For the full transition sequence, see
-[post-reconnect reconciliation](#post-reconnect-reconciliation).
-
-Reconciliation behavior:
-
-- `stream_market_ids_filter` filters live OCM updates.
-- Reconciliation uses `reconcile_market_ids` only when `reconcile_market_ids_only=True` and
-  `reconcile_market_ids` is set.
-- In every other case, including `reconcile_market_ids_only=True` with no `reconcile_market_ids`,
-  the adapter falls back to `stream_market_ids_filter` for reconciliation scope.
-- `ignore_external_orders=True` skips OCM updates with no `rfo`.
-
-## Session management and reconnection
-
-Betfair expires session tokens, so the adapter renews them rather than waiting for a failure. It
-handles renewal and recovery through four mechanisms:
-
-| Mechanism            | Trigger                                       | Action                                                                                               |
-| -------------------- | --------------------------------------------- | ---------------------------------------------------------------------------------------------------- |
-| Periodic keep-alive  | Every 10 hours (36,000 seconds).              | Renew the session token and update retained stream authentication without reconnecting.              |
-| Keep-alive fallback  | Keep-alive returns `LoginFailed`.             | Re-login, update all active stream authentication, then request replacement stream transports.       |
-| Stream reconnect     | Current order image after transport recovery. | Try keep-alive. `LoginFailed` triggers full re-login; other failures retain the existing session.    |
-| HTTP report recovery | A report query returns a session error.       | Try keep-alive and retry once; any keep-alive failure falls back to full re-login before that retry. |
-
-The periodic keep-alive tasks and data stream reconnect handler log and skip transient keep-alive
-errors such as network timeouts and 5xx responses. The execution reconnect handler also preserves
-the existing session token, but continues report reconciliation. At the periodic or handler-level
-keep-alive step, only `LoginFailed` triggers full re-login. HTTP report recovery differs: after a
-session error, any keep-alive failure falls back to full re-login before the report-level retry.
-
-Both the data and execution clients use the same session-renewal policy. Each spawns:
-
-- A **keep-alive task** that periodically attempts renewal. An ordinary successful keep-alive
-  updates retained authentication without replacing the transport.
-- A **reconnect handler** that waits for the replacement order subscription to become current, then
-  attempts to refresh the session.
-
-After a full re-login, the adapter updates authentication for every affected active stream before it
-requests any reconnect. Each replacement connection sends the latest authentication before retained
-subscriptions or traffic buffered during the reconnect. Market and order streams retain their
-subscription IDs and `clk`/`initialClk` resume values. Correlated status responses keep socket
-availability, authentication, pending subscriptions, current subscriptions, rejected requests, and
-degraded streams distinct.
-
-The data client applies the same update to active market, race, and cricket streams. A periodic keep-alive
-fallback requests replacement transports immediately after updating authentication. An HTTP report recovery
-requests an execution stream replacement after the query finishes.
-
-When full re-login occurs inside the execution stream reconnect handler, that handler first fetches and
-dispatches mass status, then requests a replacement execution stream. The replacement stream's `Connection`
-message starts another handler iteration. A successful keep-alive updates retained authentication without
-requesting another replacement. This ordering prevents a reconnect loop.
-
-## Post-reconnect reconciliation
-
-After the initial handshake, a Betfair execution transport loss immediately halts new-order
-submissions. This applies to automatic network reconnects and replacements requested after a full
-re-login. The adapter assumes the cache may have diverged while the previous transport was
-unavailable. In particular, fills can complete and roll off the unmatched book before the
-post-reconnect stream image arrives. The adapter therefore fetches and dispatches a mass status over
-a recent window before allowing new submissions.
-
-| Step | Trigger                                               | Action                                                                                                               |
-| ---- | ----------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------- |
-| 1    | Transport loss or a server `connectionClosed` status. | Advances the reconciliation generation and halts new submissions immediately.                                        |
-| 2    | Replacement `Connection` message.                     | Marks authentication and retained subscriptions pending and raises `pending_resync`.                                 |
-| 3    | Complete `SUB_IMAGE` or `RESUB_DELTA`.                | Queues the current generation once. OCMs remain buffered until recovery completes.                                   |
-| 4    | Reconnect task receives the generation.               | Refreshes the session, requests `getAccountFunds`, then fetches one order snapshot with up to four bounded attempts. |
-| 5    | All snapshot pages succeed.                           | Dispatches the complete mass status, commits fill deduplication, and reopens submissions under one generation check. |
-
-The account-state refresh is best effort: a request or parse failure is logged but does not prevent
-mass-status dispatch or reopening the gate. A keep-alive failure other than `LoginFailed` continues
-with the retained session because the report queries retain their own retry and session-recovery
-logic. Read-only mass-status recovery retries four times with exponential backoff. Exhausted retries,
-a failed full re-login, or a failed report dispatch leave the gate halted until a later reconnect
-succeeds or the client disconnects. A newer transport loss, reconnect, disconnect, or shutdown
-cancels stale recovery work. This fail-closed behavior also covers an active socket whose
-authentication or order subscription is not current.
-
-Mass-status dispatch and fill-deduplication commit form the completion boundary for the handled
-generation. A failed or stale recovery does not advance fill deduplication. The gate does not wait
-for a separate acknowledgement that the execution engine has applied the report to its cache.
-
-While the execution stream is unavailable or reconciliation is in progress:
-
-- `submit_order` and `submit_order_list` emit `OrderDenied` with reason
-  `STREAM_RECONCILING: execution stream unavailable or recovering, retry after recovery`.
-- `cancel_order`, `batch_cancel_orders`, and `modify_order` pass through unchanged.
-- `pending_resync` buffers OCMs received after the replacement `Connection` message. Connectivity
-  polling and command or report entry points invoke `process_pending_resync` on the engine thread,
-  which synchronizes OCM state from the cache and drains the buffer.
-
-If the client disconnects while a reconciliation is still in flight, `clear_resync_state` clears
-the active halt so a subsequent connect/submit cycle starts clean.
-
-The lookback window for the mass-status fetch is `stream_gap_recovery_lookback_mins` (default `10`). Order and
-fill reports use the same `OrderProjection::All` observations from one paginated `listCurrentOrders`
-traversal. With a market filter, requests use batches of up to 250 market IDs. If pages repeat a Bet ID, both
-reports use its last observation.
-
-Fill recovery selects orders locally by `matchedDate`, including both window bounds, and sorts them by match
-time. An order placed before the lookback remains eligible when it matched during the gap, including
-execution-complete and settled orders still returned by `listCurrentOrders`. Orders outside the fill window
-still contribute status and replacement history without advancing fill deduplication.
-
-Normal mass-status generation uses the caller's optional `lookback_mins` for its lower
-bound, with no upper bound. When no lookback is supplied, every order with a `matchedDate` is eligible.
-Normal generation commits deduplication only when the complete report is ready to return.
-
-## Open-only order discovery
-
-Open-only reconciliation discovers executable bets and all orders in BSP-enabled markets.
-
-### Replacement history
-
-The adapter queries known replacement Bet IDs for discovered orders and unresolved modifications.
-These extra lookups recover cumulative fills and confirmed quantities:
-
-- If required replacement or pending-modification Bet IDs remain missing after the extra queries,
-  the scan fails rather than treating their fills as zero.
-- A cached open order absent from venue discovery does not by itself cause this failure.
-
-### Market scope
-
-Discovery queries use the [configured reconciliation market scope](#execution-control-flow). A
-command for a specific instrument narrows discovery to that instrument's market and returns no
-reports when the market is outside the configured scope.
-
-Extra lookups by Bet ID and `customerOrderRef` are not market-filtered. They also query unresolved
-modifications for tracked orders outside the discovery scope. Those rows are excluded from reports,
-but missing required history still fails the scan.
-
-### Resting BSP bets
-
-To recover resting [BSP bets](#order-types), including bets the adapter does not track, the adapter
-also discovers BSP-enabled markets containing execution-complete account orders. It queries these
-markets with `listCurrentOrders` using `ALL` and reports resting BSP bets as `ACCEPTED`.
-
-BSP market discovery depends on the query scope:
-
-- **Account-wide**: `listEvents` finds events, then `listMarketCatalogue` queries each event with
-  `maxResults=1000`. If an event returns 1,000 markets, the scan fails rather than risking an
-  incomplete set of open orders.
-- **Market-scoped**: each catalog request contains at most 250 market IDs.
-
-Markets without BSP are not scanned for unrelated order history. Historical orders within discovered
-BSP-enabled markets, including ordinary limit bets, can still add required replacement history and
-increase scan work.
-
-## Tick scheme and pricing
-
-Betfair uses a tiered tick scheme with varying increments across price ranges:
-
-| Price range      | Tick size |
-| ---------------- | --------- |
-| 1.01 - 2.00      | 0.01      |
-| 2.00 - 3.00      | 0.02      |
-| 3.00 - 4.00      | 0.05      |
-| 4.00 - 6.00      | 0.10      |
-| 6.00 - 10.00     | 0.20      |
-| 10.00 - 20.00    | 0.50      |
-| 20.00 - 30.00    | 1.00      |
-| 30.00 - 50.00    | 2.00      |
-| 50.00 - 100.00   | 5.00      |
-| 100.00 - 1000.00 | 10.00     |
-
-Minimum price is 1.01, maximum is 1000.00.
-
-## Order modification
-
-- Price and size cannot change atomically. These require separate operations.
-- Price modification uses `ReplaceOrders` (cancel + new order at new price).
-- Size reduction uses `CancelOrders` with a `size_reduction` parameter.
-- Size increase is not supported. Submit a new order instead.
-
-A successful price replacement remains the same logical Nautilus order. The adapter maps the old and new Bet
-IDs to the same `client_order_id`. It suppresses the old bet's cancel and emits exactly one `OrderUpdated`
-with the new Bet ID. This holds whether the REST response or order change message (OCM) arrives first. If the
-replacement OCM already contains a fill, `OrderUpdated` precedes `OrderFilled`.
-
-Betfair can return `CANCELLED_NOT_PLACED` when the replace operation cancels the old bet but fails to
-place its replacement. The adapter then emits `OrderCanceled` for the logical order instead of
-`OrderModifyRejected`. A late fill for the canceled Bet ID is still applied once, after which the
-order remains `CANCELED`. The same terminal outcome applies when the old-bet cancel OCM arrives
-while a replacement is pending and the REST call later returns any definitive replace failure.
-
-### Recovering an ambiguous modification
-
-When the REST response is lost or ambiguous, the adapter resolves the modification from the OCM
-stream or from a confirming `listCurrentOrders` result. Only a fully paginated reconciliation can
-prove that the original order remained unchanged or closed without a replacement:
-
-- A bet listed under the same `customerOrderRef` with a different Bet ID promotes the pending
-  replace. Both active and closed listings emit `OrderUpdated` carrying the new Bet ID, its price,
-  and the original size. An active listing is then withheld from the resolving report set, while a
-  closed listing follows the update through its terminal order status report.
-- A bet whose active size has fallen to at least the requested size but below the original
-  confirms the reduction. The active size is matched plus remaining plus voided (`sizeVoided`,
-  or `sv` on the stream), and includes the matched and voided size of any replaced bets, so a
-  void does not lower it. An active listing emits `OrderUpdated` carrying the reduced size, while
-  a closed listing carries the confirmed size in its terminal report without an `OrderUpdated`. A
-  smaller active size is a lapse rather than the requested reduction, and an unchanged one means
-  Betfair has not applied the reduction yet, so both leave the command in flight.
-
-Whichever channel resolves the modification first wins, and the others become no-ops. Thus, a size reduction
-confirmed by the stream is not repeated when its REST response returns.
-
-While the REST request may still be running, a listing with only the original bet proves nothing. Thus, the
-order stays `PENDING_UPDATE`. After the REST result becomes ambiguous, a fully paginated reconciliation that
-shows the original Bet ID still executable emits `OrderModifyRejected`, retains its active report, and clears
-the pending replacement. If `customerOrderRef` uniquely resolves to the pending order, the same reconciliation
-with a closed original Bet ID and no replacement clears the pending state and lets the terminal report carry
-the cancellation. If `customerOrderRef` does not resolve uniquely, the adapter cannot identify a possible new
-Bet ID, so the replacement remains pending. A definitive modification failure also clears the pending state,
-so a later lapse cannot be mistaken for the requested reduction.
-
-Reconciliation withholds order status reports that would duplicate or contradict the resolved state:
-
-- The superseded replace leg on the resolving pass, whether the replacement is active or terminal,
-  because its `CANCELED` report would otherwise cancel the logical order.
-- The active report that produced `OrderUpdated`, because the order is still pending locally while
-  reconciliation runs.
-
-Reports retained alongside `OrderModifyRejected` and terminal reports follow the normal report path. A
-terminal replacement report follows its `OrderUpdated` into the retained terminal lifecycle. A terminal
-reduction resolves without `OrderUpdated`. That report and later reports carry the confirmed size rather than
-Betfair's original stake.
-
-The resolving pass suppresses a historical Bet ID as described above. Once the logical replacement
-order is terminal, later explicit and mass-status queries retain order status reports for its
-historical Bet IDs.
-
-## Order command failures and retries
-
-### Request correlation
-
-Betfair provides separate values for logical order correlation and request deduplication:
-
-| Field              | Scope             | Adapter behavior                                                                                                             |
-| ------------------ | ----------------- | ---------------------------------------------------------------------------------------------------------------------------- |
-| `customerOrderRef` | One logical order | Derived from `client_order_id`, returned as OCM `rfo`, and retained across replacement Bet IDs.                              |
-| `customerRef`      | One REST command  | Generated for each place, replace, or cancel request and reused unchanged for every retry, including batches and reductions. |
-
-:::warning
-Client order IDs longer than 32 characters use their last 32 characters as `customerOrderRef`. Keep those
-suffixes distinct across tracked orders. A new submission whose reference matches another tracked order emits
-`OrderDenied` before `OrderSubmitted` or HTTP dispatch with
-`VALIDATION_FAILED: customerOrderRef <ref> collides with another tracked order`. In an order list, only the
-colliding leg is denied.
-:::
-
-When OCM state is synchronized from cached orders, the adapter also recognizes the legacy
-first-32-character format. If either truncation identifies more than one tracked order, OCM and
-reconciliation order status and fill reports omit `client_order_id` and retain the Bet ID so
-reconciliation can match by venue identity.
-
-### Retry and ambiguity
-
-State-changing order calls use up to three retries by default within a 45-second total budget. The
-elapsed-time limit keeps every retry within Betfair's 60-second `customerRef` deduplication window.
-The adapter handles failures as follows:
-
-| Failure or response                                                           | Order command handling                                                                     |
-| ----------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------ |
-| Transport failure, client timeout, malformed success response, or HTTP 5xx    | Mark the attempt ambiguous and retry with the same `customerRef`.                          |
-| HTTP 429, `TOO_MANY_REQUESTS`, or `SERVICE_BUSY`                              | Retry with the same `customerRef`.                                                         |
-| `UNEXPECTED_ERROR`                                                            | Mark the attempt ambiguous and retry with the same `customerRef`.                          |
-| `TIMEOUT_ERROR` or an adapter cancellation                                    | Leave the command ambiguous without retrying it.                                           |
-| `TIMEOUT` report or `BET_IN_PROGRESS`                                         | Leave the command ambiguous for OCM or reconciliation.                                     |
-| Incomplete or contradictory report                                            | Leave the command ambiguous unless a definitive top-level error proves rejection.          |
-| Known validation, authentication, permission, or other definitive venue error | Reject the affected command without retrying it.                                           |
-| Missing, malformed, or unknown nested API error under a server error          | Leave the command ambiguous without retrying it until its meaning is explicitly supported. |
-
-An ambiguous placement remains `SUBMITTED`, an ambiguous replacement remains `PENDING_UPDATE`, and
-an ambiguous cancellation remains `PENDING_CANCEL` until OCM or reconciliation resolves it. The
-adapter does not emit a rejection because Betfair may have applied the request. Once a dispatched
-attempt has an unknown outcome, a later failed attempt cannot make the overall result definitive.
-
-Definitive placement, cancellation, and modification failures normally emit `OrderRejected`,
-`OrderCancelRejected`, and `OrderModifyRejected`, respectively. A definitive price replacement
-failure instead emits `OrderCanceled` once the old-bet cancel has arrived because that bet is no
-longer executable. `BET_TAKEN_OR_LAPSED` completes a cancellation for the same terminal reason,
-except on BSP bets, where the venue has not applied the cancel: there it emits
-`OrderCancelRejected` and the bet stays open until BSP reconciliation.
-
-### JSON-RPC errors
-
-Betfair JSON-RPC errors contain an outer numeric `code` and `message` and can also contain a nested API
-`errorCode` and `errorDetails`. The outer values describe the JSON-RPC envelope. Betfair commonly uses
-`-32099` with an actionable API error stored in the object named by `data.exceptionname`, such as
-`APINGException` or `AccountAPINGException`. The adapter preserves the outer and nested fields and uses the
-nested API error when available. Unknown, missing, or malformed nested data remains visible through the outer
-code and message and receives the conservative order handling shown above. Read-only calls retain their
-broader retry policy and can retry `TIMEOUT_ERROR` or a generic retryable outer error.
-
-## Order stream fill handling
-
-The execution client processes order updates from the Betfair Exchange Streaming API.
-Two configuration options control how updates are filtered:
-
-- `stream_market_ids_filter`: filters at the market level (early exit, silent skip).
-- `ignore_external_orders`: filters at the order level (skips OCM updates with no `rfo`).
-
-```mermaid
-flowchart TD
-    A[OCM update arrives] --> B{stream_market_ids_filter set<br/>and market not listed?}
-    B -->|Yes| C[Skip whole market, silently]
-    B -->|No| D{ignore_external_orders set<br/>and order has no rfo?}
-    D -->|Yes| E[Skip order, silently]
-    D -->|No| F[Process applicable order status,<br/>fill, or void changes]
-```
-
-After both filters pass, the adapter emits only the outputs that apply to the update. Market-level
-filtering exits before any per-runner work, and neither filter logs a warning.
-
-:::warning
-If you set `stream_market_ids_filter`, ensure it includes every market you trade. Orders placed on
-markets excluded from the filter miss live fill and cancel updates from the stream.
-:::
-
-### Fill handling
-
-The adapter handles several edge cases when processing fills from the stream:
-
-- **Incremental fills**: Betfair reports cumulative matched sizes per Bet ID. The adapter tracks a
-  separate fill cursor for every current or historical Bet ID and restores those cursors from
-  cached events during reconciliation.
-- **Overfill protection**: fills that would exceed the order quantity are rejected.
-- **Race conditions**: when stream fills arrive before the HTTP order response, the adapter
-  caches the venue order ID immediately to ensure correct order matching.
-- **Replacement fills**: a fill reported against an old Bet ID updates the same logical order once
-  without replacing its current Bet ID. A partial fill received while an order is `PENDING_UPDATE`
-  or `PENDING_CANCEL` updates its filled quantity while preserving the pending command state.
-- **Price restatements**: a Rule 4 withdrawal republishes a matched Bet with a reduced average matched price
-  and unchanged matched size. The adapter emits the new price as a fill carrying the Bet's trade ID, which
-  restates the order and open position averages without changing quantity. A restatement applies when exactly
-  one fill lot survives on the Bet. An update where more than one lot survives, or a void and a new average
-  arrive together, emits nothing.
-
-  Restating a closing fill corrects the order average only. Position close accounting keeps its original
-  values. Restating an opening fill after a partial close updates the open average only. Realized PnL for
-  already-closed quantity keeps its original value. A restatement on a canceled Bet does not emit another
-  cancel.
-- **Late terminal corrections**: the adapter retains correlation and per-Bet fill and void state for
-  the 10,000 most recent terminal identities, including identities restored from closed cached
-  orders. Locally owned identities and external terminal Bet IDs share this bound. Delayed fills and
-  void corrections for an unambiguous retained order emit direct order events. After applying a
-  delayed fill to a canceled order, the adapter emits `OrderCanceled` again to preserve the terminal
-  state. If the same update carries void corrections, the cancel precedes those corrections.
-  Correlation and deduplication state expire together, so an older replay can return through the
-  report path.
-- **Gap-window fills**: a fill that completes and rolls off the unmatched book during a stream disconnect is
-  recovered by the post-reconnect mass-status reconciliation. See
-  [Post-reconnect reconciliation](#post-reconnect-reconciliation).
-
-### Voided fills
-
-Betfair can void matched bets after reporting them, for example after an integrity ruling or a VAR
-decision. The order stream carries the running total in `sv` (size voided). Voids caused by runner
-removal settle instead of streaming, so they do not reach this path.
-
-The adapter allocates each `sv` increase to locally applied fill lots newest-first and emits one
-cumulative [`OrderFillVoided`](../concepts/events/order_fill_voided.md) per affected `trade_id`. A
-first-seen snapshot seeds its cumulative void state without reversing exposure Nautilus never
-applied, so a reconnect does not double-correct. Any `sv` increase also triggers an account refresh.
-
-An `EXECUTION_COMPLETE` update with no locally applied fill lots takes the terminal path instead: one
-correction under a synthetic `VOID-{bet_id}` trade ID that carries the order to `VOIDED`. That status
-resolves only when `sv` is positive and both cancelled and lapsed quantities are zero, so a mixed
-update carrying `sc` or `sl` alongside `sv` emits no correction. Betfair voids never set
-`is_reopened`, so `VOIDED` is final.
-
-The adapter also publishes the [`BetfairOrderVoided`](#custom-data-types) custom data type carrying
-the venue's raw void detail.
-
-## Rate limiting
-
-The adapter uses separate rate limit buckets so that account state polling and
-reconciliation do not throttle order placement:
-
-| Bucket  | Default | Endpoints                                       | Configurable                     |
-| ------- | ------- | ----------------------------------------------- | -------------------------------- |
-| General | 5/s     | Account state, reconciliation, keep-alive.      | `request_rate_per_second`.       |
-| Orders  | 20/s    | `placeOrders`, `replaceOrders`, `cancelOrders`. | `order_request_rate_per_second`. |
-
-Read-only Betting API calls use the general HTTP retry budget, with up to three retries by default.
-State-changing calls use the policy in [Order command failures and retries](#order-command-failures-and-retries).
-
-After a report query returns a session or rate-limit error, the order status and fill report paths
-make one additional report-level attempt. A session error first tries keep-alive and falls back to
-full re-login after any keep-alive failure. Full re-login updates execution stream authentication
-and requests a replacement after the query finishes. A `TOO_MANY_REQUESTS` error waits 5 seconds
-before the report-level retry.
-
-Betfair's own API limits are more nuanced than a single request rate:
-
-| Category                 | Limit                | Notes                                                                                      |
-| ------------------------ | -------------------- | ------------------------------------------------------------------------------------------ |
-| Order operations         | 1,000 transactions/s | Total instructions across `placeOrders`, `cancelOrders`, `replaceOrders`.                  |
-| Order projection queries | 3 concurrent         | `listMarketBook` (with `OrderProjection`), `listCurrentOrders`, `listMarketProfitAndLoss`. |
-| Best practice            | 5 requests/s         | Recommended for `listMarketBook` per market.                                               |
-
-See [Why am I receiving the TOO_MANY_REQUESTS error?](https://support.developer.betfair.com/hc/en-us/articles/360000406111)
-for how Betfair applies these limits.
-
-## Market version price protection
-
-Betfair carries a `version` on the market definition. It changes when the market itself is
-redefined, for example when a runner is removed or the market status changes. It does not track
-ordinary price updates or matched volume. Attaching that version to an order asks Betfair to lapse
-the bet rather than match it into a market that has since been redefined.
-
-:::warning
-`use_market_version` provides no protection today. The adapter reads the market version from the instrument's
-`info` dictionary. But it constructs every Betfair instrument with `info` unset. Thus, no version is ever
-attached to a `placeOrders` or `replaceOrders` request. `use_market_version=True` changes nothing. Do not rely
-on it for price protection.
-:::
-
-## Custom data types
-
-The adapter emits custom data through the market, order, race, and cricket streams. Market custom
-data flows automatically when subscribed to markets.
-
-| Type                       | Stream  | Metadata key    | Description                                        |
-| -------------------------- | ------- | --------------- | -------------------------------------------------- |
-| `BetfairTicker`            | Market  | `instrument_id` | Last traded price, traded volume, BSP indicators.  |
-| `BetfairStartingPrice`     | Market  | `instrument_id` | Realized BSP after market close.                   |
-| `BetfairBspBookDelta`      | Market  | `instrument_id` | BSP projected book updates.                        |
-| `BetfairSequenceCompleted` | Market  |                 | Marks end of a market change sequence.             |
-| `BetfairOrderVoided`       | Order   | `instrument_id` | Voided order details (size voided, price, side).   |
-| `BetfairRaceRunnerData`    | Race    | `selection_id`  | Live GPS tracking per runner (TPD).                |
-| `BetfairRaceProgress`      | Race    | `race_id`       | Sectional times, running order, jump data.         |
-| `BetfairCricketMatch`      | Cricket | `event_id`      | Fixture, team, match statistic, and incident data. |
-
-Subscribe by type name from an actor or strategy. Every type in the table above carries its metadata key on
-the published topic. Thus, the subscription must supply that key and its scoped value.
-`BetfairSequenceCompleted` is the exception: it publishes without metadata, so it is subscribed by type name
-alone. For segmented updates, the adapter emits this marker on `SEG_END`, after that segment's updates have
-been published. It does not emit the marker on `SEG_START` or `SEG`.
+## 概述
+
+Betfair 适配器包含三个主要组件：
+
+- `BetfairInstrumentProvider`：加载 Betfair 市场并将其转换为 Nautilus 的 instrument。
+- `BetfairDataClient`：通过 Exchange Streaming API 推送实时市场数据。
+- `BetfairExecutionClient`：通过 REST API 提交订单（即下注）并跟踪执行状态。
+
+## 订单能力（Orders capability）
+
+作为博彩交易所，Betfair 与传统金融交易所存在一些显著差异，下面列出其支持与不支持的订单特性：
+
+### 订单类型
+
+| Order Type             | Supported | Notes                      |
+| ---------------------- | --------- | -------------------------- |
+| `MARKET`               | -         | 不适用于博彩交易所。       |
+| `LIMIT`                | ✓         | 在指定赔率（odds）下下单。 |
+| `STOP_MARKET`          | -         | _不支持_。                 |
+| `STOP_LIMIT`           | -         | _不支持_。                 |
+| `MARKET_IF_TOUCHED`    | -         | _不支持_。                 |
+| `LIMIT_IF_TOUCHED`     | -         | _不支持_。                 |
+| `TRAILING_STOP_MARKET` | -         | _不支持_。                 |
+
+### 执行指令（Execution instructions）
+
+| Instruction   | Supported | Notes                |
+| ------------- | --------- | -------------------- |
+| `post_only`   | -         | 不适用于博彩交易所。 |
+| `reduce_only` | -         | 不适用于博彩交易所。 |
+
+### 有效时间选项（Time in force options）
+
+| Time in force | Supported | Notes                          |
+| ------------- | --------- | ------------------------------ |
+| `GTC`         | -         | 博彩交易所使用不同的订单模型。 |
+| `GTD`         | -         | 博彩交易所使用不同的订单模型。 |
+| `FOK`         | -         | 博彩交易所使用不同的订单模型。 |
+| `IOC`         | -         | 博彩交易所使用不同的订单模型。 |
+
+### 高级订单功能（Advanced order features）
+
+| Feature            | Supported | Notes                          |
+| ------------------ | --------- | ------------------------------ |
+| Order Modification | ✓         | 仅限于不会改变风险敞口的字段。 |
+| Bracket/OCO Orders | -         | _不支持_。                     |
+| Iceberg Orders     | -         | _不支持_。                     |
+
+### 批量操作（Batch operations）
+
+| Operation    | Supported | Notes      |
+| ------------ | --------- | ---------- |
+| Batch Submit | -         | _不支持_。 |
+| Batch Modify | -         | _不支持_。 |
+| Batch Cancel | -         | _不支持_。 |
+
+### 持仓管理（Position management）
+
+| Feature          | Supported | Notes                                  |
+| ---------------- | --------- | -------------------------------------- |
+| Query positions  | -         | 博彩交易所的持仓模型不同，通常不适用。 |
+| Position mode    | -         | 不适用于博彩交易所。                   |
+| Leverage control | -         | 博彩交易所无杠杆。                     |
+| Margin mode      | -         | 博彩交易所无保证金模式。               |
+
+### 订单查询（Order querying）
+
+| Feature              | Supported | Notes                             |
+| -------------------- | --------- | --------------------------------- |
+| Query open orders    | ✓         | 列出所有未结注单（活动的 bets）。 |
+| Query order history  | ✓         | 可查询历史下注记录。              |
+| Order status updates | ✓         | 实时下注状态更新。                |
+| Trade history        | ✓         | 匹配与结算的报表。                |
+
+### 或有订单（Contingent orders）
+
+| Feature            | Supported | Notes                  |
+| ------------------ | --------- | ---------------------- |
+| Order lists        | -         | _不支持_。             |
+| OCO orders         | -         | _不支持_。             |
+| Bracket orders     | -         | _不支持_。             |
+| Conditional orders | -         | 仅支持基本的下注条件。 |
+
+## 配置
+
+### 数据客户端（Data client）配置选项
+
+| Option                    | Default  | Description                                                      |
+| ------------------------- | -------- | ---------------------------------------------------------------- |
+| `account_currency`        | Required | Betfair 账户用于数据与价格推送的货币。                           |
+| `username`                | `None`   | Betfair 账户用户名；若未指定则从环境变量读取。                   |
+| `password`                | `None`   | Betfair 账户密码；若未指定则从环境变量读取。                     |
+| `app_key`                 | `None`   | 用于 API 认证的 Betfair 应用密钥。                               |
+| `certs_dir`               | `None`   | 存放 Betfair SSL 证书的目录（用于登录）。                        |
+| `instrument_config`       | `None`   | 可选的 `BetfairInstrumentProviderConfig`，用于限定可用市场范围。 |
+| `subscription_delay_secs` | `3`      | 在首次订阅市场前等待的秒数延迟。                                 |
+| `keep_alive_secs`         | `36,000` | Betfair 会话的保活间隔（秒）。                                   |
+| `stream_conflate_ms`      | `None`   | 显式的流合并（conflation）间隔，单位毫秒（`0` 表示禁用合并）。   |
+
+### 执行客户端（Execution client）配置选项
+
+| Option                       | Default  | Description                                                                          |
+| ---------------------------- | -------- | ------------------------------------------------------------------------------------ |
+| `account_currency`           | Required | Betfair 账户用于下单与余额计算的货币。                                               |
+| `username`                   | `None`   | Betfair 账户用户名；若未指定则从环境变量读取。                                       |
+| `password`                   | `None`   | Betfair 账户密码；若未指定则从环境变量读取。                                         |
+| `app_key`                    | `None`   | 用于 API 认证的 Betfair 应用密钥。                                                   |
+| `certs_dir`                  | `None`   | 存放 Betfair SSL 证书的目录（用于登录）。                                            |
+| `instrument_config`          | `None`   | 可选的 `BetfairInstrumentProviderConfig`，用于限定对账（reconciliation）的市场范围。 |
+| `calculate_account_state`    | `True`   | 为 `True` 时从事件本地计算账户状态。                                                 |
+| `request_account_state_secs` | `300`    | 轮询 Betfair 以获取账户状态的时间间隔（秒，`0` 表示禁用）。                          |
+| `reconcile_market_ids_only`  | `False`  | 若为 `True`，对账请求仅覆盖配置的 market id 列表。                                   |
+| `ignore_external_orders`     | `False`  | 若为 `True`，忽略流中本地缓存不存在的外部订单。                                      |
+
+下面给出一个最小示例，演示如何在实时 `TradingNode` 中配置 Betfair 客户端：
 
 ```python
-from nautilus_trader.model import DataType
+from nautilus_trader.adapters.betfair import BETFAIR
+from nautilus_trader.adapters.betfair import BetfairLiveDataClientFactory
+from nautilus_trader.adapters.betfair import BetfairLiveExecClientFactory
+from nautilus_trader.config import TradingNodeConfig
+from nautilus_trader.live.node import TradingNode
 
-# One runner's GPS data
-self.subscribe_data(DataType("BetfairRaceRunnerData", metadata={"selection_id": 49411491}))
+# 配置 Betfair 的数据与执行客户端（使用 AUD 作为账户货币）
+config = TradingNodeConfig(
+    data_clients={BETFAIR: {"account_currency": "AUD"}},
+    exec_clients={BETFAIR: {"account_currency": "AUD"}},
+)
 
-# One race's progress
-self.subscribe_data(DataType("BetfairRaceProgress", metadata={"race_id": "35278018.1617"}))
-
-# Sequence markers carry no metadata
-self.subscribe_data(DataType("BetfairSequenceCompleted"))
+# 使用 Betfair 适配器工厂构建 TradingNode
+node = TradingNode(config)
+node.add_data_client_factory(BETFAIR, BetfairLiveDataClientFactory)
+node.add_exec_client_factory(BETFAIR, BetfairLiveExecClientFactory)
+node.build()
 ```
 
-Race data requires Total Performance Data (TPD) coverage and a Betfair API key with TPD
-access. Enable with `subscribe_race_data=True`. Not every race has GPS tracking. Cricket data
-requires `subscribe_cricket_data=True`.
-
-## Historical data
-
-`BetfairDataLoader` converts recorded Betfair stream files into these types:
-
-- Instruments, order book deltas, and trade ticks.
-- Instrument status and close events.
-- The market, race, and cricket custom data types above.
-
-Files hold newline-delimited JSON, either plain or compressed with gzip (`.gz`) or bzip2 (`.bz2`). The loader
-parses `mcm`, `rcm`, and `ccm` messages and skips the rest, so it produces no `BetfairOrderVoided` because
-that type comes from the order stream. Use `load_instruments` when only the instrument definitions are needed,
-because it skips all other parsing.
-
-Trade ticks are derived from cumulative traded volumes, so the loader keeps that state across lines
-within a file. Call `reset` before loading an unrelated file to clear cached volumes and instruments.
-See the
-[Rust examples](https://github.com/nautechsystems/nautilus_trader/tree/develop/crates/adapters/betfair/examples/)
-for loading a file and running it through a backtest.
-
-## Multi-node deployment
-
-When multiple trading nodes share a single Betfair account across different markets:
-
-1. Set `stream_market_ids_filter` to include only that node's markets.
-2. Set `reconcile_market_ids_only=True` with `reconcile_market_ids` to limit reconciliation scope.
-3. Set `ignore_external_orders=True` to drop bets placed outside NautilusTrader.
-
-Market isolation between nodes comes from `stream_market_ids_filter` and the reconciliation scope, not from
-`ignore_external_orders`. Every bet this adapter submits carries a customer order reference, so another node's
-bets pass that filter. Only bets with no reference, such as those placed on the Betfair site, are dropped.
-Without the market filters, each node reconciles and reports the whole account.
-
-## Configuration
-
-The adapter configures stream liveness and message size as follows:
-
-- Market and order subscriptions set `heartbeatMs` to `5,000`, so Betfair sends at least one message
-  every 5 seconds. When no update is available, Betfair sends an empty heartbeat change message.
-  These subscriptions also enable segmentation. Race and cricket subscriptions do not support
-  these fields.
-- `stream_heartbeat_secs` controls separate client-initiated heartbeat requests on all stream
-  connections. It defaults to `None`, which sends none. Betfair recommends leaving these requests
-  off unless a firewall or proxy needs traffic to keep the connection open because the heartbeat
-  response blocks the connection while it is served. See Betfair's
-  [Exchange Stream API heartbeat guidance](https://betfair-developer-docs.atlassian.net/wiki/spaces/1smk3cen4v3lu3yomq5qye0ni/pages/2687396/Exchange+Stream+API#ExchangeStreamAPI-Heartbeat/HeartbeatMessage).
-  Outbound heartbeats do not set the server subscription interval or determine market and order
-  stream readiness. For race and cricket streams, an unset timeout uses two outbound heartbeat
-  intervals for dead-peer detection.
-- `stream_heartbeat_timeout_secs` overrides dead-peer detection. When unset, the adapter uses two
-  effective server heartbeat intervals, rounded up to a whole second, and follows a valid interval
-  reported by Betfair. An explicit override must cover at least two requested intervals. Dead-peer
-  detection starts after the first market or order subscription, which avoids reconnect loops before
-  a data client subscribes. Race and cricket streams do not support subscription heartbeats.
-- A change message with status 503 marks its subscription degraded without replacing the socket. A
-  later current message restores data readiness after a valid initial image has been received. A
-  degraded initial image still requires a later valid `SUB_IMAGE`. For execution,
-  the recovery message queues mass-status reconciliation, and submissions reopen only after the
-  report publishes. Execution submissions remain closed whenever the order stream is pending,
-  rejected, degraded, disconnected, or reconciling.
-
-### Data client configuration
-
-| Option                              | Default  | Notes                                                      |
-| ----------------------------------- | -------- | ---------------------------------------------------------- |
-| `account_currency`                  | `GBP`    | Betfair account currency.                                  |
-| `username`                          | `None`   | Falls back to `BETFAIR_USERNAME`.                          |
-| `password`                          | `None`   | Falls back to `BETFAIR_PASSWORD`.                          |
-| `app_key`                           | `None`   | Falls back to `BETFAIR_APP_KEY`.                           |
-| `proxy_url`                         | `None`   | Optional proxy URL for HTTP requests.                      |
-| `request_rate_per_second`           | `5`      | General HTTP rate limit.                                   |
-| `default_min_notional`              | `None`   | Optional minimum notional override.                        |
-| `event_type_ids`                    | `None`   | Optional navigation filter.                                |
-| `event_type_names`                  | `None`   | Optional navigation filter.                                |
-| `event_ids`                         | `None`   | Optional navigation filter.                                |
-| `country_codes`                     | `None`   | Optional navigation filter.                                |
-| `market_types`                      | `None`   | Optional navigation filter.                                |
-| `market_ids`                        | `None`   | Optional navigation filter.                                |
-| `min_market_start_time`             | `None`   | Optional navigation filter.                                |
-| `max_market_start_time`             | `None`   | Optional navigation filter.                                |
-| `stream_host`                       | `None`   | Optional stream host override.                             |
-| `stream_port`                       | `None`   | Optional stream port override.                             |
-| `stream_heartbeat_secs`             | `None`   | Outbound heartbeat interval in seconds; `None` sends none. |
-| `stream_heartbeat_timeout_secs`     | `None`   | Dead-peer override; `None` uses two server intervals.      |
-| `stream_reconnect_delay_initial_ms` | `2,000`  | Initial reconnect delay.                                   |
-| `stream_reconnect_delay_max_ms`     | `30,000` | Maximum reconnect delay.                                   |
-| `stream_use_tls`                    | `True`   | Use TLS for the stream connection.                         |
-| `stream_conflate_ms`                | `None`   | Explicit conflation setting.                               |
-| `subscription_delay_secs`           | `3`      | Delay before the first market subscription.                |
-| `subscribe_race_data`               | `False`  | Subscribe to RCM updates.                                  |
-| `subscribe_cricket_data`            | `False`  | Subscribe to cricket CCM updates.                          |
-| `book_snapshot_timeout_secs`        | `10`     | Initial and recovery market image wait; `0` disables it.   |
-
-:::warning
-When `stream_conflate_ms` is `None`, the adapter omits `conflateMs` from the subscription and leaves
-the conflation rate to Betfair. Set `stream_conflate_ms=0` to request no conflation explicitly and
-receive every price update.
-:::
-
-### Execution client configuration
-
-| Option                              | Default       | Notes                                                              |
-| ----------------------------------- | ------------- | ------------------------------------------------------------------ |
-| `account_id`                        | `BETFAIR-001` | Account ID for the client core.                                    |
-| `account_currency`                  | `GBP`         | Betfair account currency.                                          |
-| `username`                          | `None`        | Falls back to `BETFAIR_USERNAME`.                                  |
-| `password`                          | `None`        | Falls back to `BETFAIR_PASSWORD`.                                  |
-| `app_key`                           | `None`        | Falls back to `BETFAIR_APP_KEY`.                                   |
-| `proxy_url`                         | `None`        | Optional proxy URL for HTTP requests.                              |
-| `request_rate_per_second`           | `5`           | General HTTP rate limit.                                           |
-| `order_request_rate_per_second`     | `20`          | Order endpoint rate limit.                                         |
-| `stream_host`                       | `None`        | Optional stream host override.                                     |
-| `stream_port`                       | `None`        | Optional stream port override.                                     |
-| `stream_heartbeat_secs`             | `None`        | Outbound heartbeat interval in seconds; `None` sends none.         |
-| `stream_heartbeat_timeout_secs`     | `None`        | Dead-peer override; `None` uses two server intervals.              |
-| `stream_reconnect_delay_initial_ms` | `2,000`       | Initial reconnect delay.                                           |
-| `stream_reconnect_delay_max_ms`     | `30,000`      | Maximum reconnect delay.                                           |
-| `stream_use_tls`                    | `True`        | Use TLS for the stream connection.                                 |
-| `stream_market_ids_filter`          | `None`        | Optional live OCM market filter.                                   |
-| `ignore_external_orders`            | `False`       | Only skips OCM updates with no `rfo`.                              |
-| `calculate_account_state`           | `True`        | Enables periodic account state polling.                            |
-| `request_account_state_secs`        | `300`         | Poll interval for account funds (`0` disables).                    |
-| `reconcile_market_ids_only`         | `False`       | When `True`, use `reconcile_market_ids`.                           |
-| `reconcile_market_ids`              | `None`        | Explicit startup reconciliation market IDs.                        |
-| `use_market_version`                | `False`       | Attach market version to orders; currently has no effect.          |
-| `stream_gap_recovery_lookback_mins` | `10`          | Lookback window for the post-reconnect mass-status reconciliation. |
-
-## Contributing
-
 :::info
-For additional features or to contribute to the Betfair adapter, please see our
-[contributing guide](https://github.com/nautechsystems/nautilus_trader/blob/develop/CONTRIBUTING.md).
+如需更多功能或希望为 Betfair 适配器贡献代码，请参阅我们的
+[contributing guide](https://github.com/nautechsystems/nautilus_trader/blob/develop/CONTRIBUTING.md)。
 :::

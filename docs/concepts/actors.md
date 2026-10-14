@@ -1,526 +1,206 @@
 # Actors
 
-A **data actor** receives requested and subscribed data, handles system events, and manages component state.
-In Python, extend the `DataActor` class. In Rust, implement the `DataActor` trait. A strategy adds
-order-management capabilities.
+:::info
+We are currently working on this concept guide.
+:::
 
-**Capabilities**:
+`Actor` 是与交易系统交互的基础组件。
+它提供了接收市场数据、处理事件以及在交易环境中管理状态的核心功能。
+`Strategy` 类继承自 `Actor`，并在此基础上扩展了订单管理相关的方法。
 
-- Market and custom data subscriptions and requests.
-- Custom data and signal publishing.
-- Event, timer, and alert handling.
-- Cache access.
-- Structured logging.
+**主要能力**：
 
-## Basic Python example
+- 事件订阅与处理。
+- 市场数据接收。
+- 状态管理。
+- 与系统交互的原语（primitives）。
 
-Actors support configuration through a pattern similar to strategies. Declare custom fields as keyword-only
-arguments and accept `**_kwargs` so the base fields (`actor_id` and the log settings) pass through to
-`DataActorConfig.__new__`, which reads them from the same call.
+## 基本示例
 
-A positional argument would be matched against `actor_id` instead, raising a `TypeError`.
+与策略类似，actor 也通过类似的配置模式来初始化。
 
 ```python
-from nautilus_trader.common import DataActor
-from nautilus_trader.config import DataActorConfig
-from nautilus_trader.model import Bar
-from nautilus_trader.model import BarType
+from nautilus_trader.config import ActorConfig
+from nautilus_trader.model import InstrumentId
+from nautilus_trader.model import Bar, BarType
+from nautilus_trader.common.actor import Actor
 
 
-class MyActorConfig(DataActorConfig):
-    def __init__(self, *, bar_type: BarType, **_kwargs) -> None:
-        super().__init__()
-        self.bar_type = bar_type
+class MyActorConfig(ActorConfig):
+    instrument_id: InstrumentId   # example value: "ETHUSDT-PERP.BINANCE"
+    bar_type: BarType             # example value: "ETHUSDT-PERP.BINANCE-15-MINUTE[LAST]-INTERNAL"
+    lookback_period: int = 10
 
 
-class MyActor(DataActor):
+class MyActor(Actor):
     def __init__(self, config: MyActorConfig) -> None:
         super().__init__(config)
 
-        # Keep runtime state on the actor
+        # 自定义状态变量
         self.count_of_processed_bars: int = 0
 
     def on_start(self) -> None:
-        # Subscribe to bars matching the configured bar type
-        self.subscribe_bars(self.config.bar_type)
+        # 订阅所有传入的 bar
+        self.subscribe_bars(self.config.bar_type)   # 可以通过 `self.config` 直接访问配置
 
-    def on_bar(self, bar: Bar) -> None:
+    def on_bar(self, bar: Bar):
         self.count_of_processed_bars += 1
 ```
 
-## Actor configuration and IDs
+## 数据处理与回调
 
-Data actors can receive a `DataActorConfig` subclass. The base config accepts an optional `actor_id`. If you
-supply an ID, the actor registers with that ID. Without an ID, a Python actor registers under its class name.
+在 Nautilus 中处理数据时，需要理解数据的 _请求/订阅_（requests/subscriptions）与相应回调处理器之间的关系。
+系统会根据数据是历史数据还是实时数据选择不同的处理 handler。
 
-Give each instance an explicit `actor_id` when running more than one instance of the same actor, because a
-duplicate ID is rejected at registration (a `RuntimeError` in Python).
+### 历史数据 vs 实时数据
 
-Treat configuration as construction data for the actor. Read user-supplied settings through
-`self.config`, and keep runtime state on the actor itself.
+系统将数据流分为两类：
 
-:::info Rust implementation
-Rust actors store runtime identity and state in `DataActorCore`. Read the runtime ID through
-`actor_id()` rather than expecting a generated ID to be written back into `DataActorConfig`.
-A Rust actor without a configured `actor_id` registers as `DataActor` whatever its type, so give
-each Rust actor an explicit `actor_id`.
+1. **历史数据**（来自 _requests_）:
 
-Rust authors implement `DataActor` and use the facade methods on `self`.
-`DataActorNative` is native-only access for runtime wiring and borrowed
-core state. Import it only for same-binary performance paths or internal runtime wiring.
-:::
+   - 通过 `request_bars()`、`request_quote_ticks()` 等方法获取。
+   - 由 `on_historical_data()` Handler 处理。
+   - 常用于初始数据加载和历史分析。
 
-## Lifecycle
+2. **实时数据**（来自 _subscriptions_）:
+   - 通过 `subscribe_bars()`、`subscribe_quote_ticks()` 等方法获取。
+   - 由专门的 handler（例如 `on_bar()`、`on_quote_tick()` 等）处理。
+   - 用于实时（live）数据处理。
 
-Actors move through the main stable states shown below:
+### 回调处理器映射
 
-```mermaid
-stateDiagram-v2
-    [*] --> READY : register()
-    READY --> RUNNING : start()
-    RUNNING --> STOPPED : stop()
-    STOPPED --> RUNNING : resume()
-    RUNNING --> DEGRADED : degrade()
-    DEGRADED --> RUNNING : resume()
-    STOPPED --> READY : reset()
-    RUNNING --> FAULTED : fault()
-    STOPPED --> DISPOSED : dispose()
-```
+下面列出了不同数据操作与其对应的 handler：
 
-Main flow only: transitional states and less common valid edges are omitted. For actions with a
-lifecycle handler, the actor reaches the destination state only after that handler succeeds.
+| Operation                       | Category   | Handler                  | Purpose                                       |
+| :------------------------------ | :--------- | :----------------------- | :-------------------------------------------- |
+| `subscribe_data()`              | Real‑time  | `on_data()`              | 实时数据更新                                  |
+| `subscribe_instrument()`        | Real‑time  | `on_instrument()`        | 实时的 instrument 定义更新                    |
+| `subscribe_instruments()`       | Real‑time  | `on_instrument()`        | （针对某个 venue 的）一批 instrument 定义更新 |
+| `subscribe_order_book_deltas()` | Real‑time  | `on_order_book_deltas()` | 实时订单薄（order book）更新                  |
+| `subscribe_quote_ticks()`       | Real‑time  | `on_quote_tick()`        | 实时报价更新                                  |
+| `subscribe_trade_ticks()`       | Real‑time  | `on_trade_tick()`        | 实时成交（trade）更新                         |
+| `subscribe_mark_prices()`       | Real‑time  | `on_mark_price()`        | 实时标记价（mark price）更新                  |
+| `subscribe_index_prices()`      | Real‑time  | `on_index_price()`       | 实时指数价更新                                |
+| `subscribe_funding_rates()`     | Real‑time  | `on_funding_rate()`      | 实时 funding rate 更新                        |
+| `subscribe_bars()`              | Real‑time  | `on_bar()`               | 实时 bar 更新                                 |
+| `subscribe_instrument_status()` | Real‑time  | `on_instrument_status()` | 实时 instrument 状态更新                      |
+| `subscribe_instrument_close()`  | Real‑time  | `on_instrument_close()`  | instrument 收盘（close）事件                  |
+| `subscribe_order_fills()`       | Real‑time  | `on_order_filled()`      | 某合约/标的的成交回报事件                     |
+| `request_data()`                | Historical | `on_historical_data()`   | 历史数据处理                                  |
+| `request_instrument()`          | Historical | `on_instrument()`        | instrument 定义更新                           |
+| `request_instruments()`         | Historical | `on_instrument()`        | instrument 定义更新                           |
+| `request_quote_ticks()`         | Historical | `on_historical_data()`   | 历史报价处理                                  |
+| `request_trade_ticks()`         | Historical | `on_historical_data()`   | 历史成交处理                                  |
+| `request_bars()`                | Historical | `on_historical_data()`   | 历史 bar 处理                                 |
+| `request_aggregated_bars()`     | Historical | `on_historical_data()`   | 即时聚合的历史 bars（on-the-fly）             |
 
-Override these methods to hook into lifecycle events:
+### 历史与实时数据示例
 
-| Method         | When called                                                                                                            |
-| -------------- | ---------------------------------------------------------------------------------------------------------------------- |
-| `on_start()`   | Actor executes its start transition. Subscribe to data here.                                                           |
-| `on_stop()`    | Actor executes its stop transition. Clean up actor-owned resources here.                                               |
-| `on_resume()`  | Actor is resuming after it stopped or degraded.                                                                        |
-| `on_reset()`   | Actor resets, including between backtest runs. The actor releases retained data subscriptions after the hook succeeds. |
-| `on_degrade()` | Actor is entering a degraded state and may provide only partial functionality.                                         |
-| `on_fault()`   | Actor is entering the faulted state after it encounters a fault.                                                       |
-| `on_dispose()` | Actor is being disposed and must release its remaining resources.                                                      |
-
-## Timers and alerts
-
-Actors have access to a clock for scheduling:
+下面示例同时演示了历史数据请求与实时订阅的处理方式：
 
 ```python
-from datetime import timedelta
+from nautilus_trader.common.actor import Actor
+from nautilus_trader.config import ActorConfig
+from nautilus_trader.core.data import Data
+from nautilus_trader.model import Bar, BarType
+from nautilus_trader.model import ClientId, InstrumentId
 
-from nautilus_trader.common import TimeEvent
 
+class MyActorConfig(ActorConfig):
+    instrument_id: InstrumentId  # example value: "AAPL.XNAS"
+    bar_type: BarType            # example value: "AAPL.XNAS-1-MINUTE-LAST-EXTERNAL"
 
-def on_start(self) -> None:
-    self._schedule_clock_events()
 
-
-def on_resume(self) -> None:
-    self._schedule_clock_events()
-
-
-def on_stop(self) -> None:
-    self._cancel_clock_events()
-
-
-def on_degrade(self) -> None:
-    self._cancel_clock_events()
-
-
-def _cancel_clock_events(self) -> None:
-    self.clock.cancel_timer("my_actor.timer")
-    self.clock.cancel_timer("my_actor.alert")
-
-
-def _schedule_clock_events(self) -> None:
-    # Set a recurring timer with a callback that fires every 5 seconds
-    self.clock.set_timer(
-        "my_actor.timer",
-        timedelta(seconds=5),
-        callback=self._on_timer,
-    )
-
-    # Set a one-time alert with a callback
-    self.clock.set_time_alert(
-        "my_actor.alert",
-        self.clock.utc_now() + timedelta(minutes=1),
-        callback=self._on_alert,
-    )
-
-
-def _on_timer(self, event: TimeEvent) -> None:
-    self.log.info("Timer fired!")
-
-
-def _on_alert(self, event: TimeEvent) -> None:
-    self.log.info("Alert triggered!")
-```
-
-Pass a `callback` to direct `TimeEvent` objects to your own method. Without one, the actor runtime
-connects the clock's registered default handler to `on_time_event()`.
-
-Use `set_timer_zoned()` to schedule a recurring local time, such as 09:30 in New York across DST changes.
-See the [calendar timer example](strategies.md#calendar-timers) for setup and delivery behavior.
-
-When components share a clock:
-
-- Use **explicit callbacks** to route events to the intended component.
-- Use **unique timer names** within the clock's namespace. Registering the same name replaces the
-  existing timer.
-
-## System access
-
-Actors have access to core system components:
-
-| API                                         | Description                                          |
-| ------------------------------------------- | ---------------------------------------------------- |
-| `self.cache`                                | Shared state for instruments, orders, and positions. |
-| `self.clock`                                | Current time and timer or alert scheduling.          |
-| `self.log`                                  | Structured logging.                                  |
-| `publish_data()` / `subscribe_data()`       | Structured custom data messaging.                    |
-| `publish_signal()` / `subscribe_signal()`   | Lightweight alerts and notifications.                |
-| `publish_message()`                         | Publish a Python object on an application topic.     |
-| `subscribe_topic()` / `unsubscribe_topic()` | Manage Python object callbacks.                      |
-| `subscribe_queue_state()`                   | Live runner queue pressure state changes.            |
-| `subscribe_socket_state()`                  | Live socket transport state changes.                 |
-| `reconnect_socket()`                        | Request recovery of one live socket endpoint.        |
-| `unsubscribe_queue_state()`                 | Stop receiving runner queue pressure state changes.  |
-| `unsubscribe_socket_state()`                | Stop receiving socket transport state changes.       |
-| `on_queue_state()`                          | Handle a runner queue pressure state change.         |
-| `on_socket_state()`                         | Handle a socket transport state change.              |
-
-The Python `DataActor` and `Strategy` APIs do not expose `self.msgbus`. Use custom data for
-structured payloads, signals for lightweight values, or
-[topic messaging](message_bus.md#python-topic-messaging) for arbitrary in-process Python objects.
-
-### Queue pressure state
-
-Actors can subscribe to runner queue pressure state changes:
-
-```rust tab="Rust"
-use nautilus_common::{
-    actor::DataActor,
-    messages::system::QueueStateChanged,
-};
-
-impl DataActor for MyActor {
-    fn on_start(&mut self) -> anyhow::Result<()> {
-        self.subscribe_queue_state(None, Some(50));
-        Ok(())
-    }
-
-    fn on_stop(&mut self) -> anyhow::Result<()> {
-        self.unsubscribe_queue_state(None);
-        Ok(())
-    }
-
-    fn on_queue_state(&mut self, event: &QueueStateChanged) -> anyhow::Result<()> {
-        log::warn!(
-            "Queue {:?} changed {:?} to {:?} at depth {}",
-            event.channel,
-            event.condition,
-            event.state,
-            event.queue_depth,
-        );
-        Ok(())
-    }
-}
-```
-
-```python tab="Python"
-from nautilus_trader.common import QueueStateChanged
-
-
-def on_start(self) -> None:
-    self.subscribe_queue_state(priority=50)
-
-
-def on_stop(self) -> None:
-    self.unsubscribe_queue_state()
-
-
-def on_queue_state(self, event: QueueStateChanged) -> None:
-    self.log.warning(
-        f"Queue {event.channel} changed {event.condition} to {event.state} "
-        f"at depth {event.queue_depth}",
-    )
-```
-
-#### Filters and delivery
-
-The optional priority controls delivery order among matching subscribers. **Higher values run first.** A
-second subscription does not change an existing priority. To change the priority, unsubscribe first, then
-subscribe with the new priority.
-
-Pass `channel` to select one runner channel, for example
-`self.subscribe_queue_state(channel=SystemChannel.DATA_EVENTS)` in Python. Import `SystemChannel`
-from `nautilus_trader.common`.
-
-- Omitting `channel` subscribes to all monitored channels.
-- To remove a subscription, pass the **same channel** to `unsubscribe_queue_state`. Omitting it
-  removes only the unfiltered subscription.
-- Overlapping subscriptions each invoke the callback for a matching event.
-
-Runner queues are shared across clients, so they have no client filter.
-
-#### Queue event contents
-
-`QueueStateChanged` includes the trader ID, runner channel, queue condition, condition state, queue
-depth, mean dispatch time, event ID, and timestamps. Delivery uses the typed in-process message bus
-and has no external wire representation. See
-[Queue pressure monitoring](live.md#queue-pressure-monitoring) for the trigger and clear semantics.
-
-### Socket transport state
-
-Actors can subscribe to socket state changes from live adapters that report them:
-
-```rust tab="Rust"
-use nautilus_common::{
-    actor::DataActor,
-    messages::system::SocketStateChanged,
-};
-
-impl DataActor for MyActor {
-    fn on_start(&mut self) -> anyhow::Result<()> {
-        self.subscribe_socket_state(None, None, Some(50));
-        Ok(())
-    }
-
-    fn on_stop(&mut self) -> anyhow::Result<()> {
-        self.unsubscribe_socket_state(None, None);
-        Ok(())
-    }
-
-    fn on_socket_state(&mut self, event: &SocketStateChanged) -> anyhow::Result<()> {
-        log::info!(
-            "Socket {} for {} changed to {:?}",
-            event.endpoint,
-            event.client_id,
-            event.state,
-        );
-        Ok(())
-    }
-}
-```
-
-```python tab="Python"
-from nautilus_trader.common import SocketStateChanged
-
-
-def on_start(self) -> None:
-    self.subscribe_socket_state(priority=50)
-
-
-def on_stop(self) -> None:
-    self.unsubscribe_socket_state()
-
-
-def on_socket_state(self, event: SocketStateChanged) -> None:
-    self.log.info(
-        f"Socket {event.endpoint} for {event.client_id} changed to {event.state}",
-    )
-```
-
-#### Filters and delivery
-
-The optional priority controls delivery order among matching subscribers. **Higher values run first.** A
-second subscription does not change an existing priority. To change the priority, unsubscribe first, then
-subscribe with the new priority.
-
-Pass `client_id`, `endpoint`, or both to filter socket events. In Python,
-`self.subscribe_socket_state(client_id=ClientId("BINANCE"), endpoint="binance-futures-market-streams")`
-selects one transport. Import `ClientId` from `nautilus_trader.model`.
-
-- Each omitted filter matches all values of that field.
-- Supplied values match literally, including dots and wildcard characters.
-- Pass the **same filters** to `unsubscribe_socket_state` to remove that subscription. Omitting both
-  removes only the unfiltered subscription.
-- Overlapping subscriptions each invoke the callback for a matching event.
-
-#### Socket event contents
-
-`SocketStateChanged` includes the trader ID, client ID, optional venue, stable endpoint label,
-transport state, event ID, and timestamps. The endpoint is a non-secret logical label, not a raw
-connection URL. `SocketState.DISCONNECTED` reports the loss of an active transport.
-
-:::note
-`SocketState.CONNECTED` reports **transport availability**, not authentication, subscription replay,
-or adapter readiness.
-:::
-
-Delivery uses the typed in-process message bus and has no external wire representation. See
-[Socket transport state](live.md#socket-transport-state) for supported adapters and the precise
-connection edge semantics.
-
-### Reconnect a socket endpoint
-
-Live actors and strategies can request recovery of one endpoint without restarting its data or
-execution client. Pass the `client_id` and the endpoint label reported by `SocketStateChanged`:
-
-```rust tab="Rust"
-use nautilus_common::actor::DataActor;
-use nautilus_model::identifiers::ClientId;
-
-impl MyActor {
-    fn recover_market_socket(&self) -> anyhow::Result<()> {
-        self.reconnect_socket(
-            ClientId::from("POLYMARKET"),
-            "polymarket-market-streams",
-        )?;
-        Ok(())
-    }
-}
-```
-
-```python tab="Python"
-from nautilus_trader.model import ClientId
-
-
-def recover_market_socket(self) -> None:
-    self.reconnect_socket(
-        client_id=ClientId("POLYMARKET"),
-        endpoint="polymarket-market-streams",
-    )
-```
-
-#### Observe recovery
-
-:::note
-This API is **fire-and-observe**. A successful return means the command passed local validation and
-was queued. It does not acknowledge that the kernel accepted the request or that recovery completed.
-:::
-
-Subscribe with `subscribe_socket_state` using the same `client_id` and `endpoint` filters, then
-inspect the `SocketStateChanged` events. An accepted request reports:
-
-1. `SocketState.DISCONNECTED` as the transport enters reconnect mode.
-1. `SocketState.CONNECTED` after transport recovery.
-
-#### Request failures
-
-- **Synchronous failures**: Invalid endpoint labels and unavailable or closed runner channels fail
-  synchronously. Endpoint labels accept only ASCII letters, digits, `.`, `-`, and `_`. Pass a logical label
-  rather than a raw URL.
-- **Kernel rejections**: The kernel logs unknown clients, unsupported clients, unknown or ambiguous
-  endpoints, duplicate requests, disconnecting transports, and closed transports. These rejections
-  do not emit a socket state change or affect another endpoint.
-
-## Data handling and callbacks
-
-The system dispatches request responses separately from subscribed updates. The operation determines
-which callback handles the data.
-
-### Request responses and subscriptions
-
-The system distinguishes between two data flows:
-
-1. **Request responses**:
-   - Received through methods like `request_bars()`, `request_quotes()`, etc.
-   - Processed through type-specific batch handlers such as `on_historical_bars()` and
-     `on_historical_quotes()`.
-   - Custom data uses `on_historical_data()` once per response. A scalar `CustomData` arrives as
-     that object, while a batch arrives as one list, including an empty list.
-   - Used for initial data loading and historical analysis.
-
-2. **Subscribed data**:
-   - Received through methods like `subscribe_bars()`, `subscribe_quotes()`, etc.
-   - Processed through specific handlers like `on_bar()`, `on_quote()`, etc.
-   - Used for ongoing event processing.
-
-### Callback handlers
-
-Common data operations map to these handlers:
-
-| Operation                       | Category     | Handler                         | Purpose                                    |
-| ------------------------------- | ------------ | ------------------------------- | ------------------------------------------ |
-| `subscribe_data()`              | Subscription | `on_data()`                     | Custom data updates.                       |
-| `subscribe_signal()`            | Subscription | `on_signal()`                   | Signal updates.                            |
-| `subscribe_instrument()`        | Subscription | `on_instrument()`               | Instrument definition updates.             |
-| `subscribe_instruments()`       | Subscription | `on_instrument()`               | Instrument definition updates for a venue. |
-| `subscribe_book_deltas()`       | Subscription | `on_book_deltas()`              | Order book deltas.                         |
-| `subscribe_book_depth()`        | Subscription | `on_book_depth()`               | Order book depth snapshots.                |
-| `subscribe_book_at_interval()`  | Subscription | `on_book()`                     | Order book snapshots at intervals.         |
-| `subscribe_quotes()`            | Subscription | `on_quote()`                    | Quote updates.                             |
-| `subscribe_trades()`            | Subscription | `on_trade()`                    | Trade updates.                             |
-| `subscribe_mark_prices()`       | Subscription | `on_mark_price()`               | Mark price updates.                        |
-| `subscribe_index_prices()`      | Subscription | `on_index_price()`              | Index price updates.                       |
-| `subscribe_bars()`              | Subscription | `on_bar()`                      | Bar updates.                               |
-| `subscribe_funding_rates()`     | Subscription | `on_funding_rate()`             | Funding rate updates.                      |
-| `subscribe_instrument_status()` | Subscription | `on_instrument_status()`        | Instrument status updates.                 |
-| `subscribe_instrument_close()`  | Subscription | `on_instrument_close()`         | Instrument close updates.                  |
-| `subscribe_option_greeks()`     | Subscription | `on_option_greeks()`            | Option Greek updates.                      |
-| `subscribe_option_chain()`      | Subscription | `on_option_chain()`             | Option chain slice snapshots.              |
-| `request_data()`                | Request      | `on_historical_data()`          | Historical custom data.                    |
-| `request_book_deltas()`         | Request      | `on_historical_book_deltas()`   | Historical order book deltas.              |
-| `request_book_depth()`          | Request      | `on_historical_book_depth()`    | Historical order book depth.               |
-| `request_book_snapshot()`       | Request      | `on_book()`                     | Order book snapshot.                       |
-| `request_instrument()`          | Request      | `on_instrument()`               | Instrument definition.                     |
-| `request_instruments()`         | Request      | `on_instrument()`               | Instrument definitions.                    |
-| `request_quotes()`              | Request      | `on_historical_quotes()`        | Historical quotes.                         |
-| `request_trades()`              | Request      | `on_historical_trades()`        | Historical trades.                         |
-| `request_bars()`                | Request      | `on_historical_bars()`          | Historical bars.                           |
-| `request_funding_rates()`       | Request      | `on_historical_funding_rates()` | Historical funding rates.                  |
-
-### Request and subscription example
-
-This example shows both request and subscription handling:
-
-```python
-from collections.abc import Sequence
-
-from nautilus_trader.common import DataActor
-from nautilus_trader.config import DataActorConfig
-from nautilus_trader.model import Bar
-from nautilus_trader.model import BarType
-
-
-class MyActorConfig(DataActorConfig):
-    def __init__(self, *, bar_type: BarType, **_kwargs) -> None:
-        super().__init__()
-        self.bar_type = bar_type
-
-
-class MyActor(DataActor):
+class MyActor(Actor):
     def __init__(self, config: MyActorConfig) -> None:
         super().__init__(config)
+        self.bar_type = config.bar_type
 
     def on_start(self) -> None:
-        # Limit the historical response, which is handled by on_historical_bars()
+        # 请求历史数据 —— 由 on_historical_data() 处理
         self.request_bars(
-            bar_type=self.config.bar_type,
-            limit=100,
+            bar_type=self.bar_type,
+            # 许多可选参数
+            start=None,                # datetime，可选
+            end=None,                  # datetime，可选
+            callback=None,             # 请求完成时带回 request ID 的回调
+            update_catalog_mode=None,  # UpdateCatalogMode | None，默认 None
+            params=None,               # dict[str, Any]，可选
         )
 
-        # Deliver subscribed updates to on_bar()
-        self.subscribe_bars(self.config.bar_type)
+        # 订阅实时数据 —— 由 on_bar() 处理
+        self.subscribe_bars(
+            bar_type=self.bar_type,
+            # 许多可选参数
+            client_id=None,  # ClientId，可选
+            params=None,     # dict[str, Any]，可选
+        )
 
-    def on_historical_bars(self, bars: Sequence[Bar]) -> None:
-        for bar in bars:
-            self.log.info(f"Received historical bar: {bar}")
+    def on_historical_data(self, data: Data) -> None:
+        # 处理历史数据（来自 request）
+        if isinstance(data, Bar):
+            self.log.info(f"Received historical bar: {data}")
 
     def on_bar(self, bar: Bar) -> None:
-        self.log.info(f"Received subscribed bar: {bar}")
+        # 处理实时 bar 更新（来自订阅）
+        self.log.info(f"Received real-time bar: {bar}")
 ```
 
-Separate request and subscription handlers let an actor distinguish bootstrap data from ongoing updates. Use
-historical bars to initialize indicators or baseline state. Apply different validation or logging to response
-batches and individual subscribed updates.
+将历史与实时数据处理器分离有利于根据数据上下文采用不同的处理逻辑。例如，你可能会：
+
+- 使用历史数据来初始化指标或建立基线统计。
+- 在实时交易决策中对实时数据采用不同的处理方式。
+- 对历史数据和实时数据分别应用不同的校验或日志策略。
 
 :::tip
-When debugging data flow, check the handler for your data source. If bars appear in the logs but not in
-`on_bar()`, check `on_historical_bars()`. They might come from a request rather than a subscription.
+在调试数据流问题时，先确认你关注的是正确的 handler。如果你在 `on_bar()` 中没有看到数据，但日志显示已接收到 bar，可能是因为数据来自 request（历史数据），应检查 `on_historical_data()`。
 :::
 
-## Order event handling
+## 成交回报（Order fill）订阅
 
-Data actors do not manage orders or define order event callbacks. Handle order events in a `Strategy`
-through its specific order callbacks or `on_order_event()`. Use custom data or signals to pass
-derived values to a data actor when another component needs them. See
-[Strategies: order management](strategies.md#order-management) for the callback list.
+Actors 可以通过 `subscribe_order_fills()` 订阅某个合约/标的的成交回报事件，这对于监控交易活动、实现自定义成交分析或追踪执行质量非常有用。
 
-## Related guides
+订阅后，该标的的所有成交回报都会被转发到 `on_order_filled()` 处理器，不论最初的订单由哪个策略或组件发出。
 
-- [Strategies](strategies.md): Strategies extend actors with order-management capabilities.
-- [Data](data/): Data types and subscriptions available to actors.
-- [Message Bus](message_bus.md): The messaging system actors use for communication.
+### 示例
+
+```python
+from nautilus_trader.common.actor import Actor
+from nautilus_trader.config import ActorConfig
+from nautilus_trader.model import InstrumentId
+from nautilus_trader.model.events import OrderFilled
+
+
+class MyActorConfig(ActorConfig):
+    instrument_id: InstrumentId  # example value: "ETHUSDT-PERP.BINANCE"
+
+
+class FillMonitorActor(Actor):
+    def __init__(self, config: MyActorConfig) -> None:
+        super().__init__(config)
+        self.fill_count = 0
+        self.total_volume = 0.0
+
+    def on_start(self) -> None:
+        # 订阅该合约的所有成交回报
+        self.subscribe_order_fills(self.config.instrument_id)
+
+    def on_order_filled(self, event: OrderFilled) -> None:
+        # 处理成交回报事件
+        self.fill_count += 1
+        self.total_volume += float(event.last_qty)
+
+        self.log.info(
+            f"Fill received: {event.order_side} {event.last_qty} @ {event.last_px}, "
+            f"Total fills: {self.fill_count}, Volume: {self.total_volume}"
+        )
+
+    def on_stop(self) -> None:
+        # 取消订阅成交回报
+        self.unsubscribe_order_fills(self.config.instrument_id)
+```
+
+:::note
+成交回报订阅仅限消息总线（message bus），不通过数据引擎（data engine）。
+只有 actor 处于运行（running）状态时，`on_order_filled()` 处理器才会接收事件。
+:::
