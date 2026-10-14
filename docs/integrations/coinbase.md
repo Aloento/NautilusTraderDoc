@@ -277,11 +277,10 @@ Coinbase 的 `POST /orders` 端点默认路由到 key 绑定的投资组合，�
 - 场所以下列信息拒单 `account is not available`，且已排除下文的钱包诊断。
 
 :::note
-Coinbase's [Create Order reference](https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/orders/create-order)
-marks `retail_portfolio_id` as deprecated and applicable only to legacy keys,
-stating that CDP keys default to the key's permissioned portfolio. The adapter
-still sends the field when configured, so it remains available if the venue's
-default routing does not match your account layout.
+Coinbase 的 [Create Order 参考文档](https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/orders/create-order)
+把 `retail_portfolio_id` 标记为已弃用、仅适用于旧版 key，并说明 CDP key 默认使用
+key 被授权的投资组合。配置后适配器仍会发送该字段，因此当场所的默认路由与你的账户
+布局不符时，它依然可用。
 :::
 
 ### 创建新投资组合 {#creating-a-new-portfolio}

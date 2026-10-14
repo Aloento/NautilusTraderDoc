@@ -780,13 +780,13 @@ def on_data(self, data: CustomData) -> None:
         )
 ```
 
-Each emitted `CustomData` carries the `DataType` the subscription used, so events reach the
-subscribing actor's `on_data`. The adapter holds one data type per instrument and rejects a
-subscription to the same instrument with a different data type until the first is unsubscribed.
+每个发出的 `CustomData` 都携带订阅时使用的 `DataType`，因此事件会到达订阅它的 actor 的
+`on_data`。适配器对每个金融工具只保留一种数据类型；在第一种类型退订之前，对同一金融工具
+用不同数据类型的订阅会被拒绝。
 
-`BybitLiquidation` supports Arrow/Parquet catalog persistence under
-`data/custom/BybitLiquidation/{identifier}`. Rust builds need the `nautilus-bybit` `arrow` feature
-flag for this persistence.
+`BybitLiquidation` 支持以 Arrow/Parquet 持久化到 catalog 的
+`data/custom/BybitLiquidation/{identifier}` 路径。Rust 构建需要启用 `nautilus-bybit` 的
+`arrow` feature 标志才能使用这一持久化。
 
 :::warning
 该数据流包含 Bybit 发布的强平事件。把它当作场所上报的信号，而不是经过独立审计、覆盖全所

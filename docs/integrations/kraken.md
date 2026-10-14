@@ -575,9 +575,8 @@ WebSocket 往返超过 `ws_request_timeout_secs`（默认 `5`）时，场所结�
 ID 的修改或撤销请求。匹配响应到达或执行客户端关闭时，作废保留的请求关联。
 
 :::tip
-Set `ws_request_timeout_secs` comfortably above your observed round-trip
-latency. A premature timeout can send a compensating cancel for a submit or
-batch add that Kraken accepted.
+把 `ws_request_timeout_secs` 设得明显高于你实测的往返延迟。超时来得过早，可能对一笔
+Kraken 已接受的提交或批量添加发出补偿性撤销。
 :::
 
 ### WebSocket 订单路由选项 {#websocket-order-routing-options}

@@ -3,7 +3,7 @@
 本页定义排队（queued）的 actor 与策略回调的所有权、顺序与进展要求。策略层面的
 说明见[设计原则](./design_principles.md#queued-callback-dispatch-requirements)。
 
-:::info Queued delivery is not yet active
+:::info 入队不等于已生效
 这些要求是排队 actor 与策略回调投递的设计约束，不是对既有同步派发路径的保证。
 支持消息总线同步重入，并不会启用排队的 actor 或策略回调。
 :::
@@ -93,7 +93,7 @@ When the runtime processes C (timing depends on the runtime):
 
 ## 顺序与重入 {#ordering-and-reentrancy}
 
-:::tip What is reentrancy?
+:::tip 什么是重入？
 重入指代码在其较早一次调用返回之前再次被进入。例如消息总线的订阅者又发布了
 另一条消息，导致嵌套投递先于原来的发布完成。这发生在单个线程上，不需要并行执行。
 :::
@@ -250,7 +250,7 @@ run future drop 时会释放报告借用，但本身不运行报告任务的取�
 `run_with_mode` 在本地拥有接收端。终态清理的所有者是 `LiveNode::dispose`，
 不是正常停止，也不是运行循环的末尾。
 
-:::info Terminal ownership cleanup
+:::info 终态所有权清理
 `LiveNode::dispose` 按此顺序执行回调清理：
 
 1. 处置内核。确保没有任何引擎或组件借用残留，然后才释放 runner。
@@ -424,7 +424,7 @@ actor 模块包含私有的访问、准入、发布、调用与存储原语。�
 队列为空并不意味着所有保留的根都已释放。仅凭所有权记账不是继续排空的理由。
 边界排空保留第一个致命错误，并把队列中的捕获留到显式拆除时再释放其所有权。
 
-:::warning Release enclosing borrows before draining
+:::warning 排空前先释放外围借用
 守卫的销毁只释放访问，不排空回调。调用方还必须在排空之前结束外围的引擎、
 缓存及其他未跟踪的借用。
 :::
@@ -621,7 +621,7 @@ unwind 时恢复外围的根。
 会在命令仍在队列中时闭锁回调溢出。命令条目不消耗回调保留单元限制，命令
 载荷与队列容量也不计入已知回调存储。每个根的分配只计费一次。
 
-:::warning Command transport is not callback budgeting
+:::warning 命令传输不是回调预算
 这些限制不约束命令队列内存，也不约束只生成命令的循环。
 :::
 
@@ -703,7 +703,7 @@ unwind 时恢复外围的根。
 因此它们的计费按长度计，不含无法访问的空余容量。投递在途以及批次保留捕获
 期间，计费一直保持。
 
-:::warning Not a total-process memory cap
+:::warning 不是全进程内存上限
 这份记账不是进程总内存的界。它不包括：
 
 - 分配器自身的管理开销。
