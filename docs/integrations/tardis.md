@@ -109,26 +109,26 @@ Tardis 上的部分交易所被划分为多个交易场所。下表列出 Nautil
 | :----------------- | :----------------------------------------------------------------------------------------------------------- |
 | `ASCENDEX`         | `ascendex`                                                                                                   |
 | `BINANCE`          | `binance`, `binance-dex`, `binance-european-options`, `binance-futures`, `binance-jersey`, `binance-options` |
-| `BINANCE_DELIVERY` | `binance-delivery` (*COIN-margined contracts*)                                                               |
+| `BINANCE_DELIVERY` | `binance-delivery`（*币本位合约*）                                                               |
 | `BINANCE_US`       | `binance-us`                                                                                                 |
 | `BITFINEX`         | `bitfinex`, `bitfinex-derivatives`                                                                           |
 | `BITFLYER`         | `bitflyer`                                                                                                   |
 | `BITGET`           | `bitget`, `bitget-futures`                                                                                   |
-| `BITMEX`           | `bitmex` (*historical data only*)                                                                            |
+| `BITMEX`           | `bitmex` （*仅历史数据*）                                                                            |
 | `BITNOMIAL`        | `bitnomial`                                                                                                  |
 | `BITSTAMP`         | `bitstamp`                                                                                                   |
 | `BLOCKCHAIN_COM`   | `blockchain-com`                                                                                             |
 | `BYBIT`            | `bybit`, `bybit-options`, `bybit-spot`                                                                       |
 | `COINBASE`         | `coinbase`                                                                                                   |
 | `COINBASE_INTX`    | `coinbase-international`                                                                                     |
-| `COINFLEX`         | `coinflex` (*historical data only*)                                                                          |
+| `COINFLEX`         | `coinflex` （*仅历史数据*）                                                                          |
 | `CRYPTO_COM`       | `crypto-com`                                                                                                 |
 | `CRYPTOFACILITIES` | `cryptofacilities`                                                                                           |
 | `DELTA`            | `delta`                                                                                                      |
 | `DERIBIT`          | `deribit`                                                                                                    |
 | `DYDX`             | `dydx`                                                                                                       |
 | `DYDX_V4`          | `dydx-v4`                                                                                                    |
-| `FTX`              | `ftx`, `ftx-us` (*historical data only*)                                                                     |
+| `FTX`              | `ftx`, `ftx-us` （*仅历史数据*）                                                                     |
 | `GATE_IO`          | `gate-io`, `gate-io-futures`                                                                                 |
 | `GEMINI`           | `gemini`                                                                                                     |
 | `HITBTC`           | `hitbtc`                                                                                                     |
@@ -144,7 +144,7 @@ Tardis 上的部分交易所被划分为多个交易场所。下表列出 Nautil
 | `OKEX`             | `okex`, `okex-futures`, `okex-options`, `okex-spreads`, `okex-swap`                                          |
 | `PHEMEX`           | `phemex`                                                                                                     |
 | `POLONIEX`         | `poloniex`                                                                                                   |
-| `SERUM`            | `serum` (*historical data only*)                                                                             |
+| `SERUM`            | `serum` （*仅历史数据*）                                                                             |
 | `STAR_ATLAS`       | `star-atlas`                                                                                                 |
 | `UPBIT`            | `upbit`                                                                                                      |
 | `WOO_X`            | `woo-x`                                                                                                      |
@@ -753,29 +753,26 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 }
 ```
 
-## Nautilus data client
+## Nautilus 数据客户端 {#nautilus-data-client}
 
-`TardisDataClientConfig` and `TardisDataClientFactory` integrate a configured Tardis Machine stream
-with a Nautilus node. The configuration selects one mode:
+`TardisDataClientConfig` 与 `TardisDataClientFactory` 把配置好的 Tardis Machine 数据流接入
+Nautilus 节点。配置选择其中一种模式：
 
-- A non-empty `options` list connects to the historical `ws-replay-normalized` endpoint.
-- When `options` is empty, a non-empty `stream_options` list connects to the real-time
-  `ws-stream-normalized` endpoint and reconnects automatically after a recoverable interruption.
+- `options` 列表非空时，连接历史的 `ws-replay-normalized` 端点。
+- `options` 为空时，非空的 `stream_options` 列表连接实时的 `ws-stream-normalized` 端点，
+  并在可恢复的中断后自动重连。
 
-One list must be non-empty. If both are set, `options` selects historical replay mode. These request
-options determine the upstream exchanges, symbols, and data types. Nautilus subscription commands
-do not add or remove data from the Tardis Machine WebSocket.
+两个列表必须有且仅有一个非空。若两者都设置，`options` 选择历史回放模式。这些请求选项决定了上游
+交易所、符号与数据类型。Nautilus 的订阅命令不会增删 Tardis Machine WebSocket 上的数据。
 
-When `options` is empty, a BitMEX entry in `stream_options` fails before any network request.
-Use historical `options` for BitMEX replay. An unsupported-exchange close from Tardis Machine
-terminates the live stream without reconnecting.
+`options` 为空时，`stream_options` 中的 BitMEX 条目会在任何网络请求之前失败。BitMEX 回放请用
+历史的 `options`。来自 Tardis Machine 的"交易所不受支持"关闭会让实时数据流终止且不再重连。
 
-The data client adds `derivative_ticker` to every configured request so it can publish funding
-rates, mark prices, and index prices when their values change. It also supports the other outputs in
-[supported formats](#supported-formats), including `OptionGreeks` and optional BBO `QuoteTick` data
-from `option_summary` messages.
+数据客户端会为每个配置好的请求加上 `derivative_ticker`，以便在数值变化时发布资金费率、标记价格与
+指数价格。它也支持[支持的格式](#supported-formats)中的其他输出，包括 `OptionGreeks` 以及来自
+`option_summary` 消息的可选 BBO `QuoteTick` 数据。
 
-Create Python stream options from Tardis JSON, then pass them to the public data client config:
+从 Tardis JSON 构造 Python 的流选项，再传给公共的数据客户端配置：
 
 ```python
 from nautilus_trader.adapters.tardis import StreamNormalizedRequestOptions
@@ -790,33 +787,30 @@ config = TardisDataClientConfig(stream_options=[stream_options])
 factory = TardisDataClientFactory()
 ```
 
-Pass `factory` and `config` to `LiveNode.builder(...).add_data_client(...)`. See
-`examples/live/tardis/data_tester.py` for the node registration pattern and
-`crates/adapters/tardis/examples/node_data_tester.rs` for a complete Rust replay client.
+把 `factory` 与 `config` 传给 `LiveNode.builder(...).add_data_client(...)`。节点注册模式见
+`examples/live/tardis/data_tester.py`，完整的 Rust 回放客户端见
+`crates/adapters/tardis/examples/node_data_tester.rs`。
 
-The Rust data client config can set `book_snapshot_output` to `depth`. The Python data client config uses the
-default `deltas` output. The standalone replay JSON configuration supports both values.
+Rust 数据客户端配置可以把 `book_snapshot_output` 设为 `depth`。Python 数据客户端配置使用默认的
+`deltas` 输出。独立的回放 JSON 配置两种取值都支持。
 
-## Trade ID derivation
+## 成交 ID 的推导 {#trade-id-derivation}
 
-Trade ticks use the venue-provided trade ID from the Tardis message or CSV row as the `TradeId`. If the venue
-omits the trade ID (empty string or null on some exchanges), both parsers use a deterministic FNV-1a hash. The
-hash includes the symbol, timestamp, price, amount, and side. Price and amount hash by decimal value, so both
-parsers derive the same ID for the same event, provided its CSV values round-trip through `f64` unchanged. The
-same venue event yields the same trade ID across replays, keeping downstream dedup intact.
+成交 tick 使用 Tardis 消息或 CSV 行中交易场所提供的成交 ID 作为 `TradeId`。交易场所省略成交 ID 时
+（部分交易所为空字符串或 null），两个解析器都使用确定性的 FNV-1a 哈希。哈希包含符号、时间戳、价格、
+数量和方向。价格与数量按十进制值哈希，因此同一事件在两个解析器中会推导出相同的 ID，前提是其 CSV 值
+经 `f64` 往返后不变。同一交易场所事件在多次回放中产生相同的成交 ID，从而保持下游去重有效。
 
-## Limitations and considerations
+## 限制与注意事项 {#limitations-and-considerations}
 
-`TardisDataClient` does not implement Nautilus data requests, including instrument, order book,
-quote, trade, funding rate, and bar requests. Configure historical replay through `options`, or use
-`run_tardis_machine_replay` for catalog workflows.
+`TardisDataClient` 不实现 Nautilus 的数据请求，包括金融工具、订单簿、报价、成交、资金费率和 K 线
+请求。通过 `options` 配置历史回放，或用 `run_tardis_machine_replay` 走 catalog 工作流。
 
-## Testing Tardis Node compatibility
+## 测试 Tardis Node 兼容性 {#testing-tardis-node-compatibility}
 
-The Deribit regression feeds a snapshot, covered queued updates, and a fresh update through the
-installed Tardis Node normalizer, then checks the complete Nautilus order book. It requires Node.js
-compatible with the tested `tardis-dev` package and runs separately from the default Rust tests.
-From the repository root:
+Deribit 回归测试把一份快照、已被覆盖的排队增量和一条新增量喂给已安装的 Tardis Node 归一化器，
+然后检查完整的 Nautilus 订单簿。它需要与所测试的 `tardis-dev` 包兼容的 Node.js，并独立于默认
+Rust 测试运行。在仓库根目录执行：
 
 ```bash
 tardis_test_dir=$(mktemp -d)
@@ -827,9 +821,9 @@ TARDIS_NODE_MODULE="$tardis_test_dir/node_modules/tardis-dev" \
 rm -rf "$tardis_test_dir"
 ```
 
-## Contributing
+## 参与贡献 {#contributing}
 
 :::info
-For additional features or to contribute to the Tardis adapter, please see our
-[contributing guide](https://github.com/nautechsystems/nautilus_trader/blob/develop/CONTRIBUTING.md).
+需要更多功能，或想为 Tardis 适配器做贡献，请参阅我们的
+[贡献指南](https://github.com/nautechsystems/nautilus_trader/blob/develop/CONTRIBUTING.md)。
 :::

@@ -230,15 +230,11 @@ engine.add_strategy(strategy)
 engine.run()
 ```
 
-The engine processes all 10,000 bars in timestamp order. Each bar updates the
-registered indicators, then triggers `on_bar`. The simulated exchange fills
-market orders at the current price.
+引擎按时间戳顺序处理全部 10,000 根 bar。每根 bar 先更新已注册的指标，再触发 `on_bar`。模拟交易所按当前价格成交市价单。
 
-## Review results
+## 查看结果 {#review-results}
 
-The engine generates reports from the completed backtest. The account report
-shows balance changes over time, the positions report lists each round-trip
-trade with its realized PnL, and the order fills report shows every execution.
+引擎基于完成的回测生成报告：账户报告展示余额随时间的变化，持仓报告逐条列出每个往返交易及其已实现盈亏，订单成交报告展示每一笔执行。
 
 ```python
 engine.generate_account_report(venue=SIM)
@@ -252,14 +248,11 @@ engine.generate_positions_report()
 engine.generate_order_fills_report()
 ```
 
-## Next steps
+## 下一步 {#next-steps}
 
-- [Backtest (low-level API)](./backtest_low_level.md) for direct `BacktestEngine` usage
-  with real market data and execution algorithms.
-- [Backtest (high-level API)](./backtest_high_level.md) for config-driven backtesting
-  with `BacktestNode` and the Parquet data catalog.
-- [Tutorials](./../tutorials/index.md) for strategy pattern walkthroughs covering
-  market making, mean reversion, order book imbalance, and more.
+- [回测（低层 API）](./backtest_low_level.md)：直接使用 `BacktestEngine`，配合真实行情与执行算法。
+- [回测（高层 API）](./backtest_high_level.md)：用 `BacktestNode` 与 Parquet 数据目录做配置驱动的回测。
+- [教程](./../tutorials/index.md)：策略模式实战讲解，覆盖做市、均值回归、订单簿失衡等。
 
 ```python
 engine.dispose()

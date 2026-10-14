@@ -98,9 +98,9 @@ engine.add_venue(
 )
 ```
 
-## Add data
+## 添加数据 {#add-data}
 
-Add the instrument and trade ticks to the engine.
+把工具与逐笔成交数据加入引擎。
 
 ```python
 # Add instrument(s)

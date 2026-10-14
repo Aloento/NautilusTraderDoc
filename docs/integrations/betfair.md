@@ -535,7 +535,7 @@ Betfair 60 秒的 `customerRef` 去重窗口内。适配器按如下方式处理
 Betfair 的 JSON-RPC 错误包含外层的数字 `code` 与 `message`，还可能包含嵌套的 API
 `errorCode` 与 `errorDetails`。外层值描述 JSON-RPC 信封。Betfair 常用 `-32099`，把可操作的
 API 错误存放在 `data.exceptionname` 所指名的对象里，如 `APINGException` 或
-`APINGException`/`AccountAPINGException`。适配器保留外层与嵌套字段，可用时采用嵌套 API
+`AccountAPINGException`。适配器保留外层与嵌套字段，可用时采用嵌套 API
 错误。未知、缺失或畸形的嵌套数据通过外层 code 与 message 仍然可见，并接受上述保守的订单
 处理。只读调用保留其更宽松的重试策略，可以重试 `TIMEOUT_ERROR` 或可重试的泛型外层错误。
 
@@ -583,103 +583,91 @@ flowchart TD
 
   重述平仓成交只纠正订单均价。持仓平仓核算保持原值。部分平仓之后重述开仓成交只更新未平
   均价。已平仓数量的已实现盈亏保持原值。被撤销注上的重述不再发出第二次撤销。
-- **Late terminal corrections**: the adapter retains correlation and per-Bet fill and void state for
-  the 10,000 most recent terminal identities, including identities restored from closed cached
-  orders. Locally owned identities and external terminal Bet IDs share this bound. Delayed fills and
-  void corrections for an unambiguous retained order emit direct order events. After applying a
-  delayed fill to a canceled order, the adapter emits `OrderCanceled` again to preserve the terminal
-  state. If the same update carries void corrections, the cancel precedes those corrections.
-  Correlation and deduplication state expire together, so an older replay can return through the
-  report path.
-- **Gap-window fills**: a fill that completes and rolls off the unmatched book during a stream disconnect is
-  recovered by the post-reconnect mass-status reconciliation. See
-  [Post-reconnect reconciliation](#post-reconnect-reconciliation).
+- **迟到的终态修正**：适配器为最近 10,000 个终态身份保留关联状态与逐注的成交、作废状态，
+  包括从已关闭缓存订单恢复的身份。本地拥有的身份与外部终态 Bet ID 共享这一上限。对无歧义
+  的保留订单，延迟成交与作废修正直接发出订单事件。把延迟成交应用到已撤销订单之后，适配器
+  再次发出 `OrderCanceled` 以保持终态。若同一更新还携带作废修正，撤销先于这些修正。关联与
+  去重状态一起过期，因此更旧的重放可能经由报告路径返回。
+- **缺口窗口内的成交**：在流断开期间完成并滑出未匹配簿的成交，由重连后的批量状态对账
+  恢复。见[重连后对账](#post-reconnect-reconciliation)。
 
-### Voided fills
+### 作废的成交 {#voided-fills}
 
-Betfair can void matched bets after reporting them, for example after an integrity ruling or a VAR
-decision. The order stream carries the running total in `sv` (size voided). Voids caused by runner
-removal settle instead of streaming, so they do not reach this path.
+Betfair 可能在报告已成交投注之后将其作废，例如诚信裁决或 VAR 决定之后。订单流在 `sv`
+（size voided，作废数量）中携带累计总数。由 runner 移除引起的作废走结算而非流式路径，
+因此不会到达这里。
 
-The adapter allocates each `sv` increase to locally applied fill lots newest-first and emits one
-cumulative [`OrderFillVoided`](./../concepts/events/order_fill_voided.md) per affected `trade_id`. A
-first-seen snapshot seeds its cumulative void state without reversing exposure Nautilus never
-applied, so a reconnect does not double-correct. Any `sv` increase also triggers an account refresh.
+适配器把每次 `sv` 增量按从新到旧分配给本地已应用的成交批次，并为每个受影响的 `trade_id`
+发出一个累计的 [`OrderFillVoided`](./../concepts/events/order_fill_voided.md)。首次见到的
+快照以其累计作废状态做种子，而不会回转 Nautilus 从未应用过的敞口，因此重连不会双重修正。
+任何 `sv` 增量同时会触发一次账户刷新。
 
-An `EXECUTION_COMPLETE` update with no locally applied fill lots takes the terminal path instead: one
-correction under a synthetic `VOID-{bet_id}` trade ID that carries the order to `VOIDED`. That status
-resolves only when `sv` is positive and both cancelled and lapsed quantities are zero, so a mixed
-update carrying `sc` or `sl` alongside `sv` emits no correction. Betfair voids never set
-`is_reopened`, so `VOIDED` is final.
+没有本地已应用成交批次的 `EXECUTION_COMPLETE` 更新改走终态路径：在一个合成的
+`VOID-{bet_id}` 交易 ID 下发出一次修正，把订单带向 `VOIDED`。该状态只在 `sv` 为正、且撤销
+与失效数量都为零时才落定，因此 `sv` 与 `sc` 或 `sl` 并存的混合更新不发修正。Betfair 的
+作废从不设置 `is_reopened`，所以 `VOIDED` 是终态。
 
-The adapter also publishes the [`BetfairOrderVoided`](#custom-data-types) custom data type carrying
-the venue's raw void detail.
+适配器还会发布 `BetfairOrderVoided`[自定义数据类型](#custom-data-types)，携带场所的原始
+作废详情。
 
-## Rate limiting
+## 速率限制 {#rate-limiting}
 
-The adapter uses separate rate limit buckets so that account state polling and
-reconciliation do not throttle order placement:
+适配器使用相互独立的速率限制桶，使账户状态轮询与对账不会拖慢下单：
 
-| Bucket  | Default | Endpoints                                       | Configurable                     |
-| ------- | ------- | ----------------------------------------------- | -------------------------------- |
-| General | 5/s     | Account state, reconciliation, keep-alive.      | `request_rate_per_second`.       |
-| Orders  | 20/s    | `placeOrders`, `replaceOrders`, `cancelOrders`. | `order_request_rate_per_second`. |
+| 桶       | 默认值  | 端点                                            | 可配置项                         |
+| -------- | ------- | ----------------------------------------------- | -------------------------------- |
+| 通用     | 5/s     | 账户状态、对账、keep-alive。                    | `request_rate_per_second`。      |
+| 订单     | 20/s    | `placeOrders`、`replaceOrders`、`cancelOrders`。 | `order_request_rate_per_second`。 |
 
-Read-only Betting API calls use the general HTTP retry budget, with up to three retries by default.
-State-changing calls use the policy in [Order command failures and retries](#order-command-failures-and-retries).
+只读的 Betting API 调用使用通用 HTTP 重试预算，默认至多重试三次。改变状态的调用使用
+[订单命令失败与重试](#order-command-failures-and-retries)中的策略。
 
-After a report query returns a session or rate-limit error, the order status and fill report paths
-make one additional report-level attempt. A session error first tries keep-alive and falls back to
-full re-login after any keep-alive failure. Full re-login updates execution stream authentication
-and requests a replacement after the query finishes. A `TOO_MANY_REQUESTS` error waits 5 seconds
-before the report-level retry.
+报告查询返回会话或速率限制错误之后，订单状态与成交报告路径会再做一次报告级尝试。会话错误
+先试 keep-alive，任何 keep-alive 失败后回退为完全重新登录。完全重新登录会更新执行流鉴权，
+并在查询结束后请求替换。`TOO_MANY_REQUESTS` 错误在报告级重试前等待 5 秒。
 
-Betfair's own API limits are more nuanced than a single request rate:
+Betfair 自身的 API 限制比单一请求速率更细致：
 
-| Category                 | Limit                | Notes                                                                                      |
-| ------------------------ | -------------------- | ------------------------------------------------------------------------------------------ |
-| Order operations         | 1,000 transactions/s | Total instructions across `placeOrders`, `cancelOrders`, `replaceOrders`.                  |
-| Order projection queries | 3 concurrent         | `listMarketBook` (with `OrderProjection`), `listCurrentOrders`, `listMarketProfitAndLoss`. |
-| Best practice            | 5 requests/s         | Recommended for `listMarketBook` per market.                                               |
+| 类别                   | 限制                 | 说明                                                                                       |
+| ---------------------- | -------------------- | ------------------------------------------------------------------------------------------ |
+| 订单操作               | 1,000 笔交易/秒      | `placeOrders`、`cancelOrders`、`replaceOrders` 的指示总数。                                  |
+| 订单投影查询           | 3 个并发             | `listMarketBook`（带 `OrderProjection`）、`listCurrentOrders`、`listMarketProfitAndLoss`。   |
+| 最佳实践               | 5 请求/秒            | 对每个市场的 `listMarketBook` 的建议值。                                                     |
 
-See [Why am I receiving the TOO_MANY_REQUESTS error?](https://support.developer.betfair.com/hc/en-us/articles/360000406111)
-for how Betfair applies these limits.
+Betfair 如何实施这些限制，见
+[Why am I receiving the TOO_MANY_REQUESTS error?](https://support.developer.betfair.com/hc/en-us/articles/360000406111)。
 
-## Market version price protection
+## 市场版本价格保护 {#market-version-price-protection}
 
-Betfair carries a `version` on the market definition. It changes when the market itself is
-redefined, for example when a runner is removed or the market status changes. It does not track
-ordinary price updates or matched volume. Attaching that version to an order asks Betfair to lapse
-the bet rather than match it into a market that has since been redefined.
+Betfair 在市场定义上携带一个 `version`。当市场本身被重定义时它会变化，例如移除某个 runner
+或市场状态改变。它不跟踪普通价格更新或成交量。把该版本附到订单上，是要求 Betfair 让投注
+失效，而不是把它撮合进一个此后已被重定义的市场。
 
 :::warning
-`use_market_version` provides no protection today. The adapter reads the market version from the instrument's
-`info` dictionary. But it constructs every Betfair instrument with `info` unset. Thus, no version is ever
-attached to a `placeOrders` or `replaceOrders` request. `use_market_version=True` changes nothing. Do not rely
-on it for price protection.
+`use_market_version` 目前不提供任何保护。适配器从金融工具的 `info` 字典读取市场版本，但它
+构建每个 Betfair 工具时 `info` 都未设置。因此 `placeOrders` 或 `replaceOrders` 请求永远不会
+附带版本。`use_market_version=True` 不会改变任何行为，不要依赖它做价格保护。
 :::
 
-## Custom data types
+## 自定义数据类型 {#custom-data-types}
 
-The adapter emits custom data through the market, order, race, and cricket streams. Market custom
-data flows automatically when subscribed to markets.
+适配器通过市场、订单、赛马和板球流发布自定义数据。订阅市场后，市场自定义数据会自动流转。
 
-| Type                       | Stream  | Metadata key    | Description                                        |
-| -------------------------- | ------- | --------------- | -------------------------------------------------- |
-| `BetfairTicker`            | Market  | `instrument_id` | Last traded price, traded volume, BSP indicators.  |
-| `BetfairStartingPrice`     | Market  | `instrument_id` | Realized BSP after market close.                   |
-| `BetfairBspBookDelta`      | Market  | `instrument_id` | BSP projected book updates.                        |
-| `BetfairSequenceCompleted` | Market  |                 | Marks end of a market change sequence.             |
-| `BetfairOrderVoided`       | Order   | `instrument_id` | Voided order details (size voided, price, side).   |
-| `BetfairRaceRunnerData`    | Race    | `selection_id`  | Live GPS tracking per runner (TPD).                |
-| `BetfairRaceProgress`      | Race    | `race_id`       | Sectional times, running order, jump data.         |
-| `BetfairCricketMatch`      | Cricket | `event_id`      | Fixture, team, match statistic, and incident data. |
+| 类型                       | 频道    | 元数据键         | 说明                                             |
+| -------------------------- | ------- | ---------------- | ------------------------------------------------ |
+| `BetfairTicker`            | Market  | `instrument_id`  | 最新成交价、成交量、BSP 指标。                   |
+| `BetfairStartingPrice`     | Market  | `instrument_id`  | 市场收盘后的实际 BSP。                           |
+| `BetfairBspBookDelta`      | Market  | `instrument_id`  | BSP 预测订单簿更新。                             |
+| `BetfairSequenceCompleted` | Market  |                  | 标记一段市场变化序列的结束。                     |
+| `BetfairOrderVoided`       | Order   | `instrument_id`  | 作废订单详情（作废数量、价格、方向）。           |
+| `BetfairRaceRunnerData`    | Race    | `selection_id`   | 每个 runner 的实时 GPS 跟踪（TPD）。             |
+| `BetfairRaceProgress`      | Race    | `race_id`        | 分段用时、领先次序、越栏数据。                   |
+| `BetfairCricketMatch`      | Cricket | `event_id`       | 赛程、队伍、比赛统计与事件数据。                 |
 
-Subscribe by type name from an actor or strategy. Every type in the table above carries its metadata key on
-the published topic. Thus, the subscription must supply that key and its scoped value.
-`BetfairSequenceCompleted` is the exception: it publishes without metadata, so it is subscribed by type name
-alone. For segmented updates, the adapter emits this marker on `SEG_END`, after that segment's updates have
-been published. It does not emit the marker on `SEG_START` or `SEG`.
+Actor 或策略按类型名订阅。上表中的每个类型在发布主题上都携带其元数据键，因此订阅必须提供
+该键及其限定值。`BetfairSequenceCompleted` 是例外：它发布时不带元数据，仅按类型名订阅即可。
+对分段更新，适配器在 `SEG_END` 上发出这个标记，即该分段的更新发布完毕之后；不会在
+`SEG_START` 或 `SEG` 上发出。
 
 ```python
 from nautilus_trader.model import DataType
@@ -694,139 +682,129 @@ self.subscribe_data(DataType("BetfairRaceProgress", metadata={"race_id": "352780
 self.subscribe_data(DataType("BetfairSequenceCompleted"))
 ```
 
-Race data requires Total Performance Data (TPD) coverage and a Betfair API key with TPD
-access. Enable with `subscribe_race_data=True`. Not every race has GPS tracking. Cricket data
-requires `subscribe_cricket_data=True`.
+赛马数据需要 Total Performance Data（TPD）覆盖和具有 TPD 权限的 Betfair API key，用
+`subscribe_race_data=True` 启用。并非每场比赛都有 GPS 跟踪。板球数据需要
+`subscribe_cricket_data=True`。
 
-## Historical data
+## 历史数据 {#historical-data}
 
-`BetfairDataLoader` converts recorded Betfair stream files into these types:
+`BetfairDataLoader` 把录制的 Betfair 流文件转换为以下类型：
 
-- Instruments, order book deltas, and trade ticks.
-- Instrument status and close events.
-- The market, race, and cricket custom data types above.
+- 金融工具、订单簿 delta 和成交 tick。
+- 工具状态与收盘事件。
+- 上文的市场、赛马和板球自定义数据类型。
 
-Files hold newline-delimited JSON, either plain or compressed with gzip (`.gz`) or bzip2 (`.bz2`). The loader
-parses `mcm`, `rcm`, and `ccm` messages and skips the rest, so it produces no `BetfairOrderVoided` because
-that type comes from the order stream. Use `load_instruments` when only the instrument definitions are needed,
-because it skips all other parsing.
+文件保存按行分隔的 JSON，可以是明文，也可以用 gzip（`.gz`）或 bzip2（`.bz2`）压缩。加载器
+解析 `mcm`、`rcm` 和 `ccm` 消息并跳过其余内容，因此不会产生 `BetfairOrderVoided`——该类型
+来自订单流。只需要工具定义时使用 `load_instruments`，它会跳过其他所有解析。
 
-Trade ticks are derived from cumulative traded volumes, so the loader keeps that state across lines
-within a file. Call `reset` before loading an unrelated file to clear cached volumes and instruments.
-See the
-[Rust examples](https://github.com/nautechsystems/nautilus_trader/tree/develop/crates/adapters/betfair/examples/)
-for loading a file and running it through a backtest.
+成交 tick 从累计成交量推导，因此加载器在文件内各行之间保留该状态。加载无关文件之前调用
+`reset` 清除缓存的量与工具。加载文件并跑回测的用法见
+[Rust 示例](https://github.com/nautechsystems/nautilus_trader/tree/develop/crates/adapters/betfair/examples/)。
 
-## Multi-node deployment
+## 多节点部署 {#multi-node-deployment}
 
-When multiple trading nodes share a single Betfair account across different markets:
+多个交易节点在不同市场上共享同一个 Betfair 账户时：
 
-1. Set `stream_market_ids_filter` to include only that node's markets.
-2. Set `reconcile_market_ids_only=True` with `reconcile_market_ids` to limit reconciliation scope.
-3. Set `ignore_external_orders=True` to drop bets placed outside NautilusTrader.
+1. 设置 `stream_market_ids_filter`，只包含本节点的市场。
+2. 设置 `reconcile_market_ids_only=True` 并配置 `reconcile_market_ids`，限定对账范围。
+3. 设置 `ignore_external_orders=True`，丢弃在 NautilusTrader 之外下的投注。
 
-Market isolation between nodes comes from `stream_market_ids_filter` and the reconciliation scope, not from
-`ignore_external_orders`. Every bet this adapter submits carries a customer order reference, so another node's
-bets pass that filter. Only bets with no reference, such as those placed on the Betfair site, are dropped.
-Without the market filters, each node reconciles and reports the whole account.
+节点间的市场隔离来自 `stream_market_ids_filter` 和对账范围，而不是
+`ignore_external_orders`。本适配器提交的每一注都带客户订单引用，因此其他节点的投注能通过
+该过滤器。只有不带引用的投注——例如在 Betfair 网站上下的——会被丢弃。不设市场过滤时，
+每个节点都会对账并报告整个账户。
 
-## Configuration
+## 配置 {#configuration}
 
-The adapter configures stream liveness and message size as follows:
+适配器按如下方式配置流的保活与消息大小：
 
-- Market and order subscriptions set `heartbeatMs` to `5,000`, so Betfair sends at least one message
-  every 5 seconds. When no update is available, Betfair sends an empty heartbeat change message.
-  These subscriptions also enable segmentation. Race and cricket subscriptions do not support
-  these fields.
-- `stream_heartbeat_secs` controls separate client-initiated heartbeat requests on all stream
-  connections. It defaults to `None`, which sends none. Betfair recommends leaving these requests
-  off unless a firewall or proxy needs traffic to keep the connection open because the heartbeat
-  response blocks the connection while it is served. See Betfair's
-  [Exchange Stream API heartbeat guidance](https://betfair-developer-docs.atlassian.net/wiki/spaces/1smk3cen4v3lu3yomq5qye0ni/pages/2687396/Exchange+Stream+API#ExchangeStreamAPI-Heartbeat/HeartbeatMessage).
-  Outbound heartbeats do not set the server subscription interval or determine market and order
-  stream readiness. For race and cricket streams, an unset timeout uses two outbound heartbeat
-  intervals for dead-peer detection.
-- `stream_heartbeat_timeout_secs` overrides dead-peer detection. When unset, the adapter uses two
-  effective server heartbeat intervals, rounded up to a whole second, and follows a valid interval
-  reported by Betfair. An explicit override must cover at least two requested intervals. Dead-peer
-  detection starts after the first market or order subscription, which avoids reconnect loops before
-  a data client subscribes. Race and cricket streams do not support subscription heartbeats.
-- A change message with status 503 marks its subscription degraded without replacing the socket. A
-  later current message restores data readiness after a valid initial image has been received. A
-  degraded initial image still requires a later valid `SUB_IMAGE`. For execution,
-  the recovery message queues mass-status reconciliation, and submissions reopen only after the
-  report publishes. Execution submissions remain closed whenever the order stream is pending,
-  rejected, degraded, disconnected, or reconciling.
+- 市场与订单订阅把 `heartbeatMs` 设为 `5,000`，因此 Betfair 至少每 5 秒发送一条消息。没有
+  更新可发时，Betfair 发送一条空的心跳变化消息。这些订阅还启用分段。赛马与板球订阅不支持
+  这些字段。
+- `stream_heartbeat_secs` 控制所有流连接上由客户端主动发起的独立心跳请求。默认 `None`，
+  即不发送。Betfair 建议除非防火墙或代理需要靠流量维持连接，否则关闭这些请求，因为心跳
+  响应在服务期间会阻塞连接。见 Betfair 的
+  [Exchange Stream API heartbeat guidance](https://betfair-developer-docs.atlassian.net/wiki/spaces/1smk3cen4v3lu3yomq5qye0ni/pages/2687396/Exchange+Stream+API#ExchangeStreamAPI-Heartbeat/HeartbeatMessage)。
+  出站心跳不设置服务端订阅间隔，也不决定市场与订单流的就绪状态。对赛马和板球流，未设置
+  超时值时，死线检测使用两个出站心跳间隔。
+- `stream_heartbeat_timeout_secs` 覆盖死线检测。未设置时，适配器使用两个有效的服务端心跳
+  间隔（向上取整到整秒），并遵循 Betfair 报告的有效间隔。显式覆盖值必须至少覆盖两个所请求
+  的间隔。死线检测在首个市场或订单订阅之后才开始，避免数据客户端订阅前就陷入重连循环。
+  赛马与板球流不支持订阅心跳。
+- 状态为 503 的变化消息会把其订阅标记为降级（degraded），但不替换 socket。收到有效的初始
+  镜像之后，后续一条 current 消息恢复数据就绪状态。降级的初始镜像仍需后续一条有效的
+  `SUB_IMAGE`。对执行而言，恢复消息会把批量状态对账排队，提交流程只在报告发布之后才重新
+  开放。只要订单流处于 pending、rejected、degraded、断开或对账中，执行提交就保持关闭。
 
-### Data client configuration
+### 数据客户端配置 {#data-client-configuration}
 
-| Option                              | Default  | Notes                                                      |
+| 选项                                | 默认值   | 说明                                                       |
 | ----------------------------------- | -------- | ---------------------------------------------------------- |
-| `account_currency`                  | `GBP`    | Betfair account currency.                                  |
-| `username`                          | `None`   | Falls back to `BETFAIR_USERNAME`.                          |
-| `password`                          | `None`   | Falls back to `BETFAIR_PASSWORD`.                          |
-| `app_key`                           | `None`   | Falls back to `BETFAIR_APP_KEY`.                           |
-| `proxy_url`                         | `None`   | Optional proxy URL for HTTP requests.                      |
-| `request_rate_per_second`           | `5`      | General HTTP rate limit.                                   |
-| `default_min_notional`              | `None`   | Optional minimum notional override.                        |
-| `event_type_ids`                    | `None`   | Optional navigation filter.                                |
-| `event_type_names`                  | `None`   | Optional navigation filter.                                |
-| `event_ids`                         | `None`   | Optional navigation filter.                                |
-| `country_codes`                     | `None`   | Optional navigation filter.                                |
-| `market_types`                      | `None`   | Optional navigation filter.                                |
-| `market_ids`                        | `None`   | Optional navigation filter.                                |
-| `min_market_start_time`             | `None`   | Optional navigation filter.                                |
-| `max_market_start_time`             | `None`   | Optional navigation filter.                                |
-| `stream_host`                       | `None`   | Optional stream host override.                             |
-| `stream_port`                       | `None`   | Optional stream port override.                             |
-| `stream_heartbeat_secs`             | `None`   | Outbound heartbeat interval in seconds; `None` sends none. |
-| `stream_heartbeat_timeout_secs`     | `None`   | Dead-peer override; `None` uses two server intervals.      |
-| `stream_reconnect_delay_initial_ms` | `2,000`  | Initial reconnect delay.                                   |
-| `stream_reconnect_delay_max_ms`     | `30,000` | Maximum reconnect delay.                                   |
-| `stream_use_tls`                    | `True`   | Use TLS for the stream connection.                         |
-| `stream_conflate_ms`                | `None`   | Explicit conflation setting.                               |
-| `subscription_delay_secs`           | `3`      | Delay before the first market subscription.                |
-| `subscribe_race_data`               | `False`  | Subscribe to RCM updates.                                  |
-| `subscribe_cricket_data`            | `False`  | Subscribe to cricket CCM updates.                          |
-| `book_snapshot_timeout_secs`        | `10`     | Initial and recovery market image wait; `0` disables it.   |
+| `account_currency`                  | `GBP`    | Betfair 账户货币。                                         |
+| `username`                          | `None`   | 回退到 `BETFAIR_USERNAME`。                                |
+| `password`                          | `None`   | 回退到 `BETFAIR_PASSWORD`。                                |
+| `app_key`                           | `None`   | 回退到 `BETFAIR_APP_KEY`。                                 |
+| `proxy_url`                         | `None`   | HTTP 请求的可选代理 URL。                                  |
+| `request_rate_per_second`           | `5`      | 通用 HTTP 速率限制。                                       |
+| `default_min_notional`              | `None`   | 可选的最小名义额覆盖。                                     |
+| `event_type_ids`                    | `None`   | 可选的导航过滤器。                                         |
+| `event_type_names`                  | `None`   | 可选的导航过滤器。                                         |
+| `event_ids`                         | `None`   | 可选的导航过滤器。                                         |
+| `country_codes`                     | `None`   | 可选的导航过滤器。                                         |
+| `market_types`                      | `None`   | 可选的导航过滤器。                                         |
+| `market_ids`                        | `None`   | 可选的导航过滤器。                                         |
+| `min_market_start_time`             | `None`   | 可选的导航过滤器。                                         |
+| `max_market_start_time`             | `None`   | 可选的导航过滤器。                                         |
+| `stream_host`                       | `None`   | 可选的流主机覆盖。                                         |
+| `stream_port`                       | `None`   | 可选的流端口覆盖。                                         |
+| `stream_heartbeat_secs`             | `None`   | 出站心跳间隔（秒）；`None` 表示不发送。                    |
+| `stream_heartbeat_timeout_secs`     | `None`   | 死线覆盖；`None` 使用两个服务端间隔。                      |
+| `stream_reconnect_delay_initial_ms` | `2,000`  | 初始重连延迟。                                             |
+| `stream_reconnect_delay_max_ms`     | `30,000` | 最大重连延迟。                                             |
+| `stream_use_tls`                    | `True`   | 流连接使用 TLS。                                           |
+| `stream_conflate_ms`                | `None`   | 显式的合并（conflation）设置。                             |
+| `subscription_delay_secs`           | `3`      | 首个市场订阅前的延迟。                                     |
+| `subscribe_race_data`               | `False`  | 订阅 RCM 更新。                                            |
+| `subscribe_cricket_data`            | `False`  | 订阅板球 CCM 更新。                                        |
+| `book_snapshot_timeout_secs`        | `10`     | 初始与恢复市场快照的等待；`0` 禁用。                       |
 
 :::warning
-When `stream_conflate_ms` is `None`, the adapter omits `conflateMs` from the subscription and leaves
-the conflation rate to Betfair. Set `stream_conflate_ms=0` to request no conflation explicitly and
-receive every price update.
+`stream_conflate_ms` 为 `None` 时，适配器在订阅中省略 `conflateMs`，把合并速率留给 Betfair
+决定。设置 `stream_conflate_ms=0` 可显式请求不合并，接收每一次价格更新。
 :::
 
-### Execution client configuration
+### 执行客户端配置 {#execution-client-configuration}
 
-| Option                              | Default       | Notes                                                              |
+| 选项                                | 默认值        | 说明                                                               |
 | ----------------------------------- | ------------- | ------------------------------------------------------------------ |
-| `account_id`                        | `BETFAIR-001` | Account ID for the client core.                                    |
-| `account_currency`                  | `GBP`         | Betfair account currency.                                          |
-| `username`                          | `None`        | Falls back to `BETFAIR_USERNAME`.                                  |
-| `password`                          | `None`        | Falls back to `BETFAIR_PASSWORD`.                                  |
-| `app_key`                           | `None`        | Falls back to `BETFAIR_APP_KEY`.                                   |
-| `proxy_url`                         | `None`        | Optional proxy URL for HTTP requests.                              |
-| `request_rate_per_second`           | `5`           | General HTTP rate limit.                                           |
-| `order_request_rate_per_second`     | `20`          | Order endpoint rate limit.                                         |
-| `stream_host`                       | `None`        | Optional stream host override.                                     |
-| `stream_port`                       | `None`        | Optional stream port override.                                     |
-| `stream_heartbeat_secs`             | `None`        | Outbound heartbeat interval in seconds; `None` sends none.         |
-| `stream_heartbeat_timeout_secs`     | `None`        | Dead-peer override; `None` uses two server intervals.              |
-| `stream_reconnect_delay_initial_ms` | `2,000`       | Initial reconnect delay.                                           |
-| `stream_reconnect_delay_max_ms`     | `30,000`      | Maximum reconnect delay.                                           |
-| `stream_use_tls`                    | `True`        | Use TLS for the stream connection.                                 |
-| `stream_market_ids_filter`          | `None`        | Optional live OCM market filter.                                   |
-| `ignore_external_orders`            | `False`       | Only skips OCM updates with no `rfo`.                              |
-| `calculate_account_state`           | `True`        | Enables periodic account state polling.                            |
-| `request_account_state_secs`        | `300`         | Poll interval for account funds (`0` disables).                    |
-| `reconcile_market_ids_only`         | `False`       | When `True`, use `reconcile_market_ids`.                           |
-| `reconcile_market_ids`              | `None`        | Explicit startup reconciliation market IDs.                        |
-| `use_market_version`                | `False`       | Attach market version to orders; currently has no effect.          |
-| `stream_gap_recovery_lookback_mins` | `10`          | Lookback window for the post-reconnect mass-status reconciliation. |
+| `account_id`                        | `BETFAIR-001` | 客户端核心的账户 ID。                                              |
+| `account_currency`                  | `GBP`         | Betfair 账户货币。                                                 |
+| `username`                          | `None`        | 回退到 `BETFAIR_USERNAME`。                                        |
+| `password`                          | `None`        | 回退到 `BETFAIR_PASSWORD`。                                        |
+| `app_key`                           | `None`        | 回退到 `BETFAIR_APP_KEY`。                                         |
+| `proxy_url`                         | `None`        | HTTP 请求的可选代理 URL。                                          |
+| `request_rate_per_second`           | `5`           | 通用 HTTP 速率限制。                                               |
+| `order_request_rate_per_second`     | `20`          | 订单端点速率限制。                                                 |
+| `stream_host`                       | `None`        | 可选的流主机覆盖。                                                 |
+| `stream_port`                       | `None`        | 可选的流端口覆盖。                                                 |
+| `stream_heartbeat_secs`             | `None`        | 出站心跳间隔（秒）；`None` 表示不发送。                            |
+| `stream_heartbeat_timeout_secs`     | `None`        | 死线覆盖；`None` 使用两个服务端间隔。                              |
+| `stream_reconnect_delay_initial_ms` | `2,000`       | 初始重连延迟。                                                     |
+| `stream_reconnect_delay_max_ms`     | `30,000`      | 最大重连延迟。                                                     |
+| `stream_use_tls`                    | `True`        | 流连接使用 TLS。                                                   |
+| `stream_market_ids_filter`          | `None`        | 可选的实时 OCM 市场过滤。                                          |
+| `ignore_external_orders`            | `False`       | 只跳过无 `rfo` 的 OCM 更新。                                       |
+| `calculate_account_state`           | `True`        | 启用周期性账户状态轮询。                                           |
+| `request_account_state_secs`        | `300`         | 账户资金轮询间隔（`0` 禁用）。                                     |
+| `reconcile_market_ids_only`         | `False`       | 为 `True` 时使用 `reconcile_market_ids`。                          |
+| `reconcile_market_ids`              | `None`        | 显式的启动对账市场 ID。                                            |
+| `use_market_version`                | `False`       | 给订单附加市场版本；目前无实际效果。                               |
+| `stream_gap_recovery_lookback_mins` | `10`          | 重连后批量状态对账的回看窗口。                                     |
 
-## Contributing
+## 参与贡献 {#contributing}
 
 :::info
-For additional features or to contribute to the Betfair adapter, please see our
-[contributing guide](https://github.com/nautechsystems/nautilus_trader/blob/develop/CONTRIBUTING.md).
+要获取更多特性或为 Betfair 适配器做贡献，请见我们的
+[贡献指南](https://github.com/nautechsystems/nautilus_trader/blob/develop/CONTRIBUTING.md)。
 :::

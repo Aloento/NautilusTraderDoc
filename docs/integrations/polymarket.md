@@ -2681,116 +2681,124 @@ Polymarket
 
 #### 自动结算路径 {#automatic-resolution-paths}
 
-| Delivery path         | Configuration and eligibility                                         | Release                                                      |
-| --------------------- | --------------------------------------------------------------------- | ------------------------------------------------------------ |
-| Auto-load outcome.    | A strict outcome in a fetched Gamma payload, regardless of polling.   | Applied immediately; the auto-load task completes.           |
-| Gamma/CLOB polling.   | `resolve_poll_enabled=true`, within the expiration-based poll window. | Resolution, last owner removal, timeout, or shutdown.        |
-| Resolution WebSocket. | `subscribe_new_markets=true`, with an active, unpaused data watch.    | Resolution, last data owner removal, timeout, or shutdown.   |
-| Manual request.       | Any configuration, using explicit selectors or the watchlist rules.   | Request completion; successful resolution removes the watch. |
+| 投递路径             | 配置与资格条件                                                    | 释放条件                                                     |
+| -------------------- | ----------------------------------------------------------------- | -------------------------------------------------------------- |
+| 自动加载结果。       | 拉取的 Gamma 载荷中含严格结果，与轮询无关。                       | 立即应用；自动加载任务结束。                                   |
+| Gamma/CLOB 轮询。    | `resolve_poll_enabled=true`，处于基于到期时间的轮询窗口内。       | 结算、最后一个属主移除、超时或停机。                           |
+| 结算 WebSocket。     | `subscribe_new_markets=true`，且有活跃、未暂停的数据观察。        | 结算、最后一个数据属主移除、超时或停机。                       |
+| 手动请求。           | 任意配置，使用显式选择器或观察列表规则。                          | 请求完成；结算成功则移除观察。                                 |
 
-The shipped defaults use polling, without a resolution-only WebSocket subscription. Disabling
-polling does not enable WebSocket resolution: that path requires `subscribe_new_markets=true`.
-With both disabled, later recovery requires a manual request.
+出厂默认使用轮询，不带仅结算的 WebSocket
+订阅。禁用轮询不会启用 WebSocket
+结算：那条路径需要
+`subscribe_new_markets=true`。两者都禁用时，后续恢复只能靠手动请求。
 
-These WebSocket ownership rules apply to the data subscription's token, not the independently
-configured venue-wide discovery feed. Releasing the token does not disconnect that feed. Valid
-resolutions received there still use the shared apply path for existing data and position owners.
+这些 WebSocket
+归属规则针对数据订阅的代币，不针对独立配置的全场所发现
+feed。释放该代币不会断开那个
+feed；在那里收到的有效结算仍走共享的应用路径，处理已有的数据与持仓属主。
 
-#### Winner inference and settlement
+#### 胜者推断与结算 {#winner-inference-and-settlement}
 
-Resolution uses strict winner inference:
+结算使用严格的胜者推断：
 
-- Gamma must return a closed binary market with exactly two token IDs, two outcomes, and a binary
-  `outcomePrices` shape.
-- If Gamma does not provide a strict result for the condition, the client falls back to CLOB
-  `GET /markets/{condition_id}` and uses `tokens[].winner`.
-- Non-binary, ambiguous, malformed, or still-unresolved payloads are skipped. They remain on the
-  watchlist until the poll window times out or a manual request resolves them.
+- Gamma 必须返回一个已关闭的二元市场，恰有两个代币
+  ID、两个结果，以及二元形态的 `outcomePrices`。
+- 若 Gamma 未提供该条件的严格结果，客户端回退到
+  CLOB `GET /markets/{condition_id}`，使用
+  `tokens[].winner`。
+- 非二元、有歧义、畸形或仍未结算的载荷会被跳过，留在观察列表上，直到轮询窗口超时或被手动
+  请求结算。
 
-Auto-loading applies a strict outcome from either its normal lookup or positive closure probe
-immediately. An expiration that is future, stale, or missing does not discard an outcome already
-obtained. Without a strict outcome, existing expiration deadlines still apply: late subscriptions
-do not receive a fresh polling window, and missing expiration does not cause indefinite polling.
+自动加载无论来自常规查询还是肯定的关闭探测，都会立即应用严格结果。到期时间在未来、过期或
+缺失，都不会丢弃已获得的结果。没有严格结果时，既有的到期截止仍然有效：晚到的订阅不会获得
+新的轮询窗口，缺失到期时间也不会导致无限轮询。
 
-Resolution emits events by ownership:
+结算按归属发出事件：
 
-- Position-owned legs emit one `InstrumentStatus` close and one `InstrumentClose`.
-- Data-only legs emit whichever event types have active subscriptions.
+- 持仓所属的腿发出一条 `InstrumentStatus` 收尾与一条 `InstrumentClose`。
+- 仅数据所属的腿只发出有活跃订阅的那些事件类型。
 
-The winner closes at `1`, the loser at `0`, with close type `InstrumentCloseType.CONTRACT_EXPIRED`. In a live
-node, the execution engine settles each open position in the leg at that price. It emits one `PositionClosed`
-without an order or fill. The first close applied is authoritative (see
-[Settlement at contract expiration](./../concepts/positions.md#settlement-at-contract-expiration)).
+胜方按 `1`
+收尾，负方按 `0`，收尾类型为
+`InstrumentCloseType.CONTRACT_EXPIRED`。在实时节点中，执行引擎按该价格结算该腿上每个未平
+持仓，发出一条不关联订单或成交的
+`PositionClosed`。首个应用的收尾为权威（见
+[合约到期时的结算](./../concepts/positions.md#settlement-at-contract-expiration)）。
 
-Settlement does not redeem tokens or claim funds on-chain. The pUSD balance includes the payout
-only after redemption, so account balances exclude unredeemed winnings until then. Deposit Wallet
-users can redeem winning tokens with [Position operations](#position-operations).
+结算不在链上赎回代币或申领资金。pUSD
+余额只在赎回之后才包含派彩，因此账户余额在此之前不含未赎回的赢利。Deposit
+Wallet 用户可用[持仓操作](#position-operations)赎回胜方代币。
 
-#### Closure and subscription release
+#### 关闭与订阅释放 {#closure-and-subscription-release}
 
-Gamma's positive `closed=true` evidence stops normal quote, trade, and book-delta streams for both outcome
-siblings, even when the payload cannot produce usable instruments. Closure alone does not establish a winner
-or emit settlement events. Existing resolution owners remain available for polling or manual recovery. An
-enabled, unpaused resolution WebSocket may remain until resolution or timeout. Later live subscriptions cannot
-reopen the closed condition.
+Gamma 肯定的
+`closed=true`
+证据会停止两个结果兄弟金融工具的常规报价、成交与订单簿增量流，即便该载荷无法产出可用
+金融工具。仅关闭本身不确立胜者，也不发结算事件。既有的结算属主仍可参与轮询或手动恢复。启用且
+未暂停的结算 WebSocket
+可以保留到结算或超时。之后的实时订阅无法重开已关闭的条件。
 
-The same apply path handles auto-load outcomes, WebSocket `market_resolved` events, automatic polling, and
-manual requests. Successful resolution emits each admitted owner's event types once, removes those owners and
-the condition's watch, and releases its WebSocket subscriptions. Existing pending data intents retain their
-outcome until admission or cancellation. New subscriptions cannot re-enroll the resolved condition. Automatic
-delivery never bypasses instrument-filter admission.
+自动加载结果、WebSocket 的
+`market_resolved`
+事件、自动轮询与手动请求都走同一条应用路径。结算成功时，为每个被接纳的属主恰好发出一次其事件
+类型，移除这些属主与该条件的观察，并释放其
+WebSocket
+订阅。既有的待处理数据意图保留其结果直到被接纳或取消。新订阅无法让已结算的条件重新登记。自动
+投递绝不绕过金融工具过滤的接纳。
 
-#### Timeout, reconnect, and reset
+#### 超时、重连与重置 {#timeout-reconnect-and-reset}
 
-After `resolve_poll_max_wait_secs`, the watch pauses and releases resolution-only WebSocket ownership,
-including when polling is disabled. An open market's independent quote, trade, or book subscriptions are
-unaffected by this pause. The client retains settlement metadata and ownership for manual recovery. A manual
-request does not restart the automatic deadline.
+`resolve_poll_max_wait_secs`
+之后观察暂停，并释放仅结算用途的 WebSocket
+归属（包括轮询被禁用时）。未平市场独立的报价、成交或订单簿订阅不受该暂停影响。客户端保留结算
+元数据与归属供手动恢复，手动请求不会重启自动截止。
 
-- **Disconnect**: Stops network work.
-- **Reconnect**: Resumes unfinished loading and replays cached, active resolution WebSocket subscriptions.
-- **Reset**: Discards retained ownership and outcomes. Requires fresh subscriptions.
+- **断开**：停止网络工作。
+- **重连**：继续未完成的加载，并重放已缓存的活跃结算 WebSocket 订阅。
+- **重置**：丢弃保留的归属与结果，需要重新订阅。
 
-#### Manual resolution requests
+#### 手动结算请求 {#manual-resolution-requests}
 
-Use `request_data()` with data type `PolymarketResolveRequest` to force a resolution check. The
-request accepts any of these params:
+用数据类型的
+`PolymarketResolveRequest` 调用
+`request_data()` 可强制一次结算检查。请求接受以下任一参数：
 
-| Param            | Type                 | Description                                                  |
-| ---------------- | -------------------- | ------------------------------------------------------------ |
-| `condition_id`   | `str`                | Resolve one Polymarket condition.                            |
-| `condition_ids`  | `str` or `list[str]` | Resolve one or more Polymarket conditions.                   |
-| `instrument_ids` | `str` or `list[str]` | Resolve Polymarket instrument IDs; other venues are ignored. |
+| 参数             | 类型                 | 说明                                                         |
+| ---------------- | -------------------- | -------------------------------------------------------------- |
+| `condition_id`   | `str`                | 结算一个 Polymarket 条件。                                     |
+| `condition_ids`  | `str` 或 `list[str]` | 结算一个或多个 Polymarket 条件。                               |
+| `instrument_ids` | `str` 或 `list[str]` | 结算 Polymarket 金融工具 ID；其他场所的会被忽略。              |
 
-If a request omits all selectors, the client uses the watchlist. With automatic polling enabled,
-the fallback selects paused or timed-out entries. With automatic polling disabled, it selects all
-expired eligible entries, so operators can run the recovery flow manually.
+请求省略全部选择器时，客户端使用观察列表。启用自动轮询时，回退选择已暂停或超时的条目；禁用
+自动轮询时，选择所有已到期且符合条件的条目，便于运维手动执行恢复流程。
 
-The response payload is custom data with this dictionary shape:
+响应载荷是形状如下的自定义数据字典：
 
-| Key                          | Meaning                                                                   |
-| ---------------------------- | ------------------------------------------------------------------------- |
-| `requested_condition_ids`    | Deduplicated condition IDs checked by the request.                        |
-| `fetched_markets`            | Gamma markets returned across the batched lookup.                         |
-| `resolved_markets`           | Conditions with a strict Gamma result or successful CLOB fallback result. |
-| `skipped_non_binary_markets` | Gamma markets skipped for non-binary or ambiguous resolution shape.       |
-| `clob_fallback_successes`    | Conditions resolved through the CLOB fallback path.                       |
-| `emitted_condition_ids`      | Conditions that emitted at least one `InstrumentClose`.                   |
-| `failed_condition_ids`       | Conditions where both Gamma and CLOB lookup failed.                       |
-| `used_watchlist_fallback`    | Whether the request selected conditions from the watchlist.               |
-| `timed_out_watchlist`        | Timed-out watchlist entries seen during fallback selection.               |
-| `error`                      | First summary error, if one occurred.                                     |
+| 键                             | 含义                                                                      |
+| ------------------------------ | ------------------------------------------------------------------------- |
+| `requested_condition_ids`      | 该请求去重后检查的条件 ID。                                               |
+| `fetched_markets`              | 批量查询返回的 Gamma 市场。                                               |
+| `resolved_markets`             | 有严格 Gamma 结果或 CLOB 回退成功的条件。                                 |
+| `skipped_non_binary_markets`   | 因非二元或有歧义的结算形态而跳过的 Gamma 市场。                           |
+| `clob_fallback_successes`      | 经 CLOB 回退路径结算的条件。                                              |
+| `emitted_condition_ids`        | 至少发出一条 `InstrumentClose` 的条件。                                   |
+| `failed_condition_ids`         | Gamma 与 CLOB 查询都失败的条件。                                          |
+| `used_watchlist_fallback`      | 该请求是否从观察列表选择了条件。                                          |
+| `timed_out_watchlist`          | 回退选择期间看到的超时观察列表条目。                                      |
+| `error`                        | 若发生过错误，这是首个概要错误。                                          |
 
-Redemption is a separate account or execution workflow. Do not extend the data client resolution path to claim
-funds. It only publishes market-outcome close events into Nautilus.
+赎回是独立的账户或执行工作流。不要把数据客户端的结算路径扩展去申领资金，它只向 Nautilus
+发布市场结果的收尾事件。
 
-### Purging instruments at runtime
+### 运行时清除金融工具 {#purging-instruments-at-runtime}
 
-Polymarket auto-loads instruments on demand, so a long-running session keeps growing the cache as
-markets resolve, new markets appear, and strategies cycle through events. Use `cache.purge_instrument`
-to drop markets the strategy no longer tracks. The call removes the instrument record and its
-cached market data (order book, quotes, trades, bars). Order and position history remains indexed
-until purged separately, preserving realized PnL reporting.
+Polymarket
+按需自动加载金融工具，因此长时间运行的会话会随着市场结算、新市场出现、策略在不同事件间轮换而
+不断增大缓存。用
+`cache.purge_instrument`
+丢弃策略不再跟踪的市场。该调用移除金融工具记录及其缓存的行情数据（订单簿、报价、成交、K
+线）。订单与持仓历史保持索引直到单独清除，从而保留已实现盈亏报告。
 
 ```python
 class PolymarketHousekeeping(Strategy):
@@ -2802,56 +2810,60 @@ class PolymarketHousekeeping(Strategy):
         self.cache.purge_instrument(instrument_id)
 ```
 
-Common triggers on Polymarket:
+Polymarket 上常见的触发时机：
 
-- A market resolves and produces no further trades.
-- An event ends and the strategy rotates off its markets.
-- The strategy rotates a fixed-size watchlist and drops the oldest entry.
+- 市场结算且不再产生成交。
+- 事件结束，策略从其市场上轮换下来。
+- 策略滚动固定大小的观察列表并丢弃最旧条目。
 
-The purge skips any instrument that still has non-terminal orders (initialized, submitted,
-accepted, emulated, released, or inflight) or non-closed positions, so it is safe to call without
-coordinating with the execution client. Active WebSocket subscriptions belong to the data engine.
-Unsubscribe before purging if you no longer want updates.
+清除会跳过仍有非终局订单（initialized、submitted、accepted、emulated、released 或
+inflight）或未平仓位的金融工具，因此无需与执行客户端协调即可安全调用。活跃的
+WebSocket 订阅归数据引擎所有，若不再需要更新，请先退订再清除。
 
-The cache also exposes `purge_order`, `purge_position`, `purge_closed_orders`,
-`purge_closed_positions`, and `purge_account_events` for trimming closed execution state.
-For long-running Polymarket nodes, schedule the bulk purges from `LiveExecutionEngineConfig`
-(15 min interval, 60 min buffer is a sensible default). See
-[Cache: purging cached data](./../concepts/cache.md#purging-cached-data) for the full set.
+缓存还暴露
+`purge_order`、`purge_position`、`purge_closed_orders`、
+`purge_closed_positions` 与
+`purge_account_events`
+用于修剪已收尾的执行状态。长时间运行的 Polymarket
+节点请在
+`LiveExecutionEngineConfig`
+上调度批量清除（15 分钟间隔、60 分钟缓冲是合理的默认）。完整集合见
+[缓存：清除缓存数据](./../concepts/cache.md#purging-cached-data)。
 
 :::warning
-The caller decides when an instrument is no longer needed. Purging an instrument that another
-actor, strategy, or engine still relies on causes missing instrument lookups and loses market-data
-history.
+由调用方决定金融工具何时不再需要。清除另一个参与者、策略或引擎仍依赖的金融工具，会造成
+金融工具查找缺失并丢失行情历史。
 :::
 
-### Execution
+### 执行 {#execution}
 
-Before starting its WebSocket or initializing account state, the execution client queries unauthenticated
-`GET /version`. Startup continues only when the venue reports numeric version `2`. Any other version stops
-startup with an unsupported-version error. A missing, malformed, or errored response stops startup with a
-version-query failure.
+执行客户端在启动其
+WebSocket
+或初始化账户状态之前，先查询无需鉴权的
+`GET /version`。只有场所报告数值版本
+`2` 时才继续启动；任何其他版本都以不支持版本错误停止启动。响应缺失、畸形或报错，则以版本查询失败停止启动。
 
-The execution adapter subscribes once to an account-wide `user` channel for order and trade events.
-It does not open market-channel subscriptions for instruments seen during trading.
+执行适配器就账户范围的
+`user`
+频道订阅一次，用于订单与成交事件。它不为交易中遇到的金融工具打开市场频道订阅。
 
-The shared WebSocket client logs a peer close code and reason before reconnecting. Malformed payload
-warnings and venue rejection reasons use the same bounded text handling as HTTP responses. Order
-rejections received through WebSocket or reconciliation use the same exact post-only classification
-as submit responses.
+共享 WebSocket
+客户端在重连前记录对端的关闭码与原因。畸形载荷警告与场所拒绝原因使用与 HTTP
+响应相同的有界文本处理。经 WebSocket
+或对账收到的订单拒绝，使用与提交响应完全相同的 post-only
+分类。
 
-#### Fill recovery and deduplication
+#### 成交恢复与去重 {#fill-recovery-and-deduplication}
 
-Matched WebSocket fills and their corrections are restored from cached order history and
-deduplicated across reconnects. If a trade arrives before its instrument is available, the adapter
-leaves it out of the dedup state. A redelivered event or later REST reconciliation can apply it after
-instrument loading completes.
+已撮合的 WebSocket
+成交及其更正从缓存的订单历史恢复，并在重连之间去重。若成交在其金融工具可用之前到达，适配器
+不把它纳入去重状态；重投的事件或之后的 REST
+对账可以在金融工具加载完成后应用它。
 
-The adapter also validates every owned leg of a trade, including its commission, before emitting any
-fill for it. If validation fails, it emits no fill for that trade and quarantines it, and a targeted
-terminal REST read settles it as described in
-[Failed trades and REST resolution](#failed-trades-and-rest-resolution). Replayed WebSocket updates do
-not retry a quarantined trade.
+适配器在发出某成交的任何成交腿之前，还会校验该成交的每一条属主腿（含其佣金）。校验失败时
+不为该成交发出任何成交事件并将其隔离，由定向的终局 REST
+读取按[失败成交与 REST 定案](#failed-trades-and-rest-resolution)所述定案。重放的
+WebSocket 更新不会重试被隔离的成交。
 
 #### 终局数量归一化 {#terminal-quantity-normalization}
 
@@ -3012,208 +3024,258 @@ PolyBolt
   份以内的差异，并对 0.01
   份及以上的差异做对账。
 
-## Client configuration
+## 客户端配置 {#client-configuration}
 
-Rust structs and Python classes expose the same client configuration. The only Rust-only fields
-are the programmatic `filters` and `new_market_filter` trait objects on
-`PolymarketDataClientConfig`.
+Rust 结构体与 Python
+类暴露相同的客户端配置。仅有的 Rust
+专属字段是
+`PolymarketDataClientConfig`
+上以编程方式传入的
+`filters` 与 `new_market_filter` trait 对象。
 
-### Data client options
+### 数据客户端选项 {#data-client-options}
 
-Class/struct: `PolymarketDataClientConfig`.
+类/结构体：`PolymarketDataClientConfig`。
 
-| Option                                 | Default    | Description                                                                                   |
-| -------------------------------------- | ---------- | --------------------------------------------------------------------------------------------- |
-| `instrument_config`                    | `None`     | Bootstrap scope, passed as `PolymarketInstrumentProviderConfig`.                              |
-| `filters`                              | `[]`       | Rust-only instrument filters applied during loading and discovery.                            |
-| `base_url_http`, `base_url_ws`         | `None`     | Override the CLOB HTTP or WebSocket endpoint.                                                 |
-| `base_url_gamma`, `base_url_data_api`  | `None`     | Override the Gamma or Data API endpoint.                                                      |
-| `base_url_reference_prices`            | `None`     | Override the PolyBolt reference-price endpoint.                                               |
-| `api_key`, `api_secret`, `passphrase`  | `None`     | CLOB L2 credentials for PolyBolt price channels; fall back to `POLYMARKET_*` variables.       |
-| `proxy_url`                            | `None`     | HTTP or HTTPS proxy for every data transport.                                                 |
-| `http_timeout_secs`, `ws_timeout_secs` | `60`, `30` | HTTP and WebSocket timeout in seconds.                                                        |
-| `ws_max_subscriptions`                 | `200`      | Per-connection subscription cap; the market pool shards across connections at this bound.     |
-| `update_instruments_interval_mins`     | `60`       | Instrument catalog refresh interval in minutes; pass `None` to disable it.                    |
-| `subscribe_new_markets`                | `false`    | Subscribe to discovery and resolution events; also enables `best_bid_ask` quote ticks.        |
-| `new_market_filter`                    | `None`     | Rust-only filter applied to newly discovered markets before instrument emission.              |
-| `new_market_fetch_max_concurrency`     | `8`        | Bound concurrent market fetches from discovery events.                                        |
-| `drop_quotes_missing_side`             | `true`     | Drop quotes that do not contain both a bid and an ask.                                        |
-| `compute_effective_deltas`             | `false`    | Emit net snapshot changes when prior book state exists.                                       |
-| `auto_load_missing_instruments`        | `true`     | Load unknown instruments for supported requests and subscriptions.                            |
-| `auto_load_debounce_ms`                | `100`      | Window in milliseconds for coalescing concurrent auto-load requests.                          |
-| `auto_load_max_retries`                | `12`       | Retry transient Gamma loads with missing CLOB metadata or fetch failures; `0` disables retry. |
-| `auto_load_retry_delay_initial_secs`   | `5.0`      | Initial auto-load retry delay in seconds.                                                     |
-| `auto_load_retry_delay_max_secs`       | `15.0`     | Maximum auto-load retry delay in seconds.                                                     |
-| `resolve_poll_enabled`                 | `true`     | Poll expired watched conditions for resolution.                                               |
-| `resolve_poll_interval_secs`           | `30`       | Resolution polling interval in seconds.                                                       |
-| `resolve_poll_grace_secs`              | `10`       | Delay in seconds after expiry before polling begins.                                          |
-| `resolve_poll_max_wait_secs`           | `1,800`    | Pause automatic polling after this many seconds from expiration.                              |
-| `transport_backend`                    | `Sockudo`  | WebSocket transport implementation.                                                           |
-| `book_snapshot_timeout_secs`           | `10`       | Maximum snapshot wait in seconds after reconnect or during recovery; `0` disables deadlines.  |
-| `book_stale_check_interval_secs`       | `5`        | Book feed staleness check interval in seconds.                                                |
-| `book_stale_threshold_secs`            | `0`        | Maximum book feed silence in seconds before reporting stale; `0` disables the monitor.        |
+| 选项                                   | 默认值     | 说明                                                                                          |
+| -------------------------------------- | ---------- | ------------------------------------------------------------------------------------------------- |
+| `instrument_config`                    | `None`     | 引导作用域，以 `PolymarketInstrumentProviderConfig` 传入。                                    |
+| `filters`                              | `[]`       | 仅 Rust：加载与发现期间应用的金融工具过滤。                                                   |
+| `base_url_http`、`base_url_ws`         | `None`     | 覆盖 CLOB 的 HTTP 或 WebSocket 端点。                                                         |
+| `base_url_gamma`、`base_url_data_api`  | `None`     | 覆盖 Gamma 或 Data API 端点。                                                                 |
+| `base_url_reference_prices`            | `None`     | 覆盖 PolyBolt 参考价格端点。                                                                  |
+| `api_key`、`api_secret`、`passphrase`  | `None`     | PolyBolt 价格频道的 CLOB L2 凭据；回退到 `POLYMARKET_*` 环境变量。                            |
+| `proxy_url`                            | `None`     | 数据侧全部传输的 HTTP 或 HTTPS 代理。                                                         |
+| `http_timeout_secs`、`ws_timeout_secs` | `60`、`30` | HTTP 与 WebSocket 超时秒数。                                                                  |
+| `ws_max_subscriptions`                 | `200`      | 单连接订阅上限；市场连接池按该边界分片。                                                      |
+| `update_instruments_interval_mins`     | `60`       | 金融工具目录刷新间隔分钟数；传 `None` 禁用。                                                  |
+| `subscribe_new_markets`                | `false`    | 订阅发现与结算事件；同时启用 `best_bid_ask` 报价明细。                                        |
+| `new_market_filter`                    | `None`     | 仅 Rust：在发出金融工具之前对新发现市场应用的过滤。                                           |
+| `new_market_fetch_max_concurrency`     | `8`        | 限制来自发现事件的并发市场拉取。                                                              |
+| `drop_quotes_missing_side`             | `true`     | 丢弃不同时含买卖价的报价。                                                                    |
+| `compute_effective_deltas`             | `false`    | 存在先前订单簿状态时发出净快照变化。                                                          |
+| `auto_load_missing_instruments`        | `true`     | 为受支持的请求与订阅加载未知金融工具。                                                        |
+| `auto_load_debounce_ms`                | `100`      | 合并并发自动加载请求的窗口毫秒数。                                                            |
+| `auto_load_max_retries`                | `12`       | 对 CLOB 元数据缺失或拉取失败的瞬态 Gamma 加载重试；`0` 禁用重试。                             |
+| `auto_load_retry_delay_initial_secs`   | `5.0`      | 自动加载初始重试延迟秒数。                                                                    |
+| `auto_load_retry_delay_max_secs`       | `15.0`     | 自动加载最大重试延迟秒数。                                                                    |
+| `resolve_poll_enabled`                 | `true`     | 轮询已到期的被观察条件以结算。                                                                |
+| `resolve_poll_interval_secs`           | `30`       | 结算轮询间隔秒数。                                                                            |
+| `resolve_poll_grace_secs`              | `10`       | 到期之后开始轮询前的延迟秒数。                                                                |
+| `resolve_poll_max_wait_secs`           | `1,800`    | 自到期起经过这么多秒后暂停自动轮询。                                                          |
+| `transport_backend`                    | `Sockudo`  | WebSocket 传输实现。                                                                          |
+| `book_snapshot_timeout_secs`           | `10`       | 重连后或恢复期间的最大快照等待秒数；`0` 禁用截止。                                            |
+| `book_stale_check_interval_secs`       | `5`        | 订单簿 feed 陈旧检查间隔秒数。                                                                |
+| `book_stale_threshold_secs`            | `0`        | 判定 feed 陈旧前的最大静默秒数；`0` 禁用该监视。                                              |
 
-### Execution client options
+### 执行客户端选项 {#execution-client-options}
 
-Class/struct: `PolymarketExecutionClientConfig`.
+类/结构体：`PolymarketExecutionClientConfig`。
 
-| Option                                              | Default               | Description                                                                                                           |
-| --------------------------------------------------- | --------------------- | --------------------------------------------------------------------------------------------------------------------- |
-| `account_id`                                        | `POLYMARKET-001`      | Account identifier for this execution client.                                                                         |
-| `private_key`                                       | `POLYMARKET_PK`       | EIP-712 signing key.                                                                                                  |
-| `api_key`, `api_secret`, `passphrase`               | environment variables | CLOB L2 authentication credentials.                                                                                   |
-| `funder`                                            | `POLYMARKET_FUNDER`   | Funding wallet; proxy and deposit-wallet signatures require it to differ from the signing address.                    |
-| `signature_type`                                    | `Eoa`                 | `Eoa`, `PolyProxy`, `PolyGnosisSafe`, or `Poly1271`.                                                                  |
-| `signer_type`                                       | `Owner`               | `Owner` or `Session`; sessions require explicit credentials and `Poly1271`.                                           |
-| `base_url_http`, `base_url_ws`, `base_url_data_api` | `None`                | Override the respective production endpoint.                                                                          |
-| `proxy_url`                                         | `None`                | HTTP or HTTPS proxy for every execution transport.                                                                    |
-| `http_timeout_secs`                                 | `60`                  | HTTP timeout in seconds.                                                                                              |
-| `max_retries`                                       | `3`                   | Retries for single-order submit/cancel requests and for each batch-cancel chunk.                                      |
-| `retry_delay_initial_ms`                            | `1,000`               | Initial retry delay in milliseconds.                                                                                  |
-| `retry_delay_max_ms`                                | `10,000`              | Maximum retry delay in milliseconds.                                                                                  |
-| `heartbeat_enabled`                                 | `false`               | Send an authenticated order-safety heartbeat immediately after execution readiness and every five seconds thereafter. |
-| `transport_backend`                                 | `Sockudo`             | WebSocket transport implementation.                                                                                   |
-| `instrument_config`                                 | `None`                | Same `PolymarketInstrumentProviderConfig` as the data client. Unmapped records use its `load_ids`.                    |
+| 选项                                                  | 默认值                | 说明                                                                                                                  |
+| ----------------------------------------------------- | --------------------- | ----------------------------------------------------------------------------------------------------------------------- |
+| `account_id`                                          | `POLYMARKET-001`      | 本执行客户端的账户标识。                                                                                                |
+| `private_key`                                         | `POLYMARKET_PK`       | EIP-712 签名密钥。                                                                                                      |
+| `api_key`、`api_secret`、`passphrase`                 | 环境变量              | CLOB L2 鉴权凭据。                                                                                                      |
+| `funder`                                              | `POLYMARKET_FUNDER`   | 出资钱包；proxy 与 deposit-wallet 签名要求它不同于签名地址。                                                            |
+| `signature_type`                                      | `Eoa`                 | `Eoa`、`PolyProxy`、`PolyGnosisSafe` 或 `Poly1271`。                                                                    |
+| `signer_type`                                         | `Owner`               | `Owner` 或 `Session`；会话需要显式凭据与 `Poly1271`。                                                                   |
+| `base_url_http`、`base_url_ws`、`base_url_data_api`   | `None`                | 覆盖相应的生产端点。                                                                                                    |
+| `proxy_url`                                           | `None`                | 执行侧全部传输的 HTTP 或 HTTPS 代理。                                                                                   |
+| `http_timeout_secs`                                   | `60`                  | HTTP 超时秒数。                                                                                                         |
+| `max_retries`                                         | `3`                   | 单订单提交/撤单请求以及每个批量撤单分块的重试次数。                                                                     |
+| `retry_delay_initial_ms`                              | `1,000`               | 初始重试延迟毫秒数。                                                                                                    |
+| `retry_delay_max_ms`                                  | `10,000`              | 最大重试延迟毫秒数。                                                                                                    |
+| `heartbeat_enabled`                                   | `false`               | 执行就绪后立即发送带鉴权的订单安全 heartbeat，此后每五秒一次。                                                          |
+| `transport_backend`                                   | `Sockudo`             | WebSocket 传输实现。                                                                                                    |
+| `instrument_config`                                   | `None`                | 与数据客户端相同的 `PolymarketInstrumentProviderConfig`。未映射记录使用其 `load_ids`。                                  |
 
-#### Order-safety heartbeats
+#### 订单安全 heartbeat {#order-safety-heartbeats}
 
-Use `heartbeat_enabled` only for a dedicated automated execution process. Give each heartbeat-owning process
-dedicated CLOB API credentials. Enable it only if all orders under those credentials should be canceled when
-that process stops responding.
+`heartbeat_enabled`
+只用于专用的自动化执行进程，并给每个持有
+heartbeat 的进程专用的 CLOB API
+凭据。只有当该进程停止响应时这些凭据下的所有订单都应被撤销，才启用它。
 
 :::warning
-A normal disconnect stops heartbeats and causes cancellation after the venue timeout. Leave
-`heartbeat_enabled` disabled when orders must survive client shutdown or another process uses the
-same CLOB API credentials.
+正常断开就会停止
+heartbeat，并在场所超时后触发撤销。若订单必须在客户端停机后存活，或另有进程使用同一
+CLOB API 凭据，请保持 `heartbeat_enabled` 关闭。
 :::
 
-Enabling this option starts Polymarket's order-safety heartbeat contract for those credentials.
-Polymarket cancels their open orders when it does not receive a heartbeat within 10 seconds, with
-an additional 5-second buffer.
+启用该选项会为这些凭据启动 Polymarket
+的订单安全 heartbeat 契约：Polymarket
+在 10 秒（外加 5 秒缓冲）内收不到
+heartbeat 时就撤掉其未结订单。
 
-The adapter sends the first empty heartbeat ID, chains each returned ID, and uses a replacement ID
-from an HTTP 400 response to resynchronize. The execution client reports as disconnected until the
-first heartbeat is acknowledged. It also reports as disconnected after any of these failures:
+适配器发送首个空
+heartbeat ID，把每次返回的 ID 串接起来，并在 HTTP 400
+响应时用其返回的替换 ID
+重新同步。首次 heartbeat 被确认之前，执行客户端报告为未连接。以下任一失败后也报告为未连接：
 
-- Authentication or venue rejection.
-- Two consecutive retryable request failures.
-- A request or retry delay that cannot finish with a one-second margin before the 10-second safety deadline.
+- 鉴权或场所拒绝。
+- 连续两次可重试的请求失败。
+- 请求或重试延迟无法在 10
+  秒安全截止前留出一秒余量完成。
 
-After such a failure, explicitly disconnect and reconnect the client to restore heartbeats.
+出现这类失败后，请显式断开并重连客户端以恢复
+heartbeat。
 
-### Proxy routing
+### 代理路由 {#proxy-routing}
 
-Set `proxy_url` to apply one HTTP or HTTPS proxy to every transport owned by that client. The data
-client routes CLOB HTTP, Gamma HTTP, Data API HTTP, the market WebSocket pool, and PolyBolt through the
-proxy. The execution client routes authenticated CLOB HTTP, Data API HTTP, and the authenticated
-user WebSocket through it. Configure the same value on both clients when running data and execution
-together.
+设置
+`proxy_url`
+即可对该客户端拥有的全部传输应用同一个 HTTP 或 HTTPS
+代理。数据客户端把 CLOB HTTP、Gamma HTTP、Data API
+HTTP、市场 WebSocket
+池与 PolyBolt 都经代理路由。执行客户端把带鉴权的 CLOB
+HTTP、Data API HTTP 与带鉴权的用户
+WebSocket 经它路由。数据与执行同时运行时，请在两个客户端上配置相同的值。
 
-SOCKS URLs and malformed URLs fail configuration validation. When `proxy_url` is `None`, the adapter does not
-configure an explicit proxy: HTTP uses environment proxy settings and WebSockets connect directly. Treat
-credential-bearing proxy URLs as secrets because serialized configs contain the supplied URL. Python exposes
-only `has_proxy_url`. Configuration `Debug` output and transport diagnostics redact proxy credentials.
+SOCKS URL 与畸形 URL
+会在配置校验时失败。`proxy_url`
+为 `None`
+时适配器不配置显式代理：HTTP 使用环境代理设置，WebSocket
+直连。带凭据的代理 URL
+要当作机密对待，因为序列化的配置会包含所提供的 URL。Python
+只暴露 `has_proxy_url`。配置的
+`Debug` 输出与传输诊断会对代理凭据脱敏。
 
-### Instrument provider options
+### 金融工具 provider 选项 {#instrument-provider-options}
 
-Pass the same `PolymarketInstrumentProviderConfig` as `instrument_config` on the data client
-config and the execution client config.
+把同一个
+`PolymarketInstrumentProviderConfig`
+作为 `instrument_config`
+传给数据客户端配置与执行客户端配置。
 
-`load_ids` is the only reconciliation scope. When that set is non-empty, unmapped records
-outside it are expected absences. When `load_ids` is unset or empty, every unmapped open
-order and position is in scope and fails the report request.
+`load_ids`
+是唯一的对账作用域。该集合非空时，其中之外的未映射记录属于预期缺失。
+`load_ids`
+未设置或为空时，每个未映射的未结订单与持仓都在作用域内并让报告请求失败。
 
-`event_slugs`, `market_slugs`, `series_ids`, `filters`, and `event_slug_builder` discover instruments. They do
-not classify unmapped records. A node that scopes discovery with those fields and still wants scoped
-reconciliation must also set `load_ids`.
+`event_slugs`、`market_slugs`、`series_ids`、`filters`
+与
+`event_slug_builder`
+用于发现金融工具，不参与未映射记录的分类。用这些字段限定发现范围、又想要限定对账的节点，必须同时设置
+`load_ids`。
 
-| Option               | Default | Description                                             |
-| -------------------- | ------- | ------------------------------------------------------- |
-| `load_all`           | `false` | Load the full venue catalog at startup.                 |
-| `load_ids`           | `None`  | Load exact Nautilus instrument IDs.                     |
-| `filters`            | `None`  | Validated Gamma market keyset filters.                  |
-| `event_slugs`        | `None`  | Resolve all markets for the listed events at bootstrap. |
-| `market_slugs`       | `None`  | Load the listed Gamma market slugs at bootstrap.        |
-| `event_slug_builder` | `None`  | Rust-backed Up/Down event-slug generator.               |
-| `series_ids`         | `None`  | Load markets for the listed Gamma series at bootstrap.  |
-| `log_warnings`       | `true`  | Emit provider warnings.                                 |
-| `use_gamma_markets`  | `false` | Reserved compatibility field with no additional effect. |
+| 选项                 | 默认值  | 说明                                                    |
+| -------------------- | ------- | --------------------------------------------------------- |
+| `load_all`           | `false` | 启动时加载完整场所目录。                                  |
+| `load_ids`           | `None`  | 加载精确的 Nautilus 金融工具 ID。                         |
+| `filters`            | `None`  | 经过校验的 Gamma 市场 keyset 过滤。                       |
+| `event_slugs`        | `None`  | 引导时解析所列事件的全部市场。                            |
+| `market_slugs`       | `None`  | 引导时加载所列 Gamma 市场 slug。                          |
+| `event_slug_builder` | `None`  | Rust 实现的 Up/Down 事件 slug 生成器。                    |
+| `series_ids`         | `None`  | 引导时加载所列 Gamma 系列的市场。                         |
+| `log_warnings`       | `true`  | 发出 provider 警告。                                      |
+| `use_gamma_markets`  | `false` | 保留的兼容字段，无额外作用。                              |
 
-#### Gamma query filters
+#### Gamma 查询过滤 {#gamma-query-filters}
 
-The adapter uses the Gamma market and event keyset endpoints. It validates filters before
-the first HTTP request, follows `next_cursor`, and applies the endpoint page ceilings of 100 markets
-and 500 events.
+适配器使用 Gamma
+的市场与事件 keyset 端点。它在首个 HTTP
+请求之前校验过滤条件，跟随
+`next_cursor`，并应用每页 100
+个市场、500 个事件的端点上限。
 
-##### Market keyset fields
+##### 市场 keyset 字段 {#market-keyset-fields}
 
-| Class         | Fields                                                                                                                                                                                                                                                                                                                    |
-| ------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Scalar        | `limit`, `order`, `ascending`, `closed`, `decimalized`, `liquidity_num_min`, `liquidity_num_max`, `volume_num_min`, `volume_num_max`, `start_date_min`, `start_date_max`, `end_date_min`, `end_date_max`, `related_tags`, `tag_match`, `cyom`, `rfq_enabled`, `uma_resolution_status`, `game_id`, `include_tag`, `locale` |
-| Repeated      | `id`, `slug`, `clob_token_ids`, `condition_ids`, `question_ids`, `market_maker_address`, `tag_id`, `sports_market_types`                                                                                                                                                                                                  |
-| Compatibility | `active`, `archived`                                                                                                                                                                                                                                                                                                      |
-| Alias         | `is_active`                                                                                                                                                                                                                                                                                                               |
-| Client only   | `offset`, `max_markets`                                                                                                                                                                                                                                                                                                   |
+| 类别     | 字段                                                                                                                                                                                                                                                                                                                      |
+| -------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 标量     | `limit`、`order`、`ascending`、`closed`、`decimalized`、`liquidity_num_min`、`liquidity_num_max`、`volume_num_min`、`volume_num_max`、`start_date_min`、`start_date_max`、`end_date_min`、`end_date_max`、`related_tags`、`tag_match`、`cyom`、`rfq_enabled`、`uma_resolution_status`、`game_id`、`include_tag`、`locale` |
+| 可重复   | `id`、`slug`、`clob_token_ids`、`condition_ids`、`question_ids`、`market_maker_address`、`tag_id`、`sports_market_types`                                                                                                                                                                                                  |
+| 兼容     | `active`、`archived`                                                                                                                                                                                                                                                                                                      |
+| 别名     | `is_active`                                                                                                                                                                                                                                                                                                               |
+| 仅客户端 | `offset`、`max_markets`                                                                                                                                                                                                                                                                                                   |
 
-The provider `filters` dictionary accepts only market fields. Rust callers configure event discovery with
-`EventParamsFilter` and `GetGammaEventsParams`. Event-only fields such as `live` or `tag_slug` are not valid
-provider dictionary keys.
+provider 的
+`filters`
+字典只接受市场字段。Rust 调用方用
+`EventParamsFilter` 与
+`GetGammaEventsParams`
+配置事件发现。`live`、`tag_slug`
+这类事件专属字段不是有效的 provider 字典键。
 
-##### Event keyset fields
+##### 事件 keyset 字段 {#event-keyset-fields}
 
-| Class         | Fields                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    |
-| ------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Scalar        | `limit`, `order`, `ascending`, `closed`, `live`, `featured`, `cyom`, `title_search`, `liquidity_min`, `liquidity_max`, `volume_min`, `volume_max`, `start_date_min`, `start_date_max`, `end_date_min`, `end_date_max`, `start_time_min`, `start_time_max`, `tag_slug`, `related_tags`, `tag_match`, `event_date`, `event_week`, `featured_order`, `recurrence`, `parent_event_id`, `include_children`, `partner_slug`, `include_chat`, `include_template`, `include_best_lines`, `locale` |
-| Repeated      | `id`, `slug`, `tag_id`, `exclude_tag_id`, `series_id`, `game_id`, `created_by`                                                                                                                                                                                                                                                                                                                                                                                                            |
-| Compatibility | `active`, `archived`                                                                                                                                                                                                                                                                                                                                                                                                                                                                      |
-| Client only   | `offset`, `max_events`                                                                                                                                                                                                                                                                                                                                                                                                                                                                    |
+| 类别     | 字段                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      |
+| -------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 标量     | `limit`、`order`、`ascending`、`closed`、`live`、`featured`、`cyom`、`title_search`、`liquidity_min`、`liquidity_max`、`volume_min`、`volume_max`、`start_date_min`、`start_date_max`、`end_date_min`、`end_date_max`、`start_time_min`、`start_time_max`、`tag_slug`、`related_tags`、`tag_match`、`event_date`、`event_week`、`featured_order`、`recurrence`、`parent_event_id`、`include_children`、`partner_slug`、`include_chat`、`include_template`、`include_best_lines`、`locale` |
+| 可重复   | `id`、`slug`、`tag_id`、`exclude_tag_id`、`series_id`、`game_id`、`created_by`                                                                                                                                                                                                                                                                                                                                                                                                              |
+| 兼容     | `active`、`archived`                                                                                                                                                                                                                                                                                                                                                                                                                                                                        |
+| 仅客户端 | `offset`、`max_events`                                                                                                                                                                                                                                                                                                                                                                                                                                                                      |
 
-##### Filter values and validation
+##### 过滤取值与校验 {#filter-values-and-validation}
 
-Repeated fields are sent as repeated query keys. `offset` is applied across returned keyset pages and is never
-sent to Gamma. `max_markets` caps markets locally, with each binary market normally producing two instruments.
-`max_events` caps events locally. Each event can contain many markets. `condition_ids` accepts at most 100
-values, and event `tag_id` values cannot overlap `exclude_tag_id` values.
+可重复字段作为重复的查询键发送。`offset`
+在返回的 keyset
+各页上应用，从不发给 Gamma。`max_markets`
+在本地限制市场数，每个二元市场通常产出两个金融工具。
+`max_events`
+在本地限制事件数，每个事件可能包含许多市场。
+`condition_ids` 至多接受 100
+个值，事件的
+`tag_id` 值不能与 `exclude_tag_id`
+值重叠。
 
-Native Rust provider `filters` entries must be strings. Mapping-shaped Python configs also accept `bool`,
-`int`, finite `float`, string, or lists of those scalars. Conversion ignores `None` entries.
+原生 Rust provider 的
+`filters`
+条目必须是字符串。映射形式的 Python
+配置也接受
+`bool`、`int`、有限 `float`、字符串，或由这些标量组成的列表；转换会忽略
+`None` 条目。
 
-`is_active=true` supplies `active=true`, `archived=false`, and `closed=false`. Explicit values override
-those defaults. Unknown keys, malformed values, empty lists, invalid date or numeric bounds, and
-invalid combinations raise `ValueError` during Python config conversion.
+`is_active=true`
+等价于提供
+`active=true`、`archived=false` 与
+`closed=false`，显式值覆盖这些默认。Python
+配置转换期间，未知键、畸形值、空列表、无效的日期或数字边界，以及无效组合都抛出
+`ValueError`。
 
-See the official [market keyset](https://docs.polymarket.com/api-reference/markets/list-markets-keyset-pagination)
-and [event keyset](https://docs.polymarket.com/api-reference/events/list-events-keyset-pagination)
-references for the venue contract.
+场所契约见官方
+[market
+keyset](https://docs.polymarket.com/api-reference/markets/list-markets-keyset-pagination)
+与 [event
+keyset](https://docs.polymarket.com/api-reference/events/list-events-keyset-pagination)
+参考。
 
-#### Filter scopes
+#### 过滤作用域 {#filter-scopes}
 
-Filters come in two forms: the `filters` map on `PolymarketInstrumentProviderConfig`, and Rust
-`InstrumentFilter`s registered on the client. Registered filters take precedence: when both are
-present the `filters` map is ignored and the provider logs a warning.
+过滤有两种形式：
+`PolymarketInstrumentProviderConfig`
+上的
+`filters` 映射，以及注册在客户端上的 Rust
+`InstrumentFilter`。注册的过滤优先：两者同时存在时
+`filters` 映射被忽略，provider 记录一条警告。
 
-A filter that sources markets is a complete bootstrap scope on its own and does not need
-`load_all` or a slug or series scope alongside it. A registered filter sources markets when it
-supplies any of:
+能拉取市场的过滤本身就是一个完整的引导作用域，不需要再配
+`load_all` 或 slug/系列作用域。注册的过滤提供以下任一项时即能拉取市场：
 
-- Market or event slugs
-- Gamma market query params
-- Gamma event params
-- Search params
+- 市场或事件 slug
+- Gamma 市场查询参数
+- Gamma 事件参数
+- 搜索参数
 
-A non-empty `filters` map qualifies on the same basis. A filter that only accepts or rejects
-instruments, such as `PredicateFilter`, refines another source's results and still needs one of
-those alongside it.
+非空的 `filters`
+映射按同一标准成立。只接受或拒绝金融工具的过滤（如
+`PredicateFilter`）是对另一个来源结果的精化，仍需要其中一个与之搭配。
 
-#### Event slug builder
+#### 事件 slug 生成器 {#event-slug-builder}
 
-The adapter treats Python as a configuration, factory, and user strategy boundary. Provider, data, and
-execution operations run in Rust. `event_slug_builder` therefore accepts a Rust-backed
-`PolymarketUpDownEventSlugConfig`. It does not accept Python callable paths.
+适配器把 Python
+当作配置、工厂与用户策略边界，provider、数据与执行操作都在 Rust
+中运行。因此
+`event_slug_builder`
+接受 Rust 实现的
+`PolymarketUpDownEventSlugConfig`，不接受
+Python 可调用路径。
 
-Use this for predictable Polymarket Up/Down event slugs without downloading the full venue
-catalog. The builder emits slugs with the pattern
-`{asset}-updown-{interval_mins}m-{unix_timestamp}` for the configured window of aligned periods.
+它用于在不下载完整场所目录的情况下预测
+Polymarket Up/Down
+事件 slug。生成器按配置的对齐周期窗口产出形如
+`{asset}-updown-{interval_mins}m-{unix_timestamp}` 的
+slug：
 
 ```python
 from nautilus_trader.adapters.polymarket import PolymarketInstrumentProviderConfig
@@ -3229,15 +3291,25 @@ instrument_config = PolymarketInstrumentProviderConfig(
 )
 ```
 
-For custom event patterns, pass explicit `event_slugs`, pass direct `market_slugs`, scope by
-`series_ids`, or add a Rust filter or builder. The adapter rejects Python callable
-`event_slug_builder` values so adapter operations do not cross into Python during live trading.
+自定义事件模式请传显式
+`event_slugs`、直接传
+`market_slugs`、用
+`series_ids` 限定范围，或添加 Rust
+过滤/生成器。适配器拒绝 Python
+可调用式的
+`event_slug_builder`
+值，使适配器操作在实时交易期间不跨入 Python。
 
-#### Series IDs
+#### 系列 ID {#series-ids}
 
-A Gamma *series* groups a recurring market family, such as the 5-minute Up/Down crypto intervals or
-a daily weather market. Scoping by `series_ids` loads the markets of every active, unresolved event
-in those series, which avoids reconstructing slugs client-side as each interval rolls over:
+Gamma
+的*系列*（series）把一组周期性市场家族归在一起，例如
+5 分钟加密
+Up/Down
+间隔或每日天气市场。用
+`series_ids`
+限定范围会加载这些系列中每个活跃、未结算事件的市场，避免每个间隔翻转时在客户端侧重建
+slug：
 
 ```python
 from nautilus_trader.adapters.polymarket import PolymarketInstrumentProviderConfig
@@ -3247,23 +3319,31 @@ instrument_config = PolymarketInstrumentProviderConfig(
 )
 ```
 
-The provider resolves each series through the Gamma events endpoint with `active=true` and
-`closed=false`, then loads the markets of the matching events. Because the query is re-evaluated on
-every refresh, pairing `series_ids` with `update_instruments_interval_mins` on the data client keeps
-a rolling family of markets current without any slug arithmetic.
+provider
+用
+`active=true` 与 `closed=false`
+经 Gamma events
+端点解析每个系列，然后加载匹配事件的市场。由于查询在每次刷新时重新求值，把
+`series_ids`
+与数据客户端的
+`update_instruments_interval_mins`
+配对，即可让滚动的一族市场保持最新，完全不需要
+slug 运算。
 
-Find the series ID for a market family in the `series` field of its Gamma event payload.
+某市场家族的系列 ID
+在其 Gamma 事件载荷的 `series` 字段里。
 
-## Python discovery and historical data
+## Python 发现与历史数据 {#python-discovery-and-historical-data}
 
-The Python package exports a Rust-backed `PolymarketDataLoader` for public discovery,
-instrument construction, and historical trades. It uses the Rust Gamma, CLOB, and Data API clients,
-so it does not require trading credentials or run networking in Python.
+Python
+包导出了 Rust 实现的
+`PolymarketDataLoader`，用于公开发现、金融工具构建与历史成交。它使用
+Rust 的 Gamma、CLOB 与 Data API
+客户端，因此不需要交易凭据，也不在 Python 中跑网络。
 
-### Market loading
+### 市场加载 {#market-loading}
 
-All network methods are asynchronous. Build a loader from a market slug and select its outcome token
-by index:
+所有网络方法都是异步的。用市场 slug 构建加载器，并按索引选择其结果代币：
 
 ```python
 from nautilus_trader.adapters.polymarket import PolymarketDataLoader
@@ -3278,26 +3358,28 @@ token_id = loader.token_id
 condition_id = loader.condition_id
 ```
 
-### Resolution metadata
+### 结算元数据 {#resolution-metadata}
 
-`instrument` is a normalized `BinaryOption`. When the source fields are available, resolution data
-is retained as follows:
+`instrument`
+是归一化的
+`BinaryOption`。来源字段可用时，结算数据按如下保留：
 
-| Data                       | `instrument.info`      | `resolution_metadata`                |
-| -------------------------- | ---------------------- | ------------------------------------ |
-| Market description         | `description`          | -                                    |
-| Event start                | `event_start_time`     | -                                    |
-| Market end                 | `end_date`             | -                                    |
-| Resolution source          | `resolution_source`    | `resolutionSource`                   |
-| Crypto resolution config   | `crypto_market_config` | -                                    |
-| Raw Gamma market JSON      | -                      | `gamma_market`                       |
-| Raw Gamma event JSON       | -                      | `gamma_event` (event loading)        |
-| Closed state               | -                      | `closed`                             |
-| Closure time               | -                      | `closedTime`                         |
-| UMA resolution status      | -                      | `umaResolutionStatus`                |
-| Token outcome/winner state | -                      | `tokens` with `outcome` and `winner` |
+| 数据                 | `instrument.info`      | `resolution_metadata`                |
+| -------------------- | ---------------------- | -------------------------------------- |
+| 市场描述             | `description`          | -                                      |
+| 事件开始             | `event_start_time`     | -                                      |
+| 市场结束             | `end_date`             | -                                      |
+| 结算来源             | `resolution_source`    | `resolutionSource`                     |
+| 加密结算配置         | `crypto_market_config` | -                                      |
+| 原始 Gamma 市场 JSON | -                      | `gamma_market`                         |
+| 原始 Gamma 事件 JSON | -                      | `gamma_event`（事件加载）              |
+| 关闭状态             | -                      | `closed`                               |
+| 关闭时间             | -                      | `closedTime`                           |
+| UMA 结算状态         | -                      | `umaResolutionStatus`                  |
+| 代币结果/胜者状态    | -                      | `tokens`，含 `outcome` 与 `winner`     |
 
-Read `resolution_metadata` after a backtest or simulation to inspect the lifecycle snapshot:
+回测或模拟之后读取
+`resolution_metadata` 可检查这一生命周期快照：
 
 ```python
 metadata = loader.resolution_metadata
@@ -3307,9 +3389,9 @@ winner = next(
 )
 ```
 
-### Event loading
+### 事件加载 {#event-loading}
 
-An event factory returns one loader for each market in the event:
+事件工厂为事件中的每个市场返回一个加载器：
 
 ```python
 loaders = await PolymarketDataLoader.from_event_slug(
@@ -3318,23 +3400,29 @@ loaders = await PolymarketDataLoader.from_event_slug(
 )
 ```
 
-A negative token index or an index outside a market's token list raises `ValueError`. Construction
-also fails clearly when Gamma has no matching slug or CLOB has not populated usable token IDs.
+负的代币索引，或超出某市场代币列表的索引，抛出
+`ValueError`。Gamma 没有匹配的
+slug，或 CLOB 尚未填入可用代币 ID
+时，构建也会明确失败。
 
-### Public discovery
+### 公开发现 {#public-discovery}
 
-Static query methods return stable Python mappings and lists while Rust owns validation and
-pagination. JSON values map to Python as follows:
+静态查询方法返回稳定的 Python
+映射与列表，校验与分页由 Rust
+负责。JSON 值与 Python 值的对应如下：
 
-| JSON value        | Python value      | Scope                                                                    |
-| ----------------- | ----------------- | ------------------------------------------------------------------------ |
-| Fractional number | `decimal.Decimal` | Includes nested event markets, fee schedules, and CLOB rewards           |
-| Integer           | `int`             | A financial field can be `int` or `Decimal`, depending on its JSON token |
-| String            | `str`             | JSON-encoded strings such as `outcomePrices` are not parsed further      |
-| Null              | `None`            | Preserves absence                                                        |
+| JSON 值    | Python 值         | 范围                                                                     |
+| ---------- | ----------------- | -------------------------------------------------------------------------- |
+| 小数       | `decimal.Decimal` | 包括嵌套事件市场、费率表与 CLOB 奖励                                       |
+| 整数       | `int`             | 金融字段按其 JSON token 可能是 `int` 或 `Decimal`                          |
+| 字符串     | `str`             | `outcomePrices` 这类 JSON 编码字符串不再进一步解析                         |
+| Null       | `None`            | 保留缺失语义                                                               |
 
-Use decimal operands when calculating with these values. Python does not mix `Decimal` and `float` arithmetic.
-The Gamma competitiveness score is returned as `Decimal` after an approximate Rust floating-point conversion.
+对这些值做计算请使用小数操作数，Python 不混用
+`Decimal` 与
+`float` 运算。Gamma
+竞争力分数经 Rust
+近似的浮点转换后以 `Decimal` 返回。
 
 ```python
 market = await PolymarketDataLoader.query_market_by_slug("some-market")
@@ -3364,14 +3452,17 @@ results = await PolymarketDataLoader.query_search(
 )
 ```
 
-Market and event filter dictionaries use the fields listed under
-[Gamma query filters](#gamma-query-filters). The provider config accepts only the market fields,
-while `query_events` accepts the event fields. Unknown or malformed filters raise `ValueError`
-before any request.
+市场与事件的过滤字典使用
+[Gamma 查询过滤](#gamma-query-filters)下列出的字段。provider
+配置只接受市场字段，`query_events`
+接受事件字段。未知或畸形的过滤在任何请求之前抛出
+`ValueError`。
 
-### Historical trades
+### 历史成交 {#historical-trades}
 
-`load_trades` returns normalized `TradeTick` objects in chronological order:
+`load_trades`
+按时间顺序返回归一化的
+`TradeTick` 对象：
 
 ```python
 from datetime import UTC, datetime, timedelta
@@ -3386,50 +3477,75 @@ trades = await loader.load_trades(
 )
 ```
 
-#### Time window and pagination
+#### 时间窗口与分页 {#time-window-and-pagination}
 
-The window is inclusive. The Data API records trade timestamps in whole seconds, so Rust keeps all
-trades in the `start` and `end` boundary seconds.
+窗口是闭区间。Data API
+把成交时间戳记为整秒，因此
+Rust 保留
+`start` 与 `end`
+边界秒内的全部成交。
 
-The v2 condition feed serves a [fixed three-year window](https://data-api.polymarket.com/v2/docs) and ignores
-`start`/`end` bounds, so the adapter never sends them and filters the window locally instead. The feed serves
-pages newest-first. With a `start` bound the walk continues until a whole page precedes `start`:
+v2 condition feed
+提供[固定的三年窗口](https://data-api.polymarket.com/v2/docs)并忽略
+`start`/`end`
+边界，因此适配器从不发送它们，而是在本地过滤该窗口。该
+feed 按从新到旧分页。带
+`start`
+边界时，遍历持续到某一整页完全早于
+`start`：
 
-| Request         | Meaning of `limit`                     | Walk termination                                                                                           |
-| --------------- | -------------------------------------- | ---------------------------------------------------------------------------------------------------------- |
-| With `start`    | Earliest matching trades in the window | A whole page precedes `start`, or the cursor exhausts                                                      |
-| Without `start` | Most recent matching trades            | The matching-trade count reaches `limit`; without `limit`, the 10,000-row walk cap; or the cursor exhausts |
+| 请求           | `limit` 的含义             | 遍历终止条件                                                                                     |
+| -------------- | -------------------------- | -------------------------------------------------------------------------------------------------- |
+| 带 `start`     | 窗口内最早的匹配成交       | 某一整页完全早于 `start`，或游标耗尽                                                               |
+| 不带 `start`   | 最近期的匹配成交           | 匹配成交计数达到 `limit`；无 `limit` 时为 10,000 行遍历上限；或游标耗尽                            |
 
-#### Retention and request limits
+#### 保留期与请求限制 {#retention-and-request-limits}
 
-When the cursor exhausts and `start` predates the approximate three-year retention horizon,
-Rust logs a warning that results may be incomplete. History outside the venue's retention window
-cannot be recovered through this feed.
+游标耗尽且
+`start`
+早于大约三年的保留期界限时，Rust
+记录结果可能不完整的警告。场所保留窗口之外的历史无法经该
+feed 恢复。
 
-A request with neither `start` nor `limit` stops after a page brings the retained count to at least 10,000
-window-matching rows. It returns the newest partial results with a logged warning. The final page can add up
-to 999 rows beyond that threshold.
+既无
+`start` 也无
+`limit`
+的请求，在某一页让保留的窗口内匹配行数达到至少
+10,000 后停止，返回最新的不完整结果并记录警告。最后一页可能在该阈值之上再多带
+999 行。
 
-An end-only request traverses all pages newer than `end` before collecting matching trades.
-Its duration therefore grows with the volume newer than `end`: the cap bounds retained history,
-not the number of requests.
+只带
+`end`
+的请求会先遍历晚于
+`end`
+的所有页面，再收集匹配的成交，因此其耗时随晚于
+`end`
+的数据量增长：上限约束的是保留的历史，不是请求数量。
 
-### Closed market cleanup
+### 已关闭市场清理 {#closed-market-cleanup}
 
-Gamma `endDate` is a scheduled end, not proof that trading stopped. The client keeps cached
-instruments while Gamma reports `closed=false` and removes live state after a positive `closed=true`.
+Gamma 的
+`endDate`
+是计划结束时间，不是交易已停止的证据。只要
+Gamma 仍报告
+`closed=false`，客户端就保留缓存的金融工具，在肯定的
+`closed=true` 之后移除其活跃状态。
 
-The closure check runs on every resolve-poll tick for expired cached instruments still reported
-open. It retries failed requests on the next tick, so request failures or delayed venue data can
-delay retirement beyond one cycle. A failed condition ID batch does not discard the closures
-confirmed by the other batches. If both Gamma lookups omit a market, the client keeps it because
-closure was not observed.
+关闭检查在每个
+resolve-poll
+周期上，针对已过期、仍被报告为开放且已缓存的金融工具运行。失败的请求在下一个周期重试，因此请求失败或场所数据延迟可能让清理推迟超过一个周期。某条件
+ID
+批次失败不会丢弃其他批次确认的关闭。若两次 Gamma
+查询都遗漏某市场，客户端保留它，因为未观察到关闭。
 
-Only live instruments carry this state. The historical data loader reports terminal state through
-`resolution_metadata` instead, so a backtest cannot see a market's current closure through
-`instrument.info`.
+只有活跃金融工具携带这一状态。历史数据加载器改用
+`resolution_metadata`
+报告终局状态，因此回测无法经
+`instrument.info`
+看到某市场当前的关闭情况。
 
-## Contributing
+## 参与贡献 {#contributing}
 
-To contribute features or fixes to the Polymarket adapter, see the
-[contributing guide](https://github.com/nautechsystems/nautilus_trader/blob/develop/CONTRIBUTING.md).
+要为 Polymarket
+适配器贡献功能或修复，见
+[贡献指南](https://github.com/nautechsystems/nautilus_trader/blob/develop/CONTRIBUTING.md)。
