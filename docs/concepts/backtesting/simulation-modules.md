@@ -1,4 +1,4 @@
-# 模拟模块
+# 模拟模块 {#simulation-modules}
 
 模拟模块有枚举和共享句柄两种形式，在
 [行为模型设计](./../behavioral_models.md)中说明。配置边界决定存储哪种形式：

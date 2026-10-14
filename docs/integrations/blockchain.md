@@ -1,4 +1,4 @@
-# 区块链
+# 区块链 {#blockchain}
 
 ## 概览 {#overview}
 
@@ -600,9 +600,9 @@ cargo build -p nautilus-cli --features defi --bin nautilus
     --concurrency 1
 ```
 
-### Check the stored data
+### 检查存储的数据 {#check-the-stored-data}
 
-Count the rows written for the pool in:
+统计为该池写入下列表的行数：
 
 - `pool_swap_event`
 - `pool_liquidity_event`
@@ -614,188 +614,178 @@ Count the rows written for the pool in:
 - `pool_position`
 - `pool_tick`
 
-Fee-protocol tables remain empty when the synced range contains no `SetFeeProtocol` or
-`CollectProtocol` events. After a local database reset, rerun discovery before analysis so the pool
-row exists. See [Pool analysis operations](#pool-analysis-operations) for address, provider,
-replay-range, and request-volume failures.
+同步范围内没有 `SetFeeProtocol` 或 `CollectProtocol` 事件时，fee-protocol
+相关表保持为空。本地数据库重置后，先重跑发现再分析，池行才会存在。地址、提供商、
+重放区间与请求量相关的失败见[池分析操作](#pool-analysis-operations)。
 
-## Contracts
+## 合约 {#contracts}
 
-### Base contract and Multicall3
+### 基础合约与 Multicall3 {#base-contract-and-multicall3}
 
-`BaseContract` batches contract calls through Multicall3
-(`0xcA11bde05977b3631167028862bE2a173976CA11`):
+`BaseContract` 通过 Multicall3
+（`0xcA11bde05977b3631167028862bE2a173976CA11`）批量执行合约调用：
 
-- Multicall uses `tryAggregate(requireSuccess: false)`, so each result reports its own success or
-  failure and the contract wrapper decides whether to reject it.
-- Reads execute against a single block context.
-- Transport and provider failures surface as RPC errors.
+- Multicall 使用 `tryAggregate(requireSuccess: false)`，每个结果各自报告成败，
+  由合约包装器决定是否拒绝。
+- 读取在单一区块上下文中执行。
+- 传输与提供商失败以 RPC 错误浮出。
 
-### ERC-20 metadata
+### ERC-20 元数据 {#erc-20-metadata}
 
-`Erc20Contract` reads `name`, `symbol`, and `decimals` through Multicall. The adapter can skip pools
-whose token metadata is malformed, raw bytes, or empty.
+`Erc20Contract` 通过 Multicall 读取 `name`、`symbol` 与
+`decimals`。适配器可以跳过代币元数据畸形、原始字节或为空的池。
 
-### Uniswap V3 pools
+### Uniswap V3 池 {#uniswap-v3-pools}
 
-`UniswapV3PoolContract` reads global pool state, active ticks, and positions.
+`UniswapV3PoolContract` 读取池全局状态、活跃 tick 与仓位。
 
-- Large pools can exceed provider payload, gas, or timeout limits.
-- RPC-snapshot hydration fails closed if the final-state read fails.
-- Very large pools may need a lower `multicall_calls_per_rpc_request` or a stronger provider.
+- 大型池可能超出提供商的载荷、gas 或超时限制。
+- RPC 快照水合在最终状态读取失败时按失败关闭。
+- 超大型池可能需要更低的 `multicall_calls_per_rpc_request` 或更强的提供商。
 
-PancakeSwap V3 reuses the Uniswap V3 read contract because `slot0`, `ticks`, `positions`,
-`liquidity`, and fee-growth reads share the same ABI. Fee-protocol encoding differs:
+PancakeSwap V3 复用 Uniswap V3 的读取合约，因为 `slot0`、`ticks`、
+`positions`、`liquidity` 与费用增长读取共享同一 ABI。fee-protocol 编码不同：
 
-- Uniswap V3 packs two 4-bit fee denominators into one `uint8`.
-- PancakeSwap V3 stores two 16-bit basis-point shares in `slot0.feeProtocol` and emits
-  `SetFeeProtocol(uint32,uint32,uint32,uint32)`.
-- PancakeSwap V3 snapshots store `fee_protocol0_basis_points` and
-  `fee_protocol1_basis_points`, and replay computes protocol fees as `fee * basis_points / 10000`.
+- Uniswap V3 把两个 4 位费用分母打包进一个 `uint8`。
+- PancakeSwap V3 在 `slot0.feeProtocol` 中存两个 16 位基点份额，并发出
+  `SetFeeProtocol(uint32,uint32,uint32,uint32)`。
+- PancakeSwap V3 快照存 `fee_protocol0_basis_points` 与
+  `fee_protocol1_basis_points`，重放按 `fee * basis_points / 10000`
+  计算协议费。
 
-## Execution
+## 执行 {#execution}
 
 :::warning
-The execution client is not production-ready. `BlockchainExecutionClient` implements preflight,
-explicit WETH wrap and ERC-20 approval, local EIP-1559 signing, durable reconciliation, and one
-Uniswap V3 swap flow. Other order operations fail closed with no on-chain or durable side effects.
+执行客户端尚未达到生产可用。`BlockchainExecutionClient` 实现了预检、
+显式 WETH 包装与 ERC-20 授权、本地 EIP-1559 签名、持久对账，以及一条 Uniswap V3
+swap 流程。其他订单操作一律按失败关闭，不产生链上或持久化副作用。
 :::
 
-Execution uses these terms throughout this section:
+本节统一使用下列术语：
 
-| Term                | Meaning                                                                                                       |
-| ------------------- | ------------------------------------------------------------------------------------------------------------- |
-| Decision height     | The minimum fresh head accepted across all three RPC sources for one authorizing read set.                    |
-| Verification source | One authoritative endpoint or one of exactly two read-only verifiers in a distinct configured failure domain. |
-| Deployment manifest | Reviewed contracts, code hashes, proxy bindings, identities, pools, tokens, and permitted call edges.         |
-| Intent              | One durable logical wrap, approve, or swap operation, independent of its transaction-hash history.            |
-| Signer ownership    | Exclusive control of the wallet signer and, after assignment, its active nonce.                               |
-| Finalized boundary  | The point where all sources agree on finalized ancestry through the transaction's inclusion block.            |
+| 术语         | 含义                                                                                                       |
+| ------------ | ------------------------------------------------------------------------------------------------------------ |
+| 决策高度     | 同一组授权读取集下，三个 RPC 源共同接受的最小新区块高度。                                                  |
+| 验证源       | 一个权威端点，或分属不同配置故障域的两个只读验证器之一。                                                   |
+| 部署清单     | 经审查的合约、代码哈希、代理绑定、身份、池、代币与允许的调用边。                                           |
+| 意图         | 一次持久的包装、授权或 swap 逻辑操作，与其交易哈希历史无关。                                               |
+| 签名器所有权 | 对钱包签名器的独占控制，以及分配后对其活跃 nonce 的控制。                                                  |
+| 最终性边界   | 所有源在该交易的包含区块及其之前的最终化祖先链上达成一致的界点。                                           |
 
-### Connection and account state
+### 连接与账户状态 {#connection-and-account-state}
 
-Client construction requires one authoritative RPC endpoint and exactly two read-only verification
-providers. Each source needs a distinct endpoint, provider ID, operator ID, and pairwise-disjoint
-set of failure-domain IDs.
+构造客户端需要一个权威 RPC 端点与恰好两个只读验证提供商。每个源需要不同的端点、
+提供商 ID、运营方 ID，以及两两不相交的故障域 ID 集合。
 
-#### Enforced operating conditions
+#### 强制运行条件 {#enforced-operating-conditions}
 
-- The authoritative execution endpoint and both verifier endpoints must use HTTPS. Cleartext HTTP
-  is accepted only for a canonical IPv4 loopback literal in `127.0.0.0/8` or exactly `[::1]`.
-  Hostnames, IPv4-mapped IPv6, private and link-local addresses, and noncanonical numeric forms do
-  not qualify.
-- HyperSync uses the same HTTPS rule. This validation runs before the HyperSync token is loaded or
-  its client is created.
-- Blockchain HTTP clients reject redirects. A canonical loopback RPC connection also bypasses
-  configured and ambient proxies. Remote HTTPS execution RPC clients continue to honor ambient
-  proxy environment variables.
-- A Postgres-backed execution connection requires an active payload key, a stable deployment ID,
-  ready protected storage, and every key referenced by stored envelopes. It authenticates every
-  retained payload before loading the signer or making an execution RPC call.
-- An attached Postgres database can be unprotected only while the client is disconnected for
-  checks, protection, or rollback work. Rewrap requires protected storage. An unprotected database
-  cannot provide execution capability.
+- 权威执行端点与两个验证端点必须使用 HTTPS。明文 HTTP 只接受
+  `127.0.0.0/8` 内的规范 IPv4 回环字面量或恰为 `[::1]` 的地址。
+  主机名、IPv4 映射的 IPv6、私有与链路本地地址、非规范数字形式都不合格。
+- HyperSync 使用同样的 HTTPS 规则。该校验在加载 HyperSync token 或创建其
+  客户端之前执行。
+- 区块链 HTTP 客户端拒绝重定向。规范回环 RPC 连接同时绕过配置的与环境代理。
+  远程 HTTPS 执行 RPC 客户端继续遵循环境代理变量。
+- 使用 Postgres 的执行连接要求有效的活动载荷密钥、稳定的部署 ID、就绪的受保护
+  存储，以及存储信封引用的每个密钥都可用。在加载签名器或发起执行 RPC 调用前，
+  对每个保留的载荷完成认证。
+- 挂载的 Postgres 数据库只有在客户端断开以做检查、保护或回滚工作时才允许未受保护。
+  重新封装要求受保护存储。未受保护的数据库不能提供执行能力。
 
-#### Operator assumptions
+#### 运营方假设 {#operator-assumptions}
 
-A failure domain represents any shared upstream, reseller, gateway, proxy, account, network path, or hosting
-control plane. Distinct URLs and distinct configured identities do not prove operational independence. The
-operator must verify that the three providers do not share a control or failure domain.
+故障域代表任何共享的上游、经销商、网关、代理、账户、网络路径或托管控制平面。
+不同的 URL 与不同的配置身份并不能证明运营独立。运营方必须核实三个提供商不共享
+控制或故障域。
 
-The operator must also identify and monitor every party or governance mechanism that can change a
-manifest-pinned deployment's code or a manifest-pinned proxy's implementation. If such a deployment change or
-proxy upgrade is announced or suspected, stop execution and revoke every outstanding allowance whose spender
-is a router address in the affected deployment. Complete the revocations before the changed code or
-implementation is present at the decision block used for signing. Once it is, the pre-sign deployment check
-fails closed for every client transaction, including revocation.
+运营方还必须识别并监控所有能够改变清单固定部署的代码、或改变清单固定代理的实现
+的一方或治理机制。一旦此类部署变更或代理升级被公告或被怀疑，立即停止执行，并撤销
+支出方是受影响部署中路由地址的全部未回收授权。在签名所用决策区块上出现变更后代码
+或实现之前完成全部撤销；一旦出现，签名前的部署检查会对所有客户端交易按失败关闭，
+包括撤销本身。
 
-The operator must keep the signing key exclusive to one live client and control access to the host
-environment, database, replicas, backups, and exports.
+运营方必须保证签名密钥只被一个在线客户端独占，并控制对主机环境、数据库、副本、
+备份与导出通道的访问。
 
-Connect completes these checks before it loads the signer:
+Connect 在加载签名器前完成这些检查：
 
-1. Open the durable execution store. When Postgres is configured, require ready protected storage
-   and authenticate every retained payload before loading any existing verification ledger.
-1. Require all three sources to match the local chain ID and reviewed finalized checkpoint.
-1. Extend or recheck the durable finalized-header ancestry in windows of at most 4,096 blocks.
-1. Require an exact finalized-height signer nonce from all three sources.
-1. Verify the reviewed deployment manifest at the finalized height. This includes runtime code,
-   proxy slots, implementations, router and factory relationships, pool identity, token decimals,
-   and the pinned quote contract.
-1. Probe archive, finalized-tag, explicit-height state and call, gas, storage, quote, and call-trace
-   capabilities on every source.
-1. Atomically install the verification ledger or migrate retained execution history with the
-   evidence that authorized each classification.
-1. Load the private key from `signer_private_key_env`, require its address to equal
-   `wallet_address`, and reconcile any active intent.
-1. Read the native balance and configured ERC-20 balances, install the complete wallet snapshot,
-   and publish one `AccountState` under the configured account ID.
+1. 打开持久执行存储。配置了 Postgres 时，要求受保护存储就绪，并在加载任何已有
+   验证台账前认证全部保留载荷。
+1. 要求三个源都与本地链 ID 和经审查的最终化检查点一致。
+1. 以每次至多 4,096 个区块的窗口扩展或复查持久的最终化区块头祖先链。
+1. 要求三个源给出完全一致的最新区块高度签名器 nonce。
+1. 在最终化高度验证经审查的部署清单，包括运行时代码、代理槽位、实现、路由与
+   工厂关系、池身份、代币小数位与固定的报价合约。
+1. 对每个源探测 archive、finalized 标签、显式高度状态与调用、gas、存储、报价与
+   调用跟踪能力。
+1. 原子地安装验证台账，或连同授权各项分类的证据迁移保留的执行历史。
+1. 从 `signer_private_key_env` 加载私钥，要求其地址等于
+   `wallet_address`，并对任何活跃意图做对账。
+1. 读取原生余额与配置的 ERC-20 余额，安装完整钱包快照，并在配置的账户 ID 下
+   发布一个 `AccountState`。
 
-Without Postgres, the client can connect and publish balances, but all transaction operations are
-refused. A verification, migration, reconciliation, balance, or exact amount conversion failure
-keeps the client disconnected. Any loaded signer is removed, the previous complete snapshot stays
-installed, and no partial wallet state is published. Duplicate token symbols also reject the
-snapshot because symbols define currency identity.
+没有 Postgres 时，客户端可以连接并发布余额，但所有交易操作都会被拒绝。验证、
+迁移、对账、余额或精确金额换算失败会让客户端保持断开：移除已加载的签名器，保留
+之前的完整快照，不发布任何部分钱包状态。重复的代币符号也会导致快照被拒，因为
+符号定义货币身份。
 
-The verification providers never receive signed transaction bytes and have no broadcast method.
-The authoritative endpoint alone receives `eth_sendRawTransaction`. Security-critical unsigned
-reads that authorize a signature, rebroadcast, or durable transition go to all three sources.
-Diagnostic preflight and connect-time balance publication use the authoritative endpoint and cannot
-authorize execution. This protects integrity, not order confidentiality. Operators who need route
-or amount confidentiality need a separate execution design.
+验证提供商从不接收已签名的交易字节，也没有广播方法。只有权威端点接收
+`eth_sendRawTransaction`。用于授权签名、重广播或持久迁移的安全关键未签名读取
+发给全部三个源。诊断性预检与连接时的余额发布只走权威端点，且不能授权执行。
+这保护的是完整性，不是订单机密性。需要路由或金额机密性的运营方需要另一套执行
+设计。
 
-Published balances use `total = free` and `locked = 0`. The wallet account applies local
-reservations when it derives effective free and locked balances, as described in
-[Wallet accounts](./../concepts/accounting.md#wallet-accounts).
+发布的余额取 `total = free`、`locked = 0`。钱包账户在推导有效可用与锁定余额时
+应用本地预留，见[钱包账户](./../concepts/accounting.md#wallet-accounts)。
 
-After the client starts, `QueryAccount` republishes the installed snapshot without another RPC
-read. It fails when:
+客户端启动后，`QueryAccount` 直接重发已安装的快照，不再做 RPC 读取。以下情况
+会失败：
 
-- The requested account ID differs from the client account ID.
-- The client has not started.
-- No complete snapshot exists.
+- 请求的账户 ID 与客户端账户 ID 不一致。
+- 客户端尚未启动。
+- 不存在完整快照。
 
-Disconnect removes the signer and aborts in-flight submission tasks. Transaction operations reject
-a disconnected client before any execution RPC call.
+Disconnect 移除签名器并中止在途的提交任务。交易操作在任何执行 RPC 调用前
+拒绝已断开的客户端。
 
-### Supported order slice
+### 支持的订单范围 {#supported-order-slice}
 
-The client accepts one market-order shape:
+客户端只接受一种市价单形态：
 
-| Axis        | Accepted                                                                                        | Rejected                                                              |
-| ----------- | ----------------------------------------------------------------------------------------------- | --------------------------------------------------------------------- |
-| Chain       | The chain configured on the execution client.                                                   | An instrument venue for another chain.                                |
-| DEX         | Uniswap V3.                                                                                     | Every other DEX, including PancakeSwap V3.                            |
-| Pool        | An address-based pool in `Cache::pool` with a fee tier.                                         | Unknown pools, V4 pool IDs, and pools without a fee tier.             |
-| Order       | A single `MarketOrder` with side `BUY` or `SELL`.                                               | Non-market orders submitted through `SubmitOrder`.                    |
-| Quantity    | Base-denominated size within `max_order_amount`; a BUY also needs a matching quote-spend limit. | Quote-denominated input or an amount above either applicable ceiling. |
-| Orientation | Tokens with distinct model priorities.                                                          | A pair whose tokens have equal priority and are ambiguous.            |
+| 维度     | 接受                                                                                      | 拒绝                                                                    |
+| -------- | ------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------- |
+| 链       | 执行客户端配置的链。                                                                      | 金融工具场所属于其他链。                                                  |
+| DEX      | Uniswap V3。                                                                              | 其他一切 DEX，包括 PancakeSwap V3。                                       |
+| 池       | `Cache::pool` 中带费率层级的地址型池。                                                    | 未知的池、V4 池 ID 与无费率层级的池。                                     |
+| 订单     | 单笔方向为 `BUY` 或 `SELL` 的 `MarketOrder`。                                             | 经 `SubmitOrder` 提交的非市价订单。                                       |
+| 数量     | 以 base 计价的规模，且在 `max_order_amount` 内；BUY 还需匹配的 quote 支出上限。           | 以 quote 计价的输入，或超过任一适用上限的金额。                           |
+| 方向     | 模型优先级互不相同的代币。                                                                | 代币优先级相同、方向有歧义的交易对。                                      |
 
-The `InstrumentId` selects the pool, for example
-`0xC6962004f452bE9203591991D15f6b388e09E8D0.Arbitrum:UniswapV3`. Its venue must parse as `<Chain>:<DexType>`,
-and its symbol must parse as an address `PoolIdentifier`. `Pool::get_base_token` and `Pool::get_quote_token`
-apply the model's token-priority convention:
+`InstrumentId` 选定池，例如
+`0xC6962004f452bE9203591991D15f6b388e09E8D0.Arbitrum:UniswapV3`。其场所必须能解析为 `<Chain>:<DexType>`，
+其代码必须能解析为地址型 `PoolIdentifier`。`Pool::get_base_token` 与 `Pool::get_quote_token`
+应用模型的代币优先级约定：
 
-- Stablecoins are quote assets.
-- Wrapped native assets have the next priority.
-- Other tokens become base assets against them.
+- 稳定币是 quote 资产。
+- 包装原生资产次之。
+- 其他代币相对它们成为 base 资产。
 
-Equal `Token::get_token_priority` values are ambiguous and reject the order.
+`Token::get_token_priority` 取值相等即为有歧义，订单被拒绝。
 
-Venue routing admits Uniswap V3 on any configured chain whose venue matches. Swap preparation also
-requires a registered Uniswap V3 deployment and factory for that chain.
+场所路由接受任何场所匹配的配置链上的 Uniswap V3。swap 准备还要求该链注册了
+Uniswap V3 部署与工厂。
 
-Order lists deny each open order with `OrderDenied`. Modify, cancel, and batch-cancel commands reject each
-referenced cached order with `OrderModifyRejected` or `OrderCancelRejected`. Cancel-all commands and order
-queries log a warning without an event. Mass status returns `Ok(None)` so startup reconciliation logs and
-continues. Order, fill, and position report probes return an error so LiveNode does not treat an empty answer
-as absence. These paths never sign, broadcast, or persist an intent.
+订单列表对每个未结订单一律 `OrderDenied`。修改、撤单与批量撤单命令对被引用的
+每个缓存订单一律 `OrderModifyRejected` 或 `OrderCancelRejected`。全部撤单命令与
+订单查询只记录警告、不发事件。批量状态返回 `Ok(None)`，使启动对账记录日志并
+继续。订单、成交与持仓报告探测返回错误，避免 LiveNode 把空答复当作不存在。
+这些路径从不签名、广播或持久化意图。
 
-A swap stays `Submitted` until finality, and venue status queries cannot resolve it. The client requires
-submission retention. When the in-flight check exhausts its retries, LiveNode logs a warning and keeps the
-swap `Submitted` instead of rejecting it. Thus, the finalized fill or rejection still applies to that order.
-If the node stops before finality, shutdown reports incomplete submission recovery for each swap submitted
-during that run, and the persisted intent reconciles on the next connect. Leave open-order checks off.
+swap 在达到最终性前保持 `Submitted`，场所状态查询无法解析它。客户端要求提交
+保留（submission retention）。在途检查耗尽重试时，LiveNode 记录警告并让 swap
+保持 `Submitted` 而不是拒绝。因此最终化的成交或拒绝之后仍会作用于该订单。
+若节点在最终性之前停止，关闭流程会为本轮提交的每笔 swap 报告未完成的提交恢复，
+持久化的意图在下次 connect 时对账。请保持未结订单检查关闭。
 
 Execution routing follows Nautilus's multi-venue broker pattern. The client represents a wallet and RPC
 connection for one chain. Each instrument venue identifies both its chain and DEX.

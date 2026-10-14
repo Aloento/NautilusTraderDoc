@@ -298,7 +298,7 @@ Python 接口不暴露该开关。
 | `quantity`         | `float`        | 数量，`instrument_greeks()` 设为 1。                            |
 | `underlying_price` | `float`        | 计算使用的标的价格。                               |
 | `interest_rate`    | `float`        | 计算使用的利率。                                  |
-| `cost_of_carry`    | `float`        | 持有成本（提供时用 `r - 股息率`，否则为零）。 |
+| `cost_of_carry`    | `float`        | 持有成本（提供时用 `r - dividend yield`，否则为零）。 |
 | `vol`              | `float`        | 隐含波动率。                                                     |
 | `pnl`              | `float`        | 提供持仓时相对持仓入场价的盈亏。        |
 | `price`            | `float`        | 期权模型价格；非期权工具提供持仓时为该持仓盈亏。           |

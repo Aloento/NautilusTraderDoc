@@ -1,4 +1,4 @@
-# 持仓
+# 持仓 {#positions}
 
 本指南说明 NautilusTrader 如何由订单成交创建和更新持仓、如何计算盈亏（PnL），
 以及在 `NETTING` 订单管理系统（OMS）下如何保留已结束的周期。
@@ -491,7 +491,7 @@ Rust 调用方可以用 `try_notional_value()` 处理这些计算错误；
   `Quantity` 转换为 `f64` 会 panic，因此 `Position` 不支持
   17 或 18 位小数的成交值。
 
-`crates/model/src/position.rs` 中的测试覆盖 0.01 USD 手续费、九位小数价格输入、
+`crates/model/src/position.rs` 中的测试覆盖 `0.01` USD 手续费、九位小数价格输入、
 100 笔连续成交、`0.00001` 到 `99999.99999` 的价格以及同价往返。
 这些用例不构成通用的精度界限。
 

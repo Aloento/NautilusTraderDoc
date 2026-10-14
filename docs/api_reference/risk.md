@@ -1,4 +1,4 @@
-# 风险
+# 风险 {#risk}
 
 由最新源码自动生成，见官方文档中的 [`nautilus_trader.risk`](https://nautilustrader.io/docs/python-api-latest/#module-nautilus_trader.risk)。
 

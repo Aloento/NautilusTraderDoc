@@ -1,4 +1,4 @@
-# 网络
+# 网络 {#networking}
 
 NautilusTrader 适配器使用共享的 `nautilus-network` 客户端处理 HTTP 请求/响应 API、WebSocket 数据流和后缀分帧的 TCP 协议。这些客户端在底层 Rust 传输之上叠加了交易系统策略：限流、连接复用、保活检测、重连控制、重放协调和有界读取。
 

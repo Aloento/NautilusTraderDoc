@@ -1,4 +1,4 @@
-# 基于成交的执行
+# 基于成交的执行 {#tradebased-execution}
 
 场所设置 `trade_execution=True` 时（默认），trade tick 会触发撮合。一笔成交证明其价位上有流动性成交发生，因此可以成交被动侧的挂单。
 

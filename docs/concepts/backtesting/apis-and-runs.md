@@ -1,4 +1,4 @@
-# 回测 API 与重复运行
+# 回测 API 与重复运行 {#backtest-apis-and-repeated-runs}
 
 NautilusTrader 提供**低层**的 `BacktestEngine` API 用于直接控制，以及**高层**的 `BacktestNode` API 用于由数据目录支撑的可配置运行。
 

@@ -1,17 +1,16 @@
-# Loading External Data
+# 加载外部数据 {#loading-external-data}
 
-Load CSV market data into the Parquet data catalog, then run a backtest with
-`BacktestNode`. This is a common workflow when you have historical data from an
-external vendor that is not directly supported by a NautilusTrader adapter.
+把 CSV 行情数据加载到 Parquet 数据目录，然后用 `BacktestNode` 跑一次回测。当你手头有外部
+数据供应商的历史数据、而 NautilusTrader 适配器不直接支持时，这是常见的工作流。
 
-[View source on GitHub](https://github.com/nautechsystems/nautilus_trader/blob/develop/docs/how_to/loading_external_data.py).
+[在 GitHub 查看源码](https://github.com/nautechsystems/nautilus_trader/blob/develop/docs/how_to/loading_external_data.py)。
 
-## Prerequisites
+## 前提条件 {#prerequisites}
 
 - Python 3.13+
-- [NautilusTrader](https://pypi.org/project/nautilus_trader/) 2.x installed
-  (`pip install -U --pre nautilus_trader`)
-- pandas (`pip install pandas`), needed only for the histdata path below
+- 已安装 [NautilusTrader](https://pypi.org/project/nautilus_trader/) 2.x
+  （`pip install -U --pre nautilus_trader`）
+- pandas（`pip install pandas`），仅下文的 histdata 路径需要
 
 ```python
 import os
@@ -38,19 +37,15 @@ from nautilus_trader.testkit.providers import TestInstrumentProvider
 from nautilus_trader.trading import EmaCrossConfig
 ```
 
-## Load and wrangle the data
+## 加载并整理数据 {#load-and-wrangle-the-data}
 
-Place CSV tick files (e.g. from [histdata.com](https://www.histdata.com/))
-into `~/Downloads/Data/HISTDATA/`. Set the `NAUTILUS_DATA_DIR` environment
-variable to the parent directory if your data lives elsewhere.
-`TestDataProvider.quotes_from_histdata_csv` converts the rows into Nautilus
-`QuoteTick` objects. It expects the histdata ASCII tick format extracted from
-the downloaded ZIP (`.csv` or `.csv.gz`). The how-to loads only the first
-file in sorted order and labels it EUR/USD, so use a EUR/USD file or change
-the instrument.
+把 CSV 逐笔文件（例如来自 [histdata.com](https://www.histdata.com/)）放入
+`~/Downloads/Data/HISTDATA/`。若数据在别处，把 `NAUTILUS_DATA_DIR` 环境变量设置为父目录。
+`TestDataProvider.quotes_from_histdata_csv` 会把行转换为 Nautilus 的 `QuoteTick` 对象。
+它接受从下载的 ZIP 中解出的 histdata ASCII 逐笔格式（`.csv` 或 `.csv.gz`）。本指南只加载
+排序后的第一个文件并将其标为 EUR/USD，因此请使用 EUR/USD 文件，或改用其他工具。
 
-Without a download, the how-to falls back to 20,000 sample AUD/USD quote
-ticks so it still runs end to end.
+没有下载数据时，本指南回退到 20,000 条 AUD/USD 示例报价逐笔，保证端到端仍然可运行。
 
 ```python
 DATA_DIR = Path(os.environ.get("NAUTILUS_DATA_DIR", "~/Downloads/Data")).expanduser() / "HISTDATA"
@@ -83,12 +78,10 @@ else:
 ticks.sort(key=lambda tick: tick.ts_init)
 ```
 
-## Write to the data catalog
+## 写入数据目录 {#write-to-the-data-catalog}
 
-Create a `ParquetDataCatalog` and write the instrument definition and tick
-data. The catalog stores data in Parquet format for efficient querying across
-backtest runs. The how-to writes the catalog to `catalog/` under the working
-directory and replaces that directory on each run.
+创建 `ParquetDataCatalog`，写入金融工具定义和逐笔数据。目录以 Parquet 格式存储数据，
+便于跨多次回测高效查询。本指南把目录写到工作目录下的 `catalog/`，每次运行都会替换该目录。
 
 ```python
 CATALOG_PATH = Path.cwd() / "catalog"
@@ -119,11 +112,10 @@ ticks = catalog.query_quote_ticks(identifiers=[instrument.id.value], start=start
 ticks[:10]
 ```
 
-## Configure and run the backtest
+## 配置并运行回测 {#configure-and-run-the-backtest}
 
-Set up venue and data configs, build the node, then register the built-in
-`EmaCross` strategy. The same node and strategy pattern carries forward to
-live trading with `LiveNode`.
+设置场所与数据配置，构建节点，然后注册内置的 `EmaCross` 策略。同样的节点与策略模式可以
+平移到用 `LiveNode` 进行的实时交易。
 
 ```python
 instrument = catalog.instruments()[0]

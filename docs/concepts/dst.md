@@ -698,13 +698,13 @@ DST 覆盖异步并发与状态机正确性。典型的失败包括：
 
 ## 状态 {#status}
 
-### 运行时替换 {#runtime-swap-status}
+### 运行时替换 {#runtime-swap}
 
 第 1 层已实现。`nautilus_common::live::dst` 暴露 `time`、`task`、`runtime`、
 `signal` 的路由再导出。`time`、`task`、`runtime` 的生产调用点已使用该接缝。
 信号的采用仍是部分的，见[信号处理](#signal-handling)。
 
-### 不确定性替换 {#nondeterminism-substitution-status}
+### 不确定性替换 {#nondeterminism-substitution}
 
 第 2 层已在 17 个范围内 crate 中实现。接缝覆盖墙上时间、单调时间、随机性与
 可观测迭代顺序。[实现说明](#implementation-notes)列出已审计的路径与剩余例外。

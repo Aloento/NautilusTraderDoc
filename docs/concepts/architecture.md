@@ -1,4 +1,4 @@
-# 架构
+# 架构 {#architecture}
 
 本页介绍 NautilusTrader 的组件、运行时边界和数据流。[设计原则与策略](./../developer_guide/design_principles.md)指导着这一结构。
 

@@ -1,4 +1,4 @@
-# 执行算法
+# 执行算法 {#execution-algorithms}
 
 `ExecutionAlgorithm` 接收按 `exec_algorithm_id` 选中的主订单，并可将其拆分为更小的派生订单。NautilusTrader 支持自定义算法，并内置原生 Rust 实现的 TWAP。本页介绍如何配置 TWAP、编写算法以及管理派生订单。
 

@@ -1,7 +1,6 @@
-# Adapters
+# 适配器 {#adapters}
 
-Auto-generated from the latest source. See [`nautilus_trader.adapters`](https://nautilustrader.io/docs/python-api-latest/#module-nautilus_trader.adapters) in the official documentation.
+由最新源码自动生成，见官方文档中的 [`nautilus_trader.adapters`](https://nautilustrader.io/docs/python-api-latest/#module-nautilus_trader.adapters)。
 
 
-See the [Python API reference](https://nautilustrader.io/docs/python-api-latest/adapters/index.html).
-
+见 [Python API 参考](https://nautilustrader.io/docs/python-api-latest/adapters/index.html)。

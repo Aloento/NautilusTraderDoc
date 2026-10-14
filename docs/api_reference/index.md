@@ -1,8 +1,8 @@
 # Python API
 
-Auto-generated from the latest source using [Sphinx](https://www.sphinx-doc.org/en/master/).
+由最新源码自动生成，使用 [Sphinx](https://www.sphinx-doc.org/en/master/) 构建。
 
-- **Latest**: Built from the `develop` branch (latest stable release).
-- **Nightly**: Built from the `nightly` branch (bleeding-edge features in development).
+- **Latest**：从 `develop` 分支构建（最新稳定版本）。
+- **Nightly**：从 `nightly` 分支构建（开发中的前沿特性）。
 
-Select the version from the **Versions** drop-down menu (top left).
+通过（左上角的）**Versions** 下拉菜单选择版本。

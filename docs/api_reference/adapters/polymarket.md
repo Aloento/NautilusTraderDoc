@@ -1,6 +1,5 @@
 # Polymarket
 
-This page documents the Polymarket adapter module in `nautilus_trader.adapters.polymarket`.
+本页面记录 `nautilus_trader.adapters.polymarket` 中的 Polymarket 适配器模块。
 
-Auto-generated from the latest source. See [`nautilus_trader.adapters.polymarket`](https://nautilustrader.io/docs/python-api-latest/#module-nautilus_trader.adapters.polymarket) in the official documentation.
-
+由最新源码自动生成，见官方文档中的 [`nautilus_trader.adapters.polymarket`](https://nautilustrader.io/docs/python-api-latest/#module-nautilus_trader.adapters.polymarket)。

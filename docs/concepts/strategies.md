@@ -1,4 +1,4 @@
-# 策略
+# 策略 {#strategies}
 
 策略继承 `Strategy` 类并实现其逻辑所需的方法。
 `Strategy` 在 `DataActor` 之上增加订单管理。
@@ -961,7 +961,7 @@ config = StrategyConfig(
 执行前就回到 `PENDING_CANCEL`。已停止的策略在被拒绝时既不恢复提醒也不重试撤单。
 
 有些场所（如 Binance Futures）支持 GTD 有效期，因此使用
-`manage_gtd_expiry` 时应把执行客户端配置的 `use_gtd` 设为 `False` 以避免冲突。
+`manage_gtd_expiry` 时应把执行客户端配置设为 `use_gtd=False` 以避免冲突。
 
 ### 多策略实例 {#multiple-strategies}
 

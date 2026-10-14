@@ -1,4 +1,4 @@
-# 适配器
+# 适配器 {#adapters}
 
 ## 简介 {#introduction}
 
@@ -476,27 +476,22 @@ HTTP 与 WebSocket 客户端使用同一套密钥材料时，把凭证处理集�
 - 把所有字段作为一个凭证集解析。公共客户端可以保持未鉴权，但已鉴权客户端在发出请求前会拒绝不完整或无效的
   凭证集。
 - 在凭证边界把配置和环境字符串转换为可清零的持有者。转换后不要在适配器状态中保留不可清零的明文副本。
-- Share credential storage across transports only when they use the same key material. Keep HTTP,
-  WebSocket, and transaction signing methods separate when their canonical payloads differ.
+- 只有多个传输使用同一套密钥材料时才共享凭证存储。HTTP、WebSocket 和交易签名各自的规范化载荷不同时，
+  方法保持分离。
 
-#### Project credentials into Python
+#### 把凭证投影到 Python {#project-credentials-into-python}
 
-- Convert credential strings accepted by a Python constructor to `SecretString` at the Rust
-  boundary.
-- Apply the Rust `Debug` and `Display` redaction rules to Python `__repr__` and `__str__`.
-- Expose only a presence check for secret material and secret-bearing locations.
-- Return credential identity, such as a username, only when an existing public API or another
-  explicit caller needs it. Document the choice and keep the value out of diagnostics.
-- Never expose passwords, private keys, API secrets, passphrases, tokens, or signatures through
-  plaintext getters.
+- Python 构造函数接受的凭证字符串在 Rust 边界转换为 `SecretString`。
+- Rust 的 `Debug` 和 `Display` 脱敏规则同样适用于 Python 的 `__repr__` 和 `__str__`。
+- 对密钥材料和含密钥的位置只暴露存在性检查。
+- 只有既有公共 API 或其他明确的调用方需要时才返回凭证标识（如用户名）。记录该选择，并让该值远离诊断输出。
+- 绝不通过明文 getter 暴露密码、私钥、API secret、passphrase、token 或签名。
 
-#### Bound plaintext lifetime
+#### 限定明文生命周期 {#bound-plaintext-lifetime}
 
-- Zeroize each owned plaintext allocation after its final use. This includes normalized and decoded keys,
-  secret-bearing signing payloads, serialized authentication messages, encoded form values, and mutable
-  request models.
-- Prefer borrowed slices and existing zeroizing owners over intermediate `String` and `Vec<u8>`
-  copies.
+- 每块自有的明文分配在最后一次使用后清零，包括归一化并解码后的密钥、含密钥的签名载荷、序列化的鉴权消息、
+  编码后的表单值和可变请求模型。
+- 优先用借用的切片和已有的可清零持有者，而不是中间的 `String` 和 `Vec<u8>` 副本。
 - 保证范围限定在适配器自己持有的分配上。序列化库、传输层、TLS 以及操作系统都可能复制出适配器无法触及的
   副本。
 - 明文的生命周期要短。不要承诺进程级或传输级的擦除。
@@ -567,7 +562,7 @@ HTTP 与 WebSocket 客户端使用同一套密钥材料时，把凭证处理集�
 字段，让交换和遗漏显而易见地失败。
 
 对每个受支持的产品族，测试 交易场所符号 -> `InstrumentId` -> 交易场所符号。大小写归一只在标识边界做一次，
-其他位置保留交易场所有意义的size写。映射需要产品标记时，缺失或歧义的标记要在缓存金融工具之前被拒绝。
+其他位置保留交易场所有意义的大小写。映射需要产品标记时，缺失或歧义的标记要在缓存金融工具之前被拒绝。
 
 用当前的交易场所定义构造金融工具。缓存或发出之前校验必需的标识与精度。解析函数保持确定性，尽可能不依赖
 在线客户端状态。
@@ -671,196 +666,171 @@ HTTP 与 WebSocket 客户端使用同一套密钥材料时，把凭证处理集�
 工厂接收一个向下转型后的 `ClientConfig` 和只读的
 [`CacheView`](https://github.com/nautechsystems/nautilus_trader/blob/develop/crates/common/src/cache/mod.rs)。数据工厂还接收共享时钟。
 用该视图解析金融工具和已有状态。引擎 cache 的写入留在引擎里：适配器不要改动引擎 cache，而是发出领域事件和
-报告。私有
-protocol cache is valid when parsing, subscription replay, or response correlation needs it.
+报告。解析、订阅重放或响应关联确实需要时，私有协议 cache 是允许的。
 
-### Adapter-owned state
+### 适配器自有的状态 {#adapter-owned-state}
 
-Choose collections from ownership and update behavior:
+按所有权和更新行为选择集合类型：
 
-- Use a plain `AHashMap` or `AHashSet` for state owned by one task.
-- Use `AtomicMap` or `AtomicSet` for read-heavy immutable snapshots with infrequent writes. Use `rcu` when
-  writers can race. A separate load and store can lose another writer's update.
-- Use `DashMap` or `DashSet` for independent keys that receive concurrent entry updates.
+- 单一任务持有的状态用普通的 `AHashMap` 或 `AHashSet`。
+- 读多写少、写入不频繁的不可变快照用 `AtomicMap` 或 `AtomicSet`。写入方可能竞争时用 `rcu`——单独的 load
+  加 store 可能丢掉另一个写入方的更新。
+- 相互独立的键、条目被并发更新时用 `DashMap` 或 `DashSet`。
 
-Adapters use these patterns in different combinations. Keep the collection behind the component that owns its
-invariant instead of sharing it merely to avoid passing a message. Use `Ustr` for repeated protocol strings
-when interning reduces allocation or comparison cost. Keep unique request IDs and short-lived payload text in
-their natural types.
+各适配器对这些模式的组合各不相同。集合放在拥有其不变量的组件后面，不要仅仅为了少传一条消息就共享出去。
+反复出现的协议字符串在驻留（interning）能降低分配或比较开销时用 `Ustr`。唯一请求 ID 和短生命周期的载荷文本
+保持其自然类型。
 
-### Connection lifecycle (`connect`)
+### 连接生命周期（`connect`） {#connection-lifecycle-connect}
 
-Treat each lifecycle method as a contract:
+每个生命周期方法都当作契约对待：
 
-| Method       | Responsibility                                                                                               | Successful postcondition                                                           |
+| 方法 | 职责 | 成功后置条件 |
 | ------------ | ------------------------------------------------------------------------------------------------------------ | ---------------------------------------------------------------------------------- |
-| `start`      | Install local event plumbing and start client-owned background work.                                         | Local event paths exist before any task can publish.                               |
-| `connect`    | Establish transports, authenticate, load required definitions or account state, and start stream processing. | Public commands can use the transport, and required bootstrap state is observable. |
-| `disconnect` | Stop new network work and close transports.                                                                  | The client no longer sends or receives venue traffic.                              |
-| `stop`       | End client-owned work using an idempotent path.                                                              | Repeated teardown is safe.                                                         |
-| `reset`      | Clear reconnectable caches, counters, cancellation state, and stale in-flight state.                         | A later start or connection does not inherit invalid session state.                |
-| `dispose`    | Release background tasks, threads, and external handles.                                                     | No client-owned resource remains active.                                           |
+| `start` | 安装本地事件管线，启动客户端自有的后台工作。 | 任何任务能发布之前，本地事件路径已存在。 |
+| `connect` | 建立传输、鉴权、加载所需的定义或账户状态、启动数据流处理。 | 公共命令可以使用传输，且必需的引导状态可被观察到。 |
+| `disconnect` | 停止新的网络工作并关闭传输。 | 客户端不再收发交易场所流量。 |
+| `stop` | 用幂等路径结束客户端自有的工作。 | 重复拆卸是安全的。 |
+| `reset` | 清空可重连的缓存、计数器、取消状态和过期的进行中状态。 | 后续 start 或 connect 不会继承无效会话的状态。 |
+| `dispose` | 释放后台任务、线程和外部句柄。 | 不再有客户端自有的资源处于活动状态。 |
 
-Do not report connected until public commands can use the transport and required engine-side state
-is observable. Reconciliation and strategy startup treat **connected as a readiness signal**:
+公共命令能用传输、且引擎侧必需状态可观察之前，不要上报 connected。对账和策略启动把 **connected 当作就绪
+信号**：
 
-- An execution client that emits initial account state asynchronously waits until the engine cache
-  contains the account before calling `set_connected`.
-- Apply the same readiness rule to required instrument or stream bootstrap state.
-- When transport connection completes before the socket becomes active, use a bounded
-  `wait_until_active` step before subscribing or reporting readiness.
+- 异步发出初始账户状态的执行客户端，要等引擎 cache 中出现账户后才调用 `set_connected`。
+- 金融工具或数据流引导等必需状态适用同样的就绪规则。
+- 传输"已连接"但 socket 尚未激活时，在订阅或上报就绪之前执行有界的 `wait_until_active`。
 
-If connection fails after some resources start, clean up those resources. Leave the state consistent for retry
-or disposal.
+连接在部分资源已启动后失败时，清理这些资源，让状态对重试或处置保持一致。
 
-#### Execution event sender setup
+#### 执行事件发送器的装配 {#execution-event-sender-setup}
 
-For an execution client that uses
-[`ExecutionEventEmitter`](https://github.com/nautechsystems/nautilus_trader/blob/develop/crates/live/src/execution/emitter.rs), install the sender at both stages:
+使用
+[`ExecutionEventEmitter`](https://github.com/nautechsystems/nautilus_trader/blob/develop/crates/live/src/execution/emitter.rs)
+的执行客户端要在两个阶段安装发送器：
 
-1. **Factory creation**: Resolve the sender with `try_get_exec_event_sender`. When it returns `Some`, install
-   the sender in `create` before returning the client. `LiveNodeBuilder` binds the runner's senders to
-   thread-local storage before it calls a registered factory. Thus, the sender is available in each factory.
+1. **工厂创建**：用 `try_get_exec_event_sender` 获取发送器。返回 `Some` 时，在 `create` 返回客户端之前安装
+   发送器。`LiveNodeBuilder` 在调用注册的工厂之前，把 runner 的发送器绑定到线程本地存储，因此工厂内可以拿到
+   发送器。
 
-   `None` means that the calling thread has no bound senders. This is expected in a factory unit test or a
-   host that binds later. It is not a construction failure.
-1. **Client start**: Unconditionally install the sender from `get_exec_event_sender` in `start`.
-   `LiveNode` rebinds the runner's senders on the calling thread before starting clients, so this
-   installation is authoritative. The emitter shares one sender slot across its clones, so it reaches
-   every clone taken during construction, including those handed to client-owned tasks.
+   返回 `None` 表示调用线程没有绑定的发送器。工厂单元测试或稍后才绑定的宿主中这是预期情况，不是构造失败。
+1. **客户端启动**：在 `start` 中无条件用 `get_exec_event_sender` 安装发送器。`LiveNode` 在启动客户端前会在
+   调用线程重新绑定 runner 的发送器，因此这一次安装是权威的。emitter 的各克隆共享同一个发送器槽位，能触达
+   构造期间取出的每个克隆，包括交给客户端自有任务的那些。
 
-If a host calls a factory outside `LiveNodeBuilder`, it must bind the runner's senders on the client's thread
-before `start`. `get_exec_event_sender` reads only the thread-local slot. It panics if nothing has bound that
-slot.
+宿主在 `LiveNodeBuilder` 之外调用工厂时，必须在 `start` 之前于客户端所在线程绑定 runner 的发送器。
+`get_exec_event_sender` 只读线程本地槽位，槽位从未绑定时会 panic。
 
-A sender passed through the host's factory or client constructor reaches the emitter's shared slot through
-`set_sender`. It does not populate the thread-local slot. Thus, constructor injection alone does not satisfy
-the lookup.
+通过宿主工厂或客户端构造函数传入的发送器经 `set_sender` 进入 emitter 的共享槽位，不会填充线程本地槽位。因此
+仅靠构造函数注入不能满足那次查找。
 
-Constructor injection stands alone only when the client's `start` accepts an already-installed
-sender instead of performing the unconditional lookup. All emitter-backed execution clients in this
-repository perform that lookup.
+只有当客户端的 `start` 接受已安装的发送器、而不做无条件查找时，构造函数注入才能独立成立。本仓库所有基于
+emitter 的执行客户端都执行该查找。
 
-#### Bootstrap ordering
+#### 引导顺序 {#bootstrap-ordering}
 
-Connection code varies, but its dependencies do not. A data client typically:
+连接代码各不相同，但依赖关系不变。数据客户端通常：
 
-1. Resolves the environment and validates any credentials needed during bootstrap.
-1. Fetches required instrument definitions and populates parsing context.
-1. Publishes definitions that the engine must observe before data arrives.
-1. Starts the transport and waits for the command path to become active.
-1. Subscribes or replays intent only after handler initialization.
-1. Reports connected after the required engine and protocol state is ready.
+1. 解析环境并校验引导期需要的凭证。
+1. 拉取必需的金融工具定义并填充解析上下文。
+1. 发布引擎必须在数据到达前观察到的定义。
+1. 启动传输并等待命令路径激活。
+1. 处理器初始化完成后才订阅或重放意图。
+1. 引擎和协议必需状态就绪后才上报 connected。
 
-An execution client typically:
+执行客户端通常：
 
-1. Validates credentials, account identity, and required instrument context.
-1. Establishes and authenticates the private transport.
-1. Starts stream processing and subscriptions in an order that cannot lose acknowledgements or
-   account updates.
-1. Fetches and emits initial account state, or waits for an authoritative stream snapshot.
-1. Waits for required account and instrument state to become observable to the engine.
-1. Reports connected only after commands and reconciliation can run.
+1. 校验凭证、账户标识和必需的金融工具上下文。
+1. 建立私有传输并完成鉴权。
+1. 以不会丢失确认或账户更新的顺序启动数据流处理与订阅。
+1. 拉取并发出初始账户状态，或等待权威的流快照。
+1. 等待引擎可观察到必需的账户与金融工具状态。
+1. 命令与对账都能运行之后才上报 connected。
 
-Treat these as dependency constraints, not required function names. A venue can combine or reorder
-steps when tests prove the same postconditions. If any step fails after resources start, tear down
-those resources before returning the error.
+把这些当依赖约束，不是必需的函数名。测试能证明同样的后置条件时，交易场所可以合并或重排步骤。任何步骤在资源
+已启动后失败，返回错误前先拆掉那些资源。
 
-### Data client
+### 数据客户端 {#data-client}
 
-Subscriptions express ongoing intent. Requests ask the provider for current or historical data.
-Keep their freshness semantics distinct:
+订阅表达持续意图，请求向服务商索取当前或历史数据。两者的时效语义要保持分离：
 
-- An explicit instrument request fetches from the provider unless the API contract explicitly
-  permits a cache result.
-- Private caches can provide parsing context, but must not turn a new request into a stale response.
-- Emit a response only for data that satisfies the request identity and filters.
-- Preserve the request correlation ID and original parameters in response events.
+- 指定金融工具的请求从服务商拉取，除非 API 契约明确允许返回 cache 结果。
+- 私有 cache 可以提供解析上下文，但不能把新请求变成过期响应。
+- 只对满足请求标识和过滤条件的数据发出响应。
+- 响应事件中保留请求关联 ID 和原始参数。
 
-The shared [`DataEvent`](https://github.com/nautechsystems/nautilus_trader/blob/develop/crates/common/src/messages/mod.rs) envelope determines how data
-enters the engine:
+共享的
+[`DataEvent`](https://github.com/nautechsystems/nautilus_trader/blob/develop/crates/common/src/messages/mod.rs)
+封包决定数据如何进入引擎：
 
-| Variant                       | Use                                                                 | Contract to preserve                                                                |
+| 变体 | 用途 | 要保留的契约 |
 | ----------------------------- | ------------------------------------------------------------------- | ----------------------------------------------------------------------------------- |
-| `DataEvent::Instrument`       | Instrument definitions from bootstrap, requests, or updates.        | Preserve complete identity, precision, and venue timestamps when available.         |
-| `DataEvent::InstrumentStatus` | Trading or availability status changes.                             | Emit meaningful transitions rather than unchanged polling snapshots.                |
-| `DataEvent::Data`             | Trades, quotes, order-book data, bars, and other typed market data. | Complete parsing and event boundary construction before emission.                   |
-| `DataEvent::Response`         | Results for current or historical data requests.                    | Preserve request correlation, parameters, filters, and freshness semantics.         |
-| `DataEvent::FundingRate`      | Funding rate updates for derivatives.                               | Preserve the venue's effective or event time and instrument identity.               |
-| `DataEvent::OptionGreeks`     | Venue-provided option greeks.                                       | Preserve the source instrument and distinguish venue values from local calculation. |
-| `DataEvent::DeFi`             | Feature-gated decentralized finance data.                           | Emit only when the adapter and build expose the shared `defi` feature.              |
+| `DataEvent::Instrument` | 来自引导、请求或更新的金融工具定义。 | 保留完整标识、精度，可行时保留交易场所时间戳。 |
+| `DataEvent::InstrumentStatus` | 交易或可用状态变化。 | 发出有意义的状态转移，而不是无变化的轮询快照。 |
+| `DataEvent::Data` | 成交、报价、订单簿数据、K 线及其他类型化行情数据。 | 发出前完成解析和事件边界构造。 |
+| `DataEvent::Response` | 当前或历史数据请求的结果。 | 保留请求关联、参数、过滤和时效语义。 |
+| `DataEvent::FundingRate` | 衍生品的资金费率更新。 | 保留交易场所的生效时间或事件时间，以及金融工具标识。 |
+| `DataEvent::OptionGreeks` | 交易场所提供的期权希腊值。 | 保留来源金融工具，并区分交易场所数值与本地计算。 |
+| `DataEvent::DeFi` | 由 feature 门控的去中心化金融数据。 | 仅当适配器与构建暴露共享 `defi` feature 时发出。 |
 
-Add a regression test that changes the upstream instrument response between two requests. The
-second response must reflect the new venue state rather than a private cache entry.
+加一个回归测试：在两次请求之间改变上游金融工具响应。第二次响应必须反映交易场所的新状态，而不是私有 cache
+条目。
 
-Publish typed data through the engine's data event path. Parse and validate before emission, and do not hold
-mutable adapter state across downstream dispatch. A closed event receiver normally means that the engine is
-stopping. Log the send failure. Let lifecycle teardown own recovery, rather than retrying the same event
-indefinitely.
+类型化数据经引擎的数据事件路径发布。发出前解析并校验，且不要在下游分发期间持有可变的适配器状态。事件接收端
+关闭通常意味着引擎正在停止，记录该发送失败即可；恢复交给生命周期拆卸负责，不要无限重试同一事件。
 
-For order-book deltas, follow the
-[delta flag and event boundary contract](./../concepts/data/index.md#delta-flags-and-event-boundaries).
-Each logical update ends with `F_LAST`. Snapshots use `F_SNAPSHOT` and end with `F_SNAPSHOT | F_LAST`,
-including an empty snapshot represented only by `Clear`.
+订单簿增量遵循
+[增量标志与事件边界契约](./../concepts/data/index.md#delta-flags-and-event-boundaries)。每个逻辑更新以
+`F_LAST` 结束。快照使用 `F_SNAPSHOT` 并以 `F_SNAPSHOT | F_LAST` 结束，只由 `Clear` 表示的空快照也不例外。
 
-If a venue exposes instrument status only as a polled snapshot, compare it with the previous full snapshot.
-Emit only the changes, not all the statuses again. Treat an instrument removed from the snapshot according to
-the venue contract. Map removal to `NotAvailableForTrading` only when disappearance means the instrument is
-unavailable. Update the full private cache even when emissions are filtered to active subscriptions.
+交易场所若只以轮询快照暴露金融工具状态，与上一份完整快照比较，只发出变化，不要重发全部状态。金融工具从快照
+中消失时按交易场所契约处理：只有"消失即不可交易"才映射为 `NotAvailableForTrading`。即使发出内容被过滤到活跃
+订阅，完整的私有 cache 仍要更新。
 
-### Order book recovery ownership
+### 订单簿恢复的所有权 {#order-book-recovery-ownership}
 
-[`nautilus_live::book`](https://github.com/nautechsystems/nautilus_trader/blob/develop/crates/live/src/book/mod.rs) provides shared recovery machinery. Keep
-venue-specific book synchronization and recovery in each adapter's `src/book/`, with stream handlers
-dispatching commands and frames.
+[`nautilus_live::book`](https://github.com/nautechsystems/nautilus_trader/blob/develop/crates/live/src/book/mod.rs)
+提供共享恢复机制。交易场所特有的订单簿同步与恢复保留在各适配器的 `src/book/`，由流处理器分发命令和帧。
 
-#### Per-book sync
+#### 单簿同步 {#per-book-sync}
 
-`BookSync` holds one book's phase (waiting for its first snapshot, synced at a venue position, or
-recovering), its pending snapshot, and its recovery state. It performs no I/O, so the
-[L0 property test](./spec_data_testing.md#validation-levels) drives it through arbitrary schedules of
-subscribes, snapshots, gaps, rejections, reconnects, and deadlines.
+`BookSync` 持有一个订单簿的阶段（等待首个快照、已在交易场所位置同步、或恢复中）、其挂起快照和恢复状态。它
+不做 I/O，因此 [L0 属性测试](./spec_data_testing.md#validation-levels)可以用订阅、快照、缺口、拒绝、重连和
+截止时间的任意调度来驱动它。
 
-A book out of sync needs an owner: a running recovery or an armed snapshot deadline.
-`BookSync::gap` requests recovery only when neither exists, and `BookSync::claim` admits one running
-recovery at a time, so repeated gap reports cannot start competing recoveries. Arm a deadline only
-where a monitor checks it, or the book keeps an owner that never acts. Stale-feed reports cover
-every book that no running recovery owns.
+失步的订单簿需要有一个所有者：一个运行中的恢复，或一个已武装的快照截止时间。`BookSync::gap` 只在两者都不
+存在时请求恢复；`BookSync::claim` 一次只准入一个运行中的恢复，因此重复的缺口上报不会启动相互竞争的恢复。
+只有在确有监视者检查截止时间的地方才武装它，否则订单簿会挂着一个永不行动的所有者。数据流陈旧的上报覆盖所有
+没有被运行中恢复拥有的订单簿。
 
-- OKX, Polymarket, Binance, Hyperliquid, Bybit, and AX Exchange keep a `BookSync` per book.
-- Derive keeps a `BookSync` per exact wire channel, shared by delta and depth consumers with matching arguments.
-- Betfair keeps a `BookSync` per market, since it images whole markets.
-- Lighter keeps a `BookRecoveryState` per book inside its handler-owned tracker.
+- OKX、Polymarket、Binance、Hyperliquid、Bybit 和 AX Exchange 每个订单簿持有一个 `BookSync`。
+- Derive 每个精确的线路通道持有一个 `BookSync`，由参数匹配的增量与深度消费者共享。
+- Betfair 每个市场持有一个 `BookSync`，因为它按整个市场做镜像。
+- Lighter 在处理器自有的 tracker 内为每个订单簿持有 `BookRecoveryState`。
 
-#### Starting recovery
+#### 启动恢复 {#starting-recovery}
 
-Recovery for a `BookSync` book moves through four steps, and a book can stop between any two:
+`BookSync` 订单簿的恢复经过四步，任何两步之间订单簿都可能停下：
 
-1. **Mark**: `BookSync::gap` moves the book to `Recovering`, where it emits nothing.
-1. **Request**: the same call returns `BookSequenceOutcome::Recover` only when no running recovery
-   or armed snapshot deadline owns the book. A request grants no ownership, so later calls return
-   `Recover` again until an episode is claimed.
-1. **Claim**: `BookSync::claim` admits one episode, which then owns the book and retires any pending
-   snapshot wait.
-1. **Run**: the adapter spawns `BookRecovery::run` for the claimed episode in its task scope.
+1. **标记**：`BookSync::gap` 把订单簿置为 `Recovering`，此期间不发出任何内容。
+1. **请求**：同一次调用只有在没有运行中的恢复或已武装的快照截止时间拥有该订单簿时才返回
+   `BookSequenceOutcome::Recover`。请求不授予所有权，因此在 episode 被认领之前，后续调用会再次返回 `Recover`。
+1. **认领**：`BookSync::claim` 准入一个 episode，该 episode 从此拥有订单簿，并撤销任何挂起的快照等待。
+1. **运行**：适配器在其任务作用域内为认领的 episode 派生 `BookRecovery::run`。
 
-Binance claims in the same step that detects the gap: every diff for an unsynced book tries
-`claim`, which refuses while an episode runs.
+Binance 在检测到缺口的同一步骤认领：未同步订单簿的每个 diff 都尝试 `claim`，episode 运行期间会被拒绝。
 
-When recovery cannot start, keep the book able to ask again:
+恢复无法启动时，要让订单簿保留再次求助的能力：
 
-- Check what the replacement needs, such as a socket, channel, or token, before claiming. An early
-  return then leaves the book unowned.
-- Pass every incremental update for an unsynced book through `BookSync::gap`, including updates
-  that arrive while it is already recovering. Suppressing an update on phase alone strands a book
-  that nothing owns: its output stays dark until a snapshot happens to arrive.
-- If the task scope refuses a claimed episode's task, cancel the episode. For example, use a drop guard on the
-  episode's cancellation token. The task takes ownership of this guard. A running episode without a task owns
-  the book and refuses each later claim.
-- Start nothing after unsubscribe or shutdown. Removing the book cancels its episode, and a closed
-  task scope refuses the task, so the drop guard cancels a late claim.
+- 认领之前先检查替换需要什么，如 socket、通道或 token。提前返回会让订单簿保持无主。
+- 未同步订单簿的每个增量更新都要经过 `BookSync::gap`，包括它已在恢复中时到达的更新。只按阶段抑制更新，
+  会把无主的订单簿搁死：它的输出会一直暗着，直到恰好有快照到达。
+- 任务作用域拒绝已认领 episode 的任务时，取消该 episode。例如给 episode 的 cancellation token 加 drop guard，
+  任务取得该 guard 的所有权。没有任务却在运行的 episode 会占着订单簿，并拒绝之后每次认领。
+- 退订或关闭之后不启动任何东西。移除订单簿会取消其 episode，关闭的任务作用域会拒绝任务，因此 drop guard 会
+  取消迟到的认领。
 
-#### Recovery state and retry budgets
+#### 恢复状态与重试预算 {#recovery-state-and-retry-budgets}
 
 Keep one `BookRecoveryState` per subscribed book under the adapter's existing state lock or owning task. Store
 it directly or inside the shared per-book `BookSync`. It admits one running recovery and cancels obsolete
