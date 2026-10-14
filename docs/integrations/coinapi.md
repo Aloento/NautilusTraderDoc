@@ -1,6 +1,6 @@
 # CoinAPI
 
-[API Bricks](https://www.apibricks.io/?ref=nautilus) 旗下的 [CoinAPI](https://www.coinapi.io/products/market-data-api?ref=nautilus) 提供跨多家交易所的实时与历史加密货币行情数据。其 REST 和 WebSocket API 以统一的数据格式暴露成交、报价、订单簿和 OHLCV bar。
+[CoinAPI](https://www.coinapi.io/products/market-data-api?ref=nautilus)（[API Bricks](https://www.apibricks.io/?ref=nautilus) 旗下）提供跨多家交易所的实时与历史加密货币行情数据。其 REST 和 WebSocket API 以统一的数据格式暴露成交、报价、订单簿和 OHLCV bar。
 
 NautilusTrader 适配器支持实时行情、历史请求，以及加载已下载的扁平文件（flat file）。它没有执行客户端、账户管理或订单路由。
 
@@ -469,7 +469,7 @@ bars = loader.load_bars("T-OHLCV_ACTIVE_CONSOLIDATED/D-20250911/E-COINBASE/TP-1M
 
 ### 文件布局 {#file-layout}
 
-#### 金融工具文件 {#symbol-files}
+#### 代码文件 {#symbol-files}
 
 加载器接受带表头的分号分隔文件。成交、报价和订单簿文件每个只含一个金融工具，路径形如
 `T-{SCHEMA}/D-{YYYYMMDD|YYYYMMDDHH}/E-{EXCHANGE}/IDDI-{ID}+SC-{SYMBOL_ID}+S-{EXCHANGE_SYMBOL}.csv.gz`。

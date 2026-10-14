@@ -94,7 +94,7 @@ for (const rel of walk(DOCS)) {
   for (let k = 0; k < zhHeads.length; k++) {
     const zh = zhHeads[k].line;
     const en = enHeads[k].line;
-    if (/\{#[\w-]+\}\s*$/.test(zh)) continue; // already pinned
+    if (/\{#[^}]+\}\s*$/.test(zh)) continue; // already pinned (any-char anchor, incl. CJK)
     const enText = en.replace(/^#{1,6}\s+/, '');
     const zhText = zh.replace(/^#{1,6}\s+/, '');
     const enSlug = autoSlug(enText);

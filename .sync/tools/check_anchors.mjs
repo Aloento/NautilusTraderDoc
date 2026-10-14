@@ -44,9 +44,9 @@ function headingsOf(mdPath) {
     const m = /^(#{1,6})\s+(.*)$/.exec(line);
     if (!m) continue;
     let rest = m[2];
-    const explicit = /\{#([\w-]+)\}\s*$/.exec(rest);
+    const explicit = /\{#([^}]+)\}\s*$/.exec(rest);
     if (explicit) {
-      out.push({ explicit: explicit[1], auto: autoSlug(rest.replace(/\{#[\w-]+\}\s*$/, '')) });
+      out.push({ explicit: explicit[1], auto: autoSlug(rest.replace(/\{#([^}]+)\}\s*$/, '')) });
     } else {
       out.push({ explicit: null, auto: autoSlug(rest) });
     }

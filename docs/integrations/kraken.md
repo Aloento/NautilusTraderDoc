@@ -437,7 +437,7 @@ config = KrakenDataClientConfig(
 
 ### 订单修改 {#order-modification}
 
-A modify's quantity 是订单新的总量（含已成交部分），这正是 Kraken
+改单中的数量是订单新的总量（含已成交部分），这正是 Kraken
 现货改单接受 `order_qty` 的语义。Kraken 期货把裸改单的 `size` 读作未结数量，因此凡是改变
 订单大小的期货改单（无论单笔还是批量），适配器都发送 `qtyMode=ABSOLUTE`。Kraken 没有文档
 说明总量小于等于已成交数量时它的答复。

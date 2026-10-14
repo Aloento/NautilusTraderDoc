@@ -65,7 +65,7 @@ uv pip install --pre nautilus_trader
 请在 NautilusTrader 源码检出目录之外执行该命令。仓库的
 `python/pyproject.toml` 为可复现开发设置了 uv 的 `exclude-newer` 策略，
 可能把新发布的 wheel 过滤掉。在源码检出目录内请改用
-[从源码构建 Python 包](#8-从源码构建-python-包)。
+[从源码构建 Python 包](#8-build-python-from-source)。
 
 当前 wheel 面向 Python 3.13-3.14。需要本地 Rust 改动、调试构建，或所需平台没有对应 wheel 时，
 请从源码构建。
@@ -309,7 +309,7 @@ export PYTHONHOME="$("$PYO3_PYTHON" -c 'import sys; print(sys.base_prefix)')"
 否则依赖 PyO3 的测试可能找不到 Python 运行时。
 :::
 
-### 8. 从源码构建 Python 包 {#8-从源码构建-python-包} {#8-build-python-from-source}
+### 8. 从源码构建 Python 包 {#8-build-python-from-source}
 
 这一路径从 `python/` 目录构建 PyO3 包并安装进 `python/.venv`。
 在 NautilusTrader 源码检出目录内，若当前平台没有可用的开发版 wheel，
