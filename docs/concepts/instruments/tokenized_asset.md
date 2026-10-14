@@ -1,50 +1,49 @@
 # Tokenized Asset
 
-`TokenizedAsset` represents a spot-like token that tracks another asset on a crypto venue. Use it for
-tokenized equities, tokenized funds, or similar instruments. In these instruments, the trading venue exposes a
-token whose economic reference is an external asset.
+`TokenizedAsset` 表示在加密交易场所上跟踪另一种资产的现货型代币。代币化股票、代币化基金
+或类似工具都适用。在这类工具中，交易场所提供的是代币，其经济参考是外部资产。
 
-Examples include tokenized stock or ETF symbols on crypto venues.
+典型例子包括加密交易场所上的代币化股票或 ETF 符号。
 
-## Fields
+## 字段 {#fields}
 
-| Field             | Rust type          | Python type        | Required/default | Notes                                    |
+| 字段              | Rust 类型          | Python 类型        | 必填/默认值    | 说明                                     |
 | ----------------- | ------------------ | ------------------ | ---------------- | ---------------------------------------- |
-| `instrument_id`   | `InstrumentId`     | `InstrumentId`     | Required         | Stored as `id` in Rust.                  |
-| `raw_symbol`      | `Symbol`           | `Symbol`           | Required         | Native venue symbol.                     |
-| `asset_class`     | `AssetClass`       | `AssetClass`       | Required         | Economic asset classification.           |
-| `base_currency`   | `Currency`         | `Currency`         | Required         | Tokenized asset or base token.           |
-| `quote_currency`  | `Currency`         | `Currency`         | Required         | Currency used to price the token.        |
-| `price_precision` | `u8`               | `int`              | Required         | Decimal places allowed for prices.       |
-| `size_precision`  | `u8`               | `int`              | Required         | Decimal places allowed for order sizes.  |
-| `price_increment` | `Price`            | `Price`            | Required         | Smallest valid price step.               |
-| `size_increment`  | `Quantity`         | `Quantity`         | Required         | Smallest valid size step.                |
-| `ts_event`        | `UnixNanos`        | `int`              | Required         | Event timestamp in nanoseconds.          |
-| `ts_init`         | `UnixNanos`        | `int`              | Required         | Initialization timestamp in nanoseconds. |
-| `isin`            | `Option<Ustr>`     | `str \| None`      | `None`           | International Securities ID when known.  |
-| `multiplier`      | `Quantity`         | `Quantity`         | `1`              | Contract multiplier.                     |
-| `lot_size`        | `Option<Quantity>` | `Quantity \| None` | `None`           | Rounded lot or board size.               |
-| `max_quantity`    | `Option<Quantity>` | `Quantity \| None` | `None`           | Maximum order quantity.                  |
-| `min_quantity`    | `Option<Quantity>` | `Quantity \| None` | `None`           | Minimum order quantity.                  |
-| `max_notional`    | `Option<Money>`    | `Money \| None`    | `None`           | Maximum order notional value.            |
-| `min_notional`    | `Option<Money>`    | `Money \| None`    | `None`           | Minimum order notional value.            |
-| `max_price`       | `Option<Price>`    | `Price \| None`    | `None`           | Maximum valid quote or order price.      |
-| `min_price`       | `Option<Price>`    | `Price \| None`    | `None`           | Minimum valid quote or order price.      |
-| `margin_init`     | `Option<Decimal>`  | `Decimal \| None`  | `0`              | Initial margin rate.                     |
-| `margin_maint`    | `Option<Decimal>`  | `Decimal \| None`  | `0`              | Maintenance margin rate.                 |
-| `tick_scheme`     | `Option<Ustr>`     | `str \| None`      | `None`           | Registered variable tick scheme name.    |
-| `info`            | `Option<Params>`   | `dict \| None`     | `None`           | Adapter metadata.                        |
+| `instrument_id`   | `InstrumentId`     | `InstrumentId`     | 必填             | 在 Rust 中存储为 `id`。                  |
+| `raw_symbol`      | `Symbol`           | `Symbol`           | 必填             | 交易场所原生符号。                        |
+| `asset_class`     | `AssetClass`       | `AssetClass`       | 必填             | 经济资产的资产类别。                      |
+| `base_currency`   | `Currency`         | `Currency`         | 必填             | 代币化资产或基础代币。                    |
+| `quote_currency`  | `Currency`         | `Currency`         | 必填             | 为代币计价的货币。                        |
+| `price_precision` | `u8`               | `int`              | 必填             | 价格允许的小数位数。                      |
+| `size_precision`  | `u8`               | `int`              | 必填             | 订单数量允许的小数位数。                  |
+| `price_increment` | `Price`            | `Price`            | 必填             | 最小有效价格步长。                        |
+| `size_increment`  | `Quantity`         | `Quantity`         | 必填             | 最小有效数量步长。                        |
+| `ts_event`        | `UnixNanos`        | `int`              | 必填             | 纳秒级事件时间戳。                        |
+| `ts_init`         | `UnixNanos`        | `int`              | 必填             | 纳秒级初始化时间戳。                      |
+| `isin`            | `Option<Ustr>`     | `str \| None`      | `None`           | 已知时的国际证券识别码。                  |
+| `multiplier`      | `Quantity`         | `Quantity`         | `1`              | 合约乘数。                                |
+| `lot_size`        | `Option<Quantity>` | `Quantity \| None` | `None`           | 整手或每手规模。                          |
+| `max_quantity`    | `Option<Quantity>` | `Quantity \| None` | `None`           | 最大下单数量。                            |
+| `min_quantity`    | `Option<Quantity>` | `Quantity \| None` | `None`           | 最小下单数量。                            |
+| `max_notional`    | `Option<Money>`    | `Money \| None`    | `None`           | 最大下单名义价值。                        |
+| `min_notional`    | `Option<Money>`    | `Money \| None`    | `None`           | 最小下单名义价值。                        |
+| `max_price`       | `Option<Price>`    | `Price \| None`    | `None`           | 最大有效报价或订单价格。                  |
+| `min_price`       | `Option<Price>`    | `Price \| None`    | `None`           | 最小有效报价或订单价格。                  |
+| `margin_init`     | `Option<Decimal>`  | `Decimal \| None`  | `0`              | 初始保证金率。                            |
+| `margin_maint`    | `Option<Decimal>`  | `Decimal \| None`  | `0`              | 维持保证金率。                            |
+| `tick_scheme`     | `Option<Ustr>`     | `str \| None`      | `None`           | 已注册的可变 tick 方案名称。              |
+| `info`            | `Option<Params>`   | `dict \| None`     | `None`           | 适配器元数据。                            |
 
-**Note**: Python constructors use `instrument_id`. Rust stores the same value as `id`.
+**注意**：Python 构造函数使用 `instrument_id`，Rust 将同一值存储为 `id`。
 
-## Behavior
+## 行为 {#behavior}
 
-- `TokenizedAsset` has instrument class `Spot`.
-- It is never inverse, and its cost currency is the quote currency.
-- It can carry an `isin` when the token references a listed security.
-- It has no activation timestamp, expiry, strike, or option kind.
+- `TokenizedAsset` 的工具类别为 `Spot`。
+- 它永远不是反向合约，成本货币是计价货币。
+- 代币引用上市证券时可以携带 `isin`。
+- 它没有激活时间戳、到期时间、行权价或期权类型。
 
-## Example
+## 示例 {#example}
 
 ```rust tab="Rust"
 use nautilus_core::UnixNanos;
@@ -97,12 +96,12 @@ aaplx = TokenizedAsset(
 )
 ```
 
-## Adapters
+## 适配器 {#adapters}
 
-The [Kraken](./../../integrations/kraken.md) adapter creates or consumes
-`TokenizedAsset` instruments for tokenized assets where the venue exposes them.
+[Kraken](./../../integrations/kraken.md) 适配器在交易场所提供代币化资产时，为其创建或使用
+`TokenizedAsset` 金融工具。
 
-## Related guides
+## 相关指南 {#related-guides}
 
-- [Currency Pair](./currency_pair.md) covers ordinary crypto spot pairs.
-- [Equity](./equity.md) covers listed cash equities.
+- [Currency Pair](./currency_pair.md)介绍普通加密现货对。
+- [Equity](./equity.md)介绍上市现金股票。

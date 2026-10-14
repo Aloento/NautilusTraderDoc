@@ -1,113 +1,104 @@
-# Emulated orders
+# 仿真订单
 
-Emulation lets you use order types even when your trading venue does not natively support them.
+即使交易场所不原生支持某些订单类型，仿真（emulation）机制也能让你使用它们。
 
-The `OrderEmulator` monitors the market data selected by `emulation_trigger`. When the local order matches its
-release condition, the emulator transforms it into a `MARKET` or `LIMIT` order. It routes that order to the
-configured execution algorithm or the execution engine. For example, an emulated `STOP_LIMIT` becomes a
-`LIMIT` order after its stop price triggers.
+`OrderEmulator` 监控 `emulation_trigger` 选定的行情数据。当本地订单满足其释放条件时，仿真器把它
+转换成 `MARKET` 或 `LIMIT` 订单，并路由到配置的执行算法或执行引擎。例如，仿真 `STOP_LIMIT`
+在止损价触发后会变成一个 `LIMIT` 订单。
 
-## Submitting an order for emulation
+## 提交订单进行仿真 {#submitting-an-order-for-emulation}
 
-**Supported triggers**: set `emulation_trigger` on an order constructor or `OrderFactory` method.
-The local emulator accepts these values.
+**支持的触发器**：在订单构造函数或 `OrderFactory` 方法上设置 `emulation_trigger`。
+本地仿真器接受以下取值。
 
-| Trigger type | Market data used                                   |
+| 触发器类型   | 使用的行情数据                             |
 | ------------ | -------------------------------------------------- |
-| `DEFAULT`    | Quotes, with the same local behavior as `BID_ASK`. |
-| `BID_ASK`    | Best bid and ask quotes.                           |
-| `LAST_PRICE` | Trades.                                            |
+| `DEFAULT`    | 报价，本地行为与 `BID_ASK` 相同。                  |
+| `BID_ASK`    | 最优买价和卖价报价。                               |
+| `LAST_PRICE` | 成交数据。                                         |
 
-Leave `emulation_trigger` as `None` to disable local emulation and submit through the normal
-pathway.
+`emulation_trigger` 保持 `None` 时不进行本地仿真，订单走常规路径提交。
 
-Other `TriggerType` values describe trigger methods that some venues support, but the local
-`OrderEmulator` does not accept them as `emulation_trigger` values.
+其他 `TriggerType` 值描述的是某些交易场所支持的触发方法，但本地 `OrderEmulator` 不接受它们作为
+`emulation_trigger` 取值。
 
 :::warning
-The emulator cancels an order submitted with any other `emulation_trigger` value, and logs the
-unsupported trigger type as an error.
+订单以其他任何 `emulation_trigger` 值提交时，仿真器会将其取消，并把不支持的触发器类型记为
+错误日志。
 :::
 
-**Trigger behavior**: emulation depends on the selected trigger type.
+**触发行为**：仿真行为取决于所选的触发器类型。
 
-- For stop orders, the emulator compares the trigger price with the selected market data.
-- For trailing-stop orders, it updates the trailing trigger from that market data.
-- For emulated `LIMIT` orders, it compares the limit price with that market data and releases a
-  `MARKET` order when matched.
+- 对止损订单，仿真器将触发价与选定的行情数据比较。
+- 对跟踪止损订单，用该行情数据更新跟踪触发价。
+- 对仿真 `LIMIT` 订单，将限价与该行情数据比较，匹配时释放一个 `MARKET` 订单。
 
-**Cached data**: the emulator creates a matching core for a trigger instrument. The first order's
-`emulation_trigger` selects the cached market data used to seed that core.
+**缓存数据**：仿真器会为触发工具创建匹配的撮合核心。第一个订单的 `emulation_trigger` 决定了
+用于初始化该核心的缓存行情数据类型。
 
-- `DEFAULT` and `BID_ASK` use the latest cached quote's bid and ask.
-- `LAST_PRICE` uses the latest cached trade price.
+- `DEFAULT` 和 `BID_ASK` 使用最新缓存报价的买价和卖价。
+- `LAST_PRICE` 使用最新缓存成交价。
 
-An eligible order that matches this data releases on submission **without an `OrderEmulated` event**. If the
-selected source has no cached data, the order stays emulated until matching market data arrives.
+符合条件的订单若与该数据匹配，会在提交时直接释放，**不会产生 `OrderEmulated` 事件**。若所选
+数据源没有缓存数据，订单会保持仿真状态，直到匹配的行情数据到达。
 
-## Technical details
+## 技术细节 {#technical-details}
 
-The same `OrderEmulator` component manages supported emulated order types in all
-[environment contexts](./../architecture.md#environment-contexts).
+所有[环境上下文](./../architecture.md#environment-contexts)中，受支持的仿真订单类型都由同一个
+`OrderEmulator` 组件管理。
 
 :::note
-NautilusTrader does not configure a fixed count limit for emulated orders. Available memory and the
-cost of market data processing provide practical limits.
+NautilusTrader 不为仿真订单设置固定的数量上限。实际限制来自可用内存和行情数据的处理成本。
 :::
 
-## Lifecycle
+## 生命周期 {#lifecycle}
 
-**Lifecycle**: an emulated order progresses through these stages.
+**生命周期**：仿真订单依次经历以下阶段。
 
-1. A `Strategy` submits it through `submit_order`, which routes it to the `OrderEmulator`.
-1. The `OrderEmulator` checks for immediate release. If the order does not match, it holds and
-   monitors it locally.
-1. For a held order, a matching market update transforms it into a `MARKET` or `LIMIT` order and
-   releases it once the required prices are available.
-1. The emulator routes the released order to an `ExecutionAlgorithm` when `exec_algorithm_id` is
-   set, or to the `ExecutionEngine` otherwise.
+1. `Strategy` 通过 `submit_order` 提交订单，订单被路由到 `OrderEmulator`。
+1. `OrderEmulator` 检查是否可立即释放。若不匹配，则在本地持有并监控该订单。
+1. 对持有的订单，匹配的行情更新会将其转换为 `MARKET` 或 `LIMIT` 订单，并在所需价格可用时释放。
+1. 若设置了 `exec_algorithm_id`，仿真器将释放的订单路由到 `ExecutionAlgorithm`，否则路由到
+   `ExecutionEngine`。
 
-:::warning[Emulation does not guarantee pre-trade risk checks]
-Strategy submissions go directly to the `OrderEmulator`. Direct releases go to the `ExecutionEngine`
-without passing through `RiskEngine` command checks. The risk engine receives the `OrderReleased`
-event for logging, but does not validate it. An execution algorithm's `submit_order` method routes
-its submissions through the risk engine. Do not rely on emulation alone to enforce pre-trade risk
-limits.
+:::warning[仿真不保证交易前风险检查]
+策略提交直接进入 `OrderEmulator`。直接释放的订单不经过 `RiskEngine` 的命令检查就送达
+`ExecutionEngine`。风险引擎会收到 `OrderReleased` 事件用于日志记录，但不做校验。执行算法的
+`submit_order` 方法会将其提交经风险引擎检查后再执行。不要仅依赖仿真来强制执行交易前风险限额。
 :::
 
 :::note
-A strategy can modify or cancel emulated orders, and a cancel-all request includes them.
+策略可以修改或取消仿真订单，cancel-all 请求也包含它们。
 :::
 
 :::info
-An emulated order keeps its client order ID when transformed, so cache queries continue to use the same ID.
+仿真订单在转换时保留其客户端订单 ID，缓存查询继续使用同一个 ID。
 :::
 
-### Held emulated orders
+### 持有中的仿真订单 {#held-emulated-orders}
 
-**While held**: the `OrderEmulator` takes these actions while it holds an order.
+**持有期间**：`OrderEmulator` 持有订单期间执行以下操作。
 
-- It caches the original `SubmitOrder` command.
-- It processes the order in a local matching core.
-- It subscribes to the required quotes or trades if no matching subscription exists.
-- It accepts strategy modifications and market-driven updates until release or cancellation.
+- 缓存原始的 `SubmitOrder` 命令。
+- 在本地撮合核心中处理该订单。
+- 若尚无匹配的订阅，订阅所需的报价或成交数据。
+- 在释放或取消之前，接受策略修改和行情驱动的更新。
 
-### Released emulated orders
+### 已释放的仿真订单 {#released-emulated-orders}
 
-**Release sequence**: when market data matches an emulated order, release performs these actions
-in order.
+**释放序列**：行情数据与仿真订单匹配时，释放过程依次执行以下操作。
 
-1. It transforms the order into a `MARKET` or `LIMIT` order through another `OrderInitialized` event. This
-   sets `emulation_trigger` to `None`, so components no longer treat the order as emulated.
-1. It updates the original `SubmitOrder` command to describe the transformed order.
-1. It sends that command to the configured `ExecutionAlgorithm` or, otherwise, the `ExecutionEngine`.
-   The execution engine routes an eligible order to an `ExecutionClient`.
+1. 通过再一次 `OrderInitialized` 事件将订单转换为 `MARKET` 或 `LIMIT` 订单。这会把
+   `emulation_trigger` 置为 `None`，各组件不再把该订单视为仿真订单。
+1. 更新原始的 `SubmitOrder` 命令，使其描述转换后的订单。
+1. 将该命令发送到配置的 `ExecutionAlgorithm`，没有配置则发送到 `ExecutionEngine`。执行引擎会把
+   合格的订单路由给 `ExecutionClient`。
 
-## Order types that can be emulated
+## 可仿真的订单类型 {#order-types-that-can-be-emulated}
 
-**Released type**: the released type depends on the original emulated order type.
+**释放类型**：释放后的类型取决于原始的仿真订单类型。
 
-| Order type for emulation | Can emulate | Released type |
+| 用于仿真的订单类型           | 可否仿真 | 释放类型      |
 | ------------------------ | ----------- | ------------- |
 | `MARKET`                 | -           | N/A           |
 | `MARKET_TO_LIMIT`        | -           | N/A           |
@@ -119,59 +110,52 @@ in order.
 | `TRAILING_STOP_MARKET`   | ✓           | `MARKET`      |
 | `TRAILING_STOP_LIMIT`    | ✓           | `LIMIT`       |
 
-A `MARKET` release keeps the original time in force, except that `GTD` becomes `GTC` because market
-orders do not support `GTD`.
+释放为 `MARKET` 时保留原有效期，唯一的例外是 `GTD` 会变成 `GTC`，因为市价订单不支持 `GTD`。
 
 :::warning
-An emulated `TRAILING_STOP_LIMIT` submitted without a limit price gets one from the trailing
-calculation. If the order triggers before that calculation succeeds, the emulator logs a warning
-and keeps the order emulated. Once a market update lets the calculation produce a limit price,
-the next matching update releases the order.
+不带限价提交的仿真 `TRAILING_STOP_LIMIT`，其限价来自跟踪计算。若订单在计算成功前就触发，
+仿真器记录警告并让订单保持仿真状态。一旦行情更新使计算能得出限价，下一次匹配的更新即释放订单。
 
-For example, the `LAST_OR_BID_ASK` trigger type needs a last trade price. A `BID_ASK` emulation trigger
-subscribes the emulator to quotes only. Thus, the order stays held until trade data reaches the cache (such as
-from a strategy's trade subscription).
+例如，`LAST_OR_BID_ASK` 触发类型需要最新成交价。而 `BID_ASK` 仿真触发器只让仿真器订阅报价。
+因此订单会一直保持持有，直到成交数据进入缓存（例如来自策略的成交订阅）。
 :::
 
-## Querying
+## 查询 {#querying}
 
-Use the cache or the order object to query emulation status.
+用缓存或订单对象查询仿真状态。
 
-### Through the cache
+### 通过缓存查询 {#through-the-cache}
 
-**Cache methods**: the `Cache` provides these methods.
+**缓存方法**：`Cache` 提供以下方法。
 
-- `self.cache.orders_emulated(...)` returns all emulated orders that match its filters.
-- `self.cache.is_order_emulated(...)` checks one client order ID.
-- `self.cache.orders_emulated_count(...)` returns the number of matching emulated orders.
+- `self.cache.orders_emulated(...)` 返回匹配其过滤条件的所有仿真订单。
+- `self.cache.is_order_emulated(...)` 检查单个客户端订单 ID。
+- `self.cache.orders_emulated_count(...)` 返回匹配的仿真订单数量。
 
-See the full [API reference](https://nautilustrader.io/docs/python-api-latest/cache.html) for additional details.
+更多细节见完整的 [API 参考](https://nautilustrader.io/docs/python-api-latest/cache.html)。
 
-### Direct order queries
+### 直接查询订单对象 {#direct-order-queries}
 
-Use `order.is_emulated` to query an order object directly. A `False` value means the order was
-released or was never emulated.
+用 `order.is_emulated` 直接查询订单对象。值为 `False` 表示订单已释放，或从未被仿真。
 
 :::warning
-Do not hold a local reference to an emulated order. The order object transforms
-when the emulated order is *released*. Use the `Cache` instead.
+不要本地持有仿真订单的引用。仿真订单被*释放*时，订单对象会发生转换。请改用 `Cache`。
 :::
 
-## Persistence and recovery
+## 持久化与恢复 {#persistence-and-recovery}
 
-On startup, the `OrderEmulator` reactivates emulated orders that the configured cache database
-restored into the cache. This preserves their state across restarts.
+启动时，`OrderEmulator` 会重新激活配置的目标缓存数据库恢复到缓存中的仿真订单，使其状态跨重启保留。
 
-## Best practices
+## 最佳实践 {#best-practices}
 
-**Best practices**: when working with emulated orders, follow these rules.
+**最佳实践**：处理仿真订单时遵循以下规则。
 
-- Query the `Cache` instead of storing local order references.
-- Account for the order type changing on release.
-- Handle denials and rejections from the released order's execution path.
+- 查询 `Cache`，不要存储本地订单引用。
+- 注意订单类型会在释放时改变。
+- 处理已释放订单执行路径上的拒绝与拒单。
 
-## Related guides
+## 相关指南 {#related-guides}
 
-- [Orders](./index.md) - Order concepts, execution instructions, and the order factory.
-- [Advanced orders](./advanced.md) - Order lists, contingency types, and bracket orders.
-- [Strategies](./../strategies.md) - Order management from strategies.
+- [订单](./index.md) - 订单概念、执行指令与订单工厂。
+- [高级订单](./advanced.md) - 订单列表、或有类型与括号订单。
+- [策略](./../strategies.md) - 从策略管理订单。

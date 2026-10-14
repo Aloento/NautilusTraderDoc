@@ -301,11 +301,9 @@ NAUTILUS_DATA_DIR=test_data/local \
         python docs/tutorials/assets/backtest_orderbook_bybit/render_panels.py
 ```
 
-## Next steps
+## 后续步骤 {#next-steps}
 
-- **Tighter trigger**. Drop `trigger_imbalance_ratio` to 0.10 to require a
-  ten-to-one lean.
-- **Longer window**. Bump `nrows` to ten or twenty million for a multi-hour
-  replay.
-- **Cross-venue replay**. Run the same strategy in two engines (one Bybit,
-  one Binance) and compare imbalance distributions.
+- **收紧触发条件**。把 `trigger_imbalance_ratio` 降到 0.10，要求十倍倾斜。
+- **拉长窗口**。把 `nrows` 提到一千万或两千万，回放数小时。
+- **跨场所回放**。在两个引擎（一个 Bybit、一个 Binance）中运行同一策略，对比
+  失衡分布。

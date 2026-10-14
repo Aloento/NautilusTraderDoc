@@ -836,15 +836,15 @@ DataTesterConfig::builder()
     .build()?
 ```
 
-### TC-D53: Request historical funding rates
+### TC-D53：请求历史资金费率 {#tc-d53-request-historical-funding-rates}
 
-| Field              | Value                                                                                        |
+| 字段 | 值 |
 | ------------------ | -------------------------------------------------------------------------------------------- |
-| **Prerequisite**   | Adapter connected, perpetual instrument loaded.                                              |
-| **Action**         | DataTester requests historical funding rates (default 7-day lookback).                       |
-| **Event sequence** | Historical funding rates received via callback.                                              |
-| **Pass criteria**  | Funding rates received with valid timestamps and rate values.                                |
-| **Skip when**      | Instrument is not a perpetual, or adapter does not support historical funding rate requests. |
+| **前置条件** | 适配器已连接，永续合约金融工具已加载。 |
+| **操作** | DataTester 请求历史资金费率（默认回看 7 天）。 |
+| **事件序列** | 通过回调收到历史资金费率。 |
+| **通过标准** | 收到的资金费率时间戳和费率值合法。 |
+| **跳过条件** | 金融工具不是永续合约，或适配器不支持历史资金费率请求。 |
 
 **Python 配置**：
 
@@ -867,29 +867,29 @@ DataTesterConfig::builder()
 
 ---
 
-## Group 7: Instrument status
+## 第 7 组：金融工具状态 {#group-7-instrument-status}
 
-Test instrument status and close event subscriptions.
+测试金融工具状态与收盘事件订阅。
 
-| TC     | Name                        | Description                | Skip when          |
+| TC | 名称 | 描述 | 跳过条件 |
 | ------ | --------------------------- | -------------------------- | ------------------ |
-| TC-D60 | Subscribe instrument status | `InstrumentStatus` events. | No status support. |
-| TC-D61 | Subscribe instrument close  | `InstrumentClose` events.  | No close support.  |
+| TC-D60 | 订阅金融工具状态 | `InstrumentStatus` 事件。 | 不支持状态 |
+| TC-D61 | 订阅金融工具收盘 | `InstrumentClose` 事件。 | 不支持收盘事件 |
 
-### TC-D60: Subscribe instrument status
+### TC-D60：订阅金融工具状态 {#tc-d60-subscribe-instrument-status}
 
-| Field              | Value                                                                    |
+| 字段 | 值 |
 | ------------------ | ------------------------------------------------------------------------ |
-| **前置条件**   | 适配器已连接，金融工具已加载。                                    |
-| **Action**         | DataTester subscribes to instrument status updates.                      |
-| **Event sequence** | `InstrumentStatus` events received in `on_instrument_status`.            |
-| **Pass criteria**  | Status events received with valid `MarketStatusAction` (e.g. `Trading`). |
-| **Skip when**      | Adapter does not support instrument status subscriptions.                |
+| **前置条件** | 适配器已连接，金融工具已加载。 |
+| **操作** | DataTester 订阅金融工具状态更新。 |
+| **事件序列** | `on_instrument_status` 中收到 `InstrumentStatus` 事件。 |
+| **通过标准** | 收到的状态事件携带合法的 `MarketStatusAction`（如 `Trading`）。 |
+| **跳过条件** | 适配器不支持金融工具状态订阅。 |
 
-**Considerations**:
+**注意事项**：
 
-- Status events may only fire on state changes (e.g. trading halt -> resume).
-- During normal trading hours, a `Trading` status may be received on subscribe.
+- 状态事件可能只在状态变化时触发（如停牌 -> 复牌）。
+- 正常交易时段内，订阅时可能收到 `Trading` 状态。
 
 **Python 配置**：
 
@@ -910,20 +910,20 @@ DataTesterConfig::builder()
     .build()?
 ```
 
-### TC-D61: Subscribe instrument close
+### TC-D61：订阅金融工具收盘 {#tc-d61-subscribe-instrument-close}
 
-| Field              | Value                                                       |
+| 字段 | 值 |
 | ------------------ | ----------------------------------------------------------- |
-| **前置条件**   | 适配器已连接，金融工具已加载。                       |
-| **Action**         | DataTester subscribes to instrument close events.           |
-| **Event sequence** | `InstrumentClose` events received in `on_instrument_close`. |
-| **Pass criteria**  | Close event received with valid close price and close type. |
-| **Skip when**      | Adapter does not support instrument close subscriptions.    |
+| **前置条件** | 适配器已连接，金融工具已加载。 |
+| **操作** | DataTester 订阅金融工具收盘事件。 |
+| **事件序列** | `on_instrument_close` 中收到 `InstrumentClose` 事件。 |
+| **通过标准** | 收到的收盘事件携带合法的收盘价和收盘类型。 |
+| **跳过条件** | 适配器不支持金融工具收盘订阅。 |
 
-**Considerations**:
+**注意事项**：
 
-- Close events typically fire at end-of-session for traditional markets.
-- May not fire for 24/7 crypto venues unless the adapter synthesizes a daily close.
+- 传统市场的收盘事件通常在交易时段结束时触发。
+- 7×24 小时运行的加密交易场所通常不会触发，除非适配器合成每日收盘。
 
 **Python 配置**：
 
@@ -946,33 +946,32 @@ DataTesterConfig::builder()
 
 ---
 
-## Group 8: Option greeks
+## 第 8 组：期权希腊值 {#group-8-option-greeks}
 
-Test option greeks and option chain subscriptions.
+测试期权希腊值与期权链订阅。
 
-| TC     | Name                    | Description                                  | Skip when          |
+| TC | 名称 | 描述 | 跳过条件 |
 | ------ | ----------------------- | -------------------------------------------- | ------------------ |
-| TC-D62 | Subscribe option greeks | `OptionGreeks` data for a single instrument. | No greeks support. |
-| TC-D63 | Subscribe option chain  | `OptionChainSlice` snapshots for a series.   | No chain support.  |
+| TC-D62 | 订阅期权希腊值 | 单个金融工具的 `OptionGreeks` 数据。 | 不支持希腊值 |
+| TC-D63 | 订阅期权链 | 某个 series 的 `OptionChainSlice` 快照。 | 不支持期权链 |
 
-### TC-D62: Subscribe option greeks
+### TC-D62：订阅期权希腊值 {#tc-d62-subscribe-option-greeks}
 
-| Field              | Value                                                        |
+| 字段 | 值 |
 | ------------------ | ------------------------------------------------------------ |
-| **Prerequisite**   | Adapter connected, option instrument loaded.                 |
-| **Action**         | DataTester subscribes to option greeks updates.              |
-| **Event sequence** | `OptionGreeks` events received in `on_option_greeks`.        |
-| **Pass criteria**  | Greeks received with valid delta, gamma, vega, theta values. |
-| **Skip when**      | Adapter does not support option greeks subscriptions.        |
+| **前置条件** | 适配器已连接，期权金融工具已加载。 |
+| **操作** | DataTester 订阅期权希腊值更新。 |
+| **事件序列** | `on_option_greeks` 中收到 `OptionGreeks` 事件。 |
+| **通过标准** | 收到的希腊值 delta、gamma、vega、theta 均合法。 |
+| **跳过条件** | 适配器不支持期权希腊值订阅。 |
 
-**Considerations**:
+**注意事项**：
 
-- Greeks are only available for option instruments.
-- Values depend on the venue's pricing model and may update on every quote change.
-- Some venues (Bybit, Deribit) subscribe per instrument. OKX subscribes per instrument family and filters to
-  the requested instruments.
-- `rho` may be zero when the venue does not provide it (Bybit, OKX).
-- `underlying_price` and `open_interest` may be `None` depending on the venue channel.
+- 希腊值仅对期权金融工具可用。
+- 数值取决于交易场所的定价模型，可能每次报价变化都会更新。
+- 部分交易场所（Bybit、Deribit）按单个金融工具订阅；OKX 按 instrument family 订阅，再过滤出请求的金融工具。
+- 交易场所不提供 `rho` 时其值可能为零（Bybit、OKX）。
+- 依交易场所通道不同，`underlying_price` 和 `open_interest` 可能为 `None`。
 
 **Python 配置**：
 
@@ -993,49 +992,48 @@ DataTesterConfig::builder()
     .build()?
 ```
 
-### TC-D63: Subscribe option chain
+### TC-D63：订阅期权链 {#tc-d63-subscribe-option-chain}
 
-| Field              | Value                                                               |
+| 字段 | 值 |
 | ------------------ | ------------------------------------------------------------------- |
-| **Prerequisite**   | Adapter connected, option instruments loaded for the series.        |
-| **Action**         | DataTester subscribes to option chain snapshots for a series.       |
-| **Event sequence** | `OptionChainSlice` snapshots received in `on_option_chain`.         |
-| **Pass criteria**  | Chain snapshot contains greeks for instruments matching the series. |
-| **Skip when**      | Adapter does not support option chain subscriptions.                |
+| **前置条件** | 适配器已连接，该 series 的期权金融工具已加载。 |
+| **操作** | DataTester 订阅某个 series 的期权链快照。 |
+| **事件序列** | `on_option_chain` 中收到 `OptionChainSlice` 快照。 |
+| **通过标准** | 期权链快照包含匹配该 series 的金融工具的希腊值。 |
+| **跳过条件** | 适配器不支持期权链订阅。 |
 
-**Considerations**:
+**注意事项**：
 
-- Option chain subscriptions are managed by the DataEngine, which creates per-instrument
-  quote and greeks subscriptions internally.
-- Dynamic strike ranges require an ATM price before instrument subscriptions begin. The
-  DataEngine requests an initial reference price and otherwise waits for live option Greeks.
-- Not yet configurable via `DataTesterConfig`. Requires manual actor setup with `subscribe_option_chain` and
-  an `OptionSeriesId`.
+- 期权链订阅由 DataEngine 管理，其内部会按金融工具创建报价和希腊值订阅。
+- 动态行权价区间在金融工具订阅开始前需要一个 ATM 价格。DataEngine 会请求一个初始参考价，否则等待实时
+  期权希腊值。
+- 暂不能通过 `DataTesterConfig` 配置。需要手动搭建 actor，使用 `subscribe_option_chain` 和
+  `OptionSeriesId`。
 
 ---
 
-## Group 9: Lifecycle
+## 第 9 组：生命周期 {#group-9-lifecycle}
 
-Test actor lifecycle behavior: unsubscribe handling, retirement cleanup, and custom parameters.
+测试 actor 生命周期行为：退订处理、退役清理和自定义参数。
 
-| TC     | Name                    | Description                                     | Skip when         |
+| TC | 名称 | 描述 | 跳过条件 |
 | ------ | ----------------------- | ----------------------------------------------- | ----------------- |
-| TC-D70 | Unsubscribe on stop     | Unsubscribe from data feeds on actor stop.      | No unsub support. |
-| TC-D71 | Custom subscribe params | Adapter-specific subscription parameters.       | N/A.              |
-| TC-D72 | Custom request params   | Adapter-specific request parameters.            | N/A.              |
-| TC-D73 | Retirement cleanup      | Release an actor's retained data subscriptions. | N/A.              |
-| TC-D74 | DeFi shared pool demand | Keep shared pool feeds until the final owner.   | No DeFi support.  |
-| TC-D75 | DeFi bootstrap cancel   | Discard snapshots for canceled pool bootstraps. | No DeFi support.  |
+| TC-D70 | 停止时退订 | actor 停止时退订数据流。 | 不支持退订 |
+| TC-D71 | 自定义订阅参数 | 适配器特有的订阅参数。 | 不适用 |
+| TC-D72 | 自定义请求参数 | 适配器特有的请求参数。 | 不适用 |
+| TC-D73 | 退役清理 | 释放 actor 持有的数据订阅。 | 不适用 |
+| TC-D74 | DeFi 共享池需求 | 共享池数据流保留至最后一个持有者。 | 不支持 DeFi |
+| TC-D75 | DeFi 引导取消 | 丢弃已取消池引导的快照。 | 不支持 DeFi |
 
-### TC-D70: Unsubscribe on stop
+### TC-D70：停止时退订 {#tc-d70-unsubscribe-on-stop}
 
-| Field              | Value                                                            |
+| 字段 | 值 |
 | ------------------ | ---------------------------------------------------------------- |
-| **Prerequisite**   | Active data subscriptions (quotes, trades, book).                |
-| **Action**         | Stop the actor with `can_unsubscribe=True` (default).            |
-| **Event sequence** | Data subscriptions removed. No further data events received.     |
-| **Pass criteria**  | Clean unsubscribe. No errors in logs. No data events after stop. |
-| **Skip when**      | Adapter does not support unsubscribe.                            |
+| **前置条件** | 存在活跃数据订阅（报价、成交、订单簿）。 |
+| **操作** | 以 `can_unsubscribe=True`（默认）停止 actor。 |
+| **事件序列** | 数据订阅被移除，不再收到数据事件。 |
+| **通过标准** | 干净退订；日志无错误；停止后无数据事件。 |
+| **跳过条件** | 适配器不支持退订。 |
 
 **Python 配置**：
 
@@ -1060,15 +1058,15 @@ DataTesterConfig::builder()
     .build()?
 ```
 
-### TC-D71: Custom subscribe params
+### TC-D71：自定义订阅参数 {#tc-d71-custom-subscribe-params}
 
-| Field              | Value                                                                  |
+| 字段 | 值 |
 | ------------------ | ---------------------------------------------------------------------- |
-| **Prerequisite**   | Adapter connected, adapter accepts additional subscription parameters. |
-| **Action**         | Subscribe with adapter-specific `subscribe_params`.                    |
-| **Event sequence** | Subscription established with custom parameters applied.               |
-| **Pass criteria**  | Data flows with adapter-specific parameters in effect.                 |
-| **Skip when**      | N/A (adapter-specific).                                                |
+| **前置条件** | 适配器已连接，且接受额外的订阅参数。 |
+| **操作** | 携带适配器特有的 `subscribe_params` 进行订阅。 |
+| **事件序列** | 订阅建立，自定义参数已生效。 |
+| **通过标准** | 在适配器特有参数生效的情况下数据正常流入。 |
+| **跳过条件** | 不适用（适配器特有）。 |
 
 **Rust 配置**：
 
@@ -1087,21 +1085,21 @@ DataTesterConfig::builder()
     .build()?
 ```
 
-**Considerations**:
+**注意事项**：
 
-- `subscribe_params` is opaque to the DataTester and passed through to the adapter.
-- The Python `DataTesterConfig` constructor does not expose this Rust-only field.
-- Consult the adapter's guide for supported parameters.
+- `subscribe_params` 对 DataTester 不透明，原样透传给适配器。
+- Python 的 `DataTesterConfig` 构造函数未暴露这个仅 Rust 可用的字段。
+- 支持的参数参见适配器指南。
 
-### TC-D72: Custom request params
+### TC-D72：自定义请求参数 {#tc-d72-custom-request-params}
 
-| Field              | Value                                                                |
+| 字段 | 值 |
 | ------------------ | -------------------------------------------------------------------- |
-| **Prerequisite**   | Adapter connected, adapter accepts additional request parameters.    |
-| **Action**         | Request data with adapter-specific `request_params`.                 |
-| **Event sequence** | Request fulfilled with custom parameters applied.                    |
-| **Pass criteria**  | Historical data received with adapter-specific parameters in effect. |
-| **Skip when**      | N/A (adapter-specific).                                              |
+| **前置条件** | 适配器已连接，且接受额外的请求参数。 |
+| **操作** | 携带适配器特有的 `request_params` 请求数据。 |
+| **事件序列** | 请求完成，自定义参数已生效。 |
+| **通过标准** | 在适配器特有参数生效的情况下收到历史数据。 |
+| **跳过条件** | 不适用（适配器特有）。 |
 
 **Rust 配置**：
 
@@ -1120,89 +1118,81 @@ DataTesterConfig::builder()
     .build()?
 ```
 
-**Considerations**:
+**注意事项**：
 
-- `request_params` is opaque to the DataTester and passed through to the adapter.
-- The Python `DataTesterConfig` constructor does not expose this Rust-only field.
-- Consult the adapter's guide for supported parameters.
+- `request_params` 对 DataTester 不透明，原样透传给适配器。
+- Python 的 `DataTesterConfig` 构造函数未暴露这个仅 Rust 可用的字段。
+- 支持的参数参见适配器指南。
 
-### TC-D73: Retirement cleanup
+### TC-D73：退役清理 {#tc-d73-retirement-cleanup}
 
-| Field              | Value                                                                                                                                 |
+| 字段 | 值 |
 | ------------------ | ------------------------------------------------------------------------------------------------------------------------------------- |
-| **Prerequisite**   | An actor has venue-backed subscriptions. Two actors share an internally aggregated bar.                                               |
-| **Action**         | Retire the first actor, then retire the second actor through the trader.                                                              |
-| **Event sequence** | `on_dispose` completes. Unsubscribe commands are sent. The actor is deregistered.                                                     |
-| **Pass criteria**  | The first retirement keeps shared data active. The final retirement releases the retained route and leaves no retired actor handlers. |
-| **Skip when**      | N/A.                                                                                                                                  |
+| **前置条件** | 某 actor 拥有交易场所支撑的订阅；两个 actor 共享一个内部聚合的 K 线。 |
+| **操作** | 先退役第一个 actor，再通过 trader 退役第二个 actor。 |
+| **事件序列** | `on_dispose` 完成；退订命令已发出；actor 已注销。 |
+| **通过标准** | 第一次退役后共享数据保持活跃；最后一次退役释放保留的路由，且不留退役 actor 的处理器。 |
+| **跳过条件** | 不适用。 |
 
-The shared bar must remain active after the first actor retires and stop after the final actor
-retires.
+第一个 actor 退役后，共享 K 线必须保持活跃；最后一个 actor 退役后必须停止。
 
-**Considerations**:
+**注意事项**：
 
-- `DataTesterConfig` does not cover multi-actor retirement. Create two actors manually, then remove
-  them through Python `Controller.remove_actor` or Rust `Trader::remove_actor`.
-- If `on_dispose` fails, the actor must remain registered with its subscriptions intact so a later
-  retirement can release them without invoking the failed hook again.
-- A failed `on_stop` or `on_fault` must not block retirement: disposal and deregistration must still
-  complete from the corresponding transitional state.
+- `DataTesterConfig` 不覆盖多 actor 退役场景。需手动创建两个 actor，再通过 Python
+  `Controller.remove_actor` 或 Rust `Trader::remove_actor` 移除。
+- 若 `on_dispose` 失败，actor 必须保持注册且订阅完好，使后续退役能释放订阅，且不再调用失败的钩子。
+- `on_stop` 或 `on_fault` 失败不得阻塞退役：必须仍能从对应的过渡状态完成处置和注销。
 
-### TC-D74: DeFi shared pool demand
+### TC-D74：DeFi 共享池需求 {#tc-d74-defi-shared-pool-demand}
 
-| Field              | Value                                                                                                                      |
+| 字段 | 值 |
 | ------------------ | -------------------------------------------------------------------------------------------------------------------------- |
-| **Prerequisite**   | A DeFi data client. Two actors subscribe to the same pool, through the same or overlapping subscription types.             |
-| **Action**         | Retire or unsubscribe one actor, then the other, in each order.                                                            |
-| **Event sequence** | The first release sends no client unsubscribe for shared types. The final release unsubscribes and stops the pool updater. |
-| **Pass criteria**  | Pool events keep reaching the remaining actor and the profiler until the final release. None flow afterwards.              |
-| **Skip when**      | Adapter does not provide DeFi pool subscriptions.                                                                          |
+| **前置条件** | 一个 DeFi 数据客户端。两个 actor 以相同或部分重叠的订阅类型订阅同一个池。 |
+| **操作** | 以每种顺序退役或退订其中一个 actor，再处理另一个。 |
+| **事件序列** | 第一次释放不向客户端发出共享类型的退订；最后一次释放执行退订并停止池更新器。 |
+| **通过标准** | 在最后一次释放之前，池事件持续送达剩余的 actor 和 profiler；之后不再有任何事件。 |
+| **跳过条件** | 适配器不提供 DeFi 池订阅。 |
 
-Cover these overlaps:
+需覆盖以下重叠情形：
 
-- Two actors with the same subscription type, retired in either order.
-- `SubscribePool` with each narrower type (swaps, liquidity updates, fee collects, flash events),
-  unsubscribed in both orders. The narrower event filters must stay active while either
-  subscription remains.
-- The same pool on two data clients. Each client keeps its own demand, and the pool updater stays
-  active until both release.
+- 两个 actor 使用同一订阅类型，按任一顺序退役。
+- `SubscribePool` 与每个更窄的类型（swap、流动性更新、fee collect、flash 事件）组合，按两种顺序退订。
+  只要任一订阅仍在，更窄的事件过滤器必须保持生效。
+- 两个数据客户端订阅同一个池。每个客户端各自维护自己的需求，池更新器在两者都释放前保持活跃。
 
-**Considerations**:
+**注意事项**：
 
-- `DataTesterConfig` does not cover DeFi pool subscriptions. Create the actors manually.
-- A duplicate unsubscribe from one actor must not release another actor's demand.
+- `DataTesterConfig` 不覆盖 DeFi 池订阅。需手动创建 actor。
+- 一个 actor 的重复退订不得释放另一个 actor 的需求。
 
-### TC-D75: DeFi bootstrap cancel
+### TC-D75：DeFi 引导取消 {#tc-d75-defi-bootstrap-cancel}
 
-| Field              | Value                                                                                                 |
+| 字段 | 值 |
 | ------------------ | ----------------------------------------------------------------------------------------------------- |
-| **Prerequisite**   | A DeFi data client. The pool is absent from the cache, so a subscription requests a pool snapshot.    |
-| **Action**         | Subscribe, release the final owner before the pool definition arrives, then subscribe again.          |
-| **Event sequence** | Two snapshot requests are sent. The response to the first arrives after the second subscription.      |
-| **Pass criteria**  | The engine discards the first response. Only the response to the current request installs a profiler. |
-| **Skip when**      | Adapter does not provide pool snapshots.                                                              |
+| **前置条件** | 一个 DeFi 数据客户端。池中金融工具不在 cache 里，因此订阅会请求池快照。 |
+| **操作** | 先订阅，在池定义到达前释放最后一个持有者，然后再次订阅。 |
+| **事件序列** | 发出两次快照请求；第一次的响应在第二次订阅之后才到达。 |
+| **通过标准** | 引擎丢弃第一次响应；只有对应当前请求的响应会安装 profiler。 |
+| **跳过条件** | 适配器不提供池快照。 |
 
-**Considerations**:
+**注意事项**：
 
-- The second subscription requests a new snapshot only while the pool is absent from the cache. Once
-  the first request's pool definition arrives, a later subscription builds the profiler from the
-  cached pool instead, so the case needs a delayed response.
-- An engine reset or disconnect also cancels pending bootstraps. A response that arrives afterwards
-  must not install a profiler.
+- 只有池不在 cache 中时，第二次订阅才会请求新快照。一旦第一次请求的池定义到达，后续订阅会直接用缓存的池
+  构建 profiler，因此该用例需要延迟响应。
+- 引擎重置或断开连接同样会取消进行中的引导。之后到达的响应不得安装 profiler。
 
 ---
 
-## DataTester configuration reference
+## DataTester 配置参考 {#datatester-configuration-reference}
 
-The Python constructor accepts the parameters below. Defaults are resolved values after construction.
-Historical quote, trade, and bar requests use a one-hour lookback. Funding rate requests use seven days. The
-lookback is not configurable through `DataTesterConfig`.
+Python 构造函数接受下列参数，默认值为构造完成后的解析值。历史报价、成交和 K 线请求的回看窗口为一小时，
+资金费率请求为七天。回看窗口不能通过 `DataTesterConfig` 配置。
 
-| Parameter                     | Type                 | Default | Affects groups  |
+| 参数 | 类型 | 默认值 | 影响的组 |
 | ----------------------------- | -------------------- | ------- | --------------- |
-| `actor_id`                    | `ActorId?`           | `None`  | All             |
-| `client_id`                   | `ClientId?`          | `None`  | All             |
-| `instrument_ids`              | `list[InstrumentId]` | `[]`    | All             |
+| `actor_id`                    | `ActorId?`           | `None`  | 全部 |
+| `client_id`                   | `ClientId?`          | `None`  | 全部 |
+| `instrument_ids`              | `list[InstrumentId]` | `[]`    | 全部 |
 | `bar_types`                   | `list[BarType]?`     | `None`  | 5               |
 | `subscribe_book_deltas`       | `bool`               | `False` | 2               |
 | `subscribe_book_depth`        | `bool`               | `False` | 2               |
@@ -1220,7 +1210,7 @@ lookback is not configurable through `DataTesterConfig`.
 | `can_unsubscribe`             | `bool`               | `True`  | 9               |
 | `request_instruments`         | `bool`               | `False` | 1               |
 | `request_book_snapshot`       | `bool`               | `False` | 2               |
-| `request_book_deltas`         | `bool`               | `False` | Not implemented |
+| `request_book_deltas`         | `bool`               | `False` | 尚未实现 |
 | `request_quotes`              | `bool`               | `False` | 3               |
 | `request_trades`              | `bool`               | `False` | 4               |
 | `request_bars`                | `bool`               | `False` | 5               |
@@ -1229,14 +1219,14 @@ lookback is not configurable through `DataTesterConfig`.
 | `book_interval_ms`            | `PositiveInt`        | `1000`  | 2               |
 | `book_levels_to_print`        | `PositiveInt`        | `10`    | 2               |
 | `manage_book`                 | `bool`               | `True`  | 2               |
-| `log_data`                    | `bool`               | `True`  | All             |
-| `stats_interval_secs`         | `int`                | `5`     | All             |
-| `log_events`                  | `bool`               | `True`  | All             |
-| `log_commands`                | `bool`               | `True`  | All             |
+| `log_data`                    | `bool`               | `True`  | 全部 |
+| `stats_interval_secs`         | `int`                | `5`     | 全部 |
+| `log_events`                  | `bool`               | `True`  | 全部 |
+| `log_commands`                | `bool`               | `True`  | 全部 |
 
-The Rust builder also exposes these parameters:
+Rust builder 还暴露以下参数：
 
-| Parameter          | Type       | Default  | Affects groups |
+| 参数 | 类型 | 默认值 | 影响的组 |
 | ------------------ | ---------- | -------- | -------------- |
 | `book_type`        | `BookType` | `L2_MBP` | 2              |
 | `subscribe_params` | `Params?`  | `None`   | 9              |

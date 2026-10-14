@@ -1,53 +1,51 @@
 # Option Spread
 
-`OptionSpread` represents an exchange-defined options strategy with more than one leg.
-The venue publishes the strategy as a single instrument with its own symbol, tick size,
-expiration, and execution rules.
+`OptionSpread` 表示交易所定义的、包含多条腿的期权策略。交易场所将该策略作为单一工具发布，
+拥有自己的符号、tick 大小、到期时间和执行规则。
 
-Examples include listed vertical spreads, calendar spreads, and other option strategies.
+典型例子包括挂牌的垂直价差、日历价差及其他期权策略。
 
-## Fields
+## 字段 {#fields}
 
-| Field             | Rust type          | Python type        | Required/default | Notes                                    |
+| 字段              | Rust 类型          | Python 类型        | 必填/默认值    | 说明                                     |
 | ----------------- | ------------------ | ------------------ | ---------------- | ---------------------------------------- |
-| `instrument_id`   | `InstrumentId`     | `InstrumentId`     | Required         | Stored as `id` in Rust.                  |
-| `raw_symbol`      | `Symbol`           | `Symbol`           | Required         | Native venue symbol.                     |
-| `asset_class`     | `AssetClass`       | `AssetClass`       | Required         | Asset class of the underlying strategy.  |
-| `exchange`        | `Option<Ustr>`     | `str \| None`      | `None`           | Exchange MIC or venue code when known.   |
-| `underlying`      | `Ustr`             | `str`              | Required         | Underlying asset, future, or index.      |
-| `strategy_type`   | `Ustr`             | `str`              | Required         | Venue strategy type, such as vertical.   |
-| `activation_ns`   | `UnixNanos`        | `int`              | Required         | Strategy activation timestamp.           |
-| `expiration_ns`   | `UnixNanos`        | `int`              | Required         | Strategy expiration timestamp.           |
-| `currency`        | `Currency`         | `Currency`         | Required         | Premium quote and settlement currency.   |
-| `price_precision` | `u8`               | `int`              | Required         | Decimal places allowed for prices.       |
-| `price_increment` | `Price`            | `Price`            | Required         | Smallest valid price step.               |
-| `size_precision`  | `u8`               | `int`              | Fixed `0`        | Option spreads trade in whole contracts. |
-| `size_increment`  | `Quantity`         | `Quantity`         | Fixed `1`        | Minimum contract size step.              |
-| `multiplier`      | `Quantity`         | `Quantity`         | Required         | Strategy multiplier.                     |
-| `lot_size`        | `Quantity`         | `Quantity`         | Required         | Rounded lot or contract lot size.        |
-| `margin_init`     | `Option<Decimal>`  | `Decimal \| None`  | `0`              | Initial margin rate.                     |
-| `margin_maint`    | `Option<Decimal>`  | `Decimal \| None`  | `0`              | Maintenance margin rate.                 |
-| `max_quantity`    | `Option<Quantity>` | `Quantity \| None` | `None`           | Maximum order quantity.                  |
-| `min_quantity`    | `Option<Quantity>` | `Quantity \| None` | `1`              | Minimum order quantity.                  |
-| `max_price`       | `Option<Price>`    | `Price \| None`    | `None`           | Maximum valid quote or order price.      |
-| `min_price`       | `Option<Price>`    | `Price \| None`    | `None`           | Minimum valid quote or order price.      |
-| `tick_scheme`     | `Option<Ustr>`     | `str \| None`      | `None`           | Registered variable tick scheme name.    |
-| `info`            | `Option<Params>`   | `dict \| None`     | `None`           | Adapter metadata.                        |
-| `ts_event`        | `UnixNanos`        | `int`              | Required         | Event timestamp in nanoseconds.          |
-| `ts_init`         | `UnixNanos`        | `int`              | Required         | Initialization timestamp in nanoseconds. |
+| `instrument_id`   | `InstrumentId`     | `InstrumentId`     | 必填             | 在 Rust 中存储为 `id`。                  |
+| `raw_symbol`      | `Symbol`           | `Symbol`           | 必填             | 交易场所原生符号。                        |
+| `asset_class`     | `AssetClass`       | `AssetClass`       | 必填             | 标的策略的资产类别。                      |
+| `exchange`        | `Option<Ustr>`     | `str \| None`      | `None`           | 已知时的交易所 MIC 或场所代码。           |
+| `underlying`      | `Ustr`             | `str`              | 必填             | 标的资产、期货或指数。                    |
+| `strategy_type`   | `Ustr`             | `str`              | 必填             | 交易场所策略类型，如 vertical。           |
+| `activation_ns`   | `UnixNanos`        | `int`              | 必填             | 策略激活时间戳。                          |
+| `expiration_ns`   | `UnixNanos`        | `int`              | 必填             | 策略到期时间戳。                          |
+| `currency`        | `Currency`         | `Currency`         | 必填             | 权利金报价与结算货币。                    |
+| `price_precision` | `u8`               | `int`              | 必填             | 价格允许的小数位数。                      |
+| `price_increment` | `Price`            | `Price`            | 必填             | 最小有效价格步长。                        |
+| `size_precision`  | `u8`               | `int`              | 固定 `0`         | 期权价差以整数合约交易。                  |
+| `size_increment`  | `Quantity`         | `Quantity`         | 固定 `1`         | 最小合约数量步长。                        |
+| `multiplier`      | `Quantity`         | `Quantity`         | 必填             | 策略乘数。                                |
+| `lot_size`        | `Quantity`         | `Quantity`         | 必填             | 整手或每手合约规模。                      |
+| `margin_init`     | `Option<Decimal>`  | `Decimal \| None`  | `0`              | 初始保证金率。                            |
+| `margin_maint`    | `Option<Decimal>`  | `Decimal \| None`  | `0`              | 维持保证金率。                            |
+| `max_quantity`    | `Option<Quantity>` | `Quantity \| None` | `None`           | 最大下单数量。                            |
+| `min_quantity`    | `Option<Quantity>` | `Quantity \| None` | `1`              | 最小下单数量。                            |
+| `max_price`       | `Option<Price>`    | `Price \| None`    | `None`           | 最大有效报价或订单价格。                  |
+| `min_price`       | `Option<Price>`    | `Price \| None`    | `None`           | 最小有效报价或订单价格。                  |
+| `tick_scheme`     | `Option<Ustr>`     | `str \| None`      | `None`           | 已注册的可变 tick 方案名称。              |
+| `info`            | `Option<Params>`   | `dict \| None`     | `None`           | 适配器元数据。                            |
+| `ts_event`        | `UnixNanos`        | `int`              | 必填             | 纳秒级事件时间戳。                        |
+| `ts_init`         | `UnixNanos`        | `int`              | 必填             | 纳秒级初始化时间戳。                      |
 
-**Note**: Python constructors use `instrument_id`. Rust stores the same value as `id`.
+**注意**：Python 构造函数使用 `instrument_id`，Rust 将同一值存储为 `id`。
 
-## Behavior
+## 行为 {#behavior}
 
-- `OptionSpread` has instrument class `OptionSpread`.
-- The venue publishes the spread as a single tradable instrument.
-- It trades in whole contracts with size precision `0` and size increment `1`.
-- Spread prices can be zero or negative, and the `RiskEngine` accepts non-positive prices
-  for this instrument class.
-- Store venue-specific leg details in `info` when the adapter provides them.
+- `OptionSpread` 的工具类别为 `OptionSpread`。
+- 交易场所将价差作为单一可交易工具发布。
+- 以整数合约交易，数量精度为 `0`，数量步长为 `1`。
+- 价差价格可以为零或负数，`RiskEngine` 对该工具类别接受非正价格。
+- 适配器提供各腿细节时，将其存入 `info`。
 
-## Example
+## 示例 {#example}
 
 ```rust tab="Rust"
 use jiff::Timestamp;
@@ -113,14 +111,14 @@ sr3_spread = OptionSpread(
 )
 ```
 
-## Adapters
+## 适配器 {#adapters}
 
-**Adapters that create or consume `OptionSpread` instruments include**:
+**创建或使用 `OptionSpread` 金融工具的适配器包括**：
 
-- [Databento](./../../integrations/databento.md) for listed option spread markets.
-- [Interactive Brokers](./../../integrations/interactive_brokers.md) for exchange-defined option strategies.
+- [Databento](./../../integrations/databento.md)，用于挂牌期权价差市场。
+- [Interactive Brokers](./../../integrations/interactive_brokers.md)，用于交易所定义的期权策略。
 
-## Related guides
+## 相关指南 {#related-guides}
 
-- [Option Contract](./option_contract.md) covers single-leg option contracts.
-- [Options](./../options.md) covers option data, Greeks, and chain subscriptions.
+- [Option Contract](./option_contract.md)介绍单腿期权合约。
+- [期权](./../options.md)介绍期权数据、Greeks 与期权链订阅。

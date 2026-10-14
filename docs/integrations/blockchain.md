@@ -1,160 +1,155 @@
-# Blockchain
+# 区块链
 
-## Overview
+## 概览 {#overview}
 
-The blockchain adapter ingests DeFi data from EVM chains and exposes it through the
-NautilusTrader data model. It also includes an execution client for locally signed Uniswap V3
-market swaps. The execution client is not production-ready. The adapter uses three backends:
+区块链适配器从 EVM 链摄取 DeFi 数据，并通过 NautilusTrader 数据模型暴露。它还包含
+一个执行客户端，用于本地签名的 Uniswap V3 市价兑换。该执行客户端尚未达到生产可用。
+适配器使用三种后端：
 
-- HyperSync: high-throughput historical blocks and contract logs. See the
-  [Envio HyperSync docs](https://docs.envio.dev/docs/HyperSync/hypersync-usage) for query shape,
-  pagination, and tuning.
-- HTTP RPC: contract calls, Multicall reads, and final on-chain state hydration.
-- Postgres: optional durable cache state, pool metadata, decoded events, and snapshots.
+- HyperSync：高吞吐的历史区块与合约日志。查询形态、分页与调优见
+  [Envio HyperSync 文档](https://docs.envio.dev/docs/HyperSync/hypersync-usage)。
+- HTTP RPC：合约调用、Multicall 读取，以及最终的链上状态水合。
+- Postgres：可选的持久缓存状态、池元数据、解码事件与快照。
 
-## Capability status
+## 能力状态 {#capability-status}
 
-| Capability                | Scope                                                                      | Readiness                                                     |
-| ------------------------- | -------------------------------------------------------------------------- | ------------------------------------------------------------- |
-| Historical blocks         | Any configured `Chain` with a reachable HyperSync endpoint.                | Available through the Rust service and `sync-blocks`.         |
-| Live blocks               | HyperSync, or WSS RPC for chains with an RPC client.                       | Available through the Rust and Python data-client surfaces.   |
-| DEX pool discovery        | Chain and DEX combinations with a registered pool-creation parser.         | Available through the data client and `sync-dex`.             |
-| Pool snapshots and replay | Concentrated-liquidity integrations with the complete snapshot parser set. | Available with Postgres and the provider constraints below.   |
-| Live pool events          | Registered swap, liquidity, collect, flash, and fee-protocol parsers.      | Available through the Rust and Python data-client surfaces.   |
-| Transaction execution     | Locally signed Uniswap V3 BUY and SELL market swaps.                       | Experimental; not production-ready or exposed for Python use. |
+| 能力             | 范围                                                                         | 成熟度                                                            |
+| ---------------- | ---------------------------------------------------------------------------- | ----------------------------------------------------------------- |
+| 历史区块         | 任何配置了可达 HyperSync 端点的 `Chain`。                                    | 经 Rust 服务与 `sync-blocks` 提供。                               |
+| 实时区块         | HyperSync，或具备 RPC 客户端的链用 WSS RPC。                                 | 经 Rust 与 Python 数据客户端接口提供。                            |
+| DEX 池发现       | 注册了池创建解析器的链与 DEX 组合。                                          | 经数据客户端与 `sync-dex` 提供。                                  |
+| 池快照与重放     | 具备完整快照解析器集的集中流动性集成。                                       | 需 Postgres，并满足下文的提供商约束。                             |
+| 实时池事件       | 已注册的 swap、liquidity、collect、flash 与 fee-protocol 解析器。            | 经 Rust 与 Python 数据客户端接口提供。                            |
+| 交易执行         | 本地签名的 Uniswap V3 BUY 与 SELL 市价兑换。                                 | 实验性；未达生产可用，且不向 Python 暴露。                        |
 
-Direct WSS RPC clients exist for Ethereum, Polygon, Base, Arbitrum, and BSC. Other configured chain
-values can use HyperSync block history when their endpoint is reachable, but they do not support
-WSS live mode.
+Ethereum、Polygon、Base、Arbitrum 和 BSC 有直接的 WSS RPC 客户端。其他配置的链取值
+在端点可达时可以使用 HyperSync 区块历史，但不支持 WSS 实时模式。
 
-### Chain and DEX command support
+### 链与 DEX 命令支持 {#chain-and-dex-command-support}
 
-Command support is derived from the parsers registered for each chain and DEX. The CLI help for
-`sync-dex` and `analyze-pool(s)` prints the same capability boundaries.
+命令支持由每条链、每个 DEX 注册的解析器推导而来。`sync-dex` 与
+`analyze-pool(s)` 的 CLI 帮助会打印相同的能力边界。
 
-| Tier            | Meaning                                                      | DEXes                                               | Chains                                      |
+| 层级            | 含义                                                       | DEX                                                  | 链                                          |
 | --------------- | ------------------------------------------------------------ | --------------------------------------------------- | ------------------------------------------- |
-| Replay-ready    | Discovery, snapshot, and fee-protocol replay parsers.        | Uniswap V3 and PancakeSwap V3.                      | Ethereum, Base, Arbitrum, and BSC.          |
-| Analysis only   | Snapshot parsers without CLI pool discovery.                 | Aerodrome Slipstream.                               | Base.                                       |
-| Discovery only  | Pool discovery without the complete snapshot parser set.     | Uniswap V2 and Uniswap V4.                          | Ethereum, Base, and Arbitrum.               |
-| Discovery only  | Pool discovery without the complete snapshot parser set.     | Camelot V3 and Fluid DEX.                           | Arbitrum.                                   |
-| Registered only | Metadata registration without command-capable event parsers. | Curve Finance and Fluid DEX.                        | Ethereum.                                   |
-| Registered only | Metadata registration without command-capable event parsers. | Aerodrome V1, BaseSwap V2, BaseX, and SushiSwap V3. | Base.                                       |
-| Registered only | Metadata registration without command-capable event parsers. | Curve Finance, SushiSwap V2, and SushiSwap V3.      | Arbitrum.                                   |
-| Blocks only     | No DEX registration; `sync-blocks` remains available.        | -                                                   | Other configured chains, including Polygon. |
+| 可重放          | 发现、快照与 fee-protocol 重放解析器。                     | Uniswap V3 与 PancakeSwap V3。                      | Ethereum、Base、Arbitrum 和 BSC。           |
+| 仅分析          | 有快照解析器，但 CLI 无池发现。                            | Aerodrome Slipstream。                              | Base。                                      |
+| 仅发现          | 有池发现，但快照解析器集不完整。                           | Uniswap V2 与 Uniswap V4。                          | Ethereum、Base 和 Arbitrum。                |
+| 仅发现          | 有池发现，但快照解析器集不完整。                           | Camelot V3 与 Fluid DEX。                           | Arbitrum。                                  |
+| 仅注册          | 只注册元数据，事件解析器不支持命令。                       | Curve Finance 与 Fluid DEX。                        | Ethereum。                                  |
+| 仅注册          | 只注册元数据，事件解析器不支持命令。                       | Aerodrome V1、BaseSwap V2、BaseX 与 SushiSwap V3。  | Base。                                      |
+| 仅注册          | 只注册元数据，事件解析器不支持命令。                       | Curve Finance、SushiSwap V2 与 SushiSwap V3。       | Arbitrum。                                  |
+| 仅区块          | 无 DEX 注册；`sync-blocks` 仍可用。                        | -                                                   | 其他配置链，包括 Polygon。                  |
 
-`sync-dex` requires a pool-creation parser. `analyze-pool(s)` requires Initialize, Swap, Mint, Burn, and
-Collect parsers. Replay-ready integrations also parse `SetFeeProtocol`. Integrations with a `CollectProtocol`
-parser can replay protocol-fee withdrawals.
+`sync-dex` 需要池创建解析器。`analyze-pool(s)` 需要 Initialize、Swap、Mint、Burn 和
+Collect 解析器。可重放的集成还解析 `SetFeeProtocol`；带 `CollectProtocol` 解析器的
+集成可以重放协议费提取。
 
-Aerodrome Slipstream has no pool-creation parser, and the CLI has no separate pool-registration
-command. Analysis works only when its pool and token metadata already exist in the cache through
-another integration path. Its replay-derived snapshots cannot be validated against on-chain state.
-Registered-only DEXes are omitted from command help and fail the relevant capability check.
+Aerodrome Slipstream 没有池创建解析器，CLI 也没有单独的池注册命令。只有当其池与
+代币元数据已经通过其他集成路径进入缓存时，分析才能工作。其重放派生的快照无法对照
+链上状态验证。仅注册的 DEX 会出现在命令帮助之外，并会在相应能力检查中失败。
 
-### Interface availability
+### 接口可用性 {#interface-availability}
 
-| Surface                               | Rust                                      | Python                     | CLI                                      |
+| 接口                                  | Rust                                      | Python                     | CLI                                      |
 | ------------------------------------- | ----------------------------------------- | -------------------------- | ---------------------------------------- |
-| Data configuration and factory        | Public config and factory.                | Public config and factory. | -                                        |
-| Live data subscriptions               | Data-client subscription API.             | LiveNode data-client API.  | -                                        |
-| Block sync, discovery, and analysis   | Adapter services.                         | -                          | `sync-blocks`, `sync-dex`, and analysis. |
-| Stored snapshot loading               | Cache API.                                | `load_pool_snapshot`.      | -                                        |
-| Execution configuration               | Public config.                            | Configuration types only.  | -                                        |
-| Execution factory and order routing   | Public factory and client.                | -                          | -                                        |
-| Preflight, wrap, approve, and storage | Direct `BlockchainExecutionClient` calls. | -                          | -                                        |
+| 数据配置与工厂                        | 公开的配置与工厂。                        | 公开的配置与工厂。         | -                                        |
+| 实时数据订阅                          | 数据客户端订阅 API。                      | LiveNode 数据客户端 API。  | -                                        |
+| 区块同步、发现与分析                  | 适配器服务。                              | -                          | `sync-blocks`、`sync-dex` 与分析命令。   |
+| 已存快照加载                          | 缓存 API。                                | `load_pool_snapshot`。     | -                                        |
+| 执行配置                              | 公开配置。                                | 仅配置类型。               | -                                        |
+| 执行工厂与订单路由                    | 公开的工厂与客户端。                      | -                          | -                                        |
+| 预检、包装、授权与存储                | 直接调用 `BlockchainExecutionClient`。    | -                          | -                                        |
 
-The Python module does not register or export `BlockchainExecutionClientFactory`, so Python
-LiveNode configuration cannot instantiate the execution client.
+Python 模块不注册也不导出 `BlockchainExecutionClientFactory`，因此 Python 的
+LiveNode 配置无法实例化执行客户端。
 
-### Examples
+### 示例 {#examples}
 
-Runnable data-client examples are available for both public language surfaces:
+两个公开语言接口都有可运行的数据客户端示例：
 
-- [Rust LiveNode data tester](https://github.com/nautechsystems/nautilus_trader/blob/develop/crates/adapters/blockchain/examples/node_data_tester.rs).
-- [Python data tester](https://github.com/nautechsystems/nautilus_trader/blob/develop/examples/live/blockchain/data_tester.py).
-- [Python LiveNode example](https://github.com/nautechsystems/nautilus_trader/blob/develop/examples/live/blockchain/node_test.py).
+- [Rust LiveNode 数据测试器](https://github.com/nautechsystems/nautilus_trader/blob/develop/crates/adapters/blockchain/examples/node_data_tester.rs)。
+- [Python 数据测试器](https://github.com/nautechsystems/nautilus_trader/blob/develop/examples/live/blockchain/data_tester.py)。
+- [Python LiveNode 示例](https://github.com/nautechsystems/nautilus_trader/blob/develop/examples/live/blockchain/node_test.py)。
 
-The repository does not provide a maintained runnable execution setup example. Build execution
-integrations in Rust and apply the constraints in [Execution](#execution).
+仓库不提供维护中的可运行执行配置示例。执行集成请用 Rust 构建，并遵守
+[执行](#execution)中的约束。
 
-## Core primitives
+## 核心原语 {#core-primitives}
 
-The DeFi domain model lives in `nautilus_model::defi`.
+DeFi 领域模型位于 `nautilus_model::defi`。
 
-### Chain
+### 链 {#chain}
 
-`Chain` defines the target blockchain and its default service endpoints.
+`Chain` 定义目标区块链及其默认服务端点。
 
-| Field                      | Type             | Description                                                        |
+| 字段                       | 类型             | 说明                                                               |
 | -------------------------- | ---------------- | ------------------------------------------------------------------ |
-| `name`                     | `Blockchain`     | Chain enum value, such as `Ethereum` or `Arbitrum`.                |
-| `chain_id`                 | `u32`            | EVM chain ID, such as `1` for Ethereum.                            |
-| `hypersync_url`            | `String`         | HyperSync endpoint, by default `https://{chain_id}.hypersync.xyz`. |
-| `rpc_url`                  | `Option<String>` | Optional direct RPC endpoint stored on the chain model.            |
-| `native_currency_decimals` | `u8`             | Native gas token decimal precision, usually `18`.                  |
+| `name`                     | `Blockchain`     | 链枚举值，如 `Ethereum` 或 `Arbitrum`。                            |
+| `chain_id`                 | `u32`            | EVM 链 ID，如 Ethereum 为 `1`。                                    |
+| `hypersync_url`            | `String`         | HyperSync 端点，默认 `https://{chain_id}.hypersync.xyz`。          |
+| `rpc_url`                  | `Option<String>` | 存放在链模型上的可选直接 RPC 端点。                                |
+| `native_currency_decimals` | `u8`             | 原生 gas 代币的小数位精度，通常为 `18`。                           |
 
-Chains can be loaded by numeric ID with `Chain::from_chain_id` or by name with
-`Chain::from_chain_name`.
+链可按数字 ID 用 `Chain::from_chain_id` 加载，或按名称用
+`Chain::from_chain_name` 加载。
 
-| Chain family     | Code | Name         | Decimals |
-| ---------------- | ---- | ------------ | -------- |
-| Ethereum and L2s | ETH  | Ethereum     | 18       |
-| Polygon          | POL  | Polygon      | 18       |
-| Avalanche        | AVAX | Avalanche    | 18       |
-| BSC              | BNB  | Binance Coin | 18       |
+| 链系             | 代码 | 名称         | 小数位 |
+| ---------------- | ---- | ------------ | ------ |
+| Ethereum 与 L2   | ETH  | Ethereum     | 18     |
+| Polygon          | POL  | Polygon      | 18     |
+| Avalanche        | AVAX | Avalanche    | 18     |
+| BSC              | BNB  | Binance Coin | 18     |
 
-### DEX and pools
+### DEX 与池 {#dex-and-pools}
 
-DEX integrations register:
+DEX 集成注册：
 
-- Factory addresses.
-- Event signatures and parser functions.
-- AMM type.
+- 工厂地址。
+- 事件签名与解析函数。
+- AMM 类型。
 
-Pool definitions bind the chain and DEX to a pool contract address or protocol pool ID to form a
-stable Nautilus instrument ID. The token pair, fee tier, tick spacing, and creation block remain
-pool metadata.
+池定义把链和 DEX 绑定到池合约地址或协议池 ID，形成稳定的 Nautilus 金融工具 ID。
+代币对、费率层级、tick 间距和创建区块保留为池元数据。
 
-When the data engine processes a pool definition, it caches and publishes a `CurrencyPair` under the same pool
-instrument ID. The instrument takes its base and quote from `Pool::get_base_token` and
-`Pool::get_quote_token`. Swap trade info and execution use this same token-priority orientation. The
-instrument derives price and size precision from token decimals up to `FIXED_PRECISION`. Distinct pool
-identifiers let same-token pools coexist in the cache and on the message bus.
+数据引擎处理池定义时，会在同一池金融工具 ID 下缓存并发布一个 `CurrencyPair`。
+金融工具的 base 与 quote 取自 `Pool::get_base_token` 和
+`Pool::get_quote_token`。swap 成交信息与执行都使用同一代币优先级方向。金融工具的
+价格与数量精度由代币小数位推导，上限为 `FIXED_PRECISION`。不同的池标识让相同
+代币对的池可以在缓存和消息总线中共存。
 
-Uniswap V3 and compatible concentrated-liquidity pools also use:
+Uniswap V3 及兼容的集中流动性池还使用：
 
-- `Initialize(uint160,int24)` for initial price state.
-- `Mint` and `Burn` events for position and tick state replay.
-- `Swap` events for live pool price movement.
-- HTTP RPC final-state reads for `slot0`, liquidity, active ticks, and position data.
+- `Initialize(uint160,int24)` 获取初始价格状态。
+- `Mint` 与 `Burn` 事件重放仓位与 tick 状态。
+- `Swap` 事件跟踪实时池价移动。
+- HTTP RPC 读取终态的 `slot0`、流动性、活跃 tick 与仓位数据。
 
-## Data client configuration
+## 数据客户端配置 {#data-client-configuration}
 
-| Option                            | Default                       | Description                                            |
-| --------------------------------- | ----------------------------- | ------------------------------------------------------ |
-| `chain`                           | Required                      | Target `Chain`, such as Ethereum or Arbitrum.          |
-| `dex_ids`                         | `[]`                          | DEX integrations to register and sync.                 |
-| `http_rpc_url`                    | Required                      | HTTP RPC endpoint for contract reads and Multicall.    |
-| `wss_rpc_url`                     | `None`                        | WSS endpoint; required for RPC live streams.           |
-| `rpc_requests_per_second`         | `None`                        | Optional RPC request throttle.                         |
-| `multicall_calls_per_rpc_request` | `200`                         | Requested maximum Multicall targets per RPC request.   |
-| `use_hypersync_for_live_data`     | Rust: `false`; Python: `true` | When true, live block and event streams use HyperSync. |
-| `from_block`                      | `None`                        | Optional start block for historical sync.              |
-| `pool_filters`                    | `DexPoolFilters()`            | Pool universe filtering rules.                         |
-| `postgres_cache_database_config`  | `None`                        | Optional Postgres cache configuration.                 |
-| `proxy_url`                       | `None`                        | Optional HTTP and WebSocket proxy URL.                 |
-| `transport_backend`               | `Sockudo`                     | WebSocket transport backend.                           |
+| 选项                              | 默认值                        | 说明                                                 |
+| --------------------------------- | ----------------------------- | ---------------------------------------------------- |
+| `chain`                           | 必填                          | 目标 `Chain`，如 Ethereum 或 Arbitrum。              |
+| `dex_ids`                         | `[]`                          | 要注册与同步的 DEX 集成。                            |
+| `http_rpc_url`                    | 必填                          | 合约读取与 Multicall 的 HTTP RPC 端点。              |
+| `wss_rpc_url`                     | `None`                        | WSS 端点；RPC 实时流必需。                           |
+| `rpc_requests_per_second`         | `None`                        | 可选的 RPC 请求限流。                                |
+| `multicall_calls_per_rpc_request` | `200`                         | 单次 RPC 请求请求的 Multicall 目标数上限。           |
+| `use_hypersync_for_live_data`     | Rust: `false`；Python: `true` | 为 true 时，实时区块与事件流使用 HyperSync。         |
+| `from_block`                      | `None`                        | 历史同步的可选起始区块。                             |
+| `pool_filters`                    | `DexPoolFilters()`            | 池范围过滤规则。                                     |
+| `postgres_cache_database_config`  | `None`                        | 可选的 Postgres 缓存配置。                           |
+| `proxy_url`                       | `None`                        | 可选的 HTTP 与 WebSocket 代理 URL。                  |
+| `transport_backend`               | `Sockudo`                     | WebSocket 传输后端。                                 |
 
 :::note
-Pool snapshot requests require a Postgres cache database. The in-memory cache can hold
-tokens and pools, but latest pool profiler bootstrap reads snapshot and event state through the
-cache database path.
+池快照请求需要 Postgres 缓存数据库。内存缓存可以存放代币与池，但
+最新的池剖析器引导会通过缓存数据库路径读取快照与事件状态。
 :::
 
-## Environment
+## 环境 {#environment}
 
-Set credentials outside the repository:
+在仓库之外设置凭据：
 
 ```bash
 export ENVIO_API_TOKEN="<envio-token>"
@@ -162,7 +157,7 @@ export RPC_HTTP_URL="https://your-rpc.example"
 export RPC_WSS_URL="wss://your-rpc.example"
 ```
 
-For local `.env` usage, keep the file out of version control:
+本地使用 `.env` 时，确保该文件不进入版本控制：
 
 ```dotenv
 ENVIO_API_TOKEN=<envio-token>
@@ -170,82 +165,82 @@ RPC_HTTP_URL=https://your-rpc.example
 RPC_WSS_URL=wss://your-rpc.example
 ```
 
-- `ENVIO_API_TOKEN` is required by the Rust HyperSync client. Missing or malformed tokens fail
-  client construction before any query is sent.
-- `RPC_HTTP_URL` or `--rpc-url` is required for contract reads and snapshot hydration.
-- `RPC_WSS_URL` is required when `use_hypersync_for_live_data = false`. That mode uses WSS RPC live streams.
+- Rust 的 HyperSync 客户端要求 `ENVIO_API_TOKEN`。缺失或格式错误的 token 会在
+  发出任何查询前导致客户端构造失败。
+- 合约读取与快照水合需要 `RPC_HTTP_URL` 或 `--rpc-url`。
+- `use_hypersync_for_live_data = false` 时必须有 `RPC_WSS_URL`，该模式使用
+  WSS RPC 实时流。
 
-Execution adds further variables (see [Execution](#execution)):
+执行还需要更多变量（见[执行](#execution)）：
 
-- The signer private key is read from the variable named by the `signer_private_key_env`
-  configuration field, never from configuration directly.
-- Signed-payload protection reads the active and retired 32-byte keys from the variables named by
-  `payload_key_env` and `payload_key_retired_env`. These configuration fields contain variable names,
-  never key values.
+- 签名私钥从 `signer_private_key_env`
+  配置字段所指的变量读取，绝不直接写在配置里。
+- 签名载荷保护从 `payload_key_env` 和
+  `payload_key_retired_env` 所指变量读取生效与已退役的 32 字节密钥。这些配置字段
+  只包含变量名，绝不包含密钥值。
 
-For token setup and quota details, see Envio's
-[HyperSync API token docs](https://docs.envio.dev/docs/HyperSync/api-tokens).
+token 设置与配额细节见 Envio 的
+[HyperSync API token 文档](https://docs.envio.dev/docs/HyperSync/api-tokens)。
 
-### RPC provider requirements
+### RPC 提供商要求 {#rpc-provider-requirements}
 
-`RPC_HTTP_URL` or `--rpc-url` must point at an EVM JSON-RPC endpoint for the target chain. The data client
-uses it for contract reads, and first-time pool syncs read on-chain state through it. The client reads the
-HyperSync endpoint from `Chain::hypersync_url`. Built-in chains default to `https://{chain_id}.hypersync.xyz`.
+`RPC_HTTP_URL` 或 `--rpc-url` 必须指向目标链的 EVM JSON-RPC 端点。数据客户端用它
+做合约读取，首次池同步也通过它读取链上状态。客户端从 `Chain::hypersync_url`
+读取 HyperSync 端点，内置链默认 `https://{chain_id}.hypersync.xyz`。
 
-Choose an RPC provider that supports the intended target blocks and Multicall workload. Provider
-labels are not sufficient evidence of archive access: verify an `eth_getCode` or `eth_call` against
-the historical block the workflow will use. Returning the block header alone does not prove that
-historical contract state is available. Large pools may also require higher payload, gas, timeout,
-and request-rate limits.
+选择支持目标历史区块与 Multicall 工作量的 RPC 提供商。提供商的宣传标签不足以证明
+archive 访问权限：要用工作流将使用的历史区块验证一次 `eth_getCode` 或
+`eth_call`。只返回区块头并不能证明历史合约状态可用。大型池还可能要求更高的
+载荷、gas、超时与请求速率上限。
 
-Archive support affects validation, not whether event sync runs:
+archive 支持影响的是验证，不是事件同步能否运行：
 
-- On an archive node, a historical-block snapshot validates against on-chain state and is stored with
-  `validation_state = on_chain`.
-- On a non-archive node, the historical read fails and the snapshot stays `validation_state = replay`,
-  which is still usable as a replay start point.
-- For a first-time sync on a non-archive node, use a recent `--to-block`. Bootstrap reads on-chain state at
-  the target block. Non-archive nodes serve only recent state.
+- 在 archive 节点上，历史区块快照会对照链上状态验证，并以
+  `validation_state = on_chain` 存储。
+- 在非 archive 节点上，历史读取失败，快照保持 `validation_state = replay`，
+  仍可作为重放起点使用。
+- 非 archive 节点首次同步时使用较新的 `--to-block`。引导过程在目标区块读取链上
+  状态，非 archive 节点只提供近期状态。
 
-## Local services
+## 本地服务 {#local-services}
 
-The development Docker Compose file starts Postgres, Redis, and pgAdmin. To create the containers,
-wait for Postgres, and initialize the database schema, run:
+开发用 Docker Compose 文件启动 Postgres、Redis 和 pgAdmin。要创建容器、等待
+Postgres 就绪并初始化数据库模式，运行：
 
 ```bash
 make init-services
 ```
 
-Use `make start-services` to start an initialized stack. Run `make init-db` to initialize or reapply
-the Postgres schema.
+`make start-services` 启动已初始化的技术栈。`make init-db`
+初始化或重新应用 Postgres 模式。
 
-The local Postgres defaults are:
+本地 Postgres 默认值：
 
-| Field    | Value            |
+| 字段     | 值               |
 | -------- | ---------------- |
-| Host     | `127.0.0.1:5432` |
-| Database | `nautilus`       |
-| User     | `nautilus`       |
-| Password | `pass`           |
+| 主机     | `127.0.0.1:5432` |
+| 数据库   | `nautilus`       |
+| 用户     | `nautilus`       |
+| 密码     | `pass`           |
 
-Check that the schema exists:
+检查模式是否存在：
 
 ```bash
 docker exec nautilus-database psql -U nautilus -d nautilus -Atc \
     "select count(*) from information_schema.tables where table_schema='public'"
 ```
 
-Pool snapshot generation and snapshot requests require a schema-initialized Postgres cache. Pool
-discovery and snapshot generation write `token`, `pool`, `pool_*_event`, `pool_snapshot`,
-`pool_position`, and `pool_tick` rows. Use a dedicated database or resettable Docker volume for
-repeatable or destructive data workloads.
+池快照生成与快照请求需要已初始化模式的 Postgres 缓存。池发现与快照生成会写入
+`token`、`pool`、`pool_*_event`、`pool_snapshot`、
+`pool_position` 和 `pool_tick` 行。可重复或有破坏性的数据工作负载请使用专用数据库
+或可重置的 Docker 卷。
 
-## Data flow
+## 数据流 {#data-flow}
 
-### Architecture
+### 架构 {#architecture}
 
-`sync-dex` discovers and stores pools and tokens. `analyze-pool(s)` then generates `pool_snapshot`
-rows. The diagram shows the default replay path and the `--snapshot-from-rpc` path.
+`sync-dex` 发现并存储池与代币，`analyze-pool(s)` 随后生成 `pool_snapshot`
+行。下图展示默认重放路径与 `--snapshot-from-rpc` 路径。
 
 ```mermaid
 flowchart TD
@@ -295,111 +290,108 @@ flowchart TD
     PG --> R
 ```
 
-`analyze-pools` runs one task per pool, bounded by `--concurrency`. Each task owns its data client.
-A snapshot is usable as a replay start point unless its `validation_state` is `invalid`.
+`analyze-pools` 每个池运行一个任务，并发量由 `--concurrency` 限制，每个任务拥有
+自己的数据客户端。除非 `validation_state` 为 `invalid`，快照都可用作重放起点。
 
-### Data-client surface
+### 数据客户端接口 {#data-client-surface}
 
-The public data client supports these DeFi subscriptions and requests:
+公开数据客户端支持这些 DeFi 订阅与请求：
 
-| Surface           | Commands                                                           | Behavior                                                                                           |
-| ----------------- | ------------------------------------------------------------------ | -------------------------------------------------------------------------------------------------- |
-| Blocks            | `SubscribeBlocks`, `UnsubscribeBlocks`                             | Starts or stops the shared HyperSync or WSS RPC block feed.                                        |
-| Complete pool     | `SubscribePool`, `UnsubscribePool`                                 | Selects swaps, mints, burns, collects, flashes, and both fee-protocol event types.                 |
-| Pool swaps        | `SubscribePoolSwaps`, `UnsubscribePoolSwaps`                       | Selects swap events for one pool instrument.                                                       |
-| Liquidity updates | `SubscribePoolLiquidityUpdates`, `UnsubscribePoolLiquidityUpdates` | Selects mint and burn events for one pool instrument.                                              |
-| Fee collections   | `SubscribePoolFeeCollects`, `UnsubscribePoolFeeCollects`           | Selects collect events for one pool instrument.                                                    |
-| Flash events      | `SubscribePoolFlashEvents`, `UnsubscribePoolFlashEvents`           | Selects flash events for one pool instrument.                                                      |
-| Pool snapshot     | `RequestPoolSnapshot`                                              | Publishes the pool definition, then a usable snapshot when cache bootstrap and validation succeed. |
+| 接口       | 命令                                                               | 行为                                                                                                 |
+| ---------- | ------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------- |
+| 区块       | `SubscribeBlocks`、`UnsubscribeBlocks`                             | 启动或停止共享的 HyperSync 或 WSS RPC 区块流。                                                       |
+| 完整池     | `SubscribePool`、`UnsubscribePool`                                 | 选择 swap、mint、burn、collect、flash 与两种 fee-protocol 事件类型。                                 |
+| 池 swap    | `SubscribePoolSwaps`、`UnsubscribePoolSwaps`                       | 选择单个池金融工具的 swap 事件。                                                                     |
+| 流动性更新 | `SubscribePoolLiquidityUpdates`、`UnsubscribePoolLiquidityUpdates` | 选择单个池金融工具的 mint 与 burn 事件。                                                             |
+| 费用收取   | `SubscribePoolFeeCollects`、`UnsubscribePoolFeeCollects`           | 选择单个池金融工具的 collect 事件。                                                                  |
+| Flash 事件 | `SubscribePoolFlashEvents`、`UnsubscribePoolFlashEvents`           | 选择单个池金融工具的 flash 事件。                                                                    |
+| 池快照     | `RequestPoolSnapshot`                                              | 先发布池定义，缓存引导与验证成功后再发布可用快照。                                                   |
 
-Subscriptions share the underlying block and DEX event feeds. The client counts owners for each
-pool address and event type, so removing one subscription does not stop a feed that another
-subscription still owns. This holds when a complete pool subscription overlaps a narrower one: the
-narrower event types stay active after `UnsubscribePool`, and the reverse. The data engine keeps a
-pool's profiler updater until no data client has a remaining pool subscription for it.
+订阅共享底层区块与 DEX 事件流。客户端为每个池地址和事件类型统计持有者数量，
+因此取消一个订阅不会中断其他订阅仍在使用的数据流。完整池订阅与更窄的订阅重叠时
+同样成立：`UnsubscribePool` 后更窄的事件类型保持激活，反之亦然。数据引擎会保留
+池的剖析器更新器，直到没有任何数据客户端还持有该池的订阅。
 
-A pool snapshot response carries the ID of its request. The data engine discards a response whose
-bootstrap was canceled by a final unsubscribe, a reset, or a disconnect. Pool snapshot requests
-require Postgres because bootstrap reads stored pool and event state through the cache database.
+池快照响应携带其请求的 ID。若引导被最终退订、重置或断连取消，数据引擎会丢弃
+对应响应。池快照请求需要 Postgres，因为引导通过缓存数据库读取已存储的池与事件
+状态。
 
 :::warning
-DeFi pool definitions and account-state updates publish on typed message-bus routers. A
-`subscribe_any` handler never receives them. Use `subscribe_defi_pools` and
-`subscribe_account_state`, or the matching actor subscription APIs.
+DeFi 池定义与账户状态更新通过带类型的消息总线路由发布，
+`subscribe_any` 处理器永远收不到它们。请使用
+`subscribe_defi_pools` 和 `subscribe_account_state`，
+或对应的 actor 订阅 API。
 :::
 
-### Pool discovery
+### 池发现 {#pool-discovery}
 
-Pool discovery:
+池发现过程：
 
-- Streams DEX factory events from HyperSync.
-- Fetches ERC-20 metadata through RPC.
-- Stores valid tokens and pools in the cache.
-- Skips invalid token metadata. `DexPoolFilters` can also exclude empty token metadata.
+- 从 HyperSync 流式读取 DEX 工厂事件。
+- 通过 RPC 获取 ERC-20 元数据。
+- 把有效的代币与池存入缓存。
+- 跳过无效的代币元数据。`DexPoolFilters` 还可排除空代币元数据。
 
-### Live data
+### 实时数据 {#live-data}
 
-- `use_hypersync_for_live_data = true`: subscribe to blocks through HyperSync for live timestamps
-  and hold one open-ended HyperSync DEX-event stream per subscribed DEX filter.
-- `use_hypersync_for_live_data = false`: use WSS RPC block and pool-log subscriptions for live
-  swaps, liquidity updates, fee collections, flash events, and fee-protocol events.
+- `use_hypersync_for_live_data = true`：通过 HyperSync 订阅区块获取实时时间戳，
+  并为每个订阅的 DEX 过滤器保持一条开放的 HyperSync DEX 事件流。
+- `use_hypersync_for_live_data = false`：使用 WSS RPC 的区块与池日志订阅，获取
+  实时 swap、流动性更新、费用收取、flash 事件与 fee-protocol 事件。
 
-### Snapshot bootstrap
+### 快照引导 {#snapshot-bootstrap}
 
-For Uniswap V3-compatible snapshots, the default bootstrap replays stored pool events to rebuild
-price, liquidity, ticks, positions, fees, and counters. Validation then reads on-chain state through
-HTTP RPC and Multicall.
+对 Uniswap V3 兼容快照，默认引导重放已存储的池事件，重建价格、流动性、tick、
+仓位、费用与计数器。验证随后通过 HTTP RPC 与 Multicall 读取链上状态。
 
-Bootstrap modes:
+引导模式：
 
-- Default: store the full pool event history up to the target block, then bootstrap from the
-  database.
-- `--snapshot-from-rpc`: skip full swap storage, stream Initialize, Mint, Burn, SetFeeProtocol, and
-  CollectProtocol events from HyperSync to enumerate ticks and positions, then hydrate the exact
-  checkpoint block from RPC.
+- 默认：把截至目标区块的完整池事件历史存入数据库，再从数据库引导。
+- `--snapshot-from-rpc`：跳过完整 swap 存储，从 HyperSync 流式读取 Initialize、
+  Mint、Burn、SetFeeProtocol 与 CollectProtocol 事件以枚举 tick 与仓位，再从
+  RPC 水合精确的检查点区块。
 
-Use `--snapshot-from-rpc` for old high-volume pools when the required output is the final snapshot,
-not a stored swap history. It cannot be combined with `--from-block`, `--reset`, or
-`--require-existing-snapshot`.
+对历史悠久、活动量大的池，若只需要最终快照而不是存储 swap 历史，用
+`--snapshot-from-rpc`。它不能与 `--from-block`、`--reset` 或
+`--require-existing-snapshot` 组合使用。
 
-In `--snapshot-from-rpc` mode, final RPC hydration is the source of the checkpoint state. If it
-fails, the command fails instead of emitting a replayed snapshot with stale price state.
+`--snapshot-from-rpc` 模式下，最终 RPC 水合是检查点状态的权威来源。水合失败时
+命令直接失败，而不是输出带着过期价格状态的重放快照。
 
-### Snapshot validation
+### 快照验证 {#snapshot-validation}
 
-For a replay-derived snapshot, bootstrap compares the profiler against on-chain state before
-marking it valid.
+对重放派生的快照，引导在标记有效前把剖析器与链上状态比对。
 
-| Class          | Fields                                                                      | Mismatch result                                |
-| -------------- | --------------------------------------------------------------------------- | ---------------------------------------------- |
-| Structural     | Current tick, active liquidity, per-tick liquidity, and position liquidity. | Store `invalid`; exclude from default loading. |
-| Non-structural | Sqrt price, fee protocol, and protocol-fee balances.                        | Warn and accept the snapshot as `on_chain`.    |
+| 类别     | 字段                                                       | 不一致结果                       |
+| -------- | ---------------------------------------------------------- | -------------------------------- |
+| 结构性   | 当前 tick、活跃流动性、逐 tick 流动性与仓位流动性。        | 存为 `invalid`；默认加载时排除。 |
+| 非结构性 | sqrt 价格、fee protocol 与协议费余额。                     | 告警并接受快照为 `on_chain`。    |
 
-Non-structural differences can arise for these reasons:
+非结构性差异可能来自：
 
-- Event replay is transaction-scoped, but an RPC snapshot is block-scoped.
-- A fork or replay range omits a fee-protocol update.
-- Replay rounding differs from the on-chain fee accumulator.
+- 事件重放按交易范围作用，而 RPC 快照按区块范围作用。
+- 分叉或重放区间遗漏了一次 fee-protocol 更新。
+- 重放舍入与链上费用累加器不同。
 
-Accepting those fields matches backtest replay behavior.
+接受这些字段与回测重放的行为一致。
 
-### Snapshot bootstrap guard
+### 快照引导守卫 {#snapshot-bootstrap-guard}
 
-Use `--require-existing-snapshot` when analysis should run only from the local snapshot cache:
+只允许从本地快照缓存运行分析时，使用 `--require-existing-snapshot`：
 
-- Checks for the latest usable `pool_snapshot` at or before the target block.
-- Returns `needs_bootstrap` if no usable snapshot exists.
-- Treats an empty creation-block snapshot with no positions or ticks as unusable.
-- Skips the creation-to-target bootstrap for that pool.
+- 检查目标区块或之前最新的可用 `pool_snapshot`。
+- 没有可用快照时返回 `needs_bootstrap`。
+- 创建区块的快照若既无仓位也无 tick，视为不可用。
+- 跳过该池从创建到目标的引导。
 
-#### Analysis output
+#### 分析输出 {#analysis-output}
 
-`analyze-pool(s)` prints:
+`analyze-pool(s)` 打印：
 
-- One JSON result per `--checkpoint-blocks` entry.
-- One JSON result at `--to-block` when no checkpoints are given.
+- 每个 `--checkpoint-blocks` 条目一条 JSON 结果。
+- 未给检查点时，在 `--to-block` 处输出一条 JSON 结果。
 
-A pool that needs a first-time bootstrap has this shape:
+需要首次引导的池形如：
 
 ```json
 {
@@ -411,11 +403,11 @@ A pool that needs a first-time bootstrap has this shape:
 }
 ```
 
-A successful result includes `validation_state`:
+成功的结果包含 `validation_state`：
 
-- `on_chain`: hydrated and matched against chain.
-- `replay`: replay-derived or unchecked, still usable as a replay start point.
-- `invalid`: hydrated and mismatched, not usable.
+- `on_chain`：已水合并与链上比对一致。
+- `replay`：重放派生或未检查，仍可用作重放起点。
+- `invalid`：已水合但不一致，不可用。
 
 ```json
 {
@@ -433,28 +425,27 @@ A successful result includes `validation_state`:
 }
 ```
 
-### Checkpoints and concurrency
+### 检查点与并发 {#checkpoints-and-concurrency}
 
-- `--checkpoint-blocks b1,b2,...`: produces snapshots in one bootstrap pass. Blocks are sorted,
-  deduped, and clamped to `--to-block`.
-- `--concurrency`: controls `analyze-pools` parallelism. Default: `4`.
-- `--skip-validation`: skips the on-chain compare and keeps replay-derived snapshots as `replay`.
-- `--snapshot-from-rpc`: hydrates from chain at the checkpoint block and records snapshots as
-  `on_chain`.
+- `--checkpoint-blocks b1,b2,...`：一趟引导产出多个快照。区块会排序、去重并
+  截断到 `--to-block`。
+- `--concurrency`：控制 `analyze-pools` 的并行度。默认 `4`。
+- `--skip-validation`：跳过链上比对，重放派生快照保持为 `replay`。
+- `--snapshot-from-rpc`：在检查点区块从链上水合，快照记录为
+  `on_chain`。
 
-Snapshot keys:
+快照键：
 
-- Default mode: keyed to the last pool event at or before the checkpoint. Checkpoints with no events
-  between them can share one stored row.
-- `--snapshot-from-rpc`: keyed to the requested checkpoint block with a block-scoped sentinel
-  transaction/log index.
+- 默认模式：以检查点或之前最后一条池事件为键。两次检查点之间没有事件时可以
+  共用同一存储行。
+- `--snapshot-from-rpc`：以请求的检查点区块为键，附带区块范围的哨兵
+  交易/日志索引。
 
-### Backtest replay
+### 回测重放 {#backtest-replay}
 
-Backtest replay needs a snapshot in the input data. The adapter does not service live snapshot
-requests during backtests.
+回测重放需要输入数据里带快照。适配器在回测期间不处理实时快照请求。
 
-`load_pool_snapshot` reads a full snapshot, including positions and ticks, from Postgres:
+`load_pool_snapshot` 从 Postgres 读取包含仓位与 tick 的完整快照：
 
 ```python
 from nautilus_trader.adapters.blockchain import load_pool_snapshot
@@ -467,121 +458,117 @@ snapshot = load_pool_snapshot(
 )
 ```
 
-Replay rules:
+重放规则：
 
-- By default, snapshots marked `invalid` are excluded. Both `on_chain` and `replay` snapshots can be returned.
-  Pass `require_valid=False` only when the caller also accepts `invalid` snapshots.
-- Treat `None` as setup failure. Do not replay without profiler state.
-- Wrap the result as `DefiData.PoolSnapshot(snapshot)` and pass it to
-  `BacktestEngine.add_defi_data` with the pool events.
-- Replay every pool event from the snapshot block forward. Starting after the snapshot block can leave
-  the profiler stale.
+- 默认排除标记为 `invalid` 的快照，`on_chain` 与 `replay` 都可能返回。
+  只有当调用方也接受 `invalid` 快照时才传 `require_valid=False`。
+- `None` 视为环境准备失败，不要在没有剖析器状态时重放。
+- 把结果包装为 `DefiData.PoolSnapshot(snapshot)`，连同池事件一起传给
+  `BacktestEngine.add_defi_data`。
+- 从快照区块开始重放每条池事件。晚于快照区块开始会让剖析器状态过期。
 
-Cached block timestamps load into Nautilus data objects as UNIX nanoseconds. Cache rows written with
-second-resolution block timestamps are normalized to nanoseconds when snapshots and pool events are
-loaded, while nanosecond rows preserve their stored precision.
+缓存的区块时间戳加载为 Nautilus 数据对象时是 UNIX 纳秒。以秒级精度写入的缓存行
+在加载快照与池事件时归一化为纳秒，纳秒行保持其存储精度。
 
-### Pool analysis constraints
+### 池分析约束 {#pool-analysis-constraints}
 
-`analyze-pool(s)` validates its prerequisites and reports each pool independently. These boundaries
-also apply when the underlying analysis services are called from Rust.
+`analyze-pool(s)` 校验前置条件并逐池独立报告。直接调用底层 Rust 分析服务时同样
+适用这些边界。
 
-| Condition                  | Behavior                                                                                 | Constraint                                                                                                       |
-| -------------------------- | ---------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------- |
-| Missing pool metadata      | Fails with `Pool <address> is not registered`.                                           | Discover the pool first; analysis cannot infer or register metadata.                                             |
-| Missing parser capability  | Fails before sync.                                                                       | Use a snapshot-capable combination from [Chain and DEX command support](#chain-and-dex-command-support).         |
-| Non-checksummed address    | Fails with `Blockchain address '<address>' has incorrect checksum`.                      | Supply an EIP-55 address; factory `getPool` results may need checksum conversion.                                |
-| Provider Multicall cap     | An `out of gas`, payload, or timeout error aborts final-state hydration.                 | Lower `multicall_calls_per_rpc_request` or use a provider with higher limits.                                    |
-| Missing historical state   | A first bootstrap cannot read final state at an old `--to-block`.                        | Use a recent target or an archive-capable provider; see [RPC provider requirements](#rpc-provider-requirements). |
-| Restricted HyperSync quota | High-activity pools back off, and a full first sync can require thousands of requests.   | Lower `--concurrency`, or use `--snapshot-from-rpc` when stored swap history is unnecessary.                     |
-| Mid-life `--from-block`    | Omitting `Initialize` can leave the profiler without an initial price.                   | Sync from pool creation when generating a first snapshot.                                                        |
-| No liquidity events        | `analyze-pool` errors; `analyze-pools` emits a failure result and continues other pools. | Select a pool with a Mint or Burn at or before the target block.                                                 |
-| Any per-pool failure       | Emits `"status": "failure"` and makes `analyze-pool(s)` exit non-zero.                   | Use the exit code for the overall result and each JSON status for the per-pool result.                           |
+| 条件                  | 行为                                                                                     | 约束                                                                                                                 |
+| --------------------- | ------------------------------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------- |
+| 缺少池元数据          | 以 `Pool <address> is not registered` 失败。                                             | 先发现池；分析不能推断或注册元数据。                                                                                 |
+| 缺少解析器能力        | 同步前失败。                                                                             | 使用[链与 DEX 命令支持](#chain-and-dex-command-support)中支持快照的组合。                                            |
+| 地址未用校验和        | 以 `Blockchain address '<address>' has incorrect checksum` 失败。                        | 提供 EIP-55 地址；工厂 `getPool` 的结果可能需要转换校验和。                                                          |
+| 提供商 Multicall 上限 | `out of gas`、载荷或超时错误会中止最终状态水合。                                       | 调低 `multicall_calls_per_rpc_request`，或换限额更高的提供商。                                                       |
+| 缺少历史状态          | 首次引导无法在过旧的 `--to-block` 读取最终状态。                                         | 用较新的目标或支持 archive 的提供商；见 [RPC 提供商要求](#rpc-provider-requirements)。                               |
+| HyperSync 配额受限    | 高活跃池会退避，完整首次同步可能需要数千次请求。                                       | 调低 `--concurrency`；不需要存储 swap 历史时用 `--snapshot-from-rpc`。                                               |
+| 中途 `--from-block`   | 遗漏 `Initialize` 会让剖析器缺少初始价格。                                               | 生成首个快照时从池创建开始同步。                                                                                     |
+| 无流动性事件          | `analyze-pool` 报错；`analyze-pools` 输出失败结果并继续其他池。                         | 选择在目标区块或之前有 Mint 或 Burn 的池。                                                                           |
+| 任一单池失败          | 输出 `"status": "failure"`，`analyze-pool(s)` 以非零退出。                              | 整体结果看退出码，单池结果看各自 JSON 状态。                                                                         |
 
-Final RPC hydration in `--snapshot-from-rpc` mode is authoritative for checkpoint state. A failed
-hydration aborts analysis rather than storing a snapshot with stale price state.
+`--snapshot-from-rpc` 模式的最终 RPC 水合是检查点状态的权威。水合失败会中止分析，
+而不是存储带过期价格状态的快照。
 
-## Pool analysis operations
+## 池分析操作 {#pool-analysis-operations}
 
-### Discover pools before analysis
+### 分析前先发现池 {#discover-pools-before-analysis}
 
-`analyze-pool(s)` reads pool metadata from the Postgres cache and fails with
-`Pool <address> is not registered` when the pool has not been discovered. Run `sync-dex` for the
-chain and DEX before analysis to populate the `pool` and `token` tables.
+`analyze-pool(s)` 从 Postgres 缓存读取池元数据，池未被发现时以
+`Pool <address> is not registered` 失败。分析前先对相应链与 DEX 运行
+`sync-dex`，填充 `pool` 与 `token` 表。
 
-### Check command support
+### 检查命令支持 {#check-command-support}
 
-Use [Chain and DEX command support](#chain-and-dex-command-support) or the command help before
-starting a sync. `sync-dex` and `analyze-pool(s)` reject unsupported chain and DEX combinations
-before querying events, rather than returning an empty result.
+开始同步前，参照[链与 DEX 命令支持](#chain-and-dex-command-support)或命令帮助。
+`sync-dex` 与 `analyze-pool(s)` 会在查询事件前拒绝不支持的链与 DEX 组合，
+而不是返回空结果。
 
 ```bash
 ./target/debug/nautilus blockchain sync-dex --help
 ./target/debug/nautilus blockchain analyze-pools --help
 ```
 
-### Use checksummed pool addresses
+### 使用校验和格式的池地址 {#use-checksummed-pool-addresses}
 
-Pool addresses must use the EIP-55 checksum. A lowercase address fails with
-`Blockchain address '<address>' has incorrect checksum`. Convert discovered addresses to checksum
-form before passing `--address` or adding them to an addresses file.
+池地址必须使用 EIP-55 校验和。小写地址会以
+`Blockchain address '<address>' has incorrect checksum` 失败。把发现的地址转换为
+校验和形式后再传 `--address` 或写入地址文件。
 
-### Reduce the Multicall request size
+### 缩小 Multicall 请求规模 {#reduce-the-multicall-request-size}
 
-An RPC provider can reject a large final-state Multicall with an out-of-gas, payload, or timeout
-error. Lower `--multicall-calls-per-rpc-request` from its default of `200` to keep each request
-within the provider's limits.
+RPC 提供商可能以 out-of-gas、载荷或超时错误拒绝过大的最终状态 Multicall。把
+`--multicall-calls-per-rpc-request` 从默认 `200` 调低，使单次请求保持在提供商
+限额内。
 
-### Choose a target block the RPC provider can serve
+### 选择提供商能提供服务的目标区块 {#choose-a-target-block-the-rpc-provider-can-serve}
 
-A first-time sync reads on-chain state at `--to-block`. With a non-archive RPC provider, use a recent target.
-Alternatively, use a provider that serves contract state at the requested historical block. See
-[RPC provider requirements](#rpc-provider-requirements).
+首次同步在 `--to-block` 读取链上状态。非 archive 的 RPC 提供商要用较新的目标
+区块，或者改用能在请求的历史区块提供合约状态的提供商。见
+[RPC 提供商要求](#rpc-provider-requirements)。
 
-### Control HyperSync request volume
+### 控制 HyperSync 请求量 {#control-hypersync-request-volume}
 
-A full first-time sync of a large or old pool can require thousands of requests. Lower
-`--concurrency` when the configured token has a restrictive quota. Use `--snapshot-from-rpc` when
-an exact checkpoint snapshot is sufficient and stored swap history is not required.
+大型或历史悠久的池首次完整同步可能需要数千次请求。配置的 token 配额受限时调低
+`--concurrency`。精确检查点快照已够用、不需要存储 swap 历史时用
+`--snapshot-from-rpc`。
 
-### Start an initial replay at pool creation
+### 初始重放从池创建开始 {#start-an-initial-replay-at-pool-creation}
 
-Starting `--from-block` in the middle of a pool's history can omit its `Initialize` event. Without
-an initial price, snapshot bootstrap fails with
-`Pool is not initialized and it doesn't contain initial price, cannot bootstrap profiler`. Sync
-from pool creation when generating the first snapshot.
+`--from-block` 设在池历史中间可能遗漏其 `Initialize` 事件。没有初始价格时，
+快照引导会以
+`Pool is not initialized and it doesn't contain initial price, cannot bootstrap profiler`
+失败。生成首个快照时从池创建开始同步。
 
-### Interpret pool failures
+### 解读池失败 {#interpret-pool-failures}
 
-A pool without processed Mint or Burn events at or before the target block can lack the state needed
-for a snapshot. `analyze-pool` returns the error. `analyze-pools` emits a JSON line with
-`"status": "failure"`, continues with the other pools, and exits non-zero after any per-pool
-failure. Use the process exit code for the overall result and each JSON status for individual
-results.
+目标区块或之前没有已处理 Mint 或 Burn 事件的池，可能缺少生成快照所需的状态。
+`analyze-pool` 返回错误。`analyze-pools` 输出一行
+`"status": "failure"` 的 JSON，继续处理其他池，并在任何单池失败后以非零退出。
+整体结果看进程退出码，单个结果看各自的 JSON 状态。
 
-## Runbook: validate a live pool sync
+## 运行手册：验证实时池同步 {#runbook-validate-a-live-pool-sync}
 
-Use this procedure to check pool discovery, event parsing, and snapshot generation for one DEX on
-one chain. The example uses PancakeSwap V3 on Arbitrum. It performs read-only chain queries and
-writes only to the configured Postgres cache.
+用这套流程检查单个链上单个 DEX 的池发现、事件解析与快照生成。示例用 Arbitrum
+上的 PancakeSwap V3。它只执行只读的链上查询，且只写入配置的 Postgres 缓存。
 
-### Prerequisites
+### 前置条件 {#prerequisites}
 
-- Docker is available for the local Postgres service.
-- `ENVIO_API_TOKEN` contains a valid HyperSync token.
-- `RPC_HTTP_URL` points to an Arbitrum RPC provider that can serve the target block.
-- `POOL_ADDRESS` contains an EIP-55 checksummed PancakeSwap V3 pool address.
+- Docker 可用，用于本地 Postgres 服务。
+- `ENVIO_API_TOKEN` 是有效的 HyperSync token。
+- `RPC_HTTP_URL` 指向能提供目标区块的 Arbitrum RPC 提供商。
+- `POOL_ADDRESS` 是 EIP-55 校验和格式的 PancakeSwap V3 池地址。
 
-### Start the local services and build the CLI
+### 启动本地服务并构建 CLI {#start-the-local-services-and-build-the-cli}
 
 ```bash
 make init-services
 cargo build -p nautilus-cli --features defi --bin nautilus
 ```
 
-### Discover pools
+### 发现池 {#discover-pools}
 
-Run discovery immediately before analysis when the local database has been reset:
+本地数据库被重置过的话，在分析前先立即运行一次发现：
 
 ```bash
 ./target/debug/nautilus blockchain sync-dex \
@@ -595,9 +582,9 @@ Run discovery immediately before analysis when the local database has been reset
     --database nautilus
 ```
 
-### Analyze the pool
+### 分析池 {#analyze-the-pool}
 
-Keep concurrency at one for this validation run:
+这次验证运行把并发保持为 1：
 
 ```bash
 ./target/debug/nautilus blockchain analyze-pools \

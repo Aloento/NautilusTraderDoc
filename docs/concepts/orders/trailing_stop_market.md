@@ -2,20 +2,18 @@
 
 `FIX OrdType <40>=3` (Stop) + trailing peg
 
-A *Trailing-Stop-Market* order keeps its stop trigger a fixed offset from the specified market
-price as the market moves favorably. It releases a *Market* order when triggered.
+*Trailing-Stop-Market* 订单在行情向有利方向移动时，让止损触发价与指定市场价格保持固定偏移。
+触发时释放一个 *Market* 订单。
 
-## Use cases
+## 使用场景 {#use-cases}
 
-Use a *Trailing-Stop-Market* order to protect gains while allowing a position to continue through favorable
-moves. A tight offset can trigger on ordinary volatility, while a wide offset can give back more profit. The
-released *Market* order can also slip, be rejected, or stay unfilled on a sharp reversal.
+用 *Trailing-Stop-Market* 订单锁定浮盈，同时让持仓在有利行情中继续持有。偏移太紧可能被正常波动
+触发，偏移太宽又会回吐更多利润。释放出的 *Market* 订单在急转行情中同样可能滑点、被拒绝或不成交。
 
-## Example
+## 示例 {#example}
 
-**Example**: create a *Trailing-Stop-Market* order on the Binance Futures exchange
-to SELL 10 ETHUSD-PERP COIN_M margined Perpetual Futures Contracts. It activates at a price of
-5,000 USD, then trails at an offset of 1% (in basis points) from the current last traded price.
+**示例**：在 Binance Futures 交易所创建一个 *Trailing-Stop-Market* 订单，卖出 10 手 ETHUSD-PERP
+COIN_M 保证金永续期货合约。订单在 5,000 USD 激活，随后以最新成交价为基准按 1%（基点）偏移跟踪。
 
 ```rust tab="Rust"
 use nautilus_model::{
@@ -77,16 +75,15 @@ order: TrailingStopMarketOrder = self.order_factory.trailing_stop_market(
 ```
 
 :::info
-If both `activation_price` and `trigger_price` are omitted, the order activates immediately at the current
-market. On the first update, its trigger price materializes from `trailing_offset`.
+若 `activation_price` 和 `trigger_price` 都省略，订单立即以当前市场激活。首次更新时，其触发价
+由 `trailing_offset` 计算得出。
 :::
 
-See the
-[`TrailingStopMarketOrder` API reference](https://nautilustrader.io/docs/python-api-latest/model/orders.html#nautilus_trader.model.TrailingStopMarketOrder)
-for further details.
+更多细节见
+[`TrailingStopMarketOrder` API 参考](https://nautilustrader.io/docs/python-api-latest/model/orders.html#nautilus_trader.model.TrailingStopMarketOrder)。
 
-## Related guides
+## 相关指南 {#related-guides}
 
-- [Orders](./index.md#trailing-offset-type) - Trigger and trailing offset types.
-- [Emulated orders](./emulated.md) - Emulating trailing stops on venues without native support.
-- [Execution](./../execution/index.md) - How orders reach the venue and fills are handled.
+- [订单](./index.md#trailing-offset-type) - 触发类型与跟踪偏移类型。
+- [仿真订单](./emulated.md) - 在不原生支持跟踪止损的交易场所上进行仿真。
+- [执行](./../execution/index.md) - 订单如何到达交易场所，成交如何处理。

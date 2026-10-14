@@ -2,21 +2,19 @@
 
 `FIX OrdType <40>=4` (Stop Limit) + trailing peg
 
-A *Trailing-Stop-Limit* order keeps its stop trigger a fixed offset from the specified market price
-as the market moves favorably. It releases a *Limit* order when triggered, and the limit price also
-updates with the market until then.
+*Trailing-Stop-Limit* 订单在行情向有利方向移动时，让止损触发价与指定市场价格保持固定偏移。
+触发时释放一个 *Limit* 订单，在此之前限价也随市场同步更新。
 
-## Use cases
+## 使用场景 {#use-cases}
 
-Use a *Trailing-Stop-Limit* order for dynamic trailing protection with a worst acceptable fill
-price. As with a *Stop-Limit*, the released *Limit* order may not fill during a fast reversal and can
-leave the position open.
+用 *Trailing-Stop-Limit* 订单实现动态跟踪保护，同时限定最差可接受成交价。与 *Stop-Limit* 一样，
+快速反转行情中释放出的 *Limit* 订单可能不成交，导致持仓未能了结。
 
-## Example
+## 示例 {#example}
 
-**Example**: create a *Trailing-Stop-Limit* order on the Currenex FX ECN to BUY 1,250,000 AUD using USD. It
-starts at a limit price of 0.71000 USD and activates at 0.72000 USD. It then trails at a stop offset of
-0.00100 USD from the current ask price. The order stays active until further notice.
+**示例**：在 Currenex 外汇 ECN 创建一个 *Trailing-Stop-Limit* 订单，用 USD 买入 1,250,000 AUD。
+初始限价 0.71000 USD，在 0.72000 USD 激活，随后以当前卖价为基准按 0.00100 USD 的止损偏移跟踪。
+订单持续有效直至撤销。
 
 ```rust tab="Rust"
 use nautilus_model::{
@@ -83,16 +81,15 @@ order: TrailingStopLimitOrder = self.order_factory.trailing_stop_limit(
 ```
 
 :::info
-If both `activation_price` and `trigger_price` are omitted, the order activates immediately at the current
-market. On the first update, its trigger price materializes from `trailing_offset`.
+若 `activation_price` 和 `trigger_price` 都省略，订单立即以当前市场激活。首次更新时，其触发价
+由 `trailing_offset` 计算得出。
 :::
 
-See the
-[`TrailingStopLimitOrder` API reference](https://nautilustrader.io/docs/python-api-latest/model/orders.html#nautilus_trader.model.TrailingStopLimitOrder)
-for further details.
+更多细节见
+[`TrailingStopLimitOrder` API 参考](https://nautilustrader.io/docs/python-api-latest/model/orders.html#nautilus_trader.model.TrailingStopLimitOrder)。
 
-## Related guides
+## 相关指南 {#related-guides}
 
-- [Orders](./index.md#trailing-offset-type) - Trigger and trailing offset types.
-- [Emulated orders](./emulated.md) - Emulating trailing stops on venues without native support.
-- [Execution](./../execution/index.md) - How orders reach the venue and fills are handled.
+- [订单](./index.md#trailing-offset-type) - 触发类型与跟踪偏移类型。
+- [仿真订单](./emulated.md) - 在不原生支持跟踪止损的交易场所上进行仿真。
+- [执行](./../execution/index.md) - 订单如何到达交易场所，成交如何处理。

@@ -1,175 +1,160 @@
-# Adapters
+# 适配器
 
-## Introduction
+## 简介 {#introduction}
 
-Use this guide to build or extend a Rust-native adapter for NautilusTrader. Adapters connect the
-platform to venues and data providers, preserve venue semantics, produce valid Nautilus domain
-events, and make uncertain outcomes explicit. They implement the platform data and execution
-client traits in Rust, then expose configs, factories, and selected low-level APIs to Python
-through PyO3.
+构建或扩展 NautilusTrader 的 Rust 原生适配器时以本指南为准。适配器负责把平台接入交易场所和数据服务商，
+保留交易场所语义，产出合法的 Nautilus 领域事件，并把不确定的结果显式呈现。它们用 Rust 实现平台的数据与
+执行客户端 trait，再通过 PyO3 向 Python 暴露配置、工厂和部分底层 API。
 
 :::note
-For out-of-tree adapters implemented in Python or an independent Rust/PyO3 package, use the
-[Python adapter interface](./python_adapters.md). This guide covers in-tree Rust adapters.
+用 Python 或独立 Rust/PyO3 包实现的树外（out-of-tree）适配器请使用
+[Python 适配器接口](./python_adapters.md)。本指南只覆盖树内 Rust 适配器。
 :::
 
-Use reference adapters selectively. Their layouts reflect different venue protocols, product
-families, and implementation histories.
+参考适配器要有选择地借鉴。它们的目录结构反映的是各自的交易场所协议、产品线与实现历史。
 
-| Adapter            | Useful reference                                                                                       |
+| 适配器 | 可借鉴之处 |
 | ------------------ | ------------------------------------------------------------------------------------------------------ |
-| [Bybit][bybit]     | Multi-product HTTP and WebSocket clients, options data, and execution outcome handling.                |
-| [OKX][okx]         | Public, private, and business WebSocket endpoints with broad instrument coverage.                      |
-| [Binance][binance] | Spot and futures product splits, trading WebSockets, and SBE market data.                              |
-| [Kraken][kraken]   | Spot and futures submodules with distinct HTTP, WebSocket, data, and execution paths.                  |
-| [Lighter][lighter] | Layer-2 signing, canonical benchmarks, coverage-guided fuzzing, and detailed execution state handling. |
-| [Derive][derive]   | JSON-RPC data and execution, EIP-712 signing, canonical benchmarks, and invariant-based fuzzing.       |
+| [Bybit][bybit] | 多产品 HTTP 与 WebSocket 客户端、期权数据、执行结果处理。 |
+| [OKX][okx] | 公共、私有、业务三类 WebSocket 端点，金融工具覆盖广泛。 |
+| [Binance][binance] | 现货与合约的产品拆分、交易 WebSocket、SBE 行情。 |
+| [Kraken][kraken] | 现货与合约子模块，各自的 HTTP、WebSocket、数据、执行路径互不相同。 |
+| [Lighter][lighter] | Layer-2 签名、规范化基准测试、覆盖率引导的模糊测试、精细的执行状态处理。 |
+| [Derive][derive] | JSON-RPC 数据与执行、EIP-712 签名、规范化基准测试、基于不变量的模糊测试。 |
 
-This guide distinguishes four kinds of guidance:
+本指南区分四类指导：
 
-- **Shared rules** come from common traits, network abstractions, hooks, or CI.
-- **Common patterns** appear in several adapters but allow other designs.
-- **Examples** show one sound implementation without making it mandatory.
-- **Exceptions** are valid when venue semantics or protocol boundaries require them.
+- **共享规则**：来自公共 trait、网络抽象、钩子或 CI，必须遵守。
+- **常见模式**：多个适配器都这么做，但允许其他设计。
+- **示例**：展示一种合理实现，不构成强制。
+- **例外**：交易场所语义或协议边界确实需要时才成立。
 
-## Conformance
+## 合规 {#conformance}
 
-An adapter conforms when it satisfies each rule below that applies to it, or documents an exception. Name the
-venue behavior that makes the exception necessary. Keep the exception inside the adapter. Add a test that
-fails if the venue no longer needs the exception. [Phase 7](#phase-7-prove-conformance) sequences the work
-that proves conformance.
+适配器满足下面每条适用于它的规则，或对例外情况写下说明，即为合规。说明要写清是哪种交易场所行为迫使例外
+成立。例外限定在适配器内部，并配一个测试：若交易场所不再需要该例外，测试应失败。
+[阶段 7](#phase-7-prove-conformance) 安排了证明合规的各项工作。
 
-### Adapter foundations
+### 适配器基础 {#adapter-foundations}
 
-| Rule                                                                                       | Applies to         |
+| 规则 | 适用范围 |
 | ------------------------------------------------------------------------------------------ | ------------------ |
-| [Repository and Python wiring](#repository-and-python-wiring)                              | New adapter crates |
-| [Credentials and secret handling](#credentials-and-secret-handling)                        | Every adapter      |
-| [Configurations](#configurations-configrs)                                                 | Every adapter      |
-| [Symbols and instrument identity](#symbols-and-instrument-identity)                        | Every adapter      |
-| [Venue payload modeling and precision](#modeling-venue-payloads)                           | Every adapter      |
-| [Client traits and factories](#client-traits-and-factories-datars-executionrs-factoriesrs) | Every adapter      |
+| [仓库与 Python 接线](#repository-and-python-wiring) | 新适配器 crate |
+| [凭证与密钥处理](#credentials-and-secret-handling) | 每个适配器 |
+| [配置](#configurations-configrs) | 每个适配器 |
+| [符号与金融工具标识](#symbols-and-instrument-identity) | 每个适配器 |
+| [交易场所报文建模与精度](#modeling-venue-payloads) | 每个适配器 |
+| [客户端 trait 与工厂](#client-traits-and-factories-datars-executionrs-factoriesrs) | 每个适配器 |
 
-### Runtime and client lifecycle
+### 运行时与客户端生命周期 {#runtime-and-client-lifecycle}
 
-| Rule                                                  | Applies to                 |
+| 规则 | 适用范围 |
 | ----------------------------------------------------- | -------------------------- |
-| [Connection lifecycle](#connection-lifecycle-connect) | Data and execution clients |
-| [Data events and request freshness](#data-client)     | Data clients               |
-| [Backpressure](#backpressure)                         | Every adapter              |
-| [Task management](#task-management)                   | Every adapter              |
-| [Deterministic simulation](#deterministic-simulation) | Maintained adapters        |
+| [连接生命周期](#connection-lifecycle-connect) | 数据客户端与执行客户端 |
+| [数据事件与请求时效](#data-client) | 数据客户端 |
+| [背压](#backpressure) | 每个适配器 |
+| [任务管理](#task-management) | 每个适配器 |
+| [确定性模拟](#deterministic-simulation) | 受维护的适配器 |
 
-### Execution and reconciliation
+### 执行与对账 {#execution-and-reconciliation}
 
-| Rule                                                                                          | Applies to        |
+| 规则 | 适用范围 |
 | --------------------------------------------------------------------------------------------- | ----------------- |
-| [Execution client boundaries](#execution-client)                                              | Execution clients |
-| [Reconciliation reports](#reconciliation-reports)                                             | Execution clients |
-| [Commission failure handling](#commission-failure-handling)                                   | Execution clients |
-| [Bounded mass-status reports](#bounded-mass-status-reports)                                   | Execution clients |
-| [Instrument resolution during reconciliation](#instrument-resolution-during-reconciliation)   | Execution clients |
-| [Tracked and external execution updates](#tracked-and-external-execution-updates)             | Execution clients |
-| [Event ordering and deduplication](#event-ordering-and-deduplication)                         | Execution clients |
-| [Order command outcome policy](#order-command-outcome-policy)                                 | Execution clients |
-| [Naming the evidence classes](#naming-the-evidence-classes)                                   | Execution clients |
-| [Diagnostics and strategy-facing reasons](#separate-diagnostics-from-strategy-facing-reasons) | Execution clients |
+| [执行客户端边界](#execution-client) | 执行客户端 |
+| [对账报告](#reconciliation-reports) | 执行客户端 |
+| [手续费失败处理](#commission-failure-handling) | 执行客户端 |
+| [有界的全量状态报告](#bounded-mass-status-reports) | 执行客户端 |
+| [对账期间的金融工具解析](#instrument-resolution-during-reconciliation) | 执行客户端 |
+| [被跟踪与外部执行更新](#tracked-and-external-execution-updates) | 执行客户端 |
+| [事件排序与去重](#event-ordering-and-deduplication) | 执行客户端 |
+| [订单命令结果策略](#order-command-outcome-policy) | 执行客户端 |
+| [证据类别命名](#naming-the-evidence-classes) | 执行客户端 |
+| [诊断信息与面向策略的原因](#separate-diagnostics-from-strategy-facing-reasons) | 执行客户端 |
 
-### Transport and streaming
+### 传输与数据流 {#transport-and-streaming}
 
-| Rule                                                                            | Applies to                       |
+| 规则 | 适用范围 |
 | ------------------------------------------------------------------------------- | -------------------------------- |
-| [Request flow](#request-flow)                                                   | HTTP clients                     |
-| [Request signing and authentication](#request-signing-and-authentication)       | HTTP and WebSocket request paths |
-| [Error handling and retry logic](#error-handling-and-retry-logic)               | HTTP and WebSocket request paths |
-| [Rate limiting](#rate-limiting)                                                 | HTTP and WebSocket clients       |
-| [Handler initialization handshake](#handler-initialization-handshake-setclient) | WebSocket clients                |
-| [Authentication](#authentication)                                               | WebSocket clients                |
-| [Subscription management](#subscription-management)                             | WebSocket clients                |
-| [Message routing](#message-routing)                                             | WebSocket clients                |
-| [Reconnection and shutdown](#reconnection-and-shutdown)                         | WebSocket clients                |
+| [请求流程](#request-flow) | HTTP 客户端 |
+| [请求签名与鉴权](#request-signing-and-authentication) | HTTP 与 WebSocket 请求路径 |
+| [错误处理与重试逻辑](#error-handling-and-retry-logic) | HTTP 与 WebSocket 请求路径 |
+| [限流](#rate-limiting) | HTTP 与 WebSocket 客户端 |
+| [处理器初始化握手](#handler-initialization-handshake-setclient) | WebSocket 客户端 |
+| [鉴权](#authentication) | WebSocket 客户端 |
+| [订阅管理](#subscription-management) | WebSocket 客户端 |
+| [消息路由](#message-routing) | WebSocket 客户端 |
+| [重连与关闭](#reconnection-and-shutdown) | WebSocket 客户端 |
 
-The [data testing specification](./spec_data_testing.md) and
-[execution testing specification](./spec_exec_testing.md) hold the scenarios that prove these
-contracts against a venue.
+[数据测试规范](./spec_data_testing.md)与[执行测试规范](./spec_exec_testing.md)收录了针对真实交易场所证明
+上述契约的场景。
 
-### Shared baseline
+### 共享基线 {#shared-baseline}
 
-Use the shared implementation of each piece below. Then select any state structure that satisfies its contract.
-The shared type carries the contract and keeps behavior comparable across venues. A local structure must prove
-the same contract through its own implementation.
+下列每一项都优先使用共享实现，然后自选满足其契约的状态结构。共享类型自带契约，且让各交易场所的行为可相互
+比较；本地结构必须由自己的实现证明同一契约。
 
-The baseline does not apply to two execution clients that implement the same trait without trading
-through a venue API:
+基线不适用于这两个执行客户端——它们实现了同一 trait 但并不通过交易场所 API 交易：
 
-- [Sandbox](https://github.com/nautechsystems/nautilus_trader/blob/develop/crates/adapters/sandbox/src/execution.rs) simulates fills locally.
-- [Blockchain](https://github.com/nautechsystems/nautilus_trader/blob/develop/crates/adapters/blockchain/src/execution/client.rs) executes on-chain behind
-  the `defi` feature.
+- [Sandbox](https://github.com/nautechsystems/nautilus_trader/blob/develop/crates/adapters/sandbox/src/execution.rs) 在本地模拟成交。
+- [Blockchain](https://github.com/nautechsystems/nautilus_trader/blob/develop/crates/adapters/blockchain/src/execution/client.rs) 在 `defi` feature 之后执行链上操作。
 
-Deterministic simulation is mandatory for maintained adapters. Each maintained adapter must satisfy the
-[adapter DST contract](./../concepts/dst.md#adapter-dst-contract) or carry a venue-scoped migration record that tracks the gap. OKX is the reference implementation.
-[Deterministic simulation](#deterministic-simulation) defines the seams, gates, and the bar for new adapters.
+确定性模拟对受维护的适配器是强制的。每个受维护的适配器必须满足
+[适配器 DST 契约](./../concepts/dst.md#adapter-dst-contract)，或携带一份交易场所范围内的迁移记录追踪差距。
+OKX 是参考实现。[确定性模拟](#deterministic-simulation) 定义了新适配器要用的接缝、门禁和标准。
 
-| Target                     | Shared piece                                                                                           | Contract                                                                      |
+| 目标 | 共享件 | 契约 |
 | -------------------------- | ------------------------------------------------------------------------------------------------------ | ----------------------------------------------------------------------------- |
-| Command outcome evidence   | [`CommandFailure`](https://github.com/nautechsystems/nautilus_trader/blob/develop/crates/live/src/execution/failure.rs)                                         | [Naming the evidence classes](#naming-the-evidence-classes)                   |
-| Order identity and context | [`OrderIdentity` and `OrderContext`](https://github.com/nautechsystems/nautilus_trader/blob/develop/crates/live/src/execution/context.rs)                       | [Tracked and external updates](#tracked-and-external-execution-updates)       |
-| Replay deduplication       | [`FifoCache` and `FifoCacheMap`](https://github.com/nautechsystems/nautilus_trader/blob/develop/crates/common/src/cache/fifo.rs)                                | [Event ordering and deduplication](#event-ordering-and-deduplication)         |
-| Order denial reasons       | [`OrderDeniedReason`](https://github.com/nautechsystems/nautilus_trader/blob/develop/crates/model/src/events/order/denied_reason.rs)                            | [Diagnostics and reasons](#separate-diagnostics-from-strategy-facing-reasons) |
-| Task lifecycle             | [`TaskGroup`](https://github.com/nautechsystems/nautilus_trader/blob/develop/crates/live/src/task.rs) and [`TaskHandles`](https://github.com/nautechsystems/nautilus_trader/blob/develop/crates/common/src/live/task.rs) | [Task management](#task-management)                                           |
-| Ingestion precision        | [Domain numeric types](./rust.md#domain-numeric-types)                                                   | [Venue payload modeling](#modeling-venue-payloads)                            |
-| HTTP transport             | [`HttpClient`](https://github.com/nautechsystems/nautilus_trader/blob/develop/crates/network/src/http/client.rs)                                                | [Request flow](#request-flow)                                                 |
-| Authentication state       | [`AuthTracker`](https://github.com/nautechsystems/nautilus_trader/blob/develop/crates/network/src/websocket/auth.rs)                                            | [Authentication](#authentication)                                             |
-| Subscription identity      | [`SubscriptionState`](https://github.com/nautechsystems/nautilus_trader/blob/develop/crates/network/src/websocket/subscription.rs)                              | [Subscription management](#subscription-management)                           |
-| Reconnect requests         | [`request_reconnect`](https://github.com/nautechsystems/nautilus_trader/blob/develop/crates/network/src/websocket/client.rs)                                    | [Reconnection and shutdown](#reconnection-and-shutdown)                       |
-| Retry machinery            | [`RetryManager`](https://github.com/nautechsystems/nautilus_trader/blob/develop/crates/network/src/retry.rs)                                                    | [Error handling and retry logic](#error-handling-and-retry-logic)             |
-| Inferred fill commission   | [`ExecutionClient`](https://github.com/nautechsystems/nautilus_trader/blob/develop/crates/common/src/clients/execution.rs)                                      | [Commission failure handling](#commission-failure-handling)                   |
-| Time, tasks, and runtime   | [`nautilus_common::live::dst`](https://github.com/nautechsystems/nautilus_trader/blob/develop/crates/common/src/live/dst.rs)                                    | [Deterministic simulation](#deterministic-simulation)                         |
-| Wall-clock reads           | [`duration_since_unix_epoch`](https://github.com/nautechsystems/nautilus_trader/blob/develop/crates/core/src/time.rs)                                           | [Deterministic simulation](#deterministic-simulation)                         |
+| 命令结果证据 | [`CommandFailure`](https://github.com/nautechsystems/nautilus_trader/blob/develop/crates/live/src/execution/failure.rs) | [证据类别命名](#naming-the-evidence-classes) |
+| 订单标识与上下文 | [`OrderIdentity` 和 `OrderContext`](https://github.com/nautechsystems/nautilus_trader/blob/develop/crates/live/src/execution/context.rs) | [被跟踪与外部执行更新](#tracked-and-external-execution-updates) |
+| 重放去重 | [`FifoCache` 和 `FifoCacheMap`](https://github.com/nautechsystems/nautilus_trader/blob/develop/crates/common/src/cache/fifo.rs) | [事件排序与去重](#event-ordering-and-deduplication) |
+| 订单拒绝原因 | [`OrderDeniedReason`](https://github.com/nautechsystems/nautilus_trader/blob/develop/crates/model/src/events/order/denied_reason.rs) | [诊断信息与面向策略的原因](#separate-diagnostics-from-strategy-facing-reasons) |
+| 任务生命周期 | [`TaskGroup`](https://github.com/nautechsystems/nautilus_trader/blob/develop/crates/live/src/task.rs) 与 [`TaskHandles`](https://github.com/nautechsystems/nautilus_trader/blob/develop/crates/common/src/live/task.rs) | [任务管理](#task-management) |
+| 摄取精度 | [领域数值类型](./rust.md#domain-numeric-types) | [交易场所报文建模](#modeling-venue-payloads) |
+| HTTP 传输 | [`HttpClient`](https://github.com/nautechsystems/nautilus_trader/blob/develop/crates/network/src/http/client.rs) | [请求流程](#request-flow) |
+| 鉴权状态 | [`AuthTracker`](https://github.com/nautechsystems/nautilus_trader/blob/develop/crates/network/src/websocket/auth.rs) | [鉴权](#authentication) |
+| 订阅标识 | [`SubscriptionState`](https://github.com/nautechsystems/nautilus_trader/blob/develop/crates/network/src/websocket/subscription.rs) | [订阅管理](#subscription-management) |
+| 重连请求 | [`request_reconnect`](https://github.com/nautechsystems/nautilus_trader/blob/develop/crates/network/src/websocket/client.rs) | [重连与关闭](#reconnection-and-shutdown) |
+| 重试机制 | [`RetryManager`](https://github.com/nautechsystems/nautilus_trader/blob/develop/crates/network/src/retry.rs) | [错误处理与重试逻辑](#error-handling-and-retry-logic) |
+| 推断成交的手续费 | [`ExecutionClient`](https://github.com/nautechsystems/nautilus_trader/blob/develop/crates/common/src/clients/execution.rs) | [手续费失败处理](#commission-failure-handling) |
+| 时间、任务与 runtime | [`nautilus_common::live::dst`](https://github.com/nautechsystems/nautilus_trader/blob/develop/crates/common/src/live/dst.rs) | [确定性模拟](#deterministic-simulation) |
+| 挂钟读取 | [`duration_since_unix_epoch`](https://github.com/nautechsystems/nautilus_trader/blob/develop/crates/core/src/time.rs) | [确定性模拟](#deterministic-simulation) |
 
-A venue can transmit a discrete value as an IEEE-754 field, rather than a decimal string or JSON number. For
-this case, document the exception at the parsing boundary. Keep `f64` inside that boundary.
+交易场所可能用 IEEE-754 字段而不是十进制字符串或 JSON 数字传输离散值。遇到这种情况，在解析边界处写明例外，
+并把 `f64` 限制在该边界之内。
 
-Retry classification is the exception to this table: it stays adapter-owned because venue status
-codes and rate-limit semantics differ. The shared machinery around it is not. See
-[error handling and retry logic](#error-handling-and-retry-logic) for both halves.
+重试分类是这张表的例外：它归适配器所有，因为各交易场所的状态码和限流语义不同。它外围的共享机制不受此影响。
+两半的划分见[错误处理与重试逻辑](#error-handling-and-retry-logic)。
 
-### Deterministic simulation
+### 确定性模拟 {#deterministic-simulation}
 
-Every maintained adapter, an Official-tier adapter per
-[ADAPTERS.md](https://github.com/nautechsystems/nautilus_trader/blob/develop/ADAPTERS.md#adapter-tiers), must satisfy the
-[adapter DST contract](./../concepts/dst.md#adapter-dst-contract). An adapter that does not yet
-conform carries a venue-scoped migration record tracking the gap. Unclaimed capabilities stay
-outside the contract until a slice proves them.
+每个受维护的适配器——即 [ADAPTERS.md](https://github.com/nautechsystems/nautilus_trader/blob/develop/ADAPTERS.md#adapter-tiers)
+中所指 Official 档的适配器——必须满足[适配器 DST 契约](./../concepts/dst.md#adapter-dst-contract)。
+尚未合规的适配器要携带一份交易场所范围的迁移记录追踪差距。未被认领的能力在某个切片证明它之前留在契约之外。
 
-OKX is the reference implementation. It proves the contract through shared seams, static gates, and
-behavioral gates:
+OKX 是参考实现，通过共享接缝、静态门禁和行为门禁证明契约：
 
-- **Seams**: The `nautilus_common::live::dst` facade supplies time, tasks, runtime, and signals. The
-  `nautilus_core::time` seam supplies wall-clock access. `nautilus-network` supplies simulated HTTP and
-  WebSocket transport. The baseline table above lists the shared subscription, reconnect, and retry machinery.
-- **Static gates**: `check-dst-conventions` covers every DST-path production file (`ADAPTER_PATHS`
-  in `.pre-commit-hooks/check_dst_conventions.sh`), and the nightly `dst-smoke` gate runs the
-  simulation Clippy and test legs.
-- **Behavioral gates**: `crates/adapters/okx/tests/integration/dst.rs` pins exact subscribe bytes and exact
-  per-operation wire fields against controlled local peers. Complete wire-to-domain fresh-process comparison
-  lives in the downstream harness.
+- **接缝**：`nautilus_common::live::dst` 门面提供时间、任务、runtime 和信号；`nautilus_core::time` 接缝
+  提供挂钟访问；`nautilus-network` 提供模拟的 HTTP 与 WebSocket 传输。上面基线表中列出了共享的订阅、
+  重连和重试机制。
+- **静态门禁**：`check-dst-conventions` 覆盖每个 DST 路径的生产文件
+  （`.pre-commit-hooks/check_dst_conventions.sh` 中的 `ADAPTER_PATHS`）；夜间 `dst-smoke` 门禁运行模拟的
+  Clippy 与测试分支。
+- **行为门禁**：`crates/adapters/okx/tests/integration/dst.rs` 针对受控本地对端钉死精确的订阅字节和逐操作的
+  线路字段。完整的线路到领域的新进程比较放在下游装置中。
 
-The [OKX integration guide's DST section](./../integrations/okx.md#deterministic-simulation-testing)
-records the audited slice.
+[OKX 集成指南的 DST 一节](./../integrations/okx.md#deterministic-simulation-testing)记录了经过审计的切片。
 
-A new adapter proves the contract from its first transport:
+新适配器从第一个传输层开始证明契约：
 
-1. Add the gates for each DST-path file when you add the file.
-1. Drive each endpoint from configuration to a local peer.
-1. Pin the wire bytes before you expand the slice.
+1. 每新增一个 DST 路径文件，就同时加上对应门禁。
+1. 让每个端点都由配置驱动到本地对端。
+1. 先钉死线路字节，再扩大切片。
 
-Do not introduce a shared abstraction until a second adapter proves the same boundary is needed.
+在第二个适配器证明同一边界确实需要之前，不要引入共享抽象。
 
-## Structure of an adapter
+## 适配器结构 {#structure-of-an-adapter}
 
-The Rust crate is the source of truth for protocol behavior. An adapter commonly separates these
-concerns:
+Rust crate 是协议行为的唯一事实来源。适配器通常按以下关注点划分：
 
 ```text
 crates/adapters/<adapter>/
@@ -211,7 +196,7 @@ crates/adapters/<adapter>/
 └── README.md
 ```
 
-Python and documentation surfaces sit outside the crate:
+Python 与文档层位于 crate 之外：
 
 ```text
 python/nautilus_trader/adapters/<adapter>/  # Public package and generated stubs
@@ -220,305 +205,277 @@ python/tests/unit/adapters/<adapter>/       # Public Python package tests
 docs/integrations/<adapter>.md              # User-facing integration guide
 ```
 
-Only `Cargo.toml` and `src/lib.rs` are universal crate boundaries. Add the other modules when the
-adapter needs them:
+crate 内普适的边界只有 `Cargo.toml` 和 `src/lib.rs`。其余模块按需添加：
 
-- Put symbols, credentials, URLs, shared enums, and shared parsing under `common/`.
-- Put transport models, typed requests, signing, and HTTP clients under `http/`.
-- Put frames, messages, subscription state, routing, and WebSocket clients under `websocket/`.
-- Implement live data and execution traits in `data.rs` and `execution.rs`. If the venue exposes materially
-  different protocols, use product submodules as an alternative.
-- Keep PyO3 projection code under `python/`.
-- Organize integration tests by public boundary or product. Do not force all adapters into the
-  same filenames.
+- symbol、凭证、URL、共享枚举和共享解析放 `common/`。
+- 传输模型、类型化请求、签名和 HTTP 客户端放 `http/`。
+- 帧、消息、订阅状态、路由和 WebSocket 客户端放 `websocket/`。
+- 实时数据与执行 trait 在 `data.rs` 和 `execution.rs` 实现。交易场所各产品协议差异明显时，改用产品子模块。
+- PyO3 投影代码留在 `python/`。
+- 集成测试按公共边界或产品组织，不要把各适配器硬套成相同的文件名。
 
-Product-specific splits are legitimate when product families have different protocols. A shared
-client can also span distinct endpoints when request and state semantics remain common. Match the
-venue's real boundaries and keep shared behavior above those splits.
+产品线协议不同时，按产品拆分是合理的；请求与状态语义相通时，一个共享客户端也可以横跨不同端点。按交易场所
+的真实边界组织，共享行为放在拆分之上。
 
-An adapter's public Python package lives under `python/nautilus_trader/adapters/<adapter>/` and usually
-re-exports generated bindings. Change Rust binding metadata or other generator inputs, then run
-`make py-stubs`. Do not edit generated `.pyi` files.
+适配器的公共 Python 包位于 `python/nautilus_trader/adapters/<adapter>/`，通常重新导出生成的绑定。要改 Rust
+绑定元数据或其他生成器输入，改完后运行 `make py-stubs`，不要手改生成的 `.pyi` 文件。
 
-### Repository and Python wiring
+### 仓库与 Python 接线 {#repository-and-python-wiring}
 
-A new adapter crate must be discoverable by each build surface that owns it:
+新适配器 crate 必须让每个负责它的构建面都能发现：
 
-| Surface                       | Required change                                                                                                  | Enforcement or proof                                                                                           |
+| 构建面 | 需要的改动 | 强制方式或证明 |
 | ----------------------------- | ---------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------- |
-| Root Rust workspace           | Add the crate to the members and workspace dependencies in [`Cargo.toml`](https://github.com/nautechsystems/nautilus_trader/blob/develop/Cargo.toml).                     | Workspace metadata and targeted Cargo checks discover the crate.                                               |
-| Workspace test inventory      | Add the crate to `ADAPTER_CRATES` in the [`Makefile`](https://github.com/nautechsystems/nautilus_trader/blob/develop/Makefile).                                           | The [workspace coverage check](https://github.com/nautechsystems/nautilus_trader/blob/develop/scripts/ci/check-workspace-test-coverage.sh) requires one test inventory. |
-| PyO3 crate                    | Add the optional dependency and feature propagation in [`crates/pyo3/Cargo.toml`](https://github.com/nautechsystems/nautilus_trader/blob/develop/crates/pyo3/Cargo.toml). | Building the matching PyO3 feature compiles the adapter projection.                                            |
-| PyO3 root module              | Register the adapter module in [`crates/pyo3/src/lib.rs`](https://github.com/nautechsystems/nautilus_trader/blob/develop/crates/pyo3/src/lib.rs).                         | The conventions hook treats this module list as the public API allowlist.                                      |
-| Adapter PyO3 registry         | Register each applicable factory and config extractor with `get_global_pyo3_registry()`.                         | Factory boundary tests prove Python config objects reach the Rust factories.                                   |
-| Python package and user guide | Add package projection, tests, examples, and an integration guide only for capabilities the adapter exposes.     | Import, generated drift, example build, and documentation checks cover these surfaces.                         |
+| Rust 根 workspace | 在 [`Cargo.toml`](https://github.com/nautechsystems/nautilus_trader/blob/develop/Cargo.toml) 的 members 和 workspace 依赖中加入该 crate。 | workspace 元数据和定向 Cargo 检查能发现该 crate。 |
+| workspace 测试清单 | 在 [`Makefile`](https://github.com/nautechsystems/nautilus_trader/blob/develop/Makefile) 的 `ADAPTER_CRATES` 中加入该 crate。 | [workspace 覆盖率检查](https://github.com/nautechsystems/nautilus_trader/blob/develop/scripts/ci/check-workspace-test-coverage.sh)要求每个 crate 有一份测试清单。 |
+| PyO3 crate | 在 [`crates/pyo3/Cargo.toml`](https://github.com/nautechsystems/nautilus_trader/blob/develop/crates/pyo3/Cargo.toml) 中加入可选依赖并传播 feature。 | 构建对应的 PyO3 feature 会编译适配器投影。 |
+| PyO3 根模块 | 在 [`crates/pyo3/src/lib.rs`](https://github.com/nautechsystems/nautilus_trader/blob/develop/crates/pyo3/src/lib.rs) 注册适配器模块。 | 约定钩子把这份模块列表当作公共 API 白名单。 |
+| 适配器 PyO3 注册表 | 用 `get_global_pyo3_registry()` 注册每个适用的工厂和配置提取器。 | 工厂边界测试证明 Python 配置对象能到达 Rust 工厂。 |
+| Python 包与用户指南 | 只针对适配器实际暴露的能力添加包投影、测试、示例和集成指南。 | import 检查、生成物漂移检查、示例构建和文档检查覆盖这些面。 |
 
-The [Nautilus conventions hook](https://github.com/nautechsystems/nautilus_trader/blob/develop/.pre-commit-hooks/check_nautilus_conventions.sh) treats the
-PyO3 module list as a public API allowlist. The
-[PyO3 conventions hook](https://github.com/nautechsystems/nautilus_trader/blob/develop/.pre-commit-hooks/check_pyo3_conventions.sh) also enforces:
+[Nautilus 约定钩子](https://github.com/nautechsystems/nautilus_trader/blob/develop/.pre-commit-hooks/check_nautilus_conventions.sh)把
+PyO3 模块列表视为公共 API 白名单。[PyO3 约定钩子](https://github.com/nautechsystems/nautilus_trader/blob/develop/.pre-commit-hooks/check_pyo3_conventions.sh)
+还强制：
 
-- Stub metadata uses `nautilus_trader.adapters.<adapter>`.
-- Runtime extension imports use `nautilus_trader._libnautilus.<adapter>`.
-- A Rust function renamed with `#[pyo3(name = ...)]` has a `py_` Rust name.
-- Python exceptions use the project error conversion functions.
+- stub 元数据使用 `nautilus_trader.adapters.<adapter>`。
+- 运行时扩展导入使用 `nautilus_trader._libnautilus.<adapter>`。
+- 用 `#[pyo3(name = ...)]` 改名的 Rust 函数，其 Rust 名字带 `py_` 前缀。
+- Python 异常使用项目的错误转换函数。
 
-## Adapter implementation sequence
+## 适配器实现顺序 {#adapter-implementation-sequence}
 
-Use these phases to organize the work. They describe dependencies, not release gates. A
-market-data-only adapter omits execution, and an adapter can complete one product before starting
-another. Keep the capability matrix current throughout the work rather than waiting for the final
-documentation phase. Omit phases and steps that do not apply to the adapter.
+用这些阶段组织工作。它们描述依赖关系，不是发布关卡。只做行情的适配器可跳过执行；适配器也可以先完成一个
+产品再开始另一个。整个过程中保持能力矩阵（capability matrix）最新，不要等到最后的文档阶段。与适配器无关的
+阶段和步骤直接省略。
 
-### Phase 0: Define scope
+### 阶段 0：定义范围 {#phase-0-define-scope}
 
-| Step | Component           | Work                                                                                                      |
+| 步骤 | 组件 | 工作 |
 | ---- | ------------------- | --------------------------------------------------------------------------------------------------------- |
-| 0.1  | Capability matrix   | List the products, environments, account modes, data types, order types, and reports in scope.            |
-| 0.2  | Venue constraints   | Record venue restrictions, unsupported capabilities, and testnet differences.                             |
-| 0.3  | Protocol boundaries | Identify separate product APIs, public and private endpoints, and binary or JSON transports.              |
-| 0.4  | Initial slice       | Choose the smallest slice that proves an end-to-end path.                                                 |
-| 0.5  | Repository wiring   | Add the crate to the Rust workspace and test inventory, then add only the projection surfaces it exposes. |
+| 0.1 | 能力矩阵 | 列出范围内的产品、环境、账户模式、数据类型、订单类型和报告。 |
+| 0.2 | 交易场所约束 | 记录交易场所限制、不支持的能力和 testnet 差异。 |
+| 0.3 | 协议边界 | 识别独立的产品 API、公共与私有端点、二进制或 JSON 传输。 |
+| 0.4 | 初始切片 | 选择能打通端到端路径的最小切片。 |
+| 0.5 | 仓库接线 | 把 crate 加入 Rust workspace 和测试清单，然后只添加它暴露的投影面。 |
 
-**Exit**: The integration guide contains an initial capability matrix, known gaps, and a test plan.
+**出口标准**：集成指南包含初始能力矩阵、已知差距和测试计划。
 
-### Phase 1: Build the protocol core
+### 阶段 1：搭建协议核心 {#phase-1-build-the-protocol-core}
 
-| Step | Component             | Work                                                                                                                            |
+| 步骤 | 组件 | 工作 |
 | ---- | --------------------- | ------------------------------------------------------------------------------------------------------------------------------- |
-| 1.1  | HTTP error types      | Model transport, HTTP status, venue, parsing, and validation failures. Classify retryability when supported.                    |
-| 1.2  | HTTP client           | Implement endpoint resolution and typed requests, plus credentials, signing, rate limits, retries, and pagination as needed.    |
-| 1.3  | HTTP API models       | Define typed requests and responses, commonly under `http/` or its product-specific modules.                                    |
-| 1.4  | HTTP parsing          | Convert venue responses to domain types at deterministic boundaries in `http/parse.rs` or `common/parse.rs`.                    |
-| 1.5  | WebSocket error types | Model connection, protocol, and parsing failures, plus authentication and command failures when applicable.                     |
-| 1.6  | WebSocket client      | Implement lifecycle and shutdown, plus authentication, heartbeat, subscription state, and reconnection when applicable.         |
-| 1.7  | WebSocket messages    | Define frames and messages under `websocket/` or product-specific modules. Include acknowledgements and venue errors as needed. |
-| 1.8  | WebSocket parsing     | Decode each frame once, convert domain events, and route data or execution messages by typed identity.                          |
-| 1.9  | Protocol tests        | Prove fixtures, canonical requests, applicable signing vectors, lifecycle, and raw exchanges with mock peers.                   |
+| 1.1 | HTTP 错误类型 | 建模传输、HTTP 状态、交易场所、解析和校验失败。可行时标注可重试性。 |
+| 1.2 | HTTP 客户端 | 实现端点解析和类型化请求，按需加凭证、签名、限流、重试和分页。 |
+| 1.3 | HTTP API 模型 | 定义类型化的请求与响应，通常放 `http/` 或其产品子模块。 |
+| 1.4 | HTTP 解析 | 在 `http/parse.rs` 或 `common/parse.rs` 的确定性边界处，把交易场所响应转换为领域类型。 |
+| 1.5 | WebSocket 错误类型 | 建模连接、协议和解析失败，适用时加鉴权与命令失败。 |
+| 1.6 | WebSocket 客户端 | 实现生命周期与关闭，适用时加鉴权、心跳、订阅状态和重连。 |
+| 1.7 | WebSocket 消息 | 在 `websocket/` 或产品子模块定义帧和消息，按需包含确认和交易场所错误。 |
+| 1.8 | WebSocket 解析 | 每帧只解码一次，转换领域事件，按类型化标识路由数据或执行消息。 |
+| 1.9 | 协议测试 | 用 mock 对端验证 fixture、规范请求、适用的签名向量、生命周期和原始交互。 |
 
-**Exit**: The crate compiles, protocol fixtures parse, applicable signing vectors pass, and mock or
-controlled requests complete any required authentication and exchange raw venue messages.
+**出口标准**：crate 可编译，协议 fixture 可解析，适用的签名向量通过，且 mock 或受控请求能完成所需的鉴权并
+交换原始交易场所报文。
 
-### Phase 2: Implement instruments
+### 阶段 2：实现金融工具 {#phase-2-implement-instruments}
 
-| Step | Component          | Work                                                                                                     |
+| 步骤 | 组件 | 工作 |
 | ---- | ------------------ | -------------------------------------------------------------------------------------------------------- |
-| 2.1  | Instrument parsing | Parse every supported family with complete identity, precision, currency, and contract fields.           |
-| 2.2  | Instrument loading | Load, filter, cache, and emit definitions at each parsing boundary that needs context.                   |
-| 2.3  | Symbol mapping     | Define bidirectional venue symbol and `InstrumentId` conversion without collapsing distinct instruments. |
-| 2.4  | Instrument updates | Implement fresh instrument requests and any supported definition or status updates.                      |
+| 2.1 | 金融工具解析 | 解析每个受支持的产品族，包含完整的标识、精度、币种和合约字段。 |
+| 2.2 | 金融工具加载 | 在每个需要上下文的解析边界处加载、过滤、缓存并发出定义。 |
+| 2.3 | 符号映射 | 定义交易场所符号与 `InstrumentId` 的双向转换，不合并不同的金融工具。 |
+| 2.4 | 金融工具更新 | 实现新鲜金融工具请求，以及受支持的定义或状态更新。 |
 
-**Exit**: Distinct fixtures cover every supported instrument family, invalid definitions fail
-clearly, and the data client emits or returns complete Nautilus instruments.
+**出口标准**：不同的 fixture 覆盖每个受支持的金融工具族，非法定义清晰失败，数据客户端发出或返回完整的
+Nautilus 金融工具。
 
-### Phase 3: Implement market data
+### 阶段 3：实现行情数据 {#phase-3-implement-market-data}
 
-Start with one public stream and one instrument before adding product or endpoint fan-out.
+先做一条公共数据流和一个金融工具，再扩展到多产品或多端点。
 
-| Step | Component                | Work                                                                                                        |
+| 步骤 | 组件 | 工作 |
 | ---- | ------------------------ | ----------------------------------------------------------------------------------------------------------- |
-| 3.1  | Public WebSocket streams | Subscribe and unsubscribe each advertised live data type while preserving subscription intent.              |
-| 3.2  | Historical data requests | Request supported bars, trades, quotes, or order book snapshots with exact correlation and freshness rules. |
-| 3.3  | Data client              | Implement `DataClient` requests, subscriptions, lifecycle, and complete `DataEvent` emission.               |
-| 3.4  | Order book handling      | Preserve snapshot, incremental update, sequence, clear, and batch boundaries.                               |
-| 3.5  | Stream recovery          | Handle malformed input, gaps, unsubscribe, disconnect, reconnect, and subscription replay.                  |
+| 3.1 | 公共 WebSocket 数据流 | 订阅和退订每种声明的实时数据类型，同时保留订阅意图。 |
+| 3.2 | 历史数据请求 | 按精确的关联和时效规则请求支持的 K 线、成交、报价或订单簿快照。 |
+| 3.3 | 数据客户端 | 实现 `DataClient` 的请求、订阅、生命周期和完整的 `DataEvent` 发出。 |
+| 3.4 | 订单簿处理 | 保留快照、增量更新、序列号、清空和批次边界。 |
+| 3.5 | 数据流恢复 | 处理畸形输入、缺口、退订、断开、重连和订阅重放。 |
 
-**Exit**: Unit and mock transport tests prove complete domain events for the supported request and
-subscription matrix.
+**出口标准**：单元测试和 mock 传输测试针对支持的请求与订阅矩阵证明能产出完整的领域事件。
 
-### Phase 4: Implement execution
+### 阶段 4：实现执行 {#phase-4-implement-execution}
 
-Establish account state and reconciliation before enabling order flow.
+启用订单流之前，先建立账户状态和对账。
 
-| Step | Component              | Work                                                                                                         |
+| 步骤 | 组件 | 工作 |
 | ---- | ---------------------- | ------------------------------------------------------------------------------------------------------------ |
-| 4.1  | Account bootstrap      | Establish account identity, initial account state, private subscriptions, and connected readiness.           |
-| 4.2  | Reconciliation reports | Generate applicable order, fill, position, and mass-status reports at startup and on demand.                 |
-| 4.3  | Basic order submission | Implement supported market and limit order submission with deterministic local validation.                   |
-| 4.4  | Order modification     | Implement supported modify and cancel commands, including cancel-replace venue semantics.                    |
-| 4.5  | Execution client       | Implement `ExecutionClient` commands, lifecycle, tracked and external routing, and ordered event emission.   |
-| 4.6  | Outcome recovery       | Preserve unknown outcomes, deduplicate fills, and resolve state through streams, queries, or reconciliation. |
+| 4.1 | 账户引导 | 建立账户标识、初始账户状态、私有订阅和就绪状态。 |
+| 4.2 | 对账报告 | 在启动时和按需生成适用的订单、成交、持仓和全量状态报告。 |
+| 4.3 | 基本订单提交 | 实现受支持的市场单和限价单提交，附带确定性的本地校验。 |
+| 4.4 | 订单修改 | 实现受支持的修改和取消命令，含 cancel-replace 的交易场所语义。 |
+| 4.5 | 执行客户端 | 实现 `ExecutionClient` 命令、生命周期、被跟踪与外部路由，以及有序的事件发出。 |
+| 4.6 | 结果恢复 | 保留未知结果、成交去重，并通过数据流、查询或对账解决状态。 |
 
-**Exit**: Mock transport tests cover every supported command, definitive rejection, uncertain
-transmission, duplicate or out-of-order updates, and startup reconciliation.
+**出口标准**：mock 传输测试覆盖每个支持的命令、明确的拒绝、不确定的传输、重复或乱序更新，以及启动对账。
 
-### Phase 5: Add optional venue capabilities
+### 阶段 5：添加可选的交易场所能力 {#phase-5-add-optional-venue-capabilities}
 
-Add these only after the base lifecycle is stable.
+基础生命周期稳定后再添加这些。
 
-| Step | Component                  | Work                                                                                              |
+| 步骤 | 组件 | 工作 |
 | ---- | -------------------------- | ------------------------------------------------------------------------------------------------- |
-| 5.1  | Advanced order types       | Add applicable conditional, stop, take-profit, trailing-stop, or other advanced orders.           |
-| 5.2  | Batch operations           | Add batch submission, batch cancellation, and mass cancel with per-order result handling.         |
-| 5.3  | Venue-specific data        | Add funding, greeks, liquidations, or venue extensions as separate capability slices.             |
-| 5.4  | Product or endpoint splits | Split ownership only when protocol, authentication, quota, or recovery boundaries require it.     |
-| 5.5  | Capability proof           | Add fixtures, functional tests, acceptance cases, and documented limitations for each capability. |
+| 5.1 | 高级订单类型 | 按需添加条件单、止损单、止盈单、追踪止损等其他高级订单。 |
+| 5.2 | 批量操作 | 添加批量提交、批量取消和全量取消，带逐单结果处理。 |
+| 5.3 | 交易场所特有数据 | 把资金费率、希腊值、强平或交易场所扩展作为独立能力切片添加。 |
+| 5.4 | 产品或端点拆分 | 只有协议、鉴权、配额或恢复边界确实需要时才拆分所有权。 |
+| 5.5 | 能力证明 | 为每项能力添加 fixture、功能测试、验收用例和成文的限制。 |
 
-**Exit**: Each optional capability is independently testable and does not weaken the established
-base paths.
+**出口标准**：每项可选能力可独立测试，且不削弱已确立的基础路径。
 
-### Phase 6: Complete factories and projection
+### 阶段 6：完成工厂与投影 {#phase-6-complete-factories-and-projection}
 
-| Step | Component             | Work                                                                                             |
+| 步骤 | 组件 | 工作 |
 | ---- | --------------------- | ------------------------------------------------------------------------------------------------ |
-| 6.1  | Configuration structs | Finalize typed data and execution configs, defaults, environment fallback, and secret redaction. |
-| 6.2  | Client factories      | Implement Rust factories with `CacheView` inputs and the data client clock.                      |
-| 6.3  | PyO3 registration     | Register applicable factories and config extractors with the PyO3 registry.                      |
-| 6.4  | Python package        | Add the public package and Python boundary tests for the capabilities exposed to Python.         |
-| 6.5  | Generated stubs       | Add Rust stub metadata and regenerate the `.pyi` output with `make py-stubs`.                    |
+| 6.1 | 配置结构体 | 敲定类型化的数据与执行配置、默认值、环境回退和密钥脱敏。 |
+| 6.2 | 客户端工厂 | 用 `CacheView` 输入和数据客户端时钟实现 Rust 工厂。 |
+| 6.3 | PyO3 注册 | 向 PyO3 注册表注册适用的工厂和配置提取器。 |
+| 6.4 | Python 包 | 为暴露给 Python 的能力添加公共包和 Python 边界测试。 |
+| 6.5 | 生成的 stub | 添加 Rust stub 元数据，用 `make py-stubs` 重新生成 `.pyi` 输出。 |
 
-**Exit**: Rust factory tests and PyO3 boundary tests pass, package imports resolve, and generated
-output matches its Rust inputs.
+**出口标准**：Rust 工厂测试和 PyO3 边界测试通过，包 import 可解析，生成输出与其 Rust 输入一致。
 
-### Phase 7: Prove conformance
+### 阶段 7：证明合规 {#phase-7-prove-conformance}
 
-| Step | Component              | Work                                                                                                   |
+| 步骤 | 组件 | 工作 |
 | ---- | ---------------------- | ------------------------------------------------------------------------------------------------------ |
-| 7.1  | Rust unit tests        | Prove parsers, serializers, symbols, signatures, state transitions, and malformed input.               |
-| 7.2  | Rust integration tests | Exercise public HTTP, WebSocket, data, and execution boundaries against deterministic mock transports. |
-| 7.3  | Python boundary tests  | Prove imports, config extraction, factories, type conversion, and representative async calls.          |
-| 7.4  | Acceptance tests       | Run every applicable `DataTester` and `ExecTester` case on testnet or a controlled account.            |
-| 7.5  | Recovery tests         | Exercise connection failure, reconnect, shutdown, rate limits, and state recovery.                     |
-| 7.6  | Specification gaps     | Record every skipped specification case with a venue or capability reason.                             |
+| 7.1 | Rust 单元测试 | 验证解析器、序列化器、符号、签名、状态转移和畸形输入。 |
+| 7.2 | Rust 集成测试 | 针对确定性 mock 传输运行公共 HTTP、WebSocket、数据和执行边界。 |
+| 7.3 | Python 边界测试 | 验证 import、配置提取、工厂、类型转换和有代表性的异步调用。 |
+| 7.4 | 验收测试 | 在 testnet 或受控账户上运行每个适用的 `DataTester` 和 `ExecTester` 用例。 |
+| 7.5 | 恢复测试 | 运行连接失败、重连、关闭、限流和状态恢复。 |
+| 7.6 | 规范缺口 | 记录每个跳过的规范用例，附交易场所或能力原因。 |
 
-**Exit**: The applicable data and execution testing specifications pass, and every advertised
-capability has deterministic and venue evidence.
+**出口标准**：适用的数据和执行测试规范通过，且每项声明的能力都有确定性和交易场所两方面的证据。
 
-### Phase 8: Measure performance and robustness
+### 阶段 8：度量性能与健壮性 {#phase-8-measure-performance-and-robustness}
 
-| Step | Component            | Work                                                                                                      |
+| 步骤 | 组件 | 工作 |
 | ---- | -------------------- | --------------------------------------------------------------------------------------------------------- |
-| 8.1  | Canonical benchmarks | Measure confirmed end-to-end data and execution hot paths with representative fixtures.                   |
-| 8.2  | Microbenchmarks      | Isolate confirmed signing, hashing, authentication, codec, parsing, or serialization costs.               |
-| 8.3  | Fuzz targets         | Fuzz untrusted parsing, decoding, normalization, signing, and encoding boundaries with realistic corpora. |
-| 8.4  | Invariants           | Assert domain and protocol properties stronger than panic freedom.                                        |
+| 8.1 | 规范化基准测试 | 用有代表性的 fixture 度量已确认的端到端数据与执行热点路径。 |
+| 8.2 | 微基准测试 | 隔离已确认的签名、哈希、鉴权、编解码、解析或序列化开销。 |
+| 8.3 | 模糊测试目标 | 用真实语料对不可信的解析、解码、归一化、签名和编码边界做模糊测试。 |
+| 8.4 | 不变量 | 断言比"不 panic"更强的领域和协议属性。 |
 
-**Exit**: Canonical benchmark and fuzz suites run with representative fixtures, documented
-invariants, and no mandatory categories that the adapter does not use.
+**出口标准**：规范化基准和模糊测试套件用有代表性的 fixture 运行，不变量有文档，且没有适配器用不到的强制类别。
 
-### Phase 9: Finish documentation and operations
+### 阶段 9：完成文档与运维 {#phase-9-finish-documentation-and-operations}
 
-| Step | Component           | Work                                                                                           |
+| 步骤 | 组件 | 工作 |
 | ---- | ------------------- | ---------------------------------------------------------------------------------------------- |
-| 9.1  | Capability matrix   | Reconcile every support claim and exception with the tested implementation.                    |
-| 9.2  | Integration guide   | Document credentials, config, limits, reconciliation, environment differences, and known gaps. |
-| 9.3  | Tester entry points | Provide applicable Rust and Python data and execution testers with safe defaults.              |
-| 9.4  | Operations          | Document recovery, troubleshooting, and any venue behavior an operator must understand.        |
-| 9.5  | Final verification  | Verify links, generated output, examples, and the focused documentation checks.                |
+| 9.1 | 能力矩阵 | 把每条支持声明和例外与经过测试的实现核对一致。 |
+| 9.2 | 集成指南 | 记录凭证、配置、限额、对账、环境差异和已知缺口。 |
+| 9.3 | 测试器入口 | 提供适用的 Rust 和 Python 数据与执行测试器，默认值安全。 |
+| 9.4 | 运维 | 记录恢复、故障排查，以及运维人员必须理解的交易场所行为。 |
+| 9.5 | 最终校验 | 校验链接、生成输出、示例和聚焦的文档检查。 |
 
-**Exit**: A user can configure, test, operate, and diagnose the adapter without reading its source.
+**出口标准**：用户不读源码就能配置、测试、运行和诊断该适配器。
 
-## Rust adapter patterns
+## Rust 适配器模式 {#rust-adapter-patterns}
 
-Repository-wide import policy applies to adapter code: import Nautilus types and use their short
-names instead of fully qualifying them at call sites. The
-[Nautilus conventions hook](https://github.com/nautechsystems/nautilus_trader/blob/develop/.pre-commit-hooks/check_nautilus_conventions.sh) enforces this
-rule and documents its scoped exception marker.
+适配器代码遵守全仓库的导入策略：导入 Nautilus 类型并使用短名，不在调用点写全限定名。
+[Nautilus 约定钩子](https://github.com/nautechsystems/nautilus_trader/blob/develop/.pre-commit-hooks/check_nautilus_conventions.sh)
+强制这条规则，并说明其带作用域的例外标记。
 
-### Configurations (`config.rs`)
+### 配置（`config.rs`） {#configurations-configrs}
 
-Follow the shared [configuration guide](./../concepts/configuration.md). In particular, Rust configs
-use typed fields, strict Serde decoding, one source of truth for defaults, and `bon::Builder`.
-Adapter configs then add only venue semantics:
+遵循共享的[配置指南](./../concepts/configuration.md)。具体来说，Rust 配置使用类型化字段、严格的 Serde 解码、
+单一默认值来源和 `bon::Builder`。适配器配置在此基础上只添加交易场所语义：
 
-- Use an enum for a closed set such as environment, product family, account mode, or endpoint.
-- Use `Option<T>` only when absence has a distinct meaning, including runtime credential fallback.
-- Keep data and execution config separate when their capabilities or credentials differ.
-- Store fields that must not appear in `Debug` as `SecretString`. Derive `Debug` when each sensitive field
-  uses a redacting type. Write a custom implementation only when either condition holds:
+- 封闭集合用枚举，如环境、产品族、账户模式或端点。
+- 只有"缺失"本身有独立含义时才用 `Option<T>`，包括运行时的凭证回退。
+- 数据与执行配置的能力或凭证不同时，保持分离。
+- 不得出现在 `Debug` 中的字段用 `SecretString` 存储。每个敏感字段都用了脱敏类型时，直接 derive `Debug`。
+  只有满足以下之一时才写自定义实现：
 
-  - A field cannot use a redacting type.
-  - The type needs more restrictive output.
-- Keep Python config projection thin. It converts types and delegates to the Rust config.
+  - 某字段无法使用脱敏类型。
+  - 该类型需要更严格的输出。
+- Python 配置投影保持精简，只做类型转换并委派给 Rust 配置。
 
-Centralize default HTTP and WebSocket endpoint resolution so one environment selection cannot mix
-live and test endpoints. Keep explicit URL overrides only where custom gateways, mock servers, or
-venue deployments require them. Test every supported environment and any precedence between an
-environment choice and an explicit override.
+集中解析默认的 HTTP 与 WebSocket 端点，使一次环境选择不会混用生产与测试端点。仅在自定义网关、mock 服务器或
+交易场所部署确实需要时保留显式 URL 覆盖。测试每个受支持的环境，以及环境选择与显式覆盖之间的任何优先级。
 
-Lay out config fields in this order:
+配置字段按此顺序排列：
 
-| Order | Field group                                | Placement rule                                                         |
+| 顺序 | 字段组 | 放置规则 |
 | ----- | ------------------------------------------ | ---------------------------------------------------------------------- |
-| 1     | Account identity, credentials, environment | Venue equivalents count: `network`, `deployment`, `region`.            |
-| 2     | URL overrides                              | One contiguous block: `base_url_http` first, then each `base_url_ws*`. |
-| 3     | `proxy_url`                                | Immediately after the URL block.                                       |
-| 4     | Everything else                            | Timeouts, retries, venue-specific behavior.                            |
+| 1 | 账户标识、凭证、环境 | 交易场所的等价物也算：`network`、`deployment`、`region`。 |
+| 2 | URL 覆盖 | 连续一块：先 `base_url_http`，再每个 `base_url_ws*`。 |
+| 3 | `proxy_url` | 紧跟 URL 块之后。 |
+| 4 | 其余全部 | 超时、重试、交易场所特有行为。 |
 
-Resolve each `None` override to the environment default in a config method. Pass the resolved URL to the
-client constructor. Constructors do not read the `Option` fields directly.
+在配置方法里把每个 `None` 覆盖解析为环境默认值，把解析后的 URL 传给客户端构造函数。构造函数不直接读 `Option`
+字段。
 
-Keep the same relative order across struct fields, `bon::Builder` accessors, pyo3 getter lists, and Python
-`__init__` signatures. **Published Python signatures** keep their positional order: append new parameters
-without reordering existing ones, so a signature may lag the struct order. An intentional reorder is a
-breaking change. Note it under Breaking Changes in `RELEASES.md`.
+结构体字段、`bon::Builder` 访问器、pyo3 getter 列表和 Python `__init__` 签名之间保持相同的相对顺序。
+**已发布的 Python 签名**保持其位置顺序：新增参数追加在末尾，不重排已有参数，因此签名可能滞后于结构体顺序。
+有意重排是破坏性变更，需在 `RELEASES.md` 的 Breaking Changes 下注明。
 
-### Credentials and secret handling
+### 凭证与密钥处理 {#credentials-and-secret-handling}
 
-When HTTP and WebSocket clients use the same key material, centralize credential handling in a type, commonly
-under `common/credential.rs`. Keep configs as data transfer objects. Resolve credentials when you construct
-the credential, factory, or client. Do not resolve credentials in Python wrappers or individual request
-methods.
+HTTP 与 WebSocket 客户端使用同一套密钥材料时，把凭证处理集中到一个类型里，通常放 `common/credential.rs`。
+配置保持为数据传输对象。在构造凭证、工厂或客户端时解析凭证，不要在 Python 包装或各个请求方法里解析。
 
-#### Classify sensitive values
+#### 分类敏感值 {#classify-sensitive-values}
 
-Classify a value before choosing its type and diagnostic output. Apply the more restrictive rule
-when a venue gives one value more than one role.
+先给值分类，再选择它的类型和诊断输出。当交易场所让一个值承担多重角色时，采用更严格的那条规则。
 
-| Value class                  | Examples                                                                                                      | Diagnostic output                                                                       |
+| 值类别 | 示例 | 诊断输出 |
 | ---------------------------- | ------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------- |
-| Secret material              | Passwords, private keys, API secrets, passphrases, bearer and session tokens, refresh tokens, and signatures. | Always show `<redacted>`.                                                               |
-| Credential identity          | API keys, client IDs, usernames, and account identifiers used during authentication.                          | Redact by default. Use a masked API key only when operational correlation requires it.  |
-| Secret-bearing location      | Proxy URLs, RPC URLs, request paths, and query parameters that can contain credentials.                       | Redact the complete location from logs and errors.                                      |
-| Deliberately public identity | Wallet addresses, vault addresses, and public account names that the venue exposes publicly.                  | Show only when the type and adapter contract deliberately classify the value as public. |
+| 密钥材料 | 密码、私钥、API secret、passphrase、bearer 和 session token、refresh token、签名。 | 一律显示 `<redacted>`。 |
+| 凭证标识 | 鉴权过程中使用的 API key、client ID、用户名、账户标识符。 | 默认脱敏。仅当运维关联确有需要时才使用掩码后的 API key。 |
+| 含密钥的位置 | 可能包含凭证的代理 URL、RPC URL、请求路径、查询参数。 | 在日志和错误中脱敏整个位置。 |
+| 有意公开的标识 | 交易场所公开暴露的钱包地址、vault 地址、公共账户名。 | 仅当类型和适配器契约有意把该值归类为公开时才显示。 |
 
-An API key, username, or URL can be insufficient to authenticate by itself. Do not infer from this that it is
-safe to print. Configs often cross logging, exception, and Python representation boundaries where partial
-credential identity stays sensitive.
+单独的 API key、用户名或 URL 可能不足以通过鉴权，但不要由此推断它可以打印。配置经常跨越日志、异常和 Python
+表示边界，在这些边界上部分的凭证标识仍然敏感。
 
-#### Use the common secret types
+#### 使用通用密钥类型 {#use-the-common-secret-types}
 
-Use `nautilus_core::string::secret` and `zeroize` instead of defining adapter-local redaction or
-zeroization conventions.
+使用 `nautilus_core::string::secret` 和 `zeroize`，不要在适配器里另立脱敏或清零约定。
 
-| Mechanism                     | Use                                                                                                                                   |
+| 机制 | 用途 |
 | ----------------------------- | ------------------------------------------------------------------------------------------------------------------------------------- |
-| `SecretString`                | Own a string that must zeroize on drop and render as `<redacted>` with `Debug`.                                                       |
-| `REDACTED`                    | Replace an unconditional secret field in a custom `Debug` or `Display` implementation.                                                |
-| `redact_option`               | Preserve `Some` versus `None` while redacting an optional field in a custom `Debug`.                                                  |
-| `mask_api_key`                | Correlate an API key only through an explicit masked-identity method. Do not use it for secret material.                              |
-| `Zeroizing<T>`                | Bound the lifetime of an owned plaintext `String`, byte buffer, decoded key, canonical payload, or serialized authentication message. |
-| `Zeroize` and `ZeroizeOnDrop` | Clear secret-bearing fields in structs that cannot use `SecretString`, including byte arrays and signing types.                       |
-| `zeroize_json_value`          | Clear owned strings in a mutable JSON value after serializing secret-bearing fields.                                                  |
+| `SecretString` | 持有一个必须在 drop 时清零、`Debug` 渲染为 `<redacted>` 的字符串。 |
+| `REDACTED` | 在自定义 `Debug` 或 `Display` 实现中替换无条件脱敏的密钥字段。 |
+| `redact_option` | 在自定义 `Debug` 中脱敏可选字段，同时保留 `Some` 与 `None` 的区分。 |
+| `mask_api_key` | 只通过显式的掩码标识方法来关联 API key。不要用于密钥材料。 |
+| `Zeroizing<T>` | 限定持有的明文 `String`、字节缓冲、解码后的密钥、规范化载荷或序列化鉴权消息的生命周期。 |
+| `Zeroize` 和 `ZeroizeOnDrop` | 在无法使用 `SecretString` 的结构体里清零含密钥的字段，包括字节数组和签名类型。 |
+| `zeroize_json_value` | 序列化含密钥字段后，清掉可变 JSON 值中持有的字符串。 |
 
-#### Use `SecretString` safely
+#### 安全使用 `SecretString` {#use-secretstring-safely}
 
-- Treat serialization as plaintext. `SecretString` uses the underlying string for wire-format
-  compatibility, so never serialize a config, credential, or authentication model for diagnostics.
-- Do not use ordinary `SecretString` equality to verify attacker-controlled secrets. It is not constant-time.
-- Borrow plaintext through `expose_secret()` only at the signing, encoding, or transport boundary
-  that needs it.
-- Consume with `into_inner()` only to transfer ownership. If the receiving API requires `String`, create the
-  final copy at the call boundary. Do not keep that copy in adapter code.
-- If a function only reads the value, pass `&SecretString`. If the function keeps or consumes the value, pass
-  it by value.
-- Put secret-bearing fields in the authenticated wire model instead of creating a second model only
-  to change `Debug`. Derive `Serialize` and derive `Debug` when every sensitive field redacts.
-- Some credentials use byte arrays, signing keys, or other types that cannot store secret fields as
-  `SecretString`. For these credentials, write a custom `Debug`.
-- Avoid `Display` for secret-bearing types unless a caller requires it. Any implementation must
-  redact secret material.
+- 把序列化当作明文处理。`SecretString` 为兼容线路格式使用底层字符串，因此绝不要为了诊断序列化配置、凭证或
+  鉴权模型。
+- 不要用普通的 `SecretString` 相等比较来校验攻击者可控的密钥，它不是常数时间的。
+- 只在确实需要的签名、编码或传输边界处通过 `expose_secret()` 借用明文。
+- 只在转移所有权时用 `into_inner()` 消费。若接收方 API 要求 `String`，在调用边界处创建最终副本，不要在
+  适配器代码中保留该副本。
+- 函数只读取值时传 `&SecretString`；函数持有或消费值时按值传。
+- 把含密钥的字段放进已鉴权的线路模型，而不是仅为了改 `Debug` 再建第二个模型。每个敏感字段都脱敏时，同时
+  derive `Serialize` 和 `Debug`。
+- 有些凭证使用字节数组、签名密钥或其他无法把密钥字段存为 `SecretString` 的类型。这些凭证要写自定义 `Debug`。
+- 除非调用方要求，含密钥的类型避免实现 `Display`。任何实现都必须脱敏密钥材料。
 
-#### Resolve and share credentials
+#### 解析与共享凭证 {#resolve-and-share-credentials}
 
-- Define environment variable names once and select them from typed environment and product values.
-- Document the established environment variable names in the adapter's integration guide.
-- Register every adapter environment variable in `scripts/strip-adapter-env.bash`. `make pre-flight`
-  runs through that wrapper with all of them unset, so an unregistered variable can let a test pass
-  locally while depending on ambient credentials.
-- Resolve all fields as one credential set. Public clients may remain unauthenticated, but an
-  authenticated client rejects an incomplete or invalid set before sending a request.
-- Convert config and environment strings into zeroizing owners at the credential boundary. Do not
-  retain a non-zeroizing plaintext copy in adapter state after conversion.
+- 环境变量名只定义一次，由类型化的环境和产品值来选择。
+- 在适配器的集成指南中记录既定的环境变量名。
+- 在 `scripts/strip-adapter-env.bash` 中注册每个适配器环境变量。`make pre-flight` 会在这些变量全部未设置的
+  包装下运行；未注册的变量可能让测试在本地借助环境中的凭证通过。
+- 把所有字段作为一个凭证集解析。公共客户端可以保持未鉴权，但已鉴权客户端在发出请求前会拒绝不完整或无效的
+  凭证集。
+- 在凭证边界把配置和环境字符串转换为可清零的持有者。转换后不要在适配器状态中保留不可清零的明文副本。
 - Share credential storage across transports only when they use the same key material. Keep HTTP,
   WebSocket, and transaction signing methods separate when their canonical payloads differ.
 
@@ -540,217 +497,181 @@ zeroization conventions.
   request models.
 - Prefer borrowed slices and existing zeroizing owners over intermediate `String` and `Vec<u8>`
   copies.
-- Limit the guarantee to allocations the adapter owns. Serialization libraries, transports, TLS,
-  and the operating system may make copies the adapter cannot reach.
-- Keep plaintext lifetimes short. Do not promise process-wide or transport-wide erasure.
+- 保证范围限定在适配器自己持有的分配上。序列化库、传输层、TLS 以及操作系统都可能复制出适配器无法触及的
+  副本。
+- 明文的生命周期要短。不要承诺进程级或传输级的擦除。
 
-#### Redact diagnostics and transport errors
+#### 脱敏诊断信息与传输错误 {#redact-diagnostics-and-transport-errors}
 
-- Never include credentials, signatures, secret material, or secret-bearing URLs in errors or logs
-  at any level.
-- Log request metadata such as the method, field count, and byte lengths instead of credentials or
-  authentication payloads. Shared transports log metadata rather than payload contents.
-- Treat TRACE as developer-facing diagnostic output. Raw inbound payloads are allowed when their
-  schema cannot contain credential material.
-- Treat raw private-stream TRACE output as sensitive because it can disclose orders, balances,
-  positions, and account identity. Redact it before sharing.
-- Prefer metadata or a sanitized, bounded excerpt when either can diagnose the protocol.
-- Clear mutable source models after serialization when they own another plaintext copy.
-- Never log a raw authentication request or response, or any frame whose schema can contain secret
-  material.
+- 任何级别的错误和日志中都绝不包含凭证、签名、密钥材料或含密钥的 URL。
+- 记录方法、字段数、字节长度等请求元数据，而不是凭证或鉴权载荷。共享传输记录元数据而非载荷内容。
+- 把 TRACE 当作面向开发者的诊断输出。入站原始载荷只有在其 schema 不可能包含凭证材料时才允许记录。
+- 私有数据流的原始 TRACE 输出属于敏感内容，它可能暴露订单、余额、持仓和账户身份，分享前必须脱敏。
+- 元数据或经过清洗的有界摘录足以诊断协议时，优先使用它们。
+- 可变源模型在序列化后若仍持有另一份明文副本，将其清零。
+- 绝不记录原始鉴权请求或响应，也不记录 schema 可能含密钥材料的任何帧。
 
-| Surface                      | Required handling                                                                                                | Zeroization boundary                                                   |
+| 界面 | 必需的处理 | 清零边界 |
 | ---------------------------- | ---------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------- |
-| HTTP secret body             | Use `HttpClient::request_with_secret_body`.                                                                      | The client retains the zeroizing owner. Lower layers may copy it.      |
-| HTTP path or `HashMap` query | Use `HttpClient::request_with_url_redacted`.                                                                     | The URL is omitted from transport errors.                              |
-| HTTP typed query             | Use `HttpClient::request_with_params_url_redacted`.                                                              | The URL is omitted from transport errors.                              |
-| HTTP headers and proxy       | Create credential-bearing strings at the client boundary, avoid clones, and do not retain them in adapter state. | The shared client or transport may retain copies.                      |
-| WebSocket authentication     | Keep fields and serialized frames in `SecretString`. Create the final `String` immediately before `send_text`.   | The shared client has no secret-owner-preserving send method.          |
-| Unsupported combination      | Extend the common client instead of implementing adapter-local URL or error scrubbing.                           | The common API must define the resulting ownership and redaction rule. |
+| HTTP 密钥 body | 使用 `HttpClient::request_with_secret_body`。 | 客户端保留可清零的持有者，底层可能复制它。 |
+| HTTP 路径或 `HashMap` 查询 | 使用 `HttpClient::request_with_url_redacted`。 | 传输错误中省略该 URL。 |
+| HTTP 类型化查询 | 使用 `HttpClient::request_with_params_url_redacted`。 | 传输错误中省略该 URL。 |
+| HTTP 头与代理 | 在客户端边界创建含凭证的字符串，避免克隆，不在适配器状态中保留。 | 共享客户端或传输可能保留副本。 |
+| WebSocket 鉴权 | 字段和序列化帧保持为 `SecretString`，在 `send_text` 前一刻才创建最终 `String`。 | 共享客户端没有保留密钥所有者的发送方法。 |
+| 不支持的组合 | 扩展公共客户端，而不是在适配器里自搞 URL 或错误清洗。 | 公共 API 必须随之定义清楚归属与脱敏规则。 |
 
-:::warning Disable redirects for authenticated requests
+:::warning 鉴权请求禁用重定向
 
-Clients that send credentials or signed payloads must set `HttpRedirectPolicy::Reject`. Use an
-equivalent no-redirect policy with other HTTP transports so redirects cannot forward credentials
-or signed payloads to another destination.
+发送凭证或已签名载荷的客户端必须设置 `HttpRedirectPolicy::Reject`。使用其他 HTTP 传输时采用等价的禁重定向
+策略，防止重定向把凭证或已签名载荷转发到其他目的地。
 
 :::
 
-#### Verify credential handling
+#### 验证凭证处理 {#verify-credential-handling}
 
-Test the secret-handling contract as well as successful authentication:
+测试密钥处理契约，也测试鉴权成功路径：
 
-- Cover explicit values, environment fallback, incomplete credentials, and invalid credentials.
-- Assert that config, credential, request, response, and client `Debug` output omits the exact input
-  secrets. Test `Display` separately for every secret-bearing type that implements it.
-- Assert that Python `__repr__` and `__str__` omit credential identity and secret material. Test
-  presence checks and every deliberately exposed identity getter.
-- Assert that serialization and transport preserve the exact wire value where the venue requires
-  plaintext.
-- Force transport failures for credential-bearing URLs and assert that both `Display` and `Debug`
-  error output omit the URL, path secret, and query secret.
-- Use compile-time trait assertions for `Zeroize` or `ZeroizeOnDrop`, and test explicit clearing for
-  mutable request and response models.
-- Keep deterministic signature vectors so redaction and zeroization changes cannot alter signing
-  bytes, field order, or encoding.
+- 覆盖显式值、环境回退、不完整凭证和无效凭证。
+- 断言配置、凭证、请求、响应和客户端的 `Debug` 输出不含输入中的真实密钥。对每个实现 `Display` 的含密钥
+  类型单独测试 `Display`。
+- 断言 Python 的 `__repr__` 和 `__str__` 不含凭证标识和密钥材料。测试存在性检查和每个有意暴露的标识 getter。
+- 在交易场所要求明文之处，断言序列化和传输保持线路值的精确性。
+- 对含凭证的 URL 强制制造传输失败，断言 `Display` 和 `Debug` 的错误输出都不含 URL、路径密钥和查询密钥。
+- 用编译期 trait 断言检查 `Zeroize` 或 `ZeroizeOnDrop`，并对可变请求/响应模型测试显式清零。
+- 保留确定性的签名向量，使脱敏和清零改动无法改变签名字节、字段顺序或编码。
 
-### Symbols and instrument identity
+### 符号与金融工具标识 {#symbols-and-instrument-identity}
 
-Separate venue symbols from Nautilus `InstrumentId` values. A symbol module commonly owns:
+把交易场所符号与 Nautilus `InstrumentId` 分开。符号模块通常负责：
 
-- Parsing and formatting venue symbols.
-- Product or contract suffixes required for a unique Nautilus symbol.
-- Validation of venue and product identity.
-- Round-trip tests for supported forms and rejection tests for ambiguous forms.
+- 解析和格式化交易场所符号。
+- 为 Nautilus 符号唯一性所需的产品或合约后缀。
+- 校验交易场所与产品标识。
+- 对受支持形式做往返测试，对歧义形式做拒绝测试。
 
-Choose the mapping from the venue's identity scheme:
+按交易场所的标识方案选择映射：
 
-| Venue identity                                      | Nautilus representation                         | Example                                             |
+| 交易场所标识 | Nautilus 表示 | 示例 |
 | --------------------------------------------------- | ----------------------------------------------- | --------------------------------------------------- |
-| Native symbol distinguishes the product             | Preserve the symbol and add the venue.          | `BTC-USDT-SWAP` -> `BTC-USDT-SWAP.OKX`.             |
-| Raw symbol is reused across product families        | Add and validate a stable product suffix.       | Bybit linear `BTCUSDT` -> `BTCUSDT-LINEAR.BYBIT`.   |
-| Nautilus and the venue use different contract marks | Implement both directions at one boundary.      | Binance USD-M `BTCUSDT` -> `BTCUSDT-PERP.BINANCE`.  |
-| Transport casing differs from canonical identity    | Convert only when building the transport value. | Binance stream `BTCUSDT-PERP.BINANCE` -> `btcusdt`. |
+| 原生符号可区分产品 | 保留符号并加上交易场所。 | `BTC-USDT-SWAP` -> `BTC-USDT-SWAP.OKX`。 |
+| 原始符号跨产品族复用 | 添加并校验稳定的产品后缀。 | Bybit 线性 `BTCUSDT` -> `BTCUSDT-LINEAR.BYBIT`。 |
+| Nautilus 与交易场所合约标记不同 | 在一个边界实现双向转换。 | Binance USD-M `BTCUSDT` -> `BTCUSDT-PERP.BINANCE`。 |
+| 传输大小写与规范标识不同 | 只在构造传输值时转换。 | Binance 数据流 `BTCUSDT-PERP.BINANCE` -> `btcusdt`。 |
 
-The [`BybitSymbol`](https://github.com/nautechsystems/nautilus_trader/blob/develop/crates/adapters/bybit/src/common/symbol.rs) wrapper and
-[Binance symbol conversions](https://github.com/nautechsystems/nautilus_trader/blob/develop/crates/adapters/binance/src/common/symbol.rs) show the suffix
-and bidirectional conversion patterns. Treat them as examples, not a shared suffix scheme.
+[`BybitSymbol`](https://github.com/nautechsystems/nautilus_trader/blob/develop/crates/adapters/bybit/src/common/symbol.rs)
+包装器和
+[Binance 符号转换](https://github.com/nautechsystems/nautilus_trader/blob/develop/crates/adapters/binance/src/common/symbol.rs)
+展示了后缀与双向转换模式。把它们当示例，不是共享的后缀方案。
 
-Do not normalize distinct venue instruments to the same `InstrumentId`. Give test fixtures distinct
-symbols, precisions, currencies, and contract fields so swaps and omissions fail visibly.
+不要把不同的交易场所金融工具归一成同一个 `InstrumentId`。测试 fixture 使用互不相同的符号、精度、币种和合约
+字段，让交换和遗漏显而易见地失败。
 
-For every supported product family, test venue symbol -> `InstrumentId` -> venue symbol. Normalize
-case once at the identity boundary and preserve venue-significant case elsewhere. When the mapping
-requires a product marker, reject a missing or ambiguous marker before caching the instrument.
+对每个受支持的产品族，测试 交易场所符号 -> `InstrumentId` -> 交易场所符号。大小写归一只在标识边界做一次，
+其他位置保留交易场所有意义的size写。映射需要产品标记时，缺失或歧义的标记要在缓存金融工具之前被拒绝。
 
-Construct instruments from current venue definitions. Validate required identity and precision
-before caching or emission. Keep parsing functions deterministic and independent of live client
-state where practical.
+用当前的交易场所定义构造金融工具。缓存或发出之前校验必需的标识与精度。解析函数保持确定性，尽可能不依赖
+在线客户端状态。
 
-### Modeling venue payloads
+### 建模交易场所报文 {#modeling-venue-payloads}
 
-Model the wire format, not an imagined stable subset:
+建模真实线路格式，而不是想象中的稳定子集：
 
-- Use typed request and response structs for known fields.
-- Use Serde aliases or custom deserializers only when supported payloads require them.
-- Reject unknown values for closed sets whose meaning affects domain behavior.
-- Preserve or explicitly classify unknown values for open venue sets that may expand without a
-  protocol version change.
-- Keep raw models separate from Nautilus domain objects. Convert at one auditable boundary.
-- Pass required parsing context explicitly, including instrument precision, currencies, account
-  identity, and `ts_init`. Keep live client state outside parsers.
-- Treat missing, null, and empty values according to the venue schema. Do not collapse them into one
-  fallback when they carry different meanings.
-- Use the venue timestamp for `ts_event` when the payload supplies one. Assign `ts_init` from the adapter
-  clock when it receives or constructs the event. Use receipt time as event time only when the venue has no
-  authoritative timestamp. Test that fallback.
+- 已知字段用类型化的请求/响应结构体。
+- 只有受支持的交易场所报文确实需要时才用 Serde 别名或自定义反序列化器。
+- 对含义影响领域行为的封闭集合，未知值直接拒绝。
+- 对可能在不改协议版本的情况下扩充的交易场所开放集合，保留未知值或对其显式分类。
+- 原始模型与 Nautilus 领域对象保持分离，只在一个可审计的边界处转换。
+- 必需的解析上下文显式传入，包括金融工具精度、币种、账户标识和 `ts_init`。在线客户端状态不得进入解析器。
+- 按交易场所 schema 处理缺失、null 和空值。含义不同时，不要把它们坍缩成同一个回退。
+- 报文自带时间戳时，`ts_event` 使用交易场所时间戳；适配器接收或构造事件时用其时钟赋 `ts_init`。只有交易
+  场所没有权威时间戳时才用接收时间充当事件时间，并为该回退写测试。
 
-Avoid permissive fallbacks that silently turn a new venue value into an existing semantic value.
-Stable error handling is part of the parser contract.
+不要用宽容回退把新的交易场所值悄悄变成已有的语义值。稳定的错误处理是解析器契约的一部分。
 
-#### Numeric precision
+#### 数值精度 {#numeric-precision}
 
-Deserialize prices, quantities, money, fees, and other discrete values as `Decimal`. Construct domain values
-with `Price::from_decimal`, `Price::from_decimal_dp`, `Quantity::from_decimal`, `Quantity::from_decimal_dp`,
-`Money::from_decimal`, or `Money::zero`. Never route wire values through `f64`. See [domain numeric
-types](./rust.md#domain-numeric-types).
+价格、数量、金额、手续费等离散值一律反序列化为 `Decimal`。用 `Price::from_decimal`、`Price::from_decimal_dp`、
+`Quantity::from_decimal`、`Quantity::from_decimal_dp`、`Money::from_decimal` 或 `Money::zero` 构造领域值。
+绝不把线路值经过 `f64`。见[领域数值类型](./rust.md#domain-numeric-types)。
 
-Choose domain precision from the field contract, not incidental payload formatting:
+领域精度取自字段契约，而不是报文恰好怎么格式化：
 
-| Field contract                                     | `"25.000"` result       | Conversion                                                          |
+| 字段契约 | `"25.000"` 的结果 | 转换方式 |
 | -------------------------------------------------- | ----------------------- | ------------------------------------------------------------------- |
-| Venue-declared scale is meaningful                 | `25.000` at precision 3 | Use `Price::from_decimal` or `Quantity::from_decimal`.              |
-| Documented trailing zeros are non-semantic padding | `25` at precision 0     | Call `Decimal::normalize`, then use the scale-inferred constructor. |
-| Instrument or currency precision governs the value | `25.00` at precision 2  | Use `Price::from_decimal_dp` or `Quantity::from_decimal_dp`.        |
+| 交易场所声明的标度有意义 | 精度 3 的 `25.000` | 用 `Price::from_decimal` 或 `Quantity::from_decimal`。 |
+| 文档声明尾随零是无意义填充 | 精度 0 的 `25` | 先 `Decimal::normalize`，再用按标度推断的构造函数。 |
+| 金融工具或币种精度决定数值 | 精度 2 的 `25.00` | 用 `Price::from_decimal_dp` 或 `Quantity::from_decimal_dp`。 |
 
-Use instrument or currency precision for event and report values when available. A venue can send the same
-value as `"25"`, `"25.0"`, or `"25.000"`. Do not infer precision per payload unless the adapter defines and
-tests an explicit compatibility fallback. The declared-precision constructors apply banker's rounding when a
-value has excess non-zero digits. If the field contract requires exact representation, validate round-trip
-equality. During reconciliation, follow
-[instrument resolution](#instrument-resolution-during-reconciliation) when precision metadata is
-missing.
+有金融工具或币种精度时，事件和报告值就用它。同一数值交易场所可能发成 `"25"`、`"25.0"` 或 `"25.000"`。除非
+适配器定义并测试了显式的兼容回退，否则不要按报文逐个推断精度。声明精度的构造函数在数值有多余的非零位时
+采用银行家舍入。字段契约要求精确表示时，校验往返相等。对账期间精度元数据缺失时，遵循
+[对账期间的金融工具解析](#instrument-resolution-during-reconciliation)。
 
-#### Venue enum fallbacks
+#### 交易场所枚举回退 {#venue-enum-fallbacks}
 
-Venues extend wire enums without notice: new order states, order types, and category codes appear in
-production before clients update. Give each extensible venue enum a forward-compatible fallback variant with
-`#[serde(other)]`. Use `Unknown` for venue states. Use `Other` for open value sets, such as types and
-categories. Thus, one new value cannot fail deserialization of the message that carries it. Closed sets the
-adapter defines stay strict.
+交易场所会不打招呼地扩充线路枚举：新的订单状态、订单类型和类别码先出现在生产环境，客户端才更新。给每个可
+扩充的交易场所枚举配一个带 `#[serde(other)]` 的前向兼容回退变体。交易场所状态用 `Unknown`，类型、类别等开放
+值集用 `Other`。这样一个新值就不会毁掉承载它的消息的反序列化。适配器自己定义的封闭集合保持严格。
 
-The fallback changes where strictness lives, not whether it exists:
+回退改变的是严格性的位置，不是取消严格性：
 
-- Never panic on an unknown wire variant. The fallback keeps the connection and the sibling records in the
-  same payload alive.
-- Never map an unknown variant onto an existing domain value. Make the domain mapping fallible
-  (`TryFrom`) so the fallback variant is rejected explicitly at the mapping boundary.
-- Preserve safety-critical payload data even when a sibling classification is unmapped. If the order state or
-  order type is unknown, the adapter must still parse and emit the fill. Fill fields carry their own prices,
-  quantities, and fees.
-- Skip only the unmappable classification and log a warning with the venue identifiers (order ID, instrument)
-  needed to investigate. When the message carries no data worth preserving, fail the record explicitly instead
-  of inventing a status. Reconciliation heals the gap when the order reaches a mapped state. An unmapped value
-  fails the same way on the reconciliation path. Thus, treat the warning as the signal to add the mapping.
+- 遇到未知线路变体绝不 panic。回退保住了连接，也保住了同一载荷里的其他兄弟记录。
+- 绝不把未知变体映射到已有领域值。领域映射用可失败的 `TryFrom`，让回退变体在映射边界被显式拒绝。
+- 即使兄弟分类无法映射，也要保住与安全相关的载荷数据。订单状态或订单类型未知时，适配器仍须解析并发出成交。
+  成交字段自带价格、数量和手续费。
+- 只跳过无法映射的分类，并记录带交易场所标识（订单 ID、金融工具）的警告以便排查。消息里没有值得保留的数据时，
+  显式判定该记录失败，不要编造状态。订单到达已映射状态后由对账弥合缺口。未映射值在对账路径上同样失败。因此
+  把警告当作"该加映射了"的信号。
 
-#### Separate authority from projections
+#### 权威与投影分离 {#separate-authority-from-projections}
 
-An endpoint can return both authority evidence and data for a narrower read. The evidence establishes
-permission or authorizes state mutation. For such endpoints, use separate response models.
+一个端点可能同时返回权威证据和供更窄读取的数据。权威证据用于确立权限或授权状态变更。这类端点要用分离的
+响应模型。
 
-| Boundary                   | Purpose                                                            | Validation                                                                                          | Meaning of success                                                           |
+| 边界 | 目的 | 校验 | 成功的含义 |
 | -------------------------- | ------------------------------------------------------------------ | --------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------- |
-| **Authoritative response** | Establish permission or authorize state mutation.                  | Requires all authoritative fields. Rejects legacy conflicts and semantic duplicates before mapping. | The response can support the authority decision it models.                   |
-| **Narrow projection**      | Read a balance, health value, or metadata without using authority. | Decodes returned fields only. Its type cannot expose, grant, or infer omitted authority.            | Only the projected value. Omitted permission or account evidence is unknown. |
+| **权威响应** | 确立权限或授权状态变更。 | 要求全部权威字段。映射前拒绝遗留冲突和语义重复。 | 响应足以支撑它所建模的权威决策。 |
+| **窄投影** | 不使用权威地读取余额、健康值或元数据。 | 只解码返回的字段。其类型无法暴露、授予或推断被省略的权威。 | 只有投影值。被省略的权限或账户证据视为未知。 |
 
-Use the projection when malformed authority fields must not block the narrower read. Keep the
-authoritative model strict.
+权威字段畸形时不应阻塞更窄的读取，此时用投影。权威模型保持严格。
 
-### Client traits and factories (`data.rs`, `execution.rs`, `factories.rs`)
+### 客户端 trait 与工厂（`data.rs`、`execution.rs`、`factories.rs`） {#client-traits-and-factories-datars-executionrs-factoriesrs}
 
-The shared [`DataClient`](https://github.com/nautechsystems/nautilus_trader/blob/develop/crates/common/src/clients/data.rs),
-[`ExecutionClient`](https://github.com/nautechsystems/nautilus_trader/blob/develop/crates/common/src/clients/execution.rs), and
-[client factory](https://github.com/nautechsystems/nautilus_trader/blob/develop/crates/common/src/factories/client.rs) traits define the adapter boundary.
-Implement the supported methods and leave unsupported capabilities explicit in the integration
-guide.
+共享的 [`DataClient`](https://github.com/nautechsystems/nautilus_trader/blob/develop/crates/common/src/clients/data.rs)、
+[`ExecutionClient`](https://github.com/nautechsystems/nautilus_trader/blob/develop/crates/common/src/clients/execution.rs) 和
+[客户端工厂](https://github.com/nautechsystems/nautilus_trader/blob/develop/crates/common/src/factories/client.rs) trait 定义了适配器的边界。
+实现受支持的方法，把不支持的能力在集成指南中写明。
 
-The client traits use `#[async_trait(?Send)]`. Client objects are not intended to move across
-threads and may hold non-`Send` Python state. Move owned, `Send` inputs into explicit runtime tasks
-when asynchronous work must outlive a synchronous trait call.
+客户端 trait 使用 `#[async_trait(?Send)]`。客户端对象不打算跨线程移动，也可能持有非 `Send` 的 Python 状态。
+异步工作必须活过同步 trait 调用时，把持有的、`Send` 的输入移入显式 runtime 任务。
 
-#### Client naming and registration
+#### 客户端命名与注册 {#client-naming-and-registration}
 
-Name each client family symmetrically:
+客户端家族的命名要对称：
 
-- **Data**: `<Venue>DataClient`, `<Venue>DataClientConfig`, and `<Venue>DataClientFactory`.
-- **Execution**: `<Venue>ExecutionClient`, `<Venue>ExecutionClientConfig`, and
-  `<Venue>ExecutionClientFactory`.
+- **数据**：`<Venue>DataClient`、`<Venue>DataClientConfig`、`<Venue>DataClientFactory`。
+- **执行**：`<Venue>ExecutionClient`、`<Venue>ExecutionClientConfig`、`<Venue>ExecutionClientFactory`。
 
-Each factory consumes its corresponding client config directly. Do not add a separate factory config wrapper.
-The live node passes its `LiveNodeConfig.trader_id` to execution factories, while venue-specific values such
-as `account_id` belong on the execution client config.
+每个工厂直接消费对应的客户端配置，不要另加一层工厂配置包装。live node 把它的 `LiveNodeConfig.trader_id`
+传给执行工厂，而 `account_id` 等交易场所特有的值放在执行客户端配置上。
 
-Within a Python module, order client-family `add_class` registrations alphabetically by exported
-type name so the data and execution families remain grouped.
+在同一个 Python 模块内，客户端家族的 `add_class` 注册按导出类型名做字母序排列，让数据与执行两族保持成组。
 
-Do not prefix the ordinary client family with `Live`. A connected client is the default. Names such as
-`SandboxExecutionClient` and `DatabentoHistoricalClient` identify alternate behavior. Retain `Live` only when
-it distinguishes explicit runtime or protocol siblings. Runtime types such as `LiveNode`, `LiveClock`, and the
-`Live*EngineConfig` family retain the qualifier.
+普通客户端家族不要加 `Live` 前缀，连接态就是默认。`SandboxExecutionClient`、`DatabentoHistoricalClient`
+这类名字标识的是替代行为。只有当 `Live` 用于区分显式的 runtime 或协议兄弟时才保留。`LiveNode`、`LiveClock`
+和 `Live*EngineConfig` 这类 runtime 类型保留该限定词。
 
-Do not shorten `Execution` in public, project-owned PascalCase type names. Internal implementation
-types may retain established `Exec` names. Also keep `Exec` where the
-[general naming convention](./coding_standards.md#naming-conventions) allows it, including venue
-protocol terms such as `ExecType`. Name protocol-specific wire models after the venue concept, such
-as `HyperliquidExchangeAction`. Preserve established public names, and apply this convention to new
-APIs.
+公共的、项目自有的 PascalCase 类型名中不要把 `Execution` 缩写。内部实现类型可以沿用既有的 `Exec` 名字。
+[通用命名约定](./coding_standards.md#naming-conventions)允许的地方也保留 `Exec`，包括 `ExecType` 这类交易
+场所协议术语。协议特有的线路模型按交易场所概念命名，如 `HyperliquidExchangeAction`。已有的公共名称保持不变，
+本约定适用于新 API。
 
-#### Factory inputs and cache ownership
+#### 工厂输入与 cache 所有权 {#factory-inputs-and-cache-ownership}
 
-Factories receive a downcast `ClientConfig` and a read-only
-[`CacheView`](https://github.com/nautechsystems/nautilus_trader/blob/develop/crates/common/src/cache/mod.rs). Data factories also receive the shared clock.
-Use the view to resolve instruments and existing state. Engine cache writes stay in the engines:
-emit domain events and reports instead of mutating the engine cache from an adapter. A private
+工厂接收一个向下转型后的 `ClientConfig` 和只读的
+[`CacheView`](https://github.com/nautechsystems/nautilus_trader/blob/develop/crates/common/src/cache/mod.rs)。数据工厂还接收共享时钟。
+用该视图解析金融工具和已有状态。引擎 cache 的写入留在引擎里：适配器不要改动引擎 cache，而是发出领域事件和
+报告。私有
 protocol cache is valid when parsing, subscription replay, or response correlation needs it.
 
 ### Adapter-owned state

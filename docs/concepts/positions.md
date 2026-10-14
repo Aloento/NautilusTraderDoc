@@ -1,117 +1,110 @@
-# Positions
+# 持仓
 
-This guide explains how NautilusTrader creates and updates positions from order fills and calculates profit
-and loss (PnL). It also explains how NautilusTrader preserves closed cycles under `NETTING` order management
-system (OMS) configurations.
+本指南说明 NautilusTrader 如何由订单成交创建和更新持仓、如何计算盈亏（PnL），
+以及在 `NETTING` 订单管理系统（OMS）下如何保留已结束的周期。
 
-## Overview
+## 概览 {#overview}
 
-A position records exposure to an instrument during an open-close cycle. It aggregates the fills
-assigned to one position ID and tracks its quantity, average prices, realized PnL, commissions, and
-related identifiers. Use a market price with the position's methods to calculate unrealized PnL and
-notional value.
+持仓记录一个开-平周期内对某工具的敞口。它汇总分配到同一持仓 ID 的成交，
+跟踪数量、均价、已实现盈亏、手续费与相关标识。配合市场价调用持仓的方法，
+可计算未实现盈亏与名义价值。
 
-The execution engine creates positions when orders fill and tracks them from open to close. OMS configuration
-determines whether fills share a net position or stay in separate hedged positions.
+执行引擎在订单成交时创建持仓，并从开仓跟踪到平仓。OMS 配置决定成交
+是汇入一个净持仓，还是留在各自独立的对冲持仓中。
 
-## Position lifecycle
+## 持仓生命周期 {#position-lifecycle}
 
-### Creation
+### 创建 {#creation}
 
-The system opens a position on the first fill:
+首笔成交开出一个持仓：
 
-- **NETTING OMS**: Opens on the first fill for an instrument and strategy. The position uses the
-  deterministic ID `{instrument_id}-{strategy_id}`.
-- **HEDGING OMS**: Opens on first fill for a new `position_id` (multiple positions per instrument).
+- **NETTING OMS**：某工具与策略的首笔成交即开仓，持仓使用确定性 ID
+  `{instrument_id}-{strategy_id}`。
+- **HEDGING OMS**：新 `position_id` 的首笔成交开仓（同一工具可有多个持仓）。
 
-A position tracks:
+持仓记录：
 
-- Opening order and fill details.
-- Entry side (`BUY` or `SELL`).
-- Quantity and average entry price after applying the opening fill.
-- Timestamps for initialization and opening.
+- 开仓订单与成交明细。
+- 开仓方向（`BUY` 或 `SELL`）。
+- 计入开仓成交后的数量与平均开仓价。
+- 初始化与开仓时间戳。
 
 :::tip
-You can access positions through the Cache using `self.cache.position(position_id)` or
-`self.cache.positions(instrument_id=instrument_id)` from within your actors/strategies.
+在 actor/策略内可通过缓存访问持仓：`self.cache.position(position_id)` 或
+`self.cache.positions(instrument_id=instrument_id)`。
 :::
 
-### Updates
+### 更新 {#updates}
 
-As additional fills occur, the position:
+后续成交发生时，持仓会：
 
-- Aggregates quantities from buy and sell fills.
-- Recalculates average entry and exit prices.
-- Updates peak quantity for the current cycle.
-- Tracks the current cycle's order IDs and trade IDs.
-- Accumulates commissions by currency.
+- 汇总买卖成交的数量。
+- 重算平均开仓价与平仓价。
+- 更新当前周期的峰值数量。
+- 跟踪当前周期的订单 ID 与成交 ID。
+- 按币种累计手续费。
 
-### Closure
+### 平仓 {#closure}
 
-A position closes when the **net quantity becomes zero** (`FLAT`). At closure:
+**净数量归零**（`FLAT`）时持仓平仓。平仓时：
 
-- The closing order ID is recorded. A settlement at contract expiration leaves it empty.
-- Duration is calculated from open to close.
-- Final realized PnL is computed.
-- In either OMS type, when the position later reopens under the same ID, the engine snapshots
-  the closed state to preserve historical PnL (see [Position snapshotting](#position-snapshotting)).
+- 记录平仓订单 ID；到期结算产生的平仓该字段为空。
+- 计算从开仓到平仓的时长。
+- 计算最终已实现盈亏。
+- 无论哪种 OMS，该持仓日后以同一 ID 重新开仓时，引擎会先快照已平仓状态
+  以保留历史盈亏（见[持仓快照](#position-snapshotting)）。
 
-### Settlement at contract expiration
+### 到期结算 {#settlement-at-contract-expiration}
 
-In a live node, an `InstrumentClose` of type `CONTRACT_EXPIRED` settles binary option positions only on venues
-served by the node's execution clients. Under that condition, it settles each open position in that instrument
-at the close price (such as `1` for a winning outcome and `0` for a losing one). For each position, the
-execution engine:
+实时节点中，`CONTRACT_EXPIRED` 类型的 `InstrumentClose` 只在节点执行客户端
+所服务的场所上结算二元期权持仓。满足该条件时，它按收盘价结算该工具的每个
+未平仓持仓（获胜结果为 `1`，落败结果为 `0`）。对每个持仓，执行引擎：
 
-- Closes the current cycle at the close price without creating an order or fill.
-- Books realized PnL for the settled quantity. Fill quantities and commissions stay as filled, so opening fees
-  stay in realized PnL.
-- Emits one `PositionClosed` with no closing order ID.
+- 按收盘价结束当前周期，不创建订单或成交。
+- 为结算数量入账已实现盈亏。成交数量与手续费保持成交时的状态，
+  因此开仓手续费留在已实现盈亏中。
+- 发出不带平仓订单 ID 的一条 `PositionClosed`。
 
-The first close applied to an instrument is authoritative. A repeated or conflicting close, or a restart that
-restores the settled position, does not settle it again. After settlement, a fill or fill void for the
-instrument still updates its order but no longer changes positions. The engine logs a warning and emits no
-position event.
+对某工具应用的第一个收盘指令具有权威性。重复或冲突的收盘，或恢复了已结算
+持仓的重启，都不会再次结算。结算之后，该工具的成交或成交撤销仍会更新订单，
+但不再改变持仓；引擎记录一条警告，不发出持仓事件。
 
-Settlement does not redeem venue assets or change account balances. Venue account reports stay
-authoritative for cash, so an unredeemed payout counts toward account balances only once the venue
-reports the redeemed funds.
+结算不赎回场所资产，也不改变账户余额。现金以场所账户报告为准，
+未赎回的派息只有在场所报告赎回资金后才计入账户余额。
 
-Backtests and sandbox paper trading keep the simulated venue's expiration handling instead. The matching
-engine closes positions with expiration fills, and those fills credit the simulated account. The live node
-does not apply engine settlement on a venue whose execution client settles expiring contracts itself, as the
-sandbox client does.
+回测与沙箱模拟交易沿用模拟场所的到期处理：撮合引擎以到期成交平仓，
+这些成交为模拟账户入账。若场所的执行客户端自行结算到期合约（沙箱客户端
+即如此），实时节点不会对该场所应用引擎结算。
 
-## Order fill aggregation
+## 订单成交聚合 {#order-fill-aggregation}
 
-Positions aggregate order fills to maintain an accurate view of market exposure. The aggregation
-process handles both sides of trading activity:
+持仓聚合订单成交，以保持准确的市场敞口视图。聚合过程处理交易活动的两侧：
 
-### Buy fills
+### 买入成交 {#buy-fills}
 
-When a BUY order fills:
+BUY 订单成交时：
 
-- Increases long exposure or reduces short exposure.
-- Updates average entry price for opening trades.
-- Updates average exit price for closing trades.
-- Calculates realized PnL for any closed portion.
+- 增加多头敞口或减少空头敞口。
+- 开仓交易更新平均开仓价。
+- 平仓交易更新平均平仓价。
+- 对已平掉的部分计算已实现盈亏。
 
-### Sell fills
+### 卖出成交 {#sell-fills}
 
-When a SELL order fills:
+SELL 订单成交时：
 
-- Increases short exposure or reduces long exposure.
-- Updates average entry price for opening trades.
-- Updates average exit price for closing trades.
-- Calculates realized PnL for any closed portion.
+- 增加空头敞口或减少多头敞口。
+- 开仓交易更新平均开仓价。
+- 平仓交易更新平均平仓价。
+- 对已平掉的部分计算已实现盈亏。
 
-### Net position calculation
+### 净持仓计算 {#net-position-calculation}
 
-The position maintains a `signed_qty` field representing the net exposure:
+持仓维护 `signed_qty` 字段表示净敞口：
 
-- Positive values indicate `LONG` positions.
-- Negative values indicate `SHORT` positions.
-- Zero indicates a `FLAT` (closed) position.
+- 正值表示 `LONG` 持仓。
+- 负值表示 `SHORT` 持仓。
+- 零表示 `FLAT`（已平仓）持仓。
 
 ```python
 # Example: Position aggregation
@@ -125,171 +118,164 @@ signed_qty = -50  # Closes the LONG cycle and opens a SHORT cycle
 signed_qty = 0  # Position FLAT (closed)
 ```
 
-### Reversal accounting
+### 反手记账 {#reversal-accounting}
 
-An opposite-side fill larger than the open quantity closes the existing exposure and opens the
-residual in the other direction. The execution engine splits this fill into a close and a new
-opening, with closed-state retention governed by [Position snapshotting](#position-snapshotting).
+反向成交量超过现有持仓数量时，先平掉已有敞口，再以剩余数量朝另一方向开仓。
+执行引擎把这笔成交拆为平仓加新开仓，平仓状态的保留规则见
+[持仓快照](#position-snapshotting)。
 
-An unsplit reversal fill applied directly to one `Position` starts a new accounting episode for the residual
-exposure. The episode has these resets, including during fill-void replay:
+若不拆分、直接把反手成交应用于同一个 `Position`，剩余敞口会开启新的记账段落。
+该段落有这些重置（成交撤销重放时同样如此）：
 
-- `avg_px_open` becomes the reversal fill price.
-- `avg_px_close` becomes `None`, and `realized_return` becomes zero until a subsequent closing fill.
-- `buy_qty` and `sell_qty` restart with only the opening residual on the new entry side and zero on the other
-  side. Later close averages thus exclude volume from the previous direction.
+- `avg_px_open` 变为反手成交价。
+- `avg_px_close` 变为 `None`，`realized_return` 归零，直到后续出现平仓成交。
+- `buy_qty` 与 `sell_qty` 重新开始：新入场侧只计开仓剩余量，另一侧为零，
+  因此后续平仓均价不再包含前一方向的数量。
 
-**Only the closing portion** realizes PnL against the previous entry price. The object's `realized_pnl` and
-commission totals stay cumulative across this reversal, with the fill's commission counted once. The reset
-does not clear fill history, opening timestamps, or peak quantity. If the position instead reaches `FLAT` and
-a later fill reopens it, the full cycle resets, including realized PnL and commissions.
+**只有平仓部分**按前一入场价实现盈亏。对象的 `realized_pnl` 与手续费合计
+在反手中保持累计，成交的手续费只计一次。重置不清除成交历史、开仓时间戳
+或峰值数量。若持仓先到达 `FLAT` 再被后续成交重开，则整个周期完全重置，
+包括已实现盈亏与手续费。
 
-These episode resets apply to fill-driven reversals. A quantity adjustment that changes the position's side
-does not perform the same reset.
+这些段落重置只适用于成交驱动的反手。改变持仓方向的数量调整不做同样的重置。
 
-## Position adjustments
+## 持仓调整 {#position-adjustments}
 
-Position adjustments record quantity or PnL changes that occur outside normal order fills. The
-system represents these changes as `PositionAdjusted` events.
+持仓调整记录正常成交之外的数量或盈亏变化，系统以
+`PositionAdjusted` 事件表示。
 
-### Base-currency commissions
+### 基础币种手续费 {#base-currency-commissions}
 
-When trading spot currency pairs (for example, BTC/USDT) or FX spot, commissions paid in the base
-currency directly affect the net quantity received or delivered:
+交易现货货币对（如 BTC/USDT）或外汇现货时，以基础币种支付的手续费
+直接影响实收或实付数量：
 
-- **Opening fills**: Commission is deducted from the traded quantity. A buy of 1.0 BTC with
-  0.001 BTC commission results in a net long position of 0.999 BTC.
-- **Closing fills**: Commission is applied to `signed_qty` because it affects actual inventory. A sale of a
-  0.999 BTC LONG position with 0.000999 BTC commission leaves you SHORT 0.000999 BTC, not FLAT. You gave up
-  0.999999 BTC total.
-- **Flips**: Commission affects the final position size on both sides of the flip.
+- **开仓成交**：手续费从成交数量中扣除。买 1.0 BTC、手续费 0.001 BTC，
+  净多头持仓为 0.999 BTC。
+- **平仓成交**：手续费作用于 `signed_qty`，因为它影响实际库存。卖出
+  0.999 BTC 的多头持仓、手续费 0.000999 BTC，结果不是 FLAT，而是空头
+  0.000999 BTC——你总共交出了 0.999999 BTC。
+- **反手**：手续费影响反手两侧的最终持仓规模。
 
 :::note
-Base-currency commissions only apply to spot currency pairs and FX spot instruments where the
-commission currency matches `instrument.base_currency`. For other instruments, commissions are
-tracked separately and do not affect position quantity.
+基础币种手续费只适用于手续费币种与 `instrument.base_currency` 相同的
+现货货币对与外汇现货工具。其他工具的手续费单独跟踪，不影响持仓数量。
 :::
 
-### Funding payments
+### 资金费支付 {#funding-payments}
 
-Funding adjustments track periodic payments for perpetual futures without affecting position
-quantity. They use `quantity_change = None` and can include a PnL change.
+资金费调整跟踪永续期货的周期性支付，不影响持仓数量。
+其 `quantity_change = None`，可包含盈亏变化。
 
-### Adjustment tracking
+### 调整跟踪 {#adjustment-tracking}
 
-The position exposes its retained adjustments:
+持仓暴露其保留的调整记录：
 
-- `position.adjustments()` returns the list of all `PositionAdjusted` events.
-- Each adjustment includes its type (`COMMISSION` or `FUNDING`), quantity or PnL change, reason,
-  event ID, and timestamps.
-- The current adjustment history is cleared when a closed position reopens.
-- After `purge_events_for_order()`, a position with fills regenerates commission adjustments from the
-  surviving fills and reapplies non-commission adjustments. With no fills, the position becomes an empty
-  `FLAT` shell and clears its adjustment history.
+- `position.adjustments()` 返回全部 `PositionAdjusted` 事件的列表。
+- 每条调整包含其类型（`COMMISSION` 或 `FUNDING`）、数量或盈亏变化、
+  原因、事件 ID 与时间戳。
+- 已平仓持仓重新开仓时，当前调整历史被清空。
+- `purge_events_for_order()` 之后，有成交的持仓会从幸存成交重新生成手续费
+  调整，并重新应用非手续费调整。没有成交时，持仓变为空的 `FLAT` 外壳，
+  清空调整历史。
 
-## OMS types and position management
+## OMS 类型与持仓管理 {#oms-types-and-position-management}
 
-NautilusTrader supports two position management modes. A strategy configured with
-`OmsType.UNSPECIFIED` uses the owning execution client's OMS type. For ownership resolution and position ID rules,
-see the [Execution guide](./execution/index.md#order-management-system-oms).
+NautilusTrader 支持两种持仓管理模式。配置为
+`OmsType.UNSPECIFIED` 的策略使用其所属执行客户端的 OMS 类型。
+归属解析与持仓 ID 规则见[执行指南](./execution/index.md#order-management-system-oms)。
 
-### `NETTING`
+### `NETTING` {#netting}
 
-In `NETTING` mode, fills for each instrument and strategy are aggregated into a single position:
+`NETTING` 模式下，每个工具与策略的成交聚合为单一持仓：
 
-- One position per instrument and strategy.
-- All fills contribute to the same position.
-- A fill that crosses zero closes the current cycle and opens a new cycle on the opposite side.
-- Historical snapshots preserve closed position states.
+- 每个工具与策略一个持仓。
+- 所有成交汇入同一持仓。
+- 穿越零位的成交结束当前周期，并在反方向开启新周期。
+- 历史快照保留已平仓状态。
 
-### `HEDGING`
+### `HEDGING` {#hedging}
 
-In `HEDGING` mode, multiple positions can exist for the same instrument:
+`HEDGING` 模式下，同一工具可有多个持仓：
 
-- Multiple simultaneous `LONG` and `SHORT` positions.
-- Each position has a unique position ID.
-- Positions are tracked independently.
-- No automatic netting across positions.
-- A fill with a new position ID creates a separate position. If a later fill reuses a closed
-  position ID, the engine archives the closed cycle before replacing the cached state.
-- A virtual position flip creates a new ID and keeps the original closed position in the cache. Thus, that
-  path does not need a closed-cycle snapshot.
+- 可同时持有多个 `LONG` 与 `SHORT` 持仓。
+- 每个持仓有唯一持仓 ID。
+- 持仓独立跟踪。
+- 持仓之间不自动轧差。
+- 带新持仓 ID 的成交创建独立持仓。若后续成交复用了一个已平仓的持仓 ID，
+  引擎在替换缓存状态前先归档已平仓周期。
+- 虚拟持仓反手会创建新 ID 并在缓存中保留原已平仓持仓，
+  因此该路径不需要已平仓周期快照。
 
-After a virtual flip, later fills for the same order follow the destination position even if they carry the
-original position ID. The engine derives the destination from retained order and position history, including
-after cache recovery and fill-void corrections. It rejects fills when that history is incomplete or ambiguous.
+虚拟反手后，同一订单的后续成交即使携带原持仓 ID，也归入目标持仓。
+引擎从保留的订单与持仓历史推导目标，包括缓存恢复与成交撤销修正之后。
+历史不完整或有歧义时，引擎拒绝这些成交。
 
-Virtual `HEDGING` positions always keep replay history across reopens, even when
-`carry_replay_events_on_reopen=False`, to preserve this routing when a position ID is reused.
+即使设置 `carry_replay_events_on_reopen=False`，虚拟 `HEDGING` 持仓也总在
+重开时保留重放历史，以保证持仓 ID 被复用时上述路由仍然成立。
 
 :::warning
-`HEDGING` can increase margin requirements when a venue maintains long and short positions
-independently. A venue with a `NETTING` OMS exposes only its net position, even when NautilusTrader
-tracks multiple virtual positions. Check the venue's position mode and margin rules.
+场所独立维护多空持仓时，`HEDGING` 可能提高保证金要求。
+`NETTING` OMS 的场所只暴露其净持仓，即便 NautilusTrader 在本地
+跟踪多个虚拟持仓。请核对场所的持仓模式与保证金规则。
 :::
 
-### Strategy vs venue OMS
+### 策略 OMS 与场所 OMS {#strategy-vs-venue-oms}
 
-Strategy and venue OMS types can differ:
+策略与场所的 OMS 类型可以不同：
 
-| Strategy OMS | Venue OMS | Result                                                              |
+| 策略 OMS | 场所 OMS | 结果                                                              |
 | ------------ | --------- | ------------------------------------------------------------------- |
-| `NETTING`    | `NETTING` | One position per instrument and strategy.                           |
-| `HEDGING`    | `HEDGING` | Multiple positions per instrument and strategy.                     |
-| `NETTING`    | `HEDGING` | One virtual position across the venue positions.                    |
-| `HEDGING`    | `NETTING` | Multiple virtual positions against the venue's single net position. |
+| `NETTING`    | `NETTING` | 每个工具与策略一个持仓。                           |
+| `HEDGING`    | `HEDGING` | 每个工具与策略多个持仓。                     |
+| `NETTING`    | `HEDGING` | 跨场所持仓的一个虚拟持仓。                    |
+| `HEDGING`    | `NETTING` | 对应场所单一净持仓的多个虚拟持仓。 |
 
 :::tip
-Align the strategy and venue OMS types unless the strategy requires virtual positions. See the
-integration guide for the venue's position-mode configuration.
+除非策略需要虚拟持仓，否则让策略与场所的 OMS 类型保持一致。
+场所的持仓模式配置见其集成指南。
 :::
 
-## Position snapshotting
+## 持仓快照 {#position-snapshotting}
 
-Position snapshotting preserves closed cycles for PnL tracking and reporting when a later fill
-reopens a closed position.
+持仓快照在后续成交重开已平仓持仓时，保留已结束周期用于盈亏跟踪与报告。
 
-### Why snapshotting matters
+### 为什么需要快照 {#why-snapshotting-matters}
 
-When a position closes (becomes `FLAT`) and then reopens under the same ID with a new trade, its object
-resets. This reset tracks the new exposure. Without snapshotting, the historical realized PnL from the
-previous position cycle would be lost.
+持仓平仓（`FLAT`）后以同一 ID 因新交易重开时，其对象会重置以跟踪新的敞口。
+没有快照，上一周期的历史已实现盈亏就会丢失。
 
-### How it works
+### 工作机制 {#how-it-works}
 
-When a fill reopens a closed position under the same ID, the execution engine archives the closed
-state before opening the next cycle. This applies to both `NETTING` and `HEDGING` OMS.
-A `HEDGING` flip using a non-virtual ID follows a separate path: it reuses the ID without
-archiving the closed cycle.
+成交以同一 ID 重开已平仓持仓时，执行引擎先归档已平仓状态，再开启下一周期。
+这对 `NETTING` 与 `HEDGING` OMS 均适用。使用非虚拟 ID 的
+`HEDGING` 反手走另一条路径：直接复用 ID，不归档已平仓周期。
 
-The snapshot preserves:
+快照保留：
 
-- Final quantities and prices.
-- Realized PnL.
-- All fill events.
-- Commission totals.
+- 最终数量与价格。
+- 已实现盈亏。
+- 全部成交事件。
+- 手续费合计。
 
-The cache stores snapshots by position ID. The active cache entry then represents the new cycle, while
-previous snapshots stay accessible. The Portfolio includes their realized PnL in instrument totals.
+缓存按持仓 ID 存储快照。活动缓存条目表示新周期，此前的快照仍可访问。
+Portfolio 在工具合计中计入它们的已实现盈亏。
 
-A fill void that corrects a fill from an earlier cycle is the one exception. The correction moves the cycle
-boundaries the stored snapshots describe. Thus, the engine replaces them with the cycles the corrected history
-actually closes, keeping each counted once. See
-[Position replay across NETTING cycles](./execution/index.md#position-replay-across-netting-cycles).
+唯一的例外是修正早期周期成交的成交撤销：修正会移动已存快照描述的周期边界，
+因此引擎用修正后历史实际结束的周期替换它们，保证每段只计一次。见
+[NETTING 周期跨度的持仓重放](./execution/index.md#position-replay-across-netting-cycles)。
 
 :::note
-This closed-cycle archive differs from optional position state snapshots:
+这种已平仓周期归档不同于可选的持仓状态快照：
 
-- `snapshot_positions=True` publishes state when a position opens, changes, or closes.
-- `snapshot_positions_interval_secs` periodically publishes all open positions.
+- `snapshot_positions=True` 在持仓开仓、变化或平仓时发布状态。
+- `snapshot_positions_interval_secs` 周期性发布所有未平仓持仓。
 
-A cache with a Redis or Postgres backing also persists these snapshots. Without cache backing, both paths
-publish snapshots on the in-process message bus without persisting them. See
-[`LiveExecutionEngineConfig`](https://nautilustrader.io/docs/python-api-latest/live.html#nautilus_trader.live.LiveExecutionEngineConfig)
-for these settings.
+有 Redis 或 Postgres 支撑的缓存还会持久化这些快照。没有缓存支撑时，
+两条路径只在进程内消息总线上发布快照而不持久化。这些设置见
+[`LiveExecutionEngineConfig`](https://nautilustrader.io/docs/python-api-latest/live.html#nautilus_trader.live.LiveExecutionEngineConfig)。
 :::
 
-### Example scenario
+### 示例场景 {#example-scenario}
 
 ```text
 # NETTING OMS Example
@@ -306,15 +292,15 @@ BUY 50 units at $52    # Position closes, PnL = $100
 # Total realized PnL = $500 + $100 = $600 (from snapshots)
 ```
 
-## PnL calculations
+## 盈亏计算 {#pnl-calculations}
 
-Position PnL calculations account for instrument specifications and market conventions.
+持仓的盈亏计算考虑工具规格与市场惯例。
 
-### Realized PnL
+### 已实现盈亏 {#realized-pnl}
 
-The price component of realized PnL is calculated when fills partially or fully close a position,
-or when a [settlement at contract expiration](#settlement-at-contract-expiration) closes it.
-Commissions in the position's cost currency affect realized PnL as each fill arrives.
+已实现盈亏的价格部分在成交部分或全部平仓时计算，或在
+[到期结算](#settlement-at-contract-expiration)平仓时计算。
+持仓成本币种的手续费随每笔成交影响已实现盈亏。
 
 ```python
 # For standard instruments
@@ -326,14 +312,13 @@ Commissions in the position's cost currency affect realized PnL as each fill arr
 # SHORT: realized_pnl = closed_quantity * multiplier * (1/exit_price - 1/entry_price)
 ```
 
-The position side selects the formula. Premium-based inverse instruments (such as coin-settled options) quote
-the premium in the base currency. Thus, they use the standard formula and report PnL and notional value in the
-base currency.
+持仓方向决定公式。期权费计价的反向工具（如币本位期权）的期权费以基础币种报价，
+因此使用标准公式，盈亏与名义价值均以基础币种报告。
 
-### Unrealized PnL
+### 未实现盈亏 {#unrealized-pnl}
 
-`unrealized_pnl()` calculates PnL for an open position from the supplied `price`. You can pass a
-bid, ask, mid, last, or mark price:
+`unrealized_pnl()` 用传入的 `price` 为未平仓持仓计算盈亏，
+可传买价、卖价、中间价、最新价或 mark 价：
 
 ```python
 position.unrealized_pnl(last_price)  # Using last traded price
@@ -341,34 +326,34 @@ position.unrealized_pnl(bid_price)  # Conservative for LONG positions
 position.unrealized_pnl(ask_price)  # Conservative for SHORT positions
 ```
 
-For a `FLAT` position, it returns `Money(0, cost_currency)` regardless of the supplied price.
+`FLAT` 持仓无论传入什么价格都返回 `Money(0, cost_currency)`。
 
-### Total PnL
+### 总盈亏 {#total-pnl}
 
-`total_pnl()` combines the realized and unrealized components:
+`total_pnl()` 合并已实现与未实现两部分：
 
 ```python
 total_pnl = position.total_pnl(current_price)
 # Returns realized_pnl + unrealized_pnl
 ```
 
-### Currency considerations
+### 币种要点 {#currency-considerations}
 
-- PnL is calculated in the instrument's cost currency: quote for linear contracts, base for
-  inverse contracts, and settlement for quanto contracts.
-- For Forex, the cost currency is typically the quote currency.
-- Portfolio aggregates realized PnL per instrument in cost currency.
-- Multi-currency totals require conversion outside the Position class.
+- 盈亏以工具的成本币种计算：线性合约为计价币种，反向合约为基础币种，
+  quanto 合约为结算币种。
+- 外汇的成本币种通常是计价币种。
+- Portfolio 按工具以成本币种汇总已实现盈亏。
+- 多币种合计需要在 Position 类之外完成换算。
 
-## Commissions and costs
+## 手续费与成本 {#commissions-and-costs}
 
-Positions track fill commissions:
+持仓跟踪成交手续费：
 
-- Commissions are accumulated by currency.
-- Each fill's commission is added to the running total.
-- Multiple commission currencies are supported.
-- Realized PnL includes commissions only when denominated in the position's cost currency.
-- Other commissions are tracked separately and may require conversion.
+- 手续费按币种累计。
+- 每笔成交的手续费加入运行合计。
+- 支持多种手续费币种。
+- 已实现盈亏只在手续费与持仓成本币种一致时才将其计入。
+- 其他币种的手续费单独跟踪，可能需要换算。
 
 ```python
 commissions = position.commissions()
@@ -379,165 +364,161 @@ notional = position.notional_value(current_price)
 ```
 
 :::warning
-In Python, `notional_value()` raises `ValueError` under these conditions:
+Python 中，`notional_value()` 在下列条件下抛出 `ValueError`：
 
-- An inverse position lacks a base currency.
-- The supplied price is not positive for a non-premium inverse position.
-- The result cannot be represented as `Money`.
+- 反向持仓没有基础币种。
+- 非期权费计价的反向持仓传入的价格不为正。
+- 结果无法表示为 `Money`。
 
-Rust callers can use `try_notional_value()` to handle these calculation errors. `notional_value()` panics if
-the calculation fails.
+Rust 调用方可以用 `try_notional_value()` 处理这些计算错误；
+`notional_value()` 在计算失败时 panic。
 :::
 
-## Position properties and state
+## 持仓属性与状态 {#position-properties-and-state}
 
-### Identifiers
+### 标识 {#identifiers}
 
-- `id`: Unique position identifier.
-- `instrument_id`: The traded instrument.
-- `account_id`: Account where position is held.
-- `trader_id`: The trader who owns the position.
-- `strategy_id`: The strategy managing the position.
-- `opening_order_id`: Client order ID that opened the position.
-- `closing_order_id`: Client order ID that closed the position, if a fill closed it.
+- `id`：持仓唯一标识。
+- `instrument_id`：交易的工具。
+- `account_id`：持有该持仓的账户。
+- `trader_id`：持仓所属的 trader。
+- `strategy_id`：管理该持仓的策略。
+- `opening_order_id`：开仓的客户端订单 ID。
+- `closing_order_id`：由成交平仓时的平仓客户端订单 ID。
 
-### Position state
+### 持仓状态 {#position-state}
 
-- `side`: Current position side (`LONG`, `SHORT`, or `FLAT`).
-- `entry`: Opening side for the current cycle (`BUY` for `LONG`, `SELL` for `SHORT`). Updates when
-  the position reverses direction.
-- `quantity`: Current absolute position size.
-- `signed_qty`: Signed position size (positive for `LONG`, negative for `SHORT`).
-- `peak_qty`: Maximum quantity reached during the current open-close cycle.
-- `is_open`: Whether position is open.
-- `is_closed`: Whether position is closed (`FLAT`).
-- `is_long`: Whether position side is `LONG`.
-- `is_short`: Whether position side is `SHORT`.
+- `side`：当前持仓方向（`LONG`、`SHORT` 或 `FLAT`）。
+- `entry`：当前周期的开仓方向（`LONG` 对应 `BUY`，`SHORT` 对应 `SELL`），
+  持仓反手时更新。
+- `quantity`：当前持仓绝对规模。
+- `signed_qty`：带符号持仓规模（`LONG` 为正，`SHORT` 为负）。
+- `peak_qty`：当前开-平周期中达到的最大数量。
+- `is_open`：是否未平仓。
+- `is_closed`：是否已平仓（`FLAT`）。
+- `is_long`：方向是否为 `LONG`。
+- `is_short`：方向是否为 `SHORT`。
 
-### Pricing and valuation
+### 价格与估值 {#pricing-and-valuation}
 
-- `avg_px_open`: Average entry price.
-- `avg_px_close`: Average exit price when closing.
-- `realized_pnl`: Realized profit/loss.
-- `realized_return`: Realized return as decimal (for example, 0.05 for 5%).
-- `quote_currency`: Quote currency of the instrument.
-- `base_currency`: Base currency if applicable.
-- `settlement_currency`: Currency for PnL settlement.
+- `avg_px_open`：平均开仓价。
+- `avg_px_close`：平仓时的平均平仓价。
+- `realized_pnl`：已实现盈亏。
+- `realized_return`：已实现收益率的小数形式（如 0.05 表示 5%）。
+- `quote_currency`：工具的计价币种。
+- `base_currency`：基础币种（如适用）。
+- `settlement_currency`：盈亏结算币种。
 
-See [Reversal accounting](#reversal-accounting) for how price averages and returns reset while realized PnL
-stays cumulative when an unsplit fill reverses one position.
+未拆分成交反转单一持仓时，均价与收益率如何重置而已实现盈亏保持累计，
+见[反手记账](#reversal-accounting)。
 
-### Instrument specifications
+### 工具规格 {#instrument-specifications}
 
-- `multiplier`: Contract multiplier.
-- `price_precision`: Decimal precision for prices.
-- `size_precision`: Decimal precision for quantities.
-- `is_inverse`: Whether instrument is inverse.
+- `multiplier`：合约乘数。
+- `price_precision`：价格小数精度。
+- `size_precision`：数量小数精度。
+- `is_inverse`：工具是否为反向类型。
 
-### Timestamps
+### 时间戳 {#timestamps}
 
-- `ts_init`: When position was initialized.
-- `ts_opened`: When position was opened.
-- `ts_last`: Last update timestamp.
-- `ts_closed`: When the position was closed, if closed.
-- `duration_ns`: Duration from open to close in nanoseconds, or zero while open.
+- `ts_init`：持仓初始化时间。
+- `ts_opened`：开仓时间。
+- `ts_last`：最后更新时间戳。
+- `ts_closed`：平仓时间（若已平仓）。
+- `duration_ns`：开仓到平仓的时长（纳秒），未平仓时为零。
 
-### Associated data
+### 关联数据 {#associated-data}
 
-- `symbol`: The instrument's ticker symbol.
-- `venue`: The trading venue.
-- `client_order_ids`: Unique client order IDs for retained fills in the current cycle.
-- `venue_order_ids`: Unique venue order IDs for retained fills in the current cycle.
-- `trade_ids`: Unique trade IDs for retained fills in the current cycle.
-- `events`: Retained order fill events in the current cycle.
-- `adjustments`: Retained position adjustments in the current cycle.
-- `event_count`: Number of retained fill events in the current cycle.
-- `last_event`: Most recently retained fill event.
-- `last_trade_id`: Trade ID of the most recently retained fill.
+- `symbol`：工具的代码。
+- `venue`：交易场所。
+- `client_order_ids`：当前周期保留成交的去重客户端订单 ID。
+- `venue_order_ids`：当前周期保留成交的去重场所订单 ID。
+- `trade_ids`：当前周期保留成交的去重成交 ID。
+- `events`：当前周期保留的订单成交事件。
+- `adjustments`：当前周期保留的持仓调整。
+- `event_count`：当前周期保留的成交事件数。
+- `last_event`：最近保留的成交事件。
+- `last_trade_id`：最近保留成交的成交 ID。
 
 :::info
-For complete type information and detailed property documentation, see the Position
-[API Reference](https://nautilustrader.io/docs/python-api-latest/model/position.html#nautilus_trader.model.Position).
+完整类型信息与详细属性文档见 Position
+[API Reference](https://nautilustrader.io/docs/python-api-latest/model/position.html#nautilus_trader.model.Position)。
 :::
 
-## Events and tracking
+## 事件与跟踪 {#events-and-tracking}
 
-Each `Position` object records the fills and adjustments for its current open-close cycle:
+每个 `Position` 对象记录其当前开-平周期的成交与调整：
 
-- Fill events stay in application order.
-- Client order, venue order, and trade ID accessors return sorted, unique values.
-- `event_count` reports the number of retained fill events.
-- Closed `NETTING` cycles keep their event history in the cache snapshots described above.
+- 成交事件保持应用顺序。
+- 客户端订单、场所订单与成交 ID 访问器返回排序去重的值。
+- `event_count` 报告保留的成交事件数。
+- 已平仓的 `NETTING` 周期在缓存快照中保留其事件历史，如上文所述。
 
-This data supports:
+这些数据支持：
 
-- Detailed position analysis.
-- Trade reconciliation.
-- Performance attribution.
-- Audit trails.
+- 持仓细粒度分析。
+- 交易对账。
+- 绩效归因。
+- 审计线索。
 
 :::tip
-Use `position.events()` to access the current cycle's retained fills for reconciliation.
-The `position.trade_ids()` result helps match against broker statements.
-See the [Execution guide](./execution/index.md) for reconciliation best practices.
+用 `position.events()` 访问当前周期保留的成交进行对账。
+`position.trade_ids()` 的结果便于与券商账单核对。
+对账最佳实践见[执行指南](./execution/index.md)。
 :::
 
-## Numerical precision
+## 数值精度 {#numerical-precision}
 
-`Position` uses `f64` for signed quantity, average prices, realized returns, and PnL intermediates. `Price`,
-`Quantity`, and `Money` keep their fixed-point representations at the API boundary, but conversions between
-these types and `f64` can introduce rounding.
+`Position` 对带符号数量、均价、已实现收益率与盈亏中间值使用 `f64`。
+`Price`、`Quantity`、`Money` 在 API 边界保持定点数表示，但这些类型与
+`f64` 之间的换算可能引入舍入。
 
-`f64` represents each integer exactly only through `2^53`. Above that boundary, conversion can lose low-order
-bits. It provides roughly 15 to 16 significant decimal digits rather than a fixed number of exact decimal
-places.
+`f64` 只对 `2^53` 以内的整数精确表示，超出后换算会丢失低位。它提供约
+15 到 16 位有效十进制数字，而不是固定位数的小数。
 
-The design avoids the higher computational cost of arbitrary-precision arithmetic. The
-average-price calculation also avoids multiplying raw fixed-point values because those products can
-overflow their integer representation. Average prices reuse the prior `f64` average, and realized
-PnL is converted between `Money` and `f64` as fills accumulate. The resulting precision depends on
-the values, settlement-currency precision, and sequence of fills.
+这一设计避免了任意精度算术的更高计算开销。均价计算也避免直接相乘原始
+定点值，因为那些乘积可能溢出其整数表示。均价复用先前的 `f64` 平均值，
+已实现盈亏在成交累积过程中于 `Money` 与 `f64` 之间换算。最终精度取决于
+数值、结算币种精度与成交序列。
 
-Numerical limits affect quantity, inverse PnL, and high-precision fills:
+数值限制影响数量、反向盈亏与高精度成交：
 
-- **Quantity**: `quantity` is derived from `signed_qty` at the instrument's `size_precision`. If that
-  conversion rounds a residual quantity to zero, the position becomes `FLAT` and normalizes `signed_qty` to
-  zero.
-- **Inverse PnL**: calculations for non-premium instruments reject nonpositive open or close prices and
-  positive prices below `1e-15`.
-- **DeFi precision**: with the `defi` feature, conversion of a `Price` or `Quantity` with more than 16 decimal
-  places to `f64` panics. Thus, `Position` does not support 17- or 18-decimal fill values.
+- **数量**：`quantity` 由 `signed_qty` 按工具的 `size_precision` 派生。
+  若该换算把残余数量舍入为零，持仓变为 `FLAT`，并把 `signed_qty` 归一为零。
+- **反向盈亏**：非期权费计价工具的计算拒绝非正的开仓/平仓价，
+  以及小于 `1e-15` 的正价。
+- **DeFi 精度**：启用 `defi` feature 时，把超过 16 位小数的 `Price` 或
+  `Quantity` 转换为 `f64` 会 panic，因此 `Position` 不支持
+  17 或 18 位小数的成交值。
 
-Tests in `crates/model/src/position.rs` cover a `0.01` USD commission, nine-decimal price inputs, 100
-sequential fills, prices from `0.00001` to `99999.99999`, and same-price round trips. These cases do
-not establish a universal precision bound.
+`crates/model/src/position.rs` 中的测试覆盖 0.01 USD 手续费、九位小数价格输入、
+100 笔连续成交、`0.00001` 到 `99999.99999` 的价格以及同价往返。
+这些用例不构成通用的精度界限。
 
 :::warning
-For exact decimal arithmetic in regulatory reporting or audit records, perform a separate decimal calculation
-from the original fills and adjustments. Keep that calculation. Converting `Position` float outputs back to
-decimal, including through `signed_decimal_qty()`, cannot restore discarded precision. `Position` does not
-provide an exact-decimal guarantee. Validate the instruments, currencies, amount ranges, and fill sequences
-used by the application.
+监管报告或审计记录需要精确十进制算术时，请从原始成交与调整另行做一次
+十进制计算并保留该结果。把 `Position` 的浮点输出转回十进制（包括通过
+`signed_decimal_qty()`）无法恢复已丢弃的精度。`Position`
+不提供精确十进制的保证。请针对应用使用的工具、币种、金额范围与成交序列做验证。
 :::
 
-## Integration with other components
+## 与其他组件的集成 {#integration-with-other-components}
 
-Positions interact with several key components:
+持仓与若干关键组件交互：
 
-- **Portfolio**: Aggregates position exposure and PnL across instruments and strategies.
-- **ExecutionEngine**: Creates and updates positions from fills.
-- **Cache**: Stores current position state and closed-cycle snapshots.
-- **RiskEngine**: Reads open positions when it checks whether an order reduces exposure.
+- **Portfolio**：跨工具与策略聚合持仓敞口与盈亏。
+- **ExecutionEngine**：由成交创建并更新持仓。
+- **Cache**：存储当前持仓状态与已平仓周期快照。
+- **RiskEngine**：检查订单是否减仓时读取未平仓持仓。
 
 :::info
-Positions are not created for spread instruments. Contingent orders can still trigger for spreads,
-but they operate without position linkage. The engine handles spread instruments separately from
-regular positions.
+价差工具不创建持仓。条件订单仍可为价差触发，但不与持仓关联。
+引擎把价差工具与常规持仓分开处理。
 :::
 
-## Related guides
+## 相关指南 {#related-guides}
 
-- [Events](./events/index.md): How fills produce position events.
-- [Orders](./orders/index.md): Orders that create and modify positions.
-- [Execution](./execution/index.md): Fill handling that updates positions.
-- [Portfolio](./portfolio.md): Portfolio-level position aggregation.
+- [事件](./events/index.md)：成交如何产生持仓事件。
+- [订单](./orders/index.md)：创建与修改持仓的订单。
+- [执行](./execution/index.md)：更新持仓的成交处理。
+- [组合](./portfolio.md)：组合级的持仓聚合。

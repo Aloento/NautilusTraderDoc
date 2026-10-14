@@ -1,22 +1,20 @@
-# Execution
+# 执行
 
-NautilusTrader coordinates order submission, risk checks, venue execution, reconciliation, and
-position updates across multiple strategies and venues. This page explains the components and
-message flows that support execution.
+NautilusTrader 在多个策略与多个交易场所之间协调订单提交、风控检查、场所执行、一致性对账和持仓更新。本页介绍支撑执行的组件与消息流。
 
-Use the execution guides according to the question you need to answer:
+按你要回答的问题选用执行指南：
 
-| Question                                             | Guide                                                              |
+| 问题                                                 | 指南                                                               |
 | ---------------------------------------------------- | ------------------------------------------------------------------ |
-| Which components handle an order command?            | This page: [Execution flow](#execution-flow).                      |
-| Which statuses and transitions can an order have?    | [Orders: order state flow](./../orders/index.md#order-state-flow).   |
-| Which policies govern venue-boundary execution?      | [Execution policies](./policies.md).                                 |
-| How do execution algorithms split and manage orders? | [Execution algorithms](./algorithms.md).                             |
-| How does live state recover and stay consistent?     | [Execution reconciliation](./reconciliation.md).                     |
-| How do I configure a live node?                      | [Live node configuration](./../../how_to/configure_live_trading.md). |
-| How does a live node schedule and monitor execution? | [Live trading](./../live.md).                                        |
+| 哪些组件处理订单命令？            | 本页：[执行流程](#execution-flow)。                      |
+| 订单可以有哪些状态和迁移？    | [订单：订单状态流](./../orders/index.md#order-state-flow)。   |
+| 哪些策略治理场所边界的执行？      | [执行策略](./policies.md)。                                 |
+| 执行算法如何拆分并管理订单？ | [执行算法](./algorithms.md)。                             |
+| 实时状态如何恢复并保持一致？     | [执行对账](./reconciliation.md)。                     |
+| 如何配置实时节点？                      | [实时节点配置](./../../how_to/configure_live_trading.md)。 |
+| 实时节点如何调度与监控执行？ | [实时交易](./../live.md)。                                        |
 
-The main execution components are:
+主要执行组件：
 
 - `Strategy`
 - `ExecutionAlgorithm`
@@ -25,9 +23,9 @@ The main execution components are:
 - `ExecutionEngine`
 - `ExecutionClient`
 
-## Execution flow
+## 执行流程 {#execution-flow}
 
-A `Strategy` builds on data actor capabilities and adds methods for managing orders and execution:
+`Strategy` 在数据 actor 能力之上增加了订单与执行管理方法：
 
 - `submit_order(...)`
 - `submit_order_list(...)`
@@ -40,28 +38,22 @@ A `Strategy` builds on data actor capabilities and adds methods for managing ord
 - `query_account(...)`
 - `query_order(...)`
 
-These methods send point-to-point execution commands over the message bus. Order creation also
-publishes events such as `OrderInitialized`.
+这些方法经消息总线发送点对点执行命令。创建订单时还会发布 `OrderInitialized` 等事件。
 
-Commands follow different routes:
+命令走不同的路由：
 
-- `submit_order(...)` routes to `OrderEmulator` for emulated orders, to an `ExecutionAlgorithm` when
-  `exec_algorithm_id` is set, and to the `RiskEngine` otherwise.
-- `submit_order_list(...)` follows the same branching behavior based on emulation and
-  `exec_algorithm_id`.
-- For emulated orders, `modify_order(...)` routes to the `OrderEmulator`. For non-emulated orders, it routes
-  to an `ExecutionAlgorithm` if the order has an `exec_algorithm_id` and is still active within the local
-  system. Otherwise, it routes to the `RiskEngine`.
-- Cancel and query commands can route directly to the `OrderEmulator`, `ExecutionAlgorithm`, or
-  `ExecutionEngine`, depending on the command and order state.
+- `submit_order(...)`：模拟订单路由到 `OrderEmulator`；设置了 `exec_algorithm_id` 时路由到 `ExecutionAlgorithm`；其余路由到 `RiskEngine`。
+- `submit_order_list(...)`：按模拟与 `exec_algorithm_id` 做同样的分支。
+- 模拟订单的 `modify_order(...)` 路由到 `OrderEmulator`。非模拟订单在带有 `exec_algorithm_id` 且仍在本地系统内活跃时路由到 `ExecutionAlgorithm`，否则路由到 `RiskEngine`。
+- 撤销与查询命令按命令和订单状态，可直接路由到 `OrderEmulator`、`ExecutionAlgorithm` 或 `ExecutionEngine`。
 
-New orders typically enter one of these paths:
+新订单通常进入以下路径之一：
 
-`Strategy` -> `OrderEmulator` or `ExecutionAlgorithm` or `RiskEngine`
+`Strategy` -> `OrderEmulator` 或 `ExecutionAlgorithm` 或 `RiskEngine`
 
-The downstream flow is:
+后续流向：
 
-`OrderEmulator` -> `ExecutionAlgorithm` or `ExecutionEngine`
+`OrderEmulator` -> `ExecutionAlgorithm` 或 `ExecutionEngine`
 
 `ExecutionAlgorithm` -> `RiskEngine` -> `ExecutionEngine` -> `ExecutionClient`
 
@@ -86,258 +78,205 @@ flowchart LR
     engine <--> client
 ```
 
-Execution paths branch by emulation and algorithm routing before reaching the execution engine and
-client.
+执行路径在到达执行引擎与客户端之前，按模拟与算法路由分流。
 
-## Order management system (OMS)
+## 订单管理系统（OMS） {#order-management-system-oms}
 
-An **order management system (OMS)** type determines how orders map to positions for an instrument.
-Strategies and venues, whether simulated or live, each use an OMS type defined by the `OmsType`
-enum.
+**订单管理系统**（OMS）类型决定某工具的订单如何映射到持仓。策略和场所——无论模拟还是实时——都使用 `OmsType`
+枚举定义的 OMS 类型。
 
-The `OmsType` enum has three variants:
+`OmsType` 枚举有三个变体：
 
-- `UNSPECIFIED`: The strategy uses the owning execution client's OMS type.
-- `NETTING`: Positions combine into one position per instrument and strategy.
-- `HEDGING`: Multiple positions per instrument and strategy can stay open.
+- `UNSPECIFIED`：策略使用其所属执行客户端的 OMS 类型。
+- `NETTING`：持仓按工具与策略合并为一个持仓。
+- `HEDGING`：同一工具与策略可以同时持有多个持仓。
 
-When the strategy and venue OMS types differ, the `ExecutionEngine` assigns or overrides
-`position_id` values on `OrderFilled` events. A **virtual position** exists in NautilusTrader but not
-as a separate venue position.
+策略与场所 OMS 类型不一致时，`ExecutionEngine` 会在 `OrderFilled` 事件上指派或改写 `position_id`。**虚拟持仓**只存在于 NautilusTrader，场所侧没有对应的独立持仓。
 
-| Strategy OMS | Venue OMS | Result                                                              |
+| 策略 OMS     | 场所 OMS    | 结果                                                              |
 | ------------ | --------- | ------------------------------------------------------------------- |
-| `NETTING`    | `NETTING` | One position per instrument and strategy.                           |
-| `HEDGING`    | `HEDGING` | Multiple positions per instrument and strategy.                     |
-| `NETTING`    | `HEDGING` | One virtual position across the venue positions.                    |
-| `HEDGING`    | `NETTING` | Multiple virtual positions against the venue's single net position. |
+| `NETTING`    | `NETTING` | 每个工具与策略一个持仓。                           |
+| `HEDGING`    | `HEDGING` | 每个工具与策略多个持仓。                     |
+| `NETTING`    | `HEDGING` | 跨场所持仓的一个虚拟持仓。                    |
+| `HEDGING`    | `NETTING` | 针对场所单一净额持仓的多个虚拟持仓。 |
 
-If a fill resolves to a cached position for a different instrument, the `ExecutionEngine` logs an error and
-drops the fill. The order stays non-terminal so a subsequent valid fill can be applied.
+成交解析到了另一工具的缓存持仓时，`ExecutionEngine` 记录错误并丢弃该成交。订单保持非终态，以便后续合法成交仍可应用。
 
-For reductions of inherited inventory, see [Reducing external positions](./reconciliation.md#reducing-external-positions).
+削减继承而来的仓位见[削减外部持仓](./reconciliation.md#reducing-external-positions)。
 
-### OMS configuration
+### OMS 配置 {#oms-configuration}
 
-When a strategy omits `oms_type` or uses `UNSPECIFIED`, the `ExecutionEngine` uses the owning
-execution client's OMS type. An explicit `NETTING` or `HEDGING` strategy override takes precedence.
+策略省略 `oms_type` 或使用 `UNSPECIFIED` 时，`ExecutionEngine` 采用所属执行客户端的 OMS 类型。显式的 `NETTING` 或 `HEDGING` 策略覆盖具有更高优先级。
 
-The engine identifies ownership according to the operation:
+引擎按操作识别归属：
 
-- **Submission validation**: uses the client selected by command routing.
-- **Fill processing**: uses the cached order's client origin. When that origin is unavailable, it
-  uses the one registered client that matches the fill's account and handles its instrument venue.
-  This account lookup also covers spread-leg fills without a cached order.
+- **提交校验**：使用命令路由选定的客户端。
+- **成交处理**：使用缓存订单记录的客户端来源。来源不可用时，使用账户与成交匹配、且处理该成交工具场所的**唯一一个**已注册客户端。该账户查找也覆盖没有缓存订单的组合腿成交。
 
-For fills associated with an order, an existing cached position keeps its recorded OMS type.
+对关联订单的成交，已存在的缓存持仓保持其记录的 OMS 类型。
 
-If ownership is absent or ambiguous, fills use `NETTING` unless the strategy supplies an explicit
-override. Venue and default command routes do not select the fill's OMS type. Configure a backtest
-venue with the OMS type used by the venue being modeled.
+归属缺失或有歧义时，成交按 `NETTING` 处理，除非策略提供显式覆盖。场所和默认命令路由不选择成交的 OMS 类型。配置回测场所时，使用被建模场所实际采用的 OMS 类型。
 
-Venue position modes may require adapter-specific configuration. For example, see
-[Binance Futures hedge mode](./../../integrations/binance.md#futures-hedge-mode).
+场所持仓模式可能需要适配器特有配置，例如
+[Binance Futures 对冲模式](./../../integrations/binance.md#futures-hedge-mode)。
 
-### Custom position IDs and NETTING
+### 自定义持仓 ID 与 NETTING {#custom-position-ids-and-netting}
 
-Custom position IDs are only valid under `HEDGING` OMS. `NETTING` has one position per instrument
-and strategy, with a deterministic ID of the form `{instrument_id}-{strategy_id}`.
+自定义持仓 ID 只在 `HEDGING` OMS 下有效。`NETTING` 下每个工具与策略只有一个持仓，ID 是形如 `{instrument_id}-{strategy_id}` 的确定性值。
 
-The `ExecutionEngine` enforces this at submit time. If the effective OMS resolves to `NETTING`, a supplied
-`position_id` must match `{instrument_id}-{strategy_id}` in `submit_order` (or `submit_order_list`). A
-mismatch denies the order with an `OrderDenied` event that explains the mismatch.
+`ExecutionEngine` 在提交时执行该规则。有效 OMS 解析为 `NETTING` 时，`submit_order`（或 `submit_order_list`）传入的
+`position_id` 必须匹配 `{instrument_id}-{strategy_id}`。不匹配则拒绝订单，`OrderDenied` 事件会说明不匹配之处。
 
-This rule still permits the common closing idiom: `Strategy.close_position(position)`
-forwards `position.id`, which under `NETTING` is exactly the deterministic ID, so it is
-accepted. To label or partition positions with arbitrary IDs, configure the strategy
-with `oms_type=HEDGING`.
+该规则仍允许常见的平仓写法：`Strategy.close_position(position)` 转发
+`position.id`，在 `NETTING` 下它恰好就是确定性 ID，因此被接受。要用任意 ID 标记或划分持仓，把策略配置为
+`oms_type=HEDGING`。
 
-For `submit_order_list`, the engine additionally denies any mixed-instrument list when a
-`position_id` is supplied, regardless of OMS. A position belongs to a single instrument,
-so the combination is rejected with an explicit `OrderDenied` reason. See
-[Order lists](./../orders/advanced.md#order-lists) for the broader set of mixed-instrument caveats.
+对 `submit_order_list`，只要传入 `position_id`，引擎还会拒绝任何跨工具的混合列表，与 OMS 无关。持仓属于单一工具，这种组合会被拒绝并给出显式的 `OrderDenied` 原因。跨工具组合的更多注意事项见
+[订单列表](./../orders/advanced.md#order-lists)。
 
-### Position replay across NETTING cycles
+### NETTING 跨周期的持仓回放 {#position-replay-across-netting-cycles}
 
-Under `NETTING` the engine reuses one position ID across close and reopen cycles. Thus, a position's replay
-log can accumulate each fill ever applied to that ID. The
-`ExecutionEngineConfig.carry_replay_events_on_reopen` option controls whether that log survives a reopen:
+`NETTING` 下引擎在平仓与重开周期之间复用同一个持仓 ID，因此持仓的回放日志会累积该 ID 上曾应用的每笔成交。
+`ExecutionEngineConfig.carry_replay_events_on_reopen` 选项控制该日志是否跨重开保留：
 
-| `carry_replay_events_on_reopen` | Behavior                                                       |
+| `carry_replay_events_on_reopen` | 行为                                                         |
 | ------------------------------- | -------------------------------------------------------------- |
-| `False` (default)               | Keeps only current-cycle state, bounding the per-fill cost.    |
-| `True`                          | Keeps earlier fills correctable while position state can grow. |
+| `False`（默认）               | 只保留当前周期状态，约束逐笔成交开销。    |
+| `True`                          | 早先的成交仍可更正，但持仓状态可能持续增长。 |
 
-- **Live trading**: `LiveExecutionEngineConfig` always carries the replay log (`True`), so a venue
-  [`OrderFillVoided`](./../events/order_fill_voided.md) referencing an earlier cycle still resolves.
-- **Backtesting**: the simulated venue never emits fill voids, so backtests take the bounded default.
-- **Custom or external execution clients**: enable the option explicitly if the client can correct a
-  fill from a prior cycle. Without the carried log, the engine finds no matching position fragment
-  and rejects the correction.
+- **实时交易**：`LiveExecutionEngineConfig` 始终携带回放日志（`True`），使引用更早周期的场所
+  [`OrderFillVoided`](./../events/order_fill_voided.md) 仍可解析。
+- **回测**：模拟交易所从不发成交作废，回测采用有界的默认值。
+- **自定义或外部执行客户端**：客户端若可能更正早前周期的成交，需显式启用该选项。没有携带的日志时，引擎找不到匹配的持仓片段，会拒绝更正。
 
-Realized-PnL snapshots follow the correction. A fill void that reaches an earlier cycle rebuilds the position
-across the cycle boundary. This moves the boundaries its archived snapshots describe. Thus, the engine settles
-those snapshots into the corrected history's own closed cycles, and realized PnL counts each cycle once. A
-void confined to the current cycle leaves the archive intact. See
-[Position snapshotting](./../positions.md#position-snapshotting).
+已实现盈亏快照跟随更正走。触及更早周期的成交作废会跨周期边界重建持仓，改变其归档快照所描述的边界。于是引擎把这些快照结算进更正后历史自身的已平周期，已实现盈亏对每个周期只计一次。只涉及当前周期的作废不影响归档。参见
+[持仓快照](./../positions.md#position-snapshotting)。
 
-## Risk engine
+## 风控引擎 {#risk-engine}
 
-The `RiskEngine` is a component of each Nautilus system, including backtest, sandbox, and live environments.
-It sits on the submit and modify path, and it also receives order events such as `OrderReleased` from the
-`OrderEmulator`. Cancel and query commands route directly to other execution components and do not pass
-through the `RiskEngine`.
+`RiskEngine` 是每个 Nautilus 系统的组件，覆盖回测、sandbox 和实时环境。它位于提交与修改路径上，也接收来自 `OrderEmulator` 的 `OrderReleased` 等订单事件。撤销与查询命令直接路由给其他执行组件，不经过 `RiskEngine`。
 
-Unless bypassed in `RiskEngineConfig`, the engine validates:
+除非在 `RiskEngineConfig` 中旁路，引擎会校验：
 
-- Price and trigger-price precision for the instrument.
-- Positive prices, unless the instrument allows negative prices (futures, options, futures
-  spreads, option spreads, and spot commodities). Inverse futures and futures spreads require positive prices.
-- Quantity precision and base-quantity minimum and maximum bounds.
-- GTD orders have not already expired.
-- `reduce_only` orders do not increase the referenced position.
-- Engine-level `max_notional_per_order` limits and the instrument's `min_notional` and `max_notional` fields,
-  compared by notional magnitude.
-- Cash-account balance impact for non-margin accounts.
-- Submit and modify rate limits.
-- Trading-state restrictions (`ACTIVE`, `HALTED`, `REDUCING`).
+- 工具的价格与触发价精度。
+- 价格为正，除非工具允许负价（期货、期权、期货价差、期权价差和现货商品）。反向期货与期货价差仍要求正价。
+- 数量精度及基础数量的上下限。
+- GTD 订单尚未过期。
+- `reduce_only` 订单不会增加所引用的持仓。
+- 引擎级 `max_notional_per_order` 限额，以及工具的 `min_notional` 和 `max_notional` 字段，按名义金额量级比较。
+- 非保证金账户的现金账户余额影响。
+- 提交与修改的速率限制。
+- 交易状态限制（`ACTIVE`、`HALTED`、`REDUCING`）。
 
-If a submit-time risk check fails, the system generates an `OrderDenied` event with a
-standardized [reason code](#order-denied-reasons). If a modify-time risk check fails, it
-generates an `OrderModifyRejected` event.
+提交时风控检查失败，系统生成带标准化[原因代码](#order-denied-reasons)的 `OrderDenied` 事件。修改时风控检查失败，生成 `OrderModifyRejected` 事件。
 
-### Account selection
+### 账户选择 {#account-selection}
 
-Balance, margin, and position checks use the account of the execution client that will run the
-command, before `OrderSubmitted` assigns the order's account. The risk engine selects the account
-in this order:
+余额、保证金和持仓检查使用即将执行该命令的执行客户端的账户，早于 `OrderSubmitted` 为订单指派账户。风控引擎按以下顺序选择账户：
 
-1. An order that already has an account, such as an order being modified, uses that account.
-1. A command for an external client (`external_clients`) uses the venue's account only when exactly
-   one account is issued under the venue.
-1. A command `client_id` that names a registered execution client uses that client's account.
-1. Any other command uses the account of the client routed for the instrument's venue, then the
-   default client's account. This includes a command whose `client_id` names neither a registered
-   nor an external client, which the execution engine routes the same way.
-1. A command with no venue route or default client uses the venue's account only when exactly one
-   account is issued under the venue.
+1. 已有账户的订单（例如正在修改的订单）使用该账户。
+1. 面向外部客户端（`external_clients`）的命令，仅当该场所下签发了唯一一个账户时才使用场所账户。
+1. `client_id` 点名已注册执行客户端的命令，使用该客户端的账户。
+1. 其他命令使用工具场所路由到的客户端的账户，再退到默认客户端的账户。`client_id` 既不指向已注册也不指向外部客户端的命令，执行引擎也按同样的方式路由。
+1. 既无场所路由也无默认客户端的命令，仅当该场所下签发了唯一一个账户时才使用场所账户。
 
-An order list selects one account from the command's `client_id` and instrument. When no account
-resolves, or the selected client's account is not cached yet, the risk engine denies the order or
-rejects the modification with `VALIDATION_FAILED`. It never falls back to another account. Positions
-and open orders count toward position-reducing checks only when they belong to the selected account.
+订单列表从命令的 `client_id` 与工具中选出唯一账户。解析不出账户，或选定客户端的账户尚未进入缓存时，风控引擎以 `VALIDATION_FAILED` 拒绝订单或驳回修改，绝不回退到其他账户。持仓与挂单只在属于所选账户时，才计入减仓类检查。
 
-### Whole-position conditional exits
+### 整仓条件出场 {#whole-position-conditional-exits}
 
-Some execution clients support conditional exits whose venue determines the closing quantity from
-the open position when the trigger fires. Nautilus orders still carry a placeholder quantity for
-local validation. The `full_position_exit_venues` setting on `RiskEngineConfig` and
-`LiveRiskEngineConfig` identifies venues whose execution clients enforce these semantics. It
-defaults to empty.
+部分执行客户端支持条件出场：触发时刻由场所根据未平持仓决定平仓数量。Nautilus 订单仍携带一个占位数量供本地校验。`RiskEngineConfig` 与
+`LiveRiskEngineConfig` 的 `full_position_exit_venues` 设置列出的场所，其执行客户端执行这种语义。默认为空。
 
-An order qualifies for the placeholder exemption only when all of these conditions hold:
+只有以下条件全部成立，订单才符合占位数量豁免：
 
-- The order is submitted individually, not in an order list.
-- Its venue is listed in `full_position_exit_venues`.
-- It uses a supported futures or perpetual instrument.
-- It is a `StopMarket` or `MarketIfTouched` order with a trigger price and
-  `close_position=true`.
-- It has a positive placeholder quantity and sets `reduce_only=true`.
-- The command, order, and linked cached position use the same instrument and position ID.
-- The linked position belongs to the [selected account](#account-selection).
-- The linked position is open, the order side closes it, and the placeholder quantity does not
-  exceed the position quantity.
+- 订单单独提交，不在订单列表中。
+- 其场所列于 `full_position_exit_venues`。
+- 使用受支持的期货或永续工具。
+- 是带触发价且 `close_position=true` 的 `StopMarket` 或 `MarketIfTouched` 订单。
+- 占位数量为正，且 `reduce_only=true`。
+- 命令、订单与关联的缓存持仓使用同一工具与持仓 ID。
+- 关联持仓属于[所选账户](#account-selection)。
+- 关联持仓未平、订单方向为平仓方向，且占位数量不超过持仓数量。
 
-For a qualifying exit, the risk engine treats checks as follows:
+对符合条件出场单，风控引擎按下表处理：
 
-| Risk check                                                            | Treatment                                   |
+| 风险检查                                                          | 处理方式                                      |
 | --------------------------------------------------------------------- | ------------------------------------------- |
-| Quantity precision and positivity                                     | Enforced.                                   |
-| Price and trigger-price precision and positivity                      | Enforced.                                   |
-| GTD expiration, trading-state restrictions, and submission rate limit | Enforced.                                   |
-| Position exposure, margin, and balance                                | Treated as position-reducing.               |
-| Instrument minimum and maximum quantity                               | Skipped for the placeholder quantity.       |
-| Instrument minimum and maximum notional                               | Skipped for the placeholder notional.       |
-| Configured `max_notional_per_order`                                   | Skipped for the placeholder notional.       |
-| Non-qualifying orders                                                 | All ordinary risk checks continue to apply. |
+| 数量精度与为正                                     | 强制执行。                                   |
+| 价格与触发价精度及为正                      | 强制执行。                                   |
+| GTD 过期、交易状态限制与提交速率限制 | 强制执行。                                   |
+| 持仓敞口、保证金与余额                                | 按减仓处理。               |
+| 工具数量上下限                               | 对占位数量跳过。       |
+| 工具名义金额上下限                               | 对占位名义额跳过。       |
+| 配置的 `max_notional_per_order`                                   | 对占位名义额跳过。       |
+| 不符合条件的订单                                                 | 照常适用全部常规风险检查。 |
 
-Only allowlist a venue when its downstream execution client enforces whole-position closing. See
-[Binance Futures close-position orders](./../../integrations/binance.md#close-position) for a supported
-configuration.
+只有当下游执行客户端确实执行整仓平仓时才把场所加入白名单。受支持的配置示例见
+[Binance Futures 平仓订单](./../../integrations/binance.md#close-position)。
 
 :::warning
-The simulated exchange does not interpret `close_position` or replace the placeholder with the open position
-quantity. Leave simulated backtest venues out of `full_position_exit_venues`. Model a backtest exit with an
-explicit quantity and `reduce_only` instead.
+模拟交易所不解释 `close_position`，也不会用未平持仓数量替换占位数量。把模拟回测场所留在 `full_position_exit_venues` 之外。回测出场请用显式数量加 `reduce_only` 建模。
 :::
 
-### Trading state
+### 交易状态 {#trading-state}
 
-The states become progressively more restrictive:
+状态的限制逐级收紧：
 
-| State      | Numeric value | Permitted commands                                                           |
+| 状态       | 数值     | 允许的命令                                                                   |
 | ---------- | ------------: | ---------------------------------------------------------------------------- |
-| `ACTIVE`   |             1 | Submit, modify, cancel, and query commands operate normally.                 |
-| `REDUCING` |             2 | Eligible individual reduce-only submissions, cancels, and queries.           |
-| `HALTED`   |             3 | Cancels and queries only. New submissions and modifications are not allowed. |
+| `ACTIVE`   |             1 | 提交、修改、撤销与查询命令正常操作。                 |
+| `REDUCING` |             2 | 合格的单笔 reduce-only 提交、撤销与查询。           |
+| `HALTED`   |             3 | 仅撤销与查询。不允许新提交与修改。 |
 
-In `REDUCING`, an individual `SubmitOrder` is eligible only when all of these conditions hold:
+`REDUCING` 下，单笔 `SubmitOrder` 只有全部满足以下条件才合格：
 
-- The order sets `reduce_only=true`.
-- The command and order identify the same instrument.
-- The supplied position ID matches the order's cached open position on the
-  [selected account](#account-selection).
-- The order side opposes the position.
-- The submitted quantity does not exceed the cached position quantity.
+- 订单设置了 `reduce_only=true`。
+- 命令与订单指明同一工具。
+- 传入的持仓 ID 与订单在[所选账户](#account-selection)上的缓存未平持仓一致。
+- 订单方向与持仓相反。
+- 提交数量不超过缓存持仓数量。
 
-Order lists and modifications are denied.
+订单列表与修改一律拒绝。
 
-The risk engine applies these rules before forwarding commands to execution.
+风控引擎在把命令转发给执行层之前应用这些规则。
 
-:::warning[Bypassing trading-state checks]
-When `RiskEngineConfig.bypass` is enabled, trading state is not enforced. Execution clients still follow
-the [reduce-only send-or-reject contract](./../adapters.md#reduce-only-execution-contract).
+:::warning[旁路交易状态检查]
+启用 `RiskEngineConfig.bypass` 后不再强制执行交易状态。执行客户端仍遵循
+[reduce-only 要么发送要么拒绝的契约](./../adapters.md#reduce-only-execution-contract)。
 :::
 
-See the
-[`RiskEngineConfig` API reference](https://nautilustrader.io/docs/python-api-latest/config.html#nautilus_trader.risk.RiskEngineConfig)
-for configuration details.
+配置细节见
+[`RiskEngineConfig` API 参考](https://nautilustrader.io/docs/python-api-latest/config.html#nautilus_trader.risk.RiskEngineConfig)。
 
-## Execution algorithms
+## 执行算法 {#execution-algorithms}
 
-An `ExecutionAlgorithm` receives primary orders selected by `exec_algorithm_id` and can split them
-into smaller spawned orders. NautilusTrader supports custom algorithms and includes a native Rust
-TWAP implementation.
+`ExecutionAlgorithm` 接收按 `exec_algorithm_id` 选中的主订单，并可将其拆分为更小的派生订单。NautilusTrader 支持自定义算法，并内置原生 Rust 实现的 TWAP。
 
-See [Execution algorithms](./algorithms.md) for TWAP configuration, custom algorithms,
-spawned-order behavior, and cache queries.
+TWAP 配置、自定义算法、派生订单行为与缓存查询见
+[执行算法](./algorithms.md)。
 
-## Cancel-all routing
+## 全部撤销的路由 {#cancel-all-routing}
 
-`Strategy.cancel_all_orders(...)` supports strategy-scoped and broad cancellation:
+`Strategy.cancel_all_orders(...)` 支持限定到策略的撤销与宽范围撤销：
 
-| `strategy_only` | Strategy output                                         | Scope                                                          | Downstream routing                                  |
+| `strategy_only` | 策略产出                                              | 范围                                                           | 下游路由                                               |
 | --------------- | ------------------------------------------------------- | -------------------------------------------------------------- | --------------------------------------------------- |
-| `True`          | One `CancelOrder` per matching order.                   | Matching orders associated with the calling strategy.          | Each order follows its normal cancel route.         |
-| `False`         | One root `CancelAllOrders`, even without local matches. | Matching orders for one resolved execution client and account. | The execution engine creates the required children. |
+| `True`          | 每个匹配订单一个 `CancelOrder`。                   | 与调用策略关联的匹配订单。          | 每个订单走各自的常规撤销路由。         |
+| `False`         | 一个根 `CancelAllOrders`，即使本地没有匹配。 | 单一已解析执行客户端与账户的匹配订单。 | 执行引擎创建所需的子命令。 |
 
-Broad mode delegates before the strategy inspects its cache. The command thus reaches the resolved execution
-client even when NautilusTrader has no matching local order. This allows a venue bulk-cancel endpoint to
-remove an order that exists at the venue but is missing from the local cache. When the adapter provides such
-an endpoint, the single command can also reduce cancel request volume.
+宽模式在策略检查自己的缓存之前先行委托。因此即使 NautilusTrader 本地没有匹配订单，命令仍会到达已解析的执行客户端。这样场所的批量撤销端点可以移除场所存在但本地缓存缺失的订单。适配器提供这种端点时，单条命令还能减少撤销请求量。
 
-For a local execution client, the `ExecutionEngine` resolves the root command to exactly one client
-in this order:
+对本地执行客户端，`ExecutionEngine` 按以下顺序把根命令解析为恰好一个客户端：
 
-1. The explicit `client_id`, when it identifies a registered local client.
-1. The client routed for the instrument's venue.
-1. The default execution client.
+1. 显式的 `client_id`（当其标识已注册的本地客户端时）。
+1. 工具场所路由到的客户端。
+1. 默认执行客户端。
 
-The engine then creates fresh child commands for the selected client and its account:
+然后引擎为选定的客户端及其账户创建新的子命令：
 
-- One `CancelAllOrders` for the execution client, covering matching venue orders.
-- One `CancelAllOrders` for the `OrderEmulator`, covering matching emulated orders.
-- One `CancelOrder` per eligible active-local execution-algorithm order.
+- 执行客户端一个 `CancelAllOrders`，覆盖匹配的场所订单。
+- `OrderEmulator` 一个 `CancelAllOrders`，覆盖匹配的模拟订单。
+- 每个合格的活跃本地执行算法订单一个 `CancelOrder`。
 
 ```mermaid
 flowchart LR
@@ -363,58 +302,46 @@ flowchart LR
     resolve --> algo
 ```
 
-Broad mode selects one client before fan-out. It never broadcasts across all execution clients. Call
-`cancel_all_orders(...)` once per client to cancel across several clients.
+宽模式在扇出之前选定一个客户端，从不向所有执行客户端广播。要在多个客户端上撤销，对每个客户端各调用一次
+`cancel_all_orders(...)`。
 
-Each child has a new command ID, copies the root parameters, correlates to the root operation, and records the
-root command as its cause. Instrument and optional side filters apply to each local route. The selected
-execution account also bounds matching-engine cancellation, including orders in `SUBMITTED` and other
-cancelable in-flight states.
+每个子命令有新的命令 ID，复制根命令的参数，与根操作关联，并把根命令记录为自身的原因。工具与可选方向过滤器应用于每条本地路由。选定的执行账户同样限定撮合引擎的撤销范围，包括 `SUBMITTED` 及其他可撤销在途状态中的订单。
 
-Client ownership applies to local emulated and execution-algorithm orders:
+客户端归属适用于本地模拟订单与执行算法订单：
 
-- Orders already assigned to another client stay untouched.
-- When the root omits `client_id`, matching unassigned orders are claimed by the client selected by
-  the engine before local cancellation.
-- When the root supplies `client_id`, unassigned orders stay untouched because the engine cannot infer that
-  they belong to the explicit client.
-- An emulated order matches its traded instrument, even when another instrument supplies its trigger.
+- 已指派给其他客户端的订单保持不动。
+- 根命令省略 `client_id` 时，匹配的未指派订单在本地撤销前由引擎选定的客户端认领。
+- 根命令提供 `client_id` 时，未指派订单保持不动，因为引擎无法推断它们属于该显式客户端。
+- 模拟订单按其交易工具匹配，即使其触发价来自另一个工具。
 
-An explicitly configured external execution client receives the original root command unchanged.
-The external client owns any fan-out needed behind that boundary.
+显式配置的外部执行客户端原样收到根命令，该边界之后所需的扇出由外部客户端自行负责。
 
-## Command outcomes
+## 命令结果 {#command-outcomes}
 
-Execution commands distinguish definitive local failures, definitive venue results, and unknown live outcomes.
-An unknown outcome stays in flight for stream updates, polling, queries, or reconciliation. Retry exhaustion
-can later apply a synthetic terminal reconciliation event.
+执行命令区分确定的本地失败、确定的场所结果与未知的实时结果。未知结果保持在途，等待流更新、轮询、查询或对账。重试耗尽后可以稍后施加合成终态对账事件。
 
-See [Execution policies](./policies.md#command-outcomes) for the evidence classes,
-delivery and retry limits, persistence boundary, and terminal reconciliation provenance. See
-[Runtime checks](./reconciliation.md#runtime-checks) for the continuous reconciliation procedure.
+证据类别、投递与重试限制、持久化边界与终态对账来源见
+[执行策略](./policies.md#command-outcomes)。持续对账流程见
+[运行时检查](./reconciliation.md#runtime-checks)。
 
-## Order denied reasons
+## 订单拒绝原因 {#order-denied-reasons}
 
-A local denial (`OrderDenied`) carries a standardized `CATEGORY_CONDITION` reason code and may
-include a diagnostic suffix. Only the leading code is canonical. Messages use these forms:
+本地拒绝（`OrderDenied`）携带标准化的 `CATEGORY_CONDITION` 原因代码，可附诊断后缀。只有开头的代码是规范的。消息有以下几种形式：
 
-- `CODE` when the denial needs no diagnostic suffix.
-- `CODE: value` for one typed value or a free-text diagnostic.
-- `CODE: key=value, key=value` when multiple typed values need disambiguation.
-- `CODE: value; free text` when one typed value precedes a free-text diagnostic.
+- 无需诊断后缀时：`CODE`。
+- 单个类型值或自由文本诊断：`CODE: value`。
+- 多个类型值需要区分：`CODE: key=value, key=value`。
+- 一个类型值后接自由文本诊断：`CODE: value; free text`。
 
-The table covers local denials emitted by execution algorithms and clients as well as the risk and
-execution engines. These codes are the source of truth for locally denied orders.
+下表覆盖执行算法与客户端发出的本地拒绝，以及风控引擎和执行引擎发出的拒绝。这些代码是本地拒绝订单的权威依据。
 
-`OrderRejected` reasons depend on their source:
+`OrderRejected` 的原因取决于来源：
 
-- **Venue-confirmed rejections**: carry the venue-provided meaning. Adapters remove protocol wrappers
-  and bound untrusted venue text before emission without replacing it with a standardized local
-  denial code.
-- **Synthetic reconciliation rejections**: use the reasons documented under
-  [Terminal reconciliation provenance](./policies.md#terminal-reconciliation-provenance).
+- **场所确认的拒绝**：携带场所提供的含义。适配器在发出前去掉协议包装并限制不可信的场所文本，但不将其替换为标准化的本地拒绝代码。
+- **合成对账拒绝**：使用
+  [终态对账来源](./policies.md#terminal-reconciliation-provenance)下记录的原因。
 
-Price and quantity checks can also emit these code-led reasons on `OrderModifyRejected`:
+价格与数量检查也可在 `OrderModifyRejected` 上发出这些代码开头的理由：
 
 - `PRICE_PRECISION_EXCEEDS_MAXIMUM`
 - `PRICE_NOT_POSITIVE`
@@ -422,167 +349,138 @@ Price and quantity checks can also emit these code-led reasons on `OrderModifyRe
 - `QUANTITY_EXCEEDS_MAXIMUM`
 - `QUANTITY_BELOW_MINIMUM`
 
-For price reasons, `field` is `PRICE` or `TRIGGER_PRICE` and names the rejected command field. Other
-modification rejection reasons stay free-form. `OrderDeniedCode` does not classify them.
+价格类原因中，`field` 为 `PRICE` 或 `TRIGGER_PRICE`，指明被拒绝的命令字段。其他修改拒绝原因仍为自由格式，
+`OrderDeniedCode` 不对其分类。
 
-`OrderRejected.due_post_only` is `true` only when venue evidence proves that a post-only order would
-cross or immediately match. Other venue rejections leave it `false`.
+`OrderRejected.due_post_only` 仅当场所证据证明 post-only 订单会穿越或立即匹配时才是 `true`，其他场所拒绝保持 `false`。
 
 <!-- Generated from the `OrderDeniedReason` enum (crates/model). Regenerate with: cargo test -p nautilus-model regenerate_order_denied_reasons_doc -- --ignored -->
 <!-- BEGIN GENERATED: order-denied-reasons -->
 
-| Code                                             | Description                                                                           |
+| 代码                                             | 说明                                                                                |
 | ------------------------------------------------ | ------------------------------------------------------------------------------------- |
-| `PRICE_PRECISION_EXCEEDS_MAXIMUM`                | The price precision exceeds the instrument maximum.                                   |
-| `PRICE_NOT_POSITIVE`                             | The price is not positive.                                                            |
-| `QUANTITY_PRECISION_EXCEEDS_MAXIMUM`             | The quantity precision exceeds the instrument maximum.                                |
-| `QUANTITY_CONVERSION_FAILED`                     | The order quantity could not be converted for risk checks.                            |
-| `QUANTITY_EXCEEDS_MAXIMUM`                       | The effective order quantity exceeds the instrument maximum.                          |
-| `QUANTITY_BELOW_MINIMUM`                         | The effective order quantity is below the instrument minimum.                         |
-| `INVALID_MAX_NOTIONAL_PER_ORDER`                 | The configured maximum notional per order is invalid.                                 |
-| `MISSING_EXPIRE_TIME`                            | A GTD order is missing its expire time.                                               |
-| `EXPIRE_TIME_IN_PAST`                            | The order's expire time is in the past.                                               |
-| `MISSING_TRAILING_OFFSET_TYPE`                   | The order is missing a required trailing offset type.                                 |
-| `UNSUPPORTED_TRAILING_OFFSET_TYPE`               | The order's trailing offset type is not supported.                                    |
-| `MISSING_TRIGGER_TYPE`                           | The order is missing a required trigger type.                                         |
-| `MISSING_TRAILING_OFFSET`                        | The order is missing a required trailing offset.                                      |
-| `INSTRUMENT_NOT_FOUND`                           | The instrument was not found in the cache.                                            |
-| `POSITION_NOT_FOUND`                             | The position for a reduce-only order was not found.                                   |
-| `MARKET_PRICE_UNAVAILABLE`                       | No market price is available for the order risk check.                                |
-| `TRAILING_STOP_CALCULATION_FAILED`               | The trailing stop trigger price could not be calculated.                              |
-| `NOTIONAL_CALCULATION_FAILED`                    | The order notional value could not be calculated.                                     |
-| `NOTIONAL_BELOW_MINIMUM`                         | The order notional is below the instrument minimum.                                   |
-| `NOTIONAL_EXCEEDS_MAXIMUM`                       | The order notional exceeds the instrument maximum.                                    |
-| `NOTIONAL_EXCEEDS_MAX_PER_ORDER`                 | The order notional exceeds the configured maximum per order.                          |
-| `NOTIONAL_EXCEEDS_FREE_BALANCE`                  | The order notional exceeds the account free balance.                                  |
-| `INITIAL_MARGIN_CALCULATION_FAILED`              | The order initial margin could not be calculated.                                     |
-| `INITIAL_MARGIN_EXCEEDS_FREE_BALANCE`            | The order initial margin exceeds the account free balance.                            |
-| `BETTING_BALANCE_LOCKED_CALCULATION_FAILED`      | The balance to lock for the betting order could not be calculated.                    |
-| `CUMULATIVE_NOTIONAL_EXCEEDS_FREE_BALANCE`       | The cumulative order notional exceeds the account free balance.                       |
-| `CUMULATIVE_INITIAL_MARGIN_CALCULATION_FAILED`   | The cumulative initial margin could not be calculated.                                |
-| `CUMULATIVE_INITIAL_MARGIN_EXCEEDS_FREE_BALANCE` | The cumulative initial margin exceeds the account free balance.                       |
-| `REDUCE_ONLY_WOULD_INCREASE_POSITION`            | A reduce-only order would increase the position.                                      |
-| `ORDER_LIST_INCOMPLETE`                          | The order list is missing orders in the cache.                                        |
-| `ORDER_LIST_DENIED`                              | The order was denied because its order list failed risk checks.                       |
-| `TRADING_HALTED`                                 | Trading is halted; new submissions and modifications are denied.                      |
-| `TRADING_STATE_REDUCING`                         | Trading is reducing; only eligible reduce-only submissions are permitted.             |
-| `RATE_LIMIT_EXCEEDED`                            | The order submission rate limit was exceeded.                                         |
-| `STREAM_RECONCILING`                             | The execution stream is unavailable or recovering; retry after recovery.              |
-| `NO_EXECUTION_CLIENT`                            | No execution client was found for the routed command.                                 |
-| `CLIENT_VENUE_MISMATCH`                          | The execution client does not handle the order venue.                                 |
-| `SUBMIT_FAILED`                                  | Submitting the order to the execution client failed.                                  |
-| `INVALID_CLIENT_ORDER_ID`                        | The client order ID is invalid for the venue.                                         |
-| `INVALID_POSITION_ID`                            | The supplied position ID is invalid for the order submission.                         |
-| `UNSUPPORTED_ORDER_LIST`                         | The venue does not support the requested order list.                                  |
-| `UNSUPPORTED_ORDER_TYPE`                         | The order type is not supported.                                                      |
-| `UNSUPPORTED_REDUCE_ONLY`                        | The execution client or venue does not support the requested reduce-only instruction. |
-| `UNSUPPORTED_TIME_IN_FORCE`                      | The order's time in force is not supported.                                           |
-| `UNSUPPORTED_TP_SL`                              | The venue does not support the requested take-profit/stop-loss parameters.            |
-| `VALIDATION_FAILED`                              | The order failed validation before submission.                                        |
+| `PRICE_PRECISION_EXCEEDS_MAXIMUM`                | 价格精度超过工具上限。                                   |
+| `PRICE_NOT_POSITIVE`                             | 价格不为正。                                                            |
+| `QUANTITY_PRECISION_EXCEEDS_MAXIMUM`             | 数量精度超过工具上限。                                |
+| `QUANTITY_CONVERSION_FAILED`                     | 订单数量无法转换为风控检查所需形式。                            |
+| `QUANTITY_EXCEEDS_MAXIMUM`                       | 有效订单数量超过工具上限。                          |
+| `QUANTITY_BELOW_MINIMUM`                         | 有效订单数量低于工具下限。                         |
+| `INVALID_MAX_NOTIONAL_PER_ORDER`                 | 配置的单笔最大名义金额非法。                                 |
+| `MISSING_EXPIRE_TIME`                            | GTD 订单缺少过期时间。                                               |
+| `EXPIRE_TIME_IN_PAST`                            | 订单的过期时间在过去。                                               |
+| `MISSING_TRAILING_OFFSET_TYPE`                   | 订单缺少必需的追踪偏移类型。                                 |
+| `UNSUPPORTED_TRAILING_OFFSET_TYPE`               | 订单的追踪偏移类型不受支持。                                    |
+| `MISSING_TRIGGER_TYPE`                           | 订单缺少必需的触发类型。                                         |
+| `MISSING_TRAILING_OFFSET`                        | 订单缺少必需的追踪偏移。                                      |
+| `INSTRUMENT_NOT_FOUND`                           | 缓存中未找到该金融工具。                                            |
+| `POSITION_NOT_FOUND`                             | 未找到 reduce-only 订单对应的持仓。                                   |
+| `MARKET_PRICE_UNAVAILABLE`                       | 订单风控检查没有可用市场价格。                                |
+| `TRAILING_STOP_CALCULATION_FAILED`               | 无法计算追踪止损触发价。                              |
+| `NOTIONAL_CALCULATION_FAILED`                    | 无法计算订单名义金额。                                     |
+| `NOTIONAL_BELOW_MINIMUM`                         | 订单名义金额低于工具下限。                                   |
+| `NOTIONAL_EXCEEDS_MAXIMUM`                       | 订单名义金额超过工具上限。                                    |
+| `NOTIONAL_EXCEEDS_MAX_PER_ORDER`                 | 订单名义金额超过配置的单笔上限。                          |
+| `NOTIONAL_EXCEEDS_FREE_BALANCE`                  | 订单名义金额超过账户可用余额。                                  |
+| `INITIAL_MARGIN_CALCULATION_FAILED`              | 无法计算订单初始保证金。                                     |
+| `INITIAL_MARGIN_EXCEEDS_FREE_BALANCE`            | 订单初始保证金超过账户可用余额。                            |
+| `BETTING_BALANCE_LOCKED_CALCULATION_FAILED`      | 无法计算投注订单需锁定的余额。                    |
+| `CUMULATIVE_NOTIONAL_EXCEEDS_FREE_BALANCE`       | 累计订单名义金额超过账户可用余额。                       |
+| `CUMULATIVE_INITIAL_MARGIN_CALCULATION_FAILED`   | 无法计算累计初始保证金。                                |
+| `CUMULATIVE_INITIAL_MARGIN_EXCEEDS_FREE_BALANCE` | 累计初始保证金超过账户可用余额。                       |
+| `REDUCE_ONLY_WOULD_INCREASE_POSITION`            | reduce-only 订单将增加持仓。                                      |
+| `ORDER_LIST_INCOMPLETE`                          | 缓存中订单列表缺少成员订单。                                        |
+| `ORDER_LIST_DENIED`                              | 订单因其订单列表未通过风控检查而被拒绝。                       |
+| `TRADING_HALTED`                                 | 交易已暂停；新提交与修改被拒绝。                      |
+| `TRADING_STATE_REDUCING`                         | 交易处于只减仓状态；仅允许合格的 reduce-only 提交。             |
+| `RATE_LIMIT_EXCEEDED`                            | 超出订单提交速率限制。                                         |
+| `STREAM_RECONCILING`                             | 执行流不可用或正在恢复；恢复后重试。              |
+| `NO_EXECUTION_CLIENT`                            | 未找到处理该路由命令的执行客户端。                                 |
+| `CLIENT_VENUE_MISMATCH`                          | 执行客户端不处理该订单的场所。                                 |
+| `SUBMIT_FAILED`                                  | 向执行客户端提交订单失败。                                  |
+| `INVALID_CLIENT_ORDER_ID`                        | 客户端订单 ID 对该场所非法。                                         |
+| `INVALID_POSITION_ID`                            | 传入的持仓 ID 对该订单提交非法。                         |
+| `UNSUPPORTED_ORDER_LIST`                         | 场所不支持所请求的订单列表。                                  |
+| `UNSUPPORTED_ORDER_TYPE`                         | 订单类型不受支持。                                                      |
+| `UNSUPPORTED_REDUCE_ONLY`                        | 执行客户端或场所不支持所请求的 reduce-only 指令。 |
+| `UNSUPPORTED_TIME_IN_FORCE`                      | 订单的有效期类型不受支持。                                           |
+| `UNSUPPORTED_TP_SL`                              | 场所不支持所请求的止盈/止损参数。            |
+| `VALIDATION_FAILED`                              | 订单在提交前的校验失败。                                        |
 
 <!-- END GENERATED: order-denied-reasons -->
 
-## Own order books
+## 自有订单簿 {#own-order-books}
 
-When `manage_own_order_books` is enabled, the `ExecutionEngine` maintains a market-by-order
-(MBO/L3) view of your working orders for each instrument. Strategies can subtract these orders from
-the public book to estimate net available liquidity. See [Own order book](./../order_book.md#own-order-book)
-for lifecycle, queries, filtering, and auditing.
+启用 `manage_own_order_books` 后，`ExecutionEngine` 为每个工具维护自己挂单的逐笔委托（MBO/L3）视图。策略可以把它从公开订单簿中扣减，估计净可用流动性。生命周期、查询、过滤与审计见[自有订单簿](./../order_book.md#own-order-book)。
 
-### Safe cancellation queries
+### 安全的撤销查询 {#safe-cancellation-queries}
 
-When querying an own order book for cancellation candidates, exclude `PENDING_CANCEL` from the
-`status` filter.
+查询自有订单簿寻找撤销候选时，`status` 过滤器要排除 `PENDING_CANCEL`。
 
 :::warning
-Including `PENDING_CANCEL` can issue duplicate cancel requests and repeatedly select orders that
-already await confirmation.
+包含 `PENDING_CANCEL` 可能发出重复撤销请求，并反复选中已在等待确认的订单。
 :::
 
-## Overfills
+## 超量成交 {#overfills}
 
-An **overfill** occurs when an order's cumulative filled quantity exceeds its original quantity. For
-example, fills totaling 110 units overfill a 100-unit order by 10 units.
+**超量成交**（overfill）指订单累计成交量超过其原始数量。例如 100 单位的订单累计成交 110 单位，超量 10 单位。
 
-### How overfills occur
+### 超量成交如何发生 {#how-overfills-occur}
 
-The engine observes an overfill when reported quantities exceed the order quantity. This can
-represent a genuine venue result, duplicate delivery under different trade IDs, or inconsistent
-venue reporting. Quantity alone does not identify the cause.
+上报数量超过订单数量时，引擎观察到超量成交。它可能代表真实的场所结果、不同 trade ID 下的重复投递，或场所报告不一致。仅凭数量无法定位原因。
 
-Live fills can arrive through two channels:
+实时成交可以经两个通道到达：
 
-- Real-time fill events arriving through WebSocket.
-- Periodic reconciliation polling the venue for fill history and position status.
+- 经 WebSocket 到达的实时成交事件。
+- 周期性对账：向场所轮询成交历史与持仓状态。
 
-Stable `trade_id` values let the engine deduplicate the same fill across both channels. If the
-logical fill arrives with different IDs, the engine treats the reports as distinct. See
-[Continuous reconciliation](./../../how_to/configure_live_trading.md#continuous-reconciliation) for
-configuration details.
+稳定的 `trade_id` 让引擎跨两个通道对同一笔成交去重。若同一逻辑成交带着不同 ID 到达，引擎把报告当作不同成交处理。配置细节见
+[持续对账](./../../how_to/configure_live_trading.md#continuous-reconciliation)。
 
-### System behavior
+### 系统行为 {#system-behavior}
 
-The `ExecutionEngine` checks for potential overfills before applying each fill event by comparing
-the order's current `filled_qty` plus the incoming `last_qty` against the original `quantity`.
+`ExecutionEngine` 在应用每笔成交事件前检查潜在超量：把订单当前 `filled_qty` 加上新来的 `last_qty`，与原始 `quantity` 比较。
 
-The `allow_overfills` configuration option (default: `False`) controls how overfills are handled:
+`allow_overfills` 配置项（默认：`False`）控制超量的处理方式：
 
-| `allow_overfills` | Behavior                                                                              |
+| `allow_overfills` | 行为                                                                                  |
 | ----------------- | ------------------------------------------------------------------------------------- |
-| `False`           | Logs and rejects the fill. A standalone reconciliation fill may raise quantity first. |
-| `True`            | Logs a warning, applies the fill, and tracks the excess in `overfill_qty`.            |
+| `False`           | 记录日志并拒绝该成交。独立的对账成交可能先抬高数量。 |
+| `True`            | 记录警告、应用成交，并把超出部分记入 `overfill_qty`。            |
 
-When `allow_overfills` is false and the execution client allows that overfill, the engine raises the order
-quantity to the filled quantity plus that fill. It then applies the fill. An already filled order is not
-raised. Adapter fill events, fills bundled with an order report, and live-manager projected fills do not use
-this raise.
+`allow_overfills` 为 false 且执行客户端允许该超量时，引擎把订单数量抬高到"已成交量加这笔成交"，然后应用该成交；已全成的订单不抬高。适配器成交事件、随订单报告打包的成交、以及 live-manager 投影的成交不走这次抬高。
 
-When overfills are allowed, the order's `overfill_qty` field tracks the excess quantity.
-The order transitions to `FILLED` status and `leaves_qty` is clamped to zero.
+允许超量时，订单的 `overfill_qty` 字段跟踪超出数量。订单迁移为 `FILLED` 状态，`leaves_qty` 钳制为零。
 
-### Duplicate fill detection
+### 重复成交检测 {#duplicate-fill-detection}
 
-The `Order` model enforces one quantity-bearing fill per `trade_id`. A repeated fill at the
-latest recorded price for that trade is rejected as a duplicate. A repeated fill at a new price
-restates the price that trade contributes to `avg_px` without changing quantity, status, or the
-original stored fill.
+`Order` 模型对每个 `trade_id` 只允许一笔带数量的成交。以该成交最新记录价格重复的成交作为重复被拒绝。以新价格重复的成交只重述该笔计入 `avg_px` 的价格，不改变数量、状态或原始存储的成交记录。
 
-#### Core engine path
+#### 核心引擎路径 {#core-engine-path}
 
-Before applying a fill, the `ExecutionEngine` calls `Order.is_duplicate_fill()`, which compares
-the latest fill for the `trade_id` on:
+应用成交前，`ExecutionEngine` 调用 `Order.is_duplicate_fill()`，对该 `trade_id` 的最新成交比较：
 
 - `trade_id`
 - `order_side`
 - `last_px`
 - `last_qty`
 
-An exact match is skipped with a warning. If the `trade_id` matches but the price differs, the fill is a price
-restatement. The order restates its average price, and the engine restates the open position's average without
-applying quantity. If another field differs, `Order.apply()` rejects the reused ID, and the engine logs and
-drops the fill.
+完全一致时跳过并警告。`trade_id` 相同但价格不同，视为价格重述：订单重述自身均价，引擎重述持仓均价，都不施加数量。其他字段不一致时，`Order.apply()` 拒绝这个被复用的 ID，引擎记录日志并丢弃该成交。
 
-#### Reconciliation path
+#### 对账路径 {#reconciliation-path}
 
-The reconciliation path checks `trade_id` before generating an `OrderFilled` event. It drops a
-report when that ID already exists on the order, regardless of its price or quantity.
+对账路径在生成 `OrderFilled` 事件之前先检查 `trade_id`。该 ID 已存在于订单上时直接丢弃报告，不论其价格或数量。
 
-Synthetic and inferred reconciliation fills use deterministic IDs. Replaying the same inputs after a restart
-thus produces the same `trade_id` and is deduplicated.
+合成与推断的对账成交使用确定性 ID。重启后重放同样的输入会产生同样的 `trade_id`，从而被去重。
 
-### Declined fill notification
+### 被拒成交的通知 {#declined-fill-notification}
 
-When the `ExecutionEngine` rejects an `OrderFilled` or `OrderFillVoided` instead of applying it, it publishes
-the unchanged event on `events.order_fill_declined.{instrument_id}`. For example, it rejects duplicates,
-overfills, or events for orders it cannot find. An adapter that tracks whether its fills and corrections were
-applied can subscribe to this topic.
+`ExecutionEngine` 拒绝（而非应用）`OrderFilled` 或 `OrderFillVoided` 时，会原样发布到 `events.order_fill_declined.{instrument_id}`。例如重复成交、超量成交，或找不到对应订单的事件。需要跟踪自己成交与更正是否被应用的适配器可以订阅该主题。
 
-Each rejection site logs the reason. The published event does not carry it. The engine does not publish on
-this topic for reconciliation projections, which update only the order.
+每个拒绝点都会记录原因，但发布的事件不携带原因。对账投影（只更新订单）不在此主题发布。
 
-### Configuration
+### 配置 {#configuration}
 
-For live trading, enable overfill tolerance in the `LiveExecutionEngineConfig`:
+实时交易中，在 `LiveExecutionEngineConfig` 启用超量容忍：
 
 ```python
 from nautilus_trader.config import LiveExecutionEngineConfig
@@ -593,75 +491,62 @@ config = LiveExecutionEngineConfig(
 ```
 
 :::warning
-Choose this setting from the venue's execution contract. The default `False` protects local state
-but can leave a discrepancy after a legitimate venue overfill. `True` applies the excess quantity
-and is not a substitute for duplicate-fill detection. Use
-[execution reconciliation](./reconciliation.md) to detect discrepancies.
+该设置要依据场所的执行契约来选。默认 `False` 保护本地状态，但场所的合法超量成交后可能留下差异。`True` 会应用超出数量，但不能替代重复成交检测。用
+[执行对账](./reconciliation.md)检测差异。
 :::
 
-## Fill corrections
+## 成交更正 {#fill-corrections}
 
-Some venues can later reduce or invalidate a fill. Nautilus records this as an
-[`OrderFillVoided`](./../events/order_fill_voided.md) event, never as an opposite-side fill. The event
-identifies the original trade and carries the cumulative voided quantity and fee correction.
+部分场所可以在事后削减或作废一笔成交。Nautilus 将其记录为
+[`OrderFillVoided`](./../events/order_fill_voided.md) 事件，绝不记为反向成交。事件标识原始成交，并携带累计作废数量与手续费更正。
 
-The execution engine rebuilds the affected order and positions and refreshes portfolio position and
-PnL caches before publishing the correction to strategies and execution algorithms. Adapters that
-support fill corrections request an authoritative account refresh after a void.
+执行引擎重建受影响的订单与持仓，刷新组合的持仓与盈亏缓存，然后把更正发布给策略和执行算法。支持成交更正的适配器在作废后会请求权威的账户刷新。
 
-Adapters must publish the referenced fill before a reopened correction or a partial correction that
-leaves the order executable. Without a local fill, a non-reopened correction makes the whole order
-terminal, even when `voided_qty` is less than the order quantity. A later working status report does
-not reopen `VOIDED`. See the complete
-[`OrderFillVoided` contract](./../events/order_fill_voided.md#contract).
+适配器必须在重开的更正、或使订单保持可执行的部分更正之前，发布被引用的成交。本地没有成交时，非重开的更正让整笔订单进入终态，即使 `voided_qty` 小于订单数量。之后挂单状态报告不会重开 `VOIDED`。完整契约见
+[`OrderFillVoided` 契约](./../events/order_fill_voided.md#contract)。
 
-### How voided fills occur
+### 成交作废的成因 {#how-voided-fills-occur}
 
-A void is a venue action on a trade it already reported. The causes recur across asset classes:
+作废是场所对自己已上报成交的动作。各资产类别反复出现下列成因：
 
-- **Erroneous execution review**: the venue nullifies a print that is substantially inconsistent with the
-  market at the time of execution. It also nullifies prints caused by an exchange system fault.
-- **Settlement failure**: a matched trade fails to settle, so the fill never takes economic effect.
-- **Event invalidation**: the underlying event is abandoned or a competitor is withdrawn, so matched
-  positions carry no exposure.
-- **Post-trade restatement**: the venue restates the quantity or fees of a trade during clearing.
+- **错误执行审查**：场所撤销与成交时点市场状况明显不符的成交，也撤销因交易所系统故障产生的成交。
+- **结算失败**：已撮合的交易未能结算，成交从未产生经济效力。
+- **事件作废**：底层事件被放弃或竞争对手撤出，已撮合的仓位不再承载敞口。
+- **交易后重述**：场所在清算中重述成交的数量或手续费。
 
-A venue price adjustment uses a new `OrderFilled` with the same `trade_id` at the new price. This restates the
-trade's accounting without changing its matched quantity. The `OrderFillVoided` event itself corrects
-quantity, not price.
+场所价格调整使用一条新 `OrderFilled`：同一 `trade_id`、新价格。它重述成交的记账价格而不改变撮合数量。`OrderFillVoided` 本身更正的是数量，不是价格。
 
-A break reaches the client differently by venue. FIX venues signal one through
-[`ExecType <150>`](https://www.onixs.biz/fix-dictionary/5.0.sp2/tagnum_150.html) values `H` (trade
-cancel) and `G` (trade correct). Venues that notify out of band leave the break to surface through
-[execution reconciliation](./reconciliation.md).
+断点（break）到达客户端的方式因场所而异。FIX 场所通过
+[`ExecType <150>`](https://www.onixs.biz/fix-dictionary/5.0.sp2/tagnum_150.html) 的
+`H`（trade cancel）和 `G`（trade correct）值传递。带外通知的场所，其断点要靠
+[执行对账](./reconciliation.md)浮出水面。
 
-### Venue references
+### 场所参考 {#venue-references}
 
-Each venue publishes the conditions under which it acts:
+各场所公布其行动条件：
 
-| Venue            | Mechanism                                                | Reference                                                                                                                                        |
+| 场所             | 机制                                                     | 参考                                                                                                                                           |
 | ---------------- | -------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------ |
-| Nasdaq           | Clearly erroneous transactions (Rule 11890).             | [Clearly erroneous transactions policy](https://www.nasdaqtrader.com/Trader.aspx?id=ClearlyErroneous).                                           |
-| NYSE             | Clearly erroneous executions (Rule 7.10).                | [Clearly erroneous execution review](https://www.nyse.com/trade/cee).                                                                            |
-| Cboe US equities | Clearly erroneous executions (BZX Rule 11.17).           | [Clearly erroneous execution form](https://www.cboe.com/us/equities/trading/cee_form/).                                                          |
-| CME Group        | Trade cancellations and price adjustments (Rule 588).    | [CME rulebook chapter 5](https://www.cmegroup.com/rulebook/CME/I/5/5.pdf).                                                                       |
-| Betfair          | Voided bets, reported as cumulative size voided (`sv`).  | [Void bets on the Stream API](https://support.developer.betfair.com/hc/en-us/articles/360000391492-How-are-void-bets-treated-by-the-Stream-API). |
-| Polymarket       | `FAILED` trade status after an on-chain revert or reorg. | [User channel](https://docs.polymarket.com/developers/CLOB/websocket/user-channel).                                                              |
+| Nasdaq           | 明显错误交易（Rule 11890）。             | [明显错误交易政策](https://www.nasdaqtrader.com/Trader.aspx?id=ClearlyErroneous)。                                           |
+| NYSE             | 明显错误成交（Rule 7.10）。                | [明显错误成交审查](https://www.nyse.com/trade/cee)。                                                                            |
+| Cboe 美股指 | 明显错误成交（BZX Rule 11.17）。           | [明显错误成交表单](https://www.cboe.com/us/equities/trading/cee_form/)。                                                          |
+| CME Group        | 交易取消与价格调整（Rule 588）。    | [CME 规则手册第 5 章](https://www.cmegroup.com/rulebook/CME/I/5/5.pdf)。                                                                       |
+| Betfair          | 作废注单，按累计作废数量（`sv`）上报。  | [Stream API 的作废注单](https://support.developer.betfair.com/hc/en-us/articles/360000391492-How-are-void-bets-treated-by-the-Stream-API)。 |
+| Polymarket       | 链上回滚或重组后的 `FAILED` 成交状态。 | [用户频道](https://docs.polymarket.com/developers/CLOB/websocket/user-channel)。                                                              |
 
-Nautilus adapters emit `OrderFillVoided` where the venue publishes the void on a stream the adapter consumes.
-The supported adapters and sources are:
+Nautilus 适配器在场所通过其所订阅的流发布作废时发出 `OrderFillVoided`。受支持的适配器与来源：
 
-- [Betfair](./../../integrations/betfair.md#voided-fills): the order change message `sv` field.
-- [Polymarket](./../../integrations/polymarket.md#trades): the user channel trade status.
+- [Betfair](./../../integrations/betfair.md#voided-fills)：订单变更消息的 `sv` 字段。
+- [Polymarket](./../../integrations/polymarket.md#trades)：用户频道的成交状态。
 
-## Related guides
+## 相关指南 {#related-guides}
 
-- [Events](./../events/index.md): Order and position event types and dispatch.
-- [Execution algorithms](./algorithms.md): TWAP, custom algorithms, and spawned orders.
-- [Execution policies](./policies.md): Delivery, state, persistence, and recovery
-  boundaries.
-- [Execution reconciliation](./reconciliation.md): Live state recovery and runtime consistency checks.
-- [Order book](./../order_book.md): Public and own order book behavior.
-- [Orders](./../orders/index.md): Order types and management.
-- [Positions](./../positions.md): Position tracking from executions.
-- [Strategies](./../strategies.md): Order submission from strategies.
+- [事件](./../events/index.md)：订单与持仓事件类型及分发。
+- [执行算法](./algorithms.md)：TWAP、自定义算法与派生订单。
+- [执行策略](./policies.md)：投递、状态、持久化与恢复
+  边界。
+- [执行对账](./reconciliation.md)：实时状态恢复与运行时一致性检查。
+- [订单簿](./../order_book.md)：公开与自有订单簿行为。
+- [订单](./../orders/index.md)：订单类型与管理。
+- [持仓](./../positions.md)：由成交驱动的持仓跟踪。
+- [策略](./../strategies.md)：策略的订单提交。

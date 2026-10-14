@@ -1,30 +1,25 @@
-# Options Data and Greeks (Bybit)
+# 期权数据与 Greeks（Bybit）
 
 :::note
-This **Rust-only** tutorial uses the Rust `LiveNode`
-with the Bybit adapter to stream live option Greeks and aggregated chain
-snapshots.
+本教程**仅用 Rust**，通过 Rust `LiveNode` 配合 Bybit 适配器流式获取实时期权
+Greeks 与聚合的期权链快照。
 :::
 
-This tutorial connects to Bybit's live options market and consumes Greeks
-and option chain data through two `DataActor` examples. It covers
-instrument discovery, venue-provided Greeks subscriptions, and periodic
-chain snapshots with ATM-relative strike filtering.
+本教程连接 Bybit 的实时期权市场，通过两个 `DataActor` 示例消费 Greeks 与期权链
+数据，覆盖金融工具发现、交易场所提供的 Greeks 订阅，以及带 ATM 相对行权价过滤的
+周期性期权链快照。
 
-## Introduction
+## 简介 {#introduction}
 
-Bybit publishes Greeks (delta, gamma, vega, theta) and implied volatility
-alongside every option ticker update. NautilusTrader exposes this data at
-two levels:
+Bybit 在每条期权行情更新中同时发布 Greeks（delta、gamma、vega、theta）与隐含
+波动率。NautilusTrader 以两个层级暴露这些数据：
 
-- **Per-instrument Greeks**: subscribe to a single option contract and
-  receive an `OptionGreeks` event on every ticker update.
-- **Option chain snapshots**: subscribe to an entire expiry series and
-  receive periodic `OptionChainSlice` events that aggregate quotes and
-  Greeks across all active strikes.
+- **逐工具 Greeks**：订阅单个期权合约，每次行情更新收到一个 `OptionGreeks` 事件。
+- **期权链快照**：订阅整个到期日序列，周期性收到
+  `OptionChainSlice` 事件，聚合序列内全部活跃行权价的报价与 Greeks。
 
-Two example binaries show these patterns. The first subscribes to individual Greeks streams. The second
-subscribes to an aggregated chain with ATM-relative strike filtering.
+两个示例二进制分别展示这两种模式：第一个订阅单个合约的 Greeks 数据流；第二个订阅
+带 ATM 相对行权价过滤的聚合期权链。
 
 ```mermaid
 flowchart LR
@@ -48,37 +43,36 @@ flowchart LR
     AGG -->|interval timer| C
 ```
 
-## Prerequisites
+## 前置条件 {#prerequisites}
 
-- A working Rust toolchain ([rustup.rs](https://rustup.rs)).
-- The NautilusTrader repository cloned and building.
+- 可用的 Rust 工具链（[rustup.rs](https://rustup.rs)）。
+- 已克隆并能构建 NautilusTrader 仓库。
 
-The examples need no Bybit API key. They leave `api_key` and `api_secret` unset. The data client then uses
-Bybit's public market data endpoints. It does not read credentials from the environment.
+示例不需要 Bybit API key：`api_key` 与 `api_secret` 留空，数据客户端使用 Bybit
+的公共行情端点，不从环境读取凭据。
 
 :::warning
-Bybit demo trading uses `stream-demo.bybit.com` only for private streams.
-Public option market data uses the mainnet public stream
-`wss://stream.bybit.com/v5/public/option`.
+Bybit 的 demo 交易只在私有数据流上使用 `stream-demo.bybit.com`。
+公共期权行情使用主网公共流 `wss://stream.bybit.com/v5/public/option`。
 :::
 
-## The DataActor pattern
+## DataActor 模式 {#the-dataactor-pattern}
 
-A Rust `DataActor` needs three pieces:
+Rust 的 `DataActor` 需要三部分：
 
-1. A struct with a `core: DataActorCore` field plus your own state.
-1. The `nautilus_actor!(YourType)` macro plus a `Debug` implementation.
-1. A `DataActor` trait implementation with your callbacks.
+1. 一个含 `core: DataActorCore` 字段和自有状态的 struct。
+1. `nautilus_actor!(YourType)` 宏加一个 `Debug` 实现。
+1. 带回调的 `DataActor` trait 实现。
 
-The macro supplies the native runtime connections that the blanket `Actor` and `Component` implementations
-require. You only implement the callbacks you need. Every callback has a default no-op implementation.
+宏提供 blanket `Actor` 与 `Component` 实现所需的原生运行时连接，你只需实现
+用到的回调。每个回调都有默认的 no-op 实现。
 
-## Part 1: per-instrument Greeks
+## 第一部分：逐工具 Greeks {#part-1-per-instrument-greeks}
 
-The `bybit-greeks-tester` example subscribes to `OptionGreeks` for all
-BTC CALL options at the nearest expiry and logs each update.
+`bybit-greeks-tester` 示例为最近到期日的所有 BTC CALL 期权订阅 `OptionGreeks`，
+并记录每条更新。
 
-### Actor structure
+### Actor 结构 {#actor-structure}
 
 ```rust
 #[derive(Debug)]
@@ -104,14 +98,13 @@ impl GreeksTester {
 }
 ```
 
-The macro requires the `core` field. The `client_id` identifies the data client for subscriptions. The
-`subscribed_instruments` vector records subscriptions so the actor can remove them on stop.
+宏要求 `core` 字段。`client_id` 标识订阅所用的数据客户端。
+`subscribed_instruments` 向量记录订阅列表，actor 停止时据此退订。
 
-### Discovering instruments
+### 发现金融工具 {#discovering-instruments}
 
-On start, the actor queries the cache for all option instruments,
-filters for BTC CALLs that have not expired, and finds the nearest
-expiry:
+启动时，actor 从缓存查询所有期权金融工具，过滤出未到期的 BTC CALL，并找到最近
+到期日：
 
 ```rust
 fn on_start(&mut self) -> anyhow::Result<()> {
@@ -148,15 +141,14 @@ fn on_start(&mut self) -> anyhow::Result<()> {
 ```
 
 :::warning
-Release the cache borrow before calling any subscription methods. The
-cache uses `Rc<RefCell<...>>` internally, and subscription methods may
-need to borrow it. Collect owned data into a local `Vec`, drop the cache
-reference, then subscribe.
+调用任何订阅方法前先释放缓存借用。缓存内部使用 `Rc<RefCell<...>>`，
+订阅方法可能需要借用它。把拥有的数据收集到本地 `Vec`，释放缓存引用，
+然后再订阅。
 :::
 
-### Subscribing to Greeks
+### 订阅 Greeks {#subscribing-to-greeks}
 
-After discovering instruments, subscribe to each one:
+发现金融工具后逐一订阅：
 
 ```rust
 let client_id = self.client_id;
@@ -166,10 +158,9 @@ for (instrument_id, _, _) in &options {
 }
 ```
 
-### Handling updates
+### 处理更新 {#handling-updates}
 
-Each ticker update from Bybit triggers `on_option_greeks` with an
-`OptionGreeks` event:
+Bybit 的每条行情更新都会以 `OptionGreeks` 事件触发 `on_option_greeks`：
 
 ```rust
 fn on_option_greeks(&mut self, greeks: &OptionGreeks) -> anyhow::Result<()> {
@@ -192,34 +183,34 @@ fn on_option_greeks(&mut self, greeks: &OptionGreeks) -> anyhow::Result<()> {
 }
 ```
 
-The `OptionGreeks` fields:
+`OptionGreeks` 的字段：
 
-| Field              | Type               | Description                                                     |
+| 字段               | 类型               | 说明                                                            |
 | ------------------ | ------------------ | --------------------------------------------------------------- |
-| `instrument_id`    | `InstrumentId`     | The option contract.                                            |
-| `convention`       | `GreeksConvention` | Greeks convention (`BlackScholes` or `PriceAdjusted`).          |
-| `delta`            | `f64`              | Price sensitivity to underlying.                                |
-| `gamma`            | `f64`              | Delta sensitivity to underlying.                                |
-| `vega`             | `f64`              | Price sensitivity to a 1% change in volatility.                 |
-| `theta`            | `f64`              | Daily time decay.                                               |
-| `rho`              | `f64`              | Sensitivity to interest rate changes.                           |
-| `mark_iv`          | `Option<f64>`      | Mark price implied volatility.                                  |
-| `bid_iv`           | `Option<f64>`      | Bid implied volatility.                                         |
-| `ask_iv`           | `Option<f64>`      | Ask implied volatility.                                         |
-| `underlying_price` | `Option<f64>`      | Venue reference price for this expiry.                          |
-| `open_interest`    | `Option<f64>`      | Open interest for this contract.                                |
-| `ts_event`         | `UnixNanos`        | UNIX timestamp (nanoseconds) when the event occurred.           |
-| `ts_init`          | `UnixNanos`        | UNIX timestamp (nanoseconds) when the instance was initialized. |
+| `instrument_id`    | `InstrumentId`     | 期权合约。                                                      |
+| `convention`       | `GreeksConvention` | Greeks 约定（`BlackScholes` 或 `PriceAdjusted`）。              |
+| `delta`            | `f64`              | 价格对标的的敏感度。                                            |
+| `gamma`            | `f64`              | delta 对标的的敏感度。                                          |
+| `vega`             | `f64`              | 价格对波动率变化 1% 的敏感度。                                  |
+| `theta`            | `f64`              | 每日时间衰减。                                                  |
+| `rho`              | `f64`              | 对利率变化的敏感度。                                            |
+| `mark_iv`          | `Option<f64>`      | 标记价格的隐含波动率。                                          |
+| `bid_iv`           | `Option<f64>`      | 买价隐含波动率。                                                |
+| `ask_iv`           | `Option<f64>`      | 卖价隐含波动率。                                                |
+| `underlying_price` | `Option<f64>`      | 交易场所给出的该到期日参考价。                                  |
+| `open_interest`    | `Option<f64>`      | 该合约的未平仓合约数。                                          |
+| `ts_event`         | `UnixNanos`        | 事件发生时刻的 UNIX 时间戳（纳秒）。                            |
+| `ts_init`          | `UnixNanos`        | 实例初始化时刻的 UNIX 时间戳（纳秒）。                          |
 
-The `delta`, `gamma`, `vega`, `theta`, and `rho` values are in a nested `greeks: OptionGreekValues` struct.
-The `OptionGreeks` implementation of `Deref<Target = OptionGreekValues>` permits direct access through
-`greeks.delta` and the other fields, as shown above.
+`delta`、`gamma`、`vega`、`theta`、`rho` 存放在嵌套的 `greeks: OptionGreekValues`
+结构体中。`OptionGreeks` 实现了 `Deref<Target = OptionGreekValues>`，因此可以像
+上面那样通过 `greeks.delta` 等字段直接访问。
 
-Bybit does not provide rho. The adapter sets it to `0.0`.
+Bybit 不提供 rho，适配器把它置为 `0.0`。
 
-### Cleanup
+### 清理 {#cleanup}
 
-On stop, unsubscribe from all instruments:
+停止时退订全部金融工具：
 
 ```rust
 fn on_stop(&mut self) -> anyhow::Result<()> {
@@ -233,25 +224,23 @@ fn on_stop(&mut self) -> anyhow::Result<()> {
 }
 ```
 
-## Part 2: option chain snapshots
+## 第二部分：期权链快照 {#part-2-option-chain-snapshots}
 
-The `bybit-option-chain` example subscribes to an aggregated option chain
-and logs periodic snapshots showing calls and puts at each strike with
-their quotes and Greeks.
+`bybit-option-chain` 示例订阅聚合期权链，周期性记录快照，展示每个行权价的 call 与
+put 及其报价和 Greeks。
 
-### Why use option chains
+### 为什么用期权链 {#why-use-option-chains}
 
-Per-instrument subscriptions give control over individual contracts. For an entire surface, you must manage
-individual streams and correlate updates across strikes. An option chain subscription does this through the
-`DataEngine`. It aggregates quotes and Greeks across all strikes in a series and publishes a single
-`OptionChainSlice` on a timer.
+逐工具订阅便于控制单个合约，但要看整条曲面就得管理一条条独立数据流，还要跨行权价
+关联更新。期权链订阅通过 `DataEngine` 完成这件事：聚合序列中所有行权价的报价与
+Greeks，按定时器发布单个 `OptionChainSlice`。
 
-This aggregation occurs inside NautilusTrader. Bybit publishes option market data for each contract. The V5
-public WebSocket documentation does not specify a native option chain stream.
+这一聚合发生在 NautilusTrader 内部。Bybit 按合约发布期权行情，其 V5 公共
+WebSocket 文档没有定义原生的期权链数据流。
 
-### Chain types
+### 期权链类型 {#chain-types}
 
-**`OptionSeriesId`** identifies a single expiry series:
+**`OptionSeriesId`** 标识单个到期日序列：
 
 ```rust
 let series_id = OptionSeriesId::new_derived(
@@ -262,19 +251,18 @@ let series_id = OptionSeriesId::new_derived(
 );
 ```
 
-**`StrikeRange`** controls which strikes are active:
+**`StrikeRange`** 控制哪些行权价处于激活状态：
 
-| Variant       | Description                                                                 |
-| ------------- | --------------------------------------------------------------------------- |
-| `Fixed`       | A fixed set of strike prices.                                               |
-| `AtmRelative` | `strikes_above` above and `strikes_below` below ATM.                        |
-| `AtmPercent`  | All strikes within `pct` of the ATM price.                                  |
-| `Delta`       | Strikes whose call or put absolute delta is within `tolerance` of `target`. |
+| 变体          | 说明                                                                      |
+| ------------- | ------------------------------------------------------------------------- |
+| `Fixed`       | 固定的行权价集合。                                                        |
+| `AtmRelative` | ATM 上方 `strikes_above` 个、下方 `strikes_below` 个行权价。              |
+| `AtmPercent`  | ATM 价格 `pct` 范围内的全部行权价。                                       |
+| `Delta`       | call 或 put 绝对 delta 与 `target` 之差在 `tolerance` 内的行权价。        |
 
-For dynamic strike ranges, subscriptions wait until the engine determines the ATM price from the
-venue-provided reference price.
+动态行权价范围会等引擎从交易场所参考价确定 ATM 价格后才生效。
 
-### Subscribing
+### 订阅 {#subscribing}
 
 ```rust
 let strike_range = StrikeRange::AtmRelative {
@@ -293,13 +281,13 @@ self.subscribe_option_chain(
 );
 ```
 
-For raw mode, pass `None` for `snapshot_interval_ms`. In this mode, every quote or Greeks update publishes a
-slice immediately.
+原始模式下 `snapshot_interval_ms` 传 `None`：每条报价或 Greeks 更新都立即发布
+一个切片。
 
-### Handling snapshots
+### 处理快照 {#handling-snapshots}
 
-The `on_option_chain` callback receives an `OptionChainSlice` containing
-all active strikes with their call and put data:
+`on_option_chain` 回调收到 `OptionChainSlice`，包含全部活跃行权价及其 call 和
+put 数据：
 
 ```rust
 fn on_option_chain(&mut self, slice: &OptionChainSlice) -> anyhow::Result<()> {
@@ -347,26 +335,25 @@ fn on_option_chain(&mut self, slice: &OptionChainSlice) -> anyhow::Result<()> {
 }
 ```
 
-The `OptionChainSlice` fields and methods:
+`OptionChainSlice` 的字段与方法：
 
-| Name             | Type / Returns              | Description                          |
-| ---------------- | --------------------------- | ------------------------------------ |
-| `series_id`      | `OptionSeriesId`            | The series this snapshot covers.     |
-| `atm_strike`     | `Option<Price>`             | ATM strike from the reference price. |
-| `call_count()`   | `usize`                     | Number of call strikes with data.    |
-| `put_count()`    | `usize`                     | Number of put strikes with data.     |
-| `strike_count()` | `usize`                     | Union of all strikes.                |
-| `strikes()`      | `Vec<Price>`                | Sorted list of all strike prices.    |
-| `get_call(k)`    | `Option<&OptionStrikeData>` | Call quote and Greeks at strike `k`. |
-| `get_put(k)`     | `Option<&OptionStrikeData>` | Put quote and Greeks at strike `k`.  |
+| 名称             | 类型 / 返回                 | 说明                                   |
+| ---------------- | --------------------------- | -------------------------------------- |
+| `series_id`      | `OptionSeriesId`            | 该快照覆盖的序列。                     |
+| `atm_strike`     | `Option<Price>`             | 由参考价确定的 ATM 行权价。            |
+| `call_count()`   | `usize`                     | 有数据的 call 行权价数量。             |
+| `put_count()`    | `usize`                     | 有数据的 put 行权价数量。              |
+| `strike_count()` | `usize`                     | 全部行权价的并集数量。                 |
+| `strikes()`      | `Vec<Price>`                | 全部行权价的有序列表。                 |
+| `get_call(k)`    | `Option<&OptionStrikeData>` | 行权价 `k` 的 call 报价与 Greeks。     |
+| `get_put(k)`     | `Option<&OptionStrikeData>` | 行权价 `k` 的 put 报价与 Greeks。      |
 
-Each `OptionStrikeData` contains a `quote: QuoteTick` (bid/ask) and an
-optional `greeks: Option<OptionGreeks>`.
+每个 `OptionStrikeData` 含一个 `quote: QuoteTick`（买卖价）和可选的
+`greeks: Option<OptionGreeks>`。
 
-## Node setup
+## 节点设置 {#node-setup}
 
-Both examples use the same `LiveNode` pattern. No execution client is
-needed for data-only use:
+两个示例使用相同的 `LiveNode` 模式。只用数据时不需要执行客户端：
 
 ```rust
 #[tokio::main]
@@ -400,10 +387,10 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 }
 ```
 
-With `product_types` set to `[BybitProductType::Option]`, the client loads only option instruments. Startup
-waits while the instrument provider retrieves and parses every listed option.
+`product_types` 设为 `[BybitProductType::Option]` 时，客户端只加载期权金融工具。
+启动时会等金融工具提供器拉取并解析全部挂牌期权。
 
-## Running the examples
+## 运行示例 {#running-the-examples}
 
 ```bash
 # Per-instrument Greeks
@@ -413,17 +400,17 @@ cargo run --example bybit-greeks-tester --package nautilus-bybit --features exam
 cargo run --example bybit-option-chain --package nautilus-bybit --features examples
 ```
 
-Stop either example with Ctrl+C. The actor's `on_stop` callback
-unsubscribes from all streams before shutdown.
+Ctrl+C 停止任一示例。actor 的 `on_stop` 回调会在关闭前退订全部数据流。
 
-## What the examples produce
+## 示例产出 {#what-the-examples-produce}
 
-A 30-second mainnet run on April 28 (BTC near 76,800 USDT, expiry 2026-04-28 08:00 UTC) gives these results:
+4 月 28 日主网运行 30 秒（BTC 约 76,800 USDT，到期日 2026-04-28 08:00 UTC），
+结果如下：
 
-- The per-instrument tester captures **938 Greeks updates** across 22 BTC CALL contracts.
-- The chain tester captures **5 chain snapshots** with 7 strikes each.
+- 逐工具测试器在 22 个 BTC CALL 合约上捕获 **938 条 Greeks 更新**。
+- 期权链测试器捕获 **5 个链快照**，每个含 7 个行权价。
 
-### Per-instrument Greeks output
+### 逐工具 Greeks 输出 {#per-instrument-greeks-output}
 
 ```text
 Found 22 BTC CALL options at nearest expiry (ts=1777359600000000000)
@@ -433,7 +420,7 @@ GREEKS | BTC-28APR26-71000-C-USDT-OPTION.BYBIT | delta=0.4733 gamma=0.000000 veg
 GREEKS | BTC-28APR26-73000-C-USDT-OPTION.BYBIT | delta=0.4733 gamma=0.000000 vega=0.0000 theta=-0.0000 rho=0.000000 | mark_iv=0.57 bid_iv=0.00 ask_iv=5.00 | underlying=76782.43 oi=0.0
 ```
 
-### Option chain output
+### 期权链输出 {#option-chain-output}
 
 ```text
 OPTION_CHAIN | BYBIT:BTC:USDT:2026-04-28T08:00:00Z | atm=77000 | calls=7 puts=7 | strikes=7
@@ -442,36 +429,34 @@ OPTION_CHAIN | BYBIT:BTC:USDT:2026-04-28T08:00:00Z | atm=77000 | calls=7 puts=7 
   K=76500 | CALL: bid=265 ask=370 [d=0.442 g=0.00000 v=0.07 iv=29.9%] | PUT: bid=0 ask=5 [d=-0.003 g=0.00000 v=0.07 iv=29.9%]
 ```
 
-### Panels
+### 面板图 {#panels}
 
 ![BTC CALL delta vs strike](./assets/options_data_bybit/panel_a_delta_vs_strike.png)
 
-**Figure 1.** *Last delta per BTC CALL strike at the nearest expiry,
-underlying ~77,000 USDT marked. Delta drops from ~0.45 below the
-underlying to near zero past the underlying. Bybit's delta on near-zero
-gamma contracts close to expiry compresses to a step-like profile around
-ATM.*
+**图 1.** *最近到期日每个 BTC CALL 行权价的最后 delta，标的约 77,000 USDT 已标记。
+delta 从标的下方的约 0.45 跌到标的上方接近零。Bybit 在临近到期、gamma 近零的合约上
+给出的 delta 在 ATM 附近压缩成阶梯状。*
 
 ![IV smile per strike](./assets/options_data_bybit/panel_b_iv_smile.png)
 
-**Figure 2.** *Mark IV per strike for the latest chain snapshot (CALL and PUT overlaid). The smile is
-symmetric around ATM at 77,000 USDT. IV decreases from 36% at 75,500 to 30% at 77,000, then increases to 38%
-at 78,500.*
+**图 2.** *最新链快照每个行权价的标记 IV（CALL 与 PUT 叠加）。微笑曲线关于
+77,000 USDT 的 ATM 对称：IV 从 75,500 的 36% 降到 77,000 的 30%，再升到
+78,500 的 38%。*
 
 ![Underlying trajectory and open interest](./assets/options_data_bybit/panel_c_underlying_oi.png)
 
-**Figure 3.** *Bybit's underlying price reported in each Greeks update (top) and open interest by strike at
-the last update (bottom). OI concentrates in the [70,000, 76,000] USDT band: at-the-money to slightly
-out-of-the-money strikes.*
+**图 3.** *Bybit 在每条 Greeks 更新中报告的标的价格（上）与最后一次更新时按行权价
+统计的未平仓合约数（下）。OI 集中在 [70,000, 76,000] USDT 区间：平值到轻度虚值的
+行权价。*
 
 ![CALL spread per chain snapshot](./assets/options_data_bybit/panel_d_call_spread.png)
 
-**Figure 4.** *Average CALL bid-ask spread per chain snapshot in USDT.
-Snapshots arrive every five seconds (`snapshot_interval_ms=5000`).*
+**图 4.** *每个链快照的 CALL 平均买卖价差（USDT）。快照每五秒到达一次
+（`snapshot_interval_ms=5000`）。*
 
-### Regenerate the panels
+### 重新生成图表面板 {#regenerate-the-panels}
 
-After building NautilusTrader from source, run these commands from the repository root:
+从源码构建 NautilusTrader 后，在仓库根目录运行：
 
 ```bash
 make sync
@@ -486,27 +471,23 @@ GREEKS_LOG=/tmp/bybit_greeks.log CHAIN_LOG=/tmp/bybit_chain.log \
         python docs/tutorials/assets/options_data_bybit/render_panels.py
 ```
 
-## Complete source
+## 完整源码 {#complete-source}
 
 - [`crates/adapters/bybit/examples/node_greeks.rs`](https://github.com/nautechsystems/nautilus_trader/tree/develop/crates/adapters/bybit/examples/node_greeks.rs)
 - [`crates/adapters/bybit/examples/node_option_chain.rs`](https://github.com/nautechsystems/nautilus_trader/tree/develop/crates/adapters/bybit/examples/node_option_chain.rs)
 
-## Next steps
+## 后续步骤 {#next-steps}
 
-- **Combined patterns**: Use per-instrument Greeks for near-ATM
-  contracts alongside the aggregated chain view in a single actor.
-  Subscribe to Greeks for contracts you want to track individually, and
-  the chain for a surface-level view.
-- **Quote subscriptions**: Call `subscribe_quotes` for
-  top-of-book `QuoteTick` updates on individual option contracts.
-- **Options execution**: The
-  [delta-neutral strategy tutorial](./delta_neutral_options_bybit.md) walks
-  through a short strangle with perpetual hedging, including IV-based
-  order placement through Bybit's `order_iv` parameter.
+- **组合模式**：在同一个 actor 里，近 ATM 合约用逐工具 Greeks，整体用聚合链视图。
+  想单独跟踪的合约订阅 Greeks，看曲面用期权链。
+- **报价订阅**：对单个期权合约调用 `subscribe_quotes`
+  获取最优报价 `QuoteTick` 更新。
+- **期权执行**：
+  [Delta 中性策略教程](./delta_neutral_options_bybit.md)讲解带永续对冲的卖出
+  宽跨式，包括通过 Bybit 的 `order_iv` 参数按 IV 下单。
 
-## See also
+## 参见 {#see-also}
 
-- [Options](./../concepts/options.md): option instrument types, Greeks
-  data types, and chain architecture.
-- [Bybit integration](./../integrations/bybit.md): full Bybit adapter
-  reference including options order parameters and limitations.
+- [期权](./../concepts/options.md)：期权工具类型、Greeks 数据类型与期权链架构。
+- [Bybit 集成](./../integrations/bybit.md)：完整的 Bybit 适配器参考，含期权
+  订单参数与限制。

@@ -1,21 +1,19 @@
 # Limit-If-Touched
 
-`FIX OrdType <40>` no dedicated value (commonly `4` Stop Limit with a favorable trigger)
+`FIX OrdType <40>` 无专用值（通常以 `4` Stop Limit 配合有利触发价发送）
 
-A *Limit-If-Touched* order releases a *Limit* order at the specified price when its trigger price is
-reached.
+*Limit-If-Touched* 订单在到达触发价时，以指定价格释放一个 *Limit* 订单。
 
-## Use cases
+## 使用场景 {#use-cases}
 
-Use a *Limit-If-Touched* order to activate a price-protected order only after a trigger is touched. For
-example, place a take-profit *Limit* order as price approaches a target instead of resting it early. As with a
-*Stop-Limit*, the order may not fill if the market moves through the limit after the trigger.
+用 *Limit-If-Touched* 订单在触发价被触及后才激活一个带价格保护的订单。例如，等价格接近目标位时
+再挂出止盈 *Limit* 订单，而不是一开始就挂着。与 *Stop-Limit* 一样，若触发后市场穿过限价，订单
+可能不成交。
 
-## Example
+## 示例 {#example}
 
-**Example**: create a *Limit-If-Touched* order to BUY 5 BTCUSDT-PERP perpetual futures contracts on Binance
-Futures. Set a limit price of 30,100 USDT and a trigger price of 30,150 USDT. The order expires one hour after
-creation.
+**示例**：在 Binance Futures 创建一个 *Limit-If-Touched* 订单，买入 5 手 BTCUSDT-PERP 永续期货合约。
+限价设为 30,100 USDT，触发价设为 30,150 USDT。订单在创建一小时后到期。
 
 ```rust tab="Rust"
 use nautilus_core::DurationNanos;
@@ -73,12 +71,11 @@ order: LimitIfTouchedOrder = self.order_factory.limit_if_touched(
 )
 ```
 
-See the
-[`LimitIfTouchedOrder` API reference](https://nautilustrader.io/docs/python-api-latest/model/orders.html#nautilus_trader.model.LimitIfTouchedOrder)
-for further details.
+更多细节见
+[`LimitIfTouchedOrder` API 参考](https://nautilustrader.io/docs/python-api-latest/model/orders.html#nautilus_trader.model.LimitIfTouchedOrder)。
 
-## Related guides
+## 相关指南 {#related-guides}
 
-- [Orders](./index.md#trigger-type) - Trigger types and other execution instructions.
-- [Emulated orders](./emulated.md) - Emulating conditional orders on venues without native support.
-- [Execution](./../execution/index.md) - How orders reach the venue and fills are handled.
+- [订单](./index.md#trigger-type) - 触发类型与其他执行指令。
+- [仿真订单](./emulated.md) - 在不原生支持条件订单的交易场所上进行仿真。
+- [执行](./../execution/index.md) - 订单如何到达交易场所，成交如何处理。

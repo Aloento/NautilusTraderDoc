@@ -2,20 +2,16 @@
 
 `FIX OrdType <40>=2`
 
-A *Limit* order rests on the limit order book at a specified price and executes only at that price
-or better.
+*Limit* 订单以指定价格挂在限价订单簿上，仅以该价格或更优价格成交。
 
-## Use cases
+## 使用场景 {#use-cases}
 
-Use a *Limit* order to control the execution price and, when appropriate, provide liquidity. Common uses
-include market making, scaling into or out of a position at chosen levels, and targeting maker fees with
-`post_only`. The order cannot fill worse than its limit price, but it may stay unfilled or fill only
-partially.
+用 *Limit* 订单控制成交价格，并在合适时提供流动性。常见用途包括做市、在选定价位分批建仓或平仓，以及配合 `post_only` 获取 maker 费率。订单的成交价不会差于限价，但可能不成交或只部分成交。
 
-## Example
+## 示例 {#example}
 
-**Example**: create a *Limit* order on the Binance Futures Crypto exchange to SELL 20 ETHUSDT-PERP Perpetual
-Futures contracts. Set a limit price of 5000 USDT to act as a market maker.
+**示例**：在 Binance Futures 加密货币交易所创建一个 *Limit* 订单，卖出 20 手 ETHUSDT-PERP 永续期货合约。
+设置 5000 USDT 的限价，以做市商身份挂单。
 
 ```rust tab="Rust"
 use nautilus_model::{
@@ -66,11 +62,10 @@ order: LimitOrder = self.order_factory.limit(
 )
 ```
 
-See the [`LimitOrder` API reference](https://nautilustrader.io/docs/python-api-latest/model/orders.html#nautilus_trader.model.LimitOrder)
-for further details.
+更多细节见 [`LimitOrder` API 参考](https://nautilustrader.io/docs/python-api-latest/model/orders.html#nautilus_trader.model.LimitOrder)。
 
-## Related guides
+## 相关指南 {#related-guides}
 
-- [Orders](./index.md) - Order concepts, execution instructions, and the order factory.
-- [Emulated orders](./emulated.md) - Emulating *Limit* orders, released as *Market* orders on trigger.
-- [Execution](./../execution/index.md) - How orders reach the venue and fills are handled.
+- [订单](./index.md) - 订单概念、执行指令与订单工厂。
+- [仿真订单](./emulated.md) - 仿真 *Limit* 订单，触发后以 *Market* 订单释放。
+- [执行](./../execution/index.md) - 订单如何到达交易场所，成交如何处理。

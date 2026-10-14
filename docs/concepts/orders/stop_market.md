@@ -2,22 +2,18 @@
 
 `FIX OrdType <40>=3` (Stop)
 
-A *Stop-Market* order releases a *Market* order when its trigger price is reached. It is often
-used as a stop-loss: a SELL order against a LONG position or a BUY order against a SHORT position.
+*Stop-Market* 订单在到达触发价时释放一个 *Market* 订单。它常被用作止损：对 LONG 持仓下 SELL 订单，或对 SHORT 持仓下 BUY 订单。
 
-## Use cases
+## 使用场景 {#use-cases}
 
-Use a *Stop-Market* order to prioritize execution after a price level is breached. Examples include protective
-stop-losses or breakout entries.
+当价格突破某个水平后要优先保证成交，使用 *Stop-Market* 订单。典型场景包括保护性止损或突破入场。
 
-The trigger price is **not a guaranteed fill price**. A fast or gapping market can produce substantial
-slippage. The released order can still be rejected or stay unfilled when no market is available. A
-*Stop-Limit* provides price protection instead but may not fill.
+触发价**不是保证的成交价格**。快速波动或跳空的市场可能带来明显滑点。释放出的订单仍可能被拒绝，或在没有可交易市场时不成交。*Stop-Limit* 提供价格保护，但可能不成交。
 
-## Example
+## 示例 {#example}
 
-**Example**: create a *Stop-Market* order on the Binance Spot/Margin exchange to SELL 1 BTC. Set a trigger
-price of 100,000 USDT and keep the order active until further notice.
+**示例**：在 Binance 现货/保证金交易所创建一个 *Stop-Market* 订单，卖出 1 BTC。设置触发价 100,000 USDT，
+订单持续有效直至撤销。
 
 ```rust tab="Rust"
 use nautilus_model::{
@@ -68,12 +64,11 @@ order: StopMarketOrder = self.order_factory.stop_market(
 )
 ```
 
-See the
-[`StopMarketOrder` API reference](https://nautilustrader.io/docs/python-api-latest/model/orders.html#nautilus_trader.model.StopMarketOrder)
-for further details.
+更多细节见
+[`StopMarketOrder` API 参考](https://nautilustrader.io/docs/python-api-latest/model/orders.html#nautilus_trader.model.StopMarketOrder)。
 
-## Related guides
+## 相关指南 {#related-guides}
 
-- [Orders](./index.md#trigger-type) - Trigger types and other execution instructions.
-- [Emulated orders](./emulated.md) - Emulating conditional orders on venues without native support.
-- [Execution](./../execution/index.md) - How orders reach the venue and fills are handled.
+- [订单](./index.md#trigger-type) - 触发类型与其他执行指令。
+- [仿真订单](./emulated.md) - 在不原生支持条件订单的交易场所上进行仿真。
+- [执行](./../execution/index.md) - 订单如何到达交易场所，成交如何处理。

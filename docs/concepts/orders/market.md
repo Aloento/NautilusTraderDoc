@@ -2,21 +2,18 @@
 
 `FIX OrdType <40>=1`
 
-A *Market* order instructs the venue to trade a quantity immediately at the best available price.
-It can also carry time in force and reduce-only instructions.
+*Market* 订单指示交易场所立即以当前最优价格交易指定数量。它还可以携带有效期和只减仓指令。
 
-## Use cases
+## 使用场景 {#use-cases}
 
-Use a *Market* order when prompt execution matters more than the exact price. Examples include urgent risk
-reduction or entry into a liquid, fast-moving market.
+当成交速度比精确价格更重要时，使用 *Market* 订单。典型场景包括紧急降低风险，或进入流动性好、波动快的市场。
 
-A *Market* order has **no price protection**. It can incur spread costs and slippage. The venue can still
-reject it or leave it unfilled when no market is available.
+*Market* 订单**没有价格保护**，可能产生点差成本和滑点。当没有可交易的市场时，交易场所仍可能拒单或使其不成交。
 
-## Example
+## 示例 {#example}
 
-**Example**: create a *Market* order on the Interactive Brokers
-[IdealPro](https://ibkr.info/node/1708) Forex ECN to BUY 100,000 AUD using USD.
+**示例**：在 Interactive Brokers 的
+[IdealPro](https://ibkr.info/node/1708) 外汇 ECN 上创建一个 *Market* 订单，用 USD 买入 100,000 AUD。
 
 ```rust tab="Rust"
 use nautilus_model::{
@@ -57,10 +54,9 @@ order: MarketOrder = self.order_factory.market(
 )
 ```
 
-See the [`MarketOrder` API reference](https://nautilustrader.io/docs/python-api-latest/model/orders.html#nautilus_trader.model.MarketOrder)
-for further details.
+更多细节见 [`MarketOrder` API 参考](https://nautilustrader.io/docs/python-api-latest/model/orders.html#nautilus_trader.model.MarketOrder)。
 
-## Related guides
+## 相关指南 {#related-guides}
 
-- [Orders](./index.md) - Order concepts, execution instructions, and the order factory.
-- [Execution](./../execution/index.md) - How orders reach the venue and fills are handled.
+- [订单](./index.md) - 订单概念、执行指令与订单工厂。
+- [执行](./../execution/index.md) - 订单如何到达交易场所，成交如何处理。

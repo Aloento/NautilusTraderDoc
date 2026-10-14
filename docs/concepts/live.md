@@ -1,76 +1,55 @@
-# Live Trading
+# 实时交易
 
-The same strategy and execution-algorithm code can run across backtest and live environments. Live
-execution also introduces venue, transport, timing, persistence, external-activity, and
-reconciliation behavior that a simulation may not reproduce.
+同一份策略与执行算法代码可以跨回测和实时环境运行。实时执行还会引入模拟未必能复现的交易场所、传输、时序、持久化、外部活动和对账行为。
 
 :::warning
-**Live trading involves real financial risk.** Before deploying to production, understand
-system configuration, node operations, execution reconciliation, and the differences
-between backtesting and live trading.
+**实时交易涉及真实的资金风险。** 部署到生产之前，请先弄清系统配置、节点操作、执行对账，以及回测与实时交易的差异。
 :::
 
-## Backtest and live differences
+## 回测与实时的差异 {#backtest-and-live-differences}
 
-Backtests advance a controlled clock from historical data and execute orders on simulated venues.
-A live node shares strategy and execution-algorithm code with a backtest, but coordinates with
-systems outside the process boundary.
+回测用历史数据驱动一个受控时钟，在模拟交易场所上执行订单。实时节点与回测共享策略和执行算法代码，但要与进程边界之外的系统协作。
 
-- **Venue**: Venue rules and adapter capabilities determine which order types, instructions, and
-  events are available. See [Adapters](./adapters.md).
-- **Transport**: A network failure can leave an order command outcome unknown. See
-  [Command outcomes](./execution/policies.md#command-outcomes).
-- **Timing**: Independent inputs can interleave, and the runner does not define one global FIFO
-  order. See [Dispatch priority](#dispatch-priority-and-overload-behavior).
-- **Persistence**: Built-in cache backends process writes independently of venue transport, and
-  event-store capture does not gate dispatch on durable commit. See
-  [Persistence before transport](./execution/policies.md#persistence-before-transport).
-- **External activity**: Venue reports can include orders created outside the node. See
-  [External order creation](./execution/reconciliation.md#external-order-creation).
-- **Reconciliation**: Startup and runtime checks align retained local state with venue reports. See
-  [Execution reconciliation](./execution/reconciliation.md).
+- **交易场所**：场所规则和适配器能力决定哪些订单类型、指令和事件可用。见 [适配器](./adapters.md)。
+- **传输**：网络故障可能让订单命令的结果处于未知状态。见
+  [命令结果](./execution/policies.md#command-outcomes)。
+- **时序**：相互独立的输入可能交错，runner 不定义全局 FIFO 顺序。见 [分发优先级](#dispatch-priority-and-overload-behavior)。
+- **持久化**：内置缓存支撑独立于场所传输处理写入，事件存储捕获也不会等持久提交后才放行分发。见
+  [持久化先于传输](./execution/policies.md#persistence-before-transport)。
+- **外部活动**：场所报告可能包含节点之外创建的订单。见
+  [外部订单创建](./execution/reconciliation.md#external-order-creation)。
+- **对账**：启动和运行时检查把本地保留状态与场所报告对齐。见
+  [执行对账](./execution/reconciliation.md)。
 
-## Execution client routing
+## 执行客户端路由 {#execution-client-routing}
 
-A live node can register independently named execution clients for the same venue. A command's
-`client_id` selects a registered client directly. Venue and default routes select a client when
-neither the command's `client_id` nor account-based routing resolves one.
+实时节点可以为同一交易场所注册多个独立命名的执行客户端。命令的 `client_id` 直接选中某个已注册客户端。当命令的 `client_id` 和基于账户的路由都没能解析出客户端时，由场所路由和默认路由选定。
 
-:::warning[Account isolation]
-Registering multiple clients for a venue does not provide end-to-end account isolation for positions and order
-management across same-venue accounts. Pre-trade risk checks use the account of the client that will run each
-command. See [Account selection](./execution/index.md#account-selection).
+:::warning[账户隔离]
+为某交易场所注册多个客户端，并不能在同一场所的各账户之间为持仓和订单管理提供端到端的账户隔离。交易前风险检查使用执行各命令的那个客户端所属的账户。见 [账户选择](./execution/index.md#account-selection)。
 :::
 
-### Order routing
+### 订单路由 {#order-routing}
 
-Configure venue and default routes through each client's `RoutingConfig`:
+通过每个客户端的 `RoutingConfig` 配置场所路由与默认路由：
 
-- `venues` assigns the listed venues to that client. These explicit routes take precedence over
-  automatic venue routes and the default client.
-- `default=True` selects the fallback client when no venue route applies.
+- `venues` 把列出的交易场所指派给该客户端。这些显式路由优先于自动场所路由和默认客户端。
+- `default=True` 使该客户端在没有场所路由适用时成为兜底选择。
 
-The only client registered for a venue automatically routes that venue unless another client
-explicitly routes it. Multiple clients for the same venue require an explicit venue route or a
-default client, even when strategies supply a `client_id` for each command. Duplicate client IDs,
-conflicting venue routes, and multiple defaults fail during node construction.
+某交易场所只注册了一个客户端时，它自动路由该场所，除非另一个客户端显式路由它。同一场所注册多个客户端时，必须有显式场所路由或默认客户端——即便策略为每条命令都提供了 `client_id` 也一样。重复的客户端 ID、冲突的场所路由、多个默认客户端都会在节点构造期报错。
 
-### Instrument updates
+### 金融工具更新 {#instrument-updates}
 
-Instrument updates reach each client whose own venue matches, plus the client routed to that venue, if any.
-Each matching client receives the update once. Receiving an instrument update does not select that client as
-the recipient of order commands.
+金融工具更新会送达每个场所匹配的客户端，以及被路由到该场所的客户端（如有）。每个匹配的客户端只收到一次。收到金融工具更新不会让该客户端成为订单命令的接收方。
 
-### Direct Rust callers
+### 直接 Rust 调用方 {#direct-rust-callers}
 
-`ExecutionEngine::register_client` registers a client without assigning routing. Call
-`register_venue_routing` or `set_default_client` afterward to configure venue or fallback routing.
-Alternatively, `register_default_client` registers a client and makes it the default.
+`ExecutionEngine::register_client` 注册客户端时不指派路由，之后需调用
+`register_venue_routing` 或 `set_default_client` 配置场所或兜底路由。也可以用 `register_default_client` 一步完成注册并设为默认。
 
-## Live node lifecycle
+## 实时节点生命周期 {#live-node-lifecycle}
 
-Rust `LiveNode::run()` prepares cached and venue state before starting trader components, then owns
-the event loop and coordinated shutdown.
+Rust 的 `LiveNode::run()` 在启动 trader 组件前准备好缓存和场所状态，随后拥有事件循环和协调关闭（coordinated shutdown）。
 
 ```mermaid
 flowchart TD
@@ -86,41 +65,30 @@ flowchart TD
     Stop --> Final[Disconnect clients and finalize]
 ```
 
-Live node lifecycle: instruments and execution state are prepared before strategies start trading.
+实时节点生命周期：先备好金融工具与执行状态，策略才开始交易。
 
-Cache restoration runs when a backing database is attached and cache loading is enabled. Connection,
-reconciliation, or trader startup failures abort startup and follow the coordinated cleanup path.
+连接了支撑数据库且启用了缓存加载时，才执行缓存恢复。连接、对账或 trader 启动失败会中止启动，并走协调清理路径。
 
-### Submission recovery at shutdown
+### 关闭时的提交恢复 {#submission-recovery-at-shutdown}
 
-Rust `LiveNode::stop`, `run`, and `run_with_mode`, and Python `run_async()` use the same submission recovery
-boundary:
+Rust 的 `LiveNode::stop`、`run`、`run_with_mode` 与 Python 的 `run_async()` 使用同一个提交恢复边界：
 
-1. During `delay_post_stop`, the node continues processing venue evidence and native managed-exit timers
-   without starting new reconciliation queries.
-1. At the end of that window, any retained submission without a native outcome or venue confirmation makes
-   shutdown return an error. The error lists the unresolved client order IDs.
-1. Clients disconnect and the kernel stops even when recovery is incomplete.
+1. 在 `delay_post_stop` 期间，节点继续处理场所证据和原生 managed-exit 定时器，但不启动新的对账查询。
+1. 该窗口结束时，任何仍没有原生结果或场所确认的保留提交，都会让关闭返回错误。错误列出未解决的 client order ID。
+1. 即使恢复不完整，客户端仍会断开、内核仍会停止。
 
-Evidence drained after this boundary cannot change the recorded shutdown result.
+此边界之后排空（drain）的证据无法改变已记录的关闭结果。
 
-This applies to `RetainUnresolved` and to clients which require submission retention, including submissions
-whose recovery budget has not yet exhausted. Polymarket requires retention automatically, so its callers can
-receive this error without selecting an opt-in policy. The default `ResolveLocally` policy stays unchanged for
-clients which do not require retention.
+这适用于 `RetainUnresolved`，以及要求保留提交的客户端——包括恢复预算尚未耗尽的提交。Polymarket 自动要求保留，因此其调用方即使未选择启用策略也可能收到这个错误。不要求保留的客户端，其默认 `ResolveLocally` 策略保持不变。
 
-Submission acknowledgement ends submission recovery. It does not prove that an accepted order's cancel or
-update completed, or that positions are flat. Managed exit keeps its existing attempt budget, and this result
-does not extend cleanup beyond `delay_post_stop` or implement recovery across restarts. See
-[submission recovery](./execution/reconciliation.md#submission-recovery) for identity and query-budget rules.
+提交获得确认即结束提交恢复。它不能证明已接受订单的撤销或修改已经完成，也不能证明持仓已平。managed exit 保留既有的尝试预算；该结果不会把清理扩展到 `delay_post_stop` 之外，也不实现跨重启的恢复。身份与查询预算规则见
+[提交恢复](./execution/reconciliation.md#submission-recovery)。
 
-## Hosted event loops
+## 托管事件循环 {#hosted-event-loops}
 
-Use `run_async()` from Python to run a node on an event loop you already own. For example, an ASGI server can
-serve a dashboard beside the node. Use `run()` when the node should own the calling thread and signal
-handling.
+在 Python 中用 `run_async()` 让节点跑在你已拥有的事件循环上。例如，ASGI 服务器可以在节点旁边提供一个仪表盘。希望节点拥有调用线程和信号处理时，用 `run()`。
 
-This lifecycle sketch leaves node configuration and request serving to the application:
+下面的生命周期草图把节点配置与请求服务留给应用：
 
 ```python
 import asyncio
@@ -169,101 +137,67 @@ async def serve_with_node(node: LiveNode) -> None:
             node.dispose()
 ```
 
-Both entry points run the same lifecycle, so a hosted node performs the same startup ordering,
-maintenance, reconciliation, and shutdown as an owned one. The mode decides only who owns signal
-handling: a hosted node installs no handlers, leaving `SIGINT` and `SIGTERM` to the host.
+两个入口运行同样的生命周期，因此托管节点与自持节点执行相同的启动顺序、维护、对账和关闭。模式只决定信号处理的归属：托管节点不安装任何处理器，`SIGINT` 和 `SIGTERM` 留给宿主。
 
-### Access and shutdown
+### 访问与关闭 {#access-and-shutdown}
 
-`run_async()` returns a coroutine and lends the node to it for the run's duration:
+`run_async()` 返回协程，并在运行期间把节点出借给它：
 
-- Capture `cache`, `portfolio`, and `handle()` **before starting**. Each stays usable while the node
-  runs, whereas reading state through the node itself raises until the run returns it.
-- `handle()` works throughout, since it is how a host stops the node. `is_running` also answers
-  throughout because it reads the same handle.
-- Call `dispose()` **after the run task finishes** to release the node's resources. Calling it during the run
-  returns without doing anything. It does not defer disposal.
+- **在启动之前**保存 `cache`、`portfolio` 和 `handle()`。节点运行时它们始终可用；而通过节点本身读取状态会抛异常，直到运行结束归还节点。
+- `handle()` 全程可用，宿主正是靠它停止节点。`is_running` 也全程可用，因为它读的是同一个 handle。
+- **等运行任务结束后**再调用 `dispose()` 释放节点资源。运行期间调用会直接返回、什么都不做，也不会延迟到之后执行。
 
-`LiveNodeHandle` is safe to call from any thread, including a signal handler. `stop()` requests a
-graceful shutdown and returns immediately, so the awaiting task resolves only once shutdown
-finishes. Cancelling that task requests the same shutdown, waits for it, then re-raises the
-cancellation, which keeps `asyncio.timeout` and task groups behaving as their callers expect.
+`LiveNodeHandle` 从任意线程调用都安全，包括信号处理函数。`stop()` 请求优雅关闭后立即返回，因此 await 它的任务只在关闭完成后才 resolve。取消该任务同样会先请求关闭、等其完成，再重新抛出取消异常——这让 `asyncio.timeout` 和任务组保持调用方预期的行为。
 
-The shared [submission recovery shutdown contract](#submission-recovery-at-shutdown) applies to
-hosted nodes. If an awaiting Python task is cancelled, cancellation still propagates after teardown,
-with any shutdown error preserved as the cancellation exception's cause.
+所有托管节点都适用上文[关闭时的提交恢复](#submission-recovery-at-shutdown)契约。若 await 的 Python 任务被取消，拆解完成后取消仍会继续传播，且关闭错误会保留为取消异常的 cause。
 
-### Host integration and limits
+### 宿主集成与限制 {#host-integration-and-limits}
 
-Compatibility is tested with the default asyncio loop and uvloop. An ASGI lifespan managed by Uvicorn can
-apply the same ownership pattern without transferring signal handling to the node.
+兼容性已用默认 asyncio 事件循环和 uvloop 测试。由 Uvicorn 管理的 ASGI lifespan 可采用同样的所有权模式，且不必把信号处理移交节点。
 
-Before an ASGI lifespan reports startup complete, wait until the handle reports `Running` while checking
-whether the run task has failed. Keep supervising the task after startup, and treat unexpected completion as a
-service failure.
+ASGI lifespan 报告启动完成之前，要等 handle 报告 `Running`，其间检查运行任务是否已失败。启动后继续监督该任务，其意外结束应视为服务故障。
 
-While the node is running, it yields to the host loop periodically, so a burst of events cannot starve the
-host's own callbacks. Startup and shutdown drain their queues without yielding. Thus, a large instrument load
-or a shutdown backlog can hold the loop for the length of that drain.
+节点运行期间会周期性地让出宿主事件循环，因此事件突发不会饿死宿主自己的回调。启动和关闭排空队列时不让出，因此大批量加载金融工具、或关闭时的积压，可能在整个排空期间占住事件循环。
 
-:::warning[One LiveNode per process]
-Run one concurrent `LiveNode` per process. The runner binds its channel senders and message bus into
-thread-local storage, and other runtime state is process-wide. `run_async()` also rejects a second
-hosted node on the same event loop. Run additional nodes in separate processes.
+:::warning[每进程一个 LiveNode]
+每个进程只并发运行一个 `LiveNode`。runner 把它的通道发送端和消息总线绑定在线程本地存储中，其他运行时状态则是进程级的。`run_async()` 还会拒绝同一事件循环上的第二个托管节点。更多节点请放到独立进程。
 
-Building another `LiveNode` on the same thread raises an error while the first node exists or is being built.
-In Python, `node.build(...)` is a static constructor and attempts to create another node.
+第一个节点存在或正在构造时，在同一线程上再构造一个 `LiveNode` 会报错。
+在 Python 中，`node.build(...)` 是静态构造函数，会尝试创建另一个节点。
 
-Calling `dispose()` alone does not release this construction guard. Before building a replacement, drop the
-existing node or release all references to it in Python:
+只调用 `dispose()` 并不能释放这个构造守卫。构造替代节点之前，要丢弃现有节点或释放 Python 中对它的全部引用：
 
-- With a single Python reference, call `del node` first: `node = LiveNode.build(...)` attempts construction
-  while the old node still exists.
-- Exceptions and unfinished coroutines can keep the node. Release those references too.
-- If an unreachable reference cycle keeps it, run `gc.collect()` before rebuilding.
+- 只有一个 Python 引用时，先 `del node`：`node = LiveNode.build(...)` 会在旧节点仍存在时尝试构造。
+- 异常和未完成的协程可能持有该节点，这些引用也要释放。
+- 若不可达的引用循环使其存活，重建前先运行 `gc.collect()`。
 
-When an ASGI application lifespan constructs the node, run that application with one worker. Do not
-use hot reload for live trading because it restarts the worker and its node. Scale HTTP request
-handling with processes that do not construct a trading node.
+ASGI 应用的 lifespan 构造节点时，该应用必须以单 worker 运行。实时交易不要使用热重载，因为它会重启 worker 及其节点。扩展 HTTP 请求处理能力，请用不构造交易节点的进程。
 :::
 
-A node configured with a cache database backing is rejected on a host loop. Those backings wait for
-their worker task by blocking the calling thread, which stalls the host loop rather than slowing it.
-Native-only nodes can use `run()` for database backing. Custom Python clients drive asyncio in
-both launch modes, so neither supports cache database backing.
+配置了缓存数据库支撑的节点会在宿主事件循环上被拒绝。这类支撑靠阻塞调用线程来等待其 worker 任务，会把宿主事件循环整个卡死，而不只是拖慢。纯原生节点可以用 `run()` 搭配数据库支撑。自定义 Python 客户端在两种启动模式下都驱动 asyncio，因此都不支持缓存数据库支撑。
 
-## Configuration
+## 配置 {#configuration}
 
-For how config structs handle defaults, `T` vs `Option<T>` semantics, and
-builder patterns, see the [Configuration](./configuration.md) concept guide.
+配置结构体如何处理默认值、`T` 与 `Option<T>` 语义以及 builder 模式，见 [配置](./configuration.md)概念指南。
 
-For node and execution engine settings, strategy configuration, cache backing, and multi-venue
-wiring, see the
-[Configure a live trading node](./../how_to/configure_live_trading.md) how-to guide.
+节点与执行引擎设置、策略配置、缓存支撑和多场所接线，见
+[配置实时交易节点](./../how_to/configure_live_trading.md)操作指南。
 
-## Execution reconciliation
+## 执行对账 {#execution-reconciliation}
 
-For how submit, modify, and cancel commands resolve, see
-[Command outcomes](./execution/policies.md#command-outcomes).
+提交、修改、撤销命令如何得到结果，见
+[命令结果](./execution/policies.md#command-outcomes)。
 
-At startup, reconciliation aligns cached order and position state with venue reports before trader
-components start. Continuous checks can then monitor in-flight orders, open orders, positions, and
-own order books while the node runs.
+启动时，对账在 trader 组件开始前把缓存的订单和持仓状态与场所报告对齐。之后，持续检查可在节点运行期间监测在途订单、挂单、持仓和自有订单簿。
 
-An adapter can declare bounded historical reports. Startup reconciliation applies their fill economics only
-when the report set and retained state prove a coherent position transition. Incomplete or ambiguous history
-can still recover exact order state without changing positions or portfolio economics.
+适配器可以声明有界的历史报告。启动对账只有在报告集合与保留状态能证明持仓转换连贯时，才应用其中的成交经济信息。历史不完整或有歧义时，仍可恢复精确的订单状态，而不改动持仓或组合经济。
 
-See [Execution reconciliation](./execution/reconciliation.md) for configuration, recovery procedures,
-runtime checks, scenarios, and invariants.
-For runtime protection against stale snapshots and the distinction from genuine corrections and explicit fill-void events,
-see [Snapshot freshness and fill corrections](./execution/reconciliation.md#snapshot-freshness-and-fill-corrections).
+配置、恢复流程、运行时检查、场景和不变式见 [执行对账](./execution/reconciliation.md)。
+针对过期快照的运行时保护，及其与真实更正、显式成交作废（fill-void）事件的区分，见 [快照新鲜度与成交更正](./execution/reconciliation.md#snapshot-freshness-and-fill-corrections)。
 
-## Rust live runner metrics
+## Rust live runner 指标 {#rust-live-runner-metrics}
 
-Rust `LiveNode` exposes primitive runner metrics through `LiveNodeHandle::metrics_snapshot()`.
-Get the handle from the node before calling `run()`, then poll snapshots from another task and
-derive rates or utilization from deltas.
+Rust `LiveNode` 通过 `LiveNodeHandle::metrics_snapshot()` 暴露基础的 runner 指标。在调用 `run()` 前从节点获取 handle，再从另一个任务轮询快照，用差值推导速率或利用率。
 
 ```rust
 use std::time::Duration;
@@ -318,60 +252,45 @@ tokio::spawn(async move {
 node.run().await?;
 ```
 
-### Snapshot scope and interpretation
+### 快照范围与解读 {#snapshot-scope-and-interpretation}
 
-The snapshot covers `LiveNode::run` channel dispatch after startup, including residual dispatch
-during the shutdown grace period. It does **not** include startup buffering, startup flushes, or the
-final post-loop drain.
+快照覆盖 `LiveNode::run` 启动后的通道分发，包括关闭宽限期内的残余分发。**不**包含启动期缓冲、启动期刷写，以及循环结束后的最终排空。
 
-- `dispatch_busy_ns` covers the five dispatch branches. `maintenance_busy_ns` and
-  `external_msgbus_busy_ns` cover non-dispatch loop work.
-- Queue depths are point samples from the maintenance tick while the node is running, and can be
-  stale during shutdown grace.
-- Snapshots are lock-free and may not be a consistent cross-field view. Derive rates from successive
-  snapshots with **saturating deltas**.
-- Counters reset when `LiveNode::run` enters steady state.
+- `dispatch_busy_ns` 覆盖五个分发分支；`maintenance_busy_ns` 和 `external_msgbus_busy_ns` 覆盖非分发的循环工作。
+- 队列深度是节点运行期间维护 tick 上的即时采样，关闭宽限期内可能已过期。
+- 快照无锁，跨字段视图未必一致。请对相邻快照做**饱和差值**来推导速率。
+- `LiveNode::run` 进入稳态时计数器清零。
 
-## Dispatch priority and overload behavior
+## 分发优先级与过载行为 {#dispatch-priority-and-overload-behavior}
 
-The live runner's seven internal message channels are separate and unbounded. When several message
-channels are ready together, the runner polls in this order:
+live runner 的七个内部消息通道彼此独立且无界。多个通道同时就绪时，runner 按以下顺序轮询：
 
-1. Time and system work.
-1. Execution events.
-1. Execution commands.
-1. External message-bus ingress.
-1. Data events.
-1. Data commands.
+1. 时间与系统工作。
+1. 执行事件。
+1. 执行命令。
+1. 外部消息总线入站。
+1. 数据事件。
+1. 数据命令。
 
-Events precede commands within the execution and data channel pairs.
+在执行与数据两个通道对内，事件都先于命令。
 
-This polling order keeps a market-data backlog from taking priority over ready execution traffic. It does not
-define **one global FIFO order** across channels, adapters, or venues.
+这个轮询顺序保证行情积压不会压过就绪的执行流量。它不定义跨通道、跨适配器、跨场所的**全局 FIFO 顺序**。
 
-Each selected branch runs to completion before the runner polls again, so a slow handler delays each channel.
-The runner yields to the host event loop periodically, but yielding does not change channel priority or
-shorten a slow handler.
+每个被选中的分支都运行到完成，runner 才再次轮询，因此慢 handler 会拖延每个通道。runner 会周期性让出宿主事件循环，但让出既不改变通道优先级，也不会缩短慢 handler 的耗时。
 
-:::warning[Unbounded queues]
-Runner channels do not apply producer backpressure, coalesce messages, shed market data, or impose a maximum
-queue depth. Sustained input above dispatch capacity thus increases queue depth, latency, and memory use. The
-runner does not automatically throttle a feed, halt trading, or shut down when a threshold is crossed.
+:::warning[无界队列]
+runner 通道不施加生产者背压、不合并消息、不丢弃行情、也不设队列深度上限。因此，持续超过分发能力的输入会推高队列深度、延迟和内存占用。越过某个阈值时，runner 不会自动限流数据源、停止交易或关闭。
 :::
 
-Use runner metrics and queue-state events to detect this pressure. The thresholds are operational
-signals, not service-time guarantees. The application must decide how to alert, reduce input, halt
-new exposure, or stop the node when pressure persists.
+用 runner 指标和队列状态事件来发现这种压力。阈值是运维信号，不是服务时限承诺。压力持续时，由应用决定如何告警、削减输入、停止新的敞口或关闭节点。
 
-## Queue pressure monitoring
+## 队列压力监控 {#queue-pressure-monitoring}
 
-`LiveNode` converts runner queue samples into typed state transitions when
-`LiveNodeConfig.queue_monitor` is set. The monitor is **disabled by default** and publishes no
-queue-state events while the field is unset.
+设置了 `LiveNodeConfig.queue_monitor` 后，`LiveNode` 会把 runner 队列采样转换为类型化的状态迁移。监控**默认禁用**，字段未设置时不发布任何队列状态事件。
 
-### Configure thresholds
+### 配置阈值 {#configure-thresholds}
 
-The following example sets the thresholds applied to each monitored runner channel:
+下例为每个受监控的 runner 通道设置阈值：
 
 ```rust tab="Rust"
 use nautilus_live::config::{LiveNodeConfig, QueueMonitorConfig};
@@ -403,7 +322,7 @@ config = LiveNodeConfig(
 )
 ```
 
-The four values apply to each monitored runner channel:
+这四个值适用于每个受监控的 runner 通道：
 
 - `time_events`
 - `exec_events`
@@ -411,148 +330,100 @@ The four values apply to each monitored runner channel:
 - `data_events`
 - `data_commands`
 
-Each clear threshold must be **lower than its trigger threshold**. Configuration validation rejects
-equal or inverted thresholds.
+每个清除阈值必须**低于对应的触发阈值**。阈值相等或倒挂时，配置校验会拒绝。
 
-### State transitions
+### 状态迁移 {#state-transitions}
 
-The live runner evaluates the monitor on its 100 ms maintenance tick, after sampling current queue
-depths. Queue depth is a point-in-time value. Mean dispatch time uses the messages and dispatch busy
-time accumulated since the previous metrics snapshot.
+live runner 在其 100 ms 维护 tick 上、采样当前队列深度之后评估监控器。队列深度是瞬时值；平均分发耗时使用自上次指标快照以来累计的消息数和分发忙碌时间。
 
-| Condition    | Measure                                               | `Triggered`                                    | `Cleared`                                    |
-| ------------ | ----------------------------------------------------- | ---------------------------------------------- | -------------------------------------------- |
-| `Backlogged` | Point-in-time queue depth.                            | `queue_depth >= queue_depth_trigger`           | `queue_depth <= queue_depth_clear`           |
-| `Slow`       | Per-channel mean dispatch time for the sample window. | `mean_dispatch_ns >= mean_dispatch_ns_trigger` | `mean_dispatch_ns <= mean_dispatch_ns_clear` |
+| 条件         | 度量                                     | `Triggered`                                    | `Cleared`                                    |
+| ------------ | ---------------------------------------- | ---------------------------------------------- | -------------------------------------------- |
+| `Backlogged` | 瞬时队列深度。                           | `queue_depth >= queue_depth_trigger`           | `queue_depth <= queue_depth_clear`           |
+| `Slow`       | 采样窗口内每通道的平均分发耗时。         | `mean_dispatch_ns >= mean_dispatch_ns_trigger` | `mean_dispatch_ns <= mean_dispatch_ns_clear` |
 
-Each channel tracks `Backlogged` and `Slow` independently:
+每个通道独立跟踪 `Backlogged` 和 `Slow`：
 
-- A value between the clear and trigger thresholds keeps the prior state, so it does not publish another
-  event.
-- If both conditions cross on one tick, the node publishes two events. Each condition clears
-  independently.
-- A sample window with no dispatches does not evaluate `Slow`. The condition keeps its prior state until a
-  window contains a dispatch.
+- 取值介于清除与触发阈值之间时保持先前状态，不发布新事件。
+- 两个条件在同一 tick 同时越界时，节点发布两个事件，各自独立清除。
+- 没有分发的采样窗口不评估 `Slow`。该条件保持先前状态，直到某个窗口内出现分发。
 
-### Typed delivery
+### 类型化投递 {#typed-delivery}
 
-Each transition publishes a fresh `QueueStateChanged` value on
-`events.system.QueueStateChanged.<channel>`, where `<channel>` is the Rust variant name, such as
-`DataEvents` for Python `SystemChannel.DATA_EVENTS`. The event identifies the configured trader,
-runner channel, condition, and transition state. It also records the queue depth and mean dispatch
-time at the crossing, a fresh event ID, and event timestamps.
+每次迁移都会在 `events.system.QueueStateChanged.<channel>` 上发布一个新的 `QueueStateChanged` 值，`<channel>` 是 Rust 变体名，如 Python `SystemChannel.DATA_EVENTS` 对应 `DataEvents`。事件标明配置的 trader、runner 通道、条件和迁移状态，还记录越界时的队列深度与平均分发耗时、新事件 ID 和事件时间戳。
 
-Actors subscribe with `subscribe_queue_state(...)` and receive events through
-`on_queue_state(...)`. The Python API exposes `SystemChannel`, `QueueCondition`, `QueueState`, and
-`QueueStateChanged` from `nautilus_trader.common`. Publication stays on the in-process typed message
-bus, and the event has no wire representation for external message-bus streaming. See
-[Queue pressure state](./actors.md#queue-pressure-state) for actor examples.
+actor 用 `subscribe_queue_state(...)` 订阅，通过 `on_queue_state(...)` 接收事件。Python API 从 `nautilus_trader.common` 暴露 `SystemChannel`、`QueueCondition`、`QueueState` 和 `QueueStateChanged`。发布只走进程内类型化消息总线，该事件没有用于外部消息总线流的线上表示。actor 示例见
+[队列压力状态](./actors.md#queue-pressure-state)。
 
-## Socket transport state
+## Socket 传输状态 {#socket-transport-state}
 
-### Publication and routing
+### 发布与路由 {#publication-and-routing}
 
-Actors can observe transport availability for adapters that opt into socket state reporting. `LiveNode`
-publishes `SocketStateChanged` on `events.system.SocketStateChanged.<client_id>.<endpoint>` with the trader
-ID, client ID, optional venue, stable endpoint label, state, fresh event ID, and event timestamps. The
-endpoint label identifies one logical adapter transport without exposing its URL.
+选择启用 socket 状态上报的适配器，其 actor 可以观察传输可用性。`LiveNode` 在 `events.system.SocketStateChanged.<client_id>.<endpoint>` 上发布 `SocketStateChanged`，携带 trader ID、客户端 ID、可选场所、稳定的端点标签、状态、新事件 ID 和事件时间戳。端点标签标识一条逻辑适配器传输，不暴露其 URL。
 
-`LiveNode` sets both timestamps from the kernel clock when it handles the transport's neutral state
-notification. Adapters send the notification through the runner's system-event channel, separately from market
-data. The internal channel is not part of queue-pressure monitoring.
+`LiveNode` 处理传输的中性状态通知时，用内核时钟设置两个时间戳。适配器经 runner 的系统事件通道发送该通知，与行情数据分开。这条内部通道不参与队列压力监控。
 
-The client ID and endpoint components percent-encode bytes other than ASCII letters, digits, `-`, and `_`.
-Thus, dots and wildcard characters in labels cannot change topic matching. Use `subscribe_socket_state`
-filters to select a client, endpoint, or both without constructing topic names.
+client ID 和 endpoint 两个成分会把 ASCII 字母、数字、`-`、`_` 以外的字节做百分号编码，因此标签中的点和通配符无法改变主题匹配。用 `subscribe_socket_state` 的过滤参数选择客户端、端点或两者，不必自己拼主题名。
 
-### State semantics
+### 状态语义 {#state-semantics}
 
-| Transport event or condition        | Publication                                            |
-| ----------------------------------- | ------------------------------------------------------ |
-| TCP or WebSocket becomes available. | `Connected`.                                           |
-| Active transport is lost.           | `Disconnected`.                                        |
-| Connection or retry attempt fails.  | No event.                                              |
-| Deliberate shutdown.                | No disconnect event.                                   |
-| Reconnect attempts are exhausted.   | No additional event after the reported transport loss. |
+| 传输事件或状态                    | 发布                                                   |
+| --------------------------------- | ------------------------------------------------------ |
+| TCP 或 WebSocket 变为可用。       | `Connected`。                                          |
+| 活动传输丢失。                    | `Disconnected`。                                       |
+| 连接或重试尝试失败。              | 无事件。                                               |
+| 主动关闭。                        | 无断开事件。                                           |
+| 重连尝试耗尽。                    | 已上报传输丢失后不再发布额外事件。                     |
 
-`Connected` reports **transport availability**. It does not mean that authentication, subscription
-replay, or adapter recovery has completed.
+`Connected` 报告的是**传输可用性**，不代表认证、订阅重放或适配器恢复已经完成。
 
 :::warning
-Socket state is operational evidence, not an execution-command outcome. A disconnect by itself does not
-reject, cancel, or resolve an in-flight command. Stream updates, queries, or reconciliation provide that
-evidence under the [command outcome policy](./execution/policies.md#command-outcomes).
+Socket 状态是运维证据，不是执行命令的结果。单纯断连不会拒绝、撤销或判定一条在途命令。相关证据由数据流更新、查询或对账按[命令结果策略](./execution/policies.md#command-outcomes)提供。
 :::
 
-### Dead-peer detection
+### 死连接检测 {#dead-peer-detection}
 
-A connection can stop delivering without closing. A NAT or load balancer drops it with no `FIN` and no `RST`.
-Thus, writes keep succeeding into the send buffer and nothing surfaces the loss.
+连接可能在未关闭的情况下停止投递数据。NAT 或负载均衡器直接丢弃连接，不发 `FIN` 也不发 `RST`，于是写入仍不断成功进入发送缓冲区，丢失无人察觉。
 
-#### Heartbeat timeout
+#### 心跳超时 {#heartbeat-timeout}
 
-Handler-mode WebSocket and raw TCP clients reconnect on heartbeat timeout. With a configured heartbeat, the
-default timeout is **three heartbeat intervals**. An explicit `heartbeat_timeout_secs` overrides that window.
-WebSocket clients reset it on any inbound frame. Raw TCP clients reset it when bytes arrive.
+handler 模式的 WebSocket 和原生 TCP 客户端在心跳超时后重连。配置了心跳时，默认超时为**三个心跳间隔**。显式的 `heartbeat_timeout_secs` 会覆盖该窗口。WebSocket 客户端收到任何入站帧都会重置计时；原生 TCP 客户端在字节到达时重置。
 
-The client expects the peer to answer heartbeats, so a transport with no heartbeat gets no default window. An
-explicit timeout can still enable detection without a heartbeat.
+客户端期望对端回应心跳，因此没有心跳的传输拿不到默认窗口。显式设置超时也能在无心跳时启用检测。
 
-For WebSocket clients, that window counts all frames, so a keepalive reply refreshes it and a quiet
-market does not trip it.
+对 WebSocket 客户端，该窗口统计所有帧：保活回应会刷新它，行情冷清也不会触发超时。
 
-#### Feed idle timeout
+#### 数据流空闲超时 {#feed-idle-timeout}
 
-An adapter can set a separate idle timeout to detect a feed that stopped flowing while the transport stays
-healthy. Only Text and Binary frames refresh this timeout. That second window suits a venue which pushes data
-on a known cadence. Where the venue answers the keepalive with a text payload, its reply refreshes the idle
-timeout exactly like real data does. Thus, this window is meaningful only when it sits below the heartbeat
-interval.
+适配器还可以单独设置空闲超时，用于检测传输仍然健康但数据流已停的行情。只有 Text 和 Binary 帧会刷新该超时。这第二个窗口适合按已知节奏推送数据的交易场所。场所用心跳回文本应答时，其回应与真实数据一样刷新空闲超时。因此，只有当该窗口小于心跳间隔时，它才有意义。
 
-### Adapter and actor integration
+### 适配器与 actor 集成 {#adapter-and-actor-integration}
 
-Adapter integrations construct a `SocketStateSink` and set it through the network client's `state_sink`
-builder option. Publication requires the `LiveNode` runner. The standalone `AsyncRunner` does not publish
-these events.
+适配器集成构造 `SocketStateSink`，并通过网络客户端的 `state_sink` builder 选项设置。发布需要 `LiveNode` runner；独立的 `AsyncRunner` 不发布这些事件。
 
-Actors subscribe with `subscribe_socket_state(...)` and receive events through `on_socket_state(...)`. The
-Python API exposes `SocketState` and `SocketStateChanged` from `nautilus_trader.common`. Delivery stays on the
-typed in-process bus. External message-bus streaming and wire formats do not expose these events.
+actor 用 `subscribe_socket_state(...)` 订阅，通过 `on_socket_state(...)` 接收事件。Python API 从 `nautilus_trader.common` 暴露 `SocketState` 和 `SocketStateChanged`。投递只走进程内类型化总线，外部消息总线流和线上格式不暴露这些事件。
 
-### Endpoint reconnect commands
+### 端点重连命令 {#endpoint-reconnect-commands}
 
-An actor or strategy can call `reconnect_socket(client_id, endpoint)` with an endpoint label from a
-state event. The runner routes the typed command through the kernel and the engine that owns the
-registered endpoint. The engine invokes only that transport's reconnect handle. It does not call
-the containing `DataClient` or `ExecutionClient` disconnect and connect lifecycle.
+actor 或策略可以用状态事件里的端点标签调用 `reconnect_socket(client_id, endpoint)`。runner 把这条类型化命令经内核路由到拥有已注册端点的引擎。引擎只调用该传输的重连句柄，不会调用所属 `DataClient` 或 `ExecutionClient` 的断开/连接生命周期。
 
 :::note
-The API is **fire-and-observe**. A successful return means the command passed local validation and was
-queued. It does not acknowledge kernel acceptance or completed recovery.
+该 API 是**发后即观**（fire-and-observe）的。成功返回只表示命令通过本地校验并已入队，不代表内核已接受或恢复已完成。
 :::
 
-An accepted request emits `SocketStateChanged` for the selected endpoint:
+请求被接受后，选定端点会发出 `SocketStateChanged`：
 
-1. `SocketState.DISCONNECTED` as the transport enters reconnect mode.
-1. `SocketState.CONNECTED` after transport recovery.
+1. 传输进入重连模式时的 `SocketState.DISCONNECTED`。
+1. 传输恢复后的 `SocketState.CONNECTED`。
 
-The transport's normal reconnect controller preserves its authentication, subscription replay, and
-adapter recovery behavior.
+传输的正常重连控制器保持其认证、订阅重放和适配器恢复行为。
 
-The kernel logs unknown clients, unsupported clients, unknown or ambiguous endpoints, duplicate
-requests, disconnecting transports, and closed transports. These rejections emit no socket state
-change and do not affect another endpoint. Endpoint labels use identifier characters only and never
-contain raw URLs.
+内核会记录：未知客户端、不支持的客户端、未知或有歧义的端点、重复请求、正在断开的传输和已关闭的传输。这些拒绝不产生 socket 状态变化，也不影响其他端点。端点标签只使用标识符字符，绝不包含原始 URL。
 
-## Shutdown on error
+## 出错关闭 {#shutdown-on-error}
 
-Set `LiveNodeConfig.shutdown_on_error=True` so that a Rust error log requests a live node shutdown. The Rust
-logger records the first `log::error!` emitted after the kernel starts, including error logs from other
-threads. The kernel publishes a `ShutdownSystem` command when the live event loop next checks for shutdown.
+设置 `LiveNodeConfig.shutdown_on_error=True` 后，Rust 错误日志会请求实时节点关闭。Rust 日志器记录内核启动后发出的第一条 `log::error!`，包括来自其他线程的错误日志。内核在下一次实时事件循环检查关闭信号时发布 `ShutdownSystem` 命令。
 
-The shutdown request follows the normal live node stop path. The node stops the trader,
-awaits the post-stop delay, disconnects clients, and stops the engines. It does not abort
-the process.
+关闭请求走正常的实时节点停止路径：停止 trader、等待 post-stop 延迟、断开客户端、停止引擎，不会强杀进程。
 
 ```python
 from nautilus_trader.config import LiveNodeConfig
@@ -560,27 +431,24 @@ from nautilus_trader.config import LiveNodeConfig
 config = LiveNodeConfig(shutdown_on_error=True)
 ```
 
-The trigger follows these rules:
+触发规则：
 
-- Error logs suppressed by component filters or logging bypass mode still request shutdown.
-- A new kernel run clears and re-arms the trigger, so a process can restart a node without
-  reinitializing the logging system.
-- Shutdown-on-error observes **Rust `log` records**, not Python `logging.error(...)` calls.
+- 被组件过滤器或日志旁路模式抑制的错误日志，同样会请求关闭。
+- 每次新的内核运行会清除并重新装载该触发器，进程无需重新初始化日志系统即可重启节点。
+- 出错关闭观察的是 **Rust `log` 记录**，不是 Python 的 `logging.error(...)` 调用。
 
 :::note
-The per-engine `graceful_shutdown_on_error` option has been removed. Configure shutdown-on-error at
-the node/kernel level instead.
+引擎级的 `graceful_shutdown_on_error` 选项已移除。请在节点/内核层级配置出错关闭。
 :::
 
-## Related guides
+## 相关指南 {#related-guides}
 
-- [Execution reconciliation](./execution/reconciliation.md) - State recovery and runtime consistency checks.
-- [Execution policies](./execution/policies.md) - Command delivery, persistence, and recovery
-  boundaries.
-- [Python](./python.md) - Python ownership, runtime, and public API boundaries.
-- [Configure a live trading node](./../how_to/configure_live_trading.md) - Node and engine configuration.
-- [Run live trading with Rust](./../how_to/run_rust_live_trading.md) - Rust node setup and venue connection.
-- [Adapters](./adapters.md) - Venue connectivity.
-- [Execution](./execution/index.md) - Command outcomes and order execution.
-- [Message bus](./message_bus.md) - Typed in-process publish and subscribe behavior.
-- [Backtesting](./backtesting/index.md) - Testing strategies before deployment.
+- [执行对账](./execution/reconciliation.md) - 状态恢复与运行时一致性检查。
+- [执行策略](./execution/policies.md) - 命令投递、持久化与恢复边界。
+- [Python](./python.md) - Python 所有权、运行时与公共 API 边界。
+- [配置实时交易节点](./../how_to/configure_live_trading.md) - 节点与引擎配置。
+- [用 Rust 运行实时交易](./../how_to/run_rust_live_trading.md) - Rust 节点设置与场所连接。
+- [适配器](./adapters.md) - 场所连接。
+- [执行](./execution/index.md) - 命令结果与订单执行。
+- [消息总线](./message_bus.md) - 进程内类型化发布订阅。
+- [回测](./backtesting/index.md) - 部署前测试策略。

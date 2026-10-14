@@ -1,36 +1,33 @@
 # Synthetic Instrument
 
-`SyntheticInstrument` represents a local instrument whose price comes from a formula over
-other instruments. It is useful for spreads, baskets, ratios, and other derived prices
-that should appear in the system as an instrument.
+`SyntheticInstrument` 表示价格由其他金融工具上的公式计算得出的本地工具。价差、篮子、比率
+及其他需要以工具形式出现在系统中的派生价格，都适合用它建模。
 
-Examples include `(BTC.BINANCE + LTC.BINANCE) / 2.0` and ratio-style pairs built from
-component instrument prices.
+典型例子包括 `(BTC.BINANCE + LTC.BINANCE) / 2.0`，以及由成分工具价格构建的比率型配对。
 
-## Fields
+## 字段 {#fields}
 
-| Field             | Rust type           | Python type          | Required/default | Notes                                       |
+| 字段              | Rust 类型           | Python 类型          | 必填/默认值    | 说明                                        |
 | ----------------- | ------------------- | -------------------- | ---------------- | ------------------------------------------- |
-| `symbol`          | `Symbol`            | `Symbol`             | Required         | Synthetic symbol used with venue `SYNTH`.   |
-| `id`              | `InstrumentId`      | `InstrumentId`       | Derived          | Instrument ID formed from `symbol.SYNTH`.   |
-| `price_precision` | `u8`                | `int`                | Required         | Decimal places allowed for synthetic price. |
-| `price_increment` | `Price`             | `Price`              | Derived          | Smallest price step from precision.         |
-| `components`      | `Vec<InstrumentId>` | `list[InstrumentId]` | Required         | Component instruments used by the formula.  |
-| `formula`         | `String`            | `str`                | Required         | Numeric expression over component IDs.      |
-| `ts_event`        | `UnixNanos`         | `int`                | Required         | Event timestamp in nanoseconds.             |
-| `ts_init`         | `UnixNanos`         | `int`                | Required         | Initialization timestamp in nanoseconds.    |
+| `symbol`          | `Symbol`            | `Symbol`             | 必填             | 与场所 `SYNTH` 组合使用的合成符号。         |
+| `id`              | `InstrumentId`      | `InstrumentId`       | 派生             | 由 `symbol.SYNTH` 构成的金融工具 ID。       |
+| `price_precision` | `u8`                | `int`                | 必填             | 合成价格允许的小数位数。                    |
+| `price_increment` | `Price`             | `Price`              | 派生             | 由精度得出的最小价格步长。                  |
+| `components`      | `Vec<InstrumentId>` | `list[InstrumentId]` | 必填             | 公式使用的成分金融工具。                    |
+| `formula`         | `String`            | `str`                | 必填             | 基于成分 ID 的数值表达式。                  |
+| `ts_event`        | `UnixNanos`         | `int`                | 必填             | 纳秒级事件时间戳。                          |
+| `ts_init`         | `UnixNanos`         | `int`                | 必填             | 纳秒级初始化时间戳。                        |
 
-**Note**: Python constructs the instrument ID from `symbol` and the `SYNTH` venue. Rust
-stores the same value as `id`.
+**注意**：Python 由 `symbol` 和 `SYNTH` 场所构造金融工具 ID，Rust 将同一值存储为 `id`。
 
-## Behavior
+## 行为 {#behavior}
 
-- `SyntheticInstrument` is local to Nautilus and does not represent a venue orderable market.
-- It always uses the synthetic venue `SYNTH`.
-- The formula must compile against the supplied component identifiers before the object is valid.
-- It has no venue limits, margins, fees, order book, or adapter-specific metadata.
+- `SyntheticInstrument` 只存在于 Nautilus 本地，不代表可在交易场所下单的市场。
+- 它始终使用合成场所 `SYNTH`。
+- 公式必须能通过所提供的成分标识符编译，对象才有效。
+- 它没有交易场所限额、保证金、费用、订单簿或适配器特定的元数据。
 
-## Example
+## 示例 {#example}
 
 ```rust tab="Rust"
 use nautilus_core::UnixNanos;
@@ -71,12 +68,12 @@ synthetic = SyntheticInstrument(
 )
 ```
 
-## Adapters
+## 适配器 {#adapters}
 
-`SyntheticInstrument` is local only. It derives prices from component instruments that
-may come from any adapter already loaded into the system.
+`SyntheticInstrument` 仅限本地使用。它的价格来自成分工具，而这些成分工具可以来自系统中
+已加载的任何适配器。
 
-## Related guides
+## 相关指南 {#related-guides}
 
-- [Synthetics](./../synthetics.md) covers formula-derived instruments and synthetic bars.
-- [Data](./../data/index.md) explains market data that references instruments.
+- [合成工具](./../synthetics.md)介绍公式派生工具与合成 Bar。
+- [数据](./../data/index.md)讲解引用金融工具的行情数据。

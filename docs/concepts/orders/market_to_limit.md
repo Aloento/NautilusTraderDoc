@@ -2,19 +2,16 @@
 
 `FIX OrdType <40>=K` (Market With Left Over as Limit)
 
-A *Market-To-Limit* order submits as a *Market* order. After the first fill, any unfilled quantity
-rests as a *Limit* order at that fill price.
+*Market-To-Limit* 订单以 *Market* 订单提交。首次成交后，未成交数量以该成交价作为 *Limit* 订单挂出。
 
-## Use cases
+## 使用场景 {#use-cases}
 
-Use a *Market-To-Limit* order to take liquidity at the best available price without sweeping deeper
-levels. This can suit thin books or larger orders where limiting further market impact matters. Any
-remainder can stay unfilled if the market moves away from the first fill price.
+用 *Market-To-Limit* 订单以当前最优价格吃掉流动性，而不扫穿更深的档位。它适合订单簿较薄或数量较大、需要控制进一步市场影响的情形。若市场偏离首次成交价，剩余部分可能一直不成交。
 
-## Example
+## 示例 {#example}
 
-**Example**: create a *Market-To-Limit* order on the Interactive Brokers
-[IdealPro](https://ibkr.info/node/1708) Forex ECN to BUY 200,000 USD using JPY.
+**示例**：在 Interactive Brokers 的
+[IdealPro](https://ibkr.info/node/1708) 外汇 ECN 创建一个 *Market-To-Limit* 订单，用 JPY 买入 200,000 USD。
 
 ```rust tab="Rust"
 use nautilus_model::{
@@ -57,11 +54,10 @@ order: MarketToLimitOrder = self.order_factory.market_to_limit(
 )
 ```
 
-See the
-[`MarketToLimitOrder` API reference](https://nautilustrader.io/docs/python-api-latest/model/orders.html#nautilus_trader.model.MarketToLimitOrder)
-for further details.
+更多细节见
+[`MarketToLimitOrder` API 参考](https://nautilustrader.io/docs/python-api-latest/model/orders.html#nautilus_trader.model.MarketToLimitOrder)。
 
-## Related guides
+## 相关指南 {#related-guides}
 
-- [Orders](./index.md) - Order concepts, execution instructions, and the order factory.
-- [Execution](./../execution/index.md) - How orders reach the venue and fills are handled.
+- [订单](./index.md) - 订单概念、执行指令与订单工厂。
+- [执行](./../execution/index.md) - 订单如何到达交易场所，成交如何处理。

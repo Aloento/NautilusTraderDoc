@@ -2,19 +2,16 @@
 
 `FIX OrdType <40>=4` (Stop Limit)
 
-A *Stop-Limit* order releases a *Limit* order at the specified price when its trigger price is
-reached.
+*Stop-Limit* 订单在到达触发价时，以指定价格释放一个 *Limit* 订单。
 
-## Use cases
+## 使用场景 {#use-cases}
 
-Use a *Stop-Limit* order when a stop trigger must also enforce a worst acceptable fill price. Examples include
-price-protected exits or breakout entries. If the market gaps through both the trigger and limit, the order
-may not fill and can leave a position unprotected.
+当止损触发还需同时限定最差可接受成交价时，使用 *Stop-Limit* 订单。典型场景包括带价格保护的出场或突破入场。若市场跳空同时越过触发价和限价，订单可能不成交，导致持仓失去保护。
 
-## Example
+## 示例 {#example}
 
-**Example**: create a *Stop-Limit* order on the Currenex FX ECN to BUY 50,000 GBP. Set a limit price of 1.3000
-USD and a trigger price of 1.30010 USD. The order expires one hour after creation.
+**示例**：在 Currenex 外汇 ECN 创建一个 *Stop-Limit* 订单，买入 50,000 GBP。限价设为 1.3000 USD，
+触发价设为 1.30010 USD。订单在创建一小时后到期。
 
 ```rust tab="Rust"
 use nautilus_core::DurationNanos;
@@ -71,12 +68,11 @@ order: StopLimitOrder = self.order_factory.stop_limit(
 )
 ```
 
-See the
-[`StopLimitOrder` API reference](https://nautilustrader.io/docs/python-api-latest/model/orders.html#nautilus_trader.model.StopLimitOrder)
-for further details.
+更多细节见
+[`StopLimitOrder` API 参考](https://nautilustrader.io/docs/python-api-latest/model/orders.html#nautilus_trader.model.StopLimitOrder)。
 
-## Related guides
+## 相关指南 {#related-guides}
 
-- [Orders](./index.md#trigger-type) - Trigger types and other execution instructions.
-- [Emulated orders](./emulated.md) - Emulating conditional orders on venues without native support.
-- [Execution](./../execution/index.md) - How orders reach the venue and fills are handled.
+- [订单](./index.md#trigger-type) - 触发类型与其他执行指令。
+- [仿真订单](./emulated.md) - 在不原生支持条件订单的交易场所上进行仿真。
+- [执行](./../execution/index.md) - 订单如何到达交易场所，成交如何处理。

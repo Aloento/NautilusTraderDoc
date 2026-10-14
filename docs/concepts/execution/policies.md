@@ -1,304 +1,220 @@
-# Execution Policies
+# 执行策略
 
-NautilusTrader coordinates local state with trading venues across a distributed boundary. This
-page defines the policies that govern order commands, order events, persistence, and reconciliation,
-including their documented behavior and known limits. Use it when interpreting an order state,
-implementing an execution adapter, or designing live recovery procedures.
+NautilusTrader 要在分布式边界上协调本地状态与交易场所。本篇定义治理订单命令、订单事件、持久化与一致性对账的各项策略，包括其文档化行为与已知限制。解读订单状态、实现执行适配器或设计实时恢复流程时以本篇为准。
 
-For the component and routing model, see [Execution](./index.md). For each order status and the primary state
-transitions, see [Orders](./../orders/index.md#order-state-flow).
+组件与路由模型见[执行](./index.md)。每个订单状态及主要状态迁移见[订单](./../orders/index.md#order-state-flow)。
 
-## Policy summary
+## 策略摘要 {#policy-summary}
 
-| Boundary                | Behavior                                                                                        | Limit                                                                                           |
+| 边界                    | 行为                                                                                            | 限制                                                                                            |
 | ----------------------- | ----------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------- |
-| Order state             | Each applied event must satisfy the order state machine and identity checks.                    | A status alone does not identify whether venue evidence or reconciliation produced it.          |
-| Command outcome         | Adapters distinguish definitive local failures, definitive venue results, and unknown outcomes. | A transport result does not necessarily prove what the venue did.                               |
-| Command delivery        | The contract retries a state-changing command only when repeating the same request is safe.     | Not all adapters follow that contract, and delivery is not exactly once.                        |
-| Event application       | Order identity and transition checks reject invalid events. Fills reject a repeated `trade_id`. | No blanket exactly-once guarantee applies across all event types or across lost retained state. |
-| Persistence before send | The cache enqueues the order and resolved execution-client origin before calling the client.    | The built-in cache backends do not wait for durable storage before the client can send.         |
-| Bounded recovery        | Reconciliation recovers reported order state without applying unsupported fill economics.       | Partial history does not prove historical position economics, realized PnL, or average price.   |
-| Terminal policy         | Reconciliation may resolve missing or timed-out orders after configured retries.                | A policy resolution is not a venue-confirmed rejection or cancellation.                         |
+| 订单状态             | 每个应用的事件必须满足订单状态机与身份校验。                    | 仅凭状态无法区分它来自场所证据还是对账。          |
+| 命令结果         | 适配器区分确定的本地失败、确定的场所结果与未知结果。 | 传输层结果不一定能证明场所做了什么。                               |
+| 命令投递        | 契约只在重复同一请求安全时重试改变状态的命令。     | 并非所有适配器都遵循该契约，且投递不是恰好一次。                        |
+| 事件应用       | 订单身份与迁移校验拒绝无效事件。成交拒绝重复的 `trade_id`。 | 没有覆盖所有事件类型、或覆盖丢失保留状态情形的恰好一次保证。 |
+| 发送前持久化 | 缓存先在入队订单与解析出的执行客户端来源，之后才调用客户端。    | 内置缓存后端在客户端可发送之前，不会等待持久存储。         |
+| 有界恢复        | 对账可恢复被报告的订单状态，而不施加不受支持的成交经济影响。       | 部分历史不能证明历史持仓经济学、已实现盈亏或均价。   |
+| 终态策略         | 对账可在配置的重试之后裁决缺失或超时的订单。                | 策略裁决不是场所确认的拒绝或撤销。                         |
 
-## Order state
+## 订单状态 {#order-state}
 
-Orders are event sourced. Each order starts with `OrderInitialized`, and `OrderCore::apply` validates the
-event against the order identity and the transition allowed from its present status. It rejects an invalid
-transition or a repeated fill `trade_id` before changing the order, then appends each accepted event to the
-order's event history.
+订单是事件溯源的。每个订单从 `OrderInitialized` 开始，`OrderCore::apply` 依据订单身份和当前状态允许的迁移校验事件。非法迁移或重复的成交 `trade_id` 会在修改订单之前被拒绝，之后每个被接受的事件追加到订单事件历史。
 
-The [order state flow](./../orders/index.md#order-state-flow) shows the primary lifecycle. The model also
-accepts selected recovery and real-world edge cases, including fills received while a command is
-pending and late fills for canceled orders. Each event page under [Events](./../events/index.md) documents its
-fields and typical transition.
+[订单状态流](./../orders/index.md#order-state-flow)展示主要生命周期。模型还接受部分恢复与现实边界情形，包括命令挂起期间收到的成交、已撤销订单的迟到成交。[事件](./../events/index.md)下的每个事件页面记录其字段与典型迁移。
 
-### Ordering
+### 顺序 {#ordering}
 
-Within one live node, the runner handles each selected message branch to completion before it
-selects another. This serializes kernel-side order mutation. The order appends each accepted event
-in application order and does not reorder its history by event timestamp.
+在单个实时节点内，runner 把每条选中的消息分支处理完毕才选择下一条。这把内核侧的订单变更串行化。订单按应用顺序追加每个被接受的事件，不按事件时间戳重排历史。
 
-When several channels are ready, the runner's priority determines which it handles next. Events from
-independent adapter tasks or venues can thus interleave, and event timestamps do not define a global FIFO
-order. See [Dispatch priority and overload behavior](./../live.md#dispatch-priority-and-overload-behavior).
+多个 channel 同时就绪时，由 runner 的优先级决定下一个处理谁。来自独立适配器任务或场所的事件因此可能交错，事件时间戳不构成全局 FIFO 顺序。参见[分发优先级与过载行为](./../live.md#dispatch-priority-and-overload-behavior)。
 
-### Duplicate application
+### 重复应用 {#duplicate-application}
 
-NautilusTrader does not use `event_id` as a universal order-level deduplication key and does not guarantee
-exactly-once application for all order events. Its narrower protections are:
+NautilusTrader 不把 `event_id` 用作通用的订单级去重键，也不保证所有订单事件恰好应用一次。它的保护范围更窄：
 
-- An order rejects a repeated fill at the latest recorded price for a `trade_id`. A repeated fill at a new
-  price restates that trade's average price without applying quantity.
-- The execution engine prevents the same `trade_id` from adding quantity to the target position again. It
-  routes a price restatement to the open position's average instead.
-- Fill voids use the original `trade_id` and reject duplicate, stale, conflicting, or excessive
-  cumulative corrections.
-- Other repeated lifecycle events must still pass the state transition. Some state-preserving
-  updates and repeated pending requests are valid events and can be appended again.
+- 订单拒绝以最新记录价格重复同一 `trade_id` 的成交。以新价格重复的成交只重述该笔成交的均价，不施加数量。
+- 执行引擎阻止同一 `trade_id` 再次向目标持仓增加数量，价格重述改道作用于持仓均价。
+- 成交作废使用原始 `trade_id`，拒绝重复、过时、冲突或超量的累计更正。
+- 其他重复的生命周期事件仍须通过状态迁移。一些保持状态的更新和重复的挂起请求是合法事件，可以再次追加。
 
-These checks depend on the order and position evidence retained in the cache. Restored state keeps
-its earlier trade IDs and event history available after restart. If that state and the required
-venue history are absent, NautilusTrader cannot infer exactly-once application from the missing
-evidence.
+这些检查依赖缓存中保留的订单与持仓证据。恢复的状态在重启后仍保留先前的 trade ID 和事件历史。若该状态和所需的场所历史都缺失，NautilusTrader 无法从缺失的证据推断出恰好一次的应用。
 
-Reports that describe one logical fill with different trade IDs stay distinct and are subject to the normal
-overfill and integrity checks.
+用不同 trade ID 描述同一逻辑成交的报告保持相互独立，受正常的超量成交与完整性检查约束。
 
-The optional [event store](./../event_sourcing.md) has a separate boundary. Its capture adapter
-deduplicates repeated dispatches of one message identity within a bounded recent window, and replay
-applies each stored sequence entry once. This does not make an uncommitted capture durable or make
-venue delivery exactly once.
+可选的[事件存储](./../event_sourcing.md)有独立的边界。它的捕获适配器在有限的近期窗口内对同一消息标识的重复分发做去重，回放时每条存储的序列条目应用一次。这不能让未提交的捕获变得持久，也不能让场所投递变成恰好一次。
 
-## Command outcomes
+## 命令结果 {#command-outcomes}
 
-Execution commands resolve according to the evidence available:
+执行命令依据可用证据得出结果：
 
-| Evidence                 | Meaning                                                         | Result                                                                                          |
+| 证据                   | 含义                                                          | 结果                                                                                            |
 | ------------------------ | --------------------------------------------------------------- | ----------------------------------------------------------------------------------------------- |
-| Definitive local failure | Validation proves that the command was not sent.                | Denies a submit or rejects a modify or cancel when the failure is attributable to that command. |
-| Definitive venue result  | The matching engine or venue explicitly confirms the outcome.   | Applies the corresponding accepted, updated, canceled, or rejected event.                       |
-| Unknown live outcome     | The command may have reached the venue, but no result is known. | Keeps the command in flight for stream updates, polling, queries, or reconciliation.            |
+| 确定的本地失败 | 校验证明命令未被发送。                | 失败可归因于该命令时，拒绝提交，或拒绝修改/撤销。 |
+| 确定的场所结果  | 撮合引擎或场所明确确认结果。   | 应用对应的受理、更新、撤销或拒绝事件。                       |
+| 未知的实时结果     | 命令可能已到达场所，但结果未知。 | 命令保持在途，等待流更新、轮询、查询或对账。            |
 
-The failure event depends on the command and when the failure becomes definitive:
+失败事件的种类取决于命令与失败何时被确定：
 
-| Command                             | Event                 | Meaning                                                         |
+| 命令                                | 事件                  | 含义                                                          |
 | ----------------------------------- | --------------------- | --------------------------------------------------------------- |
-| Submit or submit order list         | `OrderDenied`         | Local checks prevent submission. No `OrderSubmitted` event.     |
-| Submit or submit order list         | `OrderRejected`       | The submit entered execution and was later proven unsuccessful. |
-| Modify                              | `OrderModifyRejected` | The requested modification was proven unsuccessful.             |
-| Cancel, cancel-all, or batch cancel | `OrderCancelRejected` | The requested cancellation was proven unsuccessful.             |
+| 提交或提交订单列表         | `OrderDenied`         | 本地检查阻止提交。没有 `OrderSubmitted` 事件。     |
+| 提交或提交订单列表         | `OrderRejected`       | 提交已进入执行环节，后被证实未成功。 |
+| 修改                              | `OrderModifyRejected` | 所请求的修改被证实未成功。             |
+| 撤销、全部撤销或批量撤销 | `OrderCancelRejected` | 所请求的撤销被证实未成功。             |
 
-A submit command is evaluated only against eligible orders. A cached order is ineligible once it has left
-`INITIALIZED` or `RELEASED`. It is also ineligible between dispatch to an execution client and application of
-that client's first status event by the `ExecutionEngine`.
+提交命令只针对合格订单评估。缓存中的订单离开 `INITIALIZED` 或 `RELEASED` 后不再合格；从分发给执行客户端起、到 `ExecutionEngine` 应用该客户端首个状态事件为止，同样不合格。
 
-For an ineligible order:
+对不合格订单：
 
-- A repeated `SubmitOrder` is skipped.
-- A `SubmitOrderList` naming it is denied without reaching the client. `OrderDenied`
-  (`ORDER_LIST_DENIED`) applies only to the list's eligible members. The earlier submission keeps
-  its lifecycle, and its later client events apply normally.
+- 重复的 `SubmitOrder` 被跳过。
+- 点名它的 `SubmitOrderList` 被拒绝且不触达客户端。`OrderDenied`
+  （`ORDER_LIST_DENIED`）只作用于列表中合格的成员。早先的提交保持其生命周期，之后的客户端事件正常应用。
 
-The **dispatch record is process-local**: a reset clears it, and it is absent after a restart. After restart,
-a still-`INITIALIZED` dispatched order is treated like any other unrouted order. This continues until the
-client's events or a venue cancel or expiry report resolve it.
+**分发记录是进程本地的**：reset 会清除它，重启后也不存在。重启后，仍处于 `INITIALIZED` 的已分发订单与任何未路由订单同样处理，直到客户端事件或场所的撤销/到期报告将其裁决。
 
-For modify or cancel preparation, NautilusTrader emits the matching rejection only when the
-failure is attributable to that command and proves it was not sent. Otherwise, it logs the failure
-without inventing an outcome.
+修改或撤销的准备工作，NautilusTrader 只在失败可归因于该命令、并证明其未被发送时才发出对应的拒绝事件。否则只记录失败，不臆造结果。
 
-A successful batch response can still contain definitive per-order failures. A whole-request failure without
-per-order evidence does not prove that all child commands failed.
+成功的批量响应仍可能包含逐单的确定失败。缺少逐单证据的整单失败，不能证明所有子命令都失败了。
 
-:::warning[Unknown live outcomes]
-Transport errors, timeouts, disconnects, task cancellation, exhausted adapter request retries,
-missing acknowledgements, and parse failures after transmission usually leave the venue outcome
-unknown. HTTP status codes and rate limits are definitive only when venue-specific semantics prove
-that the command was not accepted.
+:::warning[未知的实时结果]
+传输错误、超时、断连、任务取消、适配器请求重试耗尽、缺失的确认，以及发送后发生的解析失败，通常都会让场所结果处于未知状态。HTTP 状态码与速率限制只有在场所语义能证明命令未被接受时才是确定的。
 :::
 
-An **in-flight order** is awaiting resolution:
+**在途订单**（in-flight order）正在等待裁决：
 
-- `SUBMITTED`: Initial submission awaiting acceptance or rejection.
-- `PENDING_UPDATE`: Modification awaiting confirmation.
-- `PENDING_CANCEL`: Cancellation awaiting confirmation.
+- `SUBMITTED`：初次提交，等待受理或拒绝。
+- `PENDING_UPDATE`：修改等待确认。
+- `PENDING_CANCEL`：撤销等待确认。
 
-### Delivery and retry limits
+### 投递与重试限制 {#delivery-and-retry-limits}
 
-A request can reach a venue even when its response is lost. NautilusTrader does not guarantee
-exactly-once delivery for submit, modify, or cancel commands.
+响应丢失时请求仍可能已到达场所。NautilusTrader 不保证提交、修改、撤销命令恰好投递一次。
 
-#### Safety test
+#### 安全性判定 {#safety-test}
 
-An adapter retries a transient failure only when a repeat is safe. A repeat is safe when it:
+适配器只在重复是安全的条件下重试瞬态失败。重复安全须满足：
 
-- Cannot apply a state change twice.
-- Cannot change an order the first attempt did not name.
-- Cannot report an earlier success as a rejection.
+- 不可能把状态变更应用两次。
+- 不可能改动第一次尝试未点名的订单。
+- 不可能把先前的成功报成拒绝。
 
-A repeat that only mints an additional short-lived session token, and does not revoke an existing
-session or create a lasting credential, is safe.
+只铸造一个额外短时效会话令牌、不吊销现有会话、不创建长期凭据的重复，是安全的。
 
-Only the venue protocol can make any other repeat safe, through stable request identity and
-duplicate detection, or through idempotent semantics for the same target. That guarantee must hold
-for the whole retry window, including after the targeted order fills or cancels, and until any
-venue deduplication clock expires.
+其他任何重复要靠场所协议才能安全：稳定的请求标识加重复检测，或对同一目标的幂等语义。该保证必须在整个重试窗口内成立，包括目标订单成交或撤销之后，直到场所的去重时钟过期为止。
 
-| Request                                                                                                                                 | Repeat effect                                | Attempts                            |
+| 请求                                                                                                                                    | 重复的影响                                     | 尝试次数                            |
 | --------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------- | ----------------------------------- |
-| Submit, or submit order list.                                                                                                           | Can place a second live order.               | Once, unless the safety test holds. |
-| Modify.                                                                                                                                 | Can apply a second modification.             | Once, unless the safety test holds. |
-| Cancel, or batch cancel by explicit ID.                                                                                                 | Second response can report a rejection.      | Once, unless the safety test holds. |
-| Cancel-all.                                                                                                                             | Can cancel an order placed between attempts. | Once, unless the safety test holds. |
-| Other state-changing request.                                                                                                           | Can apply that change twice.                 | Once, unless the safety test holds. |
-| Session-token request that only mints an unused short-lived token, does not revoke a session, and does not create a lasting credential. | Mints another unused token.                  | On a transient failure.             |
-| Read or other idempotent request.                                                                                                       | No venue state change.                       | On a transient failure.             |
+| 提交，或提交订单列表。                                                                                                           | 可能挂出第二笔实盘订单。               | 一次，除非安全性判定成立。 |
+| 修改。                                                                                                                                 | 可能施加第二次修改。             | 一次，除非安全性判定成立。 |
+| 撤销，或按显式 ID 批量撤销。                                                                                                 | 第二次响应可能报告拒绝。      | 一次，除非安全性判定成立。 |
+| 全部撤销。                                                                                                                             | 可能撤销两次尝试之间挂出的订单。 | 一次，除非安全性判定成立。 |
+| 其他改变状态的请求。                                                                                                           | 可能把该变更应用两次。                 | 一次，除非安全性判定成立。 |
+| 仅铸造未使用的短时效令牌、不吊销会话、不创建长期凭据的会话令牌请求。 | 再铸造一个未使用的令牌。                  | 瞬态失败时可重试。             |
+| 读取或其他幂等请求。                                                                                                       | 无场所状态变化。                       | 瞬态失败时可重试。             |
 
-When the safety test does not hold, the adapter sends the request once. The outcome stays unknown
-until stream updates, queries, polling, or reconciliation resolve the same semantic command.
+安全性判定不成立时，适配器只发送一次请求。结果保持未知，直到流更新、查询、轮询或对账裁决同一语义命令。
 
-:::warning[Incomplete conformance]
-A transient failure can send some order commands twice, including on Bybit, OKX, and Kraken spot.
-That list is not a complete census. The
-[retry gate conformance](./../../developer_guide/adapters.md#retry-gate-conformance) table records
-the checked HTTP gates.
+:::warning[遵循程度不完整]
+瞬态失败可能让某些订单命令发出两次，已知包括 Bybit、OKX 和 Kraken 现货。该列表并非完整普查。
+[重试门遵循表](./../../developer_guide/adapters.md#retry-gate-conformance)记录了已检查的 HTTP 门。
 :::
 
-#### Outcome
+#### 结果 {#outcome}
 
-Whether a failure is safe to retry is separate from the venue outcome. A failure can be safe to retry while
-the earlier attempt stays ambiguous. Once an attempt may have reached the venue, a later failure stays
-ambiguous unless authoritative evidence resolves the same semantic command.
+失败是否可安全重试，与场所结果是否已知是两回事。失败可以安全重试，而先前尝试仍是含糊的。一旦某次尝试可能已到达场所，后续失败就保持含糊，除非权威证据裁决了同一语义命令。
 
-## Persistence before transport
+## 传输前持久化 {#persistence-before-transport}
 
-Creating a client order ID, publishing `OrderInitialized`, and sending `SubmitOrder` are in-process
-actions. They do not by themselves confirm durable storage.
+创建客户端订单 ID、发布 `OrderInitialized`、发送 `SubmitOrder` 都是进程内动作，本身不确认持久存储。
 
-For a submission handled by the built-in execution engine:
+对内置执行引擎处理的提交：
 
-1. The order exists in the cache with its `ClientOrderId` and `OrderInitialized` event before the
-   final execution-client call.
-1. The engine selects and validates the execution client.
-1. The cache enqueues the resolved order-to-client origin for persistence, then updates the
-   in-memory origin index.
-1. The engine calls the selected `ExecutionClient`.
-1. The cache backend processes its queued writes independently of venue transport and
-   acknowledgement.
+1. 在最终调用执行客户端之前，订单及其 `ClientOrderId` 和 `OrderInitialized` 事件已在缓存中。
+1. 引擎选定并校验执行客户端。
+1. 缓存把解析好的订单到客户端的来源关系入队等待持久化，然后更新内存中的来源索引。
+1. 引擎调用选定的 `ExecutionClient`。
+1. 缓存后端独立于场所传输与确认处理其排队的写入。
 
-The enqueue steps fail before the client call when the cache backend cannot accept them. Successful
-enqueue does not mean the backing store has committed the order or origin. The built-in Redis and
-PostgreSQL cache backends process these writes asynchronously.
+缓存后端无法接受入队时，这些步骤会在调用客户端之前失败。入队成功不代表底层存储已提交订单或来源。内置的 Redis 和
+PostgreSQL 缓存后端异步处理这些写入。
 
-The final step is only the call into the adapter's `ExecutionClient`. The adapter owns the later
-wire send and maps venue responses or stream updates to order events. Neither a successful client
-call nor an `OrderSubmitted` event proves venue acceptance.
+最后一步只是调用适配器的 `ExecutionClient`。其后的实际发送、以及把场所响应或流更新映射为订单事件，都由适配器负责。成功的客户端调用或 `OrderSubmitted` 事件都不能证明场所已受理。
 
-:::warning[Persistence gap]
-A process failure can thus occur after the venue receives an order but before the local order and origin
-become durable. Startup reconciliation can recover that order when the venue reports it. But incomplete venue
-history can leave the node without enough evidence to reconstruct the full execution history.
+:::warning[持久化空隙]
+因此，进程故障可能发生在场所已收到订单、而本地订单和来源尚未持久化之间。场所报告该订单时，启动对账可以恢复它。但若场所历史不完整，节点可能缺少重建完整执行历史所需的证据。
 :::
 
-The optional [event store](./../event_sourcing.md) also captures asynchronously and does not gate message
-dispatch on durable commit. Live restart continues to use restored cache state plus venue
-reconciliation.
+可选的[事件存储](./../event_sourcing.md)同样异步捕获，不以持久提交作为消息分发的门槛。实时重启继续依赖恢复的缓存状态加场所对账。
 
-## Reconciliation authority
+## 对账的权威性 {#reconciliation-authority}
 
-The cached order event stream is the source of local derived order state. During live recovery,
-adapter reports provide the venue evidence used to align that state. Reconciliation applies the
-reports in order-status, fill, and position phases so position checks build on the reconciled order
-and fill state.
+缓存中的订单事件流是本地派生订单状态的来源。实时恢复期间，适配器的报告提供用于对齐该状态的场所证据。对账按订单状态、成交、持仓三个阶段应用报告，使持仓检查建立在已对账的订单与成交状态之上。
 
-Recovery means restoring available cached state, reconciling available venue reports, and holding the
-strategy-start barrier until startup reconciliation finishes. It does not prove that the venue returned
-complete history or that all unknown command outcomes were resolved.
+恢复的含义是：恢复可用的缓存状态、对齐可用的场所报告、并把策略启动屏障保持到启动对账完成。它不证明场所返回了完整历史，也不证明所有未知的命令结果都已裁决。
 
-:::info[Position reports are market exposure]
-**An explicit position report is authoritative. During startup reconciliation,
-the engine either aligns to that report within reconciliation tolerances or fails closed.**
+:::info[持仓报告即市场敞口]
+**显式的持仓报告具有权威性。启动对账期间，
+引擎要么在对账容差内对齐该报告，要么失败关闭（fail closed）。**
 
-Authoritative position reports:
+具有权威性的持仓报告：
 
-- An explicit open report, including quantity and direction.
-- An explicit flat report.
+- 显式的持仓报告，包含数量与方向。
+- 显式的空仓报告。
 
-Not evidence of a flat position:
+以下不构成空仓证据：
 
-- A missing report.
-- A null quantity.
-- A venue that does not publish positions.
+- 缺失报告。
+- 数量为 null。
+- 不发布持仓的场所。
 
-The fill window does not decide whether the report is authoritative. Missing reports do
-not mean flat.
+成交窗口不决定报告是否具有权威性。缺失报告不等于空仓。
 
-By default, `generate_missing_orders` is enabled. The engine generates the
-orders and fills needed to align local state to the report. Disabling generation
-does not allow an unresolved report through startup.
+`generate_missing_orders` 默认启用。引擎生成对齐本地状态到报告所需的订单与成交。
+禁用生成并不会让未解决的报告通过启动检查。
 
-This guarantee covers reports included by the position-report and instrument
-filters, with reconciliation enabled. Unresolved reports prevent actors and
-strategies from starting.
+该保证覆盖在启用对账时由持仓报告与工具过滤器纳入的报告。未解决的报告会使 actor 和
+策略无法启动。
 :::
 
-Reports for orders absent from the cache can create external orders. Active claims assign an external order to
-a strategy. Unclaimed orders use the `EXTERNAL` strategy. See
-[External order creation](./reconciliation.md#external-order-creation).
+缓存中不存在对应订单的报告可以创建外部订单。有活跃认领（claim）时，外部订单被指派给相应策略；无人认领时使用 `EXTERNAL`
+策略。参见
+[外部订单创建](./reconciliation.md#external-order-creation)。
 
-External orders and fills still participate in position tracking and portfolio calculations when
-their evidence passes the same reconciliation rules. The bounded-history safeguards apply whether
-or not a strategy claims the activity.
+外部订单和成交在其证据通过相同对账规则后，仍参与持仓跟踪与组合计算。无论是否有策略认领这些活动，有界历史保护措施都适用。
 
-Startup reconciliation runs before trader components start. A startup failure stops the node from
-starting unless a documented compatibility path handles that specific condition.
+启动对账先于各 trader 组件运行。除非有文档化的兼容路径处理该特定情形，启动失败会阻止节点启动。
 
-### Terminal reconciliation provenance
+### 终态对账的来源 {#terminal-reconciliation-provenance}
 
-The `reconciliation` field identifies an event generated through reconciliation. It does not by itself
-distinguish a venue status report from a local policy resolution. The local policy resolutions below apply
-when submission retention does not require the order to stay unresolved. Explicit venue status reports still
-reconcile retained orders:
+`reconciliation` 字段标识经对账生成的事件，但它本身不能区分场所状态报告与本地策略裁决。以下本地策略裁决只在"提交保留策略不要求订单保持未决"时适用。显式的场所状态报告仍会对保留的订单执行对账：
 
-| Evidence path                                                     | Prior status                        | Terminal event                  | Available event provenance                                                                                                        |
+| 证据路径                                                            | 先前状态                              | 终态事件                            | 可获得的事件来源                                                                                                        |
 | ----------------------------------------------------------------- | ----------------------------------- | ------------------------------- | --------------------------------------------------------------------------------------------------------------------------------- |
-| Explicit venue status report                                      | Any transition allowed by the model | `OrderRejected`/`OrderCanceled` | `reconciliation=true`. A rejection keeps the reported reason, or `UNKNOWN` when absent. A cancellation keeps any reported reason. |
-| In-flight retry exhaustion                                        | `SUBMITTED`                         | `OrderRejected`                 | `reconciliation=true`, reason `INFLIGHT_TIMEOUT`.                                                                                 |
-| In-flight retry exhaustion                                        | `PENDING_UPDATE`/`PENDING_CANCEL`   | `OrderCanceled`                 | `reconciliation=true`, `reason=None`.                                                                                             |
-| Full-history order stays missing after retries and targeted query | `SUBMITTED`/`ACCEPTED`              | `OrderRejected`                 | `reconciliation=true`, reason `NOT_FOUND_AT_VENUE`.                                                                               |
-| Full-history order stays missing after retries and targeted query | `PARTIALLY_FILLED`                  | `OrderCanceled`                 | `reconciliation=true`, `reason=None`.                                                                                             |
+| 显式场所状态报告                                      | 模型允许的任何迁移 | `OrderRejected`/`OrderCanceled` | `reconciliation=true`。拒绝保留报告的 reason，缺失时为 `UNKNOWN`。撤销保留任何报告的原因。 |
+| 在途重试耗尽                                        | `SUBMITTED`                         | `OrderRejected`                 | `reconciliation=true`，reason `INFLIGHT_TIMEOUT`。                                                                                 |
+| 在途重试耗尽                                        | `PENDING_UPDATE`/`PENDING_CANCEL`   | `OrderCanceled`                 | `reconciliation=true`，`reason=None`。                                                                                             |
+| 重试与定向查询后全历史订单仍然缺失 | `SUBMITTED`/`ACCEPTED`              | `OrderRejected`                 | `reconciliation=true`，reason `NOT_FOUND_AT_VENUE`。                                                                               |
+| 重试与定向查询后全历史订单仍然缺失 | `PARTIALLY_FILLED`                  | `OrderCanceled`                 | `reconciliation=true`，`reason=None`。                                                                                             |
 
-The `submission_recovery_policy` setting defaults to `SubmissionRecoveryPolicy::ResolveLocally`. With
-`SubmissionRecoveryPolicy::RetainUnresolved`, orders that have never been accepted keep their unacknowledged
-state after recovery exhaustion, including a pending cancel or update. The Polymarket client requires this
-behavior regardless of the configured policy.
+`submission_recovery_policy` 默认为 `SubmissionRecoveryPolicy::ResolveLocally`。使用
+`SubmissionRecoveryPolicy::RetainUnresolved` 时，从未被受理的订单在恢复重试耗尽后保持未确认状态，包括挂起中的撤销或修改。Polymarket 客户端无论配置何种策略都要求这一行为。
 
-For these retained orders, automatic per-order recovery queries stop, but later venue events and
-reports can still resolve the order. Already accepted orders continue to use the local resolution
-rules above.
+对这些保留的订单，自动的逐单恢复查询会停止，但后续场所事件与报告仍可裁决订单。已被受理的订单继续使用上面的本地裁决规则。
 
-:::warning[Local terminal state is not venue confirmation]
-The first row is backed by an explicit venue status. The remaining rows restore a terminal local
-state after an operator-configured retry policy expires. They do not prove that the venue rejected
-the submit or canceled the working order.
+:::warning[本地终态不是场所确认]
+表中第一行有显式场所状态支撑。其余各行是在运维配置的重试策略到期后恢复本地终态。它们不能证明场所拒绝了提交或撤销了挂单。
 :::
 
-`OrderCanceled.reason` can carry a venue-reported cancellation reason, but the two synthetic
-reconciliation paths leave it unset. When no reason is present, the event alone cannot distinguish
-a venue-reported cancellation from those synthetic paths. Consumers that require that distinction
-must preserve the associated reconciliation inputs and operational logs. The optional event store
-captures raw venue reports when enabled, but no `OrderCanceled` field carries the policy reason.
+`OrderCanceled.reason` 可以携带场所报告的撤销原因，但两条合成对账路径不设置它。没有 reason 时，仅凭事件无法区分场所报告的撤销与合成路径。需要这一区分的消费方必须保存相关的对账输入与运维日志。可选的事件存储在启用时会捕获原始场所报告，但没有 `OrderCanceled` 字段携带策略原因。
 
-See [Runtime checks](./reconciliation.md#runtime-checks) for query coordination, recent-order
-protection, and missing-order behavior.
+查询协调、近期订单保护与缺单行为见[运行时检查](./reconciliation.md#runtime-checks)。
 
-## Related guides
+## 相关指南 {#related-guides}
 
-- [Execution](./index.md): Component roles, routing, OMS behavior, and risk checks.
-- [Execution algorithms](./algorithms.md): TWAP, custom algorithms, and spawned orders.
-- [Orders](./../orders/index.md): Order types, statuses, and the primary state flow.
-- [Events](./../events/index.md): Event fields, dispatch, and order-to-position effects.
-- [Execution reconciliation](./reconciliation.md): Startup recovery, continuous checks, and
-  reconciliation invariants.
-- [Live trading](./../live.md): Node lifecycle, dispatch policy, metrics, and shutdown.
-- [Configure a live trading node](./../../how_to/configure_live_trading.md): Live execution settings.
+- [执行](./index.md)：组件角色、路由、OMS 行为与风控检查。
+- [执行算法](./algorithms.md)：TWAP、自定义算法与派生订单。
+- [订单](./../orders/index.md)：订单类型、状态与主要状态流。
+- [事件](./../events/index.md)：事件字段、分发与订单到持仓的效应。
+- [执行对账](./reconciliation.md)：启动恢复、持续检查与对账不变量。
+- [实时交易](./../live.md)：节点生命周期、分发策略、指标与关闭。
+- [配置实时交易节点](./../../how_to/configure_live_trading.md)：实时执行设置。

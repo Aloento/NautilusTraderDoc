@@ -2,22 +2,19 @@
 
 `FIX OrdType <40>=J` (Market If Touched)
 
-A *Market-If-Touched* order releases a *Market* order when its trigger price is reached. Traders often use it
-to enter on a pullback or take profit. A take-profit order sells against a LONG position or buys against a
-SHORT position.
+*Market-If-Touched* 订单在到达触发价时释放一个 *Market* 订单。交易者常用它在回调时入场或止盈。
+止盈订单对 LONG 持仓下 SELL 订单，或对 SHORT 持仓下 BUY 订单。
 
-## Use cases
+## 使用场景 {#use-cases}
 
-Use a *Market-If-Touched* order to prioritize execution when a target price is touched. It triggers in the
-opposite market direction from a stop order, such as buying below or selling above the current market. The
-touch price is not a guaranteed fill price, and the released *Market* order can slip, be rejected, or stay
-unfilled.
+当目标价格被触及后要优先保证成交，使用 *Market-If-Touched* 订单。它的触发方向与止损订单相反，
+例如在低于当前价处买入，或在高于当前价处卖出。触发价不是保证的成交价格，释放出的 *Market*
+订单可能出现滑点、被拒绝或不成交。
 
-## Example
+## 示例 {#example}
 
-**Example**: create a *Market-If-Touched* order on the Binance Futures exchange to SELL 10 ETHUSDT-PERP
-Perpetual Futures contracts. Set a trigger price of 10,000 USDT and keep the order active until further
-notice.
+**示例**：在 Binance Futures 交易所创建一个 *Market-If-Touched* 订单，卖出 10 手 ETHUSDT-PERP
+永续期货合约。设置触发价 10,000 USDT，订单持续有效直至撤销。
 
 ```rust tab="Rust"
 use nautilus_model::{
@@ -68,12 +65,11 @@ order: MarketIfTouchedOrder = self.order_factory.market_if_touched(
 )
 ```
 
-See the
-[`MarketIfTouchedOrder` API reference](https://nautilustrader.io/docs/python-api-latest/model/orders.html#nautilus_trader.model.MarketIfTouchedOrder)
-for further details.
+更多细节见
+[`MarketIfTouchedOrder` API 参考](https://nautilustrader.io/docs/python-api-latest/model/orders.html#nautilus_trader.model.MarketIfTouchedOrder)。
 
-## Related guides
+## 相关指南 {#related-guides}
 
-- [Orders](./index.md#trigger-type) - Trigger types and other execution instructions.
-- [Emulated orders](./emulated.md) - Emulating conditional orders on venues without native support.
-- [Execution](./../execution/index.md) - How orders reach the venue and fills are handled.
+- [订单](./index.md#trigger-type) - 触发类型与其他执行指令。
+- [仿真订单](./emulated.md) - 在不原生支持条件订单的交易场所上进行仿真。
+- [执行](./../execution/index.md) - 订单如何到达交易场所，成交如何处理。

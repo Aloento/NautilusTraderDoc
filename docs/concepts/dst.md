@@ -2,222 +2,221 @@
 
 <!-- Keep this title as "DST"; longer titles do not render well in the left navigation. -->
 
-Deterministic simulation testing (DST) runs NautilusTrader under a seed-controlled runtime. This
-guide defines:
+确定性模拟测试（deterministic simulation testing，DST）在受种子控制的运行时下运行
+NautilusTrader。本指南界定：
 
-- The reproducibility guarantees for seed-controlled execution.
-- The conditions required for those guarantees.
-- The source seams and checks that enforce the contract.
-- The paths where deterministic execution stops.
+- 种子控制执行的可复现性保证。
+- 这些保证成立所需的条件。
+- 强制该契约的源代码接缝与检查。
+- 确定性执行止步的路径。
 
-Source locations accompany each claim so users and auditors can check the contract against the
-code.
+每项论断都附源码位置，用户与审计者可以对照代码核验契约。
 
 :::note
-A downstream harness that depends on NautilusTrader's determinism consumes the version of this
-document at its pinned NautilusTrader commit. A change to this document is a contract change for
-those consumers and should be reviewed as one.
+依赖 NautilusTrader 确定性的下游测试框架，消费的是其锁定的 NautilusTrader
+提交处对应的本文档版本。对本文档的修改对这些消费者而言是契约变更，
+应按契约变更来评审。
 :::
 
-## What DST is
+## DST 是什么 {#what-dst-is}
 
-DST controls the sources of nondeterminism in a concurrent system. Within the contract defined
-below, one seed determines task scheduling, timer firings, and random values. Two runs with the same
-seed, binary, configuration, and platform produce identical observable behavior. Record a failing
-seed to replay the same execution.
+DST 控制并发系统中的不确定性来源。在下文定义的契约范围内，一个种子决定
+任务调度、定时器触发与随机值。种子、二进制、配置与平台都相同的两次运行
+产生完全一致的可观测行为。记录失败的种子，即可重放同一次执行。
 
-A conventional async runtime draws scheduling decisions from ambient process state, including:
+常规异步运行时的调度决策取自进程的环境状态，包括：
 
-- Task wake order.
-- Timer resolution.
-- OS thread scheduling.
-- Randomized hash seeds.
+- 任务唤醒顺序。
+- 定时器分辨率。
+- 操作系统线程调度。
+- 随机化的哈希种子。
 
-A conventional test harness does not control these sources, so a race that appears once in CI can be difficult
-to reproduce. DST replaces them with a seeded pseudorandom sequence. Different seeds explore different
-interleavings. The same seed selects the same interleaving.
+常规测试框架不控制这些来源，因此 CI 中偶然出现一次的竞态可能难以复现。
+DST 用带种子的伪随机序列替代它们。不同的种子探索不同的交织，
+相同的种子选出相同的交织。
 
-[FoundationDB](https://apple.github.io/foundationdb/testing.html) uses the pattern to test a
-production distributed database. In the Rust ecosystem,
-[madsim](https://crates.io/crates/madsim) intercepts `tokio` primitives to provide a
-deterministic scheduler.
+[FoundationDB](https://apple.github.io/foundationdb/testing.html) 用这一模式测试生产级
+分布式数据库。Rust 生态中，[madsim](https://crates.io/crates/madsim) 拦截
+`tokio` 原语以提供确定性调度器。
 
-DST targets concurrency defects such as:
+DST 针对的是并发缺陷，例如：
 
-- Channel wakeup ordering.
-- Drain races during shutdown.
-- Startup sequencing.
-- Reconciliation ordering.
-- Recovery-path correctness.
+- 通道唤醒顺序。
+- 关停期间的排空竞态。
+- 启动时序。
+- 对账顺序。
+- 恢复路径的正确性。
 
-Other test layers cannot exhaustively cover these interleavings. A deterministic scheduler can
-explore them across seeds and replay a failing schedule.
+其他测试层无法穷尽这些交织。确定性调度器可以跨种子探索它们，
+并重放失败的调度。
 
-## Goals
+## 目标 {#goals}
 
-| Goal                          | Requirement                                                                                                 |
+| 目标                          | 要求                                                                                                 |
 | ----------------------------- | ----------------------------------------------------------------------------------------------------------- |
-| Seed-reproducible execution   | The in-scope runtime produces the same observable behavior for the same seed and inputs.                    |
-| Explicit scope                | Each fallback to real time, unseeded randomness, or other nondeterminism is documented.                     |
-| Enforcement in source         | Static checks reject banned patterns on the DST path before they rely on reviewer attention.                |
-| Minimum required interception | Time, task scheduling, and randomness route through deterministic sources only where the contract needs it. |
+| 种子可复现的执行   | 范围内的运行时对相同种子与输入产生相同的可观测行为。                    |
+| 范围显式                | 每一次退回真实时间、未播种随机性或其他不确定性都有文档记录。                     |
+| 源码层强制         | 静态检查在依赖评审者注意力之前，就拒绝 DST 路径上的禁用模式。                |
+| 最小必要拦截 | 只在契约需要的地方，让时间、任务调度与随机性经由确定性来源。 |
 
-## Approach
+## 方法 {#approach}
 
-The implementation has two layers. The first replaces selected `tokio` primitives with `madsim`.
-The second controls sources of nondeterminism outside those primitives.
+实现分两层。第一层用 `madsim` 替换选定的 `tokio` 原语；
+第二层控制这些原语之外的不确定性来源。
 
-### Layer 1: runtime swap
+### 第 1 层：运行时替换 {#layer-1-runtime-swap}
 
-Under the `simulation` Cargo feature on `nautilus-common`, four facade submodules select simulation
-behavior when `RUSTFLAGS="--cfg madsim"` is set:
+在 `nautilus-common` 的 `simulation` Cargo feature 下，设置
+`RUSTFLAGS="--cfg madsim"` 时，四个门面子模块选择模拟行为：
 
-| Submodule | Covers                                          | Normal build  | Simulation build                                                 | Adoption                                          |
+| 子模块 | 覆盖内容                                          | 常规构建  | 模拟构建                                                 | 采用程度                                          |
 | --------- | ----------------------------------------------- | ------------- | ---------------------------------------------------------------- | ------------------------------------------------- |
-| `time`    | Timers, intervals, and monotonic `Instant`.     | `tokio`       | `madsim`                                                         | Complete.                                         |
-| `task`    | Spawning and joining async tasks.               | `tokio`       | `madsim`                                                         | Complete.                                         |
-| `runtime` | Runtime builder and handle.                     | `tokio`       | `madsim`                                                         | Complete.                                         |
-| `signal`  | Process signals such as `ctrl_c` and `SIGTERM`. | `tokio` or OS | `madsim` for `ctrl_c`, a never-completing future for `terminate` | Partial. See [Signal handling](#signal-handling). |
+| `time`    | 定时器、interval 与单调 `Instant`。     | `tokio`       | `madsim`                                                         | 完整。                                         |
+| `task`    | 异步任务的生成与等待。               | `tokio`       | `madsim`                                                         | 完整。                                         |
+| `runtime` | 运行时构建器与句柄。                     | `tokio`       | `madsim`                                                         | 完整。                                         |
+| `signal`  | 进程信号，如 `ctrl_c` 与 `SIGTERM`。 | `tokio` 或 OS | `ctrl_c` 用 `madsim`，`terminate` 用永不完成的 future | 部分。见[信号处理](#signal-handling)。 |
 
-These re-exports live in `nautilus_common::live::dst`. DST-path call sites for `time`, `task`, and `runtime`
-import from this module. Normal builds resolve the imports to `tokio`. `simulation` with `cfg(madsim)`
-resolves them to `madsim`.
+这些再导出位于 `nautilus_common::live::dst`。DST 路径上 `time`、`task`、
+`runtime` 的调用点都从该模块导入。常规构建把导入解析为 `tokio`，
+`simulation` 加 `cfg(madsim)` 时解析为 `madsim`。
 
-The `sync`, `io`, `fs`, and `net` submodules, plus the `select!` macro, continue to use real `tokio`. The
-network crate supplies a separate [transport boundary](#simulated-http-and-websocket-transport) for plaintext
-HTTP and Tungstenite WebSocket connections. It does not replace Tokio inside dependencies.
+`sync`、`io`、`fs`、`net` 子模块以及 `select!` 宏继续使用真实的 `tokio`。
+网络 crate 为明文 HTTP 与 Tungstenite WebSocket 连接提供单独的
+[传输边界](#simulated-http-and-websocket-transport)，不替换依赖内部的 Tokio。
 
-### Layer 2: nondeterminism substitution
+### 第 2 层：不确定性替换 {#layer-2-nondeterminism-substitution}
 
-Nondeterminism outside the aliased runtime needs explicit seams.
+别名运行时之外的不确定性需要显式接缝。
 
-#### Wall-clock time
+#### 墙上时钟时间 {#wall-clock-time}
 
-Wall-clock reads route through `nautilus_core::time::duration_since_unix_epoch`. Under simulation,
-the seam calls `madsim::time::TimeHandle::try_current()` to preserve Unix-epoch semantics for order
-and fill timestamps.
+墙上时钟读取经由 `nautilus_core::time::duration_since_unix_epoch`。
+模拟下该接缝调用 `madsim::time::TimeHandle::try_current()`，
+为订单与成交时间戳保留 Unix 纪元语义。
 
-Plain `#[rstest]` bodies run outside a madsim runtime. In that context, the seam falls back to
-`SystemTime::now()`, which uses the same real syscall as a normal build. Production paths under
-simulation run inside a madsim runtime and receive virtual time.
+普通的 `#[rstest]` 函数体在 madsim 运行时之外执行，此时接缝回退到
+`SystemTime::now()`，与常规构建使用相同的真实系统调用。模拟下的生产路径
+都在 madsim 运行时内执行，获得虚拟时间。
 
-#### Monotonic time
+#### 单调时间 {#monotonic-time}
 
-Monotonic reads route through `nautilus_common::live::dst::time::Instant`. Normal builds resolve
-the type to `tokio::time::Instant`, preserving compatibility with
-`#[tokio::test(start_paused = true)]`. Simulation builds resolve it to `madsim::time::Instant`.
+单调时间读取经由 `nautilus_common::live::dst::time::Instant`。常规构建把
+该类型解析为 `tokio::time::Instant`，保持与
+`#[tokio::test(start_paused = true)]` 的兼容；模拟构建解析为
+`madsim::time::Instant`。
 
-#### Network-local monotonic time
+#### 网络层本地单调时间 {#network-local-monotonic-time}
 
-Network code routes monotonic reads through `nautilus_network::dst::time`. `nautilus-network` sits
-below `nautilus-common` in the dependency graph, so it provides a local re-export module with the
-same behavior.
+网络代码的单调读取经由 `nautilus_network::dst::time`。`nautilus-network`
+在依赖图中位于 `nautilus-common` 之下，因此它提供一个行为相同的本地
+再导出模块。
 
-#### Iteration order
+#### 迭代顺序 {#iteration-order}
 
-Observable iteration order uses `IndexMap`, `IndexSet`, or an explicit sort instead of relying on
-`AHashMap` or `AHashSet`. `AHash` randomizes its hasher per process. Stable order is required when
-iteration controls event publication or the sequence of draws from a seeded `FillModel`.
+可观测的迭代顺序使用 `IndexMap`、`IndexSet` 或显式排序，不依赖
+`AHashMap` 或 `AHashSet`。`AHash` 按进程随机化其 hasher。
+当迭代控制事件发布、或控制从带种子 `FillModel` 抽取的顺序时，
+必须保证顺序稳定。
 
-#### Select polling order
+#### Select 轮询顺序 {#select-polling-order}
 
-Each production `tokio::select!` site on the DST path starts with `biased;`. Without it, an unintercepted RNG
-chooses the branch polling order.
+DST 路径上每个生产环境的 `tokio::select!` 站点都以 `biased;` 开头。
+否则分支轮询顺序将由未被拦截的 RNG 决定。
 
-## Determinism contract
+## 确定性契约 {#determinism-contract}
 
-Under the conditions below, a run identified by `(seed, binary hash, configuration hash)` on the
-same platform produces bitwise-identical:
+在下列条件下，同一平台上由 `(seed, binary hash, configuration hash)` 标识的运行
+产生逐位一致的：
 
-- Scheduling order of async tasks.
-- Timer firings (virtual monotonic and virtual wall-clock).
-- RNG output from `madsim::rand`.
-- Delivery order on `tokio::sync` channels.
+- 异步任务的调度顺序。
+- 定时器触发（虚拟单调时间与虚拟墙上时间）。
+- `madsim::rand` 的随机输出。
+- `tokio::sync` 通道上的投递顺序。
 
-### Required conditions
+### 必需条件 {#required-conditions}
 
-The contract holds **only when each row below is satisfied**:
+契约**只在下面每一行都满足时**成立：
 
-| Source of nondeterminism | Required condition                                                       | Failure when bypassed                                                                                                                                  |
+| 不确定性来源 | 必需条件                                                       | 绕过时的失败表现                                                                                                                                  |
 | ------------------------ | ------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| Build selection          | Enable the `simulation` feature and set `RUSTFLAGS="--cfg madsim"`.      | Either setting alone falls back to real `tokio` without an error. The cfg also activates madsim's libc intercepts for `clock_gettime` and `getrandom`. |
-| `tokio::select!`         | Put `biased;` first in each production block on the DST path.            | An unintercepted RNG chooses the polling order.                                                                                                        |
-| Monotonic time           | Use `nautilus_common::live::dst::time` or `nautilus_network::dst::time`. | Direct `std::time::Instant::now` reads the host clock.                                                                                                 |
-| Wall-clock time          | Use `nautilus_core::time::duration_since_unix_epoch`.                    | Direct clock reads bypass virtual time.                                                                                                                |
-| Randomness               | Use `madsim::rand`.                                                      | `rand::thread_rng`, `rand::rng()`, `fastrand`, `getrandom`, and `OsRng` are not intercepted.                                                           |
-| Iteration order          | Use `IndexMap`, `IndexSet`, or sort at the point of use.                 | Randomized hash iteration changes observable ordering.                                                                                                 |
-| Local tasks              | Gate out `tokio::task::LocalSet` under simulation.                       | `madsim` has no `LocalSet`. Use `spawn_local` without it.                                                                                              |
-| Blocking tasks           | Gate out or remove `tokio::task::spawn_blocking`.                        | The blocking call escapes the deterministic scheduler.                                                                                                 |
+| 构建选择          | 启用 `simulation` feature 并设置 `RUSTFLAGS="--cfg madsim"`。      | 只设其一会在无报错的情况下退回真实 `tokio`。该 cfg 同时激活 madsim 对 `clock_gettime` 与 `getrandom` 的 libc 拦截。 |
+| `tokio::select!`         | DST 路径上每个生产块首行放 `biased;`。            | 未拦截的 RNG 决定轮询顺序。                                                                                                        |
+| 单调时间           | 使用 `nautilus_common::live::dst::time` 或 `nautilus_network::dst::time`。 | 直接用 `std::time::Instant::now` 会读取宿主机时钟。                                                                                                 |
+| 墙上时钟时间          | 使用 `nautilus_core::time::duration_since_unix_epoch`。                    | 直接读时钟绕过虚拟时间。                                                                                                                |
+| 随机性               | 使用 `madsim::rand`。                                                      | `rand::thread_rng`、`rand::rng()`、`fastrand`、`getrandom` 与 `OsRng` 不被拦截。                                                           |
+| 迭代顺序          | 在使用处用 `IndexMap`、`IndexSet` 或排序。                 | 随机化的哈希迭代会改变可观测顺序。                                                                                                 |
+| 本地任务              | 模拟下排除 `tokio::task::LocalSet`。                       | `madsim` 没有 `LocalSet`，直接配合 `spawn_local` 使用。                                                                                              |
+| 阻塞任务           | 排除或移除 `tokio::task::spawn_blocking`。                        | 阻塞调用会逃出确定性调度器。                                                                                                 |
 
-### Adapter DST contract
+### 适配器 DST 契约 {#adapter-dst-contract}
 
-An adapter is DST-compliant only when each requirement below holds for each **claimed path**. The
-[adapter developer guide](./../developer_guide/adapters.md#deterministic-simulation) names the reference
-implementation and states the maintained-adapter requirement. This section states the contract itself.
+适配器只有在每条**声明路径**都满足下列要求时才算符合 DST。
+[适配器开发者指南](./../developer_guide/adapters.md#deterministic-simulation)指明参考实现
+与受维护适配器的要求，本节陈述契约本身。
 
-| Requirement          | Rule                                                                                                                                                                                                                                                                   |
+| 要求          | 规则                                                                                                                                                                                                                                                                   |
 | -------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Build boundary       | Exposes and propagates the `simulation` feature. Claimed paths build and run under `cfg(madsim)` with no test-only production behavior.                                                                                                                                |
-| Static gate          | Each claimed-path production file covered by `check-dst-conventions`, or a recorded exclusion rationale.                                                                                                                                                               |
-| Deterministic inputs | Wall time, monotonic time, timers, randomness, and generated identifiers from the `nautilus_common::live::dst` facade, the `nautilus_core::time` wall-clock seam, or injected declared inputs. Auth inputs from deterministic sources.                                 |
-| Async control        | Tasks, timers, and runtime control through the DST facade, `biased;` on each production `select!`, and deterministic connect, reconnect, retry, unsubscribe, and shutdown.                                                                                             |
-| Wire identity        | Ordered collections or explicit sorts at each wire and domain emission boundary. Retries and reconnects preserve protocol identifiers and reproduce byte-identical requests from the same declared inputs. Uncertain outcomes use the shared command-failure taxonomy. |
-| Controlled transport | Each claimed-path endpoint targets a controlled local peer through supported production configuration. No hardcoded venue host, credentials, or live venue state. Fixed synthetic credentials allowed on private paths.                                                |
-| Fresh-process proof  | Same seed, configuration, and peer script produce identical wire transcripts and domain output across fresh processes. At least one calibrated mutation rejected. Upstream pins subscribe bytes and wire fields. Full comparison lives downstream.                     |
+| 构建边界       | 暴露并传播 `simulation` feature。声明的路径在 `cfg(madsim)` 下构建与运行，没有仅测试用的生产行为。                                                                                                                                |
+| 静态门禁          | 每个声明路径的生产文件都被 `check-dst-conventions` 覆盖，或记录了排除理由。                                                                                                                                                               |
+| 确定性输入 | 墙上时间、单调时间、定时器、随机性与生成的标识符来自 `nautilus_common::live::dst` 门面、`nautilus_core::time` 墙上时钟接缝，或注入的声明输入。认证输入来自确定性来源。                                 |
+| 异步控制        | 任务、定时器与运行时控制经 DST 门面；每个生产 `select!` 带 `biased;`；连接、重连、重试、退订与关停均可确定性复现。                                                                                             |
+| 线上身份        | 在每个线上与领域输出边界使用有序集合或显式排序。重试与重连保留协议标识符，并从相同声明输入复现逐字节相同的请求。不确定的结果使用共享的命令失败分类。 |
+| 受控传输 | 每条声明路径的端点通过受支持的生产配置指向受控的本地对端。没有硬编码的场所主机、凭据或真实场所状态。私有路径允许固定的合成凭据。                                                |
+| 新进程证明  | 相同种子、配置与对端脚本在新进程中产生完全一致的线上记录与领域输出。至少一个校准过的变异被拒绝。上游固定订阅字节与线上字段。完整比对在下游进行。                     |
 
-A capability the adapter does not claim stays outside the contract until a slice proves it. Slices expand the
-proven set. The gates prevent regression.
+适配器未声明的能力，在某个切片证明它之前留在契约之外。切片扩大已证明的
+集合，门禁防止回归。
 
-## Static enforcement
+## 静态强制 {#static-enforcement}
 
-Static enforcement has two layers:
+静态强制分两层：
 
-| Layer                   | Enforces                                                                                                                  |
+| 层                   | 强制内容                                                                                                                  |
 | ----------------------- | ------------------------------------------------------------------------------------------------------------------------- |
-| Clippy policy           | `clippy.toml` and `[workspace.lints.clippy]` reject direct `getrandom::{fill,u32,u64}` calls and `tokio::task::LocalSet`. |
-| `check-dst-conventions` | The pre-commit hook applies path-aware and cfg-aware structural checks that Clippy cannot express cleanly.                |
+| Clippy 策略           | `clippy.toml` 与 `[workspace.lints.clippy]` 拒绝直接的 `getrandom::{fill,u32,u64}` 调用和 `tokio::task::LocalSet`。 |
+| `check-dst-conventions` | 预提交钩子执行 Clippy 无法干净表达的、与路径和 cfg 相关的结构检查。                |
 
-The hook lives at `.pre-commit-hooks/check_dst_conventions.sh` and runs in the standard pre-commit suite and
-CI. Its scope varies by rule:
+钩子位于 `.pre-commit-hooks/check_dst_conventions.sh`，在标准预提交套件与 CI 中运行。
+其作用范围随规则而异：
 
-- **Rules 1 to 4 and 6**: the 17 in-scope workspace crates and the audited adapter files in the hook's
-  `ADAPTER_PATHS` list.
-- **Rule 5**: its two audited files.
-- **Rule 7**: the nine crates on the madsim build path, those adapter files, and
-  `crates/network/src/websocket/client.rs`.
+- **规则 1 至 4 和 6**：17 个范围内的 workspace crate，以及钩子
+  `ADAPTER_PATHS` 列表中经过审计的适配器文件。
+- **规则 5**：其两个经过审计的文件。
+- **规则 7**：madsim 构建路径上的九个 crate、那些适配器文件，以及
+  `crates/network/src/websocket/client.rs`。
 
-| Rule | Rejects                                                                                                                                        | Scope or exception                                                                                          |
+| 规则 | 拒绝内容                                                                                                                                        | 范围或例外                                                                                          |
 | ---- | ---------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------- |
-| 1    | Raw `std::time::Instant::now()`, `SystemTime::now()`, `jiff::Timestamp::now()`, and `jiff::Zoned::now()` reads, including imported bare forms. | Allows the wall-clock seam, audited log or progress timing, and marked lines.                               |
-| 2    | Raw `rand::thread_rng`, `rand::rng()`, `fastrand::`, `getrandom::`, `OsRng`, and `Uuid::new_v4()` usage.                                       | Allows cfg-gated and marked lines.                                                                          |
-| 3    | Production `tokio::select!` blocks without `biased;` in the first three lines.                                                                 | Excludes tests and marked lines.                                                                            |
-| 4    | `std::thread::spawn`, `std::thread::Builder::new`, and `tokio::task::spawn_blocking`.                                                          | Allows test-only, non-madsim, and marked sites.                                                             |
-| 5    | `AHashMap` or `AHashSet` in the reconciliation manager and matching engine.                                                                    | Covers the two audited files. The remaining file set stays outside this static rule until audited.          |
-| 6    | Direct `tokio::net::TcpStream::connect` and `tokio::net::TcpListener::bind` calls.                                                             | Callers must use `nautilus_network::net`, which swaps to `turmoil::net` under the `turmoil` feature.        |
-| 7    | Raw `tokio::{time,task,runtime,signal}` paths in production code on the madsim build path.                                                     | Allows the facade, process-wide real Tokio runtime, test infrastructure, cfg-gated sites, and marked lines. |
+| 1    | 原始的 `std::time::Instant::now()`、`SystemTime::now()`、`jiff::Timestamp::now()`、`jiff::Zoned::now()` 读取，含导入后的裸形式。 | 允许墙上时钟接缝、经审计的日志或进度计时，以及带标记的行。                               |
+| 2    | 原始的 `rand::thread_rng`、`rand::rng()`、`fastrand::`、`getrandom::`、`OsRng` 与 `Uuid::new_v4()` 用法。                                       | 允许 cfg 门控与带标记的行。                                                                          |
+| 3    | 生产环境 `tokio::select!` 块前三行没有 `biased;`。                                                                 | 排除测试与带标记的行。                                                                            |
+| 4    | `std::thread::spawn`、`std::thread::Builder::new` 与 `tokio::task::spawn_blocking`。                                                          | 允许仅测试、非 madsim 与带标记的站点。                                                             |
+| 5    | 对账管理器与撮合引擎中的 `AHashMap` 或 `AHashSet`。                                                                    | 覆盖两个经审计的文件。其余文件在审计完成前不受该静态规则约束。          |
+| 6    | 直接的 `tokio::net::TcpStream::connect` 与 `tokio::net::TcpListener::bind` 调用。                                                             | 调用方必须使用 `nautilus_network::net`，它在 `turmoil` feature 下换成 `turmoil::net`。        |
+| 7    | madsim 构建路径上生产代码中的原始 `tokio::{time,task,runtime,signal}` 路径。                                                     | 允许门面、进程级真实 Tokio 运行时、测试基础设施、cfg 门控站点与带标记的行。 |
 
-Supported Madsim HTTP and WebSocket paths use `nautilus_network::dst::net`. It selects the simulated byte
-stream and re-exports `nautilus_network::net` in normal builds.
+受支持的 Madsim HTTP 与 WebSocket 路径使用 `nautilus_network::dst::net`：
+选择模拟字节流，常规构建中再导出 `nautilus_network::net`。
 
-The hook supports two exception forms:
+钩子支持两种例外形式：
 
-- An inline `// dst-ok` marker on a specific line, typically accompanied by a short reason (for
-  example, log-only wall-clock timing that does not affect state).
-- A small file-level allowlist in the hook script itself for sites classified as
-  leave-alone in the codebase audit (log timing in the cache module, log-record timestamping
-  in the logging bridge and writer, progress reporting in the DeFi module).
+- 在具体行上加行内 `// dst-ok` 标记，通常附简短理由
+  （例如不影响状态的仅日志墙上时钟计时）。
+- 钩子脚本内维护一个很小的文件级允许名单，用于代码库审计中被归为
+  保留不动的站点（缓存模块的日志计时、日志桥接与写入器的
+  日志记录加时间戳、DeFi 模块的进度上报）。
 
-The hook excludes:
+钩子排除：
 
-- Files under `tests/`, `python/`, and `ffi/` directories.
-- Files named `tests.rs`, `*_test.rs`, or `*_tests.rs`.
-- Lines inside an inline `#[cfg(test)]` module.
+- `tests/`、`python/`、`ffi/` 目录下的文件。
+- 名为 `tests.rs`、`*_test.rs`、`*_tests.rs` 的文件。
+- 行内 `#[cfg(test)]` 模块中的行。
 
-These paths are not part of the production DST contract.
+这些路径不属于生产 DST 契约。
 
-### In-scope crates
+### 范围内的 crate {#in-scope-crates}
 
-The transitive closure of `nautilus-live` contains 16 in-scope crates:
+`nautilus-live` 的传递闭包包含 16 个范围内的 crate：
 
 - `analysis`
 - `common`
@@ -236,124 +235,122 @@ The transitive closure of `nautilus-live` contains 16 in-scope crates:
 - `system`
 - `trading`
 
-The hook also covers `backtest`, bringing the total to 17 crates.
+钩子还覆盖 `backtest`，共 17 个 crate。
 
-Adapter crates and infrastructure crates (Redis, Postgres) are out of scope unless an audited slice is
-recorded in the adapter's integration guide. An audited slice names the DST-path files the static gate covers
-and the exclusion rationale for the rest. It also names the runtime slices the adapter's `dst` tests prove.
+适配器 crate 与基础设施 crate（Redis、Postgres）在范围之外，除非适配器的
+集成指南中记录了经审计的切片。经审计的切片指明静态门禁覆盖的 DST 路径
+文件、其余部分的排除理由，以及适配器 `dst` 测试证明的运行时切片。
 
 :::warning
-Static coverage alone does not establish runtime eligibility: covered files may also serve paths
-outside a proven runtime slice.
+仅静态覆盖不能确立运行时资格：被覆盖的文件也可能服务于已证明运行时
+切片之外的路径。
 :::
 
-## Simulated HTTP and WebSocket transport
+## 模拟 HTTP 与 WebSocket 传输 {#simulated-http-and-websocket-transport}
 
-With `simulation` and `cfg(madsim)`, `nautilus-network` executes plaintext HTTP/1.1 requests and Tungstenite
-WebSocket connections over Madsim byte streams.
+在 `simulation` 与 `cfg(madsim)` 下，`nautilus-network` 在 Madsim 字节流上
+执行明文 HTTP/1.1 请求与 Tungstenite WebSocket 连接。
 
-- **HTTP**: production and simulated paths share request defaults, URL and query encoding, and response
-  validation. Shared response validation includes buffered body limits and a deadline that covers the body
-  read. The simulation branch in `crates/network/src/http/simulation.rs` uses Hyper for the HTTP/1.1 exchange
-  and owns its Madsim connection task.
-- **WebSocket**: traffic uses the Tungstenite codec. `crates/network/src/dst.rs` routes its owned tasks and
-  transport streams to Madsim.
+- **HTTP**：生产与模拟路径共享请求默认值、URL 与查询编码、响应校验。
+  共享的响应校验包括缓冲体上限与覆盖 body 读取的截止时间。
+  `crates/network/src/http/simulation.rs` 中的模拟分支用 Hyper 完成
+  HTTP/1.1 交换，并持有自己的 Madsim 连接任务。
+- **WebSocket**：流量使用 Tungstenite 编解码器。`crates/network/src/dst.rs`
+  把其拥有的任务与传输流路由到 Madsim。
 
-Normal builds use pooled Hyper HTTP connections and Tokio tasks.
+常规构建使用池化的 Hyper HTTP 连接与 Tokio 任务。
 
-Configure controlled `http://` and `ws://` endpoints and select `TransportBackend::Tungstenite`. Simulation
-rejects HTTPS/WSS, explicit proxies, and Sockudo before opening a connection. Sockudo's internal timers
-require a Tokio runtime. Ambient HTTP proxy settings do not affect the simulated exchange.
+配置受控的 `http://` 与 `ws://` 端点，并选择
+`TransportBackend::Tungstenite`。模拟在打开连接前拒绝 HTTPS/WSS、显式代理
+与 Sockudo。Sockudo 的内部定时器需要 Tokio 运行时。环境中的 HTTP 代理设置
+不影响模拟交换。
 
-Redirect behavior depends on `HttpRedirectPolicy`:
+重定向行为取决于 `HttpRedirectPolicy`：
 
-- `Follow` (default): a redirect response with `Location` returns an error instead of following it.
-- `Reject`: returns the redirect response to the caller.
+- `Follow`（默认）：带 `Location` 的重定向响应返回错误，而不是跟随。
+- `Reject`：把重定向响应原样返回调用方。
 
-The model covers HTTP request bytes, WebSocket message payloads, and domain events. It does not promise
-reproducible WebSocket handshake keys or frame masks, TLS records, OS TCP scheduling, partial writes, socket
-options, or TCP half-close.
+该模型覆盖 HTTP 请求字节、WebSocket 消息载荷与领域事件，
+不承诺可复现的 WebSocket 握手 key 或帧掩码、TLS 记录、操作系统 TCP 调度、
+部分写入、socket 选项或 TCP 半关闭。
 
-In `crates/network/src/dst/stream.rs`, stream shutdown flushes bytes. Dropping the stream closes the
-connection. Combining `simulation`, `cfg(madsim)`, and `turmoil` is a compile error. Run the two simulators in
-separate builds.
+`crates/network/src/dst/stream.rs` 中，流关闭（shutdown）会刷出字节，
+丢弃流则断开连接。同时组合 `simulation`、`cfg(madsim)` 与 `turmoil`
+是编译错误，两个模拟器要分别在各自的构建中运行。
 
-Simulation sorts request headers by name for reproducible HTTP bytes. This canonical order does not promise
-byte-for-byte equality with live request header ordering. Each HTTP request opens a fresh connection.
-Connection pooling and keep-alive reuse are not modeled.
+模拟会按名称对请求头排序，以产生可复现的 HTTP 字节。这一规范化顺序
+不承诺与真实请求头顺序逐字节相等。每个 HTTP 请求都新建连接，
+不建模连接池与 keep-alive 复用。
 
-Network tests cover transport behavior. They do not establish end-to-end conformance for an adapter, product,
-or channel.
+网络测试覆盖传输行为，但不为某个适配器、产品或通道确立端到端的一致性。
 
-## Network seed soaks
+## 网络种子冲刷 {#network-seed-soaks}
 
-[Turmoil](https://crates.io/crates/turmoil) simulates the network under a seeded scheduler. The
-`nautilus-network` transport tests use it to reach link and reconnect orderings outside the madsim
-runtime swap.
+[Turmoil](https://crates.io/crates/turmoil) 在带种子的调度器下模拟网络。
+`nautilus-network` 的传输测试用它触及 madsim 运行时替换之外的链路与
+重连顺序。
 
-### Fixed-seed nightly tests
+### 固定种子的夜间测试 {#fixed-seed-nightly-tests}
 
-The nightly suite runs reproducible scenarios for:
+夜间套件为以下场景运行可复现的用例：
 
-- Initial connection.
-- Reconnection.
-- Network partitions.
-- Closing during reconnection.
-- Closing during backoff.
-- Repeated server drops with exact message-order assertions.
+- 初次连接。
+- 重连。
+- 网络分区。
+- 重连期间关闭。
+- 退避期间关闭。
+- 反复丢弃服务端并断言精确消息顺序。
 
-### Reconnect seed soak
+### 重连种子冲刷 {#reconnect-seed-soak}
 
-An ignored reconnect test sweeps Turmoil seeds until stopped or until the configured limit is
-reached. For each seed, the soak runs the Tungstenite WebSocket backend first. It then runs Sockudo
-when the `transport-sockudo` feature is enabled, giving both backends the same schedule search path.
+一个被忽略的重连测试扫描 Turmoil 种子，直到手动停止或达到配置上限。
+每个种子先运行 Tungstenite WebSocket 后端；启用 `transport-sockudo`
+feature 时再运行 Sockudo，让两个后端拥有相同的调度搜索路径。
 
-| Variable                                  | Default   | Effect                                              |
+| 变量                                  | 默认值   | 作用                                              |
 | ----------------------------------------- | --------- | --------------------------------------------------- |
-| `NAUTILUS_TURMOIL_SOAK_START`             | `0`       | Selects the first seed, allowing a sweep to resume. |
-| `NAUTILUS_TURMOIL_SOAK_COUNT`             | Unbounded | Stops after the specified number of seeds.          |
-| `NAUTILUS_TURMOIL_SOAK_PROGRESS_INTERVAL` | `100`     | Logs progress after this many seeds per backend.    |
+| `NAUTILUS_TURMOIL_SOAK_START`             | `0`       | 选择首个种子，使扫描可以续跑。 |
+| `NAUTILUS_TURMOIL_SOAK_COUNT`             | 无上限 | 达到指定种子数后停止。          |
+| `NAUTILUS_TURMOIL_SOAK_PROGRESS_INTERVAL` | `100`     | 每个后端经过这么多种子记录一次进度。    |
 
-### Run the soak
+### 运行冲刷 {#run-the-soak}
 
-Run the continuous soak with:
+持续冲刷：
 
 ```bash
 scripts/soak-network-turmoil.sh
 ```
 
-Run a bounded soak with:
+有界冲刷：
 
 ```bash
 env NAUTILUS_TURMOIL_SOAK_COUNT=100 scripts/soak-network-turmoil.sh
 ```
 
-Each seed enables random node order and link latency from 1 ms to 25 ms. The scenario repeatedly
-drops the server, cycles the client through reconnect states, and asserts exact application-message
-order.
+每个种子启用随机节点顺序与 1 ms 到 25 ms 的链路延迟。场景反复丢弃
+服务端，让客户端在重连状态间循环，并断言精确的应用消息顺序。
 
-The soak does not enable Turmoil `fail_rate`. For TCP, packet loss without a retransmit model would
-overstate the client delivery contract in an order-preservation test.
+冲刷不启用 Turmoil 的 `fail_rate`。对 TCP 而言，没有重传模型的丢包会在
+保序测试中夸大客户端的投递契约。
 
-### Platform coverage
+### 平台覆盖 {#platform-coverage}
 
-The Turmoil tests use a simulated network and are not gated to Linux, so the seed sweep also runs on macOS.
-Several real localhost socket and WebSocket unit tests use `target_os = "linux"` for CI stability. A macOS run
-thus leaves that host TCP coverage untouched. Treat the complete network test set as covered only after a run
-on Linux CI or a Linux workstation.
+Turmoil 测试使用模拟网络，未限定 Linux，因此种子扫描也会跑在 macOS 上。
+若干使用真实本地回环 socket 与 WebSocket 的单元测试为 CI 稳定性限定
+`target_os = "linux"`，macOS 上的运行因此不覆盖那部分宿主 TCP 测试。
+只有在 Linux CI 或 Linux 工作站上跑过，才可视为完整网络测试集已覆盖。
 
-## Implementation notes
+## 实现说明 {#implementation-notes}
 
-These sections map each deterministic seam to its source, purpose, and exceptions.
+以下小节把每个确定性接缝对应到其源码、用途与例外。
 
-### Iteration-order seams
+### 迭代顺序接缝 {#iteration-order-seams}
 
-Production sites use ordered collections or explicit sorting when iteration is observable on the
-DST path.
+迭代在 DST 路径上可观测的生产位置，使用有序集合或显式排序。
 
-#### Matching engine
+#### 撮合引擎 {#matching-engine}
 
-`crates/execution/src/matching_engine/mod.rs` uses eleven ordered collections:
+`crates/execution/src/matching_engine/mod.rs` 使用十一个有序集合：
 
 - `execution_bar_types`
 - `execution_bar_deltas`
@@ -367,17 +364,18 @@ DST path.
 - `queue_ahead_total`
 - `queue_excess`
 
-Removals from `queue_pending`, `queue_ahead_orders`, and `queue_ahead_total` use `.shift_remove()`
-so deleting an entry does not reorder the remainder.
+`queue_pending`、`queue_ahead_orders`、`queue_ahead_total` 的删除使用
+`.shift_remove()`，删除条目不会重排剩余部分。
 
-#### Reconciliation manager
+#### 对账管理器 {#reconciliation-manager}
 
-Rule 5 covers `crates/live/src/execution/manager.rs`. The `orders` and `fills` maps in
-`ReconciliationResult` use `IndexMap` in `crates/execution/src/reconciliation/types.rs`.
+规则 5 覆盖 `crates/live/src/execution/manager.rs`。
+`ReconciliationResult` 的 `orders` 与 `fills` 映射在
+`crates/execution/src/reconciliation/types.rs` 中使用 `IndexMap`。
 
-#### Account balances
+#### 账户余额 {#account-balances}
 
-The account trait returns `IndexMap` from:
+账户 trait 从以下方法返回 `IndexMap`：
 
 - `balances`
 - `balances_total`
@@ -385,246 +383,244 @@ The account trait returns `IndexMap` from:
 - `balances_locked`
 - `starting_balances`
 
-Balance and margin storage on `BaseAccount` and `MarginAccount` also uses `IndexMap`. The `commissions` and
-`leverages` fields stay `AHashMap`.
+`BaseAccount` 与 `MarginAccount` 上的余额与保证金存储也使用 `IndexMap`。
+`commissions` 与 `leverages` 字段保持 `AHashMap`。
 
-#### Position commissions
+#### 持仓手续费 {#position-commissions}
 
-`Position::commissions` in `crates/model/src/position.rs` uses `IndexMap`. Position snapshots consume
-the map through `.values()` in `crates/model/src/events/position/snapshot.rs`, making its order
-observable.
+`crates/model/src/position.rs` 中的 `Position::commissions` 使用 `IndexMap`。
+持仓快照在 `crates/model/src/events/position/snapshot.rs` 中经 `.values()`
+消费该映射，使其顺序可观测。
 
-#### Portfolio aggregation
+#### 组合聚合 {#portfolio-aggregation}
 
-`crates/portfolio/src/portfolio.rs` stores `unrealized_pnls`, `realized_pnls`, and `net_positions`
-in `IndexMap`. `accumulate_mark_values` builds an `IndexMap<Currency, Decimal>`.
+`crates/portfolio/src/portfolio.rs` 用 `IndexMap` 存储 `unrealized_pnls`、
+`realized_pnls` 与 `net_positions`。`accumulate_mark_values` 构建
+`IndexMap<Currency, Decimal>`。
 
-#### Data engine
+#### 数据引擎 {#data-engine}
 
-`crates/data/src/engine/` uses ordered storage for `book_snapshot_counts`, `bar_aggregators`, and
-`BookSnapshotInfos`. Iterated removals use `.shift_remove()`.
+`crates/data/src/engine/` 对 `book_snapshot_counts`、`bar_aggregators` 与
+`BookSnapshotInfos` 使用有序存储。迭代式删除使用 `.shift_remove()`。
 
-#### Execution engine
+#### 执行引擎 {#execution-engine}
 
-`ExecutionEngine.clients` uses `IndexMap`. The `client_ids` and `venues` accumulators in
-`get_clients_for_orders()` use `IndexSet`.
+`ExecutionEngine.clients` 使用 `IndexMap`。`get_clients_for_orders()` 中的
+`client_ids` 与 `venues` 累加器使用 `IndexSet`。
 
-#### Backtest engine and exchange
+#### 回测引擎与模拟场所 {#backtest-engine-and-exchange}
 
-`BacktestEngine.venues` and `SimulatedExchange.matching_engines` preserve venue and instrument
-iteration order for:
+`BacktestEngine.venues` 与 `SimulatedExchange.matching_engines` 保留场所与工具的
+迭代顺序，用于：
 
-- Settlement.
-- Expiration.
-- Liquidation.
-- Seeded `FillModel` draws.
+- 结算。
+- 到期。
+- 清算。
+- 带种子的 `FillModel` 抽取。
 
-The source locations are `crates/backtest/src/engine.rs` and `crates/backtest/src/exchange.rs`.
+源码位置为 `crates/backtest/src/engine.rs` 与 `crates/backtest/src/exchange.rs`。
 
-#### Trading algorithm
+#### 交易算法 {#trading-algorithm}
 
-`strategy_event_handlers` in `crates/trading/src/algorithm/core.rs` uses `IndexMap` to drive ordered
-`msgbus::unsubscribe_*` fan-out.
+`crates/trading/src/algorithm/core.rs` 中的 `strategy_event_handlers` 使用
+`IndexMap`，驱动有序的 `msgbus::unsubscribe_*` 扇出。
 
-#### Analyzer
+#### 分析器 {#analyzer}
 
-`account_balances` and `account_balances_starting` in `crates/analysis/src/analyzer.rs` use
-`IndexMap`.
+`crates/analysis/src/analyzer.rs` 中的 `account_balances` 与
+`account_balances_starting` 使用 `IndexMap`。
 
-#### Cache API
+#### 缓存 API {#cache-api}
 
-`get_orders_for_ids` and `get_positions_for_ids` in `crates/common/src/cache/mod.rs` sort returned
-vectors by `client_order_id` and `position_id`. The underlying storage keeps `AHashSet` because it
-has set semantics.
+`crates/common/src/cache/mod.rs` 中的 `get_orders_for_ids` 与
+`get_positions_for_ids` 按 `client_order_id` 与 `position_id` 对返回的向量排序。
+底层存储保留 `AHashSet`，因为它具有集合语义。
 
-#### Instrument store
+#### 工具存储 {#instrument-store}
 
-`InstrumentStore.instruments` in `crates/common/src/providers.rs` uses `IndexMap` with the `ahash`
-hasher. The order is observable in adapters that publish one `DataEvent::Instrument` per entry
-from `get_all()` or `list_all()`.
+`crates/common/src/providers.rs` 中的 `InstrumentStore.instruments` 使用带
+`ahash` hasher 的 `IndexMap`。适配器从 `get_all()` 或 `list_all()` 为每个条目
+发布一条 `DataEvent::Instrument` 时，该顺序可观测。
 
-#### Order emulator
+#### 订单模拟器 {#order-emulator}
 
-`on_reset` in `crates/execution/src/order_emulator/emulator.rs` sorts three drained sets before
-ordered `msgbus::unsubscribe_*` fan-out:
+`crates/execution/src/order_emulator/emulator.rs` 中的 `on_reset` 在有序的
+`msgbus::unsubscribe_*` 扇出之前，对三个排空集合排序：
 
 - `subscribed_quotes`
 - `subscribed_trades`
 - `subscribed_strategies`
 
-The quote and trade paths also advance the seeded `UUID4::new` draw sequence. Storage stays on `AHashSet`.
+报价与成交路径还会推进带种子的 `UUID4::new` 抽取序列。存储保持 `AHashSet`。
 
-#### WebSocket subscriptions
+#### WebSocket 订阅 {#websocket-subscriptions}
 
-`topics_from_map` in `crates/network/src/websocket/subscription.rs` sorts its returned vector to preserve
-reconnect replay order behind `all_topics()` while storage stays on `DashMap` with `AHashSet` values.
+`crates/network/src/websocket/subscription.rs` 中的 `topics_from_map` 对返回的
+向量排序，在 `all_topics()` 之后保留重连重放顺序；存储仍是值为 `AHashSet`
+的 `DashMap`。
 
-#### Unordered collection limits
+#### 无序集合的界限 {#unordered-collection-limits}
 
-`AHashMap` / `AHashSet` sites in the `nautilus-live` closure are lookup-only, behind concurrent
-shared-ownership wrappers (`Arc<DashMap>`, `AtomicMap`), or feed into commutative aggregation.
-`backtest` contains additional hash collections outside rule 5's two-file enforcement scope,
-including pre-run validation and result maps. Treat their iteration order as outside the static
-guarantee until each path is audited.
+`nautilus-live` 闭包中的 `AHashMap` / `AHashSet` 位置只用于查找、位于并发
+共享所有权包装（`Arc<DashMap>`、`AtomicMap`）之后，或汇入可交换的聚合。
+`backtest` 中还有规则 5 两文件强制范围之外的哈希集合，包括运行前校验与
+结果映射。在相应路径完成审计前，其迭代顺序视为不受静态保证覆盖。
 
-### Time seams
+### 时间接缝 {#time-seams}
 
-Remaining `Instant::now` and `SystemTime::now` sites are tests, file-allowlisted locations, or
-marked exceptions:
+剩余的 `Instant::now` 与 `SystemTime::now` 位置属于测试、文件白名单位置或
+带标记的例外：
 
-| Location                             | Use                                                      | Treatment                                                  |
+| 位置                               | 用途                                                     | 处理方式                                                  |
 | ------------------------------------ | -------------------------------------------------------- | ---------------------------------------------------------- |
-| `crates/common/src/testing.rs`       | `wait_until` and `wait_until_async` timers.              | Inline `// dst-ok`: test controls use real time by design. |
-| `crates/execution/src/engine/mod.rs` | Initialization log timing in `load_cache`.               | Inline `// dst-ok`: timing does not affect DST state.      |
-| `crates/common/src/cache/mod.rs`     | Timing in `check_integrity` and `audit_own_order_books`. | File allowlist.                                            |
-| `crates/model/src/defi/reporting.rs` | Progress logging.                                        | File allowlist.                                            |
-| `crates/core/src/time.rs`            | Wall-clock seam definition.                              | Explicit seam exception.                                   |
+| `crates/common/src/testing.rs`       | `wait_until` 与 `wait_until_async` 的计时。              | 行内 `// dst-ok`：测试控制按设计使用真实时间。 |
+| `crates/execution/src/engine/mod.rs` | `load_cache` 的初始化日志计时。               | 行内 `// dst-ok`：计时不影响 DST 状态。      |
+| `crates/common/src/cache/mod.rs`     | `check_integrity` 与 `audit_own_order_books` 的计时。 | 文件白名单。                                            |
+| `crates/model/src/defi/reporting.rs` | 进度日志。                                        | 文件白名单。                                            |
+| `crates/core/src/time.rs`            | 墙上时钟接缝定义。                              | 显式接缝例外。                                   |
 
-`jiff::Timestamp::now` and `jiff::Zoned::now` are hook-banned in the in-scope crates. The remaining
-timestamp call sites are the logging bridge and writer, scoped out under
-[Logging runs on real OS threads](#logging-runs-on-real-os-threads).
-`crates/core/src/datetime.rs::is_within_last_24_hours` routes through
-`nautilus_core::time::nanos_since_unix_epoch()` and compares in `u64` nanos directly.
+`jiff::Timestamp::now` 与 `jiff::Zoned::now` 在范围内 crate 中被钩子禁用。
+其余时间戳调用点是日志桥接与写入器，在
+[日志运行在真实 OS 线程上](#logging-runs-on-real-os-threads)一节中被划出范围。
+`crates/core/src/datetime.rs::is_within_last_24_hours` 经
+`nautilus_core::time::nanos_since_unix_epoch()` 取时，并直接用 `u64` 纳秒比较。
 
-### Randomness seams
+### 随机性接缝 {#randomness-seams}
 
-Production randomness on the DST path uses the following seams.
+DST 路径上的生产随机性使用以下接缝。
 
-#### UUID generation
+#### UUID 生成 {#uuid-generation}
 
-`crates/core/src/uuid.rs::UUID4::new()` uses `madsim::rand::thread_rng()` inside a madsim runtime
-under simulation. Normal builds and plain `#[rstest]` bodies outside a madsim runtime use
-`rand::rng()`.
+`crates/core/src/uuid.rs::UUID4::new()` 在模拟的 madsim 运行时内使用
+`madsim::rand::thread_rng()`。常规构建，以及 madsim 运行时之外的普通
+`#[rstest]` 函数体，使用 `rand::rng()`。
 
-Production simulation paths run inside the runtime and consume seeded bytes. Order and event
-factories in `nautilus-common` and `nautilus-risk` reach this seam.
+生产模拟路径在运行时内执行并消费带种子的字节。`nautilus-common` 与
+`nautilus-risk` 中的订单与事件工厂经由该接缝。
 
-#### Fill model randomness
+#### 成交模型随机性 {#fill-model-randomness}
 
-`crates/execution/src/models/fill.rs::default_std_rng()` follows the same runtime split.
-`ProbabilisticFillState::new()` calls it when no seed is provided. When a caller supplies a seed,
-`StdRng::seed_from_u64` is deterministic without the seam.
+`crates/execution/src/models/fill.rs::default_std_rng()` 遵循同样的运行时分流。
+未提供种子时 `ProbabilisticFillState::new()` 调用它。调用方提供种子时，
+`StdRng::seed_from_u64` 本身就是确定性的，无需接缝。
 
-#### Random matching-engine IDs
+#### 随机撮合引擎 ID {#random-matching-engine-ids}
 
-The `use_random_ids` path in `crates/execution/src/matching_engine/ids_generator.rs` calls
-`nautilus_core::UUID4::new()` for position and venue order IDs. The default ID scheme,
-`{venue}-{raw_id}-{count}`, is deterministic without random bytes.
+`crates/execution/src/matching_engine/ids_generator.rs` 中的 `use_random_ids`
+路径为持仓 ID 与场所订单 ID 调用 `nautilus_core::UUID4::new()`。
+默认 ID 方案 `{venue}-{raw_id}-{count}` 不使用随机字节，本身确定性。
 
-#### Reconnect jitter
+#### 重连抖动 {#reconnect-jitter}
 
-`crates/network/src/backoff.rs` samples `madsim::rand::thread_rng()` inside the simulation runtime.
-Normal builds and calls outside a Madsim runtime use `rand::rng()`. Restarting the runtime with the
-same seed restarts the simulated jitter sequence.
+`crates/network/src/backoff.rs` 在模拟运行时内采样
+`madsim::rand::thread_rng()`。常规构建以及 Madsim 运行时之外的调用使用
+`rand::rng()`。以相同种子重启运行时，会重启模拟的抖动序列。
 
-### Tokio submodule split
+### Tokio 子模块划分 {#tokio-submodule-split}
 
-The common facade routes `time`, `task`, `runtime`, and `signal` through `madsim`. Direct uses of
-Tokio's `sync`, `io`, `fs`, and `net` submodules, plus `select!`, stay on real `tokio` under simulation.
-The network-local `dst::net` boundary separately selects Madsim byte streams for the supported
-HTTP and WebSocket paths.
+common 门面把 `time`、`task`、`runtime`、`signal` 路由到 `madsim`。
+`tokio` 的 `sync`、`io`、`fs`、`net` 子模块以及 `select!` 的直接使用在模拟下
+仍走真实 `tokio`。网络层本地的 `dst::net` 边界单独为受支持的 HTTP 与
+WebSocket 路径选择 Madsim 字节流。
 
-A global Tokio network replacement would also affect dependencies such as:
+全局替换 Tokio 网络会连带影响这些依赖：
 
 - `tokio-tungstenite`
 - `tokio-rustls`
 - `hyper-util`
 - `hyper-rustls`
 
-The network-local boundary avoids that global replacement by supplying a stream to Hyper and Tungstenite. TLS
-stays outside its simulation scope.
+网络层本地边界通过向 Hyper 与 Tungstenite 提供流，避免全局替换。
+TLS 留在其模拟范围之外。
 
-The in-scope direct uses are:
+范围内的直接使用点：
 
-| Location                              | Real Tokio surface                         | Boundary                                                                 |
+| 位置                              | 真实 Tokio 面                         | 边界                                                                 |
 | ------------------------------------- | ------------------------------------------ | ------------------------------------------------------------------------ |
-| `crates/network/src/net.rs`           | `tokio::net::{TcpListener, TcpStream}`     | Re-exports the normal transport behind the `crate::net` seam.            |
-| `crates/network/src/socket/client.rs` | `tokio::io::{AsyncReadExt, AsyncWriteExt}` | Performs I/O on the selected transport.                                  |
-| `crates/network/src/tls.rs`           | `tokio::io::{AsyncRead, AsyncWrite}`       | Defines TLS I/O bounds.                                                  |
-| `crates/network/src/socket/types.rs`  | `tokio::io::{ReadHalf, WriteHalf}`         | Splits `MaybeTlsStream<TcpStream>`. `TcpStream` comes from `crate::net`. |
+| `crates/network/src/net.rs`           | `tokio::net::{TcpListener, TcpStream}`     | 在 `crate::net` 接缝后再导出常规传输。            |
+| `crates/network/src/socket/client.rs` | `tokio::io::{AsyncReadExt, AsyncWriteExt}` | 在选定的传输上执行 I/O。                                  |
+| `crates/network/src/tls.rs`           | `tokio::io::{AsyncRead, AsyncWrite}`       | 定义 TLS I/O 约束。                                                  |
+| `crates/network/src/socket/types.rs`  | `tokio::io::{ReadHalf, WriteHalf}`         | 拆分 `MaybeTlsStream<TcpStream>`。`TcpStream` 来自 `crate::net`。 |
 
-These paths use real sockets even under simulation. The `tokio::sync` channel implementation also stays real,
-but madsim schedules its sender and receiver tasks. Channel delivery order thus stays part of the
-deterministic scheduling contract.
+这些路径即使在模拟下也使用真实 socket。`tokio::sync` 通道实现同样保持真实，
+但 madsim 会调度其发送端与接收端任务，因此通道投递顺序仍属于确定性调度契约。
 
-### Raw thread escape rules
+### 原生线程逃逸规则 {#raw-thread-escape-rules}
 
-Rule 4 of the hook bans raw thread spawning outside three escape cases:
+钩子的规则 4 禁止在三种逃逸情形之外原生创建线程：
 
-- `#[cfg(test)]` test modules.
-- `#[cfg(not(madsim))]` or `#[cfg(not(all(feature = "simulation", madsim)))]` production
-  sites (for example, the logging writer thread).
-- An inline `// dst-ok` marker.
+- `#[cfg(test)]` 测试模块。
+- `#[cfg(not(madsim))]` 或 `#[cfg(not(all(feature = "simulation", madsim)))]`
+  的生产位置（例如日志写入器线程）。
+- 行内 `// dst-ok` 标记。
 
-`tokio::task::LocalSet` and `tokio::task::spawn_blocking` are not supported under `madsim`. The codebase audit
-found no production sites for either inside the in-scope crates. New sites must carry a cfg gate or
-`// dst-ok` marker.
+`tokio::task::LocalSet` 与 `tokio::task::spawn_blocking` 在 `madsim` 下不受支持。
+代码库审计在范围内 crate 中未发现任何生产使用点。新增使用点必须带 cfg 门控或
+`// dst-ok` 标记。
 
-### Logging tests under simulation
+### 模拟下的日志测试 {#logging-tests-under-simulation}
 
-The logging writer thread is cfg-gated out under simulation. Under `cfg(madsim)` log events are dropped. Tests
-that initialize the file-logging writer would either hang or assert against an empty log file. Thus, the
-affected submodules are gated out at the module boundary:
+日志写入器线程在模拟下被 cfg 门控排除。`cfg(madsim)` 时日志事件被丢弃。
+初始化文件日志写入器的测试要么挂起，要么对空日志文件断言失败。
+因此受影响的子模块在模块边界被门控排除：
 
-- `crates/common/src/logging/logger.rs::tests::serial_tests`.
-- `crates/common/src/logging/macros.rs::tests`.
+- `crates/common/src/logging/logger.rs::tests::serial_tests`。
+- `crates/common/src/logging/macros.rs::tests`。
 
 `logger.rs::tests::sim_tests::test_init_under_madsim_skips_writer_thread_and_forces_bypass`
-runs under simulation and pins the gated behavior.
+在模拟下运行，锁定被门控的行为。
 
-## Scope boundaries
+## 范围边界 {#scope-boundaries}
 
-The contract is limited by the boundaries below. Each subsection identifies behavior that can vary between
-runs or stays outside the audited DST path.
+契约受以下边界限制。每个小节指出可能在两次运行间变化、或留在受审计 DST
+路径之外的行为。
 
-### Python and FFI are not in DST scope
+### Python 与 FFI 不在 DST 范围内 {#python-and-ffi-are-not-in-dst-scope}
 
-DST runs under a native Rust test harness and does not start a Python interpreter. The contract
-excludes:
+DST 在原生 Rust 测试框架下运行，不启动 Python 解释器。契约不包括：
 
-- PyO3 bindings under `crates/*/src/python/`.
-- Rust FFI modules under `crates/core/src/ffi/` and `crates/model/src/ffi/`.
-- The Python package under `python/nautilus_trader/`.
+- `crates/*/src/python/` 下的 PyO3 绑定。
+- `crates/core/src/ffi/` 与 `crates/model/src/ffi/` 下的 Rust FFI 模块。
+- `python/nautilus_trader/` 下的 Python 包。
 
-Code reachable only through these bindings is out of scope. Any Rust path reachable from the native
-DST harness must satisfy the contract, even when the same type is also exported through a binding.
+仅经这些绑定可达的代码在范围之外。原生 DST 框架可达的任意 Rust 路径都必须
+满足契约，即便同一类型也通过某个绑定导出。
 
-The `check-dst-conventions` hook encodes this policy by skipping `/python/` and `/ffi/` paths in the
-in-scope crates. Clock, RNG, and threading calls behind those paths do not apply to the contract.
+`check-dst-conventions` 钩子按此策略跳过范围内 crate 的 `/python/` 与 `/ffi/`
+路径。那些路径背后的时钟、RNG 与线程调用不适用本契约。
 
-DST primarily covers the order lifecycle, reconciliation, matching, risk, and execution state
-machines in the Rust engine. User strategies are replayable only when written in Rust or driven
-through a Rust-native test harness.
+DST 主要覆盖 Rust 引擎中的订单生命周期、对账、撮合、风控与执行状态机。
+只有用 Rust 编写、或用 Rust 原生测试框架驱动的用户策略才可重放。
 
-A Python strategy can vary its command stream by:
+Python 策略可以通过以下方式改变其命令流：
 
-- Calling `time.time()`.
-- Issuing arbitrary network requests.
-- Relying on OS thread scheduling.
+- 调用 `time.time()`。
+- 发出任意网络请求。
+- 依赖操作系统线程调度。
 
-The Rust core processes that command stream according to its deterministic contract, but DST does
-not guarantee end-to-end replay from a Python entry point.
+Rust 内核按其确定性契约处理该命令流，但 DST 不保证从 Python 入口点的
+端到端重放。
 
-### Platform-scoped
+### 限定平台 {#platform-scoped}
 
-`madsim`'s libc overrides for `clock_gettime` and `getrandom` are platform-specific. The contract
-does not claim cross-platform bitwise reproducibility. A seed that reproduces a failure on Linux
-x86_64 may not reproduce it on macOS aarch64.
+`madsim` 对 `clock_gettime` 与 `getrandom` 的 libc 覆盖是平台特定的。
+契约不主张跨平台的逐位可复现。在 Linux x86_64 上复现某失败的种子，
+在 macOS aarch64 上可能无法复现。
 
-### Non-aliased dependencies escape silently
+### 未替换的依赖静默逃逸 {#non-aliased-dependencies-escape-silently}
 
-A dependency escapes the simulator without an error when it reaches the OS through:
+依赖通过以下途径直达操作系统时，会无声地逃出模拟器：
 
-- Direct `libc` calls.
-- A `std::net` bypass.
-- Unrouted randomness such as `fastrand` or `OsRng`.
+- 直接 `libc` 调用。
+- `std::net` 旁路。
+- 未路由的随机性，如 `fastrand` 或 `OsRng`。
 
-The in-scope crates have been audited. Adapter and infrastructure crates require separate audits
-before entering the DST path.
+范围内的 crate 已完成审计。适配器与基础设施 crate 进入 DST 路径前需要
+单独审计。
 
-### Transport scope limits
+### 传输范围限制 {#transport-scope-limits}
 
-The following dependencies use real `tokio` internally:
+以下依赖内部使用真实 `tokio`：
 
 - `tokio-tungstenite`
 - `tokio-rustls`
@@ -633,12 +629,12 @@ The following dependencies use real `tokio` internally:
 - `redis`
 - `sqlx`
 
-The [simulated HTTP and WebSocket transport](#simulated-http-and-websocket-transport) supplies Madsim streams
-to the supported plaintext paths. Raw socket clients, TLS, Redis, and SQL stay outside that boundary. Turmoil
-provides the separate network simulation described in [Network seed soaks](#network-seed-soaks).
+[模拟 HTTP 与 WebSocket 传输](#simulated-http-and-websocket-transport)为受支持的
+明文路径提供 Madsim 流。原始 socket 客户端、TLS、Redis 与 SQL 留在该边界之外。
+Turmoil 提供[网络种子冲刷](#network-seed-soaks)所述的另一套网络模拟。
 
-The following test modules drive real localhost sockets and are cfg-gated out under
-`all(feature = "simulation", madsim)`:
+以下测试模块驱动真实的本地回环 socket，在
+`all(feature = "simulation", madsim)` 下被 cfg 门控排除：
 
 - `crates/network/src/http/client.rs::tests`
 - `crates/network/src/http/tests.rs`
@@ -648,181 +644,179 @@ The following test modules drive real localhost sockets and are cfg-gated out un
 - `crates/network/src/websocket/client.rs::rust_tests`
 - `crates/network/tests/integration/websocket_proxy.rs`
 
-Their production paths reach madsim time primitives through `dst::time::*`, which panic when called
-from a `#[tokio::test]` runtime.
+它们的生产路径经 `dst::time::*` 触及 madsim 时间原语，而这些原语在
+`#[tokio::test]` 运行时中调用会 panic。
 
-The retry modules in `crates/network/src/retry.rs` run under both runtimes. Their test attributes switch
-between `#[tokio::test(start_paused = true)]` and `#[madsim::test]`. Time reads and sleeps use
-`crate::dst::time`. Explicit virtual-time advances use a cfg-gated `advance_clock` function. The same test
-bodies thus cover normal and simulation builds.
+`crates/network/src/retry.rs` 中的重试模块在两种运行时下都运行。其测试属性在
+`#[tokio::test(start_paused = true)]` 与 `#[madsim::test]` 之间切换。
+时间读取与 sleep 使用 `crate::dst::time`；显式的虚拟时间推进使用 cfg 门控的
+`advance_clock` 函数。同一份测试体因此覆盖常规与模拟两种构建。
 
-### Signal handling
+### 信号处理 {#signal-handling}
 
-`nautilus_common::live::dst::signal` exposes routed `ctrl_c` and `terminate` re-exports. The run loop in
-`crates/live/src/node/mod.rs` uses them. Under `cfg(madsim)`, tests can inject node shutdown through
-`madsim::runtime::Handle::send_ctrl_c`. Adapter binary entry points still call `tokio::signal::ctrl_c`
-directly and stay out of scope.
+`nautilus_common::live::dst::signal` 暴露经路由的 `ctrl_c` 与 `terminate`
+再导出，`crates/live/src/node/mod.rs` 的运行循环使用它们。
+`cfg(madsim)` 下，测试可以用 `madsim::runtime::Handle::send_ctrl_c`
+注入节点关停。适配器二进制的入口点仍直接调用 `tokio::signal::ctrl_c`，
+留在范围之外。
 
-### Logging runs on real OS threads
+### 日志运行在真实 OS 线程上 {#logging-runs-on-real-os-threads}
 
-The logging subsystem spawns a writer thread through `std::thread::Builder` and uses `std::sync::mpsc`. Under
-simulation, the thread is not spawned and log events are dropped. Log output is outside the determinism
-contract: the writer only writes, never reads or mutates simulation state.
+日志子系统通过 `std::thread::Builder` 创建写入器线程，并使用
+`std::sync::mpsc`。模拟下该线程不会创建，日志事件被丢弃。
+日志输出在确定性契约之外：写入器只写，从不读取或修改模拟状态。
 
-### Adapters
+### 适配器 {#adapters}
 
-End-to-end adapter behavior stays outside the upstream simulation test scope. Depending on the adapter,
-unaudited paths contain:
+端到端的适配器行为留在上游模拟测试范围之外。视适配器而定，未审计路径中可能包含：
 
-- Direct `jiff::Timestamp::now` or `jiff::Zoned::now` calls.
-- Direct `SystemTime::now` calls.
-- Unrouted RNG calls.
-- Raw transport clients.
+- 直接的 `jiff::Timestamp::now` 或 `jiff::Zoned::now` 调用。
+- 直接的 `SystemTime::now` 调用。
+- 未路由的 RNG 调用。
+- 原始传输客户端。
 
-An adapter must be audited for these sites before the DST contract covers its behavior.
+DST 契约要覆盖适配器的行为，必须先审计这些位置。
 
-## Relationship to other testing layers
+## 与其他测试层的关系 {#relationship-to-other-testing-layers}
 
-DST complements existing testing. It does not replace any of it.
+DST 与现有测试互补，不取代任何一层。
 
-| Layer                   | Covers                                               | DST relationship                                |
+| 测试层                   | 覆盖内容                                               | 与 DST 的关系                                |
 | ----------------------- | ---------------------------------------------------- | ----------------------------------------------- |
-| Unit tests              | Pure logic, calculations, parsers, transformers.     | Unchanged.                                      |
-| Integration tests       | Component interaction, I/O boundaries.               | Unchanged. DST runs alongside, not in place of. |
-| Property-based tests    | Invariants over input domains (parsers, roundtrips). | Unchanged.                                      |
-| Acceptance tests        | End-to-end backtest and live scenarios.              | Unchanged.                                      |
-| Deterministic sim (DST) | Async timing, scheduling, recovery correctness.      | Adds seed-replayable exploration.               |
+| 单元测试              | 纯逻辑、计算、解析器、转换器。     | 不变。                                      |
+| 集成测试       | 组件交互、I/O 边界。               | 不变。DST 与其并行运行，而非取而代之。 |
+| 基于属性的测试    | 输入域上的不变式（解析器、往返）。 | 不变。                                      |
+| 验收测试        | 端到端回测与实时场景。              | 不变。                                      |
+| 确定性模拟（DST） | 异步时序、调度、恢复正确性。      | 增加可种子重放的探索。               |
 
-DST covers async concurrency and state-machine correctness. Representative failures include:
+DST 覆盖异步并发与状态机正确性。典型的失败包括：
 
-- A shutdown message dropped under one task wakeup order.
-- A reconciliation event lost when iteration order changes.
+- 某种任务唤醒顺序下丢失一条关停消息。
+- 迭代顺序改变时丢失一个对账事件。
 
-The other testing layers keep responsibility for their existing scopes.
+其他测试层继续负责各自原有的范围。
 
-## Status
+## 状态 {#status}
 
-### Runtime swap
+### 运行时替换 {#runtime-swap-status}
 
-Layer 1 is implemented. `nautilus_common::live::dst` exposes routed re-exports for `time`, `task`, `runtime`,
-and `signal`. Production call sites for `time`, `task`, and `runtime` use the seam. Signal adoption stays
-partial. See [Signal handling](#signal-handling).
+第 1 层已实现。`nautilus_common::live::dst` 暴露 `time`、`task`、`runtime`、
+`signal` 的路由再导出。`time`、`task`、`runtime` 的生产调用点已使用该接缝。
+信号的采用仍是部分的，见[信号处理](#signal-handling)。
 
-### Nondeterminism substitution
+### 不确定性替换 {#nondeterminism-substitution-status}
 
-Layer 2 is implemented across the 17 in-scope crates. Seams cover wall-clock time, monotonic time,
-randomness, and observable iteration order. [Implementation notes](#implementation-notes) lists the
-audited paths and remaining exceptions.
+第 2 层已在 17 个范围内 crate 中实现。接缝覆盖墙上时间、单调时间、随机性与
+可观测迭代顺序。[实现说明](#implementation-notes)列出已审计的路径与剩余例外。
 
-### Static enforcement status
+### 静态强制状态 {#static-enforcement-status}
 
-`check-dst-conventions` runs in pre-commit and CI. It covers the load-bearing structural conditions
-and permits reviewed per-line exceptions through `// dst-ok`.
+`check-dst-conventions` 在预提交与 CI 中运行，覆盖承载性的结构条件，
+并通过 `// dst-ok` 允许经评审的逐行例外。
 
-### Runtime verification limit
+### 运行时验证限度 {#runtime-verification-limit}
 
-Verification covers seam tests and static checks. This repository does not compare complete
-adapter runs across fresh processes.
+验证覆盖接缝测试与静态检查。本仓库不跨新进程比较完整的适配器运行。
 
-### Simulation smoke gate
+### 模拟冒烟门禁 {#simulation-smoke-gate}
 
-The nightly workflow and local pre-flight use the same DST targets:
+夜间工作流与本地 pre-flight 使用同一组 DST 目标：
 
-| Entry point                           | Relevant order                                            | Purpose                                                  |
+| 入口点                           | 相关顺序                                            | 目的                                                  |
 | ------------------------------------- | --------------------------------------------------------- | -------------------------------------------------------- |
-| `.github/workflows/nightly-tests.yml` | `check-code-sim` > `cargo-test-sim`                       | Runs the nightly and manually dispatched DST smoke gate. |
-| `make pre-flight`                     | `check-code-sim` > `cargo-test-sim` > `cargo-test-extras` | Fails early on DST lint before the Rust test suites.     |
+| `.github/workflows/nightly-tests.yml` | `check-code-sim` > `cargo-test-sim`                       | 运行夜间及手动派发的 DST 冒烟门禁。 |
+| `make pre-flight`                     | `check-code-sim` > `cargo-test-sim` > `cargo-test-extras` | 在 Rust 测试套件之前尽早失败于 DST lint。     |
 
-`check-code-sim` runs pinned stable Clippy with `--features simulation` and `cfg(madsim)` across
-`nautilus-common`, `nautilus-core`, `nautilus-event-store`, `nautilus-network`,
-`nautilus-execution`, and `nautilus-live`. A separate `--no-default-features` leg compiles and lints
-each audited adapter without its default features in the standard-precision core leg.
+`check-code-sim` 在 `nautilus-common`、`nautilus-core`、`nautilus-event-store`、
+`nautilus-network`、`nautilus-execution`、`nautilus-live` 上，以
+`--features simulation` 加 `cfg(madsim)` 运行锁定的稳定版 Clippy。
+另有单独的 `--no-default-features` 分支，在标准精度核心分支中不带默认
+feature 地编译并 lint 每个受审计的适配器。
 
-`cargo-test-sim` uses three feature-coherent nextest invocations:
+`cargo-test-sim` 使用三次 feature 自洽的 nextest 调用：
 
-| Precision | Packages                                                                                                              | Features                    | Selection                                                                                           |
+| 精度 | 包                                                                                                              | Features                    | 选择                                                                                           |
 | --------- | --------------------------------------------------------------------------------------------------------------------- | --------------------------- | --------------------------------------------------------------------------------------------------- |
-| Standard  | `nautilus-common`, `nautilus-core`, `nautilus-event-store`, `nautilus-network`, `nautilus-execution`, `nautilus-live` | `simulation`                | All compatible common, event-store, network, and execution tests, plus focused live and core tests. |
-| Standard  | Each audited adapter                                                                                                  | `simulation`                | Integration `dst` tests only, without adapter default features.                                     |
-| High      | `nautilus-common`, `nautilus-execution`                                                                               | `simulation,high-precision` | All tests in both packages.                                                                         |
+| 标准  | `nautilus-common`、`nautilus-core`、`nautilus-event-store`、`nautilus-network`、`nautilus-execution`、`nautilus-live` | `simulation`                | 全部兼容的 common、event-store、network、execution 测试，外加聚焦的 live 与 core 测试。 |
+| 标准  | 每个受审计的适配器                                                                                                  | `simulation`                | 仅集成 `dst` 测试，不带适配器默认 feature。                                     |
+| 高      | `nautilus-common`、`nautilus-execution`                                                                               | `simulation,high-precision` | 两个包的全部测试。                                                                         |
 
-Nextest compiles the selected library and test targets, so the gate does not run a separate Cargo
-build. The invocations resolve each feature set once across their package sets. Together they
-exercise seam-routed `QuantityRaw` (`u64` / `u128`) and `PriceRaw` (`i64` / `i128`) paths at both fixed-point widths.
+Nextest 会编译选定的库与测试目标，因此门禁不另跑一次 Cargo build。
+这几次调用在各自包集上各解析一次 feature 集。合起来在两种定点数宽度下
+都演练经接缝路由的 `QuantityRaw`（`u64` / `u128`）与 `PriceRaw`（`i64` / `i128`）路径。
 
-#### Common tests
+#### Common 测试 {#common-tests}
 
-The standard-precision run executes all simulation-compatible `nautilus-common` tests. Its feature
-graph propagates `nautilus-core/simulation`, selecting the `wall_clock_now` cfg branch throughout
-the suite.
+标准精度运行执行全部模拟兼容的 `nautilus-common` 测试。其 feature 图传播
+`nautilus-core/simulation`，在整个套件中选择 `wall_clock_now` 的 cfg 分支。
 
-Plain `#[rstest]` bodies run outside a madsim runtime and use the seam's `SystemTime::now()` fallback.
-This is the same path madsim's libc shim takes outside a runtime.
+普通 `#[rstest]` 函数体在 madsim 运行时之外执行，使用接缝的
+`SystemTime::now()` 回退。这与 madsim 的 libc shim 在运行时之外的路径相同。
 
-The `LiveClock` test module is cfg-gated out because its plain `#[rstest]` cases start `LiveTimer`
-tasks without a madsim runtime, and most wait for wall-clock progress.
+`LiveClock` 测试模块被 cfg 门控排除：其普通 `#[rstest]` 用例在没有 madsim
+运行时的情况下启动 `LiveTimer` 任务，且多数在等待墙上时钟推进。
 
-`live::dst::tests::test_dst_wall_clock_advances_with_virtual_time` runs under `#[madsim::test]` and
-asserts that `nanos_since_unix_epoch` advances with `madsim::time::sleep`. This pins virtual
-wall-clock behavior inside the runtime.
+`live::dst::tests::test_dst_wall_clock_advances_with_virtual_time` 在
+`#[madsim::test]` 下运行，断言 `nanos_since_unix_epoch` 随
+`madsim::time::sleep` 推进，锁定运行时内的虚拟墙上时钟行为。
 
-#### Event store tests
+#### Event store 测试 {#event-store-tests}
 
-The standard-precision run executes all simulation-compatible `nautilus-event-store` tests. It exercises the
-synchronous event and marker writers under `cfg(madsim)`, including deterministic sequence ordering. Tests
-that depend on blocking OS threads keep native coverage and are gated out because those threads run outside
-madsim's scheduling control.
+标准精度运行执行全部模拟兼容的 `nautilus-event-store` 测试，在
+`cfg(madsim)` 下演练同步的事件与标记写入器，包括确定性的序列排序。
+依赖阻塞 OS 线程的测试保留原生覆盖并被门控排除，因为那些线程运行在
+madsim 调度控制之外。
 
-The event-store smoke lane compiles and tests its existing simulation implementation without
-extending the static convention hook to event-store production code.
+event-store 冒烟分支在不把静态约定钩子扩展到 event-store 生产代码的前提下，
+编译并测试其现有的模拟实现。
 
-#### Live startup reconciliation
+#### Live 启动对账 {#live-startup-reconciliation}
 
-The focused `nautilus-live` regression runs under madsim. It verifies that a pending mass-status request
-reaches its configured timeout and reports the expected error. It also verifies node cleanup.
-The full timeout and cleanup flow never enters a real Tokio timer.
+聚焦的 `nautilus-live` 回归在 madsim 下运行，验证待处理的 mass-status 请求
+达到其配置的超时并报告预期错误，同时验证节点清理。
+完整的超时与清理流程从不进入真实的 Tokio 定时器。
 
-#### Network tests
+#### 网络测试 {#network-tests}
 
-The run executes all `nautilus-network` tests except transport-bound modules cfg-gated out at the
-source. Coverage includes virtual-time seam tests for sleep, timeout, and the rate limiter, plus the
-retry suites that exercise backoff timing. `crates/network/tests/simulation.rs` adds WebSocket
-reconnect, unsupported endpoint and Sockudo rejection, and jitter reset checks. Unit tests in
-`crates/network/src/http/simulation.rs` cover request bytes, response limits, body deadlines,
-cancellation, redirect policy, and HTTPS/proxy rejection.
+该运行执行除源头被 cfg 门控排除的传输绑定模块之外的全部 `nautilus-network`
+测试。覆盖包括 sleep、超时与限流器的虚拟时间接缝测试，以及演练退避时序的
+重试套件。`crates/network/tests/simulation.rs` 增加 WebSocket 重连、
+不支持端点与 Sockudo 拒绝、抖动重置检查。
+`crates/network/src/http/simulation.rs` 中的单元测试覆盖请求字节、响应上限、
+body 截止时间、取消、重定向策略与 HTTPS/代理拒绝。
 
-`#[madsim::test]` uses a varying seed by default and reports it on failure. Set `MADSIM_TEST_SEED`
-to replay a schedule. The `dst smoke (cfg madsim)` job in `.github/workflows/nightly-tests.yml`
-selects five consecutive seeds from `GITHUB_RUN_NUMBER * MADSIM_TEST_NUM`. The jitter runtime-reset
-test pins its own seed and complements the cross-seed network checks.
+`#[madsim::test]` 默认使用变化的种子，并在失败时报告它。设置
+`MADSIM_TEST_SEED` 可重放某个调度。`.github/workflows/nightly-tests.yml` 中的
+`dst smoke (cfg madsim)` 任务从 `GITHUB_RUN_NUMBER * MADSIM_TEST_NUM` 起选取
+五个连续种子。抖动运行时重置测试固定自己的种子，与跨种子的网络检查互补。
 
-#### Execution tests
+#### Execution 测试 {#execution-tests}
 
-The run executes all `nautilus-execution` tests. These plain `#[rstest]` cases exercise cfg-gated branches in
-the matching engine, fill model, and execution engine without entering a madsim runtime. `default_std_rng()`
-thus takes its host-RNG fallback in these tests.
+该运行执行全部 `nautilus-execution` 测试。这些普通 `#[rstest]` 用例在不进入
+madsim 运行时的情况下，演练撮合引擎、成交模型与执行引擎中的 cfg 门控分支，
+因此 `default_std_rng()` 在这些测试中走宿主 RNG 回退。
 
-#### Core seam tests
+#### Core 接缝测试 {#core-seam-tests}
 
-The focused `nautilus-core` selection pins `wall_clock_now` against virtual time.
+聚焦的 `nautilus-core` 选择把 `wall_clock_now` 对虚拟时间做锁定验证。
 
-#### Adapter tests
+#### 适配器测试 {#adapter-tests}
 
-Each audited adapter runs its integration `dst` tests under `simulation` without the crate's
-default features. Those `#[madsim::test]` cases pin the slice the adapter's integration guide
-records: subscribe bytes, reconnect behavior, authentication frames, and per-operation wire fields.
+每个受审计的适配器在不带该 crate 默认 feature 的 `simulation` 下运行其集成
+`dst` 测试。那些 `#[madsim::test]` 用例锁定适配器集成指南所记录的切片：
+订阅字节、重连行为、认证帧，以及逐操作的线上字段。
 
-#### Overall gate coverage
+#### 门禁总体覆盖 {#overall-gate-coverage}
 
-`#[madsim::test]` cases in `nautilus-common`, `nautilus-core`, `nautilus-network`,
-`nautilus-live`, and the audited adapters provide deterministic-scheduler coverage. The complete
-gate catches drift in the cfg-gated seams but does not verify end-to-end adapter determinism.
+`nautilus-common`、`nautilus-core`、`nautilus-network`、`nautilus-live` 以及受审计
+适配器中的 `#[madsim::test]` 用例提供确定性调度器覆盖。完整门禁能捕捉
+cfg 门控接缝的漂移，但不验证端到端的适配器确定性。
 
-## Further reading
+## 延伸阅读 {#further-reading}
 
-- `.pre-commit-hooks/check_dst_conventions.sh` defines the seven enforcement rules in full and
-  documents the `// dst-ok` marker convention.
-- [FoundationDB testing philosophy](https://apple.github.io/foundationdb/testing.html).
-- [TigerBeetle simulation testing blog posts](https://tigerbeetle.com/blog/).
-- [madsim repository](https://github.com/madsim-rs/madsim), the deterministic runtime.
-- [Turmoil repository](https://github.com/tokio-rs/turmoil), the deterministic network simulator.
+- `.pre-commit-hooks/check_dst_conventions.sh` 完整定义了七条强制规则，
+  并说明 `// dst-ok` 标记的约定。
+- [FoundationDB 测试哲学](https://apple.github.io/foundationdb/testing.html)。
+- [TigerBeetle 模拟测试博客](https://tigerbeetle.com/blog/)。
+- [madsim 仓库](https://github.com/madsim-rs/madsim)，确定性运行时。
+- [Turmoil 仓库](https://github.com/tokio-rs/turmoil)，确定性网络模拟器。

@@ -1,90 +1,78 @@
-# Fill Prices and Matching
+# 成交价格与撮合
 
-The backtest matching engine treats recorded order book and trade data as **immutable**: simulated
-fills do not edit the historical book. This preserves the replayed market while requiring explicit
-assumptions about whether the same displayed liquidity can fill more than one simulated order.
+回测撮合引擎把记录的订单簿和成交数据视为**不可变的**：模拟成交不会修改历史订单簿。这既保护了回放的市场原貌，也要求对"同一显示流动性能否成交多笔模拟订单"作出显式假设。
 
-The engine provides two controls for those assumptions:
+引擎为这些假设提供两个控制：
 
-- `liquidity_consumption=True` tracks displayed size consumed at each price level.
-- A fixed fill-model `random_seed` makes that model's probabilistic decisions repeatable.
-  It does not configure randomness or execution ordering outside that model.
+- `liquidity_consumption=True` 跟踪每个价位已消耗的显示数量。
+- 为成交模型固定 `random_seed` 可让该模型的概率决策可复现。
+  它不控制模型之外的随机性或执行顺序。
 
-## Fill price determination
+## 成交价的确定 {#fill-price-determination}
 
-Fill prices depend on order type, liquidity side, book type, and the market state that caused the
-match.
+成交价取决于订单类型、流动性方向、簿类型以及触发撮合的市场状态。
 
-### L2 and L3 books
+### L2 与 L3 订单簿 {#l2-and-l3-books}
 
-With depth data, market-style orders walk crossed book levels. A limit-style order receives crossed
-book prices while acting as a taker and uses its limit price when acting as a maker.
+有深度数据时，市价类订单沿已穿越的簿价位逐档吃掉。限价类订单作为 taker 时使用穿越的簿价格，作为 maker 时使用限价。
 
-| Order type             | Fill behavior                                                     |
+| 订单类型               | 成交行为                                                          |
 | ---------------------- | ----------------------------------------------------------------- |
-| `MARKET`               | Walks crossed book levels as a taker.                             |
-| `MARKET_TO_LIMIT`      | Walks the book, then rests the remainder at its first fill price. |
-| `LIMIT`                | Uses crossed levels as a taker or the limit price as a maker.     |
-| `STOP_MARKET`          | Walks crossed levels after triggering.                            |
-| `STOP_LIMIT`           | Uses the limit-style rule after triggering.                       |
-| `MARKET_IF_TOUCHED`    | Walks crossed levels after triggering.                            |
-| `LIMIT_IF_TOUCHED`     | Uses the limit-style rule after triggering.                       |
-| `TRAILING_STOP_MARKET` | Walks crossed levels after activation and triggering.             |
-| `TRAILING_STOP_LIMIT`  | Uses the limit-style rule after activation and triggering.        |
+| `MARKET`               | 作为 taker 沿已穿越的簿价位逐档成交。                             |
+| `MARKET_TO_LIMIT`      | 沿簿成交，剩余部分以其首笔成交价挂出。 |
+| `LIMIT`                | 作为 taker 用穿越价位，作为 maker 用限价。     |
+| `STOP_MARKET`          | 触发后沿穿越价位成交。                            |
+| `STOP_LIMIT`           | 触发后按限价类规则处理。                       |
+| `MARKET_IF_TOUCHED`    | 触发后沿穿越价位成交。                            |
+| `LIMIT_IF_TOUCHED`     | 触发后按限价类规则处理。                       |
+| `TRAILING_STOP_MARKET` | 激活并触发后沿穿越价位成交。             |
+| `TRAILING_STOP_LIMIT`  | 激活并触发后按限价类规则处理。        |
 
-A depth order can fill partially when the available crossed size is smaller than its remaining
-quantity.
+可穿越数量小于订单剩余量时，深度单可以部分成交。
 
-### L1 books
+### L1 订单簿 {#l1-books}
 
-With an L1 book, the recorded market exposes only the best bid and ask:
+L1 订单簿下，记录的市场只暴露最优买卖价：
 
-| Order class                                                              | Fill behavior                                                                   |
+| 订单类别                                                                 | 成交行为                                                                          |
 | ------------------------------------------------------------------------ | ------------------------------------------------------------------------------- |
-| `MARKET`, `MARKET_IF_TOUCHED`, `STOP_MARKET`, and `TRAILING_STOP_MARKET` | Use the market or trigger-price rule, then fill any residual one tick worse.    |
-| `MARKET_TO_LIMIT`                                                        | Uses the best opposite quote, then rests the remainder at the first fill price. |
-| Limit-style taker                                                        | Uses the best crossed quote, bounded by the limit price.                        |
-| Limit-style maker                                                        | Uses the limit price when matched by a trade or market move.                    |
+| `MARKET`、`MARKET_IF_TOUCHED`、`STOP_MARKET`、`TRAILING_STOP_MARKET` | 按市场价或触发价规则处理，剩余部分在让一个 tick 处成交。    |
+| `MARKET_TO_LIMIT`                                                        | 用最优对手价成交，剩余部分以首笔成交价挂出。 |
+| 限价类 taker                                                        | 用最优穿越价成交，以限价为界。                        |
+| 限价类 maker                                                        | 被成交或市场移动匹配时使用限价。                    |
 
-After eligible market-style orders exhaust displayed L1 size, the engine fills the residual one
-tick worse unless that price would:
+可执行的市价类订单耗尽 L1 显示数量后，引擎在让一个 tick 处成交剩余部分，除非该价格会：
 
-- Cross the configured price-protection boundary.
-- Cross the instrument's `min_price` or `max_price`.
-- Reach a zero or negative price where the instrument does not allow one.
+- 越过配置的价格保护边界。
+- 越过工具的 `min_price` 或 `max_price`。
+- 到达工具不允许的零价或负价。
 
-This **deterministic residual rule** is separate from probabilistic fill-model slippage.
+这条**确定性剩余量规则**与成交模型的概率滑点是两回事。
 
-Trade-driven matching has one additional rule. If a trade provides fill evidence at a price absent from the
-book, the engine fills at the order's limit price. It caps that fill's quantity at the trade size. See
-[trade-based execution](./trade-execution.md#trade-driven-matching).
+成交驱动的撮合还有一条附加规则：若某笔成交在订单簿没有记录的价位上提供了成交证据，引擎按订单限价成交，且成交量以该笔成交的大小为上限。参见
+[基于成交的执行](./trade-execution.md#trade-driven-matching)。
 
-Fill models can change prices or provide a synthetic depth book. See
-[fill models](./fill-models.md).
+成交模型可以改变价格或提供合成深度簿，见
+[成交模型](./fill-models.md)。
 
-### Triggered market-order fills with bars
+### bar 下触发式市价单的成交 {#triggered-market-order-fills-with-bars}
 
-Bar execution distinguishes a gap from an intrabar move for `STOP_MARKET`, `MARKET_IF_TOUCHED`, and
-`TRAILING_STOP_MARKET` orders.
+bar 执行会区分 `STOP_MARKET`、`MARKET_IF_TOUCHED` 和 `TRAILING_STOP_MARKET` 订单遇到的是跳空还是区间内移动。
 
-If the bar opens beyond the trigger, the order fills at the simulated market price. For example, a
-SELL stop at 100 can fill at 90 when the next bar opens at 90.
+bar 开盘价已越过触发价时，订单按模拟市场价成交。例如触发价 100 的 SELL 止损单，在下一根 bar 开盘 90 时可能以 90 成交。
 
-If the bar opens before the trigger and a later high, low, or close moves through it, the engine
-uses the trigger price. For example:
+bar 开盘价尚未到触发价、随后 high、low 或 close 穿越触发价时，引擎使用触发价。例如：
 
-1. A SELL stop has a trigger at 100.
-1. The bar opens at 102.
-1. The low reaches 98.
-1. The order fills at 100.
+1. SELL 止损单触发价为 100。
+1. bar 开盘 102。
+1. low 到达 98。
+1. 订单以 100 成交。
 
-This rule assumes a continuous move through the trigger. Use quote, trade, or order book data when
-the strategy requires more precise gap and path behavior.
+该规则假设价格连续穿过触发价。策略需要更精确的跳空与路径行为时，请改用 quote、trade 或订单簿数据。
 
-## Price protection
+## 价格保护 {#price-protection}
 
-**Price protection** limits how far `MARKET` and `STOP_MARKET` orders can walk the book. Configure the
-offset as a number of instrument price increments:
+**价格保护**限制 `MARKET` 和 `STOP_MARKET` 订单沿簿成交的最远距离。偏移量按工具价格最小变动单位的个数配置：
 
 ```python
 from decimal import Decimal
@@ -109,23 +97,21 @@ venue = BacktestVenueConfig(
 )
 ```
 
-The engine calculates the boundary at fill time:
+引擎在成交时计算边界：
 
-- BUY: `ask + (points * price_increment)`
-- SELL: `bid - (points * price_increment)`
+- BUY：`ask + (points * price_increment)`
+- SELL：`bid - (points * price_increment)`
 
-For an instrument with a 0.01 price increment, 100 points allow a BUY to fill at most 1.00 above the current
-ask. Levels beyond the boundary are excluded, so the order can stay partially filled.
+对价格最小变动单位为 0.01 的工具，100 点允许 BUY 最高以当前 ask 之上 1.00 成交。边界之外的价位被排除，订单可能停留在部分成交状态。
 
-- A market order gets its boundary when processed.
-- A stop-market order gets its boundary when triggered, using the bid or ask at that time.
+- 市价单在处理时确定边界。
+- 止损市价单在触发时确定边界，使用当时的买价或卖价。
 
-Set `price_protection_points=0` to disable protection.
+设置 `price_protection_points=0` 可关闭保护。
 
-## Order book immutability
+## 订单簿不可变性 {#order-book-immutability}
 
-A simulated fill never decrements the historical book. By default, each matching iteration can use
-the full recorded size:
+模拟成交从不扣减历史订单簿。默认情况下，每次撮合遍历都可以使用完整的记录数量：
 
 ```python
 from decimal import Decimal
@@ -150,89 +136,70 @@ venue = BacktestVenueConfig(
 )
 ```
 
-With `liquidity_consumption=True`, the engine records the original and consumed size for each price
-level. Available size is `original_size - consumed`. A fresh book update at that level resets the
-record to the new displayed size.
+`liquidity_consumption=True` 时，引擎为每个价位记录原始数量与已消耗数量。可用数量为 `original_size - consumed`。该价位收到新的簿更新时，记录重置为新的显示数量。
 
-### L1 passive fills
+### L1 被动成交 {#l1-passive-fills}
 
-When an L1 market moves through a passive limit:
+L1 市场移动穿过被动限价单时：
 
-| `liquidity_consumption` | Remaining-quantity behavior                                           |
+| `liquidity_consumption` | 剩余数量行为                                                    |
 | ----------------------- | --------------------------------------------------------------------- |
-| `False`                 | Fill the complete remaining order at its limit price.                 |
-| `True`                  | Fill only the unconsumed displayed size and leave the remainder open. |
+| `False`                 | 按限价成交订单全部剩余数量。                 |
+| `True`                  | 只成交未被消耗的显示数量，其余保持挂单。 |
 
-For example:
+例如：
 
-1. The ask is 100.10 for 50 units.
-1. A BUY LIMIT for 1,000 units rests at 100.05.
-1. The next ask is 100.00 for 30 units.
-1. With consumption enabled, 30 units fill and 970 stay open.
-1. Later updates can provide more fresh size.
+1. ask 为 100.10，数量 50。
+1. 1,000 单位的 BUY LIMIT 挂在 100.05。
+1. 下一个 ask 为 100.00，数量 30。
+1. 开启消耗跟踪后，成交 30 单位，剩余 970 保持挂单。
+1. 后续更新可以提供新的可用数量。
 
-### Trade consumption
+### 成交消耗 {#trade-consumption}
 
-A trade can provide executable size at a price absent from the current book. With consumption enabled,
-trade-driven fills share that size instead of letting each order consume the full trade.
+成交可以在当前簿没有的价位上提供可执行数量。开启消耗跟踪后，成交驱动的各笔订单共享这份数量，而不是各自消耗整笔成交量。
 
-For L2 and L3 books, the triggering trade may already have consumed displayed depth. The engine
-accounts for that volume before triggered orders use the remaining level. It skips this adjustment
-when a newer book update already reflects the trade.
+对 L2 和 L3 订单簿，触发它的成交可能已消耗了显示深度。引擎在被触发订单使用剩余档位前先扣掉这部分量。若更新的簿更新已体现该笔成交，则跳过该调整。
 
-Synthetic books returned by a fill model do not use per-level consumption tracking. The model must
-represent its own liquidity assumptions.
+成交模型返回的合成簿不使用按价位的消耗跟踪，模型必须自行体现其流动性假设。
 
-### Limitations
+### 局限 {#limitations}
 
-Consumption tracking estimates **available size**, not **order priority**. Set `queue_position=True` with
-book and trade data for displayed-queue tracking, or use `prob_fill_on_limit` for a probabilistic
-approximation.
+消耗跟踪估计的是**可用数量**，不是**订单优先级**。要跟踪显示队列，请在有簿和成交数据时设置 `queue_position=True`；要近似处理，可用 `prob_fill_on_limit` 做概率近似。
 
-Trade-driven fills are also opportunistic: a print proves that liquidity existed momentarily, not that it
-stayed available after the recorded trade.
+成交驱动的成交也是机会主义的：一笔成交（print）只能证明流动性曾短暂存在，不能证明记录成交之后它仍然可用。
 
-## Precision requirements
+## 精度要求 {#precision-requirements}
 
-When the instrument's configured precision does not exceed the build's `FIXED_PRECISION`, the
-matching engine accepts lower or equal precision on new orders and order updates. For example,
-quantity `1` is valid for size precision 3, and price `100` is valid for price precision 2.
+工具配置的精度不超过构建的 `FIXED_PRECISION` 时，撮合引擎接受新订单和订单更新使用等于或低于它的精度。例如数量 `1` 对数量精度 3 合法，价格 `100` 对价格精度 2 合法。
 
-For these instruments, higher precision is rejected even when the extra decimals are zeros:
-`1.0000` is invalid for size precision 3.
+对这类工具，更高的精度会被拒绝，即使多余的小数位全是零：
+`1.0000` 对数量精度 3 非法。
 
-Fractional fills and quantity reductions keep exact values. A quantity `1` order partially filled for `0.500`
-reports `0.500` filled and `0.500` remaining.
+分数成交与数量削减保持精确值。数量为 `1` 的订单成交 `0.500` 时，报告已成交 `0.500`、剩余 `0.500`。
 
-DeFi builds can use instrument precisions above `FIXED_PRECISION`. For those instruments, the
-validated order fields listed below require **exact precision**: both precision 17 and precision 0
-are rejected when the instrument requires 18. The listed market-data fields must match the
-instrument's configured `price_precision` and `size_precision` exactly.
+DeFi 构建允许工具精度高于 `FIXED_PRECISION`。对这类工具，下表列出的受校验订单字段要求**精确精度**：工具要求 18 时，精度 17 和精度 0 都会被拒绝。列出的行情字段必须与工具配置的 `price_precision` 和 `size_precision` 完全一致。
 
-The outcome of invalid precision depends on where it enters the matching engine:
+非法精度的后果取决于它从何处进入撮合引擎：
 
-| Input            | Validated fields                                     | Invalid precision outcome                                    |
+| 输入             | 受校验字段                                           | 非法精度的后果                                               |
 | ---------------- | ---------------------------------------------------- | ------------------------------------------------------------ |
-| `QuoteTick`      | Bid and ask prices and sizes                         | Log a warning and skip the tick.                             |
-| `TradeTick`      | Price and size                                       | Log a warning and skip the tick.                             |
-| Executable `Bar` | Open, high, low, close, and volume                   | Log a warning and skip the bar.                              |
-| New order        | Quantity, display quantity, price, and trigger price | Reject the order.                                            |
-| Order update     | Quantity, price, and trigger price                   | Reject the modification.                                     |
-| Generated fill   | Fill price and quantity                              | Normalize when compatible. Otherwise warn and skip the fill. |
+| `QuoteTick`      | 买卖价格与数量                         | 记录警告并跳过该 tick。                             |
+| `TradeTick`      | 价格与数量                                       | 记录警告并跳过该 tick。                             |
+| 可执行 `Bar` | 开、高、低、收与成交量                   | 记录警告并跳过该 bar。                              |
+| 新订单        | 数量、显示数量、价格与触发价 | 拒绝订单。                                            |
+| 订单更新     | 数量、价格与触发价                   | 拒绝修改。                                     |
+| 生成的成交   | 成交价与数量                              | 兼容时归一化处理；否则警告并跳过该成交。 |
 
-The engine logs an error after **20 consecutive market-data precision mismatches**. With
-`shutdown_on_error=True`, that error can request a normal backtest shutdown. A valid quote, trade,
-or executable bar resets the consecutive-mismatch count.
+行情数据精度**连续 20 次**不匹配后，引擎记录一条 error。配合 `shutdown_on_error=True`，该错误可以请求回测正常关闭。一条合法的 quote、trade 或可执行 bar 会重置连续不匹配计数。
 
-**Bar volume**: `Bar.volume` must use the instrument's quantity units and size precision. Convert
-provider-specific quote-volume fields before creating the bar.
+**bar 成交量**：`Bar.volume` 必须使用工具的数量单位和数量精度。来自提供商的按计价货币计的成交量字段，要先转换再构造 bar。
 
-Use the instrument factories to construct compatible values:
+用工具工厂方法构造兼容的值：
 
 ```python
 price = instrument.make_price(raw_price)
 quantity = instrument.make_qty(raw_quantity)
 ```
 
-Also verify that the instrument definition matches the data source and that custom loaders preserve
-the source precision.
+同时确认工具定义与数据源匹配，并确认自定义 loader 保留了源数据的精度。
