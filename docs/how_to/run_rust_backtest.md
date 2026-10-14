@@ -1,19 +1,15 @@
-# Run a Backtest (Rust)
+# 运行回测（Rust）
 
-Nautilus provides two Rust APIs for backtesting: `BacktestEngine`
-(low-level) and `BacktestNode` (high-level with catalog streaming). This
-guide covers both.
+Nautilus 提供两套 Rust 回测 API：`BacktestEngine`（底层）和 `BacktestNode`（高层，支持
+数据目录流式加载）。本指南两者都讲。
 
-For background on backtesting concepts, fill models, and matching engine
-behavior, see the [Backtesting](./../concepts/backtesting/index.md) concept guide.
-For project setup and feature flags, see the
-[Rust](./../concepts/rust.md#project-setup) concept guide.
+回测概念、成交模型和撮合引擎行为的背景见[回测](./../concepts/backtesting/index.md)概念指南。
+项目设置与 feature flag 见 [Rust](./../concepts/rust.md#project-setup)概念指南。
 
-## Dependencies
+## 依赖 {#dependencies}
 
-Add the following to your `Cargo.toml`. The `streaming` and
-`nautilus-persistence` entries are only needed for the high-level
-`BacktestNode` API.
+在 `Cargo.toml` 中加入以下内容。`streaming` 和 `nautilus-persistence` 两项只有高层
+`BacktestNode` API 才需要。
 
 ```toml
 [dependencies]
@@ -29,15 +25,13 @@ tempfile = "3"
 ustr = "1"
 ```
 
-If you only need the low-level `BacktestEngine`, drop `streaming`,
-`nautilus-persistence`, `tempfile`, and `ustr`.
+只需要底层 `BacktestEngine` 时，去掉 `streaming`、`nautilus-persistence`、`tempfile` 和 `ustr`。
 
-## BacktestEngine (low-level API)
+## BacktestEngine（底层 API） {#backtestengine-low-level-api}
 
-The low-level API gives direct control: you build the engine, add venues and
-instruments, load data in memory, register strategies, and run.
+底层 API 提供直接控制：自己构建引擎，添加场所和工具，在内存中加载数据，注册策略，然后运行。
 
-### 1. Create the engine
+### 1. 创建引擎 {#1-create-the-engine}
 
 ```rust
 use nautilus_backtest::{config::BacktestEngineConfig, engine::BacktestEngine};
@@ -45,11 +39,10 @@ use nautilus_backtest::{config::BacktestEngineConfig, engine::BacktestEngine};
 let mut engine = BacktestEngine::new(BacktestEngineConfig::default())?;
 ```
 
-### 2. Add a venue
+### 2. 添加场所 {#2-add-a-venue}
 
-`SimulatedVenueConfig` uses a `bon::Builder`: only required fields must be set,
-every other setting falls back to a documented default. `build()` validates the
-configuration and returns a `ConfigResult`, so propagate or unwrap it.
+`SimulatedVenueConfig` 使用 `bon::Builder`：只需设置必填字段，其余设置都回退到有文档的默认值。
+`build()` 会校验配置并返回 `ConfigResult`，需要向上传递或 unwrap。
 
 ```rust
 use nautilus_backtest::config::SimulatedVenueConfig;
@@ -72,10 +65,9 @@ engine.add_venue(
 )?;
 ```
 
-Override any default by chaining setters, e.g. `.reject_stop_orders(false)` or
-`.allow_cash_borrowing(true)`.
+通过链式 setter 覆盖任何默认值，例如 `.reject_stop_orders(false)` 或 `.allow_cash_borrowing(true)`。
 
-### 3. Add instruments and data
+### 3. 添加工具与数据 {#3-add-instruments-and-data}
 
 ```rust
 use nautilus_model::instruments::{
@@ -90,7 +82,7 @@ let quotes = generate_quotes(instrument_id); // Your data loading function
 engine.add_data(quotes, None, true, true)?;
 ```
 
-### 4. Register a strategy and run
+### 4. 注册策略并运行 {#4-register-a-strategy-and-run}
 
 ```rust
 use nautilus_model::types::Quantity;
@@ -107,22 +99,21 @@ engine.add_strategy(strategy)?;
 engine.run(None, None, None, false)?;
 ```
 
-### Run the full example
+### 运行完整示例 {#run-the-full-example}
 
 ```bash
 cargo run -p nautilus-backtest --features examples --example engine-ema-cross
 ```
 
-Source:
+源码：
 [`crates/backtest/examples/engine_ema_cross.rs`](https://github.com/nautechsystems/nautilus_trader/tree/develop/crates/backtest/examples/engine_ema_cross.rs)
 
-## BacktestNode (high-level API)
+## BacktestNode（高层 API） {#backtestnode-high-level-api}
 
-The high-level API loads data from a `ParquetDataCatalog` and streams in
-configurable chunk sizes. Requires the `streaming` feature on
-`nautilus-backtest`.
+高层 API 从 `ParquetDataCatalog` 加载数据，按可配置的块大小流式读入。需要为
+`nautilus-backtest` 启用 `streaming` feature。
 
-### 1. Write data to a catalog
+### 1. 写入数据到目录 {#1-write-data-to-a-catalog}
 
 ```rust
 use nautilus_model::instruments::{
@@ -147,7 +138,7 @@ catalog.write_instruments(vec![instrument])?;
 catalog.write_to_parquet(&quotes, None, None, None)?;
 ```
 
-### 2. Configure the run
+### 2. 配置运行 {#2-configure-the-run}
 
 ```rust
 use nautilus_backtest::config::{
@@ -177,7 +168,7 @@ let run_config = BacktestRunConfig::builder()
     .build()?;
 ```
 
-### 3. Build, add strategies, and run
+### 3. 构建、添加策略并运行 {#3-build-add-strategies-and-run}
 
 ```rust
 use nautilus_backtest::node::BacktestNode;
@@ -200,11 +191,11 @@ engine.add_strategy(strategy)?;
 node.run()?;
 ```
 
-### Run the full example
+### 运行完整示例 {#run-the-full-example-1}
 
 ```bash
 cargo run -p nautilus-backtest --features examples,streaming --example node-ema-cross
 ```
 
-Source:
+源码：
 [`crates/backtest/examples/node_ema_cross.rs`](https://github.com/nautechsystems/nautilus_trader/tree/develop/crates/backtest/examples/node_ema_cross.rs)

@@ -1,35 +1,35 @@
-# Developer Guide
+# 开发者指南
 
-Guidance on developing and extending NautilusTrader, or contributing back to the project.
+关于开发、扩展 NautilusTrader，或向项目回馈贡献的指导。
 
-NautilusTrader has a **Rust core with Python bindings**:
+NautilusTrader 是 **Rust 核心加 Python 绑定**的架构：
 
-- **Rust** handles networking, data parsing, order matching, and other performance-critical operations.
-- **Python** provides the user-facing API for strategy development, configuration, and system integration.
-- **PyO3** bridges the two, exposing Rust functionality to Python with minimal overhead.
+- **Rust** 负责网络、数据解析、订单撮合及其他性能关键操作。
+- **Python** 提供面向用户的 API，用于策略开发、配置与系统集成。
+- **PyO3** 连接两者，以极低开销把 Rust 功能暴露给 Python。
 
-This approach combines Python's simplicity and ecosystem with Rust's performance and memory safety.
+这一方式把 Python 的简洁与生态，同 Rust 的性能与内存安全结合在一起。
 
-## Contents
+## 目录 {#contents}
 
-- [Environment Setup](./environment_setup.md)
-- [Design Principles](./design_principles.md)
-- [Callback Dispatch Contract](./callback_dispatch.md)
-- [Runtime Conformance Contract](./runtime_conformance.md)
-- [Coding Standards](./coding_standards.md)
+- [环境搭建](./environment_setup.md)
+- [设计原则](./design_principles.md)
+- [回调派发契约](./callback_dispatch.md)
+- [运行时一致性契约](./runtime_conformance.md)
+- [编码规范](./coding_standards.md)
 - [Shell](./shell.md)
 - [Rust](./rust.md)
 - [Python](./python.md)
-- [Testing](./testing.md)
-- [Test Datasets](./test_datasets.md)
-- [Docs Style](./docs.md)
-- [Markdown Style](./markdown_style.md)
-- [Release Notes](./releases.md)
-- [Security Architecture](./security.md)
-- [Adapters](./adapters.md)
-- [Python Adapters](./python_adapters.md)
-- [Data Testing Spec](./spec_data_testing.md)
-- [Execution Testing Spec](./spec_exec_testing.md)
-- [Benchmarking](./benchmarking.md)
-- [FFI Memory Contract](./ffi.md)
-- [Plugins](./plugins.md)
+- [测试](./testing.md)
+- [测试数据集](./test_datasets.md)
+- [文档风格](./docs.md)
+- [Markdown 风格](./markdown_style.md)
+- [发布说明](./releases.md)
+- [安全架构](./security.md)
+- [适配器](./adapters.md)
+- [Python 适配器](./python_adapters.md)
+- [数据测试规范](./spec_data_testing.md)
+- [执行测试规范](./spec_exec_testing.md)
+- [基准测试](./benchmarking.md)
+- [FFI 内存契约](./ffi.md)
+- [插件](./plugins.md)

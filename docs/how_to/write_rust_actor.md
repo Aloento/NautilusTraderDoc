@@ -1,24 +1,22 @@
-# Write an Actor (Rust)
+# 编写 Actor（Rust）
 
-An actor receives market data, custom data/signals, and system events but does not manage orders.
-This guide walks through building a `SpreadMonitor` that subscribes to quotes
-and logs the bid-ask spread.
+Actor 接收行情数据、自定义数据/信号和系统事件，但不管理订单。本指南带你构建一个
+`SpreadMonitor`，它订阅报价并记录买卖价差。
 
-For background on actors, traits, and handler dispatch, see the
-[Actors](./../concepts/actors.md) and [Rust](./../concepts/rust.md) concept guides.
+Actor、trait 与处理器分发的背景见 [Actor](./../concepts/actors.md) 和 [Rust](./../concepts/rust.md)
+概念指南。
 
-## Define the struct
+## 定义结构体 {#define-the-struct}
 
-An actor owns a `DataActorCore` and any state it needs. The core stores runtime
-state for the actor. User code normally reaches that state through the
-`DataActor` facade methods such as:
+Actor 拥有一个 `DataActorCore` 和它需要的任何状态。core 存储 Actor 的运行时状态。用户代码通常
+通过 `DataActor` 的门面方法访问这些状态，例如：
 
 - `clock()`
 - `cache()`
 - `config()`
 - `actor_id()`
 - `trader_id()`
-- Subscription methods
+- 订阅方法
 
 ```rust
 use nautilus_common::{nautilus_actor, actor::{DataActor, DataActorConfig, DataActorCore}};
@@ -30,11 +28,10 @@ pub struct SpreadMonitor {
 }
 ```
 
-## Implement the constructor
+## 实现构造函数 {#implement-the-constructor}
 
-Create a `DataActorConfig` with an actor ID, then pass it to `DataActorCore::new`.
-The config fields use `Option` with defaults, so `..Default::default()` covers
-everything except the actor ID.
+用 Actor ID 创建 `DataActorConfig`，再传给 `DataActorCore::new`。配置字段是带默认值的
+`Option`，因此除 Actor ID 外其余都可以用 `..Default::default()` 覆盖。
 
 ```rust
 impl SpreadMonitor {
@@ -51,16 +48,14 @@ impl SpreadMonitor {
 }
 ```
 
-## Wire up the core and implement Debug
+## 接入 core 并实现 Debug {#wire-up-the-core-and-implement-debug}
 
-The `nautilus_actor!` macro connects the actor's `DataActorCore` field to the
-runtime contract. By default it delegates to a field named `core`; pass a second
-argument for a different field name. Normal callbacks do not call the generated
-native accessors; use the `DataActor` facade methods on `self`.
+`nautilus_actor!` 宏把 Actor 的 `DataActorCore` 字段接到运行时约定上。默认委托给名为 `core`
+的字段；字段名不同时传第二个参数。常规回调不会调用宏生成的 native 访问器，请在 `self` 上使用
+`DataActor` 门面方法。
 
-Runtime registration uses blanket `Actor` and `Component` implementations.
-The macro supplies the native runtime wiring; implement `Debug` manually or
-derive it.
+运行时注册依赖 `Actor` 和 `Component` 的 blanket 实现。宏提供 native 运行时的接线；`Debug` 需要
+手动实现或 derive。
 
 ```rust
 nautilus_actor!(SpreadMonitor);
@@ -72,11 +67,10 @@ impl std::fmt::Debug for SpreadMonitor {
 }
 ```
 
-## Implement the DataActor trait
+## 实现 DataActor trait {#implement-the-dataactor-trait}
 
-Override handler methods to receive data. All handlers have default no-op
-implementations, so you only override what you need. Each handler returns
-`anyhow::Result<()>`.
+覆盖处理器方法来接收数据。所有处理器都有默认的空实现，只需覆盖你需要的。每个处理器返回
+`anyhow::Result<()>`。
 
 ```rust
 impl DataActor for SpreadMonitor {
@@ -93,67 +87,59 @@ impl DataActor for SpreadMonitor {
 }
 ```
 
-`subscribe_quotes` is available directly on `self` through the `DataActor`
-trait. See the [handler table](./../concepts/rust.md#handler-methods) for all
-available handlers.
+`subscribe_quotes` 通过 `DataActor` trait 可直接在 `self` 上调用。全部可用处理器见
+[处理器表](./../concepts/rust.md#handler-methods)。
 
-## Native runtime access
+## Native 运行时访问 {#native-runtime-access}
 
-Use the public `DataActor` facade by default. Add `DataActorNative` only for an
-explicit native-only access path that the facade methods cannot serve.
-Read-only properties are available on the facade:
+默认使用公开的 `DataActor` 门面。只有门面方法无法满足、确需 native 专用访问路径时才引入
+`DataActorNative`。门面上提供只读属性：
 
 - `config()`
 - `actor_id()`
 - `trader_id()`
 - `is_registered()`
 
-The [Rust native traits](./../concepts/rust.md#native-traits) section covers the
-native-traits applicability matrix and this method table:
+[Rust native traits](./../concepts/rust.md#native-traits) 一节给出 native trait 的适用性矩阵和
+下面这张方法表：
 
-- [`DataActorNative` methods](./../concepts/rust.md#dataactornative-methods)
+- [`DataActorNative` 方法](./../concepts/rust.md#dataactornative-methods)
 
-Those types do not cross the Python boundary, so portable actors
-should use facade methods such as:
+这些类型不能跨 Python 边界，因此可移植的 Actor 应使用门面方法，例如：
 
 - `clock()`
 - `cache()`
 
-## Register the actor
+## 注册 Actor {#register-the-actor}
 
-With a `BacktestEngine`:
+用 `BacktestEngine`：
 
 ```rust
 let actor = SpreadMonitor::new(instrument_id);
 engine.add_actor(actor)?;
 ```
 
-With a `LiveNode`:
+用 `LiveNode`：
 
 ```rust
 let actor = SpreadMonitor::new(instrument_id);
 node.add_actor(actor)?;
 ```
 
-## Guard safety
+## 引用的安全性 {#guard-safety}
 
-When the system dispatches messages to your actor, it obtains a short-lived
-`ActorRef` guard from the registry. You do not manage these guards directly.
-If you write code that accesses other actors in a callback, follow these
-rules:
+系统向你的 Actor 分发消息时，会从注册表取得一个短生命周期的 `ActorRef` guard。你不需要直接
+管理这些 guard。若在回调里编写访问其他 Actor 的代码，遵循以下规则：
 
-- Look up actors by ID each time; do not cache an `ActorRef`.
-- Drop the guard before the scope ends; never store it in a field.
-- Never hold a guard across an `.await` point.
+- 每次都按 ID 查找 Actor，不要缓存 `ActorRef`。
+- 在作用域结束前 drop guard，绝不把它存进字段。
+- 绝不跨 `.await` 点持有 guard。
 
-The subscription methods on `DataActorCore` handle this correctly by
-capturing the actor ID and performing the lookup inside the callback closure.
-See [Runtime invariants](./../developer_guide/rust.md#runtime-invariants) for
-the full threading and registry model.
+`DataActorCore` 上的订阅方法已正确处理这一点：它们捕获 Actor ID，并在回调闭包内部完成查找。
+完整的线程与注册表模型见[运行时不变量](./../developer_guide/rust.md#runtime-invariants)。
 
-## Full example
+## 完整示例 {#full-example}
 
-See
-[`BookImbalanceActor`](https://github.com/nautechsystems/nautilus_trader/tree/develop/crates/trading/src/examples/actors/imbalance)
-for a more complete actor that tracks per-instrument state and prints a
-summary on stop.
+更完整的 Actor 见
+[`BookImbalanceActor`](https://github.com/nautechsystems/nautilus_trader/tree/develop/crates/trading/src/examples/actors/imbalance)，
+它按工具跟踪状态，并在停止时打印汇总。

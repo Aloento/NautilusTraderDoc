@@ -1,76 +1,68 @@
-# Security Architecture
+# 安全架构
 
-This page describes the security model for the NautilusTrader release pipeline.
-It explains how release artifacts are built, published, attested, and verified.
+本页描述 NautilusTrader 发布流水线的安全模型，说明发布产物如何被构建、发布、
+证明（attest）与验证。
 
-Use this page with:
+配合以下文档一起使用：
 
-- [Supply chain policy](https://nautilustrader.io/security/supply-chain/), which states the public
-  dependency and release integrity commitments.
-- [Releases](./releases.md), which documents the release workflow and checklist.
-- [Security Policy](https://github.com/nautechsystems/nautilus_trader/blob/develop/SECURITY.md), which gives consumer-facing verification commands.
-- [GitHub Actions overview](https://github.com/nautechsystems/nautilus_trader/blob/develop/.github/OVERVIEW.md#security), which documents CI/CD controls.
+- [Supply chain policy](https://nautilustrader.io/security/supply-chain/)，列出对外的
+  依赖与发布完整性承诺。
+- [发布](./releases.md)，记录发布工作流与检查清单。
+- [Security Policy](https://github.com/nautechsystems/nautilus_trader/blob/develop/SECURITY.md)，给出面向消费者的验证命令。
+- [GitHub Actions overview](https://github.com/nautechsystems/nautilus_trader/blob/develop/.github/OVERVIEW.md#security)，记录 CI/CD 控制。
 
-## Security goals
+## 安全目标 {#security-goals}
 
-The release pipeline has four goals:
+发布流水线有四个目标：
 
-- Build every official artifact from a reviewed repository commit.
-- Publish Python and Rust packages without long-lived package registry tokens.
-- Attach checksums, manifests, and provenance before publishing the GitHub release.
-- Give users enough public data to verify that downloaded artifacts match the release.
+- 每个官方产物都从经过评审的仓库提交构建。
+- 发布 Python 与 Rust 包时不使用长期有效的包注册表令牌。
+- 在发布 GitHub release 之前附上校验和、清单与溯源。
+- 给用户提供足够的公开数据，让他们验证下载的产物与发布一致。
 
-The GitHub release anchors package integrity. Stable releases attach wheel and
-sdist assets to a draft GitHub release before any package index publish starts.
-The pipeline publishes package indexes, verifies those indexes against the
-GitHub release assets, attaches final integrity assets, then publishes the
-GitHub release.
+GitHub release 是包完整性的锚点。稳定版发布会在任何包索引发布开始之前，
+把 wheel 与 sdist 资源挂到草稿状态的 GitHub release 上。流水线的顺序是：发布包索引，
+用 GitHub release 资源校验这些索引，附上最终的完整性资源，然后发布 GitHub release。
 
-## Threat model
+## 威胁模型 {#threat-model}
 
-The pipeline defends against:
+流水线防范以下威胁：
 
-- Compromised or mutable third-party GitHub Actions, by pinning actions to commit SHAs.
-- Accidental release from the wrong workflow, branch, or environment, by binding OIDC publishers
-  to `nautechsystems/nautilus_trader`, `build.yml`, and the `release` environment.
-- Long-lived package registry token theft, by using PyPI and crates.io Trusted Publishing.
-- Registry propagation lag or partial re-runs, by making publish and verify scripts idempotent
-  and retry-tolerant.
-- Registry substitution or upload drift, by comparing PyPI and crates.io artifacts against
-  release manifests and registry metadata.
-- Silent manual crate recovery, by requiring explicit `CRATES_IO_MANUAL_PUBLISH_EXCEPTIONS`
-  entries and recording those exceptions in `crates-manifest.json`.
+- 被入侵或可变的第三方 GitHub Actions：把 action 固定到提交 SHA。
+- 从错误的工作流、分支或环境误发布：把 OIDC 发布者绑定到
+  `nautechsystems/nautilus_trader`、`build.yml` 与 `release` 环境。
+- 长期包注册表令牌被盗：使用 PyPI 与 crates.io 的 Trusted Publishing。
+- 注册表传播延迟或部分重跑：让发布与校验脚本幂等且可容错重试。
+- 注册表替换或上传漂移：把 PyPI 与 crates.io 的产物与发布清单、注册表元数据比对。
+- 静默的人工 crate 恢复：要求显式的 `CRATES_IO_MANUAL_PUBLISH_EXCEPTIONS` 条目，
+  并在 `crates-manifest.json` 中记录这些例外。
 
-The pipeline does not defend against:
+流水线**不**防范以下威胁：
 
-- A malicious maintainer with permission to change release workflows and approve releases.
-- A compromise of GitHub, PyPI, crates.io, or Sigstore that can forge the trust roots users rely on.
-- A compromised end-user machine before verification runs.
-- Runtime compromise of an exchange, broker, data provider, or user trading strategy.
-- Bit-identical rebuild drift for wheels and sdists. The current guarantee is provenance and
-  digest verification, not reproducible builds.
+- 有权修改发布工作流并批准发布的恶意维护者。
+- 能够伪造用户所依赖信任根的 GitHub、PyPI、crates.io 或 Sigstore 被入侵。
+- 验证运行之前终端用户机器已被入侵。
+- 交易所、券商、数据提供者或用户交易策略的运行时被入侵。
+- wheel 与 sdist 的逐位一致重建漂移。当前的保证是溯源与摘要验证，不是可复现构建。
 
-## Trust roots
+## 信任根 {#trust-roots}
 
-- GitHub repository rules protect reviewed source, release branches, and release tags.
-  Protected `master` and immutable `v*` release tags are the relevant records.
-- GitHub Actions OIDC issuer provides short-lived workflow identities from
-  `https://token.actions.githubusercontent.com`.
-- GitHub `release` environment gates package publishing and release approvals.
-  The environment restricts deployment to `master` and requires reviewer approval.
-- PyPI Trusted Publishing publishes wheels and sdist without a persistent token.
-  It binds to repository `nautechsystems/nautilus_trader`, workflow `build.yml`,
-  and environment `release`.
-- crates.io Trusted Publishing publishes Rust crates without a persistent token.
-  It binds to owner `nautechsystems`, repository `nautilus_trader`, workflow
-  `build.yml`, and environment `release`.
-- Sigstore Fulcio, Rekor, and TUF bind artifacts to OIDC identities and the
-  transparency log. GitHub artifact attestations, PyPI publish attestations, and
-  Docker cosign signatures rely on this root.
-- GitHub release immutability prevents post-publish asset and tag replacement.
-  Published release assets and the release tag become immutable.
+- GitHub 仓库规则保护经过评审的源码、发布分支与发布标签。受保护的 `master`
+  与不可变的 `v*` 发布标签是相关记录。
+- GitHub Actions OIDC 签发方从 `https://token.actions.githubusercontent.com`
+  提供短时效的工作流身份。
+- GitHub `release` 环境把控包发布与发布批准。该环境限制只有 `master` 可部署，
+  并要求评审者批准。
+- PyPI Trusted Publishing 无需持久令牌即可发布 wheel 与 sdist。它绑定到仓库
+  `nautechsystems/nautilus_trader`、工作流 `build.yml` 与环境 `release`。
+- crates.io Trusted Publishing 无需持久令牌即可发布 Rust crate。它绑定到所有者
+  `nautechsystems`、仓库 `nautilus_trader`、工作流 `build.yml` 与环境 `release`。
+- Sigstore 的 Fulcio、Rekor 与 TUF 把产物绑定到 OIDC 身份与透明性日志。
+  GitHub 产物证明、PyPI 发布证明与 Docker cosign 签名都依赖这一信任根。
+- GitHub release 不可变性防止发布后替换资源与标签。已发布的 release 资源
+  与 release 标签都会变为不可变。
 
-## Release flow
+## 发布流程 {#release-flow}
 
 ```mermaid
 flowchart TD
@@ -102,39 +94,38 @@ flowchart TD
     source --> docker
 ```
 
-The Docker workflow is separate from the package release workflow, but uses the same identity model. Image
-signatures and SBOM attestations bind the image digest to the expected GitHub Actions workflow identity.
+Docker 工作流与包发布工作流分开，但使用相同的身份模型。镜像签名与 SBOM 证明
+把镜像摘要绑定到预期的 GitHub Actions 工作流身份。
 
-## Artifact records
+## 产物记录 {#artifact-records}
 
-| Artifact              | Published to                                                                        | Integrity records                                             | Provenance records                                                                                      |
+| 产物              | 发布到                                                                        | 完整性记录                                             | 溯源记录                                                                                      |
 | --------------------- | ----------------------------------------------------------------------------------- | ------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------- |
-| Python wheels         | GitHub Releases, PyPI, and the Nautech Systems index (`packages.nautechsystems.io`) | `SHA256SUMS`, per-asset `.sha256` files, `dist-manifest.json` | GitHub artifact attestations, PyPI publish attestations, `.sigstore` bundles, `.intoto.jsonl` envelopes |
-| Python sdists         | GitHub Releases and PyPI                                                            | Same as wheels                                                | Same as wheels                                                                                          |
-| Rust crates           | crates.io                                                                           | crates.io checksum, `crates-manifest.json`                    | crates.io `trustpub_data`, unless an explicit manual exception is present                               |
-| Docker images         | GitHub Container Registry                                                           | Image digest                                                  | Sigstore cosign signatures, SPDX SBOM attestations                                                      |
-| GitHub release record | GitHub Releases                                                                     | Published release assets, immutable tag                       | GitHub release attestation                                                                              |
+| Python wheels         | GitHub Releases、PyPI 与 Nautech Systems 索引（`packages.nautechsystems.io`） | `SHA256SUMS`、逐资源的 `.sha256` 文件、`dist-manifest.json` | GitHub 产物证明、PyPI 发布证明、`.sigstore` 打包、`.intoto.jsonl` 信封 |
+| Python sdists         | GitHub Releases 与 PyPI                                                            | 同 wheel                                                | 同 wheel                                                                                          |
+| Rust crates           | crates.io                                                                           | crates.io 校验和、`crates-manifest.json`                    | crates.io 的 `trustpub_data`，除非存在显式的人工例外                               |
+| Docker 镜像         | GitHub Container Registry                                                           | 镜像摘要                                                  | Sigstore cosign 签名、SPDX SBOM 证明                                                      |
+| GitHub release 记录 | GitHub Releases                                                                     | 已发布的 release 资源、不可变标签                       | GitHub release 证明                                                                              |
 
-The Nautech Systems package index publishes wheels only. Sdists are not published there.
+Nautech Systems 包索引只发布 wheel，不在那里发布 sdist。
 
-## Consumer verification map
+## 消费者验证对照 {#consumer-verification-map}
 
-Detailed commands live in
-[Verifying releases](https://github.com/nautechsystems/nautilus_trader/blob/develop/SECURITY.md#verifying-releases).
-The checks below show the public data each consumer should verify.
+详细命令见
+[Verifying releases](https://github.com/nautechsystems/nautilus_trader/blob/develop/SECURITY.md#verifying-releases)。
+下面的检查列出每个消费者应当验证的公开数据。
 
-### Python wheels and sdist
+### Python wheels 与 sdist {#python-wheels-and-sdist}
 
-Verify:
+验证：
 
-- The artifact digest matches `SHA256SUMS`, the per-asset `.sha256` file, or
-  `dist-manifest.json`.
-- The GitHub artifact attestation identity matches
-  `nautechsystems/nautilus_trader/.github/workflows/build.yml` on `master` or `nightly`.
-- The PyPI publish attestation reports repository `nautechsystems/nautilus_trader`,
-  workflow `build.yml`, and environment `release`.
+- 产物摘要与 `SHA256SUMS`、逐资源的 `.sha256` 文件或 `dist-manifest.json` 匹配。
+- GitHub 产物证明的身份匹配
+  `nautechsystems/nautilus_trader/.github/workflows/build.yml`，分支为 `master` 或 `nightly`。
+- PyPI 发布证明报告的仓库为 `nautechsystems/nautilus_trader`、工作流为 `build.yml`、
+  环境为 `release`。
 
-Example:
+示例：
 
 ```bash
 : "${VERSION:?Set VERSION to the Python package version}"
@@ -152,15 +143,15 @@ gh attestation verify "$ARTIFACT" \
   --cert-oidc-issuer "$ISSUER"
 ```
 
-### PyPI publish provenance
+### PyPI 发布溯源 {#pypi-publish-provenance}
 
-Verify:
+验证：
 
-- PyPI file hashes match `dist-manifest.json`.
-- PyPI provenance exposes the expected GitHub publisher identity.
-- `pypi-attestations verify` accepts the downloaded file URL.
+- PyPI 文件哈希与 `dist-manifest.json` 匹配。
+- PyPI 溯源暴露出预期的 GitHub 发布者身份。
+- `pypi-attestations verify` 接受下载的文件 URL。
 
-Example:
+示例：
 
 ```bash
 : "${VERSION:?Set VERSION to the Python package version}"
@@ -174,17 +165,17 @@ uv run --no-project --no-build --with pypi-attestations -- \
   "$PYPI_URL"
 ```
 
-### Rust crates
+### Rust crates {#rust-crates}
 
-Verify:
+验证：
 
-- The crates.io version checksum matches the downloaded `.crate` file.
-- `trustpub_data.provider` is `github`.
-- `trustpub_data.repository` is `nautechsystems/nautilus_trader`.
-- `published_by` is `null`, unless `crates-manifest.json` records an explicit
-  `manual_token_publish` exception.
+- crates.io 的版本校验和与下载的 `.crate` 文件匹配。
+- `trustpub_data.provider` 为 `github`。
+- `trustpub_data.repository` 为 `nautechsystems/nautilus_trader`。
+- `published_by` 为 `null`，除非 `crates-manifest.json` 记录了显式的
+  `manual_token_publish` 例外。
 
-Example:
+示例：
 
 ```bash
 CRATE=${CRATE:-nautilus-core}
@@ -200,15 +191,15 @@ curl -sSL "https://static.crates.io/crates/$CRATE/$CRATE-$VERSION.crate" -o "$CR
 test "$(sha256sum "$CRATE-$VERSION.crate" | cut -d ' ' -f 1)" = "$CRATE_SHA256"
 ```
 
-### Docker images
+### Docker 镜像 {#docker-images}
 
-Verify:
+验证：
 
-- The mutable tag resolves to the digest you intend to run.
-- The cosign signature identity matches the Docker workflow.
-- The SPDX SBOM attestation is bound to the same image digest.
+- 可变的 tag 解析到你打算运行的那个摘要。
+- cosign 签名身份匹配 Docker 工作流。
+- SPDX SBOM 证明绑定到同一个镜像摘要。
 
-Example:
+示例：
 
 ```bash
 export IMAGE_BASE=ghcr.io/nautechsystems/nautilus_trader
@@ -225,51 +216,45 @@ cosign verify-attestation \
   --certificate-oidc-issuer "$ISSUER"
 ```
 
-## Manual recovery posture
+## 人工恢复姿态 {#manual-recovery-posture}
 
-Normal releases use Trusted Publishing only. Manual package publishing is a
-last-resort recovery path after a partial release.
+正常发布只用 Trusted Publishing。人工发布包是部分发布后的最后手段恢复路径。
 
-Rules for manual recovery:
+人工恢复的规则：
 
-- Prefer re-running the failed job or workflow when a registry or Sigstore verifier fails.
-- Do not replace a release tag or GitHub release assets after publication.
-- Do not silently accept manually published crates.
-- If a crate must be recovered with a token, list each `crate@version` in
-  `CRATES_IO_MANUAL_PUBLISH_EXCEPTIONS`.
-- Record the exception in release notes and in `crates-manifest.json` with
-  `release_status: "manual_token_publish"`.
+- 注册表或 Sigstore 校验器失败时，优先重跑失败的任务或工作流。
+- 发布之后不要替换 release 标签或 GitHub release 资源。
+- 不要静默接受人工发布的 crate。
+- 若某个 crate 必须用令牌恢复，在 `CRATES_IO_MANUAL_PUBLISH_EXCEPTIONS` 中
+  逐个列出 `crate@version`。
+- 在发布说明与 `crates-manifest.json` 中记录该例外，标为
+  `release_status: "manual_token_publish"`。
 
-No routine release path depends on a long-lived PyPI or crates.io token.
+没有常规发布路径依赖长期的 PyPI 或 crates.io 令牌。
 
-## Incident response posture
+## 事件响应姿态 {#incident-response-posture}
 
-- PyPI publisher drift is detected by the PyPI provenance verifier. Stop
-  publishing, fix the PyPI Trusted Publisher, and rerun verification.
-- crates.io publisher drift is detected by the trusted-publishing check or
-  registry verifier. Fix crate publisher settings and rerun. Use a manual
-  exception only for partial recovery.
-- GitHub release asset mismatch is detected by checksum or manifest verification.
-  Stop the release before publication, or publish an advisory if assets already
-  shipped.
-- Sigstore, Rekor, or TUF lag is detected by retryable transparency errors.
-  Retry with bounded backoff, then pause release sealing if lag persists.
-- Sigstore trust root concern appears when attestation verification becomes
-  ambiguous. Pause releases, verify against registry records, and rotate trust
-  roots when supported.
-- Workflow identity mismatch is detected by GitHub, PyPI, or cosign identity
-  checks. Treat it as configuration drift or compromise until reviewed.
-- Manual crate publish exceptions are detected when crates.io shows
-  `published_by` instead of `trustpub_data`. Record the explicit exception,
-  document affected crates, and preserve the audit trail.
+- PyPI 发布者漂移由 PyPI 溯源校验器发现。停止发布，修好 PyPI Trusted Publisher，
+  重跑验证。
+- crates.io 发布者漂移由可信发布检查或注册表校验器发现。修正 crate 发布者设置
+  后重跑。只有部分恢复时才使用人工例外。
+- GitHub release 资源不匹配由校验和或清单校验发现。在发布前中止；若资源已经
+  放出，则发布安全通告。
+- Sigstore、Rekor 或 TUF 延迟由可重试的透明性错误发现。以有界退避重试；
+  若延迟持续，暂停发布的封存。
+- 当证明验证变得含糊时，说明出现了 Sigstore 信任根问题。暂停发布，对照注册表
+  记录验证，并在支持时轮换信任根。
+- 工作流身份不匹配由 GitHub、PyPI 或 cosign 身份检查发现。在评审之前，
+  按配置漂移或入侵处理。
+- crates.io 显示 `published_by` 而非 `trustpub_data` 时，说明存在人工 crate 发布例外。
+  记录显式例外、写清受影响的 crate，并保留审计痕迹。
 
-## SLSA posture
+## SLSA 姿态 {#slsa-posture}
 
-Python release artifacts carry build provenance through GitHub artifact attestations
-and PyPI publish attestations. Docker images carry Sigstore signatures and SPDX SBOM
-attestations. Rust crates rely on crates.io Trusted Publishing metadata and the
-release `crates-manifest.json`.
+Python 发布产物通过 GitHub 产物证明与 PyPI 发布证明携带构建溯源。Docker 镜像
+携带 Sigstore 签名与 SPDX SBOM 证明。Rust crate 依赖 crates.io Trusted Publishing
+元数据与发布时的 `crates-manifest.json`。
 
-This page does not assert a named SLSA level for all artifact classes. A future SLSA level claim must cite
-this architecture and name the artifact classes that it covers. It must also include CI validation that the
-published provenance parses as the claimed predicate type.
+本页不为所有产物类别断言某个具体的 SLSA 等级。将来若声称某个 SLSA 等级，
+必须引用本架构、指明它覆盖的产物类别，并包含一项 CI 校验：已发布的溯源能按
+所声称的谓词类型解析。

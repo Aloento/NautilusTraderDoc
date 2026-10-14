@@ -1,33 +1,33 @@
-# Benchmarking
+# 基准测试
 
-Use this guide to write, run, and profile NautilusTrader benchmarks. It contains benchmark layout,
-examples, local commands, and the measurement procedure for published results.
+编写、运行与分析 NautilusTrader 基准测试时使用本指南。内容包括基准的布局、示例、
+本地命令，以及对外发布结果时的测量流程。
 
-For benchmark scope, evidence requirements, and CI policy, see
-[`/BENCHMARKING.md`](https://github.com/nautechsystems/nautilus_trader/blob/develop/BENCHMARKING.md) at the repository root.
+基准的范围、证据要求与 CI 策略见仓库根目录的
+[`/BENCHMARKING.md`](https://github.com/nautechsystems/nautilus_trader/blob/develop/BENCHMARKING.md)。
 
 ---
 
-## Tooling overview
+## 工具总览 {#tooling-overview}
 
-Select a tool based on the work and result:
+按工作内容与所需结果选择工具：
 
-| Tool                                                      | What it measures                          | Use it for                                                |
+| 工具                                                      | 度量内容                          | 适用场景                                                |
 | --------------------------------------------------------- | ----------------------------------------- | --------------------------------------------------------- |
-| [Criterion](https://docs.rs/criterion/latest/criterion/)  | Wall-clock time with confidence intervals | Operations above roughly 100 ns and elapsed time          |
-| [iai](https://docs.rs/iai/latest/iai/)                    | Retired CPU instructions under Cachegrind | Small, deterministic operations and change detection      |
-| [CodSpeed](https://codspeed.io/docs/instruments/cpu)      | Simulated CPU cost and cache behavior     | Stable pull request comparisons of deterministic CPU work |
-| [flamegraph](https://github.com/flamegraph-rs/flamegraph) | Sampled call-stack profile                | Locating work inside a representative slow path           |
+| [Criterion](https://docs.rs/criterion/latest/criterion/)  | 带置信区间的墙钟时间 | 约 100 ns 以上的操作与经过时间          |
+| [iai](https://docs.rs/iai/latest/iai/)                    | Cachegrind 下的退休 CPU 指令数 | 小型确定性操作与变更检测      |
+| [CodSpeed](https://codspeed.io/docs/instruments/cpu)      | 模拟的 CPU 开销与缓存行为     | 确定性 CPU 工作在 pull request 间的稳定对比 |
+| [flamegraph](https://github.com/flamegraph-rs/flamegraph) | 采样的调用栈画像                | 在一条有代表性的慢路径中定位工作           |
 
-Criterion reports user-visible elapsed time. iai produces stable counts for the same binary,
-toolchain, and inputs without requiring host noise controls. Compare iai results only under the
-same code generation assumptions, and use Criterion when elapsed time is the required result.
+Criterion 报告用户可见的经过时间。iai 对相同的二进制、工具链与输入给出稳定的计数，
+不要求控制宿主噪声。只在相同的代码生成假设下比较 iai 结果；需要经过时间这一结果时
+用 Criterion。
 
 ---
 
-## Directory layout
+## 目录布局 {#directory-layout}
 
-Each crate keeps its benchmarks in a local `benches/` folder:
+每个 crate 把基准放在本地的 `benches/` 目录：
 
 ```text
 crates/<crate_name>/
@@ -36,8 +36,7 @@ crates/<crate_name>/
     └── foo_iai.rs
 ```
 
-Register each benchmark explicitly in the crate's `Cargo.toml` so
-`cargo bench` discovers it:
+在 crate 的 `Cargo.toml` 中显式注册每个基准，`cargo bench` 才能发现它：
 
 ```toml
 [[bench]]
@@ -51,25 +50,25 @@ path = "benches/foo_iai.rs"
 harness = false
 ```
 
-To use the nightly CI performance workflow, register the benchmark. If `CI_BENCH_CRATES` does not include its
-crate, add the crate in the workspace `Makefile`. Add a deterministic Criterion target to
-`CODSPEED_BENCH_TARGETS` when CPU simulation preserves what the benchmark intends to measure. Do not add iai,
-Criterion's `iter_custom` or `with_filter` APIs, OS-dependent work, or concurrent wall-clock benchmarks to the
-CodSpeed subset.
+要用夜间的 CI 性能工作流，就得注册基准。若 `CI_BENCH_CRATES` 未包含该 crate，
+在 workspace 的 `Makefile` 中加入它。当 CPU 模拟仍能保留基准想度量的内容时，
+把确定性的 Criterion 目标加入 `CODSPEED_BENCH_TARGETS`。不要把 iai、
+Criterion 的 `iter_custom` 或 `with_filter` API、依赖操作系统的工作，
+以及并发的墙钟基准加入 CodSpeed 子集。
 
 ---
 
-## Writing Criterion benchmarks
+## 编写 Criterion 基准 {#writing-criterion-benchmarks}
 
-- **Setup**: Put all work that stays the same between iterations in the surrounding code or
-  `iter_batched_ref`'s setup closure, outside the body passed to `iter`.
-- **Inputs**: Wrap inputs in `black_box` so the optimizer cannot fold them away.
-- **Mutating benchmarks**: Use `iter_batched_ref` to exclude input `Drop` from the timed region.
-  Otherwise, dropping large owned structures dominates the measurement.
-- **Throughput**: Add `Throughput::Elements(n)` to size-parameterized groups so Criterion reports
-  per-element throughput.
-- **Intent**: Comment on what the benchmark measures (the hot path, worst case, or cache-cold case)
-  so readers understand what a regression would mean.
+- **准备**：迭代之间保持不变的工作放到外围代码或 `iter_batched_ref` 的 setup
+  闭包里，不要放进传给 `iter` 的函数体。
+- **输入**：用 `black_box` 包住输入，防止优化器把它们折叠掉。
+- **会改状态的基准**：用 `iter_batched_ref` 把输入的 `Drop` 排除在计时区域之外，
+  否则释放大对象会主导测量结果。
+- **吞吐量**：给按规模参数化的分组加上 `Throughput::Elements(n)`，
+  Criterion 才会报告每元素吞吐。
+- **意图**：注释说明基准度量的是什么（热路径、最坏情况还是缓存未命中的情况），
+  让读者知道性能回归意味着什么。
 
 ```rust
 use std::hint::black_box;
@@ -101,10 +100,9 @@ criterion_main!(benches);
 
 ---
 
-## Writing iai benchmarks
+## 编写 iai 基准 {#writing-iai-benchmarks}
 
-`iai` requires functions that take no parameters. Use it for small, pure operations so the measured
-instruction count stays focused on the intended work.
+`iai` 要求函数不接受参数。把它用于小型纯操作，让测得的指令数聚焦于目标工作。
 
 ```rust
 use std::hint::black_box;
@@ -118,94 +116,88 @@ fn bench_add() -> i64 {
 iai::main!(bench_add);
 ```
 
-Allocations, randomness, and system calls add their own instructions to the result. Keep variable
-setup outside the measured function and compare counts produced by the same toolchain and target.
+分配、随机性与系统调用会把自己的指令计入结果。可变准备的代码留在被测函数之外，
+并且只比较同一工具链与目标产出的计数。
 
 ---
 
-## Running benches locally
+## 本地运行基准 {#running-benches-locally}
 
-| Goal                               | Command                                                               |
+| 目标                               | 命令                                                               |
 | ---------------------------------- | --------------------------------------------------------------------- |
-| All benches in one crate           | `cargo bench -p nautilus-execution`                                   |
-| One core bench module              | `cargo bench -p nautilus-execution --bench matching_core`             |
-| One engine bench module            | `cargo bench -p nautilus-execution --bench matching_engine`           |
-| One core benchmark name pattern    | `cargo bench -p nautilus-execution --bench matching_core -- iterate`  |
-| One engine benchmark name pattern  | `cargo bench -p nautilus-execution --bench matching_engine -- submit` |
-| Quick smoke run (low sample count) | `cargo bench ... -- --quick`                                          |
-| All nightly registered benches     | `make cargo-ci-benches`                                               |
-| Build the CodSpeed subset          | `make cargo-codspeed-build`                                           |
-| Check the built CodSpeed subset    | `make cargo-codspeed-run`                                             |
+| 单个 crate 的全部基准           | `cargo bench -p nautilus-execution`                                   |
+| 一个核心基准模块              | `cargo bench -p nautilus-execution --bench matching_core`             |
+| 一个引擎基准模块            | `cargo bench -p nautilus-execution --bench matching_engine`           |
+| 一个核心基准名匹配模式    | `cargo bench -p nautilus-execution --bench matching_core -- iterate`  |
+| 一个引擎基准名匹配模式  | `cargo bench -p nautilus-execution --bench matching_engine -- submit` |
+| 快速冒烟（低采样数） | `cargo bench ... -- --quick`                                          |
+| 夜间全部已注册基准     | `make cargo-ci-benches`                                               |
+| 构建 CodSpeed 子集          | `make cargo-codspeed-build`                                           |
+| 检查已构建的 CodSpeed 子集    | `make cargo-codspeed-run`                                             |
 
-Criterion writes HTML reports to `target/criterion/`. Open
-`target/criterion/report/index.html`. The report includes per-bench violin
-plots, confidence intervals, and comparisons against the previous run's
-saved baseline.
+Criterion 把 HTML 报告写入 `target/criterion/`，打开
+`target/criterion/report/index.html` 即可查看。报告包含每个基准的小提琴图、
+置信区间，以及与上一次运行保存的基线的对比。
 
-`make install-tools` installs the pinned `cargo-codspeed` version. A local CodSpeed run checks that
-the selected benchmark targets build and register, but it does not upload measurements. The
-`codspeed-benchmarks` job in `.github/workflows/performance.yml` measures and uploads the results.
+`make install-tools` 安装锁定的 `cargo-codspeed` 版本。本地 CodSpeed 运行只检查
+选定的基准目标能构建并注册，不上传测量结果。测量与上传由
+`.github/workflows/performance.yml` 中的 `codspeed-benchmarks` 任务完成。
 
-### Canonical backtest workloads
+### 规范回测负载 {#canonical-backtest-workloads}
 
-The canonical backtest cases use the first 10,000 rows of the checked-in
-`test_data/btc-perp-20211231-20220201_1m.csv` file. A shared fixture drives replay-only, scheduled
-market-order, passive limit-order, and bar-EMA scenarios. The correctness test and both timed paths
-use the same fixture loader and exact result fingerprints.
+规范回测用例使用签入仓库的 `test_data/btc-perp-20211231-20220201_1m.csv`
+文件的前 10,000 行。一个共享测试夹具驱动四种场景：仅重放、定时市价单、
+被动限价单与 bar-EMA。正确性测试与两条计时路径使用同一个夹具加载器和
+完全一致的结果指纹。
 
-Run the semantic check first:
+先跑语义检查：
 
 ```bash
 CARGO_BUILD_JOBS=16 cargo test --locked -p nautilus-backtest \
     --test integration canonical_backtest_workloads::
 ```
 
-Then run Criterion in test mode to confirm that every affected benchmark case executes without
-collecting samples:
+再在 test 模式下运行 Criterion，确认每个受影响的基准用例都能执行而不采集样本：
 
 ```bash
 CARGO_BUILD_JOBS=16 cargo bench --locked -p nautilus-backtest \
     --bench engine -- canonical --test
 ```
 
-The `run_preloaded` cases load the CSV and build the engine outside the returned `iter_custom`
-duration. The `load_build_run` cases include CSV loading, engine setup, data registration, and
-`BacktestEngine::run`. Both exclude result projection and fingerprint verification from the
-reported duration, while still checking the result after every measured iteration.
+`run_preloaded` 用例在返回的 `iter_custom` 计时区间之外加载 CSV 并构建引擎。
+`load_build_run` 用例则把 CSV 加载、引擎设置、数据注册与 `BacktestEngine::run`
+全部计入。两者都把结果投影与指纹校验排除在所报告的耗时之外，
+但每次计时迭代之后仍会检查结果。
 
-See [`crates/backtest/benches/BENCHMARKS.md`](https://github.com/nautechsystems/nautilus_trader/blob/develop/crates/backtest/benches/BENCHMARKS.md) for the
-published baseline, measurement record, and current profile target.
+已发布的基线、测量记录与当前的 profile 目标见
+[`crates/backtest/benches/BENCHMARKS.md`](https://github.com/nautechsystems/nautilus_trader/blob/develop/crates/backtest/benches/BENCHMARKS.md)。
 
-The [v2 migration guide](https://github.com/nautechsystems/nautilus_trader/blob/develop/MIGRATION_V2.md#compare-backtest-performance) contains the
-cross-version backtest comparison procedure.
+跨版本的回测比较步骤见 [v2 迁移指南](https://github.com/nautechsystems/nautilus_trader/blob/develop/MIGRATION_V2.md#compare-backtest-performance)。
 
 ---
 
-## Measure Criterion for publication
+## 为发布做 Criterion 测量 {#measure-criterion-for-publication}
 
-Use the `bench-lto` profile for Criterion results that will be reported or published. The profile
-inherits from `release`, preserves full debug symbols, enables fat LTO, and uses one code generation
-unit. The default `bench` profile keeps full debug symbols without LTO and is better suited to local
-iteration.
+将对外报告或发布的 Criterion 结果，使用 `bench-lto` profile。该 profile 继承自
+`release`，保留完整调试符号，启用 fat LTO，并使用单一代码生成单元。
+默认的 `bench` profile 保留完整调试符号但不做 LTO，更适合本地反复迭代。
 
-1. Quiesce the machine. On Linux, set the CPU governor to `performance` when you administer the
-   host and can restore its prior state:
+1. 让机器静默。在 Linux 上，若你管理该主机且能恢复其原有状态，
+   把 CPU 调频策略设为 `performance`：
 
    ```bash
    sudo cpupower frequency-set -g performance
    ```
 
-1. On Linux, disable ASLR for the benchmark process and run the selected benchmark with
-   `bench-lto`:
+1. 在 Linux 上为基准进程关闭 ASLR，并用 `bench-lto` 运行选定的基准：
 
    ```bash
    setarch "$(uname -m)" -R cargo bench --profile bench-lto -p <crate> --bench <name>
    ```
 
-1. Run multiple full sessions and report whether each case uses its best or median result.
+1. 运行多个完整会话，并报告每个用例采用的是最佳值还是中位数。
 
-1. Record the CPU model, kernel or operating system, Rust toolchain, and build profile with the
-   results:
+1. 随结果记录 CPU 型号、内核或操作系统、Rust 工具链与构建 profile：
 
    ```text
    Hardware: <CPU model>, <kernel or operating system>
@@ -213,82 +205,79 @@ iteration.
    Profile: bench-lto (release + lto = "fat" + codegen-units = 1, debug = full)
    ```
 
-For deeper analysis, control hyper-threading and dynamic frequency scaling in firmware. Published
-results must record those controls when they differ from the normal host state.
+需要更深入的分析时，在固件中控制超线程与动态调频。若这些设置与主机常态不同，
+发布的结果必须记录它们。
 
-iai runs under Cachegrind's virtual CPU model, so host quiescence, frequency scaling, and ASLR do
-not affect its instruction counts. Run iai without the Criterion noise controls.
+iai 运行在 Cachegrind 的虚拟 CPU 模型下，因此宿主静默、动态调频与 ASLR 都不影响
+其指令计数。运行 iai 时不需要 Criterion 那套噪声控制。
 
 ---
 
-## Generating a flamegraph
+## 生成火焰图 {#generating-a-flamegraph}
 
-`cargo-flamegraph` produces a sampled call-stack profile for one bench. Use it
-when a benchmark regresses and the responsible inner call is unclear.
+`cargo-flamegraph` 为单个基准生成采样的调用栈画像。当某个基准出现回归、
+而责任所在的内层调用不明确时，用它来定位。
 
-1. Install once per machine:
+1. 每台机器安装一次：
 
    ```bash
    cargo install flamegraph
    ```
 
-2. Run a specific bench with the `bench` profile:
+2. 用 `bench` profile 运行指定基准：
 
    ```bash
    cargo flamegraph --bench matching -p nautilus-common --profile bench
    ```
 
-3. Open `flamegraph.svg` in a browser and zoom into hot paths.
+3. 在浏览器中打开 `flamegraph.svg`，放大查看热点路径。
 
-### Linux
+### Linux {#linux}
 
-`perf` must be available. On Debian/Ubuntu:
+需要可用的 `perf`。Debian/Ubuntu 上：
 
 ```bash
 sudo apt install linux-tools-common linux-tools-$(uname -r)
 ```
 
-If `perf_event_paranoid` blocks the run:
+若 `perf_event_paranoid` 阻止运行：
 
 ```bash
 sudo sh -c 'echo 1 > /proc/sys/kernel/perf_event_paranoid'
 ```
 
-A value of `1` is usually enough. Set it back to `2` (default) afterwards
-or persist via `/etc/sysctl.conf`.
+设为 `1` 通常就够。用完后改回 `2`（默认值），或通过 `/etc/sysctl.conf` 持久化。
 
-### macOS
+### macOS {#macos}
 
-`DTrace` requires root, so `cargo flamegraph` must be run with `sudo`.
+`DTrace` 需要 root，因此 `cargo flamegraph` 必须用 `sudo` 运行。
 
 :::warning
-Running with `sudo` creates files in `target/` owned by root, causing
-permission errors with subsequent `cargo` commands. You may need to remove
-root-owned files manually or run `sudo cargo clean`.
+用 `sudo` 运行会在 `target/` 中创建属于 root 的文件，导致后续 `cargo` 命令
+报权限错误。你可能需要手工删除这些 root 文件，或运行 `sudo cargo clean`。
 :::
 
 ```bash
 sudo cargo flamegraph --bench matching -p nautilus-common --profile bench
 ```
 
-The `bench` profile keeps full debug symbols, so flamegraphs render with
-readable function names without bloating production binaries (which still
-use `panic = "abort"` and are built via `[profile.release]`).
+`bench` profile 保留完整调试符号，因此火焰图能渲染出可读的函数名，
+又不会撑大生产二进制（生产构建仍使用 `panic = "abort"`，由
+`[profile.release]` 配置）。
 
-> **Note** Benchmark binaries are compiled with the custom `[profile.bench]`
-> defined in the workspace `Cargo.toml`. That profile inherits from
-> `release` and sets `debug = "full"`, preserving full optimization *and*
-> debug symbols so tools like `cargo flamegraph` or `perf` produce
-> human-readable stack traces.
+> **Note** 基准二进制使用 workspace `Cargo.toml` 中定义的自定义
+> `[profile.bench]` 编译。该 profile 继承自 `release` 并设置
+> `debug = "full"`，同时保留完整优化*与*调试符号，因此
+> `cargo flamegraph` 或 `perf` 这类工具能产出人类可读的堆栈跟踪。
 
 ---
 
-## Templates
+## 模板 {#templates}
 
-Starter files live in [`docs/dev_templates/`](https://github.com/nautechsystems/nautilus_trader/blob/develop/dev_templates):
+起步文件位于 [`docs/dev_templates/`](https://github.com/nautechsystems/nautilus_trader/blob/develop/dev_templates)：
 
-- **Criterion**: [`criterion_template.rs`](https://github.com/nautechsystems/nautilus_trader/blob/develop/dev_templates/criterion_template.rs)
-- **iai**: [`iai_template.rs`](https://github.com/nautechsystems/nautilus_trader/blob/develop/dev_templates/iai_template.rs)
+- **Criterion**：[`criterion_template.rs`](https://github.com/nautechsystems/nautilus_trader/blob/develop/dev_templates/criterion_template.rs)
+- **iai**：[`iai_template.rs`](https://github.com/nautechsystems/nautilus_trader/blob/develop/dev_templates/iai_template.rs)
 
-Copy the template into the target crate's `benches/`, adjust imports and
-group names, register in `Cargo.toml`, and start measuring.
+把模板复制到目标 crate 的 `benches/`，调整 import 与分组名，在 `Cargo.toml`
+中注册，就可以开始测量。

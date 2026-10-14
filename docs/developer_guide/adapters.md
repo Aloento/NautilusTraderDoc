@@ -832,577 +832,470 @@ Binance 在检测到缺口的同一步骤认领：未同步订单簿的每个 di
 
 #### 恢复状态与重试预算 {#recovery-state-and-retry-budgets}
 
-Keep one `BookRecoveryState` per subscribed book under the adapter's existing state lock or owning task. Store
-it directly or inside the shared per-book `BookSync`. It admits one running recovery and cancels obsolete
-work. A book never ends in a failed state.
+每个已订阅订单簿保留一个 `BookRecoveryState`，挂在适配器既有的状态锁或所属任务下。直接存放，或放在共享的
+单簿 `BookSync` 里。它一次准入一个运行中的恢复，并取消过期的工作。订单簿永远不会停留在失败状态。
 
-`BookRecovery::run` owns replacement attempts, child cancellation tokens, snapshot waits, backoff, and retry
-limits. It makes up to eight attempts in 180 seconds. After that budget, the retry interval doubles from one
-minute to fifteen minutes. Retries continue until the book accepts a snapshot or the episode is cancelled. An
-error that the classifier rejects moves directly to that interval.
+`BookRecovery::run` 负责替换尝试、子 cancellation token、快照等待、退避和重试上限。它在 180 秒内最多尝试
+八次。预算耗尽后，重试间隔从一分钟起翻倍至十五分钟。重试持续到订单簿接受快照或 episode 被取消。被分类器
+判定为永久性的错误直接进入该间隔。
 
-Each attempt after the budget has a `max(snapshot_timeout, 60 seconds)` bound. Thus, a stalled write or a
-disabled snapshot deadline cannot stop the retries. The adapter supplies the replacement operation and the
-error classifier.
+预算耗尽后的每次尝试都有 `max(snapshot_timeout, 60 秒)` 的界限，因此停滞的写入或被禁用的快照截止时间都无法
+让重试停下来。替换操作和错误分类器由适配器提供。
 
-Keep a running invocation alive across reconnects so a reconnect can neither replenish the budget
-nor abandon a replacement write. A reconnect never interrupts an attempt or shortens a backoff
-inside the budget. It wakes an invocation that is waiting between attempts after its budget, so the
-next attempt uses the new connection at once. A reconnect that lands during an attempt, or before
-the budget runs out, instead ends the next wait between attempts after the budget.
+重连期间要让正在运行的调用保活，这样重连既不能补充预算，也不能抛弃写入中的替换。预算之内，重连从不打断一次
+尝试，也不缩短退避。它会唤醒预算耗尽后正处在两次尝试之间等待的调用，让下一次尝试立即用上新连接。落在尝试
+期间、或预算尚未耗尽时的重连，则改为提前结束预算耗尽后的下一次尝试间等待。
 
-#### Snapshot acceptance
+#### 快照接受 {#snapshot-acceptance}
 
-A confirmed write alone never establishes a usable book. Coordinate replacement and acceptance in
-this order:
+仅凭一次确认的写入永远不能确立可用的订单簿。按以下顺序协调替换与接受：
 
-1. Close `SnapshotGate` before replacement.
-1. Open the gate after the intended connection confirms the subscription write.
-1. Accept the snapshot under the same ownership boundary that starts recovery, then replace all
-   levels, including for an empty snapshot.
+1. 替换之前关闭 `SnapshotGate`。
+1. 目标连接确认订阅写入之后再打开门。
+1. 在启动恢复的同一所有权边界内接受快照，然后替换全部档位，空快照也不例外。
 
-`PendingSnapshot` cancels initial waits when the snapshot is accepted or the pending owner is removed.
+快照被接受或挂起所有者被移除时，`PendingSnapshot` 会取消其初始等待。
 
-#### Venue rules and shared decisions
+#### 交易场所规则与共享决策 {#venue-rules-and-shared-decisions}
 
-The adapter owns sequencing, channel routing, wire commands, acknowledgement correlation, and
-snapshot parsing. The shared types describe the result of validation and monitoring:
+适配器负责排序、通道路由、线路命令、确认关联和快照解析。共享类型描述校验与监视的结果：
 
-- `BookSequenceOutcome`: accept, suppress, or recover. Adapters retain their validation rules and
-  gap diagnostics.
-- `BookSyncSignal`: a stale feed or missing snapshot for one book.
+- `BookSequenceOutcome`：接受、抑制或恢复。适配器保留自己的校验规则和缺口诊断。
+- `BookSyncSignal`：单个订单簿的数据流陈旧或快照缺失。
 
-- **Lighter**: retains subscription generations and control-ack/typed-snapshot correlation.
-- **OKX**: retains its documented
-  [acknowledgement-correlation limits](./../integrations/okx.md#snapshot-correlation-limitation).
-- **Hyperliquid**: accepts every `l2Book` frame as a snapshot. With stale stream recovery enabled,
-  its stream health monitor starts recovery for a stale delta book.
-- **Betfair**: carries one market subscription per connection, so a replacement re-images every market.
-  Recoveries join a pending image request rather than writing competing subscriptions. Reconnects resume
-  synced books from the subscription's clocks.
-- **AX Exchange**: accepts every L2 and L3 frame as a snapshot and keeps books across client reconnects,
-  since its WebSocket client replays subscriptions on connect.
-- **Derive**: accepts full snapshots only when their timestamps advance, retaining that floor across
-  reconnects. Advancing empty snapshots count as updates. Replacement uses an unsubscribe/subscribe pair on
-  the existing socket. See [Derive order book recovery](./../integrations/derive.md#order-book-recovery) for
-  timer defaults and the notification correlation limit.
+- **Lighter**：保留订阅代际，以及控制确认与类型化快照的关联。
+- **OKX**：保留其成文的
+  [确认关联限制](./../integrations/okx.md#snapshot-correlation-limitation)。
+- **Hyperliquid**：把每个 `l2Book` 帧都当作快照接受。启用陈旧数据流恢复后，其流健康监视器会为陈旧的增量
+  订单簿启动恢复。
+- **Betfair**：每个连接只承载一个市场订阅，因此替换会重新镜像所有市场。恢复并入一个挂起的镜像请求，而不是
+  写出相互竞争的订阅。重连后，已同步的订单簿从订阅自身的时钟继续。
+- **AX Exchange**：把每个 L2 和 L3 帧都当作快照接受，并在客户端重连后保留订单簿，因为其 WebSocket 客户端
+  在连接时重放订阅。
+- **Derive**：只有时间戳前进的完整快照才被接受，且该下限跨重连保留。时间戳前进的空快照计为更新。替换走现有
+  socket 上的退订/订阅一对操作。定时器默认值和通知关联限制见
+  [Derive order book recovery](./../integrations/derive.md#order-book-recovery)。
 
-Adapters fall into two recovery families, which determine the oracle a stress harness can use:
+适配器分两个恢复家族，决定压力测试装置可用哪种 oracle：
 
-- Push (OKX, Polymarket, Lighter, Hyperliquid, Bybit, Betfair, AX Exchange, Derive): a replacement
-  resubscribes, and the venue stream delivers the snapshot.
-- Pull (Binance): diff streams stay subscribed. A replacement fetches a REST snapshot, and the
-  adapter accepts it only when the buffered diffs continue from its `lastUpdateId` without a gap.
+- 推送型（OKX、Polymarket、Lighter、Hyperliquid、Bybit、Betfair、AX Exchange、Derive）：替换时重新订阅，
+  由交易场所数据流送达快照。
+- 拉取型（Binance）：diff 数据流保持订阅。替换经 REST 拉取快照，且仅当缓冲的 diff 能从其 `lastUpdateId`
+  无缺口地接续时，适配器才接受该快照。
 
-#### Task lifetime and cancellation
+#### 任务生命周期与取消 {#task-lifetime-and-cancellation}
 
-Run asynchronous work inside the client's task scope or handler-owned futures. The handler must
-continue draining commands and frames while writes wait, allowing unsubscribe, shutdown, and
-recovery deadlines to cancel obsolete operations.
+异步工作必须在客户端的任务作用域或处理器自有的 future 内运行。写入等待期间处理器要继续排空命令和帧，让退订、
+关闭和恢复截止时间能够取消过期的操作。
 
-#### Naming and configuration
+#### 命名与配置 {#naming-and-configuration}
 
-Adapters implementing this machinery share names and tuning so operators move between venues
-without relearning behavior:
+实现这套机制的适配器共用名称与调参，运维换交易场所时无需重学行为：
 
-- Keep book sync state in `src/book/sync.rs` behind `BookSyncTracker`.
-- Wait for snapshots with `book_snapshot_timeout_secs`, defaulting to the shared
-  `DEFAULT_BOOK_SNAPSHOT_TIMEOUT_SECS` (10 seconds) in `nautilus_live::book`. The value stays tunable per
-  deployment.
-- Treat a zero timeout as disabled snapshot deadlines on all wait paths. This includes adapter-owned sends and
-  snapshot waits outside the shared runner. Without a deadline, those waits resolve only on cancellation. The
-  shared runner still bounds recovery by its 180-second initial budget and by one-minute attempts after it.
-- Keep the live stress harness at `tests/stress/book_stress.rs` as the `<venue>-book-stress` test
-  target. The [order book sync conformance](./spec_data_testing.md#order-book-sync-conformance)
-  specification defines the contract it checks and the faults it forces.
+- 订单簿同步状态放在 `src/book/sync.rs`，由 `BookSyncTracker` 持有。
+- 用 `book_snapshot_timeout_secs` 等待快照，默认取 `nautilus_live::book` 中共享的
+  `DEFAULT_BOOK_SNAPSHOT_TIMEOUT_SECS`（10 秒）。该值可按部署调整。
+- 超时为零在所有等待路径上表示禁用快照截止时间，包括适配器自有的发送和共享 runner 之外的快照等待。没有
+  截止时间时，这些等待只在取消时结束。共享 runner 仍用 180 秒初始预算约束恢复，之后是一分钟起步的尝试。
+- 实时压力测试装置保持在 `tests/stress/book_stress.rs`，作为 `<venue>-book-stress` 测试 target。
+  [订单簿同步合规](./spec_data_testing.md#order-book-sync-conformance)规范定义了它检查的契约和强制的故障。
 
-### Execution client
+### 执行客户端 {#execution-client}
 
-Execution clients translate commands, preserve order identity, publish account state, and generate
-reports for reconciliation. They must support these boundaries consistently:
+执行客户端翻译命令、保留订单标识、发布账户状态，并为对账生成报告。它们必须一致地支持这些边界：
 
-- Validate deterministic local constraints before submission.
-- Emit `OrderSubmitted` only when the command enters the adapter's submission path.
-- Correlate venue responses and stream updates to the correct client and venue order IDs.
-- Emit balances and margins with the account type and base currency used by the factory.
-- Generate order, fill, position, and mass-status reports from venue state for reconciliation.
-- Release shared clock, cache, or account borrows before publishing account state because
-  subscribers may access the same state synchronously.
+- 提交之前校验确定性的本地约束。
+- 只有命令进入适配器的提交通道时才发出 `OrderSubmitted`。
+- 把交易场所响应和数据流更新关联到正确的客户端与交易场所订单 ID。
+- 发出余额和保证金时使用工厂所用的账户类型和基础货币。
+- 从交易场所状态生成订单、成交、持仓和全量状态报告，供对账使用。
+- 发布账户状态之前释放对共享时钟、cache 或账户的借用，因为订阅者可能同步访问同一状态。
 
-Keep deterministic adapter-specific checks in one `validate_order` function that returns
-`OrderDeniedReason`. Call it before emitting `OrderSubmitted` from single-order and order-list
-submission paths.
+确定性的适配器特有校验集中在一个 `validate_order` 函数里，返回 `OrderDeniedReason`。单笔订单和订单列表提交
+路径在发出 `OrderSubmitted` 之前调用它。
 
-Do not infer support from a venue API alone. Implement and test the Nautilus command and event
-semantics, then advertise the capability.
+不要仅凭交易场所 API 就推断支持。先实现并测试 Nautilus 的命令与事件语义，再对外声明该能力。
 
-#### Reconciliation reports
+#### 对账报告 {#reconciliation-reports}
 
-Reconciliation reads venue state through five
-[`ExecutionClient`](https://github.com/nautechsystems/nautilus_trader/blob/develop/crates/common/src/clients/execution.rs) report methods. They return
-reports rather than emitting order events, leaving the execution engine to decide what a difference
-between cached state and venue state means.
+对账通过五个
+[`ExecutionClient`](https://github.com/nautechsystems/nautilus_trader/blob/develop/crates/common/src/clients/execution.rs)
+报告方法读取交易场所状态。它们返回报告而不是发出订单事件，由执行引擎判断缓存状态与交易场所状态的差异意味着
+什么。
 
-| Method                             | Produces                                                                             | Driven by                                                            |
+| 方法 | 产出 | 由谁驱动 |
 | ---------------------------------- | ------------------------------------------------------------------------------------ | -------------------------------------------------------------------- |
-| `generate_order_status_report`     | One optional [`OrderStatusReport`](https://github.com/nautechsystems/nautilus_trader/blob/develop/crates/model/src/reports/order.rs).         | A targeted probe for one order the open-order check left unresolved. |
-| `generate_order_status_reports`    | [`OrderStatusReport`](https://github.com/nautechsystems/nautilus_trader/blob/develop/crates/model/src/reports/order.rs) values.               | Mass status and the periodic open-order check.                       |
-| `generate_fill_reports`            | [`FillReport`](https://github.com/nautechsystems/nautilus_trader/blob/develop/crates/model/src/reports/fill.rs) values.                       | Mass status.                                                         |
-| `generate_position_status_reports` | [`PositionStatusReport`](https://github.com/nautechsystems/nautilus_trader/blob/develop/crates/model/src/reports/position.rs) values.         | Mass status and the periodic position check.                         |
-| `generate_mass_status`             | One optional [`ExecutionMassStatus`](https://github.com/nautechsystems/nautilus_trader/blob/develop/crates/model/src/reports/mass_status.rs). | Startup reconciliation, once per execution client.                   |
+| `generate_order_status_report` | 一个可选的 [`OrderStatusReport`](https://github.com/nautechsystems/nautilus_trader/blob/develop/crates/model/src/reports/order.rs)。 | 对未决订单检查仍未解决的一个订单做定向探测。 |
+| `generate_order_status_reports` | [`OrderStatusReport`](https://github.com/nautechsystems/nautilus_trader/blob/develop/crates/model/src/reports/order.rs) 值。 | 全量状态与周期性未决订单检查。 |
+| `generate_fill_reports` | [`FillReport`](https://github.com/nautechsystems/nautilus_trader/blob/develop/crates/model/src/reports/fill.rs) 值。 | 全量状态。 |
+| `generate_position_status_reports` | [`PositionStatusReport`](https://github.com/nautechsystems/nautilus_trader/blob/develop/crates/model/src/reports/position.rs) 值。 | 全量状态与周期性持仓检查。 |
+| `generate_mass_status` | 一个可选的 [`ExecutionMassStatus`](https://github.com/nautechsystems/nautilus_trader/blob/develop/crates/model/src/reports/mass_status.rs)。 | 启动对账，每个执行客户端一次。 |
 
-[Execution reconciliation](./../concepts/execution/reconciliation.md) documents what the engine does with these
-reports, including the startup procedure, the runtime checks that drive the periodic and targeted
-requests, and their retry and throttling rules. Cases TC-E84 to TC-E87 and TC-E101 in the
-[execution testing specification](./spec_exec_testing.md) exercise startup reconciliation against a
-venue. Cases TC-E88 and TC-E89 use deterministic fixtures to exercise REST and private-stream
-commission failure.
+[执行对账](./../concepts/execution/reconciliation.md)记录了引擎如何使用这些报告，包括启动流程、驱动周期性与
+定向请求的运行时检查，以及它们的重试和节流规则。
+[执行测试规范](./spec_exec_testing.md)中的 TC-E84 至 TC-E87 和 TC-E101 针对真实交易场所运行启动对账；
+TC-E88 和 TC-E89 用确定性 fixture 演练 REST 与私有数据流的手续费失败。
 
-##### Startup mass status
+##### 启动全量状态 {#startup-mass-status}
 
-`generate_mass_status` runs once per execution client before trading starts. Its default
-implementation:
+`generate_mass_status` 在交易开始前每个执行客户端运行一次。默认实现：
 
-- Composes the three bulk methods concurrently from one `ts_init`.
-- Derives each command's `start` from `lookback_mins`.
-- Requests full order history with `open_only=false`.
+- 用同一个 `ts_init` 并发组合三个批量方法。
+- 由 `lookback_mins` 推导每条命令的 `start`。
+- 以 `open_only=false` 请求完整订单历史。
 
-Implementing the bulk methods is therefore enough for startup. Override the composition when the
-client declares a history bound, as described in
-[bounded mass-status reports](#bounded-mass-status-reports), or when it does not use the realtime clock.
+因此实现三个批量方法就足以支撑启动。客户端声明了历史上限（见
+[有界的全量状态报告](#bounded-mass-status-reports)）或不使用实时时钟时，才需要覆盖这个组合。
 
-Returning `Ok(None)` logs a warning and leaves that client unreconciled. An error fails startup.
+返回 `Ok(None)` 会记录警告，该客户端保持未对账。返回错误则启动失败。
 
-##### Mass-status order evidence
+##### 全量状态的订单证据 {#mass-status-order-evidence}
 
-Give each fill report order evidence from one of these sources:
+每份成交报告的订单证据必须来自以下之一：
 
-- An order report for its venue order ID in the same mass status.
-- An order that the cache already holds.
+- 同一份全量状态中该交易场所订单 ID 的订单报告。
+- cache 中已有的订单。
 
-Reconciliation drops a fill group with neither and logs a warning, except when the group's fills carry a
-`venue_position_id`. For that exception, reconciliation builds the order when `generate_missing_orders` is
-enabled and skips it otherwise.
+两者都没有时，对账会丢弃该成交组并记录警告；例外是组内成交带 `venue_position_id` 的情况——启用
+`generate_missing_orders` 时由对账构造订单，否则跳过。
 
-Thus, a mass status with only open orders loses fills for closed orders that the cache does not contain.
-Examples include orders placed outside the node or before a restart without a persisted cache.
+因此，只含未决订单的全量状态会丢失 cache 中不存在的已终结订单的成交。例如在节点之外下的单，或没有持久化
+cache 的重启之前的单。
 
-If the venue has no queryable order record, build a `FILLED` order report from its fills. Examples include
-venues without closed-order history, block-trade fills, and settlement fills. Withhold the fills instead when
-applying them would misstate a position, for example when they miss balance changes made without a trade.
+交易场所没有可查询的订单记录时，用其成交构造 `FILLED` 订单报告。例子：没有已终结订单历史的交易场所、大宗
+成交、结算成交。应用这些成交会歪曲持仓时应扣留成交，例如它们遗漏了无交易的余额变动。
 
-##### Position report entry averages
+##### 持仓报告的开仓均价 {#position-report-entry-averages}
 
-Pass the venue's average entry price through unrounded as `avg_px_open`, and state how
-reconciliation may use it:
+把交易场所的平均开仓价原样（不取整）传入 `avg_px_open`，并说明对账如何使用它：
 
-- Nautilus computes a quantity-weighted average of opening fills. Reductions do not change it, and reversal
-  resets it. If the venue average follows those rules, keep the defaults.
-- Call `with_avg_px_open_reconciliation(AvgPxReconciliation::OpeningOnly)` when the venue computes
-  the average another way, such as over FIFO lots. Reconciliation then uses it only to open a
-  position from flat and never compares it with the cached average.
-- Call `with_avg_px_open_precision(precision)` when the venue rounds or truncates the average. Comparisons
-  then allow one unit at that precision. Quantity matching is unchanged. Drop the marker when the adapter
-  replaces the average with an exact value.
+- Nautilus 按开仓成交的数量加权平均计算。减仓不改变它，反向开仓会重置它。交易场所均值遵循这些规则时，保持
+  默认。
+- 交易场所用别的方式计算均值（如按 FIFO 批次）时，调用
+  `with_avg_px_open_reconciliation(AvgPxReconciliation::OpeningOnly)`。对账随后只用它从空仓建仓，绝不与缓存
+  均值比较。
+- 交易场所对均值做舍入或截断时，调用 `with_avg_px_open_precision(precision)`。比较随后允许该精度下的一个
+  单位误差。数量匹配不变。适配器用精确值替换均值时，去掉该标记。
 
-[Reported entry averages](./../concepts/execution/reconciliation.md#reported-entry-averages) describes
-each effect.
+各处的影响见[报告的开仓均价](./../concepts/execution/reconciliation.md#reported-entry-averages)。
 
-##### Mass-status timestamp contract
+##### 全量状态时间戳契约 {#mass-status-timestamp-contract}
 
-`ExecutionMassStatus.ts_init` marks the start of snapshot collection. For every producer,
-including reconnect snapshots and custom `generate_mass_status` implementations:
+`ExecutionMassStatus.ts_init` 标记快照采集的开始。对每个生产者，包括重连快照和自定义
+`generate_mass_status` 实现：
 
-- **Capture before collection**: Read the adapter's local clock before the first request,
-  cache read, or concurrent collection task.
-- **Use a consistent clock**: Use the same local clock as execution fill and fill-void
-  initialization timestamps. Never substitute a venue timestamp or zero.
-- **Preserve the boundary**: Keep that value through snapshot construction and publication.
-  Neither completion time nor individual report timestamps replace it.
+- **采集前获取**：在第一个请求、cache 读取或并发采集任务之前读取适配器本地时钟。
+- **使用一致的时钟**：与执行成交及成交作废（fill void）初始化时间戳用同一个本地时钟。绝不用交易场所时间戳
+  或零替代。
+- **保留边界**：该值贯穿快照构造和发布。完成时间和单个报告的时间戳都不能取代它。
 
-Runtime reconciliation skips an order snapshot when a cached fill or fill void has `ts_init`
-at or after this boundary. Companion trades still process normally.
+运行时对账在缓存的成交或成交作废的 `ts_init` 不早于该边界时跳过订单快照。伴随的 trade 仍正常处理。
 
-Incorrect timestamps change reconciliation behavior:
+时间戳用错会改变对账行为：
 
-- A **completion timestamp** can make an older snapshot appear newer than an overlapping fill,
-  causing the engine to void that fill incorrectly.
-- A **zero timestamp** can suppress legitimate snapshot corrections indefinitely.
+- **完成时间戳**可能让较旧的快照显得比重叠的成交更新，导致引擎错误作废该成交。
+- **零时间戳**可能无限期压制合法的快照纠正。
 
-For custom producers, delay a report response. Assert that the mass-status timestamp is captured before
-collection starts. Assert that the timestamp stays unchanged when collection finishes.
+自定义生产者要延迟报告响应，断言全量状态时间戳在采集开始前获取，并断言采集结束时该时间戳未变。
 
-See [Snapshot freshness and fill corrections](./../concepts/execution/reconciliation.md#snapshot-freshness-and-fill-corrections)
-for the startup distinction and limits when venue state is already stale.
+启动时的区分以及交易场所状态本就陈旧时的限制，见
+[Snapshot freshness and fill corrections](./../concepts/execution/reconciliation.md#snapshot-freshness-and-fill-corrections)。
 
-##### Bulk report filters
+##### 批量报告过滤 {#bulk-report-filters}
 
-The bulk methods take a filter command carrying `instrument_id`, `start`, and `end`, plus
-`open_only` for order reports and `venue_order_id` for fill reports. Apply every filter the venue
-endpoint supports and complete the rest locally:
+批量方法接收一个携带 `instrument_id`、`start`、`end` 的过滤命令，订单报告还带 `open_only`，成交报告还带
+`venue_order_id`。交易场所端点支持的过滤全部应用，其余在本地补全：
 
-- `open_only` separates the currently open orders a periodic check needs from the history a mass status needs.
-  For `open_only`, keep reports whose status is open **or** in-flight, not open alone. A venue reports an
-  order as `SUBMITTED` if it holds the order but has not acknowledged it. This status is in-flight, not open.
-- Apply `start` and `end` only to closed reports. An order working at the venue is authoritative, regardless
-  of how long it has rested without an update.
-- Test a report for a terminal status with `is_closed()`, never `!is_open()`, which classifies
-  `SUBMITTED` as terminal.
+- `open_only` 区分周期性检查需要的当前未决订单与全量状态需要的历史。`open_only` 时，保留状态为未决**或**在途
+  的报告，不能只看未决。交易场所持有订单但尚未确认时报告为 `SUBMITTED`，这是在途，不是未决。
+- `start` 和 `end` 只作用于已终结报告。仍在交易场所活跃的订单具有权威性，无论它多久没有更新。
+- 判断报告是否终态用 `is_closed()`，绝不用 `!is_open()`——后者会把 `SUBMITTED` 判为终态。
 
-Log report counts at the command's `log_receipt_level` so periodic checks stay at debug while mass
-status logs at info.
+按命令的 `log_receipt_level` 记录报告数量，这样周期性检查停在 debug 级别，全量状态记在 info 级别。
 
-If a periodic check request fails, the engine marks that client failed for the cycle. It stops inferring
-absence for the orders and positions that the client covers. Returning an error is therefore safer than
-returning an empty set.
+周期性检查请求失败时，引擎把该客户端标记为本轮失败，并停止对其覆盖的订单和持仓推断"不存在"。因此返回错误比
+返回空集合更安全。
 
-##### Single-order probes
+##### 单订单探测 {#single-order-probes}
 
-`generate_order_status_report` resolves a single order. The engine issues it after the open-order
-check retries without confirming a cached order, which requires that check to run in full-history
-mode (`open_check_open_only=false`). The command carries the queried `instrument_id` and
-`client_order_id`, plus `venue_order_id` when the order has one, so support a lookup that has no
-venue identifier yet. The engine discards a report whose identity does not match the query.
+`generate_order_status_report` 解析单个订单。未决订单检查重试后仍未确认缓存订单时，引擎发出该请求；这要求
+检查以完整历史模式运行（`open_check_open_only=false`）。命令携带被查询的 `instrument_id` 和
+`client_order_id`，订单若有 `venue_order_id` 也一并携带，因此要支持尚无交易场所标识的查找。身份与查询不匹配
+的报告会被引擎丢弃。
 
-Distinguish absence from failure in that probe, because the engine acts on the difference:
+探测中要区分"不存在"与"失败"，因为引擎对二者的处理不同：
 
-- `Ok(None)` states that the venue answered and has no such order. The engine treats that answer as proof. It
-  resolves an accepted, submitted, or partially filled order to a terminal state. Pending cancel and update
-  states stay unresolved.
-- An error states that the lookup did not answer, so the engine defers the missing-order resolution
-  to a later cycle.
+- `Ok(None)` 表示交易场所应答且没有该订单。引擎把该应答当作证据，把已接受、已提交或部分成交的订单解析为终态；
+  待取消和待更新状态保持未解析。
+- 错误表示查找没有应答，因此引擎把缺失订单的解析推迟到后续轮次。
 
-A failed lookup returned as `Ok(None)` can therefore reject or cancel an order that is live at the
-venue. The trait default returns `Ok(None)` after logging that the handler is not implemented, so
-implement this method before an open-order check runs in full-history mode.
+因此，把失败的查找返回成 `Ok(None)`，可能拒掉或取消一个在交易场所真实活跃的订单。trait 默认实现在记录"处理
+器未实现"后返回 `Ok(None)`，所以在未决订单检查以完整历史模式运行之前必须实现这个方法。
 
-##### Shared reconciliation changes
+##### 涉及共享对账的改动 {#shared-reconciliation-changes}
 
-The execution engine and the live `ExecutionManager` apply all adapters' reports through the same code. Thus,
-changes to shared execution or reconciliation logic change behavior for all venues at once. Assess such a
-change against each adapter with an execution client, not only the venue that motivated it. For each adapter,
-check the report fields the change relies on, for example:
+执行引擎和 live 的 `ExecutionManager` 用同一份代码应用所有适配器的报告。因此改动共享的执行或对账逻辑会一次性
+改变所有交易场所的行为。评估这类改动要针对每个带执行客户端的适配器，而不仅是促使改动的那个交易场所。逐个适配器
+检查改动所依赖的报告字段，例如：
 
-- The time `OrderStatusReport.ts_accepted` carries: the venue's acceptance time, its last update
-  time, or a local timestamp. A last update or local time can place an order's acceptance after its
-  own fills.
-- The time that `OrderStatusReport.ts_last` carries for a closed order: its close time or an earlier time,
-  such as creation. An earlier time can place a cancellation before the order's own fills.
-- Whether fill reports carry the same `venue_order_id` as the order report for the same order.
-- Whether one client order can carry more than one venue order ID in a single mass status, for
-  example after a price replacement.
-- Whether mass status includes closed orders or only open ones.
+- `OrderStatusReport.ts_accepted` 携带的时间：是交易场所的接受时间、最后更新时间，还是本地时间戳。最后更新
+  时间或本地时间可能把订单的接受时间排到它自己的成交之后。
+- 已终结订单的 `OrderStatusReport.ts_last` 携带的时间：是终结时间还是更早的时间（如创建时间）。更早的时间可能
+  把取消排到订单自身成交之前。
+- 同一订单的成交报告与订单报告是否携带相同的 `venue_order_id`。
+- 单个客户端订单在同一份全量状态中是否可能携带多个交易场所订单 ID，例如价格替换之后。
+- 全量状态包含已终结订单还是只含未决订单。
 
-Classify each adapter as helped, unaffected, or at risk. Cite the code that decides the classification.
-Include the result in the pull request description.
+把每个适配器归类为"受益"、"无影响"或"有风险"，并引用决定归类的代码。把结果写进 pull request 描述。
 
-#### Commission failure handling
+#### 手续费失败处理 {#commission-failure-handling}
 
-Commission is part of a fill's economic record. Calculate it with exact decimal arithmetic, then
-construct the venue currency's [`Money`](https://github.com/nautechsystems/nautilus_trader/blob/develop/crates/model/src/types/money.rs) value. The shared
-`ExecutionClient::calculate_commission` hook distinguishes these outcomes:
+手续费是成交经济记录的一部分。用精确的十进制运算计算，然后构造交易场所币种的
+[`Money`](https://github.com/nautechsystems/nautilus_trader/blob/develop/crates/model/src/types/money.rs) 值。共享的
+`ExecutionClient::calculate_commission` 钩子区分下列结果：
 
-| Result                 | Meaning                                                                                  |
+| 结果 | 含义 |
 | ---------------------- | ---------------------------------------------------------------------------------------- |
-| `Ok(Some(commission))` | The venue formula applies and produces a representable commission. Use that exact value. |
-| `Ok(None)`             | The adapter has no venue override. The caller may use the generic commission formula.    |
-| `Err(error)`           | The venue formula applies but cannot produce a representable value. Fail closed.         |
+| `Ok(Some(commission))` | 交易场所公式适用且产出可表示的手续费。使用该精确值。 |
+| `Ok(None)` | 适配器没有交易场所覆写。调用方可以使用通用手续费公式。 |
+| `Err(error)` | 交易场所公式适用但无法产出可表示的值。失败即关闭。 |
 
-Never replace `Err(error)` with zero commission or the generic formula. That substitution records a
-confirmed trade with economics the venue did not report.
+绝不用零手续费或通用公式替代 `Err(error)`。那种替换会把一笔已确认的交易记录成交易场所并未报告的经济数据。
 
-##### REST report construction
+##### REST 报告构造 {#rest-report-construction}
 
-Commission construction belongs to the REST report request. If commission construction fails for a required
-fill, return an error from the affected request:
+手续费构造属于 REST 报告请求的职责。必需成交的手续费构造失败时，从受影响的请求返回错误：
 
-- The direct fill report request.
-- Targeted recovery.
-- Complete mass status.
+- 直接的成交报告请求。
+- 定向恢复。
+- 完整的全量状态。
 
-Never drop the fill, return a partial mass status, or mark a bounded report set incomplete for this
-failure. Otherwise, an order or position report can cause the engine to infer the same quantity
-without its venue commission.
+绝不要因此丢弃成交、返回部分全量状态，或把有界的报告集标记为不完整。否则订单或持仓报告可能让引擎推断出相同
+数量却没有其交易场所手续费。
 
-During startup, the error prevents the node from starting and leaves that client's mass status
-unapplied. Periodic and targeted reconciliation defer the affected work until a later cycle.
+启动期间，该错误会阻止节点启动，该客户端的全量状态保持未应用。周期性和定向对账把受影响的工作推迟到后续轮次。
 
-##### Inferred fills
+##### 推断成交 {#inferred-fills}
 
-Call the hook for every adapter-backed inferred fill: external and cached orders, continuous
-reconciliation, and targeted order recovery. If commission calculation fails, the engine may apply
-valid explicit fills, but it leaves the residual inferred quantity and dependent terminal
-transition pending.
+每个由适配器支撑的推断成交都要调用该钩子：外部订单与缓存订单、持续对账、定向订单恢复。手续费计算失败时，引擎
+可以应用合法的显式成交，但会保留剩余的推断数量及依赖它的终态转移，保持待处理。
 
-For an external order, calculate commission before a cache or event transition could prevent a retry. If the
-responsible execution client is unavailable, defer the inferred fill. Do not treat that missing client as an
-`Ok(None)` response.
+外部订单要在缓存或事件转移导致无法重试之前计算手续费。负责的执行客户端不可用时，推迟该推断成交。不要把缺失的
+客户端当作 `Ok(None)` 应答。
 
-Pass the same quantity, price, and liquidity side as the inferred-fill event. A cached order can have prior
-fills. For such an order, calculate commission from the unbooked incremental quantity's back-solved price. Do
-not use the venue report's cumulative average price for that commission.
+传入与推断成交事件相同的数量、价格和流动性方向。缓存订单可能已有成交。这类订单的手续费要用尚未入账的增量数量的
+反解价格计算，不要用交易场所报告的累计均价来算这笔手续费。
 
-A position-only synthetic correction has no underlying trade evidence and may leave commission unspecified. Do
-not present an aggregate or generic value as the exact commission for that unknown fill. This case is distinct
-from a failed venue calculation.
+仅持仓的合成纠正没有底层交易证据，手续费可以留为未指定。不要把聚合值或通用值当作这笔未知成交的精确手续费。
+这种情况与交易场所计算失败是两回事。
 
-##### WebSocket trade processing
+##### WebSocket 成交处理 {#websocket-trade-processing}
 
-Process each WebSocket trade atomically. Construct all owned maker and taker fill reports before any of these
-actions:
+每个 WebSocket trade 原子化处理。在下列任何动作之前，先构造全部属于本方的 maker 和 taker 成交报告：
 
-- Emission of a report.
-- Mutation of fill trackers.
-- Consumption of the trade's deduplication key.
+- 发出报告。
+- 修改成交跟踪器。
+- 消费该 trade 的去重键。
 
-Consume the key only after all reports route successfully.
+只有全部报告成功路由后才消费去重键。
 
-On failure, log the error and leave the trade unprocessed. Do not confirm or terminalize the affected orders
-or mark them permanently unreconcilable. A duplicate or reconnect replay can retry the trade. Scheduled REST
-reconciliation stays the authoritative recovery path. The WebSocket handler does not start an immediate REST
-request.
+失败时记录错误并让该 trade 保持未处理。不要确认或终态化受影响的订单，也不要把它们标记为永久无法对账。重复
+消息或重连重放可以重试该 trade。定时的 REST 对账仍是权威的恢复路径。WebSocket 处理器不立即发起 REST 请求。
 
-#### Bounded mass-status reports
+#### 有界的全量状态报告 {#bounded-mass-status-reports}
 
-When an execution client applies a lower time bound to historical reconciliation reports, record
-the contract with `ExecutionMassStatus::set_report_window(Some(lookback_start),
-reports_complete)`. Capture one cutoff for the mass-status request and use it for every historical
-order and fill query. A moving cutoff can omit records at different boundaries and produce a report
-set that never existed at the venue.
+执行客户端对历史对账报告施加时间下界时，用
+`ExecutionMassStatus::set_report_window(Some(lookback_start), reports_complete)` 记录契约。全量状态请求只取
+一个截止时间，并把它用于每个历史订单和成交查询。移动的截止时间会在不同边界漏掉记录，产出一组交易场所从未存在过
+的报告。
 
-Set `reports_complete=true` only when both conditions hold:
+只有两个条件同时成立才设置 `reports_complete=true`：
 
-- All sources necessary to interpret the bounded history completed.
-- All required records were parsed, mapped, and linked to their orders.
+- 解读有界历史所需的全部来源都已完成。
+- 全部必需记录都已解析、映射并关联到其订单。
 
-A failed required source, required row that cannot be parsed or mapped, or historical fill without its
-required order report makes the set incomplete. Preserve successful legs and authoritative active orders, but
-do not represent a failed historical query as a successful empty result.
+必需的来源失败、必需的行无法解析或映射、历史成交缺少其必需的订单报告，都会让该集合不完整。保留成功的腿和权威的
+活跃订单，但不要把失败的历史查询表示为成功的空结果。
 
-Commission construction is an exception to partial bounded history. Follow
-[commission failure handling](#commission-failure-handling) and fail the report request instead of
-returning a set that omits the affected fill.
+手续费构造是有界历史不完整的例外。遵循[手续费失败处理](#commission-failure-handling)，让报告请求失败，而不是
+返回一个遗漏受影响成交的集合。
 
-:::danger[Position report parsing is market exposure]
-**Parse position reports exactly. The engine treats each explicit report as the position, then
-aligns to it within reconciliation tolerances or fails closed.** A wrong quantity, a wrong side,
-a dropped row, or an invented flat becomes exposure a strategy will trade.
+:::danger[持仓报告解析就是市场敞口]
+**精确解析持仓报告。引擎把每份显式报告当作持仓本身，随后在对账容差内向它对齐，否则失败即关闭。**数量错误、
+方向错误、丢一行、凭空造出平仓，都会变成策略会去交易的敞口。
 
-By default the engine generates the orders and fills required to reach the report you emit. It
-cannot recover a position fact you dropped or invented.
+默认情况下，引擎会生成达到你所发报告所需的订单和成交。它无法恢复被你丢掉或凭空造出的持仓事实。
 
-Emit a report only for a fact the venue stated:
+只对交易场所明确陈述的事实发报告：
 
-- Open quantity and direction, as an open report
-- No position, as an explicit flat report, and only after coverage proves that position is flat
+- 开仓数量与方向，作为开仓报告
+- 无持仓，作为显式的平仓报告，且仅在覆盖范围证明该持仓确为平仓之后
 
-Do not emit a report for:
+下列情况不要发报告：
 
-- An omitted instrument without authoritative coverage
-- A null quantity
-- An unparsed row
-- A venue that does not publish positions
+- 被省略的金融工具，且没有权威覆盖
+- 数量为空值
+- 未解析的行
+- 不发布持仓的交易场所
 
-Dropping a reported zero or flat, or inventing a zero without authoritative coverage, is an adapter coding
-error. A complete venue snapshot can establish flat only when its documented coverage includes the position. A
-missing or failed response cannot.
+丢弃已报告的零或平仓，或在没有权威覆盖时凭空造一个零，都是适配器编码错误。完整的交易场所快照只有在其成文的覆盖
+范围包含该持仓时才能确立平仓。缺失或失败的响应不能。
 :::
 
-When positions come from a cached stream, absence proves flat only when a complete snapshot from
-the current connection epoch positively covers that instrument. Invalidate snapshot coverage on
-reconnect, and keep a row uncovered when it could not be parsed or mapped. Emit an explicit flat
-report for an absent touched instrument only after that coverage is established.
+持仓来自缓存数据流时，"缺席证明平仓"只在满足以下条件时成立：当前连接世代的一份完整快照正面覆盖了该金融工具。
+重连时使快照覆盖失效；某行无法解析或映射时，让它保持未覆盖。只有该覆盖确立之后，才对缺席的被触及金融工具发出
+显式的平仓报告。
 
-Preserve stable venue order and trade identities across live dispatch and mass status. Include client order
-linkage where the venue supplies it. Include `venue_position_id` where the venue supplies it. These fields let
-the execution engine distinguish a coherent lifecycle from ambiguous history. See
-[Bounded history safety](./../concepts/execution/reconciliation.md#bounded-history-safety) for the engine's
-economic application rules.
+在实时分发和全量状态中都要保持稳定的交易场所订单与成交标识。交易场所提供客户端订单关联时就带上，提供
+`venue_position_id` 时就带上。这些字段让执行引擎区分连贯的生命周期与含糊的历史。引擎的经济应用规则见
+[Bounded history safety](./../concepts/execution/reconciliation.md#bounded-history-safety)。
 
-#### Instrument resolution during reconciliation
+#### 对账期间的金融工具解析 {#instrument-resolution-during-reconciliation}
 
-Report generation resolves each record's instrument to parse venue payloads at the correct price and size
-precision. Resolve it from the instruments that the adapter loaded during connect. Classify a miss by whether
-the record was in scope.
+报告生成会解析每条记录的金融工具，以便用正确的价格和数量精度解析交易场所报文。金融工具从适配器 connect 期间
+加载的集合中解析。某条记录解析不到金融工具时，先按它是否在范围内分类。
 
-Do not request an instrument from the venue while generating reports:
+对账期间不要向交易场所请求金融工具：
 
-- Per-record requests multiply the bulk queries that startup reconciliation already issues against
-  the venue's rate limits.
-- Hidden requests make reconciliation timing and results irreproducible.
-- A failed request cannot be distinguished from an instrument the venue does not have.
+- 逐条请求会把启动对账已经发出的批量查询成倍叠加到交易场所的限流上。
+- 隐藏请求让对账的时序和结果无法复现。
+- 失败的请求无法与"交易场所没有该金融工具"区分开。
 
-Load what the adapter needs during connect instead.
+改为在 connect 期间加载适配器所需的内容。
 
-An in-scope record whose instrument is missing is never dropped silently. The engine cannot distinguish a
-discarded open order report from an order that the venue did not have. Thus, it resolves a live order as
-missing at the venue. Scope decides whether a miss is expected, so evaluate it before classifying the record:
+范围内的记录缺少金融工具时，绝不静默丢弃。引擎分不清"被丢弃的未决订单报告"和"交易场所没有的订单"，会把
+活跃订单解析为在交易场所缺失。范围决定缺失是否预期，因此先评估范围，再给记录分类：
 
-| Record                                         | Outcome                                 | Report set                         |
+| 记录 | 结果 | 报告集 |
 | ---------------------------------------------- | --------------------------------------- | ---------------------------------- |
-| Out of scope for `load_ids`                    | Log at debug and drop                   | Unaffected                         |
-| In scope, open order or position status report | Return an error from the report request | Not returned                       |
-| In scope, closed or historical record          | Log a warning naming the instrument     | Incomplete when history is bounded |
+| 不在 `load_ids` 范围内 | 记 debug 日志并丢弃 | 不受影响 |
+| 在范围内，未决订单或持仓状态报告 | 从报告请求返回错误 | 不返回 |
+| 在范围内，已终结或历史记录 | 记 warning 并点名金融工具 | 历史有界时标记不完整 |
 
-`InstrumentProviderConfig.load_ids` defines that scope. If it names an explicit set, records for instruments
-outside that set are expected absences, not errors. Thus, a node scoped to one instrument does not fail or
-warn when the venue returns records for other instruments.
+`InstrumentProviderConfig.load_ids` 定义该范围。它指定显式集合时，集合外金融工具的记录属于预期缺席，不是
+错误。因此限定为单个金融工具的节点，在交易场所返回其他金融工具的记录时不会失败或告警。
 
-Historical queries routinely reach past the loaded instrument set because expiries retire
-instruments that earlier fills still reference. Failing a bounded-history query for one expired
-instrument would withhold every other record it returned, so record incompleteness through
-`set_report_window`.
+历史查询经常越过已加载的金融工具集合：到期会退役早期成交仍引用的金融工具。为一个到期金融工具让整个有界历史
+查询失败，会扣掉它返回的全部其他记录，所以通过 `set_report_window` 记录不完整。
 
-**Position effects**:
+**对持仓的影响**：
 
-- Incompleteness does not veto an explicit position report.
-- A bounded fill for an instrument with no explicit position report does not change a position.
-- Emit an explicit flat report only when coverage proves the venue has no position. Do not omit the
-  row and expect the engine to infer flat.
+- 不完整不会否决显式的持仓报告。
+- 某金融工具的有界成交在其没有显式持仓报告时不改变持仓。
+- 只有覆盖证明交易场所没有持仓时才发显式的平仓报告。不要省略该行并指望引擎推断平仓。
 
-`reconciliation_instrument_ids` filters reports after the execution engine receives them, so it
-cannot prevent a resolution failure inside an adapter. Keep the adapter's scope in its instrument
-provider configuration.
+`reconciliation_instrument_ids` 在执行引擎收到报告之后才过滤，拦不住适配器内部的解析失败。适配器的范围由其
+instrument provider 配置决定。
 
-#### Tracked and external execution updates
+#### 被跟踪与外部执行更新 {#tracked-and-external-execution-updates}
 
-Route execution updates according to order ownership, independent of the dispatch module layout:
+按订单所有权路由执行更新，与分发模块的布局无关：
 
-- For an order submitted and tracked by this client, emit typed order events through the normal
-  order state machine.
-- For an untracked or external order, emit `OrderStatusReport` and `FillReport` values. These reports let the
-  execution engine reconcile or create the external order.
+- 由本客户端提交并跟踪的订单，经正常的订单状态机发出类型化订单事件。
+- 未跟踪或外部订单，发出 `OrderStatusReport` 和 `FillReport` 值。这些报告让执行引擎对账或创建外部订单。
 
-Do not invent strategy or client identity for an untracked order. Preserve available venue
-identity in the report and let the engine apply
-[external order ownership](./../concepts/execution/reconciliation.md#external-order-creation). The adapter may use
-any state structure that proves this routing decision.
+不要为未跟踪的订单编造策略或客户端身份。在报告中保留可得的交易场所标识，由引擎应用
+[外部订单所有权](./../concepts/execution/reconciliation.md#external-order-creation)。只要能在本路由决策中得到证明，适配器
+可以使用任何状态结构。
 
-Model tracked ownership with two conceptual layers:
+被跟踪的所有权用两个概念层建模：
 
-- **Order identity** contains the stable fields that associate an update with the submitted order:
-  client order ID, strategy, instrument, side, and order type.
-- **Order context** combines that identity with the submitted order shape. The shape supplies the fields
-  necessary to construct later events without access to the engine cache. These fields include quantity, price
-  and trigger details, time in force, and execution flags.
+- **订单标识**包含把更新与已提交订单关联起来的稳定字段：客户端订单 ID、策略、金融工具、方向和订单类型。
+- **订单上下文**把该标识与提交的订单形态结合。形态提供无需访问引擎 cache 就能构造后续事件的字段，包括数量、
+  价格与触发细节、有效期类型和执行标志。
 
-Keep venue order bindings, request correlation, cumulative fills, and replace state in adapter-owned
-context around that common surface.
+交易场所订单绑定、请求关联、累计成交和替换状态放在这层公共表面之外的适配器自有上下文中。
 
-[`OrderIdentity` and `OrderContext`](https://github.com/nautechsystems/nautilus_trader/blob/develop/crates/live/src/execution/context.rs) provide that
-surface. Start from them, and keep an adapter-local structure only where it proves the same routing
-decision.
+[`OrderIdentity` 与 `OrderContext`](https://github.com/nautechsystems/nautilus_trader/blob/develop/crates/live/src/execution/context.rs)
+就是这层公共表面。以它们为起点，只有能证明同一路由决策时才保留适配器本地结构。
 
-Register the order context before sending or spawning work that can produce an inbound update.
-Restore context for active local orders before processing their live updates, and retain it while
-the order can still produce owned updates. Do not evict active context merely to bound replay state.
+在发送或派生可能产生入站更新的工作之前先登记订单上下文。处理活跃本地订单的实时更新之前先恢复其上下文，并在
+订单仍可能产生本方更新期间保留它。不要仅仅为了给重放状态设界就淘汰活跃上下文。
 
-Make every execution update take one explicit route:
+每个执行更新必须走一条显式路由：
 
-| Route      | Evidence                                               | Result                                                         |
+| 路由 | 证据 | 结果 |
 | ---------- | ------------------------------------------------------ | -------------------------------------------------------------- |
-| Tracked    | Active or pending context owns the order.              | Emit, deduplicate, or safely defer typed order events.         |
-| External   | No tracked, pending, or terminal ownership exists.     | Forward reports for reconciliation or external order creation. |
-| Suppressed | The update is proven duplicated, stale, or superseded. | Emit neither an event nor a report.                            |
+| 被跟踪 | 活跃或挂起上下文拥有该订单。 | 发出、去重或安全推迟类型化订单事件。 |
+| 外部 | 不存在被跟踪、挂起或终态所有权。 | 转发报告，供对账或创建外部订单。 |
+| 抑制 | 更新被证明重复、陈旧或已被取代。 | 事件和报告都不发出。 |
 
-Missing tracked metadata, a parse failure, or an unresolved venue binding does not prove that an
-update is external. A tracked status with no corresponding Nautilus lifecycle event is a tracked
-no-op or deferred update unless the adapter documents and tests a report exception.
+缺少被跟踪的元数据、解析失败或交易场所绑定未解决，都不能证明更新来自外部。被跟踪的状态若没有对应的 Nautilus
+生命周期事件，就是被跟踪的无效操作或推迟更新——除非适配器成文并测试过报告例外。
 
-##### Triggered parent and child orders
+##### 触发式父子订单 {#triggered-parent-and-child-orders}
 
-Some venues replace a tracked parent venue order with a child after a trigger. Treat both venue IDs
-as one order context:
+有些交易场所会在触发后用子订单替换被跟踪的父交易场所订单。两个交易场所 ID 视作同一个订单上下文：
 
-- Keep the client identity stable.
-- Bind the child atomically with the trigger transition. The child ID becomes authoritative for
-  later events and commands.
-- If the child arrives during the binding race, use venue linkage to complete the tracked transition
-  or defer the update. Do not route it as external.
-- Once the child is authoritative, suppress stale parent acceptance and any superseded parent update
-  that would regress child authority.
+- 客户端身份保持稳定。
+- 子订单与触发转移原子性地绑定。子订单 ID 从此对后续事件和命令具有权威性。
+- 子订单恰好在绑定竞态期间到达时，用交易场所关联完成被跟踪的转移，或推迟该更新。不要把它路由为外部。
+- 子订单取得权威性后，抑制过期的父订单接受，以及任何会把子订单权威往回退的已被取代的父订单更新。
 
-##### Incomplete and late updates
+##### 不完整与迟到的更新 {#incomplete-and-late-updates}
 
-Keep these cases distinct from normal tracked events:
+以下情形要与正常的被跟踪事件区分开：
 
-- An aggregate parent status without the trade identity or other fields required for a typed event
-  remains a tracked no-op or deferred update. The authoritative child produces the live event, while
-  report-based recovery remains in the reconciliation path.
-- A fill with a new trade identity that arrives after the tracked lifecycle reached a terminal state
-  remains a `FillReport`. The active order context is no longer available for a typed event, so
-  reconciliation applies the late venue evidence.
+- 缺少 trade 标识或其他类型化事件所需字段的聚合父订单状态，保持为被跟踪的无效操作或推迟更新。权威的子订单
+  产生实时事件，基于报告的恢复留在对账路径。
+- 被跟踪生命周期已到达终态之后到达的、带新 trade 标识的成交，保持为 `FillReport`。构造类型化事件所需的活跃
+  订单上下文已不可得，由对账应用这条迟到的交易场所证据。
 
-Suppress terminal status replays and fills whose trade identity was already processed.
+抑制终态状态的重放，以及 trade 标识已处理过的成交。
 
-#### Event ordering and deduplication
+#### 事件排序与去重 {#event-ordering-and-deduplication}
 
-A venue can report the same transition through an order response, private stream, query, and
-reconciliation result. Deduplicate by stable venue identity, not by the transport that delivered
-the update:
+交易场所可能经订单响应、私有数据流、查询和对账结果报告同一个转移。按稳定的交易场所标识去重，不按送达更新的
+传输渠道：
 
-- Use the venue trade or match ID for fills. Include account, instrument, or product identity when
-  the venue does not guarantee global uniqueness.
-- Share fill identity across live dispatch and reconciliation when those paths can overlap.
-- Do not consume a deduplication key before parsing and routing succeeds. If the implementation
-  reserves first, release the key after a failure so a replay can recover the event.
-- Bound long-lived deduplication state, but retain enough history across reconnects to cover venue
-  replay. Reset it only when the protocol proves old identifiers cannot return.
-- Reuse the shared [`FifoCache` and `FifoCacheMap`](https://github.com/nautechsystems/nautilus_trader/blob/develop/crates/common/src/cache/fifo.rs) when
-  first-in, first-out eviction matches the replay contract. Keep adapter-specific locking where
-  several state changes must remain atomic.
-- Make repeated acknowledgements and order snapshots idempotent. They must not regress state or
-  emit a second lifecycle event.
+- 成交用交易场所的 trade 或 match ID。交易场所不保证全局唯一时，加入账户、金融工具或产品标识。
+- 实时分发与对账两条路径可能重叠时，共享同一套成交标识。
+- 解析和路由成功之前不要消费去重键。实现上先占位的话，失败后释放该键，让重放能恢复事件。
+- 长生命周期的去重状态要有界，但跨重连保留足够历史以覆盖交易场所重放。只有协议证明旧标识不可能再现时才重置。
+- 先进先出的逐出符合重放契约时，复用共享的
+  [`FifoCache` 与 `FifoCacheMap`](https://github.com/nautechsystems/nautilus_trader/blob/develop/crates/common/src/cache/fifo.rs)。
+  多个状态变化必须保持原子时，保留适配器自有的加锁。
+- 重复的确认和订单快照必须幂等：不得让状态回退，也不得发出第二个生命周期事件。
 
-One state object can own active order context, pending correlation, replay deduplication, and terminal
-tombstones. Even then, keep them as separate lifecycle concepts. Bound replay and tombstone state without
-letting eviction reclassify an update for an active order as external.
+一个状态对象可以同时持有活跃订单上下文、挂起关联、重放去重和终态墓碑。即便如此，也要把它们保持为不同的生命周期
+概念。给重放和墓碑状态设界时，不能让逐出把活跃订单的更新重新分类为外部。
 
-For a tracked order, a definitive fill can arrive before an acknowledgement or open-order update. Emit a
-required preceding lifecycle event only when both conditions hold:
+对被跟踪的订单，确定的成交可能先于确认或未决订单更新到达。只有两个条件同时成立才发出必需的前置生命周期事件：
 
-- The adapter has complete order identity.
-- The venue evidence proves that state.
+- 适配器拥有完整的订单标识。
+- 交易场所证据证明该状态。
 
-Record the synthesized transition so a later acknowledgement does not duplicate it. Untracked orders continue
-through reports rather than synthesized strategy events.
+记录合成的那次转移，让后续的确认不会重复它。未跟踪订单继续走报告，而不是合成策略事件。
 
-When parent and child updates can arrive on different streams:
+父订单与子订单的更新可能来自不同数据流时：
 
-- Serialize the venue order ID binding with the lifecycle events that publish it.
-- Emit any required `OrderAccepted`, `OrderUpdated`, and `OrderTriggered` events before routing a
-  child fill or cancellation.
-- Route commands from the same authoritative binding. Do not infer it from an engine cache that may
-  still be processing those events.
+- 把交易场所订单 ID 的绑定与其发布的生命周期事件串行化。
+- 路由子订单成交或取消之前，先发出所有必需的 `OrderAccepted`、`OrderUpdated` 和 `OrderTriggered` 事件。
+- 命令从同一个权威绑定路由。不要从可能仍在处理这些事件的引擎 cache 推断它。
 
-When a venue implements modify as cancel-replace, update the venue order ID mapping before routing the
-replacement leg. Distinguish a stale cancel for the old leg from cancellation of the active replacement, and
-calculate replacement quantity from current cumulative fills. This behavior is venue-specific and needs
-focused race tests. It does not imply a shared dispatch state layout.
+交易场所把 modify 实现为 cancel-replace 时，先更新交易场所订单 ID 映射，再路由替换腿。区分旧腿的过期取消与
+对活跃替换的取消，替换数量用当前累计成交计算。这种行为因交易场所而异，需要针对性的竞态测试，但不意味着共享的
+分发状态布局。
 
-Focused tests distinguish tracked and external updates, fills that precede acknowledgement,
-duplicates from overlapping sources, submission or venue-binding races, and stale post-terminal
-updates. Test active-context retention separately from bounded replay eviction.
+针对性测试要区分：被跟踪与外部更新、先于确认的成交、来自重叠来源的重复、提交或交易场所绑定的竞态、终态之后的
+过期更新。活跃上下文的保留与有界重放逐出要分开测试。
 
-#### Order command outcome policy
+#### 订单命令结果策略 {#order-command-outcome-policy}
 
-Use [Execution policies](./../concepts/execution/policies.md) as the cross-adapter contract for
-command delivery, event application, persistence, and recovery.
+跨适配器的命令投递、事件应用、持久化与恢复契约以
+[执行策略](./../concepts/execution/policies.md)为准。
 
-Separate three evidence classes:
+区分三类证据：
 
-- **Definitive local failure**: local evidence proves that the command was never transmitted. Deterministic
-  validation before a submit is one example. Emit `OrderDenied` before `OrderSubmitted`. During cancel or
-  modify preparation, emit the matching rejection only when both conditions hold:
+- **确定的本地失败**：本地证据证明命令从未被发送。提交前的确定性校验是一例。在 `OrderSubmitted` 之前发出
+  `OrderDenied`。在取消或修改的准备阶段，只有两个条件同时成立才发出对应的拒绝：
 
-  - The failure is attributable to that command.
-  - The failure proves that the command was not sent.
+  - 失败可归因于该命令。
+  - 失败证明命令没有被发送。
 
-  Otherwise, log the failure without inventing a rejection.
-- **Definitive venue result**: a structured venue response or status explicitly accepts, updates,
-  or rejects one command. Emit the matching domain event.
-- **Unknown outcome**: the request may have reached the venue, but no definitive result is
-  available. Keep the command in flight for stream updates, polling, queries, or reconciliation.
+  否则只记录失败，不要编造拒绝。
+- **确定的交易场所结果**：结构化的交易场所响应或状态明确接受、更新或拒绝某条命令。发出对应的领域事件。
+- **未知结果**：请求可能已到达交易场所，但没有确定的结果。让命令保持在途，等待数据流更新、轮询、查询或对账。
 
 ```mermaid
 flowchart TD
@@ -1420,319 +1313,267 @@ flowchart TD
     recovery --> rejected
 ```
 
-If a submit failure occurs after `OrderSubmitted`, emit `OrderRejected` when local evidence proves
-that the command was never transmitted. Otherwise, leave the order in flight unless definitive
-venue evidence resolves it.
+提交在 `OrderSubmitted` 之后失败时，本地证据证明命令从未被发送才发出 `OrderRejected`；否则让订单保持在途，
+直到有确定的交易场所证据将其解析。
 
-Transport errors, timeouts, disconnects, task cancellation, retry exhaustion, HTTP 5xx responses,
-rate limits, missing acknowledgements, and parse failures after transmission usually leave an
-unknown outcome. Do not convert them into a venue rejection.
+传输错误、超时、断连、任务取消、重试耗尽、HTTP 5xx、限流、确认缺失，以及发送之后的解析失败，通常都留下未知
+结果。不要把其中任何一个转化为交易场所拒绝。
 
-For batch commands, apply evidence per order. A whole-request failure does not prove that each child command
-failed. Treat venue messages such as "not found" or "already closed" according to documented venue semantics.
-They can describe a race with a fill or cancellation, rather than an unambiguous command rejection.
+批量命令逐单应用证据。整请求失败不能证明每条子命令都失败。"not found"、"already closed" 这类交易场所消息
+按成文的交易场所语义处理：它们可能描述的是与成交或取消的竞态，而非明确的命令拒绝。
 
-Keep this policy independent of the HTTP or WebSocket path used to send a command.
+本策略与命令走 HTTP 还是 WebSocket 无关。
 
-#### Naming the evidence classes
+#### 证据类别命名 {#naming-the-evidence-classes}
 
-Use consistent names so command failure classifications can be compared across adapters and the
-same wire condition is classified consistently. Classify every state-changing order command failure as one
-[`CommandFailure`](https://github.com/nautechsystems/nautilus_trader/blob/develop/crates/live/src/execution/failure.rs) variant:
+命名保持一致，跨适配器才能比较命令失败的分类，同一线路条件也才会被一致归类。每个会改变状态的订单命令失败都要
+归入一个
+[`CommandFailure`](https://github.com/nautechsystems/nautilus_trader/blob/develop/crates/live/src/execution/failure.rs)
+变体：
 
-| Evidence class             | `CommandFailure` variant | Terminal event from this evidence |
+| 证据类别 | `CommandFailure` 变体 | 该证据可否发出终态事件 |
 | -------------------------- | ------------------------ | --------------------------------- |
-| Definitive local failure   | `NotSent`                | Valid                             |
-| Definitive venue rejection | `VenueRejected`          | Valid                             |
-| Unknown outcome            | `Ambiguous`              | Never                             |
+| 确定的本地失败 | `NotSent` | 可以 |
+| 确定的交易场所拒绝 | `VenueRejected` | 可以 |
+| 未知结果 | `Ambiguous` | 绝不 |
 
-An `Ambiguous` classification never emits a terminal event by itself. Later definitive evidence
-from a stream update, query, poll, or reconciliation still resolves the command either way.
+`Ambiguous` 分类自身绝不发出终态事件。后续来自数据流更新、查询、轮询或对账的确定证据仍能从任一方向解析该
+命令。
 
-A definitive venue acceptance or update is not a failure and carries no variant. Apply the venue
-event directly.
+确定的交易场所接受或更新不是失败，不携带任何变体，直接应用交易场所事件。
 
-Use the evidence that lower layers preserve to classify one time at the execution boundary. Do not re-branch
-on the error enum at each emit site. Apply this to each state-changing order command, submit, modify, and
-cancel alike, including their batch and list forms. A classifier scoped to one command type leaves the others
-to drift. Queries produce no terminal command event and need no classification.
+分类在边界处做一次，依据底层保留的证据，不要在每个发出点都对着错误枚举重新分支。本规则适用于每个会改变状态的
+订单命令——提交、修改、取消都一样，含它们的批量与列表形式。分类器只覆盖一种命令类型，其余类型就会各自漂移。
+查询不产生终态命令事件，无需分类。
 
-Keep this axis separate from `is_retryable`. Retryability answers whether to send the request again. Ambiguity
-answers whether the venue may already have acted on the first attempt. An error can be both, either, or
-neither, and collapsing them is what makes an unknown outcome look like a rejection.
+本轴与 `is_retryable` 保持分离。可重试性回答"要不要重发请求"；歧义性回答"交易场所是否可能已经对第一次尝试
+采取了行动"。一个错误可以同时具备、只具备其一或两者皆无；把它们混为一谈，才会让未知结果看起来像拒绝。
 
-Two conditions are easy to misfile:
+两个条件容易被放错位置：
 
-- An HTTP 5xx without definitive command evidence is ambiguous. It proves only that the command was not
-  confirmed. It does not prove that the venue did not apply the command. A gateway 5xx does not prove that the
-  request failed to reach the venue.
-- A response parse failure is ambiguous, while a request encoding failure is `NotSent`. Both may
-  surface as one serialization error variant, so classify by which side of the write boundary
-  the failure occurred on.
+- 没有确定命令证据的 HTTP 5xx 属于歧义。它只证明命令未被确认，不证明交易场所没有应用该命令；网关 5xx 也不能
+  证明请求没有到达交易场所。
+- 响应解析失败属于歧义，而请求编码失败是 `NotSent`。两者可能都表现为同一个序列化错误变体，因此要按失败发生在
+  写边界的哪一侧来分类。
 
-#### Separate diagnostics from strategy-facing reasons
+#### 诊断信息与面向策略的原因分离 {#separate-diagnostics-from-strategy-facing-reasons}
 
-Preserve a structured diagnostic error through classification and logging. Derive a
-strategy-facing reason only at the execution event boundary, after the outcome and retry decisions.
+结构化的诊断错误要贯穿分类和日志完整保留。只在执行事件边界、结果与重试决策都完成之后，才派生面向策略的原因。
 
-| Representation         | Consumers                                          | Required content                                                                                         |
+| 表示 | 消费者 | 必需内容 |
 | ---------------------- | -------------------------------------------------- | -------------------------------------------------------------------------------------------------------- |
-| Diagnostic error       | Classification, retry control, logs, and operators | Typed source plus available status, venue code, endpoint, backoff, transport, and decode context.        |
-| Strategy-facing reason | Rejection events consumed by strategies            | Bounded venue meaning without HTTP prefixes, response envelopes, markup, control characters, or secrets. |
+| 诊断错误 | 分类、重试控制、日志和运维人员 | 类型化来源，可用的状态、交易场所码、端点、退避、传输和解码上下文。 |
+| 面向策略的原因 | 策略消费的拒绝事件 | 有界的交易场所含义，不含 HTTP 前缀、响应封套、markup、控制字符或密钥。 |
 
-Format standardized local denial messages from
-[`OrderDeniedReason`](https://github.com/nautechsystems/nautilus_trader/blob/develop/crates/model/src/events/order/denied_reason.rs) with the minimum suffix
-needed to identify the diagnostic context:
+由
+[`OrderDeniedReason`](https://github.com/nautechsystems/nautilus_trader/blob/develop/crates/model/src/events/order/denied_reason.rs)
+格式化标准化的本地拒绝消息时，只加识别诊断上下文所需的最小后缀：
 
-- Emit `CODE` when the denial needs no diagnostic suffix.
-- Use `CODE: value` for one typed value or a free-text diagnostic. The code already identifies a
-  single value, so do not repeat its name.
-- Use `CODE: key=value, key=value` only when multiple typed values need disambiguation.
-- Use `CODE: value; free text` when one typed value precedes a free-text diagnostic.
+- 拒绝不需要诊断后缀时，只发 `CODE`。
+- 单个类型化值或自由文本诊断用 `CODE: value`。码本身已标识单个值，不要再重复它的名字。
+- 只有多个类型化值需要消歧时才用 `CODE: key=value, key=value`。
+- 一个类型化值后接自由文本诊断时用 `CODE: value; free text`。
 
-Only the leading code is canonical. Do not parse the diagnostic suffix to recover classification,
-retryability, or command outcome.
+只有开头的码是权威的。不要解析诊断后缀来恢复分类、可重试性或命令结果。
 
-Apply these rules at the boundary:
+在边界处应用这些规则：
 
-- Classify from typed or structured evidence. Never recover status, retryability, or command
-  outcome from formatted display text.
-- Extracting a clean reason must not erase the diagnostic error or the evidence used to classify
-  it.
-- Prefer documented venue error fields and codes. Sanitize and bound raw fallback text before
-  logging, interning, or emitting it, and use a stable fallback when no useful text remains.
-- Use the same adapter-owned classification and reason functions for equivalent venue evidence from HTTP,
-  WebSocket, polling, or reconciliation.
+- 从类型化或结构化证据分类。绝不从格式化的显示文本恢复状态、可重试性或命令结果。
+- 提取干净的原因不得抹掉诊断错误或分类所依赖的证据。
+- 优先使用成文的交易场所错误字段和码。原始回退文本在记录、驻留或发出之前先清洗并限长，没有有用的文本时改用
+  稳定的回退。
+- HTTP、WebSocket、轮询或对账给出的等价交易场所证据，使用同一套适配器自有的分类与原因函数。
 
-Set `OrderRejected.due_post_only` from a structured venue code or flag when the protocol provides
-one. Otherwise, use one narrow adapter-owned, source-backed message classifier across every venue
-path. Test exact positive cases and close non-matching messages. Do not introduce a cross-adapter
-venue classifier.
+协议提供结构化的交易场所码或标志时，据此设置 `OrderRejected.due_post_only`。否则在所有交易场所路径上使用一个
+范围收窄的、有来源支撑的适配器自有消息分类器。测试精确的正例和形似而非的负例。不要引入跨适配器的交易场所
+分类器。
 
-## HTTP client patterns
+## HTTP 客户端模式 {#http-client-patterns}
 
-### Client structure
+### 客户端结构 {#client-structure}
 
-A common design separates three responsibilities:
+常见的设计把三种职责分离：
 
-| Layer            | Accepts                                 | Produces                                      | Owns                                                                           |
+| 层 | 接受 | 产出 | 负责 |
 | ---------------- | --------------------------------------- | --------------------------------------------- | ------------------------------------------------------------------------------ |
-| Raw client       | Venue request and query types.          | Venue response models and transport errors.   | Transport, authentication, rate limits, and exact wire encoding.               |
-| Domain client    | Nautilus identifiers and domain values. | Domain objects, reports, or acknowledgements. | Operation semantics, parsing context, caching, and domain mapping.             |
-| Execution client | Nautilus execution commands.            | Lifecycle events and execution reports.       | Command lifecycle, failure evidence classification, and terminal event policy. |
+| 原始客户端 | 交易场所请求与查询类型。 | 交易场所响应模型与传输错误。 | 传输、鉴权、限流和精确的线路编码。 |
+| 领域客户端 | Nautilus 标识符与领域值。 | 领域对象、报告或确认。 | 操作语义、解析上下文、缓存和领域映射。 |
+| 执行客户端 | Nautilus 执行命令。 | 生命周期事件与执行报告。 | 命令生命周期、失败证据分类和终态事件策略。 |
 
-The execution client is the shared command outcome boundary. Raw and domain clients preserve enough
-adapter-specific evidence to distinguish a failure before transmission from one after the venue may have
-received the request. They keep their natural venue and domain return types. Do not make them return
-`CommandFailure` only to standardize command handling.
+执行客户端是共享的命令结果边界。原始客户端和领域客户端要保留足够的适配器特有证据，以区分"发送前失败"与
+"交易场所可能已收到请求后失败"。它们保持自己自然的交易场所和领域返回类型，不要仅为了统一命令处理就改成返回
+`CommandFailure`。
 
-Share the `CommandFailure` evidence classes and terminal event policy across adapters. Keep venue
-error codes, response statuses, protocol semantics, and their mapping to evidence classes inside
-the adapter. Do not introduce a cross-adapter venue classifier or shared classification trait.
+`CommandFailure` 的证据类别和终态事件策略跨适配器共享。交易场所错误码、响应状态、协议语义以及它们到证据类别的
+映射留在适配器内部。不要引入跨适配器的交易场所分类器或共享分类 trait。
 
-Use one HTTP client layer when the protocol is small and a raw/domain split would only add
-forwarding methods. Split by product when endpoints, signatures, or response models change for
-different product families. The execution boundary remains the same in either structure.
+协议很小、raw/领域拆分只会增加转发方法时，用一层 HTTP 客户端即可。端点、签名或响应模型随产品族不同而变化时，
+按产品拆分。两种结构下执行边界都保持不变。
 
-Name low-level methods after the venue operation when practical, such as `get_instruments` or
-`place_order`. Name domain methods after Nautilus semantics, such as `request_instruments`,
-`submit_order`, or `cancel_order`.
+底层方法尽量按交易场所操作命名，如 `get_instruments`、`place_order`。领域方法按 Nautilus 语义命名，如
+`request_instruments`、`submit_order`、`cancel_order`。
 
-#### Request flow
+#### 请求流程 {#request-flow}
 
-Whether one client or two own these responsibilities, keep their boundaries explicit:
+无论这些职责由一个还是两个客户端承担，边界都要清晰：
 
-1. At a domain boundary, validate Nautilus inputs and build typed venue parameters.
-1. At the transport boundary, select the HTTP method and path, then serialize the exact query or
-   body.
-1. Allocate any required request identity, timestamp, or nonce. Sign the exact wire representation
-   when needed, then send it through the shared `nautilus_network::http::HttpClient` with the
-   applicable rate-limit keys.
-1. Decode the response envelope and preserve transport, HTTP status, venue, and parse failures.
-1. At a domain boundary, convert successful payloads to domain types with explicit instrument,
-   account, and time context.
+1. 在领域边界校验 Nautilus 输入并构造类型化的交易场所参数。
+1. 在传输边界选择 HTTP 方法和路径，序列化精确的查询或 body。
+1. 分配必需的请求标识、时间戳或 nonce；需要时对精确的线路表示签名，然后带上适用的限流键，经共享的
+   `nautilus_network::http::HttpClient` 发送。
+1. 解码响应封套，保留传输、HTTP 状态、交易场所和解析失败的来源。
+1. 在领域边界用显式的金融工具、账户和时间上下文，把成功的载荷转换为领域类型。
 
-Keep typed request construction separate from sending. This makes signatures and canonical query
-encoding testable without a server. Put response conversion in pure parser functions when it does
-not need live state.
+类型化请求的构造与发送保持分离。这样签名字节和规范化查询编码不需要服务器就能测试。响应转换不依赖在线状态时，
+放入纯解析函数。
 
-Typed request and query builders preserve the difference between an omitted field, an explicit zero, and an
-empty value. Keep required venue parameters required. Omit absent optional parameters from the wire
-representation. Test the exact serialized query or body.
+类型化的请求与查询构造器要保留"字段省略""显式为零""空值"三者的区别。交易场所的必需参数保持必需。缺席的可选
+参数在线路表示中省略。对精确序列化出的查询或 body 做测试。
 
-Pagination tests cover cursor direction, inclusive boundaries, duplicate boundary records, and a
-repeated cursor or empty page so pagination cannot loop forever.
+分页测试覆盖游标方向、边界含闭、边界重复记录，以及游标重复或空页——让分页不可能无限循环。
 
-### Request signing and authentication
+### 请求签名与鉴权 {#request-signing-and-authentication}
 
-For each attempt, build the exact canonical bytes required by the venue, then sign that
-representation once. Test:
+每次尝试都按交易场所要求构造精确的规范化字节，并对该表示只签一次。测试：
 
-- Field order and delimiters.
-- Timestamp and receive-window units.
-- Decimal and enum encoding.
-- Body or query hashing.
-- Environment and account identifiers.
-- Known venue vectors when available.
+- 字段顺序与分隔符。
+- 时间戳与接收窗口的单位。
+- 十进制与枚举的编码。
+- body 或查询的哈希。
+- 环境与账户标识符。
+- 有已知的交易场所向量时一并测试。
 
-Keep nonce or sequence ownership explicit. If commands can run concurrently, define how the adapter
-serializes, allocates, or rejects conflicting nonces. Never retry a signed state-changing request
-with a new identity unless venue semantics make that safe.
+nonce 或序列号的所有权要保持明确。命令可能并发运行时，定义适配器如何串行化、分配或拒绝冲突的 nonce。除非交易
+场所语义保证安全，否则绝不用新标识重试一个已签名的改状态请求。
 
-Treat request identity, timestamp, and nonce as separate protocol fields even when the venue packs
-them into one signed payload. The component that allocates a nonce also owns its ordering rule.
+即使交易场所把请求标识、时间戳和 nonce 打包进同一个被签名的载荷，也要把它们当作三个协议字段。分配 nonce 的
+组件同时负责其排序规则。
 
-For request preparation and recovery:
+请求准备与恢复：
 
-1. Build and sign from the same reserved value.
-1. Handle pre-send failure, uncertain transmission, and venue nonce rejection according to documented
-   venue consumption semantics.
-1. On a sequence mismatch, resynchronize from an authoritative source before issuing further
-   state-changing commands.
+1. 用同一个已保留的值构造并签名。
+1. 发送前失败、传输不确定、交易场所拒绝 nonce 时，按成文的交易场所消费语义处理。
+1. 序列号不匹配时，先从权威来源重新同步，再发出后续改状态的命令。
 
-Test deterministic vectors, concurrent allocation, monotonicity or uniqueness, and recovery after a
-rejected sequence.
+测试确定性向量、并发分配、单调性或唯一性，以及序列被拒后的恢复。
 
-### Error handling and retry logic
+### 错误处理与重试逻辑 {#error-handling-and-retry-logic}
 
-Map transport, HTTP status, venue error, parse, and validation failures without erasing their source. Retry
-only when the failure is classified as transient and the operation is safe to repeat. Compose both decisions
-at the client boundary. A predicate on the error alone is not a complete retry policy. This contract applies
-to HTTP and WebSocket request paths.
+映射传输、HTTP 状态、交易场所错误、解析和校验失败时不得抹掉来源。只有当失败被分类为瞬时、且操作重复是安全的，
+才重试。两个决策在客户端边界合成。只看错误的谓词不是完整的重试策略。本契约适用于 HTTP 和 WebSocket 请求路径。
 
-#### Classify transient failures
+#### 分类瞬时失败 {#classify-transient-failures}
 
-Keep transient failure classification adapter-owned because venue status codes, error codes, and
-rate-limit semantics differ. Give each adapter transport one production classifier entry point.
-Define rules shared by HTTP and WebSocket once within the adapter, then call them from those entry
-points. Remove superseded classifier paths. Do not introduce a cross-adapter venue classifier or
-shared trait.
+瞬时失败的分类归适配器所有，因为各交易场所的状态码、错误码和限流语义不同。每个适配器传输只留一个生产分类器
+入口。HTTP 与 WebSocket 共享的规则在适配器内定义一次，由这些入口调用。删掉被取代的分类路径。不要引入跨适配器
+的交易场所分类器或共享 trait。
 
-#### Gate retries by operation safety
+#### 按操作安全性给重试设门 {#gate-retries-by-operation-safety}
 
-At each call site, bypass retry for an unsafe operation or pass a `should_retry` predicate that
-combines transient failure classification with operation safety. A `POST` can be safe to retry and
-a `DELETE` can be unsafe. This implements the [safety test](./../concepts/execution/policies.md#safety-test).
+在每个调用点，不安全操作直接绕过重试，或传入把瞬时失败分类与操作安全性结合的 `should_retry` 谓词。`POST` 可能
+可以安全重试，`DELETE` 也可能不安全。这实现的是[安全性测试](./../concepts/execution/policies.md#safety-test)。
 
-A repeat is safe only when all these conditions hold:
+只有以下条件全部成立，重复发送才安全：
 
-- It cannot apply a state change twice.
-- It cannot change an order that the first attempt did not name.
-- It cannot report an earlier success as a rejection.
+- 不可能把同一次状态改变应用两遍。
+- 不可能改动第一次尝试没有指定的订单。
+- 不可能把更早的成功报成拒绝。
 
-Apply those conditions to each operation:
+逐个操作应用这些条件：
 
-- A read or other idempotent operation may retry a classified transient failure. A read-only
-  `POST` may retry. A method allowlist, for example `GET` and `DELETE`, does not prove safety.
-- A session-token request can retry only under these conditions:
+- 读取等幂操作可以对分类为瞬时的失败重试。只读的 `POST` 可以重试。方法白名单（例如 `GET` 和 `DELETE`）证明
+  不了安全性。
+- session token 请求只有在以下条件同时成立时才可重试：
 
-  - A repeat only mints an additional short-lived token.
-  - It does not revoke an existing session.
-  - It does not create a lasting credential.
-- Send submit, submit order list, modify, cancel, batch cancel, and cancel-all commands one time only. Retry
-  only if duplicate detection for a stable request identity or idempotent semantics for the same target holds
-  throughout the retry window.
+  - 重复只会多铸造一个短期 token。
+  - 不会吊销既有会话。
+  - 不会创建长期凭证。
+- 提交、提交订单列表、修改、取消、批量取消和全量取消命令只发送一次。只有当稳定请求标识的重复检测、或同一目标
+  的幂等语义在整个重试窗口内都成立时，才可以重试。
 
-That window is not only the time the first order rests open:
+那个窗口不只是首笔订单挂着的时段：
 
-- It includes the time after the targeted order fills or cancels.
-- It runs until any venue deduplication clock expires. End the retry budget inside that clock.
+- 它还包括目标订单成交或取消之后的时间。
+- 它持续到交易场所的去重时钟到期。重试预算要在那个时钟内结束。
 
-Betfair keeps a 45-second order retry budget inside a 60-second `customerRef` window.
+Betfair 在 60 秒的 `customerRef` 窗口内保留 45 秒的订单重试预算。
 
-When that test does not hold, send the command once. Leave the unknown outcome for stream updates,
-queries, polling, or reconciliation. See [Preserve identity and ambiguity](#preserve-identity-and-ambiguity).
+该测试不成立时，命令只发一次。未知结果留给数据流更新、查询、轮询或对账。见
+[保留标识与歧义](#preserve-identity-and-ambiguity)。
 
-#### Preserve identity and ambiguity
+#### 保留标识与歧义 {#preserve-identity-and-ambiguity}
 
-Allocate the semantic request identity outside the retry closure and keep it stable across
-attempts. Regenerate authentication timestamps, signatures, or other transport fields only when
-changing them does not alter the venue's request identity or duplicate detection.
+语义请求标识在重试闭包之外分配，跨尝试保持稳定。只有更换鉴权时间戳、签名或其他传输字段不会改变交易场所的请求
+标识或重复检测时，才重新生成它们。
 
-Ambiguity is monotonic across attempts for one semantic command. Once any attempt may have reached the venue,
-a later failure stays ambiguous. A later venue rejection resolves ambiguity only if documented semantics make
-the response authoritative for the same request identity. Those semantics must also prove that no attempt was
-applied.
+对同一语义命令，歧义跨尝试是单调的：一旦某次尝试可能到达过交易场所，后续失败就保持歧义。之后的交易场所拒绝
+只有在成文语义使该响应对同一请求标识具有权威时，才能消除歧义；该语义还必须证明没有任何一次尝试被应用。
 
-An acceptance resolves ambiguity only when it correlates to the same semantic command. Before you construct a
-domain identifier or bind it to a local order, validate the returned venue identifier. Check its syntax and
-expected scope. A non-empty string alone is not proof. A malformed or mismatched identifier leaves the outcome
-ambiguous unless separate authoritative evidence proves rejection.
+接受只有在与同一语义命令关联时才能消除歧义。构造领域标识符或把它绑定到本地订单之前，先校验返回的交易场所标识：
+检查语法和预期范围。非空字符串本身不是证明。标识畸形或不匹配时，结果保持歧义，除非另有权威证据证明被拒绝。
 
-A venue duplicate-identity response shows that the venue saw an earlier request with that wire identity. Do
-not treat it as a rejection of the original command by default. Use it to resolve the current command only
-when the adapter proves the same semantic identity. If the identity may collide or its scope is uncertain,
-keep the outcome ambiguous and reconcile it against venue state.
+交易场所返回标识重复，说明交易场所见过具有该线路标识的更早请求。默认不要把它当作对原始命令的拒绝。只有适配器
+证明是同一语义身份时，才用它来解析当前命令。身份可能碰撞或范围不确定时，让结果保持歧义，并对照交易场所状态
+对账。
 
-#### Handle backoff and termination
+#### 处理退避与终止 {#handle-backoff-and-termination}
 
-Respect venue backoff and rate-limit signals, and stop retries on cancellation. Use the shared
-[`RetryManager`](https://github.com/nautechsystems/nautilus_trader/blob/develop/crates/network/src/retry.rs) when its cancellation and backoff model fits.
+尊重交易场所的退避与限流信号，取消时停止重试。取消与退避模型合适时使用共享的
+[`RetryManager`](https://github.com/nautechsystems/nautilus_trader/blob/develop/crates/network/src/retry.rs)。
 
-`RetryManager` passes a typed [`RetryError`](https://github.com/nautechsystems/nautilus_trader/blob/develop/crates/network/src/retry.rs) to the caller's error
-callback: `Canceled`, `OperationTimeout`, `ElapsedBudgetExceeded`, or `InvalidConfiguration`. Match a variant
-when the adapter must distinguish its control reason. Never branch on display text. The error returned for
-`OperationTimeout` is evaluated by `should_retry`, so map it to the adapter's transient timeout variant when
-timeouts should retry. Other synthesized reasons terminate without reclassification.
+`RetryManager` 会把类型化的
+[`RetryError`](https://github.com/nautechsystems/nautilus_trader/blob/develop/crates/network/src/retry.rs)
+传给调用方的错误回调：`Canceled`、`OperationTimeout`、`ElapsedBudgetExceeded` 或 `InvalidConfiguration`。
+适配器需要区分控制原因时按变体匹配，绝不按显示文本分支。`OperationTimeout` 返回的错误会交给 `should_retry`
+评估，因此超时应重试时，把它映射到适配器的瞬时超时变体。其他合成原因直接终止，不再重新分类。
 
-`InvalidConfiguration` is created before the operation can run, so it is a definitive local
-failure. Preserve that evidence instead of mapping it to a transport or ambiguous outcome.
+`InvalidConfiguration` 在操作得以运行之前就已产生，属于确定的本地失败。保留该证据，不要映射成传输结果或歧义
+结果。
 
-`RetryManager` control errors do not record whether the operation ran. Track possible transmission at the
-adapter boundary for state-changing commands, treating entry into the send operation as possible transmission
-unless more precise evidence exists. Classify cancellation, per-attempt timeout, and retry exhaustion as
-`CommandFailure::NotSent` only when local evidence proves that no attempt was transmitted. If no such proof
-exists, classify them as `CommandFailure::Ambiguous`.
+`RetryManager` 的控制错误不记录操作是否运行过。改状态的命令要在适配器边界追踪"可能已发送"：除非有更精确的
+证据，进入发送操作即视为可能已发送。取消、单次尝试超时和重试耗尽只有在本地证据证明没有任何一次尝试被发送时，
+才分类为 `CommandFailure::NotSent`；没有这种证明就分类为 `CommandFailure::Ambiguous`。
 
-Map each elapsed-budget termination path by transmission evidence rather than the returned error shape.
-If an error supplies a minimum delay and the effective retry delay cannot fit within the remaining budget,
-`RetryManager` returns the original operation error. It does not synthesize a budget error in this case.
+每条预算耗尽的终止路径按发送证据映射，而不是按返回的错误形态。若错误给出最小延迟、而有效重试延迟放不下剩余预算，`RetryManager` 返回原始操作错误，不合成预算错误。
 
-#### Test retry behavior
+#### 测试重试行为 {#test-retry-behavior}
 
-Focused tests distinguish:
+针对性测试要区分：
 
-- Transient failures from permanent failures.
-- HTTP 429 responses with and without a venue backoff hint when the protocol exposes one.
-- A read-only or idempotent operation that retries, including a non-`GET` request, and a submit,
-  modify, cancel, batch cancel, or cancel-all that is sent once. The mock server receives exactly
-  one request for those commands. A transient failure after possible transmission leaves the
-  outcome ambiguous and does not emit a rejection.
-- A final failure after a possibly transmitted earlier attempt, including a later venue rejection.
-- A duplicate-identity response for the same semantic command and a wire-identity collision with a
-  different command.
-- Stable semantic request identity across attempts, including retries with refreshed authentication
-  fields when the protocol permits them.
-- Cancellation, per-attempt timeout, and every elapsed-budget termination path before and after
-  possible transmission.
+- 瞬时失败与永久失败。
+- 协议暴露退避提示时，带与不带交易场所退避提示的 HTTP 429。
+- 会重试的只读或幂等操作（含非 `GET` 请求），与只发送一次的提交、修改、取消、批量取消或全量取消——mock 服务器
+  对这些命令恰好只收到一个请求。可能已发送之后出现的瞬时失败让结果保持歧义，不发出拒绝。
+- 早先尝试可能已发送之后的最终失败，包括随后的交易场所拒绝。
+- 同一语义命令的标识重复响应，与不同命令的线路标识碰撞。
+- 跨尝试稳定的语义请求标识，包括协议允许时带刷新鉴权字段的重试。
+- 取消、单次尝试超时，以及可能已发送前后每条预算耗尽的终止路径。
 
-#### Retry gate conformance
+#### 重试门合规 {#retry-gate-conformance}
 
-This table covers HTTP retry gates only. It is not a complete census, and it does not assess
-WebSocket or gRPC retry. New adapters must follow the safety test. Do not copy an unsafe gate.
+下表只覆盖 HTTP 重试门，不是完整普查，也不评估 WebSocket 或 gRPC 的重试。新适配器必须遵循安全性测试，不要
+照抄不安全的门。
 
-The status column uses these definitions:
+状态列的定义：
 
-- **Conforms**: The adapter decides by operation and sends an order command once unless repetition
-  is safe.
-- **Over-restricts**: Order commands are sent once, but the gate is the HTTP method, so a safe `POST`
-  is not retried.
-- **Unsafe**: An order command or another state change can be applied twice.
+- **合规**：适配器按操作决策；除非重复是安全的，订单命令只发送一次。
+- **过度保守**：订单命令只发送一次，但门是 HTTP 方法，因此安全的 `POST` 不会重试。
+- **不安全**：订单命令或其他状态改变可能被应用两次。
 
-| Adapter      | Retry gate                                            | Order commands                                                                                                       | Status         | Notes                                                                                                                                 |
+| 适配器 | 重试门 | 订单命令 | 状态 | 备注 |
 | ------------ | ----------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------- | -------------- | ------------------------------------------------------------------------------------------------------------------------------------- |
-| Architect AX | Method allowlist: `GET`, `HEAD`, and `OPTIONS`.       | Sent once.                                                                                                           | Over-restricts | `POST /authenticate` is not retried.                                                                                                  |
-| Binance      | Method allowlist: `GET`.                              | Sent once.                                                                                                           | Over-restricts |                                                                                                                                       |
-| Betfair      | An ambiguous order retry reuses `customerRef`.        | Retried inside a 45-second budget and a 60-second `customerRef` window.                                              | Conforms       |                                                                                                                                       |
-| Bybit        | Every method, when the error is retryable.            | Demo submit, submit order list, modify, cancel, and batch cancel retry. Cancel-all retries in every environment.     | Unsafe         |                                                                                                                                       |
-| Coinbase     | Method allowlist: `GET` and `DELETE`.                 | Sent once.                                                                                                           | Over-restricts | A read-only preview `POST` is not retried.                                                                                            |
-| Derive       | Reads retry. Writes are sent once.                    | Sent once.                                                                                                           | Conforms       | Place, cancel, and replace use `send_private_write`. Cancel-all and cancel-by-label use `send_private_once`.                          |
-| Hyperliquid  | `/info` retries. `/exchange` does not.                | Sent once.                                                                                                           | Conforms       |                                                                                                                                       |
-| Kraken spot  | `send_request` retries.                               | Single cancel retries. Submit and amend are sent once. Execution cancel-all selects explicit IDs and is sent once.   | Unsafe         | `CancelAll` and `EditOrder` retry, but the execution client does not call them. A non-auth HTTP 4xx is classified as a network error. |
-| Lighter      | Order and referral writes are sent once.              | Sent once.                                                                                                           | Conforms       |                                                                                                                                       |
-| OKX          | Submit paths are exempt. Other `POST` requests retry. | Regular submit, modify, and cancel use WebSocket. Algo cancel, spread cancel, and spread cancel-all retry over HTTP. | Unsafe         |                                                                                                                                       |
+| Architect AX | 方法白名单：`GET`、`HEAD`、`OPTIONS`。 | 只发送一次。 | 过度保守 | `POST /authenticate` 不重试。 |
+| Binance | 方法白名单：`GET`。 | 只发送一次。 | 过度保守 | |
+| Betfair | 歧义的订单重试复用 `customerRef`。 | 在 45 秒预算和 60 秒 `customerRef` 窗口内重试。 | 合规 | |
+| Bybit | 错误可重试时对所有方法重试。 | demo 环境的提交、提交订单列表、修改、取消、批量取消会重试；全量取消在所有环境都重试。 | 不安全 | |
+| Coinbase | 方法白名单：`GET` 和 `DELETE`。 | 只发送一次。 | 过度保守 | 只读预览的 `POST` 不重试。 |
+| Derive | 读取重试，写入只发送一次。 | 只发送一次。 | 合规 | 下单、取消、替换用 `send_private_write`；全量取消和按 label 取消用 `send_private_once`。 |
+| Hyperliquid | `/info` 重试，`/exchange` 不重试。 | 只发送一次。 | 合规 | |
+| Kraken 现货 | `send_request` 会重试。 | 单个取消会重试；提交和改单只发送一次。执行侧的全量取消选取显式 ID 且只发送一次。 | 不安全 | `CancelAll` 和 `EditOrder` 会重试，但执行客户端不调用它们。非鉴权的 HTTP 4xx 被分类为网络错误。 |
+| Lighter | 订单与 referral 写入只发送一次。 | 只发送一次。 | 合规 | |
+| OKX | 提交路径豁免，其他 `POST` 请求重试。 | 常规提交、修改、取消走 WebSocket。算法取消、价差取消和价差全量取消在 HTTP 上重试。 | 不安全 | |
 
-### Rate limiting
+### 限流 {#rate-limiting}
 
 The shared [`HttpClient`](https://github.com/nautechsystems/nautilus_trader/blob/develop/crates/network/src/http/client.rs) supports one or more rate
 limiters. Scope limiter state to the venue quota, not to a convenient Rust object:

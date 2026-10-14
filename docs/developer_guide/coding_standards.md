@@ -1,140 +1,143 @@
-# Coding Standards
+# 编码规范
 
-## Code Style
+## 代码风格 {#code-style}
 
-Use the codebase as a guide to formatting conventions, supplemented by the rules below.
+格式约定以代码库现状为参照，并辅以以下规则。
 
-### Universal formatting rules
+### 通用格式规则 {#universal-formatting-rules}
 
-The following applies to **all** source files (Rust, Python, shell, etc.):
+以下适用于**所有**源文件（Rust、Python、shell 等）：
 
-- Use **spaces only**, never hard tab characters.
-- Lines should generally stay below **100 characters**. Wrap thoughtfully when necessary.
-- Use American English spelling (`color`, `serialize`, `behavior`), enforced by `.typos.toml`. Preserve
-  external API spellings through exact identifier exceptions. Exclude verbatim data and generated files. Run
-  `prek run typos --all-files` to check the repository.
+- 只用**空格**，绝不用制表符。
+- 行通常保持在 **100 字符**以内，必要时斟酌断行。
+- 使用美式英语拼写（`color`、`serialize`、`behavior`），由 `.typos.toml` 强制执行。
+  外部 API 的拼写通过精确的标识符例外保留。逐字数据与生成文件被排除。
+  运行 `prek run typos --all-files` 检查整个仓库。
 
-### Shell scripts
+### Shell 脚本 {#shell-scripts}
 
-Bash is the default shell for repository scripts. Use POSIX `sh` only when a caller cannot rely on
-Bash being installed. See [Shell](./shell.md) for script selection, extensions, portability,
-structure, testing, formatting, and linting requirements.
+仓库脚本默认使用 Bash。只有当调用方无法依赖系统装有 Bash 时，才用 POSIX `sh`。
+脚本选型、扩展名、可移植性、结构、测试、格式化与 lint 要求见 [Shell](./shell.md)。
 
-### Comment conventions
+### 注释约定 {#comment-conventions}
 
-1. Generally leave **one blank line above** every comment block or docstring so it is visually separated from code.
-2. Use *sentence case* - capitalize the first letter, keep the rest lowercase unless proper nouns or acronyms.
-3. Do not use double spaces after periods.
-4. **Single-line comments** *must not* end with a period, except when they end with a URL or inline Markdown
-   link. For those exceptions, keep the punctuation that the link needs.
-5. **Multi-line comments** should separate sentences with commas (not period-per-line). The final line *should* end with a period.
-6. Keep comments concise. Favor clarity and only explain the non-obvious - *less is more*.
-7. Avoid emoji symbols in text.
+1. 通常在每个注释块或文档字符串**上方留一个空行**，让它在视觉上与代码分开。
+2. 用*句子式大写*——首字母大写，其余小写，专有名词或首字母缩略词除外。
+3. 句号后不要加两个空格。
+4. **单行注释**结尾*不得*加句号，以 URL 或行内 Markdown 链接结尾的除外；
+   这类例外保留链接本身需要的标点。
+5. **多行注释**各句之间用逗号分隔（不是每行一个句号），最后一行*应当*以句号结尾。
+6. 注释保持简练。力求清晰，只解释不直观之处——*少即是多*。
+7. 文本中避免使用 emoji 符号。
 
-### Doc comment mood
+### 文档注释的语气 {#doc-comment-mood}
 
-Write Rust doc comments in the **indicative mood**, for example, *"Returns a cached client."* This
-matches the prevailing Rust ecosystem style and makes generated documentation natural for end-users.
+Rust 文档注释用**陈述语气**书写，例如 *"Returns a cached client."*。
+这与 Rust 生态的主流风格一致，生成的文档对最终用户也更自然。
 
-### Terminology and phrasing
+### 术语与措辞 {#terminology-and-phrasing}
 
-1. **Error messages**: Avoid using ", got" in error messages. Use more descriptive alternatives like ", was", ", received", or ", found" depending on context.
+1. **错误消息**：避免在错误消息里用 ", got"。按语境改用更有描述性的
+   ", was"、", received" 或 ", found"。
    - Bad: `"Expected string, got {type(value)}"`
    - Good: `"Expected string, was {type(value)}"`
 
-2. **Spelling**: Use "hardcoded" (single word) rather than "hard-coded" or "hard coded" - this is the more modern and accepted spelling.
+2. **拼写**：用 "hardcoded"（一个词），不用 "hard-coded" 或 "hard coded"——
+   这是更现代、更被接受的拼法。
 
-3. **Error variable naming**: Use single-letter `e` for caught errors/exceptions:
-   - Rust: `Err(e)` not `Err(err)` or `Err(error)`, and `|e|` not `|err|` in closures
-   - Python: `except SomeError as e:` not `as err:` or `as error:`
+3. **错误变量命名**：捕获到的错误/异常用单字母 `e`：
+   - Rust：`Err(e)` 而不是 `Err(err)` 或 `Err(error)`；闭包里用 `|e|` 而不是 `|err|`
+   - Python：`except SomeError as e:` 而不是 `as err:` 或 `as error:`
 
-### Naming conventions
+### 命名约定 {#naming-conventions}
 
-1. **Internal fields**: Abbreviations are acceptable for private/internal fields (e.g., `_price_prec`, `_size_prec`) to keep hot-path code concise.
+1. **内部字段**：私有/内部字段可以用缩写（如 `_price_prec`、`_size_prec`），
+   让热路径代码保持简练。
 
-2. **User-facing API**: Use full, descriptive names for public properties, function parameters, return types, and metric names/labels (e.g., `price_precision`, `size_precision`). This prevents abbreviated terminology from leaking into dashboards or alerts.
+2. **面向用户的 API**：公开属性、函数参数、返回类型以及指标名/标签使用完整的
+   描述性名称（如 `price_precision`、`size_precision`）。这能防止缩写的术语
+   泄漏到仪表盘或告警里。
 
-3. **Error messages and logs**: Use full words for clarity (e.g., "price precision" not "price prec"). The user should never see abbreviated terminology.
+3. **错误消息与日志**：用完整词以保证清晰（如 "price precision" 而不是
+   "price prec"）。用户永远不该看到缩写的术语。
 
-4. **Execution terminology**: Use `Execution` in public, project-owned PascalCase type names, such
-   as `BinanceExecutionClientConfig`. Internal implementation types may retain established `Exec`
-   names. Also reserve `Exec` for the `ExecAlgorithmId` and `ExecTester` families, established
-   `exec_*` names, and venue or protocol terms such as `OkxExecType`. Name protocol-specific
-   wire models after the venue concept, such as `HyperliquidExchangeAction`. Preserve established
-   public names, historical release entries, and source names in migration tables.
+4. **执行相关术语**：在公开的、项目自有的 PascalCase 类型名中使用 `Execution`，
+   例如 `BinanceExecutionClientConfig`。内部实现类型可以沿用已有的 `Exec` 名字。
+   `Exec` 一词专用于 `ExecAlgorithmId` 与 `ExecTester` 家族、已有的 `exec_*` 名称，
+   以及 `OkxExecType` 这类场所或协议术语。协议专属的线上模型按场所概念命名，
+   例如 `HyperliquidExchangeAction`。保留既有的公开名称、历史发布条目，
+   以及迁移表中的源名称。
 
-5. **Runtime qualifiers**: Use `Live` when a type selects or configures real-time runtime semantics. Examples
-   include `LiveNode` versus `BacktestNode`, and `LiveClock` versus `VirtualClock`. The
-   `LiveDataEngineConfig`, `LiveRiskEngineConfig`, and `LiveExecutionEngineConfig` family differs from
-   reusable core engine configs in the same way.
+5. **运行时限定词**：类型用于选择或配置实时运行语义时用 `Live`。
+   例子：`LiveNode` 对应 `BacktestNode`，`LiveClock` 对应 `VirtualClock`。
+   `LiveDataEngineConfig`、`LiveRiskEngineConfig`、`LiveExecutionEngineConfig`
+   家族与可复用的核心引擎配置之间的差别与此相同。
 
-   Omit `Live` from the ordinary adapter client family because a connected client is the default. Qualify
-   alternate implementations by their behavior, such as `SandboxExecutionClient` or
-   `DatabentoHistoricalClient`. An explicit live/historical protocol pair may retain `Live` to distinguish the
-   two implementations.
+   常规的适配器客户端族不加 `Live`，因为已连接的客户端就是默认形态。
+   替代实现按其行为限定，例如 `SandboxExecutionClient` 或
+   `DatabentoHistoricalClient`。显式的实时/历史协议对可以保留 `Live`
+   以区分两种实现。
 
-6. **Adapter factory configs**: Name the data and execution inputs `<Venue>DataClientConfig` and
-   `<Venue>ExecutionClientConfig`. Factories consume these client configs directly rather than a separate
-   factory config wrapper. `LiveNodeConfig` owns `trader_id`. Venue-specific `account_id` values belong on
-   execution client configs.
+6. **适配器工厂配置**：数据与执行的输入分别命名为 `<Venue>DataClientConfig` 与
+   `<Venue>ExecutionClientConfig`。工厂直接消费这些客户端配置，而不是通过单独的
+   工厂配置包装。`LiveNodeConfig` 持有 `trader_id`。场所专属的 `account_id`
+   取值属于执行客户端配置。
 
-#### Data loading APIs
+#### 数据加载 API {#data-loading-apis}
 
-Use free functions for stateless data ingestion. Use a class only when instances retain reusable
-configuration, caches, workers, iteration state, or an open resource across calls. Do not use a
-zero-state class solely to group static or class methods.
+无状态的数据摄取用自由函数。只有当实例需要跨调用保留可复用的配置、缓存、
+worker、迭代状态或打开的资源时，才用类。不要为了把静态方法或类方法归堆而
+造一个零状态的类。
 
-Follow the semantic distinction in the
-[Polars I/O API](https://docs.pola.rs/api/python/stable/reference/io.html), adapted to the
-established Nautilus `load_*` vocabulary:
+沿用 [Polars I/O API](https://docs.pola.rs/api/python/stable/reference/io.html)
+的语义区分，并适配 Nautilus 已确立的 `load_*` 词汇：
 
-- `load_<source>_<data>` eagerly reads, normalizes, and materializes a complete result.
-- `scan_<source>_<data>` creates a lazy query or deferred execution plan.
-- `stream_<source>_<data>` incrementally yields records or batches.
-- `write_<format>` eagerly writes an in-memory result.
-- `sink_<format>` writes through a lazy or streaming execution path.
+- `load_<source>_<data>` 立即读取、归一并物化出完整结果。
+- `scan_<source>_<data>` 创建惰性查询或延迟执行计划。
+- `stream_<source>_<data>` 增量地产出记录或批次。
+- `write_<format>` 立即写出内存中的结果。
+- `sink_<format>` 经由惰性或流式执行路径写出。
 
-For ingestion, order names from general to specific: verb, source, logical data, then an optional
-representation. Include the representation only when real sibling formats exist. For example,
-`load_binance_order_book_deltas` is preferable to a stateless
-`BinanceOrderBookDeltaDataLoader.load` class or a generic `load_binance_data` function.
+摄取类命名按从一般到具体排序：动词、来源、逻辑数据，然后是可选的表示形式。
+仅当确实存在并列的其他格式时才加入表示形式。例如，
+`load_binance_order_book_deltas` 优于无状态的 `BinanceOrderBookDeltaDataLoader.load`
+类，也优于笼统的 `load_binance_data` 函数。
 
-#### Adapter package facades
+#### 适配器包门面 {#adapter-package-facades}
 
-Each package under `python/nautilus_trader/adapters/` is a thin facade over the private `_libnautilus`
-extension. Each adapter `__init__.py` declares a deterministic `__all__` as the single source of truth for its
-public API. `python/generate_stubs.py` copies that list into the matching `.pyi`. Thus, runtime and stub
-exports agree exactly.
+`python/nautilus_trader/adapters/` 下的每个包都是私有 `_libnautilus` 扩展之上的
+薄门面。每个适配器的 `__init__.py` 声明一个确定性的 `__all__`，作为其公开 API 的
+唯一事实来源。`python/generate_stubs.py` 把该列表照抄进对应的 `.pyi`，
+因此运行时导出与存根导出完全一致。
 
-A venue adapter exposes its canonical identity constants plus the supported public surface:
+场所适配器暴露其规范身份常量，以及受支持的公开面：
 
-- `<VENUE>`, `<VENUE>_CLIENT_ID`, `<VENUE>_VENUE`, registered from Rust via `m.add` in the adapter's
-  `python/mod.rs`
-- data types, `*Config`, `*Factory`, user-facing enums (such as `*Environment` and `*ProductType`)
-- stateless loaders (`load_*`, `stream_*`, `convert_*`) and intentional utilities
-  (`decode_*`, `get_*_arrow_schema_map`)
+- `<VENUE>`、`<VENUE>_CLIENT_ID`、`<VENUE>_VENUE`，由适配器的 `python/mod.rs`
+  经 `m.add` 从 Rust 注册
+- 数据类型、`*Config`、`*Factory`、面向用户的枚举（如 `*Environment` 与 `*ProductType`）
+- 无状态加载器（`load_*`、`stream_*`、`convert_*`）以及有意保留的工具函数
+  （`decode_*`、`get_*_arrow_schema_map`）
 
-Keep the facade thin. Do not add internals to `__all__` only for structural parity. This includes raw HTTP or
-WebSocket clients, wire models, endpoint URL resolvers (`get_*_url`, `*_HTTP_URL`), and caches. These packages
-omit venue constants because the constants would be meaningless for them:
+门面要保持薄。不要仅仅为了结构上的对称就把内部件塞进 `__all__`，
+包括原始 HTTP 或 WebSocket 客户端、线上模型、端点 URL 解析器
+（`get_*_url`、`*_HTTP_URL`）与缓存。下列包省略场所常量，因为常量对它们没有意义：
 
-- Data providers, such as `databento` and `tardis`.
-- The `blockchain` data client.
-- The `sandbox` execution client.
-- The multi-venue `interactive_brokers` broker.
+- 数据提供者，如 `databento` 与 `tardis`。
+- `blockchain` 数据客户端。
+- `sandbox` 执行客户端。
+- 多场所的 `interactive_brokers` 券商。
 
-Order `__all__` entries so the `RUF022` pre-commit gate owns sort order. Do not hand-order the list.
+`__all__` 条目的排列要让 `RUF022` 预提交门禁负责排序，不要手工排列。
 
-### Formatting
+### 格式化 {#formatting}
 
-1. For longer code lines and calls with more than a couple of arguments, the recommended layout uses the next
-   logical indent. Start a new line at that indent, rather than a hanging 'vanity' alignment from an opening
-   parenthesis. This practice saves space to the right and keeps important code more central in view. The
-   layout also survives function or method name changes.
+1. 较长的代码行以及参数超过两三个的调用，推荐的布局是使用下一个逻辑缩进层级：
+   从该缩进处起新行，而不是从起始括号做悬垂的"装饰性"对齐。这样右侧更省空间，
+   重要代码也更居中；而且函数或方法名改动后布局依然成立。
 
-2. The closing parenthesis should be located on a new line, aligned at the logical indent.
+2. 收尾的右括号另起一行，对齐到逻辑缩进处。
 
-3. Multiple hanging parameters or arguments should end with a trailing comma:
+3. 多个悬垂的参数或实参以行尾逗号结尾：
 
 ```python
 long_method_with_many_params(
@@ -144,24 +147,24 @@ long_method_with_many_params(
 )
 ```
 
-## Commit messages
+## 提交消息 {#commit-messages}
 
-Commit messages use a capitalized, imperative subject naming the affected surface, optionally followed by a body
-explaining the change.
+提交消息用大写开头、祈使语气的主题行点明受影响的界面，后面可选地跟一段
+解释改动的正文。
 
-### Subject line
+### 主题行 {#subject-line}
 
-- Open with a capitalized imperative verb, so the subject describes what the commit does when applied.
-  `Add`, `Fix`, `Improve`, `Refine`, `Update`, `Remove`, `Refactor`, and `Standardize` cover most of the history.
-- Name the affected surface (crate, adapter, subsystem, or type) so the log stays scannable.
-- Keep the subject at 10 characters or more so it can name the affected surface clearly.
-- Aim for 60 characters or fewer for clear GitHub rendering and concise text. The commit-message
-  hook warns without failing when the subject exceeds this target. The project plans to enforce
-  this limit in the future.
-- Do not end the subject with a period.
-- Do not put an issue or pull request number in the subject. GitHub appends the pull request number
-  on squash merge, and any other reference belongs in the body. The commit-message hook rejects a
-  subject containing `#<number>` in any position.
+- 以大写的祈使动词开头，让主题描述这个提交被应用时*做了什么*。
+  历史记录中绝大多数用 `Add`、`Fix`、`Improve`、`Refine`、`Update`、`Remove`、
+  `Refactor`、`Standardize`。
+- 点明受影响的界面（crate、适配器、子系统或类型），保持日志可快速扫读。
+- 主题不少于 10 个字符，以便清楚点明受影响的界面。
+- 争取控制在 60 个字符以内，便于 GitHub 清晰渲染、文字也更简练。
+  超出这一目标时，提交消息钩子只警告不失败；项目计划将来强制执行该限制。
+- 主题结尾不加句号。
+- 不在主题里写 issue 或 pull request 编号。GitHub 在 squash 合并时自动追加
+  PR 编号，其他引用都应放在正文里。主题任何位置出现 `#<number>`，
+  提交消息钩子都会拒绝。
 
 ```text
 Add Decimal constructors to Instrument trait
@@ -170,7 +173,7 @@ Refine cross-platform wheel validation
 Remove stale security audit exceptions
 ```
 
-Avoid these shapes:
+避免下面这些写法：
 
 ```text
 feat(bybit): add due_post_only flag        # Conventional Commits type and scope
@@ -181,31 +184,31 @@ Fix the post-only flag (#4544)             # pull request number added by hand
 Fix PR #4544 review feedback               # issue or pull request number in the subject
 ```
 
-### Conventional Commits
+### Conventional Commits {#conventional-commits}
 
-Do NOT use [Conventional Commits](https://www.conventionalcommits.org/) syntax for commit messages or pull
-request titles. Many editors and AI assistants emit that format by default. But no commit in this repository's
-history uses it. The type and scope repeat information that the subject already gives. Pull request titles
-matter here too, because a squash merge turns the PR title into the commit subject.
+提交消息与 pull request 标题*不要*使用
+[Conventional Commits](https://www.conventionalcommits.org/) 语法。
+许多编辑器和 AI 助手默认输出该格式，但本仓库的历史提交没有一条使用它。
+type 与 scope 重复了主题已经给出的信息。PR 标题在这里同样重要，
+因为 squash 合并会把 PR 标题变成提交主题。
 
-### Body
+### 正文 {#body}
 
-The body is optional, but anything beyond a trivial change should say why the change was made rather than
-restate the diff.
+正文是可选的，但凡超出微不足道的改动，正文应说明改动*为什么*要做，
+而不是复述 diff。
 
-- Separate the body from the subject with a blank line.
-- Keep body lines to 79 characters or fewer to align with PEP 8 and traditional Git tooling.
-- Use prose paragraphs or bullet points, whichever suits the change. Bullets may keep the same imperative
-  voice as the subject, and do not need terminating periods.
-- Include informative hyperlinks where they help a future reader.
+- 正文与主题之间空一行。
+- 正文每行不超过 79 个字符，与 PEP 8 和传统 Git 工具保持一致。
+- 用散文段落或要点，视改动选择。要点可以沿用主题那样的祈使语气，
+  不必以句号结尾。
+- 有助于未来读者理解的地方，附上信息性的超链接。
 
-### Issue references
+### Issue 引用 {#issue-references}
 
-- Reference issues from the body, typically on a final line: `Resolves #4534` when the commit closes the
-  issue, or `Related to #4547` when it is partial work.
-- GitHub appends the pull request number to the subject on squash merge, producing subjects such as
-  `Fix TWAP child-order sizing and interval validation (#4544)`. Do not add that suffix by hand. Do not
-  reference a pull request or issue anywhere else in the subject. The subject has no room for detail the body
-  carries better, and a hand-written number duplicates or contradicts the appended one.
-- Aim to keep the pull request title short enough for the appended suffix to leave the squash-merged
-  subject at 60 characters or fewer.
+- 从正文引用 issue，通常放在最后一行：提交会关闭该 issue 时写 `Resolves #4534`，
+  只是部分工作时写 `Related to #4547`。
+- GitHub 在 squash 合并时把 PR 编号追加到主题之后，形成类似
+  `Fix TWAP child-order sizing and interval validation (#4544)` 的主题。
+  不要手工加这个后缀，也不要在主题的其他位置引用 PR 或 issue。
+  主题装不下正文更擅长承载的细节，手写编号会与追加的编号重复或冲突。
+- PR 标题尽量短，让追加后缀之后 squash 合并出的主题仍在 60 个字符以内。

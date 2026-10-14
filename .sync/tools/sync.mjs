@@ -242,9 +242,9 @@ for (const [outRel, meta] of [...outputs.entries()].sort()) {
       const memberList = members && members[1] && !members[1].trim().startsWith(':') ? members[1].trim() : '';
       if (memberList) {
         const list = memberList.split(',').map((m) => m.trim()).filter(Boolean).map((name) => `\`${name}\``).join('、');
-        return `Auto-generated from the latest source. The official documentation renders ${modLink} with the following members: ${list}.\n\n`;
+        return `本页面根据最新源码自动生成。完整成员说明见官方文档中的 ${modLink}，涵盖以下成员：${list}。\n\n`;
       }
-      return `Auto-generated from the latest source. See ${modLink} in the official documentation.\n\n`;
+      return `本页面根据最新源码自动生成，请在官方文档中查看 ${modLink}。\n\n`;
     });
   }
   text = rewriteLinks(text, outRel, filesPresent);

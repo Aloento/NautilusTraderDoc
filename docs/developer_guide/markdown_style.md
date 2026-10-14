@@ -1,80 +1,72 @@
-# Markdown Style
+# Markdown 风格
 
 Standard revision: 1
 
-This document defines a shared Markdown baseline for repositories that adopt a local copy. Keep
-copies byte-for-byte identical to the maintained source and put repository-specific additions in a
-separate local guide.
+本文档为采用其本地副本的仓库定义统一的 Markdown 基线。各副本须与维护源逐字节一致；
+仓库专属的补充内容写进单独的本指南。
 
-## Requirement levels
+## 要求级别 {#requirement-levels}
 
-Each rule has one of three levels:
+每条规则属于三个级别之一：
 
-- **Required:** Applies to every in-scope file. Rules stated as unqualified imperatives such as
-  "Use" and "Do not", or with "must", are Required.
-- **Preferred:** Identifies the default when more than one valid form exists. Preferred rules use
-  "Prefer" and do not affect conformance.
-- **Transitional:** Applies to the named construct when it is added or substantially edited, and is
-  labeled **Transitional** or described as transitional. Existing instances may remain until a
-  separate migration.
+- **Required：** 适用于范围内每个文件。以无限定祈使句表述（如 "Use"、"Do not"）
+  或含 "must" 的规则都是 Required。
+- **Preferred：** 当存在多个合法写法时指明默认选择。Preferred 规则用 "Prefer"
+  表述，不影响一致性判定。
+- **Transitional：** 在指明的构造被新增或大幅修改时适用，并标注 **Transitional**
+  或被描述为过渡性。既有实例可保留到单独的迁移。
 
-Statements with "may" or "allowed" grant bounded permissions rather than obligations. Any
-condition limiting that permission is Required. A repository may document narrower local
-exceptions where its renderer, generated content, or imported material requires them.
+含 "may" 或 "allowed" 的陈述授予的是有边界的许可，而非义务。任何限制该许可的条件
+都是 Required。当仓库的渲染器、生成内容或引入材料确有需要时，仓库可以记录
+更窄的本地例外。
 
-## Language and extensions
+## 语言与扩展 {#language-and-extensions}
 
-- Use [CommonMark](https://spec.commonmark.org/current/) as the base specification.
-- Use [GitHub Flavored Markdown](https://github.github.com/gfm/) for tables, task lists,
-  strikethrough, and autolinks.
-- Use additional front matter, Markdown extensions, or renderer components only when the
-  repository documents and supports them.
-- Do not introduce syntax that depends on an undocumented renderer extension.
+- 以 [CommonMark](https://spec.commonmark.org/current/) 为基础规范。
+- 表格、任务列表、删除线与自动链接使用
+  [GitHub Flavored Markdown](https://github.github.com/gfm/)。
+- 仅在仓库已记录并支持时，才使用额外的 front matter、Markdown 扩展或渲染器组件。
+- 不要引入依赖未记录渲染器扩展的语法。
 
-The linked specifications are references, not routine prerequisites. Open them only to resolve a
-concrete parser or renderer ambiguity that the local guide, surrounding content, and markdownlint
-do not answer.
+所链接的规范是参考资料，不是常规前置读物。只有当本地指南、上下文内容与
+markdownlint 都解答不了某个具体的解析或渲染歧义时，才去查阅它们。
 
-## Enforcement
+## 强制执行 {#enforcement}
 
-- Follow the repository's `.markdownlint.jsonc` or equivalent local configuration.
-- Treat this standard as the intended style and markdownlint as automated enforcement of its
-  mechanical subset.
-- Treat an undocumented conflict between this standard and the local configuration as drift to
-  resolve, not an implicit exception.
-- Ensure all authored Markdown in the repository's lint scope passes its configured Markdown check.
-- Do not hand-edit generated Markdown. Change its source and run the generator.
+- 遵循仓库的 `.markdownlint.jsonc` 或等价的本地配置。
+- 把本标准视为目标风格，把 markdownlint 视为其机械子集的自动执行手段。
+- 本标准与本地配置出现未记录的冲突时，按待解决的漂移处理，而不是当作隐含例外。
+- 确保仓库 lint 范围内所有手写的 Markdown 通过其配置的 Markdown 检查。
+- 不要手工编辑生成的 Markdown。改它的源，然后运行生成器。
 
-Generated files, imported third-party documents, and renderer fixtures may use documented
-repository exclusions.
+生成的文件、引入的第三方文档与渲染器测试数据可以使用已记录的仓库级豁免。
 
-## Headings
+## 标题 {#headings}
 
-- Use ATX headings (`#`, `##`, `###`, and so on).
-- Use one H1 as the first Markdown heading.
-- Use title case for H1.
-- Use sentence case for H2 and below.
-- Maintain a logical hierarchy without skipping heading levels.
-- Leave one blank line above and below each heading.
+- 使用 ATX 标题（`#`、`##`、`###` 等）。
+- 第一个 Markdown 标题是唯一的一个 H1。
+- H1 用标题式大写（title case）。
+- H2 及以下用句子式大写（sentence case）。
+- 保持层级合逻辑，不跳级。
+- 每个标题上下各留一个空行。
 
-## Paragraphs and wrapping
+## 段落与换行 {#paragraphs-and-wrapping}
 
-- Separate paragraphs with one blank line.
-- Do not add consecutive blank lines.
-- Prefer a line-length target of 100-120 characters for prose.
-- Prefer natural breaks and a longer line over leaving one to three words on the next line.
-- Allow code blocks, tables, and long link destinations to exceed the target when needed.
+- 段落之间用一个空行分隔。
+- 不要出现连续空行。
+- 散文的行宽目标 Prefer 100-120 字符。
+- Prefer 自然的断点与较长的行，而不是把一三个词甩到下一行。
+- 代码块、表格与很长的链接目标必要时可超出该目标。
 
-## Lists
+## 列表 {#lists}
 
-- Use `-` for unordered list items.
-- Use ordered lists only when sequence matters.
-- **Transitional:** Use `1.` for every source item in an ordered list so the renderer supplies the
-  displayed numbers.
-- Keep list indentation and spacing consistent with the local markdownlint configuration.
-- Leave one blank line before and after a list.
+- 无序列表项用 `-`。
+- 仅在顺序有意义时使用有序列表。
+- **Transitional：** 有序列表中每个源条目都写 `1.`，由渲染器提供显示编号。
+- 列表缩进与间距与本地 markdownlint 配置保持一致。
+- 列表上下各留一个空行。
 
-Example:
+示例：
 
 ```markdown
 - First item
@@ -84,51 +76,44 @@ Example:
 1. Second step
 ```
 
-## Admonitions
+## 提示块 {#admonitions}
 
-- Use only the admonition syntax that the repository documents and renders.
-- When the repository documents and renders GitHub alerts without a stricter local syntax, use the
-  GitHub blockquote alert form with one of `NOTE`, `TIP`, `IMPORTANT`, `WARNING`, or `CAUTION`.
-- When support for that extension is absent or unconfirmed, use a portable blockquote with a bold
-  text label.
-- For a multi-paragraph admonition, prefix every content line and blank continuation line with `>`.
-  A bare blank line ends the admonition.
-- Keep the type label in the source and rendered output. Do not convey meaning through color or an
-  icon alone.
-- Preserve established, supported admonition syntax during a narrow edit. Do not convert it only to
-  impose this fallback.
+- 只使用仓库已记录并能渲染的提示块语法。
+- 仓库已记录并渲染 GitHub alert、且没有更严格的本地语法时，使用 GitHub 引用块
+  alert 形式，类型取 `NOTE`、`TIP`、`IMPORTANT`、`WARNING`、`CAUTION` 之一。
+- 该扩展不支持或支持情况未确认时，使用可移植的引用块加粗体文字标签。
+- 多段提示块中，每个内容行与空白的续行都要以 `>` 开头。裸露的空行会结束提示块。
+- 类型标签要同时保留在源文件与渲染输出中。不要只靠颜色或图标传达含义。
+- 小范围编辑时保留既有且受支持的提示块语法，不要仅仅为了强加这个回退形式而转换它。
 
-GitHub alert:
+GitHub alert：
 
 ```markdown
 > [!WARNING]
 > Back up the database before running the migration.
 ```
 
-Portable fallback:
+可移植回退：
 
 ```markdown
 > **Warning:** Back up the database before running the migration.
 ```
 
-## Tables
+## 表格 {#tables}
 
-- Use GFM pipe tables for tabular content.
-- Include leading and trailing pipes.
-- Align pipe characters vertically.
-- Pad each column to its widest cell plus one space either side, which matches Prettier's
-  default table output. MD060 checks that pipes line up but ignores cell content, so it
-  accepts a column padded far wider than anything in it.
-- Pad delimiter cells with spaces (`| ----- |`, not `|-----|`); MD060 does not check this
-  either.
-- The `normalize markdown table padding` pre-commit hook rewrites tables to this form, so
-  there is no need to count characters by hand.
-- Prefer left-aligned text columns and right-aligned numeric columns where appropriate.
-- Keep the delimiter row consistent with the intended rendered alignment.
-- Avoid HTML tables unless Markdown cannot express the required structure or the repository
-  documents the need.
+- 表格内容使用 GFM 管道表格。
+- 带上首尾管道符。
+- 管道符纵向对齐。
+- 每列填充到最宽单元格加左右各一个空格，这与 Prettier 的默认表格输出一致。
+  MD060 只检查管道是否对齐，不看单元格内容，因此它也会接受远比内容宽的列。
+- 分隔行的单元格要留空格填充（`| ----- |`，而不是 `|-----|`）；MD060 同样不检查这点。
+- `normalize markdown table padding` 预提交钩子会把表格重写为这种形式，
+  无需手工数字符。
+- 视情况 Prefer 文本列左对齐、数字列右对齐。
+- 分隔行的写法要与预期的渲染对齐方式一致。
+- 除非 Markdown 无法表达所需结构，或仓库已记录该需要，否则避免 HTML 表格。
 
-Example:
+示例：
 
 ```markdown
 | Name  | Value |
@@ -137,16 +122,15 @@ Example:
 | Beta  |    17 |
 ```
 
-## Code
+## 代码 {#code}
 
-- Use backtick-fenced code blocks instead of indented code blocks.
-- **Transitional:** Specify a language for every opening fence. Use `text` for plain text or output
-  without a more specific grammar.
-- Use a longer outer fence when documenting fenced Markdown.
-- Use inline code for commands, file names, functions, types, environment variables, configuration
-  keys, and identifiers.
+- 用反引号围栏代码块，不用缩进式代码块。
+- **Transitional：** 每个起始围栏都指明语言。纯文本或没有更具体语法的输出用
+  `text`。
+- 文档中要展示围栏 Markdown 时，外层用更长的围栏。
+- 命令、文件名、函数、类型、环境变量、配置键与标识符使用行内代码。
 
-Example:
+示例：
 
 ````markdown
 ```rust
@@ -158,61 +142,55 @@ fn main() {
 
 Run `cargo test` and edit `.markdownlint.jsonc`.
 
-## Emphasis
+## 强调 {#emphasis}
 
-- Use `*italic*` for emphasis.
-- Use `**bold**` for strong emphasis.
-- Avoid emphasis that does not add meaning.
+- 一般强调用 `*italic*`。
+- 强强调用 `**bold**`。
+- 避免不增加含义的强调。
 
-## Thematic breaks
+## 分隔线 {#thematic-breaks}
 
-Use three hyphens:
+用三个连字符：
 
 ```markdown
 ---
 ```
 
-## Links and images
+## 链接与图片 {#links-and-images}
 
-- Use descriptive link text.
-- Prefer inline links. Prefer reference-style links when the same destination appears more than
-  once in a document.
-- Avoid bare URLs.
-- Keep internal links relative when the repository's renderer supports them.
-- Give images useful alternative text. Use empty alternative text only for deliberately decorative
-  images.
+- 链接文字要有描述性。
+- Prefer 内联链接；同一目标在文档中出现多次时 Prefer 引用式链接。
+- 避免裸露的 URL。
+- 仓库渲染器支持时，内部链接保持相对路径。
+- 图片要给出有意义的替代文字。仅对刻意作装饰的图片使用空的替代文字。
 
-## HTML
+## HTML {#html}
 
-- Prefer portable Markdown syntax over raw HTML.
-- Use raw HTML only when Markdown cannot express the required result or the repository documents
-  the element or component.
-- Preserve supported front matter, MDX components, fence attributes, and other repository
-  extensions when editing surrounding content.
+- Prefer 可移植的 Markdown 语法，而非原始 HTML。
+- 仅当 Markdown 无法表达所需结果，或仓库已记录该元素或组件时才使用原始 HTML。
+- 编辑周边内容时，保留受支持的 front matter、MDX 组件、围栏属性及其他仓库扩展。
 
-## Files
+## 文件 {#files}
 
-- Use UTF-8 encoding.
-- Use LF line endings.
-- End each file with one newline.
-- Do not leave trailing whitespace or use trailing spaces to create Markdown hard line breaks.
+- 使用 UTF-8 编码。
+- 使用 LF 行尾。
+- 每个文件以一个换行符结尾。
+- 不留行尾空白，也不用行尾空格制造 Markdown 硬换行。
 
-## Editing guidance
+## 编辑指引 {#editing-guidance}
 
-When creating or modifying Markdown:
+创建或修改 Markdown 时：
 
-- For narrow edits, preserve surrounding style and use markdownlint without loading the full guide
-  unless both leave a concrete question unanswered.
-- Before creating or substantially restructuring documentation, consult only the relevant sections
-  of the repository-local Markdown guide.
-- Preserve the existing document structure unless the task requires a change.
-- Keep formatting consistent with surrounding content and supported renderer extensions.
-- Do not reformat unrelated sections.
-- Run the repository's focused Markdown check when available.
+- 小范围编辑时保留周边风格，按 markdownlint 处理；除非两者都留下具体的疑问未解，
+  否则不必通读整份指南。
+- 创建或大幅重组文档之前，只查阅仓库本地 Markdown 指南的相关小节。
+- 除非任务要求改动，否则保留既有文档结构。
+- 格式与周边内容及受支持的渲染器扩展保持一致。
+- 不要重排无关小节。
+- 有仓库专用的 Markdown 检查时就运行它。
 
-## Transitional adoption
+## 过渡性采用 {#transitional-adoption}
 
-ATX headings are enforced through `MD003`. Repeated `1.` ordered-list markers and languages on
-opening code fences are transitional rules, but `MD029` and `MD040` remain disabled until existing
-documents receive separate mechanical migrations. Do not broaden a narrow documentation change
-solely to migrate those existing constructs.
+ATX 标题由 `MD003` 强制执行。有序列表重复写 `1.`、起始代码围栏标明语言，
+这两条是过渡性规则；在既有文档完成单独的机械迁移之前，`MD029` 与 `MD040`
+保持禁用。不要仅仅为了迁移这些既有构造而扩大一个小范围的文档改动。

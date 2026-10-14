@@ -1,22 +1,20 @@
-# Plugins
+# 插件
 
-The `nautilus-plugin` crate defines the artifact contract for NautilusTrader plug-ins. A plug-in is an
-independently compiled Rust `cdylib`. It identifies itself with a versioned manifest and exchanges values
-across a C-ABI boundary.
+`nautilus-plugin` crate 定义了 NautilusTrader 插件的产物契约。插件是一个独立编译的
+Rust `cdylib`，通过带版本的清单表明身份，并经由 C-ABI 边界交换值。
 
-The crate covers artifact identity and boundary primitives only. It does not load, register, or run plug-ins.
-The loading host is an internal Nautilus deployment detail outside this repository.
+该 crate 只覆盖产物身份与边界原语，不负责加载、注册或运行插件。
+加载宿主属于 Nautilus 内部部署细节，不在本仓库内。
 
 :::warning
-The plug-in ABI is early alpha and the contract is unstable. Pin plug-in builds to the matching
-`nautilus-plugin` version.
+插件 ABI 处于早期 alpha，契约不稳定。插件构建必须锁定与之匹配的
+`nautilus-plugin` 版本。
 :::
 
-## Artifact contract
+## 产物契约 {#artifact-contract}
 
-A plug-in is a Rust `cdylib` that exports a single entry symbol, `nautilus_plugin_init`. The
-`nautilus_plugin!` macro generates that symbol together with the static manifest carrying the build
-identity:
+插件是导出单一入口符号 `nautilus_plugin_init` 的 Rust `cdylib`。
+`nautilus_plugin!` 宏生成该符号，同时生成携带构建身份的静态清单：
 
 ```rust
 nautilus_plugin::nautilus_plugin! {
@@ -26,36 +24,34 @@ nautilus_plugin::nautilus_plugin! {
 }
 ```
 
-`name` and `version` are required, `vendor` defaults to an empty string. Invoke the macro once per
-artifact at module scope, set `crate-type = ["cdylib"]` in the artifact's `Cargo.toml`, and depend on
-the matching `nautilus-plugin` version.
+`name` 与 `version` 必填，`vendor` 默认为空字符串。每个产物在模块作用域调用该宏
+一次，在产物的 `Cargo.toml` 中设置 `crate-type = ["cdylib"]`，
+并依赖匹配的 `nautilus-plugin` 版本。
 
-## Manifest compatibility
+## 清单兼容性 {#manifest-compatibility}
 
-`nautilus_plugin_init` takes an opaque host pointer. It returns a `PluginManifest` in process-lifetime
-storage. If the host pointer is null or the call panics, it returns null. `PluginManifest::validate` checks
-the invariants a host relies on before registration. It reports each structural problem it finds and fails
-when:
+`nautilus_plugin_init` 接受一个不透明的宿主指针，返回存放在进程生命周期
+存储中的 `PluginManifest`。宿主指针为空或调用 panic 时返回 null。
+`PluginManifest::validate` 检查宿主在注册前依赖的各项不变式，报告发现的每个
+结构性问题，并在下列情形失败：
 
-- `abi_version` does not equal `NAUTILUS_PLUGIN_ABI_VERSION`, or `build_id.schema_version` does not
-  equal `PLUGIN_BUILD_ID_VERSION`.
-- `plugin_name` or `plugin_version` is empty.
-- Any manifest string is malformed: a null pointer with non-zero length, or bytes that are not valid
-  UTF-8.
-- `build_id.precision_mode` or `build_id.fixed_precision` differs from the host build.
+- `abi_version` 不等于 `NAUTILUS_PLUGIN_ABI_VERSION`，或 `build_id.schema_version`
+  不等于 `PLUGIN_BUILD_ID_VERSION`。
+- `plugin_name` 或 `plugin_version` 为空。
+- 任何清单字符串格式非法：空指针配非零长度，或字节不是有效 UTF-8。
+- `build_id.precision_mode` 或 `build_id.fixed_precision` 与宿主构建不一致。
 
-Precision is validated because it changes model type layout across the boundary. The remaining build
-identity fields (`nautilus-plugin` version, `rustc` version, target triple, and build profile) are
-diagnostic.
+校验精度是因为它会改变模型类型跨边界的布局。其余构建身份字段
+（`nautilus-plugin` 版本、`rustc` 版本、target triple 与构建 profile）
+仅用于诊断。
 
-## Boundary rules
+## 边界规则 {#boundary-rules}
 
-Only the `#[repr(C)]` types in `nautilus_plugin::boundary`, and `#[repr(C)]` types built from them, may appear
-in a signature that crosses the boundary. `String`, `Vec`, and `Box<dyn Trait>` rely on Rust's unstable ABI
-and must never cross it. Panics must not unwind across the boundary either. The generated entry symbol catches
-them and returns null.
+只有 `nautilus_plugin::boundary` 中的 `#[repr(C)]` 类型，以及由它们构成的
+`#[repr(C)]` 类型，才能出现在跨边界的签名中。`String`、`Vec` 与
+`Box<dyn Trait>` 依赖 Rust 不稳定的 ABI，绝不可跨越边界。panic 也不允许
+穿越边界展开：生成的入口符号会捕获它们并返回 null。
 
-Under the current ABI, plug-ins are not unloaded, so manifest storage stays valid for the life of the
-process.
+按当前 ABI，插件不会被卸载，因此清单存储在进程存续期内始终有效。
 
-See [the crate docs](https://docs.rs/nautilus-plugin) for the boundary and manifest types.
+边界与清单类型见 [the crate docs](https://docs.rs/nautilus-plugin)。

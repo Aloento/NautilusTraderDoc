@@ -1,76 +1,71 @@
-# FFI Memory Contract
+# FFI 内存契约
 
-NautilusTrader exposes a C foreign function interface (FFI) only from `nautilus-core` and
-`nautilus-model`. Both crates gate the interface behind their `ffi` Cargo feature and keep the
-exported modules under `crates/core/src/ffi/` and `crates/model/src/ffi/`.
+NautilusTrader 只从 `nautilus-core` 与 `nautilus-model` 暴露 C 外部函数接口（FFI）。
+两个 crate 都用各自的 `ffi` Cargo feature 门控该接口，导出模块分别位于
+`crates/core/src/ffi/` 与 `crates/model/src/ffi/`。
 
-Other workspace crates use Rust APIs or PyO3 bindings. The separate `nautilus-plugin` crate defines
-the public guest plug-in ABI and does not share this memory contract.
+其他 workspace crate 使用 Rust API 或 PyO3 绑定。独立的 `nautilus-plugin` crate
+定义公开的 guest 插件 ABI，不共用本内存契约。
 
-The rules below are strict. Violating them can cause undefined behavior, including double frees,
-memory leaks, and invalid pointer access.
+下面的规则是强制性的。违反会导致未定义行为，包括重复释放、内存泄漏与非法指针访问。
 
-## Panic handling
+## Panic 处理 {#panic-handling}
 
-Rust panics must never unwind across an `extern "C"` function. Exported functions that can panic
-must route their implementation through `nautilus_core::ffi::abort_on_panic`, which logs the panic
-and aborts the process before unwinding crosses the C boundary.
+Rust panic 绝不允许跨 `extern "C"` 函数展开。可能 panic 的导出函数，其实现必须
+经 `nautilus_core::ffi::abort_on_panic` 转接：它记录 panic 并在展开越过 C 边界前
+终止进程。
 
-## `CVec` ownership
+## `CVec` 所有权 {#cvec-ownership}
 
-`CVec` represents Rust vector allocation metadata in a C-compatible form. A `CVec` created from `Vec<T>`
-transfers unique ownership of the allocation to the foreign caller. In Rust, it is intentionally neither
-`Copy` nor `Clone`. But C can still copy its fields. Thus, callers must enforce the same exactly-once
-ownership rule.
+`CVec` 以 C 兼容形式表示 Rust 向量分配的元数据。由 `Vec<T>` 创建的 `CVec`
+把该分配的唯一所有权转移给外部调用方。在 Rust 侧它有意既不实现 `Copy` 也不实现
+`Clone`，但 C 仍能复制它的字段，因此调用方必须自行执行同样的"恰好一次"所有权规则。
 
-| Step | Owner   | Action                                                                                        |
+| 步骤 | 持有方   | 动作                                                                                        |
 | ---- | ------- | --------------------------------------------------------------------------------------------- |
-| 1    | Rust    | Convert `Vec<T>` into `CVec`, transferring the allocation to the caller.                      |
-| 2    | Foreign | Read the elements without changing `ptr`, `len`, or `cap`.                                    |
-| 3    | Foreign | Call the matching type-specific `vec_drop_*` function exactly once to release the allocation. |
+| 1    | Rust    | 把 `Vec<T>` 转换为 `CVec`，将分配转移给调用方。                      |
+| 2    | Foreign | 读取元素，不改动 `ptr`、`len` 或 `cap`。                                    |
+| 3    | Foreign | 恰好调用一次匹配类型的 `vec_drop_*` 函数，释放该分配。 |
 
-Forgetting the drop leaks the allocation. Dropping the same allocation more than once can corrupt
-the allocator and crash the process.
+漏掉 drop 会泄漏分配；同一分配释放多次会破坏分配器并导致进程崩溃。
 
-Empty `CVec` values have `len == 0` and `cap == 0`. Their pointer is an opaque sentinel and must not
-be dereferenced. Rust consumers must use `CVec::into_vec`, which handles the empty case before it
-inspects the pointer. Borrowing consumers must use `CVec::as_slice` for the same reason.
+空的 `CVec` 满足 `len == 0` 且 `cap == 0`，其指针是不透明的哨兵值，不得解引用。
+Rust 消费方必须使用 `CVec::into_vec`，它在检查指针之前先处理空的情况；
+借用的消费方出于同样原因必须使用 `CVec::as_slice`。
 
-Both methods are unsafe because the public metadata cannot prove allocation provenance, alignment,
-initialization, or exclusive ownership. Any exported function that accepts a caller-provided
-`CVec` and invokes either method must:
+这两个方法都是 unsafe 的，因为公开的元数据无法证明分配的来源、对齐、初始化状态
+或独占所有权。任何接受调用方提供 `CVec` 并调用这两个方法之一的导出函数必须：
 
-- Be an `unsafe extern "C" fn`.
-- Document the caller obligations in a `# Safety` section.
-- Validate `len`, `cap`, and null-pointer invariants before reconstructing or borrowing data.
-- Use a concrete element type that matches the original `Vec<T>` allocation.
+- 声明为 `unsafe extern "C" fn`。
+- 在 `# Safety` 小节写明调用方义务。
+- 在重建或借用数据之前校验 `len`、`cap` 与空指针不变式。
+- 使用与原 `Vec<T>` 分配一致的具体元素类型。
 
-## Type-specific drop functions
+## 按类型的 drop 函数 {#type-specific-drop-functions}
 
-There is no generic `cvec_drop`. Reconstructing every allocation as `Vec<u8>` gives the allocator
-the wrong element layout for other types. Each owned vector crossing the boundary requires a drop
-function for its exact element type, such as `vec_drop_book_levels`, `vec_drop_book_orders`, or
-`vec_drop_fills`.
+没有通用的 `cvec_drop`。把所有分配都按 `Vec<u8>` 重建，会让分配器拿到与其他类型
+不符的元素布局。每个跨边界的 owned 向量都需要一个针对其精确元素类型的 drop 函数，
+例如 `vec_drop_book_levels`、`vec_drop_book_orders` 或 `vec_drop_fills`。
 
-Add the drop function beside the producer so reviews can verify the pair together. Tests must cover
-the empty sentinel and any metadata checks implemented by the consumer.
+drop 函数应加在生产者旁边，便于评审时一并核对这对函数。测试必须覆盖空哨兵值，
+以及消费方实现的所有元数据检查。
 
-## Borrowed foreign buffers
+## 借用外部缓冲区 {#borrowed-foreign-buffers}
 
-Memory allocated outside Rust must not be reconstructed as `Vec<T>`. Borrow it with
-`CVec::as_slice`, and copy it with `to_vec()` when Rust needs owned storage. The foreign caller keeps
-ownership and must release the original buffer with the allocator that created it.
+Rust 之外分配的内存不得按 `Vec<T>` 重建。用 `CVec::as_slice` 借用，
+Rust 需要 owned 存储时用 `to_vec()` 复制。所有权仍归外部调用方，
+原始缓冲区必须由创建它的分配器释放。
 
-## Opaque pointers
+## 不透明指针 {#opaque-pointers}
 
-Model objects whose layout is not `repr(C)` cross the ABI as opaque owning pointers. The generated
-header forward-declares the type, so foreign callers handle it only through exported functions:
+布局不是 `repr(C)` 的模型对象，以不透明 owned 指针的形式跨越 ABI。
+生成的头文件对该类型前向声明，外部调用方只能通过导出函数操作它：
 
-- Constructors return an owning `*mut T` from `Box::into_raw`.
-- Pure accessors take `&T` or `&mut T` references.
-- Every constructor must have a matching drop function.
+- 构造函数返回由 `Box::into_raw` 得到的 owned `*mut T`。
+- 纯访问器接受 `&T` 或 `&mut T` 引用。
+- 每个构造函数都必须有配套的 drop 函数。
 
-For example:
+例如：
 
 ```rust
 #[unsafe(no_mangle)]
@@ -96,16 +91,16 @@ pub unsafe extern "C" fn orderbook_drop(book: *mut OrderBook) {
 }
 ```
 
-The foreign owner must call the drop function exactly once. It must not copy the pointer, consume
-both copies, or use the pointer after the drop.
+外部持有者必须恰好调用一次 drop 函数，不得复制该指针、不得消费两份副本，
+也不得在 drop 之后继续使用该指针。
 
-## Review checklist
+## 评审清单 {#review-checklist}
 
-For each new or changed FFI export:
+每个新增或修改的 FFI 导出，逐条核对：
 
-- Keep the implementation in `nautilus-core` or `nautilus-model`.
-- Use `repr(C)` for every type whose layout crosses the boundary.
-- Prevent panics from unwinding across the boundary.
-- Pair each owned allocation with one type-specific release path.
-- State complete pointer and ownership obligations in `# Safety` documentation.
-- Add focused tests for the ownership and validation rules.
+- 实现留在 `nautilus-core` 或 `nautilus-model` 中。
+- 布局跨边界的每个类型都使用 `repr(C)`。
+- 阻止 panic 跨边界展开。
+- 每个 owned 分配配一条按类型的释放路径。
+- 在 `# Safety` 文档中写明完整的指针与所有权义务。
+- 为所有权与校验规则补充针对性测试。

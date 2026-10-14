@@ -1,238 +1,218 @@
-# Shell Scripts
+# Shell 脚本
 
-This page defines when to create a shell script and how to name, write, invoke, and test it.
-Bash is the default. Use POSIX `sh` only when a supported caller cannot rely on Bash being
-installed.
+本页定义何时创建 shell 脚本，以及如何命名、编写、调用与测试它。默认使用 Bash。
+只有当受支持的调用方确实无法依赖系统装有 Bash 时，才用 POSIX `sh`。
 
-The policy applies to shell files throughout the repository, including `scripts/`, `scripts/ci/`,
-`.pre-commit-hooks/`, and component directories.
+本策略适用于仓库中所有 shell 文件，包括 `scripts/`、`scripts/ci/`、
+`.pre-commit-hooks/` 与各组件目录。
 
-## When to write a script
+## 何时写脚本 {#when-to-write-a-script}
 
-Before adding a script, search for an existing script, Make target, or installed tool that already
-provides the behavior. Add a script when it gives procedural logic one testable, linted source of
-truth.
+添加脚本前，先搜索是否已有脚本、Make 目标或已安装的工具提供该行为。
+当脚本能让过程化逻辑拥有单一的可测试、可 lint 的事实来源时，再添加脚本。
 
-| Location       | Owns                                                                 | Delegates                                              |
+| 位置       | 负责内容                                                                 | 下放                                              |
 | -------------- | -------------------------------------------------------------------- | ------------------------------------------------------ |
-| GitHub Actions | Events, permissions, matrices, runners, secrets, and hosted actions  | Multi-step shell behavior                              |
-| `Makefile`     | Discoverable tasks, dependencies, variables, and concurrency limits  | Non-trivial control flow                               |
-| Shell script   | Validation, reusable command sequences, retries, and transformations | Workflow orchestration and build dependency management |
+| GitHub Actions | 事件、权限、矩阵、runner、secrets 与 hosted action  | 多步 shell 行为                              |
+| `Makefile`     | 可发现的任务、依赖、变量与并发限制  | 非平凡的控制流                               |
+| Shell 脚本   | 校验、可复用的命令序列、重试与转换 | 工作流编排与构建依赖管理 |
 
-Prefer a script when:
+下列情形 Prefer 用脚本：
 
-- A command sequence is used by more than one workflow, Make target, or developer task.
-- An inline GitHub Actions step contains branches, loops, retries, or failure handling worth
-  testing outside the workflow.
-- A Make recipe needs enough procedural logic that quoting, error propagation, or platform
-  behavior becomes hard to review.
-- A repeated maintenance or release task benefits from ShellCheck, `shfmt`, and focused tests.
+- 某命令序列被多个工作流、Make 目标或开发任务使用。
+- 内联的 GitHub Actions 步骤含有值得在工作流之外测试的分支、循环、重试或失败处理。
+- Make recipe 的过程化逻辑多到引号、错误传播或平台行为难以评审。
+- 重复的维护或发布任务能从 ShellCheck、`shfmt` 与聚焦测试中受益。
 
-Keep a command inline when it is short, used once, and clearer in its caller. Do not wrap one
-stable command only to add another file.
+命令简短、只用一次、放在调用方里更清晰时，保持内联。不要仅为多出一个文件去包装
+一条稳定的命令。
 
-When extracting GitHub Actions logic, keep expressions such as `${{ github.ref }}`, permissions,
-secret selection, and runner selection in the workflow. Pass ordinary values to the script through
-arguments or environment variables. The script's exit status must remain the step's exit status.
+从 GitHub Actions 抽离逻辑时，`${{ github.ref }}` 这类表达式、权限、secret 选择与
+runner 选择留在工作流里。普通值通过参数或环境变量传给脚本。脚本的退出状态必须
+仍是该步骤的退出状态。
 
-## Choose the shell and extension
+## 选择 shell 与扩展名 {#choose-the-shell-and-extension}
 
-The extension identifies the shell language, not whether the file is executable or sourceable.
+扩展名标识 shell 语言，不表示文件是否可执行或可 source。
 
-| Extension | Interpreter | Use                                                                      |
+| 扩展名 | 解释器 | 用途                                                                      |
 | --------- | ----------- | ------------------------------------------------------------------------ |
-| `.bash`   | Bash        | Default for new scripts and sourceable Bash files.                       |
-| `.sh`     | POSIX `sh`  | Only when a supported caller has a real requirement to run without Bash. |
+| `.bash`   | Bash        | 新脚本与可 source 的 Bash 文件的默认选择。                       |
+| `.sh`     | POSIX `sh`  | 仅当受支持的调用方确实有不依赖 Bash 运行的要求。 |
 
-Use `#!/usr/bin/env bash` for `.bash` files and `#!/usr/bin/env sh` for `.sh` files. Keep the shebang,
-including when Make or GitHub Actions invokes the file through `bash` or `sh`. Tools and direct callers use it
-to identify the interpreter.
+`.bash` 文件用 `#!/usr/bin/env bash`，`.sh` 文件用 `#!/usr/bin/env sh`。
+保留 shebang，即使 Make 或 GitHub Actions 通过 `bash` 或 `sh` 调用该文件。
+工具与直接调用方靠它识别解释器。
 
-Bash is preferred for normal development, Make, and CI scripts because the repository already
-depends on it and its features make non-trivial shell code clearer. These features include
-`pipefail`, `[[ ... ]]`, arrays, process substitution, and function-local variables.
+常规的开发、Make 与 CI 脚本 Prefer 用 Bash，因为仓库本就依赖它，且它的特性让
+非平凡的 shell 代码更清晰。这些特性包括 `pipefail`、`[[ ... ]]`、数组、
+进程替换与函数局部变量。
 
-Small bootstrap or wrapper scripts can have a supported interface that must avoid a Bash dependency. Use POSIX
-`sh` only for such scripts. Test the script under the target `/bin/sh`. Simple syntax alone does not prove
-POSIX compatibility.
+小型引导或包装脚本可能有必须不依赖 Bash 的受支持接口，这类脚本才用 POSIX `sh`。
+要在目标的 `/bin/sh` 下测试该脚本。仅凭语法简单证明不了 POSIX 兼容。
 
-Existing filenames predate this extension policy, so some `.sh` files contain Bash. Treat their
-shebangs as the source of truth. Do not rename an existing script only to change its extension.
-Apply the policy to new files and to scoped renames that already update every call site and document.
+既有文件名早于这条扩展名策略，所以有些 `.sh` 文件实际是 Bash。以它们的 shebang
+为事实来源。不要仅为改扩展名而重命名既有脚本。该策略适用于新文件，以及已经更新
+所有调用点与文档的成范围重命名。
 
-## Define the portability target
+## 定义可移植目标 {#define-the-portability-target}
 
-A script must support every platform on which its callers run. Unless its purpose states a narrower
-target, write it for Linux, macOS, and Windows through Git Bash, MSYS2, or WSL.
+脚本必须支持其调用方运行的每个平台。除非用途指明更窄的目标，否则按 Linux、
+macOS 以及经由 Git Bash、MSYS2 或 WSL 的 Windows 来写。
 
-Use Bash 3.2 as the default language floor because it is available on supported macOS systems.
-Avoid Bash 4+ features unless every caller provisions a newer version. Common Bash 4+ features and
-portable alternatives include:
+默认的语言下限是 Bash 3.2，因为受支持的 macOS 系统都有它。除非每个调用方都
+配置了更新版本，否则避免 Bash 4+ 特性。常见的 Bash 4+ 特性与可移植替代：
 
-| Feature                           | Bash version | Portable alternative               |
+| 特性                           | Bash 版本 | 可移植替代               |
 | --------------------------------- | ------------ | ---------------------------------- |
-| Associative arrays (`declare -A`) | 4.0+         | Files, simple arrays, or functions |
-| `readarray` / `mapfile`           | 4.0+         | `while read` loops                 |
-| `${var,,}` / `${var^^}`           | 4.0+         | `tr` for case conversion           |
+| 关联数组（`declare -A`） | 4.0+         | 文件、简单数组或函数 |
+| `readarray` / `mapfile`           | 4.0+         | `while read` 循环                 |
+| `${var,,}` / `${var^^}`           | 4.0+         | 用 `tr` 做大小写转换           |
 
-A CI-only script may use a newer Bash version or platform-specific tool when every workflow caller
-guarantees that environment. Document the constraint near the code that depends on it. A path under
-`scripts/ci/` does not by itself make a script Linux-only because CI also uses macOS and Windows
-runners.
+仅 CI 使用的脚本，当所有工作流调用方都保证该环境时，可以用更新的 Bash 版本或
+平台专属工具。在依赖该约束的代码旁注明。`scripts/ci/` 下的路径本身不会让脚本
+变成 Linux-only，因为 CI 也使用 macOS 与 Windows runner。
 
-### System utilities
+### 系统工具 {#system-utilities}
 
-Prefer options supported by both GNU and BSD utilities. When no common form exists, detect the
-capability or operating system and implement both forms.
+Prefer GNU 与 BSD 工具都支持的选项。没有公共写法时，探测能力或操作系统，
+并实现两种形式。
 
-| Operation         | GNU form       | BSD or macOS form | Portable approach                                         |
+| 操作         | GNU 写法       | BSD 或 macOS 写法 | 可移植做法                                         |
 | ----------------- | -------------- | ----------------- | --------------------------------------------------------- |
-| In-place `sed`    | `sed -i`       | `sed -i ''`       | Use a backup suffix such as `sed -i.bak`, then remove it. |
-| File size         | `stat -c '%s'` | `stat -f '%z'`    | Try or select the supported form.                         |
-| SHA-256           | `sha256sum`    | `shasum -a 256`   | Detect the command and keep output handling equal.        |
-| Canonical path    | `readlink -f`  | No common form    | Avoid it or resolve from a known directory with `pwd`.    |
-| Extended matching | `grep -P`      | No common form    | Use `grep -E` when it expresses the same pattern.         |
-| Nanosecond time   | `date +%N`     | No common form    | Use an existing run ID or `$RANDOM` for cache busting.    |
+| `sed` 原地修改    | `sed -i`       | `sed -i ''`       | 用备份后缀如 `sed -i.bak`，然后删除备份。 |
+| 文件大小         | `stat -c '%s'` | `stat -f '%z'`    | 尝试或选择受支持的写法。                         |
+| SHA-256           | `sha256sum`    | `shasum -a 256`   | 探测命令，并保持输出处理一致。        |
+| 规范路径    | `readlink -f`  | 无公共写法    | 避免使用，或从已知目录用 `pwd` 解析。    |
+| 扩展匹配 | `grep -P`      | 无公共写法    | `grep -E` 能表达同样模式时用它。         |
+| 纳秒时间   | `date +%N`     | 无公共写法    | 用已有的运行 ID 或 `$RANDOM` 做缓存失效。    |
 
-Quote paths and expansions so spaces do not change argument boundaries. Do not assume filesystem
-paths are case-sensitive. Use repository-relative paths only after resolving the repository root
-from the script location, not from the caller's working directory.
+对路径与展开加引号，防止空格改变参数边界。不要假定文件系统路径区分大小写。
+先根据脚本所在位置（而非调用方的工作目录）解析出仓库根，再使用仓库相对路径。
 
-Use only commands installed by the documented development or runner setup. If an optional command is
-necessary, check for it with `command -v` and report how to install or replace it. The repository stores text
-with LF endings through `.gitattributes`. Do not add platform-specific line endings.
+只用文档化的开发环境或 runner 配置所安装的命令。确需可选命令时，用 `command -v`
+检查，并说明如何安装或替代。仓库通过 `.gitattributes` 以 LF 行尾存储文本，
+不要添加平台专属的行尾。
 
-## Place and name scripts
+## 脚本的位置与命名 {#place-and-name-scripts}
 
-- Put general development and maintenance commands under `scripts/`.
-- Put workflow-specific build, test, publication, and verification commands under `scripts/ci/`.
-- Put repository checks invoked by pre-commit under `.pre-commit-hooks/`.
-- Keep component-specific scripts beside the component when moving them to `scripts/` would hide
-  their ownership.
+- 通用的开发与维护命令放 `scripts/`。
+- 工作流专属的构建、测试、发布与校验命令放 `scripts/ci/`。
+- 由 pre-commit 调用的仓库检查放 `.pre-commit-hooks/`。
+- 组件专属的脚本在移入 `scripts/` 会掩盖其归属时，留在组件旁边。
 
-- Under `scripts/` and in component directories, use lowercase kebab-case. Name a regression script
-  `test-<script-name>.bash` or `test-<script-name>.sh` to keep the tested pair together.
-- Under `.pre-commit-hooks/`, use lowercase snake_case and match the existing `check_*` and
-  `test_check_*` name families.
+- `scripts/` 下与组件目录中使用小写 kebab-case。回归测试脚本命名为
+  `test-<script-name>.bash` 或 `test-<script-name>.sh`，让被测的一对文件保持在一起。
+- `.pre-commit-hooks/` 下使用小写 snake_case，并沿用现有的 `check_*` 与
+  `test_check_*` 命名族。
 
-Keep each script focused on one task, and extend an existing script when new logic shares the same
-responsibility.
+每个脚本聚焦一个任务；新逻辑与既有脚本职责相同时，扩展它而不是新建。
 
-## Structure scripts for reliable execution
+## 以可靠执行为目标组织脚本 {#structure-scripts-for-reliable-execution}
 
-Standalone Bash scripts should start with:
+独立的 Bash 脚本以这两行开头：
 
 ```bash
 #!/usr/bin/env bash
 set -euo pipefail
 ```
 
-Use `set -eu` in a standalone POSIX `sh` script. POSIX does not define `pipefail`, so check pipeline
-behavior explicitly when a failure must propagate. If a script cannot use these options, explain
-the specific control flow that makes an option unsafe.
+独立的 POSIX `sh` 脚本用 `set -eu`。POSIX 没有定义 `pipefail`，失败必须传播时
+要显式检查管道的行为。脚本无法使用这些选项时，说明是哪段具体的控制流让某个
+选项不安全。
 
-Follow these requirements:
+遵循以下要求：
 
-- Validate required arguments and environment variables before changing state. Print concise usage
-  text and exit nonzero for invalid input.
-- Quote parameter expansions. Use Bash arrays for argument lists instead of building a command
-  string, and do not use `eval`.
-- Keep machine-readable output on standard output and diagnostics on standard error when callers
-  capture the result.
-- Do not end routine status output with a terminating period. Keep punctuation when the output is
-  a complete explanatory or diagnostic sentence.
-- Create temporary files with `mktemp`, register cleanup with `trap`, and constrain cleanup to the
-  exact paths created by the script.
-- Bound retries, report the final failure, and return a nonzero status when the requested operation
-  does not complete.
-- Do not print secrets or enable command tracing around credentials. Pass secrets through the
-  environment or the tool's supported secret input.
-- Use comments only for constraints or behavior that the commands do not make clear.
+- 改变状态之前校验必填参数与环境变量。无效输入时打印简明的用法说明并以非零退出。
+- 参数展开要加引号。参数列表用 Bash 数组，不要拼接命令字符串，也不要使用 `eval`。
+- 调用方需要捕获结果时，机器可读的输出走标准输出，诊断信息走标准错误。
+- 常规状态输出不以句号结尾。输出是完整的解释性或诊断性句子时保留标点。
+- 用 `mktemp` 创建临时文件，用 `trap` 注册清理，且清理只限定在脚本创建的那些路径。
+- 重试要有上限，报告最终的失败；请求的操作没有完成时返回非零状态。
+- 不要打印 secret，也不要在凭据附近启用命令跟踪。secret 通过环境或工具支持的
+  secret 输入传入。
+- 只在命令本身讲不清约束或行为时才写注释。
 
-Give a standalone script executable permissions when users or tools call it as `./path`. A sourceable file
-does not need executable permissions. Prefer executing a script in a child process. Source a file only when
-the caller must share its functions or shell state.
+用户或工具以 `./path` 方式调用时，给独立脚本加可执行权限。可 source 的文件不需要。
+Prefer 在子进程中执行脚本；只有调用方必须共享其函数或 shell 状态时才 source 文件。
 
-A sourceable Bash file must not call `exit` or change the caller's shell options. Return errors from
-functions and let the caller choose its error policy. Use `${BASH_SOURCE[0]}` instead of `$0` to
-resolve the source file's location.
+可 source 的 Bash 文件不得调用 `exit`，也不得改动调用方的 shell 选项。
+函数返回错误，由调用方决定错误策略。解析源文件位置时用 `${BASH_SOURCE[0]}`
+而不是 `$0`。
 
-If a script needs several functions:
+脚本需要多个函数时：
 
-1. Define `main` first.
-1. Place called functions below their callers.
-1. Invoke `main "$@"` after all definitions.
+1. 先定义 `main`。
+1. 被调用的函数放在调用方下方。
+1. 所有定义完成后再调用 `main "$@"`。
 
-This keeps the task visible at the top while ensuring each function exists before execution starts.
+这样任务在文件顶部一目了然，同时保证执行开始前每个函数都已存在。
 
-## Integrate with Make and GitHub Actions
+## 与 Make 和 GitHub Actions 集成 {#integrate-with-make-and-github-actions}
 
-Make targets should provide the stable, discoverable command that developers run. Keep target
-dependencies, build variables, and concurrency limits in the Makefile, then invoke the script with
-an explicit interpreter. For example, the `check-generated-drift` target delegates its procedural
-work to `scripts/ci/check-generated-drift.bash`.
+Make 目标提供开发者运行的稳定、可发现的命令。目标依赖、构建变量与并发限制留在
+Makefile，然后以显式解释器调用脚本。例如 `check-generated-drift` 目标把它的
+过程化工作下放给 `scripts/ci/check-generated-drift.bash`。
 
-GitHub Actions should provide workflow context through named environment variables and call the
-same script used locally where practical. The build workflow follows this boundary: it owns the
-Python matrix condition and `TARGET_DIR`, then invokes `scripts/ci/check-generated-drift.bash`.
+GitHub Actions 通过具名环境变量提供工作流上下文，并在可行处调用与本地相同的脚本。
+构建工作流就遵循这条边界：它掌控 Python 矩阵条件与 `TARGET_DIR`，
+然后调用 `scripts/ci/check-generated-drift.bash`。
 
-If the script is also a local command, keep GitHub-specific output files at the workflow boundary. Examples
-include `$GITHUB_OUTPUT` and `$GITHUB_ENV`. A script dedicated to GitHub Actions may write them when that
-integration is its stated purpose.
+脚本同时也是本地命令时，GitHub 专属的输出文件（如 `$GITHUB_OUTPUT` 与
+`$GITHUB_ENV`）留在工作流边界。专职 GitHub Actions 的脚本，在其声明的用途就是
+这层集成时，可以写这些文件。
 
-## Format and lint
+## 格式化与 lint {#format-and-lint}
 
-The pre-commit configuration formats shell files with `shfmt` using two-space indentation, indented
-case branches, consistent redirect spacing, and the Bash parser. ShellCheck then checks quoting,
-expansion, control flow, portability, and common command errors. The pinned hooks in
-`.pre-commit-config.yaml` are the source of truth for tool versions and options.
+pre-commit 配置用 `shfmt` 格式化 shell 文件：两空格缩进、case 分支缩进、
+一致的重定向间距、Bash 解析器。随后 ShellCheck 检查引号、展开、控制流、
+可移植性与常见命令错误。工具版本与选项以 `.pre-commit-config.yaml` 中固定的
+钩子为事实来源。
 
-Run both hooks against the exact changed scripts:
+对确切改动的脚本运行两个钩子：
 
 ```bash
 prek run shfmt --files scripts/ci/test-wheel.bash
 prek run shellcheck --files scripts/ci/test-wheel.bash
 ```
 
-`shfmt` updates files in place. Review its changes before running ShellCheck. ShellCheck selects the
-language from the shebang, so a `.sh` file with `#!/usr/bin/env sh` receives POSIX checks even though
-the formatter uses the common Bash parser.
+`shfmt` 原地更新文件，先审阅它的改动再运行 ShellCheck。ShellCheck 从 shebang
+选择语言，因此带 `#!/usr/bin/env sh` 的 `.sh` 文件会接受 POSIX 检查，
+即便格式化器用的是通用的 Bash 解析器。
 
-Keep ShellCheck suppressions on the narrowest applicable line. If the code does not make the constraint clear,
-add a reason nearby. Do not disable a check for the whole repository to silence one script.
+ShellCheck 抑制只放在最窄的适用行上。代码讲不清约束时，在旁边补一句原因。
+不要为了压住一个脚本而在全仓库禁用某项检查。
 
-The repository also rejects executable files without shebangs, mixed line endings, trailing whitespace, and
-unresolved merge markers. These checks complement ShellCheck. They do not replace a runtime test.
+仓库还拒绝没有 shebang 的可执行文件、混合行尾、行尾空白与未解决的合并标记。
+这些检查与 ShellCheck 互补，不能替代运行时测试。
 
-## Test behavior
+## 测试行为 {#test-behavior}
 
-Run the smallest test that exercises the changed branches and failure paths. Add a companion shell test for
-logic that can regress independently of a workflow. This includes parsing, multi-branch decisions, retries and
-cleanup, policy checks, and material external side effects.
+运行能覆盖改动分支与失败路径的最小测试。对能独立于工作流回归的逻辑，
+添加配套的 shell 测试。这包括解析、多分支决策、重试与清理、策略检查，
+以及实质性的外部副作用。
 
-A domain-level suite may cover cooperating scripts. A thin wrapper does not need a one-to-one test
-when that suite invokes it and proves its behavior.
+领域级的套件可以覆盖协同工作的多个脚本。薄包装若被该套件调用且行为已被证明，
+就不需要一对一的测试。
 
-Each companion test:
+每个配套测试：
 
-- Creates isolated state under `mktemp -d` and removes it on exit.
-- Supplies fake external commands through a temporary `PATH` instead of changing production code.
-- Uses distinct inputs and exact output, exit status, and side-effect assertions.
-- Covers success, invalid input, dependency failure, and cleanup when those paths exist.
-- Fails when a required test command is unavailable. A passing skip does not validate behavior.
-- Runs from `make test-scripts`, which is the script test inventory used by CI.
+- 在 `mktemp -d` 下创建隔离状态，退出时删除。
+- 通过临时 `PATH` 提供伪造的外部命令，而不是改动生产代码。
+- 用有区分度的输入，并对输出、退出状态与副作用做精确断言。
+- 覆盖成功、无效输入、依赖失败与清理这些存在的路径。
+- 所需的测试命令不可用时直接失败。跳过的"通过"不能验证行为。
+- 经由 `make test-scripts` 运行，这是 CI 使用的脚本测试清单。
 
-When a script has callers on multiple operating systems, exercise platform-sensitive changes on
-each caller's relevant CI matrix. A Linux test plus clean ShellCheck output does not prove macOS or
-Windows behavior.
+脚本在多个操作系统上都有调用方时，在各方相关的 CI 矩阵上验证平台敏感的改动。
+Linux 测试加干净的 ShellCheck 输出证明不了 macOS 或 Windows 的行为。
 
-## Review checklist
+## 评审清单 {#review-checklist}
 
-- The behavior is not already available from a script, Make target, installed tool, or simple
-  native workflow feature.
-- GitHub Actions, Make, and the script own the right parts of the workflow.
-- The extension, shebang, executable mode, and documented portability target agree.
-- The script runs independently of the caller's working directory.
-- Arguments, failures, temporary files, retries, output, and secrets have explicit handling.
-- Focused behavior tests, `shfmt`, and ShellCheck pass for the final changed files.
-- Every call site, workflow path filter, and document uses the final filename.
+- 该行为没有现成的脚本、Make 目标、已安装工具或简单的原生工作流特性可用。
+- GitHub Actions、Make 与脚本各自负责了工作流中正确的部分。
+- 扩展名、shebang、可执行模式与文档化的可移植目标相互一致。
+- 脚本独立于调用方的工作目录运行。
+- 参数、失败、临时文件、重试、输出与 secret 都有显式处理。
+- 针对最终改动文件，聚焦的行为测试、`shfmt` 与 ShellCheck 全部通过。
+- 每个调用点、工作流路径过滤与文档都使用最终的文件名。

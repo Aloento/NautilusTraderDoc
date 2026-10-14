@@ -787,562 +787,528 @@ swap 在达到最终性前保持 `Submitted`，场所状态查询无法解析它
 若节点在最终性之前停止，关闭流程会为本轮提交的每笔 swap 报告未完成的提交恢复，
 持久化的意图在下次 connect 时对账。请保持未结订单检查关闭。
 
-Execution routing follows Nautilus's multi-venue broker pattern. The client represents a wallet and RPC
-connection for one chain. Each instrument venue identifies both its chain and DEX.
+执行路由遵循 Nautilus 的多场所经纪模式。客户端代表一条链上的一个钱包与 RPC
+连接。每个金融工具场所同时标识其链与 DEX。
 
-A strategy may select the client explicitly through `client_id`. Node configuration may instead register the
-client for instrument venues through `RoutingConfig.venues` or use it as the default execution client. After
-client selection, `ExecutionClient::handles_order_venue` accepts only a venue whose parsed chain matches the
-client configuration and whose DEX is supported by the client. The instrument retains its `<Chain>:<DexType>`
-venue rather than being rewritten to `BLOCKCHAIN`.
+策略可以通过 `client_id` 显式选择客户端。节点配置也可以通过
+`RoutingConfig.venues` 为金融工具场所注册客户端，或把它用作默认执行客户端。
+选定客户端后，`ExecutionClient::handles_order_venue`
+只接受解析链与客户端配置匹配、且 DEX 受客户端支持的场所。金融工具保留其
+`<Chain>:<DexType>` 场所，不会被改写成 `BLOCKCHAIN`。
 
-The order maps to a single `exactInputSingle` call on the original Uniswap SwapRouter (the
-deployment whose signature carries a deadline). `allowed_token_pairs` is directional
-`(token_in, token_out)`: a SELL requires the base-to-quote pair, and a BUY requires the
-quote-to-base pair. Listing only one direction does not admit the other.
+订单映射为原始 Uniswap SwapRouter（签名带 deadline 的那个部署）上的一次
+`exactInputSingle` 调用。`allowed_token_pairs` 是有向的
+`(token_in, token_out)`：SELL 需要 base→quote 对，BUY 需要
+quote→base 对。只列一个方向不会放行另一个方向。
 
-| Parameter           | Source                                                                                     |
+| 参数                | 来源                                                                                       |
 | ------------------- | ------------------------------------------------------------------------------------------ |
-| `tokenIn`           | SELL: pool base token. BUY: pool quote token.                                              |
-| `tokenOut`          | SELL: pool quote token. BUY: pool base token.                                              |
-| `fee`               | Pool fee tier.                                                                             |
-| `recipient`         | Execution wallet address.                                                                  |
-| `deadline`          | Verified decision-header timestamp plus configured `deadline_seconds`.                     |
-| `amountIn`          | SELL: `Quantity` as raw base units. BUY: quote input from the verified exact-output quote. |
-| `amountOutMinimum`  | Derived from the verified quote at the decision height (see below).                        |
-| `sqrtPriceLimitX96` | `0` (slippage is bounded by `amountOutMinimum`).                                           |
+| `tokenIn`           | SELL：池 base 代币。BUY：池 quote 代币。                                                   |
+| `tokenOut`          | SELL：池 quote 代币。BUY：池 base 代币。                                                   |
+| `fee`               | 池费率层级。                                                                               |
+| `recipient`         | 执行钱包地址。                                                                             |
+| `deadline`          | 验证过的决策区块头时间戳加配置的 `deadline_seconds`。                                      |
+| `amountIn`          | SELL：`Quantity` 的原始 base 单位。BUY：来自验证过的 exact-output 报价的 quote 输入。      |
+| `amountOutMinimum`  | 由决策高度验证过的报价推导（见下文）。                                                     |
+| `sqrtPriceLimitX96` | `0`（滑点由 `amountOutMinimum` 限定）。                                                    |
 
-### BUY quote-spend limits
+### BUY 的 quote 支出上限 {#buy-quote-spend-limits}
 
-Every BUY needs one `quote_spend_limits` entry for its directed quote-to-base pair. The entry repeats the
-quote-token address and decimals beside `max_amount`, a base-10 string in the token's raw units. Client
-construction rejects these entries:
+每笔 BUY 都需要一条指向该 quote→base 交易对的 `quote_spend_limits`
+条目。条目在 `max_amount` 旁重复给出 quote 代币地址与小数位，`max_amount`
+是用币原始单位表示的 base-10 字符串。客户端构造会拒绝下列条目：
 
-- A second entry for the same directed pair.
-- A `spend_token` that differs from `token_in`.
-- A `max_amount` that is not a base-10 unsigned integer within the `U256` range.
-- A pair outside `allowed_token_pairs`.
+- 同一有向交易对的第二条条目。
+- `spend_token` 与 `token_in` 不同。
+- `max_amount` 不是 `U256` 范围内的 base-10 无符号整数。
+- 交易对不在 `allowed_token_pairs` 中。
 
-Order preparation also checks the configured token and decimals against the selected pool (see
-[Execution configuration](#execution-configuration) for an example entry).
+订单准备还会把配置的代币与小数位同选定的池核对（示例条目见
+[执行配置](#execution-configuration)）。
 
-The client compares the independently verified exact-output quote's `amountIn` with this limit before signing.
-Equality is accepted. A quote one raw unit above the limit is denied. `max_order_amount` remains a separate
-ceiling on the submitted base quantity, and SELL orders do not use `quote_spend_limits`.
+客户端在签名前把三个源独立验证过的 exact-output 报价的 `amountIn` 与该上限
+比较。相等可接受，超出一个原始单位即被拒绝。`max_order_amount` 仍是提交的
+base 数量的独立上限，SELL 订单不使用 `quote_spend_limits`。
 
-### Slippage protection
+### 滑点保护 {#slippage-protection}
 
-`amountOutMinimum` is always derived, never caller-supplied:
+`amountOutMinimum` 一律推导得出，绝不由调用方提供：
 
-1. Require an initialized `PoolProfiler` with a processed event watermark in the shared engine cache
-   (`Cache::pool_profiler`). Its local simulation must consume the full SELL input or produce a
-   nonzero BUY input, but its amount does not set a signed field. A live data-side subscription
-   normally maintains this state.
-1. Choose a decision height from the minimum fresh head reported by the three sources. The head
-   skew must remain within `verification.chain_anchor.max_head_skew_blocks`.
-1. Require the profiler watermark to include the block hash observed during ingestion. All three
-   sources must return that exact explicit-height header. A block-scoped snapshot must also carry
-   the header hash as its snapshot identifier.
-1. For an event watermark, require a successful canonical receipt whose transaction, block, and
-   index metadata match the profiler position. The selected log must come from the expected pool
-   and use a supported pool-event signature.
-1. Verify one unanimous parent-linked ancestry from the profiler height through the decision
-   height. The distance must not exceed `max_quote_age_blocks`, which must be in `1..=4095`.
-1. Call the manifest-pinned `IQuoterV2` contract at the decision height through all three sources. SELL uses
-   `quoteExactInputSingle`. BUY uses `quoteExactOutputSingle`. The full decoded result must agree, including
-   amount, resulting square-root price, initialized ticks crossed, and gas estimate.
-1. Immediately before signing, reread the checkpoint, profiler header, decision header, ancestry,
-   and quote. An unavailable or changed result blocks signing.
-1. For SELL, compute `amountOutMinimum` from the verified exact-input output. For BUY, use the
-   verified exact-output input as `amountIn` and derive `amountOutMinimum` from the requested base
-   output. Integer arithmetic rejects a zero minimum.
+1. 要求共享引擎缓存（`Cache::pool_profiler`）中存在已初始化的
+   `PoolProfiler`，且带已处理事件水位线。其本地模拟必须能吃满 SELL 的输入
+   或产出非零的 BUY 输入，但其金额不设置任何签名字段。该状态通常由实时的
+   数据侧订阅维护。
+1. 从三个源报告的最小新区块高度中选取决策高度。新区块高度的偏斜必须保持在
+   `verification.chain_anchor.max_head_skew_blocks` 之内。
+1. 要求剖析器水位线包含摄取时观察到的区块哈希。三个源必须都返回该确切的
+   显式高度区块头。按区块取快照时，快照还必须把该区块头哈希作为快照标识。
+1. 对事件水位线，要求存在一条规范回执，其交易、区块与索引元数据与剖析器位置
+   匹配。选中的日志必须来自预期池，并使用受支持的池事件签名。
+1. 验证一条从剖析器高度到决策高度、由父哈希链接、三个源完全一致的祖先链。
+   距离不得超过 `max_quote_age_blocks`，该值必须在 `1..=4095` 内。
+1. 通过三个源在决策高度调用清单固定的 `IQuoterV2` 合约。SELL 用
+   `quoteExactInputSingle`，BUY 用
+   `quoteExactOutputSingle`。完整解码结果必须一致，包括金额、结果平方根价格、
+   跨越的已初始化 tick 与 gas 估计。
+1. 签名前立即重读检查点、剖析器区块头、决策区块头、祖先链与报价。结果不可得
+   或发生变化都会阻止签名。
+1. SELL 从验证过的 exact-input 输出计算 `amountOutMinimum`。BUY
+   把验证过的 exact-output 输入用作 `amountIn`，并从请求的 base 输出推导
+   `amountOutMinimum`。整数运算拒绝为零的最小值。
 
-Profiler divergence can request a data refresh, but it cannot override a verified quote or weaken
-the signed limits.
+剖析器出现分歧时可以请求数据刷新，但不能覆盖已验证的报价或削弱签名限额。
 
-The `slippage_bps` configuration field sets the slippage. A `slippage_bps` entry in the submit command's
-`params` overrides it for that order. An override above the `max_slippage_bps` ceiling is rejected before
-signing.
+`slippage_bps` 配置字段设定滑点。提交命令 `params` 中的
+`slippage_bps` 条目会覆盖它、仅作用于该订单。超过 `max_slippage_bps`
+上限的覆盖在签名前被拒绝。
 
-Pre-upgrade event rows can lack an ingestion block hash because the schema migration does not
-backfill one. Such rows cannot authorize execution. Refresh the traded pool through the normal live
-data subscription, or resync its events and rebuild its snapshot, before submitting an order.
+升级前写入的事件行可能没有摄取区块哈希，因为模式迁移不回填该字段。这类行不能
+授权执行。下单前先通过正常实时数据订阅刷新交易池，或重同步其事件并重建快照。
 
-### Preflight, wrapping, and approval
+### 预检、包装与授权 {#preflight-wrapping-and-approval}
 
-Preflight, WETH wrapping, and router approval are explicit operations on the client, separate from
-`submit_order`:
+预检、WETH 包装与路由授权是客户端上的显式操作，与 `submit_order` 分离：
 
-| Operation | State change                       | Pre-broadcast checks                                                                                                        | Completion check                                    |
-| --------- | ---------------------------------- | --------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------- |
-| Preflight | None.                              | Authoritative chain, deployed-code, balance, allowance, and current-fee diagnostics.                                        | Returns a structured, sanitized report.             |
-| Wrap      | Calls WETH `deposit()` with value. | Verified decision ancestry, deployment, WETH balance, native balance, gas, fee, nonce, and explicit-height simulation.      | WETH balance increased by the exact wrapped amount. |
-| Approve   | Calls `approve(router, amount)`.   | Wrap checks plus router policy, factory and WETH identity, input-token membership, zero allowance, and approval simulation. | Allowance at the inclusion block equals the target. |
+| 操作 | 状态变化                               | 广播前检查                                                                                                                | 完成检查                                     |
+| ---- | ---------------------------------------- | --------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------ |
+| 预检 | 无。                                     | 权威链、已部署代码、余额、授权与当前费用的诊断。                                                                            | 返回结构化、脱敏后的报告。                       |
+| 包装 | 带 value 调用 WETH `deposit()`。       | 验证过的决策祖先链、部署、WETH 余额、原生余额、gas、费用、nonce 与显式高度模拟。                                            | WETH 余额恰好增加所包装的数量。                  |
+| 授权 | 调用 `approve(router, amount)`。       | 包装的全部检查，另加路由策略、工厂与 WETH 身份、输入代币资格、零授权与授权模拟。                                            | 包含区块处的授权额等于目标值。                   |
 
-Preflight resolves the pool from `Cache::pool`. Its report contains no RPC URL, private key, or raw signed
-transaction. It reports these values and checks:
+预检从 `Cache::pool` 解析池。报告不含 RPC URL、私钥或原始签名交易。它报告
+下列数值并做检查：
 
-- Expected and observed chain IDs.
-- Pool, router, and token code checks.
-- Token balances and allowances, and native balance.
-- Base and priority fees, the derived maximum fee, and whether that fee stays within its ceiling.
-- Overall readiness and every failed check.
+- 预期与观察到的链 ID。
+- 池、路由与代币的代码检查。
+- 代币余额与授权额，以及原生余额。
+- base fee 与 priority fee、推导出的最大费用，以及该费用是否在上限内。
+- 整体就绪状态与每项失败的检查。
 
-Approve rejects a standard `false` return and accepts tokens that return no data. A nonzero
-approval is limited to configured input tokens and requires the existing allowance to be zero.
-With `unlimited_approval`, every nonzero request targets `U256::MAX`. The final allowance must equal
-the target exactly. A zero request revokes an allowlisted router even when router deployment
-metadata is unavailable, so a broken router check cannot prevent revocation.
+Approve 拒绝标准的 `false` 返回值，接受不返回数据的代币。非零授权仅限配置的
+输入代币，且要求现有授权为零。开启 `unlimited_approval` 时，所有非零请求都以
+`U256::MAX` 为目标。最终授权必须精确等于目标值。零请求即使路由部署元数据不可用
+也能撤销白名单路由的授权，因此路由检查损坏并不能阻止撤销。
 
-During an uninterrupted call, wrap and approve use the shared EIP-1559 path. They persist the intent and
-signed hash before broadcast. They return after stable finality and the operation's postcondition. Wrap
-compares the WETH balance immediately before and at the inclusion block, which avoids a stale pre-broadcast
-baseline. A failed postcondition returns an error after finality, so the transaction may still have changed
-on-chain state.
+调用不被打断时，包装与授权共用 EIP-1559 路径。它们在广播前持久化意图与签名
+哈希，在稳定最终性与操作后置条件成立后返回。Wrap 比较广播前一刻与包含区块处的
+WETH 余额，避免使用过期的广播前基线。后置条件失败时，错误在最终性之后返回，
+因此交易可能已改变链上状态。
 
-Before signing a swap, order submission requires exact agreement from all three sources for:
+签名 swap 前，订单提交要求三个源就下列内容完全一致：
 
-- The decision header and parent-linked ancestry from the durable finalized ledger.
-- The deployment manifest at the decision height, including every configured code hash, proxy
-  binding, and role probe.
-- The router reports the registered factory and configured WETH, and the factory resolves the
-  exact pool for the input token, output token, and fee tier.
-- Both tokens report the decimals stored in the reviewed manifest.
-- The manifest-pinned quote contract returns one exact quote.
-- Router allowance and input-token balance sufficient for the raw input amount.
-- Native balance sufficient for transaction value plus the maximum gas cost.
-- Canonical and pending nonce observations that agree with the durable nonce ledger.
-- The maximum gas estimate, median priority fee, and local gas and fee ceilings.
+- 决策区块头，以及来自持久最终化台账的父哈希祖先链。
+- 决策高度的部署清单，包括每个配置的代码哈希、代理绑定与角色探测。
+- 路由报告注册的工厂与配置的 WETH，且工厂能按输入代币、输出代币与费率层级
+  解析出确切的池。
+- 两个代币报告审查后清单中存储的小数位。
+- 清单固定的报价合约返回唯一确切的报价。
+- 路由授权额与输入代币余额足以覆盖原始输入数量。
+- 原生余额足以覆盖交易 value 加最大 gas 成本。
+- 与持久 nonce 台账一致的规范与 pending nonce 观察。
+- 最大 gas 估计、priority fee 中位数，以及本地 gas 与费用上限。
 
-The decision header supplies the deadline, quote-age boundary, durable `created_block`, and EIP-1559 base fee.
-State, call, code, storage, gas, balance, and allowance reads use its explicit block number.
+决策区块头提供 deadline、报价时效边界、持久 `created_block` 与 EIP-1559
+base fee。状态、调用、代码、存储、gas、余额与授权读取都使用其显式区块号。
 
-Immediately before local signing, the client repeats the chain, header, ancestry, deployment, quote, canonical
-nonce, and pending nonce checks. It persists this evidence atomically with nonce assignment. A failure before
-signing produces `OrderDenied` and no broadcast. The client releases its preparation slot only after the
-durable recoverable transition succeeds. A failed transition keeps ownership for reconciliation.
+本地签名前一刻，客户端重复链、区块头、祖先链、部署、报价、规范 nonce 与
+pending nonce 检查，并把这份证据与 nonce 分配原子地持久化。签名前失败产生
+`OrderDenied` 且无广播。只有在持久的可恢复状态迁移成功后，客户端才释放准备
+槽位。迁移失败则保留所有权等待对账。
 
-The input token is the base token for a SELL and the quote token for a BUY. Preflight readiness still reports
-the base-token allowance used by SELL setup. A BUY needs a separate quote-token approval. Submission denies
-the order if that allowance or balance is short.
+SELL 的输入代币是 base 代币，BUY 的是 quote 代币。预检就绪报告仍显示 SELL
+设置所用的 base 代币授权。BUY 需要单独的 quote 代币授权；该授权或余额不足时，
+提交拒绝订单。
 
-Submission never wraps or approves. An insufficient allowance or balance emits `OrderDenied`.
+提交从不执行包装或授权。授权或余额不足会发出 `OrderDenied`。
 
-### Transaction signing and broadcast
+### 交易签名与广播 {#transaction-signing-and-broadcast}
 
-#### Local signing
+#### 本地签名 {#local-signing}
 
-The client builds and signs EIP-1559 typed transactions locally with Alloy:
+客户端用 Alloy 在本地构建并签名 EIP-1559 交易：
 
-- It builds `alloy::consensus::TxEip1559` with the chain ID, nonce, gas, fees, destination, value,
-  and calldata.
-- It signs `SignableTransaction::signature_hash()` with
-  `alloy::signers::local::PrivateKeySigner`, producing `Signed<TxEip1559>`.
-- It encodes the EIP-2718 envelope with
-  `alloy::eips::eip2718::Encodable2718::encoded_2718()` and sends the raw bytes through
-  `eth_sendRawTransaction`.
+- 构建 `alloy::consensus::TxEip1559`，含链 ID、nonce、gas、费用、目标地址、
+  value 与 calldata。
+- 用 `alloy::signers::local::PrivateKeySigner` 对
+  `SignableTransaction::signature_hash()` 签名，得到
+  `Signed<TxEip1559>`。
+- 用 `alloy::eips::eip2718::Encodable2718::encoded_2718()`
+  编码 EIP-2718 封装，并通过 `eth_sendRawTransaction` 发送原始字节。
 
-The private key comes from the environment variable named by `signer_private_key_env`. It is never
-logged, serialized, or stored in configuration. Zeroizing buffers hold the temporary key text and
-decoded bytes while the signer is constructed. The client supports one signer, whose derived
-address must match `wallet_address` at connect.
+私钥来自 `signer_private_key_env` 所指的环境变量，绝不写入日志、序列化或存入
+配置。构造签名器期间由 zeroizing 缓冲区持有临时密钥文本与解码字节。客户端只
+支持一个签名器，其推导地址必须在 connect 时等于 `wallet_address`。
 
-#### Signer and nonce ownership
+#### 签名器与 nonce 所有权 {#signer-and-nonce-ownership}
 
-At most one transaction can be in flight across wraps, approvals, and swaps:
+包装、授权与 swap 全部合计，同时在途的交易至多一笔：
 
-- The client claims the local slot before the first preparation RPC call.
-- The durable canonical nonce comes from unanimous explicit finalized-height reads. Pending nonce
-  is an additional mempool observation and never proves canonical consumption.
-- A new signature requires canonical nonce `N`, no unexplained pending use, and an intent that can
-  atomically own `N` with its verification evidence.
-- A preparation failure releases the slot only when no signature exists.
-- After signing, the slot stays claimed through persistence, broadcast, finality, and required
-  order-event persistence.
-- A persistence error keeps the slot claimed because Postgres may have committed before the client
-  lost the acknowledgement.
-- Cancelling an operation during persistence or broadcast does not release the slot and admit a new
-  transaction.
+- 客户端在第一次准备 RPC 调用前抢占本地槽位。
+- 持久规范 nonce 来自三个源一致的显式最终化高度读取。pending nonce 只是一条
+  额外的内存池观察，永远不能证明规范消耗。
+- 新签名要求规范 nonce `N`、无无法解释的 pending 使用，且意图能连同其验证
+  证据原子地持有 `N`。
+- 只有在尚不存在签名时，准备失败才释放槽位。
+- 签名之后，槽位保持被占用，直至持久化、广播、最终性与必需的订单事件持久化
+  全部完成。
+- 持久化错误保持槽位被占用，因为 Postgres 可能已提交而客户端丢失了确认。
+- 在持久化或广播期间取消操作不会释放槽位，也不会放行新交易。
 
-Fee and gas policy also runs before signing:
+费用与 gas 策略同样在签名前执行：
 
-- All paths use the unanimous decision header's base fee. Three priority-fee values select the
-  median before `base_fee_buffer_bps` is applied. The client rejects a derived fee above
-  `max_fee_per_gas_wei`.
-- All three sources estimate the exact unsigned transaction at the decision height. The client selects the
-  maximum estimate, applies `gas_buffer_bps`, and rejects a result above `gas_limit`. It does not clamp the
-  estimate.
+- 所有路径使用一致决策区块头的 base fee。三个 priority fee 值先取中位数，
+  再应用 `base_fee_buffer_bps`。推导费用超过
+  `max_fee_per_gas_wei` 会被拒绝。
+- 三个源都在决策高度对确切的未签名交易做估计。客户端选取最大估计值，应用
+  `gas_buffer_bps`，超过 `gas_limit` 即拒绝。客户端不会钳制估计值。
 
-#### Persist before broadcast
+#### 广播前持久化 {#persist-before-broadcast}
 
-The client reserves a durable intent before it assigns a nonce or signs. It then stores the nonce,
-an authenticated signed-payload envelope, and the local hash before broadcast. A transaction
-cannot be submitted without a ready protected durable store.
+客户端在分配 nonce 或签名前保留一个持久意图，随后在广播前存储 nonce、一个
+经过认证的签名载荷信封与本地哈希。没有就绪且受保护的持久存储，交易无法提交。
 
-Immediately before sending, the client records the `broadcast` transition. Any outcome after that write,
-including a node rejection, is treated as uncertain until canonical nonce and receipt observation resolves it.
+发送前一刻，客户端记录 `broadcast` 迁移。该写入之后的任何结果——包括节点
+拒绝——都按不确定处理，直到规范 nonce 与回执观察将其解决。
 
-A signed intent without a durable broadcast transition remains active and blocks connect pending explicit
-recovery. The adapter has no automated recovery command or client method for that state. An operator must
-inspect the durable `execution_intent` and `execution_transaction_hash` records. The operator must make an
-explicit, reviewed recovery decision. The adapter does not release the signer slot or resend the transaction
-automatically.
+没有持久 `broadcast` 迁移的签名意图保持活跃，并在等待显式恢复期间阻塞
+connect。适配器对该状态没有自动恢复命令或客户端方法。运营方必须检查持久的
+`execution_intent` 与 `execution_transaction_hash`
+记录，做出明确、经审查的恢复决定。适配器不会自动释放签名器槽位或重发交易。
 
-A durable `broadcast` intent may resend only its exact persisted bytes before observation resumes.
+持久的 `broadcast` 意图在恢复观察之前，只能重发其精确的已持久字节。
 
-Broadcast and receipt handling follow these rules:
+广播与回执处理遵循这些规则：
 
-- Each execution JSON-RPC request has a 10-second timeout. Errors omit the endpoint URL, request
-  payload, and signed bytes.
-- `already known` counts as acceptance.
-- A timeout, reset, node rejection, unreadable response, or returned hash that differs from the
-  signed hash enters reconciliation under the persisted intent.
-- Three null receipts are retryable. Partial propagation is retryable. Conflicting present
-  receipts are disagreement and cannot authorize a state change.
-- Receipt observation retries transient RPC errors within the configured finality poll window.
-- Poll exhaustion records `dropped` and leaves the signer slot occupied.
-- Exact-byte rebroadcast uses only the authenticated retained envelope. Before sending it again,
-  all three sources must verify the chain, ancestry, deployment, canonical and pending nonce,
-  receipt absence, and purpose-specific explicit-height simulation. Only the authoritative source
-  receives the bytes.
+- 每个执行 JSON-RPC 请求超时 10 秒。错误信息省略端点 URL、请求载荷与签名
+  字节。
+- `already known` 计为接受。
+- 超时、连接重置、节点拒绝、无法读取的响应，或返回哈希与签名哈希不一致，都
+  进入持久意图下的对账。
+- 三个源回执均为 null 可重试；部分传播可重试；彼此冲突的非空回执属于分歧，
+  不能授权状态变化。
+- 回执观察在配置的最终性轮询窗口内对瞬时 RPC 错误重试。
+- 轮询耗尽记录 `dropped`，签名器槽位保持占用。
+- 精确字节重广播只使用认证过的保留信封。再次发送前，三个源必须验证链、
+  祖先链、部署、规范与 pending nonce、回执不存在，以及按用途的显式高度模拟。
+  字节只发给权威源。
 
-### Risk and validation boundaries
+### 风险与验证边界 {#risk-and-validation-boundaries}
 
-Generic pre-trade risk stays in the engine. Venue-specific gates live in the adapter as a
-configuration-driven limiter:
+通用盘前风控留在引擎中。交易场所专属的闸门在适配器内，以配置驱动的限流器
+实现：
 
-| Check                 | Boundary       | Enforcement                                                                                                      |
-| --------------------- | -------------- | ---------------------------------------------------------------------------------------------------------------- |
-| Chain identity        | Adapter        | Reviewed checkpoint, three-source chain ID, fresh headers, and parent-linked ancestry                            |
-| Deployment identity   | Adapter + risk | Reviewed code hashes, proxy bindings, role probes, pool identity, and inclusion call graph                       |
-| Token-pair allowlist  | Risk (adapter) | Directional pairs for swaps; input-token membership for nonzero approvals                                        |
-| Order amount          | Risk (adapter) | `max_order_amount` on submitted base quantity; pair-specific `quote_spend_limits` on verified BUY quote input    |
-| Quote provenance      | Adapter        | Canonical profiler watermark, bounded ancestry, pinned QuoterV2 result, and final pre-signature recheck          |
-| Gas and fee           | Risk (adapter) | Maximum three-source gas estimate, median priority fee, and local `gas_limit` and `max_fee_per_gas_wei` ceilings |
-| Balance sufficiency   | Adapter + risk | Explicit-height three-source input-token and native balance checks                                               |
-| Allowance sufficiency | Adapter        | Explicit-height three-source router allowance checks                                                             |
-| Slippage              | Risk (adapter) | `max_slippage_bps` ceiling and verified quote-derived minimum output                                             |
-| In-flight limit       | Adapter + DB   | Local slot plus durable canonical nonce and signer ownership                                                     |
+| 检查               | 边界           | 强制执行                                                                                                       |
+| ------------------ | -------------- | ---------------------------------------------------------------------------------------------------------------- |
+| 链身份             | 适配器         | 经审查的检查点、三源链 ID、新区块头与父哈希祖先链                                                                |
+| 部署身份           | 适配器 + 风控  | 经审查的代码哈希、代理绑定、角色探测、池身份与包含调用图                                                         |
+| 代币对白名单       | 风控（适配器） | swap 的有向交易对；非零授权的输入代币资格                                                                        |
+| 订单金额           | 风控（适配器） | 提交 base 数量的 `max_order_amount`；验证过的 BUY quote 输入上按对设置的 `quote_spend_limits`                    |
+| 报价出处           | 适配器         | 规范剖析器水位线、有界祖先链、固定 QuoterV2 结果与签名前最终复核                                                 |
+| gas 与费用         | 风控（适配器） | 三源 gas 估计最大值、priority fee 中位数，以及本地 `gas_limit` 与 `max_fee_per_gas_wei` 上限                     |
+| 余额充足性         | 适配器 + 风控  | 显式高度的三源输入代币与原生余额检查                                                                             |
+| 授权充足性         | 适配器         | 显式高度的三源路由授权检查                                                                                       |
+| 滑点               | 风控（适配器） | `max_slippage_bps` 上限与验证过的报价推导最小产出                                                                |
+| 在途限制           | 适配器 + DB    | 本地槽位加持久规范 nonce 与签名器所有权                                                                          |
 
-Every limiter rejection refuses the order before signing and reports a structured reason.
+限流器的每次拒绝都在签名前拒绝订单，并报告结构化的原因。
 
-### Order events
+### 订单事件 {#order-events}
 
-Order submission emits only events justified by known transaction state:
+订单提交只发出有已知交易状态支撑的事件：
 
-| Observation                                                | Event             | Result                                                                                                                                                                                                                           |
+| 观察结果                                                   | 事件              | 结果                                                                                                                                                                                                                             |
 | ---------------------------------------------------------- | ----------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Failure before the persisted broadcast transition.         | `OrderDenied`     | No transaction left the client.                                                                                                                                                                                                  |
-| Persisted broadcast attempt, including an ambiguous reply. | `OrderSubmitted`  | The signed intent remains the observation authority.                                                                                                                                                                             |
-| Verified finalized revert.                                 | `OrderRejected`   | The stable event ID and terminal marker permit signer release.                                                                                                                                                                   |
-| Finalized transaction, trace, or deployment mismatch.      | No terminal event | The client refuses to derive a fill and keeps signer ownership quarantined.                                                                                                                                                      |
-| Verified finalized success with exact transaction and log. | `OrderFilled`     | Wallet refresh and marker persistence then complete the intent. A BUY that executes below the order quantity also emits `OrderCanceled` for the remainder. A BUY that executes above the order quantity reports the full output. |
-| Timeout, disagreement, unavailable read, or reorg.         | No terminal event | The order stays submitted and signer ownership remains occupied.                                                                                                                                                                 |
+| 持久 `broadcast` 迁移之前的失败。                          | `OrderDenied`     | 没有任何交易离开客户端。                                                                                                                                                                                                         |
+| 已持久化的广播尝试，含含义不明的回复。                     | `OrderSubmitted`  | 签名意图仍是观察权威。                                                                                                                                                                                                           |
+| 验证过的最终化 revert。                                    | `OrderRejected`   | 稳定的事件 ID 与终止标记允许释放签名器。                                                                                                                                                                                         |
+| 最终化交易、跟踪或部署不一致。                             | 无终止事件        | 客户端拒绝推导成交，签名器所有权保持隔离。                                                                                                                                                                                       |
+| 交易与日志精确匹配的最终化成功。                           | `OrderFilled`     | 随后刷新钱包并持久化标记以完成意图。执行量低于订单数量的 BUY 还会为剩余部分发出 `OrderCanceled`。执行量高于订单数量的 BUY 报告全部产出。                                                                                         |
+| 超时、分歧、读取不可得或重组。                             | 无终止事件        | 订单保持已提交，签名器所有权保持占用。                                                                                                                                                                                           |
 
-A successful receipt at first inclusion does not emit a fill. The client waits for the stable
-finalized boundary described below.
+首次包含时的成功回执不会发出成交。客户端等待下文描述的稳定最终化边界。
 
-### Persistence and reconciliation
+### 持久化与对账 {#persistence-and-reconciliation}
 
-#### Durable record model
+#### 持久记录模型 {#durable-record-model}
 
-Execution schema version 2 separates the logical wallet operation from its physical transaction
-hashes. Verification schema version 2 adds the canonical nonce, finalized header, decision
-evidence, and replacement-scan ledgers:
+执行 schema 版本 2 把逻辑钱包操作与其物理交易哈希分离。验证 schema 版本 2 增加
+规范 nonce、最终化区块头、决策证据与替换扫描台账：
 
-| Record            | Represents                                              | Recovery use                                                        |
-| ----------------- | ------------------------------------------------------- | ------------------------------------------------------------------- |
-| Intent            | One logical `wrap`, `approve`, or `swap` operation.     | Owns signer, nonce, call fields, order identity, and markers.       |
-| Hash history      | Authenticated signed envelopes and their hashes.        | Selects the current hash and stores receipt observations.           |
-| Transition        | Append-only status history for an intent and hash.      | Records observations; recovery reads current intent and hash state. |
-| Canonical nonce   | Next signer nonce proven at a finalized height.         | Prevents pending mempool state from releasing or skipping a nonce.  |
-| Finalized headers | Parent-linked headers from the reviewed checkpoint.     | Resumes ancestry and bounded replacement scans.                     |
-| Decision evidence | Sanitized results for each authorizing verification.    | Proves which read class authorized a durable transition.            |
-| Scan cursor       | Last fully scanned finalized replacement-search height. | Resumes multi-window scans and rescans the unfinalized tail.        |
+| 记录           | 代表                                                  | 恢复用途                                                              |
+| -------------- | ------------------------------------------------------- | --------------------------------------------------------------------- |
+| 意图           | 一次逻辑上的 `wrap`、`approve` 或 `swap` 操作。        | 持有签名器、nonce、调用字段、订单标识与标记。                         |
+| 哈希历史       | 经过认证的签名信封及其哈希。                          | 选取当前哈希并存储回执观察。                                          |
+| 状态迁移       | 意图与哈希的只追加状态历史。                          | 记录观察；恢复读取当前意图与哈希状态。                                |
+| 规范 nonce     | 在最终化高度被证明的下一个签名器 nonce。              | 防止 pending 内存池状态释放或跳过 nonce。                             |
+| 最终化区块头   | 从审查后检查点出发的父哈希链接区块头。                | 续接祖先链与有界替换扫描。                                            |
+| 决策证据       | 每次授权验证的脱敏结果。                              | 证明哪一类读取授权了一次持久迁移。                                    |
+| 游标           | 最近一次完整扫描的最终化替换搜索高度。                | 续接多窗口扫描并重扫未最终化尾部。                                    |
 
-`purpose` is an adapter-local execution field with the values `wrap`, `approve`, and `swap`. It
-tells reconciliation whether the intent also owns a Nautilus order lifecycle. It is not a field in
-the generic Nautilus order or `SubmitOrder` specification.
+`purpose` 是适配器本地的执行字段，取值为 `wrap`、`approve`
+与 `swap`。它告诉对账该意图是否同时持有 Nautilus 订单生命周期。它不是通用
+Nautilus 订单或 `SubmitOrder` 规格中的字段。
 
-The schema keeps the legacy execution transaction table. Its connect-time migration:
+schema 保留旧版执行交易表。其 connect 时的迁移：
 
-- Takes an exclusive lock on the legacy table.
-- Refuses unresolved legacy rows that cannot be mapped safely.
-- Fences legacy writes after schema version 2 activates.
-- Preserves existing data.
+- 对旧版表加独占锁。
+- 拒绝无法安全映射的未解决旧行。
+- schema 版本 2 生效后封锁旧版写入。
+- 保留现有数据。
 
-The first connection after enabling independent verification also classifies every retained execution intent.
-It authenticates every retained payload before remote reconstruction. An unsigned active `prepared` intent
-becomes inactive `recoverable`. A signed active intent at the canonical nonce remains active for
-reconciliation. A consumed nonce requires archive proof of its receipt, finalized ancestry, full transaction
-identity, call trace, deployment identity, and terminal status.
+启用独立验证后的首次连接还会为每个保留的执行意图分类。它在远程重建之前认证每个
+保留的载荷。未签名的活跃 `prepared` 意图变为非活跃 `recoverable`。
+位于规范 nonce 上的已签名活跃意图保持活跃以供对账。已消耗的 nonce 需要 archive
+证据，证明其回执、最终化祖先链、完整交易身份、调用跟踪、部署身份与终止状态。
 
-Released history must already have a consistent marker and must not retain signed ownership. Duplicate nonce
-ownership, missing archive state, a payload mismatch, or changed history blocks migration before the signer
-loads.
+已释放的历史必须已有一致的标记，且不得保留签名所有权。重复的 nonce 所有权、缺失
+archive 状态、载荷不匹配或历史被改动，都会在签名器加载之前阻止迁移。
 
-Partial unique indexes enforce one active intent per signer, one active owner per signer and nonce,
-and one intent per client order. An intent also stores separate acknowledgement, fill, and terminal
-event markers. A finalized or reverted intent remains active until its fill or terminal marker is
-durable.
+部分唯一索引强制：每个签名器一个活跃意图、每个签名器与 nonce 一个活跃持有者、
+每个客户端订单一个意图。意图还分别存储确认、成交与终止事件标记。最终化或 revert
+的意图在其成交或终止标记持久化之前保持活跃。
 
-#### States
+#### 状态 {#states}
 
-| State         | Detection or transition                                             | Ownership and event effect                                      |
-| ------------- | ------------------------------------------------------------------- | --------------------------------------------------------------- |
-| `prepared`    | Intent reserved before nonce assignment.                            | Owns the signer; no transaction exists.                         |
-| `signed`      | Nonce assigned; any completed signature is stored before broadcast. | Owns the signer and nonce.                                      |
-| `broadcast`   | Broadcast attempt persisted before send.                            | A swap can record its `OrderSubmitted` marker.                  |
-| `included`    | Receipt block hash matches the canonical numbered block.            | Nonterminal; no fill.                                           |
-| `replaced`    | Another canonical hash consumed the signer nonce.                   | The replacement joins the original intent.                      |
-| `reorged`     | Receipt disappears or its block hash stops matching.                | Observation resumes; no terminal event.                         |
-| `dropped`     | No stable finalized receipt within the poll window.                 | Remains active and blocks new signing.                          |
-| `finalized`   | Successful receipt reaches a stable finalized boundary.             | Stays active until a fill or terminal marker.                   |
-| `reverted`    | Failed receipt reaches a stable finalized boundary.                 | Terminal marker releases ownership; swap emits `OrderRejected`. |
-| `recoverable` | Preparation fails, or restart finds an unsigned `prepared` intent.  | Becomes inactive because no signature exists.                   |
+| 状态          | 检测或迁移                                                          | 所有权与事件影响                                                    |
+| ------------- | ------------------------------------------------------------------- | ------------------------------------------------------------------- |
+| `prepared`    | nonce 分配前保留的意图。                                            | 持有签名器；尚不存在交易。                                          |
+| `signed`      | 已分配 nonce；任何完成的签名在广播前存储。                          | 持有签名器与 nonce。                                                |
+| `broadcast`   | 发送前持久化的广播尝试。                                            | swap 可记录其 `OrderSubmitted` 标记。                               |
+| `included`    | 回执区块哈希与规范编号区块匹配。                                    | 非终止；无成交。                                                    |
+| `replaced`    | 另一条规范哈希消耗了签名器 nonce。                                  | 替换交易并入原意图。                                                |
+| `reorged`     | 回执消失或其区块哈希不再匹配。                                      | 恢复观察；无终止事件。                                              |
+| `dropped`     | 轮询窗口内没有稳定的最终化回执。                                    | 保持活跃并阻止新签名。                                              |
+| `finalized`   | 成功回执达到稳定最终化边界。                                        | 保持活跃直至成交或终止标记。                                        |
+| `reverted`    | 失败回执达到稳定最终化边界。                                        | 终止标记释放所有权；swap 发出 `OrderRejected`。                     |
+| `recoverable` | 准备失败，或重启发现未签名的 `prepared` 意图。                      | 因不存在签名而变为非活跃。                                          |
 
-#### Restart and replacement
+#### 重启与替换 {#restart-and-replacement}
 
-On connect, the client reloads the active signer intent before enabling new signing:
+connect 时，客户端在允许新签名之前重新加载活跃签名器意图：
 
-- An unsigned `prepared` intent becomes `recoverable` and inactive.
-- A `signed` intent remains active and keeps its nonce reserved. Connect fails until an explicit
-  recovery decision is available.
-- A durable `broadcast` intent may resend only the exact authenticated stored bytes, and only after
-  the three-source rebroadcast checks pass. Later states restore the local in-flight slot and
-  observe the current hash without another send.
-- A legacy `recoverable` intent that still has signed bytes also fails connect rather than releasing
-  its nonce.
-- A restored wrap or approve revalidates destination, calldata, and value, including a same-nonce
-  replacement, then reruns its live postcondition before reporting success.
-- A swap also requires its order, instrument, and pool to be restored in the engine cache. Missing
-  or inconsistent state fails connect.
+- 未签名的 `prepared` 意图变为 `recoverable` 且非活跃。
+- `signed` 意图保持活跃并保留其 nonce。在明确的恢复决定可用之前
+  connect 失败。
+- 持久的 `broadcast` 意图只能重发精确的、经过认证的已存储字节，且仅在通过
+  三源重广播检查之后。更晚的状态恢复本地在途槽位并观察当前哈希，不再另发。
+- 仍带签名字节的旧版 `recoverable` 意图同样使 connect 失败，而不是释放
+  其 nonce。
+- 恢复的 wrap 或 approve 会重新验证目标、calldata 与 value（含同 nonce
+  替换），再重跑其活体后置条件后才报告成功。
+- swap 还要求其订单、金融工具与池已在引擎缓存中恢复。状态缺失或不一致会导致
+  connect 失败。
 
-When no receipt exists and the verified canonical signer nonce has advanced, the client scans unanimous
-canonical full blocks from the intent's creation height. Each attempt covers at most 4,096 blocks. A finalized
-cursor commits with its verification evidence. The next attempt resumes there and rescans the unfinalized
-tail.
+没有回执且验证过的规范签名器 nonce 已推进时，客户端从意图的创建高度开始扫描一致的
+规范完整区块。每次尝试至多覆盖 4,096 个区块。最终化游标连同其验证证据一并提交。
+下一次尝试从该处续接并重扫未最终化尾部。
 
-A same-nonce transaction can attach only when its hash and full decoded identity match an authenticated
-retained envelope for that intent. An unknown or mismatched replacement remains quarantined, emits no order
-rejection, and does not release signer ownership. A disappearing receipt or changed canonical block records
-`reorged` and resumes observation. Poll timeout records `dropped` and keeps the signer slot occupied for the
-next connect attempt.
+同 nonce 交易只有在其哈希与完整解码身份匹配该意图某个经过认证的保留信封时才能挂入。
+未知或不匹配的替换保持隔离，不发出订单拒绝，也不释放签名器所有权。消失的回执或
+变化的规范区块记录 `reorged` 并恢复观察。轮询超时记录
+`dropped`，并为下一次 connect 保留签名器槽位占用。
 
 :::warning
-Keep the signing key exclusive to this client while an intent is active. On restart, a restored wrap or
-approve must match the persisted destination, calldata, and value, including a same-nonce replacement. The
-wrap then rereads WETH balances at the inclusion block and the previous block. The approve rereads router
-allowance at the inclusion block. A call-identity mismatch or a failed postcondition keeps the intent active,
-occupies the in-flight signer slot, and fails connect, including on a later process. A mismatched swap emits
-no terminal event and remains active.
+意图活跃期间，签名密钥必须为本客户端独占。重启时，恢复的 wrap 或 approve
+必须匹配持久化的目标、calldata 与 value，包括同 nonce 替换。随后
+wrap 在包含区块与前一块重读 WETH 余额，approve 在包含区块重读路由授权。
+调用身份不匹配或后置条件失败会让意图保持活跃、占用在途签名器槽位，并使
+connect 失败——包括在后续进程中。不匹配的 swap 不发出终止事件并保持活跃。
 :::
 
-#### Finality and fills
+#### 最终性与成交 {#finality-and-fills}
 
-Finality uses each source's `finalized` block tag through `eth_getBlockByNumber`, not a confirmation
-count. The client:
+最终性使用每个源的 `finalized` 区块标签（经
+`eth_getBlockByNumber`），而非确认数。客户端：
 
-1. Requires three identical non-null normalized receipts.
-1. Matches the receipt block hash to one unanimous explicit inclusion header.
-1. Waits until the minimum verified finalized height reaches the inclusion height.
-1. Extends the unanimous parent-linked finalized ancestry.
-1. Requires the full transaction to match the authenticated signed envelope.
-1. Requires three identical `debug_traceTransaction` call trees and admits each internal call only
-   when its purpose, caller, target, and call type match one manifest edge exactly. Contract
-   creation and self-destruction are denied.
-1. Rechecks the deployment manifest at inclusion, then commits finality evidence, receipt state,
-   header ancestry, and canonical nonce advancement in one database transaction.
+1. 要求三条完全一致的非空标准化回执。
+1. 把回执区块哈希匹配到一个一致的显式包含区块头。
+1. 等待验证过的最低最终化高度达到包含高度。
+1. 扩展一致的父哈希最终化祖先链。
+1. 要求完整交易匹配经过认证的签名信封。
+1. 要求三棵完全一致的 `debug_traceTransaction` 调用树，且每个内部
+   调用只有在其用途、调用方、目标与调用类型精确匹配某条清单边时才被放行。合约创建
+   与自毁一律拒绝。
+1. 在包含处重新检查部署清单，然后在单个数据库事务中提交最终性证据、回执状态、
+   区块头祖先链与规范 nonce 推进。
 
-After on-chain execution, deployment or call-trace drift detected by the final-inclusion checks leaves signer
-ownership quarantined. Those checks cannot reverse on-chain effects from a contract upgrade after the decision
-block used by the final pre-sign check. This includes an upgrade after that check completes and before
-transaction execution.
+链上执行之后，最后包含检查发现的部署或调用跟踪漂移会让签名器所有权保持隔离。这些
+检查无法撤销最终预签名检查所用决策区块之后的合约升级造成的链上效果，包括该检查完成
+之后、交易执行之前的升级。
 
-All three RPC sources must support the `finalized` tag. An unsupported tag fails reconciliation
-closed.
+三个 RPC 源都必须支持 `finalized` 标签。不支持该标签会让对账按失败关闭。
 
-For a successful swap, the full finalized transaction must match the persisted signer, nonce,
-destination, calldata, and value. The receipt must contain exactly one `Swap` log from the selected
-pool. A SELL requires the log's positive base input to equal the persisted amount. A BUY requires
-the log's positive quote input to equal the persisted amount and a negative base output. Existing
-Uniswap V3 parsing derives the executed amount. A BUY fill price is the quote spent divided by
-the emitted last quantity.
+对成功的 swap，完整最终化交易必须匹配持久化的签名器、nonce、目标、
+calldata 与 value。回执必须恰含一条来自选定池的 `Swap`
+日志。SELL 要求日志的正 base 输入等于持久化的金额。BUY 要求日志的正 quote 输入
+等于持久化的金额，且有一个负的 base 输出。现有的 Uniswap V3 解析推导执行金额。
+BUY 的成交价是花费的 quote 除以发出的最后一项数量。
 
-The fill contains:
+成交包含：
 
-- The original order quantity for a SELL. For a BUY, the executed base output converted at `FIXED_PRECISION`.
-  A BUY can fill more than the submitted quantity when the pool price improves. Set `allow_overfills = true`
-  on the live execution engine so that fill is applied.
-- The average fill price. For a BUY, quote spent divided by the emitted last quantity.
-- The transaction hash as venue order ID.
-- A deterministic trade ID derived from the transaction hash and log index.
-- `effectiveGasPrice * gasUsed` as native-currency commission.
+- SELL 用原始订单数量。BUY 用按 `FIXED_PRECISION` 转换的执行 base 产出。
+  池价改善时 BUY 的成交可能超过提交数量。需在实时执行引擎上设
+  `allow_overfills = true` 才能应用这份成交。
+- 平均成交价。BUY 为花费的 quote 除以发出的最后一项数量。
+- 交易哈希作为场所订单 ID。
+- 由交易哈希与日志索引推导的确定性成交 ID。
+- `effectiveGasPrice * gasUsed` 作为原生货币佣金。
 
-Before emitting the fill, the client verifies native and tracked-token state at the finalized
-inclusion height through all three sources. It then publishes the stable-ID order event and wallet
-account state, stores the fill marker, and releases signer ownership. A wallet refresh or event
-dispatch failure keeps the finalized intent active for reconciliation.
+发出成交前，客户端通过三个源在最终化包含高度验证原生与受跟踪代币状态，然后发布
+稳定 ID 的订单事件与钱包账户状态、存储成交标记并释放签名器所有权。钱包刷新或事件
+分发失败会让最终化意图保持活跃以供对账。
 
-#### Event delivery across restarts
+#### 重启间的事件投递 {#event-delivery-across-restarts}
 
-Reconciliation checks persisted event markers and restored order state before it emits a repeated
-order event. Terminal event IDs are deterministic from the transaction hash and event kind, and
-trade IDs are deterministic from the transaction hash and log index. These identities suppress
-duplicates once the corresponding state is durable and let downstream consumers deduplicate a
-retry after a crash.
+对账在发出重复的订单事件之前，检查持久化的事件标记与恢复的订单状态。终止事件 ID
+由交易哈希与事件类型确定性推导，成交 ID 由交易哈希与日志索引确定性推导。一旦对应
+状态持久，这些标识就抑制重复；崩溃后下游消费者也能据此对重试去重。
 
-Event publication and marker persistence are separate operations. A process crash between them can therefore
-cause an event to be delivered again after restart. Consumers must handle order events idempotently. This
-adapter does not provide an atomic exactly-once delivery guarantee.
+事件发布与标记持久化是分开两个操作。二者之间的进程崩溃可能导致事件在重启后再次
+投递。消费者必须幂等地处理订单事件。本适配器不提供原子的 exactly-once 投递保证。
 
-### Signed transaction storage
+### 签名交易存储 {#signed-transaction-storage}
 
-Postgres-backed execution requires protected signed-transaction storage. Protection seals every
-signed EIP-2718 transaction with AES-256-GCM and clears its live plaintext column. The authenticated
-context binds the exact signed bytes to the deployment, chain, signer, intent, signer nonce, and
-transaction hash.
+Postgres 支撑的执行要求受保护的签名交易存储。保护机制用 AES-256-GCM
+密封每笔已签名的 EIP-2718 交易，并清空其实明文字段。经过认证的上下文把精确的签名
+字节绑定到部署、链、签名器、意图、签名器 nonce 与交易哈希。
 
-Storage maintenance uses direct Rust methods on a disconnected `BlockchainExecutionClient`. Python and the CLI
-do not expose them. Connect never activates, resumes, or repairs protection implicitly. Every Postgres-backed
-connect requires ready protected state and authenticates every retained payload before loading the signer.
+存储维护使用断开连接的 `BlockchainExecutionClient`
+上的直接 Rust 方法。Python 与 CLI 不暴露它们。connect 从不隐式激活、恢复或修复
+保护。每次 Postgres 支撑的 connect 都要求就绪的受保护状态，并在加载签名器前认证
+每个保留的载荷。
 
-Protected storage has these key and deployment constraints:
+受保护存储有以下密钥与部署约束：
 
-- Supply every payload sealing key as the hexadecimal encoding of exactly 32 raw bytes, with an
-  optional `0x` prefix. The operator must generate those bytes with a cryptographically secure
-  pseudorandom number generator (CSPRNG) and use a unique raw key for each independently sealing
-  database. Keep key values out of configuration, logs, shell history, and process arguments.
-- Keep `payload_deployment_id` stable for the life of the protected database. A changed deployment
-  ID makes existing envelopes unreadable by design.
-- List every old key variable in `payload_key_retired_env` until no stored envelope references it.
-  Retired keys can open existing envelopes but never seal new ones.
-- Keep the complete key set available on every connect. A missing active or retired key, malformed
-  envelope, failed authentication tag, durable-context mismatch, or unexpected plaintext row fails
-  closed. Protected storage never falls back to `raw_transaction`.
-- Treat `2^32` seals as one lifetime budget for a raw key, not a limit that resets per database. Rotate the
-  active key before aggregate use reaches that ceiling. With the client disconnected, configure the
-  replacement as active, retain the old key as retired, and run the Rust rewrap method before the next
-  connect.
+- 每个载荷密封密钥都以恰好 32 个原始字节的十六进制编码提供，可带可选的
+  `0x` 前缀。运营方必须用密码学安全的伪随机数生成器（CSPRNG）生成这些字节，
+  并为每个独立密封的数据库使用唯一的原始密钥。密钥值不得出现在配置、日志、shell
+  历史与进程参数中。
+- `payload_deployment_id` 在受保护数据库的整个生命周期内保持稳定。
+  部署 ID 变化会按设计使现有信封不可读。
+- 在没有任何存储信封引用某个旧密钥之前，把它列在
+  `payload_key_retired_env` 中。已退役密钥可打开现有信封，但绝不再密封新信封。
+- 每次 connect 都保持完整密钥集可用。缺失活动或退役密钥、信封畸形、认证标签
+  失败、持久上下文不匹配或意外的明文字段，都按失败关闭。受保护存储绝不回退到
+  `raw_transaction`。
+- 把 `2^32` 次密封视为一个原始密钥的终身预算，而不是每数据库重置的限制。在
+  累计使用逼近该上限前轮换活动密钥。在客户端断开时，把替代密钥配置为活动、旧密钥
+  保留为退役，并在下一次 connect 前运行 Rust 的 rewrap 方法。
 
-  A restored copy that becomes write-active with the original raw key shares the same budget. Each database
-  reserves and counts its own seals, including migration and rewrap work. It rejects further local use when
-  its counter exhausts the numeric ceiling. But database-local counters cannot enforce the aggregate after
-  copies diverge. The operator must count shared pre-restore history once and every later seal from each copy
-  once.
+  恢复的副本若以原始密钥变为可写活跃，则共享同一预算。每个数据库预留并计数自己的
+  密封次数，包括迁移与 rewrap 工作。其计数器耗尽数值上限时拒绝进一步的本地使用。
+  但副本分叉后，数据库本地计数器无法强制执行累计预算。运营方必须把共享的恢复前
+  历史计一次，并把此后每个副本的每次密封各计一次。
 
-| Method                                 | Requirement                                                   | Result                                                                                                    |
+| 方法                                   | 要求                                                          | 结果                                                                                                      |
 | -------------------------------------- | ------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------- |
-| `protect_payload_storage()`            | Active key, stable deployment ID, and disconnected clients.   | Records the marker first, then seals plaintext rows in bounded, resumable batches.                        |
-| `check_payload_storage(batch_size)`    | Disconnected client and every referenced key.                 | Authenticates a stable snapshot without returning payload bytes and reports row, key-ID, and role counts. |
-| `rewrap_payload_storage(batch_size)`   | Protected storage, new active key, and all old keys retained. | Rewraps in bounded, resumable batches; a full check must pass before an old key is removed.               |
-| `rollback_payload_storage(batch_size)` | Incident recovery, disconnected clients, and every key.       | Restores and verifies exact plaintext, clears envelopes, and removes the protection marker last.          |
+| `protect_payload_storage()`            | 活动密钥、稳定的部署 ID，以及断开的客户端。                   | 先记录标记，再有界、可续地分批密封明文字段。                                                              |
+| `check_payload_storage(batch_size)`    | 断开的客户端与每个被引用的密钥。                              | 认证一份稳定快照、不返回载荷字节，报告行数、密钥 ID 与角色计数。                                          |
+| `rewrap_payload_storage(batch_size)`   | 受保护存储、新活动密钥，且全部旧密钥保留。                    | 有界、可续地分批重新封装；旧密钥移除前必须通过完整检查。                                                  |
+| `rollback_payload_storage(batch_size)` | 事故恢复、断开的客户端与全部密钥。                          | 恢复并验证精确明文字段，清空信封，最后移除保护标记。                                                    |
 
-Run the full check after protection, restore, rewrap, or rollback. Its role report includes direct table
-owners and roles with `SELECT` grants. The full report also contains protected status, deployment ID,
-plaintext, original, replacement, and authenticated row counts, and referenced key IDs. Superuser and
-inherited privileges still require a server-level review.
+保护、恢复、rewrap 或回滚之后运行完整检查。其角色报告包含直接的表所有者与带
+`SELECT` 权限的角色。完整报告还含有受保护状态、部署 ID、明文、原始、替代与已认证
+行数，以及被引用的密钥 ID。超级用户与继承的权限仍需服务器级审查。
 
-Rewrap changes one database copy but cannot revoke a transaction or envelope copied before rewrap. Rollback
-leaves execution unavailable until storage is protected and passes a full protected check again. It does not
-remove signed bytes from WAL, replicas, backups, snapshots, or earlier exports.
+rewrap 只改变一个数据库副本，无法撤销 rewrap 前被复制的交易或信封。回滚让执行保持
+不可用，直到存储重新受保护并通过完整的受保护检查。它不会从 WAL、副本、备份、快照
+或更早的导出中移除签名字节。
 
 :::warning
-Signed transaction bytes remain bearer capabilities until their signer nonce is consumed. Protected storage
-covers live database payloads. It does not cover:
+签名字节在其签名器 nonce 被消耗之前一直是持有者凭据。受保护存储覆盖的是活跃数据库
+载荷，不覆盖：
 
-- Bytes before persistence or in process memory.
-- Dead tuples, WAL, or point-in-time recovery archives.
-- Replicas, backups, snapshots, restores, or operational exports.
+- 持久化之前或进程内存中的字节。
+- 死元组、WAL 或时间点恢复归档。
+- 副本、备份、快照、恢复或运营导出。
 
-PostgreSQL statement or bind-parameter logging can also capture plaintext in the default mode and during
-rollback. Debug output, operational checks, and execution RPC errors do not expose the bytes.
+PostgreSQL 的语句或绑定参数日志在默认模式与回滚期间也可能捕获明文。调试输出、
+运营检查与执行 RPC 错误不会暴露这些字节。
 
-A restored protected database requires its original `payload_deployment_id` and complete key
-inventory. Each database enforces signer and nonce ownership independently, so never run a restored
-copy against a signer used by another live deployment. Do not point two copies with the same
-deployment ID at the same signer.
+恢复的受保护数据库需要其原始 `payload_deployment_id` 与完整的密钥清单。
+每个数据库独立强制执行签名器与 nonce 所有权，因此绝不要把恢复的副本用于另一个在线
+部署正在使用的签名器。也不要把两个具有相同部署 ID 的副本指向同一个签名器。
 :::
 
-### Execution configuration
+### 执行配置 {#execution-configuration}
 
-`BlockchainExecutionClientConfig` follows the `BlockchainDataClientConfig` pattern and exposes
-these fields to Python:
+`BlockchainExecutionClientConfig` 沿用
+`BlockchainDataClientConfig` 的模式，并向 Python 暴露这些字段：
 
-| Field                            | Default   | Description                                                              |
-| -------------------------------- | --------- | ------------------------------------------------------------------------ |
-| `client_id`                      | Required  | Account ID for the client.                                               |
-| `chain`                          | Required  | Blockchain chain configuration.                                          |
-| `wallet_address`                 | Required  | Wallet address for the execution client.                                 |
-| `http_rpc_url`                   | Required  | Sole authoritative RPC endpoint and broadcast destination.               |
-| `verification`                   | Required  | Two read-only providers, local chain anchor, and deployment manifest.    |
-| `signer_private_key_env`         | Required  | Environment variable that holds the signer key.                          |
-| `payload_key_env`                | `None`    | Active 32-byte key variable; required with Postgres execution.           |
-| `payload_key_retired_env`        | `[]`      | Environment variables for old keys that may only open envelopes.         |
-| `payload_deployment_id`          | `None`    | Stable database identity; required with Postgres execution.              |
-| `router_addresses`               | Required  | SwapRouter allowlist; at least one address is required.                  |
-| `max_fee_per_gas_wei`            | Required  | Maximum derived fee per gas in wei.                                      |
-| `base_fee_buffer_bps`            | Required  | Buffer over the unanimous decision-header base fee.                      |
-| `gas_limit`                      | Required  | Gas ceiling; a higher buffered estimate is rejected.                     |
-| `gas_buffer_bps`                 | Required  | Buffer applied over `eth_estimateGas`.                                   |
-| `unlimited_approval`             | `false`   | Request unlimited approval instead of the exact amount.                  |
-| `weth_address`                   | Required  | Wrapped native token used by `wrap`.                                     |
-| `allowed_token_pairs`            | Required  | Directional input/output pairs; BUY needs the reverse pair.              |
-| `quote_spend_limits`             | `None`    | Directed quote-token ceilings; a BUY without a matching entry is denied. |
-| `slippage_bps`                   | Required  | Default slippage used to derive the minimum output.                      |
-| `max_slippage_bps`               | Required  | Ceiling for a per-order slippage override.                               |
-| `max_order_amount`               | Required  | `u64` ceiling on submitted base quantity, in raw base-token units.       |
-| `deadline_seconds`               | Required  | Swap deadline offset from the verified decision-header timestamp.        |
-| `max_quote_age_blocks`           | Required  | Maximum profiler-to-decision ancestry distance, in blocks.               |
-| `receipt_timeout_secs`           | Required  | Deadline for the receipt and finality polling loop.                      |
-| `tokens`                         | `None`    | ERC-20 addresses read and published when the client connects.            |
-| `rpc_requests_per_second`        | `None`    | Per-client HTTP RPC rate limit used by all three sources.                |
-| `postgres_cache_database_config` | `None`    | Durable execution store; transaction submission requires it.             |
-| `transport_backend`              | `Sockudo` | Compatibility field; unused by the execution client.                     |
+| 字段                             | 默认值    | 说明                                                                     |
+| -------------------------------- | --------- | -------------------------------------------------------------------------- |
+| `client_id`                      | 必填      | 客户端的账户 ID。                                                          |
+| `chain`                          | 必填      | 区块链链配置。                                                             |
+| `wallet_address`                 | 必填      | 执行客户端的钱包地址。                                                     |
+| `http_rpc_url`                   | 必填      | 唯一的权威 RPC 端点与广播目标。                                            |
+| `verification`                   | 必填      | 两个只读提供商、本地链锚点与部署清单。                                     |
+| `signer_private_key_env`         | 必填      | 存放签名器密钥的环境变量。                                                 |
+| `payload_key_env`                | `None`    | 活动 32 字节密钥变量；配合 Postgres 执行时必填。                           |
+| `payload_key_retired_env`        | `[]`      | 只能打开信封的旧密钥的环境变量。                                           |
+| `payload_deployment_id`          | `None`    | 稳定的数据库身份；配合 Postgres 执行时必填。                               |
+| `router_addresses`               | 必填      | SwapRouter 白名单；至少需要一个地址。                                      |
+| `max_fee_per_gas_wei`            | 必填      | 每 gas 的最大推导费用（wei）。                                             |
+| `base_fee_buffer_bps`            | 必填      | 在一致决策区块头 base fee 之上的缓冲。                                     |
+| `gas_limit`                      | 必填      | gas 上限；带缓冲的更高估计会被拒绝。                                       |
+| `gas_buffer_bps`                 | 必填      | 在 `eth_estimateGas` 之上应用的缓冲。                                      |
+| `unlimited_approval`             | `false`   | 请求无限授权而不是精确金额。                                               |
+| `weth_address`                   | 必填      | `wrap` 使用的包装原生代币。                                                |
+| `allowed_token_pairs`            | 必填      | 有向输入/输出对；BUY 需要反向对。                                          |
+| `quote_spend_limits`             | `None`    | 有向 quote 代币上限；无匹配条目的 BUY 被拒绝。                             |
+| `slippage_bps`                   | 必填      | 推导最小产出所用的默认滑点。                                               |
+| `max_slippage_bps`               | 必填      | 单订单滑点覆盖的上限。                                                     |
+| `max_order_amount`               | 必填      | 提交 base 数量的 `u64` 上限，以 base 代币原始单位计。                      |
+| `deadline_seconds`               | 必填      | swap 相对验证过的决策区块头时间戳的 deadline 偏移。                        |
+| `max_quote_age_blocks`           | 必填      | 剖析器到决策的最大祖先距离（区块）。                                       |
+| `receipt_timeout_secs`           | 必填      | 回执与最终性轮询循环的 deadline。                                          |
+| `tokens`                         | `None`    | 客户端连接时读取并发布的 ERC-20 地址。                                     |
+| `rpc_requests_per_second`        | `None`    | 三个源共用的每客户端 HTTP RPC 限速。                                       |
+| `postgres_cache_database_config` | `None`    | 持久执行存储；交易提交需要它。                                             |
+| `transport_backend`              | `Sockudo` | 兼容性字段；执行客户端不使用。                                             |
 
-The adapter enforces these constraints during configuration validation, client setup, connection,
-or transaction authorization:
+适配器在配置校验、客户端搭建、连接或交易授权期间强制执行这些约束：
 
-| Constraint            | Rule                                                                                                                                                      |
-| --------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Transaction limits    | `allowed_token_pairs`, both slippage fields, `max_order_amount`, `deadline_seconds`, `max_quote_age_blocks`, and `receipt_timeout_secs` must all be set.  |
-| Slippage              | `slippage_bps` must not exceed `max_slippage_bps`, and `max_slippage_bps` must be below 10,000.                                                           |
-| Quote age             | `max_quote_age_blocks` must be in `1..=4095`.                                                                                                             |
-| Routers               | `router_addresses` must contain at least one valid address.                                                                                               |
-| Verification topology | The configuration must contain exactly two verifiers, with distinct provider, operator, endpoint, and failure-domain identities across all three sources. |
-| Remote transport      | Remote execution, verifier, and HyperSync endpoints must use HTTPS; only canonical loopback literals may use HTTP.                                        |
-| Durable execution     | Transaction operations require Postgres, an active payload key, a stable deployment ID, and ready protected storage.                                      |
+| 约束         | 规则                                                                                                                                                        |
+| ------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 交易限额     | `allowed_token_pairs`、两个滑点字段、`max_order_amount`、`deadline_seconds`、`max_quote_age_blocks` 与 `receipt_timeout_secs` 都必须设置。  |
+| 滑点         | `slippage_bps` 不得超过 `max_slippage_bps`，且 `max_slippage_bps` 必须低于 10,000。                                                           |
+| 报价时效     | `max_quote_age_blocks` 必须在 `1..=4095`。                                                                                                                   |
+| 路由         | `router_addresses` 必须至少含一个有效地址。                                                                                                                  |
+| 验证拓扑     | 配置必须恰含两个验证器，三个源之间的提供商、运营方、端点与故障域身份两两不同。                                                                               |
+| 远程传输     | 远程执行、验证器与 HyperSync 端点必须用 HTTPS；只有规范回环字面量可用 HTTP。                                                                                 |
+| 持久执行     | 交易操作需要 Postgres、活动载荷密钥、稳定部署 ID 与就绪的受保护存储。                                                                                        |
 
-The first allowlisted router executes swaps, so preflight readiness requires allowance on that
-router. `receipt_timeout_secs` controls the polling deadline for swaps, wraps, and approvals. It is
-not a strict upper bound on the full call because final RPC and persistence operations can add time.
+白名单中的第一个路由负责执行 swap，因此预检就绪要求在该路由上有授权。
+`receipt_timeout_secs` 控制 swap、wrap 与授权的轮询 deadline。它不是
+整个调用的严格上界，因为最终的 RPC 与持久化操作会额外耗时。
 
-`BlockchainVerificationConfig` contains:
+`BlockchainVerificationConfig` 包含：
 
-| Field                 | Requirement                                                                                       |
-| --------------------- | ------------------------------------------------------------------------------------------------- |
-| `authoritative`       | Stable identity for `http_rpc_url`; it has no second URL in this object.                          |
-| `verifiers`           | Exactly two `BlockchainVerificationProviderConfig` values with read-only HTTP URLs.               |
-| `chain_anchor`        | Chain ID and name, finalized checkpoint height/hash/timestamp, and nonzero head freshness limits. |
-| `manifest_version`    | Reviewed deployment version, equal to `deployment_manifest.version`.                              |
-| `manifest_digest`     | Keccak-256 digest of the canonical JSON serialization of `deployment_manifest`.                   |
-| `deployment_manifest` | Reviewed contracts, tokens, pools, proxy bindings, identity probes, and exact call edges.         |
+| 字段                  | 要求                                                                                          |
+| --------------------- | ----------------------------------------------------------------------------------------------- |
+| `authoritative`       | `http_rpc_url` 的稳定身份；该对象中不含第二个 URL。                                             |
+| `verifiers`           | 恰好两个 `BlockchainVerificationProviderConfig`，带只读 HTTP URL。                              |
+| `chain_anchor`        | 链 ID 与名称、最终化检查点高度/哈希/时间戳，以及非零的新区块新鲜度限制。                        |
+| `manifest_version`    | 经审查的部署版本，等于 `deployment_manifest.version`。                                          |
+| `manifest_digest`     | `deployment_manifest` 规范化 JSON 序列化的 Keccak-256 摘要。                                    |
+| `deployment_manifest` | 经审查的合约、代币、池、代理绑定、身份探测与精确调用边。                                        |
 
-Each `BlockchainProviderIdentity` has a stable `provider_id`, `operator_id`, and one or more opaque
-`failure_domain_ids`. All provider IDs and operator IDs must be distinct. Every pair of failure domain sets
-must be disjoint. The three normalized endpoint URIs must differ. Do not place RPC URLs, credentials, or
-provider response bodies in the manifest or retained evidence.
+每个 `BlockchainProviderIdentity` 有稳定的
+`provider_id`、`operator_id` 与一个或多个不透明的
+`failure_domain_ids`。所有 provider ID 与 operator ID 必须互不相同，任意两个
+故障域集合必须不相交，三个规范化端点 URI 必须不同。清单或保留的证据中不要放 RPC
+URL、凭据或提供商响应体。
 
-Python constructs `BlockchainVerificationConfig` with `deployment_manifest_json`. The manifest is
-parsed locally and its configured digest is checked before the client is created. The RPC sources
-cannot create, update, or approve a manifest. A contract upgrade, new token, new pool, or changed
-call edge needs an independently reviewed manifest and checkpoint update before execution resumes.
-Proxy bindings support the EIP-1967 implementation slot and the Zeppelinos unstructured
-implementation slot used by Circle FiatToken deployments. Each binding pins the exact storage
-value, implementation address, and implementation runtime code hash.
+Python 用 `deployment_manifest_json` 构造
+`BlockchainVerificationConfig`。清单在本地解析，创建客户端前检查其配置的摘要。
+RPC 源不能创建、更新或批准清单。合约升级、新代币、新池或变化的调用边，都需要
+独立审查的清单与检查点更新，之后才能恢复执行。代理绑定支持 EIP-1967
+实现槽，以及 Circle FiatToken 部署使用的 Zeppelinos 非结构化实现槽。每个绑定固定
+确切的存储值、实现地址与实现运行时代码哈希。
 
-The following entry admits a USDC-to-WETH BUY only when the derived USDC input is at most 1,000 USDC.
-Pass the list as `quote_spend_limits` when constructing `BlockchainExecutionClientConfig`:
+下面这条条目只有在推导的 USDC 输入不超过 1,000 USDC 时才放行 USDC→WETH 的 BUY。
+构造 `BlockchainExecutionClientConfig` 时把该列表作为
+`quote_spend_limits` 传入：
 
 ```python
 from nautilus_trader.adapters.blockchain import QuoteSpendLimit
@@ -1358,69 +1324,68 @@ quote_spend_limits = [
 ]
 ```
 
-### Validation coverage
+### 验证覆盖 {#validation-coverage}
 
-The execution tests have two layers:
+执行测试分两层：
 
-| Layer           | External state                            | Main coverage                                                      |
-| --------------- | ----------------------------------------- | ------------------------------------------------------------------ |
-| Unit/mocked RPC | Scripted three-source JSON-RPC responses. | Typed outcomes, hostile disagreement, signing, and reconciliation. |
-| Postgres        | Temporary schema when Postgres is active. | Evidence ordering, migration, nonce ownership, and crash recovery. |
+| 层            | 外部状态                                  | 主要覆盖                                                             |
+| ------------- | ------------------------------------------- | ---------------------------------------------------------------------- |
+| 单元/模拟 RPC | 编排好的三源 JSON-RPC 响应。              | 类型化结果、敌意分歧、签名与对账。                                    |
+| Postgres      | Postgres 活跃时的临时模式。               | 证据顺序、迁移、nonce 所有权与崩溃恢复。                              |
 
-Default tests do not connect to a live chain. They cover:
+默认测试不连接实时链。它们覆盖：
 
-- Transaction primitives cover these cases:
+- 交易原语覆盖这些情形：
 
-  - `deposit`, `approve`, `allowance`, and `exactInputSingle` calldata.
-  - EIP-1559 signing against a fixed-key vector.
-  - Canonical nonce selection with pending-nonce validation.
-  - Fee and gas derivation, and ceiling rejection.
-- RPC verification covers these cases:
+  - `deposit`、`approve`、`allowance` 与
+    `exactInputSingle` calldata。
+  - 针对固定密钥向量的 EIP-1559 签名。
+  - 带 pending-nonce 校验的规范 nonce 选择。
+  - 费用与 gas 推导，以及上限拒绝。
+- RPC 验证覆盖这些情形：
 
-  - Wrong chain or checkpoint, head skew and freshness, and broken ancestry.
-  - Deployment and proxy changes, and quote disagreement.
-  - Pending and reverted receipts, partial receipt propagation, and disappearing receipts.
-  - Divergent traces and unauthorized internal calls.
-  - Exact-intent same-nonce replacements, `already known`, node rejection, and timeout after send.
-- Safety checks cover these cases:
+  - 错误的链或检查点、新区块偏斜与新鲜度、断链的祖先链。
+  - 部署与代理变更，以及报价分歧。
+  - pending 与 revert 回执、部分回执传播与消失的回执。
+  - 分歧的跟踪与未授权的内部调用。
+  - 精确意图的同 nonce 替换、`already known`、节点拒绝与发送后超时。
+- 安全检查覆盖这些情形：
 
-  - Invalid provider independence, signer revocation, and cancellation around persistence and dispatch.
-  - Router/factory/WETH/pool identity, approval transitions and return values, and preflight readiness.
-  - Wrap and approval postconditions, exact wallet snapshots, connect, and repeated account queries.
-  - Order validation, limiter denials, canonical quote provenance, slippage, token orientation, and exact
-    quote-spend boundaries.
-  - Stable event IDs, final fill fields, and commission.
-- Durability: submission ordering, one in-flight transaction, pre-broadcast signature quarantine,
-  authorized exact-byte rebroadcast, authenticated replacement scans, durable ancestry resume,
-  retained-history migration, event retry identity, wallet refresh ownership, and atomic evidence
-  with authorizing transitions. Database tests skip when Postgres is unavailable.
+  - 无效的提供商独立性、签名器撤销，以及持久化与分发前后的取消。
+  - 路由/工厂/WETH/池身份、授权迁移与返回值，以及预检就绪。
+  - wrap 与授权后置条件、精确钱包快照、connect 与重复账户查询。
+  - 订单校验、限流器拒绝、规范报价出处、滑点、代币方向与精确的 quote
+    支出边界。
+  - 稳定事件 ID、最终成交字段与佣金。
+- 持久性：提交顺序、单笔在途交易、广播前签名隔离、授权的精确字节重广播、认证的
+  替换扫描、持久祖先链续接、保留历史迁移、事件重试标识、钱包刷新所有权，以及与
+  授权状态迁移的原子证据。Postgres 不可用时数据库测试跳过。
 
-JSON-RPC fixtures live under `crates/adapters/blockchain/test_data/execution/`. The shared network
-HTTP unit suite covers redirect rejection.
+JSON-RPC 夹具位于 `crates/adapters/blockchain/test_data/execution/`。
+共享的网络 HTTP 单元套件覆盖重定向拒绝。
 
-Execution validation on public networks must remain read-only and must not load a signer or call
-`eth_sendRawTransaction`. State-changing validation requires an isolated local environment.
+公共网络上的执行验证必须保持只读，不得加载签名器或调用
+`eth_sendRawTransaction`。会改变状态的验证需要隔离的本地环境。
 
-## Limitations
+## 限制 {#limitations}
 
-- Order submission supports BUY and SELL market orders through a registered Uniswap V3 deployment on the
-  client's chain. Order lists are denied, and modify and cancel operations are rejected. Venue report probes
-  return an error, except mass status, which returns `Ok(None)`. All these unsupported paths fail closed with
-  no on-chain or durable side effects. LiveNode must leave open-order checks off.
+- 订单提交仅支持客户端链上已注册 Uniswap V3 部署的 BUY 与 SELL 市价单。订单列表
+  被拒绝，修改与撤单被拒绝。场所报告探测返回错误，批量状态除外——它返回
+  `Ok(None)`。这些不支持的路径一律按失败关闭，不产生链上或持久化副作用。LiveNode
+  必须保持未结订单检查关闭。
 
-  Quote-denominated and multi-hop orders are not supported. See [Execution](#execution).
-- Postgres-backed execution requires authenticated signed-transaction envelopes. Disconnected
-  rollback can restore plaintext for incident work, but the adapter rejects execution until the
-  database is protected and passes a full check again. Treat database storage, replicas, backups,
-  and exports as broadcast-capable material in either representation. See
-  [Signed transaction storage](#signed-transaction-storage).
-- Recovery is not fully automated. A signed intent without a durable `broadcast` transition blocks
-  connect, and a same-nonce replacement search over 4,096 blocks requires an explicit recovery
-  decision. See [Persistence and reconciliation](#persistence-and-reconciliation).
-- Order event publication and its durable marker are separate writes, so the adapter does not
-  guarantee atomic exactly-once event delivery across a process crash.
-- Very large Uniswap V3 pools can still hit provider payload, timeout, or rate limits during
-  final-state Multicall hydration.
-- On-chain snapshot validation supports Uniswap V3 and PancakeSwap V3 through their shared V3 pool
-  read ABI. Pools with a different ABI can sync events and produce replay snapshots, but cannot
-  reach `validation_state = on_chain`.
+  以 quote 计价与多跳订单不受支持。见[执行](#execution)。
+- Postgres 支撑的执行需要经过认证的签名交易信封。断开连接的回滚可为事故工作恢复
+  明文，但适配器会拒绝执行，直到数据库受保护并再次通过完整检查。无论哪种表示，都
+  要把数据库存储、副本、备份与导出当作可广播的凭据材料对待。见
+  [签名交易存储](#signed-transaction-storage)。
+- 恢复未完全自动化。没有持久 `broadcast` 迁移的签名意图会阻塞
+  connect，跨越 4,096 个区块的同 nonce 替换搜索需要明确的恢复决定。见
+  [持久化与对账](#persistence-and-reconciliation)。
+- 订单事件发布与其持久标记是分开的两次写入，因此适配器不保证跨进程崩溃的原子
+  exactly-once 事件投递。
+- 超大型 Uniswap V3 池在最终状态 Multicall 水合期间仍可能触及提供商的载荷、超时
+  或速率限制。
+- 链上快照验证通过共享的 V3 池读取 ABI 支持 Uniswap V3 与 PancakeSwap V3。ABI
+  不同的池可以同步事件并产出重放快照，但无法达到
+  `validation_state = on_chain`。

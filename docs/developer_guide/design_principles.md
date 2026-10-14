@@ -1,201 +1,175 @@
-# Design Principles
+# 设计原则
 
-This page defines the principles, policies, and trade-offs that guide NautilusTrader design,
-implementation, and review. [Architecture](./../concepts/architecture.md) describes the components and runtime structure.
+本页定义指导 NautilusTrader 设计、实现与评审的原则、策略与取舍。
+[架构](./../concepts/architecture.md)描述的是组件与运行时结构。
 
-These policies do not establish that every existing path already conforms. Specific guides describe
-current behavior and limits. The [runtime conformance contract](./runtime_conformance.md) maps selected
-requirements to source, representative checks, and implementation limits.
+这些策略并不宣告每条既有路径都已然符合。各具体指南描述现状与限度。
+[运行时一致性契约](./runtime_conformance.md)把选定要求映射到源码、代表性检查与
+实现限度。
 
-## Design priorities
+## 设计优先级 {#design-priorities}
 
-Design decisions weigh these quality attributes in roughly this order:
+设计决策大致按以下顺序权衡这些质量属性：
 
-- Reliability
-- Performance
-- Modularity
-- Testability
-- Maintainability
-- Deployability
+- 可靠性
+- 性能
+- 模块化
+- 可测试性
+- 可维护性
+- 可部署性
 
-Performance improvements must preserve critical invariants and their required verification. Testability and
-maintainability sustain reliability. Deployability affects safe rollout, configuration, and recovery. The
-priority order does not make these qualities optional.
+性能改进必须保留关键不变式及其要求的验证。可测试性与可维护性支撑可靠性，
+可部署性影响安全上线、配置与恢复。优先级排序不意味着这些品质可以取舍。
 
-## Data integrity and failure
+## 数据完整性与失败 {#data-integrity-and-failure}
 
-NautilusTrader prioritizes data integrity over availability for trading operations. Arithmetic and
-data-handling boundaries return errors or panic rather than silently accepting invalid values that
-could affect trading decisions.
+对交易操作，NautilusTrader 把数据完整性置于可用性之上。算术与数据处理边界
+返回错误或 panic，而不是静默接受可能影响交易决策的非法值。
 
-### Invalid operations
+### 非法操作 {#invalid-operations}
 
-The system fails fast, either by returning an error or panicking according to the API contract, for:
+遇到下列情形，系统按 API 契约快速失败——返回错误或 panic：
 
-- Arithmetic overflow or underflow in operations on timestamps, prices, or quantities that exceed
-  valid ranges.
-- Invalid data during deserialization, including NaN, infinity, or out-of-range values in market
-  data or configuration.
-- Type conversion failures such as negative values where only positive values are valid
-  (timestamps, quantities).
-- Malformed input parsing for prices, timestamps, or precision values.
+- 时间戳、价格或数量的运算超出有效范围导致的算术上溢或下溢。
+- 反序列化中的非法数据，包括行情数据或配置中的 NaN、无穷值、越界值。
+- 类型转换失败，例如只接受正值之处（时间戳、数量）出现负值。
+- 价格、时间戳或精度值的畸形输入解析。
 
-In a trading system, one incorrect price, timestamp, or quantity can propagate into:
+在交易系统中，一个错误的价格、时间戳或数量可能传导成：
 
-- Incorrect position sizing or risk calculations.
-- Orders placed at incorrect prices.
-- Backtests producing misleading results.
-- Silent financial losses.
+- 错误的仓位规模或风险计算。
+- 以错误价格发出的订单。
+- 产生误导性结果的回测。
+- 无声的财务损失。
 
-Failing at the invalid operation provides:
+在非法操作处失败带来：
 
-- **No silent corruption**: Checked inputs fail before the invalid value propagates.
-- **Immediate feedback**: The caller receives an error, or the process terminates, at the point of
-  the violated contract.
-- **Diagnostic context**: Errors and panic messages identify the rejected operation or value.
-- **Deterministic behavior**: With deterministic ordering and configuration, the same invalid input produces
-  the same failure. Nondeterministic inputs can still vary the outcome.
+- **无静默损坏**：受检输入在非法值传播之前就被拒绝。
+- **即时反馈**：调用方在契约被违反的那一点收到错误，或进程终止。
+- **诊断上下文**：错误与 panic 消息指明被拒绝的操作或值。
+- **确定性行为**：在确定性顺序与配置下，同样的非法输入产生同样的失败。
+  非确定性输入仍可能改变结果。
 
-Expected network, storage, business-validation, and user-input failures have explicit error
-surfaces. Unrecoverable invariant violations stop the operation or process before invalid state
-propagates. The [Rust error contracts](./rust.md#failure-contract-examples) define panic and fallible
-API behavior.
+预期的网络、存储、业务校验与用户输入失败有明确的错误出口。不可恢复的不变式
+违规则在非法状态传播之前停止该操作或进程。panic 与可失败 API 的行为定义见
+[Rust 错误契约](./rust.md#failure-contract-examples)。
 
-### Failure containment
+### 失败遏制 {#failure-containment}
 
-Stop the smallest scope whose integrity can no longer be established, provided the remaining system can
-continue safely. Rejected input or a failed operation need not stop unrelated components when isolation is
-established. Untrustworthy shared state may require stopping the node. Containment must follow the API's
-failure contract and proven isolation boundaries. It must not assume a component can recover from an arbitrary
-panic.
+停止完整性已无法确立的最小范围，前提是其余系统能安全继续。隔离成立时，
+被拒绝的输入或失败的操作不必停下无关组件。不可信的共享状态可能要求停止节点。
+遏制要遵循该 API 的失败契约与已证实的隔离边界，不能假定某组件能从任意 panic
+中恢复。
 
-Stopping a process does not cancel working venue orders or remove exposure. Recovery must establish
-venue state before deciding which further actions are safe.
+停止进程不会取消交易场所上的活动订单，也不会消除敞口。恢复必须先确立场所状态，
+再决定哪些后续动作是安全的。
 
-## Executable invariants
+## 可执行不变式 {#executable-invariants}
 
-NautilusTrader incrementally applies high-assurance practices to critical paths. Executable
-invariants verify that behavior matches the business requirements:
+NautilusTrader 在高保障实践上对关键路径渐进采用。可执行不变式验证行为是否
+符合业务要求：
 
-- Identify high-impact components, including core domain types and risk and execution flows, and
-  state their invariants in plain language.
-- Codify those invariants as executable checks (unit tests, property tests,
-  fuzzers, and static assertions) that run in CI.
-- Enforce ownership and state invariants through types and explicit failure contracts. Add formal
-  tools where their assurance benefit justifies their cost.
-- Require integrations to preserve existing critical-path invariants, and add executable coverage
-  for invariants they introduce or alter.
+- 识别高影响组件（包括核心领域类型以及风险与执行流程），用平实的语言陈述其不变式。
+- 把这些不变式固化为可执行检查（单元测试、属性测试、fuzzer 与静态断言），在 CI 中运行。
+- 通过类型与显式的失败契约强制所有权与状态不变式。形式化工具的收益配得上成本时再引入。
+- 要求集成方保留既有关键路径的不变式，并为其引入或改变的不变式补充可执行覆盖。
 
-This approach gives high-stakes flows additional scrutiny without applying the same assurance cost
-to every path.
+这一方式给高风险流程额外审视，而不把同样的保障成本摊到每条路径上。
 
-Further reading: [High Assurance Rust](https://highassurance.rs/).
+延伸阅读：[High Assurance Rust](https://highassurance.rs/)。
 
-## Message immutability
+## 消息不可变性 {#message-immutability}
 
-Messages (requests, responses, events, and commands) are immutable after creation. Their fields
-remain unchanged for the rest of the message lifetime. See
-[Message Bus: message integrity](./../concepts/message_bus.md#message-integrity) for the ownership
-rules that follow from this invariant.
+消息（请求、响应、事件与命令）创建后不可变。其字段在消息余下的生命周期中
+保持不变。由这一不变式派生的所有权规则见
+[消息总线：消息完整性](./../concepts/message_bus.md#message-integrity)。
 
-The invariant protects several properties the system depends on:
+这一不变式保护系统依赖的若干性质：
 
-- **Stable inputs**: Every consumer sees the same message payload. Replaying a sequence preserves
-  the original logical inputs for backtesting, incident reconstruction, and regression testing.
-- **Temporal integrity**: A message preserves what its producer reported, observed, requested, or inferred at
-  creation time. Preserve the available provenance. Immutability does not establish that the producer's
-  information is true. Corrections require an explicit new record.
-- **Safer concurrency**: Readers do not need coordination to protect message payloads from later
-  rewrites. This removes a common source of races around shared state.
-- **Debugging and auditability**: Logs, traces, replay tools, and dead-letter inspection keep the original
-  payload. This permits investigation of what the system received or created, when this occurred, and what the
-  system did with that information.
-- **Clear ownership boundaries**: Components treat incoming messages as input. If a component needs
-  a different representation, it derives new local state or a new message explicitly.
-- **More robust distribution**: Serialized messages already cross process and service boundaries as
-  copies. The same ownership rule keeps the in-memory model aligned with that reality.
+- **稳定的输入**：每个消费者看到的消息载荷都相同。重放一个序列时，能还原出
+  最初的逻辑输入，供回测、事件重建与回归测试使用。
+- **时间完整性**：消息保留其生产者在创建时刻报告、观测、请求或推断的内容，
+  可用的出处一并保留。不可变性并不证明生产者的信息为真；更正需要显式的新记录。
+- **更安全的并发**：读者不必协调以防护消息载荷被后续改写，消除了共享状态周围
+  一类常见的竞态来源。
+- **可调试、可审计**：日志、跟踪、重放工具与死信检视保留原始载荷，从而可以追查
+  系统收到或创建了的是什么、发生于何时，以及系统用它做了什么。
+- **清晰的所有权边界**：组件把进入的消息当作输入。需要不同表示时，显式派生新的
+  本地状态或新消息。
+- **更稳健的分布式**：序列化的消息本来就以副本跨越进程与服务边界，内存模型
+  沿用同一条所有权规则，与现实一致。
 
-## Evidence and authority
+## 证据与权威 {#evidence-and-authority}
 
-Distinguish external reports, local observations, inferences, and policy decisions. Preserve their
-source and uncertainty when deriving state. A valid numeric value or state transition does not by
-itself establish a venue fact. Missing evidence must not become a confirmed outcome merely because
-a timeout or retry limit expires.
+区分外部报告、本地观测、推断与策略决策。由它们派生状态时，保留各自的出处与
+不确定性。一个合法的数值或状态转换，本身并不确立某项场所事实。证据缺失时，
+不能因为超时或重试上限到期就把它当作已确认的结果。
 
-The [execution policies](./../concepts/execution/policies.md) apply this rule to command outcomes,
-reconciliation, and the limits of retained history.
+[执行策略](./../concepts/execution/policies.md)把这一规则应用于命令结果、对账，
+以及保留历史的限度。
 
-## Controlled nondeterminism
+## 受控的非确定性 {#controlled-nondeterminism}
 
-Make time, randomness, input ordering, and external effects explicit at the boundaries that consume
-them. Reproducible tests must control the sources that affect their assertions and retain the inputs,
-seeds, and configuration needed to investigate a failure. State the binary, platform, and input
-conditions of any determinism guarantee.
+让时间、随机性、输入顺序与外部影响在其消费边界处显式化。可复现的测试必须
+控制影响其断言的那些来源，并保留调查失败所需的输入、种子与配置。任何确定性
+保证都要写明其成立所依赖的二进制、平台与输入条件。
 
-The [DST contract](./../concepts/dst.md) defines the supported scope of seed-controlled execution.
-Live venue behavior and independent external inputs remain outside that guarantee.
+[DST 契约](./../concepts/dst.md)定义了种子控制执行的支持范围。实时的场所行为
+与独立的外部输入留在该保证之外。
 
-## Bounded resource use
+## 有界的资源使用 {#bounded-resource-use}
 
-Design queues, retries, retained history, and callback chains with explicit resource budgets and exhaustion
-behavior. If memory use varies, account for payload size as well as item count. Bound work as well as storage,
-so a replenishing queue cannot monopolize execution.
+队列、重试、保留历史与回调链的设计要带上显式的资源预算与耗尽行为。内存用量
+会波动时，除了条目数还要计入载荷大小。约束工作量而不只是存储，防止一个能
+持续补充的队列独占执行。
 
-Choose backpressure, rejection, or safe termination according to the affected contract. Overload must not
-silently lose required state transitions or leave partially applied operations presented as complete. These
-are design requirements. Existing paths can still be unbounded, as documented in [live dispatch and overload
-behavior](./../concepts/live.md#dispatch-priority-and-overload-behavior).
+按受影响的契约选择背压、拒绝或安全终止。过载不得静默丢失必要的状态转换，
+也不得把部分应用的操作呈现为已完成。这些是设计要求。既有路径仍可能是无界的，
+如[实时派发与过载行为](./../concepts/live.md#dispatch-priority-and-overload-behavior)所述。
 
-## Recovery after failure
+## 故障后的恢复 {#recovery-after-failure}
 
-Unrecoverable faults must not leave the system operating on potentially invalid state. Normal
-startup includes configured state recovery, so restart uses the same initialization path as
-ordinary startup. Recovery depends on retained state and backing-store durability.
+不可恢复的故障不得让系统继续在可能无效的状态上运行。正常启动包含配置好的
+状态恢复，因此重启走的就是普通启动的同一条初始化路径。恢复依赖保留的状态与
+后备存储的持久性。
 
-An external supervisor owns restart after process failure. Recovery aims to minimize downtime. Its duration
-depends on the state to restore and the backing store. Execution recovery must reconcile venue state rather
-than blindly retry venue commands. Normal operation retains graceful shutdown. An unrecoverable fault may make
-cleanup unsafe.
+进程故障后的重启由外部 supervisor 负责。恢复以尽量缩短停机为目标，其时长取决于
+要恢复的状态与后备存储。执行恢复必须对账场所状态，而不是盲目重试场所命令。
+正常运行保留优雅关停；不可恢复的故障可能让清理不再安全。
 
-[Runtime failure and recovery](./../concepts/architecture.md#crash-only-design) describes the process
-and persistence boundaries.
+进程与持久化边界的说明见[运行时故障与恢复](./../concepts/architecture.md#crash-only-design)。
 
-## Domain and integration boundaries
+## 领域与集成边界 {#domain-and-integration-boundaries}
 
-Domain types and contracts define trading behavior. Components communicate through explicit
-interfaces and immutable messages. Ports and adapters keep venue transport and backing-store
-implementations outside the shared trading core, so custom integrations preserve the same domain
-contracts.
+领域类型与契约定义交易行为。组件经由显式接口与不可变消息通信。
+端口与适配器把场所传输与后备存储实现挡在共享交易核心之外，
+因此自定义集成保留同样的领域契约。
 
-## Backtest and live behavior
+## 回测与实时行为 {#backtest-and-live-behavior}
 
-Backtest, sandbox, and live environments share core trading components and behavioral contracts.
-The same strategy and execution-algorithm code can run across these environments. Live execution
-also introduces venue, transport, timing, persistence, external-activity, and reconciliation
-behavior that a simulation may not reproduce. Shared code does not imply identical outcomes from
-different inputs or operating conditions.
+回测、沙箱与实时环境共享核心交易组件与行为契约。同一份策略与执行算法代码
+可在这些环境间运行。实时执行还会引入场所、传输、时序、持久化、外部活动与
+对账行为，模拟未必能复现。代码共享不意味着不同的输入或运行条件会得出相同结果。
 
-The [common core](./../concepts/architecture.md#common-core) supplies the engines and interfaces.
-[Behavioral models](./../concepts/behavioral_models.md) define how model implementations enter the runtime.
+[通用核心](./../concepts/architecture.md#common-core)提供各引擎与接口，
+[行为模型](./../concepts/behavioral_models.md)定义模型实现如何进入运行时。
 
-## Queued callback dispatch requirements
+## 排队回调派发要求 {#queued-callback-dispatch-requirements}
 
-Canonical actor and strategy delivery must preserve publication order, exclusive component access,
-and lifecycle eligibility, with bounded progress. Reentrancy must not change the ordering rule.
-Ordered delivery does not imply an event-time cache snapshot.
+规范的 actor 与策略投递必须保持发布顺序、组件独占访问与生命周期资格，
+并做到有界进展。重入不得改变排序规则。有序投递并不意味着存在按事件时间
+切成的缓存快照。
 
-The runtime owns drain scheduling at a small set of explicit ownership boundaries, after enclosing
-mutable borrows end. Individual dispatch, flush, and lifecycle methods must not each acquire a
-draining policy. Keep failure handling and cleanup under existing lifecycle owners. Share scheduling
-code only where it reduces complexity while preserving backtest settlement and live yielding rules.
+运行时在一小组显式的所有权边界上掌控排空调度，时机是外层可变借用结束之后。
+各个派发、flush 与生命周期方法不得各自持有排空策略。失败处理与清理交给现有的
+生命周期所有者。只在能降低复杂度、又保留回测结算与实时让出规则的地方，
+才共享调度代码。
 
-Deterministic callback order in the synchronous core and backtesting is a required activation criterion.
-Verify exact sequences through real native and Python components. Include nested publication, fan-out,
-callback-generated commands, same-timestamp work, and continuation across bounded drain passes. Final counts
-and balances alone do not establish ordering.
+同步核心与回测中的确定性回调顺序是必须满足的启用准则。要通过真实的 native 与
+Python 组件验证精确序列，覆盖嵌套发布、扇出、回调生成的命令、同一时间戳的工作，
+以及跨有界排空遍历的续作。仅凭最终的计数与余额无法确立顺序。
 
-These are requirements for queued dispatch, not guarantees of existing synchronous paths.
-The [callback dispatch contract](./callback_dispatch.md) specifies maintenance timing, ownership
-boundaries, lifecycle invalidation, and draining behavior. The
-[runtime conformance contract](./runtime_conformance.md#callback-ordering-and-ownership) records
-implementation coverage and outstanding activation requirements.
+这些是排队派发的要求，不是对既有同步路径的保证。
+[回调派发契约](./callback_dispatch.md)规定维护时机、所有权边界、生命周期失效
+与排空行为。[运行时一致性契约](./runtime_conformance.md#callback-ordering-and-ownership)
+记录实现覆盖与尚未完成的启用要求。

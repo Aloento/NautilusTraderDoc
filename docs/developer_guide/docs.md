@@ -1,77 +1,77 @@
-# Docs Style
+# 文档风格
 
-Use this guide for NautilusTrader documentation style and writing practices.
+本指南说明 NautilusTrader 文档的风格与写作实践。
 
-The [Markdown Style](./markdown_style.md) guide is the shared baseline for Markdown syntax and
-formatting, and `.markdownlint.jsonc` enforces its mechanical subset. This guide covers what is
-specific to NautilusTrader documentation rather than repeating that baseline.
+[Markdown 风格](./markdown_style.md)指南是 Markdown 语法与格式的共同基线，
+`.markdownlint.jsonc` 强制执行其中的机械子集。本指南只讲 NautilusTrader 文档特有的
+部分，不重复那份基线。
 
-## General principles
+## 总体原则 {#general-principles}
 
-- Prefer simple structure and concise, readable prose.
-- Use consistent conventions, style, and patterns.
-- Write for users of varying technical backgrounds.
+- Prefer 简单的结构与简洁易读的散文。
+- 使用一致的约定、风格与模式。
+- 面向技术背景各异的读者写作。
 
-## Documentation types
+## 文档类型 {#documentation-types}
 
-Most pages should fit one of four types
-([Divio documentation system](https://docs.divio.com/documentation-system/)).
-Mixing types in a single page makes it harder to read and harder to maintain.
+多数页面应归入四种类型之一
+（[Divio documentation system](https://docs.divio.com/documentation-system/)）。
+单页混杂多种类型会让阅读与维护都更困难。
 
-| Type             | Purpose                         | Section          |
+| 类型             | 目的                         | 所在目录          |
 | ---------------- | ------------------------------- | ---------------- |
-| **Tutorial**     | Teach by walking through a task | `tutorials/`     |
-| **How-to guide** | Solve a specific problem        | `how_to/`        |
-| **Explanation**  | Clarify design and architecture | `concepts/`      |
-| **Reference**    | Describe the machinery          | `api_reference/` |
+| **Tutorial**     | 带读者走一遍任务来教学 | `tutorials/`     |
+| **How-to guide** | 解决一个具体问题        | `how_to/`        |
+| **Explanation**  | 讲清设计与架构 | `concepts/`      |
+| **Reference**    | 描述机制本身          | `api_reference/` |
 
-Two sections are exceptions:
+两个目录是例外：
 
-- `getting_started/` combines tutorial-style walkthroughs with setup instructions for onboarding.
-- `integrations/` pages combine reference (capabilities, symbology) with how-to content (setup,
-  configuration). Thus, each venue page is self-contained.
+- `getting_started/` 把教学式的走查与安装步骤结合，用于上手引导。
+- `integrations/` 的页面把 reference（能力、符号规则）与 how-to 内容（安装、
+  配置）结合，因此每个场所页面自成一体。
 
-Standalone how-to content that is not venue-specific belongs in `how_to/`.
+非场所专属的独立 how-to 内容归 `how_to/`。
 
-### Choosing the right type
+### 选对类型 {#choosing-the-right-type}
 
-- **Does your page walk a newcomer through a learning experience?** Tutorial.
-- **Does it answer "How do I...?" for someone who already knows the system?** How-to guide.
-- **Does it explain why something works the way it does?** Explanation.
-- **Does it list classes, config fields, enums, or capabilities?** Reference.
+- **页面是否带着新手的读者走完一段学习过程？** Tutorial。
+- **是否在回答已经熟悉系统的读者的"我该怎么做……"？** How-to guide。
+- **是否在解释某事物为何这样运作？** Explanation。
+- **是否在罗列类、配置字段、枚举或能力？** Reference。
 
-A tutorial says "do this, then this, then this." The author picks the path.
-A how-to guide says "here is how to achieve X." The reader already knows
-they want X. Keep these distinct:
+Tutorial 说"做这个，然后这个，再然后这个"，路径由作者选定。
+How-to guide 说"这是达成 X 的方法"，读者本就知道自己要的是 X。
+两者要分清：
 
-- Tutorials should not assume prior knowledge.
-- How-to guides should not teach background concepts.
+- Tutorial 不应假设先验知识。
+- How-to guide 不应讲授背景概念。
 
-When one type needs to reference another, link to it instead of inlining. For
-example, a how-to guide that configures `LiveNodeConfig` should link to the
-API reference for field definitions rather than listing them again.
+一种类型需要引用另一种时，用链接而不是内联展开。例如配置
+`LiveNodeConfig` 的 how-to guide，应链接到 API reference 的字段定义，
+而不是把它们再列一遍。
 
-## Language and tone
+## 语言与语气 {#language-and-tone}
 
-- Use active voice when possible ("Configure the adapter" vs "The adapter should be configured").
-- Write in present tense for describing current functionality.
-- Use future tense only for planned features.
-- Avoid unnecessary jargon. Define technical terms on first use.
-- Be direct and concise. Avoid filler words like "basically", "simply", "just".
-- Use parallel structure in lists. Keep grammatical patterns consistent across items.
+- 尽量用主动语态（"Configure the adapter" 而不是 "The adapter should be configured"）。
+- 描述现有功能用现在时。
+- 只有规划中的特性用将来时。
+- 避免不必要的术语，技术词首次出现时给出定义。
+- 直接、简练。避免 "basically"、"simply"、"just" 这类填充词。
+- 列表使用平行结构，各项的语法模式保持一致。
 
-## Markdown tables
+## Markdown 表格 {#markdown-tables}
 
-Table syntax, pipe alignment, and delimiter padding follow the
-[Markdown Style](./markdown_style.md#tables) guide.
+表格语法、管道对齐与分隔行填充遵循
+[Markdown 风格](./markdown_style.md#tables)指南。
 
-### Notes and descriptions
+### 注记与说明 {#notes-and-descriptions}
 
-- All notes and descriptions should have terminating periods.
-- Keep notes concise but informative.
-- Use sentence case (capitalize only the first letter and proper nouns).
+- 所有注记与说明都以句号结尾。
+- 注记保持简练，同时信息完整。
+- 用句子式大写（只大写首字母与专有名词）。
 
-### Example
+### 示例 {#example}
 
 ```markdown
 | Order Type             | Spot | Margin | USDT Futures | Coin Futures | Notes                   |
@@ -81,85 +81,83 @@ Table syntax, pipe alignment, and delimiter padding follow the
 | `MARKET_IF_TOUCHED`    | -    | -      | ✓            | ✓            | Futures only.           |
 ```
 
-### Support indicators
+### 支持标记 {#support-indicators}
 
-- Use `✓` for supported features.
-- Use `-` for unsupported features (not `✗` or other symbols).
-- When adding notes for unsupported features, emphasize with italics: `*Not supported*`.
-- Make unsupported notes specific when the reason matters: use `*Not supported by <venue>*`
-  for venue gaps, or `*Not currently implemented*` for adapter gaps.
-- Leave cells empty when no content is needed.
+- 已支持的特性用 `✓`。
+- 不支持的特性用 `-`（不用 `✗` 或其他符号）。
+- 为不支持的特性加注记时，用斜体强调：`*Not supported*`。
+- 原因重要时把不支持的注记写具体：场所欠缺用 `*Not supported by <venue>*`，
+  适配器欠缺用 `*Not currently implemented*`。
+- 不需要内容的单元格留空。
 
-## Code references
+## 代码引用 {#code-references}
 
-Inline code and fenced code blocks follow the [Markdown Style](./markdown_style.md#code) guide.
+行内代码与围栏代码块遵循 [Markdown 风格](./markdown_style.md#code)指南。
 
-When referencing code locations, use `file_path::function_name` or `file_path::ClassName` rather
-than line numbers, which become stale as code changes.
+引用代码位置时，用 `file_path::function_name` 或 `file_path::ClassName`，
+而不是会随代码改动而过期的行号。
 
-## Headings
+## 标题 {#headings}
 
-Heading style, case, and hierarchy follow the [Markdown Style](./markdown_style.md#headings) guide:
-title case for the page heading, sentence case below it.
+标题风格、大小写与层级遵循 [Markdown 风格](./markdown_style.md#headings)指南：
+页面标题用标题式大写，其下用句子式大写。
 
-NautilusTrader makes one exception for `index.md` pages: headings and navigation links that name
-individual documents use the target document's exact H1 title, including its capitalization.
-General section headings retain sentence case.
+NautilusTrader 对 `index.md` 页面有一处例外：指代具体文档的标题与导航链接，
+使用目标文档 H1 的确切标题，包括其大小写。通用小节标题仍用句子式大写。
 
-Always capitalize proper nouns regardless of heading level (product names, technologies,
-companies, acronyms).
+专有名词（产品名、技术名、公司名、首字母缩略词）无论处于哪级标题都要大写。
 
-## Lists
+## 列表 {#lists}
 
-List markers, ordering, and indentation follow the [Markdown Style](./markdown_style.md#lists) guide.
+列表标记、顺序与缩进遵循 [Markdown 风格](./markdown_style.md#lists)指南。
 
-End list items with periods when they are complete sentences.
+列表项是完整句子时以句号结尾。
 
-## Links and references
+## 链接与引用 {#links-and-references}
 
-Link text, link style, and images follow the
-[Markdown Style](./markdown_style.md#links-and-images) guide.
+链接文字、链接样式与图片遵循
+[Markdown 风格](./markdown_style.md#links-and-images)指南。
 
-Reference external documentation when appropriate.
+适时引用外部文档。
 
-## Technical terminology
+## 技术术语 {#technical-terminology}
 
-- Base capability matrices on the Nautilus domain model, not exchange-specific terminology.
-- Mention exchange-specific terms in parentheses or notes when necessary for clarity.
-- Use consistent terminology throughout the documentation.
+- 能力矩阵以 Nautilus 领域模型为基础，不用交易所专属术语。
+- 确有必要澄清时，在括号或注记中提及交易所专属术语。
+- 全套文档使用一致的术语。
 
-## Examples and code samples
+## 示例与代码片段 {#examples-and-code-samples}
 
-- Provide practical, working examples.
-- Include necessary imports and context.
-- Use realistic variable names and values.
-- Add comments to explain non-obvious parts of examples.
+- 提供实际可用的示例。
+- 包含必要的 import 与上下文。
+- 使用真实的变量名与取值。
+- 为示例中不直观的部分加注释。
 
-## Admonitions
+## 提示块 {#admonitions}
 
-Use admonition blocks to highlight important information:
+用提示块突出重要信息：
 
-| Admonition   | Purpose                                                       |
+| 提示块   | 目的                                                       |
 | ------------ | ------------------------------------------------------------- |
-| `:::note`    | Supplementary context that clarifies but is not essential.    |
-| `:::info`    | Important information the reader should be aware of.          |
-| `:::tip`     | Helpful suggestions or best practices.                        |
-| `:::warning` | Potential pitfalls or important caveats.                      |
-| `:::danger`  | Critical issues that could cause data loss or system failure. |
+| `:::note`    | 补充性的上下文，有助理解但非必需。    |
+| `:::info`    | 读者应当了解的重要信息。          |
+| `:::tip`     | 有用的建议或最佳实践。                        |
+| `:::warning` | 潜在的坑或重要的告诫事项。                      |
+| `:::danger`  | 可能导致数据丢失或系统故障的严重问题。 |
 
-Avoid overusing admonitions. Too many diminish their impact.
+不要滥用提示块，太多会削弱其作用。
 
-## MDX components
+## MDX 组件 {#mdx-components}
 
-The docs site (fumadocs) provides built-in MDX components available in all `.md` files.
-No imports are needed.
+文档站点（fumadocs）提供内置的 MDX 组件，所有 `.md` 文件都可直接使用，
+无需 import。
 
-### Tabs
+### Tabs {#tabs}
 
-Use tabs for language-specific or variant content. List Rust before Python so Rust is the
-default (left-most) tab.
+按语言或变体组织内容时用 tabs。Rust 列在 Python 之前，让 Rust 成为默认
+（最左）的标签页。
 
-For code examples, add `tab="..."` to consecutive fenced code blocks:
+代码示例在连续的围栏代码块上加 `tab="..."`：
 
 ```markdown
 \`\`\`rust tab="Rust"
@@ -171,9 +169,9 @@ strategy.submit_order(order, params={"close_position": True})
 \`\`\`
 ```
 
-For tables or other content, wrap each variant in `<Tabs>` and `<Tab>`. The instrument Fields
-tables use this so each language shows a single type column instead of side-by-side Rust and
-Python columns. Leave a blank line above and below the inner content so the Markdown renders.
+表格或其他内容则把每个变体包进 `<Tabs>` 与 `<Tab>`。工具 Fields 表格就是这样，
+每种语言只显示一列类型，而不是 Rust 与 Python 两列并排。内层内容上下各留一个空行，
+Markdown 才能正常渲染。
 
 ```markdown
 <Tabs items={["Rust", "Python"]}>
@@ -194,9 +192,9 @@ Python columns. Leave a blank line above and below the inner content so the Mark
 </Tabs>
 ```
 
-### Steps
+### Steps {#steps}
 
-Use `Steps` and `Step` for sequential procedures.
+顺序流程用 `Steps` 与 `Step`。
 
 ```markdown
 1. Configure the adapter.
@@ -204,9 +202,9 @@ Use `Steps` and `Step` for sequential procedures.
 2. Start the trading node.
 ```
 
-### Accordions
+### Accordions {#accordions}
 
-Use `Accordions` and `Accordion` for collapsible content.
+可折叠内容用 `Accordions` 与 `Accordion`。
 
 ```markdown
 <Accordions>
@@ -216,9 +214,9 @@ Content here.
 </Accordions>
 ```
 
-### Files
+### Files {#files}
 
-Use `Files`, `Folder`, and `File` for directory tree visualizations.
+目录树可视化用 `Files`、`Folder` 与 `File`。
 
 ```markdown
 <Files>
@@ -229,9 +227,9 @@ Use `Files`, `Folder`, and `File` for directory tree visualizations.
 </Files>
 ```
 
-### Cards
+### Cards {#cards}
 
-Use `Cards` and `Card` for linked content grids.
+带链接的内容网格用 `Cards` 与 `Card`。
 
 ```markdown
 <Cards>
@@ -240,13 +238,13 @@ Use `Cards` and `Card` for linked content grids.
 </Cards>
 ```
 
-### TypeTable
+### TypeTable {#typetable}
 
-Use `TypeTable` for parameter or type documentation tables.
+参数或类型说明表格用 `TypeTable`。
 
-## API documentation
+## API 文档 {#api-documentation}
 
-- Document parameters and return types clearly.
-- Include usage examples for complex APIs.
-- Explain any side effects or important behavior.
-- Keep parameter descriptions concise but complete.
+- 清楚说明参数与返回类型。
+- 复杂的 API 附上使用示例。
+- 解释副作用与重要行为。
+- 参数说明简练而完整。

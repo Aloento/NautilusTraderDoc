@@ -1,22 +1,21 @@
-# Data Catalog with Databento
+# 用 Databento 建数据目录
 
-Set up a Nautilus Parquet data catalog with market data from Databento. The
-catalog provides efficient storage and querying for backtests and research.
+用 Databento 的行情数据搭建 Nautilus 的 Parquet 数据目录。数据目录为回测和研究提供高效的
+存储与查询。
 
-[View source on GitHub](https://github.com/nautechsystems/nautilus_trader/blob/develop/docs/how_to/data_catalog_databento.py).
+[在 GitHub 查看源码](https://github.com/nautechsystems/nautilus_trader/blob/develop/docs/how_to/data_catalog_databento.py)。
 
-## Prerequisites
+## 前提条件 {#prerequisites}
 
 - Python 3.13+
-- [NautilusTrader](https://pypi.org/project/nautilus_trader/) 2.x installed
-  (`pip install -U --pre nautilus_trader`)
-- [databento](https://pypi.org/project/databento/) Python client library (`pip install databento`)
-- [Databento](https://databento.com) account with API key set as `DATABENTO_API_KEY`
+- 已安装 [NautilusTrader](https://pypi.org/project/nautilus_trader/) 2.x
+  （`pip install -U --pre nautilus_trader`）
+- [databento](https://pypi.org/project/databento/) Python 客户端库（`pip install databento`）
+- [Databento](https://databento.com) 账户，API key 已设置为 `DATABENTO_API_KEY`
 
-## Request data
+## 请求数据 {#request-data}
 
-Initialize a Databento historical client. The client reads your API key from
-the `DATABENTO_API_KEY` environment variable by default.
+初始化 Databento 历史数据客户端。客户端默认从 `DATABENTO_API_KEY` 环境变量读取 API key。
 
 ```python
 import databento as db
@@ -25,16 +24,16 @@ import databento as db
 client = db.Historical()  # Uses the DATABENTO_API_KEY environment variable
 ```
 
-**Every historical streaming request from `timeseries.get_range` incurs a cost (even for the same data), so**:
-- Check the cost before making a request
-- Avoid requesting the same data twice
-- Write responses to disk as zstd compressed DBN files
+**`timeseries.get_range` 的每次历史流式请求都会产生费用（即使是相同的数据），因此**：
+- 请求前先查询费用
+- 避免重复请求相同数据
+- 把响应以 zstd 压缩的 DBN 文件写到磁盘
 
-Use the metadata [get_cost endpoint](https://databento.com/docs/api-reference-historical/metadata/metadata-get-cost?historical=python&live=python) to quote the cost before each request. Only request data that does not already exist on disk.
+每次请求前用元数据 [get_cost endpoint](https://databento.com/docs/api-reference-historical/metadata/metadata-get-cost?historical=python&live=python) 估算费用。只请求磁盘上还没有的数据。
 
-The response is in USD, displayed as fractional cents.
+响应的单位是美元，以美分的分数形式显示。
 
-The following request is for a small amount of data (as used in the Databento blog post [Building high-frequency trading signals in Python with Databento and sklearn](https://databento.com/blog/hft-sklearn-python)) to demonstrate the workflow.
+下面的请求数据量很小（取自 Databento 博客文章 [Building high-frequency trading signals in Python with Databento and sklearn](https://databento.com/blog/hft-sklearn-python)），仅用于演示工作流。
 
 ```python
 from pathlib import Path
@@ -42,7 +41,7 @@ from pathlib import Path
 from databento import DBNStore
 ```
 
-We'll prepare a directory for the raw Databento DBN format data, which we'll use for the rest of the tutorial.
+先准备一个目录存放原始 Databento DBN 格式数据，教程余下部分都会用到它。
 
 ```python
 DATABENTO_DATA_DIR = Path("databento")
@@ -61,7 +60,7 @@ client.metadata.get_cost(
 )
 ```
 
-Use the historical API to request the data used in the blog post.
+用历史 API 请求博客文章中用到的数据。
 
 ```python
 path = DATABENTO_DATA_DIR / "es-front-glbx-mbp10.dbn.zst"
@@ -79,7 +78,7 @@ if not path.exists():
     )
 ```
 
-Read the data from disk and convert to a pandas.DataFrame
+从磁盘读取数据并转换为 pandas.DataFrame
 
 ```python
 data = DBNStore.from_file(path)
@@ -88,9 +87,9 @@ df = data.to_df()
 df
 ```
 
-## Write to data catalog
+## 写入数据目录 {#write-to-data-catalog}
 
-The guide writes the catalog to `catalog/` under the working directory and replaces that directory on each run.
+本指南把目录写到工作目录下的 `catalog/`，每次运行都会替换该目录。
 
 ```python
 import shutil
@@ -113,13 +112,14 @@ CATALOG_PATH.mkdir()
 catalog = ParquetDataCatalog(str(CATALOG_PATH))
 ```
 
-Use a `DatabentoDataLoader` to decode and load the data into Nautilus objects.
+用 `DatabentoDataLoader` 把数据解码并加载为 Nautilus 对象。
 
 ```python
 loader = DatabentoDataLoader()
 ```
 
-Passing an `instrument_id` is optional but speeds up loading by skipping symbology mapping. If provided, use the Nautilus `symbol.venue` format (e.g., "ESZ3.GLBX").
+`instrument_id` 参数可选，但传入它可以跳过符号映射、加快加载。若提供，使用 Nautilus 的
+`symbol.venue` 格式（例如 "ESZ3.GLBX"）。
 
 ```python
 path = DATABENTO_DATA_DIR / "es-front-glbx-mbp10.dbn.zst"
@@ -146,9 +146,10 @@ depths = catalog.query_order_book_depths()
 len(depths)
 ```
 
-## Preparing a month of AAPL trades
+## 准备 AAPL 一个月的成交数据 {#preparing-a-month-of-aapl-trades}
 
-Now we'll expand on this workflow by preparing a month of AAPL trades on the Nasdaq exchange using the Databento `trades` schema, which will translate to Nautilus `TradeTick` objects.
+接下来扩展这个工作流：用 Databento 的 `trades` schema 准备 Nasdaq 交易所 AAPL 一个月的
+成交数据，它们会转换为 Nautilus 的 `TradeTick` 对象。
 
 ```python
 # Request cost quote (USD) - this endpoint is 'free'
@@ -160,7 +161,7 @@ client.metadata.get_cost(
 )
 ```
 
-Pass a `path` parameter when requesting historical data to write it to disk.
+请求历史数据时传入 `path` 参数即可写到磁盘。
 
 ```python
 path = DATABENTO_DATA_DIR / "aapl-xnas-202401.trades.dbn.zst"
@@ -176,7 +177,7 @@ if not path.exists():
     )
 ```
 
-Read the data from disk and convert to a pandas.DataFrame
+从磁盘读取数据并转换为 pandas.DataFrame
 
 ```python
 data = DBNStore.from_file(path)
@@ -185,9 +186,10 @@ df = data.to_df()
 df
 ```
 
-We'll use an `InstrumentId` of `"AAPL.XNAS"`, where XNAS is the ISO 10383 MIC (Market Identifier Code) for the Nasdaq venue.
+使用 `InstrumentId` `"AAPL.XNAS"`，其中 XNAS 是 Nasdaq 场所的 ISO 10383 MIC
+（市场识别码）。
 
-Passing an `instrument_id` speeds up loading by skipping symbology mapping.
+传入 `instrument_id` 可以跳过符号映射，加快加载。
 
 ```python
 instrument_id = InstrumentId.from_str("AAPL.XNAS")
@@ -198,7 +200,7 @@ trades = loader.load_trades(
 )
 ```
 
-Here we organize data as one file per month. A file per day works equally well.
+这里按月组织数据，每天一个文件同样可行。
 
 ```python
 # Write data to catalog

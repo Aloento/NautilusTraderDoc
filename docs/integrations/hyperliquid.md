@@ -1,54 +1,51 @@
 # Hyperliquid
 
-[Hyperliquid](https://hyperliquid.gitbook.io/hyperliquid-docs) is a decentralized perpetual futures
-and spot exchange built on the Hyperliquid L1, a purpose-built blockchain optimized for trading.
-HyperCore provides a fully on-chain order book and matching engine. This integration supports
-live market data ingest and order execution on Hyperliquid.
+[Hyperliquid](https://hyperliquid.gitbook.io/hyperliquid-docs) 是构建在 Hyperliquid L1 上的
+去中心化永续合约与现货交易所，这条专为交易优化的自建区块链由 HyperCore 提供完全链上的
+订单簿与撮合引擎。本集成支持 Hyperliquid 的实时行情摄取与订单执行。
 
-## Overview
+## 概览 {#overview}
 
-This adapter is implemented in Rust with Python bindings. It provides direct integration
-with Hyperliquid's REST and WebSocket APIs without requiring external client libraries.
+该适配器以 Rust 实现并提供 Python 绑定。它直接对接 Hyperliquid 的 REST 与 WebSocket
+API，不需要外部客户端库。
 
-The Hyperliquid adapter includes multiple components:
+Hyperliquid 适配器包含多个组件：
 
-- `HyperliquidHttpClient`: HTTP API connectivity, instrument loading and parsing, and reconciliation reports.
-- `HyperliquidWebSocketClient`: WebSocket API connectivity for Rust callers.
-- `HyperliquidDataClient`: Market data feed manager.
-- `HyperliquidExecutionClient`: Account management and trade execution gateway.
-- `HyperliquidDataClientFactory`: Factory for Hyperliquid data clients (used by the live node builder).
-- `HyperliquidExecutionClientFactory`: Factory for Hyperliquid execution clients (used by the live node builder).
+- `HyperliquidHttpClient`：HTTP API 连接、金融工具加载与解析、对账报告。
+- `HyperliquidWebSocketClient`：供 Rust 调用方使用的 WebSocket API 连接。
+- `HyperliquidDataClient`：行情数据流管理器。
+- `HyperliquidExecutionClient`：账户管理与交易执行网关。
+- `HyperliquidDataClientFactory`：Hyperliquid 数据客户端工厂（由 live node builder 使用）。
+- `HyperliquidExecutionClientFactory`：Hyperliquid 执行客户端工厂（由 live node builder 使用）。
 
 :::note
-Most users configure a live trading node (see [Live node configuration](#live-node-configuration))
-and never work directly with these lower-level components.
+多数用户只配置实时交易节点（见[实时节点配置](#live-node-configuration)），
+不会直接操作这些底层组件。
 :::
 
-## Examples
+## 示例 {#examples}
 
-- [Python examples](https://github.com/nautechsystems/nautilus_trader/tree/develop/examples/live/hyperliquid/)
-- [Rust examples](https://github.com/nautechsystems/nautilus_trader/tree/develop/crates/adapters/hyperliquid/examples/)
+- [Python 示例](https://github.com/nautechsystems/nautilus_trader/tree/develop/examples/live/hyperliquid/)
+- [Rust 示例](https://github.com/nautechsystems/nautilus_trader/tree/develop/crates/adapters/hyperliquid/examples/)
 
-## Builder code attribution
+## Builder 代码归属 {#builder-code-attribution}
 
-Submitted mainnet orders carry the NautilusTrader builder code at a **zero fee rate**, so
-attribution adds no trading cost. This helps us gauge real usage of the integration and
-prioritize ongoing maintenance. Users who attribute order flow may also qualify for direct
-support through the [Institutional](https://nautilustrader.io/institutional/) tier when trading
-at scale.
+主网提交的订单携带 NautilusTrader 的 builder code，且**费率为零**，因此归属不增加
+任何交易成本。这帮助我们了解集成的真实用量，并据此安排后续维护的优先级。为订单流
+添加归属的用户，在大规模交易时还可能通过
+[Institutional](https://nautilustrader.io/institutional/) 层级获得直接支持。
 
-You may opt out of attribution with `include_builder_attribution: false` in serialized config,
-or `include_builder_attribution=False` in Python.
+可以用序列化配置中的 `include_builder_attribution: false`，
+或 Python 中的 `include_builder_attribution=False` 退出归属。
 
-The builder address is omitted from orders in three cases:
+三种情况下订单会省略 builder 地址：
 
-- **Testnet**: Hyperliquid testnet rejects orders that include a builder address the wallet has
-  not explicitly approved (faucet-funded testnet wallets typically have no approval), so testnet
-  orders never include the builder.
-- **Vault trading** (`vault_address` configured): Hyperliquid does not allow vaults to approve
-  builder fees, so including the builder address would cause the exchange to reject the order.
-- **Attribution disabled** (`include_builder_attribution=False`): Users who choose not to
-  attribute their order flow can disable builder attribution explicitly.
+- **Testnet**：Hyperliquid testnet 会拒绝携带未经钱包明确批准的 builder 地址的订单
+  （用 faucet 充值的 testnet 钱包通常没有批准），因此 testnet 订单从不携带 builder。
+- **Vault 交易**（配置了 `vault_address`）：Hyperliquid 不允许 vault 批准 builder
+  费用，携带 builder 地址会导致交易所拒单。
+- **归属已关闭**（`include_builder_attribution=False`）：不想为订单流做归属的用户
+  可以显式关闭 builder 归属。
 
 ```python
 from nautilus_trader.adapters.hyperliquid import HyperliquidExecutionClientConfig
@@ -58,27 +55,26 @@ config = HyperliquidExecutionClientConfig(
 )
 ```
 
-### Builder fee approval
+### Builder 费用批准 {#builder-fee-approval}
 
-Hyperliquid requires a one-time `ApproveBuilderFee` approval before orders can carry the builder
-address:
+Hyperliquid 要求先做一次性的 `ApproveBuilderFee` 批准，订单才能携带 builder
+地址：
 
-- Orders from a wallet that has never approved a builder fee are rejected with the reason
-  `Builder fee has not been approved` (any prior approval, including at a 0% rate, satisfies
-  the check).
-- The approval requires the master wallet's private key. The adapter does not hold this key in agent (API)
-  wallet setups. Thus, approval runs as a one-time script rather than at execution client startup.
-- The 0% max fee rate permits attribution only: no builder fee is ever charged, and raising
-  the rate would require a new approval signed by you.
+- 从未批准过 builder 费用的钱包，其订单会被拒绝，原因为
+  `Builder fee has not been approved`（任何先前的批准都满足检查，包括 0% 费率）。
+- 批准需要主钱包的私钥。agent（API）钱包配置下适配器不持有该密钥，因此批准以
+  一次性脚本运行，而不是在执行客户端启动时进行。
+- 0% 的最高费率只允许归属：永远不会收取 builder 费用，提高费率则需要一份由你
+  签署的新批准。
 
-Run the approval script once per wallet (reads `HYPERLIQUID_PK`, or `HYPERLIQUID_TESTNET_PK`
-with `HYPERLIQUID_TESTNET=true`):
+每个钱包运行一次批准脚本（读取 `HYPERLIQUID_PK`，
+`HYPERLIQUID_TESTNET=true` 时读取 `HYPERLIQUID_TESTNET_PK`）：
 
 ```bash
 cargo run -p nautilus-hyperliquid --bin hyperliquid-builder-fee-approve
 ```
 
-Or from Python:
+或在 Python 中：
 
 ```python
 from nautilus_trader.adapters.hyperliquid import builder_fee_approve
@@ -86,17 +82,17 @@ from nautilus_trader.adapters.hyperliquid import builder_fee_approve
 builder_fee_approve()
 ```
 
-### Revoking the approval
+### 撤销批准 {#revoking-the-approval}
 
-Use revocation to cap a previously approved builder fee at 0% (for example, an approval from a version that
-charged builder fees). Revocation caps the fee. It does not remove the approval record, so attribution
-continues unless `include_builder_attribution` is disabled.
+用撤销把此前批准的 builder 费用上限压回 0%（比如某个会收 builder 费用的旧版本
+留下的批准）。撤销只设定费用上限，不删除批准记录，因此除非关闭
+`include_builder_attribution`，归属仍会持续。
 
 ```bash
 cargo run -p nautilus-hyperliquid --bin hyperliquid-builder-fee-revoke
 ```
 
-Or from Python:
+或在 Python 中：
 
 ```python
 from nautilus_trader.adapters.hyperliquid import builder_fee_revoke
@@ -104,59 +100,56 @@ from nautilus_trader.adapters.hyperliquid import builder_fee_revoke
 builder_fee_revoke()
 ```
 
-The Rust scripts print an action summary. They wait for an Enter keypress before signing. If anything in the
-summary looks wrong, abort with `Ctrl+C`. To skip the prompt, append `-- --yes` to the `cargo run` command.
-The Python bindings do not prompt, so make sure to review the active environment variables before calling.
+Rust 脚本会打印动作摘要，并在签名前等待按下 Enter 键。摘要中有任何不对的地方，
+用 `Ctrl+C` 中止。要跳过提示，在 `cargo run` 命令后追加 `-- --yes`。
+Python 绑定不提示，调用前务必确认当前的环境变量。
 
-## Testnet setup
+## Testnet 设置 {#testnet-setup}
 
-Hyperliquid provides a testnet environment for testing strategies with mock funds.
+Hyperliquid 提供 testnet 环境，可用模拟资金测试策略。
 
 :::info
-**Mainnet account required.** Hyperliquid's testnet faucet only works for wallets that have
-previously deposited on mainnet. You must fund a mainnet account first before you can obtain
-testnet USDC.
+**需要主网账户。** Hyperliquid 的 testnet faucet 只对曾在主网存款过的钱包生效。
+必须先为主网账户注资，才能领取 testnet USDC。
 :::
 
-### Getting testnet funds
+### 获取 testnet 资金 {#getting-testnet-funds}
 
-To receive testnet USDC, you must first have deposited on **mainnet** using the same wallet address:
+要领取 testnet USDC，必须先用同一钱包地址在**主网**存款过：
 
-1. Visit the [Hyperliquid mainnet portal](https://app.hyperliquid.xyz/) and make a deposit with your wallet.
-2. Visit the [testnet faucet](https://app.hyperliquid-testnet.xyz/drip) using the same wallet.
-3. Claim 1,000 mock USDC from the faucet.
+1. 访问 [Hyperliquid 主网门户](https://app.hyperliquid.xyz/)，用钱包完成一笔存款。
+2. 用同一钱包访问 [testnet faucet](https://app.hyperliquid-testnet.xyz/drip)。
+3. 从 faucet 领取 1,000 模拟 USDC。
 
 :::note
-**Email wallet users**: Email login generates different addresses for mainnet vs testnet.
-To use the faucet, export your email wallet from mainnet, import it into MetaMask or Rabby,
-then connect the extension to testnet.
+**邮箱登录用户**：邮箱登录在主网和 testnet 会生成不同地址。要用 faucet，需要从
+主网导出邮箱钱包，导入 MetaMask 或 Rabby，再把该扩展连到 testnet。
 :::
 
-### Creating a testnet account
+### 创建 testnet 账户 {#creating-a-testnet-account}
 
-1. Visit the [Hyperliquid testnet portal](https://app.hyperliquid-testnet.xyz/).
-2. Connect your wallet (MetaMask, WalletConnect, or email).
-3. The testnet automatically creates an account for your wallet address.
+1. 访问 [Hyperliquid testnet 门户](https://app.hyperliquid-testnet.xyz/)。
+2. 连接钱包（MetaMask、WalletConnect 或邮箱）。
+3. testnet 会为钱包地址自动创建账户。
 
-### Exporting your private key
+### 导出私钥 {#exporting-your-private-key}
 
-To use your testnet account with NautilusTrader, you need to export your wallet's private key:
+要在 NautilusTrader 中使用 testnet 账户，需要导出钱包私钥：
 
-**MetaMask**:
+**MetaMask**：
 
-1. Click the three dots menu next to your account.
-2. Select "Account details".
-3. Click "Show private key".
-4. Enter your password and copy the private key.
+1. 点击账户旁的三点菜单。
+2. 选择 "Account details"。
+3. 点击 "Show private key"。
+4. 输入密码并复制私钥。
 
 :::warning
-**Never share your private keys.** Store private keys securely using environment variables. Never commit them
-to version control.
+**绝不要泄露私钥。** 私钥要安全存放在环境变量中，绝不提交到版本控制。
 :::
 
-### Setting environment variables
+### 设置环境变量 {#setting-environment-variables}
 
-Set your testnet credentials as environment variables:
+把 testnet 凭据设为环境变量：
 
 ```bash
 export HYPERLIQUID_TESTNET_PK="your_private_key_here"
@@ -164,43 +157,41 @@ export HYPERLIQUID_TESTNET_PK="your_private_key_here"
 export HYPERLIQUID_TESTNET_VAULT="vault_address_here"
 ```
 
-The adapter automatically loads these when `environment=HyperliquidEnvironment.TESTNET` in the
-configuration.
+配置为 `environment=HyperliquidEnvironment.TESTNET` 时，适配器会自动加载这些
+变量。
 
 :::warning
-**Agent / API wallets**: if `HYPERLIQUID_TESTNET_PK` is an
-[agent wallet](#agent-wallets) approved under a master account (the typical
-setup when you create an API wallet on the Hyperliquid UI), you must also
-set `HYPERLIQUID_ACCOUNT_ADDRESS` to the master account address. Without it,
-`OrderStatusReport` requests and WebSocket user feeds come back empty even
-though orders are live on the venue. See [GH-4010](https://github.com/nautechsystems/nautilus_trader/issues/4010).
+**Agent / API 钱包**：如果 `HYPERLIQUID_TESTNET_PK` 是在主账户下批准的
+[agent 钱包](#agent-wallets)（在 Hyperliquid UI 上创建 API 钱包时通常就是这种
+配置），还必须把 `HYPERLIQUID_ACCOUNT_ADDRESS` 设为主账户地址。不设置的话，
+即使订单已在交易场所生效，`OrderStatusReport` 请求与 WebSocket 用户流也会返回
+空结果。见 [GH-4010](https://github.com/nautechsystems/nautilus_trader/issues/4010)。
 :::
 
-## Product support
+## 产品支持 {#product-support}
 
-Hyperliquid offers linear perpetual futures, HIP-3 builder-deployed perpetuals, native
-spot markets, and HIP-4 binary outcome markets.
+Hyperliquid 提供线性永续合约、HIP-3 builder 部署的永续合约、原生现货市场与
+HIP-4 二元结果市场。
 
-| Product Type      | Data Feed | Trading | Notes                                            |
-| ----------------- | --------- | ------- | ------------------------------------------------ |
-| Spot              | ✓         | ✓       | Native spot markets.                             |
-| Perpetual Futures | ✓         | ✓       | USDC-settled linear perps (validator-operated).  |
-| HIP-3 Perpetuals  | ✓         | ✓       | Builder-deployed perps with per-dex collateral.  |
-| HIP-4 Outcomes    | ✓         | ✓       | Fully-collateralized binary outcome side tokens. |
+| 产品类型        | 数据流    | 交易    | 说明                                             |
+| --------------- | --------- | ------- | ------------------------------------------------ |
+| 现货            | ✓         | ✓       | 原生现货市场。                                   |
+| 永续合约        | ✓         | ✓       | USDC 结算的线性永续（验证节点运营）。            |
+| HIP-3 永续合约  | ✓         | ✓       | builder 部署的永续，按 dex 独立抵押品。          |
+| HIP-4 结果市场  | ✓         | ✓       | 全额抵押的二元结果 side token。                  |
 
-All four product types load automatically at connect. No per-product opt-in is required.
+四种产品类型在 connect 时全部自动加载，不需要逐个产品手工开启。
 
 :::note
-Standard Hyperliquid perpetuals are settled in USDC. HIP-3 dexes may settle in
-their own collateral token, such as USDH, USDE, or USDT0, while keeping Nautilus
-symbols quoted as `USD`. Spot markets are standard currency pairs. See
-[HIP-3 builder-deployed perpetuals](#hip-3-builder-deployed-perpetuals) and
-[HIP-4 outcome markets](#hip-4-outcome-markets) for the details of each.
+标准 Hyperliquid 永续以 USDC 结算。HIP-3 dex 可能用自有抵押代币结算，例如
+USDH、USDE 或 USDT0，而 Nautilus 代码仍报价为 `USD`。现货市场是标准货币对。
+各自细节见 [HIP-3 builder 部署的永续合约](#hip-3-builder-deployed-perpetuals)
+与 [HIP-4 结果市场](#hip-4-outcome-markets)。
 :::
 
-## Symbology
+## 代码体系 {#symbology}
 
-Hyperliquid uses a specific symbol format for instruments:
+Hyperliquid 为金融工具使用特定的代码格式：
 
 ### Spot markets
 

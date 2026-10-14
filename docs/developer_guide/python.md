@@ -1,30 +1,29 @@
 # Python
 
-[Python](https://www.python.org/) provides most user-facing code in NautilusTrader. Its ecosystem of
-libraries and frameworks supports strategy development, data analysis, and system integration.
+[Python](https://www.python.org/) 承载了 NautilusTrader 大部分面向用户的代码。
+其库与框架生态支撑着策略开发、数据分析与系统集成。
 
-## Code style
+## 代码风格 {#code-style}
 
-### PEP-8
+### PEP-8 {#pep-8}
 
-The codebase generally follows PEP-8, but does not always use truthiness to check non-collection
-values for `None`.
+代码库总体遵循 PEP-8，但检查非集合类型的值是否为 `None` 时，并不总是使用 truthiness。
 
-The [Google Python Style Guide](https://google.github.io/styleguide/pyguide.html) discourages truthiness
-for `None` checks when a function or method might receive an unexpected object. Its truthiness can
-produce an unintended result and cause a logic error:
+[Google Python Style Guide](https://google.github.io/styleguide/pyguide.html)
+不鼓励在函数或方法可能收到意外对象时用 truthiness 判 `None`。
+这种写法可能产生非预期结果，导致逻辑错误：
 
 *"Always use if foo is None: (or is not None) to check for a None value. E.g., when testing whether a variable or argument that defaults to None was set to some other value. The other value might be a value that's false in a boolean context!"*
 
 :::note
-Use truthiness to check for empty collections (e.g., `if not my_list:`) rather than comparing explicitly to `None` or empty.
+判空集合用 truthiness（例如 `if not my_list:`），不要与 `None` 或空值显式比较。
 :::
 
-We welcome all feedback on where the codebase departs from PEP-8 for no apparent reason.
+代码库中若无明显理由偏离 PEP-8，欢迎指出。
 
-### Type hints
+### 类型注解 {#type-hints}
 
-All function and method signatures *must* include type annotations:
+所有函数与方法签名*必须*带类型注解：
 
 ```python
 def __init__(self, config: EMACrossConfig) -> None:
@@ -33,7 +32,7 @@ def on_save(self) -> dict[str, bytes]:
 def on_load(self, state: dict[str, bytes]) -> None:
 ```
 
-**Union syntax**: Use PEP 604 union syntax for optional types:
+**联合类型语法**：可选类型使用 PEP 604 的联合语法：
 
 ```python
 # Preferred
@@ -43,79 +42,76 @@ def get_instrument(self, id: InstrumentId) -> Instrument | None:
 def get_instrument(self, id: InstrumentId) -> Optional[Instrument]:
 ```
 
-**Generic types**: Use Python 3.12 type parameter syntax for reusable functions and classes:
+**泛型类型**：可复用的函数与类使用 Python 3.12 的类型参数语法：
 
 ```python
 def first[T](values: list[T]) -> T:
     return values[0]
 ```
 
-### Docstrings
+### 文档字符串 {#docstrings}
 
-Follow the [NumPy docstring spec](https://numpydoc.readthedocs.io/en/latest/format.html) consistently
-so the docs build correctly.
+一致地遵循 [NumPy docstring spec](https://numpydoc.readthedocs.io/en/latest/format.html)，
+文档才能正确构建。
 
-Write Python docstrings in the **imperative mood**, for example, *"Return a cached client."* This
-matches the prevailing Python ecosystem style and makes generated documentation natural for end-users.
+Python 文档字符串用**祈使语气**书写，例如 *"Return a cached client."*。
+这与 Python 生态的主流风格一致，生成的文档对最终用户也更自然。
 
-#### Private methods
+#### 私有方法 {#private-methods}
 
-Do not add docstrings to private methods (prefixed with `_`). Docstrings generate public-facing API
-documentation and incorrectly imply that these implementation details are part of the public API
-for end-users.
+不要给私有方法（以 `_` 为前缀）加文档字符串。文档字符串会生成公开的 API 文档，
+让人误以为这些实现细节属于面向最终用户的公开 API。
 
-Exceptions where docstrings are acceptable:
+可以加文档字符串的例外：
 
-- Very complex methods with non-trivial logic, multiple steps, or important edge cases.
-- Methods requiring detailed parameter or return value documentation due to complexity.
+- 逻辑非平凡、步骤繁多或存在重要边界情况的复杂方法。
+- 因复杂而需要详述参数或返回值的方法。
 
-If a private method needs context (such as a tricky precondition or side effect), prefer a short inline
-comment (`#`). Place it near the relevant logic. Prefer this comment to a docstring.
+私有方法确需补充上下文（例如棘手的先决条件或副作用）时，优先用简短的行内注释
+（`#`），放在相关逻辑附近，而不是写文档字符串。
 
-### Properties vs methods (PyO3 bindings)
+### 属性还是方法（PyO3 绑定） {#properties-vs-methods-pyo3-bindings}
 
-To expose Rust types to Python through PyO3, select `#[getter]` (property) or a plain method. Base the choice
-on what the call site communicates, not whether the value can change:
+通过 PyO3 把 Rust 类型暴露给 Python 时，要在 `#[getter]`（属性）与普通方法之间
+做选择。判断依据是调用点传达的语义，而不是值会不会变：
 
-- **Property (`#[getter]`)**: cheap, side-effect-free, attribute-like view of current
-  state. Scalar fields, predicates, and lightweight derived values belong here even if
-  they change over the object's lifetime.
-  Examples: `status`, `side`, `quantity`, `price`, `is_open`, `has_inputs`,
-  `realized_pnl`, `venue_order_id`.
-- **Method (no `#[getter]`)**: actions, mutations, nontrivial work, allocations/copies,
-  I/O, or anything that takes arguments.
-  Examples: `apply(fill)`, `unrealized_pnl(price)`, `calculate_pnl(...)`.
-- **Gray area (prefer method)**: getters that clone or allocate a collection each call.
-  Using a method signals the cost to the caller.
-  Examples: `events()`, `adjustments()`, `client_order_ids()`, `trade_ids()`.
+- **属性（`#[getter]`）**：廉价、无副作用、像属性一样反映当前状态。
+  标量字段、谓词与轻量派生值都归此类，即便它们在对象生命周期内会变化。
+  例：`status`、`side`、`quantity`、`price`、`is_open`、`has_inputs`、
+  `realized_pnl`、`venue_order_id`。
+- **方法（不用 `#[getter]`）**：动作、变更、非平凡计算、分配/复制、I/O，
+  或任何带参数的操作。
+  例：`apply(fill)`、`unrealized_pnl(price)`、`calculate_pnl(...)`。
+- **灰色地带（倾向方法）**：每次调用都克隆或分配集合的 getter。
+  用方法向调用方提示这份开销。
+  例：`events()`、`adjustments()`、`client_order_ids()`、`trade_ids()`。
 
-## Python live callback routing
+## Python 实时回调路由 {#python-live-callback-routing}
 
-Python live nodes keep one runtime invariant: Tokio worker threads do not run
-Python code during live trading.
+Python 实时节点保持一条运行时不变式：实时交易期间，Tokio worker 线程不执行
+Python 代码。
 
-`LiveNode::py_run` releases the GIL while the Rust async runtime runs. Worker-side
-work that must trigger Python uses existing live runner event channels instead
-of calling `Python::attach` on the worker. Timer callbacks use the time-event
-channel. The runner drains that channel during startup buffering and the main
-select loop, then executes callbacks on the live event loop thread.
+`LiveNode::py_run` 在 Rust 异步运行时工作期间释放 GIL。worker 侧必须触发 Python
+的工作，走现有的 live runner 事件通道，而不是在 worker 上调用 `Python::attach`。
+定时器回调使用时间事件通道。runner 在启动缓冲阶段与主 select 循环中排空该通道，
+随后在 live 事件循环线程上执行回调。
 
-This path handles unavoidable user Python callbacks. Do not move adapter, provider, data, or execution logic
-into Python to use it. Python adapter modules configure Rust adapters and register factories. Rust owns
-adapter operations.
+这条路径处理的是无法避免的用户 Python 回调。不要为了用它而把适配器、提供者、
+数据或执行逻辑挪到 Python 里。Python 适配器模块的职责是配置 Rust 适配器并注册
+工厂，适配器操作由 Rust 掌控。
 
-If worker-side Rust work needs a Python callback, route it through a specific live runner event type.
+worker 侧的 Rust 工作确需 Python 回调时，经由某个具体的 live runner 事件类型路由。
 
-When adding Python-aware live code:
+编写需要感知 Python 的实时代码时：
 
-- Prefer an existing runner event channel.
-- Keep callback bodies short because they run synchronously on the live event loop.
-- Do not call `Python::attach` from Tokio worker tasks in Python live trading.
-- Do not add adapter business logic in Python to fit callback routing.
+- 优先使用现有的 runner 事件通道。
+- 回调体保持简短，因为它们同步运行在 live 事件循环上。
+- Python 实时交易中，不要从 Tokio worker 任务调用 `Python::attach`。
+- 不要为了迁就回调路由而在 Python 里添加适配器业务逻辑。
 
-### Test naming
+### 测试命名 {#test-naming}
 
-Use descriptive names that explain the scenario. Keep tests as annotated pytest free functions:
+用能说明场景的描述性名字。测试保持为带注解的 pytest 自由函数：
 
 ```python
 def test_write_and_query_option_greeks_round_trip() -> None: ...
@@ -127,7 +123,7 @@ def test_catalog_loaded_greeks_reach_on_option_greeks() -> None: ...
 def test_streaming_feather_writer_rejects_unregistered_custom_data() -> None: ...
 ```
 
-### Ruff
+### Ruff {#ruff}
 
-[Ruff](https://astral.sh/ruff) is used to lint the codebase. Its rules are configured in
-`python/pyproject.toml`, with ignore justifications typically commented.
+代码库用 [Ruff](https://astral.sh/ruff) 做 lint。规则配置在
+`python/pyproject.toml`，ignore 的理由通常写在注释里。
