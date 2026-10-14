@@ -131,7 +131,7 @@ node.set_cache_database(cache_database)?;
 node.run().await?;
 ```
 
-设置 `CacheConfig.flush_on_start = true` 会清空所挂载的 backing，而不是恢复它。Postgres backing
+设置 `CacheConfig.flush_on_start = true` 会清空所挂载的支撑，而不是恢复它。Postgres支撑
 只清除该节点的 trader 行。
 
 Python 通过 `LiveNodeBuilder` 注入相同的数据库配置。节点启动时构造并持有适配器：
@@ -163,37 +163,37 @@ finally:
     node.dispose()
 ```
 
-要改用 Postgres 作为缓存 backing，传入 `PostgresCacheConfig`。传入其他任意对象时
+要改用 Postgres 作为缓存支撑，传入 `PostgresCacheConfig`。传入其他任意对象时
 `with_cache_database_factory` 抛出 `NotImplementedError`，数据库连接失败会让 `run()` 失败。
-带数据库 backing 的节点必须用 `run()`，因为 `run_async()` 拒绝会阻塞宿主事件循环的缓存数据库
-backing。
+带数据库支撑 的节点必须用 `run()`，因为 `run_async()` 拒绝会阻塞宿主事件循环的缓存数据库
+支撑。
 
-Postgres backing 只加载、写入和刷新该节点 trader 的数据，因此不同 trader ID 的节点可以共享一个
+Postgres支撑 只加载、写入和刷新该节点 trader 的数据，因此不同 trader ID 的节点可以共享一个
 数据库。作用域内 flush 保留什么、以及如何归属 trader 作用域之前持久化的账户事件，见
 [缓存](./../concepts/cache.md)。
 
 `snapshot_orders=True` 时，执行引擎在提交处理期间和每次状态变化后持久化订单快照。订单快照需要
-Redis 或 Postgres 缓存 backing。
+Redis 或 Postgres 缓存支撑。
 
 `snapshot_positions=True` 时，执行引擎在持仓开仓、变化或平仓时发布快照。单独设置
 `snapshot_positions_interval_secs` 可对所有未平仓头寸追加周期性快照。Redis 和 Postgres 缓存
-backing 会持久化这两条路径。没有 backing 时，快照在进程内消息总线上仍可用，但不会被持久化。
+支撑 会持久化这两条路径。没有支撑时，快照在进程内消息总线上仍可用，但不会被持久化。
 
-`with_load_state` 和 `with_save_state` 控制 Actor 和策略状态的持久化，这需要 Redis backing。
+`with_load_state` 和 `with_save_state` 控制 Actor 和策略状态的持久化，这需要 Redis支撑。
 Postgres 适配器只支撑缓存状态：注册了 Actor 或策略时，`with_load_state(True)` 会在交易者启动时
 失败，`with_save_state(True)` 会在节点停止或 dispose 时失败。启动时内核把非空的已持久化状态传给
 `on_load`；停止或 dispose 节点时持久化 `on_save` 的返回值。
 
 :::warning
 状态持久化不是连续检查点。内核每次运行最多保存一次状态，因此 `SIGKILL` 或崩溃会丢失上次保存
-之后的所有变更。请 dispose 节点，让 `dispose()` 关闭 backing 并刷新缓冲写入；直接从 `run()`
+之后的所有变更。请 dispose 节点，让 `dispose()` 关闭支撑 并刷新缓冲写入；直接从 `run()`
 返回可能丢掉最后一次保存。
 :::
 
 ### MessageBus 配置 {#messagebus-configuration}
 
 消息总线行为留在 `MessageBusConfig`。Redis 连接设置放在 `RedisMessageBusConfig`，它实现了
-`MessageBusBackingFactory`，用这些设置构造 backing。
+`MessageBusBackingFactory`，用这些设置构造支撑。
 
 ```rust
 use nautilus_common::{
@@ -251,11 +251,11 @@ node.run()
 
 已有代码可以继续向 `with_external_msgbus_factory` 传 `RedisMessageBusFactory(redis_config)`。
 
-单独的 `MessageBusConfig` 不会安装 backing，要像上面那样配合工厂使用。工厂总是安装外部出口
+单独的 `MessageBusConfig` 不会安装支撑，要像上面那样配合工厂使用。工厂总是安装外部出口
 （egress），调用 `run()` 同时会消费配置的外部流。节点启动前已在流中的条目不会被重放。
 `run_async()` 与 `run()` 走相同的生命周期，因此托管在调用方事件循环上的节点同样处理外部消息总线
 入口（ingress）。生命周期与入口细节见
-[消息总线 backing 配置](./../concepts/message_bus.md#backing-config)。直接写 Redis 的外部生产者
+[消息总线支撑配置](./../concepts/message_bus.md#backing-config)。直接写 Redis 的外部生产者
 必须提供必需的 `type` 字段。线协议字段与 Python 自定义数据注册见
 [外部出口与入口](./../concepts/message_bus.md#external-egress-and-ingress)。
 
@@ -377,8 +377,8 @@ node = (
 | ---------------------------------- | ------- | ------------------------------------------------------------------------------------------------------------------ |
 | `allow_overfills`                  | False   | 允许成交量超过订单数量（记录警告）。对账与成交竞争时有用。                                                       |
 | `generate_missing_orders`          | True    | 依据未匹配的成交与持仓报告生成对账订单。                                                                         |
-| `snapshot_orders`                  | False   | 配置缓存 backing 后，在提交处理期间和每次状态变化后持久化订单快照。                                              |
-| `snapshot_positions`               | False   | 在持仓开仓、变化、平仓时发布快照，配置缓存 backing 后持久化。                                                    |
+| `snapshot_orders`                  | False   | 配置缓存支撑 后，在提交处理期间和每次状态变化后持久化订单快照。                                              |
+| `snapshot_positions`               | False   | 在持仓开仓、变化、平仓时发布快照，配置缓存支撑 后持久化。                                                    |
 | `snapshot_positions_interval_secs` | None    | 持仓快照间隔（秒）。                                                                                             |
 | `debug`                            | False   | 启用执行调试日志。                                                                                               |
 

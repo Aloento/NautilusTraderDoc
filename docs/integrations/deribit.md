@@ -1,195 +1,189 @@
 # Deribit
 
-Founded in 2016, Deribit is a cryptocurrency derivatives exchange for options, futures,
-perpetuals, spot, and combo instruments. It is one of the largest crypto options exchanges
-by volume, and a leading platform for crypto derivatives trading.
+Deribit 成立于 2016 年，是一家覆盖期权、期货、永续、现货与组合工具的加密货币衍生品交易所。
+按成交量计它是最大的加密货币期权交易所之一，也是加密货币衍生品交易的领先平台。
 
-This integration supports live market data ingest and order execution with Deribit.
+本集成支持与 Deribit 的实时行情接入与订单执行。
 
-## Overview
+## 概览 {#overview}
 
-The Deribit adapter is implemented in Rust and exposed to Python through configurations,
-factories, clients, enums, and constants. Deribit uses JSON-RPC 2.0 over both HTTP and WebSocket
-transports. The adapter prefers WebSocket for subscriptions, real-time data, and order
-operations, and uses HTTP for instrument loading, historical requests, and reconciliation.
+Deribit 适配器以 Rust 实现，通过配置、工厂、客户端、枚举和常量暴露给 Python。Deribit 在
+HTTP 与 WebSocket 两种传输上都使用 JSON-RPC 2.0。适配器优先用 WebSocket 做订阅、实时数据
+和订单操作，用 HTTP 做工具加载、历史请求与对账。
 
-Components:
+组件：
 
-- `DeribitRawHttpClient`: Low-level HTTP client owning JSON-RPC framing, signing, rate limits, and retries.
-- `DeribitHttpClient`: Domain HTTP client parsing venue responses into Nautilus types. Reach the raw client
-  with `inner()`.
-- `DeribitWebSocketClient`: Low-level WebSocket connectivity for Rust callers.
-- `DeribitDataClient`: Market data feed manager.
-- `DeribitDataClientFactory`: Data client factory.
-- `DeribitExecutionClient`: Account management and trade execution gateway.
-- `DeribitExecutionClientFactory`: Execution client factory.
+- `DeribitRawHttpClient`：底层 HTTP 客户端，负责 JSON-RPC 成帧、签名、速率限制与重试。
+- `DeribitHttpClient`：领域 HTTP 客户端，把场所响应解析为 Nautilus 类型。通过 `inner()`
+  可触达底层客户端。
+- `DeribitWebSocketClient`：面向 Rust 调用方的底层 WebSocket 连接。
+- `DeribitDataClient`：行情数据源管理器。
+- `DeribitDataClientFactory`：数据客户端工厂。
+- `DeribitExecutionClient`：账户管理与交易执行网关。
+- `DeribitExecutionClientFactory`：执行客户端工厂。
 
-Python surface available from `nautilus_trader.adapters.deribit`:
+`nautilus_trader.adapters.deribit` 提供的 Python 接口：
 
-- `DeribitDataClientConfig`, `DeribitExecutionClientConfig`
-- `DeribitDataClientFactory`, `DeribitExecutionClientFactory`
+- `DeribitDataClientConfig`、`DeribitExecutionClientConfig`
+- `DeribitDataClientFactory`、`DeribitExecutionClientFactory`
 - `DeribitHttpClient`
-- `DeribitCurrency`, `DeribitEnvironment`, `DeribitProductType`
-- `DeribitBookSummary`, `DeribitVolatilityIndex`
-- `get_deribit_http_base_url`, `get_deribit_ws_url`
-- `DERIBIT`, `DERIBIT_CLIENT_ID`, and `DERIBIT_VENUE`
+- `DeribitCurrency`、`DeribitEnvironment`、`DeribitProductType`
+- `DeribitBookSummary`、`DeribitVolatilityIndex`
+- `get_deribit_http_base_url`、`get_deribit_ws_url`
+- `DERIBIT`、`DERIBIT_CLIENT_ID` 和 `DERIBIT_VENUE`
 
 :::note
-Most users configure a live trading node as shown below. They do not need to use these lower-level components
-directly.
+多数用户如下方所示配置实时交易节点即可，无需直接使用这些底层组件。
 :::
 
-## Examples
+## 示例 {#examples}
 
-- [Python examples](https://github.com/nautechsystems/nautilus_trader/tree/develop/examples/live/deribit/)
-- [Rust examples](https://github.com/nautechsystems/nautilus_trader/tree/develop/crates/adapters/deribit/examples/)
+- [Python 示例](https://github.com/nautechsystems/nautilus_trader/tree/develop/examples/live/deribit/)
+- [Rust 示例](https://github.com/nautechsystems/nautilus_trader/tree/develop/crates/adapters/deribit/examples/)
 
-## Deribit documentation
+## Deribit 文档 {#deribit-documentation}
 
-- [API reference](https://docs.deribit.com/)
-- [Rate limits](https://docs.deribit.com/articles/rate-limits)
-- [Connection management](https://docs.deribit.com/articles/connection-management-best-practices)
-- [Market data collection](https://docs.deribit.com/articles/market-data-collection-best-practices)
-- [Order management](https://docs.deribit.com/articles/order-management-best-practices)
-- [Access scope](https://docs.deribit.com/articles/access-scope)
+- [API 参考](https://docs.deribit.com/)
+- [速率限制](https://docs.deribit.com/articles/rate-limits)
+- [连接管理](https://docs.deribit.com/articles/connection-management-best-practices)
+- [行情数据采集](https://docs.deribit.com/articles/market-data-collection-best-practices)
+- [订单管理](https://docs.deribit.com/articles/order-management-best-practices)
+- [访问范围](https://docs.deribit.com/articles/access-scope)
 
-Read the Deribit documentation with this NautilusTrader integration guide.
+请结合本 NautilusTrader 集成指南阅读 Deribit 文档。
 
-## Product support
+## 产品支持 {#product-support}
 
-Each client loads only the product families listed in its `product_types` configuration, once on connect.
-Neither client refreshes the instrument set afterwards, so restart the node to pick up newly listed
-instruments. On the data client, `auto_load_missing_instruments` instead fetches an uncached instrument on
-first subscribe. See [Lazy-load on subscribe](#lazy-load-on-subscribe).
+每个客户端只在连接时加载一次其 `product_types` 配置中列出的产品族。两个客户端之后都不会
+刷新工具集，因此新上市的工具需要重启节点才能加载。数据客户端上的
+`auto_load_missing_instruments` 则改为在首次订阅时拉取未缓存的工具，见
+[订阅时懒加载](#lazy-load-on-subscribe)。
 
-| Product type      | Data feed | Trading | Notes                                          |
-| ----------------- | --------- | ------- | ---------------------------------------------- |
-| Perpetual futures | ✓         | ✓       | Loaded with `DeribitProductType.FUTURE`.       |
-| Dated futures     | ✓         | ✓       | Loaded with `DeribitProductType.FUTURE`.       |
-| Options           | ✓         | ✓       | Loaded with `DeribitProductType.OPTION`.       |
-| Spot              | ✓         | ✓       | Loaded with `DeribitProductType.SPOT`.         |
-| Future combos     | ✓         | ✓       | Loaded with `DeribitProductType.FUTURE_COMBO`. |
-| Option combos     | ✓         | ✓       | Loaded with `DeribitProductType.OPTION_COMBO`. |
+| 产品类型        | 行情数据 | 交易    | 说明                                           |
+| --------------- | -------- | ------- | ---------------------------------------------- |
+| 永续期货        | ✓        | ✓       | 用 `DeribitProductType.FUTURE` 加载。          |
+| 到期期货        | ✓        | ✓       | 用 `DeribitProductType.FUTURE` 加载。          |
+| 期权            | ✓        | ✓       | 用 `DeribitProductType.OPTION` 加载。          |
+| 现货            | ✓        | ✓       | 用 `DeribitProductType.SPOT` 加载。            |
+| 期货组合        | ✓        | ✓       | 用 `DeribitProductType.FUTURE_COMBO` 加载。    |
+| 期权组合        | ✓        | ✓       | 用 `DeribitProductType.OPTION_COMBO` 加载。    |
 
-## Symbology
+## 符号体系 {#symbology}
 
-Deribit uses specific symbol conventions for different instrument types.
-All instrument IDs should include the `.DERIBIT` suffix when referencing them
-(e.g., `BTC-PERPETUAL.DERIBIT` for BTC perpetual).
+Deribit 对不同工具类型使用特定的 symbol 约定。引用工具 ID 时应始终带上 `.DERIBIT` 后缀
+（例如 BTC 永最为 `BTC-PERPETUAL.DERIBIT`）。
 
-### Quantity units
+### 数量单位 {#quantity-units}
 
-Nautilus quantities map to Deribit's `amount` field, not the optional `contracts` field. Deribit reports
-perpetual and inverse futures amounts in USD units, and reports options and linear futures amounts in the
-underlying base currency. The Deribit `contract_size` field converts between `amount` and contract count. The
-adapter does not apply it again as the Nautilus multiplier.
+Nautilus 数量映射到 Deribit 的 `amount` 字段，而不是可选的 `contracts` 字段。Deribit 对永续
+与反向期货以 USD 单位报数量，对期权与线性期货以标的基础货币报数量。Deribit 的
+`contract_size` 字段用于在 `amount` 与合约张数之间换算。适配器不会再把它当作 Nautilus 的
+乘数应用一遍。
 
-### Perpetual futures
+### 永续期货 {#perpetual-futures}
 
-Format: `{Currency}-PERPETUAL`
+格式：`{Currency}-PERPETUAL`
 
-Examples:
+示例：
 
-- `BTC-PERPETUAL` - Bitcoin perpetual swap.
-- `ETH-PERPETUAL` - Ethereum perpetual swap.
+- `BTC-PERPETUAL` —— 比特币永续互换。
+- `ETH-PERPETUAL` —— 以太坊永续互换。
 
-To subscribe to BTC perpetual in your strategy:
+在策略中订阅 BTC 永续：
 
 ```python
 InstrumentId.from_str("BTC-PERPETUAL.DERIBIT")
 ```
 
-### Dated futures
+### 到期期货 {#dated-futures}
 
-Format: `{Currency}-{DDMMMYY}`
+格式：`{Currency}-{DDMMMYY}`
 
-Examples:
+示例：
 
-- `BTC-25DEC26` - Bitcoin future expiring December 25, 2026.
-- `ETH-26MAR27` - Ethereum future expiring March 26, 2027.
+- `BTC-25DEC26` —— 2026 年 12 月 25 日到期的比特币期货。
+- `ETH-26MAR27` —— 2027 年 3 月 26 日到期的以太坊期货。
 
 ```python
 InstrumentId.from_str("BTC-25DEC26.DERIBIT")
 ```
 
-### Options
+### 期权 {#options}
 
-Format: `{Currency}-{DDMMMYY}-{Strike}-{Type}`
+格式：`{Currency}-{DDMMMYY}-{Strike}-{Type}`
 
-Examples:
+示例：
 
-- `BTC-25DEC26-100000-C` - Bitcoin call option, $100,000 strike, expiring December 25, 2026.
-- `BTC-25DEC26-80000-P` - Bitcoin put option, $80,000 strike, expiring December 25, 2026.
-- `ETH-26MAR27-4000-C` - Ethereum call option, $4,000 strike, expiring March 26, 2027.
+- `BTC-25DEC26-100000-C` —— 行权价 100,000 美元、2026 年 12 月 25 日到期的比特币买权。
+- `BTC-25DEC26-80000-P` —— 行权价 80,000 美元、2026 年 12 月 25 日到期的比特币卖权。
+- `ETH-26MAR27-4000-C` —— 行权价 4,000 美元、2027 年 3 月 26 日到期的以太坊买权。
 
-Where:
+其中：
 
-- `C` = Call option.
-- `P` = Put option.
+- `C` = 买权（call option）。
+- `P` = 卖权（put option）。
 
 ```python
 InstrumentId.from_str("BTC-25DEC26-100000-C.DERIBIT")
 ```
 
-### Spot
+### 现货 {#spot}
 
-Format: `{BaseCurrency}_{QuoteCurrency}`
+格式：`{BaseCurrency}_{QuoteCurrency}`
 
-Examples:
+示例：
 
-- `BTC_USDC` - Bitcoin against USDC.
-- `ETH_USDC` - Ethereum against USDC.
+- `BTC_USDC` —— 比特币对 USDC。
+- `ETH_USDC` —— 以太坊对 USDC。
 
 ```python
 InstrumentId.from_str("BTC_USDC.DERIBIT")
 ```
 
-### Future combos
+### 期货组合 {#future-combos}
 
-Format: `{Currency}-FS-{LegA}_{LegB}`
+格式：`{Currency}-FS-{LegA}_{LegB}`
 
-Legs are dated futures or the perpetual (denoted `PERP` inside combo names, even though the
-standalone instrument is `BTC-PERPETUAL`). The combo expires with its earliest leg.
+腿是到期期货或永续（在组合名内记作 `PERP`，尽管独立工具是 `BTC-PERPETUAL`）。组合随其
+最早的腿到期。
 
-Examples:
+示例：
 
-- `BTC-FS-25DEC26_PERP` - calendar spread between the December 2026 future and the perpetual.
-- `BTC-FS-26MAR27_25DEC26` - inter-month spread between two dated futures.
+- `BTC-FS-25DEC26_PERP` —— 2026 年 12 月期货与永续之间的日历价差。
+- `BTC-FS-26MAR27_25DEC26` —— 两个到期期货之间的跨月价差。
 
 ```python
 InstrumentId.from_str("BTC-FS-25DEC26_PERP.DERIBIT")
 ```
 
-The adapter models future combos as `CryptoFuturesSpread`, priced in USD as the spread
-between legs, with crypto settlement currency and `is_inverse` set per the upstream
-`instrument_type`.
+适配器把期货组合建模为 `CryptoFuturesSpread`，以 USD 计价（腿间价差），结算货币为加密货币，
+`is_inverse` 按上游 `instrument_type` 设置。
 
-### Option combos
+### 期权组合 {#option-combos}
 
-Format: `{Currency}-{Strategy}-{DDMMMYY}-{Strikes}`
+格式：`{Currency}-{Strategy}-{DDMMMYY}-{Strikes}`
 
-Strategy codes include CS (call spread), PS (put spread), STRG (strangle), STRD (straddle),
-BOX (box), and RR (risk reversal). The strikes segment separates multiple strikes with `_`.
+策略代码包括 CS（买权价差）、PS（卖权价差）、STRG（宽跨式）、STRD（跨式）、BOX（盒式）
+和 RR（风险逆转）。行权价段用 `_` 分隔多个行权价。
 
-Examples:
+示例：
 
-- `BTC-CS-25DEC26-70000_75000` - 70k / 75k call spread expiring December 25, 2026.
-- `BTC-STRG-26MAR27-72000_80000` - 72k / 80k strangle expiring March 26, 2027.
-- `BTC-STRD-26MAR27-77000` - 77k straddle expiring March 26, 2027.
-- `BTC-BOX-26MAR27-58000_60000` - 58k / 60k box expiring March 26, 2027.
+- `BTC-CS-25DEC26-70000_75000` —— 70k / 75k 买权价差，2026 年 12 月 25 日到期。
+- `BTC-STRG-26MAR27-72000_80000` —— 72k / 80k 宽跨式，2027 年 3 月 26 日到期。
+- `BTC-STRD-26MAR27-77000` —— 77k 跨式，2027 年 3 月 26 日到期。
+- `BTC-BOX-26MAR27-58000_60000` —— 58k / 60k 盒式，2027 年 3 月 26 日到期。
 
 ```python
 InstrumentId.from_str("BTC-STRG-26MAR27-72000_80000.DERIBIT")
 ```
 
-The adapter models option combos as `CryptoOptionSpread`, priced in the base currency under Deribit's
-inverse-option convention. Fractional `size_increment` (e.g. `0.1`) is preserved end-to-end.
+适配器把期权组合建模为 `CryptoOptionSpread`，按 Deribit 反向期权约定以基础货币计价。小数
+`size_increment`（如 `0.1`）端到端保留。
 
-## Traded expirations
+## 可交易到期日 {#traded-expirations}
 
-Deribit exposes active traded expirations through the `public/get_expirations` HTTP endpoint.
-Option-chain loaders can use the high-level HTTP client to refresh active option series without
-scanning every instrument.
+Deribit 通过 `public/get_expirations` HTTP 端点暴露当前可交易的到期日。期权链加载器可以用
+高层 HTTP 客户端刷新有效的期权系列，而无需扫描每个工具。
 
 ```rust tab="Rust"
 use nautilus_deribit::http::models::DeribitCurrency;
@@ -207,51 +201,47 @@ client = DeribitHttpClient()
 expirations = await client.request_option_expirations(DeribitCurrency.BTC)
 ```
 
-The high-level method returns option expirations only. For lower-level Rust requests, call
-`client.inner().get_expirations(...)` with `GetExpirationsParams`. Deribit returns a currency-keyed result for
-concrete currencies such as `BTC`, and a direct kind-keyed result for `currency=any`. The adapter handles both
-shapes.
+该高层方法只返回期权到期日。底层 Rust 请求请用 `GetExpirationsParams` 调用
+`client.inner().get_expirations(...)`。对 `BTC` 这类具体货币，Deribit 返回按货币建键的结果；
+对 `currency=any` 返回按 kind 直接建键的结果。适配器两种形态都能处理。
 
-## Combo instruments
+## 组合工具 {#combo-instruments}
 
-Instrument loading includes combos when `product_types` contains the future-combo or
-option-combo variant. In Python, use `DeribitProductType.FUTURE_COMBO` or
-`DeribitProductType.OPTION_COMBO`. Deribit exposes the leg makeup of every active combo on
-`/public/get_combos`, and the combo's trading metadata (tick size, contract size, expiration,
-min trade amount) on the standard `/public/get_instruments?kind=option_combo|future_combo`
-response. The adapter merges both, attaching `deribit_combo_id`, `deribit_combo_state`, and
-`deribit_combo_legs` to the loaded instrument's `info` map so strategies can resolve legs
-without a second venue call.
+当 `product_types` 含有期货组合或期权组合变体时，工具加载会包含组合。Python 中使用
+`DeribitProductType.FUTURE_COMBO` 或 `DeribitProductType.OPTION_COMBO`。Deribit 在
+`/public/get_combos` 上暴露每个有效组合的腿构成，并在标准的
+`/public/get_instruments?kind=option_combo|future_combo` 响应上给出组合的交易元数据
+（tick 大小、合约大小、到期、最小交易量）。适配器把两者合并，把 `deribit_combo_id`、
+`deribit_combo_state` 和 `deribit_combo_legs` 挂到已加载工具的 `info` 映射上，策略无需第二次
+场所调用即可解析各腿。
 
-### Trade publishing
+### 成交发布 {#trade-publishing}
 
-Deribit publishes each combo trade twice:
+Deribit 把每笔组合成交发布两次：
 
-- On the combo's trade channel (`trades.{combo_name}.{interval}`): the parent trade plus a
-  `legs[]` array describing each leg fill.
-- On each leg's trade channel (`trades.{leg_instrument}.{interval}`): a standalone trade for the
-  leg, tagged with `combo_id` and `combo_trade_id` pointing back to the parent.
+- 在组合的成交频道（`trades.{combo_name}.{interval}`）：父成交加一个 `legs[]` 数组，描述
+  每条腿的成交。
+- 在每条腿的成交频道（`trades.{leg_instrument}.{interval}`）：该腿的独立成交，带
+  `combo_id` 和 `combo_trade_id` 指回父成交。
 
-A subscriber to a plain option or future therefore sees combo-origin fills on its existing trade stream, and a
-subscriber to the combo itself sees the combo-level trade. The adapter does not fan out combo parent messages
-into extra leg ticks. It forwards upstream parent and per-leg messages as separate `TradeTick`s against their
-respective `InstrumentId`s. Thus, a subscriber to both the combo and an underlying leg sees one combo tick
-plus one leg tick for that combo trade. It does not receive duplicate ticks against the same instrument.
+因此，订阅普通期权或期货的调用方会在其现有成交流上看到组合来源的成交；订阅组合本身的
+调用方看到组合级成交。适配器不会把组合父消息扩散成额外的腿 tick。它把上游的父消息与
+逐腿消息作为不同的 `TradeTick` 转发到各自的 `InstrumentId` 上。因此，同时订阅组合和某条
+标的腿的调用方，对同一笔组合成交会收到一个组合 tick 加一个腿 tick，不会在同一工具上收到
+重复 tick。
 
-To have the Deribit data client open the real leg trade channels alongside a combo trade
-subscription, pass `params={"subscribe_combo_legs": True}` to `subscribe_trades`. When
-unsubscribing that combo trade stream, Nautilus also closes the leg subscriptions opened by
-this opt-in.
+要让 Deribit 数据客户端在组合成交订阅之外打开真实的腿成交频道，给 `subscribe_trades` 传
+`params={"subscribe_combo_legs": True}`。退订该组合成交流时，Nautilus 也会关闭由这一选择
+开启的腿订阅。
 
-Deribit already publishes block trades and Block RFQs per leg, so the adapter forwards
-them through the standard 1:1 trade path. See [Trade ID provenance](#trade-id-provenance)
-for how block- and RFQ-origin trades are tagged on the resulting `TradeTick`.
+Deribit 已经按腿发布大宗成交与 Block RFQ，因此适配器通过标准的 1:1 成交路径转发它们。
+大宗与 RFQ 来源的成交在生成的 `TradeTick` 上如何打标签，见
+[成交 ID 溯源](#trade-id-provenance)。
 
-### Historical combo trades
+### 历史组合成交 {#historical-combo-trades}
 
-The standard per-instrument trades endpoint accepts combo instrument names. To sweep all combos
-of a given product kind in one call, use `get_last_trades_by_currency` via
-`DeribitHttpClient::inner()`:
+标准的逐工具成交端点接受组合工具名。要一次调用扫完某种产品类的全部组合，通过
+`DeribitHttpClient::inner()` 使用 `get_last_trades_by_currency`：
 
 ```rust
 use nautilus_deribit::http::{
@@ -268,115 +258,108 @@ let params = GetLastTradesByCurrencyParams::builder()
 let resp = client.inner().get_last_trades_by_currency(params).await?;
 ```
 
-Each returned `DeribitPublicTrade` carries `legs: Option<Vec<DeribitTradeLeg>>` plus the
-`combo_id` and `combo_trade_id` fields used to correlate per-leg trades.
+每个返回的 `DeribitPublicTrade` 携带 `legs: Option<Vec<DeribitTradeLeg>>`，以及用于关联逐腿
+成交的 `combo_id` 与 `combo_trade_id` 字段。
 
-## Trade ID provenance
+## 成交 ID 溯源 {#trade-id-provenance}
 
-Public `TradeTick`s emitted by the adapter prefix the venue trade ID when the trade
-originated from a Block RFQ, a block trade, or a combo. Strategies that need to
-distinguish these from plain trades can pattern-match the prefix on `TradeTick.trade_id`.
-The raw Deribit `trade_id` is preserved after the prefix, so reconciliation against
-Deribit's own IDs is a prefix strip.
+适配器发出的公共 `TradeTick`，若成交来自 Block RFQ、大宗交易或组合，会在场所成交 ID 前
+加前缀。需要把它们与普通成交区分的策略，可以对 `TradeTick.trade_id` 的前缀做模式匹配。
+Deribit 原始 `trade_id` 在前缀之后原样保留，因此与 Deribit 自己的 ID 对账只需去掉前缀。
 
-| Prefix       | Source field     | Meaning                                                        |
-| ------------ | ---------------- | -------------------------------------------------------------- |
-| `RFQ-`       | `block_rfq_id`   | Trade originated from a Block RFQ.                             |
-| `BLK-`       | `block_trade_id` | Trade is a non-RFQ block trade.                                |
-| `COMBO-`     | `combo_id`       | Per-leg trade whose parent originated from a combo instrument. |
-| *unprefixed* | (none of above)  | Standard trade.                                                |
+| 前缀         | 来源字段         | 含义                                                         |
+| ------------ | ---------------- | ------------------------------------------------------------ |
+| `RFQ-`       | `block_rfq_id`   | 成交来自 Block RFQ。                                         |
+| `BLK-`       | `block_trade_id` | 成交是非 RFQ 的大宗交易。                                    |
+| `COMBO-`     | `combo_id`       | 父单来自组合工具的逐腿成交。                                 |
+| *无前缀*     | （以上皆无）     | 标准成交。                                                   |
 
-Precedence when multiple tags are present: `RFQ-` > `BLK-` > `COMBO-`. Block RFQs are themselves block trades
-on Deribit, so the RFQ tag wins. Combos executed as block trades are tagged `BLK-` because the block flow is
-the more important reconciliation signal.
+多个标签同时存在时的优先级：`RFQ-` > `BLK-` > `COMBO-`。Block RFQ 在 Deribit 上本身就是
+大宗交易，因此 RFQ 标签优先。以大宗交易执行的组合打 `BLK-` 标签，因为大宗流程是更重要的
+对账信号。
 
-This applies only to public trades (`TradeTick`). `FillReport.trade_id` is unchanged so
-reconciliation against `get_user_trades_*` keeps working.
+这只适用于公共成交（`TradeTick`）。`FillReport.trade_id` 保持不变，与
+`get_user_trades_*` 的对账照常工作。
 
 :::note
-This is a one-way convention introduced in NautilusTrader 1.228.0. Replay data captured before that release
-lacks prefixes. If you store and compare `trade_id` strings across releases, strip the prefix on the new-data
-side. Alternatively, filter by prefix only on data captured after the upgrade.
+这是 NautilusTrader 1.228.0 引入的单向约定。该版本之前录制的回放数据没有前缀。若你跨版本
+存储并比较 `trade_id` 字符串，请在新数据一侧去掉前缀；或者只在升级后捕获的数据上按前缀
+过滤。
 :::
 
-## Market data
+## 行情数据 {#market-data}
 
-Live subscriptions are served from WebSocket channels. Historical requests go over HTTP. Every channel that
-takes an `{interval}` resolves it through the `interval` subscription parameter and the default selection
-rules described under [Order book subscriptions](#order-book-subscriptions).
+实时订阅由 WebSocket 频道提供，历史请求走 HTTP。每个带 `{interval}` 的频道都通过 `interval`
+订阅参数与[订单簿订阅](#order-book-subscriptions)下描述的默认选择规则来解析它。
 
-| Nautilus subscription | Deribit channel                                                           | Notes                                                                      |
-| --------------------- | ------------------------------------------------------------------------- | -------------------------------------------------------------------------- |
-| Instruments           | `instrument.state.{kind}.{currency}`                                      | `kind` and `currency` params both default to `any`.                        |
-| Instrument status     | `instrument.state.{kind}.{currency}`                                      | Channel derived from the instrument ID; every instrument on it is emitted. |
-| Book deltas           | `book.{instrument}.raw` or `book.{instrument}.{group}.{depth}.{interval}` | `L2_MBP` only; see [Order book subscriptions](#order-book-subscriptions).  |
-| Book depth            | `book.{instrument}.{group}.10.{interval}`                                 | Always the grouped channel, fixed at depth 10.                             |
-| Quotes                | `quote.{instrument}`                                                      | Top of book; this channel takes no interval.                               |
-| Trades                | `trades.{instrument}.{interval}`                                          | See [Trade publishing](#trade-publishing) for combo behavior.              |
-| Bars                  | `chart.trades.{instrument}.{resolution}`                                  | See [Bars](#bars).                                                         |
-| Mark prices           | `ticker.{instrument}.{interval}`                                          | Parsed from the ticker payload.                                            |
-| Index prices          | `ticker.{instrument}.{interval}`                                          | Parsed from the ticker payload.                                            |
-| Option greeks         | `ticker.{instrument}.{interval}`                                          | Options only.                                                              |
-| Funding rates         | `perpetual.{instrument}.{interval}`                                       | Perpetuals only; other instruments are rejected.                           |
-| Volatility index      | `deribit_volatility_index.{index_name}`                                   | Custom data; see [Volatility index](#volatility-index).                    |
+| Nautilus 订阅     | Deribit 频道                                                                | 说明                                                                       |
+| ----------------- | --------------------------------------------------------------------------- | -------------------------------------------------------------------------- |
+| 金融工具          | `instrument.state.{kind}.{currency}`                                        | `kind` 与 `currency` 参数都默认为 `any`。                                   |
+| 工具状态          | `instrument.state.{kind}.{currency}`                                        | 频道由工具 ID 推导；频道上每个工具都会发出。                               |
+| 订单簿 delta      | `book.{instrument}.raw` 或 `book.{instrument}.{group}.{depth}.{interval}`   | 仅 `L2_MBP`；见[订单簿订阅](#order-book-subscriptions)。                    |
+| 订单簿深度        | `book.{instrument}.{group}.10.{interval}`                                   | 始终用分组频道，深度固定为 10。                                            |
+| 报价              | `quote.{instrument}`                                                        | 最优买卖价；该频道不带 interval。                                          |
+| 成交              | `trades.{instrument}.{interval}`                                            | 组合行为见[成交发布](#trade-publishing)。                                  |
+| K 线              | `chart.trades.{instrument}.{resolution}`                                    | 见 [K 线](#bars)。                                                         |
+| 标记价            | `ticker.{instrument}.{interval}`                                            | 从 ticker 负载解析。                                                       |
+| 指数价            | `ticker.{instrument}.{interval}`                                            | 从 ticker 负载解析。                                                       |
+| 期权 Greeks       | `ticker.{instrument}.{interval}`                                            | 仅限期权。                                                                 |
+| Funding 费率      | `perpetual.{instrument}.{interval}`                                         | 仅限永续；其他工具会被拒绝。                                               |
+| 波动率指数        | `deribit_volatility_index.{index_name}`                                     | 自定义数据；见[波动率指数](#volatility-index)。                            |
 
-| Nautilus request             | Deribit endpoint                                | Notes                                               |
-| ---------------------------- | ----------------------------------------------- | --------------------------------------------------- |
-| Instruments                  | `public/get_instruments`                        | Scoped to the configured `product_types`.           |
-| Trades                       | `public/get_last_trades_by_instrument_and_time` | Accepts combo instrument names.                     |
-| Bars                         | `public/get_tradingview_chart_data`             | See [Bars](#bars).                                  |
-| Book snapshot                | `public/get_order_book`                         | Requires the instrument in the client cache.        |
-| Option-chain reference price | `public/ticker`                                 | Used internally to bootstrap dynamic strike ranges. |
-| `DeribitBookSummary`         | `public/get_book_summary_by_currency`           | Custom data; see [Book summaries](#book-summaries). |
+| Nautilus 请求              | Deribit 端点                                      | 说明                                                |
+| -------------------------- | ------------------------------------------------- | --------------------------------------------------- |
+| 金融工具                   | `public/get_instruments`                          | 限定在配置的 `product_types` 内。                    |
+| 成交                       | `public/get_last_trades_by_instrument_and_time`   | 接受组合工具名。                                     |
+| K 线                       | `public/get_tradingview_chart_data`               | 见 [K 线](#bars)。                                   |
+| 订单簿快照                 | `public/get_order_book`                           | 要求客户端缓存中有该工具。                           |
+| 期权链参考价               | `public/ticker`                                   | 内部用于引导动态行权价区间。                         |
+| `DeribitBookSummary`       | `public/get_book_summary_by_currency`             | 自定义数据；见[订单簿汇总](#book-summaries)。        |
 
-### Bars
+### K 线 {#bars}
 
-Deribit chart resolutions are `1`, `3`, `5`, `10`, `15`, `30`, `60`, `120`, `180`, `360`, and
-`720` minutes, plus `1D`. Both the live and historical paths require `EXTERNAL` aggregation.
+Deribit 的 chart 分辨率有 `1`、`3`、`5`、`10`、`15`、`30`、`60`、`120`、`180`、`360`、`720`
+分钟，外加 `1D`。实时与历史两条路径都要求 `EXTERNAL` 聚合。
 
-Historical requests are strict: a bar type that does not map onto one of those resolutions is
-rejected, as is any aggregation other than minute, hour, and day.
+历史请求是严格的：映射不到上述分辨率的 K 线类型会被拒绝，分钟、小时、日之外的聚合也一样。
 
-Live subscriptions snap instead. The requested step is rounded **up** to the next supported resolution, so a
-2-minute step opens Deribit's 3-minute channel and a 6-minute step opens the 10-minute channel. Anything
-longer than 720 minutes becomes `1D`. Aggregations other than minute, hour, and day fall back to 1 minute with
-a warning.
+实时订阅则向上取整。所请求的步长会**向上**舍入到下一个受支持的分辨率，因此 2 分钟步长会
+打开 Deribit 的 3 分钟频道，6 分钟步长会打开 10 分钟频道。超过 720 分钟的一律变为 `1D`。
+分钟、小时、日之外的聚合回退为 1 分钟并发出警告。
 
-Each received candle is stamped with the `BarType` derived from the venue resolution, always with a `LAST`
-price type. Subscribe with a bar type that names a supported resolution and `LAST`. Otherwise, bars publish
-under a different `BarType` than your subscription and never reach your handler.
+每根收到的 K 线都盖上由场所分辨率推导的 `BarType`，价格类型永远是 `LAST`。订阅时请使用
+名为受支持分辨率且带 `LAST` 的 K 线类型，否则 K 线会以与你订阅不同的 `BarType` 发布，永远
+到不了你的处理器。
 
-`Bar.volume` comes from the chart `cost` field (USD) for inverse perpetuals and inverse futures,
-and from the `volume` field (base currency) for everything else, including options and option
-spreads flagged inverse. This keeps `Bar.volume` and `TradeTick.size` on one unit per instrument.
+`Bar.volume` 对反向永续和反向期货取自 chart 的 `cost` 字段（USD），对其余一切（包括标记为
+反向的期权与期权价差）取自 `volume` 字段（基础货币）。这使每只工具的 `Bar.volume` 与
+`TradeTick.size` 保持同一单位。
 
-## Order book subscriptions
+## 订单簿订阅 {#order-book-subscriptions}
 
-Deribit publishes L2 (market-by-price) book data only, so `subscribe_book_deltas` and
-`subscribe_book_depth` reject any book type other than `BookType.L2_MBP`. Two feed families
-are available, each suited to different use cases.
+Deribit 只发布 L2（market-by-price）订单簿数据，因此 `subscribe_book_deltas` 与
+`subscribe_book_depth` 会拒绝 `BookType.L2_MBP` 之外的任何订单簿类型。可用的频道有两族，
+各适合不同场景。
 
-### Raw feeds (tick-by-tick)
+### 原始频道（逐笔） {#raw-feeds-tick-by-tick}
 
-Raw channels deliver every single update as an individual message. Subscribing to a raw order book
-gives you a notification for every order insertion, update, or deletion in the book.
+原始频道把每一次更新作为单独消息发出。订阅原始订单簿，簿内每一笔挂单插入、更新或删除
+都会收到通知。
 
-- Requires authenticated connection (safeguard against abuse).
-- Use when you need every price level change for HFT or market making.
-- Higher message volume.
-- Delivers one initial snapshot of the full book, then incremental deltas.
+- 要求鉴权连接（防滥用的保护措施）。
+- 需要捕捉每个价格档位变化的高频交易或做市场景用它。
+- 消息量更高。
+- 先给出完整订单簿的一个初始快照，之后是增量 delta。
 
-### Aggregated feeds (batched)
+### 聚合频道（批量） {#aggregated-feeds-batched}
 
-Aggregated channels deliver updates in batches at a fixed interval (e.g., every 100ms).
-This groups multiple order book changes into single messages.
+聚合频道按固定间隔（如每 100ms）批量发出更新，把多次订单簿变化合并到一条消息。
 
-- Available without authentication.
-- Recommended for most use cases.
-- Lower message volume, easier to process.
-- Default unauthenticated interval: 100ms.
-- Every message is a complete depth-limited snapshot, so each update replaces the book
-  rather than patching it.
+- 无需鉴权即可使用。
+- 多数场景的推荐选择。
+- 消息量更低，更易处理。
+- 未鉴权的默认间隔：100ms。
+- 每条消息都是完整的、限定深度的快照，因此每次更新替换整个订单簿，而不是打补丁。
 
 ### Subscription parameters
 
