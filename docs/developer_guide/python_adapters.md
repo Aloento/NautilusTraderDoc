@@ -1,36 +1,34 @@
-# Python Adapter Interface
+# Python 适配器接口
 
-Use this guide to implement a custom live adapter in a separate Python package. That package can have its own
-Rust/PyO3 extension. This guide covers the client interface, registration, and runtime contracts. For the
-platform overview, see [Adapters](./../concepts/adapters.md). For in-tree Rust adapters, see
-[the Rust adapter guide](./adapters.md).
+要在独立的 Python 包中实现自定义实时适配器，使用本指南。该包可以拥有自己的
+Rust/PyO3 扩展。本指南涵盖客户端接口、注册与运行时契约。平台总览见
+[适配器](./../concepts/adapters.md)；树内 Rust 适配器见
+[Rust 适配器指南](./adapters.md)。
 
-Custom clients run on the node's Python event loop and exchange typed objects with the Rust engines
-through PyO3. Subclass a client from `nautilus_trader.live.clients`:
+自定义客户端运行在节点的 Python 事件循环上，通过 PyO3 与 Rust 引擎交换类型化对象。
+客户端从 `nautilus_trader.live.clients` 派生：
 
-| Base class         | Responsibility                                                       |
+| 基类         | 职责                                                       |
 | ------------------ | -------------------------------------------------------------------- |
-| `DataClient`       | Data subscriptions and historical requests.                          |
-| `MarketDataClient` | Naming specialization of `DataClient`. Identical hooks and behavior. |
-| `ExecutionClient`  | Order commands, account updates, and reconciliation reports.         |
+| `DataClient`       | 数据订阅与历史请求。                          |
+| `MarketDataClient` | `DataClient` 的命名特化。钩子与行为完全相同。 |
+| `ExecutionClient`  | 订单命令、账户更新与对账报告。         |
 
-Start with the [deterministic adapter template](https://github.com/nautechsystems/nautilus_trader/blob/develop/examples/live/_template/README.md).
-The [independent Rust/PyO3 package section](#independent-rustpyo3-packages) shows how an extension
-uses the same interface.
+从[确定性适配器模板](https://github.com/nautechsystems/nautilus_trader/blob/develop/examples/live/_template/README.md)起步。
+[独立 Rust/PyO3 包](#independent-rustpyo3-packages)一节展示扩展如何使用同一接口。
 
-## Registration and configuration
+## 注册与配置 {#registration-and-configuration}
 
-### Define a factory
+### 定义工厂 {#define-a-factory}
 
-Subclass `DataClientFactory` or `ExecutionClientFactory` from `nautilus_trader.live.clients`.
-Register either the subclass with a static `create` method or an instance of it.
+从 `nautilus_trader.live.clients` 派生 `DataClientFactory` 或
+`ExecutionClientFactory`。注册其子类（带静态 `create` 方法）或其实例均可。
 
-Data factories implement `create(*, name, config, cache, clock)`. Execution factories also receive
-`trader_id`. The factory returns the appropriate client subclass **synchronously**. The client retains
-the supplied config and cache objects. Before accepting it, the node validates its registration name
-and execution identity.
+数据工厂实现 `create(*, name, config, cache, clock)`。执行工厂还会收到
+`trader_id`。工厂**同步**返回相应的客户端子类。客户端持有传入的 config 与
+cache 对象。节点在接受客户端之前校验其注册名与执行身份。
 
-Run this example from the repository root to register the template's data client:
+从仓库根目录运行下面的示例，注册模板的数据客户端：
 
 ```python
 from nautilus_trader.config import DataClientConfig
@@ -58,356 +56,354 @@ builder = LiveNodeBuilder.from_config("example")
 builder = builder.add_data_client("TEMPLATE", ExampleFactory, DataClientConfig())
 ```
 
-The template also supplies an execution client and its factory.
-Keep node configuration and strategies outside the adapter package.
+模板同时提供执行客户端及其工厂。节点配置与策略保持在适配器包之外。
 
-### Register clients with the node
+### 向节点注册客户端 {#register-clients-with-the-node}
 
-For **direct registration**, use `LiveNodeBuilder.add_data_client(name, factory, config)` or
-`add_exec_client(...)`. An explicit fourth `routing` argument overrides `config.routing`.
+**直接注册**用 `LiveNodeBuilder.add_data_client(name, factory, config)` 或
+`add_exec_client(...)`。显式的第四个参数 `routing` 会覆盖 `config.routing`。
 
-For **configuration-based registration**:
+**基于配置的注册**：
 
-1. Put name-to-config mappings in `LiveNodeConfig(data_clients=..., exec_clients=...)`.
-1. Supply `data_factories` and `exec_factories` to `LiveNode.build(name, config, ...)` or
-   `LiveNodeBuilder.from_config(name, config, ...)`.
+1. 把名称到配置的映射放进 `LiveNodeConfig(data_clients=..., exec_clients=...)`。
+1. 向 `LiveNode.build(name, config, ...)` 或
+   `LiveNodeBuilder.from_config(name, config, ...)` 提供 `data_factories`
+   与 `exec_factories`。
 
-Factory lookup checks the complete client name, then its prefix before the first hyphen. A supplied
-factory takes precedence over an importable config's factory descriptor. Venue and default routing
-use each config's `RoutingConfig` through the same builder path as direct registration.
+工厂查找先查完整客户端名，再查第一个连字符之前的前缀。提供的工厂优先于
+可 import 配置自带的工厂描述符。场所与默认路由经由与直接注册相同的 builder
+路径，使用各配置的 `RoutingConfig`。
 
-Both registration paths preserve these rules:
+两条注册路径都保持这些规则：
 
-- **Native and custom clients can share a node.** Registration distinguishes native factories from Python
-  factories. Custom configs do not pass through a native config downcast.
-- **Duplicate names fail.** Each registered client needs a distinct name.
-- **Failed builds preserve Python client registrations.** The node disposes clients from the failed
-  attempt, then a retry creates fresh client instances.
+- **native 与自定义客户端可以共享一个节点。** 注册区分 native 工厂与 Python
+  工厂，自定义 config 不经过 native config 的向下转型。
+- **重名即失败。** 每个注册的客户端需要独立的名字。
+- **构建失败保留 Python 客户端注册。** 节点处置失败尝试的客户端，
+  重试时创建全新的客户端实例。
 
-### Define adapter configuration
+### 定义适配器配置 {#define-adapter-configuration}
 
-Subclass `DataClientConfig` or `ExecutionClientConfig` for adapter fields. The inherited native
-constructor handles common fields. Declare adapter fields as keyword arguments in a Python
-`__init__` and accept `**kwargs` for common fields. The factory receives the original subclass instance.
+适配器字段从 `DataClientConfig` 或 `ExecutionClientConfig` 派生。继承来的
+native 构造函数处理公共字段。适配器的字段在 Python `__init__` 中声明为关键字
+参数，并用 `**kwargs` 接收公共字段。工厂收到的是原始子类的实例。
 
-Import `ImportableConfig` and `ImportableFactoryConfig` from `nautilus_trader.config` when configs
-or factories need to be loaded by import path.
+配置或工厂需要按 import 路径加载时，从 `nautilus_trader.config` import
+`ImportableConfig` 与 `ImportableFactoryConfig`。
 
-| Operation                                | Result                                                  |
+| 操作                                | 结果                                                  |
 | ---------------------------------------- | ------------------------------------------------------- |
-| `config.dict()`                          | Config fields with their Python values retained.        |
-| `config.json()`                          | JSON bytes.                                             |
-| `config.to_importable(factory)`          | `ImportableConfig` with a `module:qualified_name` path. |
-| `ImportableFactoryConfig(path).create()` | Factory imported and constructed without arguments.     |
+| `config.dict()`                          | 保留 Python 值的配置字段。        |
+| `config.json()`                          | JSON 字节。                                             |
+| `config.to_importable(factory)`          | 带 `module:qualified_name` 路径的 `ImportableConfig`。 |
+| `ImportableFactoryConfig(path).create()` | import 工厂并无参构造。     |
 
-`ImportableConfig.json()`, `parse()`, and `create()` provide an importable round trip.
-Classes defined inside functions are not importable.
+`ImportableConfig.json()`、`parse()` 与 `create()` 提供可 import 的往返。
+函数内定义的类不可 import。
 
-### Serialize configuration
+### 序列化配置 {#serialize-configuration}
 
-Keep runtime resources out of config objects. Instance fields, including underscore-prefixed fields,
-participate in serialization. `ClassVar` metadata does not.
+运行时资源不要放进配置对象。实例字段（包括下划线前缀的字段）都参与序列化，
+`ClassVar` 元数据不参与。
 
-JSON serialization supports:
+JSON 序列化支持：
 
-- Native JSON values.
-- Common routing and instrument-provider configs.
-- `Decimal` values encoded as strings.
-- Domain values with `from_str`.
+- 原生 JSON 值。
+- 常见的路由与工具提供者配置。
+- 以字符串编码的 `Decimal` 值。
+- 带 `from_str` 的领域值。
 
-Annotate adapter fields to restore domain values and decimals, including values inside lists,
-dictionaries, and optional types. `Any` retains the decoded JSON value. Unsupported values raise
-`TypeError`.
+给适配器字段加注解，以还原领域值与 decimal，包括列表、字典与可选类型内部的值。
+`Any` 保留解码后的 JSON 值。不支持的值抛出 `TypeError`。
 
 :::warning[Serialized credentials]
-Serializing a config also serializes any credentials it contains. Protect the serialized result.
+序列化配置也会序列化其中包含的凭据，要保护好序列化结果。
 :::
 
-## Startup, scheduling, and shutdown
+## 启动、调度与关停 {#startup-scheduling-and-shutdown}
 
-### Bind resources at startup
+### 启动时绑定资源 {#bind-resources-at-startup}
 
-Constructors and factories **must not start tasks, capture an event loop, or open network resources**.
-`client.loop` is `None` during construction. A v1-style factory that declares a `loop` parameter
-receives `None`.
+构造函数与工厂**不得启动任务、捕获事件循环或打开网络资源**。
+构造期间 `client.loop` 为 `None`。声明了 `loop` 参数的 v1 风格工厂会收到 `None`。
 
-Startup binds every custom client to the actual running loop before `_connect`. Create loop-dependent
-sessions, locks, and network clients inside that async hook.
+启动会在 `_connect` 之前把每个自定义客户端绑定到实际运行的循环。依赖循环的
+会话、锁与网络客户端，在该异步钩子内创建。
 
-### Choose a launch mode
+### 选择启动模式 {#choose-a-launch-mode}
 
-| Launch mode                      | Event loop                                        | Signal ownership                           |
+| 启动模式                      | 事件循环                                        | 信号所有权                           |
 | -------------------------------- | ------------------------------------------------- | ------------------------------------------ |
-| `node.run()` with custom clients | Creates and drives asyncio on the calling thread. | Restores signal handlers after completion. |
-| `await node.run_async()`         | Uses the host's running loop.                     | Host application owns its signals.         |
+| 带自定义客户端的 `node.run()` | 在调用线程上创建并驱动 asyncio。 | 完成后恢复信号处理器。 |
+| `await node.run_async()`         | 使用宿主的运行循环。                     | 宿主应用掌管自己的信号。         |
 
-Both modes preserve the Rust node's startup, reconciliation, maintenance, and shutdown path.
-Native-only `run()` retains its native execution path.
+两种模式都保持 Rust 节点的启动、对账、维护与关停路径不变。纯 native 的
+`run()` 保留其 native 执行路径。
 
-Calling blocking `run()` from an active event loop raises before consuming the node. Use
-`run_async()` inside an existing loop.
+在活动的事件循环里调用阻塞的 `run()` 会在消耗节点之前抛出。已有循环内用
+`run_async()`。
 
 :::warning[Database cache backing]
-Redis/PostgreSQL cache backing is unsupported with custom Python clients in either launch mode.
-Both modes drive asyncio, where the backing's blocking worker calls would stall the event loop.
-Native-only nodes can use database backing with `run()`.
+自定义 Python 客户端在两种启动模式下都不支持 Redis/PostgreSQL 缓存后备。
+两种模式都驱动 asyncio，后备的阻塞 worker 调用会拖住事件循环。
+纯 native 节点可以在 `run()` 下使用数据库后备。
 :::
 
-### Schedule background work
+### 调度后台工作 {#schedule-background-work}
 
-Use `self.create_task(coroutine, name)` for adapter background work. The runtime:
+适配器的后台工作用 `self.create_task(coroutine, name)`。运行时：
 
-- Retains the client and every task until terminal result retrieval.
-- Defers the first coroutine poll, including with an eager task factory.
-- Logs unawaited operation failures with the client and operation name.
+- 保留客户端与每个任务，直到取到终态结果。
+- 推迟首次对协程的轮询，即使使用了 eager 任务工厂。
+- 未被 await 的操作失败会连同客户端与操作名记录日志。
 
-Tasks created directly through asyncio or an external library remain that code's responsibility.
-Join them during `_disconnect`.
+直接经 asyncio 或外部库创建的任务仍由那段代码负责，在 `_disconnect` 中
+把它们 join 掉。
 
-### Process commands in order
+### 按序处理命令 {#process-commands-in-order}
 
-Commands and subscription changes share a **FIFO queue** with capacity for **1,024 waiting operations
-per client**. A full queue rejects further admission. An operation failure is logged before the next
-queued operation runs.
+命令与订阅变更共享一个 **FIFO 队列**，每个客户端最多容纳 **1,024 个等待中的
+操作**。队列满时拒绝继续准入。操作失败会先记录日志，再运行队列中的下一个操作。
 
-Historical requests and awaited reconciliation operations run separately, so network waits do not
-block command admission. Keep each command hook bounded: it delays later commands on that client.
+历史请求与被 await 的对账操作独立运行，因此网络等待不会阻塞命令准入。
+每个命令钩子保持有界：它会拖延该客户端后面的命令。
 
-### Disconnect and drain tasks
+### 断开连接并排空任务 {#disconnect-and-drain-tasks}
 
-The node's post-stop grace period precedes disconnection, allowing strategy shutdown cancellations
-to enter the normal command path. Disconnection then:
+节点在停止后有一段宽限期，先于断开连接，让策略关停期间的撤单能进入正常命令
+路径。随后断开连接时：
 
-1. Closes admission and discards queued commands with diagnostics.
-1. Cancels the active command.
-1. Calls `_disconnect`, where the adapter closes network resources and joins adapter-owned work.
+1. 关闭准入，带着诊断信息丢弃队列中的命令。
+1. 取消当前活动命令。
+1. 调用 `_disconnect`，适配器在此关闭网络资源并 join 自己拥有的工作。
 
-The node bounds disconnection by its configured timeout. The runtime requests cancellation
-**at most once per task** and shields tasks while draining them, so repeated supervisor cancellation
-does not interrupt asynchronous cleanup. A deadline reports incomplete cleanup rather than issuing
-another cancellation.
+节点以其配置的超时约束断开连接的时长。运行时的取消请求**每个任务至多一次**，
+并在排空期间对任务加 shield，因此 supervisor 反复取消不会打断异步清理。
+截止期到了只报告清理未完成，不再发出下一次取消。
 
-Independently cancelled commands allow the next queued operation to run while admission remains open.
+被独立取消的命令允许队列中的下一个操作运行，准入保持开启。
 
 :::warning[Cancellation is not completion]
-Resistant tasks remain supervised, and incomplete cleanup is reported, including when a host closes
-the loop too early. Finish awaiting the node before closing a host loop.
+抗拒取消的任务仍处于监管之下，清理未完成会被报告——包括宿主过早关闭循环的
+情形。先 await 完节点，再关闭宿主循环。
 :::
 
-Disposal invalidates output and cache views, so late work cannot emit into a subsequent node.
-A client instance and its bound provider belong to **one node run**.
+处置会使输出与缓存视图失效，因此迟到的工作无法向后续节点发数据。
+一个客户端实例及其绑定的提供者只属于**一次节点运行**。
 
-## Read-only cache and typed output
+## 只读缓存与类型化输出 {#read-only-cache-and-typed-output}
 
-### Inspect core state
+### 查看核心状态 {#inspect-core-state}
 
-Factories receive `ClientCache`, a **read-only view** of the owning core cache. Instruments, orders,
-accounts, positions, books, and query collections are owned snapshots. Mutating a returned object
-does not change core state. No mutable cache, engine, or raw dispatch handle is passed to an adapter.
+工厂收到的是 `ClientCache`——所属核心缓存的**只读视图**。工具、订单、账户、
+持仓、订单簿与查询集合都是所有权的快照。改动返回的对象不会改变核心状态。
+适配器不会拿到可变的缓存、引擎或原始 dispatch 句柄。
 
-Cache access raises a Python exception when it occurs:
+缓存访问发生在以下情形时抛出 Python 异常：
 
-- On another thread.
-- After disposal.
-- During an incompatible core borrow.
+- 在另一个线程上。
+- 处置之后。
+- 与核心的不兼容借用期间。
 
-The read methods include:
+读取方法包括：
 
-| State                  | Methods                                                               |
+| 状态                  | 方法                                                               |
 | ---------------------- | --------------------------------------------------------------------- |
-| Instruments            | `instrument`, `instruments`, `instrument_ids`                         |
-| Quotes and books       | `quote`, `order_book`                                                 |
-| Accounts and positions | `account`, `position`, `positions_open`                               |
-| Orders                 | `order`, `order_list`, `orders`, `orders_open`, `orders_inflight`     |
-| Order queries          | `orders_open_count`, `client_order_ids_open`, order identity mappings |
-| Stored bytes           | `get`                                                                 |
+| 工具            | `instrument`、`instruments`、`instrument_ids`                         |
+| 报价与订单簿       | `quote`、`order_book`                                                 |
+| 账户与持仓 | `account`、`position`、`positions_open`                               |
+| 订单                 | `order`、`order_list`、`orders`、`orders_open`、`orders_inflight`     |
+| 订单查询          | `orders_open_count`、`client_order_ids_open`、订单标识映射 |
+| 存储字节           | `get`                                                                 |
 
-Use `quote(instrument_id, index=0)` for quote history. `get` returns a list of byte values, consistent
-with the v2 cache binding.
+读取历史报价用 `quote(instrument_id, index=0)`。`get` 返回字节值列表，
+与 v2 缓存绑定一致。
 
-### Send typed output
+### 发送类型化输出 {#send-typed-output}
 
-Client output methods **enqueue typed values for core processing**. The core remains the sole writer
-of trading state.
+客户端的输出方法**把类型化值排入队列等待核心处理**。核心始终是交易状态的
+唯一写入者。
 
-| Output                 | Client methods                                                |
+| 输出                 | 客户端方法                                                |
 | ---------------------- | ------------------------------------------------------------- |
-| Instrument definitions | `_handle_instrument`                                          |
-| Streaming data         | `_handle_data`                                                |
-| Historical responses   | `_handle_response`                                            |
-| Execution events       | `generate_account_state`, `generate_order_*`, `_handle_event` |
-| Reconciliation reports | `_handle_report`                                              |
+| 工具定义 | `_handle_instrument`                                          |
+| 流式数据         | `_handle_data`                                                |
+| 历史响应   | `_handle_response`                                            |
+| 执行事件       | `generate_account_state`、`generate_order_*`、`_handle_event` |
+| 对账报告 | `_handle_report`                                              |
 
-`_handle_data` accepts these types from `nautilus_trader.model`:
+`_handle_data` 接受来自 `nautilus_trader.model` 的这些类型：
 
-- **Quotes, trades, and bars**: `QuoteTick`, `TradeTick`, `Bar`.
-- **Order books**: `OrderBookDelta`, `OrderBookDeltas`, `OrderBookDepth`.
-- **Prices and funding**: `MarkPriceUpdate`, `IndexPriceUpdate`, `FundingRateUpdate`.
-- **Options and instrument events**: `OptionGreeks`, `InstrumentStatus`, `InstrumentClose`.
-- **Custom data**: `CustomData`.
+- **报价、成交与 bar**：`QuoteTick`、`TradeTick`、`Bar`。
+- **订单簿**：`OrderBookDelta`、`OrderBookDeltas`、`OrderBookDepth`。
+- **价格与资金费率**：`MarkPriceUpdate`、`IndexPriceUpdate`、`FundingRateUpdate`。
+- **期权与工具事件**：`OptionGreeks`、`InstrumentStatus`、`InstrumentClose`。
+- **自定义数据**：`CustomData`。
 
-`_handle_report` accepts `OrderStatusReport`, `FillReport`, `PositionStatusReport`, or
-`ExecutionMassStatus` from `nautilus_trader.model`. Its optional `fills` list accompanies an
-`OrderStatusReport` only. Report account identity, mass-report client/venue identity, and nested
-report ownership must match the registered client.
+`_handle_report` 接受来自 `nautilus_trader.model` 的 `OrderStatusReport`、
+`FillReport`、`PositionStatusReport` 或 `ExecutionMassStatus`。其可选的
+`fills` 列表只能伴随 `OrderStatusReport`。报告的账户身份、批量报告的
+客户端/场所身份，以及嵌套报告的归属，都必须与注册的客户端一致。
 
-## Data client hooks
+## 数据客户端钩子 {#data-client-hooks}
 
-### Subscriptions and requests
+### 订阅与请求 {#subscriptions-and-requests}
 
-Each hook is async and receives an owned, frozen command or request from `nautilus_trader.live`. Nested params
-are copied. Override the hooks for the venue's supported capabilities. Unimplemented hooks raise
-`NotImplementedError`. Track venue subscription acknowledgments and reconnect replay in adapter-local state.
+每个钩子都是 async 的，接收来自 `nautilus_trader.live` 的所有权独占、不可变的
+命令或请求。嵌套的参数会被复制。为场所支持的能力重写对应钩子，未实现的钩子
+抛出 `NotImplementedError`。场所订阅的确认与重连后的重放记录在适配器本地状态中。
 
-| Family            | Subscribe/unsubscribe suffix            | Historical request suffix                    |
+| 家族            | Subscribe/unsubscribe 后缀            | 历史请求后缀                    |
 | ----------------- | --------------------------------------- | -------------------------------------------- |
-| Custom data       | No suffix                               | `data`                                       |
-| Instruments       | `instruments`, `instrument`             | `instruments`, `instrument`                  |
-| Order books       | `book_deltas`, `book_depth`             | `book_snapshot`, `book_deltas`, `book_depth` |
-| Quotes and trades | `quotes`, `trades`                      | `quotes`, `trades`                           |
-| Reference prices  | `mark_prices`, `index_prices`           | *Not supported*                              |
-| Funding           | `funding_rates`                         | `funding_rates`                              |
-| Bars              | `bars`                                  | `bars`                                       |
-| Instrument events | `instrument_status`, `instrument_close` | *Not supported*                              |
-| Options           | `option_greeks`                         | `option_chain_reference_price`               |
+| 自定义数据       | 无后缀                               | `data`                                       |
+| 工具       | `instruments`、`instrument`             | `instruments`、`instrument`                  |
+| 订单簿       | `book_deltas`、`book_depth`             | `book_snapshot`、`book_deltas`、`book_depth` |
+| 报价与成交 | `quotes`、`trades`                      | `quotes`、`trades`                           |
+| 基准价  | `mark_prices`、`index_prices`           | *不支持*                              |
+| 资金费率           | `funding_rates`                         | `funding_rates`                              |
+| Bar              | `bars`                                  | `bars`                                       |
+| 工具事件 | `instrument_status`、`instrument_close` | *不支持*                              |
+| 期权           | `option_greeks`                         | `option_chain_reference_price`               |
 
-For example, quote subscriptions call `_subscribe_quotes(command)` and `_unsubscribe_quotes(command)`. Quote
-history calls `_request_quotes(request)`.
+例如，报价订阅调用 `_subscribe_quotes(command)` 与
+`_unsubscribe_quotes(command)`；报价历史调用 `_request_quotes(request)`。
 
-### Historical responses
+### 历史响应 {#historical-responses}
 
-Preserve request IDs, params, time bounds, and payload identity when constructing the matching typed
-response. Response classes in `nautilus_trader.live` are:
+构造匹配的类型化响应时，保留请求 ID、参数、时间边界与载荷身份。
+`nautilus_trader.live` 中的响应类有：
 
-- **Custom data and instruments**: `CustomDataResponse`, `InstrumentResponse`, `InstrumentsResponse`.
-- **Order books**: `BookResponse`, `BookDeltasResponse`, `BookDepthResponse`.
-- **Quotes and trades**: `QuotesResponse`, `TradesResponse`.
-- **Funding and bars**: `FundingRatesResponse`, `BarsResponse`.
-- **Options**: `OptionChainReferencePriceResponse`.
+- **自定义数据与工具**：`CustomDataResponse`、`InstrumentResponse`、`InstrumentsResponse`。
+- **订单簿**：`BookResponse`、`BookDeltasResponse`、`BookDepthResponse`。
+- **报价与成交**：`QuotesResponse`、`TradesResponse`。
+- **资金费率与 bar**：`FundingRatesResponse`、`BarsResponse`。
+- **期权**：`OptionChainReferencePriceResponse`。
 
-An **empty response still completes the adapter's response path**. Windowed requests expose UTC `start`/`end`
-datetimes and exact `start_ns`/`end_ns`. Response bounds use integer nanoseconds. `RequestBookSnapshot` and
-`RequestOptionChainReferencePrice` have no time-window fields.
+**空响应同样会走完适配器的响应路径**。带时间窗的请求暴露 UTC 的 `start`/`end`
+datetime 与精确的 `start_ns`/`end_ns`；响应边界使用整数纳秒。
+`RequestBookSnapshot` 与 `RequestOptionChainReferencePrice` 没有时间窗字段。
 
-### Instrument providers
+### 工具提供者 {#instrument-providers}
 
-`InstrumentProvider` stores adapter-local instruments and currencies. Override `load_all_async`,
-`load_ids_async`, or `load_async`. `initialize(reload=False)` uses `InstrumentProviderConfig` and
-retries after a failed load.
+`InstrumentProvider` 存储适配器本地的工具与货币。重写 `load_all_async`、
+`load_ids_async` 或 `load_async`。`initialize(reload=False)` 使用
+`InstrumentProviderConfig`，并在加载失败后重试。
 
-The synchronous loading methods depend on the provider's binding:
+同步加载方法的行为取决于提供者的绑定：
 
-- **Bound to a client**: schedule supervised work.
-- **Unbound, outside an active event loop**: run the load synchronously.
-- **Unbound, inside an active event loop**: await the async method instead.
+- **绑定了客户端**：调度受监管的工作。
+- **未绑定、且不在活动事件循环内**：同步执行加载。
+- **未绑定、且处于活动事件循环内**：改为 await 异步方法。
 
-Send loaded instruments through the client output to populate the core cache.
+加载出的工具经由客户端输出发送，以填充核心缓存。
 
-## Execution client hooks
+## 执行客户端钩子 {#execution-client-hooks}
 
-### Construct the client
+### 构造客户端 {#construct-the-client}
 
-Pass the factory's `name`, `config`, `cache`, `clock`, and `trader_id` to `ExecutionClient`.
-Execution clients also require these non-optional values from `nautilus_trader.model`:
+把工厂的 `name`、`config`、`cache`、`clock` 与 `trader_id` 传给
+`ExecutionClient`。执行客户端还需要来自 `nautilus_trader.model` 的这些必填值：
 
-| Argument       | Type          |
+| 参数       | 类型          |
 | -------------- | ------------- |
 | `venue`        | `Venue`       |
 | `account_id`   | `AccountId`   |
 | `account_type` | `AccountType` |
 | `oms_type`     | `OmsType`     |
 
-`base_currency` and `instrument_provider` are optional. Data clients can use `venue=None`.
+`base_currency` 与 `instrument_provider` 可选。数据客户端可以使用
+`venue=None`。
 
-### Generate reconciliation reports
+### 生成对账报告 {#generate-reconciliation-reports}
 
-Implement the reconciliation hooks:
+实现这些对账钩子：
 
 - `_generate_order_status_report`
 - `_generate_order_status_reports`
 - `_generate_fill_reports`
 - `_generate_position_status_reports`
 
-Return typed reports, lists, or the optional result prescribed by the method.
-`_generate_mass_status(lookback_mins)` defaults to native composition of the bulk methods using the owning
-node's clock. An override returns an `ExecutionMassStatus`. **Propagated report failures fail startup
-reconciliation.**
+返回类型化的报告、列表，或方法规定的可选结果。
+`_generate_mass_status(lookback_mins)` 默认用所属节点的时钟组合各批量方法，
+模拟 native 行为；重写时返回 `ExecutionMassStatus`。
+**传播出来的报告失败会使启动对账失败。**
 
-### Handle order commands
+### 处理订单命令 {#handle-order-commands}
 
-Override the hooks supported by the venue:
+重写场所支持的钩子：
 
-- **Submit**: `_submit_order`, `_submit_order_list`.
-- **Modify**: `_modify_order`.
-- **Cancel**: `_cancel_order`, `_cancel_all_orders`.
-- **Query**: `_query_account`, `_query_order`.
+- **提交**：`_submit_order`、`_submit_order_list`。
+- **修改**：`_modify_order`。
+- **撤销**：`_cancel_order`、`_cancel_all_orders`。
+- **查询**：`_query_account`、`_query_order`。
 
-`_batch_modify_orders` and `_batch_cancel_orders` default to ordered calls of the corresponding
-single-order hook. Override them for a venue batch endpoint.
+`_batch_modify_orders` 与 `_batch_cancel_orders` 默认按序调用对应的单笔订单
+钩子。场所有批量端点时重写它们。
 
-Commands preserve native identifiers and params, correlation/causation IDs, timestamps, and nested
-orders or batch members.
+命令保留 native 的标识与参数、correlation/causation ID、时间戳，以及嵌套订单
+或批量成员。
 
-### Make synchronous decisions and receive notifications
+### 同步决策与接收通知 {#make-synchronous-decisions-and-receive-notifications}
 
-`_handles_order_venue`, `_provides_bulk_position_coverage`, and `_calculate_commission` are synchronous
-decision hooks. They **must return promptly without I/O**. Commission returns `Money` or `None` to use
-the core fallback. `position_reconciliation_tolerance` accepts a nonnegative `Decimal` at construction.
+`_handles_order_venue`、`_provides_bulk_position_coverage` 与
+`_calculate_commission` 是同步决策钩子，**必须不做 I/O、迅速返回**。
+佣金返回 `Money`，或返回 `None` 使用核心回退逻辑。
+`position_reconciliation_tolerance` 在构造时接受非负 `Decimal`。
 
-`_on_instrument` and `_register_external_order` are async notifications admitted to the command queue.
-Registration timestamps come from reconciliation metadata, not necessarily the order's initialization event.
+`_on_instrument` 与 `_register_external_order` 是异步通知，经命令队列准入。
+注册时间来自对账元数据，不一定等于订单的初始化事件时间。
 
-## Migration from v1
+## 从 v1 迁移 {#migration-from-v1}
 
-The interface restores live adapter capabilities using v2 names and ownership rules. It does not
-make an unchanged Cython adapter source-compatible.
+该接口用 v2 的名称与所有权规则恢复了实时适配器能力，但不能让未改动的
+Cython 适配器保持源码兼容。
 
-| V1 surface                          | V2 replacement                      | Migration detail                            |
+| V1 界面                          | V2 替代                      | 迁移细节                            |
 | ----------------------------------- | ----------------------------------- | ------------------------------------------- |
-| `LiveDataClient`                    | `DataClient`                        | Import from `nautilus_trader.live.clients`. |
-| `LiveMarketDataClient`              | `MarketDataClient`                  | Same module.                                |
-| `LiveExecutionClient`               | `ExecutionClient`                   | Same module.                                |
-| `quote_ticks` / `trade_ticks` hooks | `quotes` / `trades` hooks           | Typed v2 commands.                          |
-| `order_book_*` hooks                | `book_*` hooks                      | Depth subscription uses `book_depth`.       |
-| `_request`                          | `_request_data`                     | Custom-data request.                        |
-| `_handle_*` history methods         | `_handle_response(typed_response)`  | Preserve correlation and bounds.            |
-| `_send_*` execution methods         | `_handle_event` / `_handle_report`  | Validates owner identity.                   |
-| Cache writes                        | Queued instruments and events       | Core applies changes.                       |
-| Subscription tracking methods       | Adapter-local subscription state    | Update from venue acknowledgments.          |
-| Constructor event loop              | `client.loop` after startup binding | Create resources in `_connect`.             |
-| `cancel_pending_tasks`              | Supervised node disconnection       | Cancellation is not terminal completion.    |
-| `run_after_delay`                   | Coroutine with `asyncio.sleep`      | Schedule through `create_task`.             |
+| `LiveDataClient`                    | `DataClient`                        | 从 `nautilus_trader.live.clients` import。 |
+| `LiveMarketDataClient`              | `MarketDataClient`                  | 同一模块。                                |
+| `LiveExecutionClient`               | `ExecutionClient`                   | 同一模块。                                |
+| `quote_ticks` / `trade_ticks` 钩子 | `quotes` / `trades` 钩子           | 类型化的 v2 命令。                          |
+| `order_book_*` 钩子                | `book_*` 钩子                      | 深度订阅用 `book_depth`。       |
+| `_request`                          | `_request_data`                     | 自定义数据请求。                        |
+| `_handle_*` 历史方法         | `_handle_response(typed_response)`  | 保留 correlation 与边界。            |
+| `_send_*` 执行方法         | `_handle_event` / `_handle_report`  | 校验所有者身份。                   |
+| 缓存写入                        | 排队的工具与事件       | 变更由核心应用。                       |
+| 订阅跟踪方法       | 适配器本地订阅状态    | 依场所确认更新。          |
+| 构造函数的事件循环              | 启动绑定之后的 `client.loop` | 资源在 `_connect` 中创建。             |
+| `cancel_pending_tasks`              | 受监管的节点断开       | 取消不是终态完成。    |
+| `run_after_delay`                   | 带 `asyncio.sleep` 的协程      | 通过 `create_task` 调度。             |
 
-### Remaining differences and limitations
+### 剩余差异与限制 {#remaining-differences-and-limitations}
 
-- **Forward prices**: use `RequestOptionChainReferencePrice` and its matching response for a v2 option series.
-- **DeFi**: native block/pool subscriptions and pool snapshots are outside this Python interface.
-- **Historical requests**: the [known migration limitations](https://github.com/nautechsystems/nautilus_trader/blob/develop/MIGRATION_V2.md#known-limitations)
-  for request joining/completion still apply.
-- **Custom publication and subscription**: the same migration limitations apply. Clients emit `CustomData`
-  through typed data output. They do not expose component `publish_message` or topic subscription methods.
-- **Database cache backing**: unsupported with custom Python clients in either launch mode. See
-  [startup](#startup-scheduling-and-shutdown) and [hosted event loops](./../concepts/live.md#hosted-event-loops).
-- **Revised bars**: Config keeps `handle_revised_bars`. If a later time bar has an equal `ts_event`, the v2
-  core cache replaces the cached bar. The cache skips older bars. The v1 `Bar.is_revision` marker is still
-  absent. Adapter-level filtering still determines whether revised bars are emitted at all.
-- **Networking**: this interface does not restore removed HTTP/WebSocket bindings.
+- **远期价格**：v2 期权系列用 `RequestOptionChainReferencePrice` 及其匹配响应。
+- **DeFi**：native 的区块/池订阅与池快照不在本 Python 接口之内。
+- **历史请求**：[已知迁移限制](https://github.com/nautechsystems/nautilus_trader/blob/develop/MIGRATION_V2.md#known-limitations)
+  中关于请求合并/完成的限制仍然适用。
+- **自定义发布与订阅**：同样受上述迁移限制。客户端通过类型化数据输出发送
+  `CustomData`，不暴露组件的 `publish_message` 或 topic 订阅方法。
+- **数据库缓存后备**：自定义 Python 客户端在两种启动模式下都不支持。见
+  [启动](#startup-scheduling-and-shutdown)与[宿主事件循环](./../concepts/live.md#hosted-event-loops)。
+- **修订 bar**：Config 保留了 `handle_revised_bars`。若后续时间条的 `ts_event`
+  相同，v2 核心缓存会替换缓存中的 bar，更旧的 bar 被跳过。v1 的
+  `Bar.is_revision` 标记仍然不存在。修订 bar 是否会发出，仍由适配器层的过滤决定。
+- **网络**：本接口不恢复已移除的 HTTP/WebSocket 绑定。
 
-## Independent Rust/PyO3 packages
+## 独立 Rust/PyO3 包 {#independent-rustpyo3-packages}
 
-An adapter can ship its venue implementation in a separate Rust/PyO3 extension. Its Python facade
-subclasses the same client bases and registers through the same factories as a pure Python adapter.
-Compile the extension against PyO3 and import NautilusTrader model classes from the installed wheel.
+适配器可以把场所实现放在独立的 Rust/PyO3 扩展中。其 Python 门面派生相同的
+客户端基类，通过与纯 Python 适配器相同的工厂注册。扩展针对 PyO3 编译，
+并从已安装的 wheel import NautilusTrader 的模型类。
 
 :::warning[Use the installed wheel's model classes]
-All exchanged domain values must be instances of those classes. Do not link a second set of Nautilus
-model pyclasses or exchange native Rust trait objects across extension modules. The integration
-boundary is the Python protocol, not a shared Rust ABI.
+所有交换的领域值必须是这些类的实例。不要链接第二套 Nautilus 模型
+pyclass，也不要在扩展模块之间传递 native Rust trait 对象。集成边界是
+Python 协议，不是共享的 Rust ABI。
 :::
 
-### Package layout and dependencies
+### 包布局与依赖 {#package-layout-and-dependencies}
 
-Keep the adapter in its own project, with this layout:
+适配器保留在自己的项目中，布局如下：
 
 ```text
 external-adapter/
@@ -417,7 +413,7 @@ external-adapter/
   external_adapter/__init__.py
 ```
 
-Configure the library as a Python extension. For example, `Cargo.toml` can contain:
+把库配置为 Python 扩展。例如 `Cargo.toml` 可以包含：
 
 ```toml
 [package]
@@ -436,10 +432,10 @@ pyo3 = { version = "=0.29.2", features = ["extension-module"] }
 [workspace]
 ```
 
-The empty workspace keeps Cargo resolution independent if the project sits beneath another Cargo
-workspace. Keep the adapter's dependency lockfile and audit policy in its own project.
+空的 workspace 让 Cargo 解析保持独立，即便本项目位于另一个 Cargo workspace
+之下。适配器的依赖锁文件与审计策略也留在自己的项目里。
 
-Configure the Python package in `pyproject.toml`:
+在 `pyproject.toml` 中配置 Python 包：
 
 ```toml
 [build-system]
@@ -457,14 +453,14 @@ module-name = "external_adapter._backend"
 python-source = "."
 ```
 
-These build versions match the demonstrated PyO3 boundary. Set the NautilusTrader dependency range
-to the releases covered by your adapter's tests.
+这些构建版本与被演示的 PyO3 边界匹配。NautilusTrader 的依赖范围按你的适配器
+测试所覆盖的发布版本设定。
 
-### Exchange wheel-owned objects
+### 交换 wheel 所有的对象 {#exchange-wheel-owned-objects}
 
-Use `Bound<'_, PyAny>` for incoming commands and `Py<PyAny>` for objects returned to Python. Import
-classes while attached to Python, read typed command attributes, and construct output with those
-imported classes. This method illustrates the conversion inside a `#[pymethods]` implementation:
+传入的命令用 `Bound<'_, PyAny>`，返回给 Python 的对象用 `Py<PyAny>`。
+在附着到 Python 的状态下 import 类、读取类型化的命令属性，并用这些 import
+来的类构造输出。下面的方法演示 `#[pymethods]` 实现内部的转换：
 
 ```rust
 fn quote(&self, py: Python<'_>, command: &Bound<'_, PyAny>) -> PyResult<Py<PyAny>> {
@@ -489,15 +485,15 @@ fn quote(&self, py: Python<'_>, command: &Bound<'_, PyAny>) -> PyResult<Py<PyAny
 }
 ```
 
-Import `pyo3::{prelude::*, types::PyDict}` and expose the containing class from a `#[pymodule]` function named
-`_backend`. The example values are deterministic. A venue implementation supplies its received prices, sizes,
-and nanosecond timestamps. Construct prices, quantities, and money from exact decimal values or strings
-without a floating-point round trip.
+import `pyo3::{prelude::*, types::PyDict}`，并在名为 `_backend` 的
+`#[pymodule]` 函数中导出所在的类。示例值是确定性的；场所实现填入自己收到的
+价格、数量与纳秒时间戳。价格、数量与金额要用精确的 decimal 值或字符串构造，
+不经过浮点往返。
 
-### Delegate from Python client hooks
+### 从 Python 客户端钩子委托 {#delegate-from-python-client-hooks}
 
-The Python facade imports the backend and delegates from its client hooks. For a backend class
-named `Backend` with the method above, the quote hook is:
+Python 门面 import 后端，并在客户端钩子中委托给它。对于带上述方法的
+`Backend` 类，报价钩子是：
 
 ```python
 from external_adapter._backend import Backend
@@ -507,52 +503,52 @@ async def _subscribe_quotes(self, command):
     self._handle_data(Backend().quote(command))
 ```
 
-Place that hook on a `MarketDataClient` subclass:
+该钩子挂在 `MarketDataClient` 子类上：
 
-- Publish the instrument definition before its market data.
-- Implement connection and disconnection hooks.
-- Supply a `DataClientFactory` that constructs the subclass using the node-provided name, config,
-  cache, and clock.
-- Retain a backend with persistent venue state in its client.
+- 先发布工具定义，再发布其行情数据。
+- 实现连接与断开钩子。
+- 提供用节点给出的 name、config、cache、clock 构造子类的
+  `DataClientFactory`。
+- 客户端保留持有场所持久状态的后端。
 
-The [Python template](https://github.com/nautechsystems/nautilus_trader/blob/develop/examples/live/_template/README.md) demonstrates the hooks and factory registration.
+[Python 模板](https://github.com/nautechsystems/nautilus_trader/blob/develop/examples/live/_template/README.md)
+演示了钩子与工厂注册。
 
-Execution adapters follow the same pattern with `ExecutionClient` and `ExecutionClientFactory`. Read
-`command.order` and emit submission, acceptance, rejection, and fill events through the client's `generate_*`
-methods. Return the documented report types from reconciliation hooks. Preserve client/account identity,
-request correlation, exact commission values, and event order. Calling from Rust does not change these
-contracts.
+执行适配器对 `ExecutionClient` 与 `ExecutionClientFactory` 用同样的模式。
+读取 `command.order`，通过客户端的 `generate_*` 方法发出提交、接受、拒绝与
+成交事件。对账钩子返回文档规定的报告类型。保留客户端/账户身份、请求
+correlation、精确的佣金值与事件顺序。从 Rust 调用并不改变这些契约。
 
-### Lifecycle and cache ownership
+### 生命周期与缓存所有权 {#lifecycle-and-cache-ownership}
 
-Keep Python calls and cache access on the node's owner thread and event loop. The GIL permits Python object
-access. It does not grant another thread permission to use the node's cache or output capability. The supplied
-cache is read-only, and returned mutable snapshots do not mutate the core. Send typed output through the
-client so the synchronous core applies state changes.
+Python 调用与缓存访问都留在节点的所有者线程与事件循环上。GIL 允许访问
+Python 对象，但并不授权另一个线程使用节点的缓存或输出能力。传入的缓存是
+只读的，返回的可变快照也不会改动核心。类型化输出经由客户端发送，由同步
+核心应用状态变更。
 
-The extension follows the same lifecycle as a Python adapter:
+扩展遵循与 Python 适配器相同的生命周期：
 
-- **Construction**: retain configuration without starting network work.
-- **Connection**: create loop-bound resources in `_connect`.
-- **Background work**: schedule Python tasks through `self.create_task`.
-- **Disconnection**: close resources in `_disconnect`. Stop any Rust workers or network tasks owned
-  by the extension and retrieve their terminal results.
+- **构造**：只保留配置，不启动网络工作。
+- **连接**：在 `_connect` 中创建绑定循环的资源。
+- **后台工作**：Python 任务通过 `self.create_task` 调度。
+- **断开**：在 `_disconnect` 中关闭资源；停止扩展拥有的 Rust worker 或网络
+  任务，并取回其终态结果。
 
-Do not retain usable cache/output capabilities beyond node teardown. Propagate failures as Python
-exceptions so the client runtime can supervise them.
+不要把可用的缓存/输出能力保留到节点拆除之后。失败以 Python 异常传播，
+让客户端运行时能够监管它们。
 
-### Build and verify installed wheels
+### 构建并验证已安装的 wheel {#build-and-verify-installed-wheels}
 
-Install maturin into a compatible CPython build interpreter first. If Cargo would discover a different
-interpreter, select the build interpreter with `PYO3_PYTHON`. From the adapter's own project, build a
-wheel with bounded Cargo concurrency:
+先把 maturin 装进兼容的 CPython 构建解释器。若 Cargo 会发现另一个解释器，
+用 `PYO3_PYTHON` 指定构建解释器。在适配器自己的项目中，以有界的 Cargo
+并发构建 wheel：
 
 ```bash
 CARGO_BUILD_JOBS=4 python -m maturin build --out dist
 ```
 
-Install the adapter wheel and a standard, non-editable NautilusTrader wheel into a fresh environment.
-Use absolute wheel paths when running these commands from outside both source trees:
+在全新环境中安装适配器 wheel 与标准（非 editable）的 NautilusTrader wheel。
+从两棵源码树之外运行这些命令时使用绝对 wheel 路径：
 
 ```bash
 python -m venv /tmp/adapter-check
@@ -560,19 +556,17 @@ python -m venv /tmp/adapter-check
 /tmp/adapter-check/bin/python -I /absolute/path/verify_adapter.py
 ```
 
-Replace the wheel placeholders with the complete generated wheel filenames. On Windows, use the
-virtual environment's `Scripts/python.exe` path.
+把 wheel 占位符替换为生成的完整 wheel 文件名。Windows 上使用虚拟环境的
+`Scripts/python.exe` 路径。
 
-Your verifier should check:
+验证脚本应当检查：
 
-- **Import isolation**: `nautilus_trader`, the adapter package, and its backend resolve beneath
-  `sys.prefix`. Editable imports can hide packaging or extension-identity defects.
-- **Launch modes**: both `node.run()` and hosted `run_async()` work.
-- **Data delivery**: a quote reaches the strategy and core cache.
-- **Reconciliation**: reconciliation completes.
-- **Execution**: a submitted order produces the expected fill quantity, price, commission, and final
-  cached order state.
-- **Shutdown**: resources close and further adapter output is prevented.
+- **import 隔离**：`nautilus_trader`、适配器包及其后端都解析到
+  `sys.prefix` 之下。editable 安装会掩盖打包或扩展身份缺陷。
+- **启动模式**：`node.run()` 与宿主式 `run_async()` 都能工作。
+- **数据送达**：报价能到达策略与核心缓存。
+- **对账**：对账能完成。
+- **执行**：提交的订单产生预期的成交数量、价格、佣金与最终缓存订单状态。
+- **关停**：资源关闭，且之后的适配器输出被阻止。
 
-Run this installed-wheel check when changing the adapter protocol or the extension's supported
-NautilusTrader versions.
+改动适配器协议或扩展支持的 NautilusTrader 版本时，运行这项已安装 wheel 检查。

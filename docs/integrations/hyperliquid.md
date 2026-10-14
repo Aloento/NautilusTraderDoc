@@ -447,7 +447,7 @@ Nautilus 代码。此类冲突采用[金融工具加载](#instrument-loading)所
 不返回它时，适配器跳过 HIP-4 金融工具。因此端点被移除或改名时，永续与现货仍然
 可用，而不是让整个金融工具加载失败。
 
-### Loading outcome instruments
+### 加载结果金融工具 {#loading-outcome-instruments}
 
 在 `LiveNode` 中，交易场所暴露 `outcomeMeta` 时，结果金融工具会自动（尽力而为）
 加载，不需要客户端配置。
@@ -563,105 +563,105 @@ await client.submit_negate_outcome(9, 52, Decimal("1.0"))
 方向性押注用普通 `SubmitOrder` 路径就够了。只有需要在场外创建或销毁 side token
 库存时才用上面的方法。
 
-### Order constraints
+### 订单约束 {#order-constraints}
 
-Outcome side tokens behave like spot tokens (no margin, no funding, no liquidation). The execution client
-rejects features that do not apply:
+结果 side token 的表现类似现货代币（无保证金、无资金费率、无清算）。执行客户端
+拒绝不适用的功能：
 
-- `reduce_only` orders.
-- Trigger order types (`StopMarket`, `StopLimit`, `MarketIfTouched`,
-  `LimitIfTouched`, trailing stops).
+- `reduce_only` 订单。
+- 触发类订单（`StopMarket`、`StopLimit`、`MarketIfTouched`、
+  `LimitIfTouched`、追踪止损）。
 
-`Limit` and `Market` orders with `GTC`, `IOC`, or `ALO` time-in-force are supported. The venue minimum is 10
-quote tokens of notional. Size `order_qty` in whole tokens so that `order_qty * limit_price >= 10`.
+支持 `GTC`、`IOC`、`ALO` 有效期的 `Limit` 与 `Market` 订单。交易场所最低名义
+价值为 10 个 quote 代币。把 `order_qty` 设为整数代币，保证
+`order_qty * limit_price >= 10`。
 
-### Settlement dispatch
+### 结算分发 {#settlement-dispatch}
 
-At expiry the venue closes held side-token balances and emits a `Settlement`
-fill per side. The adapter consumes these through the standard user-fills
-stream (HTTP poll and WebSocket), preserving the venue-reported commission.
+到期时交易场所平掉持有的 side token 余额，为每个方向发出一条 `Settlement`
+成交。适配器通过标准用户成交流（HTTP 轮询与 WebSocket）消费它们，保留场所报告的
+佣金。
 
-Each settlement fill:
+每笔结算成交：
 
-- `order_side = SELL`.
-- Price `1` quote token for the winning side, `0` for the loser.
-- Surfaces as a `FillReport`.
-- Venue fills also emit `OrderFilled` when WebSocket dispatch links the position to a
-  tracked order.
+- `order_side = SELL`。
+- 胜方价格为 `1` 个 quote 代币，败方为 `0`。
+- 以 `FillReport` 呈现。
+- 当 WebSocket 分发把持仓关联到被跟踪的订单时，场所成交还会发出
+  `OrderFilled`。
 
-Venue `Settlement` fills cover standalone `priceBinary` outcomes and multi-outcome `priceBucket`
-questions uniformly.
+场所的 `Settlement` 成交统一覆盖独立 `priceBinary` 结果与多结果
+`priceBucket` 问题。
 
-The Rust-only `outcome_settlement_poll_secs` option enables synthetic settlement polling for
-multi-outcome questions. It is disabled by default.
+仅 Rust 侧的 `outcome_settlement_poll_secs` 选项为多结果问题开启合成结算轮询，
+默认关闭。
 
 :::warning
 
-Keep synthetic polling disabled and consume venue settlement fills. The inference assumes that a non-empty
-`settledNamedOutcomes` list identifies winning outcomes within `namedOutcomes` and that all other
-named outcomes and the fallback have lost. Testnet metadata observed in October 2026 instead
-lists removed outcomes in `settledNamedOutcomes` while other named outcomes remain listed.
-Under that shape, polling can emit closing fills for positions in markets that are still trading.
+保持合成轮询关闭，消费交易场所的结算成交。该推断假设非空的
+`settledNamedOutcomes` 列表在 `namedOutcomes` 内标识获胜结果、其余命名结果与
+回退结果均告失败。而 2026 年 10 月观察到的 testnet 元数据把已移除的结果列进
+`settledNamedOutcomes`，其他命名结果仍在列表中。在这种形态下，轮询可能为仍在
+交易的市场中的持仓发出平仓成交。
 
 :::
 
-Synthetic fills carry zero commission in the cached instrument's quote currency, or the metadata
-quote token when no cached instrument exists, with USDC as the fallback. They have no
-`client_order_id` and are dispatched as `FillReport`s.
+合成成交携带零佣金，货币为缓存金融工具的 quote 货币，无缓存金融工具时用元数据
+quote 代币，再回退到 USDC。它们没有 `client_order_id`，以
+`FillReport` 分发。
 
-### Position reconciliation
+### 持仓对账 {#position-reconciliation}
 
-HIP-4 side tokens arrive on `spotClearinghouseState` with `coin` set to the
-`+E` token form and no `token` field. The adapter:
+HIP-4 side token 出现在 `spotClearinghouseState` 中，`coin`
+为 `+E` 代币形式且没有 `token` 字段。适配器：
 
-- Treats `SpotBalance.token` as optional during deserialization.
-- Resolves `+E` / `#E` coins to their `BinaryOption` instrument when
-  generating `PositionStatusReport`s.
-- Skips the perp clearinghouse fetch when the position-status filter is an
-  outcome instrument (outcomes never appear in `assetPositions`).
+- 反序列化时把 `SpotBalance.token` 视为可选。
+- 生成 `PositionStatusReport` 时把 `+E` / `#E` 代币解析到对应的
+  `BinaryOption` 金融工具。
+- 持仓状态过滤器是结果金融工具时，跳过 perp clearinghouse 拉取（结果永不出现在
+  `assetPositions` 中）。
 
-### Multi-outcome (priceBucket) markets
+### 多结果（priceBucket）市场 {#multi-outcome-pricebucket-markets}
 
-The venue exposes multi-outcome markets via the top-level `questions` array in `outcomeMeta`. Each question
-references a fallback outcome plus a sequence of named outcomes whose individual descriptions point back at
-the question via `index:N`. Each side token is modeled as an independent `BinaryOption` instrument. The
-`submit_merge_question` and `submit_negate_outcome` actions on `HyperliquidHttpClient` operate at the question
-level for basket close and cross-outcome rotation.
+交易场所通过 `outcomeMeta` 顶层的 `questions` 数组暴露多结果市场。每个问题
+引用一个回退结果，以及一串命名结果，其各自的描述通过 `index:N`
+指回该问题。每个 side token 建模为独立的 `BinaryOption` 金融工具。
+`HyperliquidHttpClient` 上的 `submit_merge_question` 与
+`submit_negate_outcome` 动作在问题层级执行篮子平仓与跨结果轮换。
 
-## Instrument loading
+## 金融工具加载 {#instrument-loading}
 
-The data client loads the full Hyperliquid universe at connect. One pass covers spot markets, standard
-perpetuals, every HIP-3 builder-deployed perp dex, and HIP-4 outcome side tokens. The client config exposes no
-per-product or per-symbol filter. Strategies select the instruments they trade through their own
-`instrument_id` configuration.
+数据客户端在 connect 时加载完整的 Hyperliquid 资产池：一趟覆盖现货市场、标准
+永续、每个 HIP-3 builder 部署的 perp dex 以及 HIP-4 结果 side token。客户端配置
+不提供按产品或按代码的过滤器。策略通过自己的 `instrument_id` 配置选择要交易的
+金融工具。
 
-The loader includes every pair in `spotMeta.universe`, including non-canonical pairs. When several pairs share
-a base token, the loader caches the canonical pair first. Thus, balances and fills identified by base token
-resolve to the canonical Nautilus instrument. Any later definition whose Nautilus symbol collides with an
-earlier definition is dropped with a warning and cannot be traded.
+加载器包含 `spotMeta.universe` 中的每个交易对，包括非 canonical 交易对。多个
+交易对共享同一 base 代币时，加载器先缓存 canonical 交易对，因此按 base 代币识别
+的余额与成交会解析到 canonical 的 Nautilus 金融工具。任何后续定义若其 Nautilus
+代码与更早的定义冲突，会被丢弃并记录警告，且无法交易。
 
-The data client then refetches the universe every `update_instruments_interval_mins` minutes:
+之后数据客户端每 `update_instruments_interval_mins` 分钟重新拉取一次资产池：
 
-- It publishes the definitions that are new or materially changed. Unchanged definitions are not republished.
-- The execution client receives those updates and registers each instrument's asset index, so a
-  market listed after startup becomes tradable without a process restart.
-- A `RequestInstrument` or `RequestInstruments` also refetches the whole universe and publishes
-  new or changed definitions the same way.
-- Set `update_instruments_interval_mins` to `0` to disable the periodic refresh. Requests and a data client
-  reconnect still refetch the universe on demand.
+- 发布新增或实质变化的定义，未变化的定义不重复发布。
+- 执行客户端接收这些更新并注册每个金融工具的资产索引，启动后新挂牌的市场无需
+  重启进程即可交易。
+- `RequestInstrument` 或 `RequestInstruments` 同样会重新拉取整个资产池，
+  并以相同方式发布新增或变化的定义。
+- 把 `update_instruments_interval_mins` 设为 `0` 可关闭周期刷新。请求
+  与数据客户端重连仍会按需重新拉取资产池。
 
-Submitting for a symbol the execution client has never loaded is denied with
-`INSTRUMENT_NOT_FOUND`.
+向执行客户端从未加载过的代码提交订单，会以 `INSTRUMENT_NOT_FOUND` 拒绝。
 
-Failures degrade per product rather than aborting the load:
+失败按产品降级，而不是中止整个加载：
 
-- Missing spot or perp metadata is logged as a warning and that product is skipped.
-- An absent `outcomeMeta` payload is skipped at debug level.
-- A perp dex whose non-USDC collateral token cannot be resolved through `spotMeta` is the one hard
-  failure, because guessing the settlement currency would misprice the market.
+- 缺少现货或永续元数据时记录警告并跳过该产品。
+- `outcomeMeta` 载荷缺失时按 debug 级别跳过。
+- 唯一的硬失败是某个 perp dex 的非 USDC 抵押代币无法通过 `spotMeta`
+  解析，因为猜测结算货币会让市场定价错误。
 
-To fetch a narrower set outside a `LiveNode`, call `load_instrument_definitions` on
-`HyperliquidHttpClient` directly with the product flags you want:
+要在 `LiveNode` 之外拉取更窄的集合，直接调用
+`HyperliquidHttpClient` 的 `load_instrument_definitions` 并带上所需的产品开关：
 
 ```python
 from nautilus_trader.adapters.hyperliquid import HyperliquidEnvironment
@@ -676,49 +676,45 @@ instruments = await client.load_instrument_definitions(
 )
 ```
 
-## Data subscriptions
+## 数据订阅 {#data-subscriptions}
 
-The adapter supports the following data subscriptions. All perpetual data types
-(mark prices, index prices, funding rates) apply to both standard and HIP-3 perps.
+适配器支持下列数据订阅。所有永续数据类型（标记价格、指数价格、资金费率）对标准
+永续与 HIP-3 永续同样适用。
 
-| Data type         | Sub. | Snapshot | Hist. | Nautilus type                 | Notes                                            |
-| ----------------- | ---- | -------- | ----- | ----------------------------- | ------------------------------------------------ |
-| Trade ticks       | ✓    | -        | ✓     | `TradeTick`                   | WebSocket trades; `recentTrades`.                |
-| Public trades     | ✓    | -        | ✓     | `HyperliquidPublicTrade`      | Opt-in custom data with counterparties and hash. |
-| Quote ticks       | ✓    | -        | -     | `QuoteTick`                   | Best bid/offer.                                  |
-| Order book deltas | ✓    | ✓        | -     | `OrderBookDelta`              | L2 snapshots.                                    |
-| Order book depth  | ✓    | -        | -     | `OrderBookDepth`              | Top-10 L2 snapshots.                             |
-| Bars              | ✓    | -        | ✓     | `Bar`                         | Supported intervals below.                       |
-| Mark prices       | ✓    | -        | -     | `MarkPriceUpdate`             | Perpetual mark price ticks.                      |
-| Index prices      | ✓    | -        | -     | `IndexPriceUpdate`            | Underlying reference prices.                     |
-| Funding rates     | ✓    | -        | ✓     | `FundingRateUpdate`           | `fundingHistory` endpoint.                       |
-| Open interest     | ✓    | -        | -     | `HyperliquidOpenInterest`     | Custom data from `activeAssetCtx`.               |
-| All mids          | ✓    | -        | -     | `HyperliquidAllMids`          | Custom data from `allMids`.                      |
-| All dex contexts  | ✓    | -        | -     | `HyperliquidAllDexsAssetCtxs` | Custom data from `allDexsAssetCtxs`.             |
-| TWAP history      | ✓    | -        | -     | `HyperliquidTwapHistory`      | Opt-in custom data from `userTwapHistory`.       |
-| TWAP slice fills  | ✓    | -        | -     | `HyperliquidTwapSliceFill`    | Opt-in custom data from `userTwapSliceFills`.    |
+| 数据类型       | 订阅 | 快照 | 历史 | Nautilus 类型                   | 说明                                             |
+| -------------- | ---- | ---- | ---- | ------------------------------- | ------------------------------------------------ |
+| 成交明细       | ✓    | -    | ✓    | `TradeTick`                     | WebSocket 成交；`recentTrades`。                 |
+| 公共成交       | ✓    | -    | ✓    | `HyperliquidPublicTrade`        | 需显式开启的自定义数据，含对手方与哈希。         |
+| 报价明细       | ✓    | -    | -    | `QuoteTick`                     | 最优买卖价。                                     |
+| 订单簿增量     | ✓    | ✓    | -    | `OrderBookDelta`                | L2 快照。                                        |
+| 订单簿深度     | ✓    | -    | -    | `OrderBookDepth`                | 前 10 档 L2 快照。                               |
+| K 线           | ✓    | -    | ✓    | `Bar`                           | 支持区间见下文。                                 |
+| 标记价格       | ✓    | -    | -    | `MarkPriceUpdate`               | 永续标记价格推送。                               |
+| 指数价格       | ✓    | -    | -    | `IndexPriceUpdate`              | 标的参考价。                                     |
+| 资金费率       | ✓    | -    | ✓    | `FundingRateUpdate`             | `fundingHistory` 端点。                          |
+| 未平仓合约量   | ✓    | -    | -    | `HyperliquidOpenInterest`       | 来自 `activeAssetCtx` 的自定义数据。             |
+| 全部中间价     | ✓    | -    | -    | `HyperliquidAllMids`            | 来自 `allMids` 的自定义数据。                    |
+| 全部 dex 上下文 | ✓   | -    | -    | `HyperliquidAllDexsAssetCtxs`   | 来自 `allDexsAssetCtxs` 的自定义数据。           |
+| TWAP 历史      | ✓    | -    | -    | `HyperliquidTwapHistory`        | 需显式开启，来自 `userTwapHistory`。             |
+| TWAP 切片成交  | ✓    | -    | -    | `HyperliquidTwapSliceFill`      | 需显式开启，来自 `userTwapSliceFills`。          |
 
 :::note
-Historical quote requests are not supported. Historical trade requests use the
-`recentTrades` info endpoint, which returns a recent snapshot of public trades
-(newest first) with no time range. `request_trades` filters that snapshot to the
-requested `[start, end]` window and applies `limit` by keeping the most recent
-trades. When the request reaches below the snapshot's oldest trade, the adapter
-logs a warning and serves the available subset (or an empty response). The
-endpoint depends on the Hyperliquid indexer: self-hosted `/info` nodes return
-HTTP 422, which the adapter treats as no coverage and answers with an empty
-response. Real-time trades remain available via the WebSocket `trades` channel.
+不支持历史报价请求。历史成交请求使用 `recentTrades` 信息端点，它返回公共成交的
+近期快照（最新在前），没有时间范围。`request_trades` 把该快照过滤到请求的
+`[start, end]` 窗口，并用保留最新成交的方式应用 `limit`。当请求下探到快照最早
+成交之下时，适配器记录警告并提供可用子集（或空响应）。该端点依赖 Hyperliquid
+索引器：自建 `/info` 节点返回 HTTP 422，适配器视为无覆盖并答复空响应。实时成交
+仍可通过 WebSocket 的 `trades` 频道获得。
 :::
 
-### Order book precision controls
+### 订单簿精度控制 {#order-book-precision-controls}
 
-The `l2Book` subscription accepts optional `nSigFigs` and `mantissa` parameters that thin the venue-side book
-aggregation. Pass them as `n_sig_figs` and `mantissa` in `params` on `subscribe_book_deltas` or
-`subscribe_book_depth`. The adapter forwards them to the venue.
+`l2Book` 订阅接受可选的 `nSigFigs` 与 `mantissa` 参数，用于稀释场所侧的
+订单簿聚合。在 `subscribe_book_deltas` 或 `subscribe_book_depth` 的
+`params` 中以 `n_sig_figs` 和 `mantissa` 传入，适配器会转发给交易场所。
 
-Hyperliquid accepts `nSigFigs` values `2`, `3`, `4`, `5`, or omitted for full
-precision. `mantissa` is only valid when `nSigFigs=5` and accepts `1`, `2`, or
-`5`.
+Hyperliquid 接受 `nSigFigs` 取值 `2`、`3`、`4`、`5`，或省略以获得全精度。
+`mantissa` 仅在 `nSigFigs=5` 时有效，取值 `1`、`2` 或 `5`。
 
 ```python
 from nautilus_trader.model import BookType
@@ -730,43 +726,41 @@ self.subscribe_book_deltas(
 )
 ```
 
-Omitting both params subscribes at full price precision.
+两个参数都省略时按完整价格精度订阅。
 
-Book deltas and depth snapshots for the same instrument share one venue
-`l2Book` stream:
+同一金融工具的订单簿增量与深度快照共用一条场所 `l2Book` 流：
 
-- The first subscription opens the stream and sets its precision options.
-- Requesting different options while the stream is active logs a warning and keeps the active options.
-- The stream closes when the last of the two uses unsubscribes.
-- Reconnects restore the stream with its original precision options.
+- 第一个订阅打开该流并设定其精度选项。
+- 流活跃期间请求不同选项会记录警告并保留当前生效的选项。
+- 两种用途的最后一个订阅退订时，流才关闭。
+- 重连按原精度选项恢复该流。
 
-### Hyperliquid specific data
+### Hyperliquid 专属数据 {#hyperliquid-specific-data}
 
-The adapter emits Hyperliquid-specific custom data types:
+适配器发出 Hyperliquid 专属的自定义数据类型：
 
-- `HyperliquidAllMids` from the WebSocket `allMids` feed. Each update carries
-  all currently reported mid prices in one payload.
-- `HyperliquidAllDexsAssetCtxs` from the WebSocket `allDexsAssetCtxs` feed.
-  Each update carries normalized per-instrument asset-context entries across
-  the default perp dex and HIP-3 builder dexes.
-- `HyperliquidOpenInterest` from the shared `activeAssetCtx` feed used by
-  mark prices, index prices, and funding rates.
-- `HyperliquidPublicTrade` from `trades` and `recentTrades`. Each event is
-  self-contained and includes the buyer, seller, and venue hash.
-- `HyperliquidTwapHistory` from the WebSocket `userTwapHistory` feed. Each
-  event is one history/lifecycle row for a user address.
-- `HyperliquidTwapSliceFill` from the WebSocket `userTwapSliceFills` feed.
-  Each event is one TWAP child-slice fill.
+- `HyperliquidAllMids`，来自 WebSocket `allMids` 流。每次更新在一个载荷中
+  携带当前报告的全部中间价。
+- `HyperliquidAllDexsAssetCtxs`，来自 WebSocket `allDexsAssetCtxs` 流。
+  每次更新携带默认 perp dex 与各 HIP-3 builder dex 上按金融工具归一化的资产
+  上下文条目。
+- `HyperliquidOpenInterest`，来自标记价格、指数价格与资金费率共用的
+  `activeAssetCtx` 流。
+- `HyperliquidPublicTrade`，来自 `trades` 与 `recentTrades`。每个事件
+  自包含，含买方、卖方与场所哈希。
+- `HyperliquidTwapHistory`，来自 WebSocket `userTwapHistory` 流。每个事件
+  是用户地址的一行历史/生命周期记录。
+- `HyperliquidTwapSliceFill`，来自 WebSocket `userTwapSliceFills` 流。每个
+  事件是一条 TWAP 子切片成交。
 
-| Field      | Type                        | Description                                                                |
+| 字段       | 类型                        | 说明                                                                       |
 | ---------- | --------------------------- | -------------------------------------------------------------------------- |
-| `mids`     | `dict[InstrumentId, Price]` | Canonical Nautilus instrument ID to mid price mapping.                     |
-| `ts_event` | `int`                       | UNIX timestamp in nanoseconds when the update occurred. Mirrors `ts_init`. |
-| `ts_init`  | `int`                       | UNIX timestamp in nanoseconds when the object was built.                   |
+| `mids`     | `dict[InstrumentId, Price]` | 规范 Nautilus 金融工具 ID 到中间价的映射。                                 |
+| `ts_event` | `int`                       | 更新发生时的 UNIX 纳秒时间戳，与 `ts_init` 相同。                          |
+| `ts_init`  | `int`                       | 对象构建时的 UNIX 纳秒时间戳。                                             |
 
-Subscribe from an actor or strategy with `DataType(HyperliquidAllMids.__name__)`, which covers
-the default perp dex. To follow a HIP-3 builder dex instead, pass its venue identifier in
-`metadata["dex"]`:
+在 actor 或策略中用 `DataType(HyperliquidAllMids.__name__)` 订阅，覆盖默认
+perp dex。要改跟某个 HIP-3 builder dex，在 `metadata["dex"]` 传入其场所标识：
 
 ```python
 from nautilus_trader.adapters.hyperliquid import HYPERLIQUID_CLIENT_ID
@@ -779,19 +773,18 @@ self.subscribe_data(
 )
 ```
 
-The `dex` value is a venue-defined builder dex identifier from `perpDexs`, such as `xyz`, `flx`,
-or `vntl`. Omit the key (or pass an empty string) for the default perp dex.
+`dex` 取值是 `perpDexs` 中场所定义的 builder dex 标识，如 `xyz`、`flx`、
+`vntl`。默认 perp dex 省略该键（或传空字符串）。
 
-`HyperliquidOpenInterest` carries the latest open interest for one
-perpetual instrument. Subscribe with the canonical Nautilus `instrument_id`
-in `metadata["instrument_id"]`:
+`HyperliquidOpenInterest` 携带单个永续金融工具的最新未平仓合约量。订阅时在
+`metadata["instrument_id"]` 传入规范 Nautilus `instrument_id`：
 
-| Field           | Type           | Description                                                                |
+| 字段            | 类型           | 说明                                                                       |
 | --------------- | -------------- | -------------------------------------------------------------------------- |
-| `instrument_id` | `InstrumentId` | Canonical Nautilus instrument ID.                                          |
-| `open_interest` | `Decimal`      | Open interest parsed for direct arithmetic use.                            |
-| `ts_event`      | `int`          | UNIX timestamp in nanoseconds when the update occurred. Mirrors `ts_init`. |
-| `ts_init`       | `int`          | UNIX timestamp in nanoseconds when the object was built.                   |
+| `instrument_id` | `InstrumentId` | 规范 Nautilus 金融工具 ID。                                                |
+| `open_interest` | `Decimal`      | 解析出的未平仓合约量，可直接参与运算。                                     |
+| `ts_event`      | `int`          | 更新发生时的 UNIX 纳秒时间戳，与 `ts_init` 相同。                          |
+| `ts_init`       | `int`          | 对象构建时的 UNIX 纳秒时间戳。                                             |
 
 ```python
 from nautilus_trader.adapters.hyperliquid import HYPERLIQUID_CLIENT_ID
@@ -813,9 +806,9 @@ prices, and funding rates for the same coin. Adding OI does not open a second
 parallel `activeAssetCtx` subscription.
 
 `HyperliquidPublicTrade` is an opt-in alternative to generic `TradeTick` for
-public order-flow research. It has `instrument_id`, `price`, `size`,
-`aggressor_side`, `trade_id`, `buyer`, `seller`, `hash`, `ts_event`, and
-`ts_init`. Subscribe with the same canonical instrument metadata:
+公共订单流研究。它带 `instrument_id`、`price`、`size`、
+`aggressor_side`、`trade_id`、`buyer`、`seller`、`hash`、`ts_event` 与
+`ts_init`。用相同的规范金融工具元数据订阅：
 
 ```python
 from nautilus_trader.adapters.hyperliquid import HYPERLIQUID_CLIENT_ID
@@ -831,61 +824,60 @@ self.subscribe_data(
 )
 ```
 
-It shares the one venue `trades` subscription with `TradeTick` when both are
-requested. Unlike a sidecar `users` event, each `HyperliquidPublicTrade` is
-independently Arrow-serializable and can be recorded to and queried from a
-Nautilus catalog without a join. `RequestCustomData` for this type uses the
-same recent-only `recentTrades` snapshot as historical trade requests.
+两者同时请求时，它与 `TradeTick` 共用同一条场所 `trades` 订阅。与 sidecar
+`users` 事件不同，每条 `HyperliquidPublicTrade` 都可独立做 Arrow 序列化，无需
+join 即可写入并查询 Nautilus 目录。对该类型的
+`RequestCustomData` 使用与历史成交请求相同的、仅近期的 `recentTrades` 快照。
 
-`HyperliquidTwapHistory` and `HyperliquidTwapSliceFill` are opt-in user-keyed
-custom data. They are **not** included in the execution account
-`subscribe_all_user_channels` path. Subscribe with the target wallet address in
-`metadata["user"]` (the address need not be the adapter trading account).
+`HyperliquidTwapHistory` 与 `HyperliquidTwapSliceFill` 是需显式开启、按用户
+键定的自定义数据，**不**包含在执行账户的 `subscribe_all_user_channels`
+路径中。订阅时在 `metadata["user"]` 传入目标钱包地址（该地址不必是适配器的交易
+账户）。
 
-`HyperliquidTwapHistory` fields:
+`HyperliquidTwapHistory` 字段：
 
-| Field                | Type                    | Description                                                   |
-| -------------------- | ----------------------- | ------------------------------------------------------------- |
-| `user`               | `str`                   | User address from the subscription envelope.                  |
-| `twap_id`            | `int \| None`           | Venue `twapId` when present on the history row.               |
-| `coin`               | `str`                   | Raw Hyperliquid coin symbol.                                  |
-| `instrument_id`      | `InstrumentId \| None`  | Resolved Nautilus instrument ID when the coin is known.       |
-| `side`               | `OrderSide`             | TWAP order side.                                              |
-| `size`               | `Decimal`               | Total TWAP size.                                              |
-| `executed_size`      | `Decimal`               | Executed size so far.                                         |
-| `executed_notional`  | `Decimal`               | Executed notional so far.                                     |
-| `minutes`            | `int`                   | TWAP duration in minutes.                                     |
-| `reduce_only`        | `bool`                  | Whether the TWAP is reduce-only.                              |
-| `randomize`          | `bool`                  | Whether slice timing is randomized.                           |
-| `status`             | `HyperliquidTwapStatus` | Venue status (`activated`/`terminated`/`finished`/`error`/…). |
-| `status_description` | `str`                   | Venue status description (often set when status is `error`).  |
-| `state_timestamp`    | `int`                   | `state.timestamp` as UNIX nanoseconds.                        |
-| `is_snapshot`        | `bool`                  | Whether this row belongs to a venue snapshot batch.           |
-| `ts_event`           | `int`                   | History row time (`history.time`) as UNIX nanoseconds.        |
-| `ts_init`            | `int`                   | UNIX timestamp in nanoseconds when the object was built.      |
+| 字段                 | 类型                    | 说明                                                          |
+| -------------------- | ----------------------- | --------------------------------------------------------------- |
+| `user`               | `str`                   | 订阅信封中的用户地址。                                        |
+| `twap_id`            | `int \| None`           | 历史行上存在时的场所 `twapId`。                               |
+| `coin`               | `str`                   | 原始 Hyperliquid 代码符号。                                   |
+| `instrument_id`      | `InstrumentId \| None`  | 代币已知时解析出的 Nautilus 金融工具 ID。                     |
+| `side`               | `OrderSide`             | TWAP 订单方向。                                               |
+| `size`               | `Decimal`               | TWAP 总量。                                                   |
+| `executed_size`      | `Decimal`               | 迄今已执行数量。                                              |
+| `executed_notional`  | `Decimal`               | 迄今已执行名义价值。                                          |
+| `minutes`            | `int`                   | TWAP 时长（分钟）。                                           |
+| `reduce_only`        | `bool`                  | 该 TWAP 是否 reduce-only。                                    |
+| `randomize`          | `bool`                  | 切片时点是否随机化。                                          |
+| `status`             | `HyperliquidTwapStatus` | 场所状态（`activated`/`terminated`/`finished`/`error`/…）。    |
+| `status_description` | `str`                   | 场所状态描述（状态为 `error` 时通常有值）。                   |
+| `state_timestamp`    | `int`                   | `state.timestamp`，UNIX 纳秒。                                |
+| `is_snapshot`        | `bool`                  | 该行是否属于场所快照批次。                                    |
+| `ts_event`           | `int`                   | 历史行时间（`history.time`），UNIX 纳秒。                     |
+| `ts_init`            | `int`                   | 对象构建时的 UNIX 纳秒时间戳。                                |
 
-`HyperliquidTwapSliceFill` fields:
+`HyperliquidTwapSliceFill` 字段：
 
-| Field           | Type                   | Description                                              |
-| --------------- | ---------------------- | -------------------------------------------------------- |
-| `user`          | `str`                  | User address from the subscription envelope.             |
-| `twap_id`       | `int`                  | Venue TWAP order identifier.                             |
-| `coin`          | `str`                  | Raw Hyperliquid coin symbol.                             |
-| `instrument_id` | `InstrumentId \| None` | Resolved Nautilus instrument ID when the coin is known.  |
-| `price`         | `Decimal`              | Fill price.                                              |
-| `size`          | `Decimal`              | Fill size.                                               |
-| `side`          | `OrderSide`            | Fill side.                                               |
-| `hash`          | `str`                  | L1 transaction hash.                                     |
-| `oid`           | `int`                  | Venue order id for the slice.                            |
-| `tid`           | `int`                  | Venue trade id.                                          |
-| `crossed`       | `bool`                 | Whether the fill crossed the spread (taker).             |
-| `fee`           | `Decimal`              | Fee amount (negative means rebate).                      |
-| `fee_token`     | `str`                  | Token the fee was paid in.                               |
-| `dir`           | `str`                  | Venue frontend direction string.                         |
-| `closed_pnl`    | `Decimal`              | Closed PnL for the fill.                                 |
-| `is_snapshot`   | `bool`                 | Whether this fill belongs to a venue snapshot batch.     |
-| `ts_event`      | `int`                  | Fill time as UNIX nanoseconds.                           |
-| `ts_init`       | `int`                  | UNIX timestamp in nanoseconds when the object was built. |
+| 字段            | 类型                   | 说明                                                     |
+| --------------- | ---------------------- | ---------------------------------------------------------- |
+| `user`          | `str`                  | 订阅信封中的用户地址。                                     |
+| `twap_id`       | `int`                  | 场所 TWAP 订单标识。                                       |
+| `coin`          | `str`                  | 原始 Hyperliquid 代码符号。                                |
+| `instrument_id` | `InstrumentId \| None` | 代币已知时解析出的 Nautilus 金融工具 ID。                  |
+| `price`         | `Decimal`              | 成交价。                                                   |
+| `size`          | `Decimal`              | 成交量。                                                   |
+| `side`          | `OrderSide`            | 成交方向。                                                 |
+| `hash`          | `str`                  | L1 交易哈希。                                              |
+| `oid`           | `int`                  | 该切片的场所订单 ID。                                      |
+| `tid`           | `int`                  | 场所成交 ID。                                              |
+| `crossed`       | `bool`                 | 该成交是否跨越价差（taker）。                              |
+| `fee`           | `Decimal`              | 费用金额（负数表示返佣）。                                 |
+| `fee_token`     | `str`                  | 支付费用所用代币。                                         |
+| `dir`           | `str`                  | 场所前端的方向字符串。                                     |
+| `closed_pnl`    | `Decimal`              | 该成交的已平仓盈亏。                                       |
+| `is_snapshot`   | `bool`                 | 该成交是否属于场所快照批次。                               |
+| `ts_event`      | `int`                  | 成交时间，UNIX 纳秒。                                      |
+| `ts_init`       | `int`                  | 对象构建时的 UNIX 纳秒时间戳。                             |
 
 ```python
 from nautilus_trader.adapters.hyperliquid import HYPERLIQUID_CLIENT_ID
@@ -909,12 +901,11 @@ self.subscribe_data(
 )
 ```
 
-Venue snapshot batches set `is_snapshot=True` on every row/fill from that
-batch so consumers can clear and rebuild local TWAP state.
+场所快照批次会把该批次内每一行/每笔成交的 `is_snapshot` 置为 `True`，消费者
+据此清空并重建本地 TWAP 状态。
 
-In a Python strategy running inside a `LiveNode`, `on_data` receives the
-payload wrapped in `CustomData`. Read it from `CustomData.data` and check its
-type with `isinstance`:
+在 `LiveNode` 内运行的 Python 策略中，`on_data` 收到的载荷包裹在
+`CustomData` 里。从 `CustomData.data` 读取，并用 `isinstance` 判断类型：
 
 ```python
 from decimal import Decimal
@@ -930,50 +921,46 @@ def on_data(self, data: CustomData) -> None:
             self.log.info(f"OI {payload.instrument_id} -> {payload.open_interest}")
 ```
 
-`HyperliquidAllDexsAssetCtxs` exposes a whole-feed aggregate rather than one
-topic per instrument, so strategies subscribe once and filter the normalized
-entries they need. The table describes the Rust types:
+`HyperliquidAllDexsAssetCtxs` 暴露的是整条流的聚合，而不是每个金融工具一个
+主题，策略订阅一次再筛选需要的归一化条目即可。下表描述 Rust 类型：
 
-| Field             | Type                              | Description                                                                |
-| ----------------- | --------------------------------- | -------------------------------------------------------------------------- |
-| `dex`             | `str`                             | Perp dex identifier from Hyperliquid `perpDexs`. `""` is the default dex.  |
-| `instrument_id`   | `InstrumentId`                    | Canonical Nautilus instrument ID for the entry.                            |
-| `mark_price`      | `Price`                           | Current mark price.                                                        |
-| `oracle_price`    | `Price`                           | Current oracle / index reference price.                                    |
-| `prev_day_price`  | `Price`                           | Previous day reference price from the venue payload.                       |
-| `mid_price`       | `Price \| None`                   | Mid price when present in the venue payload.                               |
-| `impact_prices`   | `HyperliquidImpactPrices \| None` | Best bid / ask impact prices when present.                                 |
-| `funding_rate`    | `Decimal`                         | Funding rate parsed for direct arithmetic use.                             |
-| `open_interest`   | `Decimal`                         | Open interest parsed for direct arithmetic use.                            |
-| `premium`         | `Decimal \| None`                 | Premium when present in the venue payload.                                 |
-| `day_ntl_volume`  | `Decimal`                         | 24h notional volume.                                                       |
-| `day_base_volume` | `Decimal`                         | 24h base volume.                                                           |
-| `ts_event`        | `int`                             | UNIX timestamp in nanoseconds when the update occurred. Mirrors `ts_init`. |
-| `ts_init`         | `int`                             | UNIX timestamp in nanoseconds when the object was built.                   |
+| 字段              | 类型                              | 说明                                                                       |
+| ----------------- | --------------------------------- | ---------------------------------------------------------------------------- |
+| `dex`             | `str`                             | Hyperliquid `perpDexs` 中的 perp dex 标识。`""` 为默认 dex。                |
+| `instrument_id`   | `InstrumentId`                    | 该条目的规范 Nautilus 金融工具 ID。                                          |
+| `mark_price`      | `Price`                           | 当前标记价格。                                                               |
+| `oracle_price`    | `Price`                           | 当前预言机/指数参考价。                                                      |
+| `prev_day_price`  | `Price`                           | 场所载荷中的前一日参考价。                                                   |
+| `mid_price`       | `Price \| None`                   | 场所载荷中存在时的中间价。                                                   |
+| `impact_prices`   | `HyperliquidImpactPrices \| None` | 存在时的最优买/卖冲击价格。                                                  |
+| `funding_rate`    | `Decimal`                         | 解析出的资金费率，可直接参与运算。                                           |
+| `open_interest`   | `Decimal`                         | 解析出的未平仓合约量，可直接参与运算。                                       |
+| `premium`         | `Decimal \| None`                 | 场所载荷中存在时的溢价。                                                     |
+| `day_ntl_volume`  | `Decimal`                         | 24 小时名义成交量。                                                          |
+| `day_base_volume` | `Decimal`                         | 24 小时 base 成交量。                                                        |
+| `ts_event`        | `int`                             | 更新发生时的 UNIX 纳秒时间戳，与 `ts_init` 相同。                            |
+| `ts_init`         | `int`                             | 对象构建时的 UNIX 纳秒时间戳。                                               |
 
-In Python, `entries` is a `list` of `dict` objects keyed by the entry fields.
-Prices, decimals, and instrument IDs arrive as strings, `impact_prices` as a
-`dict` with `bid` and `ask` strings, and missing optional fields as `None`.
-Convert a value before using it, for example `Decimal(entry["open_interest"])`.
-`ts_event` and `ts_init` belong to the aggregate itself and arrive as `int`.
+在 Python 中，`entries` 是以条目字段为键的 `dict` 列表。价格、小数与金融工具
+ID 以字符串到达，`impact_prices` 是带 `bid` 与 `ask` 字符串的
+`dict`，缺失的可选字段为 `None`。使用前先转换值，例如
+`Decimal(entry["open_interest"])`。`ts_event` 与 `ts_init`
+属于聚合体本身，以 `int` 到达。
 
-The underlying Hyperliquid wire payload arrives as
-`ctxs: [[dex, ctxs[]], ...]`. The adapter decodes that live venue format and
-normalizes it into the per-entry output shown above before the strategy sees
-the data. This aggregate is live-only and JSON-backed rather than
-Arrow-backed, so unlike the other three types it is not written to a Parquet
-catalog.
+底层 Hyperliquid 线上载荷形如 `ctxs: [[dex, ctxs[]], ...]`。适配器解码这一
+场所实时格式，在策略看到数据之前归一化为上文所示的逐条目输出。该聚合体仅限实时
+使用、以 JSON 为后端而非 Arrow，因此与另外三个类型不同，它不会写入 Parquet 目录。
 
-The adapter does not invent `dex` values. It bootstraps the ordered dex universe from Hyperliquid `meta` /
-`allPerpMetas` and resolves builder dex identifiers from the live `perpDexs` info endpoint. The empty string
-`""` represents Hyperliquid's default perp dex. Non-empty values such as `xyz`, `flx`, or `vntl` are
-venue-defined builder dex identifiers.
+适配器不会凭空编造 `dex` 值。它从 Hyperliquid `meta` / `allPerpMetas`
+引导有序 dex 资产池，并从实时 `perpDexs` 信息端点解析 builder dex 标识。空字符串
+`""` 代表 Hyperliquid 的默认 perp dex；`xyz`、`flx`、`vntl`
+等非空值是场所定义的 builder dex 标识。
 
-The mapping is rebuilt from cached instruments at connect, on every instrument refresh, and on every
-instrument request. The feed is positional (no per-entry coin name). Thus, later-listed perps appear after the
-next rebuild. When `allPerpMetas` is unavailable the rebuild covers only the default dex and keeps the
-existing mapping for every builder dex. A context-count mismatch for a dex logs a warning until the next
-rebuild. Entries stay aligned positionally, which is correct for appended listings.
+该映射在 connect 时、每次金融工具刷新与每次金融工具请求时，都从缓存的金融工具重建。
+该数据流按位置对应（条目不带代币名），因此后挂牌的永续要等下一次重建才会出现。
+`allPerpMetas` 不可得时，重建只覆盖默认 dex，并为每个 builder dex 保留现有映射。
+某个 dex 的上下文数量不匹配时记录警告，直到下一次重建。条目按位置保持对齐，对
+追加挂牌是正确的。
 
 ```python
 from decimal import Decimal
@@ -998,108 +985,102 @@ def on_data(self, data: CustomData) -> None:
                 self.log.info(f"{entry['instrument_id']} OI={open_interest}")
 ```
 
-### Supported bar intervals
+### 支持的 K 线区间 {#supported-bar-intervals}
 
-| Resolution | Hyperliquid candle |
-| ---------- | ------------------ |
-| 1-MINUTE   | `1m`               |
-| 3-MINUTE   | `3m`               |
-| 5-MINUTE   | `5m`               |
-| 15-MINUTE  | `15m`              |
-| 30-MINUTE  | `30m`              |
-| 1-HOUR     | `1h`               |
-| 2-HOUR     | `2h`               |
-| 4-HOUR     | `4h`               |
-| 8-HOUR     | `8h`               |
-| 12-HOUR    | `12h`              |
-| 1-DAY      | `1d`               |
+| 分辨率     | Hyperliquid K 线 |
+| ---------- | ---------------- |
+| 1-MINUTE   | `1m`             |
+| 3-MINUTE   | `3m`             |
+| 5-MINUTE   | `5m`             |
+| 15-MINUTE  | `15m`            |
+| 30-MINUTE  | `30m`            |
+| 1-HOUR     | `1h`             |
+| 2-HOUR     | `2h`             |
+| 4-HOUR     | `4h`             |
+| 8-HOUR     | `8h`             |
+| 12-HOUR    | `12h`            |
+| 1-DAY      | `1d`             |
 | 3-DAY      | `3d`               |
 | 1-WEEK     | `1w`               |
 | 1-MONTH    | `1M`               |
 
-## Orders capability
+## 订单能力 {#orders-capability}
 
-Hyperliquid supports a full set of order types and execution options. In the tables below,
-"Perpetuals" covers both standard validator-operated perps and HIP-3 builder-deployed perps:
-the same order types, time-in-force options, and execution instructions apply to both.
+Hyperliquid 支持完整的订单类型与执行选项。下表中的"永续"同时涵盖验证节点运营的
+标准永续与 HIP-3 builder 部署的永续：两者适用相同的订单类型、有效期选项与执行
+指令。
 
-### Order types
+### 订单类型 {#order-types}
 
-| Order Type          | Perpetuals | Spot | Notes                                               |
-| ------------------- | ---------- | ---- | --------------------------------------------------- |
-| `MARKET`            | ✓          | ✓    | IOC limit with configurable slippage from best BBO. |
-| `LIMIT`             | ✓          | ✓    |                                                     |
-| `STOP_MARKET`       | ✓          | ✓    | Stop loss orders.                                   |
-| `STOP_LIMIT`        | ✓          | ✓    | Stop loss with limit execution.                     |
-| `MARKET_IF_TOUCHED` | ✓          | ✓    | Take profit at market.                              |
-| `LIMIT_IF_TOUCHED`  | ✓          | ✓    | Take profit with limit execution.                   |
+| 订单类型            | 永续       | 现货   | 说明                                                |
+| ------------------- | ---------- | ---- | ----------------------------------------------------- |
+| `MARKET`            | ✓          | ✓    | IOC 限价，按最优 BBO 加减可配置滑点。                 |
+| `LIMIT`             | ✓          | ✓    |                                                       |
+| `STOP_MARKET`       | ✓          | ✓    | 止损订单。                                            |
+| `STOP_LIMIT`        | ✓          | ✓    | 以限价执行的止损。                                    |
+| `MARKET_IF_TOUCHED` | ✓          | ✓    | 以市价止盈。                                          |
+| `LIMIT_IF_TOUCHED`  | ✓          | ✓    | 以限价止盈。                                          |
 
-Conditional orders (stop and if-touched) are implemented using Hyperliquid's native trigger
-order functionality with automatic TP/SL mode detection. All trigger orders are evaluated
-against the [mark price](https://hyperliquid.gitbook.io/hyperliquid-docs/trading/robust-price-indices).
-Standalone trigger orders rest on the venue until triggered, independent of the reduce-only
-flag. Grouped (bracket) TP/SL children are always submitted as reduce-only by the adapter.
+条件单（止损与触价单）用 Hyperliquid 原生触发订单功能实现，并自动检测 TP/SL
+模式。所有触发订单都按[标记价格](https://hyperliquid.gitbook.io/hyperliquid-docs/trading/robust-price-indices)
+判定。独立触发订单在触发前挂在交易场所，与 reduce-only 标志无关。成组（bracket）
+的 TP/SL 子单由适配器一律以 reduce-only 提交。
 
-### Market-order pricing
+### 市价单定价 {#market-order-pricing}
 
-Market orders are submitted as IOC limit orders priced from the best ask (for buys) or best
-bid (for sells) with a configurable slippage buffer (default 50 bps). Prices are rounded to
-Hyperliquid's price constraints before submission. The slippage buffer is controlled by
-`market_order_slippage_bps` on `HyperliquidExecutionClientConfig` and can be overridden
-per-order via the `market_order_slippage_bps` key in `SubmitOrder.params`.
+市价单以 IOC 限价单提交，价格取自最优卖一（买入）或最优买一（卖出），外加可配置的
+滑点缓冲（默认 50 bps）。提交前价格按 Hyperliquid 的价格约束取整。滑点缓冲由
+`HyperliquidExecutionClientConfig` 的 `market_order_slippage_bps`
+控制，并可通过 `SubmitOrder.params` 中的
+`market_order_slippage_bps` 键逐单覆盖。
 
-`STOP_MARKET` and `MARKET_IF_TOUCHED` orders do not carry a limit price. The adapter derives
-one from the trigger price with the same configurable slippage buffer (default 50 bps), rounds
-to 5 significant figures, and clamps to the venue decimal limit (ceiling for buys, floor for
-sells). This guarantees Hyperliquid's `limit_px >= trigger_px` (buys) /
-`limit_px <= trigger_px` (sells) constraint.
+`STOP_MARKET` 与 `MARKET_IF_TOUCHED` 订单不携带限价。适配器用同样的可配置
+滑点缓冲（默认 50 bps）从触发价推导一个，取整到 5 位有效数字，再钳制到场所小数位
+上限（买入向上取、卖出向下取）。这保证了 Hyperliquid 的
+`limit_px >= trigger_px`（买入）/ `limit_px <= trigger_px`（卖出）约束。
 
 :::info
-**Market orders require cached quote data.** Without a cached quote the adapter emits
-`OrderDenied` rather than guessing a price. Subscribe to quotes for any instrument you intend
-to trade with market orders.
+**市价单需要缓存的报价数据。** 没有缓存报价时，适配器发出
+`OrderDenied` 而不是猜测价格。凡要用市价单交易的金融工具，请先订阅其报价。
 :::
 
-### Quote-denominated quantities
+### 以 quote 计价的委托量 {#quote-denominated-quantities}
 
-Hyperliquid has no native quote-quantity order: the exchange endpoint takes a base `s` for every order. At
-submission, the adapter converts quote-denominated quantities (`quote_quantity=True` on the order factory) to
-base size. It uses the cached quote's best ask for buys or best bid for sells as the reference price. It
-rounds the base size to the instrument's size increment. Consequences of the conversion:
+Hyperliquid 没有原生的 quote 数量订单：交易所端点对每笔订单都接受 base
+数量 `s`。提交时，适配器把以 quote 计价的数量（订单工厂的
+`quote_quantity=True`）换算为 base 数量，参考价用缓存报价的最优卖一（买入）或
+最优买一（卖出），base 数量按金融工具的数量增量取整。换算带来以下后果：
 
-- The converted size is an estimate at the reference price: the venue executes the base size
-  it receives, so the filled notional can differ slightly from the requested quote amount.
-- Venue fills arrive in base units while the order's local quantity stays quote-denominated,
-  so these orders reconcile from venue status reports instead of local quantity comparison.
-- Modifying a quote-denominated order is rejected locally, because the venue modify replaces
-  a base size that cannot be reconciled against a quote target. Cancel and resubmit with a
-  new amount instead.
-- The raw HTTP and WebSocket client methods (`submit_order`, `modify_order`) take explicit
-  base sizes, and the OrderAny-based raw submits (`submit_orders`,
-  `submit_order_from_order_any`) reject quote-denominated orders.
+- 换算后的数量是参考价下的估计：交易场所按收到的 base 数量执行，成交名义价值
+  可能与请求的 quote 金额略有出入。
+- 场所成交以 base 单位到达，而订单的本地数量仍是 quote 计价，因此这类订单靠场所
+  状态报告对账，而不是本地数量比较。
+- 修改 quote 计价的订单会在本地被拒绝，因为场所的 modify 替换的是无法与 quote
+  目标对账的 base 数量。请改为撤单并用新数量重新提交。
+- 原始 HTTP 与 WebSocket 客户端方法（`submit_order`、
+  `modify_order`）接受显式 base 数量；基于 OrderAny 的原始提交
+  （`submit_orders`、`submit_order_from_order_any`）
+  会拒绝 quote 计价的订单。
 
 :::info
-**Conversion requires a cached quote.** Without a cached quote, or when the rounded base size
-is zero, the adapter emits `OrderDenied` rather than guessing a size. Subscribe to quotes for
-any instrument you intend to trade with quote-denominated quantities.
+**换算需要缓存的报价。** 没有缓存报价，或取整后的 base 数量为零时，适配器发出
+`OrderDenied` 而不是猜测数量。凡要用 quote 计价数量交易的金融工具，请先订阅报价。
 :::
 
-### Price normalization
+### 价格归一化 {#price-normalization}
 
 :::warning
-**Price normalization is enabled by default.** Hyperliquid enforces a maximum of 5 significant
-figures on order prices, plus a per-asset decimal limit based on `szDecimals`
-(`6 - szDecimals` for perps, `8 - szDecimals` for spot). For example, if ETH is trading at
-$2,600 (4 integer digits), only 1 decimal place is allowed despite the instrument having
-`price_precision=2`.
+**价格归一化默认开启。** Hyperliquid 对订单价格强制最多 5 位有效数字，另按
+`szDecimals` 施加逐资产小数位上限（永续为 `6 - szDecimals`，现货为
+`8 - szDecimals`）。例如 ETH 在 $2,600（4 位整数）成交时，尽管金融工具的
+`price_precision=2`，也只允许 1 位小数。
 
-By default, the adapter normalizes all outgoing limit and trigger prices to 5 significant
-figures and clamps them to the instrument price precision to prevent order rejections. This
-means your submitted prices may shift slightly.
-To disable this and take full control of price formatting, set `normalize_prices=False`
-in your `HyperliquidExecutionClientConfig`.
+默认情况下，适配器把所有外发的限价与触发价归一化到 5 位有效数字，并钳制到金融工具
+的价格精度，以避免订单被拒。这意味着你提交的价格可能发生轻微偏移。要关闭归一化、
+完全自行控制价格格式，在 `HyperliquidExecutionClientConfig` 中设
+`normalize_prices=False`。
 
-If you disable normalization, you can apply the same rounding in your strategy:
+关闭归一化后，可以在策略里做同样的取整：
 
 ```python
 from decimal import Decimal
@@ -1115,120 +1096,114 @@ def round_to_sig_figs(price: Decimal, sig_figs: int = 5) -> Decimal:
     return round(price, shift)
 ```
 
-When normalization is disabled, the adapter validates each outgoing limit and trigger price against the
-instrument's decimal limit and denies the order locally when the price carries more decimal places. The venue
-parses prices into its canonical form before it verifies the request signature. Thus, an over-precise price
-fails signature verification. The venue returns a misleading "user or API wallet does not exist" error instead
-of an order validation error.
+归一化关闭时，适配器按金融工具的小数位上限校验每个外发限价与触发价，价格小数位超出
+即在本地拒绝订单。交易场所先按规范形式解析价格，再校验请求签名，因此精度过高的
+价格会导致签名校验失败，而场所返回的是误导性的 "user or API wallet does not
+exist" 错误，而不是订单校验错误。
 
 :::
 
-### Time in force
+### 有效期 {#time-in-force}
 
-| Time in force | Perpetuals | Spot | Notes                |
-| ------------- | ---------- | ---- | -------------------- |
-| `GTC`         | ✓          | ✓    | Good Till Canceled.  |
-| `IOC`         | ✓          | ✓    | Immediate or Cancel. |
-| `FOK`         | -          | -    | *Not supported*.     |
-| `GTD`         | -          | -    | *Not supported*.     |
+| 有效期      | 永续       | 现货   | 说明                 |
+| ----------- | ---------- | ---- | -------------------- |
+| `GTC`       | ✓          | ✓    | Good Till Canceled。 |
+| `IOC`       | ✓          | ✓    | Immediate or Cancel。 |
+| `FOK`       | -          | -    | *不支持*。           |
+| `GTD`       | -          | -    | *不支持*。           |
 
-Venue `orderStatus` and `historicalOrders` payloads can report `FrontendMarket`
-or `LiquidationMarket` instead of `IOC`. The adapter maps both to `IOC` and does
-not submit those labels.
+场所 `orderStatus` 与 `historicalOrders` 载荷可能报告
+`FrontendMarket` 或 `LiquidationMarket` 而不是 `IOC`。适配器把两者都映射为
+`IOC`，且从不提交这些标签。
 
 :::note
-When an IOC order cannot match any resting liquidity, Hyperliquid reports
-`iocCancelRejected` with `Order could not immediately match against any resting orders`.
-The adapter preserves this venue rejection as `OrderRejected`. It does not synthesize an
-`OrderAccepted` followed by `OrderCanceled`. A partially filled IOC still keeps its fills and
-cancels only the unfilled remainder.
+IOC 订单无法撮合任何挂单流动性时，Hyperliquid 报告
+`iocCancelRejected`，原因为 `Order could not immediately match against any
+resting orders`。适配器把这一场所拒绝保留为 `OrderRejected`，不会伪造
+`OrderAccepted` 后接 `OrderCanceled`。部分成交的 IOC 仍保留其成交，只取消未成交
+的剩余部分。
 
-For tracked orders, a terminal rejection after a partial fill closes the unfilled remainder
-with `OrderCanceled`. If the status reports fills that have not arrived, the adapter waits
-for those fills before closing the order. Unique fills received after closure still reconcile
-with their venue quantities and commissions.
+对被跟踪的订单，部分成交之后的终局拒绝会以 `OrderCanceled` 收尾未成交部分。若
+状态报告中还有尚未到达的成交，适配器会等这些成交到齐再收尾订单。收尾后到达的唯一
+成交仍会按其场所数量与佣金对账。
 :::
 
-### Execution instructions
+### 执行指令 {#execution-instructions}
 
-| Instruction      | Perpetuals | Spot | Notes                                                        |
-| ---------------- | ---------- | ---- | ------------------------------------------------------------ |
-| `post_only`      | ✓          | ✓    | Equivalent to ALO time in force.                             |
-| `reduce_only`    | ✓          | ✓    | Close-only orders.                                           |
-| `quote_quantity` | ✓          | ✓    | Quote amount converted to a base size from the cached quote. |
+| 指令             | 永续       | 现货   | 说明                                                         |
+| ---------------- | ---------- | ---- | -------------------------------------------------------------- |
+| `post_only`      | ✓          | ✓    | 等价于 ALO 有效期。                                            |
+| `reduce_only`    | ✓          | ✓    | 仅平仓订单。                                                   |
+| `quote_quantity` | ✓          | ✓    | quote 金额按缓存报价换算为 base 数量。                         |
 
 :::info
-Post-only orders that would immediately match are rejected by Hyperliquid. The adapter detects
-this and generates an `OrderRejected` event. Post-only orders are routed through Hyperliquid's
-ALO (Add-Liquidity-Only) lane.
+会立即撮合的 post-only 订单会被 Hyperliquid 拒绝。适配器会检测到并生成
+`OrderRejected` 事件。Post-only 订单走 Hyperliquid 的 ALO
+（Add-Liquidity-Only）通道。
 :::
 
-### Order operations
+### 订单操作 {#order-operations}
 
-| Operation         | Perpetuals | Spot | Notes                                          |
-| ----------------- | ---------- | ---- | ---------------------------------------------- |
-| Submit order      | ✓          | ✓    | Single order submission.                       |
-| Submit order list | ✓          | ✓    | Batch order submission (single API call).      |
-| Modify order      | ✓          | ✓    | Requires venue order ID.                       |
-| Cancel order      | ✓          | ✓    | Cancel by client order ID.                     |
-| Cancel all orders | ✓          | ✓    | Batched `cancelByCloid` for open orders.       |
-| Batch cancel      | ✓          | ✓    | Batched `cancelByCloid` for the provided list. |
+| 操作           | 永续       | 现货   | 说明                                           |
+| -------------- | ---------- | ---- | ------------------------------------------------ |
+| 提交订单       | ✓          | ✓    | 单笔订单提交。                                   |
+| 提交订单列表   | ✓          | ✓    | 批量订单提交（单次 API 调用）。                  |
+| 修改订单       | ✓          | ✓    | 需要场所订单 ID。                                |
+| 取消订单       | ✓          | ✓    | 按客户订单 ID 取消。                             |
+| 取消全部订单   | ✓          | ✓    | 对未结订单批量 `cancelByCloid`。                 |
+| 批量取消       | ✓          | ✓    | 对给定列表批量 `cancelByCloid`。                 |
 
 :::info
-Cancels prefer `cancelByCloid` and fall back to `cancel` by numeric OID when no CLOID is cached. Fast and
-standard cancels dispatch as separate batched actions. Thus, one cancel request can produce more than one
-venue call.
+撤单优先使用 `cancelByCloid`，没有缓存 CLOID 时回退为按数字 OID
+`cancel`。快速撤单与标准撤单作为独立的批量动作分发，因此一次撤单请求可能产生
+多于一次的场所调用。
 
-Definite local cancel failures and authoritative venue rejections emit `OrderCancelRejected` for each affected
-order. Per-order errors in a batch response leave the other cancels intact. An explicit whole-request
-rejection applies to every cancel in that dispatched action. Rejection events preserve the venue's error
-message. After dispatch, transport failures and responses that leave the venue outcome unknown keep orders
-available for reconciliation.
+确定的本地撤单失败与权威的场所拒绝会为每个受影响订单发出
+`OrderCancelRejected`。批量响应中的逐单错误不影响其余撤单；整请求的显式拒绝
+作用于该分发动作中的每一个撤单。拒绝事件保留场所的错误消息。分发之后，传输失败
+与无法确定场所结果的响应会让订单保留在对账可用状态。
 :::
 
 :::info
-Orders placed outside NautilusTrader (e.g. via the Hyperliquid web UI or another client)
-are detected and tracked as external orders. They appear in order status reports and position
-reconciliation.
+在 NautilusTrader 之外下的单（例如通过 Hyperliquid 网页 UI 或其他客户端）会被
+检测并作为外部订单跟踪，出现在订单状态报告与持仓对账中。
 :::
 
-### Modify as cancel-replace
+### 修改即 cancel-replace {#modify-as-cancel-replace}
 
-Hyperliquid implements order modification as a **cancel-replace**. The `modify` action on the
-[exchange endpoint](https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#modify-an-order)
-cancels the original order (old `oid`) and opens a replacement with a new `oid`. Both legs
-share the same client order ID (`cloid`).
+Hyperliquid 把订单修改实现为 **cancel-replace**。
+[交易所端点](https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#modify-an-order)
+的 `modify` 动作撤掉原订单（旧 `oid`）并挂出一个带新
+`oid` 的替换单。两条腿共享同一客户订单 ID（`cloid`）。
 
-Nautilus omits the action-level
-[`always_place` flag](https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#modify-an-order)
-(`a`). With the flag absent, a canceled or fully filled target does not create a replacement.
-Setting it to true allows replacement even when cancellation fails and can create an unwanted
-extra order.
+Nautilus 省略动作级的
+[`always_place` 标志](https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#modify-an-order)
+（`a`）。该标志缺位时，已撤销或已全部成交的目标不会产生替换单。把它设为 true
+会在撤单失败时仍挂出替换单，可能造出计划外的额外订单。
 
-Replacement rules depend on the original order. An executable limit replacement is priced to match immediately.
+替换规则取决于原订单。可立即成交的限价替换会被定价为立即匹配。
 
-| Original order                  | Replacement                 | Venue result                                          |
-| ------------------------------- | --------------------------- | ----------------------------------------------------- |
-| Limit                           | Non-executable ALO limit    | Accepted; stays post-only.                            |
-| Limit                           | Non-executable GTC limit    | Accepted; time in force changes to ALO.               |
-| Limit                           | Executable ALO or GTC limit | Original canceled; replacement rejected as post-only. |
-| Limit                           | IOC limit                   | Rejected without canceling the original.              |
-| Limit                           | Trigger market or limit     | Rejected without canceling the original.              |
-| Untriggered stop or take profit | Same trigger kind           | Accepted.                                             |
+| 原订单                 | 替换单                      | 场所结果                                            |
+| ---------------------- | --------------------------- | ----------------------------------------------------- |
+| 限价单                 | 不可成交的 ALO 限价单       | 接受；保持 post-only。                                |
+| 限价单                 | 不可成交的 GTC 限价单       | 接受；有效期变为 ALO。                                |
+| 限价单                 | 可成交的 ALO 或 GTC 限价单  | 原单撤销；替换单按 post-only 被拒。                   |
+| 限价单                 | IOC 限价单                  | 拒绝，且不撤销原单。                                  |
+| 限价单                 | 触发市价或触发限价          | 拒绝，且不撤销原单。                                  |
+| 未触发的止损或止盈     | 同类触发订单                | 接受。                                                |
 
-The linked API description allows only non-trigger replacements with `always_place` false.
-The venue also accepts same-kind replacements for existing trigger orders with `a` absent.
-Nautilus strategy modifications retain the cached order's kind and time in force.
+链接的 API 文档只允许在 `always_place` 为 false 时使用非触发类替换。对已存在的
+触发订单，场所同样接受 `a` 缺位的同类替换。Nautilus 策略侧的修改会保留缓存订单
+的类型与有效期。
 
-The execution client sends one `modify` action per `ModifyOrder`. For direct `batchModify` calls,
-the venue processes each modification separately. An invalid replacement does not roll back
-successful modifications in the same batch. Check each entry's result.
+执行客户端对每个 `ModifyOrder` 只发送一个 `modify` 动作。直接调用
+`batchModify` 时，交易场所逐条处理每项修改：无效的替换不会回滚同批中已成功的
+修改，请检查每个条目的结果。
 
 :::warning
-An executable ALO or GTC replacement can cancel the original limit order before Hyperliquid
-rejects the replacement. A modify rejection does not prove that the original order is still open.
-`OrderModifyRejected` can be followed by `OrderCanceled` if the venue cancels the original.
-Check its venue state before deciding whether to submit another order.
+可成交的 ALO 或 GTC 替换可能在 Hyperliquid 拒绝替换之前就撤销原限价单。修改
+被拒不证明原订单仍然挂著。若场所撤掉了原单，`OrderModifyRejected`
+之后可能跟着 `OrderCanceled`。在决定是否再下一单之前，先核对该订单的场所状态。
 :::
 
 The modify HTTP response only confirms success. The
