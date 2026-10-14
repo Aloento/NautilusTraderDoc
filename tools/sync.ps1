@@ -1,5 +1,5 @@
 # Sync source: upstream nautilus_trader docs (develop branch = nightly/live docs).
-# Extracts the docs tree, then mirrors it into ./docs via .sync/tools/sync.mjs.
+# Extracts the docs tree, then mirrors it into ./docs via tools/sync.mjs.
 param([string]$Ref = 'refs/upstream/develop')
 $ErrorActionPreference = 'Stop'
 Set-Location $PSScriptRoot/..
@@ -13,4 +13,4 @@ git archive --format=tar -o .sync/docs.tar $Ref docs
 tar -x -f .sync/docs.tar -C .sync/en
 Remove-Item .sync/docs.tar
 
-node .sync/tools/sync.mjs
+node tools/sync.mjs

@@ -6,7 +6,7 @@ import { readdirSync, readFileSync, writeFileSync, existsSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', '..');
+const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const DOCS = path.join(ROOT, 'docs');
 const EN = path.join(ROOT, '.sync', 'en', 'docs');
 
@@ -78,6 +78,10 @@ function enHeadings(rel) {
 
 const modified = [];
 const mismatches = [];
+if (!existsSync(EN)) {
+  console.log('no English source tree (.sync/en/docs) — run tools/sync.ps1 first; nothing to pin');
+  process.exit(0);
+}
 for (const rel of walk(DOCS)) {
   const zhAbs = path.join(DOCS, rel);
   const zhText = readFileSync(zhAbs, 'utf8');

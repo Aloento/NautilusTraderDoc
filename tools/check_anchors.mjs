@@ -8,7 +8,7 @@ import { readdirSync, readFileSync, existsSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', '..');
+const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const DOCS = path.join(ROOT, 'docs');
 const EN = path.join(ROOT, '.sync', 'en', 'docs');
 
@@ -63,13 +63,16 @@ for (const rel of walk(DOCS)) {
   anchors.set(rel, set);
 }
 
-// English source slugs (auto slug from original heading text)
+// English source slugs (auto slug from original heading text). Optional: the
+// EN staging dir only exists right after tools/sync.ps1 has run.
 const enSlugs = new Map(); // rel -> Map(slug -> heading text)
-for (const rel of walk(EN)) {
-  const abs = path.join(EN, rel);
-  const m = new Map();
-  for (const h of headingsOf(abs)) m.set(h.auto, h.auto);
-  enSlugs.set(rel, m);
+if (existsSync(EN)) {
+  for (const rel of walk(EN)) {
+    const abs = path.join(EN, rel);
+    const m = new Map();
+    for (const h of headingsOf(abs)) m.set(h.auto, h.auto);
+    enSlugs.set(rel, m);
+  }
 }
 
 // Collect all internal fragments

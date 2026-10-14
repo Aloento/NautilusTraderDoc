@@ -11,7 +11,7 @@ import { readdirSync, readFileSync, writeFileSync, mkdirSync, rmSync, copyFileSy
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', '..');
+const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const SRC = path.join(ROOT, '.sync', 'en', 'docs');
 const DEST = path.join(ROOT, 'docs');
 const GH = 'https://github.com/nautechsystems/nautilus_trader/blob/develop';
