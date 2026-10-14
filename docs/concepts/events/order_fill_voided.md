@@ -1,113 +1,86 @@
 # OrderFillVoided
 
-`OrderFillVoided` records that all or part of a previously reported fill no longer has economic effect. The
-`ExecutionEngine` applies each successful correction to the order.
+`OrderFillVoided` 记录先前上报的成交已全部或部分失去经济效力。`ExecutionEngine` 把每次成功的更正应用到订单。
 
-When the referenced fill exists locally, the engine also rebuilds each affected position and
-refreshes portfolio position and PnL caches before publishing the correction. Venue adapters refresh
-account balances from their authoritative account endpoints.
+若所引用的成交在本地存在，引擎还会重建每个受影响的持仓，并在发布更正前刷新组合的持仓与盈亏缓存。场所适配器从其权威账户接口刷新账户余额。
 
-Strategies receive `OrderFillVoided` after the corrected cache state is available. When a cached position
-changes, the engine then publishes `PositionChanged` if it stays open or `PositionClosed` if it is closed. A
-successful order-only correction does not produce a position event.
+更正后的缓存状态就绪后，策略才收到 `OrderFillVoided`。若缓存持仓发生变化，引擎随后发布 `PositionChanged`（仍持有）或 `PositionClosed`（已平掉）。仅涉及订单的成功更正不产生持仓事件。
 
-A **correction** is not an opposite-side fill. It keeps the original trade identity so replay, reconciliation,
-and strategy audit history describe the venue action directly.
+**更正**（correction）不是反向成交。它保留原始成交标识，使回放、对账和策略审计历史直接描述场所的操作。
 
-Handler: `on_order_fill_voided`.
+处理函数：`on_order_fill_voided`。
 
-## Contract
+## 约定 {#contract}
 
-`voided_qty` and `commission_voided` are cumulative for the referenced `trade_id`. Quantity
-corrections cannot decrease. For a locally applied fill, fee corrections also cannot decrease, and
-a later revision may increase either value or change `is_reopened` at the same quantity. Duplicate,
-stale, and over-void corrections are rejected.
+`voided_qty` 和 `commission_voided` 针对所引用的 `trade_id` 累计。数量更正不可回退。对已本地应用的成交，手续费更正也不可回退；后续修订可以在数量不变的情况下增大任一数值或改变 `is_reopened`。重复、过时和超量的更正会被拒绝。
 
-Whether the referenced `OrderFilled` is already in the local order history determines how Nautilus
-interprets the correction:
+所引用的 `OrderFilled` 是否已在本地订单历史中，决定了 Nautilus 如何解释这条更正：
 
-| Fill is local | `is_reopened` | Outcome                                                               |
+| 成交在本地 | `is_reopened` | 结果                                                                  |
 | ------------- | ------------- | --------------------------------------------------------------------- |
-| Yes           | `false`       | Apply. Corrected quantity does not become working.                    |
-| Yes           | `true`        | Apply. Corrected quantity becomes working, subject to terminal rules. |
-| No            | `false`       | Apply. Whole order becomes terminal with zero leaves.                 |
-| No            | `true`        | Reject.                                                               |
+| 是           | `false`       | 应用。更正的数量不恢复为挂单量。                    |
+| 是           | `true`        | 应用。更正的数量恢复为挂单量，受终态规则约束。 |
+| 否            | `false`       | 应用。整个订单成为零剩余量的终态。                 |
+| 否            | `true`        | 拒绝。                                                               |
 
-An unapplied non-reopened correction is an **order-level terminal assertion**. This stays true when
-`voided_qty` is less than the order quantity: the value records the ineffective fill quantity, not working
-leaves.
+未应用（unapplied）的非重开更正是一条**订单级终态断言**。即使 `voided_qty` 小于订单数量也是如此：该数值记录的是失效成交量，不是挂单剩余量。
 
-For an unapplied non-reopened correction:
+对未应用的非重开更正：
 
-- The event must match the order identity.
-- `voided_qty` cannot exceed the order quantity.
-- The event cannot void a non-zero commission.
-- Nautilus does not reverse position or account exposure without a local fill.
+- 事件必须与订单标识匹配。
+- `voided_qty` 不能超过订单数量。
+- 事件不能作废非零手续费。
+- 没有本地成交时，Nautilus 不会逆转持仓或账户敞口。
 
-### Adapter requirements
+### 适配器要求 {#adapter-requirements}
 
-- Publish and persist the referenced `OrderFilled` before a reopened correction or any partial
-  correction that should leave the order executable. Replay enforces the same ordering as live
-  processing.
-- Emit a correction without its referenced fill only when the whole order is authoritatively
-  terminal.
-- Do not rely on a later working `OrderStatusReport` to repair event ordering. Continuous
-  reconciliation ignores fill decreases in working reports without explicit void evidence,
-  `VOIDED` does not reopen, and snapshot reconciliation derives corrections only from retained
-  fills.
-- Report `OrderUpdated.quantity` gross (see [OrderUpdated](./order_updated.md#contract)): inclusive of filled
-  and non-reopened voided quantity. Nautilus already excludes the non-reopened voided quantity from leaves. An
-  adapter that also nets it out of `quantity` subtracts it twice. The exception is a reconciliation update
-  that closes the order as `FILLED`, whose `quantity` is the effective `filled_qty`.
+- 对于重开的更正，或希望订单保持可执行的任何部分更正，先发布并持久化所引用的 `OrderFilled`。回放执行的顺序约束与实时处理一致。
+- 只有当整个订单权威地处于终态时，才可以在缺少所引用成交的情况下发出更正。
+- 不要指望后续挂单状态的 `OrderUpdated`/status report 来修复事件顺序。持续对账会忽略挂单报告中无明确作废证据的成交数量减少；
+  `VOIDED` 不会被重开；快照对账只从保留的成交推导更正。
+- `OrderUpdated.quantity` 按毛值上报（见 [OrderUpdated](./order_updated.md#contract)）：包含已成交量和未重开的作废量。Nautilus 在计算剩余量时已经扣除未重开的作废量。若适配器又在 `quantity` 中扣掉它，就会重复扣减。例外是对账中把订单以 `FILLED` 关闭的更新，其 `quantity` 取有效的 `filled_qty`。
 
-### Status behavior with a local fill
+### 有本地成交时的状态行为 {#status-behavior-with-a-local-fill}
 
-The corrected quantity does not become executable by default:
+更正的数量默认不会恢复为可执行量：
 
-- A filled order becomes terminal `VOIDED`, even when some effective filled quantity survives.
-- A partially filled order preserves the remainder that was already working. Its status derives from the
-  surviving effective fills and its leaves exclude the non-reopened void quantity. This exclusion is preserved
-  across subsequent [`OrderUpdated`](./order_updated.md) events. Nautilus always derives leaves as
-  `max(quantity - filled_qty - non_reopened_voided_qty, 0)`. Thus, a later quantity change does not put the
-  voided portion back into leaves.
-- A canceled or expired order keeps its terminal status.
-- A correction with `is_reopened=true` also returns the corrected quantity to working leaves. The order
-  derives `ACCEPTED` when the effective fill quantity is zero or `PARTIALLY_FILLED` when some quantity
-  survives.
+- 已完全成交的订单进入终态 `VOIDED`，即使仍有一部分有效成交量。
+- 部分成交的订单保留原本已在挂单的部分。其状态由存留的有效成交推导，剩余量不含未重开的作废量。该扣除在后续
+  [`OrderUpdated`](./order_updated.md) 事件中持续生效。Nautilus 始终按
+  `max(quantity - filled_qty - non_reopened_voided_qty, 0)` 推导剩余量，因此之后修改数量也不会把作废部分放回剩余量。
+- 已取消或已过期的订单保持其终态。
+- `is_reopened=true` 的更正会把更正的数量重新放回挂单剩余量。有效成交量为零时订单推导为 `ACCEPTED`，仍有存留量时为 `PARTIALLY_FILLED`。
 
-`VOIDED` is terminal regardless of the correction path. Later fills, cancels, updates, corrections,
-and working status reports do not reopen it.
+无论经由哪条更正路径，`VOIDED` 都是终态。后续的成交、撤单、更新、更正和挂单状态报告都不会重开它。
 
-:::warning[Upgrade consumers before they read corrected data]
-The schemas append this event and status without changing existing records. Older v2 readers do not
-recognize the new values, so upgrade consumers before they read corrected streams or catalog data.
+:::warning[先升级消费端，再读取更正后的数据]
+schema 只是追加了该事件与状态，不改动已有记录。旧版 v2 读取器不认识新值，因此让消费端读取含更正的流或目录数据之前，先完成升级。
 :::
 
-## Fields
+## 字段 {#fields}
 
-Beyond the [common Python order event fields](./index.md#common-python-order-event-fields),
-`OrderFillVoided` carries:
+除 [Python 订单事件公共字段](./index.md#common-python-order-event-fields)外，`OrderFillVoided` 还携带：
 
-| Field               | Python type                | Required/default | Description                                             |
+| 字段                | Python 类型                | 必填/默认值 | 说明                                            |
 | ------------------- | -------------------------- | ---------------- | ------------------------------------------------------- |
-| `venue_order_id`    | `VenueOrderId`             | Required         | Venue-assigned order identifier.                        |
-| `account_id`        | `AccountId`                | Required         | Account associated with the original fill.              |
-| `correction_id`     | `str`                      | Required         | Identity for this correction revision.                  |
-| `trade_id`          | `TradeId`                  | Required         | Original venue trade ID.                                |
-| `voided_qty`        | `Quantity`                 | Required         | Cumulative ineffective quantity for the trade.          |
-| `commission_voided` | `Money` or `None`          | `None`           | Cumulative fee correction for the trade.                |
-| `order_side`        | `OrderSide`                | Required         | Side of the original fill.                              |
-| `order_type`        | `OrderType`                | Required         | Type of the original order.                             |
-| `last_px`           | `Price`                    | Required         | Price of the original fill.                             |
-| `currency`          | `Currency`                 | Required         | Currency of the original fill price.                    |
-| `liquidity_side`    | `LiquiditySide`            | Required         | Liquidity side of the original fill.                    |
-| `position_id`       | `PositionId` or `None`     | `None`           | Position ID associated with the original fill.          |
-| `reason`            | `str` or `None`            | `None`           | Venue or reconciliation reason for the correction.      |
-| `info`              | `dict[str, str]` or `None` | `None`           | Additional venue correction metadata.                   |
-| `is_reopened`       | `bool`                     | `False`          | Whether the venue proves the order is executable again. |
-| `reconciliation`    | `bool`                     | Required         | If generated during reconciliation.                     |
+| `venue_order_id`    | `VenueOrderId`             | 必填         | 交易场所分配的订单标识。                        |
+| `account_id`        | `AccountId`                | 必填         | 原始成交关联的账户。              |
+| `correction_id`     | `str`                      | 必填         | 本次更正修订的标识。                  |
+| `trade_id`          | `TradeId`                  | 必填         | 原始场所成交 ID。                                |
+| `voided_qty`        | `Quantity`                 | 必填         | 该笔成交累计失效的数量。          |
+| `commission_voided` | `Money` 或 `None`          | `None`           | 该笔成交累计的手续费更正。                |
+| `order_side`        | `OrderSide`                | 必填         | 原始成交的方向。                              |
+| `order_type`        | `OrderType`                | 必填         | 原始订单的类型。                             |
+| `last_px`           | `Price`                    | 必填         | 原始成交的价格。                             |
+| `currency`          | `Currency`                 | 必填         | 原始成交价格的货币。                    |
+| `liquidity_side`    | `LiquiditySide`            | 必填         | 原始成交的流动性方向。                    |
+| `position_id`       | `PositionId` 或 `None`     | `None`           | 原始成交关联的持仓 ID。          |
+| `reason`            | `str` 或 `None`            | `None`           | 场所或对账给出的更正原因。      |
+| `info`              | `dict[str, str]` 或 `None` | `None`           | 额外的场所更正元数据。                   |
+| `is_reopened`       | `bool`                     | `False`          | 场所是否证明订单重新可执行。 |
+| `reconciliation`    | `bool`                     | 必填         | 是否在一致性对账期间生成。                     |
 
-## Example
+## 示例 {#example}
 
 ```python
 def on_order_fill_voided(self, event: OrderFillVoided) -> None:
@@ -116,8 +89,8 @@ def on_order_fill_voided(self, event: OrderFillVoided) -> None:
     )
 ```
 
-## Related guides
+## 相关指南 {#related-guides}
 
-- [Execution](./../execution/index.md) - Correction application and publication order.
-- [OrderFilled](./order_filled.md) - The original fill event.
-- [Orders](./../orders/index.md) - Order status and state flow.
+- [执行](./../execution/index.md) - 更正的应用与发布顺序。
+- [OrderFilled](./order_filled.md) - 原始成交事件。
+- [订单](./../orders/index.md) - 订单状态与状态流。

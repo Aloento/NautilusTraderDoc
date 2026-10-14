@@ -1,29 +1,28 @@
 # OrderBookDeltas
 
-`OrderBookDeltas` groups a non-empty batch of `OrderBookDelta` records from one logical book event.
-It reduces per-message overhead when an adapter receives or produces several changes at once.
+`OrderBookDeltas` 把来自同一逻辑订单簿事件的多条 `OrderBookDelta` 记录（非空批次）归为一组。当适配器一次收到或产出多条变更时，可减少逐条消息的开销。
 
-## Fields
+## 字段 {#fields}
 
-| Field           | Rust type             | Python type            | Required/default | Notes                                |
+| 字段            | Rust 类型             | Python 类型            | 必填/默认值 | 说明                                |
 | --------------- | --------------------- | ---------------------- | ---------------- | ------------------------------------ |
-| `instrument_id` | `InstrumentId`        | `InstrumentId`         | Required         | Instrument whose book is changing.   |
-| `deltas`        | `Vec<OrderBookDelta>` | `list[OrderBookDelta]` | Required         | Non-empty batch of deltas.           |
-| `flags`         | `u8`                  | `int`                  | From last delta  | Last delta flags.                    |
-| `sequence`      | `u64`                 | `int`                  | From last delta  | Last delta sequence number.          |
-| `ts_event`      | `UnixNanos`           | `int`                  | From last delta  | Last delta event timestamp.          |
-| `ts_init`       | `UnixNanos`           | `int`                  | From last delta  | Last delta initialization timestamp. |
+| `instrument_id` | `InstrumentId`        | `InstrumentId`         | 必填         | 发生变更的订单簿所属工具。   |
+| `deltas`        | `Vec<OrderBookDelta>` | `list[OrderBookDelta]` | 必填         | 非空的 delta 批次。           |
+| `flags`         | `u8`                  | `int`                  | 取自最后一条 delta  | 最后一条 delta 的标志。                    |
+| `sequence`      | `u64`                 | `int`                  | 取自最后一条 delta  | 最后一条 delta 的序列号。          |
+| `ts_event`      | `UnixNanos`           | `int`                  | 取自最后一条 delta  | 最后一条 delta 的事件时间戳。          |
+| `ts_init`       | `UnixNanos`           | `int`                  | 取自最后一条 delta  | 最后一条 delta 的初始化时间戳。 |
 
-## Behavior
+## 行为 {#behavior}
 
-- The batch must contain at least one delta.
-- Each delta's `instrument_id` must match the batch `instrument_id`.
-- The batch metadata mirrors the final delta.
-- The final delta should carry `F_LAST` when it closes a logical event group. See
-  [Delta flags and event boundaries](./index.md#delta-flags-and-event-boundaries).
-- Snapshot batches usually begin with a `CLEAR` delta and end with `F_SNAPSHOT | F_LAST`.
+- 批次至少包含一条 delta。
+- 每条 delta 的 `instrument_id` 必须与批次的 `instrument_id` 一致。
+- 批次元数据镜像最后一条 delta。
+- 最后一条 delta 若结束了某个逻辑事件组，应携带 `F_LAST`。参见
+  [delta 标志与事件边界](./index.md#delta-flags-and-event-boundaries)。
+- 快照批次通常以 `CLEAR` delta 开始，以 `F_SNAPSHOT | F_LAST` 结束。
 
-## Example
+## 示例 {#example}
 
 ```rust tab="Rust"
 use nautilus_core::UnixNanos;
@@ -101,8 +100,8 @@ ask = OrderBookDelta(
 deltas = OrderBookDeltas(instrument_id, [bid, ask])
 ```
 
-## Related guides
+## 相关指南 {#related-guides}
 
-- [OrderBookDelta](./order_book_delta.md) covers the contained update type.
-- [Order books](./../order_book.md) explains supported order book state.
-- [Python API reference](https://nautilustrader.io/docs/python-api-latest/model/data.html) lists Python members.
+- [OrderBookDelta](./order_book_delta.md) 介绍其包含的更新类型。
+- [订单簿](./../order_book.md) 讲解支持的订单簿状态。
+- [Python API 参考](https://nautilustrader.io/docs/python-api-latest/model/data.html) 列出 Python 成员。

@@ -1,39 +1,38 @@
-# Options
+# 期权 {#options}
 
-Nautilus supports options trading across traditional and crypto markets. It provides option-specific
-instrument types, venue-provided Greeks streaming, option chain aggregation, and a local Black-Scholes Greeks
-calculator for risk management.
+Nautilus 支持传统市场与加密市场的期权交易，提供期权专属的工具类型、场所提供的
+Greeks 数据流、期权链聚合，以及用于风险管理的本地 Black-Scholes Greeks 计算器。
 
-## Option instrument types
+## 期权工具类型 {#option-instrument-types}
 
-The platform defines several option instrument types:
+平台定义了若干期权工具类型：
 
-| Instrument           | Description                                                                  |
+| 工具           | 说明                                                                  |
 | -------------------- | ---------------------------------------------------------------------------- |
-| `OptionContract`     | Exchange-traded option on an underlying with strike and expiry.              |
-| `OptionSpread`       | Exchange-defined multi-leg option strategy as one line.                      |
-| `CryptoOption`       | Crypto option with crypto quote/settlement, with inverse or quanto style.    |
-| `CryptoOptionSpread` | Crypto option spread with inverse, settlement currency, and fractional size. |
-| `BinaryOption`       | Fixed-payout option that settles to 0 or 1.                                  |
+| `OptionContract`     | 交易所上市的期权，有标的、行权价与到期日。              |
+| `OptionSpread`       | 交易所定义的多腿期权策略，作为单一合约挂牌。                      |
+| `CryptoOption`       | 加密期权，报价/结算为加密货币，可为反向或 quanto 风格。    |
+| `CryptoOptionSpread` | 加密期权价差，支持反向、结算币种与小数数量。 |
+| `BinaryOption`       | 固定赔付期权，结算为 0 或 1。                                  |
 
-Greeks-relevant metadata varies by instrument type:
+与 Greeks 相关的元数据因工具类型而异：
 
-- `OptionContract`, `CryptoOption`: full Greeks inputs including `strike_price`,
-  `option_kind` (CALL/PUT), `expiration_ns`, `underlying`, `multiplier`.
-- `OptionSpread`, `CryptoOptionSpread`: an exchange-defined multi-leg strategy published as a single tradable
-  instrument. Has `underlying`, `expiration_ns`, and `strategy_type` (a venue-defined code). The spread itself
-  carries no `strike_price` or `option_kind`. Venue-provided leg details are stored in `info` when the adapter
-  supplies them. Orders execute against the spread as one line. `CryptoOptionSpread` additionally carries
-  `is_inverse` and `settlement_currency` for venues like Deribit.
-- `BinaryOption`: has `expiration_ns` and `outcome`/`description`, but no
-  `strike_price`, `option_kind`, or `underlying`.
+- `OptionContract`、`CryptoOption`：完整的 Greeks 输入，包括 `strike_price`、
+  `option_kind`（CALL/PUT）、`expiration_ns`、`underlying`、`multiplier`。
+- `OptionSpread`、`CryptoOptionSpread`：交易所定义的多腿策略，作为单一可交易工具发布。
+  有 `underlying`、`expiration_ns` 和 `strategy_type`（场所定义的组合代码）。
+  价差本身没有 `strike_price` 或 `option_kind`。适配器提供腿细节时存入 `info`。
+  订单按单一合约对价差执行。`CryptoOptionSpread` 还额外携带 `is_inverse` 和
+  `settlement_currency`，用于 Deribit 这类场所。
+- `BinaryOption`：有 `expiration_ns` 和 `outcome`/`description`，
+  没有 `strike_price`、`option_kind` 或 `underlying`。
 
-## Option identifiers
+## 期权标识 {#option-identifiers}
 
-### Series references
+### 系列引用 {#series-references}
 
-`OptionSeriesId` includes a reference-price `InstrumentId` in equality, hashing, and ordering.
-Python constructors default the optional final argument to `<UNDERLYING>.<VENUE>`.
+`OptionSeriesId` 的相等性、哈希与排序都包含参考价的 `InstrumentId`。
+Python 构造函数把可选的末位参数默认设为 `<UNDERLYING>.<VENUE>`。
 
 ```python
 from nautilus_trader.model import InstrumentId
@@ -44,71 +43,70 @@ series_id = OptionSeriesId.from_expiry(
 )
 ```
 
-Serialized forms:
+序列化形式：
 
-- **Derived reference**: `VENUE:UNDERLYING:SETTLEMENT:EXPIRY`.
-- **Other reference**: `VENUE:UNDERLYING:UNDERLYING_INSTRUMENT_ID:SETTLEMENT:EXPIRY`.
+- **派生引用**：`VENUE:UNDERLYING:SETTLEMENT:EXPIRY`。
+- **其他引用**：`VENUE:UNDERLYING:UNDERLYING_INSTRUMENT_ID:SETTLEMENT:EXPIRY`。
 
-Both forms round-trip through `from_str`, including colons in reference symbols and nanosecond expiries.
-Update four-field readers before using other references. Display keeps fractional expiry seconds in Python
-values, message bus topics, and handler IDs.
+两种形式都能经 `from_str` 往返，包括引用符号中的冒号与纳秒精度的到期时间。
+使用其他引用前，先更新按四字段解析的读取方。Python 值、消息总线主题与处理器 ID
+的显示保留到期时间的秒小数位。
 
-| Rust API                        | Reference                                      |
+| Rust API                        | 引用                                      |
 | ------------------------------- | ---------------------------------------------- |
-| `new`, `from_crypto_option`     | Required `InstrumentId`.                       |
-| `new_derived`                   | Derived, with four arguments.                  |
-| `from_expiry`, `from_expiry_ns` | Final `Option<InstrumentId>` (`None` derives). |
+| `new`、`from_crypto_option`     | 必需的 `InstrumentId`。                       |
+| `new_derived`                   | 派生引用，四个参数。                  |
+| `from_expiry`、`from_expiry_ns` | 末位 `Option<InstrumentId>`（`None` 表示派生）。 |
 
-Rust struct literals require `underlying_instrument_id`. Derivation rejects empty or whitespace-only underlyings.
+Rust 结构体字面量要求提供 `underlying_instrument_id`。派生会拒绝空的或纯空白的标的。
 
-Local chain discovery and ATM bootstrap require derived references. The local engine rejects other
-references and does not subscribe to the reference instrument. External-client commands are forwarded.
+本地期权链发现与 ATM 引导要求派生引用。本地引擎拒绝其他引用，也不会订阅引用工具。
+发往外部客户端的命令照常转发。
 
-### Computed contract IDs
+### 计算合约 ID {#computed-contract-ids}
 
-Rust `compute_option_instrument_id` combines `OptionContractSpec` and `OptionSymbologyScheme`.
-The contract's actual underlying is independent of the series' price reference.
+Rust 的 `compute_option_instrument_id` 组合 `OptionContractSpec` 与
+`OptionSymbologyScheme`。合约实际的标的与系列的参考价引用相互独立。
 
-**CME Globex** accepts futures codes such as `ESH6`, rather than `ES`:
+**CME Globex** 接受 `ESH6` 这类期货代码而非 `ES`：
 
-- **Roots**: ES, NQ, RTY, MES, MNQ, SR3 SOFR, and CL WTI weeklies on nominal weekday schedules.
-- **Expiry**: Equity quarterlies take precedence when futures and quarterly-expiry months match. End-of-month
-  (EOM) contracts use the last weekday.
-- **Digits**: The year suffix follows the underlying's one- or two-digit convention. Strikes use whole
-  index points for equities and hundredths for SOFR and WTI.
+- **根代码**：ES、NQ、RTY、MES、MNQ、SR3 SOFR，以及按常规工作日日程的 CL WTI 周度合约。
+- **到期**：期货月与季月到期月重合时，股指季月合约优先。月末（EOM）合约使用最后一个工作日。
+- **数字**：年份后缀遵循标的的一位或两位数字约定。行权价对股指用整数点，
+  对 SOFR 与 WTI 用百分位。
 
-The **Options Symbology Initiative (OSI)** defaults to the underlying symbol, with an optional root
-override and eight-digit strikes in exact thousandths.
+**Options Symbology Initiative（OSI）** 默认使用标的符号，可覆盖根代码，
+行权价为八位数字、精确到千分位。
 
-Unsupported roots, expiry dates, and strike precision return typed errors. This includes nominal WTI monthly
-dates and Micro E-mini (MES, MNQ) expiries on or after June 29, 2026.
+不支持的根代码、到期日、行权价精度会返回类型化错误，包括名义 WTI 月度日期，
+以及 2026 年 6 月 29 日及之后的 Micro E-mini（MES、MNQ）到期。
 
 :::info
-Validate candidate IDs against instrument definitions for actual listings and holiday-adjusted expiries.
+候选 ID 要对照实际挂牌的工具定义与节假日调整后的到期日进行验证。
 :::
 
-## Option selection types
+## 期权筛选类型 {#option-selection-types}
 
-`OptionSideFilter` selects calls, puts, both, or out-of-the-money wings, including both sides at ATM.
-Rust `StrikeSearchProfile` validates construction and deserialization:
+`OptionSideFilter` 选择看涨、看跌、两者，或虚值两翼，在 ATM 处可包含两侧。
+Rust 的 `StrikeSearchProfile` 在构造与反序列化时校验：
 
-- Non-empty, positive, unique increments in caller preference order.
-- Non-negative grid origin.
-- Positive candidate limit.
+- 增量非空、为正、互不重复，按调用方偏好排序。
+- 网格原点非负。
+- 候选上限为正。
 
-Chain subscription APIs accept neither type.
+期权链订阅 API 不接受这两种类型。
 
-## Subscribing to Greeks
+## 订阅 Greeks {#subscribing-to-greeks}
 
-Venues like Deribit, Bybit, and OKX publish real-time Greeks alongside their options markets.
-Nautilus provides two subscription levels:
+Deribit、Bybit、OKX 等场所会随期权市场发布实时 Greeks。
+Nautilus 提供两个订阅层级：
 
-- **Per-instrument Greeks**: subscribe to individual option contracts.
-- **Option chain slices**: subscribe to an aggregated view of an entire option series.
+- **按工具 Greeks**：订阅单个期权合约。
+- **期权链切片**：订阅整个期权系列的聚合视图。
 
-### Per-instrument Greeks
+### 按工具 Greeks {#per-instrument-greeks}
 
-Subscribe to venue-provided Greeks for a single option contract from an actor or strategy:
+在 actor 或策略中订阅单个期权合约的场所 Greeks：
 
 ```python
 from nautilus_trader.model import ClientId
@@ -117,7 +115,7 @@ client_id = ClientId("DERIBIT")
 self.subscribe_option_greeks(instrument_id, client_id=client_id)
 ```
 
-Handle incoming updates by implementing the `on_option_greeks` handler:
+实现 `on_option_greeks` 处理器接收更新：
 
 ```python
 def on_option_greeks(self, greeks) -> None:
@@ -129,18 +127,18 @@ def on_option_greeks(self, greeks) -> None:
     )
 ```
 
-To stop receiving updates:
+停止接收更新：
 
 ```python
 self.unsubscribe_option_greeks(instrument_id, client_id=client_id)
 ```
 
-### Option chain subscriptions
+### 期权链订阅 {#option-chain-subscriptions}
 
-An option chain subscription aggregates quotes and Greeks across all strikes in an option series into
-`OptionChainSlice` snapshots. The `DataEngine` creates one Rust `OptionChainManager` per series and owns its
-lifecycle. It creates the manager, routes incoming data, runs snapshot timers, and drains wire subscription
-changes.
+期权链订阅把一个期权系列中所有行权价的报价与 Greeks 聚合为
+`OptionChainSlice` 快照。`DataEngine` 为每个系列创建一个 Rust
+`OptionChainManager` 并拥有其生命周期：创建管理器、路由进入的数据、
+运行快照定时器、排空底层订阅变更。
 
 ```python
 from nautilus_trader.model import OptionSeriesId
@@ -157,7 +155,7 @@ self.subscribe_option_chain(
 )
 ```
 
-Handle snapshots by implementing the `on_option_chain` handler:
+实现 `on_option_chain` 处理器接收快照：
 
 ```python
 def on_option_chain(self, chain) -> None:
@@ -168,65 +166,60 @@ def on_option_chain(self, chain) -> None:
             self.log.info(f"Call {strike}: delta={call.greeks.delta:.4f}")
 ```
 
-### Strike range filtering
+### 行权价范围过滤 {#strike-range-filtering}
 
-`StrikeRange` controls which strikes are active in a chain subscription:
+`StrikeRange` 控制链订阅中哪些行权价处于活动状态：
 
-| Variant       | Description                                         | Example                          |
+| 变体       | 说明                                         | 示例                          |
 | ------------- | --------------------------------------------------- | -------------------------------- |
-| `Fixed`       | Subscribe to an explicit set of strikes.            | `StrikeRange.fixed([...])`       |
-| `AtmRelative` | N strikes above and N below the current ATM strike. | `StrikeRange.atm_relative(5, 5)` |
-| `AtmPercent`  | All strikes within a percentage band around ATM.    | `StrikeRange.atm_percent(0.10)`  |
-| `Delta`       | Strikes whose call or put delta is near a target.   | `StrikeRange.delta(0.25, 0.05)`  |
+| `Fixed`       | 订阅显式指定的行权价集合。            | `StrikeRange.fixed([...])`       |
+| `AtmRelative` | 当前 ATM 行权价上下各 N 个行权价。 | `StrikeRange.atm_relative(5, 5)` |
+| `AtmPercent`  | ATM 附近百分比区间内的全部行权价。    | `StrikeRange.atm_percent(0.10)`  |
+| `Delta`       | 看涨或看跌 delta 接近目标值的行权价。   | `StrikeRange.delta(0.25, 0.05)`  |
 
-For dynamic strike ranges, subscriptions are **deferred until the ATM price is determined**. ATM is derived
-from the venue reference price in `OptionGreeks.underlying_price`. It can also be seeded from a reference
-price fetched for the option series through HTTP. This permits immediate bootstrap before live WebSocket ticks
-arrive. As ATM shifts, the active strike set rebalances automatically.
+动态行权价范围的订阅**会推迟到 ATM 价格确定之后**。ATM 取自
+`OptionGreeks.underlying_price` 中的场所参考价，也可以用通过 HTTP 为该期权系列
+获取的参考价预先播种，从而在实时 WebSocket tick 到达前立即完成引导。
+ATM 移动时，活动行权价集合自动重新平衡。
 
-`Delta` resolves from venue-provided Greeks: a strike is active when its call or put delta magnitude (calls
-positive, puts negative, compared by absolute value) falls within `tolerance` of `target`. A typical
-out-of-the-money target such as `0.25` selects a strike on each side of ATM.
+`Delta` 由场所提供的 Greeks 解析：某行权价的看涨或看跌 delta 的绝对值
+（看涨为正、看跌为负，按绝对值比较）落在 `target` 的 `tolerance`
+容差内即激活。典型的虚值目标如 `0.25`，会在 ATM 两侧各选出一个行权价。
 
-Bootstrap and fallback depend on the available data:
+引导与回退取决于可用数据：
 
-- **Before ATM is known**: `Delta` is deferred like other dynamic ranges.
-- **After ATM is known**: `Delta` falls back to an ATM-relative window when no active strike's Greeks match
-  the band, including before any Greeks arrive. This window includes five strikes either side of ATM.
-- **Before switching to selected delta strikes**: the aggregator waits until each fallback leg has Greeks so
-  partial early updates do not drop neighboring strikes.
+- **ATM 未知前**：`Delta` 与其他动态范围一样处于推迟状态。
+- **ATM 已知后**：当没有活动行权价的 Greeks 命中区间（包括任何 Greeks
+  到达之前），`Delta` 回退为 ATM 相对窗口，窗口含 ATM 两侧各五个行权价。
+- **切换到选定 delta 行权价之前**：聚合器等每个回退腿都有 Greeks 后才切换，
+  避免零散的早期更新丢掉邻近行权价。
 
-### Snapshot vs. raw mode
+### 快照模式与原始模式 {#snapshot-vs-raw-mode}
 
-The `snapshot_interval_ms` parameter controls publishing behavior:
+`snapshot_interval_ms` 参数控制发布行为：
 
-- **Snapshot mode** (`snapshot_interval_ms=1000`): Quotes and Greeks accumulate in a
-  buffer and publish as an `OptionChainSlice` on a timer. Suitable for periodic
-  portfolio rebalancing or UI display.
-- **Raw mode** (`snapshot_interval_ms=None`): Each quote or Greeks update for an
-  active instrument publishes a slice immediately. Suitable for latency-sensitive
-  strategies that react to individual updates.
+- **快照模式**（`snapshot_interval_ms=1000`）：报价与 Greeks 累积在缓冲区，
+  按定时器作为 `OptionChainSlice` 发布。适合周期性组合再平衡或 UI 展示。
+- **原始模式**（`snapshot_interval_ms=None`）：活动工具的每次报价或 Greeks
+  更新立即发布一个切片。适合对单个更新作出反应的延迟敏感策略。
 
-The engine rejects `snapshot_interval_ms=0`. Use `None` for raw mode.
+引擎拒绝 `snapshot_interval_ms=0`，原始模式请使用 `None`。
 
-## Backtesting option chains
+## 期权链回测 {#backtesting-option-chains}
 
-Option-chain backtests use the same `OptionChainManager` and `OptionChainAggregator`
-path as live subscriptions. The prerequisite is a Nautilus Parquet catalog that
-already contains the option instruments and the per-instrument data needed for the
-chain:
+期权链回测使用与实时订阅相同的 `OptionChainManager` 和
+`OptionChainAggregator` 路径。前提是一个 Nautilus Parquet 数据目录，其中已包含
+期权工具以及链所需的逐工具数据：
 
-- `QuoteTick` records for each option contract, carrying the replayed best bid and offer.
-- `OptionGreeks` records for each option contract, carrying delta, implied volatility,
-  convention, and the `underlying_price` used to seed ATM.
-- `CryptoOption` or `OptionContract` instruments for the same instrument IDs.
+- 每个期权合约的 `QuoteTick` 记录，携带重放的最优买卖价。
+- 每个期权合约的 `OptionGreeks` 记录，携带 delta、隐含波动率、
+  convention，以及用于 ATM 播种的 `underlying_price`。
+- 与上述工具 ID 对应的 `CryptoOption` 或 `OptionContract` 工具。
 
-Tardis replays satisfy this contract when option book snapshots or quotes are written
-as `QuoteTick` and `option_summary` messages are written as `OptionGreeks`. The
-backtest does not download or request missing catalog data during the run.
+Tardis 重放满足这一约定：期权簿快照或报价写为 `QuoteTick`，
+`option_summary` 消息写为 `OptionGreeks`。回测运行期间不会下载或请求缺失的目录数据。
 
-Configure a `BacktestNode` run with both data streams for the option instruments in
-the series:
+为 `BacktestNode` 同时配置该系列期权工具的两路数据：
 
 ```python
 data = [
@@ -243,7 +236,7 @@ data = [
 ]
 ```
 
-Then subscribe from the strategy:
+然后在策略中订阅：
 
 ```python
 strike_range = StrikeRange.delta(0.25, 0.05)
@@ -254,30 +247,27 @@ self.subscribe_option_chain(
 )
 ```
 
-Use `snapshot_interval_ms=None` for raw mode. Raw mode publishes a slice after each
-quote or Greeks update for an active instrument. Use an integer interval for
-thinned snapshots. Thinned mode accumulates the latest BBO and Greeks per instrument
-and publishes the chain on the timer cadence, reducing event volume for large chains.
+原始模式用 `snapshot_interval_ms=None`，活动工具的每次报价或 Greeks
+更新后发布一个切片。整数间隔则是抽稀快照：按工具累积最新 BBO 与 Greeks，
+按定时器节奏发布整条链，降低大链的事件量。
 
-Each `OptionChainSlice` joins the latest BBO and Greeks by instrument, then groups the result by strike and
-option kind. A quote can arrive before Greeks, and Greeks can arrive before a quote. The aggregator keeps
-latest state and attaches both when available. The `underlying_price` in `OptionGreeks` drives ATM detection.
+每个 `OptionChainSlice` 按工具连接最新的 BBO 与 Greeks，再按行权价与期权种类分组。
+报价可能先到、Greeks 后到，反之亦然；聚合器保留最新状态，两者都有时一并附上。
+`OptionGreeks` 中的 `underlying_price` 驱动 ATM 检测。
 
-Selection can happen either in the subscription range or inside the strategy:
+筛选可以放在订阅范围里，也可以放在策略内：
 
-- Moneyness: use `StrikeRange.atm_relative(...)` or `StrikeRange.atm_percent(...)`.
-- Delta: use `StrikeRange.delta(target, tolerance)`, or inspect `entry.greeks.delta`
-  in `on_option_chain`.
-- Strike: use `StrikeRange.fixed([...])`, or read `chain.get_call(strike)` and
-  `chain.get_put(strike)`.
+- 按虚实程度：`StrikeRange.atm_relative(...)` 或 `StrikeRange.atm_percent(...)`。
+- 按 delta：`StrikeRange.delta(target, tolerance)`，或在 `on_option_chain`
+  中检查 `entry.greeks.delta`。
+- 按行权价：`StrikeRange.fixed([...])`，或读取 `chain.get_call(strike)` 与
+  `chain.get_put(strike)`。
 
-Matching is quote-driven for options. Market orders and marketable limits fill as
-takers against the opposing replayed BBO. Passive limit orders rest on the simulated
-book and can fill as makers when later BBO updates trade through the limit price.
-The model does not simulate L2 queue position for options.
+期权的撮合由报价驱动。市价单和可成交限价单作为吃单方，对着重放的对方 BBO 成交。
+被动限价单挂在模拟簿上，当后续 BBO 更新穿越限价时可作为挂单方成交。
+该模型不模拟期权的 L2 队列位置。
 
-Structural option fee models are configured on the simulated venue, not inferred
-from the venue name:
+期权结构性费用模型在模拟场所上配置，而不是从场所名推断：
 
 ```python
 from decimal import Decimal
@@ -295,19 +285,19 @@ okx_like = TieredNotionalOptionFeeModel(
 )
 ```
 
-Pass one of these objects as `fee_model` on `BacktestVenueConfig`. The Rust surface
-uses `FeeModelAny::CappedOption(CappedOptionFeeModel::new(...))` and
-`FeeModelAny::TieredNotionalOption(TieredNotionalOptionFeeModel::new(...))`.
+把其中之一作为 `fee_model` 传给 `BacktestVenueConfig`。Rust 侧对应
+`FeeModelAny::CappedOption(CappedOptionFeeModel::new(...))` 与
+`FeeModelAny::TieredNotionalOption(TieredNotionalOptionFeeModel::new(...))`。
 
-See `examples/backtest/tardis_option_chain.py` and the Rust `tardis-option-chain`
-example in `crates/backtest/examples/`.
+参见 `examples/backtest/tardis_option_chain.py` 和
+`crates/backtest/examples/` 中的 Rust `tardis-option-chain` 示例。
 
-## Option chain architecture
+## 期权链架构 {#option-chain-architecture}
 
-The option chain system is event-driven and built around per-series isolation. The
-`DataEngine` creates one Rust `OptionChainManager` per subscribed option series. The
-manager wraps `OptionChainAggregator` and `AtmTracker`, registers message bus handlers,
-publishes snapshots, and queues wire subscription changes for the engine to drain.
+期权链系统是事件驱动的，按系列隔离。`DataEngine` 为每个订阅的期权系列
+创建一个 Rust `OptionChainManager`。管理器封装
+`OptionChainAggregator` 与 `AtmTracker`，注册消息总线处理器，发布快照，
+并把底层订阅变更排队交给引擎排空。
 
 ```mermaid
 flowchart TD
@@ -335,138 +325,130 @@ flowchart TD
     DE -- "sub/unsub" --> DC
 ```
 
-### Component responsibilities
+### 组件职责 {#component-responsibilities}
 
-#### DataEngine
+#### DataEngine {#dataengine}
 
-Holds one `OptionChainManager` per active `OptionSeriesId`:
+为每个活动的 `OptionSeriesId` 持有一个 `OptionChainManager`：
 
-- **Subscription**: on `SubscribeOptionChain`, it resolves instruments from the cache and requests a series
-  reference price for dynamic strike ranges. It creates the manager, subscribes active instruments to the data
-  client, and sets up the snapshot timer.
-- **Timer tick**: the manager checks for rebalances, publishes a snapshot, and queues any wire subscription
-  changes for the engine to drain.
-- **Teardown**: on `UnsubscribeOptionChain` or when all instruments expire, it tears down the manager, cancels
-  the timer, and unsubscribes wire-level feeds.
+- **订阅**：收到 `SubscribeOptionChain` 时，从缓存解析工具，为动态行权价范围
+  请求系列参考价；创建管理器，向数据客户端订阅活动工具，并设置快照定时器。
+- **定时器 tick**：管理器检查是否需要重新平衡，发布快照，并把底层订阅变更
+  排队交给引擎排空。
+- **拆除**：`UnsubscribeOptionChain` 或全部工具到期时，拆除管理器、取消定时器、
+  退订底层数据流。
 
-#### OptionChainManager
+#### OptionChainManager {#optionchainmanager}
 
-A per-series Rust manager around `OptionChainAggregator` and `AtmTracker`. The `DataEngine` feeds it market
-data through `handle_quote()` and `handle_greeks()`. The manager bootstraps the active instrument set
-internally on the first ATM price.
+围绕 `OptionChainAggregator` 与 `AtmTracker` 的系列级 Rust 管理器。
+`DataEngine` 通过 `handle_quote()` 和 `handle_greeks()` 向其输送行情。
+管理器在首个 ATM 价格出现时内部完成活动工具集合的引导。
 
-- **Snapshot mode**: timer callbacks call `publish_slice()`.
-- **Raw mode**: each active quote or Greeks update calls `publish_slice()` immediately.
+- **快照模式**：定时器回调调用 `publish_slice()`。
+- **原始模式**：每次活动报价或 Greeks 更新立即调用 `publish_slice()`。
 
-#### OptionChainAggregator
+#### OptionChainAggregator {#optionchainaggregator}
 
-Accumulates quotes and Greeks into call/put buffers using **keep-latest semantics**. Instruments that did not
-update since the last snapshot are still included.
+以**保留最新值**的语义把报价与 Greeks 累积进看涨/看跌缓冲区。
+自上次快照以来没有更新的工具仍会被包含。
 
-Greeks that arrive before any quote for an instrument are held in a `pending_greeks` buffer and attached when
-the first quote arrives. On each `snapshot()` call, the aggregator produces an immutable `OptionChainSlice`.
+先于任何报价到达的 Greeks 存放在 `pending_greeks` 缓冲区，首个报价到达时附上。
+每次 `snapshot()` 调用，聚合器产出一个不可变的 `OptionChainSlice`。
 
-#### AtmTracker
+#### AtmTracker {#atmtracker}
 
-Derives the ATM price reactively from the `underlying_price` field in incoming
-`OptionGreeks` events. It can be pre-seeded from an HTTP reference price for the
-option series, allowing instant bootstrap without waiting for WebSocket ticks.
+从进入的 `OptionGreeks` 事件的 `underlying_price` 字段反应式地推导 ATM 价格。
+也可以从期权系列的 HTTP 参考价预先播种，从而不必等待 WebSocket tick，即时完成引导。
 
-### Bootstrap and rebalancing
+### 引导与再平衡 {#bootstrap-and-rebalancing}
 
-For dynamic strike ranges (`AtmRelative`, `AtmPercent`, and `Delta`), the active instrument set cannot be
-determined until the ATM price is known. Two bootstrap paths are available:
+动态行权价范围（`AtmRelative`、`AtmPercent`、`Delta`）在活动工具集合
+要等 ATM 价格已知才能确定。有两条引导路径：
 
-**Instant bootstrap (reference price available)**:
+**即时引导（参考价可用）**：
 
-1. `DataEngine` receives `SubscribeOptionChain`, resolves all instruments for the
-   series from the cache, and requests a reference price from the data client.
-2. When the reference price response arrives, the engine creates the manager with
-   the ATM price pre-seeded. The manager computes the active strike set during
-   construction.
-3. The engine subscribes the active instruments immediately.
+1. `DataEngine` 收到 `SubscribeOptionChain`，从缓存解析该系列的全部工具，
+   并向数据客户端请求参考价。
+2. 参考价响应到达后，引擎以预播种的 ATM 价格创建管理器。
+   管理器在构造期间算出活动行权价集合。
+3. 引擎立即订阅活动工具。
 
-**Deferred bootstrap (no reference price)**:
+**延迟引导（无参考价）**：
 
-1. The engine has no matching client or cached option instrument, or the client reports no reference price.
-   The request can also fail or time out after 30 seconds.
-2. The engine creates the manager with no initial ATM price. The active set is
-   empty. When the request reached a client with a cached sample option, the engine
-   subscribes that sample's Greeks as the bootstrap source. Without a client or sample,
-   bootstrap still depends on relevant Greeks data already flowing from another
-   subscription.
-1. When the engine feeds an `OptionGreeks` event with `underlying_price` through `handle_greeks()`, the
-   manager bootstraps the active instrument set. It registers message bus handlers and queues the new wire
-   subscriptions for the engine to drain. The sample subscription becomes part of the active set or is
-   released.
+1. 引擎没有匹配的客户端或缓存的期权工具，或客户端报告没有参考价；
+   请求也可能失败或在 30 秒后超时。
+2. 引擎以无初始 ATM 价格创建管理器，活动集合为空。若请求到达了持有缓存
+   样本期权的客户端，引擎会订阅该样本的 Greeks 作为引导源。
+   没有客户端或样本时，引导仍依赖其他订阅已在流转的相关 Greeks 数据。
+1. 当引擎通过 `handle_greeks()` 送入带 `underlying_price` 的
+   `OptionGreeks` 事件时，管理器完成活动工具集合的引导：注册消息总线处理器，
+   把新的底层订阅排队交给引擎排空。样本订阅并入活动集合或被释放。
 
-Once bootstrapped, the aggregator monitors ATM drift. On each snapshot timer tick,
-the manager calls the aggregator's `check_rebalance()` which returns any instruments
-to add or remove. A hysteresis threshold and cooldown period prevent thrashing near
-strike boundaries.
+引导完成后，聚合器持续监测 ATM 漂移。每个快照定时器 tick 上，管理器调用
+聚合器的 `check_rebalance()`，返回需要增删的工具。
+迟滞阈值与冷却期可避免行权价边界附近的反复抖动。
 
-## OptionGreeks data type
+## OptionGreeks 数据类型 {#optiongreeks-data-type}
 
-`OptionGreeks` carries venue-provided sensitivities and implied volatility for a
-single option contract:
+`OptionGreeks` 携带场所提供的单个期权合约的敏感度与隐含波动率：
 
-| Field              | Type               | Description                                         |
+| 字段              | 类型               | 说明                                         |
 | ------------------ | ------------------ | --------------------------------------------------- |
-| `instrument_id`    | `InstrumentId`     | The option contract these Greeks apply to.          |
-| `convention`       | `GreeksConvention` | Numeraire convention for the Greeks.                |
-| `delta`            | `float`            | Rate of change of option price per unit underlying. |
-| `gamma`            | `float`            | Rate of change of delta per unit underlying.        |
-| `vega`             | `float`            | Venue-reported vega.                                |
-| `theta`            | `float`            | Venue-reported theta.                               |
-| `rho`              | `float`            | Venue-reported rho, with zero as the default.       |
-| `mark_iv`          | `float` or None    | Mark implied volatility.                            |
-| `bid_iv`           | `float` or None    | Bid implied volatility.                             |
-| `ask_iv`           | `float` or None    | Ask implied volatility.                             |
-| `underlying_price` | `float` or None    | Underlying price at time of calculation.            |
-| `open_interest`    | `float` or None    | Open interest for the contract.                     |
-| `ts_event`         | `int`              | UNIX timestamp (nanoseconds) of the event.          |
-| `ts_init`          | `int`              | UNIX timestamp (nanoseconds) when initialized.      |
+| `instrument_id`    | `InstrumentId`     | 这组 Greeks 所属的期权合约。          |
+| `convention`       | `GreeksConvention` | Greeks 的计价基准（numeraire）约定。                |
+| `delta`            | `float`            | 标的每变动一单位期权价格的变化率。 |
+| `gamma`            | `float`            | 标的每变动一单位 delta 的变化率。        |
+| `vega`             | `float`            | 场所报告的 vega。                                |
+| `theta`            | `float`            | 场所报告的 theta。                               |
+| `rho`              | `float`            | 场所报告的 rho，默认为零。       |
+| `mark_iv`          | `float` 或 None    | mark 隐含波动率。                            |
+| `bid_iv`           | `float` 或 None    | 买价隐含波动率。                             |
+| `ask_iv`           | `float` 或 None    | 卖价隐含波动率。                             |
+| `underlying_price` | `float` 或 None    | 计算时的标的价格。            |
+| `open_interest`    | `float` 或 None    | 该合约的未平仓合约量。                     |
+| `ts_event`         | `int`              | 事件时间戳（UNIX 纳秒）。          |
+| `ts_init`          | `int`              | 初始化时间戳（UNIX 纳秒）。      |
 
-## OptionChainSlice data type
+## OptionChainSlice 数据类型 {#optionchainslice-data-type}
 
-`OptionChainSlice` is a point-in-time snapshot of an entire option series.
+`OptionChainSlice` 是整个期权系列的时点快照。
 
-Properties:
+属性：
 
-| Property     | Type             | Description                         |
+| 属性     | 类型             | 说明                         |
 | ------------ | ---------------- | ----------------------------------- |
-| `series_id`  | `OptionSeriesId` | The option series identifier.       |
-| `atm_strike` | `Price` or None  | Current ATM strike (if determined). |
-| `ts_event`   | `int`            | UNIX timestamp (nanoseconds).       |
-| `ts_init`    | `int`            | UNIX timestamp (nanoseconds).       |
+| `series_id`  | `OptionSeriesId` | 期权系列标识。       |
+| `atm_strike` | `Price` 或 None  | 当前 ATM 行权价（若已确定）。 |
+| `ts_event`   | `int`            | UNIX 时间戳（纳秒）。       |
+| `ts_init`    | `int`            | UNIX 时间戳（纳秒）。       |
 
-Call and put data are accessed through methods, not as direct properties.
-Each `OptionStrikeData` returned by these methods contains a `quote` (`QuoteTick`)
-and an optional `greeks` (`OptionGreeks`) for that strike.
+看涨与看跌数据通过方法访问，不是直接属性。
+这些方法返回的每个 `OptionStrikeData` 包含该行的 `quote`（`QuoteTick`）
+和可选的 `greeks`（`OptionGreeks`）。
 
-Methods:
+方法：
 
-- `strikes()`: all unique strike prices in the chain.
-- `strike_count()`, `call_count()`, `put_count()`: counts.
-- `get_call(strike)`, `get_put(strike)`: full `OptionStrikeData`.
-- `get_call_greeks(strike)`, `get_put_greeks(strike)`: Greeks only.
-- `get_call_quote(strike)`, `get_put_quote(strike)`: quote only.
-- `is_empty()`: true if the chain has no data.
+- `strikes()`：链中全部唯一行权价。
+- `strike_count()`、`call_count()`、`put_count()`：计数。
+- `get_call(strike)`、`get_put(strike)`：完整的 `OptionStrikeData`。
+- `get_call_greeks(strike)`、`get_put_greeks(strike)`：仅 Greeks。
+- `get_call_quote(strike)`、`get_put_quote(strike)`：仅报价。
+- `is_empty()`：链无数据时为 true。
 
-## Adapter support
+## 适配器支持 {#adapter-support}
 
-The following adapters support option Greeks subscriptions:
+以下适配器支持期权 Greeks 订阅：
 
-| Adapter             | Per-instrument Greeks | Option chains |
+| 适配器             | 按工具 Greeks | 期权链 |
 | ------------------- | --------------------- | ------------- |
-| Deribit             | Yes                   | Yes           |
-| Bybit               | Yes                   | Yes           |
-| Derive              | Yes                   | Yes           |
-| Interactive Brokers | Yes                   | Yes           |
-| OKX                 | Yes                   | Yes           |
+| Deribit             | 支持                   | 支持           |
+| Bybit               | 支持                   | 支持           |
+| Derive              | 支持                   | 支持           |
+| Interactive Brokers | 支持                   | 支持           |
+| OKX                 | 支持                   | 支持           |
 
-## See also
+## 另见 {#see-also}
 
-- [Greeks](./greeks.md) - Local Greeks calculation and portfolio risk management.
-- [Data](./data/index.md) - Built-in data types and the subscription model.
-- [Actors](./actors.md) - Subscription and handler reference table.
+- [Greeks](./greeks.md) - 本地 Greeks 计算与组合风险管理。
+- [数据](./data/index.md) - 内置数据类型与订阅模型。
+- [Actors](./actors.md) - 订阅与处理器对照表。

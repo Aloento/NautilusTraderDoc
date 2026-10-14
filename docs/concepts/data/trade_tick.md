@@ -1,30 +1,28 @@
 # TradeTick
 
-`TradeTick` represents one executed trade or match event from a venue. It carries the traded price,
-size, aggressor side, and venue trade identifier.
+`TradeTick` 表示来自交易场所的一笔成交或撮合事件，携带成交价、成交量、主动方方向和交易场所的成交标识。
 
-## Fields
+## 字段 {#fields}
 
-| Field            | Rust type       | Python type     | Required/default | Notes                                    |
+| 字段             | Rust 类型       | Python 类型     | 必填/默认值 | 说明                                    |
 | ---------------- | --------------- | --------------- | ---------------- | ---------------------------------------- |
-| `instrument_id`  | `InstrumentId`  | `InstrumentId`  | Required         | Instrument for the trade.                |
-| `price`          | `Price`         | `Price`         | Required         | Executed price.                          |
-| `size`           | `Quantity`      | `Quantity`      | Required         | Executed quantity.                       |
-| `aggressor_side` | `AggressorSide` | `AggressorSide` | Required         | `BUY`, `SELL`, or `NO_AGGRESSOR`.        |
-| `trade_id`       | `TradeId`       | `TradeId`       | Required         | Venue-assigned match ID.                 |
-| `ts_event`       | `UnixNanos`     | `int`           | Required         | Event timestamp in nanoseconds.          |
-| `ts_init`        | `UnixNanos`     | `int`           | Required         | Initialization timestamp in nanoseconds. |
+| `instrument_id`  | `InstrumentId`  | `InstrumentId`  | 必填         | 成交对应的金融工具。                |
+| `price`          | `Price`         | `Price`         | 必填         | 成交价格。                          |
+| `size`           | `Quantity`      | `Quantity`      | 必填         | 成交数量。                       |
+| `aggressor_side` | `AggressorSide` | `AggressorSide` | 必填         | `BUY`、`SELL` 或 `NO_AGGRESSOR`。        |
+| `trade_id`       | `TradeId`       | `TradeId`       | 必填         | 交易场所分配的撮合 ID。                 |
+| `ts_event`       | `UnixNanos`     | `int`           | 必填         | 事件时间戳（纳秒）。          |
+| `ts_init`        | `UnixNanos`     | `int`           | 必填         | 初始化时间戳（纳秒）。 |
 
-## Behavior
+## 行为 {#behavior}
 
-- `size` must be positive.
-- Information-driven bars require `TradeTick` data because they use `aggressor_side`.
-- Trade bars use `LAST` price type.
-- `trade_id` should be stable for the venue event when the venue provides one.
-- Parsing and deserialization accept the deprecated `BUYER`/`SELLER` values. String output is always canonical
-  `BUY`/`SELL`.
+- `size` 必须为正。
+- 信息驱动 bar 需要 `TradeTick` 数据，因为它们使用 `aggressor_side`。
+- 成交 bar 使用 `LAST` 价格类型。
+- 交易场所提供成交 ID 时，`trade_id` 对同一场所事件应保持固定。
+- 解析和反序列化接受已废弃的 `BUYER`/`SELLER` 值；字符串输出始终是规范的 `BUY`/`SELL`。
 
-## Example
+## 示例 {#example}
 
 ```rust tab="Rust"
 use nautilus_core::UnixNanos;
@@ -65,8 +63,8 @@ trade = TradeTick(
 )
 ```
 
-## Related guides
+## 相关指南 {#related-guides}
 
-- [Bar](./bar.md) covers trade-to-bar aggregation.
-- [Information-driven bars](./index.md#information-driven-bars) explains aggressor-side use.
-- [Python API reference](https://nautilustrader.io/docs/python-api-latest/model/data.html) lists Python members.
+- [Bar](./bar.md) 介绍成交到 bar 的聚合。
+- [信息驱动 bar](./index.md#information-driven-bars) 讲解主动方方向的用法。
+- [Python API 参考](https://nautilustrader.io/docs/python-api-latest/model/data.html) 列出 Python 成员。

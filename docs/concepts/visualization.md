@@ -1,24 +1,22 @@
-# Visualization
+# 可视化 {#visualization}
 
-NautilusTrader provides interactive HTML tearsheets for analyzing backtest results through
-an extensible visualization system built on Plotly. You can generate reports with minimal
-code and add custom charts and themes.
+NautilusTrader 基于 Plotly 构建了可扩展的可视化系统，为回测结果生成交互式 HTML
+tearsheet。只需少量代码即可生成报告，也可以添加自定义图表与主题。
 
-## Overview
+## 概览 {#overview}
 
-The visualization system has three parts:
+可视化系统分三部分：
 
-- **Chart registry**: decoupled chart definitions that can be extended with custom visualizations.
-- **Theme system**: consistent styling with built-in and custom themes.
-- **Configuration**: declarative specification of what to render and how to display it.
+- **图表注册表**：彼此解耦的图表定义，可扩展自定义可视化。
+- **主题系统**：风格统一，内置主题并支持自定义主题。
+- **配置**：以声明式方式指定渲染什么、如何展示。
 
-Tearsheets are written as **self-contained HTML files** that can be viewed in any modern browser, shared with
-stakeholders, or archived for future reference. An output path with a static image extension (such as `.png`
-or `.pdf`) exports a static image through Kaleido.
+tearsheet 写为**自包含的 HTML 文件**，可在任何现代浏览器中查看、分享给相关方，
+或存档备查。输出路径使用静态图片扩展名（如 `.png`、`.pdf`）时，经 Kaleido 导出静态图片。
 
 :::note
-The visualization system requires the `visualization` extra. It installs Pandas for
-DataFrame handling, Plotly for interactive figures, and Kaleido for static image export:
+可视化系统需要 `visualization` extra。它安装用于 DataFrame 处理的 Pandas、
+用于交互式图形的 Plotly，以及用于静态图片导出的 Kaleido：
 
 ```bash
 uv pip install --pre "nautilus_trader[visualization]"
@@ -26,15 +24,14 @@ uv pip install --pre "nautilus_trader[visualization]"
 
 :::
 
-## Tearsheets
+## Tearsheet {#tearsheets}
 
-A tearsheet is a performance report that combines multiple charts and
-statistics into a single interactive visualization. Tearsheets are generated after
-completing a backtest run and provide immediate visual feedback on strategy performance.
+tearsheet 是绩效报告，把多个图表与统计合并为一个交互式可视化。
+它在回测运行完成后生成，对策略表现给出直观的视觉反馈。
 
-### Quick start
+### 快速上手 {#quick-start}
 
-Generate a tearsheet with default settings:
+用默认设置生成 tearsheet：
 
 ```python
 from nautilus_trader.analysis import create_tearsheet
@@ -50,13 +47,13 @@ create_tearsheet(
 )
 ```
 
-This produces an HTML file with all default charts, using the light theme and automatic
-layout. Open `backtest_results.html` in your browser to view the interactive tearsheet.
+生成包含全部默认图表的 HTML 文件，使用浅色主题与自动布局。
+在浏览器中打开 `backtest_results.html` 查看交互式 tearsheet。
 
-### Backtest result input
+### 回测结果输入 {#backtest-result-input}
 
-Let `result` be a `BacktestResult` returned by a completed backtest. Pass it without its node for a
-result-only tearsheet:
+设 `result` 是已完成的回测返回的 `BacktestResult`。不传 node 即生成仅结果的
+tearsheet：
 
 ```python
 create_tearsheet(
@@ -65,12 +62,12 @@ create_tearsheet(
 )
 ```
 
-To include starting account balances from node reports, keep the node state. The node is also required when
-the configured tearsheet includes a cache-backed chart such as `bars_with_fills`.
+要在报告中包含来自 node 报告的初始账户余额，就保留节点状态。配置的 tearsheet
+含 `bars_with_fills` 这类依赖缓存的图表时，也必须提供 node。
 
-Follow the complete [`BacktestNode` setup](./backtesting/apis-and-runs.md#high-level-api),
-setting `dispose_on_completion=False` on its `BacktestRunConfig`. Then pass the completed result and
-retained node:
+按完整的 [`BacktestNode` 设置](./backtesting/apis-and-runs.md#high-level-api)操作，
+并在其 `BacktestRunConfig` 上设置 `dispose_on_completion=False`，
+然后传入完成的结果与保留的节点：
 
 ```python
 create_tearsheet(
@@ -81,13 +78,13 @@ create_tearsheet(
 ```
 
 :::warning
-Passing a node whose matching run configuration enables disposal raises `ValueError` because its
-cache and reports are no longer available.
+传入的 node 若其匹配的运行配置启用了处置（dispose），会抛出 `ValueError`，
+因为它的缓存与报告已不可用。
 :::
 
-### Customization
+### 定制 {#customization}
 
-Control which charts appear and how they're styled:
+控制出现哪些图表、采用什么风格：
 
 ```python
 from nautilus_trader.config import TearsheetConfig
@@ -114,9 +111,9 @@ create_tearsheet(
 )
 ```
 
-### Currency filtering
+### 币种过滤 {#currency-filtering}
 
-For multi-currency backtests, filter statistics to a specific currency:
+多币种回测中，可把统计过滤到特定币种：
 
 ```python
 from nautilus_trader.model import Currency
@@ -128,60 +125,60 @@ create_tearsheet(
 )
 ```
 
-When `currency` is `None` (default), statistics for all currencies are displayed separately in the tearsheet.
+`currency` 为 `None`（默认）时，tearsheet 分币种分别展示全部统计。
 
-For `BacktestEngine` input, return-based charts require a single currency. They are derived from portfolio
-equity snapshots, falling back to account reports, and cannot be built for mixed-currency accounts without a
-filter. Pass `currency` for multi-currency backtests so return charts use the selected currency.
+`BacktestEngine` 输入时，收益率类图表要求单一币种。它们由组合净值快照推导，
+回退到账户报告，混合币种账户不加过滤无法构建。多币种回测请传 `currency`，
+收益率图表即使用所选币种。
 
-For `BacktestResult` input, `currency` filters PnL statistics and account balances. The result's **stored
-return series stays unchanged**.
+`BacktestResult` 输入时，`currency` 过滤 PnL 统计与账户余额。
+结果中**已存储的收益率序列保持不变**。
 
-## Available charts
+## 可用图表 {#available-charts}
 
-The tearsheet can include any combination of the following built-in charts:
+tearsheet 可包含以下任意图表的组合：
 
-| Chart Name        | Type        | Description                                             |
+| 图表名称        | 类型        | 说明                                             |
 | ----------------- | ----------- | ------------------------------------------------------- |
-| `run_info`        | Table       | Run metadata and account balances.                      |
-| `stats_table`     | Table       | Performance statistics (PnL, returns, general metrics). |
-| `equity`          | Line        | Cumulative returns over time with optional benchmark.   |
-| `drawdown`        | Area        | Drawdown percentage from peak equity.                   |
-| `monthly_returns` | Heatmap     | Monthly portfolio return percentages organized by year. |
-| `distribution`    | Histogram   | Distribution of individual return values.               |
-| `rolling_sharpe`  | Line        | 60-day rolling Sharpe ratio.                            |
-| `yearly_returns`  | Bar         | Annual return percentages.                              |
-| `bars_with_fills` | Candlestick | Price bars (OHLC) with order fills overlaid as markers. |
+| `run_info`        | 表格       | 运行元数据与账户余额。                      |
+| `stats_table`     | 表格       | 绩效统计（PnL、收益率、通用指标）。 |
+| `equity`          | 折线        | 累计收益率随时间的变化，可叠加基准。   |
+| `drawdown`        | 面积        | 相对净值峰值的回撤百分比。                   |
+| `monthly_returns` | 热力图     | 按月组织的月度组合收益率，按年排列。 |
+| `distribution`    | 直方图   | 单笔收益率数值的分布。               |
+| `rolling_sharpe`  | 折线        | 60 日滚动 Sharpe 比率。                            |
+| `yearly_returns`  | 柱状         | 年度收益率百分比。                              |
+| `bars_with_fills` | K 线 | 价格 K 线（OHLC），订单成交以标记叠加。 |
 
-The chart registry contains all charts. Chart objects in `TearsheetConfig.charts` configure them (each chart
-object maps to a built-in chart name).
+图表注册表包含全部图表，`TearsheetConfig.charts` 中的图表对象负责配置它们
+（每个图表对象对应一个内置图表名）。
 
-### Run information table
+### 运行信息表 {#run-information-table}
 
-The `run_info` chart displays key metadata about the backtest run:
+`run_info` 图表展示回测运行的关键元数据：
 
-- Run ID, start time, finish time
-- Backtest period (start/end dates)
-- Total iterations processed
-- Event, order, and position counts
-- Account starting and ending balances (per currency)
+- 运行 ID、开始时间、结束时间
+- 回测区间（起止日期）
+- 处理的迭代总数
+- 事件、订单与持仓计数
+- 各币种的账户期初与期末余额
 
-This table appears in the top-left position by default.
+该表默认出现在左上角。
 
-### Performance statistics table
+### 绩效统计表 {#performance-statistics-table}
 
-The `stats_table` chart displays performance metrics organized into sections:
+`stats_table` 图表按分区展示绩效指标：
 
-- **PnL Statistics** (per currency): Total PnL, win rate, profit factor, etc.
-- **Returns Statistics**: Sharpe ratio, Sortino ratio, max drawdown, etc.
-- **General Statistics**: Total trades, average trade duration, etc.
+- **PnL 统计**（按币种）：总 PnL、胜率、盈亏比等。
+- **收益率统计**：Sharpe 比率、Sortino 比率、最大回撤等。
+- **通用统计**：总交易数、平均交易时长等。
 
-This table appears in the top-right position by default.
+该表默认出现在右上角。
 
-### Equity curve
+### 净值曲线 {#equity-curve}
 
-The `equity` chart plots cumulative returns over the backtest period. When `benchmark_returns`
-is provided to `create_tearsheet()`, the benchmark is overlaid for comparison.
+`equity` 图表绘制回测期间的累计收益率。向 `create_tearsheet()` 提供
+`benchmark_returns` 时，会叠加基准以便对比。
 
 ```python
 import pandas as pd
@@ -198,19 +195,16 @@ create_tearsheet(
 )
 ```
 
-The benchmark series is plotted as-is. Ensure the index aligns with your strategy's return dates for accurate
-comparison.
+基准序列按原样绘制。要保证对比准确，其索引需与策略的收益日期对齐。
 
-### Monthly and yearly returns
+### 月度与年度收益率 {#monthly-and-yearly-returns}
 
-The `monthly_returns` and `yearly_returns` charts default to compounded (time-weighted) returns. Each cell
-measures the period's gain against the running start-of-period balance. The periods compound to the total
-return.
+`monthly_returns` 和 `yearly_returns` 图表默认使用复利（时间加权）收益率。
+每个单元格度量该期相对期初滚动余额的涨幅，各期复利累计为总收益率。
 
-Set `compounding=False` to report simple, non-compounding returns measured against fixed initial capital. Each
-cell then measures the period's gain as a percentage of the starting capital. Thus, the periods sum to the
-total return instead of compounding to it. This is the nominal rate of return, the convention used for
-constant-capital strategies that trade fixed size and withdraw profits.
+设置 `compounding=False` 则报告相对固定初始本金的单利收益率：每个单元格度量
+该期收益占初始本金的百分比，各期求和等于总收益而非复利累计。即名义收益率，
+适用于固定规模交易并提取利润的等资本策略。
 
 ```python
 config = TearsheetConfig(
@@ -222,35 +216,33 @@ config = TearsheetConfig(
 create_tearsheet(engine=engine, config=config)
 ```
 
-The standalone `create_monthly_returns_heatmap()` and `create_yearly_returns()` functions accept the same
-`compounding` argument. For the non-compounding figures to faithfully represent constant capital, size
-positions at a fixed quantity rather than as a fraction of current equity. Otherwise later periods inflate as
-the running balance grows.
+独立的 `create_monthly_returns_heatmap()` 与 `create_yearly_returns()`
+函数接受同样的 `compounding` 参数。要让非复利图形如实反映等资本，
+仓位应以固定数量而非当前净值的比例来定，否则随着滚动余额增长，后期数值会虚高。
 
-## Themes
+## 主题 {#themes}
 
-Themes control the visual styling of charts including colors, fonts, and backgrounds.
-NautilusTrader provides four built-in themes:
+主题控制图表的视觉风格，包括颜色、字体与背景。NautilusTrader 提供四个内置主题：
 
-| Theme Name      | Description                                   | Use Case                       |
+| 主题名      | 说明                                   | 使用场景                       |
 | --------------- | --------------------------------------------- | ------------------------------ |
-| `plotly_white`  | Clean light theme with dark gray headers.     | Default, professional reports. |
-| `plotly_dark`   | Dark background with standard Plotly colors.  | Low-light environments.        |
-| `nautilus`      | Light theme with NautilusTrader brand colors. | Official light mode.           |
-| `nautilus_dark` | Dark theme with teal/cyan signature colors.   | Official dark mode.            |
+| `plotly_white`  | 干净浅色主题，深灰标题。     | 默认，专业报告。 |
+| `plotly_dark`   | 深色背景，标准 Plotly 配色。  | 弱光环境。        |
+| `nautilus`      | 浅色主题，NautilusTrader 品牌色。 | 官方浅色模式。           |
+| `nautilus_dark` | 深色主题，青/蓝绿标志色。   | 官方深色模式。            |
 
-### Selecting a theme
+### 选择主题 {#selecting-a-theme}
 
-Specify the theme in `TearsheetConfig`:
+在 `TearsheetConfig` 中指定主题：
 
 ```python
 config = TearsheetConfig(theme="nautilus_dark")
 create_tearsheet(engine=engine, config=config)
 ```
 
-### Custom themes
+### 自定义主题 {#custom-themes}
 
-Register a custom theme for consistent branding across all visualizations:
+注册自定义主题，让所有可视化保持统一品牌风格：
 
 ```python
 from nautilus_trader.analysis import register_theme
@@ -277,12 +269,12 @@ register_theme(
 config = TearsheetConfig(theme="corporate")
 ```
 
-The theme system derives default `table_*` colors from the `background` and `grid` colors. These defaults
-preserve compatibility with themes registered before table-specific colors existed.
+主题系统从 `background` 与 `grid` 颜色推导出默认的 `table_*`
+颜色。这些默认值兼容在表格专属颜色出现之前注册的主题。
 
-## Configuration
+## 配置 {#configuration}
 
-The `TearsheetConfig` class provides declarative control over tearsheet generation:
+`TearsheetConfig` 类以声明式方式控制 tearsheet 生成：
 
 ```python
 from nautilus_trader.analysis import GridLayout
@@ -312,28 +304,27 @@ config = TearsheetConfig(
 )
 ```
 
-### Configuration parameters
+### 配置参数 {#configuration-parameters}
 
-| Parameter           | Type                   | Default          | Description                         |
+| 参数           | 类型                   | 默认值          | 说明                         |
 | ------------------- | ---------------------- | ---------------- | ----------------------------------- |
-| `charts`            | `list[TearsheetChart]` | Built-ins        | Charts to include, in order.        |
-| `theme`             | `str`                  | `"plotly_white"` | Theme name for styling.             |
-| `layout`            | `GridLayout`           | `None`           | Custom subplot grid layout.         |
-| `title`             | `str`                  | Auto-generated   | Tearsheet title.                    |
-| `include_benchmark` | `bool`                 | `True`           | Show benchmark when provided.       |
-| `benchmark_name`    | `str`                  | `"Benchmark"`    | Display name for benchmark.         |
-| `height`            | `int`                  | `1500`           | Total height in pixels.             |
-| `show_logo`         | `bool`                 | `True`           | Reserved for future logo rendering. |
+| `charts`            | `list[TearsheetChart]` | 内置图表        | 要包含的图表，按顺序。        |
+| `theme`             | `str`                  | `"plotly_white"` | 用于风格的主题名。             |
+| `layout`            | `GridLayout`           | `None`           | 自定义子图网格布局。         |
+| `title`             | `str`                  | 自动生成   | Tearsheet 标题。                    |
+| `include_benchmark` | `bool`                 | `True`           | 提供基准时显示基准。       |
+| `benchmark_name`    | `str`                  | `"Benchmark"`    | 基准的显示名。         |
+| `height`            | `int`                  | `1500`           | 总高度（像素）。             |
+| `show_logo`         | `bool`                 | `True`           | 为将来的 logo 渲染预留。 |
 
-When `layout` is `None`, the chart count determines the grid dimensions and row heights. The default 8 charts
-use a 4x2 grid with heights `[0.50, 0.22, 0.16, 0.12]`. These heights give more space to the top row tables.
+`layout` 为 `None` 时，图表数量决定网格行列与行高。默认 8 张图表使用
+4x2 网格，行高 `[0.50, 0.22, 0.16, 0.12]`，给顶行表格留出更多空间。
 
-## Custom charts
+## 自定义图表 {#custom-charts}
 
-The registry pattern lets you add custom charts. Charts are functions that
-render traces onto a Plotly figure object.
+注册表模式支持添加自定义图表。图表是把 trace 渲染到 Plotly figure 对象上的函数。
 
-### Registering a custom chart
+### 注册自定义图表 {#registering-a-custom-chart}
 
 ```python
 from nautilus_trader.analysis import register_chart
@@ -379,12 +370,12 @@ def my_custom_chart(returns, output_path=None, title="Custom Chart", theme="plot
 register_chart("my_custom", my_custom_chart)
 ```
 
-### Tearsheet integration
+### 集成到 tearsheet {#tearsheet-integration}
 
-For tearsheet integration with proper grid placement, use `register_tearsheet_chart`. Unlike `register_chart`
-(which registers a standalone function that returns its own figure), a tearsheet renderer draws traces
-directly onto a shared subplot grid cell. Thus, its signature takes the target `fig` plus the `row` and `col`
-to render into.
+要在 tearsheet 中正确占格，使用 `register_tearsheet_chart`。与
+`register_chart`（注册返回自身 figure 的独立函数）不同，tearsheet 渲染器
+把 trace 直接画进共享的子图网格单元，因此签名接收目标 `fig` 以及要渲染到的
+`row` 和 `col`。
 
 ```python
 from nautilus_trader.config import TearsheetConfig
@@ -449,13 +440,12 @@ config = TearsheetConfig(
 )
 ```
 
-The renderer function receives all necessary data (returns, statistics, theme configuration)
-and renders directly onto the specified subplot position.
+渲染器函数收到所需的全部数据（收益率、统计、主题配置），
+直接渲染到指定子图位置。
 
-## Offline analysis
+## 离线分析 {#offline-analysis}
 
-For situations where you have precomputed statistics but not a `BacktestEngine` instance,
-use the lower-level API:
+已有预计算统计、但没有 `BacktestEngine` 实例时，使用底层 API：
 
 ```python
 import pandas as pd
@@ -477,45 +467,46 @@ create_tearsheet_from_stats(
 )
 ```
 
-The dictionary keys should match those returned by `engine.get_result().stats_pnls`,
-`engine.get_result().stats_returns`, and `engine.get_result().stats_general`.
+字典的键应与 `engine.get_result().stats_pnls`、
+`engine.get_result().stats_returns`、`engine.get_result().stats_general`
+返回的一致。
 
-This approach is useful for:
+这种方式适合：
 
-- Analyzing results from multiple backtest runs stored separately.
-- Comparing strategies using precomputed metrics.
-- Integrating with external analysis pipelines.
+- 分析分开存放的多次回测运行结果。
+- 用预计算指标对比策略。
+- 集成到外部分析管线。
 
-## Best practices
+## 最佳实践 {#best-practices}
 
-### Chart selection
+### 图表选择 {#chart-selection}
 
-- Use default charts for exploratory analysis to see all available metrics.
-- Customize charts when you know which metrics matter for your strategy.
-- Remove irrelevant charts to reduce visual clutter and file size.
+- 探索性分析用默认图表，一次看全可用指标。
+- 明确策略关注哪些指标后再定制图表。
+- 删掉无关图表，减少视觉噪音与文件体积。
 
-### Theme usage
+### 主题使用 {#theme-usage}
 
-- Use `plotly_white` for professional reports and presentations.
-- Use `nautilus_dark` for official materials or low-light viewing.
-- Create custom themes to match internal guidelines or personal preferences.
+- 专业报告与演示用 `plotly_white`。
+- 官方材料或弱光阅读用 `nautilus_dark`。
+- 内部规范或个人偏好通过自定义主题满足。
 
-### Performance considerations
+### 性能考量 {#performance-considerations}
 
-- Tearsheet HTML files contain all data inline and can be several megabytes for long backtests.
-- Consider generating separate tearsheets for different analysis timeframes.
-- For very large datasets, use the individual chart functions instead of full tearsheets.
+- Tearsheet HTML 内联全部数据，长回测可达数兆字节。
+- 不同分析时间窗考虑分别生成 tearsheet。
+- 数据集非常大时，用单图函数代替完整 tearsheet。
 
-### Custom statistics integration
+### 自定义统计集成 {#custom-statistics-integration}
 
-Pair custom charts with statistics supplied through the same `stats_pnls`, `stats_returns`, and
-`stats_general` dictionaries used by the built-in tearsheet charts.
+自定义图表与内置 tearsheet 图表共用同一组 `stats_pnls`、`stats_returns`、
+`stats_general` 字典提供统计。
 
-For `BacktestEngine` input, these values come from `engine.get_result()`, so a statistic registered with
-`Portfolio.register_statistic()` reaches the tearsheet without any extra wiring. See
-[Custom statistics](./portfolio.md#custom-statistics).
+`BacktestEngine` 输入时，这些值来自 `engine.get_result()`，
+因此经 `Portfolio.register_statistic()` 注册的统计无需额外接线即可进入
+tearsheet。见[自定义统计](./portfolio.md#custom-statistics)。
 
-For offline analysis, pass compatible dictionaries directly to `create_tearsheet_from_stats()`:
+离线分析时，把兼容的字典直接传给 `create_tearsheet_from_stats()`：
 
 ```python
 stats_returns = {
@@ -524,24 +515,24 @@ stats_returns = {
 }
 ```
 
-## API levels
+## API 层级 {#api-levels}
 
-The visualization system provides two API levels, plus standalone chart functions:
+可视化系统提供两个 API 层级，外加独立的图表函数：
 
-### High-level API
+### 高层 API {#high-level-api}
 
-Recommended for most use cases:
+推荐多数场景使用：
 
 ```python
 create_tearsheet(engine=engine, config=config)
 ```
 
-Automatically extracts data from a `BacktestEngine` or `BacktestResult`, generates all configured
-charts, and produces a complete HTML tearsheet.
+自动从 `BacktestEngine` 或 `BacktestResult` 提取数据，生成所有配置的图表，
+产出完整 HTML tearsheet。
 
-### Low-level API
+### 底层 API {#low-level-api}
 
-For advanced customization or offline analysis:
+用于高级定制或离线分析：
 
 ```python
 create_tearsheet_from_stats(
@@ -555,18 +546,17 @@ create_tearsheet_from_stats(
 )
 ```
 
-Provides fine-grained control over data inputs and allows analysis of precomputed statistics.
+对数据输入细粒度控制，可分析预计算的统计。
 
-### Standalone chart functions
+### 独立图表函数 {#standalone-chart-functions}
 
-Individual chart functions can be used independently to generate single-purpose HTML visualizations
-or Plotly figures for custom analysis workflows.
+各个图表函数可独立使用，生成单一用途的 HTML 可视化，或返回 Plotly figure
+供自定义分析流程使用。
 
-#### Price bars with fills
+#### 带成交标记的价格 K 线 {#price-bars-with-fills}
 
-The `create_bars_with_fills` function generates a candlestick chart with order fills overlaid,
-useful for visually analyzing strategy execution within price action. It can be used standalone
-or included in tearsheets:
+`create_bars_with_fills` 生成叠加订单成交标记的 K 线图，适合在价格走势中
+直观分析策略执行。它可独立使用，也可纳入 tearsheet：
 
 ```python
 from nautilus_trader.analysis import create_bars_with_fills
@@ -618,16 +608,16 @@ config = TearsheetConfig(
 create_tearsheet(engine=engine, config=config)
 ```
 
-The visualization shows candlesticks for OHLC price action with triangle markers representing order fills
-(up-triangles for buys and down-triangles for sells, colored with the theme's positive and negative colors).
-Charts that need extra configuration (like `bar_type`) take those parameters directly on the chart object (for
-example, `TearsheetBarsWithFillsChart(bar_type=...)`).
+图中以 K 线展示 OHLC 走势，三角形标记表示订单成交（买入为正三角、卖出为倒三角，
+颜色取主题的 positive 与 negative 色）。需要额外配置的图表（如
+`bar_type`）直接在图表对象上给出参数（如
+`TearsheetBarsWithFillsChart(bar_type=...)`）。
 
-Other individual chart functions include `create_equity_curve`, `create_drawdown_chart`,
-`create_monthly_returns_heatmap`, and more. See the API reference for the complete list.
+其他单图函数包括 `create_equity_curve`、`create_drawdown_chart`、
+`create_monthly_returns_heatmap` 等，完整列表见 API 参考。
 
-## Related guides
+## 相关指南 {#related-guides}
 
-- [Backtesting](./backtesting/index.md) - Learn how to run backtests that generate tearsheets.
-- [Reports](./reports.md) - Understand the underlying statistics displayed in tearsheets.
-- [Portfolio](./portfolio.md) - Explore portfolio tracking and performance metrics.
+- [回测](./backtesting/index.md) - 学习运行能生成 tearsheet 的回测。
+- [报告](./reports.md) - 理解 tearsheet 展示的底层统计。
+- [组合](./portfolio.md) - 探索组合跟踪与绩效指标。

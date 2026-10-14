@@ -1,36 +1,33 @@
 # OrderBookDepth
 
-`OrderBookDepth` represents a snapshot with a variable number of bid and ask levels.
-Use it when a venue publishes a self-contained depth snapshot rather than incremental deltas.
+`OrderBookDepth` 表示包含不定数量买卖档位的快照。当交易场所发布自包含的深度快照而非增量 delta 时，使用该类型。
 
-## Fields
+## 字段 {#fields}
 
-| Field           | Rust type                   | Python type       | Required/default | Notes                                      |
+| 字段            | Rust 类型                   | Python 类型       | 必填/默认值 | 说明                                      |
 | --------------- | --------------------------- | ----------------- | ---------------- | ------------------------------------------ |
-| `instrument_id` | `InstrumentId`              | `InstrumentId`    | Required         | Instrument whose book is represented.      |
-| `bids`          | `SmallVec<[BookOrder; 10]>` | `list[BookOrder]` | Required         | Bid levels in book order.                  |
-| `asks`          | `SmallVec<[BookOrder; 10]>` | `list[BookOrder]` | Required         | Ask levels in book order.                  |
-| `bid_counts`    | `SmallVec<[u32; 10]>`       | `list[int]`       | Required         | Number of bid orders at each level.        |
-| `ask_counts`    | `SmallVec<[u32; 10]>`       | `list[int]`       | Required         | Number of ask orders at each level.        |
-| `flags`         | `u8`                        | `int`             | Required         | `RecordFlag` bit field for event metadata. |
-| `sequence`      | `u64`                       | `int`             | Required         | Venue sequence number, or zero if absent.  |
-| `ts_event`      | `UnixNanos`                 | `int`             | Required         | Event timestamp in nanoseconds.            |
-| `ts_init`       | `UnixNanos`                 | `int`             | Required         | Initialization timestamp in nanoseconds.   |
+| `instrument_id` | `InstrumentId`              | `InstrumentId`    | 必填         | 快照所表示的订单簿所属工具。      |
+| `bids`          | `SmallVec<[BookOrder; 10]>` | `list[BookOrder]` | 必填         | 按簿内顺序排列的买盘档位。                  |
+| `asks`          | `SmallVec<[BookOrder; 10]>` | `list[BookOrder]` | 必填         | 按簿内顺序排列的卖盘档位。                  |
+| `bid_counts`    | `SmallVec<[u32; 10]>`       | `list[int]`       | 必填         | 每个买盘档位的订单笔数。        |
+| `ask_counts`    | `SmallVec<[u32; 10]>`       | `list[int]`       | 必填         | 每个卖盘档位的订单笔数。        |
+| `flags`         | `u8`                        | `int`             | 必填         | `RecordFlag` 位域，承载事件元数据。 |
+| `sequence`      | `u64`                       | `int`             | 必填         | 交易场所序列号，无则为 0。  |
+| `ts_event`      | `UnixNanos`                 | `int`             | 必填         | 事件时间戳（纳秒）。            |
+| `ts_init`       | `UnixNanos`                 | `int`             | 必填         | 初始化时间戳（纳秒）。   |
 
-## Behavior
+## 行为 {#behavior}
 
-- Rust and PyO3 Python constructors accept variable-length sides. Each side requires one count per order. Bid
-  and ask sides can have different lengths.
-- Empty sides use empty sequences. The inline capacity is ten. Larger snapshots allocate as needed.
-- This type is not interchangeable with incremental `OrderBookDelta` streams.
+- Rust 和 PyO3 Python 构造函数接受可变长度的买卖侧。每一侧要求每笔订单对应一个计数。买盘和卖盘长度可以不同。
+- 空的一侧使用空序列。内联容量为 10，更大的快照按需分配内存。
+- 该类型不能与增量式 `OrderBookDelta` 流互换使用。
 
-**Legacy compatibility**:
+**旧版兼容**：
 
-- The former `OrderBookDepth10` type name is gone. Catalog directories named `order_book_depth10`
-  still migrate, and Arrow files that stored that type in schema metadata still transcode.
-- The legacy C FFI and fixed-depth SBE encoding require exactly ten levels per side.
+- 原 `OrderBookDepth10` 类型名已移除。名为 `order_book_depth10` 的目录仍会被迁移，schema 元数据中记录了该类型的 Arrow 文件仍可转码。
+- 旧版 C FFI 和定深度 SBE 编码要求每侧恰好 10 档。
 
-## Example
+## 示例 {#example}
 
 ```rust tab="Rust"
 use nautilus_core::UnixNanos;
@@ -97,8 +94,8 @@ depth = OrderBookDepth(
 )
 ```
 
-## Related guides
+## 相关指南 {#related-guides}
 
-- [QuoteTick](./quote_tick.md) covers top-of-book data derived from depth.
-- [Order books](./index.md#order-books) explains order book state.
-- [Python API reference](https://nautilustrader.io/docs/python-api-latest/model/data.html) lists Python members.
+- [QuoteTick](./quote_tick.md) 介绍由深度数据导出的盘口一档数据。
+- [订单簿](./index.md#order-books) 讲解订单簿状态。
+- [Python API 参考](https://nautilustrader.io/docs/python-api-latest/model/data.html) 列出 Python 成员。

@@ -1,4 +1,4 @@
-# 回测（低层 API）
+# 回测（低层 API） {#backtest-lowlevel-api}
 
 `BacktestEngine` 提供对组件的直接访问：加载行情、接入策略与执行算法，
 每一步都完全可控。本教程在模拟的 Binance Spot 交易所上，用历史逐笔成交数据

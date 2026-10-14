@@ -1,41 +1,35 @@
 # OrderCanceled
 
-`OrderCanceled` records an order reaching the terminal `CANCELED` state. The execution pipeline
-applies it to the order, updates the `Cache`, and publishes it on the `MessageBus`. It can come from
-a trading venue, simulated matching engine, local order emulator, or reconciliation. Reconciliation
-can create it from a venue report or from a local timeout or missing-order policy.
+`OrderCanceled` 记录订单进入终态 `CANCELED`。执行流水线把它应用到订单、更新 `Cache`，并发布到 `MessageBus`。它可能来自交易场所、模拟撮合引擎、本地订单模拟器或一致性对账。对账生成的该事件可基于场所报告，也可基于本地超时或缺单处理策略。
 
-Typical transitions: `PENDING_CANCEL`/`ACCEPTED` -> `CANCELED`. External and recovery paths also
-allow `INITIALIZED`, `EMULATED`, `RELEASED`, `SUBMITTED`, `PENDING_UPDATE`, `TRIGGERED`, or
-`PARTIALLY_FILLED` -> `CANCELED`. Handler: `on_order_canceled`.
+典型迁移：`PENDING_CANCEL`/`ACCEPTED` -> `CANCELED`。外部与恢复路径还允许
+`INITIALIZED`、`EMULATED`、`RELEASED`、`SUBMITTED`、`PENDING_UPDATE`、`TRIGGERED` 或
+`PARTIALLY_FILLED` -> `CANCELED`。处理函数：`on_order_canceled`。
 
-A re-close can append `CANCELED` while the order is already canceled when a late fill arrived after
-its earlier cancellation.
+若先前撤单之后又迟到了成交，重新平仓（re-close）可能在订单已取消的状态下再追加一条 `CANCELED`。
 
-## Fields
+## 字段 {#fields}
 
-Beyond the [common Python order event fields](./index.md#common-python-order-event-fields),
-`OrderCanceled` carries:
+除 [Python 订单事件公共字段](./index.md#common-python-order-event-fields)外，`OrderCanceled` 还携带：
 
-| Field            | Python type              | Required/default | Description                                                                    |
+| 字段             | Python 类型              | 必填/默认值 | 说明                                                                         |
 | ---------------- | ------------------------ | ---------------- | ------------------------------------------------------------------------------ |
-| `venue_order_id` | `VenueOrderId` or `None` | `None`           | The venue-assigned order identifier, if known.                                 |
-| `account_id`     | `AccountId` or `None`    | `None`           | The account associated with the order, if known.                               |
-| `reason`         | `str` or `None`          | `None`           | The cancellation reason supplied by the venue.                                 |
-| `reconciliation` | `bool`                   | Required         | If reconciliation generated the event. This does not imply venue confirmation. |
+| `venue_order_id` | `VenueOrderId` 或 `None` | `None`           | 交易场所分配的订单标识（若已知）。                                 |
+| `account_id`     | `AccountId` 或 `None`    | `None`           | 订单关联的账户（若已知）。                               |
+| `reason`         | `str` 或 `None`          | `None`           | 交易场所提供的取消原因。                                 |
+| `reconciliation` | `bool`                   | 必填         | 事件是否由对账生成。这不代表场所已确认。 |
 
-## Example
+## 示例 {#example}
 
-Reading the event in a strategy handler:
+在策略处理函数中读取该事件：
 
 ```python
 def on_order_canceled(self, event: OrderCanceled) -> None:
     self.log.info(f"Order {event.client_order_id} canceled")
 ```
 
-## Related guides
+## 相关指南 {#related-guides}
 
-- [Events](./index.md) - Event categories, dispatch, and the common order event fields.
-- [Orders](./../orders/index.md) - Order types and the state machine.
-- [Execution policies](./../execution/policies.md#terminal-reconciliation-provenance) - Venue
-  evidence and synthetic terminal policies.
+- [事件](./index.md) - 事件类别、分发与订单事件公共字段。
+- [订单](./../orders/index.md) - 订单类型与状态机。
+- [执行策略](./../execution/policies.md#terminal-reconciliation-provenance) - 场所证据与合成终态策略。

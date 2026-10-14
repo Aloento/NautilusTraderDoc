@@ -1,4 +1,4 @@
-# 快速开始
+# 快速开始 {#getting-started}
 
 ## 1. 安装 {#1-install}
 

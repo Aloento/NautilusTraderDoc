@@ -1,32 +1,29 @@
-# Book Imbalance Backtest (Betfair)
+# 订单簿失衡回测（Betfair） {#book-imbalance-backtest-betfair}
 
 :::note
-This **Rust-only** tutorial sends raw Betfair streaming data directly to the Rust `BacktestEngine`.
-It does not use Python or Parquet.
+本教程**仅用 Rust**，把 Betfair 原始流式数据直接送入 Rust `BacktestEngine`，
+不使用 Python 或 Parquet。
 :::
 
-This tutorial backtests a `BookImbalanceActor` on a Betfair MATCH_ODDS market.
-It loads a raw historical streaming `.gz` file, feeds it through the Rust
-`BacktestEngine`, and tracks the bid/ask quoted-volume imbalance per runner.
+本教程在 Betfair MATCH_ODDS 市场上回测 `BookImbalanceActor`。它加载原始历史流式
+`.gz` 文件，送入 Rust `BacktestEngine`，并按 runner 跟踪买/卖挂单量的失衡。
 
-## Introduction
+## 简介 {#introduction}
 
-Betfair is a sports betting exchange where participants back (bid) and lay
-(ask) outcomes at decimal odds. Each runner has its own L2 order book that
-behaves like a financial order book.
+Betfair 是体育博彩交易所，参与者以十进制赔率对赛果 back（买，相当于 bid）和 lay
+（卖，相当于 ask）。每个 runner 都有自己的 L2 订单簿，行为与金融订单簿类似。
 
-The actor reads `OrderBookDeltas` for every runner. It keeps batch and cumulative totals for bid volume (back
-orders) and ask volume (lay orders). It calculates batch and cumulative imbalance as follows:
+Actor 为每个 runner 读取 `OrderBookDeltas`，维护买盘量（back 订单）与卖盘量（lay
+订单）的批次与累计总量。批次失衡与累计失衡按下面的公式计算：
 
 ```text
 imbalance = (bid_volume - ask_volume) / (bid_volume + ask_volume)
 ```
 
-A positive value indicates more backing volume than lay volume for the outcome. Sports traders use this as an
-initial signal, often with price momentum or market-wide features.
+值为正说明该赛果的 back 量大于 lay 量。体育交易员把它作为初始信号，常与价格动量
+或全市场特征一起使用。
 
-A release build processes about three million data points per second with
-full order book maintenance in the matching engine.
+release 构建在撮合引擎完整维护订单簿的情况下，每秒可处理约三百万个数据点。
 
 ```mermaid
 flowchart LR
@@ -62,30 +59,29 @@ flowchart LR
     AC --> SUM --> IMB
 ```
 
-## Prerequisites
+## 前置条件 {#prerequisites}
 
-- A working Rust toolchain ([rustup.rs](https://rustup.rs)).
-- The NautilusTrader repository cloned and building.
-- A Betfair historical `.gz` file containing MCM (Market Change Message)
-  data. Source it from
-  [Betfair historic data](https://historicdata.betfair.com/), a third-party
-  archive, or by recording the Exchange Streaming API yourself.
+- 可用的 Rust 工具链（[rustup.rs](https://rustup.rs)）。
+- 已克隆并能构建 NautilusTrader 仓库。
+- 一个含 MCM（Market Change Message）数据的 Betfair 历史 `.gz` 文件。可从
+  [Betfair historic data](https://historicdata.betfair.com/)、第三方归档获取，
+  或自行录制 Exchange Streaming API。
 
-Place the file at:
+把文件放到：
 
 ```text
 test_data/local/betfair/1.253378068.gz
 ```
 
-The example's `DATA_FILE` constant points to this gitignored path. The results below use a self-recorded
-football MATCH_ODDS market with 3 runners and approximately 82,000 MCM lines over 18 days. The repository does
-not include that file. To run without it, pass a bundled sample from `test_data/betfair/`, such as
-`test_data/betfair/1-166811431.bz2`. The loader also reads `.bz2` files.
+示例的 `DATA_FILE` 常量指向这个被 gitignore 的路径。下文结果使用一个自录的足球
+MATCH_ODDS 市场：3 个 runner，18 天内约 82,000 行 MCM。仓库不包含该文件。没有它
+也可以运行：传入 `test_data/betfair/` 中自带的样本，例如
+`test_data/betfair/1-166811431.bz2`。加载器同样支持 `.bz2` 文件。
 
-## Loading the data
+## 加载数据 {#loading-the-data}
 
-`BetfairDataLoader` reads gzip-compressed Betfair Exchange Streaming API
-files and parses each line into Nautilus domain objects:
+`BetfairDataLoader` 读取 gzip 压缩的 Betfair Exchange Streaming API 文件，把每一行
+解析为 Nautilus 领域对象：
 
 ```rust
 use nautilus_betfair::loader::{BetfairDataItem, BetfairDataLoader};
@@ -95,25 +91,24 @@ let mut loader = BetfairDataLoader::new(Currency::GBP(), None);
 let items = loader.load(&filepath)?;
 ```
 
-The loader returns a `Vec<BetfairDataItem>`:
+加载器返回 `Vec<BetfairDataItem>`：
 
-| Variant             | Description                                     | Maps to `Data` enum?          |
-| :------------------ | :---------------------------------------------- | :---------------------------- |
-| `Instrument`        | Runner definition from market definition.       | No (added separately)         |
-| `Status`            | Market status transition (PreOpen, Trading...). | Yes, `Data::InstrumentStatus` |
-| `Deltas`            | Order book snapshot or delta update.            | Yes, `Data::BookDeltas`       |
-| `Trade`             | Incremental trade tick from cumulative volumes. | Yes, `Data::Trade`            |
-| `Ticker`            | Last traded price, volume, BSP near/far.        | -                             |
-| `StartingPrice`     | Betfair Starting Price for a runner.            | -                             |
-| `BspBookDelta`      | BSP-specific book delta.                        | -                             |
-| `InstrumentClose`   | Settlement event.                               | Yes, `Data::InstrumentClose`  |
-| `SequenceCompleted` | Batch completion marker.                        | -                             |
-| `RaceRunnerData`    | GPS tracking data (horse/greyhound racing).     | -                             |
-| `RaceProgress`      | Race-level progress data.                       | -                             |
-| `CricketMatch`      | Cricket match data (from CCM).                  | -                             |
+| 变体                | 说明                                          | 映射到 `Data` 枚举？          |
+| :------------------ | :--------------------------------------------- | :---------------------------- |
+| `Instrument`        | 由市场定义得到的 runner 定义。                 | 否（单独添加）                |
+| `Status`            | 市场状态迁移（PreOpen、Trading…）。            | 是，`Data::InstrumentStatus`  |
+| `Deltas`            | 订单簿快照或增量更新。                         | 是，`Data::BookDeltas`        |
+| `Trade`             | 由累计成交量得到的逐笔成交 tick。              | 是，`Data::Trade`             |
+| `Ticker`            | 最新成交价、成交量、BSP 远近范围。             | -                             |
+| `StartingPrice`     | 某个 runner 的 Betfair Starting Price。        | -                             |
+| `BspBookDelta`      | BSP 专属的订单簿增量。                         | -                             |
+| `InstrumentClose`   | 结算事件。                                     | 是，`Data::InstrumentClose`   |
+| `SequenceCompleted` | 批次完成标记。                                 | -                             |
+| `RaceRunnerData`    | GPS 跟踪数据（赛马/赛狗）。                    | -                             |
+| `RaceProgress`      | 赛事级别的进度数据。                           | -                             |
+| `CricketMatch`      | 板球比赛数据（来自 CCM）。                     | -                             |
 
-The backtest engine accepts the `Data` enum. The example converts the required variants and skips `Status` and
-the Betfair-specific types:
+回测引擎接受 `Data` 枚举。示例转换所需的几个变体，跳过 `Status` 和 Betfair 特有类型：
 
 ```rust
 use nautilus_model::data::Data;
@@ -140,25 +135,23 @@ for item in items {
 }
 ```
 
-`Data::BookDeltas` boxes its `OrderBookDeltas` payload to keep the enum small.
+`Data::BookDeltas` 把 `OrderBookDeltas` 载荷装箱（box），以保持枚举体积小巧。
 
-The loader emits instruments on every market definition update. The map removes duplicates and keeps the
-latest version of each instrument.
+加载器在每次市场定义更新时都会发出金融工具。用 map 去重，并保留每个金融工具的
+最新版本。
 
 :::warning
-The `Status` variant carries market status transitions (PreOpen, Trading,
-Suspended, Closed). This example skips it, so it does not replay status
-transitions. If you extend this into a strategy that places orders, add a
-`BetfairDataItem::Status(s) => data.push(Data::InstrumentStatus(s))` arm.
-The engine routes `Data::InstrumentStatus` to the matching engine, which
-then sees market suspensions and closures from the stream.
+`Status` 变体携带市场状态迁移（PreOpen、Trading、Suspended、Closed）。本例跳过了
+它，因此不会回放状态迁移。若要扩展成会下单的策略，加一个
+`BetfairDataItem::Status(s) => data.push(Data::InstrumentStatus(s))` 分支。
+引擎会把 `Data::InstrumentStatus` 路由给撮合引擎，撮合引擎从而能看到流中的市场
+暂停与关闭。
 :::
 
-## The actor
+## Actor {#the-actor}
 
-NautilusTrader ships `BookImbalanceActor` in the trading crate's examples
-module. The example wires it up with a per-runner instrument list and a
-log interval:
+NautilusTrader 在 trading crate 的 examples 模块中自带 `BookImbalanceActor`。示例
+用按 runner 的金融工具列表和日志间隔把它接起来：
 
 ```rust
 use nautilus_trading::examples::actors::BookImbalanceActor;
@@ -167,40 +160,40 @@ let actor = BookImbalanceActor::new(instrument_ids, 5000, None);
 engine.add_actor(actor)?;
 ```
 
-The second argument sets the log interval: one progress line every 5,000 updates per runner. The example sets
-this interval through the `LOG_INTERVAL` constant. For more detailed panel data, change the constant to `200`
-and rebuild the example.
+第二个参数是日志间隔：每个 runner 每 5,000 次更新输出一行进度。示例通过
+`LOG_INTERVAL` 常量设置该间隔。想要更细的面板数据，把常量改成 `200` 再重新构建
+示例。
 
-The full source is at
-[`crates/trading/src/examples/actors/imbalance/actor.rs`](https://github.com/nautechsystems/nautilus_trader/tree/develop/crates/trading/src/examples/actors/imbalance/actor.rs).
+完整源码见
+[`crates/trading/src/examples/actors/imbalance/actor.rs`](https://github.com/nautechsystems/nautilus_trader/tree/develop/crates/trading/src/examples/actors/imbalance/actor.rs)。
 
-### How it works
+### 工作原理 {#how-it-works}
 
-A `DataActor` in Rust needs three pieces:
+Rust 中一个 `DataActor` 需要三部分：
 
-1. A struct with a `DataActorCore` field and your own state.
-1. `nautilus_actor!(YourType)` to connect the core, plus a `Debug`
-   implementation.
-1. The `DataActor` trait implementation with your callbacks.
+1. 一个含 `DataActorCore` 字段和自有状态的 struct。
+1. `nautilus_actor!(YourType)` 用于接入 core，外加一个 `Debug`
+   实现。
+1. 带回调的 `DataActor` trait 实现。
 
-The framework provides blanket `Actor` and `Component` implementations for runtime actors. For a struct with a
-`DataActorCore`, the `nautilus_actor!` macro supplies the native runtime connections. Actor code only
-implements the callbacks it needs.
+框架为运行时 actor 提供了 `Actor` 与 `Component` 的 blanket 实现。对含
+`DataActorCore` 的 struct，`nautilus_actor!` 宏提供原生运行时连接。Actor 代码只需
+实现自己用到的回调。
 
-At startup, the actor subscribes to `OrderBookDeltas` for each instrument. On each update, it sums volume from
-the individual deltas for each side and updates the totals. On stop, it prints a summary for each instrument.
+启动时，actor 为每个金融工具订阅 `OrderBookDeltas`。每次更新时，它按方向累加各条
+增量的量并更新总量。停止时，为每个金融工具打印一份摘要。
 
-With `managed: false` in `subscribe_book_deltas`, the data engine does not keep a separate order book in the
-cache for the actor. The exchange matching engine still maintains its own book through `book.apply_delta()` on
-every delta. If your actor needs the full book state from `self.cache().order_book(&instrument_id)`, set
-`managed: true`.
+`subscribe_book_deltas` 里 `managed: false` 时，数据引擎不会为该 actor 在缓存中另
+建订单簿。交易所撮合引擎仍会在每条增量上通过 `book.apply_delta()` 维护自己的订单簿。
+若 actor 需要 `self.cache().order_book(&instrument_id)` 的完整订单簿状态，把
+`managed` 设为 `true`。
 
-## Backtest engine setup
+## 回测引擎设置 {#backtest-engine-setup}
 
-### Create the engine and venue
+### 创建引擎与交易场所 {#create-the-engine-and-venue}
 
-Betfair is a cash-settled betting exchange. The venue uses
-`AccountType::Cash`, `OmsType::Netting`, and `BookType::L2_MBP`:
+Betfair 是现金结算的博彩交易所。交易场所使用 `AccountType::Cash`、
+`OmsType::Netting` 和 `BookType::L2_MBP`：
 
 ```rust
 let mut engine = BacktestEngine::new(BacktestEngineConfig::default())?;
@@ -217,7 +210,7 @@ engine.add_venue(
 )?;
 ```
 
-### Add instruments, actor, and data
+### 添加金融工具、actor 与数据 {#add-instruments-actor-and-data}
 
 ```rust
 for instrument in instruments.values() {
@@ -230,37 +223,35 @@ engine.add_actor(actor)?;
 engine.add_data(data, None, true, true)?;
 ```
 
-The `add_data` parameters are `(data, client_id, validate, sort)`. With `validate: true`, the engine checks
-that the first element's instrument is registered. It assumes that the batch is homogeneous. With `sort:
-true`, it sorts the data by timestamp.
+`add_data` 的参数是 `(data, client_id, validate, sort)`。`validate: true` 时，引擎
+检查首个元素的金融工具已注册，并假定整批数据同构。`sort: true` 时按时间戳排序。
 
-### Run
+### 运行 {#run}
 
 ```rust
 engine.run(None, None, None, false)?;
 ```
 
-The four parameters are `(start, end, run_config_id, streaming)`. With `None` for `start` and `end`, the
-engine uses the full time range of the loaded data.
+四个参数是 `(start, end, run_config_id, streaming)`。`start` 和 `end`
+传 `None` 时，引擎使用已加载数据的完整时间范围。
 
-## What happens during the run
+## 运行期间发生了什么 {#what-happens-during-the-run}
 
-For each data point in timestamp order the engine:
+引擎按时间戳顺序对每个数据点执行：
 
-1. Advances the clock to the data timestamp.
-1. Routes the data to the simulated exchange, which applies each delta to
-   the per-instrument `OrderBook` and runs the matching engine cycle.
-1. Publishes the data through the data engine and message bus, which calls
-   the actor's `on_book_deltas` callback.
-1. Drains command queues and settles venues (processes any pending orders).
+1. 把时钟推进到数据的时间戳。
+1. 把数据路由给模拟交易所，交易所把每条增量应用到对应金融工具的 `OrderBook`
+   并执行一轮撮合。
+1. 通过数据引擎和消息总线发布数据，触发 actor 的 `on_book_deltas` 回调。
+1. 排空命令队列并结算交易场所（处理所有待处理订单）。
 
-The matching engine maintains a full order book for each instrument. The example has no orders to match. If
-you replace the actor with a `Strategy`, the strategy can use that book state.
+撮合引擎为每个金融工具维护完整订单簿。本例没有订单可撮合。若把 actor 换成
+`Strategy`，策略就能使用这份订单簿状态。
 
-## Results
+## 结果 {#results}
 
-The self-recorded MATCH_ODDS dataset has three runners and 143,098 data points. A release build completes the
-run in approximately 48 ms:
+自录的 MATCH_ODDS 数据集有 3 个 runner、143,098 个数据点。release 构建约 48 ms
+跑完：
 
 ```text
 --- Book imbalance summary ---
@@ -269,37 +260,34 @@ run in approximately 48 ms:
   1.253378068-58805.BETFAIR  updates: 25426  bid_vol:  24295351.82  ask_vol:  25692733.11  imbalance: -0.0280
 ```
 
-Runner `2426` (the eventual winner, settled at BSP 2.22) ends at +0.288. Backing flow exceeds lay flow
-throughout the market. Runner `48783` has stronger backing pressure (+0.466) over fewer updates. Runner
-`58805` ends close to neutral (-0.028).
+Runner `2426`（最终赢家，按 BSP 2.22 结算）收于 +0.288，整场市场 back 流持续大于
+lay 流。Runner `48783` 更新次数更少但 back 压力更强（+0.466）。Runner `58805`
+收于接近中性（-0.028）。
 
 ![Cumulative imbalance per runner](./assets/backtest_book_imbalance_betfair/panel_a_imbalance_lines.png)
 
-**Figure 1.** *Cumulative `(bid - ask) / (bid + ask)` per runner across the
-~143k updates of the market lifetime. Dashed lines mark each runner's final
-imbalance.*
+**图 1.** *市场全部约 143k 次更新中每个 runner 的累计 `(bid - ask) / (bid + ask)`。
+虚线标出各 runner 的最终失衡值。*
 
 ![Per-batch signed flow distribution](./assets/backtest_book_imbalance_betfair/panel_b_batch_distribution.png)
 
-**Figure 2.** *Distribution of per-batch signed flow ratio
-`(bid - ask) / (bid + ask)` over `LOG_INTERVAL = 200` batches per
-runner. The shape of each runner's batch distribution is a sharper signal
-than the cumulative imbalance.*
+**图 2.** *每个 runner 按 `LOG_INTERVAL = 200` 分批次有向流比
+`(bid - ask) / (bid + ask)` 的分布。各 runner 批次分布的形态比累计失衡是更强的
+信号。*
 
 ![Cumulative bid and ask volume](./assets/backtest_book_imbalance_betfair/panel_c_cumulative_volume.png)
 
-**Figure 3.** *Cumulative back (bid) and lay (ask) volume per runner. Both
-sides are non-monotonic: lay flow occasionally outpaces back flow within
-short bursts even when cumulative imbalance stays positive.*
+**图 3.** *每个 runner 的累计 back（bid）与 lay（ask）量。两侧都非单调：即使累计
+失衡保持为正，lay 流偶尔也会在短促脉冲中超过 back 流。*
 
-### Regenerate the panels
+### 重新生成图表面板 {#regenerate-the-panels}
 
-The actor logs `[runner] update #N: batch bid=B ask=A cumulative imbalance=I`
-on every Nth update. The renderer parses those lines and writes static PNGs
-using the `nautilus_dark` tearsheet theme.
+Actor 每 N 次更新输出一行
+`[runner] update #N: batch bid=B ask=A cumulative imbalance=I`。
+渲染器解析这些行，用 `nautilus_dark` tearsheet 主题写出静态 PNG。
 
-Set the `LOG_INTERVAL` constant in `betfair_backtest.rs` to `200` first.
-After building NautilusTrader from source, run these commands from the repository root:
+先把 `betfair_backtest.rs` 中的 `LOG_INTERVAL` 常量改为 `200`。
+从源码构建 NautilusTrader 后，在仓库根目录运行：
 
 ```bash
 make sync
@@ -312,7 +300,7 @@ BETFAIR_LOG=/tmp/betfair.log \
         python docs/tutorials/assets/backtest_book_imbalance_betfair/render_panels.py
 ```
 
-## Running the example
+## 运行示例 {#running-the-example}
 
 ```bash
 # Debug build
@@ -328,19 +316,17 @@ cargo run -p nautilus-betfair --features examples --release --example betfair-ba
 cargo run -p nautilus-betfair --features examples --release --example betfair-backtest -- test_data/betfair/1-166811431.bz2
 ```
 
-## Complete source
+## 完整源码 {#complete-source}
 
-The complete example is at
-[`crates/adapters/betfair/examples/betfair_backtest.rs`](https://github.com/nautechsystems/nautilus_trader/tree/develop/crates/adapters/betfair/examples/betfair_backtest.rs).
+完整示例见
+[`crates/adapters/betfair/examples/betfair_backtest.rs`](https://github.com/nautechsystems/nautilus_trader/tree/develop/crates/adapters/betfair/examples/betfair_backtest.rs)。
 
-## Next steps
+## 后续步骤 {#next-steps}
 
-- **Strategy**: Replace the actor with a `Strategy` implementation
-  that places back/lay orders based on the imbalance signal. See the
-  `EmaCross` example in
-  `crates/trading/src/examples/strategies/ema_cross/strategy.rs` for the
-  pattern.
-- **Managed books**: Set `managed: true` in `subscribe_book_deltas`.
-  Read the full book through `self.cache().order_book(&id)` for top-of-book spread, depth ratios, or weighted mid-price.
-- **Multiple markets**: Load several `.gz` files and run them through the
-  same engine to test cross-market signals.
+- **策略**：把 actor 换成一个 `Strategy` 实现，基于失衡信号下 back/lay 订单。
+  模式参考 `crates/trading/src/examples/strategies/ema_cross/strategy.rs` 中的
+  `EmaCross` 示例。
+- **托管订单簿**：在 `subscribe_book_deltas` 中设 `managed: true`，
+  通过 `self.cache().order_book(&id)` 读取完整订单簿，用于最优报价价差、深度比或
+  加权中间价。
+- **多市场**：加载多个 `.gz` 文件跑同一个引擎，测试跨市场信号。

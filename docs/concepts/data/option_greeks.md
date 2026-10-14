@@ -1,33 +1,29 @@
 # OptionGreeks
 
-`OptionGreeks` represents venue-provided option sensitivities and implied volatility for one option
-instrument. As a native `Data` enum variant, it can be recorded, replayed, and queried through the
-catalog.
+`OptionGreeks` 表示交易场所针对单个期权工具提供的希腊字母敏感度和隐含波动率。它是原生 `Data` 枚举的一个变体，可被记录、回放，并通过数据目录查询。
 
-## Fields
+## 字段 {#fields}
 
-| Field              | Rust type           | Python type        | Required/default | Notes                                      |
+| 字段               | Rust 类型           | Python 类型        | 必填/默认值 | 说明                                      |
 | ------------------ | ------------------- | ------------------ | ---------------- | ------------------------------------------ |
-| `instrument_id`    | `InstrumentId`      | `InstrumentId`     | Required         | Option instrument for the Greeks.          |
-| `convention`       | `GreeksConvention`  | `GreeksConvention` | Default          | Numeraire convention for the values.       |
-| `greeks`           | `OptionGreekValues` | Separate floats    | Required         | Delta, gamma, vega, theta, and rho.        |
-| `mark_iv`          | `Option<f64>`       | `float \| None`    | `None`           | Mark implied volatility.                   |
-| `bid_iv`           | `Option<f64>`       | `float \| None`    | `None`           | Bid implied volatility.                    |
-| `ask_iv`           | `Option<f64>`       | `float \| None`    | `None`           | Ask implied volatility.                    |
-| `underlying_price` | `Option<f64>`       | `float \| None`    | `None`           | Underlying price used for the calculation. |
-| `open_interest`    | `Option<f64>`       | `float \| None`    | `None`           | Open interest when published.              |
-| `ts_event`         | `UnixNanos`         | `int`              | Required         | Event timestamp in nanoseconds.            |
-| `ts_init`          | `UnixNanos`         | `int`              | Required         | Initialization timestamp in nanoseconds.   |
+| `instrument_id`    | `InstrumentId`      | `InstrumentId`     | 必填         | 希腊字母对应的期权工具。          |
+| `convention`       | `GreeksConvention`  | `GreeksConvention` | 默认值          | 数值的计价单位（numeraire）约定。       |
+| `greeks`           | `OptionGreekValues` | 多个独立 float    | 必填         | Delta、gamma、vega、theta 和 rho。        |
+| `mark_iv`          | `Option<f64>`       | `float \| None`    | `None`           | 标记隐含波动率。                   |
+| `bid_iv`           | `Option<f64>`       | `float \| None`    | `None`           | 买价隐含波动率。                    |
+| `ask_iv`           | `Option<f64>`       | `float \| None`    | `None`           | 卖价隐含波动率。                    |
+| `underlying_price` | `Option<f64>`       | `float \| None`    | `None`           | 计算所用的标的价格。 |
+| `open_interest`    | `Option<f64>`       | `float \| None`    | `None`           | 未平仓合约数（若交易场所有发布）。              |
+| `ts_event`         | `UnixNanos`         | `int`              | 必填         | 事件时间戳（纳秒）。            |
+| `ts_init`          | `UnixNanos`         | `int`              | 必填         | 初始化时间戳（纳秒）。   |
 
-## Behavior
+## 行为 {#behavior}
 
-- `OptionGreeks` dereferences to its core `OptionGreekValues` on the Rust surface.
-- The Python constructor accepts `delta`, `gamma`, `vega`, `theta`, and optional `rho`
-  as separate float arguments.
-- Option chain subscriptions use `underlying_price` and deltas to resolve ATM and
-  delta-based strike windows.
+- 在 Rust 接口上，`OptionGreeks` 可解引用到其核心的 `OptionGreekValues`。
+- Python 构造函数接受 `delta`、`gamma`、`vega`、`theta` 以及可选的 `rho`，均为独立的 float 参数。
+- 期权链订阅用 `underlying_price` 和 delta 确定 ATM 及基于 delta 的行权价窗口。
 
-## Example
+## 示例 {#example}
 
 ```rust tab="Rust"
 use nautilus_core::UnixNanos;
@@ -78,8 +74,8 @@ greeks = OptionGreeks(
 )
 ```
 
-## Related guides
+## 相关指南 {#related-guides}
 
-- [Greeks](./../greeks.md) covers venue-provided and locally computed Greeks.
-- [Options](./../options.md#optiongreeks-data-type) covers option chain subscriptions.
-- [Python API reference](https://nautilustrader.io/docs/python-api-latest/model/data.html) lists Python members.
+- [希腊字母](./../greeks.md) 介绍交易场所提供与本地计算的 Greeks。
+- [期权](./../options.md#optiongreeks-data-type) 介绍期权链订阅。
+- [Python API 参考](https://nautilustrader.io/docs/python-api-latest/model/data.html) 列出 Python 成员。

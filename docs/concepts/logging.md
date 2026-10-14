@@ -1,23 +1,21 @@
-# Logging
+# 日志 {#logging}
 
-The platform provides Rust logging for backtesting and live trading through the standard `log` crate facade.
+平台通过标准 `log` crate 门面（facade）为回测和实时交易提供 Rust 日志。
 
-The core logger operates in a separate thread and uses a multi-producer single-consumer (MPSC) channel to receive log messages.
-This moves log output I/O off the calling thread. Message arguments are still formatted on the
-calling thread before the event is queued.
+核心日志器运行在独立线程上，通过多生产者单消费者（MPSC）通道接收日志消息，把日志输出 I/O 移出调用线程。消息参数仍在调用线程上完成格式化，然后才入队。
 
-Logging output is configurable and supports:
+日志输出可配置，支持：
 
-- **stdout/stderr writer** for console output
-- **file writer** for persistent storage of logs
+- **stdout/stderr 写入器**，输出到控制台
+- **文件写入器**，把日志持久化存储
 
 :::tip
-Infrastructure such as [Vector](https://github.com/vectordotdev/vector) can be integrated to collect and aggregate events within your system.
+可集成 [Vector](https://github.com/vectordotdev/vector) 等基础设施，在系统内收集和聚合事件。
 :::
 
-## Architecture
+## 架构 {#architecture}
 
-The logging subsystem captures events from multiple sources and routes them through an MPSC channel to a dedicated logging thread:
+日志子系统从多个来源捕获事件，经 MPSC 通道路由到专用的日志线程：
 
 ```mermaid
 flowchart TB
@@ -66,139 +64,123 @@ flowchart TB
     TRACE --> EF --> FMT --> STDOUT
 ```
 
-- **Python and Nautilus components**: Log directly through the Nautilus Logger.
-- **External `log` crate users**: Filtered by `stdout_level`/`fileout_level` in `LoggerConfig`.
-- **External `tracing` crate users**: When enabled, output goes directly to stdout (separate from Nautilus logging), filtered by the `RUST_LOG` environment variable.
-- **Logging thread**: NautilusTrader sends all log events through an MPSC channel to a dedicated thread. Thus,
-  log I/O operations do not block the main thread.
+- **Python 与 Nautilus 组件**：直接经由 Nautilus Logger 记录日志。
+- **外部 `log` crate 使用者**：按 `LoggerConfig` 中的 `stdout_level`/`fileout_level` 过滤。
+- **外部 `tracing` crate 使用者**：启用后输出直接写到 stdout（与 Nautilus 日志分离），按 `RUST_LOG` 环境变量过滤。
+- **日志线程**：NautilusTrader 把所有日志事件经 MPSC 通道发给专用线程，因此日志 I/O 不会阻塞主线程。
 
-## Configuration
+## 配置 {#configuration}
 
-Logging can be configured by importing the `LoggerConfig` object.
-By default, log events with an `INFO` `LogLevel` and higher are written to stdout/stderr.
+导入 `LoggerConfig` 对象即可配置日志。默认情况下，`INFO` 级及以上的日志事件写入 stdout/stderr。
 
-The following log levels are supported:
+支持的日志级别：
 
-- `OFF` - Disable logging.
-- `TRACE` - Most verbose level.
-- `DEBUG` - Detailed diagnostic information.
-- `INFO` - General operational messages.
-- `WARNING` - Potential issues that do not prevent operation.
-- `ERROR` - Errors that may affect functionality.
+- `OFF` - 禁用日志。
+- `TRACE` - 最详尽的级别。
+- `DEBUG` - 详细的诊断信息。
+- `INFO` - 一般运行消息。
+- `WARNING` - 不影响运行的潜在问题。
+- `ERROR` - 可能影响功能的错误。
 
-See the `LoggerConfig` [API Reference](https://nautilustrader.io/docs/python-api-latest/common.html#nautilus_trader.common.LoggerConfig) for further details.
+更多细节见 `LoggerConfig` 的 [API Reference](https://nautilustrader.io/docs/python-api-latest/common.html#nautilus_trader.common.LoggerConfig)。
 
-Logging can be configured in the following ways:
+日志支持以下配置方式：
 
-- Minimum `LogLevel` for stdout/stderr.
-- Minimum `LogLevel` for log files.
-- Maximum size before rotating a log file.
-- Maximum number of backup log files to maintain when rotating.
-- Automatic log file naming with date or timestamp components, or custom log file name.
-- Directory for writing log files.
-- Plain text or JSON log file formatting.
-- Filtering of individual components by log level.
-- ANSI colors in log lines.
-- Bypass logging entirely.
-- Print Rust config to stdout at initialization.
-- Truncate an existing log file on startup (`clear_log_file`).
+- stdout/stderr 的最低 `LogLevel`。
+- 日志文件的最低 `LogLevel`。
+- 日志文件轮转（rotate）前的大小上限。
+- 轮转时保留的备份日志文件最大数量。
+- 按日期或时间戳成分自动命名日志文件，或自定义日志文件名。
+- 写日志文件的目录。
+- 纯文本或 JSON 日志文件格式。
+- 按日志级别过滤各个组件。
+- 日志行使用 ANSI 颜色。
+- 完全绕过日志。
+- 初始化时把 Rust 配置打印到 stdout。
+- 启动时截断已有日志文件（`clear_log_file`）。
 
-### Standard output logging
+### 标准输出日志 {#standard-output-logging}
 
-The stdout/stderr writers write log messages to the console. Set the minimum level with `stdout_level`.
+stdout/stderr 写入器把日志消息写到控制台。用 `stdout_level` 设置最低级别。
 
-### File logging
+### 文件日志 {#file-logging}
 
-Log files are written to the current working directory by default. Settings control file naming and rotation.
+日志文件默认写入当前工作目录。相关设置控制文件命名与轮转。
 
-Set the log directory and custom file basename with `FileWriterConfig.directory` and
-`FileWriterConfig.file_name`.
+用 `FileWriterConfig.directory` 和 `FileWriterConfig.file_name` 设置日志目录与自定义文件基本名。
 
 :::warning
-When file logging is enabled, logging initialization fails if the log directory cannot be created or the log
-file cannot be opened. Thus, a node with an unusable log path does not start. Rust binaries that initialize
-logging lazily from `NAUTILUS_LOG` report the error and continue with console logging only.
+启用文件日志时，若日志目录无法创建或日志文件无法打开，日志初始化就会失败。因此日志路径不可用的节点不会启动。从 `NAUTILUS_LOG` 惰性初始化日志的 Rust 二进制会报告该错误，然后仅以控制台日志继续运行。
 :::
 
-The logging thread flushes the file buffer to the operating system at approximately 100 ms intervals without
-syncing to disk. Thus, a tailed log file stays current. Blocking console output can delay a flush, and an
-abrupt process exit can still lose lines that are buffered or queued for the logging thread.
+日志线程大约每 100 ms 把文件缓冲区刷给操作系统，但不会同步到磁盘。因此 tail 日志文件能看到及时的内容。阻塞的控制台输出可能推迟刷新；进程突然退出仍可能丢失已缓冲或排在日志线程队列中的行。
 
-**Log file formats**:
+**日志文件格式**：
 
-- `None` (default) - Plain text format with `.log` extension.
-- `"json"` - JSON format with `.jsonl` extension, useful for log aggregation tools.
+- `None`（默认）- 纯文本格式，扩展名 `.log`。
+- `"json"` - JSON 格式，扩展名 `.jsonl`，适合日志聚合工具。
 
-For detailed information about log file naming conventions and rotation behavior, see the [Log file rotation](#log-file-rotation) and [Log file naming convention](#log-file-naming-convention) sections below.
+日志文件命名约定和轮转行为的详细信息，见下文 [日志文件轮转](#log-file-rotation) 和 [日志文件命名约定](#log-file-naming-convention) 两节。
 
-#### Log file rotation
+#### 日志文件轮转 {#log-file-rotation}
 
-Rotation behavior depends on both the presence of a size limit and whether a custom file name is provided:
+轮转行为取决于是否设置大小上限、以及是否提供自定义文件名：
 
-- **Size-based rotation**:
-  - Set `FileWriterConfig.file_rotate` to a `(max_file_size, max_backup_count)` tuple, such as
-    `(100_000_000, 5)` for 100 MB and five backup files.
-  - When writing a log entry would make the current file exceed this size, the file is closed and a new one is created.
-  - Rotation file names have millisecond resolution. If a rotation resolves to the active path,
-    logging continues to that file, which may briefly exceed the configured maximum size.
-- **Date-based rotation (default naming only)**:
-  - Applies when `file_rotate` and `file_name` are both unset.
-  - On the first write after each UTC date change (midnight), the logger closes the current log file and
-    starts a new one. This creates one file per UTC day.
-- **No rotation**:
-  - When `file_name` is set without `file_rotate`, logs continue to append to the same file.
-  - Note: Size-based rotation takes precedence: if both a custom name and size limit are provided, rotation still occurs.
-- **Backup file management**:
-  - The second value in `file_rotate` limits the total number of rotated files kept.
-  - When this limit is exceeded, the oldest backup files are automatically removed.
-  - The limit applies to files rotated by the current process. Rotated files from earlier runs are not
-    removed. Use an external tool such as `logrotate` for retention across restarts.
-- **Rotation failures**:
-  - If a rotation fails (for example, the new file cannot be opened), logging continues to the
-    current file and rotation is retried at the next size or date boundary.
+- **基于大小的轮转**：
+  - 把 `FileWriterConfig.file_rotate` 设为 `(max_file_size, max_backup_count)` 元组，例如 `(100_000_000, 5)` 表示 100 MB、保留五个备份文件。
+  - 写入某条日志会使当前文件超过该大小时，关闭当前文件并新建一个。
+  - 轮转文件名精确到毫秒。若轮转结果解析为当前活动路径，日志继续写入该文件，可能短暂超过配置的大小上限。
+- **基于日期的轮转（仅默认命名）**：
+  - 仅当 `file_rotate` 和 `file_name` 都未设置时生效。
+  - 每次 UTC 日期变更（午夜）后的首次写入时，日志器关闭当前日志文件并新建一个，即每个 UTC 日一个文件。
+- **不轮转**：
+  - 设置了 `file_name` 但未设置 `file_rotate` 时，日志持续追加到同一文件。
+  - 注意：基于大小的轮转优先——同时提供自定义名和大小上限时，仍会轮转。
+- **备份文件管理**：
+  - `file_rotate` 的第二个值限制保留的轮转文件总数。
+  - 超过该限制时，最旧的备份文件自动删除。
+  - 该限制只作用于当前进程轮转出的文件，早前运行留下的轮转文件不会被删除。跨重启的保留策略请交给 `logrotate` 等外部工具。
+- **轮转失败**：
+  - 轮转失败（例如新文件打不开）时，日志继续写入当前文件，并在下一个大小或日期边界重试轮转。
 
-#### Log file naming convention
+#### 日志文件命名约定 {#log-file-naming-convention}
 
-The default naming convention ensures log files are uniquely identifiable and timestamped.
-The format depends on whether file rotation is enabled:
+默认命名约定保证日志文件唯一可辨、且带时间戳。格式取决于是否启用文件轮转：
 
-**With file rotation enabled**:
+**启用文件轮转时**：
 
-- **Format**: `{trader_id}_{%Y-%m-%d_%H%M%S-%3f}_{instance_id}.{log|jsonl}`
-- **Example**: `TESTER-001_2025-04-09_210721-521_d7dc12c8-7008-4042-8ac4-017c3db0fc38.log`
-- **Components**:
-  - `{trader_id}`: The trader identifier (for example, `TESTER-001`).
-  - `{%Y-%m-%d_%H%M%S-%3f}`: UTC datetime with millisecond resolution.
-  - `{instance_id}`: A unique instance identifier.
-  - `{log|jsonl}`: File suffix based on format setting.
+- **格式**：`{trader_id}_{%Y-%m-%d_%H%M%S-%3f}_{instance_id}.{log|jsonl}`
+- **示例**：`TESTER-001_2025-04-09_210721-521_d7dc12c8-7008-4042-8ac4-017c3db0fc38.log`
+- **成分**：
+  - `{trader_id}`：trader 标识（例如 `TESTER-001`）。
+  - `{%Y-%m-%d_%H%M%S-%3f}`：精确到毫秒的 UTC 日期时间。
+  - `{instance_id}`：唯一实例标识。
+  - `{log|jsonl}`：按格式设置决定的文件后缀。
 
-**Without size-based rotation (default naming)**:
+**未启用基于大小的轮转（默认命名）**：
 
-- **Format**: `{trader_id}_{%Y-%m-%d}_{instance_id}.{log|jsonl}`
-- **Example**: `TESTER-001_2025-04-09_d7dc12c8-7008-4042-8ac4-017c3db0fc38.log`
-- **Components**:
-  - `{trader_id}`: The trader identifier.
-  - `{%Y-%m-%d}`: Date only (YYYY-MM-DD).
-  - `{instance_id}`: A unique instance identifier.
-  - `{log|jsonl}`: File suffix based on format setting.
-- **Note**: With default naming and no size limit, logs rotate daily at UTC midnight.
+- **格式**：`{trader_id}_{%Y-%m-%d}_{instance_id}.{log|jsonl}`
+- **示例**：`TESTER-001_2025-04-09_d7dc12c8-7008-4042-8ac4-017c3db0fc38.log`
+- **成分**：
+  - `{trader_id}`：trader 标识。
+  - `{%Y-%m-%d}`：仅日期（YYYY-MM-DD）。
+  - `{instance_id}`：唯一实例标识。
+  - `{log|jsonl}`：按格式设置决定的文件后缀。
+- **注意**：默认命名且无大小上限时，日志在 UTC 午夜按天轮转。
 
-**Custom naming**:
+**自定义命名**：
 
-If `file_name` is set (for example, `my_custom_log`):
+设置了 `file_name`（例如 `my_custom_log`）时：
 
-- With rotation disabled: The file will be named exactly as provided (for example, `my_custom_log.log`).
-- With rotation enabled: The file will include the custom name and timestamp (for example,
-  `my_custom_log_2025-04-09_210721-521.log`).
-- An extension in `file_name` is replaced by the format suffix, so `my_custom_log.log` produces the
-  same names as `my_custom_log`.
+- 未启用轮转：文件名与所给名称完全一致（例如 `my_custom_log.log`）。
+- 启用轮转：文件名包含自定义名和时间戳（例如 `my_custom_log_2025-04-09_210721-521.log`）。
+- `file_name` 中自带的扩展名会被格式后缀替换，因此 `my_custom_log.log` 与 `my_custom_log` 产出的文件名相同。
 
-### Component log filtering
+### 组件日志过滤 {#component-log-filtering}
 
-The `component_levels` parameter sets log levels for individual components.
-The input value should be a dictionary of component ID strings to log level strings: `dict[str, str]`.
+`component_levels` 参数为各个组件设置日志级别，输入应为组件 ID 字符串到日志级别字符串的字典：`dict[str, str]`。
 
-Below is an example of a trading node logging configuration that includes some of the options mentioned above:
+下面是一个交易节点日志配置示例，用到了上文提到的部分选项：
 
 ```python
 from nautilus_trader.common import LogLevel
@@ -218,42 +200,39 @@ config_node = LiveNodeConfig(
 )
 ```
 
-For backtesting, the `BacktestEngineConfig` class can be used instead of `LiveNodeConfig`, as the same options are available.
+回测可改用 `BacktestEngineConfig` 类替代 `LiveNodeConfig`，可选项相同。
 
-### Environment variable configuration
+### 环境变量配置 {#environment-variable-configuration}
 
-The `NAUTILUS_LOG` environment variable provides an alternative way to configure logging using a semicolon-separated spec string. This is useful for Rust-only binaries or when you want to override logging settings without modifying code.
+`NAUTILUS_LOG` 环境变量提供另一种日志配置方式，值为分号分隔的规格字符串。这对纯 Rust 二进制、或希望不改代码覆盖日志设置的场景很有用。
 
 ```bash
 export NAUTILUS_LOG="stdout=Info;fileout=Debug;RiskEngine=Error;is_colored"
 ```
 
-**Supported keys**:
+**支持的键**：
 
-| Key                   | Type      | Description                                      |
+| 键                    | 类型      | 说明                                             |
 | --------------------- | --------- | ------------------------------------------------ |
-| `stdout`              | Log level | Maximum level for stdout output.                 |
-| `fileout`             | Log level | Maximum level for file output.                   |
-| `is_colored`          | Flag      | Enable ANSI colors (default: true).              |
-| `print_config`        | Flag      | Print config to stdout at startup.               |
-| `log_components_only` | Flag      | Only log components with explicit filters.       |
-| `<Component>`         | Log level | Component-specific level (exact match).          |
-| `<module::path>`      | Log level | Module-specific level (prefix match, Rust only). |
+| `stdout`              | 日志级别  | stdout 输出的最高级别。                          |
+| `fileout`             | 日志级别  | 文件输出的最高级别。                             |
+| `is_colored`          | 开关      | 启用 ANSI 颜色（默认：true）。                   |
+| `print_config`        | 开关      | 启动时把配置打印到 stdout。                      |
+| `log_components_only` | 开关      | 只记录有显式过滤器的组件。                       |
+| `<Component>`         | 日志级别  | 组件专有级别（精确匹配）。                       |
+| `<module::path>`      | 日志级别  | 模块专有级别（前缀匹配，仅 Rust）。              |
 
-Flags are enabled by their presence in the spec string (no value needed). Log levels are case-insensitive: `Off`, `Trace`, `Debug`, `Info`, `Warn`, `Error`.
+开关只需出现在规格字符串中即视为启用（无需取值）。日志级别不区分大小写：`Off`、`Trace`、`Debug`、`Info`、`Warn`、`Error`。
 
 :::note
-For Rust-only binaries, the logging subsystem initializes lazily on first use. Setting
-`NAUTILUS_LOG` configures it without requiring explicit `init_logging()` calls.
+纯 Rust 二进制中，日志子系统在首次使用时惰性初始化。设置 `NAUTILUS_LOG` 即可完成配置，无需显式调用 `init_logging()`。
 :::
 
-### Components-only logging
+### 仅记录组件日志 {#components-only-logging}
 
-When focusing on a subset of noisy systems, enable `log_components_only` to log messages only from
-components listed in `component_levels`. All other components are suppressed regardless of the
-global stdout or file level.
+需要聚焦某几个嘈杂系统中的一部分时，启用 `log_components_only`，只记录 `component_levels` 中列出的组件的消息。其他组件一律抑制，不管全局 stdout 或文件级别如何。
 
-Example (Python configuration):
+示例（Python 配置）：
 
 ```python
 logging = LoggerConfig(
@@ -266,70 +245,57 @@ logging = LoggerConfig(
 )
 ```
 
-If you use the Rust spec string through the environment, include `log_components_only` alongside component
-filters, for example:
+通过环境变量使用 Rust 规格字符串时，把 `log_components_only` 与组件过滤器并列，例如：
 
 ```bash
 export NAUTILUS_LOG="stdout=Info;log_components_only;RiskEngine=Debug;Portfolio=Info"
 ```
 
-### Module path filtering (Rust only)
+### 模块路径过滤（仅 Rust） {#module-path-filtering-rust-only}
 
-When using the `NAUTILUS_LOG` environment variable, you can filter by Rust module paths in addition to component names. Keys containing `::` are treated as module path filters with prefix matching, while keys without `::` are component filters with exact matching.
+使用 `NAUTILUS_LOG` 环境变量时，除了组件名还可以按 Rust 模块路径过滤。含 `::` 的键按模块路径过滤器处理（前缀匹配），不含 `::` 的键按组件过滤器处理（精确匹配）。
 
 ```bash
 # Filter all OKX adapter modules to Warn, but allow Debug for the websocket modules
 export NAUTILUS_LOG="stdout=Info;nautilus_okx::=Warn;nautilus_okx::websocket=Debug"
 ```
 
-The longest matching prefix takes precedence. In the example above, `nautilus_okx::websocket::handler` would use the `Debug` level (longer prefix), while `nautilus_okx::data` would use `Warn`.
+最长匹配前缀优先。上例中，`nautilus_okx::websocket::handler` 使用 `Debug` 级（前缀更长），而 `nautilus_okx::data` 使用 `Warn`。
 
 :::tip
-Rust log macros automatically capture the module path when no explicit component is provided. This enables module-level filtering to work with standard logging calls.
+未提供显式组件时，Rust 日志宏会自动捕获模块路径，因此普通日志调用也能享受模块级过滤。
 :::
 
 :::note
-Module path filtering is only available through the `NAUTILUS_LOG` environment variable. The Python
-`component_levels` configuration uses component name matching only.
+模块路径过滤只能通过 `NAUTILUS_LOG` 环境变量使用。Python 的
+`component_levels` 配置只按组件名匹配。
 :::
 
 :::warning
-If `log_components_only=True` (or `log_components_only` is present in the spec string) and
-`component_levels` is empty, no log messages will be emitted to stdout/stderr or files. Add at
-least one component filter or disable components-only logging.
+若 `log_components_only=True`（或规格字符串中出现 `log_components_only`）且
+`component_levels` 为空，stdout/stderr 和文件都不会输出任何日志。请至少添加一个组件过滤器，或关闭"仅组件"模式。
 :::
 
-### Log colors
+### 日志颜色 {#log-colors}
 
-ANSI color codes improve log readability in terminals.
-In environments that do not support ANSI color rendering (such as some cloud environments or text editors),
-these color codes may not be appropriate as they can appear as raw text.
+ANSI 颜色码能提升终端里日志的可读性。在不支持 ANSI 颜色渲染的环境（如某些云环境或文本编辑器）中，颜色码会以原始文本出现，并不合适。
+这类环境请设置 `LoggerConfig.is_colored=False`。
 
-Set `LoggerConfig.is_colored=False` for these environments.
+## Python 回调异常 {#python-callback-exceptions}
 
-## Python callback exceptions
+Python 回调错误会附带 traceback 和链式异常。若 traceback 格式化失败，上报会退化为只给出异常类型和消息。
 
-Python callback errors include a traceback and chained exceptions. If traceback formatting fails,
-reporting falls back to the exception type and message.
+Python 策略与执行算法的订单、持仓回调出错时，以 `ERROR` 级记录，附带组件身份和回调名。策略的市场退出（market-exit）回调使用同样的上报方式。Python 数据和定时器回调的错误同样达到 `ERROR` 级，这类记录的组件字段为发出日志的 Rust 模块。
 
-Python strategy and execution algorithm order and position callbacks log failures at `ERROR`, with the
-component identity and callback name. Strategy market-exit callbacks use the same reporting. Python data and
-timer callback errors also reach `ERROR`. Those records use the emitting Rust module as their component.
+对这类事件回调，异常只中断该次 Python 调用。默认情况下运行时继续分发事件，不会回滚回调在抛出前已完成的工作。
 
-For these event callbacks, an exception interrupts that Python invocation. By default, the runtime continues
-dispatching events. It does not roll back work the callback completed before raising.
+希望出错后请求正常关闭，可在[回测引擎](./backtesting/apis-and-runs.md#shutdown-on-error)或[实时节点](./live.md#shutdown-on-error)配置中启用 `shutdown_on_error`。该请求在下一次运行时检查关闭信号时生效，不会打断当前事件分发。
 
-To request a normal shutdown after an error, enable `shutdown_on_error` in the [backtest
-engine](./backtesting/apis-and-runs.md#shutdown-on-error) or [live node](./live.md#shutdown-on-error)
-configuration. The request takes effect when the runtime next checks for shutdown, rather than interrupting
-the current event dispatch.
+## 直接使用日志器 {#using-a-logger-directly}
 
-## Using a logger directly
+可以在任何地方直接初始化和使用 `Logger` 对象，方式与 Python 内置 `logging` API 类似。
 
-You can initialize and use `Logger` objects directly anywhere, much like Python's built-in `logging` API.
-
-Without an object that initializes a `NautilusKernel` and logging (such as `BacktestEngine` or `LiveNode`),
-activate logging as follows:
+没有会初始化 `NautilusKernel` 和日志的对象（如 `BacktestEngine` 或 `LiveNode`）时，按下面的方式激活日志：
 
 ```python
 from nautilus_trader.common import init_logging
@@ -346,39 +312,32 @@ log_guard = init_logging(
 logger = Logger("MyLogger")
 ```
 
-See the [`init_logging` API Reference](https://nautilustrader.io/docs/python-api-latest/common.html) for further details.
+更多细节见 [`init_logging` API Reference](https://nautilustrader.io/docs/python-api-latest/common.html)。
 
-**Keep the returned `LogGuard` alive** for as long as direct logging is needed. The logging subsystem
-supports up to 255 concurrent guards.
+**保持返回的 `LogGuard` 存活**，直到不再需要直接日志。日志子系统最多支持 255 个并发 guard。
 
-## LogGuard: managing log lifecycle
+## LogGuard：管理日志生命周期 {#logguard-managing-log-lifecycle}
 
-`init_logging` returns a `LogGuard` that tracks one user of the process-global logging subsystem.
-`BacktestEngine` and `LiveNode` own their guards internally, so application code does not need to
-acquire a guard from an engine or node.
+`init_logging` 返回一个 `LogGuard`，代表进程级日志子系统的一个使用者。`BacktestEngine` 和 `LiveNode` 在内部持有各自的 guard，应用代码无需从引擎或节点获取 guard。
 
-### Reference counting implementation
+### 引用计数实现 {#reference-counting-implementation}
 
-The logging system uses reference counting to track active `LogGuard` instances:
+日志系统用引用计数跟踪活动的 `LogGuard` 实例：
 
-- **Counter increments**: When a new `LogGuard` is created, an atomic counter is incremented.
-- **Counter decrements**: When a `LogGuard` is dropped, the counter is decremented.
-- **Last guard**: When the counter reaches zero, pending file logs are flushed and synced. The
-  process-global logging thread stays available for later guards.
-- **Maximum guards**: The system supports up to 255 concurrent `LogGuard` instances. Attempting to create more raises a `ValueError` from `init_logging`, or a `RuntimeError` from engine or node creation.
+- **计数递增**：新建 `LogGuard` 时，原子计数器加一。
+- **计数递减**：`LogGuard` 被丢弃时，计数器减一。
+- **最后一个 guard**：计数归零时，待写的文件日志会被刷出并同步。进程级日志线程仍保留，供后续 guard 使用。
+- **guard 上限**：系统最多支持 255 个并发 `LogGuard` 实例。超出时 `init_logging` 抛 `ValueError`，引擎或节点创建则抛 `RuntimeError`。
 
-Abrupt termination can still lose buffered logs. Dispose engines and nodes normally, and keep the guard
-returned by direct `init_logging` calls until the application no longer needs logging.
+突然终止仍可能丢失缓冲的日志。请正常 dispose 引擎和节点，并让直接 `init_logging` 返回的 guard 一直保留到应用不再需要日志为止。
 
-## Tracing subscriber for external Rust libraries
+## 外部 Rust 库的 tracing 订阅器 {#tracing-subscriber-for-external-rust-libraries}
 
-External Rust crates that use the `tracing` crate can have their log output displayed by enabling
-the tracing subscriber. This is useful for debugging external dependencies or when integrating
-custom Rust components (such as feature extractors or adapters) compiled as separate PyO3 extensions.
+使用 `tracing` crate 的外部 Rust crate，可以启用 tracing 订阅器来显示其日志输出。这对调试外部依赖、或集成编译为独立 PyO3 扩展的自定义 Rust 组件（如特征提取器或适配器）很有用。
 
-### Enabling the subscriber
+### 启用订阅器 {#enabling-the-subscriber}
 
-Initialize the tracing subscriber directly:
+直接初始化 tracing 订阅器：
 
 ```python
 from nautilus_trader.common import init_tracing
@@ -386,58 +345,50 @@ from nautilus_trader.common import init_tracing
 init_tracing()
 ```
 
-### Filtering with RUST_LOG
+### 用 RUST_LOG 过滤 {#filtering-with-rust_log}
 
-The `RUST_LOG` environment variable controls which tracing events are displayed:
+`RUST_LOG` 环境变量控制显示哪些 tracing 事件：
 
 ```bash
 # Show debug logs from your crate, warn and above from hyper
 RUST_LOG=my_feature_extractor=debug,hyper=warn python my_script.py
 ```
 
-If `RUST_LOG` is not set, the default filter level is `warn`.
+未设置 `RUST_LOG` 时，默认过滤级别是 `warn`。
 
-### How it works
+### 工作原理 {#how-it-works}
 
-The tracing subscriber uses a `tracing-subscriber` fmt layer with a custom formatter to output
-directly to stdout. This is separate from the Nautilus logging infrastructure - tracing output
-uses a Nautilus-aligned format with nanosecond timestamps.
+tracing 订阅器使用 `tracing-subscriber` 的 fmt layer，配合自定义格式化器直接输出到 stdout。它与 Nautilus 日志基础设施相互独立——tracing 输出采用与 Nautilus 对齐的格式，时间戳精确到纳秒。
 
-Example tracing output:
+tracing 输出示例：
 
 ```
 2026-01-24T05:51:42.809619000Z [DEBUG] hyper_util::client::legacy::connect::http: connecting to 104.18.5.240:443
 2026-01-24T05:51:42.810543000Z [DEBUG] hyper_util::client::legacy::pool: pooling idle connection for ("https", api.example.com)
 ```
 
-**Differences from Nautilus logging**:
+**与 Nautilus 日志的区别**：
 
-- Tracing output goes directly to stdout, not through the Nautilus logging thread.
-- Tracing events are not written to Nautilus log files.
-- Filtering is controlled exclusively by `RUST_LOG`, independent of `LoggerConfig`.
+- tracing 输出直接到 stdout，不经过 Nautilus 日志线程。
+- tracing 事件不会写入 Nautilus 日志文件。
+- 过滤完全由 `RUST_LOG` 控制，与 `LoggerConfig` 无关。
 
-For external libraries that use the `log` crate (such as `rustls`), their events go through
-the Nautilus logger and are filtered by `stdout_level`/`fileout_level` in `LoggerConfig`.
+使用 `log` crate 的外部库（如 `rustls`），其事件经由 Nautilus 日志器，按 `LoggerConfig` 的 `stdout_level`/`fileout_level` 过滤。
 
 :::tip
-`RUST_LOG` only affects crates using `tracing`. For crates using `log`, configure verbosity through
-`LoggerConfig` or the `NAUTILUS_LOG` environment variable (for example, `NAUTILUS_LOG=stdout=Debug`).
+`RUST_LOG` 只影响使用 `tracing` 的 crate。使用 `log` 的 crate 请通过 `LoggerConfig` 或 `NAUTILUS_LOG` 环境变量配置详细程度（例如 `NAUTILUS_LOG=stdout=Debug`）。
 :::
 
 :::note
-The tracing subscriber can only be initialized once per process. A second `init_tracing()` call
-raises an error.
+tracing 订阅器每个进程只能初始化一次。第二次调用 `init_tracing()` 会报错。
 :::
 
-## Platform-specific considerations
+## 平台相关注意事项 {#platform-specific-considerations}
 
-### Windows shutdown behavior
+### Windows 关闭行为 {#windows-shutdown-behavior}
 
-On Windows, non-deterministic garbage collection during interpreter shutdown can occasionally
-delay the final `LogGuard` drop until after interpreter teardown has begun. Dropping the last
-guard is what flushes and syncs pending file logs, so a delayed drop can result in truncated
-logs.
+在 Windows 上，解释器关闭期间非确定性的垃圾回收偶尔会把最后一个 `LogGuard` 的丢弃推迟到解释器拆解开始之后。最后一个 guard 的丢弃正是刷出并同步待写文件日志的时机，因此延迟丢弃可能导致日志被截断。
 
-## Related guides
+## 相关指南 {#related-guides}
 
-- [Architecture](./architecture.md) - System architecture including logging infrastructure.
+- [架构](./architecture.md) - 系统架构，含日志基础设施。

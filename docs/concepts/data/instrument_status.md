@@ -1,30 +1,28 @@
 # InstrumentStatus
 
-`InstrumentStatus` represents a change in an instrument's trading state. It captures venue status
-events such as pre-open, trading, halt, pause, close, and short-selling restriction changes.
+`InstrumentStatus` 表示金融工具交易状态的变化，用于承载交易场所的状态事件，例如预开盘、开盘交易、停牌、暂停、收盘以及卖空限制变更。
 
-## Fields
+## 字段 {#fields}
 
-| Field                      | Rust type            | Python type          | Required/default | Notes                                     |
+| 字段                       | Rust 类型            | Python 类型          | 必填/默认值 | 说明                                     |
 | -------------------------- | -------------------- | -------------------- | ---------------- | ----------------------------------------- |
-| `instrument_id`            | `InstrumentId`       | `InstrumentId`       | Required         | Instrument whose status changed.          |
-| `action`                   | `MarketStatusAction` | `MarketStatusAction` | Required         | Venue status action.                      |
-| `ts_event`                 | `UnixNanos`          | `int`                | Required         | Event timestamp in nanoseconds.           |
-| `ts_init`                  | `UnixNanos`          | `int`                | Required         | Initialization timestamp in nanoseconds.  |
-| `reason`                   | `Option<Ustr>`       | `str \| None`        | `None`           | Cause of the status change when provided. |
-| `trading_event`            | `Option<Ustr>`       | `str \| None`        | `None`           | Venue event label when provided.          |
-| `is_trading`               | `Option<bool>`       | `bool \| None`       | `None`           | Whether trading is enabled when known.    |
-| `is_quoting`               | `Option<bool>`       | `bool \| None`       | `None`           | Whether quoting is enabled when known.    |
-| `is_short_sell_restricted` | `Option<bool>`       | `bool \| None`       | `None`           | Short-sell restriction state when known.  |
+| `instrument_id`            | `InstrumentId`       | `InstrumentId`       | 必填         | 状态变化的金融工具。          |
+| `action`                   | `MarketStatusAction` | `MarketStatusAction` | 必填         | 交易场所的状态动作。                      |
+| `ts_event`                 | `UnixNanos`          | `int`                | 必填         | 事件时间戳（纳秒）。           |
+| `ts_init`                  | `UnixNanos`          | `int`                | 必填         | 初始化时间戳（纳秒）。  |
+| `reason`                   | `Option<Ustr>`       | `str \| None`        | `None`           | 状态变化原因（若交易场所有提供）。 |
+| `trading_event`            | `Option<Ustr>`       | `str \| None`        | `None`           | 交易场所事件标签（若提供）。          |
+| `is_trading`               | `Option<bool>`       | `bool \| None`       | `None`           | 是否允许交易（若已知）。    |
+| `is_quoting`               | `Option<bool>`       | `bool \| None`       | `None`           | 是否允许报价（若已知）。    |
+| `is_short_sell_restricted` | `Option<bool>`       | `bool \| None`       | `None`           | 卖空限制状态（若已知）。  |
 
-## Behavior
+## 行为 {#behavior}
 
-- Optional booleans allow adapters to preserve venue-provided state without guessing.
-- `action` gives the normalized high-level status even when venue-specific details are
-  also stored in `reason` or `trading_event`.
-- Strategies can handle status updates through `on_instrument_status(...)`.
+- 可选布尔值让适配器原样保留交易场所提供的状态，不必猜测。
+- `action` 给出归一化后的高层状态；交易场所特有的细节可另存于 `reason` 或 `trading_event`。
+- 策略可通过 `on_instrument_status(...)` 处理状态更新。
 
-## Example
+## 示例 {#example}
 
 ```rust tab="Rust"
 use nautilus_core::UnixNanos;
@@ -66,8 +64,8 @@ status = InstrumentStatus(
 )
 ```
 
-## Related guides
+## 相关指南 {#related-guides}
 
-- [InstrumentClose](./instrument_close.md) covers instrument close price events.
-- [Instruments](./../instruments/index.md) covers instrument definitions.
-- [Python API reference](https://nautilustrader.io/docs/python-api-latest/model/data.html) lists Python members.
+- [InstrumentClose](./instrument_close.md) 介绍金融工具收盘价事件。
+- [金融工具](./../instruments/index.md) 介绍工具定义。
+- [Python API 参考](https://nautilustrader.io/docs/python-api-latest/model/data.html) 列出 Python 成员。

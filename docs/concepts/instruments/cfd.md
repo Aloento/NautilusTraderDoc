@@ -1,49 +1,48 @@
 # CFD
 
-`Cfd` represents a contract for difference that tracks an underlying asset without
-transferring ownership of the underlying. The venue defines the quote currency,
-precision, increments, limits, margins, and fees.
+`Cfd` 表示差价合约：跟踪标的资产但不转移标的的所有权。计价货币、精度、步长、限额、保证金
+和费用由交易场所定义。
 
-Examples include CFD contracts on FX, equities, indexes, and commodities.
+典型例子包括外汇、股票、指数和商品的差价合约。
 
-## Fields
+## 字段 {#fields}
 
-| Field             | Rust type          | Python type        | Required/default | Notes                                    |
+| 字段              | Rust 类型          | Python 类型        | 必填/默认值    | 说明                                     |
 | ----------------- | ------------------ | ------------------ | ---------------- | ---------------------------------------- |
-| `instrument_id`   | `InstrumentId`     | `InstrumentId`     | Required         | Stored as `id` in Rust.                  |
-| `raw_symbol`      | `Symbol`           | `Symbol`           | Required         | Native venue symbol.                     |
-| `asset_class`     | `AssetClass`       | `AssetClass`       | Required         | Asset class of the underlying.           |
-| `base_currency`   | `Option<Currency>` | `Currency \| None` | `None`           | Base currency when the CFD tracks one.   |
-| `quote_currency`  | `Currency`         | `Currency`         | Required         | Currency used to quote and value prices. |
-| `price_precision` | `u8`               | `int`              | Required         | Decimal places allowed for prices.       |
-| `size_precision`  | `u8`               | `int`              | Required         | Decimal places allowed for order sizes.  |
-| `price_increment` | `Price`            | `Price`            | Required         | Smallest valid price step.               |
-| `size_increment`  | `Quantity`         | `Quantity`         | Required         | Smallest valid size step.                |
-| `lot_size`        | `Option<Quantity>` | `Quantity \| None` | `None`           | Rounded lot or board size.               |
-| `max_quantity`    | `Option<Quantity>` | `Quantity \| None` | `None`           | Maximum order quantity.                  |
-| `min_quantity`    | `Option<Quantity>` | `Quantity \| None` | `None`           | Minimum order quantity.                  |
-| `max_notional`    | `Option<Money>`    | `Money \| None`    | `None`           | Maximum order notional value.            |
-| `min_notional`    | `Option<Money>`    | `Money \| None`    | `None`           | Minimum order notional value.            |
-| `max_price`       | `Option<Price>`    | `Price \| None`    | `None`           | Maximum valid quote or order price.      |
-| `min_price`       | `Option<Price>`    | `Price \| None`    | `None`           | Minimum valid quote or order price.      |
-| `margin_init`     | `Option<Decimal>`  | `Decimal \| None`  | `0`              | Initial margin rate.                     |
-| `margin_maint`    | `Option<Decimal>`  | `Decimal \| None`  | `0`              | Maintenance margin rate.                 |
-| `tick_scheme`     | `Option<Ustr>`     | `str \| None`      | `None`           | Registered variable tick scheme name.    |
-| `info`            | `Option<Params>`   | `dict \| None`     | `None`           | Adapter metadata.                        |
-| `ts_event`        | `UnixNanos`        | `int`              | Required         | Event timestamp in nanoseconds.          |
-| `ts_init`         | `UnixNanos`        | `int`              | Required         | Initialization timestamp in nanoseconds. |
+| `instrument_id`   | `InstrumentId`     | `InstrumentId`     | 必填             | 在 Rust 中存储为 `id`。                  |
+| `raw_symbol`      | `Symbol`           | `Symbol`           | 必填             | 交易场所原生符号。                        |
+| `asset_class`     | `AssetClass`       | `AssetClass`       | 必填             | 标的资产的资产类别。                      |
+| `base_currency`   | `Option<Currency>` | `Currency \| None` | `None`           | CFD 跟踪某一货币时的基础货币。            |
+| `quote_currency`  | `Currency`         | `Currency`         | 必填             | 报价和估值使用的货币。                    |
+| `price_precision` | `u8`               | `int`              | 必填             | 价格允许的小数位数。                      |
+| `size_precision`  | `u8`               | `int`              | 必填             | 订单数量允许的小数位数。                  |
+| `price_increment` | `Price`            | `Price`            | 必填             | 最小有效价格步长。                        |
+| `size_increment`  | `Quantity`         | `Quantity`         | 必填             | 最小有效数量步长。                        |
+| `lot_size`        | `Option<Quantity>` | `Quantity \| None` | `None`           | 整手或每手规模。                          |
+| `max_quantity`    | `Option<Quantity>` | `Quantity \| None` | `None`           | 最大下单数量。                            |
+| `min_quantity`    | `Option<Quantity>` | `Quantity \| None` | `None`           | 最小下单数量。                            |
+| `max_notional`    | `Option<Money>`    | `Money \| None`    | `None`           | 最大下单名义价值。                        |
+| `min_notional`    | `Option<Money>`    | `Money \| None`    | `None`           | 最小下单名义价值。                        |
+| `max_price`       | `Option<Price>`    | `Price \| None`    | `None`           | 最大有效报价或订单价格。                  |
+| `min_price`       | `Option<Price>`    | `Price \| None`    | `None`           | 最小有效报价或订单价格。                  |
+| `margin_init`     | `Option<Decimal>`  | `Decimal \| None`  | `0`              | 初始保证金率。                            |
+| `margin_maint`    | `Option<Decimal>`  | `Decimal \| None`  | `0`              | 维持保证金率。                            |
+| `tick_scheme`     | `Option<Ustr>`     | `str \| None`      | `None`           | 已注册的可变 tick 方案名称。              |
+| `info`            | `Option<Params>`   | `dict \| None`     | `None`           | 适配器元数据。                            |
+| `ts_event`        | `UnixNanos`        | `int`              | 必填             | 纳秒级事件时间戳。                        |
+| `ts_init`         | `UnixNanos`        | `int`              | 必填             | 纳秒级初始化时间戳。                      |
 
-**Note**: Python constructors use `instrument_id`. Rust stores the same value as `id`.
+**注意**：Python 构造函数使用 `instrument_id`，Rust 将同一值存储为 `id`。
 
-## Behavior
+## 行为 {#behavior}
 
-- `Cfd` has instrument class `Cfd`.
-- It is never inverse and uses a multiplier of one.
-- It has no activation timestamp, expiration timestamp, strike, or option kind.
-- If a venue offers cash and CFD instruments on the same underlying, use `Cfd` only for the CFD. Use the
-  matching cash type for the underlying market.
+- `Cfd` 的工具类别为 `Cfd`。
+- 它永远不是反向合约，乘数为 1。
+- 没有激活时间戳、到期时间戳、行权价或期权类型。
+- 若交易场所对同标的同时提供现货和 CFD 工具，只在 CFD 上使用 `Cfd`，标的的现货市场使用对应的
+  现货类型。
 
-## Example
+## 示例 {#example}
 
 ```rust tab="Rust"
 use nautilus_core::UnixNanos;
@@ -103,12 +102,12 @@ audusd = Cfd(
 )
 ```
 
-## Adapters
+## 适配器 {#adapters}
 
-The [Interactive Brokers](./../../integrations/interactive_brokers.md) adapter creates or consumes
-`Cfd` instruments for CFD contracts.
+[Interactive Brokers](./../../integrations/interactive_brokers.md) 适配器为差价合约创建或使用
+`Cfd` 金融工具。
 
-## Related guides
+## 相关指南 {#related-guides}
 
-- [Currency Pair](./currency_pair.md) covers cash FX and crypto spot pairs.
-- [Commodity](./commodity.md) covers spot commodity instruments.
+- [Currency Pair](./currency_pair.md)介绍现货外汇和加密货币现货对。
+- [Commodity](./commodity.md)介绍现货商品金融工具。

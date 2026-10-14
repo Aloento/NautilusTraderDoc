@@ -1,29 +1,26 @@
-# Mean Reversion with Proxy FX Data (AX Exchange)
+# 代理 FX 数据均值回归（AX Exchange） {#mean-reversion-with-proxy-fx-data-ax-exchange}
 
-This tutorial backtests a Bollinger-band mean-reversion strategy on
-**EURUSD-PERP** at [AX Exchange](https://architect.exchange) using
-[TrueFX](https://www.truefx.com) EUR/USD spot ticks as a proxy.
+本教程在 [AX Exchange](https://architect.exchange) 的 **EURUSD-PERP** 上回测一个布林带均值回归策略，
+使用 [TrueFX](https://www.truefx.com) 的 EUR/USD 现货 tick 作为代理数据。
 
-## Introduction
+## 简介 {#introduction}
 
-The strategy combines two indicators on 1-minute mid bars:
+策略在 1 分钟中间价 K 线上组合两个指标：
 
-- **Bollinger Bands** (`BBMeanReversion`'s `BB(20, 2.0sd)`): a rolling
-  20-bar mean and a +/-2sd envelope. The bands flag price as overextended
-  relative to recent volatility.
-- **Relative Strength Index** (`RSI(14)`): a 14-bar momentum oscillator on
-  `[0, 100]`, used with the conventional 30/70 thresholds.
+- **布林带**（`BBMeanReversion` 的 `BB(20, 2.0sd)`）：滚动 20 根 K 线的均值和 ±2 倍标准差的包络。
+  布林带用于标记价格相对近期波动率是否超涨超跌。
+- **相对强弱指数**（`RSI(14)`）：14 根 K 线的动量振荡指标，取值 `[0, 100]`，
+  按常规的 30/70 阈值使用。
 
-Entry requires both signals at once:
+入场要求两个信号同时满足：
 
-- A touch of the lower band with `RSI < 30` opens a long position.
-- A touch of the upper band with `RSI > 70` opens a short position.
+- 触及下轨且 `RSI < 30` 时开多。
+- 触及上轨且 `RSI > 70` 时开空。
 
-Exit uses only the closing-price condition: any open position closes when the closing price crosses back
-through the BB middle. The strategy closes existing positions on the opposite side before a new entry.
+出场只看收盘价条件：收盘价重新穿越 BB 中轨时平掉所有持仓。新入场前先平掉反方向的
+已有持仓。
 
-The shipped `BBMeanReversion` strategy is intentionally simple and has no
-edge.
+自带的 `BBMeanReversion` 策略刻意保持简单，没有优势（edge）。
 
 ```mermaid
 flowchart LR
@@ -69,35 +66,33 @@ flowchart LR
     CL --> SELL
 ```
 
-### Why proxy data
+### 为什么用代理数据 {#why-proxy-data}
 
-Historical data vendors do not yet cover AX Exchange. [TrueFX](https://www.truefx.com) publishes free,
-institutional-grade EUR/USD spot tick archives from the Integral and Jefferies pools. These archives provide
-proxy data for AX EURUSD-PERP backtests.
+历史数据供应商尚未覆盖 AX Exchange。[TrueFX](https://www.truefx.com) 免费发布来自
+Integral 和 Jefferies 池的机构级 EUR/USD 现货 tick 归档，可作为 AX EURUSD-PERP 回测的
+代理数据。
 
-## Prerequisites
+## 前置条件 {#prerequisites}
 
 - Python 3.13+
-- [NautilusTrader installed](./../getting_started/installation.md) with the
-  [`visualization` extra](./../getting_started/installation.md#extras), which
-  provides pandas.
-- A source checkout of the repository. The backtest imports
-  `BBMeanReversion` from `examples/live/architect_ax/strategies.py`, which
-  the installed package does not include.
-- A free TrueFX account, used to download a monthly tick archive.
+- 已[安装 NautilusTrader](./../getting_started/installation.md)，并带上提供 pandas 的
+  [`visualization` extra](./../getting_started/installation.md#extras)。
+- 仓库源码检出。回测从 `examples/live/architect_ax/strategies.py` 导入
+  `BBMeanReversion`，已安装的包不包含该文件。
+- 一个免费的 TrueFX 账户，用于下载月度 tick 归档。
 
-## Data preparation
+## 数据准备 {#data-preparation}
 
-### Download TrueFX EUR/USD ticks
+### 下载 TrueFX EUR/USD tick {#download-truefx-eurusd-ticks}
 
-1. Go to the [TrueFX historical downloads page](https://www.truefx.com/truefx-historical-downloads/).
-1. Select **EUR/USD** and a month, for example **December 2025**.
-1. Extract the ZIP. The CSV has no header and contains the columns
-   `pair, timestamp, bid, ask`.
+1. 打开 [TrueFX 历史数据下载页](https://www.truefx.com/truefx-historical-downloads/)。
+1. 选择 **EUR/USD** 和某个月份，例如 **December 2025**。
+1. 解压 ZIP。CSV 无表头，列为
+   `pair, timestamp, bid, ask`。
 
-### Load into Nautilus quote ticks
+### 加载为 Nautilus 报价 tick {#load-into-nautilus-quote-ticks}
 
-Define `EURUSD_PERP` and `instrument_id` in the next section before running this snippet.
+先运行下一节的代码定义 `EURUSD_PERP` 和 `instrument_id`，再运行这段代码。
 
 ```python
 from pathlib import Path
@@ -135,13 +130,13 @@ for timestamp, row in df.iterrows():
     )
 ```
 
-Each quote carries the proxy instrument ID and one unit of bid and ask size. The strategy declares
-`1-MINUTE-MID-INTERNAL`. The engine therefore builds 1-minute MID bars internally from the tick stream.
+每条报价携带代理金融工具 ID，买卖量各设一个单位。策略声明的是
+`1-MINUTE-MID-INTERNAL`，因此引擎从 tick 流内部聚合出 1 分钟 MID K 线。
 
-## Instrument definition
+## 金融工具定义 {#instrument-definition}
 
-Proxy data needs a manual instrument definition. The multiplier of `1000`
-gives one contract a notional of 1,000 EUR.
+代理数据需要手工定义金融工具。`multiplier` 取 `1000`，使一张合约的名义价值为
+1,000 EUR。
 
 ```python
 from decimal import Decimal
@@ -179,24 +174,23 @@ EURUSD_PERP = PerpetualContract(
 )
 ```
 
-Fees and margin are explicit backtest assumptions. Check the
-[AX Exchange documentation](https://docs.architect.exchange/) for current
-rates.
+费用和保证金是回测中显式设定的假设。当前费率请查阅
+[AX Exchange 文档](https://docs.architect.exchange/)。
 
-## Configuration
+## 配置 {#configuration}
 
-| Parameter            | Value  | Description                                                |
+| 参数                 | 取值   | 说明                                                       |
 | -------------------- | ------ | ---------------------------------------------------------- |
-| `bb_period`          | `20`   | Rolling window for the BB mean and the standard deviation. |
-| `bb_std`             | `2.0`  | Band width in standard deviations.                         |
-| `rsi_period`         | `14`   | RSI lookback in bars.                                      |
-| `rsi_buy_threshold`  | `30.0` | Long entry confirmation (RSI is on `[0, 100]`).            |
-| `rsi_sell_threshold` | `70.0` | Short entry confirmation.                                  |
-| `trade_size`         | `1`    | One contract per trade (1,000 EUR notional).               |
+| `bb_period`          | `20`   | BB 均值与标准差的滚动窗口。                                |
+| `bb_std`             | `2.0`  | 带宽，以标准差为单位。                                     |
+| `rsi_period`         | `14`   | RSI 回看根数。                                             |
+| `rsi_buy_threshold`  | `30.0` | 做多入场的确认条件（RSI 取值 `[0, 100]`）。                |
+| `rsi_sell_threshold` | `70.0` | 做空入场的确认条件。                                       |
+| `trade_size`         | `1`    | 每次交易一张合约（名义价值 1,000 EUR）。                   |
 
-## Backtest setup
+## 回测设置 {#backtest-setup}
 
-From the repository root:
+在仓库根目录执行：
 
 ```python
 import sys
@@ -259,7 +253,7 @@ engine.add_strategy(strategy)
 engine.run()
 ```
 
-Get reports from the engine:
+从引擎获取报告：
 
 ```python
 print(engine.generate_account_report(venue=AX))
@@ -270,50 +264,42 @@ engine.reset()
 engine.dispose()
 ```
 
-The self-contained runnable example uses the bundled AUD/USD fixture with the
-same strategy and setup pattern. It is at
-[`architect_ax_mean_reversion.py`](https://github.com/nautechsystems/nautilus_trader/tree/develop/examples/backtest/architect_ax_mean_reversion.py).
+自带数据、可直接运行的完整示例使用内置的 AUD/USD 测试夹具，策略与设置模式相同，见
+[`architect_ax_mean_reversion.py`](https://github.com/nautechsystems/nautilus_trader/tree/develop/examples/backtest/architect_ax_mean_reversion.py)。
 
-## What the run produces
+## 运行结果 {#what-the-run-produces}
 
-A replay of TrueFX EUR/USD December 2025 through `BBMeanReversion(20, 2sd, RSI 14)` produces 44,591 1-minute
-mid bars. It closes 1,089 positions across 2,178 fills. Cumulative realized pnl ends at **-1,287 USD**. The
-strategy loses money steadily through the month, with no clear recovery from a change in regime. Mean
-reversion without a regime filter pays the spread on every cycle. EUR/USD trends strongly upward through the
-second half of December, and the strategy repeatedly trades against that trend.
+把 TrueFX EUR/USD 2025 年 12 月的数据重放给 `BBMeanReversion(20, 2sd, RSI 14)`，
+得到 44,591 根 1 分钟中间价 K 线，平仓 1,089 笔、共 2,178 笔成交。累计已实现盈亏最终为
+**-1,287 USD**。策略整月稳定亏损，市场状态切换后也没有明显好转。没有市场状态过滤的
+均值回归，每个回合都在支付点差。EUR/USD 在 12 月下半月强势上行，策略反复逆势交易。
 
 ![EUR/USD 1-minute mid bars across December 2025 with BB envelope](./assets/fx_mean_reversion_ax/panel_a_overview.png)
 
-**Figure 1.** *EUR/USD 1-minute mid bars across December 2025 with the BB
-middle and +/-2sd envelope. Long flat patches are weekend gaps in the TrueFX
-feed.*
+**图 1.** *2025 年 12 月整月的 EUR/USD 1 分钟中间价 K 线，叠加 BB 中轨与 ±2sd 包络。
+水平平坦段是 TrueFX 数据源中的周末空档。*
 
 ![Twelve-hour zoom on entries, exits, and RSI](./assets/fx_mean_reversion_ax/panel_b_zoom.png)
 
-**Figure 2.** *Twelve-hour zoom around the dataset midpoint. Top: mid with
-BB envelope, long entries (triangles up), short entries (triangles down),
-and closing fills (crosses). Bottom: RSI(14) with the 30 buy / 70 sell
-thresholds.*
+**图 2.** *数据集时间中点附近 12 小时的放大图。上：中间价与 BB 包络、做多入场（上三角）、
+做空入场（下三角）、平仓成交（叉号）。下：RSI(14) 及 30 买入 / 70 卖出阈值。*
 
 ![Decision space scatter](./assets/fx_mean_reversion_ax/panel_c_decision_scatter.png)
 
-**Figure 3.** *Per-bar BB z-score against RSI for the whole month. Shaded
-regions mark the entry-eligible quadrants: lower-left (long) and upper-right
-(short). The diagonal lobe is the natural co-movement of band-relative price
-and RSI.*
+**图 3.** *整月每根 K 线的 BB z 分数对 RSI 的散点图。阴影区域标记可入场象限：
+左下（做多）与右上（做空）。对角线状的团块是带内相对价格与 RSI 的天然联动。*
 
 ![Cumulative realized pnl per closed position](./assets/fx_mean_reversion_ax/panel_d_pnl.png)
 
-**Figure 4.** *Cumulative realized USD pnl across closed positions. The
-curve declines roughly linearly, dominated by spread and small adverse
-moves on each cycle.*
+**图 4.** *按已平持仓的累计 USD 已实现盈亏。曲线近似线性下滑，主要来自每个回合支付的
+点差和小额不利波动。*
 
-### Regenerate the panels
+### 重新生成图表面板 {#regenerate-the-panels}
 
-A self-contained renderer runs the backtest again and calculates BB and RSI on the captured bars. It writes
-PNG panels with the shared `nautilus_dark` tearsheet theme.
+一个自包含的渲染器重跑回测，在捕获的 K 线上计算 BB 与 RSI，使用共享的 `nautilus_dark`
+tearsheet 主题写出 PNG 面板。
 
-After building NautilusTrader from source, run these commands from the repository root:
+从源码构建 NautilusTrader 后，在仓库根目录运行：
 
 ```bash
 make sync
@@ -322,35 +308,32 @@ TRUEFX_CSV=test_data/local/truefx/EURUSD-2025-12.csv \
         python docs/tutorials/assets/fx_mean_reversion_ax/render_panels.py
 ```
 
-Set `TRUEFX_CSV` to the path of your EUR/USD archive.
+把 `TRUEFX_CSV` 设为你的 EUR/USD 归档路径。
 
-## Next steps
+## 后续步骤 {#next-steps}
 
-- **Regime filter**: The drawdown concentrates in trending sessions.
-  Suppress entries when realized range or a slower trend filter indicates a directional market.
-- **Thresholds**: A wider band (`bb_std=2.5`) or stricter RSI cutoffs (`25` / `75`) reduce entries
-  and require stronger confirmation.
-- **Stops**: Hard stop-loss orders cap downside per cycle.
-  They prevent the strategy from holding a losing position until the price returns to the BB middle.
-- **AX sandbox**: Connect to the AX sandbox for paper
-  trading once the backtest behaves. See the
-  [AX Exchange integration guide](./../integrations/architect_ax.md) for
-  setup.
+- **市场状态过滤**：回撤集中在趋势性时段。当实际波幅或更慢的趋势过滤器显示市场有
+  方向时，抑制入场。
+- **阈值**：更宽的布林带（`bb_std=2.5`）或更严的 RSI 截断（`25` / `75`）会减少入场，
+  并要求更强的确认。
+- **止损**：硬性止损单可限制每个回合的下行。避免策略一直持有亏损仓位等价格回到
+  BB 中轨。
+- **AX 沙盒**：回测表现符合预期后，接入 AX 沙盒做模拟交易。环境搭建见
+  [AX Exchange 集成指南](./../integrations/architect_ax.md)。
 
-## Running live
+## 实时运行 {#running-live}
 
-The same `BBMeanReversion` strategy runs live against AX Exchange. The launch script uses a `LiveNode` with AX
-data and execution clients in place of the `BacktestEngine`. See the live example:
-[`ax_mean_reversion.py`](https://github.com/nautechsystems/nautilus_trader/tree/develop/examples/live/architect_ax/ax_mean_reversion.py).
-The script targets the AX sandbox (`AxEnvironment.SANDBOX` on both client configs) and places live sandbox
-orders. It also sets `LiveRiskEngineConfig(bypass=True)`, which skips pre-trade risk checks and order rate
-limits.
+同一个 `BBMeanReversion` 策略可以直连 AX Exchange 实时运行。启动脚本使用 `LiveNode`，
+以 AX 数据与执行客户端替代 `BacktestEngine`。实时示例见
+[`ax_mean_reversion.py`](https://github.com/nautechsystems/nautilus_trader/tree/develop/examples/live/architect_ax/ax_mean_reversion.py)。
+脚本面向 AX 沙盒（两个客户端配置均设 `AxEnvironment.SANDBOX`），会在沙盒中下真实订单。
+脚本还设置了 `LiveRiskEngineConfig(bypass=True)`，跳过盘前风控检查和订单频率限制。
 
-For connection setup and API key configuration, see the
-[AX Exchange integration guide](./../integrations/architect_ax.md).
+连接设置与 API key 配置见
+[AX Exchange 集成指南](./../integrations/architect_ax.md)。
 
-## Further reading
+## 延伸阅读 {#further-reading}
 
-- [`BBMeanReversion` strategy source](https://github.com/nautechsystems/nautilus_trader/blob/develop/examples/live/architect_ax/strategies.py)
-- [Gold perpetual book imbalance tutorial](./gold_book_imbalance_ax.md)
-- [Architect Exchange documentation](https://docs.architect.exchange/)
+- [`BBMeanReversion` 策略源码](https://github.com/nautechsystems/nautilus_trader/blob/develop/examples/live/architect_ax/strategies.py)
+- [黄金永续合约订单簿失衡教程](./gold_book_imbalance_ax.md)
+- [Architect Exchange 文档](https://docs.architect.exchange/)

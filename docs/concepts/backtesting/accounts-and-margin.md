@@ -1,16 +1,14 @@
-# Backtest Accounts and Margin
+# 回测账户与保证金 {#backtest-accounts-and-margin}
 
-Backtest venues use simulated accounts for balances, margin, and funding settlement. For the full
-account model and margin formulas, see [Accounting](./../accounting.md).
+回测场所使用模拟账户处理余额、保证金和资金费结算。完整账户模型与保证金公式见[记账](./../accounting.md)。
 
-## Funding
+## 资金费 {#funding}
 
-Backtests settle perpetual funding from `FundingRateUpdate` data at funding boundaries:
+回测在资金费边界处用 `FundingRateUpdate` 数据结算永续合约资金费：
 
-- With `next_funding_ns`, the simulated exchange stores the latest rate, and the backtest clock
-  emits one `FundingSettlement` at that timestamp.
-- Without `next_funding_ns`, the exchange settles only when `ts_event` lands on the `interval` boundary.
-- Updates without a boundary stay strategy data and do not create funding payments.
+- 带 `next_funding_ns` 时，模拟交易所保存最新费率，回测时钟在该时间戳发出一次 `FundingSettlement`。
+- 不带 `next_funding_ns` 时，只有 `ts_event` 落在 `interval` 边界上才结算。
+- 未落在边界上的更新只是普通策略数据，不产生资金费收付。
 
 ```mermaid
 flowchart LR
@@ -24,17 +22,13 @@ flowchart LR
     G --> H
 ```
 
-The settlement adjusts the open position and the matching account balance before the portfolio
-observes the new state.
+结算先调整持仓中仓位和对应账户余额，Portfolio 随后才观察到新状态。
 
-`PositionAdjusted` stays the position accounting event. A **positive funding rate** debits long positions and
-credits short positions. The adjustment changes realized PnL, and the matching account balance update records
-the cash movement.
+`PositionAdjusted` 仍是持仓记账事件。**正资金费率**对多头扣款、对空头入账。该调整改变已实现盈亏，对应的账户余额更新记录现金变动。
 
-## Accounts
+## 账户 {#accounts}
 
-Each backtest venue uses one of three `account_type` values: `CASH`, `MARGIN`, or `BETTING`. The low-level API
-accepts model types directly:
+每个回测场所使用 `CASH`、`MARGIN`、`BETTING` 三种 `account_type` 之一。低层 API 直接接受模型类型：
 
 ```python
 from decimal import Decimal
@@ -60,7 +54,7 @@ engine.add_venue(
 )
 ```
 
-The high-level API accepts the same enum values but represents starting balances as strings:
+高层 API 接受同样的枚举值，但初始余额用字符串表示：
 
 ```python
 from decimal import Decimal
@@ -84,10 +78,9 @@ venue = BacktestVenueConfig(
 )
 ```
 
-## Margin models
+## 保证金模型 {#margin-models}
 
-Margin accounts use `LeveragedMarginModel` by default. To reserve the instrument's fixed initial and
-maintenance margin percentages without account leverage reductions, pass `StandardMarginModel`.
+保证金账户默认使用 `LeveragedMarginModel`。若希望按工具固定的初始保证金与维持保证金比例预留、且不受账户杠杆下调影响，传入 `StandardMarginModel`。
 
 ```python
 from decimal import Decimal
@@ -113,5 +106,5 @@ venue = BacktestVenueConfig(
 )
 ```
 
-`BacktestVenueConfig` accepts the built-in `StandardMarginModel` and `LeveragedMarginModel`
-objects directly. The high-level configuration does not load custom margin models from class-path strings.
+`BacktestVenueConfig` 直接接受内置的 `StandardMarginModel` 和 `LeveragedMarginModel`
+对象。高层配置不会从类路径字符串加载自定义保证金模型。

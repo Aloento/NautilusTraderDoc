@@ -1,25 +1,24 @@
 # InstrumentClose
 
-`InstrumentClose` represents a closing price event for an instrument at a venue. It covers
-end-of-session closes and contract-expiry close events.
+`InstrumentClose` 表示某金融工具在某交易场所的收盘价事件，涵盖时段结束收盘和合约到期收盘。
 
-## Fields
+## 字段 {#fields}
 
-| Field           | Rust type             | Python type           | Required/default | Notes                                    |
+| 字段            | Rust 类型             | Python 类型           | 必填/默认值 | 说明                                    |
 | --------------- | --------------------- | --------------------- | ---------------- | ---------------------------------------- |
-| `instrument_id` | `InstrumentId`        | `InstrumentId`        | Required         | Instrument being closed.                 |
-| `close_price`   | `Price`               | `Price`               | Required         | Closing or settlement price.             |
-| `close_type`    | `InstrumentCloseType` | `InstrumentCloseType` | Required         | `END_OF_SESSION` or `CONTRACT_EXPIRED`.  |
-| `ts_event`      | `UnixNanos`           | `int`                 | Required         | Event timestamp in nanoseconds.          |
-| `ts_init`       | `UnixNanos`           | `int`                 | Required         | Initialization timestamp in nanoseconds. |
+| `instrument_id` | `InstrumentId`        | `InstrumentId`        | 必填         | 被收盘的金融工具。                 |
+| `close_price`   | `Price`               | `Price`               | 必填         | 收盘价或结算价。             |
+| `close_type`    | `InstrumentCloseType` | `InstrumentCloseType` | 必填         | `END_OF_SESSION` 或 `CONTRACT_EXPIRED`。  |
+| `ts_event`      | `UnixNanos`           | `int`                 | 必填         | 事件时间戳（纳秒）。          |
+| `ts_init`       | `UnixNanos`           | `int`                 | 必填         | 初始化时间戳（纳秒）。 |
 
-## Behavior
+## 行为 {#behavior}
 
-- End-of-session closes provide session-level close prices.
-- Contract-expiry closes mark expiration events for dated contracts.
-- The close price is reference data. It does not imply a trade occurred at that price.
+- 时段结束收盘提供时段级别的收盘价。
+- 合约到期收盘标记有到期日合约的到期事件。
+- 收盘价是参考数据，不代表以该价格发生过成交。
 
-## Example
+## 示例 {#example}
 
 ```rust tab="Rust"
 use nautilus_core::UnixNanos;
@@ -54,8 +53,8 @@ close = InstrumentClose(
 )
 ```
 
-## Related guides
+## 相关指南 {#related-guides}
 
-- [InstrumentStatus](./instrument_status.md) covers instrument status events.
-- [Instruments](./../instruments/index.md) covers instrument definitions.
-- [Python API reference](https://nautilustrader.io/docs/python-api-latest/model/data.html) lists Python members.
+- [InstrumentStatus](./instrument_status.md) 介绍金融工具状态事件。
+- [金融工具](./../instruments/index.md) 介绍工具定义。
+- [Python API 参考](https://nautilustrader.io/docs/python-api-latest/model/data.html) 列出 Python 成员。

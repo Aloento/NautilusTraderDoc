@@ -1,50 +1,46 @@
 # OrderInitialized
 
-`OrderInitialized` is the seed event for a new order. It carries enough information to send the
-order over the wire and reconstruct it with the same properties. The execution pipeline stores the
-order in the `Cache` and publishes the event on the `MessageBus`.
+`OrderInitialized` 是新订单的种子事件，携带的信息足以把订单发送上线，并以相同属性重建它。执行流水线把订单存入 `Cache`，并把该事件发布到 `MessageBus`。
 
-The event seeds both locally created orders and external orders materialized during reconciliation.
-Handler: `on_order_initialized`.
+该事件既用于本地创建的订单，也用于对账期间实化（materialize）的外部订单。处理函数：`on_order_initialized`。
 
-## Fields
+## 字段 {#fields}
 
-Beyond the [common Python order event fields](./index.md#common-python-order-event-fields),
-`OrderInitialized` carries:
+除 [Python 订单事件公共字段](./index.md#common-python-order-event-fields)外，`OrderInitialized` 还携带：
 
-| Field                   | Python type                     | Required/default | Description                                         |
+| 字段                    | Python 类型                     | 必填/默认值 | 说明                                                |
 | ----------------------- | ------------------------------- | ---------------- | --------------------------------------------------- |
-| `order_side`            | `OrderSide`                     | Required         | The order side.                                     |
-| `order_type`            | `OrderType`                     | Required         | The order type.                                     |
-| `quantity`              | `Quantity`                      | Required         | The order quantity.                                 |
-| `time_in_force`         | `TimeInForce`                   | Required         | The order time in force.                            |
-| `post_only`             | `bool`                          | Required         | If the order only provides liquidity.               |
-| `reduce_only`           | `bool`                          | Required         | If the order carries the reduce-only instruction.   |
-| `quote_quantity`        | `bool`                          | Required         | If quantity is denominated in the quote currency.   |
-| `reconciliation`        | `bool`                          | Required         | If the event was generated during reconciliation.   |
-| `price`                 | `Price` or `None`               | `None`           | The limit price.                                    |
-| `activation_price`      | `Price` or `None`               | `None`           | The activation price for a trailing-stop order.     |
-| `trigger_price`         | `Price` or `None`               | `None`           | The stop trigger price.                             |
-| `trigger_type`          | `TriggerType` or `None`         | `None`           | The trigger type.                                   |
-| `limit_offset`          | `Decimal` or `None`             | `None`           | The trailing offset for the limit price.            |
-| `trailing_offset`       | `Decimal` or `None`             | `None`           | The trailing offset for the trigger price.          |
-| `trailing_offset_type`  | `TrailingOffsetType` or `None`  | `None`           | The trailing offset type.                           |
-| `expire_time`           | `int` or `None`                 | `None`           | The UNIX expiration timestamp in nanoseconds.       |
-| `display_qty`           | `Quantity` or `None`            | `None`           | The quantity displayed on the public book.          |
-| `emulation_trigger`     | `TriggerType` or `None`         | `None`           | The market price trigger for local emulation.       |
-| `trigger_instrument_id` | `InstrumentId` or `None`        | `None`           | The instrument that supplies the emulation trigger. |
-| `contingency_type`      | `ContingencyType` or `None`     | `None`           | The order contingency type.                         |
-| `order_list_id`         | `OrderListId` or `None`         | `None`           | The associated order list ID.                       |
-| `linked_order_ids`      | `list[ClientOrderId]` or `None` | `None`           | The linked client order IDs.                        |
-| `parent_order_id`       | `ClientOrderId` or `None`       | `None`           | The parent client order ID.                         |
-| `exec_algorithm_id`     | `ExecAlgorithmId` or `None`     | `None`           | The execution algorithm ID.                         |
-| `exec_algorithm_params` | `dict[str, str]` or `None`      | `None`           | The execution algorithm parameters.                 |
-| `exec_spawn_id`         | `ClientOrderId` or `None`       | `None`           | The spawning primary client order ID.               |
-| `tags`                  | `list[str]` or `None`           | `None`           | Custom user tags.                                   |
+| `order_side`            | `OrderSide`                     | 必填         | 订单方向。                                     |
+| `order_type`            | `OrderType`                     | 必填         | 订单类型。                                     |
+| `quantity`              | `Quantity`                      | 必填         | 订单数量。                                 |
+| `time_in_force`         | `TimeInForce`                   | 必填         | 订单有效期类型。                            |
+| `post_only`             | `bool`                          | 必填         | 是否只做提供流动性。               |
+| `reduce_only`           | `bool`                          | 必填         | 是否携带只减仓指令。   |
+| `quote_quantity`        | `bool`                          | 必填         | 数量是否以计价货币计价。   |
+| `reconciliation`        | `bool`                          | 必填         | 事件是否在一致性对账期间生成。   |
+| `price`                 | `Price` 或 `None`               | `None`           | 限价。                                    |
+| `activation_price`      | `Price` 或 `None`               | `None`           | 追踪止损订单的激活价格。     |
+| `trigger_price`         | `Price` 或 `None`               | `None`           | 止损触发价。                             |
+| `trigger_type`          | `TriggerType` 或 `None`         | `None`           | 触发类型。                                   |
+| `limit_offset`          | `Decimal` 或 `None`             | `None`           | 限价的追踪偏移。            |
+| `trailing_offset`       | `Decimal` 或 `None`             | `None`           | 触发价的追踪偏移。          |
+| `trailing_offset_type`  | `TrailingOffsetType` 或 `None`  | `None`           | 追踪偏移类型。                           |
+| `expire_time`           | `int` 或 `None`                 | `None`           | UNIX 过期时间戳（纳秒）。       |
+| `display_qty`           | `Quantity` 或 `None`            | `None`           | 在公开订单簿上展示的数量。          |
+| `emulation_trigger`     | `TriggerType` 或 `None`         | `None`           | 本地模拟的市场价触发条件。       |
+| `trigger_instrument_id` | `InstrumentId` 或 `None`        | `None`           | 为模拟触发提供价格的金融工具。 |
+| `contingency_type`      | `ContingencyType` 或 `None`     | `None`           | 订单或有条件类型。                         |
+| `order_list_id`         | `OrderListId` 或 `None`         | `None`           | 关联的订单列表 ID。                       |
+| `linked_order_ids`      | `list[ClientOrderId]` 或 `None` | `None`           | 关联（linked）的客户端订单 ID 列表。                        |
+| `parent_order_id`       | `ClientOrderId` 或 `None`       | `None`           | 父级客户端订单 ID。                         |
+| `exec_algorithm_id`     | `ExecAlgorithmId` 或 `None`     | `None`           | 执行算法 ID。                         |
+| `exec_algorithm_params` | `dict[str, str]` 或 `None`      | `None`           | 执行算法参数。                 |
+| `exec_spawn_id`         | `ClientOrderId` 或 `None`       | `None`           | 派生该订单的主订单客户端 ID。               |
+| `tags`                  | `list[str]` 或 `None`           | `None`           | 用户自定义标签。                                   |
 
-## Example
+## 示例 {#example}
 
-Reading the event in a strategy handler:
+在策略处理函数中读取该事件：
 
 ```python
 def on_order_initialized(self, event: OrderInitialized) -> None:
@@ -53,7 +49,7 @@ def on_order_initialized(self, event: OrderInitialized) -> None:
     )
 ```
 
-## Related guides
+## 相关指南 {#related-guides}
 
-- [Events](./index.md) - Event categories, dispatch, and the common order event fields.
-- [Orders](./../orders/index.md) - Order types and the state machine.
+- [事件](./index.md) - 事件类别、分发与订单事件公共字段。
+- [订单](./../orders/index.md) - 订单类型与状态机。

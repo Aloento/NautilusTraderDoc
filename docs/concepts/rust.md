@@ -1,27 +1,21 @@
 # Rust
 
-Nautilus has a complete Rust implementation under the `crates/` directory.
-You can write actors, strategies, run backtests, and trade live without Python.
-The domain model is shared with the Python package, which runs user components
-on the same Rust engine through PyO3.
+Nautilus 在 `crates/` 目录下有完整的 Rust 实现。不用 Python 也能编写 actor、策略，运行回测和实时交易。领域模型与 Python 包共用，Python 用户组件通过 PyO3 运行在同一个 Rust 引擎上。
 
 :::warning
-The Rust API is under active development. Method signatures and trait
-requirements may change between releases.
+Rust API 仍在积极开发中。方法签名和 trait 要求可能随版本变化。
 :::
 
-## System implementations
+## 系统实现 {#system-implementations}
 
-Nautilus has two paths. Choose the one that matches how you want to author
-and deploy the system.
+Nautilus 有两条路径，按期望的编写与部署方式选择。
 
-- **Rust**: Pure Rust under `crates/`. Runs without Python.
-- **Python**: [Python user components](./python.md) running on the Rust core through PyO3
-  bindings under `python/nautilus_trader/`.
+- **Rust**：`crates/` 下的纯 Rust，无需 Python 即可运行。
+- **Python**：[Python 用户组件](./python.md)通过 `python/nautilus_trader/` 下的 PyO3 绑定运行在 Rust 核心上。
 
-### Capability matrix
+### 能力矩阵 {#capability-matrix}
 
-| Component       | Rust | Python |
+| 组件            | Rust | Python |
 | --------------- | ---- | ------ |
 | Strategy        | ✓    | ✓      |
 | Actor           | ✓    | ✓      |
@@ -32,26 +26,24 @@ and deploy the system.
 | BacktestNode    | ✓    | ✓      |
 | LiveNode        | ✓    | ✓      |
 | OrderEmulator   | ✓    | ✓      |
-| Matching engine | ✓    | ✓      |
+| 撮合引擎        | ✓    | ✓      |
 | Portfolio       | ✓    | ✓      |
-| Accounts        | ✓    | ✓      |
+| 账户            | ✓    | ✓      |
 | Cache           | ✓    | ✓      |
 | MessageBus      | ✓    | ✓      |
-| Data catalog    | ✓    | ✓      |
-| Indicators      | ✓    | ✓      |
-| Exec algorithms | TWAP | TWAP   |
+| 数据目录        | ✓    | ✓      |
+| 指标            | ✓    | ✓      |
+| 执行算法        | TWAP | TWAP   |
 | Controller      | -    | ✓      |
 | Tearsheets      | -    | ✓      |
 
 :::note
-The Controller runtime is implemented in Rust and powers the Python `Controller`
-base class. The matrix marks it absent for Rust because the supported
-registration path (importable controller configs) is Python-only.
+Controller 运行时以 Rust 实现，为 Python 的 `Controller` 基类提供支持。矩阵中对 Rust 标记为缺失，是因为受支持的注册路径（可导入的 controller 配置）仅限 Python。
 :::
 
-### Adapters
+### 适配器 {#adapters}
 
-| Adapter             | Rust | Python |
+| 适配器              | Rust | Python |
 | ------------------- | ---- | ------ |
 | Architect AX        | ✓    | ✓      |
 | Betfair             | ✓    | ✓      |
@@ -72,19 +64,16 @@ registration path (importable controller configs) is Python-only.
 | Sandbox             | ✓    | ✓      |
 | Tardis              | ✓    | ✓      |
 
-### Choosing a path
+### 如何选择 {#choosing-a-path}
 
-- **Rust** gives native performance without a Python runtime. All core
-  trading functionality is available. Use it for latency-sensitive
-  deployments or teams that prefer a compiled language.
-- **Python** keeps the Python authoring experience. User components (actors,
-  strategies) run on the Rust core for data processing and execution.
+- **Rust** 提供无 Python 运行时的原生性能。核心交易功能全部可用。适合对延迟敏感的部署，或偏好编译型语言的团队。
+- **Python** 保留 Python 的编写体验。用户组件（actor、策略）运行在 Rust 核心上完成数据处理与执行。
 
-## Project setup
+## 项目设置 {#project-setup}
 
-The Nautilus crates are published to
-[crates.io](https://crates.io/crates/nautilus-backtest). Add them to your
-`Cargo.toml`:
+Nautilus 的 crate 已发布到
+[crates.io](https://crates.io/crates/nautilus-backtest)。把它们加入你的
+`Cargo.toml`：
 
 ```toml
 [dependencies]
@@ -98,7 +87,7 @@ anyhow = "1"
 log = "0.4"
 ```
 
-For live trading, add the live crate and the adapter for your venue:
+实时交易需加上 live crate 和你所用交易场所的适配器：
 
 ```toml
 [dependencies]
@@ -106,8 +95,7 @@ nautilus-live = "0.65"
 nautilus-okx = "0.65"
 ```
 
-To track the latest development branch, point all Nautilus dependencies at the same git source. This avoids
-type mismatches between crates.io and git versions:
+要跟随最新开发分支，把所有 Nautilus 依赖指向同一个 git 源，避免 crates.io 与 git 版本之间的类型不匹配：
 
 ```toml
 [dependencies]
@@ -118,28 +106,27 @@ nautilus-model = { git = "https://github.com/nautechsystems/nautilus_trader.git"
 nautilus-trading = { git = "https://github.com/nautechsystems/nautilus_trader.git", branch = "develop", features = ["examples"] }
 ```
 
-The minimum supported Rust version (MSRV) is **1.99.0**.
+最低支持 Rust 版本（MSRV）为 **1.99.0**。
 
-### Feature flags
+### Feature 标志 {#feature-flags}
 
-| Flag             | Crate               | Effect                                               |
+| 标志             | Crate               | 效果                                                 |
 | ---------------- | ------------------- | ---------------------------------------------------- |
-| `high-precision` | `nautilus-model`    | 16-digit fixed precision (default is 9).             |
-| `test-support`   | `nautilus-model`    | Test fixtures, builders, specs, and defaults.        |
-| `examples`       | `nautilus-trading`  | Example strategies (`EmaCross`, `GridMarketMaker`).  |
-| `streaming`      | `nautilus-backtest` | Catalog-based data streaming through `BacktestNode`. |
-| `defi`           | `nautilus-model`    | DeFi data types. Implies `high-precision`.           |
+| `high-precision` | `nautilus-model`    | 16 位定点精度（默认 9 位）。                         |
+| `test-support`   | `nautilus-model`    | 测试夹具、builder、specs 和默认值。                  |
+| `examples`       | `nautilus-trading`  | 示例策略（`EmaCross`、`GridMarketMaker`）。          |
+| `streaming`      | `nautilus-backtest` | `BacktestNode` 基于数据目录的数据流式加载。          |
+| `defi`           | `nautilus-model`    | DeFi 数据类型。隐含 `high-precision`。               |
 
 :::tip
-Standard 9-digit precision handles most traditional finance instruments.
-Enable `high-precision` for crypto venues where prices or quantities need more than nine decimal
-places.
+标准 9 位精度足以应对大多数传统金融工具。
+加密货币场所的价格或数量需要超过九位小数时，启用 `high-precision`。
 :::
 
-### Memory allocator
+### 内存分配器 {#memory-allocator}
 
-The `nautilus` CLI and Python wheels use [mimalloc](https://crates.io/crates/mimalloc) for Rust
-allocations. A Rust binary chooses its own allocator, so add mimalloc to yours to match:
+`nautilus` CLI 和 Python wheel 使用 [mimalloc](https://crates.io/crates/mimalloc) 承担 Rust
+分配。Rust 二进制自行选择分配器，因此你的二进制要匹配的话需自行加入 mimalloc：
 
 ```toml
 [dependencies]
@@ -158,37 +145,32 @@ fn main() {
 }
 ```
 
-Declaring `GLOBAL` selects mimalloc. Call `register_allocator_mimalloc` at the start of `main`, before
-constructing a Nautilus node, so the version header reports `allocator: mimalloc <version>`. Registration
-**only updates the header metadata**. It does not select the allocator.
+声明 `GLOBAL` 即选用 mimalloc。在 `main` 开头、构造 Nautilus 节点之前调用 `register_allocator_mimalloc`，
+版本头部即可报告 `allocator: mimalloc <version>`。注册**只更新头部元数据**，
+并不选择分配器。
 
-The default system allocator also works. Measure throughput and resident memory on your workload
-and platform when comparing allocator choices.
-See the [architecture guide](./architecture.md#memory-allocation) for background.
+使用默认系统分配器也可以。比较分配器选择时，请在你的负载和平台上实测吞吐量与常驻内存。
+背景见[架构指南](./architecture.md#memory-allocation)。
 
-## Actors
+## Actor {#actors}
 
-An actor receives market data, custom data/signals, and system events but does not manage orders. Implement
-the `DataActor` trait and use `nautilus_actor!` to wire your `DataActorCore` field into the runtime contract.
-Your type implements or derives `Debug`. The macro supplies the native runtime wiring.
+actor 接收行情、自定义数据/信号和系统事件，但不管理订单。实现 `DataActor` trait，并用 `nautilus_actor!` 把你的 `DataActorCore` 字段接入运行时契约。你的类型要实现或派生 `Debug`，宏负责提供原生的运行时接线。
 
-User code normally uses the `DataActor` facade methods for subscriptions, cache access, and clock access.
+用户代码通常使用 `DataActor` 的门面（facade）方法完成订阅、缓存访问和时钟访问。
 
-### Handler methods
+### Handler 方法 {#handler-methods}
 
-Override any handler on the `DataActor` trait to receive the corresponding
-data or event. All handlers have default no-op implementations, so you only
-override what you need.
+重写 `DataActor` trait 上的任意 handler 即可接收对应的数据或事件。所有 handler 都有默认空实现，只需重写用到的。
 
-| Handler                | Receives                  |
+| Handler                | 接收内容                  |
 | ---------------------- | ------------------------- |
-| `on_start`             | Actor started.            |
-| `on_stop`              | Actor stopped.            |
+| `on_start`             | actor 已启动。            |
+| `on_stop`              | actor 已停止。            |
 | `on_quote`             | `QuoteTick`               |
 | `on_trade`             | `TradeTick`               |
 | `on_bar`               | `Bar`                     |
 | `on_book_deltas`       | `OrderBookDeltas`         |
-| `on_book`              | `OrderBook` (at interval) |
+| `on_book`              | `OrderBook`（按间隔）     |
 | `on_instrument`        | `InstrumentAny`           |
 | `on_mark_price`        | `MarkPriceUpdate`         |
 | `on_index_price`       | `IndexPriceUpdate`        |
@@ -198,37 +180,33 @@ override what you need.
 | `on_instrument_status` | `InstrumentStatus`        |
 | `on_time_event`        | `TimeEvent`               |
 
-For a step-by-step walkthrough, see the
-[Write an Actor (Rust)](./../how_to/write_rust_actor.md) how-to guide.
-For a complete example, see
-[`BookImbalanceActor`](https://github.com/nautechsystems/nautilus_trader/tree/develop/crates/trading/src/examples/actors/imbalance).
+分步教程见
+[编写 Actor（Rust）](./../how_to/write_rust_actor.md)操作指南。
+完整示例见
+[`BookImbalanceActor`](https://github.com/nautechsystems/nautilus_trader/tree/develop/crates/trading/src/examples/actors/imbalance)。
 
-## Strategies
+## 策略 {#strategies}
 
-A strategy extends an actor with order management. Implement `DataActor` for data handling and use
-`nautilus_strategy!` to wire your `StrategyCore` field into the strategy runtime contract. `StrategyCore`
-stores the runtime strategy state. Runtime registration requires the native wiring generated by the macro.
+策略在 actor 之上增加订单管理。实现 `DataActor` 处理数据，并用 `nautilus_strategy!` 把你的 `StrategyCore` 字段接入策略运行时契约。`StrategyCore` 存储运行时的策略状态；运行时注册需要宏生成的原生接线。
 
-Normal strategy logic uses `Strategy` methods and facade methods on `self` to reach that state. Strategies
-also override order event handlers on the `Strategy` trait, such as `on_order_filled` (`OrderFilled`) and
-`on_order_canceled` (`OrderCanceled`).
+常规策略逻辑通过 `Strategy` 方法和 `self` 上的门面方法访问该状态。策略还会重写 `Strategy` trait 上的订单事件 handler，如 `on_order_filled`（`OrderFilled`）和 `on_order_canceled`（`OrderCanceled`）。
 
-### Order management
+### 订单管理 {#order-management}
 
-The `Strategy` trait provides order methods through the facade:
+`Strategy` trait 通过门面提供订单方法：
 
-| Method                | Action                                    |
+| 方法                  | 动作                                      |
 | --------------------- | ----------------------------------------- |
-| `submit_order`        | Submit a new order to the venue.          |
-| `submit_order_list`   | Submit a list of contingent orders.       |
-| `modify_order`        | Modify price, quantity, or trigger price. |
-| `cancel_order`        | Cancel a specific order.                  |
-| `cancel_orders`       | Cancel a filtered set of orders.          |
-| `cancel_all_orders`   | Cancel all orders for an instrument.      |
-| `close_position`      | Close a position with a market order.     |
-| `close_all_positions` | Close all open positions.                 |
+| `submit_order`        | 向交易场所提交新订单。                    |
+| `submit_order_list`   | 提交一组或有订单（contingent orders）。   |
+| `modify_order`        | 修改价格、数量或触发价。                  |
+| `cancel_order`        | 撤销指定订单。                            |
+| `cancel_orders`       | 撤销一批按条件筛选的订单。                |
+| `cancel_all_orders`   | 撤销某金融工具的全部订单。                |
+| `close_position`      | 用市价单平掉持仓。                        |
+| `close_all_positions` | 平掉全部未平仓持仓。                      |
 
-The `OrderApi` (accessed through `self.order()`) builds orders and order lists:
+`OrderApi`（通过 `self.order()` 访问）用于构建订单和订单列表：
 
 - `generate_client_order_id`
 - `generate_order_list_id`
@@ -244,37 +222,31 @@ The `OrderApi` (accessed through `self.order()`) builds orders and order lists:
 - `bracket`
 - `create_list`
 
-### Cache and clock access
+### 缓存与时钟访问 {#cache-and-clock-access}
 
-Cache and clock access report borrow conflicts through different interfaces:
+缓存和时钟访问通过不同接口报告借用冲突：
 
-- The cache facade's `try_*` lookups return a lookup error's `Access` variant for borrow conflicts. `NotFound`
-  still means the requested data is absent.
-- The cache facade's `get()` method and native-backed clock scheduling methods return access errors through
-  `anyhow::Result`.
-- Existing infallible accessors still panic on conflicts.
+- 缓存门面的 `try_*` 查找遇到借用冲突时返回查找错误的 `Access` 变体。`NotFound` 仍表示请求的数据不存在。
+- 缓存门面的 `get()` 方法和原生支撑的时钟调度方法通过 `anyhow::Result` 返回访问错误。
+- 现有的"保证不失败"访问器冲突时仍会 panic。
 
-Release conflicting borrows before retrying. These errors do not defer callbacks or change their delivery
-order.
+重试前先释放冲突的借用。这些错误不会推迟回调，也不会改变回调的投递顺序。
 
-### Core wiring macros
+### 核心接线宏 {#core-wiring-macros}
 
-Rust actors, strategies, and execution algorithms keep their runtime core as a
-struct field. The macros tell the traits where that field lives.
+Rust 的 actor、策略和执行算法把运行时核心保留为结构体字段，宏告诉 trait 该字段在哪里。
 
-| Macro                                          | Core field               | Generates                      |
-| ---------------------------------------------- | ------------------------ | ------------------------------ |
-| `nautilus_actor!(Type)`                        | `DataActorCore`          | Runtime wiring.                |
-| `nautilus_strategy!(Type)`                     | `StrategyCore`           | Runtime wiring and `Strategy`. |
-| `nautilus_execution_algorithm!(Type, { ... })` | `ExecutionAlgorithmCore` | Runtime wiring and algorithm.  |
+| 宏                                             | 核心字段               | 生成内容                        |
+| ---------------------------------------------- | ---------------------- | ------------------------------- |
+| `nautilus_actor!(Type)`                        | `DataActorCore`        | 运行时接线。                    |
+| `nautilus_strategy!(Type)`                     | `StrategyCore`         | 运行时接线和 `Strategy`。       |
+| `nautilus_execution_algorithm!(Type, { ... })` | `ExecutionAlgorithmCore` | 运行时接线和算法。            |
 
-The macros expect a field named `core`. Pass a field name as the second argument when needed. They do not make
-the actor, strategy, or `StrategyCore` deref to runtime internals. The execution algorithm macro takes an
-`on_order()` implementation block because that method defines the algorithm's required order handling.
+宏默认期望一个名为 `core` 的字段，必要时把字段名作为第二个参数传入。宏不会让 actor、策略或 `StrategyCore` deref 到运行时内部。执行算法宏要求传入 `on_order()` 实现块，因为该方法定义算法必需的订单处理。
 
-### Native traits
+### 原生 trait {#native-traits}
 
-Use facade methods by default:
+默认使用门面方法：
 
 - `actor_id()`
 - `trader_id()`
@@ -286,89 +258,75 @@ Use facade methods by default:
 - `order()`
 - `portfolio()`
 
-`DataActorNative`, `StrategyNative`, and `ExecutionAlgorithmNative` are for
-native-only access below that facade. This section documents engine, runtime, and explicit
-latency-sensitive native Rust code, not the portable authoring path.
+`DataActorNative`、`StrategyNative` 和 `ExecutionAlgorithmNative` 用于门面之下的原生专有访问。本节记录的是引擎、运行时和显式延迟敏感的原生 Rust 代码，不是可移植的编写路径。
 
-| Authoring path            | Native traits?   | Normal API                          |
-| ------------------------- | ---------------- | ----------------------------------- |
-| Native Rust binary        | Only when needed | `Strategy` and `DataActor` facades. |
-| Rust launched from Python | Only when needed | Same as native Rust.                |
-| Python-authored component | No               | Facades only.                       |
+| 编写路径              | 用原生 trait？   | 常规 API                          |
+| --------------------- | ---------------- | --------------------------------- |
+| 原生 Rust 二进制      | 仅在需要时       | `Strategy` 和 `DataActor` 门面。  |
+| 从 Python 启动的 Rust | 仅在需要时       | 与原生 Rust 相同。                |
+| Python 编写的组件     | 否               | 只用门面。                        |
 
-Native traits expose borrowed core state, `Rc<RefCell<_>>`, and runtime references. Use them when native Rust
-code intentionally accepts those borrow rules for an explicit latency-sensitive path.
+原生 trait 暴露借用的核心状态、`Rc<RefCell<_>>` 和运行时引用。当原生 Rust 代码在明确的延迟敏感路径上有意接受这些借用规则时才使用它们。
 
-Engine, runtime, registration, PyO3, and testkit code can import `DataActorNative`, `StrategyNative`, or
-`ExecutionAlgorithmNative` when they need actor-core, strategy-core, or execution-algorithm-core access. These
-types do not cross the Python boundary. Do not use them in ordinary portable actor, strategy, or execution
-algorithm logic or Python-authored components.
+引擎、运行时、注册、PyO3 和 testkit 代码在需要 actor-core、strategy-core 或 execution-algorithm-core 访问时可以导入 `DataActorNative`、`StrategyNative` 或 `ExecutionAlgorithmNative`。这些类型不跨越 Python 边界。不要在普通的可移植 actor、策略或执行算法逻辑，以及 Python 编写的组件中使用它们。
 
-`ExecutionAlgorithmCore` owns a `DataActorCore`, but it does not deref to one.
-Normal execution algorithm logic should use `id()`, `actor_id()`,
-`trader_id()`, `clock()`, and `cache()`. Reach for `ExecutionAlgorithmNative`
-only when the code needs native execution-algorithm state.
+`ExecutionAlgorithmCore` 拥有一个 `DataActorCore`，但不会 deref 到它。
+常规执行算法逻辑应使用 `id()`、`actor_id()`、
+`trader_id()`、`clock()` 和 `cache()`。只有代码确实需要原生执行算法状态时，才使用 `ExecutionAlgorithmNative`。
 
-Choose the smallest native handle and keep each borrow scoped. Use `order()`
-for normal strategy order construction. Reach for
-`order_factory()` only when native code needs the raw mutable factory borrow.
+选择最小的原生句柄，并让每次借用保持最小作用域。常规策略订单构造用 `order()`，只有原生代码确实需要原始可变工厂借用时才用
+`order_factory()`。
 
-#### `DataActorNative` methods
+#### `DataActorNative` 方法 {#dataactornative-methods}
 
-| Native method | Return shape             | Use when                        |
-| ------------- | ------------------------ | ------------------------------- |
-| `core()`      | `&DataActorCore`         | Read actor internals.           |
-| `core_mut()`  | `&mut DataActorCore`     | Mutate actor internals.         |
-| `clock_mut()` | `RefMut<'_, dyn Clock>`  | Need a mutable clock borrow.    |
-| `clock_rc()`  | `Rc<RefCell<dyn Clock>>` | Store or pass the shared clock. |
-| `cache_ref()` | `Ref<'_, Cache>`         | Need short live-cache reads.    |
-| `cache_rc()`  | `Rc<RefCell<Cache>>`     | Mutate, store, or pass cache.   |
+| 原生方法      | 返回类型                   | 适用场景                        |
+| ------------- | -------------------------- | ------------------------------- |
+| `core()`      | `&DataActorCore`           | 读取 actor 内部状态。           |
+| `core_mut()`  | `&mut DataActorCore`       | 修改 actor 内部状态。           |
+| `clock_mut()` | `RefMut<'_, dyn Clock>`    | 需要可变的时钟借用。            |
+| `clock_rc()`  | `Rc<RefCell<dyn Clock>>`   | 存储或传递共享时钟。            |
+| `cache_ref()` | `Ref<'_, Cache>`           | 需要短暂的实时缓存读取。        |
+| `cache_rc()`  | `Rc<RefCell<Cache>>`       | 修改、存储或传递缓存。          |
 
-Use `try_cache_ref()` and `try_clock_mut()` to handle failed native borrows without panicking. Import
-`ComponentAccessError` from `nautilus_common::component`:
+用 `try_cache_ref()` 和 `try_clock_mut()` 处理失败的原生借用而不 panic。`ComponentAccessError` 从 `nautilus_common::component` 导入：
 
-- `try_cache_ref()` returns `ComponentAccessError::ReadConflict` when the cache is mutably borrowed.
-- `try_clock_mut()` returns `ComponentAccessError::WriteConflict` when the clock is already borrowed.
-- Both return `ComponentAccessError::NotRegistered` when registration has not supplied the resource.
+- 缓存被可变借用时，`try_cache_ref()` 返回 `ComponentAccessError::ReadConflict`。
+- 时钟已被借用时，`try_clock_mut()` 返回 `ComponentAccessError::WriteConflict`。
+- 注册尚未提供该资源时，两者都返回 `ComponentAccessError::NotRegistered`。
 
-The error identifies the resource and attempted operation. Callback reentry can cause a conflict, but a
-conflict alone does not establish its cause. See [reentrancy
-diagnostics](./../developer_guide/callback_dispatch.md#reentrancy-and-dispatch-diagnostics) for message meanings
-and corrective action.
+错误会指出涉及的资源和尝试的操作。回调重入可能引发冲突，但仅有冲突并不能断定就是重入所致。消息含义与纠正措施见[重入诊断](./../developer_guide/callback_dispatch.md#reentrancy-and-dispatch-diagnostics)。
 
-#### `StrategyNative` methods
+#### `StrategyNative` 方法 {#strategynative-methods}
 
-| Native method         | Return shape                | Use when                         |
-| --------------------- | --------------------------- | -------------------------------- |
-| `strategy_core()`     | `&StrategyCore`             | Read strategy internals.         |
-| `strategy_core_mut()` | `&mut StrategyCore`         | Mutate strategy internals.       |
-| `order_factory()`     | `RefMut<'_, OrderFactory>`  | Need raw mutable factory borrow. |
-| `order_factory_rc()`  | `Rc<RefCell<OrderFactory>>` | Store or pass the factory.       |
-| `portfolio_rc()`      | `Rc<RefCell<Portfolio>>`    | Store or pass the portfolio.     |
+| 原生方法              | 返回类型                      | 适用场景                        |
+| --------------------- | ----------------------------- | ------------------------------- |
+| `strategy_core()`     | `&StrategyCore`               | 读取策略内部状态。              |
+| `strategy_core_mut()` | `&mut StrategyCore`           | 修改策略内部状态。              |
+| `order_factory()`     | `RefMut<'_, OrderFactory>`    | 需要原始可变工厂借用。          |
+| `order_factory_rc()`  | `Rc<RefCell<OrderFactory>>`   | 存储或传递工厂。                |
+| `portfolio_rc()`      | `Rc<RefCell<Portfolio>>`      | 存储或传递投资组合。            |
 
-#### `ExecutionAlgorithmNative` methods
+#### `ExecutionAlgorithmNative` 方法 {#executionalgorithmnative-methods}
 
-| Native method               | Return shape                  | Use when                              |
-| --------------------------- | ----------------------------- | ------------------------------------- |
-| `exec_algorithm_core()`     | `&ExecutionAlgorithmCore`     | Read execution algorithm internals.   |
-| `exec_algorithm_core_mut()` | `&mut ExecutionAlgorithmCore` | Mutate execution algorithm internals. |
+| 原生方法                      | 返回类型                        | 适用场景                              |
+| ----------------------------- | ------------------------------- | ------------------------------------- |
+| `exec_algorithm_core()`       | `&ExecutionAlgorithmCore`       | 读取执行算法内部状态。                |
+| `exec_algorithm_core_mut()`   | `&mut ExecutionAlgorithmCore`   | 修改执行算法内部状态。                |
 
-For a step-by-step walkthrough, see the
-[Write a Strategy (Rust)](./../how_to/write_rust_strategy.md) how-to guide.
-For complete examples, see
+分步教程见
+[编写策略（Rust）](./../how_to/write_rust_strategy.md)操作指南。
+完整示例见
 [`EmaCross`](https://github.com/nautechsystems/nautilus_trader/tree/develop/crates/trading/src/examples/strategies/ema_cross)
-and
-[`GridMarketMaker`](https://github.com/nautechsystems/nautilus_trader/tree/develop/crates/trading/src/examples/strategies/grid_mm).
+和
+[`GridMarketMaker`](https://github.com/nautechsystems/nautilus_trader/tree/develop/crates/trading/src/examples/strategies/grid_mm)。
 
-### Running Rust components
+### 运行 Rust 组件 {#running-rust-components}
 
-Rust strategies and actors can run through two paths. The examples below use strategies, but the same pattern
-applies to bundled actors through `add_actor` (pure Rust) and `add_builtin_actor` (from Python).
+Rust 策略和 actor 有两条运行路径。下面的示例使用策略，捆绑的 actor 走同样的模式：纯 Rust 用 `add_actor`，从 Python 用 `add_builtin_actor`。
 
-#### Pure Rust
+#### 纯 Rust {#pure-rust}
 
-Write your strategy and `main` function in Rust, then build a standalone
-binary with `cargo build`. This path requires no Python runtime.
+用 Rust 编写策略和 `main` 函数，`cargo build` 构建独立二进制。这条路径不需要 Python 运行时。
 
 ```rust
 let strategy = GridMarketMaker::new(config);
@@ -376,16 +334,12 @@ node.add_strategy(strategy)?;
 node.run().await?;
 ```
 
-See [Run Live Trading (Rust)](./../how_to/run_rust_live_trading.md) for a
-full walkthrough.
+完整流程见
+[运行实时交易（Rust）](./../how_to/run_rust_live_trading.md)。
 
-#### Built-in examples from Python
+#### 从 Python 使用内置示例 {#built-in-examples-from-python}
 
-Pass a type name and config to `add_builtin_strategy` to register a
-built-in example strategy from Python. This path exists to single-source
-the bundled example strategy code across Rust and Python docs, examples,
-and tests. It is not a first-class extension path for adding native
-strategies. For custom native components, use pure Rust.
+向 `add_builtin_strategy` 传入类型名和配置，即可从 Python 注册内置示例策略。这条路径的存在，是为了让捆绑示例策略代码在 Rust 与 Python 的文档、示例和测试中保持单一来源。它不是添加原生策略的一等扩展路径，自定义原生组件请用纯 Rust。
 
 ```python
 from nautilus_trader.trading import GridMarketMakerConfig
@@ -401,9 +355,9 @@ config = GridMarketMakerConfig(
 node.add_builtin_strategy("GridMarketMaker", config)
 ```
 
-Built-in strategy configs:
+内置策略配置：
 
-| Config                       | Strategy               |
+| 配置                         | 策略                   |
 | ---------------------------- | ---------------------- |
 | `CompositeMarketMakerConfig` | `CompositeMarketMaker` |
 | `DeltaNeutralVolConfig`      | `DeltaNeutralVol`      |
@@ -412,89 +366,82 @@ Built-in strategy configs:
 | `GridMarketMakerConfig`      | `GridMarketMaker`      |
 | `HurstVpinDirectionalConfig` | `HurstVpinDirectional` |
 
-`add_builtin_actor` follows the same bundled-only rule for actors used by
-examples and tests.
+示例和测试使用的 actor 走 `add_builtin_actor`，遵循同样的"仅限捆绑"规则。
 
-Built-in actor configs (through `add_builtin_actor`):
+内置 actor 配置（通过 `add_builtin_actor`）：
 
-| Config                     | Actor                |
+| 配置                       | Actor                |
 | -------------------------- | -------------------- |
 | `BookImbalanceActorConfig` | `BookImbalanceActor` |
 | `DataTesterConfig`         | `DataTester`         |
 
-## Backtesting
+## 回测 {#backtesting}
 
-For annotated walkthroughs of both APIs, see the
-[Run a Backtest (Rust)](./../how_to/run_rust_backtest.md) how-to guide.
+两套 API 的带注释教程见
+[运行回测（Rust）](./../how_to/run_rust_backtest.md)操作指南。
 
-### `BacktestEngine` (low-level API)
+### `BacktestEngine`（低层 API） {#backtestengine-low-level-api}
 
-Construct the engine, add venues and instruments, load data, register
-strategies, and run. See the full working example:
+构造引擎、添加交易场所和金融工具、加载数据、注册策略，然后运行。完整可运行示例：
 
 ```bash
 cargo run -p nautilus-backtest --features examples --example engine-ema-cross
 ```
 
-Source:
+源码：
 [`crates/backtest/examples/engine_ema_cross.rs`](https://github.com/nautechsystems/nautilus_trader/tree/develop/crates/backtest/examples/engine_ema_cross.rs)
 
-### `BacktestNode` (high-level API)
+### `BacktestNode`（高层 API） {#backtestnode-high-level-api}
 
-Loads data from a `ParquetDataCatalog` and supports streaming in
-configurable chunk sizes. Requires the `streaming` feature on
-`nautilus-backtest`. See the full working example:
+从 `ParquetDataCatalog` 加载数据，支持按可配置的分块大小流式读取。需要为 `nautilus-backtest` 启用 `streaming` feature。完整可运行示例：
 
 ```bash
 cargo run -p nautilus-backtest --features examples,streaming --example node-ema-cross
 ```
 
-Source:
+源码：
 [`crates/backtest/examples/node_ema_cross.rs`](https://github.com/nautechsystems/nautilus_trader/tree/develop/crates/backtest/examples/node_ema_cross.rs)
 
-## Live trading
+## 实时交易 {#live-trading}
 
-For an annotated walkthrough, see the
-[Run Live Trading (Rust)](./../how_to/run_rust_live_trading.md) how-to guide.
+带注释的教程见
+[运行实时交易（Rust）](./../how_to/run_rust_live_trading.md)操作指南。
 
-The `LiveNode` connects to real venues and data sources through adapter clients. The builder
-pattern configures data and execution clients, then `run()` starts the async
-event loop. Each adapter provides its own factory and config types.
+`LiveNode` 通过适配器客户端连接真实交易场所和数据源。用 builder 模式配置数据与执行客户端，`run()` 启动异步事件循环。各适配器提供自己的工厂和配置类型。
 
-| Adapter             | Example                                         |
-| ------------------- | ----------------------------------------------- |
-| Architect AX        | `crates/adapters/architect_ax/examples/`        |
-| Betfair             | `crates/adapters/betfair/examples/`             |
-| Binance             | `crates/adapters/binance/examples/`             |
-| Blockchain          | `crates/adapters/blockchain/examples/`          |
-| Bybit               | `crates/adapters/bybit/examples/`               |
-| Coinbase            | `crates/adapters/coinbase/examples/`            |
-| Databento           | `crates/adapters/databento/examples/`           |
-| Deribit             | `crates/adapters/deribit/examples/`             |
-| Derive              | `crates/adapters/derive/examples/`              |
-| dYdX                | `crates/adapters/dydx/examples/`                |
-| Hyperliquid         | `crates/adapters/hyperliquid/examples/`         |
+| 适配器              | 示例                                          |
+| ------------------- | --------------------------------------------- |
+| Architect AX        | `crates/adapters/architect_ax/examples/`      |
+| Betfair             | `crates/adapters/betfair/examples/`           |
+| Binance             | `crates/adapters/binance/examples/`           |
+| Blockchain          | `crates/adapters/blockchain/examples/`        |
+| Bybit               | `crates/adapters/bybit/examples/`             |
+| Coinbase            | `crates/adapters/coinbase/examples/`          |
+| Databento           | `crates/adapters/databento/examples/`         |
+| Deribit             | `crates/adapters/deribit/examples/`           |
+| Derive              | `crates/adapters/derive/examples/`            |
+| dYdX                | `crates/adapters/dydx/examples/`              |
+| Hyperliquid         | `crates/adapters/hyperliquid/examples/`       |
 | Interactive Brokers | `crates/adapters/interactive_brokers/examples/` |
-| Kraken              | `crates/adapters/kraken/examples/`              |
-| Lighter             | `crates/adapters/lighter/examples/`             |
-| OKX                 | `crates/adapters/okx/examples/`                 |
-| Polymarket          | `crates/adapters/polymarket/examples/`          |
-| Sandbox             | `crates/adapters/sandbox/examples/`             |
-| Tardis              | `crates/adapters/tardis/examples/`              |
+| Kraken              | `crates/adapters/kraken/examples/`            |
+| Lighter             | `crates/adapters/lighter/examples/`           |
+| OKX                 | `crates/adapters/okx/examples/`               |
+| Polymarket          | `crates/adapters/polymarket/examples/`        |
+| Sandbox             | `crates/adapters/sandbox/examples/`           |
+| Tardis              | `crates/adapters/tardis/examples/`            |
 
-Most adapters include `node_data_tester.rs` and `node_exec_tester.rs`
-examples. These test data requests, streaming, and order execution
-against live venues.
+多数适配器都带有 `node_data_tester.rs` 和 `node_exec_tester.rs`
+示例，用于针对真实交易场所测试数据请求、数据流和订单执行。
 
-## Related guides
+## 相关指南 {#related-guides}
 
-- [Python](./python.md) - Python ownership, runtime, and public API boundaries.
-- [Write an Actor (Rust)](./../how_to/write_rust_actor.md) - Step-by-step actor walkthrough.
-- [Write a Strategy (Rust)](./../how_to/write_rust_strategy.md) - Step-by-step strategy walkthrough.
-- [Run a Backtest (Rust)](./../how_to/run_rust_backtest.md) - BacktestEngine and BacktestNode usage.
-- [Run Live Trading (Rust)](./../how_to/run_rust_live_trading.md) - LiveNode setup and venue connection.
-- [Architecture](./architecture.md) - System design and data/execution flow.
-- [Actors](./actors.md) - Actor concepts (applies to both Python and Rust).
-- [Strategies](./strategies.md) - Strategy concepts and handler reference.
-- [Events](./events/index.md) - Event types and handler dispatch.
-- [Backtesting](./backtesting/index.md) - Backtest concepts and matching engine behavior.
+- [Python](./python.md) - Python 所有权、运行时与公共 API 边界。
+- [编写 Actor（Rust）](./../how_to/write_rust_actor.md) - Actor 分步教程。
+- [编写策略（Rust）](./../how_to/write_rust_strategy.md) - 策略分步教程。
+- [运行回测（Rust）](./../how_to/run_rust_backtest.md) - BacktestEngine 与 BacktestNode 用法。
+- [运行实时交易（Rust）](./../how_to/run_rust_live_trading.md) - LiveNode 设置与场所连接。
+- [架构](./architecture.md) - 系统设计与数据/执行流。
+- [Actor](./actors.md) - Actor 概念（Python 与 Rust 通用）。
+- [策略](./strategies.md) - 策略概念与 handler 参考。
+- [事件](./events/index.md) - 事件类型与 handler 分发。
+- [回测](./backtesting/index.md) - 回测概念与撮合引擎行为。

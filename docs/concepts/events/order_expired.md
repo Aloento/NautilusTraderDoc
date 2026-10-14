@@ -1,41 +1,36 @@
 # OrderExpired
 
-`OrderExpired` records that an order has expired. The execution pipeline applies it to the order,
-updates the `Cache`, and publishes it on the `MessageBus`. It can come from a trading venue,
-simulated matching engine, or reconciliation, for example when a GTD order reaches its expiry.
+`OrderExpired` 记录订单已过期。执行流水线把它应用到订单、更新 `Cache`，并发布到 `MessageBus`。它可能来自交易场所、模拟撮合引擎或一致性对账，例如 GTD 订单到达有效期终点。
 
-Typical transition: `ACCEPTED` -> `EXPIRED`. Handler: `on_order_expired`.
+典型迁移：`ACCEPTED` -> `EXPIRED`。处理函数：`on_order_expired`。
 
-Fills received after expiry still update the order and position:
+过期之后收到的成交仍会更新订单和持仓：
 
-- A partial fill keeps the order `EXPIRED`.
-- A fill that completes its quantity changes it to `FILLED`.
+- 部分成交时订单保持 `EXPIRED`。
+- 使数量全部成交的成交把状态改为 `FILLED`。
 
-If a fill arrives after the most recent expiry and the order is still `EXPIRED` or `FILLED`, Nautilus records
-and publishes the next `OrderExpired`. This event does not change the order's status or timestamps. Further
-expiry events are rejected until another fill arrives.
+若成交在最近一次过期之后到达、且订单仍处于 `EXPIRED` 或 `FILLED`，Nautilus 会记录并发布下一条 `OrderExpired`。该事件不改变订单状态和时间戳。在再有成交到来之前，后续过期事件会被拒绝。
 
-## Fields
+## 字段 {#fields}
 
-Beyond the [common Python order event fields](./index.md#common-python-order-event-fields),
-`OrderExpired` carries:
+除 [Python 订单事件公共字段](./index.md#common-python-order-event-fields)外，`OrderExpired` 还携带：
 
-| Field            | Python type              | Required/default | Description                                      |
+| 字段             | Python 类型              | 必填/默认值 | 说明                                          |
 | ---------------- | ------------------------ | ---------------- | ------------------------------------------------ |
-| `venue_order_id` | `VenueOrderId` or `None` | `None`           | The venue-assigned order identifier, if known.   |
-| `account_id`     | `AccountId` or `None`    | `None`           | The account associated with the order, if known. |
-| `reconciliation` | `bool`                   | Required         | If generated during reconciliation.              |
+| `venue_order_id` | `VenueOrderId` 或 `None` | `None`           | 交易场所分配的订单标识（若已知）。   |
+| `account_id`     | `AccountId` 或 `None`    | `None`           | 订单关联的账户（若已知）。 |
+| `reconciliation` | `bool`                   | 必填         | 是否在一致性对账期间生成。              |
 
-## Example
+## 示例 {#example}
 
-Reading the event in a strategy handler:
+在策略处理函数中读取该事件：
 
 ```python
 def on_order_expired(self, event: OrderExpired) -> None:
     self.log.info(f"Order {event.client_order_id} expired")
 ```
 
-## Related guides
+## 相关指南 {#related-guides}
 
-- [Events](./index.md) - Event categories, dispatch, and the common order event fields.
-- [Orders](./../orders/index.md) - Order types and the state machine.
+- [事件](./index.md) - 事件类别、分发与订单事件公共字段。
+- [订单](./../orders/index.md) - 订单类型与状态机。

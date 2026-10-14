@@ -1,11 +1,8 @@
-# Adapters
+# 适配器 {#adapters}
 
-Adapters connect data providers and trading venues to NautilusTrader. They translate venue-specific protocols
-into the domain objects and events used by the data and execution engines. Official Python adapters are
-available from `nautilus_trader.adapters`. The [integration guides](./../integrations/index.md) document their
-supported capabilities.
+适配器把数据提供商和交易场所接入 NautilusTrader。它们把场所专有协议翻译成数据引擎与执行引擎使用的领域对象和事件。官方 Python 适配器可从 `nautilus_trader.adapters` 获取，受支持的能力见[集成指南](./../integrations/index.md)。
 
-An adapter typically comprises these components:
+一个适配器通常包含以下组件：
 
 ```mermaid
 flowchart LR
@@ -38,97 +35,64 @@ flowchart LR
     EC <--> EE
 ```
 
-| Component            | Purpose                                                   |
-| -------------------- | --------------------------------------------------------- |
-| `HttpClient`         | REST API communication.                                   |
-| `WebSocketClient`    | Real-time streaming connection.                           |
-| `InstrumentProvider` | Loads and parses instrument definitions from the venue.   |
-| `DataClient`         | Handles market data subscriptions and requests.           |
-| `ExecutionClient`    | Handles order submission, modification, and cancellation. |
+| 组件                 | 用途                                                     |
+| -------------------- | -------------------------------------------------------- |
+| `HttpClient`         | REST API 通信。                                          |
+| `WebSocketClient`    | 实时数据流连接。                                         |
+| `InstrumentProvider` | 从交易场所加载并解析金融工具定义。                       |
+| `DataClient`         | 处理行情数据订阅与请求。                                 |
+| `ExecutionClient`    | 处理订单提交、修改与撤销。                               |
 
-## Configuration and routing
+## 配置与路由 {#configuration-and-routing}
 
-Each adapter exposes configuration types and factories for the clients it supports. Configs select
-venue-specific settings such as the product, environment, credentials, and instrument loading
-policy. Factories construct the clients when a `LiveNode` is built. Actors and strategies then use
-the common Nautilus APIs rather than calling adapter transports directly.
+每个适配器都为其支持的客户端暴露配置类型和工厂。配置选择场所专有设置，如产品线（product）、环境、凭据和金融工具加载策略。构造 `LiveNode` 时由工厂创建客户端。actor 和策略随后使用通用的 Nautilus API，而不直接调用适配器的传输层。
 
-A node can register multiple data and execution clients. Pass `client_id` from an actor or strategy
-when a specific client must handle a request, subscription, or order. Without an explicit client,
-the data and execution engines use the venue and default routes configured by the node.
+一个节点可以注册多个数据客户端和执行客户端。当某个请求、订阅或订单必须由特定客户端处理时，在 actor 或策略中传入 `client_id`。未显式指定客户端时，数据引擎和执行引擎使用节点配置的场所路由与默认路由。
 
-## Custom adapters
+## 自定义适配器 {#custom-adapters}
 
-You can develop an adapter as a separate Python package without rebuilding NautilusTrader. Custom adapters
-implement the same data and execution responsibilities as built-in adapters, and can run alongside them in one
-`LiveNode`. Strategies continue to use the standard request, subscription, and order APIs. The node routes
-those operations to the registered clients.
+可以把适配器开发为独立的 Python 包，无需重新构建 NautilusTrader。自定义适配器承担与内置适配器相同的数据与执行职责，并可与它们共存于同一个 `LiveNode`。策略继续使用标准的请求、订阅和订单 API，节点把这些操作路由到已注册的客户端。
 
-A custom package can implement its clients in Python or delegate venue operations to its own Rust/PyO3
-extension. Both use the [Python client interface](./../developer_guide/python_adapters.md).
+自定义包的客户端可以用 Python 实现，也可以把场所操作委托给它自己的 Rust/PyO3 扩展。两种方式都使用 [Python 客户端接口](./../developer_guide/python_adapters.md)。
 
-An independent extension exchanges Python objects from the installed NautilusTrader wheel through PyO3 and the
-GIL. It does not require a shared Rust ABI or a second copy of the Nautilus model types. Choose a package
-version tested against your installed NautilusTrader release.
+独立扩展通过 PyO3 和 GIL 与已安装 NautilusTrader wheel 中的 Python 对象交互，不需要共享 Rust ABI，也不需要第二份 Nautilus 模型类型。请选择针对你已安装的 NautilusTrader 版本测试过的包版本。
 
-Register the package's factories and configs with the node under distinct client names. Custom configs can
-keep venue-specific fields, and importable configs support loading factories from package paths. Set venue and
-default routes as you would for built-in clients, or select a client explicitly from a strategy.
+用不同的客户端名把该包的工厂和配置注册到节点。自定义配置可保留场所专有字段，可导入配置（importable config）支持从包路径加载工厂。场所路由与默认路由的设置方式和内置客户端相同，也可以在策略中显式选择客户端。
 
-The [deterministic Python template](https://github.com/nautechsystems/nautilus_trader/blob/develop/examples/live/_template/README.md) demonstrates data delivery,
-execution reconciliation, and an order fill without a venue connection.
+[确定性 Python 模板](https://github.com/nautechsystems/nautilus_trader/blob/develop/examples/live/_template/README.md)演示了无场所连接下的数据交付、执行对账和订单成交。
 
-### Cache and state ownership
+### 缓存与状态归属 {#cache-and-state-ownership}
 
-Custom clients receive a read-only cache view. They can inspect instruments, quotes, orders,
-accounts, and positions, but cannot mutate the core cache. Returned objects are snapshots: changing
-a snapshot does not change the state seen by strategies or engines.
+自定义客户端拿到的是只读缓存视图。它们可以查看金融工具、报价、订单、账户和持仓，但不能修改核心缓存。返回的对象是快照：改动快照不会影响策略或引擎看到的状态。
 
-Adapters operate outside the synchronous core boundary. They submit typed data, responses, and execution
-events for the core to process. Thus, an adapter's output call does not mean that the corresponding cache
-update has already occurred. This keeps cache mutation and engine state transitions under core ownership.
+适配器运行在同步核心边界之外，向核心提交类型化数据、响应和执行事件，由核心处理。因此，适配器发出输出的调用返回，并不代表对应的缓存更新已经发生。这样缓存变更和引擎状态转换始终归核心所有。
 
-Cache access and output stay bound to the owning node's thread and lifetime. The GIL alone does not permit
-access from another thread or after disposal.
+缓存访问和输出绑定在所属节点的线程与生命周期上。仅有 GIL 并不意味着可以在其他线程访问，或在 dispose 之后访问。
 
-### Running and stopping
+### 启动与停止 {#running-and-stopping}
 
-Use `node.run()` when the node owns its event loop, or await `node.run_async()` inside an existing
-asyncio application. Both launch modes support custom Python and independent PyO3 clients. The
-node binds clients to the running loop before connection, then uses its normal startup,
-reconciliation, and shutdown sequence. Constructors do not start networking or background tasks.
+节点自己拥有事件循环时用 `node.run()`；在现有 asyncio 应用内则 await `node.run_async()`。两种启动方式都支持自定义 Python 客户端和独立 PyO3 客户端。节点在连接前把客户端绑定到运行中的事件循环，然后走正常的启动、对账和关闭流程。构造函数不会启动网络或后台任务。
 
-Commands and subscription changes execute in admission order for each custom client. Historical
-requests and reconciliation can progress separately. A slow command delays later commands for that
-client, and a full command queue rejects new work rather than silently dropping it.
+对每个自定义客户端，命令和订阅变更按准入顺序执行。历史请求与对账可独立推进。慢命令会拖延该客户端后续的命令；命令队列满时，新工作会被拒绝而不是被悄悄丢弃。
 
-Await shutdown before closing a host event loop. Disconnection stops admission and asks adapter work to
-terminate. Requesting cancellation does not prove that work has finished. Incomplete cleanup is reported.
-Client instances belong to one node run and must not be reused for another.
+关闭宿主事件循环之前，先等关闭流程完成。断开连接会停止准入，并要求适配器工作终止。发起取消并不能证明工作已经结束，未完成的清理会被上报。客户端实例只属于一次节点运行，不得复用到另一次运行。
 
-Redis/PostgreSQL cache backing is unsupported with custom clients in either launch mode. The interface also
-requires migration of v1 Cython adapters rather than accepting their source unchanged.
+两种启动方式下，自定义客户端都不支持 Redis/PostgreSQL 缓存支撑（cache backing）。该接口还要求把 v1 的 Cython 适配器迁移过来，而不是原样接受其源码。
 
-See the [migration details and remaining limitations](./../developer_guide/python_adapters.md#migration-from-v1)
-for historical request completion, revised bars, custom publication/subscription, and networking API
-differences. For independent extensions, see [package construction and installed-wheel
-validation](./../developer_guide/python_adapters.md#independent-rustpyo3-packages).
+历史请求完成、修订 bar、自定义发布/订阅以及网络 API 的差异，见[迁移细节与剩余限制](./../developer_guide/python_adapters.md#migration-from-v1)。独立扩展见[包构造与已安装 wheel 的校验](./../developer_guide/python_adapters.md#independent-rustpyo3-packages)。
 
-## Instrument providers
+## 金融工具提供商 {#instrument-providers}
 
-Instrument providers load venue definitions and parse them into Nautilus `Instrument` objects.
-Each adapter owns this behavior. Its Python API may expose a standalone loader, a dedicated
-provider config, loading behavior through its client config, or a combination of these.
+金融工具提供商（instrument provider）加载场所定义并解析为 Nautilus 的 `Instrument` 对象。这部分行为由各适配器自行负责，其 Python API 可能提供独立加载器、专用提供商配置、经客户端配置控制的加载行为，或几者的组合。
 
-An `InstrumentProvider` serves two use cases:
+`InstrumentProvider` 服务两类场景：
 
-- Standalone discovery of available instruments for research or backtesting
-- Runtime loading in a `sandbox` or `live` [environment context](./architecture.md#environment-contexts)
-  for actors and strategies
+- 独立发现可用的金融工具，用于研究或回测
+- 在 `sandbox` 或 `live` [环境上下文](./architecture.md#environment-contexts)中于运行时加载，供 actor 和策略使用
 
-### Research and backtesting
+### 研究与回测 {#research-and-backtesting}
 
-This example loads one Binance USD-M instrument through the public Python API:
+下例通过公共 Python API 加载一个 Binance USD-M 金融工具：
 
 ```python
 import asyncio
@@ -159,10 +123,9 @@ if __name__ == "__main__":
     asyncio.run(main())
 ```
 
-### Live trading
+### 实时交易 {#live-trading}
 
-Each integration handles startup loading differently. For example, the Binance provider config can
-load the full catalog:
+各集成的启动加载方式不同。例如 Binance 提供商配置可以加载完整目录：
 
 ```python
 from nautilus_trader.adapters.binance import BinanceInstrumentProviderConfig
@@ -170,7 +133,7 @@ from nautilus_trader.adapters.binance import BinanceInstrumentProviderConfig
 BinanceInstrumentProviderConfig(load_all=True)
 ```
 
-It can instead load only specified instruments:
+也可以只加载指定金融工具：
 
 ```python
 BinanceInstrumentProviderConfig(
@@ -179,26 +142,20 @@ BinanceInstrumentProviderConfig(
 )
 ```
 
-`load_ids` contains Nautilus instrument IDs, including the venue suffix, rather than raw venue
-symbols.
+`load_ids` 里填的是含场所后缀的 Nautilus 金融工具 ID，而不是场所原始代码。
 
-Instrument-loading settings, defaults, and filters vary by integration. Check the relevant
-integration guide before copying a config between adapters.
+金融工具加载的设置、默认值和过滤器因集成而异。把配置照搬到另一个适配器之前，先查阅相应的集成指南。
 
-Subscriptions, order submission, and execution reconciliation do not load instruments by themselves.
-Configure the adapter to load each required instrument at startup, or request it explicitly and wait
-until it reaches the cache before using it. For how reconciliation treats a report whose instrument
-is not loaded, see
-[instrument availability](./execution/reconciliation.md#instrument-availability).
+订阅、提交订单和执行对账本身不会加载金融工具。要么配置适配器在启动时加载每个所需工具，要么显式请求，并等其进入缓存后再使用。对账如何处理工具未加载的报告，见
+[金融工具可用性](./execution/reconciliation.md#instrument-availability)。
 
-## Data clients
+## 数据客户端 {#data-clients}
 
-Data clients handle market data subscriptions and requests for a venue. They connect to venue APIs
-and normalize incoming data into Nautilus types.
+数据客户端负责某个交易场所的行情订阅与请求。它们连接场所 API，把入站数据规范化为 Nautilus 类型。
 
-### Requesting data
+### 请求数据 {#requesting-data}
 
-Actors and strategies can request data using built-in methods. Data returns through callbacks:
+actor 和策略可以用内置方法请求数据，数据通过回调返回：
 
 ```python
 from collections.abc import Sequence
@@ -225,9 +182,9 @@ class MyStrategy(Strategy):
         self.log.info(f"Received {len(bars)} historical bars")
 ```
 
-### Subscribing to data
+### 订阅数据 {#subscribing-to-data}
 
-For real-time data, use subscription methods:
+实时数据使用订阅方法：
 
 ```python
 from nautilus_trader.model import Bar
@@ -251,62 +208,46 @@ class MyStrategy(Strategy):
 ```
 
 :::tip
-See the [Actors](./actors.md) documentation for a complete reference of available
-request and subscription methods with their corresponding callbacks.
+全部请求与订阅方法及对应回调的完整参考见 [Actor](./actors.md) 文档。
 :::
 
-## Execution clients
+## 执行客户端 {#execution-clients}
 
-Execution clients handle order management for a venue. They translate Nautilus order commands
-into venue-specific API calls and process execution reports back into Nautilus events.
+执行客户端负责某个交易场所的订单管理。它们把 Nautilus 订单命令翻译成场所专有 API 调用，并把执行报告转回 Nautilus 事件处理。
 
-Responsibilities:
+职责：
 
-- Submit, modify, and cancel orders.
-- Process fills and execution reports.
-- Reconcile order state with the venue.
-- Handle account and position updates.
+- 提交、修改、撤销订单。
+- 处理成交与执行报告。
+- 与交易场所对账订单状态。
+- 处理账户与持仓更新。
 
-Execution clients can declare the lower time limit applied to historical reconciliation and whether the
-required order, fill, and position sources completed. When an adapter supplies this contract, the engine can
-recover authoritative order state. It does not apply historical position or portfolio economics that the
-available evidence cannot support. See
-[Bounded history safety](./execution/reconciliation.md#bounded-history-safety).
+执行客户端可以声明历史对账所适用的最早时间界限，以及必需的订单、成交和持仓来源是否完整。适配器提供这份契约后，引擎即可恢复权威的订单状态；对现有证据不足以支撑的历史持仓或组合经济事项，引擎不会强行套用。见
+[有界历史安全](./execution/reconciliation.md#bounded-history-safety)。
 
-### Reduce-only execution contract
+### Reduce-only 执行契约 {#reduce-only-execution-contract}
 
-An execution client **must never silently discard** `reduce_only=true`. It must either send a documented venue
-instruction that enforces the same intent or reject the order before transport. The venue can still reject an
-encoded instruction for these reasons:
+执行客户端**绝不能静默丢弃** `reduce_only=true`。要么发送能强制同样意图的、已文档化的场所指令，要么在发送前拒绝订单。编码后的指令仍可能被交易场所拒绝，原因包括：
 
-- The product does not support the instruction.
-- The order would not reduce an open position.
-- Another venue rule makes the combination invalid.
+- 该产品不支持该指令。
+- 订单不会减少现有持仓。
+- 其他场所规则使该组合无效。
 
-An equivalent enforcing instruction can replace the literal venue flag. For example, a Binance Futures
-close-all conditional order keeps `reduce_only=true` in the Nautilus order, but the adapter sends
-`closePosition=true` without Binance's incompatible `reduceOnly` field. See
-[Binance Futures close-position orders](./../integrations/binance.md#close-position).
+等效的强制指令可以代替字面上的场所标志。例如，Binance Futures 的全平仓条件单在 Nautilus 订单中保留 `reduce_only=true`，但适配器发送 `closePosition=true`，不带 Binance 不兼容的 `reduceOnly` 字段。见
+[Binance Futures 平仓单](./../integrations/binance.md#close-position)。
 
-Backtest and sandbox matching engines enforce reduce-only when `use_reduce_only` is enabled and
-reject reduce-only orders when it is disabled. Custom execution clients and external routes follow
-the same send-or-reject contract.
+回测和 sandbox 撮合引擎在启用 `use_reduce_only` 时强制执行 reduce-only，禁用时拒绝 reduce-only 订单。自定义执行客户端和外部路由遵循同样的"发送或拒绝"契约。
 
-Order commands and venue results are asynchronous. `OrderSubmitted` means that the adapter has
-started the submission path, not that the venue has accepted the order. A transport failure can
-leave the outcome unknown, so adapters use stream updates, queries, or reconciliation rather than
-assuming a rejection.
+订单命令与场所结果是异步的。`OrderSubmitted` 表示适配器已开始提交路径，不代表场所已接受订单。传输失败可能让结果未知，因此适配器使用数据流更新、查询或对账，而不是假定订单被拒。
 
-For a new order, the `ExecutionEngine` uses an explicitly selected client, venue routing, or the
-configured default. Later commands for an existing order return to its originating client when
-known. See the [Execution](./execution/index.md) guide for order management from a strategy perspective.
+对新订单，`ExecutionEngine` 依次使用显式选择的客户端、场所路由或配置的默认路由。对已有订单的后续命令，在可知时返回其 originating client。从策略视角看订单管理，见 [执行](./execution/index.md) 指南。
 
 :::tip
-For building a custom adapter, see the [Adapter Developer Guide](./../developer_guide/adapters.md).
+构建自定义适配器见[适配器开发指南](./../developer_guide/adapters.md)。
 :::
 
-## Related guides
+## 相关指南 {#related-guides}
 
-- [Live trading](./live.md): Configure and run live trading with adapters.
-- [Execution](./execution/index.md): Order execution through adapters.
-- [Data](./data/index.md): Market data provided by adapters.
+- [实时交易](./live.md)：用适配器配置并运行实时交易。
+- [执行](./execution/index.md)：经由适配器执行订单。
+- [数据](./data/index.md)：适配器提供的行情数据。

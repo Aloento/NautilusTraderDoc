@@ -1,33 +1,32 @@
 # AccountState
 
-`AccountState` carries a snapshot of an account's balances and margins. The system publishes it when:
+`AccountState` 携带账户余额与保证金的快照。系统在以下时机发布它：
 
-- The venue reports an account update through the execution client.
-- The `Portfolio` recalculates account state after a position update, for margin accounts with
-  `calculate_account_state` enabled.
+- 交易场所经执行客户端上报账户更新。
+- 持仓更新后 `Portfolio` 重新计算账户状态（针对启用了 `calculate_account_state` 的保证金账户）。
 
-The `Portfolio` subscribes to these events internally to maintain exposure and balance tracking.
+`Portfolio` 内部订阅这些事件，以维护敞口和余额跟踪。
 
-The `is_reported` flag distinguishes venue-reported snapshots from system-calculated ones.
+`is_reported` 标志用于区分场所上报的快照和系统计算的快照。
 
-## Fields
+## 字段 {#fields}
 
-| Field           | Python type            | Required/default | Description                                                               |
+| 字段            | Python 类型            | 必填/默认值 | 说明                                                            |
 | --------------- | ---------------------- | ---------------- | ------------------------------------------------------------------------- |
-| `account_id`    | `AccountId`            | Required         | The account ID (with the venue).                                          |
-| `account_type`  | `AccountType`          | Required         | The account type (`CASH`, `MARGIN`, `BETTING`, or `WALLET`).              |
-| `base_currency` | `Currency` or `None`   | `None`           | The account base currency (`None` for multi-currency accounts).           |
-| `is_reported`   | `bool`                 | Required         | If the state is reported from the exchange (otherwise system-calculated). |
-| `balances`      | `list[AccountBalance]` | Required         | The account balances (may be empty).                                      |
-| `margins`       | `list[MarginBalance]`  | Required         | The margin balances (may be empty).                                       |
-| `event_id`      | `UUID4`                | Required         | The event ID.                                                             |
-| `ts_event`      | `int`                  | Required         | UNIX timestamp (nanoseconds) when the event occurred.                     |
-| `ts_init`       | `int`                  | Required         | UNIX timestamp (nanoseconds) when the object was initialized.             |
-| `info`          | `dict`                 | `None`           | Venue-specific account data with no typed field (empty dict when unset).  |
+| `account_id`    | `AccountId`            | 必填         | 账户 ID（在交易场所侧）。                                          |
+| `account_type`  | `AccountType`          | 必填         | 账户类型（`CASH`、`MARGIN`、`BETTING` 或 `WALLET`）。              |
+| `base_currency` | `Currency` 或 `None`   | `None`           | 账户基础货币（多币种账户为 `None`）。           |
+| `is_reported`   | `bool`                 | 必填         | 状态是否来自交易所上报（否则为系统计算）。 |
+| `balances`      | `list[AccountBalance]` | 必填         | 账户余额（可能为空）。                                      |
+| `margins`       | `list[MarginBalance]`  | 必填         | 保证金余额（可能为空）。                                       |
+| `event_id`      | `UUID4`                | 必填         | 事件 ID。                                                             |
+| `ts_event`      | `int`                  | 必填         | 事件发生时刻的 UNIX 纳秒时间戳。                     |
+| `ts_init`       | `int`                  | 必填         | 对象初始化时刻的 UNIX 纳秒时间戳。             |
+| `info`          | `dict`                 | `None`           | 没有对应类型字段的场所特有账户数据（未设置时为空 dict）。  |
 
-## Example
+## 示例 {#example}
 
-Account state is normally consumed through the `Portfolio` rather than a dedicated handler:
+账户状态通常经 `Portfolio` 消费，而不是专门的处理函数：
 
 ```python
 from nautilus_trader.model import Venue
@@ -37,11 +36,10 @@ account = self.portfolio.account(venue=Venue("BINANCE"))
 self.log.info(f"Account state: {account}")
 ```
 
-The result is detached from the Portfolio. Mutating the returned account does not change the
-authoritative account held by the engine.
+返回结果与 Portfolio 是分离的。修改返回的账户对象不会改变引擎持有的权威账户数据。
 
-## Related guides
+## 相关指南 {#related-guides}
 
-- [Events](./index.md) - Event categories and dispatch.
-- [Accounting](./../accounting.md) - Account types, balances, and margin models.
-- [Portfolio](./../portfolio.md) - How account state feeds exposure and balance tracking.
+- [事件](./index.md) - 事件类别与分发。
+- [记账](./../accounting.md) - 账户类型、余额与保证金模型。
+- [Portfolio](./../portfolio.md) - 账户状态如何支撑敞口与余额跟踪。

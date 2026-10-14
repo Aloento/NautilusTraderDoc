@@ -1,24 +1,21 @@
-# Gold Perpetual Book Imbalance with Proxy Futures Data (AX Exchange)
+# 代理期货数据黄金永续订单簿失衡（AX Exchange） {#gold-perpetual-book-imbalance-with-proxy-futures-data-ax-exchange}
 
-This tutorial backtests a top-of-book imbalance strategy on **XAU-PERP** at
-[AX Exchange](https://architect.exchange) using
-[Databento](https://databento.com) CME gold futures (`GC.v.0`) `mbp-1`
-quotes as a proxy.
+本教程在 [AX Exchange](https://architect.exchange) 的 **XAU-PERP** 上回测一个最优报价失衡
+策略，使用 [Databento](https://databento.com) CME 黄金期货（`GC.v.0`）的 `mbp-1` 报价作为
+代理数据。
 
-## Introduction
+## 简介 {#introduction}
 
-Top-of-book imbalance is a microstructure signal. When one side of the BBO holds much more resting size than
-the other, the book leans toward that side. As the heavier side absorbs flow, short-term price often moves
-toward the thinner side.
+最优报价失衡是一个微观结构信号。当 BBO 一侧的挂单量远大于另一侧时，订单簿向该侧倾斜。
+随着较重一侧吸收订单流，短期价格常向较薄一侧移动。
 
-The AX example `OrderBookImbalance` strategy submits a fill-or-kill (FOK) limit order that takes the thinner
-side. For example, it buys at the ask when bids hold more size. It submits an order each time the ratio
-between sides is less than the threshold and the cooldown has elapsed.
+AX 示例的 `OrderBookImbalance` 策略提交一笔 FOK（fill-or-kill）限价单去吃较薄一侧。
+例如买盘挂单更多时以卖价买入。每当两侧比值低于阈值且冷却期已过，就提交一笔订单。
 
-The strategy only needs the BBO, so it uses `mbp-1` (market by price, single best bid/ask) quote data. It does
-not need the full L2 book, which reduces data costs for backtesting.
+策略只需要 BBO，因此使用 `mbp-1`（market by price，单一最优买卖价）报价数据，不需要
+完整 L2 订单簿，可降低回测的数据成本。
 
-`OrderBookImbalance` is a teaching strategy and has no edge.
+`OrderBookImbalance` 是教学策略，没有优势（edge）。
 
 ```mermaid
 flowchart LR
@@ -46,44 +43,42 @@ flowchart LR
     D2 -->|no| SELL
 ```
 
-### Why proxy data
+### 为什么用代理数据 {#why-proxy-data}
 
-Databento does not yet cover AX Exchange. CME `GC` gold futures are the most liquid gold derivatives globally.
-They provide representative microstructure for backtests of gold strategies. The **continuous contract**
-`GC.v.0` joins data across expiries from the highest-volume contract. This follows liquidity as a perpetual
-does.
+Databento 尚未覆盖 AX Exchange。CME `GC` 黄金期货是全球流动性最好的黄金衍生品，
+能为黄金策略回测提供有代表性的微观结构。连续合约 `GC.v.0` 把成交量最大合约的数据
+跨到期日拼接起来，跟随流动性的方式与永续合约一致。
 
-The `stype_in="continuous"` parameter resolves the symbol through Databento's continuous mapping at request
-time. The `instrument_id` override at load time is safe because this mapping selects a single underlying
-instrument at any moment.
+`stype_in="continuous"` 参数在请求时通过 Databento 的连续映射解析代码。加载时覆盖
+`instrument_id` 是安全的，因为该映射在任意时刻只选中一个标的金融工具。
 
-For more information about the predictive power of book imbalance features, see Databento's [blog post on HFT
-signals with sklearn](https://databento.com/blog/hft-sklearn-python).
+关于订单簿失衡特征的预测能力，详见 Databento 的博文
+[用 sklearn 做 HFT 信号](https://databento.com/blog/hft-sklearn-python)。
 
-## Prerequisites
+## 前置条件 {#prerequisites}
 
 - Python 3.13+
-- [NautilusTrader installed](./../getting_started/installation.md).
-- A clone of the NautilusTrader repository. The snippets read
-  `crates/adapters/databento/publishers.json` and import the strategy from
-  `examples/live/architect_ax`, so run them from the repository root:
+- 已[安装 NautilusTrader](./../getting_started/installation.md)。
+- NautilusTrader 仓库克隆。下面的代码要读取
+  `crates/adapters/databento/publishers.json` 并从 `examples/live/architect_ax`
+  导入策略，因此在仓库根目录运行：
 
 ```bash
 git clone https://github.com/nautechsystems/nautilus_trader
 cd nautilus_trader
 ```
 
-- A Databento API key:
+- 一个 Databento API key：
 
 ```bash
 export DATABENTO_API_KEY="your-api-key"
 ```
 
-- The Databento Python client: `pip install databento`.
+- Databento Python 客户端：`pip install databento`。
 
-## Data preparation
+## 数据准备 {#data-preparation}
 
-### Download CME gold futures quotes
+### 下载 CME 黄金期货报价 {#download-cme-gold-futures-quotes}
 
 ```python
 import databento as db
@@ -104,14 +99,14 @@ if not data_path.exists():
     data.to_file(data_path)
 ```
 
-This request downloads one trading day. Subsequent runs use the same file.
+该请求下载一个交易日。后续运行复用同一个文件。
 
-### Load into Nautilus quote ticks
+### 加载为 Nautilus 报价 tick {#load-into-nautilus-quote-ticks}
 
-`DatabentoDataLoader.load_quotes` parses the `.dbn.zst` archive and emits `QuoteTick` objects. The
-`instrument_id` argument overrides Databento symbology, so every tick uses `XAU-PERP.AX`. The loader cannot
-resolve price precision for that ID. Pass `price_precision` explicitly. It must match the instrument
-definition below.
+`DatabentoDataLoader.load_quotes` 解析 `.dbn.zst` 归档并产出 `QuoteTick` 对象。
+`instrument_id` 参数覆盖 Databento 的代码体系，使每条 tick 都使用 `XAU-PERP.AX`。
+加载器无法为该 ID 解析价格精度，需显式传入 `price_precision`，且必须与下面的
+金融工具定义一致。
 
 ```python
 from nautilus_trader.adapters.databento import DatabentoDataLoader
@@ -128,11 +123,10 @@ quotes = loader.load_quotes(
 )
 ```
 
-## Instrument definition
+## 金融工具定义 {#instrument-definition}
 
-Proxy data needs a manual instrument definition. Price precision, tick size, and margin parameters are
-backtest assumptions. The `0.01` tick is finer than both the CME `GC` tick (`0.10`) and the AX `XAU-PERP` tick
-(`0.1`).
+代理数据需要手工定义金融工具。价格精度、最小变动价位和保证金参数都是回测假设。
+`0.01` 的 tick 比 CME `GC` 的 tick（`0.10`）和 AX `XAU-PERP` 的 tick（`0.1`）都更细。
 
 ```python
 from decimal import Decimal
@@ -167,24 +161,23 @@ XAU_PERP = PerpetualContract(
 )
 ```
 
-Fees are explicit backtest assumptions. Check
-[AX documentation](https://docs.architect.exchange/) for current rates.
+费用是回测中显式设定的假设。当前费率请查阅
+[AX 文档](https://docs.architect.exchange/)。
 
-## Strategy configuration
+## 策略配置 {#strategy-configuration}
 
-The strategy subscribes to quotes and compares bid and ask sizes on each
-`QuoteTick`. It does not subscribe to L2 book deltas.
+策略订阅报价，在每个 `QuoteTick` 上比较买卖挂单量，不订阅 L2 订单簿增量。
 
-| Parameter                      | Value  | Description                                   |
-| ------------------------------ | ------ | --------------------------------------------- |
-| `max_trade_size`               | `10`   | Cap on contracts per FOK order.               |
-| `trigger_min_size`             | `1`    | Larger side must hold more than one contract. |
-| `trigger_imbalance_ratio`      | `0.10` | Trigger when smaller / larger < 10%.          |
-| `min_seconds_between_triggers` | `5.0`  | Cooldown between consecutive triggers.        |
+| 参数                           | 取值   | 说明                                       |
+| ------------------------------ | ------ | ------------------------------------------ |
+| `max_trade_size`               | `10`   | 每笔 FOK 订单的合约数上限。                |
+| `trigger_min_size`             | `1`    | 较大一侧须挂单超过一张合约。               |
+| `trigger_imbalance_ratio`      | `0.10` | 较小 / 较大 < 10% 时触发。                 |
+| `min_seconds_between_triggers` | `5.0`  | 连续触发之间的冷却时间。                   |
 
-The AX examples define the strategy in
-[`examples/live/architect_ax/strategies.py`](https://github.com/nautechsystems/nautilus_trader/blob/develop/examples/live/architect_ax/strategies.py).
-From the repository root:
+AX 示例中的策略定义在
+[`examples/live/architect_ax/strategies.py`](https://github.com/nautechsystems/nautilus_trader/blob/develop/examples/live/architect_ax/strategies.py)。
+在仓库根目录执行：
 
 ```python
 import sys
@@ -205,7 +198,7 @@ strategy = OrderBookImbalance(
 )
 ```
 
-## Backtest setup
+## 回测设置 {#backtest-setup}
 
 ```python
 from decimal import Decimal
@@ -247,7 +240,7 @@ engine.add_strategy(strategy)
 engine.run()
 ```
 
-Get reports from the engine:
+从引擎获取报告：
 
 ```python
 print(engine.generate_account_report(venue=AX))
@@ -258,46 +251,41 @@ engine.reset()
 engine.dispose()
 ```
 
-The runnable example is at
-[`architect_ax_book_imbalance.py`](https://github.com/nautechsystems/nautilus_trader/tree/develop/examples/backtest/architect_ax_book_imbalance.py).
+可直接运行的示例见
+[`architect_ax_book_imbalance.py`](https://github.com/nautechsystems/nautilus_trader/tree/develop/examples/backtest/architect_ax_book_imbalance.py)。
 
-## What the run produces
+## 运行结果 {#what-the-run-produces}
 
-A replay of 2024-11-15 GC.v.0 mbp-1 (one trading day) through `OrderBookImbalance(0.10, 1.0, 5s)` produces
-2,378 FOK fills. These fills net into 5 closed position cycles. Cumulative realized pnl ends at **-4,170
-USD**. The strategy loses money steadily across the day, mostly from spread costs on incremental FOK fills
-that increase existing positions.
+把 2024-11-15 的 GC.v.0 mbp-1（一个交易日）重放给
+`OrderBookImbalance(0.10, 1.0, 5s)`，产生 2,378 笔 FOK 成交，净归为 5 个已平回合。
+累计已实现盈亏最终为 **-4,170 USD**。策略全天稳定亏损，主要来自加仓 FOK 成交支付的
+点差成本。
 
 ![GC.v.0 top of book around an active cycle](./assets/gold_book_imbalance_ax/panel_a_top_book.png)
 
-**Figure 1.** *GC.v.0 top of book around a short entry near 09:26 and exit near 09:31, then a long re-entry
-until 09:35. Triangles are entries from flat, crosses are returns to flat, open circles are incremental FOK
-fills that grew the position.*
+**图 1.** *GC.v.0 最优报价：约 09:26 做空入场、约 09:31 出场，随后做多再入场直至
+09:35。三角形是空仓状态下的入场，叉号是回到空仓，空心圆是使仓位增大的加仓 FOK 成交。*
 
 ![Imbalance ratio distribution](./assets/gold_book_imbalance_ax/panel_b_imbalance_dist.png)
 
-**Figure 2.** *`smaller / larger` BBO size ratio across all sampled top-of-book
-snapshots, with the 0.10 trigger threshold marked. The mass left of the
-threshold is the addressable trigger region.*
+**图 2.** *全部采样的最优报价快照上的 `smaller / larger` BBO 挂单量比值分布，标出
+0.10 触发阈值。阈值左侧的密集区就是可触发的区间。*
 
 ![Mid and top-of-book size across the day](./assets/gold_book_imbalance_ax/panel_c_size_landscape.png)
 
-**Figure 3.** *Mid price (top) and best bid/ask size in contracts (bottom)
-across the trading day. Top-of-book sizes flicker between roughly two and
-fifty contracts; the mid traverses about a fifteen-dollar range.*
+**图 3.** *整个交易日内的中间价（上）与最优买卖量（合约数，下）。最优报价挂单量在约
+两张到五十张合约之间闪烁，中间价走过约十五美元的区间。*
 
 ![Cumulative realized pnl per closed position](./assets/gold_book_imbalance_ax/panel_d_pnl.png)
 
-**Figure 4.** *Cumulative realized USD pnl across the five closed position
-cycles. The slope is consistently negative and the per-cycle pnl is
-dominated by spread.*
+**图 4.** *五个已平回合的累计 USD 已实现盈亏。斜率持续为负，单回合盈亏以点差主导。*
 
-### Regenerate the panels
+### 重新生成图表面板 {#regenerate-the-panels}
 
-A self-contained renderer runs the backtest again with a quote-sampling actor. It writes PNGs to the asset
-directory with the `nautilus_dark` tearsheet theme.
+一个自包含的渲染器附带报价采样 actor 重跑回测，使用 `nautilus_dark` tearsheet 主题
+把 PNG 写到资源目录。
 
-After building NautilusTrader from source, run these commands from the repository root:
+从源码构建 NautilusTrader 后，在仓库根目录运行：
 
 ```bash
 make sync
@@ -306,31 +294,28 @@ GC_DBN=gc_gold_quotes.dbn.zst \
         python docs/tutorials/assets/gold_book_imbalance_ax/render_panels.py
 ```
 
-## Next steps
+## 后续步骤 {#next-steps}
 
-- **Stricter trigger**: Lower `trigger_imbalance_ratio` to `0.05` or raise `trigger_min_size` to `5`
-  to require a stronger signal before order submission.
-- **Different sessions**: Replay regular trading hours (RTH) only or several days to compare behavior across regimes.
-- **Other instruments**: AX offers FX perpetuals (`EURUSD-PERP`,
-  `GBPUSD-PERP`) and silver (`XAG-PERP`). The same proxy approach works
-  with the corresponding CME futures.
-- **AX sandbox**: See the
-  [AX Exchange integration guide](./../integrations/architect_ax.md) once the
-  backtest behaves.
+- **收紧触发条件**：把 `trigger_imbalance_ratio` 降到 `0.05`，或把
+  `trigger_min_size` 提到 `5`，要求更强的信号再下单。
+- **换时段**：只回放常规交易时段（RTH），或回放多天数据，对比不同市场状态下的行为。
+- **换金融工具**：AX 还提供 FX 永续（`EURUSD-PERP`、`GBPUSD-PERP`）与白银
+  （`XAG-PERP`）。用对应的 CME 期货，同样的代理方案都适用。
+- **AX 沙盒**：回测表现符合预期后，见
+  [AX Exchange 集成指南](./../integrations/architect_ax.md)。
 
-## Running live
+## 实时运行 {#running-live}
 
-The same `OrderBookImbalance` strategy runs live against the AX sandbox. The launch script uses a `LiveNode`
-in place of the `BacktestEngine`. It configures AX data and execution clients for `AxEnvironment.SANDBOX`. See
-the live example:
-[`ax_book_imbalance.py`](https://github.com/nautechsystems/nautilus_trader/tree/develop/examples/live/architect_ax/ax_book_imbalance.py).
+同一个 `OrderBookImbalance` 策略可直连 AX 沙盒实时运行。启动脚本用 `LiveNode` 替代
+`BacktestEngine`，为 `AxEnvironment.SANDBOX` 配置 AX 数据与执行客户端。实时示例见
+[`ax_book_imbalance.py`](https://github.com/nautechsystems/nautilus_trader/tree/develop/examples/live/architect_ax/ax_book_imbalance.py)。
 
-For connection setup and API key configuration, see the
-[AX Exchange integration guide](./../integrations/architect_ax.md).
+连接设置与 API key 配置见
+[AX Exchange 集成指南](./../integrations/architect_ax.md)。
 
-## Further reading
+## 延伸阅读 {#further-reading}
 
-- [`OrderBookImbalance` strategy source](https://github.com/nautechsystems/nautilus_trader/blob/develop/examples/live/architect_ax/strategies.py)
-- [Mean Reversion with Proxy FX Data tutorial](./fx_mean_reversion_ax.md)
-- [Architect Exchange documentation](https://docs.architect.exchange/)
-- [Databento: HFT signals with sklearn](https://databento.com/blog/hft-sklearn-python)
+- [`OrderBookImbalance` 策略源码](https://github.com/nautechsystems/nautilus_trader/blob/develop/examples/live/architect_ax/strategies.py)
+- [代理 FX 数据均值回归教程](./fx_mean_reversion_ax.md)
+- [Architect Exchange 文档](https://docs.architect.exchange/)
+- [Databento：用 sklearn 做 HFT 信号](https://databento.com/blog/hft-sklearn-python)

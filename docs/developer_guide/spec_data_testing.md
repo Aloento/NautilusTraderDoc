@@ -1,34 +1,28 @@
-# Data Testing Spec
+# 数据测试规范 {#data-testing-spec}
 
-Use this test matrix to validate adapter data functionality with the Rust `DataTester` actor. Python exposes
-it as a built-in actor configured through `nautilus_trader.testkit.DataTesterConfig`. Rust code imports it
-from `nautilus_testkit::testers`. Cases use prefixed IDs (for example, TC-D01) and are grouped by
-functionality.
+使用这份测试矩阵，配合 Rust 的 `DataTester` actor 验证适配器的数据功能。Python 将其作为内置 actor 暴露，通过
+`nautilus_trader.testkit.DataTesterConfig` 配置；Rust 代码从 `nautilus_testkit::testers` 导入。用例使用带前缀的
+ID（例如 TC-D01），按功能分组。
 
-**Each adapter must pass the subset of tests matching its supported data types.**
+**每个适配器必须通过与其支持的数据类型相对应的那部分测试。**
 
-Test groups are ordered from least derived to most derived data: instruments
-and raw book data first, then quotes, trades, bars, and derivatives data.
-An adapter that passes groups 1-4 is considered baseline data compliant.
+测试组按数据派生程度从低到高排列：先金融工具和原始订单簿数据，再报价、成交、K 线和衍生品数据。
+通过第 1-4 组的适配器即视为达到基线数据合规。
 
-Document adapter-specific data behavior (custom channels, throttling,
-snapshot semantics, etc.) in the adapter's own guide, not here.
+适配器特有的数据行为（自定义通道、限流、快照语义等）写在各适配器自己的指南里，不写在这里。
 
-## Prerequisites
+## 前置条件 {#prerequisites}
 
-Before running data tests:
+运行数据测试前：
 
-- Target instrument available and loadable via the instrument provider.
-- API credentials set via environment variables (`{VENUE}_API_KEY`, `{VENUE}_API_SECRET`) when
-  the venue requires authentication for the data being tested.
-- If the venue offers a demo/testnet mode, use credentials created for that environment. Demo and production
-  API keys are typically separate and not interchangeable. Using the wrong credentials produces authentication
-  errors (e.g. HTTP 401).
+- 目标金融工具可用，且能通过 instrument provider 加载。
+- 被测数据在交易场所需要鉴权时，通过环境变量设置 API 凭证（`{VENUE}_API_KEY`、`{VENUE}_API_SECRET`）。
+- 交易场所若提供 demo/testnet 模式，使用该环境下创建的凭证。演示环境与生产环境的 API key 通常相互独立、
+  不可互换。用错凭证会导致鉴权错误（如 HTTP 401）。
 
-**Python node setup**:
+**Python 节点搭建**：
 
-Use `nautilus_trader.live.LiveNode`. Call `LiveNode.builder(...)` when you need to
-register adapter client factories before the node is built.
+使用 `nautilus_trader.live.LiveNode`。若需在节点构建前注册适配器客户端工厂，调用 `LiveNode.builder(...)`。
 
 ```python
 from nautilus_trader.common import Environment
@@ -53,7 +47,7 @@ node.add_builtin_actor("DataTester", tester_config)
 # Register remaining components, then start or run
 ```
 
-**Rust node setup** (reference: `crates/adapters/{adapter}/examples/node_data_tester.rs`):
+**Rust 节点搭建**（参考：`crates/adapters/{adapter}/examples/node_data_tester.rs`）：
 
 ```rust
 use nautilus_testkit::testers::{DataTester, DataTesterConfig};
@@ -68,131 +62,115 @@ node.add_actor(tester)?;
 node.run().await?;
 ```
 
-## Timestamp scale
+## 时间戳量纲 {#timestamp-scale}
 
-Nautilus stores `ts_event` and `ts_init` as Unix nanoseconds (`UnixNanos`). Every data
-message that carries those fields must use that scale, not leftover seconds, milliseconds,
-or microseconds.
+Nautilus 以 Unix 纳秒（`UnixNanos`）存储 `ts_event` 和 `ts_init`。凡是携带这两个字段的数据消息都必须使用该
+量纲，不能残留秒、毫秒或微秒。
 
-- A value below `10^16` is not a plausible Unix-nanosecond timestamp (`10^16` ns is about
-  116 days after 1970-01-01) and usually means the adapter left the venue scale unconverted.
-- Second-precision venue times that were converted correctly end in `000000000` and still
-  pass: that is coarse precision, not a scale error.
-- Live stream `ts_event` should be near wall-clock time for the session. Historical
-  request results may be older and still valid if the scale is nanoseconds.
-- `ts_init` is the local clock when Nautilus created the object. Small `ts_event` >
-  `ts_init` skew is possible when the venue clock is ahead.
+- 小于 `10^16` 的值不可能是合法的 Unix 纳秒时间戳（`10^16` ns 约为 1970-01-01 之后 116 天），通常说明适配器
+  没有把交易场所的量纲转换过来。
+- 转换正确的秒级交易场所时间以 `000000000` 结尾，仍然算通过：那是精度粗，不是量纲错误。
+- 实时流的 `ts_event` 应接近会话的挂钟时间。历史请求的结果可以更久远，只要量纲是纳秒就仍然有效。
+- `ts_init` 是 Nautilus 创建对象时的本地时钟。交易场所时钟超前时，`ts_event` 略大于 `ts_init` 是可能的。
 
-`DataTester` warns when `ts_event` or `ts_init` fails the scale check on these data types, including
-historical batches of each:
+以下数据类型（含各自的历史批量数据）的 `ts_event` 或 `ts_init` 未通过量纲检查时，`DataTester` 会发出警告：
 
-- Instruments, instrument status, and instrument close.
-- Book deltas and book depth.
-- Quotes, trades, and bars.
-- Mark prices, index prices, and funding rates.
-- Option greeks.
+- 金融工具、instrument status 和 instrument close。
+- 订单簿增量和订单簿深度。
+- 报价、成交和 K 线。
+- 标记价格、指数价格和资金费率。
+- 期权希腊值。
 
-It does not check reconstructed books in `on_book`. Treat a warning as a failure for the case that
-produced the message.
+`on_book` 中重建出的订单簿不做检查。产生警告的用例一律按失败处理。
 
 ---
 
-## Order book sync conformance
+## 订单簿同步合规 {#order-book-sync-conformance}
 
-Adapters that maintain order books from a venue stream must keep their output valid through venue and network
-faults. Unit and integration suites cannot reproduce venue timing. Thus, changes to book sync and recovery
-machinery need both a deterministic model check and live validation against a real venue.
+从交易场所数据流维护订单簿的适配器，必须在交易场所和网络故障下保持输出合法。单元测试和集成测试无法复现
+交易场所的时序，因此改动订单簿同步与恢复机制时，既要通过确定性的模型检查，也要针对真实交易场所做实时验证。
 
-**Live validation** here means market-data-only observation: subscribe, request, and fault-inject. Do not
-place orders during this validation. A **dark book** is a subscribed book that never receives data.
+此处的**实时验证**指只观察行情：订阅、请求、注入故障。验证期间不要下单。**暗簿（dark book）**指订阅后
+始终收不到数据的订单簿。
 
-### Book stream contract
+### 订单簿数据流契约 {#book-stream-contract}
 
-`BookStreamChecker` in `nautilus_live::book::conformance`, enabled by the `nautilus-live`
-`test-support` feature, applies the contract to every emitted `OrderBookDeltas` batch:
+`nautilus_live::book::conformance` 中的 `BookStreamChecker`（由 `nautilus-live` 的 `test-support` feature
+启用）对每个发出的 `OrderBookDeltas` 批次应用该契约：
 
-- A batch ends with `F_LAST`. Each `F_LAST` closes an event group, and the book must pass its
-  integrity check after every group because consumers observe it at those boundaries.
-- A snapshot group is a `Clear` followed by `Add` deltas, all flagged `F_SNAPSHOT`. A lone `Clear`
-  is an empty snapshot.
-- An incremental group carries neither `F_SNAPSHOT` nor `Clear`, and follows a snapshot.
-- Each incremental group's sequence exceeds the previous one when the venue sequence is monotonic within a
-  snapshot episode. OKX `seqId` can reset. Polymarket, Hyperliquid, Betfair, and AX Exchange books carry no
-  venue sequence. Thus, the checkers for all these venues skip this rule and rely on the oracle.
-- A book emits nothing after its unsubscribe settles.
+- 批次以 `F_LAST` 结束。每个 `F_LAST` 闭合一个事件组，且每组结束后订单簿都必须通过完整性检查，因为消费者
+  在这些边界处观察订单簿。
+- 快照组是一个 `Clear` 后接若干 `Add` 增量，全部带 `F_SNAPSHOT` 标志。单独的 `Clear` 是空快照。
+- 增量组既不带 `F_SNAPSHOT` 也不带 `Clear`，且位于快照之后。
+- 当交易场所序列号在单个快照 episode 内单调递增时，每个增量组的序列号应大于前一组。OKX 的 `seqId` 可能重置；
+  Polymarket、Hyperliquid、Betfair 和 AX Exchange 的订单簿不带交易场所序列号。因此这些交易场所的检查器
+  跳过该规则，依赖 oracle。
+- 订单簿退订完成后不再发出任何内容。
 
-### Validation levels
+### 验证级别 {#validation-levels}
 
-Match the level to the riskiest aspect of the change. Higher levels include the bars of each level below.
+按改动中风险最高的方面选择级别。级别越高，包含以下各级的全部要求。
 
-| Level              | Trigger                                                                                          | Method                                                                                          | Acceptance                                                                                                                            |
+| 级别 | 触发条件 | 方法 | 验收标准 |
 | ------------------ | ------------------------------------------------------------------------------------------------ | ----------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------- |
-| L0 Model           | Any change to `BookSync`, `BookRecovery`, or an adapter's use of them                            | Property test of the per-book state machine against a reference model, plus planted regressions | The property test passes, and reverting a known fix, such as the gap ownership rule, makes it fail                                    |
-| L1 Conformance     | Any change to previously validated sync/recovery code                                            | Rerun the venue's stress harness or established oracle                                          | PASS at the documented bar, zero checker violations, zero dark books, zero unexplained errors                                         |
-| L2 Edge probe      | Boundary behavior changes (timeouts, disabled paths, budget exhaustion, the retry ceiling)       | Targeted boundary scenarios, including each new tuning extreme                                  | Every scenario passes. Disabled paths stay quiet. An exhausted budget reaches the ceiling and a late snapshot still restores the book |
-| L3 Race probe      | Concurrency or ordering changes (gates, epochs, reconnect interplay), or any live-found race fix | Fault injection plus subscribe churn under an independent oracle                                | Dozens of forced recoveries complete with zero dark books. The reported race scenario passes with no recurrence                       |
-| L4 Full validation | New sync/recovery implementation                                                                 | L1-L3 plus a sustained churn and reconnect-fault soak                                           | All lower bars hold for the full soak. Recovery latencies stay bounded                                                                |
+| L0 模型 | 任何对 `BookSync`、`BookRecovery` 或适配器对其使用的改动 | 针对参考模型做单簿状态机的属性测试，外加植入的回归用例 | 属性测试通过；回退已知修复（如 gap 所有权规则）时会失败 |
+| L1 合规 | 任何对已验证过的同步/恢复代码的改动 | 重跑该交易场所的压力测试装置或既有 oracle | 在既定标准上 PASS，零检查器违规、零暗簿、零无法解释的错误 |
+| L2 边界探测 | 边界行为变化（超时、禁用路径、预算耗尽、重试上限） | 定向边界场景，覆盖每个新的调参极端值 | 所有场景通过；禁用路径保持静默；预算耗尽后到达上限，迟到快照仍能恢复订单簿 |
+| L3 竞态探测 | 并发或顺序变化（门控、epoch、重连交互），或任何实时发现的竞态修复 | 独立 oracle 下做故障注入加订阅抖动 | 数十次强制恢复全部完成且零暗簿；上报的竞态场景通过且不再复发 |
+| L4 完整验证 | 新的同步/恢复实现 | L1-L3 加上持续的抖动与重连故障浸泡 | 浸泡全程保持各级标准；恢复延迟有界 |
 
-The L0 property test is `schedule_keeps_sync_contract` in `crates/live/src/book/sync.rs`.
-Record the level, venue, oracle, and result with the change. A fix that live validation finds
-restarts at the level that found it: the rerun must clear the same bar, not a lighter one.
+L0 属性测试是 `crates/live/src/book/sync.rs` 中的 `schedule_keeps_sync_contract`。随改动记录级别、交易场所、
+oracle 和结果。实时验证发现的修复从发现它的级别重新开始：重跑必须达到同一标准，不能降低。
 
-### Fault catalog
+### 故障目录 {#fault-catalog}
 
-Every adapter must produce these outcomes, whichever
-[recovery family](./adapters.md#order-book-recovery-ownership) it belongs to:
+无论属于哪个[恢复家族](./adapters.md#order-book-recovery-ownership)，每个适配器都必须产生下列结果：
 
-| Fault                       | Required outcome                                                                                                                                        |
+| 故障 | 要求的结果 |
 | --------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Sequence gap                | Output stops at the gap and resumes only after a fresh snapshot replaces the book.                                                                      |
-| Missing or late snapshot    | The snapshot deadline starts or retries recovery. A snapshot accepted between attempts ends it.                                                         |
-| Recovery cannot start       | The book stays unowned and requests recovery again on its next frame. A refused task cancels its claimed episode.                                       |
-| Rejected replacement        | Recovery retries. An error the classifier marks permanent skips the budget and retries at the ceiling.                                                  |
-| Retry budget exhausted      | One error log, then retries at the ceiling until a snapshot is accepted.                                                                                |
-| Reconnect mid-recovery      | The running recovery keeps its budget, ownership, and in-flight write, and its next ceiling wait ends at once. Other books resync from fresh snapshots. |
-| Unsubscribe during recovery | Recovery and its pending writes stop, and the book emits nothing further.                                                                               |
+| 序列号缺口 | 输出在缺口处停止，仅在新鲜快照替换订单簿后恢复。 |
+| 快照缺失或迟到 | 快照截止时间触发或重试恢复。两次尝试之间接受了快照则结束恢复。 |
+| 恢复无法启动 | 订单簿保持无主状态，在下一帧再次请求恢复。被拒绝的任务会取消其已认领的 episode。 |
+| 替换被拒绝 | 恢复重试。分类器判定为永久性的错误跳过预算、直接按上限重试。 |
+| 重试预算耗尽 | 记录一次错误日志，然后按上限重试直到快照被接受。 |
+| 恢复中途重连 | 进行中的恢复保留其预算、所有权和写入中的操作，其下一次上限等待立即结束。其他订单簿从新鲜快照重新同步。 |
+| 恢复期间退订 | 恢复及其挂起写入停止，订单簿不再发出任何内容。 |
 
-### Forcing techniques
+### 构造手段 {#forcing-techniques}
 
-Prefer distinct orderings over raw volume. A probe earns its place only if it forces an ordering that the
-suite cannot produce (reconnect mid-recovery, a snapshot racing gate-open, an unsubscribe racing an in-flight
-subscribe). Message count alone does not justify a probe.
+优先构造不同的时序组合，而不是单纯堆消息量。只有当探测能强制出测试套件无法产生的时序（恢复中途重连、快照与
+门控开启赛跑、退订与进行中的订阅赛跑）时，它才值得保留。仅靠消息数量不足以支撑一个探测。
 
-| Technique                                                                   | Stresses                                                             | Figures that proved effective                                                           | Caught in practice                                                        |
+| 手段 | 施压点 | 被证明有效的数字 | 实际捕获的问题 |
 | --------------------------------------------------------------------------- | -------------------------------------------------------------------- | --------------------------------------------------------------------------------------- | ------------------------------------------------------------------------- |
-| Subscribe churn (rotating unsubscribe/resubscribe with periodic full flaps) | Recovery initiation, gate/epoch rollover, in-flight cancel races     | 20 s ticks over a 10-15 min run. Dozens of forced recoveries (40+) with zero dark books | Duplicate-subscribe flaw that could not recover (forced a design revisit) |
-| Traffic freeze (STOP the tunnel ~40 s)                                      | Dead-connection detection, reconnect replay, post-reconnect recovery | 2-3 freezes per run, spaced minutes apart                                               | Proves reconnect recovery under total packet loss. No defect caught yet   |
-| Proxy fault injection (drop/hold/cut frames by rule)                        | Gap handling, held-frame release, oracle conformance                 | Thousands of oracle batches per run (6k+), per-round gap counts                         | Timeout-scaled harness race (fixed observe window vs new default)         |
-| Tuning extremes (0 plus a short non-default value)                          | Disabled-deadline branches, param threading end to end               | One short run per extreme (4-5 min) with churn active                                   | Confirmed the review-found zero-timeout fix live. Proves threading        |
-| Client-issued reconnect (public reconnect command, then exercise)           | Reconnect recovery without touching host networking                  | 5+ consecutive reconnect/reconcile passes                                               | Proves recovery without host faults. No defect caught yet                 |
-| Serial repetition of the race scenario                                      | Scheduler sensitivity                                                | 5+ consecutive live passes. 100x repetition for deterministic harnesses                 | Flakes that pass once and fail rarely                                     |
+| 订阅抖动（轮换退订/重订阅，周期性全量切换） | 恢复发起、门控/epoch 轮换、写入中取消的竞态 | 10-15 分钟运行配 20 秒 tick。数十次（40+）强制恢复且零暗簿 | 无法恢复的重复订阅缺陷（迫使重新设计） |
+| 流量冻结（切断隧道约 40 秒） | 死连接检测、重连重放、重连后恢复 | 每次运行 2-3 次冻结，间隔数分钟 | 验证完全丢包下的重连恢复。尚未捕获缺陷 |
+| 代理故障注入（按规则丢弃/扣留/切断帧） | 缺口处理、扣留帧释放、oracle 合规 | 每次运行数千个 oracle 批次（6k+）、逐轮缺口计数 | 超时缩放导致的装置竞态（观测窗口 vs 新默认值） |
+| 调参极端值（0 加一个较短的非默认值） | 禁用截止时间的分支、参数端到端传递 | 每个极端值一次短运行（4-5 分钟）并叠加抖动 | 在线确认了评审发现的零超时修复；验证参数传递 |
+| 客户端主动重连（公共重连命令，随后继续施压） | 不动宿主机网络的重连恢复 | 5+ 次连续重连/对账通过 | 验证无宿主机故障下的恢复。尚未捕获缺陷 |
+| 竞态场景串行重复 | 调度敏感性 | 5+ 次连续通过；确定性装置重复 100 次 | 偶发失败、单次通过掩盖的flake |
 
-Route each venue through a network location that it serves. Polymarket restricts access by region. OKX,
-Lighter, Binance, Hyperliquid, and AX Exchange validate direct. Confirm the route delivers venue data before a
-long run: sockets can connect while the venue stays silent. Branches the venue never produces live belong in a
-captured-wire deterministic harness, not in the live run.
+每个交易场所都要经由其服务的网络位置接入。Polymarket 按地区限制访问；OKX、Lighter、Binance、Hyperliquid 和
+AX Exchange 校验直连。长时间运行前先确认该路由能送达交易场所数据：socket 能连上但交易场所可能一直沉默。
+交易场所线上永远不产生的分支应放进捕获报文的确定性装置，而不是实时运行。
 
-### Oracles
+### Oracle {#oracles}
 
-An oracle is an independent reconstruction of venue truth, compared with the emitted book through
-`BookStreamChecker::verify`:
+oracle 是对交易场所真实状态的独立重建，通过 `BookStreamChecker::verify` 与发出的订单簿比对：
 
-- Build it from a separate connection or a REST snapshot, never from the adapter's own state.
-- Compare at an aligned venue sequence. Skip a sample that cannot be aligned. It does not count as a pass.
-- Count a snapshot episode verified once a comparison after its snapshot succeeds. A harness with
-  `Coverage::Episodes`, such as OKX, verifies each batch as it arrives and fails a session unless each episode
-  is verified. A harness with `Coverage::Samples`, such as Binance, matches oracle samples by update ID after
-  the fact. Thus, it reports oracle checks and unmatched samples, not episode coverage.
+- 从独立连接或 REST 快照构建，绝不使用适配器自身的状态。
+- 在已对齐的交易场所序列号处比对。无法对齐的样本跳过，不算通过。
+- 快照 episode 在其快照之后的某次比对成功时计为已验证。带 `Coverage::Episodes` 的装置（如 OKX）在每批到达时
+  即验证，任一 episode 未验证则整个会话失败。带 `Coverage::Samples` 的装置（如 Binance）事后按 update ID
+  匹配 oracle 样本，因此它报告的是 oracle 检查和未匹配样本，而非 episode 覆盖率。
 
-### Stress harnesses
+### 压力测试装置 {#stress-harnesses}
 
-Stress harnesses are development tools for changes to book sync and recovery code. They are not
-part of the published crates and do not run in CI. The `BookStreamChecker` they use ships with
-`nautilus-live` under the `test-support` feature, so other tests can apply the same contract.
+压力测试装置是修改订单簿同步与恢复代码时使用的开发工具。它们不属于发布的 crate，也不在 CI 中运行。装置使用的
+`BookStreamChecker` 随 `nautilus-live` 的 `test-support` feature 发布，其他测试可以套用同一契约。
 
-An adapter that uses the shared book machinery keeps its live harness at
-`crates/adapters/<venue>/tests/stress/book_stress.rs`, registered as a test target named
-`<venue>-book-stress`:
+使用共享订单簿机制的适配器，其实时装置放在 `crates/adapters/<venue>/tests/stress/book_stress.rs`，注册为名为
+`<venue>-book-stress` 的测试 target：
 
 ```toml
 [[test]]
@@ -203,121 +181,110 @@ test = false
 required-features = ["examples"]
 ```
 
-`harness = false` lets the target own its runtime and arguments, and `test = false` keeps it out of
-default `cargo test` and nextest runs. Add `nautilus-live` with the `test-support` feature to the crate's
-dev-dependencies.
+`harness = false` 让该 target 自己掌控 runtime 和参数，`test = false` 使其不进入默认的 `cargo test` 和 nextest
+运行。在 crate 的 dev-dependencies 中加入带 `test-support` feature 的 `nautilus-live`。
 
-The shared machinery is test source at `crates/live/tests/book/stress/`, which each harness compiles
-in with a path include:
+共享机制是 `crates/live/tests/book/stress/` 下的测试源码，各装置通过 path include 将其编译进来：
 
 ```rust
 #[path = "../../../../live/tests/book/stress/mod.rs"]
 mod stress;
 ```
 
-The shared module runs the harness, and the venue supplies only its own pieces by implementing
-`StressVenue`:
+共享模块负责运行装置，交易场所只需实现 `StressVenue` 提供自己的部件：
 
-- A `WireCodec` that classifies each venue frame as a book snapshot, a book update, or an unsubscribe
-  acknowledgement. It records the frame in the oracle before any fault applies. It can also rewrite a frame to
-  plant a sequence gap or an in-band mismatch, and answer an adapter subscribe with a venue rejection.
-- The proxy routes, the data client configuration, and any extra proxy routes, such as a REST
-  snapshot proxy.
-- The oracle comparison for each emitted batch, the condition for a healthy book, and a startup
-  self-check.
-- The scenarios, written against `Session`.
+- 一个 `WireCodec`，把每个交易场所帧分类为订单簿快照、订单簿更新或退订确认。它在应用任何故障之前先把帧记入
+  oracle。它还能改写帧以植入序列缺口或带内不匹配，并对适配器的订阅返回交易场所拒绝。
+- 代理路由、数据客户端配置，以及任何额外代理路由（如 REST 快照代理）。
+- 每个发出批次的 oracle 比对、订单簿健康的判定条件，以及启动自检。
+- 针对 `Session` 编写的场景。
 
-`FaultProxy` relays the adapter's WebSocket traffic to the venue. For a route whose upstream URL is
-not a WebSocket URL, it relays CRLF-delimited lines over raw TCP. A line route serves the proxy address
-alone, and the venue's `WireCodec::connect` opens its upstream connection, for example over TLS.
+`FaultProxy` 将适配器的 WebSocket 流量转发给交易场所。若某路由的上游 URL 不是 WebSocket URL，它以裸 TCP 转发
+CRLF 分隔的行。行路由只提供代理地址，交易场所的 `WireCodec::connect` 自行打开上游连接（例如经 TLS）。
 
-The proxy applies per-book `Fault` rules (drop snapshots or updates, corrupt, hold, silence, cut on
-unsubscribe, reject subscribes) and connection-wide cuts and freezes. `Session` passes each emitted batch
-through `BookStreamChecker` and the oracle. It waits for books to heal. At shutdown, it checks that all
-sockets and reconnect handles are released.
+代理按订单簿应用 `Fault` 规则（丢弃快照或更新、篡改、扣留、静默、退订时切断、拒绝订阅），并支持连接级的切断
+与冻结。`Session` 让每个发出的批次经过 `BookStreamChecker` 和 oracle，等待订单簿自愈。关闭时检查所有 socket
+和重连句柄均已释放。
 
-Each harness accepts the same flags, and venues add their own. `--help` lists them:
+各装置接受同一组参数，交易场所可另加自己的参数。`--help` 会列出：
 
-| Flag              | Meaning                                                        | Default       |
+| 参数 | 含义 | 默认值 |
 | ----------------- | -------------------------------------------------------------- | ------------- |
-| `--scenario NAME` | Scenario to run.                                               | `churn`       |
-| `--timeout SECS`  | `book_snapshot_timeout_secs`. `0` disables snapshot deadlines. | `10`          |
-| `--rounds N`      | Stress rounds.                                                 | Venue default |
+| `--scenario NAME` | 要运行的场景。 | `churn` |
+| `--timeout SECS`  | `book_snapshot_timeout_secs`。`0` 禁用快照截止时间。 | `10`          |
+| `--rounds N`      | 压力轮数。 | 交易场所默认值 |
 
-Run the harness explicitly, with adapter environment variables stripped:
+显式运行装置，并剥离适配器环境变量：
 
 ```bash
 CARGO_BUILD_JOBS=16 bash scripts/strip-adapter-env.bash \
   cargo test -p nautilus-okx --features examples --test okx-book-stress -- --timeout 10 --rounds 18
 ```
 
-Betfair streams market data only to logged-in accounts, so its harness runs with the Betfair credentials set.
-See [Live recovery validation](./../integrations/betfair.md#live-recovery-validation). AX Exchange market data
-also requires authentication, so its harness reads sandbox credentials from the environment and runs without
-the wrapper.
+Betfair 只向已登录账户推送行情，因此其装置需在设置 Betfair 凭证后运行。参见
+[Live recovery validation](./../integrations/betfair.md#live-recovery-validation)。AX Exchange 的行情同样需要
+鉴权，因此其装置从环境读取 sandbox 凭证，且不经包装脚本直接运行。
 
-The harness writes one line per event to stderr, each led by a fixed word:
+装置向 stderr 每个事件写一行，行首是固定单词：
 
-| Line       | Meaning                                                                 |
+| 行首 | 含义 |
 | ---------- | ----------------------------------------------------------------------- |
-| `START`    | The venue and arguments.                                                |
-| `CHECK`    | The startup self-check or a scenario probe passed.                      |
-| `ROUND`    | A stress round finished, with its counters.                             |
-| `SHUTDOWN` | A session stopped cleanly, with its counters and oracle coverage.       |
-| `PASS`     | The run finished. Always the last line of a passing run.                |
-| `FAIL`     | A check failed or any thread panicked. The process exits with status 1. |
+| `START`    | 交易场所和参数。 |
+| `CHECK`    | 启动自检或场景探测通过。 |
+| `ROUND`    | 一个压力轮结束，附计数器。 |
+| `SHUTDOWN` | 会话干净停止，附计数器和 oracle 覆盖率。 |
+| `PASS`     | 运行完成。永远是成功运行的最后一行。 |
+| `FAIL`     | 某检查失败或任一线程 panic。进程以状态码 1 退出。 |
 
-A deadline failure reports the venue frames each proxy route received, separating a silent route
-from an adapter failure.
+截止时间失败时会报告每个代理路由收到的交易场所帧，以区分路由静默与适配器故障。
 
-**Self-checks**: A `harness = false` target cannot run `#[test]` functions, so the venue proves its
-wire parsing and oracle in `StressVenue::self_check` before any venue traffic. The shared proxy,
-argument parsing, and wire book carry unit tests in the `nautilus-live` `book` test target. Run them
-with `cargo nextest run -p nautilus-live --features test-support --test book`.
+**自检**：`harness = false` 的 target 无法运行 `#[test]` 函数，因此交易场所要在任何交易场所流量发生前，于
+`StressVenue::self_check` 中证明自己的报文解析和 oracle。共享代理、参数解析和裸订单簿在 `nautilus-live` 的
+`book` 测试 target 中带有单元测试，用
+`cargo nextest run -p nautilus-live --features test-support --test book` 运行。
 
-**Harness documentation**: Add a `Live recovery validation` heading to the adapter's integration guide.
-Include its checks, injected faults, run command, scenarios, flags, and required endpoints. OKX, Binance,
-Lighter, Polymarket, Hyperliquid, Bybit, Betfair, and AX Exchange provide harnesses.
+**装置文档**：在适配器的集成指南中添加 `Live recovery validation` 标题，写明其检查项、注入的故障、运行命令、
+场景、参数和所需端点。OKX、Binance、Lighter、Polymarket、Hyperliquid、Bybit、Betfair 和 AX Exchange 提供装置。
 
-### In-band verification
+### 带内验证 {#in-band-verification}
 
-When a venue publishes a book checksum or hash, validate it and treat a mismatch as a gap. This
-catches corruption in the covered data that sequence checks miss, without an external oracle.
+交易场所若发布订单簿校验和或哈希，就对其进行验证，不匹配按缺口处理。无需外部 oracle，即可发现序列检查漏掉的
+覆盖数据中的损坏。
 
-- **Kraken**: Validates the CRC32 checksum on each Spot L2 `book` and L3 message when
-  `validate_l2_checksum` and `validate_l3_checksum` are enabled, both the default.
-- **Polymarket**: Validates the hash on each book snapshot carrying a hash and its full preimage.
-  See [book snapshot validation](./../integrations/polymarket.md#book-snapshot-validation).
-- **OKX**: `books` frames carry a zero `checksum`, so verification relies on the oracle instead.
+- **Kraken**：启用 `validate_l2_checksum` 和 `validate_l3_checksum` 时（两者均为默认），验证每条现货 L2
+  `book` 和 L3 消息的 CRC32 校验和。
+- **Polymarket**：验证携带哈希及其完整原像的每个订单簿快照上的哈希。参见
+  [book snapshot validation](./../integrations/polymarket.md#book-snapshot-validation)。
+- **OKX**：`books` 帧的 `checksum` 为零，验证因此改为依赖 oracle。
 
 ---
 
-Each group below begins with a summary table, followed by detailed test cards.
-Test IDs use spaced numbering to allow insertion without renumbering.
+下面每组先给汇总表格，随后是详细测试卡片。
+测试 ID 采用间隔编号，便于插入新用例而无需重排。
 
 ---
 
-## Group 1: Instruments
+## 第 1 组：金融工具 {#group-1-instruments}
 
-Verify instrument loading and subscription before testing market data streams.
+先验证金融工具的加载与订阅，再测试行情数据流。
 
-| TC     | Name                     | Description                       | Skip when          |
+| TC | 名称 | 描述 | 跳过条件 |
 | ------ | ------------------------ | --------------------------------- | ------------------ |
-| TC-D01 | Request instruments      | Load all instruments for a venue. | Never.             |
-| TC-D02 | Subscribe instrument     | Subscribe to instrument updates.  | No instrument sub. |
-| TC-D03 | Load specific instrument | Load a single instrument by ID.   | Never.             |
+| TC-D01 | 请求金融工具 | 加载某交易场所的全部金融工具。 | 从不 |
+| TC-D02 | 订阅金融工具 | 订阅金融工具更新。 | 不支持工具订阅 |
+| TC-D03 | 加载指定金融工具 | 按 ID 加载单个金融工具。 | 从不 |
 
-### TC-D01: Request instruments
+### TC-D01：请求金融工具 {#tc-d01-request-instruments}
 
-| Field              | Value                                                                                         |
+| 字段 | 值 |
 | ------------------ | --------------------------------------------------------------------------------------------- |
-| **Prerequisite**   | Adapter connected.                                                                            |
-| **Action**         | DataTester requests all instruments for the venue on start.                                   |
-| **Event sequence** | `on_instruments` callback receives instrument list.                                           |
-| **Pass criteria**  | At least one instrument received. Each has valid symbol, price precision, and size increment. |
-| **Skip when**      | Never.                                                                                        |
+| **前置条件** | 适配器已连接。 |
+| **操作** | DataTester 启动时请求该交易场所的全部金融工具。 |
+| **事件序列** | `on_instruments` 回调收到金融工具列表。 |
+| **通过标准** | 至少收到一个金融工具。每个都有合法 symbol、价格精度和数量增量。 |
+| **跳过条件** | 从不。 |
 
-**Python config**:
+**Python 配置**：
 
 ```python
 DataTesterConfig(
@@ -326,7 +293,7 @@ DataTesterConfig(
 )
 ```
 
-**Rust config**:
+**Rust 配置**：
 
 ```rust
 DataTesterConfig::builder()
@@ -336,17 +303,17 @@ DataTesterConfig::builder()
     .build()?
 ```
 
-### TC-D02: Subscribe instrument
+### TC-D02：订阅金融工具 {#tc-d02-subscribe-instrument}
 
-| Field              | Value                                                           |
+| 字段 | 值 |
 | ------------------ | --------------------------------------------------------------- |
-| **Prerequisite**   | Adapter connected, instrument loaded.                           |
-| **Action**         | DataTester subscribes to instrument updates.                    |
-| **Event sequence** | `on_instrument` callback receives instrument.                   |
-| **Pass criteria**  | Instrument received with correct `instrument_id`, valid fields. |
-| **Skip when**      | Adapter does not support instrument subscriptions.              |
+| **前置条件** | 适配器已连接，金融工具已加载。 |
+| **操作** | DataTester 订阅金融工具更新。 |
+| **事件序列** | `on_instrument` 回调收到金融工具。 |
+| **通过标准** | 收到的金融工具 `instrument_id` 正确、字段合法。 |
+| **跳过条件** | 适配器不支持金融工具订阅。 |
 
-**Python config**:
+**Python 配置**：
 
 ```python
 DataTesterConfig(
@@ -355,7 +322,7 @@ DataTesterConfig(
 )
 ```
 
-**Rust config**:
+**Rust 配置**：
 
 ```rust
 DataTesterConfig::builder()
@@ -365,49 +332,48 @@ DataTesterConfig::builder()
     .build()?
 ```
 
-### TC-D03: Load specific instrument
+### TC-D03：加载指定金融工具 {#tc-d03-load-specific-instrument}
 
-| Field              | Value                                                                                  |
+| 字段 | 值 |
 | ------------------ | -------------------------------------------------------------------------------------- |
-| **Prerequisite**   | Adapter connected.                                                                     |
-| **Action**         | Load a specific instrument by `InstrumentId` via the instrument provider.              |
-| **Event sequence** | Instrument available in cache after load.                                              |
-| **Pass criteria**  | Instrument loaded with correct ID, price precision, size increment, and trading rules. |
-| **Skip when**      | Never.                                                                                 |
+| **前置条件** | 适配器已连接。 |
+| **操作** | 通过 instrument provider 按 `InstrumentId` 加载指定金融工具。 |
+| **事件序列** | 加载后金融工具在 cache 中可用。 |
+| **通过标准** | 加载的金融工具 ID、价格精度、数量增量和交易规则均正确。 |
+| **跳过条件** | 从不。 |
 
-**Considerations**:
+**注意事项**：
 
-- This tests the instrument provider's `load` / `load_async` method directly.
-- Verify the instrument is cached and available via `self.cache.instrument(instrument_id)`.
+- 该用例直接测试 instrument provider 的 `load` / `load_async` 方法。
+- 用 `self.cache.instrument(instrument_id)` 确认金融工具已缓存且可取。
 
 ---
 
-## Group 2: Order book
+## 第 2 组：订单簿 {#group-2-order-book}
 
-Test order book subscription modes and snapshot requests.
+测试订单簿订阅模式与快照请求。
 
-| TC     | Name                       | Description                         | Skip when         |
+| TC | 名称 | 描述 | 跳过条件 |
 | ------ | -------------------------- | ----------------------------------- | ----------------- |
-| TC-D10 | Subscribe book deltas      | Stream `OrderBookDeltas` updates.   | No book support.  |
-| TC-D11 | Subscribe book at interval | Periodic `OrderBook` snapshots.     | No book support.  |
-| TC-D12 | Subscribe book depth       | `OrderBookDepth` snapshots.         | No book depth.    |
-| TC-D13 | Request book snapshot      | One-time book snapshot request.     | No book snapshot. |
-| TC-D14 | Managed book from deltas   | Build local book from delta stream. | No book support.  |
+| TC-D10 | 订阅订单簿增量 | 以流式接收 `OrderBookDeltas` 更新。 | 不支持订单簿 |
+| TC-D11 | 按间隔订阅订单簿 | 周期性 `OrderBook` 快照。 | 不支持订单簿 |
+| TC-D12 | 订阅订单簿深度 | `OrderBookDepth` 快照。 | 不支持订单簿深度 |
+| TC-D13 | 请求订单簿快照 | 一次性订单簿快照请求。 | 不支持快照请求 |
+| TC-D14 | 由增量维护本地订单簿 | 从增量流构建本地订单簿。 | 不支持订单簿 |
 
-Python uses `BookType.L2_MBP` for these scenarios. The Rust builder can override `book_type` when
-an adapter requires a different book representation.
+Python 在这些场景使用 `BookType.L2_MBP`。适配器需要其他订单簿表示时，Rust builder 可覆盖 `book_type`。
 
-### TC-D10: Subscribe book deltas
+### TC-D10：订阅订单簿增量 {#tc-d10-subscribe-book-deltas}
 
-| Field              | Value                                                                                  |
+| 字段 | 值 |
 | ------------------ | -------------------------------------------------------------------------------------- |
-| **Prerequisite**   | Adapter connected, instrument loaded.                                                  |
-| **Action**         | DataTester subscribes to order book deltas.                                            |
-| **Event sequence** | `OrderBookDeltas` events received in `on_book_deltas`.                                 |
-| **Pass criteria**  | Deltas received with valid instrument ID. At least one delta contains bid/ask updates. |
-| **Skip when**      | Adapter does not support order book data.                                              |
+| **前置条件** | 适配器已连接，金融工具已加载。 |
+| **操作** | DataTester 订阅订单簿增量。 |
+| **事件序列** | `on_book_deltas` 中收到 `OrderBookDeltas` 事件。 |
+| **通过标准** | 收到的增量 instrument ID 合法，且至少一条增量包含 bid/ask 更新。 |
+| **跳过条件** | 适配器不支持订单簿数据。 |
 
-**Python config**:
+**Python 配置**：
 
 ```python
 DataTesterConfig(
@@ -416,7 +382,7 @@ DataTesterConfig(
 )
 ```
 
-**Rust config**:
+**Rust 配置**：
 
 ```rust
 DataTesterConfig::builder()
@@ -427,17 +393,17 @@ DataTesterConfig::builder()
     .build()?
 ```
 
-### TC-D11: Subscribe book at interval
+### TC-D11：按间隔订阅订单簿 {#tc-d11-subscribe-book-at-interval}
 
-| Field              | Value                                                                                                 |
+| 字段 | 值 |
 | ------------------ | ----------------------------------------------------------------------------------------------------- |
-| **Prerequisite**   | Adapter connected, instrument loaded.                                                                 |
-| **Action**         | DataTester subscribes to periodic order book snapshots.                                               |
-| **Event sequence** | `OrderBook` events received in `on_book` at configured interval.                                      |
-| **Pass criteria**  | Book snapshots received with bid/ask levels. Updates arrive at approximately the configured interval. |
-| **Skip when**      | Adapter does not support order book data.                                                             |
+| **前置条件** | 适配器已连接，金融工具已加载。 |
+| **操作** | DataTester 订阅周期性订单簿快照。 |
+| **事件序列** | 按配置间隔在 `on_book` 中收到 `OrderBook` 事件。 |
+| **通过标准** | 收到含 bid/ask 档位的订单簿快照。更新大致按配置间隔到达。 |
+| **跳过条件** | 适配器不支持订单簿数据。 |
 
-**Python config**:
+**Python 配置**：
 
 ```python
 DataTesterConfig(
@@ -448,7 +414,7 @@ DataTesterConfig(
 )
 ```
 
-**Rust config**:
+**Rust 配置**：
 
 ```rust
 DataTesterConfig::builder()
@@ -461,24 +427,23 @@ DataTesterConfig::builder()
     .build()?
 ```
 
-### TC-D12: Subscribe book depth
+### TC-D12：订阅订单簿深度 {#tc-d12-subscribe-book-depth}
 
-| Field              | Value                                                                            |
+| 字段 | 值 |
 | ------------------ | -------------------------------------------------------------------------------- |
-| **Prerequisite**   | Adapter connected, instrument loaded.                                            |
-| **Action**         | DataTester subscribes to `OrderBookDepth` snapshots.                             |
-| **Event sequence** | `OrderBookDepth` events received in `on_book_depth`.                             |
-| **Pass criteria**  | Depth snapshots respect the requested level limit. Prices are correctly ordered. |
-| **Skip when**      | Adapter does not support book depth subscriptions.                               |
+| **前置条件** | 适配器已连接，金融工具已加载。 |
+| **操作** | DataTester 订阅 `OrderBookDepth` 快照。 |
+| **事件序列** | `on_book_depth` 中收到 `OrderBookDepth` 事件。 |
+| **通过标准** | 深度快照遵守请求的档位上限，价格排序正确。 |
+| **跳过条件** | 适配器不支持订单簿深度订阅。 |
 
-Choose a depth supported by the venue. See the adapter guide for its limit. `book_depth` applies to all
-enabled book subscriptions and the book snapshot request. Omitting it uses the adapter default.
+选择交易场所支持的深度，其上限见适配器指南。`book_depth` 作用于全部已启用的订单簿订阅和订单簿快照请求；
+省略时使用适配器默认值。
 
-- When depth runs alongside deltas or interval books, DataTester subscribes to depth with
-  `managed=False` so it cannot overwrite the delta-managed book.
-- When only depth is enabled, its managed setting follows `manage_book`.
+- 深度与增量或间隔订单簿同时运行时，DataTester 以 `managed=False` 订阅深度，避免覆盖由增量维护的订单簿。
+- 只启用深度时，其 managed 设置跟随 `manage_book`。
 
-**Python config**:
+**Python 配置**：
 
 ```python
 DataTesterConfig(
@@ -487,7 +452,7 @@ DataTesterConfig(
 )
 ```
 
-**Rust config**:
+**Rust 配置**：
 
 ```rust
 DataTesterConfig::builder()
@@ -498,17 +463,17 @@ DataTesterConfig::builder()
     .build()?
 ```
 
-### TC-D13: Request book snapshot
+### TC-D13：请求订单簿快照 {#tc-d13-request-book-snapshot}
 
-| Field              | Value                                                         |
+| 字段 | 值 |
 | ------------------ | ------------------------------------------------------------- |
-| **Prerequisite**   | Adapter connected, instrument loaded.                         |
-| **Action**         | DataTester requests a one-time order book snapshot.           |
-| **Event sequence** | Book snapshot received via historical data callback.          |
-| **Pass criteria**  | Snapshot contains bid/ask levels with valid prices and sizes. |
-| **Skip when**      | Adapter does not support book snapshot requests.              |
+| **前置条件** | 适配器已连接，金融工具已加载。 |
+| **操作** | DataTester 请求一次性订单簿快照。 |
+| **事件序列** | 通过历史数据回调收到订单簿快照。 |
+| **通过标准** | 快照包含价格与数量均合法的 bid/ask 档位。 |
+| **跳过条件** | 适配器不支持订单簿快照请求。 |
 
-**Python config**:
+**Python 配置**：
 
 ```python
 DataTesterConfig(
@@ -518,7 +483,7 @@ DataTesterConfig(
 )
 ```
 
-**Rust config**:
+**Rust 配置**：
 
 ```rust
 DataTesterConfig::builder()
@@ -529,22 +494,22 @@ DataTesterConfig::builder()
     .build()?
 ```
 
-### TC-D14: Managed book from deltas
+### TC-D14：由增量维护本地订单簿 {#tc-d14-managed-book-from-deltas}
 
-| Field              | Value                                                                                                                     |
+| 字段 | 值 |
 | ------------------ | ------------------------------------------------------------------------------------------------------------------------- |
-| **Prerequisite**   | Adapter connected, instrument loaded, book deltas streaming.                                                              |
-| **Action**         | DataTester subscribes to deltas with `manage_book=True`. Builds local order book from the delta stream.                   |
-| **Event sequence** | `OrderBookDeltas` applied to local `OrderBook`. Book logged with configured depth.                                        |
-| **Pass criteria**  | Local book builds correctly from deltas. Bid levels descend, ask levels ascend. Book is not empty after initial snapshot. |
-| **Skip when**      | Adapter does not support order book data.                                                                                 |
+| **前置条件** | 适配器已连接，金融工具已加载，订单簿增量正在流入。 |
+| **操作** | DataTester 以 `manage_book=True` 订阅增量，从增量流构建本地订单簿。 |
+| **事件序列** | `OrderBookDeltas` 应用到本地 `OrderBook`，按配置深度记录订单簿日志。 |
+| **通过标准** | 本地订单簿由增量正确构建。bid 档位递减，ask 档位递增；初始快照后订单簿非空。 |
+| **跳过条件** | 适配器不支持订单簿数据。 |
 
-**Considerations**:
+**注意事项**：
 
-- The managed book applies each delta to an `OrderBook` instance maintained by the actor.
-- Use `book_levels_to_print` to control logging verbosity.
+- 受管订单簿会把每条增量应用到 actor 维护的 `OrderBook` 实例上。
+- 用 `book_levels_to_print` 控制日志详细程度。
 
-**Python config**:
+**Python 配置**：
 
 ```python
 DataTesterConfig(
@@ -555,7 +520,7 @@ DataTesterConfig(
 )
 ```
 
-**Rust config**:
+**Rust 配置**：
 
 ```rust
 DataTesterConfig::builder()
@@ -567,32 +532,31 @@ DataTesterConfig::builder()
     .build()?
 ```
 
-`DataTesterConfig` exposes `request_book_deltas`, but `DataTester` does not issue that historical
-request. Test an adapter's historical book delta support through a custom actor until the tester
-implements the request path.
+`DataTesterConfig` 暴露了 `request_book_deltas`，但 `DataTester` 尚未发出该历史请求。在测试器实现该请求路径
+之前，通过自定义 actor 测试适配器的历史订单簿增量支持。
 
 ---
 
-## Group 3: Quotes
+## 第 3 组：报价 {#group-3-quotes}
 
-Test quote tick subscriptions and historical requests.
+测试报价逐笔（tick）订阅与历史请求。
 
-| TC     | Name                      | Description                                 | Skip when             |
+| TC | 名称 | 描述 | 跳过条件 |
 | ------ | ------------------------- | ------------------------------------------- | --------------------- |
-| TC-D20 | Subscribe quotes          | Verify `QuoteTick` events flow after start. | Never.                |
-| TC-D21 | Request historical quotes | Request historical quote ticks.             | No historical quotes. |
+| TC-D20 | 订阅报价 | 验证启动后有 `QuoteTick` 事件流入。 | 从不 |
+| TC-D21 | 请求历史报价 | 请求历史报价逐笔数据。 | 无历史报价 |
 
-### TC-D20: Subscribe quotes
+### TC-D20：订阅报价 {#tc-d20-subscribe-quotes}
 
-| Field              | Value                                                                             |
+| 字段 | 值 |
 | ------------------ | --------------------------------------------------------------------------------- |
-| **Prerequisite**   | Adapter connected, instrument loaded.                                             |
-| **Action**         | DataTester subscribes to quotes on start.                                         |
-| **Event sequence** | `QuoteTick` events received in `on_quote`.                                        |
-| **Pass criteria**  | At least one `QuoteTick` received with valid bid/ask prices and sizes. Bid < ask. |
-| **Skip when**      | Never.                                                                            |
+| **前置条件** | 适配器已连接，金融工具已加载。 |
+| **操作** | DataTester 启动时订阅报价。 |
+| **事件序列** | `on_quote` 中收到 `QuoteTick` 事件。 |
+| **通过标准** | 至少收到一个 `QuoteTick`，bid/ask 价格与数量合法，且 bid < ask。 |
+| **跳过条件** | 从不。 |
 
-**Python config**:
+**Python 配置**：
 
 ```python
 DataTesterConfig(
@@ -601,7 +565,7 @@ DataTesterConfig(
 )
 ```
 
-**Rust config**:
+**Rust 配置**：
 
 ```rust
 DataTesterConfig::builder()
@@ -611,17 +575,17 @@ DataTesterConfig::builder()
     .build()?
 ```
 
-### TC-D21: Request historical quotes
+### TC-D21：请求历史报价 {#tc-d21-request-historical-quotes}
 
-| Field              | Value                                                             |
+| 字段 | 值 |
 | ------------------ | ----------------------------------------------------------------- |
-| **Prerequisite**   | Adapter connected, instrument loaded.                             |
-| **Action**         | DataTester requests historical quote ticks.                       |
-| **Event sequence** | Historical quote batches received via `on_historical_quotes`.     |
-| **Pass criteria**  | Quotes received with valid timestamps, bid/ask prices, and sizes. |
-| **Skip when**      | Adapter does not support historical quote requests.               |
+| **前置条件** | 适配器已连接，金融工具已加载。 |
+| **操作** | DataTester 请求历史报价逐笔数据。 |
+| **事件序列** | 通过 `on_historical_quotes` 收到历史报价批次。 |
+| **通过标准** | 收到的报价时间戳、bid/ask 价格和数量均合法。 |
+| **跳过条件** | 适配器不支持历史报价请求。 |
 
-**Python config**:
+**Python 配置**：
 
 ```python
 DataTesterConfig(
@@ -632,26 +596,26 @@ DataTesterConfig(
 
 ---
 
-## Group 4: Trades
+## 第 4 组：成交 {#group-4-trades}
 
-Test trade tick subscriptions and historical requests.
+测试成交逐笔（tick）订阅与历史请求。
 
-| TC     | Name                      | Description                                 | Skip when             |
+| TC | 名称 | 描述 | 跳过条件 |
 | ------ | ------------------------- | ------------------------------------------- | --------------------- |
-| TC-D30 | Subscribe trades          | Verify `TradeTick` events flow after start. | Never.                |
-| TC-D31 | Request historical trades | Request historical trade ticks.             | No historical trades. |
+| TC-D30 | 订阅成交 | 验证启动后有 `TradeTick` 事件流入。 | 从不 |
+| TC-D31 | 请求历史成交 | 请求历史成交逐笔数据。 | 无历史成交 |
 
-### TC-D30: Subscribe trades
+### TC-D30：订阅成交 {#tc-d30-subscribe-trades}
 
-| Field              | Value                                                                         |
+| 字段 | 值 |
 | ------------------ | ----------------------------------------------------------------------------- |
-| **Prerequisite**   | Adapter connected, instrument loaded.                                         |
-| **Action**         | DataTester subscribes to trades on start.                                     |
-| **Event sequence** | `TradeTick` events received in `on_trade`.                                    |
-| **Pass criteria**  | At least one `TradeTick` received with valid price, size, and aggressor side. |
-| **Skip when**      | Never.                                                                        |
+| **前置条件** | 适配器已连接，金融工具已加载。 |
+| **操作** | DataTester 启动时订阅成交。 |
+| **事件序列** | `on_trade` 中收到 `TradeTick` 事件。 |
+| **通过标准** | 至少收到一个 `TradeTick`，价格、数量和主动成交方向均合法。 |
+| **跳过条件** | 从不。 |
 
-**Python config**:
+**Python 配置**：
 
 ```python
 DataTesterConfig(
@@ -660,7 +624,7 @@ DataTesterConfig(
 )
 ```
 
-**Rust config**:
+**Rust 配置**：
 
 ```rust
 DataTesterConfig::builder()
@@ -670,17 +634,17 @@ DataTesterConfig::builder()
     .build()?
 ```
 
-### TC-D31: Request historical trades
+### TC-D31：请求历史成交 {#tc-d31-request-historical-trades}
 
-| Field              | Value                                                                |
+| 字段 | 值 |
 | ------------------ | -------------------------------------------------------------------- |
-| **Prerequisite**   | Adapter connected, instrument loaded.                                |
-| **Action**         | DataTester requests historical trade ticks.                          |
-| **Event sequence** | Historical trade batches received via `on_historical_trades`.        |
-| **Pass criteria**  | Trades received with valid timestamps, prices, sizes, and trade IDs. |
-| **Skip when**      | Adapter does not support historical trade requests.                  |
+| **前置条件** | 适配器已连接，金融工具已加载。 |
+| **操作** | DataTester 请求历史成交逐笔数据。 |
+| **事件序列** | 通过 `on_historical_trades` 收到历史成交批次。 |
+| **通过标准** | 收到的成交时间戳、价格、数量和成交 ID 均合法。 |
+| **跳过条件** | 适配器不支持历史成交请求。 |
 
-**Python config**:
+**Python 配置**：
 
 ```python
 DataTesterConfig(
@@ -689,7 +653,7 @@ DataTesterConfig(
 )
 ```
 
-**Rust config**:
+**Rust 配置**：
 
 ```rust
 DataTesterConfig::builder()
@@ -701,26 +665,26 @@ DataTesterConfig::builder()
 
 ---
 
-## Group 5: Bars
+## 第 5 组：K 线 {#group-5-bars}
 
-Test bar subscriptions and historical requests.
+测试 K 线订阅与历史请求。
 
-| TC     | Name                    | Description                           | Skip when           |
+| TC | 名称 | 描述 | 跳过条件 |
 | ------ | ----------------------- | ------------------------------------- | ------------------- |
-| TC-D40 | Subscribe bars          | Verify `Bar` events flow after start. | No bar support.     |
-| TC-D41 | Request historical bars | Request historical OHLCV bars.        | No historical bars. |
+| TC-D40 | 订阅 K 线 | 验证启动后有 `Bar` 事件流入。 | 不支持 K 线 |
+| TC-D41 | 请求历史 K 线 | 请求历史 OHLCV K 线。 | 无历史 K 线 |
 
-### TC-D40: Subscribe bars
+### TC-D40：订阅 K 线 {#tc-d40-subscribe-bars}
 
-| Field              | Value                                                                                          |
+| 字段 | 值 |
 | ------------------ | ---------------------------------------------------------------------------------------------- |
-| **Prerequisite**   | Adapter connected, instrument loaded, bar type configured.                                     |
-| **Action**         | DataTester subscribes to bars for a configured `BarType`.                                      |
-| **Event sequence** | `Bar` events received in `on_bar`.                                                             |
-| **Pass criteria**  | At least one `Bar` received with valid OHLCV values. High >= low, high >= open, high >= close. |
-| **Skip when**      | Adapter does not support bar subscriptions.                                                    |
+| **前置条件** | 适配器已连接，金融工具已加载，K 线类型已配置。 |
+| **操作** | DataTester 订阅已配置 `BarType` 的 K 线。 |
+| **事件序列** | `on_bar` 中收到 `Bar` 事件。 |
+| **通过标准** | 至少收到一个 `Bar`，OHLCV 值合法：high >= low、high >= open、high >= close。 |
+| **跳过条件** | 适配器不支持 K 线订阅。 |
 
-**Python config**:
+**Python 配置**：
 
 ```python
 DataTesterConfig(
@@ -730,7 +694,7 @@ DataTesterConfig(
 )
 ```
 
-**Rust config**:
+**Rust 配置**：
 
 ```rust
 DataTesterConfig::builder()
@@ -741,17 +705,17 @@ DataTesterConfig::builder()
     .build()?
 ```
 
-### TC-D41: Request historical bars
+### TC-D41：请求历史 K 线 {#tc-d41-request-historical-bars}
 
-| Field              | Value                                                           |
+| 字段 | 值 |
 | ------------------ | --------------------------------------------------------------- |
-| **Prerequisite**   | Adapter connected, instrument loaded, bar type configured.      |
-| **Action**         | DataTester requests historical bars for a configured `BarType`. |
-| **Event sequence** | Historical bars received via callback.                          |
-| **Pass criteria**  | Bars received with valid OHLCV values and ascending timestamps. |
-| **Skip when**      | Adapter does not support historical bar requests.               |
+| **前置条件** | 适配器已连接，金融工具已加载，K 线类型已配置。 |
+| **操作** | DataTester 请求已配置 `BarType` 的历史 K 线。 |
+| **事件序列** | 通过回调收到历史 K 线。 |
+| **通过标准** | 收到的 K 线 OHLCV 值合法，时间戳递增。 |
+| **跳过条件** | 适配器不支持历史 K 线请求。 |
 
-**Python config**:
+**Python 配置**：
 
 ```python
 DataTesterConfig(
@@ -761,7 +725,7 @@ DataTesterConfig(
 )
 ```
 
-**Rust config**:
+**Rust 配置**：
 
 ```rust
 DataTesterConfig::builder()
@@ -774,28 +738,28 @@ DataTesterConfig::builder()
 
 ---
 
-## Group 6: Derivatives data
+## 第 6 组：衍生品数据 {#group-6-derivatives-data}
 
-Test derivatives-specific data streams: mark prices, index prices, and funding rates.
+测试衍生品专属数据流：标记价格、指数价格和资金费率。
 
-| TC     | Name                             | Description                   | Skip when         |
+| TC | 名称 | 描述 | 跳过条件 |
 | ------ | -------------------------------- | ----------------------------- | ----------------- |
-| TC-D50 | Subscribe mark prices            | `MarkPriceUpdate` events.     | Not a derivative. |
-| TC-D51 | Subscribe index prices           | `IndexPriceUpdate` events.    | Not a derivative. |
-| TC-D52 | Subscribe funding rates          | `FundingRateUpdate` events.   | Not a perpetual.  |
-| TC-D53 | Request historical funding rates | Historical funding rate data. | Not a perpetual.  |
+| TC-D50 | 订阅标记价格 | `MarkPriceUpdate` 事件。 | 非衍生品 |
+| TC-D51 | 订阅指数价格 | `IndexPriceUpdate` 事件。 | 非衍生品 |
+| TC-D52 | 订阅资金费率 | `FundingRateUpdate` 事件。 | 非永续合约 |
+| TC-D53 | 请求历史资金费率 | 历史资金费率数据。 | 非永续合约 |
 
-### TC-D50: Subscribe mark prices
+### TC-D50：订阅标记价格 {#tc-d50-subscribe-mark-prices}
 
-| Field              | Value                                                                            |
+| 字段 | 值 |
 | ------------------ | -------------------------------------------------------------------------------- |
-| **Prerequisite**   | Adapter connected, derivative instrument loaded.                                 |
-| **Action**         | DataTester subscribes to mark price updates.                                     |
-| **Event sequence** | `MarkPriceUpdate` events received in `on_mark_price`.                            |
-| **Pass criteria**  | At least one `MarkPriceUpdate` received with valid instrument ID and mark price. |
-| **Skip when**      | Instrument is not a derivative, or adapter does not provide mark prices.         |
+| **前置条件** | 适配器已连接，衍生品金融工具已加载。 |
+| **操作** | DataTester 订阅标记价格更新。 |
+| **事件序列** | `on_mark_price` 中收到 `MarkPriceUpdate` 事件。 |
+| **通过标准** | 至少收到一个 `MarkPriceUpdate`，instrument ID 和标记价格合法。 |
+| **跳过条件** | 金融工具不是衍生品，或适配器不提供标记价格。 |
 
-**Python config**:
+**Python 配置**：
 
 ```python
 DataTesterConfig(
@@ -804,7 +768,7 @@ DataTesterConfig(
 )
 ```
 
-**Rust config**:
+**Rust 配置**：
 
 ```rust
 DataTesterConfig::builder()
@@ -814,17 +778,17 @@ DataTesterConfig::builder()
     .build()?
 ```
 
-### TC-D51: Subscribe index prices
+### TC-D51：订阅指数价格 {#tc-d51-subscribe-index-prices}
 
-| Field              | Value                                                                              |
+| 字段 | 值 |
 | ------------------ | ---------------------------------------------------------------------------------- |
-| **Prerequisite**   | Adapter connected, derivative instrument loaded.                                   |
-| **Action**         | DataTester subscribes to index price updates.                                      |
-| **Event sequence** | `IndexPriceUpdate` events received in `on_index_price`.                            |
-| **Pass criteria**  | At least one `IndexPriceUpdate` received with valid instrument ID and index price. |
-| **Skip when**      | Instrument is not a derivative, or adapter does not provide index prices.          |
+| **前置条件** | 适配器已连接，衍生品金融工具已加载。 |
+| **操作** | DataTester 订阅指数价格更新。 |
+| **事件序列** | `on_index_price` 中收到 `IndexPriceUpdate` 事件。 |
+| **通过标准** | 至少收到一个 `IndexPriceUpdate`，instrument ID 和指数价格合法。 |
+| **跳过条件** | 金融工具不是衍生品，或适配器不提供指数价格。 |
 
-**Python config**:
+**Python 配置**：
 
 ```python
 DataTesterConfig(
@@ -833,7 +797,7 @@ DataTesterConfig(
 )
 ```
 
-**Rust config**:
+**Rust 配置**：
 
 ```rust
 DataTesterConfig::builder()
@@ -843,17 +807,17 @@ DataTesterConfig::builder()
     .build()?
 ```
 
-### TC-D52: Subscribe funding rates
+### TC-D52：订阅资金费率 {#tc-d52-subscribe-funding-rates}
 
-| Field              | Value                                                                        |
+| 字段 | 值 |
 | ------------------ | ---------------------------------------------------------------------------- |
-| **Prerequisite**   | Adapter connected, perpetual instrument loaded.                              |
-| **Action**         | DataTester subscribes to funding rate updates.                               |
-| **Event sequence** | `FundingRateUpdate` events received in `on_funding_rate`.                    |
-| **Pass criteria**  | At least one `FundingRateUpdate` received with valid instrument ID and rate. |
-| **Skip when**      | Instrument is not a perpetual, or adapter does not provide funding rates.    |
+| **前置条件** | 适配器已连接，永续合约金融工具已加载。 |
+| **操作** | DataTester 订阅资金费率更新。 |
+| **事件序列** | `on_funding_rate` 中收到 `FundingRateUpdate` 事件。 |
+| **通过标准** | 至少收到一个 `FundingRateUpdate`，instrument ID 和费率合法。 |
+| **跳过条件** | 金融工具不是永续合约，或适配器不提供资金费率。 |
 
-**Python config**:
+**Python 配置**：
 
 ```python
 DataTesterConfig(
@@ -862,7 +826,7 @@ DataTesterConfig(
 )
 ```
 
-**Rust config**:
+**Rust 配置**：
 
 ```rust
 DataTesterConfig::builder()
@@ -882,7 +846,7 @@ DataTesterConfig::builder()
 | **Pass criteria**  | Funding rates received with valid timestamps and rate values.                                |
 | **Skip when**      | Instrument is not a perpetual, or adapter does not support historical funding rate requests. |
 
-**Python config**:
+**Python 配置**：
 
 ```python
 DataTesterConfig(
@@ -891,7 +855,7 @@ DataTesterConfig(
 )
 ```
 
-**Rust config**:
+**Rust 配置**：
 
 ```rust
 DataTesterConfig::builder()
@@ -916,7 +880,7 @@ Test instrument status and close event subscriptions.
 
 | Field              | Value                                                                    |
 | ------------------ | ------------------------------------------------------------------------ |
-| **Prerequisite**   | Adapter connected, instrument loaded.                                    |
+| **前置条件**   | 适配器已连接，金融工具已加载。                                    |
 | **Action**         | DataTester subscribes to instrument status updates.                      |
 | **Event sequence** | `InstrumentStatus` events received in `on_instrument_status`.            |
 | **Pass criteria**  | Status events received with valid `MarketStatusAction` (e.g. `Trading`). |
@@ -927,7 +891,7 @@ Test instrument status and close event subscriptions.
 - Status events may only fire on state changes (e.g. trading halt -> resume).
 - During normal trading hours, a `Trading` status may be received on subscribe.
 
-**Python config**:
+**Python 配置**：
 
 ```python
 DataTesterConfig(
@@ -936,7 +900,7 @@ DataTesterConfig(
 )
 ```
 
-**Rust config**:
+**Rust 配置**：
 
 ```rust
 DataTesterConfig::builder()
@@ -950,7 +914,7 @@ DataTesterConfig::builder()
 
 | Field              | Value                                                       |
 | ------------------ | ----------------------------------------------------------- |
-| **Prerequisite**   | Adapter connected, instrument loaded.                       |
+| **前置条件**   | 适配器已连接，金融工具已加载。                       |
 | **Action**         | DataTester subscribes to instrument close events.           |
 | **Event sequence** | `InstrumentClose` events received in `on_instrument_close`. |
 | **Pass criteria**  | Close event received with valid close price and close type. |
@@ -961,7 +925,7 @@ DataTesterConfig::builder()
 - Close events typically fire at end-of-session for traditional markets.
 - May not fire for 24/7 crypto venues unless the adapter synthesizes a daily close.
 
-**Python config**:
+**Python 配置**：
 
 ```python
 DataTesterConfig(
@@ -970,7 +934,7 @@ DataTesterConfig(
 )
 ```
 
-**Rust config**:
+**Rust 配置**：
 
 ```rust
 DataTesterConfig::builder()
@@ -1010,7 +974,7 @@ Test option greeks and option chain subscriptions.
 - `rho` may be zero when the venue does not provide it (Bybit, OKX).
 - `underlying_price` and `open_interest` may be `None` depending on the venue channel.
 
-**Python config**:
+**Python 配置**：
 
 ```python
 DataTesterConfig(
@@ -1019,7 +983,7 @@ DataTesterConfig(
 )
 ```
 
-**Rust config**:
+**Rust 配置**：
 
 ```rust
 DataTesterConfig::builder()
@@ -1073,7 +1037,7 @@ Test actor lifecycle behavior: unsubscribe handling, retirement cleanup, and cus
 | **Pass criteria**  | Clean unsubscribe. No errors in logs. No data events after stop. |
 | **Skip when**      | Adapter does not support unsubscribe.                            |
 
-**Python config**:
+**Python 配置**：
 
 ```python
 DataTesterConfig(
@@ -1084,7 +1048,7 @@ DataTesterConfig(
 )
 ```
 
-**Rust config**:
+**Rust 配置**：
 
 ```rust
 DataTesterConfig::builder()
@@ -1106,7 +1070,7 @@ DataTesterConfig::builder()
 | **Pass criteria**  | Data flows with adapter-specific parameters in effect.                 |
 | **Skip when**      | N/A (adapter-specific).                                                |
 
-**Rust config**:
+**Rust 配置**：
 
 ```rust
 use nautilus_core::Params;
@@ -1139,7 +1103,7 @@ DataTesterConfig::builder()
 | **Pass criteria**  | Historical data received with adapter-specific parameters in effect. |
 | **Skip when**      | N/A (adapter-specific).                                              |
 
-**Rust config**:
+**Rust 配置**：
 
 ```rust
 use nautilus_core::Params;

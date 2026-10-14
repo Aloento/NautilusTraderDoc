@@ -1,33 +1,31 @@
 # PositionClosed
 
-`PositionClosed` records the final snapshot of a position. The `ExecutionEngine` emits it when a
-fill flattens the position or a fill correction leaves the corrected position closed. See
-[From fill to position](./index.md#from-fill-to-position-the-causal-chain). Handler:
-`on_position_closed`.
+`PositionClosed` 记录持仓的最终快照。`ExecutionEngine` 在以下时机发出它：成交将持仓清零，或成交更正后被更正的持仓已平掉。参见
+[从成交到持仓](./index.md#from-fill-to-position-the-causal-chain)。处理函数：
+`on_position_closed`。
 
-## Fields
+## 字段 {#fields}
 
-See [Position event fields](./index.md#position-event-fields) for the complete field matrix. The
-fields that describe the close and final result are:
+完整字段矩阵见[持仓事件字段](./index.md#position-event-fields)。描述平仓与最终结果的字段：
 
-| Field              | Python type               | Description                                                 |
+| 字段               | Python 类型                 | 说明                                                       |
 | ------------------ | ------------------------- | ----------------------------------------------------------- |
-| `closing_order_id` | `ClientOrderId` or `None` | The client order ID that closed the position, if available. |
-| `peak_quantity`    | `Quantity`                | The largest directional quantity reached by the position.   |
-| `peak_qty`         | `Quantity`                | Compatibility alias for `peak_quantity`.                    |
-| `avg_px_close`     | `float` or `None`         | The average close price, if available.                      |
-| `realized_return`  | `float`                   | The final realized return for the position.                 |
-| `realized_pnl`     | `Money` or `None`         | The final realized PnL, if available.                       |
-| `unrealized_pnl`   | `Money`                   | Set to zero by the engine.                                  |
-| `duration`         | `int`                     | The total open duration in nanoseconds.                     |
-| `ts_opened`        | `int`                     | UNIX timestamp (nanoseconds) when the position opened.      |
-| `ts_closed`        | `int` or `None`           | UNIX timestamp (nanoseconds) when the position closed.      |
+| `closing_order_id` | `ClientOrderId` 或 `None` | 平仓订单的客户端 ID（若可用）。 |
+| `peak_quantity`    | `Quantity`                | 持仓达到的最大同向数量。   |
+| `peak_qty`         | `Quantity`                | `peak_quantity` 的兼容别名。                    |
+| `avg_px_close`     | `float` 或 `None`         | 平均平仓价（若可用）。                      |
+| `realized_return`  | `float`                   | 持仓最终已实现收益率。                 |
+| `realized_pnl`     | `Money` 或 `None`         | 最终已实现盈亏（若可用）。                       |
+| `unrealized_pnl`   | `Money`                   | 引擎置为零。                                  |
+| `duration`         | `int`                     | 总持有时长（纳秒）。                     |
+| `ts_opened`        | `int`                     | 持仓开仓时刻的 UNIX 纳秒时间戳。      |
+| `ts_closed`        | `int` 或 `None`           | 持仓平仓时刻的 UNIX 纳秒时间戳。      |
 
-On close, `side` is `FLAT` and `unrealized_pnl` is zero.
+平仓时 `side` 为 `FLAT`，`unrealized_pnl` 为零。
 
-## Example
+## 示例 {#example}
 
-Reading the event in a strategy handler:
+在策略处理函数中读取该事件：
 
 ```python
 def on_position_closed(self, event: PositionClosed) -> None:
@@ -37,8 +35,8 @@ def on_position_closed(self, event: PositionClosed) -> None:
     )
 ```
 
-## Related guides
+## 相关指南 {#related-guides}
 
-- [Events](./index.md) - Event categories, dispatch, and the fill-to-position chain.
-- [Positions](./../positions.md) - Position lifecycle, aggregation, and PnL.
-- [Orders](./../orders/index.md) - Orders whose fills open and close positions.
+- [事件](./index.md) - 事件类别、分发与成交到持仓的因果链。
+- [持仓](./../positions.md) - 持仓生命周期、聚合与盈亏。
+- [订单](./../orders/index.md) - 其成交开平仓的订单。

@@ -1,44 +1,37 @@
-# Backtesting
+# 回测 {#backtesting}
 
-Backtesting simulates trading against historical data with the same core components as live trading. These
-components include built-in engines, the `Cache`, the [MessageBus](./../message_bus.md), `Portfolio`,
-[Actors](./../actors.md), [Strategies](./../strategies.md), [Execution Algorithms](./../execution/algorithms.md),
-and user-defined modules.
+回测用历史数据模拟交易，使用的核心组件与实时交易相同，包括内置引擎、`Cache`、[消息总线](./../message_bus.md)、`Portfolio`、[Actor](./../actors.md)、[策略](./../strategies.md)、[执行算法](./../execution/algorithms.md)和用户自定义模块。
 
-A `BacktestEngine` processes a stream of historical data. When the stream is exhausted, the engine
-produces results and performance metrics for analysis. NautilusTrader offers two API levels for
-backtesting:
+`BacktestEngine` 处理一条历史数据流。数据流读完后，引擎产出结果与绩效指标供分析。NautilusTrader 提供两个层级的回测 API：
 
-| API level  | Use when                                                                |
+| API 层级  | 适用场景                                                              |
 | ---------- | ----------------------------------------------------------------------- |
-| High-level | You want `BacktestNode`, config objects, data catalogs, and batch runs. |
-| Low-level  | You want direct `BacktestEngine` control and manual component setup.    |
+| 高层       | 需要使用 `BacktestNode`、配置对象、数据目录和批量运行。 |
+| 低层       | 需要直接控制 `BacktestEngine`、手动装配组件。    |
 
-This section describes the Rust backtest engine and its Python package-root API.
+本节介绍 Rust 回测引擎及其 Python 包根层 API。
 
-## Reading guide
+## 阅读指引 {#reading-guide}
 
-The generated sidebar may sort these pages alphabetically. Use this order when reading the section
-end to end:
+自动生成的侧边栏可能按字母序排列这些页面。端到端阅读时建议按以下顺序：
 
-| Step | Page                                                    | Use it for                                      |
+| 步骤 | 页面                                                      | 用途                                            |
 | ---- | ------------------------------------------------------- | ----------------------------------------------- |
-| 1    | [APIs and repeated runs](./apis-and-runs.md)              | Choose API level, load data, and run batches.   |
-| 2    | [Data and venues](./data-and-venues.md)                   | Match data granularity with venue `book_type`.  |
-| 3    | [Execution flow](./execution-flow.md)                     | Understand sequencing, timers, and trade IDs.   |
-| 4    | [Fill prices and matching](./fill-prices-and-matching.md) | Understand deterministic matching behavior.     |
-| 5    | [Trade execution](./trade-execution.md)                   | Use trade ticks, aggressor sides, and queues.   |
-| 6    | [Bar execution](./bar-execution.md)                       | Use bars, OHLC sequencing, and bar timing.      |
-| 7    | [Fill models](./fill-models.md)                           | Configure slippage and probabilistic fills.     |
-| 8    | [Accounts and margin](./accounts-and-margin.md)           | Configure funding, balances, and margin models. |
+| 1    | [API 与重复运行](./apis-and-runs.md)              | 选择 API 层级、加载数据、批量运行。   |
+| 2    | [数据与交易场所](./data-and-venues.md)                   | 让数据粒度与场所 `book_type` 匹配。  |
+| 3    | [执行流程](./execution-flow.md)                     | 理解事件顺序、定时器与成交 ID。   |
+| 4    | [成交价格与撮合](./fill-prices-and-matching.md) | 理解确定性撮合行为。     |
+| 5    | [成交执行](./trade-execution.md)                   | 使用 trade tick、主动方方向与排队。   |
+| 6    | [Bar 执行](./bar-execution.md)                       | 使用 bar、OHLC 顺序与 bar 定时。      |
+| 7    | [成交模型](./fill-models.md)                           | 配置滑点与概率成交。     |
+| 8    | [账户与保证金](./accounts-and-margin.md)           | 配置资金、余额与保证金模型。 |
 
-## Simulation modules
+## 模拟模块 {#simulation-modules}
 
-[Simulation modules](./simulation-modules.md) describes module configuration, lifecycle, failure
-handling, and built-in FX rollover and CFD swap behavior.
+[模拟模块](./simulation-modules.md)介绍模块配置、生命周期、失败处理，以及内置的外汇展期和 CFD swap 行为。
 
-## Related guides
+## 相关指南 {#related-guides}
 
-- [Strategies](./../strategies.md): Develop strategies to backtest.
-- [Visualization](./../visualization.md): Generate tearsheets from backtest results.
-- [Reports](./../reports.md): Analyze backtest performance data.
+- [策略](./../strategies.md)：开发待回测的策略。
+- [可视化](./../visualization.md)：从回测结果生成 tearsheet。
+- [报告](./../reports.md)：分析回测绩效数据。

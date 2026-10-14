@@ -1,35 +1,33 @@
 # Bar
 
-`Bar` represents OHLCV price and volume data for a specific `BarType`. A venue or data provider
-can supply bars, or NautilusTrader can aggregate them from quote ticks, trade ticks, or smaller bars.
+`Bar` 表示某个 `BarType` 的 OHLCV 价格与成交量数据。Bar 可由交易场所或数据提供商直接供给，也可由 NautilusTrader 从 quote tick、trade tick 或更小周期的 bar 聚合生成。
 
-## Fields
+## 字段 {#fields}
 
-| Field      | Rust type   | Python type | Required/default | Notes                                            |
+| 字段       | Rust 类型   | Python 类型 | 必填/默认值 | 说明                                       |
 | ---------- | ----------- | ----------- | ---------------- | ------------------------------------------------ |
-| `bar_type` | `BarType`   | `BarType`   | Required         | Instrument, aggregation, price type, and source. |
-| `open`     | `Price`     | `Price`     | Required         | First price in the bar interval.                 |
-| `high`     | `Price`     | `Price`     | Required         | Highest price in the bar interval.               |
-| `low`      | `Price`     | `Price`     | Required         | Lowest price in the bar interval.                |
-| `close`    | `Price`     | `Price`     | Required         | Last price in the bar interval.                  |
-| `volume`   | `Quantity`  | `Quantity`  | Required         | Traded volume or tick-volume proxy.              |
-| `ts_event` | `UnixNanos` | `int`       | Required         | Bar event timestamp in nanoseconds.              |
-| `ts_init`  | `UnixNanos` | `int`       | Required         | Initialization timestamp in nanoseconds.         |
+| `bar_type` | `BarType`   | `BarType`   | 必填         | 金融工具、聚合方式、价格类型与来源。 |
+| `open`     | `Price`     | `Price`     | 必填         | bar 区间内的第一个价格。                 |
+| `high`     | `Price`     | `Price`     | 必填         | bar 区间内的最高价。               |
+| `low`      | `Price`     | `Price`     | 必填         | bar 区间内的最低价。                |
+| `close`    | `Price`     | `Price`     | 必填         | bar 区间内的最后一个价格。                  |
+| `volume`   | `Quantity`  | `Quantity`  | 必填         | 成交量，或以笔数折算的代理值。              |
+| `ts_event` | `UnixNanos` | `int`       | 必填         | bar 事件时间戳（纳秒）。              |
+| `ts_init`  | `UnixNanos` | `int`       | 必填         | 初始化时间戳（纳秒）。         |
 
-## Behavior
+## 行为 {#behavior}
 
-- `high` must be greater than or equal to `open`, `low`, and `close`.
-- `low` must be less than or equal to `open` and `close`.
-- `bar_type` determines whether a bar is internal or external.
-- Composite bar types use `@` syntax to identify the source bar type.
+- `high` 必须大于或等于 `open`、`low` 和 `close`。
+- `low` 必须小于或等于 `open` 和 `close`。
+- `bar_type` 决定 bar 是内部生成还是外部供给。
+- 复合 bar 类型用 `@` 语法标识来源 bar 类型。
 
-:::warning[Bar timestamps for execution simulation]
-For execution simulation, `ts_init` must represent the close of the bar interval, which prevents
-the complete bar from becoming visible before it formed. See
-[bar timestamp convention](./../backtesting/bar-execution.md#bar-timestamp-convention).
+:::warning[执行模拟的 bar 时间戳]
+执行模拟要求 `ts_init` 表示 bar 区间的收盘时刻，防止 bar 尚未成形就提前可见。参见
+[bar 时间戳约定](./../backtesting/bar-execution.md#bar-timestamp-convention)。
 :::
 
-## Example
+## 示例 {#example}
 
 ```rust tab="Rust"
 use nautilus_core::UnixNanos;
@@ -68,8 +66,8 @@ bar = Bar(
 )
 ```
 
-## Related guides
+## 相关指南 {#related-guides}
 
-- [Bars and aggregation](./index.md#bars-and-aggregation) covers aggregation methods.
-- [Bar types](./index.md#bar-types) explains `BarType` string syntax.
-- [Python API reference](https://nautilustrader.io/docs/python-api-latest/model/data.html) lists Python members.
+- [Bar 与聚合](./index.md#bars-and-aggregation) 介绍聚合方式。
+- [Bar 类型](./index.md#bar-types) 讲解 `BarType` 字符串语法。
+- [Python API 参考](https://nautilustrader.io/docs/python-api-latest/model/data.html) 列出 Python 成员。

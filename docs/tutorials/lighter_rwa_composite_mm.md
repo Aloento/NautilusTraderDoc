@@ -1,37 +1,36 @@
-# Composite Market Making on Lighter RWA with Databento US Equities NVDA
+# Lighter RWA 组合做市（配合 Databento 美股 NVDA） {#composite-market-making-on-lighter-rwa-with-databento-us-equities-nvda}
 
-This tutorial runs the shipped [`CompositeMarketMaker`][composite-market-maker] strategy on Lighter's
-`NVDA-PERP.LIGHTER` RWA market with Databento `NVDA.EQUS` quotes as an external signal. The strategy quotes
-one post-only bid and one post-only ask around the Lighter mid. It shifts both sides based on a normalized
-Databento residual and the current Lighter inventory.
+本教程在 Lighter 的 `NVDA-PERP.LIGHTER` RWA 市场上运行自带的
+[`CompositeMarketMaker`][composite-market-maker] 策略，用 Databento 的 `NVDA.EQUS`
+报价作为外部信号。策略围绕 Lighter 中间价挂一笔 post-only 买单和一笔 post-only
+卖单，并按归一化的 Databento 残差与当前 Lighter 库存移动两侧报价。
 
-The setup uses a Rust [`LiveNode`][live-node] and the native Rust `CompositeMarketMaker` strategy. If you are
-new to the Lighter adapter, first complete [Get started with Lighter][lighter-get-started]. That guide covers
-the Rust and Python data-client paths separately. This tutorial then adds Databento signal data and live order
-flow.
+该方案使用 Rust 的 [`LiveNode`][live-node] 和原生 Rust
+`CompositeMarketMaker` 策略。刚接触 Lighter 适配器的话，先完成
+[Lighter 入门][lighter-get-started]。那份指南分别讲解 Rust 与 Python 的数据客户端
+路径。本教程在其基础上加入 Databento 信号数据与实时订单流。
 
-## Introduction
+## 简介 {#introduction}
 
-Lighter lists real-world asset (RWA) perpetuals that trade continuously, including
-single-name equity markets. See Lighter's [RWA docs] and [market specifications]
-for current venue details. Databento's [US Equities][Databento US Equities]
-datasets provide US equity top-of-book data for `NVDA`, with `mbp-1` available
-through the Nautilus Databento adapter.
+Lighter 上架持续交易的真实世界资产（RWA）永续合约，含单只股票的市场。当前交易场所
+细节见 Lighter 的 [RWA 文档]与[市场规格]。Databento 的
+[US Equities][Databento US Equities]数据集提供 `NVDA` 的美股最优报价数据，
+经 Nautilus Databento 适配器可用 `mbp-1`。
 
-`CompositeMarketMaker` is a small two-input market maker:
+`CompositeMarketMaker` 是一个小型双输入做市商：
 
-- The **target instrument** is the Lighter market to quote: `NVDA-PERP.LIGHTER`.
-- The **signal instrument** is the Databento reference feed: `NVDA.EQUS`.
-- The **anchor** is the Lighter mid.
-- The **signal residual** is `(databento_mid / baseline) - 1.0`.
-- The **quote shift** is `signal_skew_factor * residual - inventory_skew_factor * net_position`.
+- **目标金融工具**是要报价的 Lighter 市场：`NVDA-PERP.LIGHTER`。
+- **信号金融工具**是 Databento 参考数据流：`NVDA.EQUS`。
+- **锚点**是 Lighter 中间价。
+- **信号残差**是 `(databento_mid / baseline) - 1.0`。
+- **报价平移量**是 `signal_skew_factor * residual - inventory_skew_factor * net_position`。
 
-With no configured baseline, the strategy uses the first valid `NVDA.EQUS` mid as the reference price. The
-residual starts at zero and measures NVDA's move from that first signal mid, not the Lighter/Databento basis.
-For deterministic runs, set the `SIGNAL_BASELINE` constant in the example source to fix the reference price.
+未配置基线时，策略用第一条有效的 `NVDA.EQUS` 中间价作为参考价。残差从零起算，
+衡量的是 NVDA 相对首个信号中间价的移动，而不是 Lighter/Databento 基差。要确定性
+运行，把示例源码中的 `SIGNAL_BASELINE` 常量设为固定参考价。
 
-In this setup, the Lighter BBO remains the spread anchor. Databento moves the
-quote center up or down through the normalized residual.
+在这套配置中，Lighter BBO 始终是价差锚点。Databento 通过归一化残差上下移动报价
+中心。
 
 ```mermaid
 flowchart LR
@@ -65,29 +64,27 @@ flowchart LR
     TH -->|no| LQ
 ```
 
-The tutorial shows how one engine connects a direct US equity feed and a crypto-native RWA venue. Order
-lifecycle, inventory, and quote state remain inside the same event-driven runtime.
+本教程展示同一个引擎如何连接直连的美股数据流与加密原生的 RWA 交易场所。订单
+生命周期、库存与报价状态都留在同一个事件驱动运行时内。
 
-## Prerequisites
+## 前置条件 {#prerequisites}
 
-- A Rust toolchain (MSRV 1.99.0 or newer).
-- A Cargo project with the Nautilus, Lighter, and Databento crates as
-  dependencies (see [Project setup](#project-setup)).
-- Python 3.13+ to regenerate the rendered panels.
-- A Databento API key with live access to Databento US Equities Mini
-  (`EQUS.MINI`), the default dataset for the bundled `NVDA.EQUS` route. Higher tiers such as `EQUS.PLUS` need a separate Databento license.
-  When your account has that entitlement, select a tier with `venue_dataset_map`.
-- Lighter API credentials (numeric account index, API key index, and API secret)
-  for the configured environment (testnet by default), required only to connect
-  and submit orders.
-- The Lighter integration guide: [Lighter](./../integrations/lighter.md).
-- The Databento integration guide: [Databento](./../integrations/databento.md).
+- Rust 工具链（MSRV 1.99.0 或更新）。
+- 一个 Cargo 项目，把 Nautilus、Lighter、Databento 的 crate 作为依赖（见
+  [项目设置](#project-setup)）。
+- Python 3.13+，用于重新生成渲染面板。
+- 一个 Databento API key，需有 Databento US Equities Mini（`EQUS.MINI`）的实时
+  访问权限，这是自带 `NVDA.EQUS` 路由的默认数据集。`EQUS.PLUS` 等更高等级需要
+  单独的 Databento 许可。账户有该权限时，用 `venue_dataset_map` 选择等级。
+- 所配置环境（默认 testnet）的 Lighter API 凭据（数字账户索引、API key 索引和
+  API secret），仅在需要连接和提交订单时必需。
+- Lighter 集成指南：[Lighter](./../integrations/lighter.md)。
+- Databento 集成指南：[Databento](./../integrations/databento.md)。
 
-The example reads credentials from environment variables and keeps the strategy
-parameters as editable Rust constants. It defaults to
-`LighterEnvironment::Testnet`, so follow the
-[account and API key setup](./../integrations/lighter.md#account-and-api-key-setup) and set the testnet
-Lighter credentials:
+示例从环境变量读取凭据，策略参数保留为可编辑的 Rust 常量。默认
+`LighterEnvironment::Testnet`，因此按
+[账户与 API key 设置](./../integrations/lighter.md#account-and-api-key-setup)
+设置 testnet 的 Lighter 凭据：
 
 ```bash
 export DATABENTO_API_KEY="your-databento-api-key"
@@ -96,16 +93,15 @@ export LIGHTER_TESTNET_API_KEY_INDEX="4"
 export LIGHTER_TESTNET_API_SECRET="your-lighter-api-secret"
 ```
 
-For mainnet, change `LIGHTER_ENVIRONMENT` in the source to
-`LighterEnvironment::Mainnet` and use the mainnet `LIGHTER_*` credential
-variables described in the integration guide. Set `DATABENTO_API_KEY` before
-running the example.
+主网运行需把源码中的 `LIGHTER_ENVIRONMENT` 改为
+`LighterEnvironment::Mainnet`，并使用集成指南中描述的主网 `LIGHTER_*` 凭据变量。
+运行示例前先设置 `DATABENTO_API_KEY`。
 
-## Project setup
+## 项目设置 {#project-setup}
 
-The strategy, node, and adapters ship as crates that your own Cargo project can use. You do not need to work
-inside a NautilusTrader checkout. Add the following to your `Cargo.toml`. Point every Nautilus dependency at
-the same `develop` git source so the crates resolve to one consistent version:
+策略、节点与适配器都以 crate 形式发布，你自己的 Cargo 项目可以直接使用，不需要
+在 NautilusTrader 检出目录内工作。在你的 `Cargo.toml` 中加入下列内容。所有
+Nautilus 依赖指向同一个 `develop` git 源，保证各 crate 解析到一致版本：
 
 ```toml
 [dependencies]
@@ -120,96 +116,92 @@ nautilus-trading = { git = "https://github.com/nautechsystems/nautilus_trader.gi
 tokio = { version = "1", features = ["full"] }
 ```
 
-The `examples` feature on `nautilus-trading` exposes the `CompositeMarketMaker`
-strategy, and `high-precision` is required for Lighter's crypto-native pricing.
-For the general crate layout, feature flags, and the crates.io alternative to
-the git source, see the Rust [project setup guide][project-setup].
+`nautilus-trading` 的 `examples` feature 暴露 `CompositeMarketMaker` 策略，
+Lighter 的加密原生定价需要 `high-precision`。crate 总体布局、feature 标志以及
+git 源的 crates.io 替代方案，见 Rust [项目设置指南][project-setup]。
 
-The Databento client also needs a publishers file that maps venues to datasets. For your own project, download
-[`publishers.json`][databento-publishers] from the Databento adapter crate. Set `publishers_filepath` to your
-local copy. The shipped example resolves the same file relative to the checkout, so only your own project
-needs this step.
+Databento 客户端还需要一个把交易场所映射到数据集的 publishers 文件。自己的项目
+要从 Databento 适配器 crate 下载 [`publishers.json`][databento-publishers]，
+并把 `publishers_filepath` 指向本地副本。自带示例按检出目录的相对路径解析同一
+文件，所以只有自己的项目需要这一步。
 
-## Why NVDA
+## 为什么选 NVDA {#why-nvda}
 
-`NVDA` is a liquid Nasdaq-listed single-name equity, and Lighter maps its RWA
-perpetual to `NVDA-PERP.LIGHTER`. This pairs a licensed Databento signal with a
-Lighter traded market:
+`NVDA` 是流动性好的纳斯达克上市个股，Lighter 把它的 RWA 永续映射为
+`NVDA-PERP.LIGHTER`。这样把有授权的 Databento 信号与 Lighter 的交易市场配对：
 
-| Role              | Instrument ID       | Source    | Notes                                 |
-| ----------------- | ------------------- | --------- | ------------------------------------- |
-| Signal instrument | `NVDA.EQUS`         | Databento | EQUS.MINI top-of-book quote updates.  |
-| Target instrument | `NVDA-PERP.LIGHTER` | Lighter   | RWA perpetual traded through Lighter. |
+| 角色         | 金融工具 ID           | 来源      | 说明                                  |
+| ------------ | --------------------- | --------- | ------------------------------------- |
+| 信号工具     | `NVDA.EQUS`           | Databento | EQUS.MINI 最优报价更新。              |
+| 目标工具     | `NVDA-PERP.LIGHTER`   | Lighter   | 经 Lighter 交易的 RWA 永续合约。      |
 
-By default, a subscription to `NVDA.EQUS` requests top-of-book (`mbp-1`) quotes for `NVDA` from Databento's
-`EQUS.MINI` dataset. The adapter delivers these quotes as a single `QuoteTick` stream. The `EQUS.MINI` dataset
-is the lowest-cost consolidated US equities tier. Richer tiers such as `EQUS.PLUS` need a separate Databento
-license. If your account has that entitlement, select the tier with the client's `venue_dataset_map` (for
-example `{"EQUS": "EQUS.PLUS"}`).
+默认情况下，订阅 `NVDA.EQUS` 会向 Databento 的 `EQUS.MINI` 数据集请求 `NVDA` 的
+最优报价（`mbp-1`）。适配器把这些报价作为单条 `QuoteTick` 流交付。`EQUS.MINI` 是
+成本最低的合并美股等级。`EQUS.PLUS` 等更丰富的等级需要单独的 Databento 许可；账户
+有该权限时，用客户端的 `venue_dataset_map` 选择等级（例如
+`{"EQUS": "EQUS.PLUS"}`）。
 
-The adapter resolves the `EQUS` venue from a publishers file. The example points `DatabentoDataClientConfig`
-at the `publishers.json` bundled with the Databento adapter. See [Instrument IDs and
-symbology][databento-symbology] for the mapping rules.
+适配器从 publishers 文件解析 `EQUS` 交易场所。示例把 `DatabentoDataClientConfig`
+指向 Databento 适配器自带的 `publishers.json`。映射规则见
+[金融工具 ID 与代码体系][databento-symbology]。
 
-The older Databento Equities Basic (`DBEQ.BASIC`) dataset name appears in some
-grandfathered accounts and historical examples. New Databento subscriptions use
-the Databento US Equities product line, so this tutorial uses the consolidated
-`EQUS` venue. Treat the top-of-book feed as a licensed signal proxy for the
-tutorial wiring, not as a full depth Nasdaq TotalView book.
+一些老账户和历史示例中出现的是旧的 Databento Equities Basic（`DBEQ.BASIC`）数据集
+名。新的 Databento 订阅使用 Databento US Equities 产品线，因此本教程使用合并后的
+`EQUS` 交易场所。在本教程的接线中，把最优报价流当作有授权的信号代理，而不是完整
+深度的 Nasdaq TotalView 订单簿。
 
-The example starts at `trade_size=0.05`, which matches the Lighter NVDA minimum base amount observed during
-tutorial validation. Before you increase size or change instruments, check the market details endpoint for the
-configured environment:
+示例从 `trade_size=0.05` 起步，与教程验证时观察到的 Lighter NVDA 最小基础数量一致。
+加大规模或更换金融工具前，先查看所配置环境的市场详情端点：
 
-- [Testnet][testnet market details], the example default.
-- [Mainnet][market details endpoint].
+- [Testnet][testnet market details]，示例默认。
+- [Mainnet][market details endpoint]。
 
-## Session constraint
+## 时段约束 {#session-constraint}
 
-Lighter RWA markets trade continuously. `NVDA.EQUS` follows the US equity market data session. Run the first
-live test during the regular cash session ([13:30, 20:00] UTC, US daylight time), with special handling for
-holidays and half-days.
+Lighter RWA 市场持续交易，而 `NVDA.EQUS` 遵循美股行情数据的交易时段。首次实时
+测试应在常规现货时段（[13:30, 20:00] UTC，美国夏令时）内运行，节假日和半日市需
+特别处理。
 
-`CompositeMarketMaker` does not include a built-in session gate or signal-age guard. For production use, add
-an actor or strategy variant that cancels quotes when the Databento signal is stale. The tutorial uses the
-shipped strategy, so this operating constraint remains explicit.
+`CompositeMarketMaker` 没有内置时段闸门或信号时效守卫。生产使用时，加一个 actor
+或策略变体，在 Databento 信号过期时撤销报价。教程使用自带的策略，这一运行约束
+需要显式处理。
 
-## Example node
+## 示例节点 {#example-node}
 
-You can run the example in two ways:
+示例有两种运行方式：
 
-- From a NautilusTrader checkout, use the shipped [Lighter NVDA composite market maker binary][example-script].
-- In your own project, copy the node setup below into `main` with the crates from [Project setup](#project-setup).
+- 在 NautilusTrader 检出目录中，使用自带的
+  [Lighter NVDA 组合做市二进制][example-script]。
+- 在自己的项目中，把下面的节点设置复制进 `main`，配合
+  [项目设置](#project-setup)中的 crate。
 
-The Python example at [`examples/live/lighter/nvda_composite_mm.py`][python-example-script] uses the same Rust
-strategy through PyO3.
+Python 示例 [`examples/live/lighter/nvda_composite_mm.py`][python-example-script]
+通过 PyO3 使用同一个 Rust 策略。
 
-From a checkout, with the credential variables set, the shipped binary connects
-the data and execution clients. It defaults to `DRY_RUN = false`, which adds the
-order-submitting strategy.
+在检出目录中设置好凭据变量后，自带的二进制连接数据与执行客户端。默认为
+`DRY_RUN = false`，即添加会提交订单的策略。
 
 :::warning
-This command can submit live orders. Start with the smallest accepted size on a funded test
-account or a mainnet account sized for loss. Confirm the active instrument ID, account ID,
-numeric account index, and Lighter credentials before running it.
+该命令可能提交实盘订单。先在有资金的 testnet 账户、或为亏损做好尺寸控制的主网
+账户上，用最小的可接受规模起步。运行前确认当前金融工具 ID、账户 ID、数字账户
+索引和 Lighter 凭据。
 :::
 
 ```bash
 cargo run --bin lighter-nvda-composite-mm --package nautilus-tutorials --features examples
 ```
 
-Databento is a multi-venue data client without a fixed venue route, so the engine
-uses it as the default route for `NVDA.EQUS`. Lighter registers with the `LIGHTER`
-venue route and receives `NVDA-PERP.LIGHTER` subscriptions.
+Databento 是没有固定场所路由的多场所数据客户端，引擎把它用作 `NVDA.EQUS` 的默认
+路由。Lighter 以 `LIGHTER` 场所路由注册，接收 `NVDA-PERP.LIGHTER` 的订阅。
 
-The setup combines a three-client node with `CompositeMarketMaker`. This excerpt is abbreviated. It omits
-these items, among other lines:
+这套设置把三客户端节点与 `CompositeMarketMaker` 组合起来。下面的节选有省略，
+未包含这些内容及其他一些行：
 
-- Source constants.
-- The `publishers_filepath`, `max_position`, and `trade_size` definitions.
-- The final `node.run().await?` call.
+- 源码常量。
+- `publishers_filepath`、`max_position` 和 `trade_size` 的定义。
+- 最后的 `node.run().await?` 调用。
 
-The [example source][example-script] has the complete `main`:
+完整的 `main` 见[示例源码][example-script]：
 
 ```rust
 use nautilus_live::node::config::LiveExecutionEngineConfig;
@@ -276,108 +268,104 @@ if !DRY_RUN {
 }
 ```
 
-To connect without adding the order-submitting strategy, edit the constant near the top of the
-example source:
+要只连接而不添加会提交订单的策略，编辑示例源码顶部的常量：
 
 ```rust
 const DRY_RUN: bool = true;
 ```
 
-Then run the same command:
+然后运行同一条命令：
 
 ```bash
 cargo run --bin lighter-nvda-composite-mm --package nautilus-tutorials --features examples
 ```
 
-For a testnet smoke run, keep `LIGHTER_ENVIRONMENT` as
-`LighterEnvironment::Testnet` and use the `LIGHTER_TESTNET_*` credential
-variables. If the run is outside the Databento US Equities cash session, it can
-still validate node startup, routing, and Lighter data. The strategy waits for a
-valid `NVDA.EQUS` quote before submitting its first orders, so order lifecycle
-validation requires the Databento signal.
+testnet 冒烟运行时，`LIGHTER_ENVIRONMENT` 保持
+`LighterEnvironment::Testnet`，使用 `LIGHTER_TESTNET_*` 凭据变量。若运行时间在
+Databento 美股现货时段之外，仍可验证节点启动、路由与 Lighter 数据。策略会等
+有效的 `NVDA.EQUS` 报价才提交首批订单，因此验证订单生命周期需要 Databento 信号。
 
-With reconciliation enabled, both examples reconcile only the configured Lighter target instrument, with a
-60-minute lookback. They skip reports for other Lighter markets on the account. On stop, the strategy cancels
-its own target orders. It submits reduce-only market orders to close its own target positions.
+启用对账时，两个示例都只对账配置的 Lighter 目标金融工具，回看 60 分钟，跳过账户
+上其他 Lighter 市场的报告。停止时，策略撤销自己的目标订单，并用 reduce-only 市价
+单平掉自己的目标持仓。
 
-Start with a flat target position on the account. Lighter nets all exposure in a market, while the strategy
-caps and closes only the position it owns. After shutdown, confirm that no orders or positions from the run
-remain. Fills can arrive while cancellation is pending.
+开始时让账户上的目标仓位为零。Lighter 会把一个市场里的全部敞口净额合并，而策略
+只对属于自己的仓位设上限并平仓。关闭后确认运行期间没有遗留的订单或持仓——撤单待
+处理期间仍可能有成交到达。
 
-## Strategy parameters
+## 策略参数 {#strategy-parameters}
 
-| Parameter               | Value               | Description                                                    |
+| 参数                    | 取值                | 说明                                                           |
 | ----------------------- | ------------------- | -------------------------------------------------------------- |
-| `instrument_id`         | `NVDA-PERP.LIGHTER` | Lighter RWA perpetual to quote.                                |
-| `signal_instrument_id`  | `NVDA.EQUS`         | Databento US Equities Mini signal feed.                        |
-| `trade_size`            | `0.05`              | Size per bid or ask.                                           |
-| `max_position`          | `0.20`              | Hard cap on the strategy's target exposure.                    |
-| `half_spread_bps`       | `25`                | Half-spread around the Lighter anchor.                         |
-| `inventory_skew_factor` | `2.0`               | Price units per unit of net position.                          |
-| `signal_skew_factor`    | `55.0`              | Price units per unit of normalized Databento residual.         |
-| `signal_baseline`       | First valid mid     | Optional reference price for the Databento residual.           |
-| `requote_threshold_bps` | `5`                 | Anchor or signal-impact move that triggers cancel and requote. |
+| `instrument_id`         | `NVDA-PERP.LIGHTER` | 要报价的 Lighter RWA 永续。                                    |
+| `signal_instrument_id`  | `NVDA.EQUS`         | Databento US Equities Mini 信号流。                            |
+| `trade_size`            | `0.05`              | 每笔买单或卖单的规模。                                         |
+| `max_position`          | `0.20`              | 策略目标敞口的硬上限。                                         |
+| `half_spread_bps`       | `25`                | 围绕 Lighter 锚点的半价差。                                    |
+| `inventory_skew_factor` | `2.0`               | 每单位净持仓对应的价格单位。                                   |
+| `signal_skew_factor`    | `55.0`              | 每单位归一化 Databento 残差对应的价格单位。                    |
+| `signal_baseline`       | 首个有效中间价      | Databento 残差的可选参考价。                                   |
+| `requote_threshold_bps` | `5`                 | 触发撤单与重报价的锚点或信号影响移动（bps）。                  |
 
-With a Lighter mid of `207.00` and `half_spread_bps=25`, the unskewed half
-spread is `0.5175` USD. If Databento is 30 bps above its baseline, a
-`signal_skew_factor` of `55.0` shifts both sides up by `0.165` USD before
-inventory skew. A long position of `0.05` with `inventory_skew_factor=2.0`
-shifts both sides down by `0.10` USD.
+Lighter 中间价 `207.00`、`half_spread_bps=25` 时，未偏移的半价差为 `0.5175`
+USD。若 Databento 高出基线 30 bps，`signal_skew_factor` 为 `55.0` 会在库存偏移
+之前把两侧上移 `0.165` USD。持有 `0.05` 多头、`inventory_skew_factor=2.0` 时，
+两侧下移 `0.10` USD。
 
-## Requote behavior
+## 重报价行为 {#requote-behavior}
 
-Signal ticks update internal state but do not submit orders by themselves. With nonzero `signal_skew_factor`,
-target ticks wait for both of these conditions:
+信号 tick 只更新内部状态，本身不提交订单。`signal_skew_factor` 非零时，目标 tick
+要等这两个条件都满足：
 
-- A signal quote with positive, uncrossed bid and ask prices.
-- A finite, positive baseline.
+- 信号报价的买卖价均为正且未交叉。
+- 基线为有限正数。
 
-The first valid signal mid supplies the baseline when `signal_baseline` is unset. An explicit baseline remains
-unchanged and still requires a valid signal quote. An invalid baseline prevents quoting. With
-`signal_skew_factor=0`, the strategy can quote without a signal or baseline.
+未设置 `signal_baseline` 时，第一条有效信号中间价提供基线。显式基线保持不变，但仍
+需要有效信号报价。基线无效则不报价。`signal_skew_factor=0` 时，策略无需信号或
+基线即可报价。
 
-After readiness, the next Lighter quote tick reads the latest signal residual and checks the quote state. A
-quote cycle occurs when any of these conditions holds:
+就绪之后，下一条 Lighter 报价 tick 读取最新信号残差并检查报价状态。满足以下任一
+条件就执行一轮报价：
 
-- No target orders are open or in flight.
-- The Lighter anchor moves by at least `requote_threshold_bps`.
-- The price impact of the signal residual change reaches the same threshold.
+- 没有未结或在途的目标订单。
+- Lighter 锚点移动至少 `requote_threshold_bps`。
+- 信号残差变化的价格影响达到同一阈值。
 
-The strategy then performs these actions:
+随后策略执行这些动作：
 
-1. Cancels open orders.
-1. Reads current net position and pending exposure from the cache.
-1. Calculates one bid and one ask.
-1. Removes any side that exceeds `max_position`.
-1. Submits the remaining sides as post-only limits.
+1. 撤销未结订单。
+1. 从缓存读取当前净持仓与待处理敞口。
+1. 计算一笔买价和一笔卖价。
+1. 去掉超过 `max_position` 的一侧。
+1. 把剩下的侧以 post-only 限价单提交。
 
-## Panels
+## 面板图 {#panels}
 
-The panels below use deterministic replay data. They show the quoting mechanics
-and the cash-session constraint. They are not a captured live Lighter fill trace.
+下面的面板使用确定性重放数据，展示报价机制与现货时段约束，不是真实捕获的 Lighter
+实盘成交轨迹。
 
 ![NVDA composite quote center against Databento and Lighter mids](./assets/lighter_rwa_composite_mm/panel_a_reference_overlay.png)
 
-**Figure 1.** *Databento `NVDA.EQUS` mid, Lighter `NVDA-PERP.LIGHTER` mid,
-composite bid, composite ask, and quote center.*
+**图 1.** *Databento `NVDA.EQUS` 中间价、Lighter `NVDA-PERP.LIGHTER` 中间价、
+组合买价、组合卖价与报价中心。*
 
 ![Databento residual, Lighter basis, and quote-center shift](./assets/lighter_rwa_composite_mm/panel_b_signal_basis.png)
 
-**Figure 2.** *Databento residual, Lighter basis, and quote-center shift in bps.*
+**图 2.** *Databento 残差、Lighter 基差与报价中心平移量（bps）。*
 
 ![Inventory skew terms for the composite market maker](./assets/lighter_rwa_composite_mm/panel_c_inventory_skew.png)
 
-**Figure 3.** *Net position, signal shift, inventory adjustment, and total shift
-for a `0.05` NVDA trade size and `0.20` NVDA position cap.*
+**图 3.** *净持仓、信号平移、库存调整与总平移，交易规模 `0.05` NVDA、仓位上限
+`0.20` NVDA。*
 
 ![Lighter continuous trading and Databento session clock](./assets/lighter_rwa_composite_mm/panel_d_session_clock.png)
 
-**Figure 4.** *Lighter's continuous RWA market clock against the Databento US
-Equities cash-session signal, with signal age after the regular session.*
+**图 4.** *Lighter 的 RWA 连续市场时钟对照 Databento 美股现货时段的信号，以及
+常规时段结束后的信号时效。*
 
-## Regenerate the panels
+## 重新生成图表面板 {#regenerate-the-panels}
 
-After building NautilusTrader from source, run these commands from the repository root:
+从源码构建 NautilusTrader 后，在仓库根目录运行：
 
 ```bash
 make sync
@@ -385,19 +373,17 @@ uv run --project python --no-sync \
     python docs/tutorials/assets/lighter_rwa_composite_mm/render_panels.py
 ```
 
-The renderer writes four PNGs into
-`docs/tutorials/assets/lighter_rwa_composite_mm/`. It uses the
-`nautilus_dark` Plotly theme and deterministic replay data so docs builds do not
-depend on vendor data licenses or live exchange access.
+渲染器把四张 PNG 写到
+`docs/tutorials/assets/lighter_rwa_composite_mm/`。它使用 `nautilus_dark`
+Plotly 主题和确定性重放数据，使文档构建不依赖数据供应商许可或交易所实时访问。
 
-## Extensions
+## 扩展方向 {#extensions}
 
-A signal-age gate can make the Databento signal an explicit operating dependency. For example, cancel all
-Lighter orders if the latest `NVDA.EQUS` quote is older than 30 seconds during the cash session. Also cancel
-them immediately after the cash session closes.
+信号时效闸门可以把 Databento 信号变成显式的运行依赖。例如：现货时段内最新
+`NVDA.EQUS` 报价超过 30 秒时撤销全部 Lighter 订单；现货时段收盘后立即撤销。
 
-For a pure fair-value strategy, use this tutorial's client setup. Write a small variant that anchors bid/ask
-directly on the Databento mid. Then check the Lighter BBO only for post-only and basis limits.
+要做纯公允价值策略，沿用本教程的客户端设置，写一个小变体直接把买卖价锚定在
+Databento 中间价上，只在检查 post-only 与基差限制时看 Lighter BBO。
 
 [composite-market-maker]: https://github.com/nautechsystems/nautilus_trader/blob/develop/crates/trading/src/examples/strategies/composite_market_maker/strategy.rs
 [live-node]: https://github.com/nautechsystems/nautilus_trader/blob/develop/docs/how_to/run_rust_live_trading.md

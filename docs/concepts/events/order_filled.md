@@ -1,41 +1,36 @@
 # OrderFilled
 
-`OrderFilled` records a partial or full execution against an order. The `ExecutionEngine` applies it
-to the order, updates the `Cache`, and publishes it on the `MessageBus`. Fills from live execution,
-reconciliation, and simulated matching drive the position lifecycle events.
+`OrderFilled` 记录订单的一次部分或全部成交。`ExecutionEngine` 把它应用到订单、更新 `Cache`，并发布到 `MessageBus`。来自实时执行、一致性对账和模拟撮合的成交共同驱动持仓生命周期事件。
 
-Typical transition: `ACCEPTED` -> `FILLED` / `PARTIALLY_FILLED`. Handler: `on_order_filled`.
+典型迁移：`ACCEPTED` -> `FILLED` / `PARTIALLY_FILLED`。处理函数：`on_order_filled`。
 
-A fill carrying a `trade_id` already on the order at a new `last_px` is a **price restatement**. It
-restates the trade's accounting price and applies no quantity, status change, or portfolio economics.
+携带订单上已有 `trade_id`、但 `last_px` 不同的成交是一次**价格重述**（price restatement）。它只重述该笔成交的记账价格，不产生数量、状态变化或组合层面的经济影响。
 
-Handlers that accumulate `last_qty` across fill events must skip restatements. Detect them by checking
-`order.events` for an earlier `OrderFilled` with the same `trade_id` and a different `event_id`.
+跨成交事件累加 `last_qty` 的处理函数必须跳过重述。识别方法：在 `order.events` 中查找更早的、`trade_id` 相同但 `event_id` 不同的 `OrderFilled`。
 
-## Fields
+## 字段 {#fields}
 
-Beyond the [common Python order event fields](./index.md#common-python-order-event-fields),
-`OrderFilled` carries:
+除 [Python 订单事件公共字段](./index.md#common-python-order-event-fields)外，`OrderFilled` 还携带：
 
-| Field            | Python type                | Required/default | Description                                                              |
+| 字段             | Python 类型                | 必填/默认值 | 说明                                                            |
 | ---------------- | -------------------------- | ---------------- | ------------------------------------------------------------------------ |
-| `venue_order_id` | `VenueOrderId`             | Required         | The venue-assigned order identifier.                                     |
-| `account_id`     | `AccountId`                | Required         | The account associated with the fill.                                    |
-| `trade_id`       | `TradeId`                  | Required         | The trade match ID assigned by the venue.                                |
-| `position_id`    | `PositionId` or `None`     | `None`           | The position ID associated with the fill.                                |
-| `order_side`     | `OrderSide`                | Required         | The execution order side.                                                |
-| `order_type`     | `OrderType`                | Required         | The execution order type.                                                |
-| `last_qty`       | `Quantity`                 | Required         | The fill quantity for this execution.                                    |
-| `last_px`        | `Price`                    | Required         | The fill price for this execution, not the average price.                |
-| `currency`       | `Currency`                 | Required         | The currency of the fill price.                                          |
-| `commission`     | `Money` or `None`          | `None`           | The fill commission, if reported.                                        |
-| `liquidity_side` | `LiquiditySide`            | Required         | The execution liquidity side (`MAKER`, `TAKER`, or `NO_LIQUIDITY_SIDE`). |
-| `info`           | `dict[str, str]` or `None` | `None`           | Additional venue-specific or adapter-specific fill metadata.             |
-| `reconciliation` | `bool`                     | Required         | If the event was generated during reconciliation.                        |
+| `venue_order_id` | `VenueOrderId`             | 必填         | 交易场所分配的订单标识。                                     |
+| `account_id`     | `AccountId`                | 必填         | 成交关联的账户。                                    |
+| `trade_id`       | `TradeId`                  | 必填         | 交易场所分配的撮合 ID。                                |
+| `position_id`    | `PositionId` 或 `None`     | `None`           | 成交关联的持仓 ID。                                |
+| `order_side`     | `OrderSide`                | 必填         | 本次成交的订单方向。                                                |
+| `order_type`     | `OrderType`                | 必填         | 本次成交的订单类型。                                                |
+| `last_qty`       | `Quantity`                 | 必填         | 本次成交的数量。                                    |
+| `last_px`        | `Price`                    | 必填         | 本次成交的价格，不是均价。                |
+| `currency`       | `Currency`                 | 必填         | 成交价格所用货币。                                          |
+| `commission`     | `Money` 或 `None`          | `None`           | 成交手续费（若有上报）。                                        |
+| `liquidity_side` | `LiquiditySide`            | 必填         | 本次成交的流动性方向（`MAKER`、`TAKER` 或 `NO_LIQUIDITY_SIDE`）。 |
+| `info`           | `dict[str, str]` 或 `None` | `None`           | 额外的场所或适配器特有的成交元数据。             |
+| `reconciliation` | `bool`                     | 必填         | 事件是否在一致性对账期间生成。                        |
 
-## Example
+## 示例 {#example}
 
-Reading the event in a strategy handler:
+在策略处理函数中读取该事件：
 
 ```python
 def on_order_filled(self, event: OrderFilled) -> None:
@@ -45,8 +40,8 @@ def on_order_filled(self, event: OrderFilled) -> None:
     )
 ```
 
-## Related guides
+## 相关指南 {#related-guides}
 
-- [Events](./index.md) - Event categories, dispatch, and the common order event fields.
-- [Positions](./../positions.md) - Positions created and modified from fills.
-- [Orders](./../orders/index.md) - Order types and the state machine.
+- [事件](./index.md) - 事件类别、分发与订单事件公共字段。
+- [持仓](./../positions.md) - 由成交创建和修改的持仓。
+- [订单](./../orders/index.md) - 订单类型与状态机。

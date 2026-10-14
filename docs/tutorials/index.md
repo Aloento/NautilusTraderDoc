@@ -1,77 +1,77 @@
-# Tutorials
+# 教程 {#tutorials}
 
-These tutorials give step-by-step instructions for NautilusTrader features and workflows.
+这些教程按步骤讲解 NautilusTrader 的功能与工作流。
 
 :::info
-Most Python tutorials are Jupytext percent-format files in the docs
-[tutorials directory](https://github.com/nautechsystems/nautilus_trader/tree/develop/docs/tutorials).
-You can run these files directly as scripts or open them as notebooks with Jupytext.
-Rust tutorials use the commands shown on their pages.
+多数 Python 教程是 Jupytext percent 格式文件，位于文档仓库的
+[tutorials 目录](https://github.com/nautechsystems/nautilus_trader/tree/develop/docs/tutorials)。
+这些文件既可以直接当脚本运行，也可以通过 Jupytext 作为 notebook 打开。
+Rust 教程按其页面上给出的命令运行。
 :::
 
 :::note
 
-- **Latest**: docs built from the `master` branch for stable releases.
-  See <https://nautilustrader.io/docs/latest/tutorials/>.
-- **Nightly**: docs built from the `develop` branch for experimental features.
-  See <https://nautilustrader.io/docs/nightly/tutorials/>.
+- **Latest**：基于 `master` 分支构建的文档，对应稳定版本。
+  见 <https://nautilustrader.io/docs/latest/tutorials/>。
+- **Nightly**：基于 `develop` 分支构建的文档，包含实验性功能。
+  见 <https://nautilustrader.io/docs/nightly/tutorials/>。
 
 :::
 
-## Recommended order
+## 推荐顺序 {#recommended-order}
 
-If you are new to NautilusTrader, complete these tutorials in order:
+刚接触 NautilusTrader 的话，按以下顺序完成教程：
 
-1. [Quickstart](./../getting_started/quickstart.md): Run your first backtest in five minutes with synthetic data.
-1. [Backtest (low-level API)](./../getting_started/backtest_low_level.md): Use `BacktestEngine` directly
-   with real market data and execution algorithms.
-1. [Backtest (high-level API)](./../getting_started/backtest_high_level.md): Run config-driven backtests
-   with `BacktestNode` and the Parquet data catalog.
-1. [Loading external data][loading_external_data]: Load CSV or other external data into the
-   `ParquetDataCatalog` (how-to guide).
-1. [Backtest with FX bar data][backtest_fx_bars]: Backtest FX bars with rollover interest simulation.
-1. Select a topic-specific tutorial below.
+1. [Quickstart](./../getting_started/quickstart.md)：用合成数据在五分钟内跑通第一个回测。
+1. [回测（低层 API）](./../getting_started/backtest_low_level.md)：直接使用 `BacktestEngine`，
+   配合真实行情数据与执行算法。
+1. [回测（高层 API）](./../getting_started/backtest_high_level.md)：用 `BacktestNode` 和 Parquet 数据目录
+   运行配置驱动的回测。
+1. [加载外部数据][loading_external_data]：把 CSV 或其他外部数据加载到
+   `ParquetDataCatalog`（操作指南）。
+1. [使用 FX K 线数据回测][backtest_fx_bars]：对 FX K 线回测，并模拟隔夜利息。
+1. 再从下面的列表中挑选感兴趣的专题教程。
 
-## Backtesting
+## 回测 {#backtesting}
 
-| Tutorial                                                                    | Description                                    | Data                    |
+| 教程                                                                        | 说明                                           | 数据                    |
 | :-------------------------------------------------------------------------- | :--------------------------------------------- | :---------------------- |
-| [Backtest with FX Bar Data][backtest_fx_bars]                               | EMA cross on FX bars with rollover simulation. | Sample                  |
-| [Backtest with Order Book Depth Data (Binance)][backtest_orderbook_binance] | Order book imbalance strategy on depth data.   | Sample or user-provided |
-| [Backtest with Order Book Depth Data (Bybit)][backtest_orderbook_bybit]     | Order book imbalance strategy on depth data.   | Sample or user-provided |
+| [使用 FX K 线数据回测][backtest_fx_bars]                                     | FX K 线上的 EMA 交叉，含隔夜利息模拟。           | 示例数据                |
+| [使用订单簿深度数据回测（Binance）][backtest_orderbook_binance]              | 深度数据上的订单簿失衡策略。                     | 示例数据或用户自备      |
+| [使用订单簿深度数据回测（Bybit）][backtest_orderbook_bybit]                  | 深度数据上的订单簿失衡策略。                     | 示例数据或用户自备      |
 
-## Data workflows
+## 数据工作流 {#data-workflows}
 
-For task-oriented data recipes, see the [how-to guides](./../how_to/index.md):
+面向具体任务的数据配方见 [操作指南](./../how_to/index.md)：
 
-| Guide                                                 | Description                                       | Data              |
-| :---------------------------------------------------- | :------------------------------------------------ | :---------------- |
-| [Loading external data][loading_external_data]        | Load external data into the `ParquetDataCatalog`. | User-provided     |
-| [Data catalog with Databento][data_catalog_databento] | Set up a catalog with Databento schemas.          | Databento API key |
+| 指南                                                  | 说明                                          | 数据              |
+| :---------------------------------------------------- | :--------------------------------------------- | :---------------- |
+| [加载外部数据][loading_external_data]                  | 把外部数据加载到 `ParquetDataCatalog`。         | 用户自备          |
+| [用 Databento 建数据目录][data_catalog_databento]      | 用 Databento 的各种 schema 搭建数据目录。       | Databento API key |
 
-## Strategy patterns
+## 策略范式 {#strategy-patterns}
 
-| Tutorial                                                                            | Description                                   | Data              |
-| :---------------------------------------------------------------------------------- | :-------------------------------------------- | :---------------- |
-| [Mean Reversion with Proxy FX Data (AX Exchange)](./fx_mean_reversion_ax.md)             | Bollinger Band mean reversion on EURUSD-PERP. | TrueFX proxy      |
-| [Gold Perpetual Book Imbalance (AX Exchange)](./gold_book_imbalance_ax.md)               | Order book imbalance on XAU-PERP.             | Databento API key |
-| [On-Chain Grid Market Making with Short-Term Orders (dYdX)](./grid_market_maker_dydx.md) | Grid MM on dYdX v4 perpetuals.                | Live API          |
+| 教程                                                                                | 说明                                          | 数据              |
+| :---------------------------------------------------------------------------------- | :--------------------------------------------- | :---------------- |
+| [代理 FX 数据均值回归（AX Exchange）](./fx_mean_reversion_ax.md)                     | EURUSD-PERP 上的布林带均值回归。               | TrueFX 代理       |
+| [黄金永续合约订单簿失衡（AX Exchange）](./gold_book_imbalance_ax.md)                 | XAU-PERP 上的订单簿失衡。                      | Databento API key |
+| [链上短周期挂单网格做市（dYdX）](./grid_market_maker_dydx.md)                        | dYdX v4 永续合约上的网格做市。                 | 实时 API          |
 
-## Options
+## 期权 {#options}
 
-| Tutorial                                                                | Description                                    | Data     |
+| 教程                                                                    | 说明                                           | 数据     |
 | :---------------------------------------------------------------------- | :--------------------------------------------- | :------- |
-| [Options Data and Greeks (Bybit)](./options_data_bybit.md)                   | Stream Greeks and option chain snapshots.      | Live API |
-| [Delta-Neutral Options Strategy (Bybit)](./delta_neutral_options_bybit.md)   | Short strangle with perpetual delta hedging.   | Live API |
-| [Delta-Neutral Options Strategy (Derive)](./delta_neutral_options_derive.md) | Derive ETH strangle hedger with premium entry. | Live API |
+| [期权数据与 Greeks（Bybit）](./options_data_bybit.md)                   | 流式获取 Greeks 和期权链快照。                 | 实时 API |
+| [Delta 中性期权策略（Bybit）](./delta_neutral_options_bybit.md)         | 卖出宽跨式，用永续合约做 delta 对冲。          | 实时 API |
+| [Delta 中性期权策略（Derive）](./delta_neutral_options_derive.md)       | Derive ETH 宽跨式对冲，按权利金择时入场。      | 实时 API |
 
-## Rust
+## Rust {#rust}
 
-| Tutorial                                                                                    | Description                                          | Data                |
-| :------------------------------------------------------------------------------------------ | :--------------------------------------------------- | :------------------ |
-| [Book Imbalance Backtest (Betfair)](./backtest_book_imbalance_betfair.md)                        | Book imbalance actor on Betfair L2 data.             | User-provided       |
-| [Composite Market Making on Lighter RWA with Databento EQUS NVDA](./lighter_rwa_composite_mm.md) | Signal-skewed MM on NVDA-PERP.                       | Databento + Lighter |
-| [Hurst/VPIN Directional Strategy (Kraken Futures)](./hurst_vpin_kraken.md)                       | Regime-filtered informed-flow strategy on PF_XBTUSD. | Tardis.dev          |
+| 教程                                                                                      | 说明                                                | 数据                |
+| :---------------------------------------------------------------------------------------- | :--------------------------------------------------- | :------------------ |
+| [订单簿失衡回测（Betfair）](./backtest_book_imbalance_betfair.md)                          | Betfair L2 数据上的订单簿失衡 Actor。                | 用户自备            |
+| [Lighter RWA 组合做市（配合 Databento EQUS NVDA）](./lighter_rwa_composite_mm.md)          | NVDA-PERP 上信号偏斜的做市。                         | Databento + Lighter |
+| [Hurst/VPIN 方向性策略（Kraken Futures）](./hurst_vpin_kraken.md)                          | PF_XBTUSD 上经市场状态过滤的知情流策略。             | Tardis.dev          |
 
 [backtest_fx_bars]: ./backtest_fx_bars.md
 [backtest_orderbook_binance]: ./backtest_orderbook_binance.md

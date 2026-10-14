@@ -1,4 +1,4 @@
-# 安装
+# 安装 {#installation}
 
 NautilusTrader 官方支持 Python 3.13-3.14，覆盖以下 64 位平台：
 
@@ -309,7 +309,7 @@ export PYTHONHOME="$("$PYO3_PYTHON" -c 'import sys; print(sys.base_prefix)')"
 否则依赖 PyO3 的测试可能找不到 Python 运行时。
 :::
 
-### 8. 从源码构建 Python 包 {#8-从源码构建-python-包}
+### 8. 从源码构建 Python 包 {#8-从源码构建-python-包} {#8-build-python-from-source}
 
 这一路径从 `python/` 目录构建 PyO3 包并安装进 `python/.venv`。
 在 NautilusTrader 源码检出目录内，若当前平台没有可用的开发版 wheel，

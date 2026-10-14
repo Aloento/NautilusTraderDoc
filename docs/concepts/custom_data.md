@@ -1,40 +1,38 @@
-# Custom Data
+# 自定义数据 {#custom-data}
 
-NautilusTrader supports custom data authored in Python or Rust. Both forms use
-the same runtime routing, persistence, and query pipeline as built-in data.
+NautilusTrader 支持用 Python 或 Rust 编写自定义数据。两种方式与内置数据共用
+同一套运行时路由、持久化与查询管线。
 
-This document explains how custom data is:
+本文说明自定义数据如何：
 
-- Registered at runtime.
-- Wrapped across the Python/Rust boundary.
-- Serialized to and from Arrow/Parquet.
-- Routed through actors and strategies.
+- 在运行时注册。
+- 跨越 Python/Rust 边界进行包装。
+- 与 Arrow/Parquet 相互序列化。
+- 经由 actor 和策略路由。
 
-## Goals
+## 目标 {#goals}
 
-The custom-data architecture satisfies the following requirements:
+自定义数据架构满足以下要求：
 
-- Let users define custom data in pure Python without writing Rust code.
-- Let Rust-defined custom data use native Rust JSON and Arrow handlers.
-- Preserve a single user-facing `CustomData` wrapper at the PyO3 boundary.
-- Support persistence in `ParquetDataCatalog` using dynamic type registration
-  instead of hardcoded schemas.
-- Make custom data routable through the normal data-engine, actor, and strategy
-  subscription flow.
+- 用户可以用纯 Python 定义自定义数据，无需编写 Rust 代码。
+- Rust 定义的自定义数据可使用原生 Rust JSON 和 Arrow 处理器。
+- 在 PyO3 边界保持单一的用户侧 `CustomData` 包装器。
+- 在 `ParquetDataCatalog` 中持久化时采用动态类型注册，而非硬编码模式。
+- 自定义数据可走常规的数据引擎、actor、策略订阅流程进行路由。
 
-## High-level model
+## 高层模型 {#high-level-model}
 
-NautilusTrader supports two authoring modes:
+NautilusTrader 支持两种编写模式：
 
-| Mode             | Authoring form                                  | Registration path                                                 | Encode/decode path            | Wrapper backend           |
+| 模式             | 编写形式                                  | 注册路径                                                 | 编码/解码路径            | 包装器后端           |
 | ---------------- | ----------------------------------------------- | ----------------------------------------------------------------- | ----------------------------- | ------------------------- |
-| Pure Python      | Class with JSON and Arrow methods               | `register_custom_data_class(...)`                                 | Python callback + Arrow C FFI | `PythonCustomDataWrapper` |
-| Same-binary Rust | `#[custom_data]` or `#[custom_data(pyo3)]` type | `ensure_custom_data_registered::<T>()` and extractor registration | Native Rust                   | Native Rust payload       |
+| 纯 Python      | 带 JSON 和 Arrow 方法的类               | `register_custom_data_class(...)`                                 | Python 回调 + Arrow C FFI | `PythonCustomDataWrapper` |
+| 同二进制 Rust | `#[custom_data]` 或 `#[custom_data(pyo3)]` 类型 | `ensure_custom_data_registered::<T>()` 及提取器注册 | 原生 Rust                   | 原生 Rust 载荷       |
 
-Both modes converge on the same outer PyO3 `CustomData` wrapper and the same
-`DataType` identity model.
+两种模式最终汇聚到同一个外层 PyO3 `CustomData` 包装器和同一套
+`DataType` 身份模型。
 
-## End-to-end flow
+## 端到端流程 {#end-to-end-flow}
 
 ```mermaid
 sequenceDiagram
@@ -64,96 +62,91 @@ sequenceDiagram
     P-->>U: typed data via .data
 ```
 
-## Core components
+## 核心组件 {#core-components}
 
-### Registry module
+### 注册表模块 {#registry-module}
 
-`crates/model/src/data/registry.rs` holds the process-wide JSON, Arrow, and
-Python extraction registries. Registration uses atomic `DashMap::entry()`
-operations so concurrent `register_*` and `ensure_*` calls do not race when
-claiming an entry.
+`crates/model/src/data/registry.rs` 持有进程级的 JSON、Arrow 和
+Python 提取器注册表。注册使用原子的 `DashMap::entry()` 操作，
+因此并发的 `register_*` 与 `ensure_*` 调用在抢占条目时不会竞态。
 
-The module initializes its registry state through `OnceLock` and stores:
+该模块通过 `OnceLock` 初始化其注册表状态，保存：
 
-- JSON deserializers keyed by `type_name`.
-- Arrow schemas, encoders, and decoders keyed by `type_name`.
-- Python extractors that convert a Python object into
-  `Arc<dyn CustomDataTrait>`.
-- Rust extractor factories that produce Python extractors for same-binary types.
+- 以 `type_name` 为键的 JSON 反序列化器。
+- 以 `type_name` 为键的 Arrow 模式、编码器与解码器。
+- 把 Python 对象转换为 `Arc<dyn CustomDataTrait>` 的 Python 提取器。
+- 为同二进制类型生成 Python 提取器的 Rust 提取器工厂。
 
-Instead of hardcoding each type into the main binary, NautilusTrader resolves handlers at runtime using the
-`type_name` stored in `DataType` and Parquet metadata.
+NautilusTrader 不把每种类型硬编码进主二进制，而是用 `DataType` 和 Parquet
+元数据中存储的 `type_name` 在运行时解析处理器。
 
-### `CustomData`
+### `CustomData` {#customdata}
 
-The outer PyO3 `CustomData` wrapper is the common container that crosses the
-FFI boundary.
+外层 PyO3 `CustomData` 包装器是跨越 FFI 边界的通用容器。
 
-Constructor signature: `CustomData(data_type, data)` where `DataType` comes
-first, then the inner payload.
+构造签名：`CustomData(data_type, data)`，`DataType` 在前，内层载荷在后。
 
-It contains:
+它包含：
 
-- A `DataType`.
-- An inner custom payload implementing `CustomDataTrait` (wrapped in
-  `Arc<dyn CustomDataTrait>`).
+- 一个 `DataType`。
+- 一个实现 `CustomDataTrait` 的内层自定义载荷（包装为
+  `Arc<dyn CustomDataTrait>`）。
 
-Timestamps (`ts_event`, `ts_init`) are delegated to the inner
-`CustomDataTrait` implementation and exposed as properties on the wrapper.
+时间戳（`ts_event`、`ts_init`）委托给内层
+`CustomDataTrait` 实现，并以属性形式暴露在包装器上。
 
-On the Python side, `CustomData` implements `__eq__` and `__repr__`. The Rust `PartialEq` implementation
-compares the `DataType` and delegates payload equality to the inner value. Instances are intentionally
-unhashable so equality stays consistent with the payload comparison.
+Python 侧的 `CustomData` 实现了 `__eq__` 与 `__repr__`。Rust 的 `PartialEq`
+实现比较 `DataType` 并把载荷相等性委托给内层值。实例被有意设为不可哈希，
+使相等性与载荷比较保持一致。
 
-This wrapper is shared across both custom-data modes. User code interacts with
-one API even though the underlying payload may be:
+该包装器在两种自定义数据模式间共享。用户代码只面对一个 API，
+尽管底层载荷可能是：
 
-- A Python-backed wrapper.
-- A same-binary Rust value.
+- Python 支撑的包装器。
+- 同二进制的 Rust 值。
 
-#### `CustomData` JSON envelope
+#### `CustomData` JSON 信封 {#customdata-json-envelope}
 
-When serialized to JSON, such as for `to_json_bytes` / `from_json_bytes`, the SQL cache, or Redis,
-`CustomData` uses one canonical envelope. Deserialization thus does not depend on user payload field names:
+序列化到 JSON 时（如 `to_json_bytes` / `from_json_bytes`、SQL 缓存或 Redis），
+`CustomData` 使用统一的标准信封，反序列化因此不依赖用户载荷的字段名：
 
-- `type`: The custom type name (from `CustomDataTrait::type_name`).
-- `data_type`: An object with `type_name`, `metadata`, and optional
-  `identifier`.
-- `payload`: The inner payload only (the result of `CustomDataTrait::to_json`
-  parsed as a value). Registered deserializers pass only this value to
-  `from_json`, so user structs can use any field names, including `value`,
-  without conflicting with wrapper metadata.
+- `type`：自定义类型名（来自 `CustomDataTrait::type_name`）。
+- `data_type`：含 `type_name`、`metadata` 和可选
+  `identifier` 的对象。
+- `payload`：仅内层载荷（`CustomDataTrait::to_json`
+  的结果解析为值）。注册的反序列化器只把这个值传给
+  `from_json`，因此用户结构体可以使用任意字段名（包括 `value`），
+  不会与包装器元数据冲突。
 
-This envelope is produced by Rust `CustomData` serialization and consumed by
-the registry module when deserializing custom data from JSON.
+该信封由 Rust 的 `CustomData` 序列化产生，注册表模块从 JSON 反序列化
+自定义数据时消费它。
 
-### `DataType`
+### `DataType` {#datatype}
 
-`DataType` identifies custom data for routing and persistence.
+`DataType` 为路由和持久化标识自定义数据。
 
-Constructor: `DataType(type_name, metadata=None, identifier=None)`.
+构造函数：`DataType(type_name, metadata=None, identifier=None)`。
 
-It includes:
+它包含：
 
-- `type_name`.
-- Optional `metadata`.
-- Optional `identifier` for persistence paths and cache database lookups. It
-  does not affect routing, equality, or hashing.
+- `type_name`。
+- 可选的 `metadata`。
+- 可选的 `identifier`，用于持久化路径与缓存数据库查询，
+  不影响路由、相等性或哈希。
 
-**Equality, hashing, and topic routing** are derived from `type_name` and `metadata` only. Two `DataType`
-values with the same type name and metadata but different identifiers compare equal and publish to the same
-message bus topic.
+**相等性、哈希与主题路由**只由 `type_name` 和 `metadata` 决定。类型名与元数据相同、
+标识符不同的两个 `DataType` 相等，并发布到相同的消息总线主题。
 
-The `identifier` selects the catalog path under `data/custom/<type_name>/<identifier...>` and participates in
-PostgreSQL and Redis filtering.
+`identifier` 决定目录中 `data/custom/<type_name>/<identifier...>` 下的路径，
+并参与 PostgreSQL 与 Redis 过滤。
 
-Persistence stores the full `DataType` with each `CustomData` value and restores it on query, while handler
-lookup uses `type_name`. The same logical type can thus carry different metadata or identifiers and still
-decode through the same registered handler.
+持久化会为每个 `CustomData` 值存储完整的 `DataType`，查询时还原；
+而处理器查找使用 `type_name`。因此同一逻辑类型可以携带不同的元数据或标识符，
+仍通过同一个注册处理器解码。
 
-## Registration architecture
+## 注册架构 {#registration-architecture}
 
-Registration bridges the gap between Python objects and Rust trait objects.
+注册弥合 Python 对象与 Rust trait object 之间的差距。
 
 ```mermaid
 flowchart TD
@@ -171,139 +164,136 @@ flowchart TD
     J --> L
 ```
 
-### Pure Python registration
+### 纯 Python 注册 {#pure-python-registration}
 
-When Python code calls `register_custom_data_class(MyType)`:
+Python 代码调用 `register_custom_data_class(MyType)` 时：
 
-1. Rust keeps the class for JSON reconstruction.
-1. Rust registers JSON and Arrow handlers that invoke the class callbacks.
-1. When constructing `CustomData`, Rust uses a registered native extractor if
-   it accepts the object. Otherwise, it wraps the object in
-   `PythonCustomDataWrapper`.
+1. Rust 保留该类用于 JSON 重建。
+1. Rust 注册调用类回调的 JSON 和 Arrow 处理器。
+1. 构造 `CustomData` 时，若已注册的原生提取器能接受该对象，Rust 使用它；
+   否则把对象包装进
+   `PythonCustomDataWrapper`。
 
-For catalog use, provide the Arrow schema through `_schema` or `arrow_schema_py()` before registration, or use
-`@customdataclass`. Registration accepts classes without a schema for JSON and message-bus use. Catalog writes
-enforce the [catalog schema requirements](#catalog-write-flow).
+供目录使用时，在注册前通过 `_schema` 或 `arrow_schema_py()` 提供 Arrow 模式，
+或使用 `@customdataclass`。没有模式的类也可注册，用于 JSON 和消息总线；
+目录写入会强制满足[目录模式要求](#catalog-write-flow)。
 
-JSON and Arrow callbacks on this path run under the Python GIL.
+此路径上的 JSON 和 Arrow 回调在 Python GIL 下运行。
 
-### Same-binary Rust registration
+### 同二进制 Rust 注册 {#same-binary-rust-registration}
 
-For Rust types compiled into the process:
+对编译进进程的 Rust 类型：
 
-1. `#[custom_data]` or `#[custom_data(pyo3)]` generates the trait and JSON
-   implementations, plus Arrow implementations by default.
-1. `ensure_custom_data_registered::<T>()` inserts native schema/encoder/decoder
-   handlers into the process-wide registries.
-1. `ensure_rust_extractor_registered::<T>()` registers an extractor factory for
-   PyO3-exposed types. Once activated through Python class registration, the
-   extractor can recover the concrete Rust type instead of using the Python
-   wrapper.
+1. `#[custom_data]` 或 `#[custom_data(pyo3)]` 生成 trait 与 JSON
+   实现，默认还生成 Arrow 实现。
+1. `ensure_custom_data_registered::<T>()` 把原生模式/编码器/解码器
+   处理器插入进程级注册表。
+1. `ensure_rust_extractor_registered::<T>()` 为 PyO3 暴露的类型注册
+   提取器工厂。经 Python 类注册激活后，提取器可以恢复具体 Rust 类型，
+   而不使用 Python 包装器。
 
-This path stays fully native in Rust for encode/decode.
+此路径的编码/解码全程保持 Rust 原生。
 
-### Registration precedence
+### 注册优先级 {#registration-precedence}
 
-`register_custom_data_class(...)` resolves handlers in the following order:
+`register_custom_data_class(...)` 按以下顺序解析处理器：
 
-1. Use a native extractor and existing native JSON/Arrow handlers when they are
-   registered.
-1. Otherwise, use the Python wrapper and callback handlers.
+1. 若原生提取器和原生 JSON/Arrow 处理器已注册，优先使用它们。
+1. 否则使用 Python 包装器与回调处理器。
 
-The idempotent `ensure_*` registrations do not overwrite existing handlers. For each type name, the first
-Arrow registration keeps its schema, encoder, and decoder. After correcting an already-registered Python
-class's Arrow schema, restart the process before registering it again.
+幂等的 `ensure_*` 注册不会覆盖已有处理器。对每个类型名，第一个
+Arrow 注册保留其模式、编码器和解码器。若已注册的 Python 类的 Arrow 模式
+需要修正，修正后须重启进程再重新注册。
 
-## Wrapper backends
+## 包装器后端 {#wrapper-backends}
 
-Internally, the outer `CustomData` wrapper can hold different payload
-implementations.
+内部而言，外层 `CustomData` 包装器可持有不同的载荷实现。
 
-### `PythonCustomDataWrapper`
+### `PythonCustomDataWrapper` {#pythoncustomdatawrapper}
 
-Used for pure Python custom data.
+用于纯 Python 自定义数据。
 
-Responsibilities:
+职责：
 
-- Stores a reference to the Python object.
-- Caches `ts_event`, `ts_init`, and `type_name`.
-- Implements `CustomDataTrait`.
-- Supports JSON and Arrow callback paths that invoke Python under the GIL.
+- 保存对 Python 对象的引用。
+- 缓存 `ts_event`、`ts_init` 和 `type_name`。
+- 实现 `CustomDataTrait`。
+- 支持在 GIL 下调用 Python 的 JSON 与 Arrow 回调路径。
 
-This is the construction fallback when no registered extractor accepts the
-object. Python JSON and Arrow decoders also produce this wrapper directly.
+当没有注册提取器能接受该对象时，它是构造的回退选择。Python 的 JSON 和 Arrow
+解码器也直接产生这个包装器。
 
-### Native same-binary Rust payload
+### 原生同二进制 Rust 载荷 {#native-same-binary-rust-payload}
 
-For Rust types compiled into the process, the inner payload is the concrete
-Rust type and can be downcast directly from `Arc<dyn CustomDataTrait>`.
+对编译进进程的 Rust 类型，内层载荷就是具体 Rust 类型，可直接从
+`Arc<dyn CustomDataTrait>` 向下转型。
 
-No Python callback path is needed for serialization or decode.
+序列化与解码都不需要 Python 回调路径。
 
-## Persistence architecture
+## 持久化架构 {#persistence-architecture}
 
-### Why dynamic Arrow registration is needed
+### 为什么需要动态 Arrow 注册 {#why-dynamic-arrow-registration-is-needed}
 
-Built-in NautilusTrader data types have schemas and encoders known statically to the Rust binary. Custom data
-does not. The persistence layer thus resolves custom data dynamically using the registered `type_name`.
+内置 NautilusTrader 数据类型的模式与编码器在 Rust 二进制中是静态已知的，
+自定义数据则不是。持久化层因此用注册的 `type_name` 动态解析自定义数据。
 
-### Catalog write flow
+### 目录写入流程 {#catalog-write-flow}
 
-`ParquetDataCatalog` expects custom writes to come in as `CustomData` values.
+`ParquetDataCatalog` 期望自定义写入以 `CustomData` 值的形式传入。
 
-The custom-data write path:
+自定义数据的写入路径：
 
-1. Takes `type_name` from the inner payload and `metadata` and `identifier` from
-   the first value's `DataType`.
-1. Validates that the registered Arrow schema contains `ts_init` and that any `ts_event` or
-   `ts_init` fields use `timestamp("ns", tz="UTC")`.
-1. Looks up the Arrow encoder in the process-wide registry.
-1. Encodes the values to a `RecordBatch`.
-1. Appends a `data_type` column containing the persisted `DataType`.
-1. Attaches `type_name` and metadata to the Arrow schema.
-1. Writes the batch to Parquet under the custom-data path.
+1. 从内层载荷取 `type_name`，从首个值的 `DataType` 取
+   `metadata` 和 `identifier`。
+1. 校验注册的 Arrow 模式包含 `ts_init`，且任何 `ts_event` 或
+   `ts_init` 字段使用 `timestamp("ns", tz="UTC")`。
+1. 在进程级注册表中查找 Arrow 编码器。
+1. 把值编码为 `RecordBatch`。
+1. 追加一个 `data_type` 列，存放持久化的 `DataType`。
+1. 把 `type_name` 与元数据附加到 Arrow 模式上。
+1. 把批次写入自定义数据路径下的 Parquet。
 
-The path layout is `data/custom/<type_name>/<identifier...>`.
+路径布局为 `data/custom/<type_name>/<identifier...>`。
 
-Identifiers are normalized before becoming path segments.
+标识符在成为路径段之前会先规范化。
 
-### Catalog read flow
+### 目录读取流程 {#catalog-read-flow}
 
-On query:
+查询时：
 
-1. The catalog reads matching Parquet files.
-1. Extracts `type_name` from schema metadata.
-1. Asks the process-wide registry for the decoder.
-1. Decodes the `RecordBatch` into `Vec<Data>`.
-1. Reconstructs `CustomData` with the original `DataType`.
+1. 目录读取匹配的 Parquet 文件。
+1. 从模式元数据中提取 `type_name`。
+1. 向进程级注册表请求解码器。
+1. 把 `RecordBatch` 解码为 `Vec<Data>`。
+1. 用原始 `DataType` 重建 `CustomData`。
 
-This makes custom-data query resolution symmetric with write-time registration.
+这使得自定义数据的查询解析与写入时注册对称。
 
-During Feather-to-Parquet conversion (such as after a backtest), the custom-data branch transforms the Arrow
-batches. It writes the result directly to the matching custom-data path:
+在 Feather 到 Parquet 的转换中（例如回测结束后），自定义数据分支转换 Arrow
+批次，并把结果直接写入匹配的自定义数据路径：
 
-- Pass the data class as `custom/{TypeName}` with the registered type name verbatim. A Feather session stores
-  custom data under `data/custom/{TypeName}` rather than under a snake_case directory.
-- Set `promote_on_close=False` when you intend to convert manually. Promotion on close is the default.
-  Converting an already promoted session rewrites the same `ts_init` interval under a different filename,
-  which the catalog rejects as non-disjoint.
+- 以 `custom/{TypeName}` 传入数据类，类型名与注册值逐字一致。Feather 会话把
+  自定义数据存于 `data/custom/{TypeName}`，而不是 snake_case 目录。
+- 打算手动转换时设置 `promote_on_close=False`。关闭时提升（promote）是默认行为。
+  转换一个已提升过的会话会在不同文件名下重写同一 `ts_init` 区间，
+  目录会以其非不相交（non-disjoint）为由拒绝。
 
 :::info
-Python `StreamingFeatherWriter.write()` accepts `CustomData` wrappers for registered Arrow-capable
-types, and `convert_stream_to_data` converts those staged Feather streams to Parquet. To skip
-staging, write custom data directly to the catalog with `ParquetDataCatalog.write_custom_data`.
+Python 的 `StreamingFeatherWriter.write()` 对已注册、支持 Arrow 的类型接受
+`CustomData` 包装器，`convert_stream_to_data` 会把暂存的 Feather 流转换为
+Parquet。要跳过暂存，用 `ParquetDataCatalog.write_custom_data`
+把自定义数据直接写入目录。
 :::
 
-Reads use only `data/custom/{TypeName}`. Convert catalogs that still use the legacy Python-written
-`data/custom_<snake_case>` layout (for example `data/custom_binance_bar`) with
-[nautilus catalog migrate-parquet](./../how_to/migrate_parquet_catalog.md).
+读取只使用 `data/custom/{TypeName}`。仍使用旧的 Python 写入布局
+`data/custom_<snake_case>`（例如 `data/custom_binance_bar`）的目录，请用
+[nautilus catalog migrate-parquet](./../how_to/migrate_parquet_catalog.md) 迁移。
 
-## The Arrow C FFI bridge
+## Arrow C FFI 桥 {#the-arrow-c-ffi-bridge}
 
-Pure Python custom data does not provide native Rust Arrow encode logic. For
-these types, NautilusTrader uses the Arrow C FFI interface to pass
-`RecordBatch` data between Python and Rust without JSON or binary
-serialization.
+纯 Python 自定义数据没有原生 Rust Arrow 编码逻辑。对这类数据，
+NautilusTrader 通过 Arrow C FFI 接口在 Python 与 Rust 之间传递
+`RecordBatch`，无需 JSON 或二进制序列化。
 
 ```mermaid
 sequenceDiagram
@@ -319,76 +309,73 @@ sequenceDiagram
     R->>C: write Parquet
 ```
 
-### Pure Python encode path
+### 纯 Python 编码路径 {#pure-python-encode-path}
 
-For pure Python classes:
+纯 Python 类的编码：
 
-1. Rust acquires the GIL.
-1. Rust calls `encode_record_batch_py(...)` on the first Python payload.
-1. Python converts objects to a `pyarrow.RecordBatch`.
-1. Python exports the batch through `_export_to_c` into Arrow C FFI structs.
-1. Rust reconstructs a native `RecordBatch` from the FFI structs and writes it.
+1. Rust 获取 GIL。
+1. Rust 在首个 Python 载荷上调用 `encode_record_batch_py(...)`。
+1. Python 把对象转换为 `pyarrow.RecordBatch`。
+1. Python 通过 `_export_to_c` 把批次导出为 Arrow C FFI 结构。
+1. Rust 从 FFI 结构重建原生 `RecordBatch` 并写入。
 
-### Pure Python decode path
+### 纯 Python 解码路径 {#pure-python-decode-path}
 
-For the reverse direction:
+反方向：
 
-1. Rust converts its `RecordBatch` into Arrow C FFI structs.
-1. Python imports the batch through `RecordBatch._import_from_c`.
-1. Python calls `decode_record_batch_py(metadata, batch)` on the class.
-1. Rust wraps the returned Python objects in `PythonCustomDataWrapper`.
+1. Rust 把其 `RecordBatch` 转为 Arrow C FFI 结构。
+1. Python 通过 `RecordBatch._import_from_c` 导入批次。
+1. Python 在类上调用 `decode_record_batch_py(metadata, batch)`。
+1. Rust 把返回的 Python 对象包装进 `PythonCustomDataWrapper`。
 
-### Native paths
+### 原生路径 {#native-paths}
 
-The Arrow C FFI bridge is not used for same-binary Rust custom data. Those
-types use native Rust encode/decode handlers registered in the main process.
+同二进制 Rust 自定义数据不使用 Arrow C FFI 桥，
+它们使用主进程中注册的原生 Rust 编码/解码处理器。
 
-## Reconstruction on query
+## 查询时的重建 {#reconstruction-on-query}
 
-When custom data is loaded back from the catalog, reconstruction depends on the
-backend:
+从目录加载回自定义数据时，重建方式取决于后端：
 
-- Same-binary Rust types decode directly to native Rust values.
-- Pure Python types reconstruct through the registered class's
-  `decode_record_batch_py(...)` callback.
+- 同二进制 Rust 类型直接解码为原生 Rust 值。
+- 纯 Python 类型经由注册类的
+  `decode_record_batch_py(...)` 回调重建。
 
-In all cases the caller receives the same outer `CustomData` wrapper at the
-PyO3 API boundary.
+所有情况下，调用方在 PyO3 API 边界收到的都是同一个外层 `CustomData` 包装器。
 
-## Runtime integration
+## 运行时集成 {#runtime-integration}
 
-Custom data also participates in NautilusTrader runtime routing.
+自定义数据同样参与 NautilusTrader 的运行时路由。
 
-Relevant integrations include:
+相关集成点包括：
 
-- `crates/data/src/engine/dispatch.rs` publishes `CustomData` through the message
-  bus.
-- `crates/common/src/msgbus/switchboard.rs` derives custom topics from
-  `DataType`.
-- `crates/common/src/actor/*` routes custom data into actor subscriptions.
-- `crates/trading/src/python/strategy.rs` exposes custom data to Python
-  strategy `on_data`.
-- `crates/backtest/src/engine.rs` treats `Data::Custom` as
-  data-engine-delivered input rather than exchange-routed data.
+- `crates/data/src/engine/dispatch.rs` 通过消息总线发布 `CustomData`。
+- `crates/common/src/msgbus/switchboard.rs` 从 `DataType` 派生自定义主题。
+- `crates/common/src/actor/*` 把自定义数据路由到 actor 订阅。
+- `crates/trading/src/python/strategy.rs` 把自定义数据暴露给 Python
+  策略的 `on_data`。
+- `crates/backtest/src/engine.rs` 把 `Data::Custom` 视为
+  数据引擎投递的输入，而非交易所路由的数据。
 
-A registered custom type can be persisted, queried, subscribed to, and consumed
-through the same runtime interfaces as built-in data families.
+注册的自定义类型可以通过与内置数据族相同的运行时接口进行持久化、查询、
+订阅和消费。
 
-## Cache database integration
+## 缓存数据库集成 {#cache-database-integration}
 
-The PostgreSQL and Redis cache database implementations support `CustomData`.
+PostgreSQL 与 Redis 缓存数据库实现支持 `CustomData`。
 
-- PostgreSQL stores custom data in the `custom` table.
-- The stored record includes `data_type`, `metadata`, `identifier`, and full
-  JSON payload.
-- Reads reconstruct `CustomData` using `CustomData::from_json_bytes(...)`.
-- Python SQL bindings expose `add_custom_data` and `load_custom_data`.
-- Redis cache stores custom data under keys
-  `custom:<ts_init_020>:<uuid>` with full `CustomData` JSON as value.
-- Redis `add_custom_data` and `load_custom_data` filter by `DataType` (type_name, metadata, identifier) and
-  return results sorted by `ts_init`. This is exposed through the PyO3 `RedisCacheDatabase` API.
+- PostgreSQL 把自定义数据存入 `custom` 表。
+- 存储的记录包含 `data_type`、`metadata`、`identifier` 和完整的
+  JSON 载荷。
+- 读取时用 `CustomData::from_json_bytes(...)` 重建 `CustomData`。
+- Python SQL 绑定暴露 `add_custom_data` 与 `load_custom_data`。
+- Redis 缓存把自定义数据存于
+  `custom:<ts_init_020>:<uuid>` 键下，值为完整的 `CustomData` JSON。
+- Redis 的 `add_custom_data` 和 `load_custom_data` 按 `DataType`
+  （type_name、metadata、identifier）过滤，结果按 `ts_init` 排序返回。
+  这通过 PyO3 的 `RedisCacheDatabase` API 暴露。
 
-## Practical implications
+## 实际影响 {#practical-implications}
 
-Python-only authoring and native Rust encode/decode stay two backends of one conceptual custom-data system
-rather than separate Python-only and Rust-only feature sets.
+纯 Python 编写与 Rust 原生编码/解码是同一个概念上的自定义数据系统的两个后端，
+而不是彼此分离的 Python-only 和 Rust-only 功能集。

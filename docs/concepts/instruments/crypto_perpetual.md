@@ -1,61 +1,59 @@
 # Crypto Perpetual
 
-`CryptoPerpetual` represents a crypto perpetual futures contract, also known as a
-perpetual swap. It has no expiry, tracks a crypto base asset, and settles in a crypto,
-stablecoin, or other venue-defined settlement currency.
+`CryptoPerpetual` 表示加密货币永续期货合约，也称永续互换（perpetual swap）。它没有到期日，
+跟踪某一加密基础资产，以加密资产、稳定币或交易场所定义的其他结算货币结算。
 
-Examples include `ETHUSDT-PERP.BINANCE`, `BTCUSD.BYBIT`, and `BTC-USD-SWAP.OKX`.
+典型例子包括 `ETHUSDT-PERP.BINANCE`、`BTCUSD.BYBIT` 和 `BTC-USD-SWAP.OKX`。
 
-## Fields
+## 字段 {#fields}
 
-| Field                 | Rust type          | Python type        | Required/default | Notes                                    |
+| 字段                    | Rust 类型          | Python 类型        | 必填/默认值    | 说明                                     |
 | --------------------- | ------------------ | ------------------ | ---------------- | ---------------------------------------- |
-| `instrument_id`       | `InstrumentId`     | `InstrumentId`     | Required         | Stored as `id` in Rust.                  |
-| `raw_symbol`          | `Symbol`           | `Symbol`           | Required         | Native venue symbol.                     |
-| `base_currency`       | `Currency`         | `Currency`         | Required         | Base crypto asset.                       |
-| `quote_currency`      | `Currency`         | `Currency`         | Required         | Price quote currency.                    |
-| `settlement_currency` | `Currency`         | `Currency`         | Required         | Currency used to settle PnL and fees.    |
-| `is_inverse`          | `bool`             | `bool`             | Required         | True when sizing/costing is inverse.     |
-| `price_precision`     | `u8`               | `int`              | Required         | Decimal places allowed for prices.       |
-| `size_precision`      | `u8`               | `int`              | Required         | Decimal places allowed for order sizes.  |
-| `price_increment`     | `Price`            | `Price`            | Required         | Smallest valid price step.               |
-| `size_increment`      | `Quantity`         | `Quantity`         | Required         | Smallest valid size step.                |
-| `ts_event`            | `UnixNanos`        | `int`              | Required         | Event timestamp in nanoseconds.          |
-| `ts_init`             | `UnixNanos`        | `int`              | Required         | Initialization timestamp in nanoseconds. |
-| `multiplier`          | `Quantity`         | `Quantity`         | `1`              | Contract multiplier.                     |
-| `lot_size`            | `Quantity`         | `Quantity`         | `1`              | Rounded lot or board size.               |
-| `max_quantity`        | `Option<Quantity>` | `Quantity \| None` | `None`           | Maximum order quantity.                  |
-| `min_quantity`        | `Option<Quantity>` | `Quantity \| None` | `None`           | Minimum order quantity.                  |
-| `max_notional`        | `Option<Money>`    | `Money \| None`    | `None`           | Maximum order notional value.            |
-| `min_notional`        | `Option<Money>`    | `Money \| None`    | `None`           | Minimum order notional value.            |
-| `max_price`           | `Option<Price>`    | `Price \| None`    | `None`           | Maximum valid quote or order price.      |
-| `min_price`           | `Option<Price>`    | `Price \| None`    | `None`           | Minimum valid quote or order price.      |
-| `margin_init`         | `Option<Decimal>`  | `Decimal \| None`  | `0`              | Initial margin rate.                     |
-| `margin_maint`        | `Option<Decimal>`  | `Decimal \| None`  | `0`              | Maintenance margin rate.                 |
-| `tick_scheme`         | `Option<Ustr>`     | `str \| None`      | `None`           | Registered variable tick scheme name.    |
-| `info`                | `Option<Params>`   | `dict \| None`     | `None`           | Adapter metadata.                        |
+| `instrument_id`       | `InstrumentId`     | `InstrumentId`     | 必填             | 在 Rust 中存储为 `id`。                  |
+| `raw_symbol`          | `Symbol`           | `Symbol`           | 必填             | 交易场所原生符号。                        |
+| `base_currency`       | `Currency`         | `Currency`         | 必填             | 基础加密资产。                            |
+| `quote_currency`      | `Currency`         | `Currency`         | 必填             | 价格计价货币。                            |
+| `settlement_currency` | `Currency`         | `Currency`         | 必填             | 结算盈亏和费用使用的货币。                |
+| `is_inverse`          | `bool`             | `bool`             | 必填             | 数量与计价为反向时为 true。            |
+| `price_precision`     | `u8`               | `int`              | 必填             | 价格允许的小数位数。                      |
+| `size_precision`      | `u8`               | `int`              | 必填             | 订单数量允许的小数位数。                  |
+| `price_increment`     | `Price`            | `Price`            | 必填             | 最小有效价格步长。                        |
+| `size_increment`      | `Quantity`         | `Quantity`         | 必填             | 最小有效数量步长。                        |
+| `ts_event`            | `UnixNanos`        | `int`              | 必填             | 纳秒级事件时间戳。                        |
+| `ts_init`             | `UnixNanos`        | `int`              | 必填             | 纳秒级初始化时间戳。                      |
+| `multiplier`          | `Quantity`         | `Quantity`         | `1`              | 合约乘数。                                |
+| `lot_size`            | `Quantity`         | `Quantity`         | `1`              | 整手或每手规模。                          |
+| `max_quantity`        | `Option<Quantity>` | `Quantity \| None` | `None`           | 最大下单数量。                            |
+| `min_quantity`        | `Option<Quantity>` | `Quantity \| None` | `None`           | 最小下单数量。                            |
+| `max_notional`        | `Option<Money>`    | `Money \| None`    | `None`           | 最大下单名义价值。                        |
+| `min_notional`        | `Option<Money>`    | `Money \| None`    | `None`           | 最小下单名义价值。                        |
+| `max_price`           | `Option<Price>`    | `Price \| None`    | `None`           | 最大有效报价或订单价格。                  |
+| `min_price`           | `Option<Price>`    | `Price \| None`    | `None`           | 最小有效报价或订单价格。                  |
+| `margin_init`         | `Option<Decimal>`  | `Decimal \| None`  | `0`              | 初始保证金率。                            |
+| `margin_maint`        | `Option<Decimal>`  | `Decimal \| None`  | `0`              | 维持保证金率。                            |
+| `tick_scheme`         | `Option<Ustr>`     | `str \| None`      | `None`           | 已注册的可变 tick 方案名称。              |
+| `info`                | `Option<Params>`   | `dict \| None`     | `None`           | 适配器元数据。                            |
 
-**Note**: Python constructors use `instrument_id`. Rust stores the same value as `id`.
+**注意**：Python 构造函数使用 `instrument_id`，Rust 将同一值存储为 `id`。
 
-## Behavior
+## 行为 {#behavior}
 
-- `CryptoPerpetual` has asset class `Cryptocurrency` and instrument class `Swap`.
-- It has no activation or expiration timestamp.
+- `CryptoPerpetual` 的资产类别为 `Cryptocurrency`，工具类别为 `Swap`。
+- 它没有激活或到期时间戳。
 
-**Settlement style**: the currency set determines the settlement style.
+**结算风格**：货币组合决定结算风格。
 
-- **Linear**: typically sets `is_inverse=False` and settles in the quote currency.
-- **Inverse**: sets `is_inverse=True` and typically settles in the base currency.
-- **Quanto**: settles in a third currency that differs from both base and quote.
+- **线性（Linear）**：通常设置 `is_inverse=False`，以计价货币结算。
+- **反向（Inverse）**：设置 `is_inverse=True`，通常以基础货币结算。
+- **Quanto**：以不同于基础货币和计价货币的第三种货币结算。
 
-**Cost currency**: base for inverse contracts, settlement for quanto contracts, and quote otherwise.
+**成本货币**：反向合约为基础货币，quanto 合约为结算货币，其余情况为计价货币。
 
 :::note
-Funding payments are not fields on the instrument. They arrive as data, such as
-`FundingRateUpdate`, and reference the instrument ID.
+资金费用不是金融工具的字段。它以数据形式到达，例如 `FundingRateUpdate`，并引用金融工具 ID。
 :::
 
-## Example
+## 示例 {#example}
 
 ```rust tab="Rust"
 use nautilus_core::UnixNanos;
@@ -129,20 +127,20 @@ ethusdt_perp = CryptoPerpetual(
 )
 ```
 
-## Adapters
+## 适配器 {#adapters}
 
-**Adapters that create or consume `CryptoPerpetual` instruments include**:
+**创建或使用 `CryptoPerpetual` 金融工具的适配器包括**：
 
-- [Binance](./../../integrations/binance.md) for USD-M and COIN-M perpetual futures.
-- [Bybit](./../../integrations/bybit.md) for linear and inverse perpetual products.
-- [dYdX](./../../integrations/dydx.md) for perpetual markets.
-- [Hyperliquid](./../../integrations/hyperliquid.md) for perpetual markets.
-- [Kraken](./../../integrations/kraken.md) for futures venue perpetual markets.
-- [OKX](./../../integrations/okx.md) for swap markets.
-- [Tardis](./../../integrations/tardis.md) for crypto perpetual metadata.
+- [Binance](./../../integrations/binance.md)，用于 USD-M 和 COIN-M 永续期货。
+- [Bybit](./../../integrations/bybit.md)，用于线性和反向永续产品。
+- [dYdX](./../../integrations/dydx.md)，用于永续市场。
+- [Hyperliquid](./../../integrations/hyperliquid.md)，用于永续市场。
+- [Kraken](./../../integrations/kraken.md)，用于期货场所的永续市场。
+- [OKX](./../../integrations/okx.md)，用于互换市场。
+- [Tardis](./../../integrations/tardis.md)，用于加密永续合约元数据。
 
-## Related guides
+## 相关指南 {#related-guides}
 
-- [Data](./../data/index.md) covers mark prices, index prices, and funding rate updates.
-- [Options](./../options.md) covers option-specific instrument types.
-- [Execution](./../execution/index.md) explains precision and notional checks before orders reach a venue.
+- [数据](./../data/index.md)介绍标记价格、指数价格和资金费率更新。
+- [期权](./../options.md)介绍期权专属的金融工具类型。
+- [执行](./../execution/index.md)讲解订单到达交易场所前的精度与名义价值检查。

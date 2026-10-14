@@ -1,7 +1,6 @@
-# Order Book Imbalance
+# 订单簿失衡 {#order-book-imbalance}
 
-Define the reusable order book imbalance strategy used by the Binance and Bybit
-order book backtest tutorials.
+定义可复用的订单簿失衡策略，供 Binance 和 Bybit 订单簿回测教程使用。
 
 ```python
 from __future__ import annotations

@@ -1,55 +1,52 @@
 # Binary Option
 
-`BinaryOption` represents a binary outcome instrument that settles to a fixed payoff
-based on whether a condition is true. It can model prediction markets, binary options,
-or venue-specific yes/no contracts.
+`BinaryOption` 表示二元结果工具：当某一条件为真时，按固定赔付结算。它可以建模预测市场、
+二元期权，或交易场所特定的 yes/no 合约。
 
-Examples include prediction market outcomes and binary event contracts.
+典型例子包括预测市场结果和二元事件合约。
 
-## Fields
+## 字段 {#fields}
 
-| Field             | Rust type          | Python type        | Required/default | Notes                                     |
+| 字段              | Rust 类型          | Python 类型        | 必填/默认值    | 说明                                      |
 | ----------------- | ------------------ | ------------------ | ---------------- | ----------------------------------------- |
-| `instrument_id`   | `InstrumentId`     | `InstrumentId`     | Required         | Stored as `id` in Rust.                   |
-| `raw_symbol`      | `Symbol`           | `Symbol`           | Required         | Native venue symbol.                      |
-| `asset_class`     | `AssetClass`       | `AssetClass`       | Required         | Asset class of the outcome market.        |
-| `currency`        | `Currency`         | `Currency`         | Required         | Quote and settlement currency.            |
-| `activation_ns`   | `UnixNanos`        | `int`              | Required         | Contract activation timestamp.            |
-| `expiration_ns`   | `UnixNanos`        | `int`              | Required         | Contract expiration timestamp.            |
-| `price_precision` | `u8`               | `int`              | Required         | Decimal places allowed for prices.        |
-| `size_precision`  | `u8`               | `int`              | Required         | Decimal places allowed for order sizes.   |
-| `price_increment` | `Price`            | `Price`            | Required         | Smallest valid price step.                |
-| `size_increment`  | `Quantity`         | `Quantity`         | Required         | Smallest valid size step.                 |
-| `event_id`        | `Option<Ustr>`     | `str \| None`      | `None`           | Venue-scoped parent event identifier.     |
-| `outcome`         | `Option<Ustr>`     | `str \| None`      | `None`           | Outcome label when the venue provides it. |
-| `description`     | `Option<Ustr>`     | `str \| None`      | `None`           | Human-readable market description.        |
-| `max_quantity`    | `Option<Quantity>` | `Quantity \| None` | `None`           | Maximum order quantity.                   |
-| `min_quantity`    | `Option<Quantity>` | `Quantity \| None` | `None`           | Minimum order quantity.                   |
-| `max_notional`    | `Option<Money>`    | `Money \| None`    | `None`           | Maximum order notional value.             |
-| `min_notional`    | `Option<Money>`    | `Money \| None`    | `None`           | Minimum order notional value.             |
-| `max_price`       | `Option<Price>`    | `Price \| None`    | `None`           | Maximum valid quote or order price.       |
-| `min_price`       | `Option<Price>`    | `Price \| None`    | `None`           | Minimum valid quote or order price.       |
-| `margin_init`     | `Option<Decimal>`  | `Decimal \| None`  | `0`              | Initial margin rate.                      |
-| `margin_maint`    | `Option<Decimal>`  | `Decimal \| None`  | `0`              | Maintenance margin rate.                  |
-| `tick_scheme`     | `Option<Ustr>`     | `str \| None`      | `None`           | Registered variable tick scheme name.     |
-| `info`            | `Option<Params>`   | `dict \| None`     | `None`           | Adapter metadata.                         |
-| `ts_event`        | `UnixNanos`        | `int`              | Required         | Event timestamp in nanoseconds.           |
-| `ts_init`         | `UnixNanos`        | `int`              | Required         | Initialization timestamp in nanoseconds.  |
+| `instrument_id`   | `InstrumentId`     | `InstrumentId`     | 必填             | 在 Rust 中存储为 `id`。                   |
+| `raw_symbol`      | `Symbol`           | `Symbol`           | 必填             | 交易场所原生符号。                        |
+| `asset_class`     | `AssetClass`       | `AssetClass`       | 必填             | 结果市场的资产类别。                      |
+| `currency`        | `Currency`         | `Currency`         | 必填             | 计价与结算货币。                          |
+| `activation_ns`   | `UnixNanos`        | `int`              | 必填             | 合约激活时间戳。                          |
+| `expiration_ns`   | `UnixNanos`        | `int`              | 必填             | 合约到期时间戳。                          |
+| `price_precision` | `u8`               | `int`              | 必填             | 价格允许的小数位数。                      |
+| `size_precision`  | `u8`               | `int`              | 必填             | 订单数量允许的小数位数。                  |
+| `price_increment` | `Price`            | `Price`            | 必填             | 最小有效价格步长。                        |
+| `size_increment`  | `Quantity`         | `Quantity`         | 必填             | 最小有效数量步长。                        |
+| `event_id`        | `Option<Ustr>`     | `str \| None`      | `None`           | 交易场所范围内的父事件标识符。            |
+| `outcome`         | `Option<Ustr>`     | `str \| None`      | `None`           | 交易场所提供时的结果标签。                |
+| `description`     | `Option<Ustr>`     | `str \| None`      | `None`           | 人类可读的市场描述。                      |
+| `max_quantity`    | `Option<Quantity>` | `Quantity \| None` | `None`           | 最大下单数量。                            |
+| `min_quantity`    | `Option<Quantity>` | `Quantity \| None` | `None`           | 最小下单数量。                            |
+| `max_notional`    | `Option<Money>`    | `Money \| None`    | `None`           | 最大下单名义价值。                        |
+| `min_notional`    | `Option<Money>`    | `Money \| None`    | `None`           | 最小下单名义价值。                        |
+| `max_price`       | `Option<Price>`    | `Price \| None`    | `None`           | 最大有效报价或订单价格。                  |
+| `min_price`       | `Option<Price>`    | `Price \| None`    | `None`           | 最小有效报价或订单价格。                  |
+| `margin_init`     | `Option<Decimal>`  | `Decimal \| None`  | `0`              | 初始保证金率。                            |
+| `margin_maint`    | `Option<Decimal>`  | `Decimal \| None`  | `0`              | 维持保证金率。                            |
+| `tick_scheme`     | `Option<Ustr>`     | `str \| None`      | `None`           | 已注册的可变 tick 方案名称。              |
+| `info`            | `Option<Params>`   | `dict \| None`     | `None`           | 适配器元数据。                            |
+| `ts_event`        | `UnixNanos`        | `int`              | 必填             | 纳秒级事件时间戳。                        |
+| `ts_init`         | `UnixNanos`        | `int`              | 必填             | 纳秒级初始化时间戳。                      |
 
-**Note**: Python constructors use `instrument_id`. Rust stores the same value as `id`.
+**注意**：Python 构造函数使用 `instrument_id`，Rust 将同一值存储为 `id`。
 
-## Behavior
+## 行为 {#behavior}
 
-- `BinaryOption` has instrument class `BinaryOption`.
-- It is never inverse and uses a multiplier and lot size of one.
-- Many venues quote binary outcomes between zero and one, but the venue defines the
-  allowed price range and tick size.
-- `outcome` and `description` provide human-readable context for the contract.
-- `event_id` identifies the event containing the instrument's market, scoped to its venue.
-- Instruments sharing an `event_id` belong to the same event. That does not imply shared
-  collateral, mutually exclusive outcomes, or identical settlement rules.
+- `BinaryOption` 的工具类别为 `BinaryOption`。
+- 它永远不是反向合约，乘数和每手规模均为 1。
+- 许多交易场所对二元结果的报价介于 0 和 1 之间，但允许的价格范围和 tick 大小由交易场所定义。
+- `outcome` 和 `description` 为合约提供人类可读的上下文。
+- `event_id` 标识包含该工具市场的父事件，作用范围限于其交易场所。
+- 共享同一 `event_id` 的工具属于同一事件。这并不意味着共享抵押品、结果互斥或结算规则相同。
 
-## Example
+## 示例 {#example}
 
 ```rust tab="Rust"
 use jiff::Timestamp;
@@ -124,15 +121,15 @@ yes_outcome = BinaryOption(
 )
 ```
 
-## Adapters
+## 适配器 {#adapters}
 
-**Adapters that create or consume `BinaryOption` instruments include**:
+**创建或使用 `BinaryOption` 金融工具的适配器包括**：
 
-- [Hyperliquid](./../../integrations/hyperliquid.md) for binary and prediction-style markets.
-- [OKX](./../../integrations/okx.md) for venue-defined binary outcome products.
-- [Polymarket](./../../integrations/polymarket.md) for prediction market outcomes.
+- [Hyperliquid](./../../integrations/hyperliquid.md)，用于二元和预测类市场。
+- [OKX](./../../integrations/okx.md)，用于交易场所定义的二元结果产品。
+- [Polymarket](./../../integrations/polymarket.md)，用于预测市场结果。
 
-## Related guides
+## 相关指南 {#related-guides}
 
-- [Order Book](./../order_book.md) covers binary market order book behavior.
-- [Data](./../data/index.md) explains market data that references instruments.
+- [订单簿](./../order_book.md)介绍二元市场的订单簿行为。
+- [数据](./../data/index.md)讲解引用金融工具的行情数据。

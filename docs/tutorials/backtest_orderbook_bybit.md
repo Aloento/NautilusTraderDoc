@@ -1,23 +1,19 @@
-# Backtest with Order Book Depth Data (Bybit)
+# 使用订单簿深度数据回测（Bybit） {#backtest-with-order-book-depth-data-bybit}
 
-Replay Bybit `ob500` order book deltas through `BacktestNode` and run the
-`OrderBookImbalance` strategy. Same shape as the
-[Binance variant](https://github.com/nautechsystems/nautilus_trader/blob/develop/docs/tutorials/backtest_orderbook_binance.py),
-different loader and different instrument.
+通过 `BacktestNode` 回放 Bybit `ob500` 订单簿增量，运行 `OrderBookImbalance` 策略。整体结构与
+[Binance 版本](https://github.com/nautechsystems/nautilus_trader/blob/develop/docs/tutorials/backtest_orderbook_binance.py)
+相同，只是加载器和金融工具不同。
 
-[View source on GitHub](https://github.com/nautechsystems/nautilus_trader/blob/develop/docs/tutorials/backtest_orderbook_bybit.py).
+[在 GitHub 上查看源码](https://github.com/nautechsystems/nautilus_trader/blob/develop/docs/tutorials/backtest_orderbook_bybit.py).
 
-## Introduction
+## 简介 {#introduction}
 
-Bybit publishes a single per-symbol L2 deltas archive at depth 500. The
-tutorial reads the daily ZIP into a DataFrame. The strategy is the same
-`OrderBookImbalance` as in the Binance tutorial: when the smaller side of
-the BBO drops below
-`trigger_imbalance_ratio` of the larger, fire a single FOK limit order
-against the thinner side: a buy at the best ask when bids are larger,
-otherwise a sell at the best bid.
+Bybit 为每个合约发布单个深度为 500 的 L2 增量归档。教程把每日 ZIP 读入 DataFrame。策略与
+Binance 教程中的 `OrderBookImbalance` 相同：当 BBO 较薄一侧低于较大一侧的
+`trigger_imbalance_ratio` 时，朝较薄一侧发出单笔 FOK 限价单：买盘更大时以最优卖价买入，
+否则以最优买价卖出。
 
-`OrderBookImbalance` is a teaching strategy and has no edge.
+`OrderBookImbalance` 是教学策略，没有优势（edge）。
 
 ```mermaid
 flowchart LR
@@ -46,24 +42,22 @@ flowchart LR
     D -->|no| SELL
 ```
 
-## Prerequisites
+## 前置条件 {#prerequisites}
 
 - Python 3.13+
-- [NautilusTrader](https://pypi.org/project/nautilus_trader/) 2.x installed
-  (`pip install -U --pre nautilus_trader`)
-- pandas (`pip install pandas`). The wheel declares no runtime dependencies.
-- The sibling
+- 已安装 [NautilusTrader](https://pypi.org/project/nautilus_trader/) 2.x
+  （`pip install -U --pre nautilus_trader`）
+- pandas（`pip install pandas`）。wheel 包本身不声明任何运行时依赖。
+- 同级目录的
   [`orderbook_data.py`](https://github.com/nautechsystems/nautilus_trader/blob/develop/docs/tutorials/orderbook_data.py)
-  and
+  和
   [`orderbook_imbalance.py`](https://github.com/nautechsystems/nautilus_trader/blob/develop/docs/tutorials/orderbook_imbalance.py)
-  files. Keep them next to this tutorial when downloading or converting it
-  with Jupytext.
-- Optionally, a daily Bybit `ob500` ZIP, e.g.
+  文件。下载或用 Jupytext 转换时，把它们和本教程放在一起。
+- 可选：一份 Bybit 每日 `ob500` ZIP，例如从 Bybit 数据 CDN 下载的
   [`2024-12-01_XRPUSDT_ob500.data.zip`](https://quote-saver.bycsi.com/orderbook/linear/XRPUSDT/2024-12-01_XRPUSDT_ob500.data.zip)
-  (~377 MB) from Bybit's data CDN. Without one the tutorial falls back to a
-  50-message sample of that archive from the NautilusTrader test data,
-  downloaded from GitHub on first run outside a source checkout. The sample
-  runs end to end over a few seconds of the book.
+  （约 377 MB）。没有该文件时，教程回退到 NautilusTrader 测试数据中该归档的
+  50 条消息样本；非源码检出环境下首次运行会从 GitHub 下载。样本会完整跑通，
+  只覆盖订单簿的几秒钟。
 
 ```python
 import os
@@ -106,11 +100,10 @@ from orderbook_data import (
 )
 ```
 
-## Loading data
+## 加载数据 {#loading-data}
 
-Place the daily archive under `NAUTILUS_DATA_DIR/Bybit/` (default
-`~/Downloads/Data/Bybit/`) to replay a full day. The tutorial otherwise reads
-the test data sample.
+要回放完整一天，把每日归档放到 `NAUTILUS_DATA_DIR/Bybit/`（默认
+`~/Downloads/Data/Bybit/`）。否则教程读取测试数据样本。
 
 ```python
 DATA_DIR = Path(os.environ.get("NAUTILUS_DATA_DIR", "~/Downloads/Data")).expanduser() / "Bybit"
@@ -131,7 +124,7 @@ df_raw = load_bybit_order_book_deltas(path_update, nrows=nrows)
 df_raw.head()
 ```
 
-### Build current model objects
+### 构建当前版本的模型对象 {#build-current-model-objects}
 
 ```python
 XRPUSDT_BYBIT = CryptoPerpetual(
@@ -154,10 +147,9 @@ deltas.sort(key=lambda x: x.ts_init)
 deltas[:10]
 ```
 
-### Set up the data catalog
+### 搭建数据目录 {#set-up-the-data-catalog}
 
-The tutorial writes the catalog to `catalog/` under the working directory
-and replaces that directory on each run.
+教程把目录写到工作目录下的 `catalog/`，每次运行都会替换该目录。
 
 ```python
 CATALOG_PATH = Path.cwd() / "catalog"
@@ -190,7 +182,7 @@ print(len(deltas))
 deltas[:10]
 ```
 
-## Configure the backtest
+## 配置回测 {#configure-the-backtest}
 
 ```python
 instrument = catalog.instruments()[0]
@@ -242,7 +234,7 @@ config = BacktestRunConfig(
 config
 ```
 
-## Run the backtest
+## 运行回测 {#run-the-backtest}
 
 ```python
 node = BacktestNode(configs=[config])
@@ -268,45 +260,39 @@ node.generate_positions_report(config.id)
 node.generate_account_report(config.id, venue=Venue("BYBIT"))
 ```
 
-## What the run produces
+## 运行结果 {#what-the-run-produces}
 
-The figures below come from a full-day `ob500` archive. The test data sample
-replays 3,967 deltas and fires 2 of these orders.
+下面的图来自一整天的 `ob500` 归档。测试数据样本回放 3,967 条增量，触发其中 2 笔订单。
 
-The Bybit `ob500` archive sometimes starts a minute before the file's
-nominal date, so the first trades land just before midnight UTC and the
-rest inside the file's day. With a 1M delta cap, the active window is
-roughly the first minute. The strategy fires 43 FOK orders during that
-window.
+Bybit 的 `ob500` 归档有时会从文件标称日期的前一分钟开始，因此最早的交易落在 UTC
+午夜前不久，其余的落在文件当天之内。1M 增量上限下，活跃窗口大约是第一分钟。策略在该
+窗口内触发 43 笔 FOK 订单。
 
 ![Top of book during the active minute with FOK fills](./assets/backtest_orderbook_bybit/panel_a_top_book.png)
 
-**Figure 1.** *XRPUSDT mid, best bid, and best ask during the trigger
-window. Triangles are entries (up = long, down = short), crosses are
-closing fills.*
+**图 1.** *触发窗口内的 XRPUSDT 中间价、最优买价与最优卖价。三角形是入场（上为多头，
+下为空头），叉号是平仓成交。*
 
 ![Imbalance ratio distribution](./assets/backtest_orderbook_bybit/panel_b_imbalance_dist.png)
 
-**Figure 2.** *`smaller / larger` BBO size ratio across all sampled
-top-of-book snapshots, with the 0.20 trigger threshold marked.*
+**图 2.** *全部采样的最优报价快照上的 `smaller / larger` BBO 挂单量比值分布，
+标出 0.20 触发阈值。*
 
 ![Top of book size and mid](./assets/backtest_orderbook_bybit/panel_c_size_landscape.png)
 
-**Figure 3.** *Mid price (top) and best bid/ask size in XRP (bottom)
-across the active window.*
+**图 3.** *活跃窗口内的中间价（上）与最优买卖量（XRP，下）。*
 
 ![Net XRP position trajectory](./assets/backtest_orderbook_bybit/panel_d_position.png)
 
-**Figure 4.** *Cumulative signed XRP position across the FOK fill
-sequence. Each marker is a fill: blue is a buy, orange is a sell.*
+**图 4.** *FOK 成交序列上带符号的累计 XRP 持仓。每个标记是一笔成交：蓝色为买入，
+橙色为卖出。*
 
-### Regenerate the panels
+### 重新生成图表面板 {#regenerate-the-panels}
 
-A self-contained renderer re-runs the backtest with a sampling actor that
-captures top of book once per second, then writes PNG panels to the asset
-directory using the shared `nautilus_dark` tearsheet theme.
+一个自包含的渲染器会重跑回测，附带一个每秒采样一次最优报价的 sampling actor，
+然后使用共享的 `nautilus_dark` tearsheet 主题把 PNG 面板写到资源目录。
 
-After building NautilusTrader from source, run these commands from the repository root:
+从源码构建 NautilusTrader 后，在仓库根目录运行：
 
 ```bash
 make sync

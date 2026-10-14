@@ -1,25 +1,23 @@
 # MarkPriceUpdate
 
-`MarkPriceUpdate` represents an instrument's mark price. Derivatives venues commonly use mark
-prices for margining, liquidation checks, and unrealized PnL calculations.
+`MarkPriceUpdate` 表示金融工具的标记价格。衍生品交易场所通常用标记价格计算保证金、检查强平并计算未实现盈亏。
 
-## Fields
+## 字段 {#fields}
 
-| Field           | Rust type      | Python type    | Required/default | Notes                                    |
+| 字段            | Rust 类型      | Python 类型    | 必填/默认值 | 说明                                    |
 | --------------- | -------------- | -------------- | ---------------- | ---------------------------------------- |
-| `instrument_id` | `InstrumentId` | `InstrumentId` | Required         | Instrument for the mark price.           |
-| `value`         | `Price`        | `Price`        | Required         | Current mark price.                      |
-| `ts_event`      | `UnixNanos`    | `int`          | Required         | Event timestamp in nanoseconds.          |
-| `ts_init`       | `UnixNanos`    | `int`          | Required         | Initialization timestamp in nanoseconds. |
+| `instrument_id` | `InstrumentId` | `InstrumentId` | 必填         | 标记价格对应的金融工具。           |
+| `value`         | `Price`        | `Price`        | 必填         | 当前标记价格。                      |
+| `ts_event`      | `UnixNanos`    | `int`          | 必填         | 事件时间戳（纳秒）。          |
+| `ts_init`       | `UnixNanos`    | `int`          | 必填         | 初始化时间戳（纳秒）。 |
 
-## Behavior
+## 行为 {#behavior}
 
-- Mark prices are cached by instrument when received.
-- Backtests can feed mark prices to align margin and PnL behavior with venues that
-  publish reference prices separately from trades.
-- The catalog stores mark prices with instrument ID and price precision metadata.
+- 收到标记价格后按金融工具缓存。
+- 回测可喂入标记价格，使保证金与盈亏行为对齐那些将参考价与成交分开发布的交易场所。
+- 数据目录存储标记价格时附带工具 ID 与价格精度元数据。
 
-## Example
+## 示例 {#example}
 
 ```rust tab="Rust"
 use nautilus_core::UnixNanos;
@@ -50,8 +48,8 @@ mark = MarkPriceUpdate(
 )
 ```
 
-## Related guides
+## 相关指南 {#related-guides}
 
-- [IndexPriceUpdate](./index_price_update.md) covers the index reference price.
-- [FundingRateUpdate](./funding_rate_update.md) covers perpetual funding metadata.
-- [Python API reference](https://nautilustrader.io/docs/python-api-latest/model/data.html) lists Python members.
+- [IndexPriceUpdate](./index_price_update.md) 介绍指数参考价。
+- [FundingRateUpdate](./funding_rate_update.md) 介绍永续资金费元数据。
+- [Python API 参考](https://nautilustrader.io/docs/python-api-latest/model/data.html) 列出 Python 成员。

@@ -1,152 +1,102 @@
 # Python
 
-NautilusTrader provides a Python control surface over the Rust core through PyO3. This guide explains which
-runtime owns each part of the system and where Python code executes. It also identifies the Python interfaces
-that form the supported public contract.
+NautilusTrader 通过 PyO3 在 Rust 核心之上提供 Python 控制面。本指南说明系统的各个部分由哪个运行时负责，以及 Python 代码在哪里执行，并指出哪些 Python 接口构成受支持的公共契约。
 
-For native Rust applications, see [Rust](./rust.md). For installation and supported Python versions,
-see [Installation](./../getting_started/installation.md).
+原生 Rust 应用请参阅 [Rust](./rust.md)。安装方式与支持的 Python 版本见 [Installation](./../getting_started/installation.md)。
 
-## Runtime model
+## 运行时模型 {#runtime-model}
 
-The Python package combines Python facades under `nautilus_trader` with the compiled
-`nautilus_trader._libnautilus` extension. Prebuilt wheels contain the extension and do not require a
-Rust toolchain at runtime.
+Python 包将 `nautilus_trader` 下的 Python 门面（facade）与编译好的 `nautilus_trader._libnautilus` 扩展组合在一起。预编译的 wheel 已包含该扩展，运行时无需 Rust 工具链。
 
-| Layer              | Responsibility                                                                                 |
-| ------------------ | ---------------------------------------------------------------------------------------------- |
-| Python application | Configuration, composition, user components, analysis, and integration with Python services.   |
-| PyO3 bindings      | Type conversion, argument validation, exceptions, and ownership-safe wrappers over Rust state. |
-| Rust core          | Domain types, engines, nodes, cache, portfolio, message bus, adapters, and persistence.        |
+| 层级               | 职责                                                                                     |
+| ------------------ | ---------------------------------------------------------------------------------------- |
+| Python 应用        | 配置、组装、用户组件、分析，以及与 Python 服务的集成。                                   |
+| PyO3 绑定          | 类型转换、参数校验、异常处理，以及 Rust 状态的防所有权问题包装。                         |
+| Rust 核心          | 领域类型、引擎、节点、缓存、投资组合、消息总线、适配器和持久化。                         |
 
-Python objects such as `Cache` and `Portfolio` are wrappers over Rust-owned state. Nodes and engines
-keep their internal runtime objects private and expose bounded inspection and control methods. This
-preserves one source of state while allowing Python code to configure the system and inspect its
-results.
+`Cache`、`Portfolio` 等 Python 对象是 Rust 所有状态的包装。节点和引擎将内部运行时对象保持私有，只暴露有限的检查与控制方法。这样既保证状态只有一个来源，又允许 Python 代码配置系统并检查结果。
 
-## User components
+## 用户组件 {#user-components}
 
-Python user components subclass the public PyO3 base classes and override their documented
-callbacks:
+Python 用户组件继承公共 PyO3 基类，并重写其文档化的回调：
 
-| Component            | Use                                                                           |
-| -------------------- | ----------------------------------------------------------------------------- |
-| `DataActor`          | Subscribe to data, handle events, and run non-trading workflows.              |
-| `Strategy`           | Implement trading decisions and submit orders.                                |
-| `ExecutionAlgorithm` | Split or schedule routed orders through the execution engine.                 |
-| `Controller`         | Create and manage actors and strategies through `ImportableControllerConfig`. |
+| 组件                 | 用途                                                                        |
+| -------------------- | --------------------------------------------------------------------------- |
+| `DataActor`          | 订阅数据、处理事件、运行非交易工作流。                                      |
+| `Strategy`           | 实现交易决策并提交订单。                                                    |
+| `ExecutionAlgorithm` | 通过执行引擎拆分或调度已路由的订单。                                        |
+| `Controller`         | 通过 `ImportableControllerConfig` 创建并管理 actor 和策略。                 |
 
-Application code constructs configs, registers official adapter factories, and adds components to
-`BacktestNode`, `BacktestEngine`, or `LiveNode`. Rust stays responsible for routing, engine state, order
-management, accounting, and venue clients.
+应用代码构造配置、注册官方适配器工厂，并把组件加入 `BacktestNode`、`BacktestEngine` 或 `LiveNode`。路由、引擎状态、订单管理、核算和场所客户端仍由 Rust 负责。
 
-Callbacks execute **synchronously** on the event-processing thread and must return promptly.
-Blocking I/O, model inference, or long calculations delay market-data handling and order execution.
-Offload that work to an executor or another process. See
-[Configure a live trading node](./../how_to/configure_live_trading.md) for the live-trading rule.
+回调在事件处理线程上**同步**执行，必须尽快返回。阻塞 I/O、模型推理或长时计算会拖慢行情数据处理和订单执行。这类工作应卸载到 executor 或其他进程。实时交易的规则见
+[配置实时交易节点](./../how_to/configure_live_trading.md)。
 
-## Async execution
+## 异步执行 {#async-execution}
 
-Rust adapter networking runs on Tokio. Python async libraries run on an asyncio event loop. PyO3 does not turn
-Python coroutines into Tokio tasks.
+Rust 适配器的网络请求运行在 Tokio 上。Python 异步库运行在 asyncio 事件循环上。PyO3 不会把 Python 协程变成 Tokio 任务。
 
-`LiveNode` supports two execution modes:
+`LiveNode` 支持两种执行模式：
 
-| Method        | Execution context        | Signal owner     | Completion                                                  |
-| ------------- | ------------------------ | ---------------- | ----------------------------------------------------------- |
-| `run()`       | Calling thread, blocking | `LiveNode`       | Returns after coordinated shutdown finishes.                |
-| `run_async()` | Python host loop         | Host application | Resolves after the same coordinated shutdown path finishes. |
+| 方法          | 执行上下文               | 信号归属     | 完成条件                                                    |
+| ------------- | ------------------------ | ------------ | ----------------------------------------------------------- |
+| `run()`       | 调用线程，阻塞           | `LiveNode`   | 协调关闭（coordinated shutdown）结束后返回。                |
+| `run_async()` | Python 宿主事件循环      | 宿主应用     | 同一协调关闭路径结束后 resolve。                            |
 
-`run_async()` lets an asyncio or ASGI application host the node on its existing loop. It drives the same Rust
-lifecycle as `run()` and leaves `SIGINT` and `SIGTERM` handling to the host.
+`run_async()` 让 asyncio 或 ASGI 应用在现有事件循环上托管节点。它驱动与 `run()` 相同的 Rust 生命周期，并把 `SIGINT` 和 `SIGTERM` 的处理留给宿主。
 
-Compatibility is tested with the default asyncio loop, uvloop, and an ASGI lifespan managed by Uvicorn. The
-Python wheel does not install uvloop or Uvicorn. Applications supply their chosen loop and server. An ASGI
-application whose lifespan constructs a node must run with one worker and without hot reload.
+兼容性已用默认 asyncio 事件循环、uvloop 以及由 Uvicorn 管理的 ASGI lifespan 测试过。Python wheel 不安装 uvloop 或 Uvicorn，应用需自带所选的事件循环和服务器。若 ASGI 应用的 lifespan 会构造节点，必须以单 worker 运行且禁用热重载。
 
-For a hosted run:
+托管运行的步骤：
 
-1. Capture `node.cache`, `node.portfolio`, and `node.handle()` before starting `run_async()`. The coroutine
-   owns the node until it finishes, while the captured objects stay usable.
-1. Wait for the handle to report `Running` before reporting startup complete. Supervise the run task for its
-   lifetime, and fail the service if the task completes unexpectedly.
-1. Stop through `LiveNodeHandle.stop()`, then await the run task for complete shutdown. Cancellation requests
-   the same graceful shutdown before it propagates.
-1. Call `node.dispose()` after the task finishes to release the node's resources.
+1. 在启动 `run_async()` 之前保存 `node.cache`、`node.portfolio` 和 `node.handle()`。协程在结束前持有节点的所有权，而保存下来的对象仍可使用。
+1. 等 handle 报告 `Running` 后再宣告启动完成。任务存活期间持续监督该运行任务，任务意外结束时将服务置为失败。
+1. 通过 `LiveNodeHandle.stop()` 停止，然后 await 运行任务以完成关闭。取消请求会先触发同样的优雅关闭，再向外传播。
+1. 任务结束后调用 `node.dispose()`，释放节点资源。
 
-See [Hosted event loops](./live.md#hosted-event-loops) for the lifecycle, cancellation, fairness, and
-cache-backing contract.
+生命周期、取消、公平性和缓存支撑（cache-backing）契约见 [托管事件循环](./live.md#hosted-event-loops)。
 
-## Public API contract
+## 公共 API 契约 {#public-api-contract}
 
-The generated type stubs under `python/nautilus_trader/` define the supported Rust-bound Python surface. They
-record public classes, methods, properties, parameters, and return types from the Rust binding
-sources. The [Python API reference](./../api_reference/index.md) renders the same public modules and
-their documentation.
+`python/nautilus_trader/` 下生成的类型存根（type stub）定义了受支持的、绑定 Rust 的 Python 接口面。它们记录了 Rust 绑定源码中的公共类、方法、属性、参数和返回类型。[Python API 参考](./../api_reference/index.md) 渲染的是同一批公共模块及其文档。
 
-A runtime attribute on a Rust-bound class absent from the generated stubs is not part of the supported contract.
-The documented Python client, provider, and importable-config classes also form a public interface. PyO3
-validates bound arguments before Rust code runs and maps fallible operations to Python exceptions.
-Code should handle the documented exception type instead of depending on an internal Rust error
-representation.
+若 Rust 绑定类上存在某个运行时属性，但生成的存根中没有，该属性不属于受支持的契约。文档化的 Python 客户端、提供商（provider）和可导入配置类同样构成公共接口。PyO3 在 Rust 代码运行前校验绑定参数，并把可失败操作映射为 Python 异常。代码应处理文档中说明的异常类型，而不是依赖 Rust 内部错误表示。
 
-Generated stubs are source-derived artifacts. Binding changes update the Rust source and regenerate the stubs.
-The checked-in `.pyi` files are not independent API definitions.
+生成的存根是源码派生产物。绑定变更应修改 Rust 源码并重新生成存根，签入的 `.pyi` 文件不是独立的 API 定义。
 
-:::warning[Side enum compatibility aliases]
-`OrderSide.NO_ORDER_SIDE` and `PositionSide.NO_POSITION_SIDE` stay available as compatibility aliases for
-`None`. They are not enum members and may be removed in a future version. Use `None` for optional side values.
+:::warning[Side 枚举兼容别名]
+`OrderSide.NO_ORDER_SIDE` 和 `PositionSide.NO_POSITION_SIDE` 仍作为 `None` 的兼容别名保留。它们不是枚举成员，未来版本可能移除。可选的方向值请使用 `None`。
 :::
 
-## Ownership and lifecycle
+## 所有权与生命周期 {#ownership-and-lifecycle}
 
-Rust ownership stays visible at node boundaries:
+节点边界处仍能看到 Rust 的所有权语义：
 
-- `BacktestNode` keeps its engines internal. Preserve an engine after a run with
-  `dispose_on_completion=False`, then inspect it through the node's cache, portfolio, statistics,
-  and report methods.
-- `LiveNode.run_async()` lends the node to its coroutine. State access through the node raises during the run,
-  while `is_running` and `handle()` stay available. A `dispose()` call during the run is a no-op, not a
-  deferred request. Call it again after the run finishes. Objects captured before the run stay available until
-  then.
-- Concurrent `LiveNode` or `BacktestNode` instances in one process are not supported because their runtime
-  state is not isolated. Dispose one node before starting the next, or use separate processes for parallel
-  execution. Before constructing a replacement `LiveNode` on the same thread, also release all references to
-  the previous node. With a single reference, use `del node` before the next build. Reassigning the variable
-  constructs the replacement before releasing the old node.
+- `BacktestNode` 将引擎保持为内部对象。要在运行后保留引擎，设置 `dispose_on_completion=False`，再通过节点的缓存、投资组合、统计和报告方法检查它。
+- `LiveNode.run_async()` 把节点出借给其协程。运行期间通过节点访问状态会抛异常，但 `is_running` 和 `handle()` 仍可用。运行期间调用 `dispose()` 是空操作，不是延迟请求；运行结束后需再次调用。运行前保存的对象在那之前保持可用。
+- 同一进程内并发运行多个 `LiveNode` 或 `BacktestNode` 实例不受支持，因为它们的运行时状态没有隔离。先 dispose 一个节点再启动下一个，或使用多个进程并行执行。在同一线程上构造替代的 `LiveNode` 之前，还要释放对旧节点的全部引用。只有一个引用时，在下一次构建前执行 `del node`。直接给变量重新赋值会先构造新节点、后释放旧节点。
 
-These boundaries prevent Python references from exposing mutable engine internals or creating
-multiple owners for the same runtime state.
+这些边界防止 Python 引用暴露可变的引擎内部状态，或为同一份运行时状态制造多个所有者。
 
-## Support boundaries
+## 支持边界 {#support-boundaries}
 
-Official adapters are implemented in Rust and exposed through Python configs, factories, clients,
-and data types under `nautilus_trader.adapters`. Their integration guides define the supported venue
-capabilities.
+官方适配器以 Rust 实现，并通过 `nautilus_trader.adapters` 下的 Python 配置、工厂、客户端和数据类型暴露。各自的集成指南定义了受支持的场所能力。
 
-Custom live adapters subclass the Python client bases and register through `LiveNodeBuilder` or
-`LiveNode.build`. Their async work runs on the node's bound Python event loop. They receive a read-only cache
-view and emit typed data, events, and reports through queued output.
+自定义实时适配器继承 Python 客户端基类，并通过 `LiveNodeBuilder` 或 `LiveNode.build` 注册。其异步工作在节点绑定的 Python 事件循环上运行，拿到的是只读缓存视图，并通过队列输出发送类型化数据、事件和报告。
 
-Independent Rust/PyO3 packages can use the same Python protocol with model objects from the installed wheel.
-See the [Python adapter interface](./../developer_guide/python_adapters.md) for the supported hooks,
-factory/config contract, lifecycle rules, and v1 migration limits.
+独立的 Rust/PyO3 包可以使用同一套 Python 协议，配合已安装 wheel 中的模型对象。受支持的钩子、工厂/配置契约、生命周期规则和 v1 迁移限制见 [Python 适配器接口](./../developer_guide/python_adapters.md)。
 
-## Choosing Python or Rust
+## 选择 Python 还是 Rust {#choosing-python-or-rust}
 
-Use Python when application composition, rapid strategy development, analysis tools, or integration
-with the Python ecosystem matters. Use Rust when the application must run without a Python runtime
-or needs native traits and direct crate-level control.
+看重应用组装、策略快速开发、分析工具或与 Python 生态集成时，用 Python。应用必须在没有 Python 运行时的情况下运行，或需要原生 trait 和 crate 级的直接控制时，用 Rust。
 
-Both paths use the same Rust domain model and engines. The
-[Rust capability matrix](./rust.md#capability-matrix) shows which components and official adapters
-are exposed through each path.
+两条路径使用同一套 Rust 领域模型和引擎。[Rust 能力矩阵](./rust.md#capability-matrix) 列出各组件和官方适配器分别通过哪条路径暴露。
 
-## Related guides
+## 相关指南 {#related-guides}
 
-- [Architecture](./architecture.md) - Core components, threading, and dependency flow.
-- [Rust](./rust.md) - Native Rust APIs and runtime use.
-- [Live trading](./live.md) - LiveNode lifecycle and hosted event loops.
-- [Backtesting](./backtesting/index.md) - Backtest engines, nodes, data, and venues.
-- [Adapters](./adapters.md) - Official adapter configuration and routing.
-- [Migration from v1](https://github.com/nautechsystems/nautilus_trader/blob/develop/MIGRATION_V2.md) - Python API changes and migration boundaries.
+- [架构](./architecture.md) - 核心组件、线程与依赖流。
+- [Rust](./rust.md) - 原生 Rust API 与运行时用法。
+- [实时交易](./live.md) - LiveNode 生命周期与托管事件循环。
+- [回测](./backtesting/index.md) - 回测引擎、节点、数据与交易场所。
+- [适配器](./adapters.md) - 官方适配器配置与路由。
+- [Migration from v1](https://github.com/nautechsystems/nautilus_trader/blob/develop/MIGRATION_V2.md) - Python API 变更与迁移边界。

@@ -1,49 +1,47 @@
 # Commodity
 
-`Commodity` represents a spot commodity market such as gold, silver, oil, or another
-physical asset quoted in a currency. It models a spot market, not a dated futures
-contract.
+`Commodity` 表示以货币计价的现货商品市场，如黄金、白银、原油或其他实物资产。它建模的是
+现货市场，不是有到期日的期货合约。
 
-Examples include `XAUUSD.IDEALPRO` and venue-specific commodity cash symbols.
+典型例子包括 `XAUUSD.IDEALPRO` 和交易场所特定的商品现货符号。
 
-## Fields
+## 字段 {#fields}
 
-| Field             | Rust type          | Python type        | Required/default | Notes                                    |
+| 字段              | Rust 类型          | Python 类型        | 必填/默认值    | 说明                                     |
 | ----------------- | ------------------ | ------------------ | ---------------- | ---------------------------------------- |
-| `instrument_id`   | `InstrumentId`     | `InstrumentId`     | Required         | Stored as `id` in Rust.                  |
-| `raw_symbol`      | `Symbol`           | `Symbol`           | Required         | Native venue symbol.                     |
-| `asset_class`     | `AssetClass`       | `AssetClass`       | Required         | Commodity asset classification.          |
-| `quote_currency`  | `Currency`         | `Currency`         | Required         | Currency used to price the commodity.    |
-| `price_precision` | `u8`               | `int`              | Required         | Decimal places allowed for prices.       |
-| `size_precision`  | `u8`               | `int`              | Required         | Decimal places allowed for order sizes.  |
-| `price_increment` | `Price`            | `Price`            | Required         | Smallest valid price step.               |
-| `size_increment`  | `Quantity`         | `Quantity`         | Required         | Smallest valid size step.                |
-| `ts_event`        | `UnixNanos`        | `int`              | Required         | Event timestamp in nanoseconds.          |
-| `ts_init`         | `UnixNanos`        | `int`              | Required         | Initialization timestamp in nanoseconds. |
-| `lot_size`        | `Option<Quantity>` | `Quantity \| None` | `None`           | Rounded lot or board size.               |
-| `max_quantity`    | `Option<Quantity>` | `Quantity \| None` | `None`           | Maximum order quantity.                  |
-| `min_quantity`    | `Option<Quantity>` | `Quantity \| None` | `None`           | Minimum order quantity.                  |
-| `max_notional`    | `Option<Money>`    | `Money \| None`    | `None`           | Maximum order notional value.            |
-| `min_notional`    | `Option<Money>`    | `Money \| None`    | `None`           | Minimum order notional value.            |
-| `max_price`       | `Option<Price>`    | `Price \| None`    | `None`           | Maximum valid quote or order price.      |
-| `min_price`       | `Option<Price>`    | `Price \| None`    | `None`           | Minimum valid quote or order price.      |
-| `margin_init`     | `Option<Decimal>`  | `Decimal \| None`  | `0`              | Initial margin rate.                     |
-| `margin_maint`    | `Option<Decimal>`  | `Decimal \| None`  | `0`              | Maintenance margin rate.                 |
-| `tick_scheme`     | `Option<Ustr>`     | `str \| None`      | `None`           | Registered variable tick scheme name.    |
-| `info`            | `Option<Params>`   | `dict \| None`     | `None`           | Adapter metadata.                        |
+| `instrument_id`   | `InstrumentId`     | `InstrumentId`     | 必填             | 在 Rust 中存储为 `id`。                  |
+| `raw_symbol`      | `Symbol`           | `Symbol`           | 必填             | 交易场所原生符号。                        |
+| `asset_class`     | `AssetClass`       | `AssetClass`       | 必填             | 商品的资产类别。                          |
+| `quote_currency`  | `Currency`         | `Currency`         | 必填             | 为商品计价的货币。                        |
+| `price_precision` | `u8`               | `int`              | 必填             | 价格允许的小数位数。                      |
+| `size_precision`  | `u8`               | `int`              | 必填             | 订单数量允许的小数位数。                  |
+| `price_increment` | `Price`            | `Price`            | 必填             | 最小有效价格步长。                        |
+| `size_increment`  | `Quantity`         | `Quantity`         | 必填             | 最小有效数量步长。                        |
+| `ts_event`        | `UnixNanos`        | `int`              | 必填             | 纳秒级事件时间戳。                        |
+| `ts_init`         | `UnixNanos`        | `int`              | 必填             | 纳秒级初始化时间戳。                      |
+| `lot_size`        | `Option<Quantity>` | `Quantity \| None` | `None`           | 整手或每手规模。                          |
+| `max_quantity`    | `Option<Quantity>` | `Quantity \| None` | `None`           | 最大下单数量。                            |
+| `min_quantity`    | `Option<Quantity>` | `Quantity \| None` | `None`           | 最小下单数量。                            |
+| `max_notional`    | `Option<Money>`    | `Money \| None`    | `None`           | 最大下单名义价值。                        |
+| `min_notional`    | `Option<Money>`    | `Money \| None`    | `None`           | 最小下单名义价值。                        |
+| `max_price`       | `Option<Price>`    | `Price \| None`    | `None`           | 最大有效报价或订单价格。                  |
+| `min_price`       | `Option<Price>`    | `Price \| None`    | `None`           | 最小有效报价或订单价格。                  |
+| `margin_init`     | `Option<Decimal>`  | `Decimal \| None`  | `0`              | 初始保证金率。                            |
+| `margin_maint`    | `Option<Decimal>`  | `Decimal \| None`  | `0`              | 维持保证金率。                            |
+| `tick_scheme`     | `Option<Ustr>`     | `str \| None`      | `None`           | 已注册的可变 tick 方案名称。              |
+| `info`            | `Option<Params>`   | `dict \| None`     | `None`           | 适配器元数据。                            |
 
-**Note**: Python constructors use `instrument_id`. Rust stores the same value as `id`.
+**注意**：Python 构造函数使用 `instrument_id`，Rust 将同一值存储为 `id`。
 
-## Behavior
+## 行为 {#behavior}
 
-- `Commodity` has instrument class `Spot`.
-- It allows negative prices: spot markets such as electricity or oil can trade below zero. The `RiskEngine`
-  accepts negative prices on both order submission and modification.
-- It is never inverse, and its cost currency is the quote currency.
-- It has no activation timestamp, expiry, strike, option kind, or settlement currency field.
-- Use `FuturesContract` for dated exchange-traded commodity futures.
+- `Commodity` 的工具类别为 `Spot`。
+- 它允许负价格：电力、原油等现货市场可能跌破零。`RiskEngine` 在订单提交和修改时都接受负价格。
+- 它永远不是反向合约，成本货币即计价货币。
+- 没有激活时间戳、到期时间、行权价、期权类型或结算货币字段。
+- 有到期日的交易所商品期货请使用 `FuturesContract`。
 
-## Example
+## 示例 {#example}
 
 ```rust tab="Rust"
 use nautilus_core::UnixNanos;
@@ -94,12 +92,12 @@ gold = Commodity(
 )
 ```
 
-## Adapters
+## 适配器 {#adapters}
 
-The [Interactive Brokers](./../../integrations/interactive_brokers.md) adapter creates or consumes
-`Commodity` instruments for spot commodity and metal contracts.
+[Interactive Brokers](./../../integrations/interactive_brokers.md) 适配器为现货商品和金属合约
+创建或使用 `Commodity` 金融工具。
 
-## Related guides
+## 相关指南 {#related-guides}
 
-- [Futures Contract](./futures_contract.md) covers dated futures on commodity underlyings.
-- [Data](./../data/index.md) explains market data that references instruments.
+- [Futures Contract](./futures_contract.md)介绍以商品为标的、有到期日的期货。
+- [数据](./../data/index.md)讲解引用金融工具的行情数据。

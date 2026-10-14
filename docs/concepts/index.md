@@ -1,171 +1,143 @@
-# Concepts
+# 核心概念 {#concepts}
 
-These guides explain the core components, architecture, and design of NautilusTrader.
+这些指南介绍 NautilusTrader 的核心组件、架构与设计。
 
-## Overview
+## 概览 {#overview}
 
-Main features and intended use cases for the platform.
+平台的主要特性和预期使用场景。
 
-## Architecture
+## 架构 {#architecture}
 
-[Architecture](./architecture.md) describes the components, runtime boundaries, and data flows.
+[架构](./architecture.md) 介绍组件、运行时边界和数据流。
 
-## Actors
+## Actor {#actors}
 
-The `DataActor` is the base component for interacting with the trading system.
-Covers capabilities and implementation details.
+`DataActor` 是与交易系统交互的基础组件，涵盖其能力和实现细节。
 
-## Strategies
+## 策略 {#strategies}
 
-How to implement trading strategies using the `Strategy` component.
+如何使用 `Strategy` 组件实现交易策略。
 
-## Instruments
+## 金融工具 {#instruments}
 
-Instrument definitions for tradable assets and contracts.
+可交易资产与合约的金融工具定义。
 
-## Synthetics
+## 合成工具 {#synthetics}
 
-User-defined instruments whose prices are computed by evaluating a numeric expression over component instrument prices.
+用户自定义的金融工具，其价格通过对成分工具价格求值一个数值表达式计算得出。
 
-## Continuous Futures
+## 连续期货 {#continuous-futures}
 
-Consecutive futures contracts form one adjusted bar series through an explicit roll table. The guide covers
-the four adjustment modes, request and subscription flow, and the mid-bar roll boundary policy.
+通过显式的展期表（roll table），将连续的期货合约拼接为一条调整后的 bar 序列。指南涵盖四种调整模式、请求与订阅流程，以及 bar 中间的展期边界策略。
 
-## Value Types
+## 值类型 {#value-types}
 
-The immutable numeric types (`Price`, `Quantity`, `Money`) used throughout the platform,
-including their arithmetic behavior, precision handling, and type-specific constraints.
+平台各处使用的不可变数值类型（`Price`、`Quantity`、`Money`），包括其算术行为、精度处理和类型特定的约束。
 
-## Data
+## 数据 {#data}
 
-Built-in data types for the trading domain, and how to work with custom data.
+交易领域的内置数据类型，以及如何处理自定义数据。
 
-## Events
+## 事件 {#events}
 
-The event types that drive the system: order events, position events, account
-events, and time events. Covers handler dispatch, the causal chain from order
-fills to position events, and tracing orders to positions.
+驱动系统的事件类型：订单事件、持仓事件、账户事件和时间事件。涵盖 handler 分发、从订单成交到持仓事件的因果链，以及订单到持仓的追踪。
 
-## Event Sourcing
+## 事件溯源 {#event-sourcing}
 
-The durable event-store log for state-affecting messages, including capture boundaries,
-correlation headers, replay modes, recovery anchors, and verifier behavior.
+面向影响状态的消息的持久事件存储日志，包括捕获边界、关联头部（correlation headers）、回放模式、恢复锚点和校验器行为。
 
-## Options
+## 期权 {#options}
 
-Option instrument types, venue-provided Greeks streaming, option chain subscriptions
-with strike range filtering, and snapshot aggregation.
+期权工具类型、交易场所提供的 Greeks 数据流、带行权价区间过滤的期权链订阅，以及快照聚合。
 
-## Greeks
+## Greeks {#greeks}
 
-Option Greeks (delta, gamma, vega, theta) from two paths: venue-provided real-time Greeks through the
-Rust/PyO3 `OptionGreeks` type and local Black-Scholes computation through `GreeksCalculator`. Local
-computation supports shock scenarios, beta weighting, and portfolio aggregation.
+期权 Greeks（delta、gamma、vega、theta）来自两条路径：经由 Rust/PyO3 的 `OptionGreeks` 类型获取交易场所提供的实时 Greeks，以及通过 `GreeksCalculator` 在本地做 Black-Scholes 计算。本地计算支持冲击情景、beta 加权和组合聚合。
 
-## Custom Data
+## 自定义数据 {#custom-data}
 
-How the custom data system works across Python and Rust: registration, persistence,
-Arrow encoding, and runtime routing through actors and strategies.
+自定义数据系统在 Python 和 Rust 中的工作方式：注册、持久化、Arrow 编码，以及经由 actor 和策略的运行时路由。
 
-## Order Book
+## 订单簿 {#order-book}
 
-The high-performance order book, own order tracking, filtered views for net liquidity, and binary market support.
+高性能订单簿、自有订单追踪、用于净流动性的过滤视图，以及二元市场支持。
 
-## Execution
+## 执行 {#execution}
 
-Trade execution and order management across multiple strategies and venues simultaneously (per
-instance), including component and message flow, venue-boundary policies, execution algorithms,
-and reconciliation.
+跨多个策略和交易场所的同时交易执行与订单管理（按实例），包括组件与消息流、场所边界策略、执行算法和对账。
 
-## Orders
+## 订单 {#orders}
 
-Available order types, supported execution instructions, advanced order types, and emulated orders.
+可用的订单类型、支持的执行指令、高级订单类型和模拟订单（emulated orders）。
 
-## Positions
+## 持仓 {#positions}
 
-Position lifecycle, aggregation from order fills, PnL calculations, and position snapshotting
-for netting OMS configurations.
+持仓生命周期、由订单成交聚合持仓、PnL 计算，以及用于净额结算 OMS 配置的持仓快照。
 
-## Cache
+## 缓存 {#cache}
 
-The `Cache` is the central in-memory store for all trading-related data.
-Covers capabilities and best practices.
+`Cache` 是所有交易相关数据的中央内存存储，涵盖能力和最佳实践。
 
-## Message Bus
+## 消息总线 {#message-bus}
 
-The `MessageBus` enables decoupled messaging between components, supporting point-to-point,
-publish/subscribe, and request/response patterns.
+`MessageBus` 实现组件间的解耦消息传递，支持点对点、发布/订阅和请求/响应模式。
 
-## Accounting
+## 账户核算 {#accounting}
 
-Account types (cash, margin, betting, and wallet), the `AccountBalance` and `MarginBalance` data model, and
-per-instrument versus account-wide margin scopes. The guide also covers the strategy query API, built-in
-margin models, and the adapter convention across live venues.
+账户类型（现金、保证金、博彩、钱包），`AccountBalance` 与 `MarginBalance` 数据模型，以及按工具与全账户两种保证金范围。指南还介绍策略查询 API、内置保证金模型，以及各实时交易场所适配器的约定。
 
-## Portfolio
+## 投资组合 {#portfolio}
 
-The `Portfolio` tracks all positions across strategies and instruments, providing a unified view
-of holdings, risk exposure, and performance.
+`Portfolio` 跟踪所有策略和工具的持仓，提供持仓、风险暴露和绩效的统一视图。
 
-## Reports
+## 报告 {#reports}
 
-Execution reports, portfolio analysis, PnL accounting, and backtest post-run analysis.
+执行报告、投资组合分析、PnL 核算，以及回测结束后分析。
 
-## Logging
+## 日志 {#logging}
 
-High-performance logging for both backtesting and live trading, implemented in Rust.
+以 Rust 实现的高性能日志，回测与实时交易均可用。
 
-## Backtesting
+## 回测 {#backtesting}
 
-Backtest APIs, data and venue setup, execution sequencing, fill simulation,
-accounts, funding, and margin configuration.
+回测 API、数据与交易场所设置、执行时序、成交模拟、账户、资金和保证金配置。
 
-## Behavioral Models
+## 行为模型 {#behavioral-models}
 
-[Behavioral Models](./behavioral_models.md) explains how Rust and Python model implementations enter
-the runtime.
+[行为模型](./behavioral_models.md) 说明 Rust 和 Python 的模型实现如何进入运行时。
 
-## Visualization
+## 可视化 {#visualization}
 
-Interactive tearsheets for analyzing backtest results, including charts, themes, customization options, and
-custom visualizations through the extensible chart registry.
+用于分析回测结果的交互式 tearsheet，包括图表、主题、自定义选项，以及通过可扩展图表注册表实现的自定义可视化。
 
-## Configuration
+## 配置 {#configuration}
 
-How config structs work across Python and Rust: default resolution, the `T` vs `Option<T>`
-convention, builder patterns, and common fields shared across adapters and engines.
+配置结构体在 Python 和 Rust 中的工作方式：默认值解析、`T` 与 `Option<T>` 约定、builder 模式，以及适配器和引擎共用的常见字段。
 
-## Live Trading
+## 实时交易 {#live-trading}
 
-Running the same strategy and execution-algorithm code in live markets while accounting for venue,
-transport, timing, persistence, external-activity, and reconciliation behavior.
+在真实市场运行同一份策略与执行算法代码，同时处理交易场所、传输、时序、持久化、外部活动和对账行为。
 
-## Adapters
+## 适配器 {#adapters}
 
-Requirements and best practices for developing integration adapters for data providers and trading venues.
+为数据提供商和交易场所开发集成适配器的要求与最佳实践。
 
-## Networking
+## 网络 {#networking}
 
-Architecture, reliability policy, and performance characteristics for the shared HTTP, WebSocket,
-and raw TCP socket clients.
+共享的 HTTP、WebSocket 和原生 TCP socket 客户端的架构、可靠性策略与性能特征。
 
-## Rust
+## Rust {#rust}
 
-Writing actors, strategies, and running backtests and live trading in pure Rust
-using the `crates/` implementation directly.
+直接使用 `crates/` 实现，以纯 Rust 编写 actor、策略，并运行回测和实时交易。
 
-## Python
+## Python {#python}
 
-Python application composition and user components running on the Rust core through PyO3,
-including ownership, async execution, and public API boundaries.
+Python 应用的组装方式，以及用户组件如何通过 PyO3 运行在 Rust 核心之上，包括所有权、异步执行和公共 API 边界。
 
-## DST
+## DST {#dst}
 
-Deterministic simulation testing (DST): the contract for seed-replayable execution and the source-level seams
-that implement it. The guide also covers the pre-commit hook that enforces the contract and the known scope
-boundaries.
+确定性模拟测试（DST，deterministic simulation testing）：可按种子重放的执行契约，以及实现该契约的源码级接缝（seam）。指南还介绍强制执行该契约的 pre-commit 钩子和已知的范围边界。
 
 :::note
-If these guides and the API reference disagree, the API reference is correct.
+若这些指南与 API 参考有出入，以 API 参考为准。
 :::

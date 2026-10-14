@@ -1,58 +1,48 @@
-# Delta-Neutral Options Strategy (Bybit)
+# Delta 中性期权策略（Bybit） {#deltaneutral-options-strategy-bybit}
 
 :::note
-This **Rust-only** tutorial runs a live delta-neutral
-short-volatility strategy on Bybit using the Rust `LiveNode`.
+本教程**仅用 Rust**，通过 Rust `LiveNode` 在 Bybit 上实时运行 delta 中性的卖出波动率
+策略。
 :::
 
-This tutorial runs a short out-of-the-money (OTM) strangle on Bybit BTC options and delta-hedges with the
-BTCUSDT perpetual. The strategy selects call and put strikes at startup and enters through implied-volatility
-limit orders. It tracks portfolio delta from venue-provided Greeks. When delta moves beyond a threshold, it
-submits market hedge orders on the perpetual.
+本教程在 Bybit BTC 期权上卖出虚值（OTM）宽跨式组合（strangle），并用 BTCUSDT 永续合约
+做 delta 对冲。策略启动时选好 call 和 put 的行权价，通过隐含波动率限价单入场，依据交易
+场所提供的 Greeks 跟踪组合 delta。delta 超出阈值后，在永续合约上提交市价对冲单。
 
 :::warning
-This strategy trades real money on mainnet. Setting `enter_strangle: false`
-only disables the initial strangle entry orders.
-The strategy still loads existing positions from the cache at startup.
-It still submits hedge orders on the perpetual when portfolio delta breaches the threshold.
-If the account holds option or hedge positions from a prior
-session, the strategy will trade.
+该策略在主网上交易真实资金。设 `enter_strangle: false`
+只禁用初始的宽跨式入场订单。
+策略启动时仍会从缓存加载已有持仓，
+组合 delta 越过阈值时仍会在永续合约上提交对冲订单。
+若账户中还留有上一轮会话的期权或对冲仓位，策略就会交易。
 :::
 
-## Prerequisites
+## 前置条件 {#prerequisites}
 
-- Completion of the [options data tutorial](./options_data_bybit.md), which
-  covers instrument discovery, Greeks subscriptions, and the `DataActor`
-  pattern.
-- A Bybit API key with **trading permissions** for options and linear
-  perpetuals.
-- Environment variables for Bybit mainnet, which the example targets by
-  default (see [Running the example](#running-the-example) for testnet):
+- 已完成[期权数据教程](./options_data_bybit.md)，该教程讲解金融工具发现、Greeks
+  订阅和 `DataActor` 模式。
+- 一个带期权与线性永续**交易权限**的 Bybit API key。
+- Bybit 主网的环境变量。示例默认面向主网（testnet 见[运行示例](#running-the-example)）：
 
 ```bash
 export BYBIT_API_KEY="your-api-key"
 export BYBIT_API_SECRET="your-api-secret"
 ```
 
-## Strategy overview
+## 策略概览 {#strategy-overview}
 
-The `DeltaNeutralVol` strategy ships in the trading crate's `examples`
-module and runs in five stages:
+`DeltaNeutralVol` 策略位于 trading crate 的 `examples` 模块，运行分五个阶段：
 
-1. **Strike selection**: queries the instrument cache for all BTC
-   options, filters to the nearest expiry, selects OTM call and put
-   strikes by percentile rank.
-1. **Entry**: places SELL limit orders on both legs priced by implied
-   volatility (through Bybit's `order_iv` parameter). Entry is optional and
-   disabled by default in the example.
-1. **Greeks tracking**: subscribes to `OptionGreeks` for both legs.
-   Deltas and IVs come directly from Bybit's option ticker stream.
-1. **Rehedging**: calculates portfolio delta and submits a market order on
-   the BTCUSDT perpetual when the threshold is breached. Triggers on
-   every Greeks update and on a periodic safety timer.
-1. **Position tracking**: tracks call, put, and hedge positions through
-   `on_order_filled`. Loads existing positions from the cache at
-   startup.
+1. **选择行权价**：从金融工具缓存查询所有 BTC 期权，过滤到最近到期日，按百分位
+   排名选出虚值 call 和 put 的行权价。
+1. **入场**：两条腿各挂一笔 SELL 限价单，价格由隐含波动率决定（通过 Bybit 的
+   `order_iv` 参数）。入场是可选的，示例中默认关闭。
+1. **Greeks 跟踪**：订阅两条腿的 `OptionGreeks`。
+   delta 与 IV 直接来自 Bybit 的期权行情流。
+1. **再对冲**：计算组合 delta，超过阈值时在 BTCUSDT 永续上提交市价单。每次
+   Greeks 更新以及周期性安全定时器都会触发检查。
+1. **持仓跟踪**：通过 `on_order_filled` 跟踪 call、put 和对冲持仓。
+   启动时从缓存加载已有持仓。
 
 ```mermaid
 flowchart LR
@@ -87,9 +77,9 @@ flowchart LR
     OF --> PD
 ```
 
-### Portfolio delta
+### 组合 delta {#portfolio-delta}
 
-The strategy calculates net exposure as:
+策略按下式计算净敞口：
 
 ```text
 portfolio_delta = call_delta * call_position
@@ -97,17 +87,15 @@ portfolio_delta = call_delta * call_position
                 + hedge_position
 ```
 
-A short strangle starts near delta-neutral because the call and put
-deltas offset. With the default `target_call_delta = 0.20` and
-`target_put_delta = -0.20`, the two legs cancel at entry. As the
-underlying moves, net delta drifts and the strategy hedges to bring it
-back toward zero.
+卖出宽跨式入场时接近 delta 中性，因为 call 与 put 的 delta 相互抵消。默认
+`target_call_delta = 0.20`、`target_put_delta = -0.20`，两条腿在入场时正好抵消。
+标的移动后净 delta 漂移，策略通过对冲把它拉回零附近。
 
-## Configuration
+## 配置 {#configuration}
 
-The example file at
+示例文件
 [`crates/adapters/bybit/examples/node_delta_neutral.rs`](https://github.com/nautechsystems/nautilus_trader/tree/develop/crates/adapters/bybit/examples/node_delta_neutral.rs)
-configures the strategy:
+的配置：
 
 ```rust
 let hedge_instrument_id = InstrumentId::from("BTCUSDT-LINEAR.BYBIT");
@@ -126,31 +114,29 @@ let strategy_config = DeltaNeutralVolConfig::builder()
 let strategy = DeltaNeutralVol::new(strategy_config);
 ```
 
-The table shows struct defaults and example overrides. The example overrides `enter_strangle` to `false` and
-`iv_param_key` to `"order_iv"`:
+下表列出结构体默认值与示例覆盖值。示例把 `enter_strangle` 覆盖为 `false`、
+`iv_param_key` 覆盖为 `"order_iv"`：
 
-| Parameter                 | Default    | Example          | Description                                 |
+| 参数                      | 默认值     | 示例             | 说明                                        |
 | ------------------------- | ---------- | ---------------- | ------------------------------------------- |
-| `option_family`           | required   | `"BTC"`          | Underlying filter for instrument discovery. |
-| `hedge_instrument_id`     | required   | `BTCUSDT-LINEAR` | Perpetual used for delta hedging.           |
-| `client_id`               | required   | `"BYBIT"`        | Data and execution client identifier.       |
-| `target_call_delta`       | `0.20`     | -                | Target call delta for strike selection.     |
-| `target_put_delta`        | `-0.20`    | -                | Target put delta for strike selection.      |
-| `contracts`               | `1`        | -                | Contracts per leg.                          |
-| `rehedge_delta_threshold` | `0.5`      | -                | Portfolio delta that triggers a hedge.      |
-| `rehedge_interval_secs`   | `30`       | -                | Periodic rehedge timer interval.            |
-| `enter_strangle`          | `true`     | `false`          | Place entry orders when Greeks arrive.      |
-| `entry_iv_offset`         | `0.0`      | -                | Vol points below mark IV for entry pricing. |
-| `iv_param_key`            | `"px_vol"` | `"order_iv"`     | Adapter-specific IV parameter key.          |
+| `option_family`           | 必填       | `"BTC"`          | 金融工具发现的标的过滤。                    |
+| `hedge_instrument_id`     | 必填       | `BTCUSDT-LINEAR` | 用于 delta 对冲的永续合约。                 |
+| `client_id`               | 必填       | `"BYBIT"`        | 数据与执行客户端标识。                      |
+| `target_call_delta`       | `0.20`     | -                | 选行权价时的目标 call delta。               |
+| `target_put_delta`        | `-0.20`    | -                | 选行权价时的目标 put delta。                |
+| `contracts`               | `1`        | -                | 每条腿的合约数。                            |
+| `rehedge_delta_threshold` | `0.5`      | -                | 触发对冲的组合 delta。                      |
+| `rehedge_interval_secs`   | `30`       | -                | 周期性再对冲定时器间隔。                    |
+| `enter_strangle`          | `true`     | `false`          | Greeks 到达后是否挂入场单。                 |
+| `entry_iv_offset`         | `0.0`      | -                | 入场定价相对标记 IV 下调的波动点数。        |
+| `iv_param_key`            | `"px_vol"` | `"order_iv"`     | 适配器专属的 IV 参数键。                    |
 
-The `iv_param_key` differs between venues. Bybit uses `order_iv`, which the adapter maps to the `orderIv`
-field in the place-order API. OKX uses `px_vol`. For IV-based order placement, set the correct key for the
-venue.
+`iv_param_key` 各交易场所不同。Bybit 用 `order_iv`，适配器把它映射到下单 API 的
+`orderIv` 字段；OKX 用 `px_vol`。按 IV 下单时必须为交易场所设置正确的键。
 
-## Node setup
+## 节点设置 {#node-setup}
 
-The example configures both data and execution clients with `Option` and
-`Linear` product types:
+示例为数据与执行客户端都配置 `Option` 和 `Linear` 产品类型：
 
 ```rust
 let data_config = BybitDataClientConfig {
@@ -169,9 +155,8 @@ let exec_config = BybitExecutionClientConfig {
 };
 ```
 
-Both product types are needed: `Option` for the strangle legs, `Linear`
-for the BTCUSDT perpetual hedge instrument. The execution client requires
-`account_id` for order identity tracking.
+两种产品类型都不可少：`Option` 用于宽跨式的两条腿，`Linear` 用于 BTCUSDT 永续对冲
+工具。执行客户端需要 `account_id` 来跟踪订单身份。
 
 ```rust
 let mut node = LiveNode::builder(trader_id, environment)?
@@ -186,33 +171,30 @@ node.add_strategy(strategy)?;
 node.run().await?;
 ```
 
-At startup, `with_reconciliation(true)` queries Bybit for open orders and positions. Reconciliation loads the
-cache before the strategy starts. The strategy then loads any existing positions from a prior session.
+启动时 `with_reconciliation(true)` 会向 Bybit 查询未结订单与持仓，在对账把缓存加载
+完成后策略才启动，随后从缓存载入上一轮会话遗留的持仓。
 
-## How the strategy works
+## 策略工作原理 {#how-the-strategy-works}
 
-### Strike selection
+### 选择行权价 {#strike-selection}
 
-At startup, the strategy queries the cache for all option instruments that match `option_family`. It removes
-expired options and selects the nearest expiry. It separates calls and puts, then sorts each list by strike
-price.
+启动时策略从缓存查询所有匹配 `option_family` 的期权工具，剔除已到期合约，取最近
+到期日。再把 call 和 put 分开，各按行权价排序。
 
-The strategy selects strikes by percentile in the sorted list:
+在排好序的列表上按百分位选择行权价：
 
-- **Call**: index = `(1.0 - target_call_delta) * count`. With 0.20
-  target delta and 50 calls, this selects the 40th strike (80th
-  percentile, OTM).
-- **Put**: index = `|target_put_delta| * count`. With -0.20 target
-  delta, this selects the 10th strike (20th percentile, OTM).
+- **Call**：index = `(1.0 - target_call_delta) * count`。目标 delta 0.20、
+  50 个 call 时，选中第 40 个行权价（第 80 百分位，虚值）。
+- **Put**：index = `|target_put_delta| * count`。目标 delta -0.20 时，
+  选中第 10 个行权价（第 20 百分位，虚值）。
 
-This is a heuristic. Strike price ordering approximates delta ordering
-for options at the same expiry. A production strategy would subscribe
-to Greeks for all strikes first, then select by actual delta.
+这是一个启发式方法。同一到期日的期权，行权价排序近似于 delta 排序。生产级策略会
+先订阅全部行权价的 Greeks，再按真实 delta 选择。
 
-### Entry via implied volatility
+### 按隐含波动率入场 {#entry-via-implied-volatility}
 
-When `enter_strangle` is `true` and both mark IVs have arrived, the
-strategy places SELL limit orders using the `order_iv` parameter:
+`enter_strangle` 为 `true` 且两条腿的标记 IV 都已到达时，策略用 `order_iv`
+参数挂 SELL 限价单：
 
 ```rust
 let mut call_params = Params::new();
@@ -221,54 +203,50 @@ call_params.insert("order_iv".to_string(), json!(call_entry_iv.to_string()));
 self.submit_order(call_order, None, Some(client_id), Some(call_params))?;
 ```
 
-Bybit converts `orderIv` to a limit price on the server and gives it priority over any explicit price. The
-`entry_iv_offset` setting subtracts vol points from mark IV. An offset of 0.02 sells two vol points below mark
-for faster fills.
+Bybit 在服务端把 `orderIv` 换算成限价，并优先于任何显式价格。`entry_iv_offset`
+设置从标记 IV 中减去若干波动点。offset 为 0.02 时，按低于标记两个波动点卖出，
+更容易成交。
 
 :::note
-In Bybit's demo environment, new orders carry `order_iv` through the HTTP create-order endpoint.
-Demo does not support order amendments through `order_iv`.
-The adapter discards the modification with a warning before it reaches the API.
+在 Bybit 的 demo 环境中，新订单可以通过 HTTP 创建订单端点携带 `order_iv`。
+demo 不支持通过 `order_iv` 修改订单。适配器会在请求到达 API 前丢弃该修改并输出警告。
 :::
 
-### Rehedging
+### 再对冲 {#rehedging}
 
-Two triggers check portfolio delta:
+有两个触发点检查组合 delta：
 
-- **Greeks updates**: On each update, `on_option_greeks` updates the leg's delta value, then calculates portfolio delta again.
-- **Periodic timer**: checks every `rehedge_interval_secs`, including when Greeks updates stop.
+- **Greeks 更新**：每次更新时，`on_option_greeks` 先更新该腿的 delta 值，再重新计算组合 delta。
+- **周期定时器**：每 `rehedge_interval_secs` 检查一次，Greeks 更新中断时也会触发。
 
-When `|portfolio_delta| > rehedge_delta_threshold`, the strategy submits
-a market order on the hedge instrument. A `hedge_pending` flag prevents
-duplicate submissions while an order is in flight.
+当 `|portfolio_delta| > rehedge_delta_threshold` 时，策略在对冲工具上提交一笔市价
+单。`hedge_pending` 标志防止订单在途时重复提交。
 
-### Position tracking
+### 持仓跟踪 {#position-tracking}
 
-The strategy tracks positions through `on_order_filled`. It does not query the cache on every tick. Each fill
-updates the corresponding position counter (call, put, or hedge).
+策略通过 `on_order_filled` 跟踪持仓，不会每个 tick 查询缓存。每笔成交更新对应的
+持仓计数（call、put 或对冲）。
 
-At startup, the strategy loads the counters from the cache that reconciliation populates. For the selected
-call, selected put, and hedge instrument, it sums the signed quantity of every open position. It does not
-filter by strategy, so positions opened elsewhere on those instruments count. Option positions on other
-strikes do not count.
+启动时，策略从对账填充的缓存载入计数器：对选中的 call、选中的 put 和对冲工具，
+分别累加每个未平持仓的带符号数量。它不按策略过滤，因此这些工具上在别处开的仓位
+也会被计入；其他行权价的期权仓位不计入。
 
 :::warning
-Use an account with no unrelated positions on the hedge instrument.
-At startup, the strategy treats any open `BTCUSDT-LINEAR` position as part of the hedge.
-With no option positions, an unrelated perpetual position larger than `rehedge_delta_threshold` exceeds the threshold
-once Greeks arrive for both legs. The strategy then submits a market order to close that position.
+使用在对冲工具上没有无关仓位的账户。启动时策略会把任何未平的
+`BTCUSDT-LINEAR` 持仓当成对冲的一部分。若没有期权持仓，账户上一笔大于
+`rehedge_delta_threshold` 的无关永续仓位，在两条腿的 Greeks 到达后就会越过阈值，
+策略随即提交市价单把它平掉。
 :::
 
-### Shutdown
+### 停止 {#shutdown}
 
-On stop the strategy cancels open orders, unsubscribes from all data feeds, and resets the hedge-pending flag.
-It does not close positions. To close the strangle and hedge, use manual action or a separate exit strategy.
+停止时策略撤销未结订单、退订全部数据源并重置 hedge-pending 标志，但不平仓。要平掉
+宽跨式和对冲，需手工操作或另用出场策略。
 
-## What the run produces
+## 运行结果 {#what-the-run-produces}
 
-A 30-second mainnet run with `enter_strangle: false` against a clean
-account places no orders. The strategy logs the discovered instruments
-and the strike selection:
+在干净的账户上以 `enter_strangle: false` 在主网运行 30 秒不会下任何订单。策略
+记录发现的金融工具与行权价选择：
 
 ```text
 Selected call: BTC-28APR26-81000-C-USDT-OPTION.BYBIT (strike=81000)
@@ -276,39 +254,35 @@ Selected put: BTC-28APR26-75000-P-USDT-OPTION.BYBIT (strike=75000)
 Strangle: 1 contracts per leg, hedge on BTCUSDT-LINEAR.BYBIT
 ```
 
-The log shows instrument discovery and strike selection. The panels below show the mechanics around the actual
-selected strikes (75,000 / 81,000) at the captured underlying.
+日志展示的是金融工具发现与行权价选择。下面的面板图围绕实际选中的行权价
+（75,000 / 81,000）和捕获时的标的价格展示其机制。
 
 ![Short strangle payoff at expiry](./assets/delta_neutral_options_bybit/panel_a_strangle_payoff.png)
 
-**Figure 1.** *Pnl at expiry of the short 75,000 PUT plus short 81,000 CALL combination, assuming a 1,500 USDT
-total premium and zero discount. The flat top is the credit-only zone between strikes. Loss increases linearly
-past either strike.*
+**图 1.** *卖出 75,000 PUT 加卖出 81,000 CALL 组合到期的盈亏，假定总权利金 1,500
+USDT、零贴水。平坦顶部是两行权价之间只赚权利金的区间；越过任一行权价后亏损线性增长。*
 
 ![Synthetic delta drift with rehedge](./assets/delta_neutral_options_bybit/panel_c_hedge_threshold.png)
 
-**Figure 2.** *Synthetic Brownian delta drift over 150 seconds with `rehedge_delta_threshold=0.5`. The dotted
-curve is the unhedged drift. The line is the strategy's portfolio delta after each market hedge (crosses).*
+**图 2.** *`rehedge_delta_threshold=0.5` 时合成的布朗 delta 漂移，150 秒。虚线是
+未对冲的漂移；实线是每次市价对冲（叉号）后策略的组合 delta。*
 
 ![Portfolio delta drift around entry](./assets/delta_neutral_options_bybit/panel_b_delta_drift.png)
 
-**Figure 3.** *Illustrative short call and short put deltas across a 5% spot range around entry. The panel
-also shows the resulting portfolio delta before hedging. Negative gamma compresses the curve in the wings and
-steepens it across the strikes.*
+**图 3.** *示意性的空头 call 与空头 put delta，覆盖入场价上下 5% 的现货区间，并
+给出对冲前的组合 delta。负 gamma 使曲线在两翼变平、在行权价之间变陡。*
 
 ![Strike selection on the IV smile](./assets/delta_neutral_options_bybit/panel_d_strike_picker.png)
 
-**Figure 4.** *The strike-selection heuristic against an illustrative IV smile. The CALL strike is at the (1 -
-0.20) percentile and the PUT at the 0.20 percentile. Both legs are OTM with approximately equal-magnitude
-deltas around the underlying.*
+**图 4.** *行权价选择启发式叠加示意性的 IV 微笑曲线。CALL 行权价在 (1 - 0.20)
+百分位，PUT 在 0.20 百分位。两条腿都是虚值，delta 绝对值在标的附近大致相等。*
 
-### Regenerate the panels
+### 重新生成图表面板 {#regenerate-the-panels}
 
-The log comes from `bybit-delta-neutral`, the live trading binary. It connects to Bybit mainnet with your API
-keys. With the default config, it places no entry orders. It submits hedge orders if the account holds
-positions on the selected legs or the hedge instrument.
+日志来自实盘交易二进制 `bybit-delta-neutral`，用你的 API key 连接 Bybit 主网。
+默认配置不下入场订单；若账户在所选腿或对冲工具上有持仓，会提交对冲订单。
 
-After building NautilusTrader from source, run these commands from the repository root:
+从源码构建 NautilusTrader 后，在仓库根目录运行：
 
 ```bash
 make sync
@@ -321,60 +295,53 @@ DN_LOG=/tmp/bybit_dn.log \
         python docs/tutorials/assets/delta_neutral_options_bybit/render_panels.py
 ```
 
-The renderer parses selected strikes from the log. The panels are illustrative: the captured run uses a clean
-account and places no orders.
+渲染器从日志解析选中的行权价。面板图是示意性的：捕获该日志的运行使用干净账户，
+没有下单。
 
-## Risk considerations
+## 风险考量 {#risk-considerations}
 
-- **Gamma risk**: a short strangle has negative gamma. Large underlying
-  moves increase delta exposure faster than the rehedge timer responds.
-  Tighten `rehedge_delta_threshold` and reduce `rehedge_interval_secs`
-  for faster response, at the cost of more hedge trades.
-- **Vega risk**: an IV spike increases mark-to-market loss on the short
-  options. The strategy does not manage vega exposure.
-- **Liquidity**: OTM crypto options can have wide spreads. Hedge quality
-  degrades when the underlying gaps or the perpetual trades in coarse
-  size increments.
-- **Lifecycle risk**: stopping the strategy stops hedging. Positions
-  remain open and unhedged until manually managed.
+- **Gamma 风险**：卖出宽跨式 gamma 为负。标的大幅波动时，delta 敞口的增长快于
+  再对冲定时器的响应。收紧 `rehedge_delta_threshold`、缩短
+  `rehedge_interval_secs` 可以更快响应，代价是更多对冲交易。
+- **Vega 风险**：IV 飙升会加大空头期权的盯市亏损。策略不管理 vega 敞口。
+- **流动性**：虚值加密期权价差可能很宽。标的跳空或永续以较粗的数量步长成交时，
+  对冲质量会下降。
+- **生命周期风险**：策略停止就不再对冲。持仓保持未平且未对冲，直到人工处理。
 
-## Running the example
+## 运行示例 {#running-the-example}
 
 :::warning
-The example trades on Bybit **mainnet** by default. It has no network
-constant: both client configs use `..Default::default()`, which selects
-`BybitEnvironment::Mainnet` and reads `BYBIT_API_KEY` and
-`BYBIT_API_SECRET`. To run on testnet:
+示例默认在 Bybit **主网**交易。它没有网络常量：两个客户端配置都用
+`..Default::default()`，即选择 `BybitEnvironment::Mainnet` 并读取
+`BYBIT_API_KEY` 和 `BYBIT_API_SECRET`。要在 testnet 运行：
 
-1. Import `BybitEnvironment` from `nautilus_bybit::common::enums` in `node_delta_neutral.rs`.
-1. Add `environment: BybitEnvironment::Testnet` to both `data_config` and `exec_config`.
-1. Rebuild the example.
+1. 在 `node_delta_neutral.rs` 中从 `nautilus_bybit::common::enums` 导入
+   `BybitEnvironment`。
+1. 给 `data_config` 和 `exec_config` 都加上 `environment: BybitEnvironment::Testnet`。
+1. 重新构建示例。
 
-On testnet, the adapter reads `BYBIT_TESTNET_API_KEY` and `BYBIT_TESTNET_API_SECRET`.
+testnet 下适配器读取 `BYBIT_TESTNET_API_KEY` 和 `BYBIT_TESTNET_API_SECRET`。
 :::
 
 ```bash
 cargo run --example bybit-delta-neutral --package nautilus-bybit --features examples
 ```
 
-The example runs with `enter_strangle: false` by default, so it does not place strangle entry orders. It still
-loads existing positions and submits hedge orders if portfolio delta breaches the threshold. On a clean
-account with no prior positions, the strategy places no orders.
+示例默认 `enter_strangle: false`，不会挂宽跨式入场单，但仍会加载已有持仓，且
+组合 delta 越过阈值时仍会提交对冲订单。干净账户、无历史持仓时，策略不下任何订单。
 
-Stop with Ctrl+C. The strategy cancels open orders and unsubscribes
-before shutdown.
+Ctrl+C 停止。策略会先撤销未结订单并退订数据，然后关闭。
 
-## Complete source
+## 完整源码 {#complete-source}
 
-- Example runner: [`crates/adapters/bybit/examples/node_delta_neutral.rs`](https://github.com/nautechsystems/nautilus_trader/tree/develop/crates/adapters/bybit/examples/node_delta_neutral.rs)
-- Strategy implementation: [`crates/trading/src/examples/strategies/delta_neutral_vol/`](https://github.com/nautechsystems/nautilus_trader/tree/develop/crates/trading/src/examples/strategies/delta_neutral_vol/)
-- Strategy README with full config reference: [`crates/trading/src/examples/strategies/delta_neutral_vol/README.md`](https://github.com/nautechsystems/nautilus_trader/tree/develop/crates/trading/src/examples/strategies/delta_neutral_vol/README.md)
+- 示例运行器：[`crates/adapters/bybit/examples/node_delta_neutral.rs`](https://github.com/nautechsystems/nautilus_trader/tree/develop/crates/adapters/bybit/examples/node_delta_neutral.rs)
+- 策略实现：[`crates/trading/src/examples/strategies/delta_neutral_vol/`](https://github.com/nautechsystems/nautilus_trader/tree/develop/crates/trading/src/examples/strategies/delta_neutral_vol/)
+- 含完整配置参考的策略 README：[`crates/trading/src/examples/strategies/delta_neutral_vol/README.md`](https://github.com/nautechsystems/nautilus_trader/tree/develop/crates/trading/src/examples/strategies/delta_neutral_vol/README.md)
 
-## See also
+## 参见 {#see-also}
 
-- [Options data and Greeks on Bybit](./options_data_bybit.md): prerequisite
-  tutorial covering Greeks subscriptions and option chain snapshots.
-- [Options](./../concepts/options.md): option instrument types and data
-  architecture.
-- [Bybit integration](./../integrations/bybit.md#options-trading): options
-  order parameters including `order_iv` and `mmp`.
+- [Bybit 期权数据与 Greeks](./options_data_bybit.md)：前置教程，
+  讲解 Greeks 订阅与期权链快照。
+- [期权](./../concepts/options.md)：期权工具类型与数据架构。
+- [Bybit 集成](./../integrations/bybit.md#options-trading)：包含
+  `order_iv` 与 `mmp` 的期权订单参数。

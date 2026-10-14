@@ -1,37 +1,34 @@
 # PositionOpened
 
-`PositionOpened` records the opening snapshot of a new position. The `ExecutionEngine` emits it when
-a fill creates the position (see
-[From fill to position](./index.md#from-fill-to-position-the-causal-chain)). Handler:
-`on_position_opened`.
+`PositionOpened` 记录新持仓的开仓快照。`ExecutionEngine` 在成交创建持仓时发出它（参见
+[从成交到持仓](./index.md#from-fill-to-position-the-causal-chain)）。处理函数：
+`on_position_opened`。
 
-## Fields
+## 字段 {#fields}
 
-See [Position event fields](./index.md#position-event-fields) for the complete field matrix. `PositionOpened`
-contains the opening snapshot. Later events expose additional aggregate and lifecycle fields. Its main state
-fields are:
+完整字段矩阵见[持仓事件字段](./index.md#position-event-fields)。`PositionOpened`
+包含开仓快照；后续事件会暴露额外的汇总与生命周期字段。其主要状态字段：
 
-| Field          | Python type       | Description                                        |
+| 字段             | Python 类型       | 说明                                             |
 | -------------- | ----------------- | -------------------------------------------------- |
-| `entry`        | `OrderSide`       | The entry order side that opened the position.     |
-| `side`         | `PositionSide`    | The current position side (`LONG` or `SHORT`).     |
-| `signed_qty`   | `float`           | The signed position quantity.                      |
-| `quantity`     | `Quantity`        | The current open quantity.                         |
-| `last_qty`     | `Quantity`        | The quantity of the fill that opened the position. |
-| `last_px`      | `Price`           | The price of the fill that opened the position.    |
-| `currency`     | `Currency`        | The position quote currency.                       |
-| `avg_px_open`  | `float`           | The average open price.                            |
-| `realized_pnl` | `Money` or `None` | The current cycle's realized PnL in cost currency. |
+| `entry`        | `OrderSide`       | 开仓订单的方向。     |
+| `side`         | `PositionSide`    | 当前持仓方向（`LONG` 或 `SHORT`）。     |
+| `signed_qty`   | `float`           | 带符号持仓数量。                      |
+| `quantity`     | `Quantity`        | 当前持仓数量。                         |
+| `last_qty`     | `Quantity`        | 开仓成交的数量。 |
+| `last_px`      | `Price`           | 开仓成交的价格。    |
+| `currency`     | `Currency`        | 持仓的计价货币。                       |
+| `avg_px_open`  | `float`           | 平均开仓价。                            |
+| `realized_pnl` | `Money` 或 `None` | 当前周期的已实现盈亏（成本货币计）。 |
 
-At opening, realized PnL subtracts the opening fill's commission when that commission is denominated
-in the instrument's [cost currency](./../positions.md#currency-considerations). Otherwise, it is zero.
+开仓时，若开仓成交的手续费以该工具的[成本货币](./../positions.md#currency-considerations)计价，已实现盈亏会扣除这笔手续费，否则为零。
 
-A reopened `NETTING` position starts a new cycle. Realized PnL from the prior cycle stays in the
-[closed position snapshot](./../positions.md#position-snapshotting).
+`NETTING` 模式的持仓被重新开启时开始新周期。上一周期的已实现盈亏保留在
+[已平持仓快照](./../positions.md#position-snapshotting)中。
 
-## Example
+## 示例 {#example}
 
-Reading the event in a strategy handler:
+在策略处理函数中读取该事件：
 
 ```python
 def on_position_opened(self, event: PositionOpened) -> None:
@@ -40,8 +37,8 @@ def on_position_opened(self, event: PositionOpened) -> None:
     )
 ```
 
-## Related guides
+## 相关指南 {#related-guides}
 
-- [Events](./index.md) - Event categories, dispatch, and the fill-to-position chain.
-- [Positions](./../positions.md) - Position lifecycle, aggregation, and PnL.
-- [Orders](./../orders/index.md) - Orders whose fills open and close positions.
+- [事件](./index.md) - 事件类别、分发与成交到持仓的因果链。
+- [持仓](./../positions.md) - 持仓生命周期、聚合与盈亏。
+- [订单](./../orders/index.md) - 其成交开平仓的订单。

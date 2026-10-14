@@ -1,52 +1,51 @@
 # Option Contract
 
-`OptionContract` represents a listed put or call option on a non-crypto underlying. It
-defines the option kind, strike price, activation time, expiration time, currency,
-multiplier, and lot size.
+`OptionContract` 表示以非加密资产为标的的挂牌看跌或看涨期权。它定义期权类型、行权价、
+激活时间、到期时间、货币、乘数和每手规模。
 
-Examples include equity options, index options, and futures options.
+典型例子包括股票期权、指数期权和期货期权。
 
-## Fields
+## 字段 {#fields}
 
-| Field             | Rust type          | Python type        | Required/default | Notes                                    |
+| 字段              | Rust 类型          | Python 类型        | 必填/默认值    | 说明                                     |
 | ----------------- | ------------------ | ------------------ | ---------------- | ---------------------------------------- |
-| `instrument_id`   | `InstrumentId`     | `InstrumentId`     | Required         | Stored as `id` in Rust.                  |
-| `raw_symbol`      | `Symbol`           | `Symbol`           | Required         | Native venue symbol.                     |
-| `asset_class`     | `AssetClass`       | `AssetClass`       | Required         | Asset class of the underlying.           |
-| `exchange`        | `Option<Ustr>`     | `str \| None`      | `None`           | Exchange MIC or venue code when known.   |
-| `underlying`      | `Ustr`             | `str`              | Required         | Underlying asset, future, or index.      |
-| `option_kind`     | `OptionKind`       | `OptionKind`       | Required         | Put or call.                             |
-| `strike_price`    | `Price`            | `Price`            | Required         | Option strike price.                     |
-| `activation_ns`   | `UnixNanos`        | `int`              | Required         | Contract activation timestamp.           |
-| `expiration_ns`   | `UnixNanos`        | `int`              | Required         | Contract expiration timestamp.           |
-| `currency`        | `Currency`         | `Currency`         | Required         | Premium quote and settlement currency.   |
-| `price_precision` | `u8`               | `int`              | Required         | Decimal places allowed for prices.       |
-| `price_increment` | `Price`            | `Price`            | Required         | Smallest valid price step.               |
-| `size_precision`  | `u8`               | `int`              | Fixed `0`        | Options trade in whole contracts.        |
-| `size_increment`  | `Quantity`         | `Quantity`         | Fixed `1`        | Minimum contract size step.              |
-| `multiplier`      | `Quantity`         | `Quantity`         | Required         | Contract multiplier.                     |
-| `lot_size`        | `Quantity`         | `Quantity`         | Required         | Rounded lot or contract lot size.        |
-| `margin_init`     | `Option<Decimal>`  | `Decimal \| None`  | `0`              | Initial margin rate.                     |
-| `margin_maint`    | `Option<Decimal>`  | `Decimal \| None`  | `0`              | Maintenance margin rate.                 |
-| `max_quantity`    | `Option<Quantity>` | `Quantity \| None` | `None`           | Maximum order quantity.                  |
-| `min_quantity`    | `Option<Quantity>` | `Quantity \| None` | `1`              | Minimum order quantity.                  |
-| `max_price`       | `Option<Price>`    | `Price \| None`    | `None`           | Maximum valid quote or order price.      |
-| `min_price`       | `Option<Price>`    | `Price \| None`    | `None`           | Minimum valid quote or order price.      |
-| `tick_scheme`     | `Option<Ustr>`     | `str \| None`      | `None`           | Registered variable tick scheme name.    |
-| `info`            | `Option<Params>`   | `dict \| None`     | `None`           | Adapter metadata.                        |
-| `ts_event`        | `UnixNanos`        | `int`              | Required         | Event timestamp in nanoseconds.          |
-| `ts_init`         | `UnixNanos`        | `int`              | Required         | Initialization timestamp in nanoseconds. |
+| `instrument_id`   | `InstrumentId`     | `InstrumentId`     | 必填             | 在 Rust 中存储为 `id`。                  |
+| `raw_symbol`      | `Symbol`           | `Symbol`           | 必填             | 交易场所原生符号。                        |
+| `asset_class`     | `AssetClass`       | `AssetClass`       | 必填             | 标的资产的资产类别。                      |
+| `exchange`        | `Option<Ustr>`     | `str \| None`      | `None`           | 已知时的交易所 MIC 或场所代码。           |
+| `underlying`      | `Ustr`             | `str`              | 必填             | 标的资产、期货或指数。                    |
+| `option_kind`     | `OptionKind`       | `OptionKind`       | 必填             | 看跌或看涨。                              |
+| `strike_price`    | `Price`            | `Price`            | 必填             | 期权行权价。                              |
+| `activation_ns`   | `UnixNanos`        | `int`              | 必填             | 合约激活时间戳。                          |
+| `expiration_ns`   | `UnixNanos`        | `int`              | 必填             | 合约到期时间戳。                          |
+| `currency`        | `Currency`         | `Currency`         | 必填             | 权利金报价与结算货币。                    |
+| `price_precision` | `u8`               | `int`              | 必填             | 价格允许的小数位数。                      |
+| `price_increment` | `Price`            | `Price`            | 必填             | 最小有效价格步长。                        |
+| `size_precision`  | `u8`               | `int`              | 固定 `0`         | 期权以整数合约交易。                      |
+| `size_increment`  | `Quantity`         | `Quantity`         | 固定 `1`         | 最小合约数量步长。                        |
+| `multiplier`      | `Quantity`         | `Quantity`         | 必填             | 合约乘数。                                |
+| `lot_size`        | `Quantity`         | `Quantity`         | 必填             | 整手或每手合约规模。                      |
+| `margin_init`     | `Option<Decimal>`  | `Decimal \| None`  | `0`              | 初始保证金率。                            |
+| `margin_maint`    | `Option<Decimal>`  | `Decimal \| None`  | `0`              | 维持保证金率。                            |
+| `max_quantity`    | `Option<Quantity>` | `Quantity \| None` | `None`           | 最大下单数量。                            |
+| `min_quantity`    | `Option<Quantity>` | `Quantity \| None` | `1`              | 最小下单数量。                            |
+| `max_price`       | `Option<Price>`    | `Price \| None`    | `None`           | 最大有效报价或订单价格。                  |
+| `min_price`       | `Option<Price>`    | `Price \| None`    | `None`           | 最小有效报价或订单价格。                  |
+| `tick_scheme`     | `Option<Ustr>`     | `str \| None`      | `None`           | 已注册的可变 tick 方案名称。              |
+| `info`            | `Option<Params>`   | `dict \| None`     | `None`           | 适配器元数据。                            |
+| `ts_event`        | `UnixNanos`        | `int`              | 必填             | 纳秒级事件时间戳。                        |
+| `ts_init`         | `UnixNanos`        | `int`              | 必填             | 纳秒级初始化时间戳。                      |
 
-**Note**: Python constructors use `instrument_id`. Rust stores the same value as `id`.
+**注意**：Python 构造函数使用 `instrument_id`，Rust 将同一值存储为 `id`。
 
-## Behavior
+## 行为 {#behavior}
 
-- `OptionContract` has instrument class `Option`.
-- It trades in whole contracts with size precision `0` and size increment `1`.
-- The option kind and strike price define the payoff shape.
-- Use `CryptoOption` for options where the underlying and settlement are crypto currencies.
+- `OptionContract` 的工具类别为 `Option`。
+- 以整数合约交易，数量精度为 `0`，数量步长为 `1`。
+- 期权类型和行权价决定收益形态。
+- 标的和结算货币都是加密资产的期权，请使用 `CryptoOption`。
 
-## Example
+## 示例 {#example}
 
 ```rust tab="Rust"
 use jiff::Timestamp;
@@ -115,14 +114,14 @@ aapl_call = OptionContract(
 )
 ```
 
-## Adapters
+## 适配器 {#adapters}
 
-**Adapters that create or consume `OptionContract` instruments include**:
+**创建或使用 `OptionContract` 金融工具的适配器包括**：
 
-- [Databento](./../../integrations/databento.md) for listed options data.
-- [Interactive Brokers](./../../integrations/interactive_brokers.md) for listed option contracts.
+- [Databento](./../../integrations/databento.md)，用于挂牌期权数据。
+- [Interactive Brokers](./../../integrations/interactive_brokers.md)，用于挂牌期权合约。
 
-## Related guides
+## 相关指南 {#related-guides}
 
-- [Options](./../options.md) covers option data, Greeks, and chain subscriptions.
-- [Crypto Option](./crypto_option.md) covers crypto option contracts.
+- [期权](./../options.md)介绍期权数据、Greeks 与期权链订阅。
+- [Crypto Option](./crypto_option.md)介绍加密期权合约。

@@ -1,6 +1,6 @@
 # EMA cross
 
-Define the reusable bar-based EMA cross strategy used by the FX bars tutorial.
+定义可复用的基于 K 线的 EMA 交叉策略，供 FX bars 教程使用。
 
 ```python
 from __future__ import annotations

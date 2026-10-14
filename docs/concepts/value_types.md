@@ -1,22 +1,20 @@
-# Value Types
+# 值类型 {#value-types}
 
-NautilusTrader provides specialized value types for representing core trading concepts:
-`Price`, `Quantity`, and `Money`. These types use fixed-point arithmetic internally
-for performant, deterministic calculations across different platforms
-and environments.
+NautilusTrader 为交易核心概念提供专门的值类型：`Price`、`Quantity` 和 `Money`。
+这些类型内部使用定点数算术，在不同平台和环境下都能进行高效、确定性的计算。
 
-## Overview
+## 概览 {#overview}
 
-| Type       | Purpose                                  | Signed | Currency |
+| 类型       | 用途                                  | 有无符号 | 币种 |
 | ---------- | ---------------------------------------- | ------ | -------- |
-| `Quantity` | Trade sizes, order amounts, positions.   | No     | -        |
-| `Price`    | Market prices, quotes, price levels.     | Yes    | -        |
-| `Money`    | Monetary amounts, P&L, account balances. | Yes    | Yes      |
+| `Quantity` | 交易量、订单数量、持仓。   | 无     | -        |
+| `Price`    | 市场价格、报价、价位。     | 有    | -        |
+| `Money`    | 货币金额、盈亏、账户余额。 | 有    | 有      |
 
-## Immutability
+## 不可变性 {#immutability}
 
-In Python, all value types are **immutable**. Once a value is constructed, it cannot be changed.
-Operations do not mutate the original object.
+在 Python 中，所有值类型都是**不可变的**。值一经构造便无法更改，
+运算不会产生原地修改。
 
 ```python
 from nautilus_trader.model import Quantity
@@ -32,24 +30,23 @@ print(qty2)  # 50
 print(result)  # 150
 ```
 
-This design provides several benefits:
+这一设计带来几点好处：
 
-- **Thread safety**: Immutable values can be safely shared across threads without synchronization.
-- **Predictability**: Values never change unexpectedly, making debugging easier.
-- **Hashability**: Immutable types can be used as dictionary keys and in sets.
+- **线程安全**：不可变的值可在线程间安全共享，无需同步。
+- **可预测**：值不会意外变化，调试更容易。
+- **可哈希**：不可变类型可用作字典键和集合元素。
 
-## Arithmetic operations
+## 算术运算 {#arithmetic-operations}
 
-Value types support standard arithmetic operators (`+`, `-`, `*`, `/`, `%`, `//`)
-and unary operators (`-`, `+`, `abs`). The return type depends on the operator
-and the operand types.
+值类型支持标准算术运算符（`+`、`-`、`*`、`/`、`%`、`//`）
+和一元运算符（`-`、`+`、`abs`）。返回类型取决于运算符
+与操作数的类型。
 
-### Same-type binary operations
+### 同类型二元运算 {#same-type-binary-operations}
 
-Addition and subtraction of the same value type return that type, preserving
-domain meaning (a price plus a price is still a price):
+同一值类型的加减法返回该类型本身，保留其领域含义（价格加价格仍是价格）：
 
-| Operation             | Result     |
+| 运算             | 结果     |
 | --------------------- | ---------- |
 | `Quantity + Quantity` | `Quantity` |
 | `Quantity - Quantity` | `Quantity` |
@@ -68,41 +65,39 @@ result = price1 + price2  # Returns Price(100.75, precision=2)
 print(type(result))  # <class 'nautilus_trader.model.Price'>
 ```
 
-Multiplication, division, floor division, and modulo between two values of the
-same type return `Decimal`:
+同类型之间的乘法、除法、整除和取模返回 `Decimal`：
 
-| Operation        | Result    |
+| 运算        | 结果    |
 | ---------------- | --------- |
 | `Price * Price`  | `Decimal` |
 | `Price / Price`  | `Decimal` |
 | `Price // Price` | `Decimal` |
 | `Price % Price`  | `Decimal` |
 
-The same pattern applies to `Quantity` and `Money`.
+`Quantity` 和 `Money` 遵循同样的规则。
 
-These operations return `Decimal` because the result has different dimensional meaning:
+这些运算返回 `Decimal`，因为结果的量纲含义变了：
 
-- Multiplying a price by a price produces "price squared", not a price.
-- Dividing a quantity by a quantity produces a dimensionless ratio, not a quantity.
+- 价格乘以价格得到的是"价格的平方"，不再是价格。
+- 数量除以数量得到的是无量纲比值，不再是数量。
 
-Returning `Decimal` makes the unit change explicit and prevents misinterpretation of the result as a value
-with the original unit.
+返回 `Decimal` 让单位的换变得以显式体现，避免把结果误读为原来单位的值。
 
-### Unary operations
+### 一元运算 {#unary-operations}
 
-Unary operators preserve the value type where the result is valid for that type:
+一元运算符在结果对该类型有效时保留值类型：
 
-| Operation  | `Price`   | `Quantity` | `Money`   |
+| 运算  | `Price`   | `Quantity` | `Money`   |
 | ---------- | --------- | ---------- | --------- |
-| `-x` (neg) | `Price`   | `Decimal`  | `Money`   |
-| `+x` (pos) | `Price`   | `Quantity` | `Money`   |
+| `-x`（取负） | `Price`   | `Decimal`  | `Money`   |
+| `+x`（取正） | `Price`   | `Quantity` | `Money`   |
 | `abs(x)`   | `Price`   | `Quantity` | `Money`   |
 | `int(x)`   | `int`     | `int`      | `int`     |
 | `float(x)` | `float`   | `float`    | `float`   |
 | `round(x)` | `Decimal` | `Decimal`  | `Decimal` |
 
-`Quantity.__neg__` returns `Decimal` rather than `Quantity` because `Quantity` is
-unsigned and cannot represent a negative value.
+`Quantity.__neg__` 返回 `Decimal` 而非 `Quantity`，因为 `Quantity` 是无符号的，
+无法表示负值。
 
 ```python
 from nautilus_trader.model import Currency, Money, Price, Quantity
@@ -122,24 +117,23 @@ print(+qty)  # 10
 print(type(+qty))  # <class 'nautilus_trader.model.Quantity'>
 ```
 
-### Mixed-type operations
+### 混合类型运算 {#mixed-type-operations}
 
-When operating with other numeric types, the result type follows Python's
-[numeric tower](https://docs.python.org/3/library/numbers.html) conventions. Operations widen to the more
-general type. `float` operations return `float`, while `int` and `Decimal` operations return `Decimal` for
-precision preservation.
+与其他数值类型运算时，结果类型遵循 Python 的
+[数值塔](https://docs.python.org/3/library/numbers.html)约定，向更一般的类型拓宽。
+与 `float` 运算返回 `float`；与 `int` 和 `Decimal` 运算返回 `Decimal` 以保留精度。
 
-This applies to all six binary operators (`+`, `-`, `*`, `/`, `//`, `%`) and works
-in both directions (`value op scalar` and `scalar op value`):
+六个二元运算符（`+`、`-`、`*`、`/`、`//`、`%`）都遵循这一规则，且两个方向均适用
+（`value op scalar` 与 `scalar op value`）：
 
-| Left operand | Right operand | Result type |
+| 左操作数 | 右操作数 | 结果类型 |
 | ------------ | ------------- | ----------- |
-| Value type   | `int`         | `Decimal`   |
-| Value type   | `float`       | `float`     |
-| Value type   | `Decimal`     | `Decimal`   |
-| `int`        | Value type    | `Decimal`   |
-| `float`      | Value type    | `float`     |
-| `Decimal`    | Value type    | `Decimal`   |
+| 值类型   | `int`         | `Decimal`   |
+| 值类型   | `float`       | `float`     |
+| 值类型   | `Decimal`     | `Decimal`   |
+| `int`        | 值类型    | `Decimal`   |
+| `float`      | 值类型    | `float`     |
+| `Decimal`    | 值类型    | `Decimal`   |
 
 ```python
 from decimal import Decimal
@@ -161,18 +155,17 @@ result3 = qty + Decimal("50")
 print(type(result3))  # <class 'decimal.Decimal'>
 ```
 
-## Precision handling
+## 精度处理 {#precision-handling}
 
-Each value type carries a precision that indicates the number of decimal places. `Price` and `Quantity` store
-an explicit `precision` field, while `Money` uses its currency's precision. Precision is set at construction
-and is immutable. The types have no "unspecified" precision.
+每个值类型都带有一个精度值，表示小数位数。`Price` 和 `Quantity` 存储显式的
+`precision` 字段，`Money` 则使用其币种的精度。精度在构造时设定，之后不可变，
+这些类型不存在"未指定"的精度。
 
-### Fixed-point representation
+### 定点数表示 {#fixed-point-representation}
 
-Value types are stored internally as integers scaled to a global fixed precision (for example, 10^16 in
-high-precision mode), not floating-point numbers. The precision tracks the number of decimal places used at
-construction and controls display formatting and serialization. But the underlying raw value always uses the
-global scale.
+值类型内部以整数存储，按全局固定精度缩放（例如高精度模式下的 10^16），而不是浮点数。
+精度字段记录构造时使用的小数位数，控制显示格式与序列化，
+但底层原始值始终使用全局尺度。
 
 ```python
 from nautilus_trader.model import Price
@@ -185,26 +178,24 @@ str(p1)  # "1.23"
 str(p2)  # "1.230"
 ```
 
-**Precision and identity**: two prices with the same decimal value but different precisions are equal.
-Precision controls display, not identity. The `precision` field determines string formatting and how many
-decimal places are shown. Equality is based on the underlying numeric value.
+**精度与相等性**：小数数值相同但精度不同的两个价格相等。
+精度控制显示，不控制相等性。`precision` 字段决定字符串格式及显示的小数位数，
+相等性则基于底层数值。
 
-**Market data serialization**: when market data types (such as quotes, trades, and order book deltas) are
-written to Parquet or Arrow, file metadata stores their precision. This lets readers decode the values
-correctly. All market data values within a single file must share the same precision.
+**行情数据序列化**：行情数据类型（如报价、成交、订单簿增量）写入 Parquet 或 Arrow 时，
+文件元数据会记录其精度，以便读取方正确解码。同一文件内的所有行情值必须使用相同精度。
 
 :::warning
-If a venue changes an instrument's tick size (and thus its precision), data files written before and after the
-change have different precision metadata. Do not consolidate them into a single file.
+若交易场所修改了某工具的 tick size（因而改变其精度），变更前与变更后写出的数据文件的
+精度元数据不同，不要将它们合并到同一个文件。
 :::
 
-For how instrument-level precision constrains valid prices and quantities, see the
-[Precision](./instruments/index.md#precision) section of the Instruments guide.
+工具级精度如何约束合法的价格与数量，见工具指南中的
+[精度](./instruments/index.md#precision)一节。
 
-### Arithmetic precision
+### 运算精度 {#arithmetic-precision}
 
-When performing arithmetic between values with different precisions, the result
-uses the maximum precision of the operands.
+对不同精度的值做算术运算时，结果取操作数中的最大精度。
 
 ```python
 from nautilus_trader.model import Price
@@ -217,12 +208,11 @@ print(result)  # 100.625
 print(result.precision)  # 3 (max of 1 and 3)
 ```
 
-## Type-specific constraints
+## 类型专属约束 {#type-specific-constraints}
 
-### Quantity
+### Quantity {#quantity}
 
-`Quantity` represents non-negative amounts. Attempting to create a negative quantity
-or subtract a larger quantity from a smaller one raises an error:
+`Quantity` 表示非负数量。构造负数量，或从小值中减去更大的值，都会报错：
 
 ```python
 from nautilus_trader.model import Quantity
@@ -236,10 +226,9 @@ qty2 = Quantity(100, precision=0)
 result = qty1 - qty2  # Would be -50, which is invalid
 ```
 
-### Money
+### Money {#money}
 
-`Money` values include a currency. Addition and subtraction between `Money` values
-require **matching currencies**:
+`Money` 值包含币种。`Money` 之间的加减法要求**币种一致**：
 
 ```python
 from nautilus_trader.model import Currency, Money
@@ -257,11 +246,11 @@ result = usd_amount + Money(25.00, USD)
 result = usd_amount + eur_amount
 ```
 
-## Common patterns
+## 常用模式 {#common-patterns}
 
-### Accumulating values
+### 累加值 {#accumulating-values}
 
-Since value types are immutable, accumulate by reassigning:
+值类型不可变，累加时要重新赋值：
 
 ```python
 from nautilus_trader.model import Currency, Money
@@ -277,9 +266,9 @@ for amount in amounts:
 print(total)  # 175.00 USD
 ```
 
-### Converting to other types
+### 转换为其他类型 {#converting-to-other-types}
 
-Value types provide conversion methods:
+值类型提供转换方法：
 
 ```python
 from nautilus_trader.model import Price
@@ -296,14 +285,14 @@ float_value = price.as_double()
 string_value = str(price)  # "123.456"
 ```
 
-Float conversion supports precision up to 16. `float()`, `as_double()`, and arithmetic with a
-`float` operand raise `ValueError` for precision 17 or 18 rather than round away the extra digits.
-Conversions at precision 16 or below can still round, since a float holds about 16 significant
-digits. Use `as_decimal()` for an exact value.
+浮点转换支持到 16 位精度。精度为 17 或 18 时，`float()`、`as_double()`
+以及与 `float` 操作数的算术运算会抛出 `ValueError`，而不是舍入掉多余的位数。
+精度 16 及以下的转换仍可能发生舍入，因为 float 只有约 16 位有效数字。
+需要精确值时使用 `as_decimal()`。
 
-### Creating from strings
+### 从字符串创建 {#creating-from-strings}
 
-Parse value types from string representations:
+从字符串表示解析值类型：
 
 ```python
 from nautilus_trader.model import Money, Price, Quantity

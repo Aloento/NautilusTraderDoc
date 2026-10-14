@@ -1,61 +1,58 @@
 # OrderBookDelta
 
-`OrderBookDelta` represents one change to an order book. It is the most granular built-in book data
-type and supports the book types NautilusTrader uses for incremental updates:
+`OrderBookDelta` 表示订单簿的一次变更，是内置的最细粒度订单簿数据类型，支持 NautilusTrader 用于增量更新的簿类型：
 
-- `L3_MBO`: Level 3 market-by-order (MBO) data.
-- `L2_MBP`: Level 2 market-by-price (MBP) data.
-- `L1_MBP`: Level 1 market-by-price (MBP) top-of-book data.
+- `L3_MBO`：Level 3 逐笔委托（MBO）数据。
+- `L2_MBP`：Level 2 按价聚合（MBP）数据。
+- `L1_MBP`：Level 1 按价聚合（MBP）盘口一档数据。
 
-The source feed and target `BookType` determine which granularity a delta carries.
+具体某条 delta 携带哪种粒度，由来源数据流和目标 `BookType` 决定。
 
-Use it when a venue or data provider publishes incremental book changes and NautilusTrader
-should maintain the book state locally.
+当交易场所或数据提供商发布增量簿变更、需要 NautilusTrader 在本地维护订单簿状态时，使用该类型。
 
-## Fields
+## 字段 {#fields}
 
-| Field           | Rust type      | Python type    | Required/default | Notes                                      |
+| 字段            | Rust 类型      | Python 类型    | 必填/默认值 | 说明                                      |
 | --------------- | -------------- | -------------- | ---------------- | ------------------------------------------ |
-| `instrument_id` | `InstrumentId` | `InstrumentId` | Required         | Instrument whose book is changing.         |
-| `action`        | `BookAction`   | `BookAction`   | Required         | `ADD`, `UPDATE`, `DELETE`, or `CLEAR`.     |
-| `order`         | `BookOrder`    | `BookOrder`    | Required         | Price, size, side, and order ID payload.   |
-| `flags`         | `u8`           | `int`          | Required         | `RecordFlag` bit field for event metadata. |
-| `sequence`      | `u64`          | `int`          | Required         | Venue sequence number, or zero if absent.  |
-| `ts_event`      | `UnixNanos`    | `int`          | Required         | Event timestamp in nanoseconds.            |
-| `ts_init`       | `UnixNanos`    | `int`          | Required         | Initialization timestamp in nanoseconds.   |
+| `instrument_id` | `InstrumentId` | `InstrumentId` | 必填         | 发生变更的订单簿所属工具。         |
+| `action`        | `BookAction`   | `BookAction`   | 必填         | `ADD`、`UPDATE`、`DELETE` 或 `CLEAR`。     |
+| `order`         | `BookOrder`    | `BookOrder`    | 必填         | 价格、数量、方向与订单 ID 的数据负载。   |
+| `flags`         | `u8`           | `int`          | 必填         | `RecordFlag` 位域，承载事件元数据。 |
+| `sequence`      | `u64`          | `int`          | 必填         | 交易场所序列号，无则为 0。  |
+| `ts_event`      | `UnixNanos`    | `int`          | 必填         | 事件时间戳（纳秒）。            |
+| `ts_init`       | `UnixNanos`    | `int`          | 必填         | 初始化时间戳（纳秒）。   |
 
-## BookOrder fields
+## BookOrder 字段 {#bookorder-fields}
 
-The `order` field contains the `BookOrder` payload for the delta.
+`order` 字段包含该 delta 的 `BookOrder` 负载。
 
-| Field      | Rust type           | Python type         | Notes                                |
+| 字段       | Rust 类型           | Python 类型         | 说明                                |
 | ---------- | ------------------- | ------------------- | ------------------------------------ |
-| `side`     | `Option<OrderSide>` | `OrderSide \| None` | Order side.                          |
-| `price`    | `Price`             | `Price`             | Order price.                         |
-| `size`     | `Quantity`          | `Quantity`          | Order size.                          |
-| `order_id` | `OrderId` (`u64`)   | `int`               | Order ID carried by the source feed. |
+| `side`     | `Option<OrderSide>` | `OrderSide \| None` | 订单方向。                          |
+| `price`    | `Price`             | `Price`             | 订单价格。                         |
+| `size`     | `Quantity`          | `Quantity`          | 订单数量。                          |
+| `order_id` | `OrderId` (`u64`)   | `int`               | 来源数据流携带的订单 ID。 |
 
-The null/default order uses `None` for its side, with zero price, zero size, and zero order ID.
+空/默认订单的 side 为 `None`，价格、数量和订单 ID 均为 0。
 
-## BookAction variants
+## BookAction 变体 {#bookaction-variants}
 
-| Rust variant         | Python variant | Value | Meaning                                |
+| Rust 变体            | Python 变体 | 值 | 含义                                   |
 | -------------------- | -------------- | ----- | -------------------------------------- |
-| `BookAction::Add`    | `ADD`          | `1`   | Adds an order to the book.             |
-| `BookAction::Update` | `UPDATE`       | `2`   | Updates an existing order in the book. |
-| `BookAction::Delete` | `DELETE`       | `3`   | Deletes an existing order in the book. |
-| `BookAction::Clear`  | `CLEAR`        | `4`   | Clears the order book state.           |
+| `BookAction::Add`    | `ADD`          | `1`   | 向订单簿新增一笔订单。             |
+| `BookAction::Update` | `UPDATE`       | `2`   | 更新订单簿中已有订单。 |
+| `BookAction::Delete` | `DELETE`       | `3`   | 删除订单簿中已有订单。 |
+| `BookAction::Clear`  | `CLEAR`        | `4`   | 清空订单簿状态。           |
 
-## Behavior
+## 行为 {#behavior}
 
-- `ADD` and `UPDATE` deltas require a positive order size.
-- `CLEAR` deltas reset book state and use a null book order.
-- `flags` carries event boundary and snapshot metadata. See
-  [Delta flags and event boundaries](./index.md#delta-flags-and-event-boundaries).
-- Use `OrderBookDelta::clear(...)` in Rust or `OrderBookDelta.clear(...)` in Python to construct
-  clear deltas.
+- `ADD` 和 `UPDATE` delta 要求订单数量为正。
+- `CLEAR` delta 重置订单簿状态，使用空订单（null book order）。
+- `flags` 承载事件边界与快照元数据，参见
+  [delta 标志与事件边界](./index.md#delta-flags-and-event-boundaries)。
+- 构造 clear delta 时，Rust 用 `OrderBookDelta::clear(...)`，Python 用 `OrderBookDelta.clear(...)`。
 
-## Example
+## 示例 {#example}
 
 ```rust tab="Rust"
 use nautilus_core::UnixNanos;
@@ -108,8 +105,8 @@ delta = OrderBookDelta(
 )
 ```
 
-## Related guides
+## 相关指南 {#related-guides}
 
-- [OrderBookDeltas](./order_book_deltas.md) covers batching deltas.
-- [Order books](./../order_book.md) explains book types and local book state.
-- [Python API reference](https://nautilustrader.io/docs/python-api-latest/model/data.html) lists Python members.
+- [OrderBookDeltas](./order_book_deltas.md) 介绍 delta 的批量处理。
+- [订单簿](./../order_book.md) 讲解簿类型与本地订单簿状态。
+- [Python API 参考](https://nautilustrader.io/docs/python-api-latest/model/data.html) 列出 Python 成员。

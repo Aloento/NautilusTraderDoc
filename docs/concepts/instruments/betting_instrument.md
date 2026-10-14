@@ -1,61 +1,60 @@
 # Betting Instrument
 
-`BettingInstrument` represents one selection in a sports or gaming market. It carries
-event, competition, market, and selection metadata so Nautilus can treat the selection
-as an instrument with prices, sizes, limits, margins, and fees.
+`BettingInstrument` 表示体育或博彩市场中的一个选项（selection）。它携带赛事、比赛、市场和选项
+的元数据，使 Nautilus 能将该选项视为具有价格、数量、限额、保证金和费用的金融工具。
 
-Examples include Betfair match-odds selections and handicap market selections.
+典型例子包括 Betfair 的胜平负赔率（match odds）选项和让分市场选项。
 
-## Fields
+## 字段 {#fields}
 
-| Field                | Rust type          | Python type        | Required/default | Notes                                    |
+| 字段                 | Rust 类型          | Python 类型        | 必填/默认值    | 说明                                     |
 | -------------------- | ------------------ | ------------------ | ---------------- | ---------------------------------------- |
-| `instrument_id`      | `InstrumentId`     | `InstrumentId`     | Required         | Stored as `id` in Rust.                  |
-| `raw_symbol`         | `Symbol`           | `Symbol`           | Required         | Native or generated venue symbol.        |
-| `event_type_id`      | `u64`              | `int`              | Required         | Event type identifier.                   |
-| `event_type_name`    | `Ustr`             | `str`              | Required         | Event type name, such as a sport.        |
-| `competition_id`     | `u64`              | `int`              | Required         | Competition identifier.                  |
-| `competition_name`   | `Ustr`             | `str`              | Required         | Competition name.                        |
-| `event_id`           | `u64`              | `int`              | Required         | Event identifier.                        |
-| `event_name`         | `Ustr`             | `str`              | Required         | Event name.                              |
-| `event_country_code` | `Ustr`             | `str`              | Required         | Event country code.                      |
-| `event_open_date`    | `UnixNanos`        | `int`              | Required         | Event open time.                         |
-| `betting_type`       | `Ustr`             | `str`              | Required         | Betting type published by the venue.     |
-| `market_id`          | `Ustr`             | `str`              | Required         | Market identifier.                       |
-| `market_name`        | `Ustr`             | `str`              | Required         | Market name.                             |
-| `market_type`        | `Ustr`             | `str`              | Required         | Market type, such as match odds.         |
-| `market_start_time`  | `UnixNanos`        | `int`              | Required         | Market start time.                       |
-| `selection_id`       | `u64`              | `int`              | Required         | Selection or runner identifier.          |
-| `selection_name`     | `Ustr`             | `str`              | Required         | Selection or runner name.                |
-| `selection_handicap` | `f64`              | `float`            | Required         | Handicap value for handicap markets.     |
-| `currency`           | `Currency`         | `Currency`         | Required         | Quote and settlement currency.           |
-| `price_precision`    | `u8`               | `int`              | Required         | Decimal places allowed for prices.       |
-| `size_precision`     | `u8`               | `int`              | Required         | Decimal places allowed for order sizes.  |
-| `price_increment`    | `Price`            | `Price`            | Required         | Price step, often set by a tick scheme.  |
-| `size_increment`     | `Quantity`         | `Quantity`         | Required         | Minimum size step.                       |
-| `max_quantity`       | `Option<Quantity>` | `Quantity \| None` | `None`           | Maximum order quantity.                  |
-| `min_quantity`       | `Option<Quantity>` | `Quantity \| None` | `None`           | Minimum order quantity.                  |
-| `max_notional`       | `Option<Money>`    | `Money \| None`    | `None`           | Maximum order notional value.            |
-| `min_notional`       | `Option<Money>`    | `Money \| None`    | `None`           | Minimum order notional value.            |
-| `max_price`          | `Option<Price>`    | `Price \| None`    | `None`           | Maximum valid quote or order price.      |
-| `min_price`          | `Option<Price>`    | `Price \| None`    | `None`           | Minimum valid quote or order price.      |
-| `margin_init`        | `Option<Decimal>`  | `Decimal \| None`  | `1`              | Initial margin rate.                     |
-| `margin_maint`       | `Option<Decimal>`  | `Decimal \| None`  | `1`              | Maintenance margin rate.                 |
-| `tick_scheme`        | `Option<Ustr>`     | `str \| None`      | `None`           | Registered variable tick scheme name.    |
-| `info`               | `Option<Params>`   | `dict \| None`     | `None`           | Adapter metadata.                        |
-| `ts_event`           | `UnixNanos`        | `int`              | Required         | Event timestamp in nanoseconds.          |
-| `ts_init`            | `UnixNanos`        | `int`              | Required         | Initialization timestamp in nanoseconds. |
+| `instrument_id`      | `InstrumentId`     | `InstrumentId`     | 必填             | 在 Rust 中存储为 `id`。                  |
+| `raw_symbol`         | `Symbol`           | `Symbol`           | 必填             | 交易场所原生符号或生成的符号。           |
+| `event_type_id`      | `u64`              | `int`              | 必填             | 事件类型标识符。                         |
+| `event_type_name`    | `Ustr`             | `str`              | 必填             | 事件类型名称，如运动项目。               |
+| `competition_id`     | `u64`              | `int`              | 必填             | 比赛标识符。                             |
+| `competition_name`   | `Ustr`             | `str`              | 必填             | 比赛名称。                               |
+| `event_id`           | `u64`              | `int`              | 必填             | 事件标识符。                             |
+| `event_name`         | `Ustr`             | `str`              | 必填             | 事件名称。                               |
+| `event_country_code` | `Ustr`             | `str`              | 必填             | 事件国家代码。                           |
+| `event_open_date`    | `UnixNanos`        | `int`              | 必填             | 事件开始时间。                           |
+| `betting_type`       | `Ustr`             | `str`              | 必填             | 交易场所公布的投注类型。                 |
+| `market_id`          | `Ustr`             | `str`              | 必填             | 市场标识符。                             |
+| `market_name`        | `Ustr`             | `str`              | 必填             | 市场名称。                               |
+| `market_type`        | `Ustr`             | `str`              | 必填             | 市场类型，如 match odds。                |
+| `market_start_time`  | `UnixNanos`        | `int`              | 必填             | 市场开始时间。                           |
+| `selection_id`       | `u64`              | `int`              | 必填             | 选项或参赛方标识符。                     |
+| `selection_name`     | `Ustr`             | `str`              | 必填             | 选项或参赛方名称。                       |
+| `selection_handicap` | `f64`              | `float`            | 必填             | 让分市场的让分值。                       |
+| `currency`           | `Currency`         | `Currency`         | 必填             | 计价与结算货币。                         |
+| `price_precision`    | `u8`               | `int`              | 必填             | 价格允许的小数位数。                     |
+| `size_precision`     | `u8`               | `int`              | 必填             | 订单数量允许的小数位数。                 |
+| `price_increment`    | `Price`            | `Price`            | 必填             | 价格步长，通常由 tick 方案决定。         |
+| `size_increment`     | `Quantity`         | `Quantity`         | 必填             | 最小数量步长。                           |
+| `max_quantity`       | `Option<Quantity>` | `Quantity \| None` | `None`           | 最大下单数量。                           |
+| `min_quantity`       | `Option<Quantity>` | `Quantity \| None` | `None`           | 最小下单数量。                           |
+| `max_notional`       | `Option<Money>`    | `Money \| None`    | `None`           | 最大下单名义价值。                       |
+| `min_notional`       | `Option<Money>`    | `Money \| None`    | `None`           | 最小下单名义价值。                       |
+| `max_price`          | `Option<Price>`    | `Price \| None`    | `None`           | 最大有效报价或订单价格。                 |
+| `min_price`          | `Option<Price>`    | `Price \| None`    | `None`           | 最小有效报价或订单价格。                 |
+| `margin_init`        | `Option<Decimal>`  | `Decimal \| None`  | `1`              | 初始保证金率。                           |
+| `margin_maint`       | `Option<Decimal>`  | `Decimal \| None`  | `1`              | 维持保证金率。                           |
+| `tick_scheme`        | `Option<Ustr>`     | `str \| None`      | `None`           | 已注册的可变 tick 方案名称。             |
+| `info`               | `Option<Params>`   | `dict \| None`     | `None`           | 适配器元数据。                           |
+| `ts_event`           | `UnixNanos`        | `int`              | 必填             | 纳秒级事件时间戳。                       |
+| `ts_init`            | `UnixNanos`        | `int`              | 必填             | 纳秒级初始化时间戳。                     |
 
-**Note**: Python constructors use `instrument_id`. Rust stores the same value as `id`.
+**注意**：Python 构造函数使用 `instrument_id`，Rust 将同一值存储为 `id`。
 
-## Behavior
+## 行为 {#behavior}
 
-- `BettingInstrument` has asset class `Alternative` and instrument class `SportsBetting`.
-- Each selection or runner is modeled as its own instrument.
-- Betting instruments commonly use a registered tick scheme for valid odds steps.
-- Margin defaults to one because staking a bet typically reserves the full stake.
+- `BettingInstrument` 的资产类别为 `Alternative`，工具类别为 `SportsBetting`。
+- 每个选项或参赛方都建模为独立的金融工具。
+- 博彩工具通常使用已注册的 tick 方案来确定合法赔率步长。
+- 保证金默认为 1，因为下注通常会冻结全部赌注金额。
 
-## Example
+## 示例 {#example}
 
 ```rust tab="Rust"
 use jiff::Timestamp;
@@ -153,12 +152,12 @@ selection = BettingInstrument(
 )
 ```
 
-## Adapters
+## 适配器 {#adapters}
 
-The [Betfair](./../../integrations/betfair.md) adapter creates or consumes
-`BettingInstrument` instruments for sports betting markets.
+[Betfair](./../../integrations/betfair.md) 适配器为博彩市场创建或使用
+`BettingInstrument` 金融工具。
 
-## Related guides
+## 相关指南 {#related-guides}
 
-- [Accounting](./../accounting.md) covers betting account behavior.
-- [Data](./../data/index.md) explains market data that references instruments.
+- [记账](./../accounting.md)介绍博彩账户的行为。
+- [数据](./../data/index.md)讲解引用金融工具的行情数据。

@@ -1,30 +1,27 @@
 # OrderSubmitted
 
-`OrderSubmitted` records that the system has sent an order to the trading venue and awaits
-acknowledgement. The `ExecutionEngine` applies it to the order, updates the `Cache`, and publishes
-it on the `MessageBus`.
+`OrderSubmitted` 记录系统已向交易场所发送订单、正在等待确认。`ExecutionEngine` 把它应用到订单、更新 `Cache`，并发布到 `MessageBus`。
 
-Typical transition: `INITIALIZED` / `RELEASED` -> `SUBMITTED`. Handler: `on_order_submitted`.
+典型迁移：`INITIALIZED` / `RELEASED` -> `SUBMITTED`。处理函数：`on_order_submitted`。
 
-## Fields
+## 字段 {#fields}
 
-Beyond the [common Python order event fields](./index.md#common-python-order-event-fields),
-`OrderSubmitted` carries:
+除 [Python 订单事件公共字段](./index.md#common-python-order-event-fields)外，`OrderSubmitted` 还携带：
 
-| Field        | Python type | Required/default | Description                            |
+| 字段         | Python 类型 | 必填/默认值 | 说明                           |
 | ------------ | ----------- | ---------------- | -------------------------------------- |
-| `account_id` | `AccountId` | Required         | The account associated with the order. |
+| `account_id` | `AccountId` | 必填         | 订单关联的账户。 |
 
-## Example
+## 示例 {#example}
 
-Reading the event in a strategy handler:
+在策略处理函数中读取该事件：
 
 ```python
 def on_order_submitted(self, event: OrderSubmitted) -> None:
     self.log.info(f"Order {event.client_order_id} submitted ({event.account_id})")
 ```
 
-## Related guides
+## 相关指南 {#related-guides}
 
-- [Events](./index.md) - Event categories, dispatch, and the common order event fields.
-- [Orders](./../orders/index.md) - Order types and the state machine.
+- [事件](./index.md) - 事件类别、分发与订单事件公共字段。
+- [订单](./../orders/index.md) - 订单类型与状态机。

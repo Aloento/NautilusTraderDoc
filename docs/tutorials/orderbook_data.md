@@ -1,7 +1,6 @@
-# Order Book Data
+# 订单簿数据 {#order-book-data}
 
-Load Bybit order book archives and convert normalized venue rows into
-NautilusTrader order book deltas for the Binance and Bybit backtest tutorials.
+加载 Bybit 订单簿归档，把交易场所的规范化数据行转换为 NautilusTrader 订单簿增量（order book deltas），供 Binance 和 Bybit 回测教程使用。
 
 ```python
 from __future__ import annotations

@@ -1,28 +1,17 @@
-# Backtest with Order Book Depth Data (Binance)
+# 使用订单簿深度数据回测（Binance） {#backtest-with-order-book-depth-data-binance}
 
-Replay Binance T_DEPTH order book deltas through `BacktestNode` and run an
-imbalance strategy that fires fill-or-kill (FOK) limit orders when one side
-of the book is much thicker than the other. The same pattern works against
-any venue's L2 delta feed.
+通过 `BacktestNode` 回放 Binance T_DEPTH 订单簿增量，运行一个失衡策略：当订单簿一侧明显厚于另一侧时，发出 fill-or-kill（FOK）限价单。同样的模式适用于任何交易场所的 L2 增量数据流。
 
-[View source on GitHub](https://github.com/nautechsystems/nautilus_trader/blob/develop/docs/tutorials/backtest_orderbook_binance.py).
+[在 GitHub 上查看源码](https://github.com/nautechsystems/nautilus_trader/blob/develop/docs/tutorials/backtest_orderbook_binance.py).
 
-## Introduction
+## 简介 {#introduction}
 
-Top-of-book imbalance is a microstructure signal: when the smaller resting
-side at the BBO drops well below the larger side, the book is leaning. The
-tutorial's `OrderBookImbalance` strategy works in two stages on every order
-book update:
+最优报价失衡是一个微观结构信号：当 BBO 上较薄一侧的挂单量远低于较大一侧时，说明订单簿出现了倾斜。本教程的 `OrderBookImbalance` 策略在每次订单簿更新时分两步处理：
 
-- Compute `min(bid_size, ask_size) / max(bid_size, ask_size)`. Higher means
-  balanced; lower means leaning.
-- When the larger side exceeds `trigger_min_size` and the ratio is below
-  `trigger_imbalance_ratio`, fire a single FOK limit order against the
-  thinner side: a buy at the best ask when bids are larger, otherwise a sell
-  at the best bid. A trigger cooldown of `min_seconds_between_triggers`
-  prevents the strategy from re-firing on every micro-update.
+- 计算 `min(bid_size, ask_size) / max(bid_size, ask_size)`。值越高越均衡，越低越倾斜。
+- 当较大一侧超过 `trigger_min_size` 且该比值低于 `trigger_imbalance_ratio` 时，朝较薄一侧发出单笔 FOK 限价单：买盘更大时以最优卖价买入，否则以最优买价卖出。`min_seconds_between_triggers` 设置的触发冷却期可防止策略在每次微小更新后重复触发。
 
-The strategy is intentionally simple and has no edge.
+该策略刻意保持简单，没有优势（edge）。
 
 ```mermaid
 flowchart LR
@@ -53,25 +42,22 @@ flowchart LR
     D -->|no| SELL
 ```
 
-## Prerequisites
+## 前置条件 {#prerequisites}
 
 - Python 3.13+
-- [NautilusTrader](https://pypi.org/project/nautilus_trader/) 2.x installed
-  (`pip install -U --pre nautilus_trader`)
-- pandas (`pip install pandas`). The wheel declares no runtime dependencies.
-- The sibling
+- 已安装 [NautilusTrader](https://pypi.org/project/nautilus_trader/) 2.x
+  （`pip install -U --pre nautilus_trader`）
+- pandas（`pip install pandas`）。wheel 包本身不声明任何运行时依赖。
+- 同级目录的
   [`orderbook_data.py`](https://github.com/nautechsystems/nautilus_trader/blob/develop/docs/tutorials/orderbook_data.py)
-  and
+  和
   [`orderbook_imbalance.py`](https://github.com/nautechsystems/nautilus_trader/blob/develop/docs/tutorials/orderbook_imbalance.py)
-  files. Keep them next to this tutorial when downloading or converting it
-  with Jupytext.
-- Optionally, Binance USD-M futures T_DEPTH CSVs that you supply for the day
-  you want to replay. The documented run uses BTCUSDT 2022-11-01, placed
-  under `NAUTILUS_DATA_DIR/Binance/` (default `~/Downloads/Data/Binance/`).
-  Without them the tutorial falls back to a 100-row sample of each file from
-  the NautilusTrader test data, downloaded from GitHub on first run outside a
-  source checkout. The sample runs end to end but is too short to trigger the
-  strategy.
+  文件。下载或用 Jupytext 转换时，把它们和本教程放在一起。
+- 可选：自备想回放的那一天的 Binance USD-M 期货 T_DEPTH CSV。文中示例运行用的是
+  2022-11-01 的 BTCUSDT，放在 `NAUTILUS_DATA_DIR/Binance/` 下（默认
+  `~/Downloads/Data/Binance/`）。没有这些文件时，教程会回退到 NautilusTrader 测试数据
+  中每个文件的前 100 行样本；非源码检出环境下首次运行会从 GitHub 下载。样本可以完整
+  跑通，但太短，触发不了策略。
 
 ```python
 import os
@@ -111,14 +97,13 @@ from nautilus_trader.persistence import ParquetDataCatalog
 from orderbook_data import deltas_from_frame, sample_data_path
 ```
 
-## Loading data
+## 加载数据 {#loading-data}
 
-Each row of `_depth_snap.csv` and `_depth_update.csv` is a single L2 level
-event. `load_binance_order_book_deltas` returns a pandas DataFrame with one
-row per event: snapshot rows (`update_type="snap"`) become `ADD` actions
-flagged `F_SNAPSHOT`, and update rows become `UPDATE`, or `DELETE` when the
-quantity is zero. The full update file for BTCUSDT 2022-11-01 is ~12 GB
-(~110 million rows), so the tutorial caps the read at 1,000,000 rows.
+`_depth_snap.csv` 和 `_depth_update.csv` 的每一行是单个 L2 档位事件。
+`load_binance_order_book_deltas` 返回每事件一行的 pandas DataFrame：快照行
+（`update_type="snap"`）转为带 `F_SNAPSHOT` 标志的 `ADD` 动作；更新行转为
+`UPDATE`，数量为零时转为 `DELETE`。BTCUSDT 2022-11-01 的完整更新文件约 12 GB
+（约 1.1 亿行），因此教程把读取量限制在 1,000,000 行。
 
 ```python
 DATA_DIR = Path(os.environ.get("NAUTILUS_DATA_DIR", "~/Downloads/Data")).expanduser() / "Binance"
@@ -148,12 +133,11 @@ df_update = load_binance_order_book_deltas(path_update, nrows=nrows)
 df_update.head()
 ```
 
-### Build current model objects
+### 构建当前版本的模型对象 {#build-current-model-objects}
 
-Define the instrument with the public model API, then convert each loader row
-to an `OrderBookDelta`. Sort by `ts_init` so the data engine sees deltas in
-true publication order regardless of how the snapshot and update files
-interleave.
+用公开的模型 API 定义金融工具，再把加载器的每一行转成 `OrderBookDelta`。按
+`ts_init` 排序，使数据引擎看到的增量顺序与真实发布顺序一致，不受快照文件与更新
+文件交错方式的影响。
 
 ```python
 BTCUSDT_BINANCE = CurrencyPair(
@@ -175,12 +159,10 @@ deltas.sort(key=lambda x: x.ts_init)
 deltas[:10]
 ```
 
-### Set up the data catalog
+### 搭建数据目录 {#set-up-the-data-catalog}
 
-Persist the instrument and deltas to a fresh `ParquetDataCatalog` so the
-`BacktestNode` can lazy-load by time range. The tutorial writes the catalog
-to `catalog/` under the working directory and replaces that directory on
-each run.
+把金融工具和增量写入一个全新的 `ParquetDataCatalog`，让 `BacktestNode` 能按时间
+范围惰性加载。教程把目录写到工作目录下的 `catalog/`，每次运行都会替换该目录。
 
 ```python
 CATALOG_PATH = Path.cwd() / "catalog"
@@ -213,11 +195,11 @@ print(len(deltas))
 deltas[:10]
 ```
 
-## Configure the backtest
+## 配置回测 {#configure-the-backtest}
 
-`BacktestNode` ingests data from the catalog and builds a `BacktestEngine`
-per `BacktestRunConfig`. The venue book type must match the data: deltas
-carry full L2 information so we use `L2_MBP`.
+`BacktestNode` 从数据目录摄取数据，并为每个 `BacktestRunConfig` 构建一个
+`BacktestEngine`。交易场所的 book 类型必须与数据匹配：增量携带完整的 L2 信息，
+因此使用 `L2_MBP`。
 
 ```python
 instrument = catalog.instruments()[0]
@@ -269,7 +251,7 @@ config = BacktestRunConfig(
 config
 ```
 
-## Run the backtest
+## 运行回测 {#run-the-backtest}
 
 ```python
 node = BacktestNode(configs=[config])
@@ -295,53 +277,43 @@ node.generate_positions_report(config.id)
 node.generate_account_report(config.id, venue=Venue("BINANCE"))
 ```
 
-## What the run produces
+## 运行结果 {#what-the-run-produces}
 
-The figures below come from the full T_DEPTH files. The test data sample covers
-100 rows of each, so it completes without firing any orders.
+下面的图来自完整的 T_DEPTH 文件。测试数据样本每个文件只含 100 行，因此跑完也不会发出任何订单。
 
-With one million updates the data spans roughly the first eleven minutes of
-the trading day after the initial snapshot is rebuilt. The renderer below
-uses three million updates (~25 minutes) so the panels show enough trigger
-events to be informative; the strategy fires the same way on the smaller
-default window.
+一百万条更新的数据，在重建初始快照后大约覆盖交易日的前十一分钟。下面的渲染器用了
+三百万条更新（约 25 分钟），让面板展示足够多的触发事件以便观察；策略在默认较小的
+窗口上的触发方式相同。
 
-Across the active update window the strategy submits 47 FOK limit orders
-and accumulates a net 14 BTC short. Every trigger lands on the bid side,
-implying ask size dominated bid size for nearly every imbalance event in
-the recorded window.
+在活跃更新窗口内，策略共提交 47 笔 FOK 限价单，净积累 14 BTC 空头。每次触发都落在
+买盘一侧，说明在记录窗口内几乎每次失衡事件中卖盘量都大于买盘量。
 
 ![Top of book during the active window with FOK fills](./assets/backtest_orderbook_binance/panel_a_top_book.png)
 
-**Figure 1.** *BTCUSDT mid, best bid, and best ask during the FOK trigger
-window. Triangles down are short entries at the bid; the cross is the
-closing fill. The strategy is on the bid side throughout.*
+**图 1.** *FOK 触发窗口内的 BTCUSDT 中间价、最优买价与最优卖价。下三角是在买价上的
+做空入场，叉号是平仓成交。策略全程都在买盘一侧成交。*
 
 ![Imbalance ratio distribution](./assets/backtest_orderbook_binance/panel_b_imbalance_dist.png)
 
-**Figure 2.** *`smaller / larger` ratio across all sampled top-of-book
-snapshots, with the 0.20 trigger threshold marked. The mass left of the
-threshold is the addressable trigger region.*
+**图 2.** *全部采样的最优报价快照上的 `smaller / larger` 比值分布，标出 0.20 触发
+阈值。阈值左侧的密集区就是可触发的区间。*
 
 ![Top of book size and mid](./assets/backtest_orderbook_binance/panel_c_size_landscape.png)
 
-**Figure 3.** *Mid price (top) and best bid/ask size in BTC (bottom) across
-the active update window. Top-of-book sizes oscillate over a wide range
-while the mid drifts in a narrow band.*
+**图 3.** *活跃更新窗口内的中间价（上）与最优买卖量（BTC，下）。最优报价挂单量在
+很大范围内波动，而中间价只在窄幅内漂移。*
 
 ![Net position trajectory](./assets/backtest_orderbook_binance/panel_d_position.png)
 
-**Figure 4.** *Cumulative signed BTC across the FOK fill sequence. Each
-marker is a fill; orange is a sell, blue is a buy. The strategy ramps into
-a -14 BTC short over 25 minutes.*
+**图 4.** *FOK 成交序列上带符号的累计 BTC 数量。每个标记是一笔成交；橙色为卖出，
+蓝色为买入。策略在 25 分钟内逐步建仓至 -14 BTC 空头。*
 
-### Regenerate the panels
+### 重新生成图表面板 {#regenerate-the-panels}
 
-A self-contained renderer re-runs the backtest with a sampling actor that
-captures top of book once per second, then writes PNG panels to the asset
-directory using the shared `nautilus_dark` tearsheet theme.
+一个自包含的渲染器会重跑回测，附带一个每秒采样一次最优报价的 sampling actor，
+然后使用共享的 `nautilus_dark` tearsheet 主题把 PNG 面板写到资源目录。
 
-After building NautilusTrader from source, run these commands from the repository root:
+从源码构建 NautilusTrader 后，在仓库根目录运行：
 
 ```bash
 make sync
@@ -350,15 +322,13 @@ NAUTILUS_DATA_DIR=test_data/local \
         python docs/tutorials/assets/backtest_orderbook_binance/render_panels.py
 ```
 
-Set `NAUTILUS_DATA_DIR` to wherever your `Binance/` data directory lives.
+把 `NAUTILUS_DATA_DIR` 设为你的 `Binance/` 数据目录所在位置。
 
-## Next steps
+## 后续步骤 {#next-steps}
 
-- **Tighter trigger**. Drop `trigger_imbalance_ratio` to 0.10 to require a
-  ten-to-one lean before firing. Expect far fewer entries and lower hit
-  rate.
-- **Longer window**. Bump `nrows` to ten or twenty million to replay
-  several hours and see the strategy stress against more diverse sessions.
-- **Quote ticks instead of deltas**. See the
-  [Gold Perpetual Book Imbalance](./gold_book_imbalance_ax.md) tutorial for a
-  quote-driven imbalance strategy.
+- **收紧触发条件**。把 `trigger_imbalance_ratio` 降到 0.10，要求十倍倾斜才触发。
+  入场次数会大幅减少，命中率也会下降。
+- **拉长窗口**。把 `nrows` 提到一千万或两千万，回放几个小时，观察策略在更多样的
+  时段下的表现。
+- **改用报价 tick 而非增量**。报价驱动的失衡策略见
+  [黄金永续合约订单簿失衡](./gold_book_imbalance_ax.md) 教程。
