@@ -138,7 +138,7 @@ COIN-M 永续保留 Binance 原生的 `_PERP` 后缀，因此 `BTCUSD_PERP` 保�
 `CURRENT_WEEK` 与 `NEXT_WEEK`。COIN-M 支持 `CURRENT_QUARTER` 与 `NEXT_QUARTER`。
 合约可用性随环境和上架周期变化。
 
-USD-M 交割工具为线性，以保证金资产结算。COIN-M 交割工具为反向，以保证金资产（基础货币）
+USD-M 交割金融工具为线性，以保证金资产结算。COIN-M 交割金融工具为反向，以保证金资产（基础货币）
 结算，并使用 Binance 的 `contractSize` 作为金融工具乘数。两者都用 `onboardDate` 和
 `deliveryDate` 表示激活与到期。参见 Binance 官方的
 [USD-M 通用定义](https://developers.binance.com/en/docs/products/derivatives-trading-usds-futures/common-definition)
@@ -589,9 +589,9 @@ adapter 会压缩外发的 `ClientOrderId` 以适配 Binance 的 36 字符上限
 没有交易所订单 ID 的存量订单操作，adapter 会同时查询其编码形式与历史无前缀形式。若两者分别
 指向不同订单，该操作会被判为歧义并拒绝。
 
-修改与撤单使用找回的交易所订单 ID。Spot 的 cancel-replace 在替换同一逻辑订单时保留原有网络上
-的 client order ID，包括以历史无前缀 ID 提交的订单。即使变更通过 WebSocket 传输，这些查找
-同样生效。
+修改与撤单使用找回的交易所订单 ID。Spot 的撤销-替换（cancel-replace）在替换同一逻辑订单时
+保留原有网络上的 client order ID，包括以历史无前缀 ID 提交的订单。即使变更通过 WebSocket
+传输，这些查找同样生效。
 
 ### 解码 client order ID {#decoding-client-order-ids}
 
@@ -1131,7 +1131,7 @@ adapter 在场所计量之前运行自己的令牌桶限流器。每个 HTTP 请
 | Futures（USD-M 与 COIN-M） | 2,400/分钟   | 300/10 秒，1,200/分钟         |
 
 订单计数桶覆盖该产品支持的全部订单操作，不只是下单：提交、OCO 提交、批量提交、algo 提交、
-修改（Spot 的修改经 cancel-replace 实现）、批量修改、撤单、全撤、批量撤单、algo 撤单。撤单
+修改（Spot 的修改经撤销-替换实现）、批量修改、撤单、全撤、批量撤单、algo 撤单。撤单
 频繁和改单频繁的策略同样受这些桶约束。非订单类认证请求，例如调整杠杆与保证金类型、维持
 listen-key 的 keepalive，只消耗请求桶。
 

@@ -776,7 +776,7 @@ emitter 的执行客户端都执行该查找。
 加一个回归测试：在两次请求之间改变上游金融工具响应。第二次响应必须反映交易场所的新状态，而不是私有 cache
 条目。
 
-类型化数据经引擎的数据事件路径发布。发出前解析并校验，且不要在下游分发期间持有可变的适配器状态。事件接收端
+类型化数据经引擎的数据事件路径发布。发出前解析并校验，且不要在下游派发期间持有可变的适配器状态。事件接收端
 关闭通常意味着引擎正在停止，记录该发送失败即可；恢复交给生命周期拆卸负责，不要无限重试同一事件。
 
 订单簿增量遵循
@@ -790,7 +790,7 @@ emitter 的执行客户端都执行该查找。
 ### 订单簿恢复的所有权 {#order-book-recovery-ownership}
 
 [`nautilus_live::book`](https://github.com/nautechsystems/nautilus_trader/blob/develop/crates/live/src/book/mod.rs)
-提供共享恢复机制。交易场所特有的订单簿同步与恢复保留在各适配器的 `src/book/`，由流处理器分发命令和帧。
+提供共享恢复机制。交易场所特有的订单簿同步与恢复保留在各适配器的 `src/book/`，由流处理器派发命令和帧。
 
 #### 单簿同步 {#per-book-sync}
 
@@ -1146,7 +1146,7 @@ cache 的重启之前的单。
 重连时使快照覆盖失效；某行无法解析或映射时，让它保持未覆盖。只有该覆盖确立之后，才对缺席的被触及金融工具发出
 显式的平仓报告。
 
-在实时分发和全量状态中都要保持稳定的交易场所订单与成交标识。交易场所提供客户端订单关联时就带上，提供
+在实时派发和全量状态中都要保持稳定的交易场所订单与成交标识。交易场所提供客户端订单关联时就带上，提供
 `venue_position_id` 时就带上。这些字段让执行引擎区分连贯的生命周期与含糊的历史。引擎的经济应用规则见
 [Bounded history safety](./../concepts/execution/reconciliation.md#bounded-history-safety)。
 
@@ -1189,7 +1189,7 @@ instrument provider 配置决定。
 
 #### 被跟踪与外部执行更新 {#tracked-and-external-execution-updates}
 
-按订单所有权路由执行更新，与分发模块的布局无关：
+按订单所有权路由执行更新，与派发模块的布局无关：
 
 - 由本客户端提交并跟踪的订单，经正常的订单状态机发出类型化订单事件。
 - 未跟踪或外部订单，发出 `OrderStatusReport` 和 `FillReport` 值。这些报告让执行引擎对账或创建外部订单。
@@ -1249,7 +1249,7 @@ instrument provider 配置决定。
 传输渠道：
 
 - 成交用交易场所的 trade 或 match ID。交易场所不保证全局唯一时，加入账户、金融工具或产品标识。
-- 实时分发与对账两条路径可能重叠时，共享同一套成交标识。
+- 实时派发与对账两条路径可能重叠时，共享同一套成交标识。
 - 解析和路由成功之前不要消费去重键。实现上先占位的话，失败后释放该键，让重放能恢复事件。
 - 长生命周期的去重状态要有界，但跨重连保留足够历史以覆盖交易场所重放。只有协议证明旧标识不可能再现时才重置。
 - 先进先出的逐出符合重放契约时，复用共享的
@@ -1275,7 +1275,7 @@ instrument provider 配置决定。
 
 交易场所把 modify 实现为 cancel-replace 时，先更新交易场所订单 ID 映射，再路由替换腿。区分旧腿的过期取消与
 对活跃替换的取消，替换数量用当前累计成交计算。这种行为因交易场所而异，需要针对性的竞态测试，但不意味着共享的
-分发状态布局。
+派发状态布局。
 
 针对性测试要区分：被跟踪与外部更新、先于确认的成交、来自重叠来源的重复、提交或交易场所绑定的竞态、终态之后的
 过期更新。活跃上下文的保留与有界重放逐出要分开测试。
@@ -1594,8 +1594,8 @@ Betfair 在 60 秒的 `customerRef` 窗口内保留 45 秒的订单重试预算�
 
 ## WebSocket 客户端模式 {#websocket-client-patterns}
 
-WebSocket 分发遵循共享的所有权与路由契约，模块布局和状态容器保持适配器特有。新代码对齐共享网络抽象、有界缓存
-原语和协议上最接近的同侪。不要把某个适配器的分发模块，或各交易场所状态的并集，当作目标架构。
+WebSocket 派发遵循共享的所有权与路由契约，模块布局和状态容器保持适配器特有。新代码对齐共享网络抽象、有界缓存
+原语和协议上最接近的同侪。不要把某个适配器的派发模块，或各交易场所状态的并集，当作目标架构。
 
 ### 客户端结构 {#client-structure-1}
 
@@ -1617,7 +1617,7 @@ WebSocket 分发遵循共享的所有权与路由契约，模块布局和状态�
 | 公共、私有或交易端点分离 | 分离的传输，可复用处共享模型 | 按各自的契约对每个端点鉴权和恢复。 |
 | 线路格式、签名或重连规则不同 | 共享数据或执行逻辑之下的独立协议模块 | 共享的金融工具与订单标识保持在协议特有代码之上。 |
 
-这张表是决策辅助，不是目标分发架构。不要仅仅为了对齐别的适配器的文件名而拆分客户端；拆分若会掩盖独立的鉴权、
+这张表是决策辅助，不是目标派发架构。不要仅仅为了对齐别的适配器的文件名而拆分客户端；拆分若会掩盖独立的鉴权、
 配额或恢复，就不要合并端点。
 
 ```mermaid
@@ -1712,7 +1712,7 @@ flowchart LR
 - 先处理传输控制、鉴权和订阅确认，再处理领域数据。
 - 选择解析器之前先校验通道与产品标识。
 - 把一个交易场所载荷转换为一个类型化的适配器消息，或有界的消息序列。
-- 尽可能在可变的协议状态之外分发领域事件。
+- 尽可能在可变的协议状态之外派发领域事件。
 - 保留足够的标识，以便关联执行响应并对重叠来源去重。
 
 处理器负责传输控制、鉴权、订阅确认、帧解码和协议关联。消费侧的数据或执行客户端负责领域路由与发出。解析依赖处理器
@@ -1721,7 +1721,7 @@ flowchart LR
 上报畸形帧时，解析错误与清洗过的有界载荷摘录分开记录。绝不记录原始鉴权帧，也不记录 schema 可能含密钥材料的帧。
 对端关闭的 code 和 reason 在收到它的传输层记录，适配器不必重复共享传输的日志。
 
-分发模块布局、中间枚举名、上下文注册表、交易场所绑定和状态容器保持适配器特有。选择能让协议所有权和状态转移
+派发模块布局、中间枚举名、上下文注册表、交易场所绑定和状态容器保持适配器特有。选择能让协议所有权和状态转移
 可测试的最小设计。只有多个适配器共享其语义与原子性时才抽出另一个组件。
 
 ### 重连与关闭 {#reconnection-and-shutdown}
@@ -1885,7 +1885,7 @@ live runner 会在 Tokio 内部调用同步的数据与执行方法。在那里�
 | 边界 | 典型位置 | 必需的证明 |
 | --------------------------- | ----------------------------------------------------------------- | ----------------------------------------------------------------------------------------------- |
 | 纯协议逻辑 | `src/**` 测试模块 | 符号、枚举、时间戳、十进制、签名、编解码、解析器和畸形输入。 |
-| 公共 Rust 客户端边界 | `tests/` | 经 mock 服务器的类型化 HTTP 与 WebSocket 行为、事件分发、生命周期和重试。 |
+| 公共 Rust 客户端边界 | `tests/` | 经 mock 服务器的类型化 HTTP 与 WebSocket 行为、事件派发、生命周期和重试。 |
 | Rust PyO3 边界 | `tests/integration/python.rs` 或其他 feature 门控的 crate 测试 | 模块注册、转换、构造函数和有代表性的异步调用。 |
 | 公共 Python 包 | `python/tests/unit/adapters/` | 包 import、配置、工厂，以及 Rust 测试未证明的用户可见行为。 |
 | 实时交易场所验收 | 适配器示例或测试节点 | 鉴权、订阅、执行、报告、恢复，以及声明的限制。 |
@@ -2025,7 +2025,7 @@ Python 测试器的设置放在文件顶部的模块级常量里。运行脚本�
 | 套件 | 规范化边界 | 参考 |
 | ------------------- | -------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------ |
 | `benches/data.rs` | 原始交易场所帧或载荷，经解码、解析、必要的 cache 查找，直到构造 Nautilus 领域对象。 | [Lighter data](https://github.com/nautechsystems/nautilus_trader/blob/develop/crates/adapters/lighter/benches/data.rs)、[Derive data](https://github.com/nautechsystems/nautilus_trader/blob/develop/crates/adapters/derive/benches/data.rs) |
-| `benches/exec.rs` | 订单命令经序列化与签名；适用时，入站执行载荷经事件分发。 | [Lighter execution](https://github.com/nautechsystems/nautilus_trader/blob/develop/crates/adapters/lighter/benches/exec.rs)、[Derive execution](https://github.com/nautechsystems/nautilus_trader/blob/develop/crates/adapters/derive/benches/exec.rs) |
+| `benches/exec.rs` | 订单命令经序列化与签名；适用时，入站执行载荷经事件派发。 | [Lighter execution](https://github.com/nautechsystems/nautilus_trader/blob/develop/crates/adapters/lighter/benches/exec.rs)、[Derive execution](https://github.com/nautechsystems/nautilus_trader/blob/develop/crates/adapters/derive/benches/exec.rs) |
 | `benches/micros.rs` | 仅解码、仅解析以及聚焦的组件开销，用于定位在流水线边界发现的回退。 | [Lighter micros](https://github.com/nautechsystems/nautilus_trader/blob/develop/crates/adapters/lighter/benches/micros.rs)、[Derive micros](https://github.com/nautechsystems/nautilus_trader/blob/develop/crates/adapters/derive/benches/micros.rs) |
 
 共享的真实金融工具、载荷、签名器状态及其他 fixture 放 `benches/common/`。生产环境不按每次操作付出该开销时，把

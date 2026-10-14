@@ -29,9 +29,9 @@
 
 - `getting_started/` 把教学式的走查与安装步骤结合，用于上手引导。
 - `integrations/` 的页面把 reference（能力、符号规则）与 how-to 内容（安装、
-  配置）结合，因此每个场所页面自成一体。
+  配置）结合，因此每个交易场所页面自成一体。
 
-非场所专属的独立 how-to 内容归 `how_to/`。
+非交易场所专属的独立 how-to 内容归 `how_to/`。
 
 ### 选对类型 {#choosing-the-right-type}
 
@@ -86,7 +86,7 @@ How-to guide 说"这是达成 X 的方法"，读者本就知道自己要的是 X
 - 已支持的特性用 `✓`。
 - 不支持的特性用 `-`（不用 `✗` 或其他符号）。
 - 为不支持的特性加注记时，用斜体强调：`*Not supported*`。
-- 原因重要时把不支持的注记写具体：场所欠缺用 `*Not supported by <venue>*`，
+- 原因重要时把不支持的注记写具体：交易场所欠缺用 `*Not supported by <venue>*`，
   适配器欠缺用 `*Not currently implemented*`。
 - 不需要内容的单元格留空。
 

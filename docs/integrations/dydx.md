@@ -56,7 +56,7 @@ dYdX 是最大的去中心化加密货币交易所之一，主打加密货币衍
 
 | 层级      | 目标      | 方向   | 用途                                               |
 | --------- | --------- | ------ | -------------------------------------------------- |
-| HTTP      | Indexer   | 只读   | 工具元数据、历史数据、账户状态。                   |
+| HTTP      | Indexer   | 只读   | 金融工具元数据、历史数据、账户状态。                   |
 | WebSocket | Indexer   | 只读   | 实时行情、订单/成交/持仓更新。                     |
 | gRPC      | Validator | 写入   | 下单、撤单与批量操作。                             |
 
@@ -73,7 +73,7 @@ dYdX v4 适配器包含多个组件，可组合使用也可单独使用：
 - `DydxHttpClient`：Indexer REST API 查询的 HTTP 客户端。
 - `DydxWebSocketClient`：供 Rust 调用方使用的 WebSocket 客户端。
 - `DydxGrpcClient`：提交 Cosmos SDK 交易的 gRPC 客户端。
-- `InstrumentCache`：工具解析与加载，HTTP、WebSocket 和执行客户端共用。
+- `InstrumentCache`：金融工具解析与加载，HTTP、WebSocket 和执行客户端共用。
 - `DydxDataClient`：行情数据源管理器。
 - `DydxExecutionClient`：账户管理与交易执行网关。
 - `DydxDataClientFactory`：dYdX v4 数据客户端工厂（交易节点 builder 使用）。
@@ -206,7 +206,7 @@ dYdX 支持一整套订单类型与执行特性。适配器根据订单类型、
 | 保证金模式   | -        | 仅全仓（cross margin）。                                      |
 
 :::note
-dYdX 在场所层面对持仓做净额结算（每个工具一个持仓），因此适配器只以 `NETTING` 模式运行。
+dYdX 在场所层面对持仓做净额结算（每个金融工具一个持仓），因此适配器只以 `NETTING` 模式运行。
 :::
 
 ### 订单查询 {#order-querying}
@@ -268,7 +268,7 @@ Indexer 通过每条 `Fill` 记录的 `type` 字段暴露分类：
 
 场所未来引入的其他取值会解码为未知成交类型并按普通成交处理，新分类不会导致成交被丢弃。
 
-适配器对每笔清算/减仓成交记录一条警告（含工具、方向、数量、价格），然后按常规路径发出 `FillReport`。场所上报为 `LIQUIDATED` 的持仓按已平仓处理，对应的持仓报告就此收尾。
+适配器对每笔清算/减仓成交记录一条警告（含金融工具、方向、数量、价格），然后按常规路径发出 `FillReport`。场所上报为 `LIQUIDATED` 的持仓按已平仓处理，对应的持仓报告就此收尾。
 
 上游参考：
 
@@ -476,7 +476,7 @@ dYdX 对价格和数量使用整数量化。适配器经 `OrderMessageBuilder` �
 - **买入**：`oracle_price × 1.05`
 - **卖出**：`oracle_price × 0.95`
 
-订单定价从工具缓存读取预言机价格。该缓存由 Indexer 在客户端连接时填充，之后不再刷新，因此穿透区间始终锚定连接时刻的预言机价。执行客户端另行在 markets 通道上跟踪实时预言机价格，用于账户状态和持仓估值，不用于订单定价。
+订单定价从金融工具缓存读取预言机价格。该缓存由 Indexer 在客户端连接时填充，之后不再刷新，因此穿透区间始终锚定连接时刻的预言机价。执行客户端另行在 markets 通道上跟踪实时预言机价格，用于账户状态和持仓估值，不用于订单定价。
 
 ### 自动处理 {#automatic-handling}
 
@@ -496,7 +496,7 @@ dYdX 对价格和数量使用整数量化。适配器经 `OrderMessageBuilder` �
 | Mark 价格          | ✓    | -        | 经 markets 通道。                                |
 | Index 价格         | ✓    | -        | 经 markets 通道。                                |
 | 资金费率           | ✓    | ✓        | 实时经 markets 通道，历史经 HTTP。               |
-| 工具状态           | ✓    | -        | 经 markets 通道。                                |
+| 金融工具状态           | ✓    | -        | 经 markets 通道。                                |
 
 ### 支持的 bar 周期 {#supported-bar-resolutions}
 

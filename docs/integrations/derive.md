@@ -1100,7 +1100,7 @@ HTTP 读取时，`Retry-After` 设定的最小延迟可能超过 `retry_delay_ma
 session key 是注册到钱包上用于 API 签名的 secp256k1 私钥。`session_key` 字段在 `Debug` 输出
 与 Python `repr` 中被打码。
 
-### Python live node {#python-live-node}
+### Python 实时节点 {#python-live-node}
 
 Python 节点使用 `LiveNode.builder(...)` 并传入具体的工厂实例。节点提供 trader 标识，
 `DeriveExecutionClientConfig` 提供账户标识。

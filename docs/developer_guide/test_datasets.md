@@ -185,7 +185,7 @@ test_data/<source>/<slug>/
 | 字段               | 说明                                                 |
 | ------------------- | ----------------------------------------------------------- |
 | `slug`              | 稳定的数据集标识。                                  |
-| `vendor`            | 供应商或场所名称。                                       |
+| `vendor`            | 供应商或交易场所名称。                                       |
 | `source_type`       | `api`、`portal-download`、`purchased-archive` 等。         |
 | `source_filters`    | 代码、事件 ID、市场 ID、日期范围或文件名。 |
 | `target_files`      | 转换后预期的输出 Nautilus Parquet 文件。    |

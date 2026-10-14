@@ -59,7 +59,7 @@ AX 永续合约的特征：
 - **只支持整数张合约**：不支持小数数量。
 - **保证金**：开仓需要初始保证金，维持持仓需要维持保证金。
 
-适配器把无到期日的 AX 工具表示为 `PerpetualContract`，有到期日的表示为 `FuturesContract`。场所类别决定 Nautilus 资产类别。适配器使用 `MARGIN` 账户类型和 `NETTING` 订单管理。
+适配器把无到期日的 AX 金融工具表示为 `PerpetualContract`，有到期日的表示为 `FuturesContract`。场所类别决定 Nautilus 资产类别。适配器使用 `MARGIN` 账户类型和 `NETTING` 订单管理。
 
 ## 代码体系 {#symbology}
 
@@ -141,9 +141,9 @@ config = AxExecutionClientConfig(
 | Mark 价格        | `MarkPriceUpdate`   | 从 L1 ticker 订阅提取。                                        |
 | Bar/candle       | `Bar`               | OHLCV 数据（只有总量，无买卖拆分）。                           |
 | 资金费率         | `FundingRateUpdate` | 经 HTTP 轮询；间隔可配置。                                     |
-| 工具状态         | `InstrumentStatus`  | 来自 L1 ticker 订阅的状态变更。                                |
+| 金融工具状态         | `InstrumentStatus`  | 来自 L1 ticker 订阅的状态变更。                                |
 
-AX 工具状态到 `MarketStatusAction` 的映射：
+AX 金融工具状态到 `MarketStatusAction` 的映射：
 
 | AX 状态                          | `MarketStatusAction`          |
 | -------------------------------- | ----------------------------- |
@@ -156,7 +156,7 @@ AX 工具状态到 `MarketStatusAction` 的映射：
 | 退市，或任何无法识别的状态       | `NOT_AVAILABLE_FOR_TRADING`   |
 
 :::note
-AX Exchange 不支持历史报价 tick 请求。报价数据只能通过 WebSocket L1 簿订阅实时获取。适配器不暴露 AX 的指数价格和工具收盘事件，这两类订阅会记录警告且不产出数据。
+AX Exchange 不支持历史报价 tick 请求。报价数据只能通过 WebSocket L1 簿订阅实时获取。适配器不暴露 AX 的指数价格和金融工具收盘事件，这两类订阅会记录警告且不产出数据。
 :::
 
 :::note
@@ -173,7 +173,7 @@ AX 行情 WebSocket 订阅每个代码只有一条活动流。适配器选择能
 
 - 仅成交订阅使用 AX `level: "TRADES"`，只投递成交。
 - 仅订单簿和仅报价订阅设置 AX `trades: false` 和 `ticker: false`，抑制未请求的成交与 ticker 事件。
-- Mark 价格与工具状态订阅需要 AX ticker 事件，因此适配器在活动簿流上启用 ticker 投递；没有订单簿订阅时另开一条 L1 流。
+- Mark 价格与金融工具状态订阅需要 AX ticker 事件，因此适配器在活动簿流上启用 ticker 投递；没有订单簿订阅时另开一条 L1 流。
 - 订单簿 delta 按 Nautilus 簿类型对应的 AX 层级订阅。`L1_MBP` 没有支持 delta 的 AX 等价层级，适配器记录警告后改订 L2。
 - 某代码同时有多个 Nautilus 数据类型活动时，只在以下变化发生时重新订阅：
 
@@ -187,7 +187,7 @@ AX 在 ticker 事件上发布估算资金费率，并在订单 WebSocket 上提�
 
 数据客户端用[共享的订单簿恢复机制](./../developer_guide/adapters.md#order-book-recovery-ownership)管理每个订单簿 delta 订阅。AX 的 L2、L3 消息携带完整快照且没有序号。AX 在每次订阅确认后立即发送一个快照，空簿或无变化的簿也不例外。客户端把每条消息都当作快照接受。订阅写入进行期间会抑制该簿的输出，已退订订单簿的帧直接丢弃。
 
-恢复在同一连接上用"退订 + 订阅"替换该代码的订阅，替换保留当前的层级与成交、ticker 标志。AX 把一个代码的全部行情放在一条流上，替换进行期间该代码的成交、报价、mark 价格和工具状态都会暂停。恢复在以下情况启动：
+恢复在同一连接上用"退订 + 订阅"替换该代码的订阅，替换保留当前的层级与成交、ticker 标志。AX 把一个代码的全部行情放在一条流上，替换进行期间该代码的成交、报价、mark 价格和金融工具状态都会暂停。恢复在以下情况启动：
 
 - 初始订阅写入失败。
 - 初始订阅写入完成或连接重建后，`book_snapshot_timeout_secs`（默认 10 秒）内没有快照到达。`disconnect` 之后的数据客户端 `connect` 同样适用：客户端保留订单簿，WebSocket 客户端会重放它们的订阅。
@@ -208,9 +208,9 @@ AX 在 ticker 事件上发布估算资金费率，并在订单 WebSocket 上提�
 
 ### 实时恢复验证 {#live-recovery-validation}
 
-`ax-book-stress` 压力工具是订单簿同步与恢复代码变更时的开发工具。它使用 AX sandbox 行情，不提交任何订单，按订单簿数据流契约和每条转发的原生 L2 帧校验五个永续订单簿。
+`ax-book-stress` «压力金融工具»是订单簿同步与恢复代码变更时的«开发金融工具»。它使用 AX sandbox 行情，不提交任何订单，按订单簿数据流契约和每条转发的原生 L2 帧校验五个永续订单簿。
 
-AX 行情流要求认证，因此该工具从 `AX_API_KEY` 和 `AX_API_SECRET` 读取 sandbox API 凭据，不经 `scripts/strip-adapter-env.bash` 运行。在仓库根目录运行：
+AX 行情流要求认证，因此该金融工具从 `AX_API_KEY` 和 `AX_API_SECRET` 读取 sandbox API 凭据，不经 `scripts/strip-adapter-env.bash` 运行。在仓库根目录运行：
 
 ```bash
 CARGO_BUILD_JOBS=16 cargo test -p nautilus-architect-ax --features examples --test ax-book-stress -- --timeout 10 --rounds 14
@@ -231,10 +231,10 @@ CARGO_BUILD_JOBS=16 cargo test -p nautilus-architect-ax --features examples --te
 - `turnover`：在恢复刚启动、替换到达场所之后、或被拒替换超期之后，对一个恢复中的订单簿执行退订加重订阅。场所处理稳定后，新订阅必须继续流式且不再有新的替换。
 - `boundaries`：让重试预算内的每次尝试都被拒绝，然后校验重试上限、结束上限等待的重连、恢复期间的退订、重连期间的关闭。它要求非零 `--timeout`（每个被拒尝试由快照期限收尾），且 `--symbols` 至少三个。
 
-`--timeout` 设置快照超时秒数（`0` 禁用快照期限），`--rounds` 设置轮数（默认 14）。`--symbols` 接收逗号分隔的代码列表。sandbox 做市商只对部分工具报价，而停止流式的订单簿会使运行失败，请挑选会流式的订单簿。
+`--timeout` 设置快照超时秒数（`0` 禁用快照期限），`--rounds` 设置轮数（默认 14）。`--symbols` 接收逗号分隔的代码列表。sandbox 做市商只对部分金融工具报价，而停止流式的订单簿会使运行失败，请挑选会流式的订单簿。
 
-该工具需要 sandbox 行情 WebSocket 和 REST API。共享参数与输出格式见
-[压力测试工具](./../developer_guide/spec_data_testing.md#stress-harnesses)。
+该金融工具需要 sandbox 行情 WebSocket 和 REST API。共享参数与输出格式见
+[«压力«测试金融工具»»](./../developer_guide/spec_data_testing.md#stress-harnesses)。
 
 ### HTTP API 行为 {#http-api-behavior}
 
@@ -243,7 +243,7 @@ CARGO_BUILD_JOBS=16 cargo test -p nautilus-architect-ax --features examples --te
 - `GET /open-orders` 使用 limit/offset 分页。挂单对账遍历全部分页并校验总数、偏移、重复和完整性，检测到的响应偏差会使请求失败。
 - `GET /fills` 和 `GET /funding-rates` 使用游标分页。适配器把每条游标链当作尽力而为的历史读取遍历；遍历期间 AX 侧的更正不构成原子快照。
 - `GET /orders` 暴露游标元数据，支持 `order_id`、`order_ids`、`account_id` 和可选时间戳过滤。启动时的全量状态对账遍历其游标链，接受不完整分页，拒绝重复游标和重复订单 ID。
-- 挂单、历史订单、成交和持仓报告请求遇到未缓存代码时经 `GET /instrument` 解析并缓存结果。工具请求或解析失败会使整个报告请求失败，而不是丢弃场所状态。
+- 挂单、历史订单、成交和持仓报告请求遇到未缓存代码时经 `GET /instrument` 解析并缓存结果。金融工具请求或解析失败会使整个报告请求失败，而不是丢弃场所状态。
 - `GET /transactions` 要求 `start_timestamp_ns` 和 `end_timestamp_ns`，跨度不超过 7 天。低层客户端暴露其游标与账户选择器。
 - `GET /order-status` 对被拒订单可以带上 `reject_reason` 和 `reject_message`。
 - 省略账户选择器时，AX 使用主账户。高层执行客户端只拥有一个主账户。低层请求模型暴露文档化的账户选择器。
@@ -322,13 +322,13 @@ reduce-only 边界之所以重要，是因为 AX 没有 reduce-only 字段。san
 | ---------------- | ---- | -------------------------------------------------------------------- |
 | 订单修改         | ✓    | 原子替换；AX 返回新的场所订单 ID。                                   |
 | 撤销订单         | ✓    | 单笔订单撤销。                                                       |
-| 撤销全部订单     | ✓    | 撤销某工具的全部挂单。                                               |
+| 撤销全部订单     | ✓    | 撤销某金融工具的全部挂单。                                               |
 | 批量撤单         | -    | 适配器逐个发送撤销。                                                 |
 | 订单列表         | ✓    | 顺序提交（订单逐个提交，非原子）。                                   |
 
 已有场所订单 ID 的撤销会被转发，包括对终态订单的第二次撤销。本地订单已关闭或待撤销后，策略不会再发这第二次撤销。适配器只在 AX 发来 `CancelRejected` 时才发出 `OrderCancelRejected`。sandbox 对已撤销订单的重发会以 WebSocket 错误 `404`（`order not found`）回应，适配器记录该错误但不把它转成 `OrderCancelRejected`。
 
-**方向过滤**：AX 的撤销全部没有方向参数。因此带 `order_side` 的 `CancelAllOrders` 命令会改为发送逐个撤销请求，只撤销该工具该方向的挂单。按方向过滤的请求只在挂单中选取，尚未被 AX 确认的在途（`SUBMITTED`）订单会在这种操作中存活。
+**方向过滤**：AX 的撤销全部没有方向参数。因此带 `order_side` 的 `CancelAllOrders` 命令会改为发送逐个撤销请求，只撤销该金融工具该方向的挂单。按方向过滤的请求只在挂单中选取，尚未被 AX 确认的在途（`SUBMITTED`）订单会在这种操作中存活。
 
 ### 持仓管理 {#position-management}
 
@@ -336,7 +336,7 @@ reduce-only 边界之所以重要，是因为 AX 没有 reduce-only 字段。san
 | ------------ | ---- | -------------------------------- |
 | 查询持仓     | ✓    | 实时持仓更新。                   |
 | 持仓模式     | -    | 仅净额结算模式。                 |
-| 全仓保证金   | ✓    | 跨全部工具的全仓保证金。         |
+| 全仓保证金   | ✓    | 跨全部金融工具的全仓保证金。         |
 
 ### 订单查询 {#order-querying}
 
@@ -356,7 +356,7 @@ AX 的挂单与历史订单负载不暴露止损订单类型或触发价，因�
 
 被替换的历史订单 ID 是终态。当日结束订单过期，未成交 IOC 订单撤销，与 WebSocket 事件路径一致。未知的订单状态会使对账请求失败，而不是从快照中悄悄漏掉订单。兄弟订单状态未知的成交仍会送达执行。
 
-启动全量状态对账用 `reconciliation_lookback_mins` 限定 `/orders` 和 `/fills` 请求范围，持仓始终按当前快照上报。超过七天的回看实际也只取到七天成交，声明的窗口会向下取整到该上限。有界窗口下，对账后为平的工具的成交只作用于其订单，不物化出持仓——窗口内完成的往返开平不会在重启后产生幻影持仓。不设界时，启动会拉取并核对账户上的每一笔历史订单。
+启动全量状态对账用 `reconciliation_lookback_mins` 限定 `/orders` 和 `/fills` 请求范围，持仓始终按当前快照上报。超过七天的回看实际也只取到七天成交，声明的窗口会向下取整到该上限。有界窗口下，对账后为平的金融工具的成交只作用于其订单，不物化出持仓——窗口内完成的往返开平不会在重启后产生幻影持仓。不设界时，启动会拉取并核对账户上的每一笔历史订单。
 :::
 
 :::warning
@@ -406,7 +406,7 @@ AX Exchange 使用 bearer token 认证：
 | `retry_delay_max_ms`               | `10,000`  | 重试最大延迟（毫秒，指数退避）。                                                |
 | `heartbeat_interval_secs`          | `20`      | WebSocket 连接心跳间隔（秒）。                                                  |
 | `recv_window_ms`                   | `5,000`   | 保留字段；AX 使用 bearer token，适配器不发送窗口。                              |
-| `update_instruments_interval_mins` | `60`      | 工具目录刷新间隔（分钟）。                                                      |
+| `update_instruments_interval_mins` | `60`      | 金融工具目录刷新间隔（分钟）。                                                      |
 | `funding_rate_poll_interval_mins`  | `15`      | 资金费率轮询间隔（分钟）。                                                      |
 | `book_snapshot_timeout_secs`       | `10`      | 初始、重连与恢复时等待订单簿快照的时长；`0` 禁用。                              |
 | `transport_backend`                | `Sockudo` | WebSocket 传输后端。                                                            |
@@ -451,18 +451,18 @@ AX Exchange 使用 bearer token 认证：
 
 ## 实现说明 {#implementation-notes}
 
-- **只支持整数张合约**：AX 使用整数合约数量。适配器把每手规模增量和批量大小建模为 1 张，同时强制执行每个工具各自的 `minimum_order_size`。小数数量在本地产生 `OrderDenied`。
-- **到期期货的激活时间**：AX 发布到期时间但不发布激活时间。适配器对未知的激活时间使用零值，并在工具元数据中保留这一限制。
+- **只支持整数张合约**：AX 使用整数合约数量。适配器把每手规模增量和批量大小建模为 1 张，同时强制执行每个金融工具各自的 `minimum_order_size`。小数数量在本地产生 `OrderDenied`。
+- **到期期货的激活时间**：AX 发布到期时间但不发布激活时间。适配器对未知的激活时间使用零值，并在金融工具元数据中保留这一限制。
 - **限流**：适配器施加保守的 10 请求/秒限流，收到限流响应时自动指数退避。
 - **市价单**：AX 不支持原生市价单。适配器用预览端点确定穿透价，然后提交一个激进 IOC 限价单。预览与提交之间盘口可能移动，因此模拟市价单可能只部分成交。
 - **止损限价订单**：sandbox 测试未能确认条件语义，适配器拒绝场所原生的止损限价提交。策略需要止损限价订单时使用本地订单模拟。
 - **订单修改**：AX 经 `POST /replace-order` 支持原子替换。执行客户端把 `modify_order` 映射到该端点，并记录其返回的新场所订单 ID。修改携带触发价时（AX 没有对应字段）适配器在本地拒绝；订单还没有场所订单 ID 时同样拒绝。
-- **资金费率轮询**：数据客户端按 `funding_rate_poll_interval_mins` 对每个订阅工具轮询 `GET /funding-rates`，请求七天回看以在周末和假期也能取到费率。仅当最新费率与上次发出的不同时才发出。
+- **资金费率轮询**：数据客户端按 `funding_rate_poll_interval_mins` 对每个订阅金融工具轮询 `GET /funding-rates`，请求七天回看以在周末和假期也能取到费率。仅当最新费率与上次发出的不同时才发出。
 - **断开即撤单**：在执行客户端配置中设置 `cancel_on_disconnect=True`，订单 WebSocket 断开时让交易所撤销全部挂单。
-- **账户费率**：工具不携带挂单/吃单费率。认证客户端从 `GET /whoami` 解析账户费率，查询失败则连接失败。执行客户端把费率按 AX 账户缓存（与工具无关），每次连接时刷新；自动 WebSocket 重连沿用缓存的费率。
+- **账户费率**：金融工具不携带挂单/吃单费率。认证客户端从 `GET /whoami` 解析账户费率，查询失败则连接失败。执行客户端把费率按 AX 账户缓存（与金融工具无关），每次连接时刷新；自动 WebSocket 重连沿用缓存的费率。
 - **成交佣金**：WebSocket 的实时成交事件不含费用数据。适配器用成交数量、成交价绝对值、合约乘数和账户的挂单/吃单费率，为跟踪的成交事件和未跟踪的成交报告估算佣金。账户归属依次取成交的账户 ID、订单的账户 ID，两者都没有时用 `/whoami` 的第一个账户。计算保持十进制运算，只在最后一步把费用舍入进精度为 2 的 USD `Money`。
 
-  工具或完整账户费率表未缓存、或佣金无法表示的成交，会被记录并跳过。被跟踪订单的元数据仍可用于对账，恢复依赖配置的对账检查或显式订单查询。跳过的成交不会触发立即的 REST 请求。
+  金融工具或完整账户费率表未缓存、或佣金无法表示的成交，会被记录并跳过。被跟踪订单的元数据仍可用于对账，恢复依赖配置的对账检查或显式订单查询。跳过的成交不会触发立即的 REST 请求。
 
   对账不会替换已应用的佣金，因此流式估算即便与场所 `/fills` 上报的佣金不同也会保留。`/fills` 端点只为未从流中应用的成交提供佣金，适配器用 `Money::from_decimal` 转成 USD，`0.012188` 这类分以下费用会存为 `0.01`。无法表示的 REST 佣金会使成交报告请求与全量状态失败；启动期间该错误会阻止节点启动。
 - **成交对账窗口**：`/fills` 端点要求有界时间范围且跨度上限七天。对账请求最近七天的成交，更早的成交不参与对账。

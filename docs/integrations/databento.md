@@ -46,7 +46,7 @@ NautilusTrader 内置 [Databento](https://databento.com/) API 的适配器，也
 
 Rust 示例位于
 [`crates/adapters/databento/examples/`](https://github.com/nautechsystems/nautilus_trader/tree/develop/crates/adapters/databento/examples/)。
-数据测试器运行时订阅所配置工具的实时报价与成交：
+数据测试器运行时订阅所配置金融工具的实时报价与成交：
 
 ```bash
 cargo run --example databento-data-tester --package nautilus-databento
@@ -152,10 +152,10 @@ curl --header "Authorization: Basic ${databento_auth}" \
 - `GLBX.MDP3` 是 CME Globex MDP 3.0 数据集，覆盖 CME、CBOT、NYMEX、COMEX 的期货、期货期权和价差。支持 MBO、MBP-1、MBP-10、TBBO、trades、BBO 间隔、OHLCV、definition、statistics 和 status。不提供股票合并模式（`cmbp-1`、`cbbo-*`、`tcbbo`）。
 - `EQUS.MINI` 是 Databento US Equities Mini，派生的聚合 top-of-book 数据集，成分场所匿名化。支持 MBP-1、TBBO、trades、BBO 间隔、OHLCV 和 definition。不支持 MBO、MBP-10、imbalance、statistics、status 和合并模式。
 
-US Equities Mini 工具的 Nautilus 场所用 `EQUS`：`AAPL.EQUS`、`MSFT.EQUS` 等。内置场所到数据集映射把 `EQUS` 路由到 `EQUS.MINI`。`XNAS`、`XNYS` 这类场所代码指向场所专有数据集，除非用 `venue_dataset_map` 覆盖。
+US Equities Mini 金融工具的 Nautilus 场所用 `EQUS`：`AAPL.EQUS`、`MSFT.EQUS` 等。内置场所到数据集映射把 `EQUS` 路由到 `EQUS.MINI`。`XNAS`、`XNYS` 这类场所代码指向场所专有数据集，除非用 `venue_dataset_map` 覆盖。
 
 :::warning
-把 `XNAS` 之类的场所覆盖为 `EQUS.MINI` 时，下游工具 ID 要保持一致。Mini 记录携带合并的 `EQUS` 发布方，未显式传 `instrument_id` 的文件或历史解码会发出 `*.EQUS` 标识。
+把 `XNAS` 之类的场所覆盖为 `EQUS.MINI` 时，下游金融工具 ID 要保持一致。Mini 记录携带合并的 `EQUS` 发布方，未显式传 `instrument_id` 的文件或历史解码会发出 `*.EQUS` 标识。
 :::
 
 成本取决于模式、代码和时间范围。探索阶段先用小范围、`definition`、`bbo-1s`、`bbo-1m` 或 `trades`，拉取历史时间序列前先调用 `metadata.get_cost`。当 `mbp-1` 或 `tbbo` 这类组合模式已携带策略所需数据时，避免重复订阅报价和成交。
@@ -198,7 +198,7 @@ instrument_id = InstrumentId.from_str("ES.c.0.GLBX")
 
 :::
 
-### 工具定义订阅 {#instrument-definition-subscriptions}
+### 金融工具定义订阅 {#instrument-definition-subscriptions}
 
 ```python
 # Stream definition messages, which also populate the live price precision map
@@ -277,7 +277,7 @@ self.subscribe_book_deltas(
 # Deltas stream from the point of subscription with no initial book snapshot
 ```
 
-### 工具状态订阅 {#instrument-status-subscriptions}
+### 金融工具状态订阅 {#instrument-status-subscriptions}
 
 ```python
 # Subscribe to venue trading-state updates
@@ -289,7 +289,7 @@ self.subscribe_instrument_status(
 
 ### 深度、bar 与自定义数据订阅 {#depth-bar-and-custom-data-subscriptions}
 
-`subscribe_book_depth()` 为单个工具流式发布 `mbp-10` 深度快照。Databento 只提供 10 档深度，显式传入 10 以外的深度会被拒绝。`BarType` 中的 bar 聚合为 `subscribe_bars()` 选择 OHLCV 模式（`ohlcv-1s`、`ohlcv-1m`、`ohlcv-1h` 或 `ohlcv-1d`）。步长必须为 1，价格类型必须是 `LAST`——解码器只发出这一种价格类型。`subscribe_data()` 为数据类型标识中所给工具 ID 流式发布 `DatabentoStatistics` 或 `DatabentoImbalance` 记录，带 metadata 的数据类型会被拒绝。记录以该标识发布，订阅者只收到自己工具的数据。
+`subscribe_book_depth()` 为单个金融工具流式发布 `mbp-10` 深度快照。Databento 只提供 10 档深度，显式传入 10 以外的深度会被拒绝。`BarType` 中的 bar 聚合为 `subscribe_bars()` 选择 OHLCV 模式（`ohlcv-1s`、`ohlcv-1m`、`ohlcv-1h` 或 `ohlcv-1d`）。步长必须为 1，价格类型必须是 `LAST`——解码器只发出这一种价格类型。`subscribe_data()` 为数据类型标识中所给金融工具 ID 流式发布 `DatabentoStatistics` 或 `DatabentoImbalance` 记录，带 metadata 的数据类型会被拒绝。记录以该标识发布，订阅者只收到自己金融工具的数据。
 
 这三种订阅只接受 `ESM4.GLBX` 这类原始代码。记录会解析到具体合约，因此连续代码（`ES.c.0`）和父级代码（`ES.FUT`）会被拒绝——它们不会发布到订阅者未监听的主题上。示例使用原始代码：
 
@@ -341,7 +341,7 @@ self.request_book_depth(
 )
 ```
 
-## 工具 ID 与代码体系 {#instrument-ids-and-symbology}
+## 金融工具 ID 与代码体系 {#instrument-ids-and-symbology}
 
 Databento 行情数据带有数字 `instrument_id` 字段，通常由发布方分配；发布方不提供时由 Databento 合成一个。Databento 只保证该 ID 在单日内唯一。这与 Nautilus 的 `InstrumentId` 不同——后者是"代码.场所"格式的字符串。
 
@@ -359,7 +359,7 @@ Databento 行情数据带有数字 `instrument_id` 字段，通常由发布方�
 
 同一请求或订阅内的全部代码必须使用同一种代码体系。`AAPL.EQUS` 与 `MSFT.EQUS` 可以批量，`ES.FUT.XCME` 与 `NQ.FUT.XCME` 可以批量，但不要在一个 Databento 请求里混用原始代码和父级代码。
 
-对 CME Globex MDP 3.0（`GLBX.MDP3`），发布方默认映射到 `GLBX` 场所。`use_exchange_as_venue=True` 时，定义消息可以用工具的交易所 MIC 覆盖 `GLBX`：
+对 CME Globex MDP 3.0（`GLBX.MDP3`），发布方默认映射到 `GLBX` 场所。`use_exchange_as_venue=True` 时，定义消息可以用金融工具的交易所 MIC 覆盖 `GLBX`：
 
 - `CBCM`：XCME-XCBT 交易所间价差
 - `NYUM`：XNYM-DUMX 交易所间价差
@@ -407,11 +407,11 @@ Nautilus 数据至少需要两个时间戳（`Data` 契约）：
 [schemas and data formats](https://databento.com/docs/schemas-and-data-formats)。
 :::
 
-### 工具定义 {#instrument-definitions}
+### 金融工具定义 {#instrument-definitions}
 
-Databento 对所有工具类别使用同一种模式。解码器把每种映射到相应的 Nautilus `Instrument` 类型。
+Databento 对所有金融工具类别使用同一种模式。解码器把每种映射到相应的 Nautilus `Instrument` 类型。
 
-| Databento 工具类别 | 代码 | Nautilus 工具类型      |
+| Databento 金融工具类别 | 代码 | Nautilus 金融工具类型      |
 | ------------------ | ---- | ---------------------- |
 | 股票               | `K`  | `Equity`               |
 | 期货               | `F`  | `FuturesContract`      |
@@ -444,9 +444,9 @@ loader.load_instruments(
 
 ### 价格精度 {#price-precision}
 
-Databento 原始价格是按 1e-9 缩放的定点整数。适配器从定义消息中工具的 tick size 推导价格精度。
+Databento 原始价格是按 1e-9 缩放的定点整数。适配器从定义消息中金融工具的 tick size 推导价格精度。
 
-实时数据源方面，feed handler 维护一张按工具的精度映射表，随 `InstrumentDefMsg` 记录到达而填充。行情 handler 按以下顺序解析精度：
+实时数据源方面，feed handler 维护一张按金融工具的精度映射表，随 `InstrumentDefMsg` 记录到达而填充。行情 handler 按以下顺序解析精度：
 
 1. 该 Databento 记录 `instrument_id` 已见过的 `InstrumentDefMsg` 中的精度。
 2. 经代码映射消息与记录 `instrument_id` 匹配上的订阅精度。
@@ -455,24 +455,24 @@ Databento 原始价格是按 1e-9 缩放的定点整数。适配器从定义消�
 
 精度通过 `subscribe_quotes()` 或 `subscribe_trades()` 的 `price_precision` 参数提供，直接使用该实时客户端时用 `price_precisions`。其他订阅方法不读取该参数。第 2、3 步是同一覆盖项的两种匹配方式：代码映射后匹配记录 `instrument_id`，让父级、连续等非原始代码体系的订阅在定义元数据到达之前就能应用覆盖。
 
-**工具定义必须先于行情到达**，否则非标准 tick size 的工具（如 tick 为 1/256 分数的国债期货）精度会出错。请在行情订阅之前或同时订阅工具定义（Databento `definition` 模式）。
+**金融工具定义必须先于行情到达**，否则非标准 tick size 的金融工具（如 tick 为 1/256 分数的国债期货）精度会出错。请在行情订阅之前或同时订阅金融工具定义（Databento `definition` 模式）。
 
 历史请求与文件加载中，精度按记录依次解析：
 
 1. 调用时显式传入的 `price_precision` 参数。
 2. 由加载定义填充的按代码缓存（文件加载器的 `load_instruments`、历史客户端的 `get_range_instruments`），或显式调用 `set_price_precision(symbol, precision)`。
 
-两个来源都提供不了精度时，数据客户端会获取所请求工具的定义。查找从请求开始日期的 UTC 午夜开始，以包含 Databento 的午夜定义快照。行情请求本身保持原时间范围。
+两个来源都提供不了精度时，数据客户端会获取所请求金融工具的定义。查找从请求开始日期的 UTC 午夜开始，以包含 Databento 的午夜定义快照。行情请求本身保持原时间范围。
 
 解析不出精度时绝不回退到 USD 精度：历史客户端和加载器调用返回错误，数据客户端请求记录错误并返回空响应。
 
 :::tip
-策略启动时为每个工具调用 `subscribe_instrument()`，让定义消息填充实时精度映射。feed handler 为整个数据集会话保留每个代码的 `price_precision` 覆盖。在一路报价或成交订阅上设置的覆盖，同样覆盖该代码的订单簿 delta、深度、bar、statistics 和 imbalance。`InstrumentStatus` 不含价格，无需精度。
+策略启动时为每个金融工具调用 `subscribe_instrument()`，让定义消息填充实时精度映射。feed handler 为整个数据集会话保留每个代码的 `price_precision` 覆盖。在一路报价或成交订阅上设置的覆盖，同样覆盖该代码的订单簿 delta、深度、bar、statistics 和 imbalance。`InstrumentStatus` 不含价格，无需精度。
 :::
 
 ### MBO（逐笔订单） {#mbo-market-by-order}
 
-MBO 是 Databento 粒度最高的数据，代表完整订单簿深度。部分消息带成交数据。解码器产出 `OrderBookDelta`，并可能附带一个 `TradeTick`。实时客户端只在工具收到第一个 delta 之后才发出 `TradeTick`。
+MBO 是 Databento 粒度最高的数据，代表完整订单簿深度。部分消息带成交数据。解码器产出 `OrderBookDelta`，并可能附带一个 `TradeTick`。实时客户端只在金融工具收到第一个 delta 之后才发出 `TradeTick`。
 
 实时客户端把 MBO 消息缓存起来，直到某条记录带 `F_LAST` 标志结束整个撮合事件，再把一个 `OrderBookDeltas` 容器交给 handler。解码结果不含 delta 的记录（成交归属、状态动作或成交）也可以带 `F_LAST`，客户端按原始标志处理，与解码出的负载无关——否则半个事件会被搁置并与下一个事件错误合并。结束该事件的成交排在被刷出的容器之后。
 
@@ -488,7 +488,7 @@ TBBO 和 TCBBO 每条消息同时提供报价与成交。两种模式每条消�
 
 #### 成交 ID 推导（CMBP-1 与 TCBBO） {#trade-id-derivation-cmbp-1-and-tcbbo}
 
-CMBP-1 和 TCBBO 模式不发布原生成交标识。解码器用 FNV-1a 对工具 ID、`ts_event`、`ts_recv`、价格、数量和主动方做哈希，推导出确定性的 `TradeId`。同一场所事件在多次回放中得到相同成交 ID，下游去重因此不受影响。字段完全相同的两笔逻辑成交会相撞——这与场所有时无法区分它们的事实一致。
+CMBP-1 和 TCBBO 模式不发布原生成交标识。解码器用 FNV-1a 对金融工具 ID、`ts_event`、`ts_recv`、价格、数量和主动方做哈希，推导出确定性的 `TradeId`。同一场所事件在多次回放中得到相同成交 ID，下游去重因此不受影响。字段完全相同的两笔逻辑成交会相撞——这与场所有时无法区分它们的事实一致。
 
 ### OHLCV（bar 聚合） {#ohlcv-bar-aggregates}
 
@@ -498,7 +498,7 @@ Databento 给 bar 消息打的时间戳是区间的**开盘**时刻。默认情�
 
 `imbalance` 和 `statistics` 模式没有内置的 Nautilus 对应类型。适配器在 Rust 中定义了 `DatabentoImbalance` 和 `DatabentoStatistics`，Python 绑定从 `nautilus_trader.adapters.databento` 暴露这两个类型。
 
-实时记录用 `subscribe_data()` 订阅，`DataType` 名为 `DatabentoStatistics` 或 `DatabentoImbalance`，标识为工具 ID。历史请求与文件使用：
+实时记录用 `subscribe_data()` 订阅，`DataType` 名为 `DatabentoStatistics` 或 `DatabentoImbalance`，标识为金融工具 ID。历史请求与文件使用：
 
 - `DatabentoDataLoader.load_imbalance` 和 `load_statistics` 读取 DBN 文件。
 - `DatabentoHistoricalClient.get_range_imbalance` 和 `get_range_statistics` 读取历史区间。
@@ -597,7 +597,7 @@ trades = loader.load_trades(
 )
 ```
 
-写入 `ParquetDataCatalog` 时先写定义数据再写行情数据——目录必须先有工具，才能写该工具的记录：
+写入 `ParquetDataCatalog` 时先写定义数据再写行情数据——目录必须先有金融工具，才能写该金融工具的记录：
 
 ```python
 from nautilus_trader.persistence import ParquetDataCatalog
@@ -624,7 +624,7 @@ catalog.write_trade_ticks(trades)
 
 `DatabentoDataClient` 包装其余 Databento 适配器类。它在该数据集的首个订阅时创建该数据集的唯一实时 feed handler，该数据集的所有模式共享这个 handler。handler 运行一个异步任务，让网关的下一条记录与引擎的下一条命令赛跑。因此后续订阅无需重连即可进入运行中的会话。
 
-数据客户端的全部历史请求（包括为预置价格精度而获取的工具定义）共用一个 `DatabentoHistoricalClient`。
+数据客户端的全部历史请求（包括为预置价格精度而获取的金融工具定义）共用一个 `DatabentoHistoricalClient`。
 
 :::warning
 实时会话开始之后再发送重放 `start` 锚点，Databento 会将其丢弃，因此会话中途的订阅只能从当下开始流式，没有历史。feed handler 对迟到的 `start` 记录错误，并从存储的订阅中剥掉 `start`，确保重连时不会二次重放历史。
@@ -656,7 +656,7 @@ config = DatabentoDataClientConfig(
 | ------------------------- | -------- | ------------------------------------------------------- |
 | `api_key`                 | 必填     | Databento API 密钥。                                    |
 | `publishers_filepath`     | 必填     | Databento 发布方元数据的本地路径。                      |
-| `use_exchange_as_venue`   | `False`  | GLBX 工具使用交易所 MIC 场所。                          |
+| `use_exchange_as_venue`   | `False`  | GLBX 金融工具使用交易所 MIC 场所。                          |
 | `bars_timestamp_on_close` | `True`   | bar 用收盘时间戳而非区间开盘时刻。                      |
 | `venue_dataset_map`       | `None`   | 覆盖发布方数据推导的场所到数据集映射。                  |
 | `historical_base_url`     | `None`   | 覆盖 Historical API 基础 URL。                          |

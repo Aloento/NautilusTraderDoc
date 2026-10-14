@@ -64,7 +64,7 @@ Rust 文档注释用**陈述语气**书写，例如 *"Returns a cached client."*
 4. **执行相关术语**：在公开的、项目自有的 PascalCase 类型名中使用 `Execution`，
    例如 `BinanceExecutionClientConfig`。内部实现类型可以沿用已有的 `Exec` 名字。
    `Exec` 一词专用于 `ExecAlgorithmId` 与 `ExecTester` 家族、已有的 `exec_*` 名称，
-   以及 `OkxExecType` 这类场所或协议术语。协议专属的线上模型按场所概念命名，
+   以及 `OkxExecType` 这类交易场所或协议术语。协议专属的线上模型按交易场所概念命名，
    例如 `HyperliquidExchangeAction`。保留既有的公开名称、历史发布条目，
    以及迁移表中的源名称。
 
@@ -80,7 +80,7 @@ Rust 文档注释用**陈述语气**书写，例如 *"Returns a cached client."*
 
 6. **适配器工厂配置**：数据与执行的输入分别命名为 `<Venue>DataClientConfig` 与
    `<Venue>ExecutionClientConfig`。工厂直接消费这些客户端配置，而不是通过单独的
-   工厂配置包装。`LiveNodeConfig` 持有 `trader_id`。场所专属的 `account_id`
+   工厂配置包装。`LiveNodeConfig` 持有 `trader_id`。交易场所专属的 `account_id`
    取值属于执行客户端配置。
 
 #### 数据加载 API {#data-loading-apis}
@@ -110,7 +110,7 @@ worker、迭代状态或打开的资源时，才用类。不要为了把静态�
 唯一事实来源。`python/generate_stubs.py` 把该列表照抄进对应的 `.pyi`，
 因此运行时导出与存根导出完全一致。
 
-场所适配器暴露其规范身份常量，以及受支持的公开面：
+交易场所适配器暴露其规范身份常量，以及受支持的公开面：
 
 - `<VENUE>`、`<VENUE>_CLIENT_ID`、`<VENUE>_VENUE`，由适配器的 `python/mod.rs`
   经 `m.add` 从 Rust 注册
@@ -120,12 +120,12 @@ worker、迭代状态或打开的资源时，才用类。不要为了把静态�
 
 门面要保持薄。不要仅仅为了结构上的对称就把内部件塞进 `__all__`，
 包括原始 HTTP 或 WebSocket 客户端、线上模型、端点 URL 解析器
-（`get_*_url`、`*_HTTP_URL`）与缓存。下列包省略场所常量，因为常量对它们没有意义：
+（`get_*_url`、`*_HTTP_URL`）与缓存。下列包省略交易场所常量，因为常量对它们没有意义：
 
 - 数据提供者，如 `databento` 与 `tardis`。
 - `blockchain` 数据客户端。
 - `sandbox` 执行客户端。
-- 多场所的 `interactive_brokers` 券商。
+- 多交易场所的 `interactive_brokers` 券商。
 
 `__all__` 条目的排列要让 `RUF022` 预提交门禁负责排序，不要手工排列。
 

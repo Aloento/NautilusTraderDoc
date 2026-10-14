@@ -14,7 +14,7 @@
 历史源码基线：[46f87cd1b7af576495418761bbf11db23e89124c](https://github.com/nautechsystems/nautilus_trader/commit/46f87cd1b7af576495418761bbf11db23e89124c)。
 下述提交保留（submission-retention）行为由本文档修订版的链接源码与测试覆盖。
 
-[执行策略](./../concepts/execution/policies.md#terminal-reconciliation-provenance)区分场所证据与
+[执行策略](./../concepts/execution/policies.md#terminal-reconciliation-provenance)区分交易场所证据与
 本地策略裁定。Rust 实时执行管理器中，`check_inflight_orders` 对达到重试上限的处理如下：
 
 - **已提交订单**：不适用提交保留时，管理器生成原因为 `INFLIGHT_TIMEOUT` 的拒绝。
@@ -34,7 +34,7 @@
   `test_check_open_orders_submitted_missing_at_venue_obeys_recovery_policy`、
   `test_inflight_pending_update_generates_canceled`、
   `test_inflight_pending_cancel_generates_canceled`。
-- **限度**：重试耗尽并不能确立场所侧的结果。仅凭对账标志无法区分场所报告与本地
+- **限度**：重试耗尽并不能确立交易场所侧的结果。仅凭对账标志无法区分交易场所报告与本地
   策略裁定，且 `OrderCanceled` 没有原因字段。消费者需要结合相关输入与日志才能
   保留这一区分。
 
@@ -108,7 +108,7 @@
   中的 `test_live_node_startup_recovers_terminal_fill_exactly`。
 - **限度**：该检查覆盖的是基于报告的启动恢复，不涉及后备存储持久性、supervisor
   重启或任意 panic 恢复。对账可以被禁用；事件存储重放也会跳过实时客户端连接与
-  对账。场所侧完整性仍受[对账权限](./../concepts/execution/policies.md#reconciliation-authority)
+  对账。交易场所侧完整性仍受[对账权限](./../concepts/execution/policies.md#reconciliation-authority)
   策略约束。
 
 ## 过载处理 {#overload-handling}

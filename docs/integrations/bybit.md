@@ -213,7 +213,7 @@ delta 不会改变报价来源。订单簿 delta 只来自所请求的深度。�
 ### 序列校验 {#sequence-validation}
 
 每个 delta 必须携带紧跟订单簿最后接受帧之后的更新 ID `u`。任何其他 delta 都会抑制订单簿
-输出并请求恢复。在首个快照之前就到达产销簿的 delta 同样如此——例如快重订阅之前发出的更新
+输出并请求恢复。在首个快照之前就到达订单簿的 delta 同样如此——例如快重订阅之前发出的更新
 可能先到达新订阅。只有当既没有进行中的恢复、也没有快照死线占用该订单簿时，请求才会启动
 恢复。
 
@@ -317,214 +317,204 @@ Bybit 提供触发类型的灵活组合，能覆盖更多样的 Nautilus 订单�
 | `FOK`         | ✓      | ✓      | ✓      | ✓      | 全部成交否则撤销（Fill or Kill）。  |
 | `IOC`         | ✓      | ✓      | ✓      | ✓      | 立即成交否则撤销（Immediate or Cancel）。 |
 
-### Advanced order features
+### 高级订单特性 {#advanced-order-features}
 
-| Feature            | Spot | Linear | Inverse | Option | Notes                                  |
-| ------------------ | ---- | ------ | ------- | ------ | -------------------------------------- |
-| Order Modification | ✓    | ✓      | ✓       | ✓      | Price and quantity modification.       |
-| Bracket/OCO Orders | -    | -      | -       | -      | Not implemented; submit legs yourself. |
-| Iceberg Orders     | -    | -      | -       | -      | Not implemented.                       |
+| 特性               | 现货   | 线性   | 反向   | 期权   | 说明                                   |
+| ------------------ | ----   | ------ | ------ | ------ | -------------------------------------- |
+| 订单修改           | ✓      | ✓      | ✓      | ✓      | 价格与数量修改。                       |
+| 括弧/OCO 订单      | -      | -      | -      | -      | 未实现；请自行提交各腿。               |
+| 冰山订单           | -      | -      | -      | -      | 未实现。                               |
 
-### Batch operations
+### 批量操作 {#batch-operations}
 
-| Operation    | Spot | Linear | Inverse | Option | Notes                                     |
-| ------------ | ---- | ------ | ------- | ------ | ----------------------------------------- |
-| Batch Submit | ✓    | ✓      | ✓       | ✓      | Submit multiple orders in single request. |
-| Batch Modify | -    | -      | -       | -      | Not wired into the execution client.      |
-| Batch Cancel | ✓    | ✓      | ✓       | ✓      | Cancel multiple orders in single request. |
+| 操作       | 现货   | 线性   | 反向   | 期权   | 说明                                      |
+| ---------- | ----   | ------ | ------ | ------ | ----------------------------------------- |
+| 批量提交   | ✓      | ✓      | ✓      | ✓      | 单次请求提交多笔订单。                    |
+| 批量修改   | -      | -      | -      | -      | 未接入执行客户端。                        |
+| 批量撤销   | ✓      | ✓      | ✓      | ✓      | 单次请求撤销多笔订单。                    |
 
-Batch submit and batch cancel use the trade WebSocket on mainnet and testnet. In demo mode the
-adapter falls back to individual HTTP requests, because the demo environment has no trade
-WebSocket.
+批量提交与批量撤销在主网和测试网使用 trade WebSocket。demo 模式下适配器回退为逐个 HTTP
+请求，因为 demo 环境没有 trade WebSocket。
 
-Bybit accepts at most 10 Spot orders, 20 Linear or Inverse orders, or 5 Option orders in one batch
-request. Linear, Inverse, and Spot batches consume UID quota per order, while an Option batch
-consumes one request. The adapter splits Spot, Linear, and Inverse batches into groups of 10 by
-default so one request cannot exceed the standard rolling UID allowance. It splits Option batches
-into groups of five. The HTTP batch-cancel method accepts up to 20 Option operations in one call.
+Bybit 单个批量请求至多接受 10 笔现货订单、20 笔线性或反向订单，或 5 笔期权订单。线性、
+反向与现货批量按订单逐笔消耗 UID 配额，而期权批量只消耗一次请求。适配器默认把现货、线性
+与反向批量按 10 笔一组拆分，使单个请求不会超出标准的滚动 UID 允许量；期权批量按 5 笔一组
+拆分。HTTP 批量撤销方法单次调用至多接受 20 个期权操作。
 
-### Position management
+### 持仓管理 {#position-management}
 
-| Feature          | Spot | Linear | Inverse | Option | Notes                                                       |
-| ---------------- | ---- | ------ | ------- | ------ | ----------------------------------------------------------- |
-| Query positions  | -    | ✓      | ✓       | ✓      | Real-time position updates.                                 |
-| Position mode    | -    | ✓      | ✓       | -      | One-Way only for Options.                                   |
-| Leverage control | -    | ✓      | ✓       | -      | Not applicable for Options.                                 |
-| Margin mode      | -    | ✓      | ✓       | ✓      | `ISOLATED_MARGIN`, `REGULAR_MARGIN`, or `PORTFOLIO_MARGIN`. |
+| 特性             | 现货   | 线性   | 反向   | 期权   | 说明                                                        |
+| ---------------- | ----   | ------ | ------ | ------ | ----------------------------------------------------------- |
+| 查询持仓         | -      | ✓      | ✓      | ✓      | 实时持仓更新。                                              |
+| 持仓模式         | -      | ✓      | ✓      | -      | 期权仅支持单向模式。                                        |
+| 杠杆控制         | -      | ✓      | ✓      | -      | 期权不适用。                                                |
+| 保证金模式       | -      | ✓      | ✓      | ✓      | `ISOLATED_MARGIN`、`REGULAR_MARGIN` 或 `PORTFOLIO_MARGIN`。  |
 
-Set `margin_mode` on the execution client config to apply a `BybitMarginMode` to the account when
-the client connects.
+在执行客户端配置上设置 `margin_mode`，客户端连接时就会为账户应用一个 `BybitMarginMode`。
 
-#### Hedge mode (BothSides)
+#### 对冲模式（BothSides） {#hedge-mode-bothsides}
 
-Bybit only accepts Both Sides mode on USDT linear perpetuals. Configure the position mode at Bybit. Then pass
-`position_idx` through the order `params`. Use `1` for the long side or `2` for the short side. Use `0` or
-omit the parameter for one-way mode.
+Bybit 只在 USDT 线性永续上接受双边（Both Sides）模式。请先在 Bybit 配置持仓模式，然后通过
+订单 `params` 传入 `position_idx`。多头一侧用 `1`，空头一侧用 `2`。单向模式用 `0` 或省略
+该参数。
 
-Bybit documents these values in the V5 [switch position mode](https://bybit-exchange.github.io/docs/v5/position/position-mode)
-and [place order](https://bybit-exchange.github.io/docs/v5/order/create-order#request-parameters)
-APIs.
+Bybit 在 V5 的
+[切换持仓模式](https://bybit-exchange.github.io/docs/v5/position/position-mode)与
+[下单](https://bybit-exchange.github.io/docs/v5/order/create-order#request-parameters)
+API 文档中记录了这些取值。
 
-Orders and reports with `positionIdx=0` (one-way / Merged Single mode) carry no venue position ID. For
-hedge-mode indexes `1` and `2`, the adapter maps reports to venue position IDs ending in `-LONG` and `-SHORT`.
-If Bybit execution messages omit `positionIdx`, fills carry the same ID.
+`positionIdx=0`（单向 / Merged Single 模式）的订单与报告不携带场所持仓 ID。对冲模式的索引
+`1` 与 `2`，适配器把报告映射到以 `-LONG` 和 `-SHORT` 结尾的场所持仓 ID。若 Bybit 执行消息
+省略了 `positionIdx`，成交携带同一个 ID。
 
-In hedge mode, `positionIdx` identifies the affected position, not the trade direction. Thus, a reduce-only
-sell resolves to the long index. A reduce-only buy resolves to the short index.
+对冲模式下，`positionIdx` 标识受影响的持仓，而不是交易方向。因此 reduce-only 的卖出解析为
+多头索引，reduce-only 的买入解析为空头索引。
 
-To override, pass `position_idx` via `params`:
+要覆盖默认判断，通过 `params` 传入 `position_idx`：
 
 ```python
 params = {"position_idx": 1}  # 0 one-way, 1 long, 2 short
 ```
 
-### Risk events
+### 风险事件 {#risk-events}
 
-| Feature              | Spot | Linear | Inverse | Option | Notes                                                 |
-| -------------------- | ---- | ------ | ------- | ------ | ----------------------------------------------------- |
-| Liquidation handling | -    | ✓      | ✓       | ✓      | Takeover fills flagged as exchange-generated.         |
-| ADL handling         | -    | ✓      | ✓       | ✓      | Auto-deleveraging fills flagged and logged.           |
-| ADL rank warnings    | -    | ✓      | ✓       | ✓      | Position reports logged when `adlRankIndicator >= 4`. |
+| 特性             | 现货   | 线性   | 反向   | 期权   | 说明                                                  |
+| ---------------- | ----   | ------ | ------ | ------ | ----------------------------------------------------- |
+| 强平处理         | -      | ✓      | ✓      | ✓      | 接管成交被标记为交易所生成。                          |
+| ADL 处理         | -      | ✓      | ✓      | ✓      | 自动减仓成交被标记并记日志。                          |
+| ADL 排名警告     | -      | ✓      | ✓      | ✓      | `adlRankIndicator >= 4` 时记录持仓报告。              |
 
-Bybit emits venue-initiated fills with `execType` set to:
+Bybit 发出场所发起的成交时，`execType` 取以下值：
 
-- `AdlTrade`: Auto-deleveraging execution. An opposing profitable position was
-  selected to close the undercollateralised counterparty after the insurance
-  fund could not cover the loss.
-- `BustTrade`: Liquidation takeover. The liquidation engine seized the
-  position after margin was exhausted.
-- `Delivery`: USDC futures delivery.
-- `Settle`: Inverse futures settlement.
-- `ForwardSplitSettle`: Forward stock split fractional share settlement.
-- `ReverseSplitSettle`: Reverse stock split fractional share settlement.
-- `Dividend`: Dividend distribution.
+- `AdlTrade`：自动减仓（auto-deleveraging）执行。保险基金无法覆盖损失后，选择一个对手方
+  的盈利持仓来平掉资不抵债的对手。
+- `BustTrade`：强平接管。保证金耗尽后，强平引擎没收了该持仓。
+- `Delivery`：USDC 期货交割。
+- `Settle`：反向期货结算。
+- `ForwardSplitSettle`：正向拆股的零碎股份结算。
+- `ReverseSplitSettle`：反向并股的零碎股份结算。
+- `Dividend`：股息分派。
 
-The venue previously issued `CorporateAction` for stock splits and reverse splits. The adapter
-still accepts it in execution history recorded before its replacement by the settle and dividend
-types above.
+场所此前对拆股与并股发出 `CorporateAction`。在被上述结算与股息类型取代之前录制的执行历史
+里，适配器仍接受它。
 
-The adapter flags each as exchange-generated and logs a warning containing the execution ID, symbol, side,
-quantity, and price. Fills flow through the normal `FillReport` path. Because these orders carry an empty
-`orderLinkId`, the execution engine treats them as external. It assigns them through the instrument's active
-external order claim, configured initially with `external_order_instrument_ids`. Without a claim, it assigns
-them to the `EXTERNAL` strategy.
+适配器把每一笔标记为交易所生成，并记一条警告，包含执行 ID、symbol、方向、数量与价格。
+成交经由普通的 `FillReport` 路径流动。由于这些订单的 `orderLinkId` 为空，执行引擎把它们
+当作外部订单。它们经由工具的活动外部订单认领来分配——该认领最初用
+`external_order_instrument_ids` 配置；没有认领时分配给 `EXTERNAL` 策略。
 
-Execution types the adapter does not recognize are handled as `UNKNOWN` rather than rejected, so
-future venue additions still flow through the fill path instead of being dropped.
+适配器无法识别的执行类型按 `UNKNOWN` 处理而不是拒绝，因此场所将来新增的类型仍能流经成交
+路径，而不会被丢弃。
 
-Funding settlements use `execType=Funding`, but they are balance adjustments rather than fills. The adapter
-ignores them in historical fill reports and standard private `execution` messages. Thus, it emits neither a
-`FillReport` nor an `OrderFilled` event. It does not change local position quantity. During reconciliation,
-funding records do not count toward the requested fill-report limit.
+Funding 结算使用 `execType=Funding`，但它们是余额调整而非成交。适配器在历史成交报告与标准
+私有 `execution` 消息中忽略它们，既不发出 `FillReport`，也不发出 `OrderFilled` 事件，也
+不改变本地持仓数量。对账期间，funding 记录不计入所请求的成交报告限额。
 
-Bybit also publishes an ADL ranking on position updates via the
-`adlRankIndicator` field. The range is 0 (flat / no position) to 5 (next to
-deleverage). The adapter logs a warning whenever an open position carries a
-rank of 4 or higher so you can react before the venue force-closes.
+Bybit 还通过 `adlRankIndicator` 字段在持仓更新上发布 ADL 排名。范围从 0（无持仓）到 5
+（下一个被减仓）。只要未结持仓的排名达到 4 或更高，适配器就记一条警告，让你在场所强制
+平仓之前有所反应。
 
-Upstream references:
+上游参考：
 
-- [V5 `execType` values](https://bybit-exchange.github.io/docs/v5/enum#exectype)
-- [V5 `createType` values](https://bybit-exchange.github.io/docs/v5/enum#createtype)
-- [Liquidation mechanism](https://www.bybit.com/en/help-center/article/Liquidation-Process-Derivatives-Trading)
-- [Auto-Deleveraging mechanism](https://www.bybit.com/en/help-center/article/Auto-Deleveraging-ADL-Derivatives-Trading)
+- [V5 `execType` 取值](https://bybit-exchange.github.io/docs/v5/enum#exectype)
+- [V5 `createType` 取值](https://bybit-exchange.github.io/docs/v5/enum#createtype)
+- [强平机制](https://www.bybit.com/en/help-center/article/Liquidation-Process-Derivatives-Trading)
+- [自动减仓（ADL）机制](https://www.bybit.com/en/help-center/article/Auto-Deleveraging-ADL-Derivatives-Trading)
 
-### Order querying
+### 订单查询 {#order-querying}
 
-| Feature              | Spot | Linear | Inverse | Option | Notes                          |
-| -------------------- | ---- | ------ | ------- | ------ | ------------------------------ |
-| Query open orders    | ✓    | ✓      | ✓       | ✓      | List all active orders.        |
-| Query order history  | ✓    | ✓      | ✓       | ✓      | Historical order data.         |
-| Order status updates | ✓    | ✓      | ✓       | ✓      | Real-time order state changes. |
-| Trade history        | ✓    | ✓      | ✓       | ✓      | Execution and fill reports.    |
+| 特性             | 现货   | 线性   | 反向   | 期权   | 说明                           |
+| ---------------- | ----   | ------ | ------ | ------ | ------------------------------ |
+| 查询未结订单     | ✓      | ✓      | ✓      | ✓      | 列出全部活动订单。             |
+| 查询订单历史     | ✓      | ✓      | ✓      | ✓      | 历史订单数据。                 |
+| 订单状态更新     | ✓      | ✓      | ✓      | ✓      | 实时订单状态变化。             |
+| 成交历史         | ✓      | ✓      | ✓      | ✓      | 执行与成交报告。               |
 
-### Contingent orders
+### 条件关联订单 {#contingent-orders}
 
-| Feature            | Spot | Linear | Inverse | Option | Notes                                  |
-| ------------------ | ---- | ------ | ------- | ------ | -------------------------------------- |
-| Order lists        | ✓    | ✓      | ✓       | ✓      | Submitted as a batch via WebSocket.    |
-| OCO orders         | -    | -      | -       | -      | Not implemented; submit legs yourself. |
-| Bracket orders     | -    | -      | -       | -      | Not implemented; submit legs yourself. |
-| Conditional orders | ✓    | ✓      | ✓       | -      | Stop and limit-if-touched orders.      |
+| 特性             | 现货   | 线性   | 反向   | 期权   | 说明                                   |
+| ---------------- | ----   | ------ | ------ | ------ | -------------------------------------- |
+| 订单列表         | ✓      | ✓      | ✓      | ✓      | 通过 WebSocket 作为批量提交。          |
+| OCO 订单         | -      | -      | -      | -      | 未实现；请自行提交各腿。               |
+| 括弧订单         | -      | -      | -      | -      | 未实现；请自行提交各腿。               |
+| 条件订单         | ✓      | ✓      | ✓      | -      | 止损与触价限价订单。                   |
 
-An order list is validated as a unit before any leg is sent. When one leg fails validation, that leg is denied
-with its specific reason. The remaining legs are denied with `ORDER_LIST_DENIED`. Thus, a partially submitted
-list cannot reach the venue.
+订单列表在任何腿发送之前作为整体校验。某条腿校验失败时，该腿以其具体原因被拒绝，其余腿以
+`ORDER_LIST_DENIED` 被拒绝。因此，部分提交的列表不可能到达场所。
 
-### Order parameters
+### 订单参数 {#order-parameters}
 
-Individual orders can be customized using the `params` dictionary when submitting orders:
+提交订单时可用 `params` 字典自定义单笔订单：
 
-| Parameter          | Type             | Description                                                         |
-| ------------------ | ---------------- | ------------------------------------------------------------------- |
-| `is_leverage`      | `bool`           | Spot only. Enables margin trading (borrowing). Default: `False`.    |
-| `take_profit`      | `str` or `float` | TP trigger price. Attaches a native TP to the order.                |
-| `stop_loss`        | `str` or `float` | SL trigger price. Attaches a native SL to the order.                |
-| `tp_trigger_by`    | `str`            | TP trigger type: `"LastPrice"`, `"IndexPrice"`, or `"MarkPrice"`.   |
-| `sl_trigger_by`    | `str`            | SL trigger type: `"LastPrice"`, `"IndexPrice"`, or `"MarkPrice"`.   |
-| `tp_order_type`    | `str`            | TP execution type: `"Market"` or `"Limit"`.                         |
-| `sl_order_type`    | `str`            | SL execution type: `"Market"` or `"Limit"`.                         |
-| `tp_limit_price`   | `str` or `float` | Limit price for TP when `tp_order_type` is `"Limit"`.               |
-| `sl_limit_price`   | `str` or `float` | Limit price for SL when `sl_order_type` is `"Limit"`.               |
-| `tp_trigger_price` | `str` or `float` | Explicit TP trigger price sent alongside `take_profit`.             |
-| `sl_trigger_price` | `str` or `float` | Explicit SL trigger price sent alongside `stop_loss`.               |
-| `tpsl_mode`        | `str`            | TP/SL mode: `"Full"` or `"Partial"`.                                |
-| `close_on_trigger` | `bool`           | Close the position when TP/SL triggers.                             |
-| `position_idx`     | `int`            | Hedge-mode position index. See [Hedge mode](#hedge-mode-bothsides). |
-| `bbo_side_type`    | `str`            | Linear/inverse BBO side: `"Queue"` or `"Counterparty"`.             |
-| `bbo_level`        | `str` or `int`   | Linear/inverse BBO book level: `"1"` through `"5"`.                 |
-| `smp_type`         | `str`            | Self-match prevention. See [SMP](#self-match-prevention).           |
+| 参数               | 类型             | 说明                                                               |
+| ------------------ | ---------------- | ------------------------------------------------------------------ |
+| `is_leverage`      | `bool`           | 仅现货。启用保证金交易（借币）。默认 `False`。                     |
+| `take_profit`      | `str` 或 `float` | TP 触发价。为订单挂上原生 TP。                                     |
+| `stop_loss`        | `str` 或 `float` | SL 触发价。为订单挂上原生 SL。                                     |
+| `tp_trigger_by`    | `str`            | TP 触发类型：`"LastPrice"`、`"IndexPrice"` 或 `"MarkPrice"`。      |
+| `sl_trigger_by`    | `str`            | SL 触发类型：`"LastPrice"`、`"IndexPrice"` 或 `"MarkPrice"`。      |
+| `tp_order_type`    | `str`            | TP 执行类型：`"Market"` 或 `"Limit"`。                             |
+| `sl_order_type`    | `str`            | SL 执行类型：`"Market"` 或 `"Limit"`。                             |
+| `tp_limit_price`   | `str` 或 `float` | `tp_order_type` 为 `"Limit"` 时 TP 的限价。                        |
+| `sl_limit_price`   | `str` 或 `float` | `sl_order_type` 为 `"Limit"` 时 SL 的限价。                        |
+| `tp_trigger_price` | `str` 或 `float` | 与 `take_profit` 一同发送的显式 TP 触发价。                        |
+| `sl_trigger_price` | `str` 或 `float` | 与 `stop_loss` 一同发送的显式 SL 触发价。                          |
+| `tpsl_mode`        | `str`            | TP/SL 模式：`"Full"` 或 `"Partial"`。                              |
+| `close_on_trigger` | `bool`           | TP/SL 触发时平掉仓位。                                             |
+| `position_idx`     | `int`            | 对冲模式持仓索引。见[对冲模式](#hedge-mode-bothsides)。            |
+| `bbo_side_type`    | `str`            | 线性/反向 BBO 方向：`"Queue"` 或 `"Counterparty"`。                |
+| `bbo_level`        | `str` 或 `int`   | 线性/反向 BBO 簿档级别：`"1"` 到 `"5"`。                           |
+| `smp_type`         | `str`            | 自成交防止。见[SMP](#self-match-prevention)。                      |
 
-Parameters left unset are omitted from the request, so Bybit's own defaults apply.
+未设置的参数不会出现在请求里，因此 Bybit 自身的默认值生效。
 
 :::warning
-Bybit's `close_on_trigger` parameter is not the generic `close_position` whole-position exit contract used by
-the risk engine. The adapter sends the order quantity, and it ignores an unknown `close_position` parameter.
-Do not add `BYBIT` to `full_position_exit_venues` based on `close_on_trigger`. Leave the venue unlisted so
-ordinary quantity and notional checks apply.
+Bybit 的 `close_on_trigger` 参数不是风控引擎所用的通用 `close_position` 全仓位退出约定。
+适配器发送订单数量，并忽略未知的 `close_position` 参数。不要基于 `close_on_trigger` 把
+`BYBIT` 加进 `full_position_exit_venues`。让该场所保持不在列表内，普通的数量与名义额检查
+才会生效。
 :::
 
-The adapter validates these params before emitting `OrderSubmitted` and denies the order with a
-`VALIDATION_FAILED` reason when a rule is broken:
+适配器在发出 `OrderSubmitted` 之前校验这些参数，规则被破坏时以 `VALIDATION_FAILED` 原因
+拒绝订单：
 
-- Every TP override field (`tp_trigger_by`, `tp_order_type`, `tp_limit_price`, `tp_trigger_price`)
-  requires `take_profit`, and every SL override field likewise requires `stop_loss`.
-- `tp_order_type="Limit"` requires `tp_limit_price`, and `tp_limit_price` requires
-  `tp_order_type="Limit"`. The same pairing applies to `sl_order_type` and `sl_limit_price`.
-- `bbo_side_type` and `bbo_level` must be provided together.
-- `smp_type` must be `"None"`, `"CancelMaker"`, `"CancelTaker"`, or `"CancelBoth"`, matched
-  case-insensitively.
+- 每个 TP 覆盖字段（`tp_trigger_by`、`tp_order_type`、`tp_limit_price`、
+  `tp_trigger_price`）都要求 `take_profit`，每个 SL 覆盖字段同样要求 `stop_loss`。
+- `tp_order_type="Limit"` 要求 `tp_limit_price`，`tp_limit_price` 也要求
+  `tp_order_type="Limit"`。`sl_order_type` 与 `sl_limit_price` 适用同样的配对规则。
+- `bbo_side_type` 与 `bbo_level` 必须成对提供。
+- `smp_type` 必须是 `"None"`、`"CancelMaker"`、`"CancelTaker"` 或 `"CancelBoth"`，
+  匹配时不区分大小写。
 
-When `take_profit` or `stop_loss` is set without `tpsl_mode`, the adapter sends `Full`. When a TP or
-SL price is set without its own `tp_trigger_by` or `sl_trigger_by`, the adapter derives the trigger
-type from the order's trigger type.
+设置了 `take_profit` 或 `stop_loss` 但没有 `tpsl_mode` 时，适配器发送 `Full`。设置了 TP 或
+SL 价格但没有各自的 `tp_trigger_by` 或 `sl_trigger_by` 时，适配器从订单的触发类型推导触发
+类型。
 
 :::note
-On demo, native TP/SL params route through the HTTP create-order endpoint, with one exception. The endpoint
-cannot carry the custom trigger prices `tp_trigger_price` and `sl_trigger_price`. Thus, the adapter denies
-orders that set either price. The `is_leverage` param applies to Spot products only. See
-[Bybit's isLeverage documentation](https://bybit-exchange.github.io/docs/v5/order/create-order#request-parameters).
+在 demo 中，原生 TP/SL 参数经由 HTTP 下单端点路由，只有一个例外：该端点无法携带自定义
+触发价 `tp_trigger_price` 与 `sl_trigger_price`，因此适配器拒绝设置任一价格的订单。
+`is_leverage` 参数仅适用于现货产品。见
+[Bybit 的 isLeverage 文档](https://bybit-exchange.github.io/docs/v5/order/create-order#request-parameters)。
 :::
 
-When `bbo_side_type` and `bbo_level` are set, Nautilus sends Bybit's
-`bboSideType` and `bboLevel` fields and omits the order price from the API
-request. BBO orders are supported for linear and inverse limit, stop-limit, and
-limit-if-touched orders.
+设置了 `bbo_side_type` 与 `bbo_level` 时，Nautilus 发送 Bybit 的 `bboSideType` 与 `bboLevel`
+字段，并从 API 请求中省略订单价格。BBO 订单对线性与反向的限价、止损限价、触价限价订单
+可用。
 
-#### Self-match prevention
+#### 自成交防止 {#self-match-prevention}
 
-Self-match prevention (SMP) tells Bybit what to do when one of your orders would trade against
-another of your own orders. Bybit accepts four values on an order, shown below in their canonical
-wire spellings. The adapter matches them case-insensitively and always sends the canonical spelling.
+自成交防止（self-match prevention，SMP）告诉 Bybit：当你的某个订单会与你自己另一个订单
+成交时该怎么做。Bybit 在订单上接受四个值，下面按其规范的字面拼写展示。适配器匹配时不区分
+大小写，发送时始终使用规范拼写。
 
-| Value         | Behavior                         |
-| ------------- | -------------------------------- |
-| `None`        | No self-match prevention.        |
-| `CancelMaker` | Cancel the resting maker order.  |
-| `CancelTaker` | Cancel the incoming taker order. |
-| `CancelBoth`  | Cancel both orders.              |
+| 取值          | 行为                           |
+| ------------- | ------------------------------ |
+| `None`        | 不做自成交防止。               |
+| `CancelMaker` | 撤销挂着的 maker 订单。        |
+| `CancelTaker` | 撤销进来的 taker 订单。        |
+| `CancelBoth`  | 两笔订单都撤销。               |
 
-Set `smp_type` on the execution client config to send that value on every order the client submits:
+在执行客户端配置上设置 `smp_type`，该客户端提交的每笔订单都会带上这个值：
 
 ```python
 from nautilus_trader.adapters.bybit import BybitExecutionClientConfig
@@ -536,22 +526,21 @@ config = BybitExecutionClientConfig(
 )
 ```
 
-Pass `smp_type` through the order `params` to override the configured default for a single order:
+通过订单 `params` 传入 `smp_type`，可为单笔订单覆盖配置的默认值：
 
 ```python
 params = {"smp_type": "CancelBoth"}
 ```
 
-The adapter denies an order whose `smp_type` is not one of the four values above, and it rejects a client
-config carrying any other value. With neither the config nor the param set, the adapter omits `smpType`, so
-Bybit's own default applies. Bybit overrides the setting in some regions. Derivatives accounts in Kazakhstan
-have SMP force-enabled and cannot opt out. For spot accounts in Turkey, Kazakhstan, and Georgia, Bybit uses
-`CancelMaker` when `smpType` is omitted, `None`, or invalid.
+订单的 `smp_type` 不是上述四个值之一时，适配器拒绝该订单；客户端配置带其他任何值时也会被
+拒绝。配置与参数都未设置时，适配器省略 `smpType`，因此 Bybit 自身的默认值生效。Bybit 在
+某些地区会强制覆盖该设置。哈萨克斯坦的衍生品账户强制启用 SMP，无法退出。土耳其、哈萨克斯坦
+和格鲁吉亚的现货账户，在 `smpType` 省略、为 `None` 或非法时，Bybit 使用 `CancelMaker`。
 
-Bybit documents the values and the regional rules in the V5
-[SMP guide](https://bybit-exchange.github.io/docs/v5/smp).
+Bybit 在 V5 的 [SMP 指南](https://bybit-exchange.github.io/docs/v5/smp)中记录了这些取值与
+地区规则。
 
-#### Example: Order with native TP/SL
+#### 示例：带原生 TP/SL 的订单 {#example-order-with-native-tpsl}
 
 ```python
 order = strategy.order_factory.limit(
@@ -569,7 +558,7 @@ order = strategy.order_factory.limit(
 strategy.submit_order(order)
 ```
 
-#### Example: BBO order
+#### 示例：BBO 订单 {#example-bbo-order}
 
 ```python
 order = strategy.order_factory.limit(
@@ -582,7 +571,7 @@ order = strategy.order_factory.limit(
 strategy.submit_order(order)
 ```
 
-#### Example: Spot margin trading
+#### 示例：现货保证金交易 {#example-spot-margin-trading}
 
 ```python
 # Submit a Spot order with margin enabled
@@ -596,115 +585,107 @@ strategy.submit_order(order)
 ```
 
 :::note
-Without `is_leverage=True` in the params, Spot orders use your available balance
-and do not borrow funds, even if you have auto-borrow enabled on your Bybit account.
+params 中不带 `is_leverage=True` 时，现货订单使用你的可用余额且不借入资金，即使你的
+Bybit 账户开启了自动借币。
 :::
 
-For a complete example of using order parameters including `is_leverage`, see the
-[Python execution tester](https://github.com/nautechsystems/nautilus_trader/blob/develop/examples/live/bybit/exec_tester.py).
+使用订单参数（包括 `is_leverage`）的完整示例见
+[Python 执行测试器](https://github.com/nautechsystems/nautilus_trader/blob/develop/examples/live/bybit/exec_tester.py)。
 
-### Spot trading limitations
+### 现货交易限制 {#spot-trading-limitations}
 
-The following limitations apply to Spot products, as positions are not tracked on the venue side:
+由于场所侧不跟踪持仓，以下限制适用于现货产品：
 
-- `reduce_only` orders are *not supported*.
-- Trailing stop orders are *not supported*.
+- `reduce_only` 订单*不支持*。
+- 移动止损订单*不支持*。
 
-### Options trading
+### 期权交易 {#options-trading}
 
-Bybit lists European-style options on crypto and US equity underlyings, such as BTC, ETH, SOL,
-and NVDA, settled in USDT or USDC.
-The adapter uses the `CryptoOption` instrument type and the `-OPTION` symbol
-suffix. See the [symbology section](#symbology) for the full symbol format.
+Bybit 上架以 USDT 或 USDC 结算的加密货币与美股标的欧式期权，标的包括 BTC、ETH、SOL、
+NVDA 等。适配器使用 `CryptoOption` 工具类型与 `-OPTION` symbol 后缀。完整的 symbol 格式见
+[符号体系一节](#symbology)。
 
-#### Options data
+#### 期权数据 {#options-data}
 
-The adapter supports real-time options market data through the WebSocket ticker
-channel:
+适配器通过 WebSocket ticker 频道支持实时期权行情：
 
-| Data type                  | Description                                                              |
+| 数据类型                   | 说明                                                                     |
 | -------------------------- | ------------------------------------------------------------------------ |
-| Quotes (bid/ask)           | Top-of-book prices and sizes for each option contract.                   |
-| Greeks                     | Delta, gamma, vega, theta, plus bid/ask/mark IV. Bybit publishes no rho. |
-| Mark price                 | Exchange mark price for each option contract.                            |
-| Index price                | Underlying index price.                                                  |
-| Underlying reference price | Per-expiry venue reference used for ATM determination.                   |
-| Open interest              | Per-contract open interest.                                              |
-| Order book deltas          | L2 MBP updates from the option orderbook stream.                         |
+| 报价（bid/ask）            | 每份期权合约的最优买卖价与数量。                                         |
+| Greeks                     | Delta、gamma、vega、theta，外加 bid/ask/mark IV。Bybit 不发布 rho。      |
+| 标记价                     | 每份期权合约的交易所标记价。                                             |
+| 指数价                     | 标的指数价格。                                                           |
+| 标的参考价                 | 每个到期日用于判定 ATM 的场所参考价。                                    |
+| 未平仓合约量               | 逐合约的未平仓量。                                                       |
+| 订单簿 delta               | 来自期权订单簿流的 L2 MBP 更新。                                         |
 
-Subscribe to per-instrument Greeks or aggregate them into option chain
-snapshots with ATM-relative strike filtering. See the
-[options concept guide](./../concepts/options.md) for subscription patterns and
-the [options data tutorial](./../tutorials/options_data_bybit.md) for a
-step-by-step walkthrough. NautilusTrader builds the option chain view locally
-from Bybit's per-contract option market data.
+订阅逐工具的 Greeks，或用 ATM 相对的行权价过滤聚合成期权链快照。订阅模式见
+[期权概念指南](./../concepts/options.md)，分步演练见
+[期权数据教程](./../tutorials/options_data_bybit.md)。NautilusTrader 在本地由 Bybit 的逐合约
+期权行情构建期权链视图。
 
-Bar (kline) data is not available for options. Bybit does not provide kline
-streams for this product type.
+期权没有 K 线（kline）数据。Bybit 不为该产品类型提供 kline 流。
 
-#### Options order parameters
+#### 期权订单参数 {#options-order-parameters}
 
-In addition to the standard order parameters, option orders accept:
+除标准订单参数外，期权订单还接受：
 
-| Parameter  | Type             | Description                                                      |
-| ---------- | ---------------- | ---------------------------------------------------------------- |
-| `order_iv` | `str` or `float` | Place or amend the order by implied volatility instead of price. |
-| `mmp`      | `bool`           | Enable Market Maker Protection for the order.                    |
+| 参数       | 类型             | 说明                                                           |
+| ---------- | ---------------- | -------------------------------------------------------------- |
+| `order_iv` | `str` 或 `float` | 按隐含波动率而非价格下单或改单。                               |
+| `mmp`      | `bool`           | 为该订单启用做市商保护（Market Maker Protection）。            |
 
-These parameters are passed through `params` on `SubmitOrder`. On mainnet they flow through the WebSocket
-trade channel. On demo they route through the HTTP create-order endpoint. Amending an existing order by
-`order_iv` is not supported in demo mode.
+这些参数通过 `SubmitOrder` 的 `params` 传入。主网上它们经由 WebSocket trade 频道流动；demo
+上经由 HTTP 下单端点路由。demo 模式不支持按 `order_iv` 改单。
 
-#### Options trading limitations
+#### 期权交易限制 {#options-trading-limitations}
 
-- Amending an order by implied volatility (`order_iv`) and other WS-trade-only features are not supported in demo mode.
-- Leverage is not configurable. Option buyers pay premium. Sellers post margin.
-- Position mode is one-way only. Hedge mode is not supported.
-- Conditional order types (`STOP_MARKET`, `STOP_LIMIT`, `MARKET_IF_TOUCHED`,
-  `LIMIT_IF_TOUCHED`) are not supported.
-- Trading stops (TP/SL on positions) are not supported.
-- Funding rates do not apply to options.
-- Options require a Unified Trading Account (UTA).
+- demo 模式不支持按隐含波动率改单（`order_iv`）及其他仅 WS-trade 可用的特性。
+- 杠杆不可配置。期权买方支付权利金，卖方缴纳保证金。
+- 持仓模式仅单向，不支持对冲模式。
+- 不支持条件订单类型（`STOP_MARKET`、`STOP_LIMIT`、`MARKET_IF_TOUCHED`、
+  `LIMIT_IF_TOUCHED`）。
+- 不支持交易止损（仓位上的 TP/SL）。
+- Funding 费率不适用于期权。
+- 期权需要统一交易账户（Unified Trading Account，UTA）。
 
-### Trailing stops
+### 移动止损 {#trailing-stops}
 
-The adapter does not submit Nautilus `TRAILING_STOP_MARKET` orders to Bybit. Submitting one denies
-the order locally with an `UNSUPPORTED_ORDER_TYPE` reason.
+适配器不会把 Nautilus 的 `TRAILING_STOP_MARKET` 订单提交给 Bybit。提交此类订单会在本地被
+拒绝，原因为 `UNSUPPORTED_ORDER_TYPE`。
 
-Bybit models trailing stops as an attribute of a netted position rather than as an order. Thus, a trailing
-stop has no venue-side client order ID. It cannot be queried until it is already open. Attach a trailing stop
-through the Bybit interface if you need one, and manage the resulting position exit outside Nautilus.
+Bybit 把移动止损建模为净持仓的一个属性，而不是订单。因此移动止损没有场所侧客户订单 ID，
+在它已经开启之前无法查询。确实需要移动止损时，请通过 Bybit 界面挂上，并在 Nautilus 之外
+管理由此产生的仓位退出。
 
-## Spot margin borrowing and repayment
+## 现货保证金借币与还款 {#spot-margin-borrowing-and-repayment}
 
-NautilusTrader provides automated spot margin borrow repayment functionality to prevent interest accrual after closing short positions on Bybit.
+NautilusTrader 提供自动的现货保证金借币还款功能，防止在 Bybit 平掉空头仓位之后继续累积
+利息。
 
-### Background
+### 背景 {#background}
 
-When trading Spot with margin enabled (`is_leverage=True`), Bybit automatically borrows coins when you execute short positions.
-However, after you close the short position (BUY order fills), the borrowed coins are **NOT automatically repaid** - they continue accruing hourly interest charges until manually repaid.
-This can result in significant interest costs if left unattended.
+启用保证金做现货（`is_leverage=True`）时，Bybit 在你执行空头仓位时会自动借入币。然而，
+平掉空头（BUY 订单成交）之后，借入的币**不会自动归还**——它们持续按小时计息，直到手动
+还款。放任不管会产生可观的利息成本。
 
-### Automatic repayment (recommended)
+### 自动还款（推荐） {#automatic-repayment-recommended}
 
-The execution client can automatically repay spot margin borrows after BUY orders fully fill
-on Spot instruments. This feature is disabled by default, so set
-`auto_repay_spot_borrows=True` to opt in.
+执行客户端可以在现货工具上的 BUY 订单完全成交后，自动归还现货保证金借币。该功能默认关闭，
+设置 `auto_repay_spot_borrows=True` 才启用。
 
-**How it works**:
+**工作方式**：
 
-1. When a Spot BUY order fully fills on the standard `execution` channel, the execution client
-   attempts to repay the base coin borrow.
-1. The repayment is capped at the lesser of the outstanding borrow and the base quantity acquired
-   across the order's executions.
-1. The execution client uses Bybit's converting repay endpoint to cover base-denominated trading
-   fees. For MNT, which Bybit excludes from converting repayment, it uses no-convert repay and
-   subtracts MNT-denominated fees from the amount.
-1. A failed request or `FA` result status is logged without crashing the execution client. A `P`
-   result status is logged as processing, not complete.
-1. The execution client defers queued repayments during Bybit's UTC blackout window.
+1. 现货 BUY 订单在标准 `execution` 频道上完全成交时，执行客户端尝试归还基础币借币。
+1. 还款额以未还借币与该订单各次执行累计获得的基础数量中的较小者为上限。
+1. 执行客户端使用 Bybit 的转换式还款（converting repay）端点来覆盖以基础币计的交易费用。
+   MNT 被 Bybit 排除在转换式还款之外，对它使用不转换还款（no-convert repay），并从金额中
+   扣除以 MNT 计的费用。
+1. 请求失败或结果为 `FA` 状态时只记日志，不会让执行客户端崩溃。结果为 `P` 状态记为处理中，
+   而非完成。
+1. Bybit 处于 UTC 封禁窗口期间，执行客户端会推迟排队的还款。
 
-**Example**:
+**示例**：
 
 ```python
 from nautilus_trader.adapters.bybit import BybitExecutionClientConfig
@@ -717,67 +698,63 @@ config = BybitExecutionClientConfig(
 )
 ```
 
-### UTC blackout window
+### UTC 封禁窗口 {#utc-blackout-window}
 
-Bybit blocks both repayment endpoints from **4 minutes through 5 minutes 30 seconds past every UTC
-hour** for interest calculation. Auto-repayment keeps the request queued and attempts it at 5
-minutes 31 seconds past the hour.
+Bybit 在**每个 UTC 小时的第 4 分钟到第 5 分 30 秒**之间封锁两个还款端点用于利息计算。
+自动还款会把请求留在队列中，并在该小时的第 5 分 31 秒发起。
 
-### Auto-repayment configuration
+### 自动还款配置 {#auto-repayment-configuration}
 
-| Option                    | Type   | Default | Description                                                                                                                |
-| ------------------------- | ------ | ------- | -------------------------------------------------------------------------------------------------------------------------- |
-| `auto_repay_spot_borrows` | `bool` | `False` | If `True`, automatically repay Spot margin borrows after BUY orders fully fill. Repayment is deferred during the blackout. |
+| 选项                      | 类型   | 默认值  | 说明                                                                                                                     |
+| ------------------------- | ------ | ------- | ------------------------------------------------------------------------------------------------------------------------ |
+| `auto_repay_spot_borrows` | `bool` | `False` | 为 `True` 时，BUY 订单完全成交后自动归还现货保证金借币。封禁窗口内还款会被推迟。                                          |
 
-### Auto-repayment notes
+### 自动还款注意事项 {#auto-repayment-notes}
 
-- Auto-repayment only triggers on **Spot BUY orders**, not derivatives.
-- Repayment uses converting repayment except for MNT, which uses no-convert repayment.
-- Bybit documents the endpoint restrictions and result statuses in
-  [Manual Repay](https://bybit-exchange.github.io/docs/v5/account/repay) and
-  [Manual Repay Without Asset Conversion](https://bybit-exchange.github.io/docs/v5/account/no-convert-repay).
-- Manual borrowing is still required before opening short positions unless auto-borrow is enabled
-  on your Bybit account.
+- 自动还款只在**现货 BUY 订单**上触发，衍生品类不会。
+- 还款使用转换式还款，MNT 除外——它使用不转换还款。
+- Bybit 在
+  [Manual Repay](https://bybit-exchange.github.io/docs/v5/account/repay) 与
+  [Manual Repay Without Asset Conversion](https://bybit-exchange.github.io/docs/v5/account/no-convert-repay)
+  中记录了端点限制与结果状态。
+- 除非你的 Bybit 账户启用了自动借币，开空头之前仍需手动借币。
 
-## Funding rates
+## Funding 费率 {#funding-rates}
 
-The adapter receives funding rate data from the
+适配器从
 [Linear Ticker](https://bybit-exchange.github.io/docs/v5/websocket/public/ticker#linear-inverse-perpetual-response)
-WebSocket stream. Bybit provides the `fundingIntervalHour` field in ticker updates,
-which the adapter uses to populate the `interval` field on `FundingRateUpdate`.
+WebSocket 流接收 funding 费率数据。Bybit 在 ticker 更新中提供 `fundingIntervalHour` 字段，
+适配器用它填充 `FundingRateUpdate` 的 `interval` 字段。
 
-The adapter caches the last known `fundingIntervalHour` per symbol so that partial
-ticker updates (which may omit the field) still carry the correct interval.
+适配器按 symbol 缓存最近已知的 `fundingIntervalHour`，因此省略该字段的 ticker 增量更新仍带
+正确的间隔。
 
-For historical funding rate requests, the adapter computes the interval from consecutive
-funding timestamps. The oldest record in a response has no earlier timestamp to pair with,
-so its interval is unset.
+历史 funding 费率请求中，适配器由相邻的 funding 时间戳计算间隔。响应中最旧的一条没有更早的
+时间戳可配对，因此它的间隔未设置。
 
-## Bybit specific data
+## Bybit 专属数据 {#bybit-specific-data}
 
-### Liquidations
+### 强平 {#liquidations}
 
-The adapter emits `BybitLiquidation` custom data from Bybit's public
-[all liquidation](https://bybit-exchange.github.io/docs/v5/websocket/public/all-liquidation) WebSocket stream
-(`allLiquidation.{symbol}`). Bybit publishes this stream for linear and inverse contracts only, so the adapter
-rejects Spot and Option subscriptions. Bybit pushes updates every 500 ms, and one update can carry several
-liquidations. The adapter emits one `BybitLiquidation` for each of them.
+适配器从 Bybit 公开的
+[全量强平](https://bybit-exchange.github.io/docs/v5/websocket/public/all-liquidation)
+WebSocket 流（`allLiquidation.{symbol}`）发出 `BybitLiquidation` 自定义数据。Bybit 只为线性
+与反向合约发布该流，因此适配器拒绝现货与期权的订阅。Bybit 每 500ms 推送一次更新，一条更新
+可能携带多笔强平，适配器为每一笔各发出一个 `BybitLiquidation`。
 
-| Field              | Type           | Description                                                       |
-| ------------------ | -------------- | ----------------------------------------------------------------- |
-| `instrument_id`    | `InstrumentId` | Instrument of the liquidated position.                            |
-| `position_side`    | `PositionSide` | Side of the liquidated position, `LONG` for Bybit `Buy`.          |
-| `bankruptcy_price` | `Price`        | Bankruptcy price of the liquidated position.                      |
-| `quantity`         | `Quantity`     | Executed liquidation size.                                        |
-| `ts_event`         | `int`          | UNIX timestamp in nanoseconds when Bybit updated the liquidation. |
-| `ts_init`          | `int`          | UNIX timestamp in nanoseconds when the object was built.          |
+| 字段               | 类型           | 说明                                                           |
+| ------------------ | -------------- | -------------------------------------------------------------- |
+| `instrument_id`    | `InstrumentId` | 被强平持仓所属的金融工具。                                     |
+| `position_side`    | `PositionSide` | 被强平持仓的方向，Bybit 的 `Buy` 对应 `LONG`。                 |
+| `bankruptcy_price` | `Price`        | 被强平持仓的破产价。                                           |
+| `quantity`         | `Quantity`     | 已执行的强平数量。                                             |
+| `ts_event`         | `int`          | Bybit 更新该强平时刻的 UNIX 纳秒时间戳。                       |
+| `ts_init`          | `int`          | 对象构建时刻的 UNIX 纳秒时间戳。                               |
 
-`position_side` is the side of the liquidated position, not the liquidation order. Bybit reports `Buy` for a
-liquidated long position and `Sell` for a liquidated short position. `bankruptcy_price` is the price at which
-the position's margin is exhausted, not the price at which the liquidation executed.
+`position_side` 是被强平持仓的方向，不是强平订单的方向。Bybit 对被强平的多头报 `Buy`，对
+被强平的空头报 `Sell`。`bankruptcy_price` 是持仓保证金耗尽的价格，不是强平成交的价格。
 
-Subscribe from an actor or strategy with `DataType(BybitLiquidation.__name__)`. The
-`instrument_id` metadata key is required:
+Actor 或策略用 `DataType(BybitLiquidation.__name__)` 订阅，`instrument_id` 元数据键是必需的：
 
 ```python
 from nautilus_trader.adapters.bybit import BybitLiquidation
@@ -812,234 +789,226 @@ subscription to the same instrument with a different data type until the first i
 flag for this persistence.
 
 :::warning
-The feed contains the liquidation events Bybit publishes. Treat it as a venue-reported signal, not
-as independently audited, exchange-wide ground truth of every liquidation.
+该数据流包含 Bybit 发布的强平事件。把它当作场所上报的信号，而不是经过独立审计、覆盖全所
+每一次强平的事实基准。
 :::
 
-## Rate limiting
+## 速率限制 {#rate-limiting}
 
-The adapter queues requests against exact rolling windows before it creates an authentication
-timestamp or signature. HTTP clients and the trade WebSocket share UID state for the same API key
-and environment. Data and execution clients also share IP state when they use the same origin and
-proxy.
+适配器在创建鉴权时间戳或签名之前，就按精确的滚动窗口对请求排队。同一 API key 与环境下，
+HTTP 客户端与 trade WebSocket 共享 UID 状态。数据与执行客户端使用同一来源与代理时也共享
+IP 状态。
 
-| Scope                         | Bybit limit                           | Adapter behavior                              |
-| ----------------------------- | ------------------------------------- | --------------------------------------------- |
-| HTTP IP                       | 600 requests per 5 seconds            | Shared by origin and proxy                    |
-| HTTP and trade WebSocket UID  | Varies by endpoint and product        | Shared by API key and environment             |
-| Trade WebSocket IP            | 3,000 requests per second             | Shared by WebSocket origin and proxy          |
-| WebSocket connection attempts | 500 attempts per 5 minutes per domain | Shared across initial connects and reconnects |
-| Option subscriptions          | 2,000 arguments per connection        | Rejected before subscription state changes    |
+| 范围                          | Bybit 限制                              | 适配器行为                             |
+| ----------------------------- | --------------------------------------- | -------------------------------------- |
+| HTTP IP                       | 每 5 秒 600 请求                        | 按来源与代理共享                       |
+| HTTP 与 trade WebSocket UID   | 因端点与产品而异                        | 按 API key 与环境共享                  |
+| Trade WebSocket IP            | 每秒 3,000 请求                         | 按 WebSocket 来源与代理共享            |
+| WebSocket 连接尝试            | 每域名每 5 分钟 500 次尝试              | 跨初始连接与重连共享                   |
+| 期权订阅                      | 每连接 2,000 个参数                     | 在订阅状态变化之前拒绝                 |
 
-The UID limiter includes the documented lower-rate account and user routes, 50-request read
-routes, product-specific order routes, cancel-all limits, and weighted batch operations. HTTP and
-trade WebSocket responses update the configured UID limit from `X-Bapi-Limit`, track
-`X-Bapi-Limit-Status`, and honor a future `X-Bapi-Limit-Reset-Timestamp` when the remaining count
-reaches zero.
+UID 限流器涵盖文档记载的低速率账户与用户路由、50 请求的读取路由、按产品的订单路由、
+cancel-all 限制，以及带权重的批量操作。HTTP 与 trade WebSocket 响应会从 `X-Bapi-Limit`
+更新配置的 UID 限额，跟踪 `X-Bapi-Limit-Status`，并在剩余额度归零时遵守未来的
+`X-Bapi-Limit-Reset-Timestamp`。
 
-The execution client's `recv_window_ms` applies to signed REST requests and trade WebSocket order
-commands. A queued WebSocket order gets its timestamp and receive-window header only after all
-applicable quotas allow the send. A reconnect retry rebuilds the command with a fresh header and
-uses a connection-bound write, so the transport cannot replay a stale order payload.
+执行客户端的 `recv_window_ms` 同时适用于签名 REST 请求与 trade WebSocket 订单命令。排队的
+WebSocket 订单在所有适用配额放行发送之后才获得时间戳与接收窗口头。重连重试会用全新头部
+重建命令，并使用绑定连接的写入，因此传输层不可能重放过期订单负载。
 
 :::warning
-Bybit returns `retCode` `10006` ("Too many visits") when the API rate limit is exceeded.
-Exceeding the IP ceiling of 600 requests per 5 seconds returns HTTP 403 and bans the IP for at
-least 10 minutes. A matching 403 discards the affected pooled HTTP session and starts a shared
-10-minute cooldown. Other 403 responses do not activate the cooldown.
+超出 API 速率限制时，Bybit 返回 `retCode` `10006`（"Too many visits"）。突破每 5 秒 600
+请求的 IP 上限会返回 HTTP 403，并把该 IP 封禁至少 10 分钟。与之匹配的 403 会丢弃受影响
+的池化 HTTP 会话，并启动共享的 10 分钟冷却。其他 403 响应不会触发冷却。
 :::
 
 :::warning
-Coordination is process-local. Another process or host using the same API key or public IP can
-consume venue quota that this adapter cannot reserve in advance. Response headers reduce this
-gap for UID limits, but separate processes still require operational coordination.
+协调仅限于进程内。另一个进程或主机使用同一 API key 或公网 IP 时，可能消耗本适配器无法
+提前预留的场所配额。响应头能缩小 UID 限额上的这一差距，但独立进程仍需运维层面的协调。
 :::
 
-Explicit venue rate-limit responses are terminal rejections for the affected order operation.
-Transport timeouts, service restarts, and duplicate request identifiers remain subject to order
-reconciliation because they do not prove whether the venue accepted the order.
+场所明确的速率限制响应，对受影响的订单操作是终局拒绝。传输超时、服务重启与重复请求标识
+仍受订单对账约束，因为它们无法证明场所是否接受了订单。
 
 :::info
-For more details on rate limiting, see the official documentation: <https://bybit-exchange.github.io/docs/v5/rate-limit>.
+速率限制的更多细节见官方文档：<https://bybit-exchange.github.io/docs/v5/rate-limit>。
 :::
 
-## Account types
+## 账户类型 {#account-types}
 
-The execution client factory determines the account type and OMS type from the configured product
-types:
+执行客户端工厂根据配置的产品类型确定账户类型与 OMS 类型：
 
-- **Spot only**: `CASH` account type with a `HEDGING` OMS type.
-- **Derivatives or mixed products**: `MARGIN` account type (UTA - Unified Trading Account) with a
-  `NETTING` OMS type.
+- **仅现货**：`CASH` 账户类型，配 `HEDGING` OMS 类型。
+- **衍生品或混合产品**：`MARGIN` 账户类型（UTA——统一交易账户），配 `NETTING` OMS 类型。
 
-This allows you to trade Spot alongside derivatives in a single Unified Trading Account, which is the standard account type for most Bybit users.
+这让你可以在单个统一交易账户中把现货与衍生品一起交易——对多数 Bybit 用户这就是标准账户
+类型。
 
 :::info
-**Unified Trading Accounts (UTA) and Spot margin trading**
+**统一交易账户（UTA）与现货保证金交易**
 
-Most Bybit users now have Unified Trading Accounts (UTA) as Bybit steers new users to this account type.
-Classic accounts are considered legacy.
+Bybit 正引导新用户转向统一交易账户，多数用户现在持有的都是 UTA。经典账户被视为遗留
+类型。
 
-For Spot margin trading on UTA accounts:
+UTA 账户上做现货保证金交易：
 
-- Borrowing is **NOT automatically enabled** - it requires explicit API configuration
-- To use Spot margin via API, you must submit orders with `is_leverage=True` in the parameters (see [Bybit docs](https://bybit-exchange.github.io/docs/v5/order/create-order#request-parameters))
-- If auto-borrow/auto-repay is enabled on your Bybit account, the venue will automatically borrow/repay funds for those margin orders
-- Without auto-borrow enabled, you'll need to manually manage borrowing through Bybit's interface
+- 借币**不会自动启用**——需要显式的 API 配置
+- 通过 API 使用现货保证金，下单参数必须带 `is_leverage=True`（见
+  [Bybit 文档](https://bybit-exchange.github.io/docs/v5/order/create-order#request-parameters)）
+- 若你的 Bybit 账户启用了自动借币/自动还款，场所会为这些保证金订单自动借入/归还资金
+- 未启用自动借币时，你需要通过 Bybit 界面手动管理借币
 
-**Important**: The Nautilus Bybit adapter defaults to `is_leverage=False` for Spot orders, so they do not use
-margin unless you explicitly enable it.
+**重要**：Nautilus 的 Bybit 适配器对现货订单默认 `is_leverage=False`，因此除非你显式启用，
+它们不会使用保证金。
 :::
 
-## Fee currency logic
+## 费用货币逻辑 {#fee-currency-logic}
 
-Understanding how Bybit determines the currency for trading fees is important for accurate accounting and position tracking. The fee currency rules vary between Spot and derivatives products.
+理解 Bybit 如何决定交易费用的货币，对准确的核算与持仓跟踪很重要。费用货币规则在现货与
+衍生品类产品之间不同。
 
-The adapter takes the commission amount and currency directly from the venue's `execFee` and `feeCurrency`
-fields. Thus, the rules below describe Bybit's reports, not a local calculation.
+适配器直接采用场所 `execFee` 与 `feeCurrency` 字段中的费用金额与货币，因此下面的规则描述
+的是 Bybit 报告的行为，不是本地计算。
 
-### Spot trading fees
+### 现货交易费用 {#spot-trading-fees}
 
-For Spot trading, the fee currency depends on the order side and whether the fee is a rebate (negative fee for maker orders):
+现货交易中，费用货币取决于订单方向，以及该费用是否为返佣（maker 订单的负费用）：
 
-#### Normal fees (positive)
+#### 常规费用（正值） {#normal-fees-positive}
 
-- **BUY orders**: Fee is charged in the **base currency** (e.g., BTC for BTCUSDT)
-- **SELL orders**: Fee is charged in the **quote currency** (e.g., USDT for BTCUSDT)
+- **BUY 订单**：费用以**基础货币**收取（如 BTCUSDT 收 BTC）
+- **SELL 订单**：费用以**报价货币**收取（如 BTCUSDT 收 USDT）
 
-#### Maker rebates (negative fees)
+#### Maker 返佣（负费用） {#maker-rebates-negative-fees}
 
-When maker fees are negative (rebates), the currency logic is **inverted**:
+maker 费用为负（返佣）时，货币逻辑**反转**：
 
-- **BUY orders with maker rebate**: Rebate is paid in the **quote currency** (e.g., USDT for BTCUSDT)
-- **SELL orders with maker rebate**: Rebate is paid in the **base currency** (e.g., BTC for BTCUSDT)
+- **带 maker 返佣的 BUY 订单**：返佣以**报价货币**支付（如 BTCUSDT 返 USDT）
+- **带 maker 返佣的 SELL 订单**：返佣以**基础货币**支付（如 BTCUSDT 返 BTC）
 
 :::note
-**Taker orders never have inverted logic**, even if the maker fee rate is negative. Taker fees always follow the normal fee currency rules.
+**Taker 订单永远不会应用反转逻辑**，即使 maker 费率是负的。Taker 费用始终遵循常规的费用
+货币规则。
 :::
 
-#### Example: BTCUSDT Spot
+#### 示例：BTCUSDT 现货 {#example-btcusdt-spot}
 
-- **Buy 1 BTC as taker (0.1% fee)**: Pay 0.001 BTC in fees
-- **Sell 1 BTC as taker (0.1% fee)**: Pay equivalent USDT in fees
-- **Buy 1 BTC as maker (-0.01% rebate)**: Receive USDT rebate (inverted)
-- **Sell 1 BTC as maker (-0.01% rebate)**: Receive BTC rebate (inverted)
+- **以 taker 买入 1 BTC（0.1% 费率）**：支付 0.001 BTC 作为费用
+- **以 taker 卖出 1 BTC（0.1% 费率）**：支付等值的 USDT 作为费用
+- **以 maker 买入 1 BTC（-0.01% 返佣）**：收到 USDT 返佣（反转）
+- **以 maker 卖出 1 BTC（-0.01% 返佣）**：收到 BTC 返佣（反转）
 
-### Derivatives trading fees
+### 衍生品交易费用 {#derivatives-trading-fees}
 
-For all derivatives products (LINEAR, INVERSE, OPTION), fees are always charged in the **settlement currency**:
+所有衍生品类产品（LINEAR、INVERSE、OPTION）的费用一律以**结算货币**收取：
 
-| Product Type | Settlement Currency              | Fee Currency |
-| ------------ | -------------------------------- | ------------ |
-| LINEAR       | USDT (typically)                 | USDT         |
-| INVERSE      | Base coin (e.g., BTC for BTCUSD) | Base coin    |
-| OPTION       | USDT or USDC                     | Settle coin  |
+| 产品类型     | 结算货币                           | 费用货币     |
+| ------------ | ---------------------------------- | ------------ |
+| LINEAR       | USDT（通常）                       | USDT         |
+| INVERSE      | 基础币（如 BTCUSD 的 BTC）         | 基础币       |
+| OPTION       | USDT 或 USDC                       | 结算币       |
 
-### Missing fee data
+### 费用数据缺失 {#missing-fee-data}
 
-Bybit's `execution.fast` private channel omits the fee and execution type fields. Fill reports
-parsed from that channel therefore carry zero commission. Subscribe to the standard `execution`
-channel when exact fee data is required.
+Bybit 的 `execution.fast` 私有频道省略费用与执行类型字段，从该频道解析的成交报告因此携带
+零费用。需要精确费用数据时，请订阅标准 `execution` 频道。
 
-### Official documentation
+### 官方文档 {#official-documentation}
 
-For complete details on Bybit's fee structure and currency rules, refer to:
+Bybit 费用结构与货币规则的完整细节，参阅：
 
-- [Bybit WebSocket Private Execution](https://bybit-exchange.github.io/docs/v5/websocket/private/execution)
-- [Bybit Spot Fee Currency Instruction](https://bybit-exchange.github.io/docs/v5/enum#spot-fee-currency-instruction)
+- [Bybit WebSocket 私有执行](https://bybit-exchange.github.io/docs/v5/websocket/private/execution)
+- [Bybit 现货费用货币指令](https://bybit-exchange.github.io/docs/v5/enum#spot-fee-currency-instruction)
 
-## Configuration
+## 配置 {#configuration}
 
-The product types for each client must be specified in the configurations.
+每个客户端的产品类型必须在配置中指明。
 
-### Data client configuration options
+### 数据客户端配置选项 {#data-client-configuration-options}
 
-| Option                             | Default    | Description                                                                                                     |
-| ---------------------------------- | ---------- | --------------------------------------------------------------------------------------------------------------- |
-| `product_types`                    | `[LINEAR]` | Sequence of `BybitProductType` values to enable.                                                                |
-| `environment`                      | `MAINNET`  | Bybit environment enum. Use `BybitEnvironment.MAINNET`, `BybitEnvironment.DEMO`, or `BybitEnvironment.TESTNET`. |
-| `api_key`                          | `None`     | API key; loaded from the matching environment variable when omitted.                                            |
-| `api_secret`                       | `None`     | API secret; loaded from the matching environment variable when omitted.                                         |
-| `base_url_http`                    | `None`     | Override for the REST base URL.                                                                                 |
-| `base_url_ws_public`               | `None`     | Override for the public WebSocket URL.                                                                          |
-| `base_url_ws_private`              | `None`     | Override for the private WebSocket URL.                                                                         |
-| `proxy_url`                        | `None`     | Optional proxy URL for HTTP and WebSocket transports.                                                           |
-| `http_timeout_secs`                | `60`       | Timeout (seconds) for REST requests.                                                                            |
-| `max_retries`                      | `3`        | Maximum retry attempts for REST requests.                                                                       |
-| `retry_delay_initial_ms`           | `1,000`    | Initial retry delay (milliseconds).                                                                             |
-| `retry_delay_max_ms`               | `10,000`   | Maximum retry delay (milliseconds).                                                                             |
-| `heartbeat_interval_secs`          | `20`       | Heartbeat interval (seconds) for WebSocket clients.                                                             |
-| `recv_window_ms`                   | `5,000`    | Receive window (milliseconds) for signed REST requests.                                                         |
-| `update_instruments_interval_mins` | `60`       | Interval (minutes) between instrument catalog refreshes.                                                        |
-| `instrument_status_poll_secs`      | `60`       | Interval (seconds) between instrument and status polls; `0` disables polling.                                   |
-| `book_snapshot_timeout_secs`       | `10`       | Initial, reconnect, and recovery snapshot wait; `0` disables it.                                                |
-| `transport_backend`                | `Sockudo`  | WebSocket transport backend.                                                                                    |
-| `bars_timestamp_on_close`          | `True`     | Timestamp bars on the interval close; `False` timestamps them on the interval open.                             |
+| 选项                               | 默认值     | 说明                                                                                                          |
+| ---------------------------------- | ---------- | ------------------------------------------------------------------------------------------------------------- |
+| `product_types`                    | `[LINEAR]` | 要启用的 `BybitProductType` 值序列。                                                                          |
+| `environment`                      | `MAINNET`  | Bybit 环境枚举。用 `BybitEnvironment.MAINNET`、`BybitEnvironment.DEMO` 或 `BybitEnvironment.TESTNET`。        |
+| `api_key`                          | `None`     | API key；省略时从匹配的环境变量加载。                                                                         |
+| `api_secret`                       | `None`     | API secret；省略时从匹配的环境变量加载。                                                                      |
+| `base_url_http`                    | `None`     | REST 基础 URL 的覆盖值。                                                                                      |
+| `base_url_ws_public`               | `None`     | 公开 WebSocket URL 的覆盖值。                                                                                 |
+| `base_url_ws_private`              | `None`     | 私有 WebSocket URL 的覆盖值。                                                                                 |
+| `proxy_url`                        | `None`     | HTTP 与 WebSocket 传输的可选代理 URL。                                                                        |
+| `http_timeout_secs`                | `60`       | REST 请求超时（秒）。                                                                                         |
+| `max_retries`                      | `3`        | REST 请求的最大重试次数。                                                                                     |
+| `retry_delay_initial_ms`           | `1,000`    | 初始重试延迟（毫秒）。                                                                                        |
+| `retry_delay_max_ms`               | `10,000`   | 最大重试延迟（毫秒）。                                                                                        |
+| `heartbeat_interval_secs`          | `20`       | WebSocket 客户端心跳间隔（秒）。                                                                              |
+| `recv_window_ms`                   | `5,000`    | 签名 REST 请求的接收窗口（毫秒）。                                                                            |
+| `update_instruments_interval_mins` | `60`       | 工具目录刷新间隔（分钟）。                                                                                    |
+| `instrument_status_poll_secs`      | `60`       | 工具与状态轮询间隔（秒）；`0` 禁用轮询。                                                                      |
+| `book_snapshot_timeout_secs`       | `10`       | 初始、重连与恢复快照的等待；`0` 禁用。                                                                        |
+| `transport_backend`                | `Sockudo`  | WebSocket 传输后端。                                                                                          |
+| `bars_timestamp_on_close`          | `True`     | K 线按区间收盘打时间戳；`False` 按区间开盘打时间戳。                                                          |
 
-### Execution client configuration options
+### 执行客户端配置选项 {#execution-client-configuration-options}
 
-| Option                      | Default    | Description                                                                                                     |
-| --------------------------- | ---------- | --------------------------------------------------------------------------------------------------------------- |
-| `product_types`             | `[LINEAR]` | Sequence of `BybitProductType` values to enable.                                                                |
-| `environment`               | `MAINNET`  | Bybit environment enum. Use `BybitEnvironment.MAINNET`, `BybitEnvironment.DEMO`, or `BybitEnvironment.TESTNET`. |
-| `api_key`                   | `None`     | API key; loaded from the matching environment variable when omitted.                                            |
-| `api_secret`                | `None`     | API secret; loaded from the matching environment variable when omitted.                                         |
-| `base_url_http`             | `None`     | Override for the REST base URL.                                                                                 |
-| `base_url_ws_private`       | `None`     | Override for the private WebSocket base URL.                                                                    |
-| `base_url_ws_trade`         | `None`     | Override for the trade WebSocket base URL.                                                                      |
-| `proxy_url`                 | `None`     | Optional proxy URL for HTTP and WebSocket transports.                                                           |
-| `http_timeout_secs`         | `60`       | Timeout (seconds) for REST requests.                                                                            |
-| `max_retries`               | `3`        | Maximum retry attempts for REST requests.                                                                       |
-| `retry_delay_initial_ms`    | `1,000`    | Initial retry delay (milliseconds).                                                                             |
-| `retry_delay_max_ms`        | `10,000`   | Maximum retry delay (milliseconds).                                                                             |
-| `heartbeat_interval_secs`   | `5`        | Heartbeat interval (seconds) for WebSocket clients.                                                             |
-| `auth_timeout_secs`         | `None`     | Optional WebSocket authentication timeout (seconds).                                                            |
-| `recv_window_ms`            | `5,000`    | Receive window (milliseconds) for signed REST and trade WebSocket requests.                                     |
-| `account_id`                | `None`     | Optional account ID associated with this client.                                                                |
-| `use_spot_position_reports` | `False`    | Report Spot wallet balances as positions for scoped requests; bulk reports omit Spot (no pair attribution).     |
-| `auto_repay_spot_borrows`   | `False`    | Automatically repay tracked Spot margin borrows after BUY orders fully fill.                                    |
-| `margin_mode`               | `None`     | Unified margin mode setting for the account.                                                                    |
-| `smp_type`                  | `None`     | Self-match prevention sent on every order. See [SMP](#self-match-prevention).                                   |
-| `transport_backend`         | `Sockudo`  | WebSocket transport backend.                                                                                    |
+| 选项                        | 默认值     | 说明                                                                                                          |
+| --------------------------- | ---------- | ------------------------------------------------------------------------------------------------------------- |
+| `product_types`             | `[LINEAR]` | 要启用的 `BybitProductType` 值序列。                                                                          |
+| `environment`               | `MAINNET`  | Bybit 环境枚举。用 `BybitEnvironment.MAINNET`、`BybitEnvironment.DEMO` 或 `BybitEnvironment.TESTNET`。        |
+| `api_key`                   | `None`     | API key；省略时从匹配的环境变量加载。                                                                         |
+| `api_secret`                | `None`     | API secret；省略时从匹配的环境变量加载。                                                                      |
+| `base_url_http`             | `None`     | REST 基础 URL 的覆盖值。                                                                                      |
+| `base_url_ws_private`       | `None`     | 私有 WebSocket 基础 URL 的覆盖值。                                                                            |
+| `base_url_ws_trade`         | `None`     | trade WebSocket 基础 URL 的覆盖值。                                                                           |
+| `proxy_url`                 | `None`     | HTTP 与 WebSocket 传输的可选代理 URL。                                                                        |
+| `http_timeout_secs`         | `60`       | REST 请求超时（秒）。                                                                                         |
+| `max_retries`               | `3`        | REST 请求的最大重试次数。                                                                                     |
+| `retry_delay_initial_ms`    | `1,000`    | 初始重试延迟（毫秒）。                                                                                        |
+| `retry_delay_max_ms`        | `10,000`   | 最大重试延迟（毫秒）。                                                                                        |
+| `heartbeat_interval_secs`   | `5`        | WebSocket 客户端心跳间隔（秒）。                                                                              |
+| `auth_timeout_secs`         | `None`     | 可选的 WebSocket 鉴权超时（秒）。                                                                             |
+| `recv_window_ms`            | `5,000`    | 签名 REST 与 trade WebSocket 请求的接收窗口（毫秒）。                                                         |
+| `account_id`                | `None`     | 与该客户端关联的可选账户 ID。                                                                                 |
+| `use_spot_position_reports` | `False`    | 限定请求时把现货钱包余额报告为持仓；批量报告省略现货（无法归属到交易对）。                                    |
+| `auto_repay_spot_borrows`   | `False`    | BUY 订单完全成交后自动归还被跟踪的现货保证金借币。                                                            |
+| `margin_mode`               | `None`     | 账户的统一保证金模式设置。                                                                                    |
+| `smp_type`                  | `None`     | 在每笔订单上发送的自成交防止。见[SMP](#self-match-prevention)。                                               |
+| `transport_backend`         | `Sockudo`  | WebSocket 传输后端。                                                                                          |
 
-The compiled default is Sockudo when the `transport-sockudo` Cargo feature is enabled and
-Tungstenite otherwise.
+编译时的默认值：启用 `transport-sockudo` Cargo feature 时为 Sockudo，否则为 Tungstenite。
 
-Use `BybitDataClientConfig` with `BybitDataClientFactory` and `BybitExecutionClientConfig` with
-`BybitExecutionClientFactory`. The current Python examples show the complete
-`LiveNode.builder(...)` configuration for data and execution clients.
+`BybitDataClientConfig` 与 `BybitDataClientFactory` 搭配使用，`BybitExecutionClientConfig` 与
+`BybitExecutionClientFactory` 搭配使用。当前的 Python 示例展示了数据与执行客户端完整的
+`LiveNode.builder(...)` 配置。
 
-### API credentials
+### API 凭据 {#api-credentials}
 
-There are two options for supplying your credentials to the Bybit clients.
-Either pass the corresponding `api_key` and `api_secret` values to the configuration objects, or
-set the following environment variables:
+向 Bybit 客户端提供凭据有两种方式：或者把对应的 `api_key` 与 `api_secret` 值传入配置对象，
+或者设置以下环境变量：
 
-For Bybit live clients, you can set:
+Bybit 实盘客户端可设置：
 
 - `BYBIT_API_KEY`
 - `BYBIT_API_SECRET`
 
-For Bybit demo clients, you can set:
+Bybit demo 客户端可设置：
 
 - `BYBIT_DEMO_API_KEY`
 - `BYBIT_DEMO_API_SECRET`
 
-For Bybit testnet clients, you can set:
+Bybit 测试网客户端可设置：
 
 - `BYBIT_TESTNET_API_KEY`
 - `BYBIT_TESTNET_API_SECRET`
 
 :::tip
-We recommend using environment variables to manage your credentials.
+推荐使用环境变量管理凭据。
 :::
 
-When starting the trading node, you'll receive immediate confirmation of whether your
-credentials are valid and have trading permissions.
+启动交易节点时，你会立即得到凭据是否有效、是否具有交易权限的确认。
 
-## Contributing
+## 参与贡献 {#contributing}
 
 :::info
-For additional features or to contribute to the Bybit adapter, please see our
-[contributing guide](https://github.com/nautechsystems/nautilus_trader/blob/develop/CONTRIBUTING.md).
+要获取更多特性或为 Bybit 适配器做贡献，请见我们的
+[贡献指南](https://github.com/nautechsystems/nautilus_trader/blob/develop/CONTRIBUTING.md)。
 :::

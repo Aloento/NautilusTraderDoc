@@ -71,7 +71,7 @@ builder = builder.add_data_client("TEMPLATE", ExampleFactory, DataClientConfig()
    与 `exec_factories`。
 
 工厂查找先查完整客户端名，再查第一个连字符之前的前缀。提供的工厂优先于
-可 import 配置自带的工厂描述符。场所与默认路由经由与直接注册相同的 builder
+可 import 配置自带的工厂描述符。交易场所与默认路由经由与直接注册相同的 builder
 路径，使用各配置的 `RoutingConfig`。
 
 两条注册路径都保持这些规则：
@@ -116,7 +116,7 @@ JSON 序列化支持：
 给适配器字段加注解，以还原领域值与 decimal，包括列表、字典与可选类型内部的值。
 `Any` 保留解码后的 JSON 值。不支持的值抛出 `TypeError`。
 
-:::warning[Serialized credentials]
+:::warning[序列化凭据]
 序列化配置也会序列化其中包含的凭据，要保护好序列化结果。
 :::
 
@@ -143,7 +143,7 @@ JSON 序列化支持：
 在活动的事件循环里调用阻塞的 `run()` 会在消耗节点之前抛出。已有循环内用
 `run_async()`。
 
-:::warning[Database cache backing]
+:::warning[数据库缓存后端]
 自定义 Python 客户端在两种启动模式下都不支持 Redis/PostgreSQL 缓存后备。
 两种模式都驱动 asyncio，后备的阻塞 worker 调用会拖住事件循环。
 纯 native 节点可以在 `run()` 下使用数据库后备。
@@ -183,7 +183,7 @@ JSON 序列化支持：
 
 被独立取消的命令允许队列中的下一个操作运行，准入保持开启。
 
-:::warning[Cancellation is not completion]
+:::warning[取消不是完成]
 抗拒取消的任务仍处于监管之下，清理未完成会被报告——包括宿主过早关闭循环的
 情形。先 await 完节点，再关闭宿主循环。
 :::
@@ -243,15 +243,15 @@ JSON 序列化支持：
 `_handle_report` 接受来自 `nautilus_trader.model` 的 `OrderStatusReport`、
 `FillReport`、`PositionStatusReport` 或 `ExecutionMassStatus`。其可选的
 `fills` 列表只能伴随 `OrderStatusReport`。报告的账户身份、批量报告的
-客户端/场所身份，以及嵌套报告的归属，都必须与注册的客户端一致。
+客户端/交易场所身份，以及嵌套报告的归属，都必须与注册的客户端一致。
 
 ## 数据客户端钩子 {#data-client-hooks}
 
 ### 订阅与请求 {#subscriptions-and-requests}
 
 每个钩子都是 async 的，接收来自 `nautilus_trader.live` 的所有权独占、不可变的
-命令或请求。嵌套的参数会被复制。为场所支持的能力重写对应钩子，未实现的钩子
-抛出 `NotImplementedError`。场所订阅的确认与重连后的重放记录在适配器本地状态中。
+命令或请求。嵌套的参数会被复制。为交易场所支持的能力重写对应钩子，未实现的钩子
+抛出 `NotImplementedError`。交易场所订阅的确认与重连后的重放记录在适配器本地状态中。
 
 | 家族            | Subscribe/unsubscribe 后缀            | 历史请求后缀                    |
 | ----------------- | --------------------------------------- | -------------------------------------------- |
@@ -330,7 +330,7 @@ datetime 与精确的 `start_ns`/`end_ns`；响应边界使用整数纳秒。
 
 ### 处理订单命令 {#handle-order-commands}
 
-重写场所支持的钩子：
+重写交易场所支持的钩子：
 
 - **提交**：`_submit_order`、`_submit_order_list`。
 - **修改**：`_modify_order`。
@@ -338,7 +338,7 @@ datetime 与精确的 `start_ns`/`end_ns`；响应边界使用整数纳秒。
 - **查询**：`_query_account`、`_query_order`。
 
 `_batch_modify_orders` 与 `_batch_cancel_orders` 默认按序调用对应的单笔订单
-钩子。场所有批量端点时重写它们。
+钩子。交易场所有批量端点时重写它们。
 
 命令保留 native 的标识与参数、correlation/causation ID、时间戳，以及嵌套订单
 或批量成员。
@@ -369,7 +369,7 @@ Cython 适配器保持源码兼容。
 | `_handle_*` 历史方法         | `_handle_response(typed_response)`  | 保留 correlation 与边界。            |
 | `_send_*` 执行方法         | `_handle_event` / `_handle_report`  | 校验所有者身份。                   |
 | 缓存写入                        | 排队的工具与事件       | 变更由核心应用。                       |
-| 订阅跟踪方法       | 适配器本地订阅状态    | 依场所确认更新。          |
+| 订阅跟踪方法       | 适配器本地订阅状态    | 依交易场所确认更新。          |
 | 构造函数的事件循环              | 启动绑定之后的 `client.loop` | 资源在 `_connect` 中创建。             |
 | `cancel_pending_tasks`              | 受监管的节点断开       | 取消不是终态完成。    |
 | `run_after_delay`                   | 带 `asyncio.sleep` 的协程      | 通过 `create_task` 调度。             |
@@ -391,12 +391,12 @@ Cython 适配器保持源码兼容。
 
 ## 独立 Rust/PyO3 包 {#independent-rustpyo3-packages}
 
-适配器可以把场所实现放在独立的 Rust/PyO3 扩展中。其 Python 门面派生相同的
+适配器可以把交易场所实现放在独立的 Rust/PyO3 扩展中。其 Python 门面派生相同的
 客户端基类，通过与纯 Python 适配器相同的工厂注册。扩展针对 PyO3 编译，
 并从已安装的 wheel import NautilusTrader 的模型类。
 
-:::warning[Use the installed wheel's model classes]
-所有交换的领域值必须是这些类的实例。不要链接第二套 Nautilus 模型
+:::warning[使用已安装 wheel 的模型类]
+所有传递的领域值必须是这些类的实例。不要链接第二套 Nautilus 模型
 pyclass，也不要在扩展模块之间传递 native Rust trait 对象。集成边界是
 Python 协议，不是共享的 Rust ABI。
 :::
@@ -486,7 +486,7 @@ fn quote(&self, py: Python<'_>, command: &Bound<'_, PyAny>) -> PyResult<Py<PyAny
 ```
 
 import `pyo3::{prelude::*, types::PyDict}`，并在名为 `_backend` 的
-`#[pymodule]` 函数中导出所在的类。示例值是确定性的；场所实现填入自己收到的
+`#[pymodule]` 函数中导出所在的类。示例值是确定性的；交易场所实现填入自己收到的
 价格、数量与纳秒时间戳。价格、数量与金额要用精确的 decimal 值或字符串构造，
 不经过浮点往返。
 
@@ -509,7 +509,7 @@ async def _subscribe_quotes(self, command):
 - 实现连接与断开钩子。
 - 提供用节点给出的 name、config、cache、clock 构造子类的
   `DataClientFactory`。
-- 客户端保留持有场所持久状态的后端。
+- 客户端保留持有交易场所持久状态的后端。
 
 [Python 模板](https://github.com/nautechsystems/nautilus_trader/blob/develop/examples/live/_template/README.md)
 演示了钩子与工厂注册。
