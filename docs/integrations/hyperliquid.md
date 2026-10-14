@@ -193,111 +193,108 @@ USDH、USDE 或 USDT0，而 Nautilus 代码仍报价为 `USD`。现货市场是�
 
 Hyperliquid 为金融工具使用特定的代码格式：
 
-### Spot markets
+### 现货市场 {#spot-markets}
 
-Format: `{Base}-{Quote}-SPOT`
+格式：`{Base}-{Quote}-SPOT`
 
-Examples:
+示例：
 
-- `PURR-USDC-SPOT` - PURR/USDC spot pair
-- `HYPE-USDC-SPOT` - HYPE/USDC spot pair
+- `PURR-USDC-SPOT` - PURR/USDC 现货对
+- `HYPE-USDC-SPOT` - HYPE/USDC 现货对
 
-To subscribe in your strategy:
+在策略中订阅：
 
 ```python
 InstrumentId.from_str("PURR-USDC-SPOT.HYPERLIQUID")
 ```
 
-Spot instruments loaded from `spotMeta` preserve venue metadata in `CurrencyPair.info`:
+从 `spotMeta` 加载的现货金融工具会把交易场所元数据保留在 `CurrencyPair.info`：
 
-| Field         | Value                                           |
+| 字段          | 值                                             |
 | ------------- | ----------------------------------------------- |
-| `name`        | Raw venue pair label                            |
-| `tokens`      | Base and quote indexes into `spotMeta.tokens`   |
-| `index`       | Pair index before the `10000` spot asset offset |
-| `isCanonical` | Venue canonical classification                  |
+| `name`        | 交易场所原始交易对标签                          |
+| `tokens`      | base 与 quote 在 `spotMeta.tokens` 中的索引     |
+| `index`       | 加 `10000` 现货偏移之前的交易对索引             |
+| `isCanonical` | 交易场所的 canonical 分类                       |
 
-Read `info.get("isCanonical")` in Python or `Params.get_bool("isCanonical")` in Rust to inspect
-the venue's canonical classification.
+用 Python 的 `info.get("isCanonical")` 或 Rust 的
+`Params.get_bool("isCanonical")` 读取交易场所的 canonical 分类。
 
 :::note
-Spot instruments may include vault tokens (prefixed with `vntls:`). Hyperliquid does not list
-these in `spotMeta`, so the HTTP client synthesizes a `{coin}-USDC-SPOT` instrument on first
-sight to keep balances and fills resolvable. These synthetic instruments carry no venue metadata:
-`info` is `None` in Rust and an empty dict in Python.
+现货金融工具可能包含 vault 代币（前缀 `vntls:`）。Hyperliquid 不在 `spotMeta`
+中列出它们，因此 HTTP 客户端在首次遇到时会合成一个 `{coin}-USDC-SPOT` 金融工具，
+保证余额与成交可解析。这类合成金融工具不携带交易场所元数据：Rust 中 `info` 为
+`None`，Python 中为空 dict。
 :::
 
-### Perpetual futures
+### 永续期货 {#perpetual-futures}
 
-Format: `{Base}-USD-PERP`
+格式：`{Base}-USD-PERP`
 
-Examples:
+示例：
 
-- `BTC-USD-PERP` - Bitcoin perpetual futures
-- `ETH-USD-PERP` - Ethereum perpetual futures
-- `SOL-USD-PERP` - Solana perpetual futures
+- `BTC-USD-PERP` - 比特币永续期货
+- `ETH-USD-PERP` - 以太坊永续期货
+- `SOL-USD-PERP` - Solana 永续期货
 
-To subscribe in your strategy:
+在策略中订阅：
 
 ```python
 InstrumentId.from_str("BTC-USD-PERP.HYPERLIQUID")
 InstrumentId.from_str("ETH-USD-PERP.HYPERLIQUID")
 ```
 
-### HIP-3 perpetuals
+### HIP-3 永续合约 {#hip-3-perpetuals}
 
-Format: `{dex}:{Asset}-USD-PERP`
+格式：`{dex}:{Asset}-USD-PERP`
 
 [HIP-3](https://hyperliquid.gitbook.io/hyperliquid-docs/hyperliquid-improvement-proposals-hips/hip-3-builder-deployed-perpetuals)
-markets use a dex prefix separated by a colon. The dex name identifies which
-builder-deployed perp dex the market belongs to.
+市场用冒号分隔的 dex 前缀。dex 名称标识市场属于哪个 builder 部署的 perp dex。
 
-Examples:
+示例：
 
-- `xyz:TSLA-USD-PERP` - Tesla perp on trade.xyz
-- `xyz:GOLD-USD-PERP` - Gold perp on trade.xyz
-- `flx:NVDA-USD-PERP` - Nvidia perp on Felix
-- `vntl:SPACEX-USD-PERP` - SpaceX perp on Ventuals
+- `xyz:TSLA-USD-PERP` - trade.xyz 上的特斯拉永续
+- `xyz:GOLD-USD-PERP` - trade.xyz 上的黄金永续
+- `flx:NVDA-USD-PERP` - Felix 上的英伟达永续
+- `vntl:SPACEX-USD-PERP` - Ventuals 上的 SpaceX 永续
 
-To subscribe in your strategy:
+在策略中订阅：
 
 ```python
 InstrumentId.from_str("xyz:TSLA-USD-PERP.HYPERLIQUID")
 ```
 
-### HIP-4 outcome side tokens
+### HIP-4 结果 side token {#hip-4-outcome-side-tokens}
 
-Format: `{outcome_index}-{YES|NO}-OUTCOME.HYPERLIQUID`, where `outcome_index`
-is the `outcome` field from `outcomeMeta` and the middle segment names the
-binary side. The `-OUTCOME` suffix is symmetric with `-PERP` / `-SPOT`.
+格式：`{outcome_index}-{YES|NO}-OUTCOME.HYPERLIQUID`，其中
+`outcome_index` 是 `outcomeMeta` 的 `outcome` 字段，中间段标识二元方向。
+`-OUTCOME` 后缀与 `-PERP` / `-SPOT` 对称。
 
 [HIP-4](https://hyperliquid.gitbook.io/hyperliquid-docs/hyperliquid-improvement-proposals-hips/hip-4-outcome-markets)
-side tokens are binary contracts that settle in the market's quote token at `0` (loser) or `1` (winner). The
-Nautilus symbol uses the human-readable form above. The wire `raw_symbol` uses the venue coin form
-`#{encoding}` (where `encoding = 10 * outcome_index + side`, `side` is `0` for Yes / `1` for No), which is
-what `l2Book` and `allMids` accept.
+side token 是二元合约，按市场 quote 代币在 `0`（败方）或 `1`（胜方）结算。
+Nautilus 代码使用上面的人类可读形式。线上 `raw_symbol` 使用交易场所的代币形式
+`#{encoding}`（`encoding = 10 * outcome_index + side`，
+Yes 的 `side` 为 `0` / No 为 `1`），`l2Book` 与 `allMids` 接受的就是它。
 
-Examples (outcome 25):
+示例（outcome 25）：
 
-- `25-YES-OUTCOME.HYPERLIQUID`: Yes side. Encoding `250`, wire coin `#250`,
-  token name `+250`, action asset id `100_000_250`.
-- `25-NO-OUTCOME.HYPERLIQUID`: No side. Encoding `251`, wire coin `#251`,
-  token name `+251`, action asset id `100_000_251`.
+- `25-YES-OUTCOME.HYPERLIQUID`：Yes 方向。编码 `250`，线上市值代币
+  `#250`，代币名 `+250`，动作资产 ID `100_000_250`。
+- `25-NO-OUTCOME.HYPERLIQUID`：No 方向。编码 `251`，线上市值代币
+  `#251`，代币名 `+251`，动作资产 ID `100_000_251`。
 
-To subscribe in your strategy:
+在策略中订阅：
 
 ```python
 InstrumentId.from_str("25-YES-OUTCOME.HYPERLIQUID")
 ```
 
 :::note
-The outcome universe cycles. Each settlement removes the resolved outcome
-from `outcomeMeta`, and the venue's next listing advances the index.
-Reconciliation still resolves fills and historical orders on a settled
-outcome: the adapter derives the side token's instrument from its
-`#{encoding}` coin, without the market name, description, expiry, or quote token that
-`outcomeMeta` carries. See [Settlement currency](#settlement-currency) for the currency fallback.
-Inspect the live universe with:
+结果池是循环轮换的。每次结算都会把已结算的结果移出 `outcomeMeta`，交易场所的
+下一个挂牌会推进索引。已结算结果上的成交与历史订单仍能对账：适配器从
+`#{encoding}` 代币推导 side token 的金融工具，但没有 `outcomeMeta` 携带的市场
+名称、描述、到期时间与 quote 代币。货币回退见[结算货币](#settlement-currency)。
+用下面的命令查看当前结果池：
 
 ```bash
 curl -s -X POST https://api.hyperliquid.xyz/info \
@@ -307,23 +304,22 @@ curl -s -X POST https://api.hyperliquid.xyz/info \
 
 :::
 
-See [HIP-4 outcome markets](#hip-4-outcome-markets) for the trading flow,
-settlement, and current limitations.
+交易流程、结算与当前限制见 [HIP-4 结果市场](#hip-4-outcome-markets)。
 
-## HIP-3 builder-deployed perpetuals
+## HIP-3 builder 部署的永续合约 {#hip-3-builder-deployed-perpetuals}
 
 [HIP-3](https://hyperliquid.gitbook.io/hyperliquid-docs/hyperliquid-improvement-proposals-hips/hip-3-builder-deployed-perpetuals)
-allows qualified deployers to launch permissionless perp dexes on Hyperliquid. These markets
-include equities (TSLA, NVDA, AAPL), commodities (gold, crude oil), indices (S&P 500), and
-pre-IPO tokens (SpaceX, OpenAI).
+允许合格部署者（deployer）在 Hyperliquid 上无需许可地启动 perp dex。这些市场包含
+股票（TSLA、NVDA、AAPL）、大宗商品（黄金、原油）、指数（S&P 500）与 pre-IPO
+代币（SpaceX、OpenAI）。
 
 In a `LiveNode`, HIP-3 perpetuals load automatically alongside standard perpetuals at connect: the adapter
 fetches every perp dex (standard and builder-deployed) from `allPerpMetas`, so no additional client
 configuration is required. The data client exposes no per-dex filter. Strategies select the markets they trade
 by `instrument_id`.
 
-For direct `HyperliquidHttpClient` usage, the HIP-3 perp dexes are excluded unless you opt in
-through `load_instrument_definitions`:
+直接使用 `HyperliquidHttpClient` 时，除非通过
+`load_instrument_definitions` 显式开启，否则不加载 HIP-3 perp dex：
 
 ```python
 from nautilus_trader.adapters.hyperliquid import HyperliquidEnvironment
@@ -338,131 +334,125 @@ instruments = await client.load_instrument_definitions(
 )
 ```
 
-### Open-order and position reconciliation
+### 未结订单与持仓对账 {#open-order-and-position-reconciliation}
 
-#### Startup mass status
+#### 启动时的 mass status {#startup-mass-status}
 
-At `LiveNode` startup, unfiltered open-order and position reconciliation queries the default perp dex
-and each unique HIP-3 dex named by the wallet's recent historical orders or fills:
+`LiveNode` 启动时，未过滤的未结订单与持仓对账会查询默认 perp dex，以及钱包近期
+历史订单或成交所涉及的每个不同 HIP-3 dex：
 
-- Cached dexes without wallet activity do not generate startup requests.
-- If either history response reaches its 2,000-record limit, reconciliation instead queries every
-  dex returned by the venue's current perp dex list so bounded history cannot hide older open
-  orders or positions.
-- Position reconciliation also includes spot holdings.
+- 无钱包活动的已缓存 dex 不产生启动请求。
+- 任一历史响应触及 2,000 条记录上限时，对账改为查询交易场所当前 perp dex 列表
+  返回的每个 dex，避免有界历史掩盖更早的未结订单或持仓。
+- 持仓对账也包含现货持有量。
 
-The returned mass status records its coverage under the
-[mass-status history contract](./../concepts/execution/reconciliation.md#mass-status-history-contract). With a
-configured lookback, `lookback_start` carries its lower bound. Without one, the snapshot is unbounded.
-`reports_complete` is `false` for either of these conditions:
+返回的 mass status 按
+[mass-status 历史契约](./../concepts/execution/reconciliation.md#mass-status-history-contract)
+记录其覆盖范围。配置了回看窗口时，`lookback_start` 携带其下界；未配置时，
+快照是无界的。以下任一条件都会使 `reports_complete` 为 `false`：
 
-- A history response reached its record limit and may be truncated.
-- A required venue row could not be decoded, resolved to an instrument, or converted into a report.
+- 历史响应触及记录上限，可能被截断。
+- 某个必需的交易场所行无法解码、无法解析为金融工具，或无法转换为报告。
 
-Valid rows remain in the report set. A snapshot whose venue responses decoded cleanly within the record limits
-is authoritative, including an empty one.
+有效的行仍保留在报告集合中。在记录上限内干净解码完所有场所响应的快照具有权威
+性，空快照也一样。
 
-#### Reduce-only fill quantity
+#### Reduce-only 成交数量 {#reduce-only-fill-quantity}
 
-Hyperliquid can report a reduce-only order as `filled` with nothing remaining once it closes a position
-smaller than the order. During startup mass status or a single-order lookup by venue order ID, the adapter
-clamps such an order to its total fills. Thus, it closes `Filled` at a quantity smaller than the submitted
-size. The clamp applies only when the `userFills` history is complete and under its 2,000-record limit.
-Otherwise the adapter keeps the venue's quantity, and reconciliation can infer the missing fill.
+当 reduce-only 订单平掉了小于订单数量的持仓时，Hyperliquid 可能把它报告为
+`filled` 且没有剩余。启动 mass status 或按场所订单 ID 单查时，适配器会把此类
+订单钳制到其成交总量，从而以小于提交数量的数量收尾为 `Filled`。只有
+`userFills` 历史完整且未触及 2,000 条上限时才应用该钳制，否则适配器保留场所
+数量，对账可以推断缺失的成交。
 
-For this clamp, a single-order lookup fetches `userFills` only for a reduce-only order reported `Filled`.
-`QueryOrder` also reads fill history for [eligible ordinary filled orders](#order-fill-recovery).
+用于该钳制时，单查只对被报告为 `Filled` 的 reduce-only 订单拉取
+`userFills`。`QueryOrder` 也会为[符合条件的普通已成交订单](#order-fill-recovery)
+读取成交历史。
 
-#### Command and direct requests
+#### 命令与直接请求 {#command-and-direct-requests}
 
-Outside startup mass status, unfiltered `LiveNode` open-order and position report commands and direct
-`HyperliquidHttpClient` requests query the default perp dex and each builder dex represented by the
-cached perpetual instruments:
+启动 mass status 之外，未过滤的 `LiveNode` 未结订单与持仓报告命令，以及直接的
+`HyperliquidHttpClient` 请求，会查询默认 perp dex 与已缓存永续金融工具所代表的
+每个 builder dex：
 
-- A request filtered to a HIP-3 instrument derives the builder dex from the symbol's dex prefix and
-  queries only that dex.
-- A standard perpetual filter queries only the default dex.
-- Spot and outcome position filters keep their existing spot-only routing.
-- If a required request fails, the request returns an error instead of a partial snapshot. The same applies if
-  a venue row cannot be decoded, resolved to an instrument, or converted into a report. Fill and
-  historical-order report requests fail the same way.
-- If a targeted HTTP order-status lookup matches an unusable venue row, it returns an error instead of
-  reporting the order as missing. The `GenerateOrderStatusReport` command does the same once no venue order ID
-  fallback remains.
+- 过滤到某个 HIP-3 金融工具的请求，从代码的 dex 前缀推导 builder dex，只查询
+  该 dex。
+- 标准永续过滤器只查询默认 dex。
+- 现货与结果持仓过滤器保持既有的仅现货路由。
+- 某个必需请求失败时，请求返回错误而不是部分快照。交易场所行无法解码、无法
+  解析为金融工具或无法转换为报告时同样如此。成交与历史订单报告请求的失败处理
+  一致。
+- 定向 HTTP 订单状态查询命中不可用的场所行时，返回错误而不是把订单报告为缺失。
+  在不再存在场所订单 ID 回退后，`GenerateOrderStatusReport` 命令行为相同。
 
-#### Inferred-fill commissions
+#### 推断成交的佣金 {#inferred-fill-commissions}
 
-Fills inferred during reconciliation carry no commission: the adapter does not calculate fees for inferred
-fills, so the generated `OrderFilled` event has `commission` set to `None`. Quantity and price still
-reconcile. Only realized PnL for those fills excludes trading fees.
+对账期间推断出的成交不带佣金：适配器不为推断成交计算费用，因此生成的
+`OrderFilled` 事件中 `commission` 为 `None`。数量与价格仍可对账，只是这些
+成交的已实现盈亏不含交易费用。
 
-### Differences from standard perpetuals
+### 与标准永续合约的差异 {#differences-from-standard-perpetuals}
 
-HIP-3 markets trade on the same HyperCore matching engine and use the same order API.
-The key differences are:
+HIP-3 市场在同一 HyperCore 撮合引擎上交易，使用相同的订单 API。主要差异：
 
-- **Higher fees**: each dex sets its own deployer fee scale, which multiplies the base perp fee
-  by `scale + 1` below `1` and by `scale * 2` at or above it, with the deployer taking up to half.
-  Check a dex's live rate rather than assuming the standard perp schedule.
-- **Isolated margin**: HIP-3 markets default to isolated-only margin.
-- **Per-dex collateral**: Each HIP-3 dex declares its settlement token through
-  its `collateralToken` entry in `allPerpMetas`. Nautilus resolves that token
-  through `spotMeta` and keeps the symbol's quote leg as `USD`. If a non-USDC
-  collateral token cannot resolve from `spotMeta`, instrument loading returns
-  an error rather than falling back to USDC.
-- **Deployer-managed oracles**: The deployer operates the oracle feed, not validators.
-- **Growth mode**: Dexes whose markets are disjoint from validator-operated perps can opt into
-  growth mode, which Hyperliquid documents as at least a 90% cut to all-in fees.
+- **更高费用**：每个 dex 自设 deployer 费率倍数——低于 `1` 的费率乘以
+  `scale + 1`，不低于 `1` 的乘以 `scale * 2`，deployer 至多抽取一半。要查某个
+  dex 的实时费率，不要套用标准永续费率表。
+- **隔离保证金**：HIP-3 市场默认仅支持隔离保证金。
+- **按 dex 的抵押品**：每个 HIP-3 dex 通过 `allPerpMetas` 中的
+  `collateralToken` 条目声明结算代币。Nautilus 通过 `spotMeta` 解析该代币，
+  代码的 quote 腿仍保持 `USD`。非 USDC 抵押代币无法从 `spotMeta` 解析时，
+  金融工具加载返回错误，而不是回退到 USDC。
+- **Deployer 管理的预言机**：预言机喂价由 deployer 运营，而非验证节点。
+- **增长模式**：市场与验证节点运营的永续不相交的 dex 可以加入增长模式，
+  Hyperliquid 将其描述为在全额费用中至少让利 90%。
 
-For full protocol details, see the Hyperliquid docs:
+完整协议细节见 Hyperliquid 文档：
 
-- [HIP-3 proposal](https://hyperliquid.gitbook.io/hyperliquid-docs/hyperliquid-improvement-proposals-hips/hip-3-builder-deployed-perpetuals)
-- [HIP-3 deployer actions](https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/hip-3-deployer-actions)
-- [Asset IDs](https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/asset-ids)
-- [Fees](https://hyperliquid.gitbook.io/hyperliquid-docs/trading/fees)
+- [HIP-3 提案](https://hyperliquid.gitbook.io/hyperliquid-docs/hyperliquid-improvement-proposals-hips/hip-3-builder-deployed-perpetuals)
+- [HIP-3 deployer 动作](https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/hip-3-deployer-actions)
+- [资产 ID](https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/asset-ids)
+- [费用](https://hyperliquid.gitbook.io/hyperliquid-docs/trading/fees)
 
-### Wildcard character sanitization
+### 通配符字符净化 {#wildcard-character-sanitization}
 
-Some HIP-3 dexes deploy assets whose venue names contain `*` or `?` bytes
-(for example `dex:STREAMABCD****-USD-PERP`). Those bytes collide with the
-Nautilus message bus pattern syntax (`*` = zero-or-more, `?` = one-char) and
-would corrupt subscription routing if embedded in topic strings unchanged.
+一些 HIP-3 dex 部署的资产，其场所名称包含 `*` 或 `?` 字节（例如
+`dex:STREAMABCD****-USD-PERP`）。这些字节与 Nautilus 消息总线的模式语法冲突
+（`*` = 任意多个，`?` = 单个字符），原样嵌入主题字符串会破坏订阅路由。
 
-The Hyperliquid adapter substitutes both bytes with `x` when constructing the
-`InstrumentId.symbol`, so a HIP-3 asset named `dex:STREAMABCD****` is exposed
-to strategies as:
+构造 `InstrumentId.symbol` 时，Hyperliquid 适配器把这两类字节替换为 `x`，
+因此名为 `dex:STREAMABCD****` 的 HIP-3 资产在策略侧呈现为：
 
 ```python
 InstrumentId.from_str("dex:STREAMABCDxxxx-USD-PERP.HYPERLIQUID")
 ```
 
-The substitution applies only to the Nautilus-internal symbol used in topics, caches, logs, and config. The
-instrument's `raw_symbol` preserves the venue-official name for HTTP and WebSocket calls. Order submissions
-reference the numeric asset index. Thus, the round-trip with Hyperliquid is unaffected.
+替换只作用于主题、缓存、日志与配置中 Nautilus 内部使用的代码。金融工具的
+`raw_symbol` 保留场所官方名称供 HTTP 与 WebSocket 调用。订单提交引用数字资产
+索引，因此与 Hyperliquid 的往返不受影响。
 
-When subscribing to a HIP-3 instrument with wildcard bytes in its venue name,
-use the sanitized form. Symbols without `*` or `?` are passed through
-unchanged.
+订阅场所名称含通配符字节的 HIP-3 金融工具时，使用净化后的形式。不含 `*` 或
+`?` 的代码原样通过。
 
-The substitution is lossy: two distinct venue names such as `dex:FOO*` and
-`dex:FOO?` would normalize onto the same Nautilus symbol. Such collisions use
-the first-write-wins behavior described in [Instrument loading](#instrument-loading).
+替换是有损的：`dex:FOO*` 与 `dex:FOO?` 这样两个不同的场所名称会归一到同一个
+Nautilus 代码。此类冲突采用[金融工具加载](#instrument-loading)所述的首次写入
+优先行为。
 
-## HIP-4 outcome markets
+## HIP-4 结果市场 {#hip-4-outcome-markets}
 
-[HIP-4](https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/asset-ids#outcomes) markets are
-fully-collateralized binary contracts. Each market has two side tokens (Yes / No) that settle to `1` (winner)
-or `0` (loser) quote tokens on the resolution date. The venue publishes outcome metadata through the
-`outcomeMeta` info endpoint. The adapter treats that payload as best-effort. If the venue does not return it,
-the adapter skips HIP-4 instruments. Thus, a dropped or renamed endpoint leaves perps and spot available
-instead of failing instrument loading.
+[HIP-4](https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/asset-ids#outcomes)
+市场是全额抵押的二元合约。每个市场有两个 side token（Yes / No），在结算日按
+市场的 quote 代币结算为 `1`（胜方）或 `0`（败方）。交易场所通过
+`outcomeMeta` 信息端点发布结果元数据，适配器对该载荷采取尽力而为的态度：场所
+不返回它时，适配器跳过 HIP-4 金融工具。因此端点被移除或改名时，永续与现货仍然
+可用，而不是让整个金融工具加载失败。
 
 ### Loading outcome instruments
 
-In a `LiveNode`, outcome instruments load automatically (best-effort) when the venue exposes
-`outcomeMeta`. No client configuration is required.
+在 `LiveNode` 中，交易场所暴露 `outcomeMeta` 时，结果金融工具会自动（尽力而为）
+加载，不需要客户端配置。
 
-For direct `HyperliquidHttpClient` usage, opt in through `load_instrument_definitions`:
+直接使用 `HyperliquidHttpClient` 时，通过 `load_instrument_definitions` 开启：
 
 ```python
 from nautilus_trader.adapters.hyperliquid import HyperliquidEnvironment
@@ -477,75 +467,73 @@ instruments = await client.load_instrument_definitions(
 )
 ```
 
-Loading emits two `BinaryOption` instruments per outcome (one per side). Symbols use the form
-`{outcome_index}-{YES|NO}-OUTCOME.HYPERLIQUID`. `expiration_ns` is parsed from the venue description
-(`expiry:YYYYMMDD-HHMM`, UTC). Standalone binaries carry their own expiry. Named and fallback outcomes inherit
-from their parent question. Prices tick in steps of `0.00001` and sizes are whole tokens, matching the venue.
+加载时为每个结果发出两个 `BinaryOption` 金融工具（每个方向一个）。代码使用
+`{outcome_index}-{YES|NO}-OUTCOME.HYPERLIQUID` 形式。`expiration_ns`
+从场所描述解析（`expiry:YYYYMMDD-HHMM`，UTC）。独立二元合约自带到期时间，
+命名结果与回退结果继承父问题的到期时间。价格以 `0.00001` 为最小变动单位，
+数量为整数代币，与交易场所一致。
 
-Each instrument's `BinaryOption.info` carries the parsed venue metadata as a key/value map (consumed via
-`info["key"]` in Python or `Params.get_str(...)` in Rust). Derived identifiers are always populated.
-Description-derived fields appear when the venue includes them.
+每个金融工具的 `BinaryOption.info` 以键/值映射携带解析后的场所元数据（Python
+用 `info["key"]`，Rust 用 `Params.get_str(...)` 读取）。派生标识始终填充，
+描述派生字段在场所提供时才会出现。
 
-| Field              | Source                         | Notes                                             |
+| 字段               | 来源                           | 说明                                              |
 | ------------------ | ------------------------------ | ------------------------------------------------- |
-| `outcome_index`    | derived                        | `outcome` from `outcomeMeta`                      |
-| `outcome_side`     | derived                        | `0` = Yes, `1` = No                               |
-| `side_name`        | `outcomeMeta` `sideSpecs`      | venue side label, `"Yes"` / `"No"` when absent    |
-| `encoding`         | derived                        | `10 * outcome_index + side`                       |
-| `asset_id`         | derived                        | `100_000_000 + encoding`                          |
-| `market_name`      | `outcomeMeta.outcomes[*].name` | venue market label                                |
-| `class`            | description                    | `priceBinary` or `priceBucket`                    |
-| `underlying`       | description                    | underlying asset code                             |
-| `expiry`           | description                    | `YYYYMMDD-HHMM` UTC                               |
-| `target_price`     | description                    | binary settlement threshold                       |
-| `period`           | description                    | recurrence period (e.g. `1d`, `3m`)               |
-| `price_thresholds` | description                    | comma-separated thresholds (bucket markets)       |
-| `named_index`      | named-outcome description      | position in parent `named_outcomes` array         |
-| `is_fallback`      | fallback-outcome description   | `true` for the `other` outcome of a question      |
-| `question`         | parent question                | question id                                       |
-| `question_name`    | parent question                | question label                                    |
-| `question_*`       | parent question description    | every parsed question field, `question_` prefixed |
+| `outcome_index`    | 派生                           | `outcomeMeta` 的 `outcome`                        |
+| `outcome_side`     | 派生                           | `0` = Yes，`1` = No                               |
+| `side_name`        | `outcomeMeta` `sideSpecs`      | 场所方向标签，缺失时为 `"Yes"` / `"No"`           |
+| `encoding`         | 派生                           | `10 * outcome_index + side`                       |
+| `asset_id`         | 派生                           | `100_000_000 + encoding`                          |
+| `market_name`      | `outcomeMeta.outcomes[*].name` | 场所市场标签                                      |
+| `class`            | 描述                           | `priceBinary` 或 `priceBucket`                    |
+| `underlying`       | 描述                           | 标的资产代码                                      |
+| `expiry`           | 描述                           | `YYYYMMDD-HHMM` UTC                               |
+| `target_price`     | 描述                           | 二元结算阈值                                      |
+| `period`           | 描述                           | 重复周期（如 `1d`、`3m`）                         |
+| `price_thresholds` | 描述                           | 逗号分隔的阈值（bucket 市场）                     |
+| `named_index`      | 命名结果描述                   | 在父 `named_outcomes` 数组中的位置                |
+| `is_fallback`      | 回退结果描述                   | 问题的 `other` 结果为 `true`                      |
+| `question`         | 父问题                         | 问题 ID                                           |
+| `question_name`    | 父问题                         | 问题标签                                          |
+| `question_*`       | 父问题描述                     | 每个解析出的问题字段，带 `question_` 前缀         |
 
-Description keys are lowered from venue camelCase to snake_case (`targetPrice` -> `target_price`,
-`priceThresholds` -> `price_thresholds`). Values are kept as strings to preserve wire fidelity. Numeric
-identifiers (`outcome_index`, `outcome_side`, `encoding`, `asset_id`, `question`, `named_index`) are stored as
-JSON numbers.
+描述键从场所的 camelCase 降为 snake_case（`targetPrice` ->
+`target_price`，`priceThresholds` -> `price_thresholds`）。值保留为字符串以
+维持线上保真度。数字标识（`outcome_index`、`outcome_side`、`encoding`、
+`asset_id`、`question`、`named_index`）以 JSON 数字存储。
 
-### Settlement currency
+### 结算货币 {#settlement-currency}
 
-The adapter uses each outcome's `outcomeMeta` `quoteToken` for `BinaryOption.currency`,
-`quote_currency`, and settlement currency. Zero-fee fills that report a side token as `feeToken`
-use the instrument's quote currency for commission. When metadata selects USDH, the adapter
-registers it explicitly at 8-decimal precision so currency auto-registration does not determine
-its precision.
+适配器用每个结果的 `outcomeMeta` `quoteToken` 作为
+`BinaryOption.currency`、`quote_currency` 与结算货币。把 side token 报告为
+`feeToken` 的零费成交，其佣金使用该金融工具的 quote 货币。元数据选定 USDH 时，
+适配器显式按 8 位小数注册它，不让货币自动注册机制决定其精度。
 
-When `quoteToken` is missing, the adapter defaults to USDC. Settled outcomes that disappear from
-`outcomeMeta` retain their currency while the instrument remains in the adapter's in-memory cache.
-After a restart, the adapter uses USDC unless the instrument is supplied to that cache again.
-USDC is an adapter compatibility default: mainnet and testnet outcomes observed in October 2026
-quote in USDC. The outcome asset encoding does not identify its quote token, so the adapter
-cannot recover a different historical currency without a cached instrument.
+`quoteToken` 缺失时，适配器默认使用 USDC。已结算、从 `outcomeMeta`
+消失的结果，在金融工具仍留在适配器内存缓存期间保留其货币。重启后，除非该金融
+工具重新进入缓存，否则适配器使用 USDC。USDC 只是适配器的兼容默认值：2026 年
+10 月观察到的主网与 testnet 结果均以 USDC 报价。结果资产编码不标识其 quote
+代币，因此没有缓存的金融工具时，适配器无法恢复其他历史货币。
 
-Reconstructed instruments also enter the cache with USDC and retain that currency until a
-supplied instrument replaces them, even if later metadata specifies another quote token.
+重建的金融工具同样以 USDC 进入缓存，并保留该货币直到被 supplied 金融工具替换，
+即使后续元数据指定了别的 quote 代币。
 
-USDH spot balances merge with the perp clearinghouse view, so `AccountState`
-carries USDH alongside USDC and any other non-zero spot holdings.
+USDH 现货余额与永续清算所视图合并，因此 `AccountState` 在 USDC 之外还携带
+USDH 及其他非零现货持有量。
 
-### Trading flow
+### 交易流程 {#trading-flow}
 
-Outcome side tokens (`{outcome_index}-{YES|NO}-OUTCOME.HYPERLIQUID`) trade through the standard order path.
-Submit `SubmitOrder` as you would for any perp or spot instrument. The execution client routes it through the
-same `Order` action against the venue's `#{encoding}` orderbook (where
-`encoding = 10 * outcome_index + outcome_side`). No HIP-4-specific call is needed.
+结果 side token（`{outcome_index}-{YES|NO}-OUTCOME.HYPERLIQUID`）走标准订单
+路径交易。像对待任何永续或现货金融工具一样提交 `SubmitOrder`。执行客户端把它
+路由为对场所 `#{encoding}` 订单簿（`encoding = 10 * outcome_index +
+outcome_side`）的同一个 `Order` 动作，不需要 HIP-4 专用调用。
 
-Settlement is venue-driven. See [Settlement dispatch](#settlement-dispatch).
+结算由交易场所驱动，见[结算分发](#settlement-dispatch)。
 
-#### Advanced workflows
+#### 高级工作流 {#advanced-workflows}
 
-The full `userOutcome` action set is reachable directly on
-`HyperliquidHttpClient` (Rust and PyO3) for strategies that need to manage
-side-token inventory off-book:
+需要在场外管理 side token 库存的策略，可以直接在
+`HyperliquidHttpClient`（Rust 与 PyO3）上使用完整的 `userOutcome` 动作集：
 
 ```python
 from decimal import Decimal
@@ -565,15 +553,15 @@ await client.submit_merge_question(9, None)
 await client.submit_negate_outcome(9, 52, Decimal("1.0"))
 ```
 
-| Action                  | Use case                                                                             |
+| 动作                    | 用途                                                                               |
 | ----------------------- | ------------------------------------------------------------------------------------ |
-| `submit_split_outcome`  | Mint paired Yes + No tokens from quote (initial market making, dual-side hedges)     |
-| `submit_merge_outcome`  | Burn a matched Yes + No pair back to quote without crossing the spread               |
-| `submit_merge_question` | Close a full multi-outcome basket back to quote atomically                           |
-| `submit_negate_outcome` | Convert No shares of one outcome into Yes shares of every other in the same question |
+| `submit_split_outcome`  | 用 quote 铸造配对的 Yes + No 代币（初始做市、双边对冲）                          |
+| `submit_merge_outcome`  | 把配对的 Yes + No 销毁回 quote，不跨越价差                                             |
+| `submit_merge_question` | 把完整的多结果篮子原子地关闭回 quote                                                 |
+| `submit_negate_outcome` | 把一个结果的 No 份额转换为同一问题内所有其他结果的 Yes 份额                          |
 
-For directional bets the ordinary `SubmitOrder` path is sufficient. The methods above are only needed when you
-want to create or destroy side-token inventory off-book.
+方向性押注用普通 `SubmitOrder` 路径就够了。只有需要在场外创建或销毁 side token
+库存时才用上面的方法。
 
 ### Order constraints
 

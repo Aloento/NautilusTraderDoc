@@ -1,17 +1,16 @@
-# Run Live Trading (Rust)
+# 运行实时交易（Rust）
 
-The `LiveNode` connects to real venues and data sources through adapter clients. This guide
-walks through a complete live trading setup using OKX as an example.
+`LiveNode` 通过适配器客户端连接真实交易场所和数据源。本指南以 OKX 为例，走一遍完整的实时
+交易设置。
 
-For the node lifecycle, see [Live trading](./../concepts/live.md). For command outcomes, see
-[Execution policies](./../concepts/execution/policies.md#command-outcomes). For state recovery, see
-[Execution reconciliation](./../concepts/execution/reconciliation.md). For project setup and feature flags,
-see the [Rust](./../concepts/rust.md#project-setup) concept guide.
+节点生命周期见[实时交易](./../concepts/live.md)。命令结果见
+[执行政策](./../concepts/execution/policies.md#command-outcomes)。状态恢复见
+[执行对账](./../concepts/execution/reconciliation.md)。项目设置与 feature flag 见
+[Rust](./../concepts/rust.md#project-setup)概念指南。
 
-## Dependencies
+## 依赖 {#dependencies}
 
-Add the live crate, your venue adapter, and supporting crates to
-`Cargo.toml`:
+在 `Cargo.toml` 中加入 live crate、你的场所适配器和支持 crate：
 
 ```toml
 [dependencies]
@@ -27,10 +26,9 @@ log = "0.4"
 tokio = { version = "1", features = ["full"] }
 ```
 
-## Build the node
+## 构建节点 {#build-the-node}
 
-The `LiveNode` uses a builder pattern. Add data and execution client
-factories for your venue, configure logging, and build.
+`LiveNode` 使用 builder 模式。为你的场所添加数据与执行客户端工厂，配置日志，然后构建。
 
 ```rust
 use log::LevelFilter;
@@ -79,12 +77,12 @@ let mut node = LiveNode::builder(trader_id, Environment::Live)?
 ```
 
 :::warning
-This example disables reconciliation for simplicity. In production, remove
-`.with_reconciliation(false)` so the engine aligns cached state with the
-venue on startup. See [Execution reconciliation](./../concepts/execution/reconciliation.md).
+为简单起见，本示例禁用了对账。生产环境请移除
+`.with_reconciliation(false)`，让引擎在启动时把缓存状态与场对齐。见
+[执行对账](./../concepts/execution/reconciliation.md)。
 :::
 
-## Add strategies and run
+## 添加策略并运行 {#add-strategies-and-run}
 
 ```rust
 use nautilus_model::{identifiers::InstrumentId, types::Quantity};
@@ -112,12 +110,11 @@ node.add_strategy(strategy)?;
 node.run().await?;
 ```
 
-The node runs until interrupted (Ctrl+C) or shut down programmatically.
+节点一直运行到被中断（Ctrl+C）或以编程方式关闭。
 
-## Environment variables
+## 环境变量 {#environment-variables}
 
-OKX reads API credentials from environment variables. Use a `.env` file
-with `dotenvy` or set them in your shell:
+OKX 从环境变量读取 API 凭据。用 `dotenvy` 配 `.env` 文件，或在 shell 中设置：
 
 ```bash
 export OKX_API_KEY="your_api_key"
@@ -125,16 +122,15 @@ export OKX_API_SECRET="your_api_secret"
 export OKX_API_PASSPHRASE="your_passphrase"
 ```
 
-For demo trading, set `.environment(OKXEnvironment::Demo)` on both config builders and use demo
-API credentials from OKX.
+模拟交易（demo trading）时，在两个配置 builder 上设置 `.environment(OKXEnvironment::Demo)`，
+并使用 OKX 的 demo API 凭据。
 
-Each adapter documents its required variables in the
-[integration guide](./../integrations/index.md) for that venue.
+各适配器所需的环境变量在该场所的
+[集成指南](./../integrations/index.md)中都有说明。
 
-## Async runtime
+## 异步运行时 {#async-runtime}
 
-`LiveNode::run()` is async and requires a Tokio runtime. Use `#[tokio::main]`
-on your main function:
+`LiveNode::run()` 是 async 的，需要 Tokio 运行时。在主函数上使用 `#[tokio::main]`：
 
 ```rust
 #[tokio::main]
@@ -148,12 +144,11 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 }
 ```
 
-## Adapter examples
+## 适配器示例 {#adapter-examples}
 
-Most adapters include runnable examples with data testers and execution
-testers:
+多数适配器都附带可运行的示例，含数据测试器和执行测试器：
 
-| Adapter             | Example directory                               |
+| 适配器              | 示例目录                                        |
 | ------------------- | ----------------------------------------------- |
 | Architect AX        | `crates/adapters/architect_ax/examples/`        |
 | Betfair             | `crates/adapters/betfair/examples/`             |

@@ -1,13 +1,12 @@
-# Stream Data Into a Parquet Catalog
+# 向 Parquet 目录流式写入数据
 
-Use the Parquet streaming writer to stage live or backtest records in Feather and promote them into
-queryable catalog files. Direct `ParquetDataCatalog.write_*` calls write catalog data without this
-staging lifecycle.
+使用 Parquet 流式写入器把实时或回测记录暂存为 Feather 文件，再晋升（promote）为可查询的目录
+文件。直接调用 `ParquetDataCatalog.write_*` 写入目录数据，不走这套暂存生命周期。
 
-## Configure the writer
+## 配置写入器 {#configure-the-writer}
 
-Give `StreamingConfig` a local `writer_path` for the Feather files and a `catalog` to promote them
-into. Without a `catalog`, the writer keeps only the Feather files for manual conversion.
+给 `StreamingConfig` 一个存放 Feather 文件的本地 `writer_path`，以及一个用于晋升目标的
+`catalog`。没有 `catalog` 时，写入器只保留 Feather 文件供手动转换。
 
 ```python
 from nautilus_trader.config import BacktestEngineConfig
@@ -24,33 +23,31 @@ streaming = StreamingConfig(
 engine_config = BacktestEngineConfig(streaming=streaming)
 ```
 
-Pass `engine_config` as the `engine` argument to `BacktestRunConfig`. The runtime owns the sink: a backtest closes it
-when the run ends, and a live node flushes it on stop and closes it on dispose, so events processed during shutdown are
-still staged. Run data stages under `<writer_path>/<backtest|sandbox|live>/<instance_id>`, which must be
-local because the writer appends to open files. The catalog holds the promoted data used by queries
-and can be local or remote, such as `DataCatalogConfig(path="bucket/catalog", fs_protocol="s3")`.
-The catalog's `catalog_backend` selects the writer that promotes into it. The Parquet writer
-creates a missing local catalog directory.
+把 `engine_config` 作为 `engine` 参数传给 `BacktestRunConfig`。运行时持有 sink：回测在运行结束时
+关闭它，实时节点在停止时 flush、在 dispose 时关闭，因此关闭期间处理的事件仍会被暂存。运行数据
+暂存在 `<writer_path>/<backtest|sandbox|live>/<instance_id>` 下，该路径必须是本地路径，因为写入器
+会向打开中的文件追加。目录保存晋升后的数据供查询使用，可以是本地或远程路径，例如
+`DataCatalogConfig(path="bucket/catalog", fs_protocol="s3")`。目录的 `catalog_backend` 决定向它
+晋升所用的写入器。Parquet 写入器会自动创建缺失的本地目录。
 
-| Setting                          | Default | Meaning                                                   |
+| 设置                             | 默认值  | 含义                                                      |
 | -------------------------------- | ------- | --------------------------------------------------------- |
-| `promotion_interval_ms`          | Unset   | No interval-based promotion; must be positive when set.   |
-| `promote_on_close`               | `true`  | Promote staged files when the sink closes.                |
-| `delete_feather_after_promotion` | `false` | Retain source Feather files after a successful promotion. |
-| `use_ts_event_for_ts_init`       | `false` | Preserve initialization timestamps during promotion.      |
+| `promotion_interval_ms`          | 未设置  | 不做按间隔晋升；设置时必须为正数。                        |
+| `promote_on_close`               | `true`  | sink 关闭时晋升已暂存的文件。                             |
+| `delete_feather_after_promotion` | `false` | 成功晋升后保留源 Feather 文件。                           |
+| `use_ts_event_for_ts_init`       | `false` | 晋升时保留初始化时间戳。                                  |
 
-The runtime validates the config before it opens the writer. Without a `catalog`,
-`promotion_interval_ms` must be unset, and `delete_feather_after_promotion` and
-`use_ts_event_for_ts_init` must be false.
+运行时在打开写入器前校验配置。没有 `catalog` 时，`promotion_interval_ms` 必须未设置，
+`delete_feather_after_promotion` 和 `use_ts_event_for_ts_init` 必须为 false。
 
-To stage runs inside the catalog directory, set `writer_path` and the catalog `path` to the same
-local directory. `ParquetDataCatalog.convert_stream_to_data()` writes into the catalog it is opened
-on, so manual conversion of a run staged elsewhere writes into a catalog opened at `writer_path`.
+要把运行数据暂存在目录内部，把 `writer_path` 和目录 `path` 设为同一个本地目录。
+`ParquetDataCatalog.convert_stream_to_data()` 写入它打开时所在的那个目录，因此对其他位置暂存的
+运行做手动转换时，数据会写入以 `writer_path` 打开的目录。
 
-### Rotate files
+### 轮换文件 {#rotate-files}
 
-`rotation_config` seals a type's open file and starts a new one by size, by interval, or on a
-schedule. The default, `RotationConfig.no_rotation()`, seals files only for promotion and close.
+`rotation_config` 按大小、按间隔或按计划封存某类型的打开文件并开启新文件。默认值
+`RotationConfig.no_rotation()` 只在晋升和关闭时封存文件。
 
 ```python
 from nautilus_trader.persistence import RotationConfig
@@ -64,17 +61,17 @@ RotationConfig.scheduled_dates(
 )
 ```
 
-`scheduled_dates` takes an interval duration in nanoseconds and a time of day in nanoseconds since
-midnight, in its IANA `timezone`, which defaults to `UTC`. Sizes and intervals must be positive.
+`scheduled_dates` 接受以纳秒计的间隔时长，以及在其 IANA `timezone` 中自午夜起以纳秒计的当日
+时刻；时区默认为 `UTC`。大小与间隔必须为正数。
 
-Rotation and interval-based promotion seal open Feather files and can split rows with the same `ts_init` across files.
-Promotion of the later file then rejects the overlapping catalog interval and retains that source. Use no rotation
-and leave `promotion_interval_ms` unset when rows sharing a `ts_init` must stay in one file.
+轮换和按间隔晋升都会封存打开的 Feather 文件，可能把相同 `ts_init` 的行拆分到多个文件。随后
+晋升后一个文件时会因目录区间重叠而拒绝，并保留该源文件。当共享同一 `ts_init` 的行必须留在
+同一文件时，请不启用轮换，并保持 `promotion_interval_ms` 未设置。
 
-## Understand query visibility
+## 理解查询可见性 {#understand-query-visibility}
 
-The shared writer core owns filtering, Feather file appends, rotation, and promotion scheduling.
-The Parquet backend converts sealed files and records replay identities for completed promotions.
+共享的写入核心负责过滤、Feather 文件追加、轮换和晋升调度。Parquet 后端转换已封存的文件，并为
+已完成的晋升记录可重放的身份信息。
 
 ```mermaid
 flowchart LR
@@ -88,80 +85,62 @@ flowchart LR
     Commit --> Cleanup[Optional source cleanup]
 ```
 
-Each data or record type stages one open file under the run folder, and instruments stage one file
-per instrument class. Rows of every identifier share their type's file and carry an `identifier`
-column, which promotion uses to write each identifier's catalog directory. Promotion then drops the
-column, so promoted files have the same schema as files written directly to the catalog.
+每种数据或记录类型在运行目录下暂存一个打开的文件，金融工具则每个工具类一个文件。所有标识符的
+行共享其类型的文件，并携带一个 `identifier` 列；晋升用它写出每个标识符的目录。晋升随后删除该
+列，因此晋升后的文件与直接写入目录的文件具有相同 schema。
 
-A flush appends the records buffered since the previous flush to the open file as one Arrow record
-batch, without starting a new file. Promotion first seals the open files, so each promotion takes the
-records written so far; it does not promise immediate catalog visibility. With no promotion interval,
-records remain staged until close-time promotion or manual conversion. Queries see the records after
-promotion succeeds.
+一次 flush 会把自上次 flush 以来缓冲的记录作为一个 Arrow record batch 追加到打开的文件，不会开启
+新文件。晋升先封存打开的文件，因此每次晋升取走的是*截至当时*已写入的记录，并不承诺目录立即可见。
+没有晋升间隔时，记录一直保持暂存，直到关闭时的晋升或手动转换。晋升成功后查询才能看到这些记录。
 
-A positive interval starts a wall-clock promotion timer for a live clock, including quiet periods.
-Backtests use their supplied test clock and check the interval during write or flush operations;
-advancing simulated time alone does not start an independent live timer. A flush can trigger promotion
-when that interval is due. Closing waits for pending work and, by default, promotes remaining records.
+正数间隔会为实时时钟启动一个墙钟晋升计时器，安静期也不例外。回测使用传入的测试时钟，在写入或
+flush 操作期间检查间隔；仅推进模拟时间不会启动独立的实时计时器。flush 到达间隔时可能触发晋升。
+关闭会等待待办工作，并默认晋升剩余记录。
 
-## Retain and recover staged files
+## 保留与恢复暂存文件 {#retain-and-recover-staged-files}
 
-Keep `delete_feather_after_promotion=False` to retain the Feather source after successful promotion.
-Enable it only when source cleanup is desired. Cleanup follows a successful commit; it is separate
-from making catalog data queryable. Promotion identities prevent a repeated completed source from
-being imported again.
+保持 `delete_feather_after_promotion=False`，在成功晋升后保留 Feather 源文件。仅在确实需要清理
+源文件时才启用。清理发生在成功提交之后，与目录数据可查询是两回事。晋升身份信息可防止已完成的
+源文件被重复导入。
 
-Use explicit close and handle its error. Dropping a writer only provides best-effort cleanup and is
-not evidence of successful promotion. If a promotion fails, preserve its staged files and investigate
-the error before retrying. With `promote_on_close=False`, closing can intentionally leave a completed
-run staged for later conversion through `ParquetDataCatalog.convert_stream_to_data()`. Pass the
-run's `environment`, such as `Environment.LIVE`, to convert a run outside the default backtest
-folder.
+显式调用 close 并处理其错误。仅让 writer 被 drop 只提供尽力而为的清理，不能证明晋升成功。晋升
+失败时，保留其暂存文件，查明错误后再重试。`promote_on_close=False` 时，关闭可能有意让已完成的
+运行保持暂存，留待之后用 `ParquetDataCatalog.convert_stream_to_data()` 转换。转换默认回测文件夹
+之外的运行时，传入该运行的 `environment`，如 `Environment.LIVE`。
 
-A writer holds an exclusive lock on each `.feather.partial` file until it seals the file, so a
-crashed process leaves its open files unlocked. Recovery seals each unlocked partial file: it keeps
-the complete record batches, drops any bytes after them with a warning, and renames the file to
-`.feather`. It removes a partial file that has no complete record batch and leaves an empty one in
-place. A read error other than a write cut short leaves the file for a later recovery pass.
+写入器在封存前对每个 `.feather.partial` 文件持有独占锁，因此崩溃的进程会把打开的文件留在未锁定
+状态。恢复流程会封存每个未锁定的 partial 文件：保留完整的 record batch，丢弃其后的字节并发出
+警告，然后把文件改名为 `.feather`。没有任何完整 record batch 的 partial 文件会被删除，空文件则
+原地保留。除"写入截断"之外的读取错误会保留文件，留待后续恢复处理。
 
-Recovery runs when a streaming writer starts on the run folder, and when
-`ParquetDataCatalog.read_backtest()`, `read_live_run()`, or `convert_stream_to_data()` reads the
-run. A writer that gives up on a file after a failed append, flush, or seal tries to recover it at
-once, so promotion includes the record batches that reached the file. When that recovery fails,
-the writer logs the error and leaves the partial file for a later recovery pass.
+恢复在这些时机运行：流式写入器在某个运行目录上启动时，以及
+`ParquetDataCatalog.read_backtest()`、`read_live_run()` 或 `convert_stream_to_data()` 读取该运行
+时。写入器在追加、flush 或封存失败后放弃某个文件时，会立即尝试恢复它，使晋升能包含已写入文件的
+record batch。该恢复失败时，写入器记录错误，把 partial 文件留给后续恢复处理。
 
-Parquet promotion can write multiple destination files. It does not provide the snapshot transaction
-or historical query pin of a transactional catalog backend. Coordinate readers if an application
-requires all files from a promotion to become visible together.
+Parquet 晋升可能写入多个目标文件。它不提供事务型目录后端的快照事务或历史查询固定（pin）。若
+应用要求一次晋升的所有文件同时可见，需要自行协调读取方。
 
-### Overlapping schema-group intervals
+### schema 分组区间重叠 {#overlapping-schema-group-intervals}
 
-Promotion groups restored Feather batches by identifier and by schema, including precision metadata.
-Groups are split by schema rather than by time, so two groups for one identifier can share a
-`ts_init` interval. One
-Feather file produces two such groups when its records differ in schema, for example an empty order
-book depth staged alongside a populated one for the same instrument. The catalog filename also
-carries a hash of the promotion identity.
+晋升把恢复出的 Feather batch 按标识符、按 schema（含精度元数据）分组。分组依据是 schema 而非
+时间，因此同一标识符的两个组可能共享一个 `ts_init` 区间。当一个文件中的记录 schema 不一致时，
+该文件会产生这样两个组，例如同一工具的空订单簿深度与有内容的深度并存。目录文件名还携带晋升
+身份的哈希。
 
-Within each Feather file, CLEAR-only batches with no side, zero or undefined price, zero size, and
-order ID zero adopt the next nonempty order batch's precision for the same instrument before grouping.
-Trailing CLEAR batches use the last preceding nonempty order batch's precision. If the file contains
-only CLEAR rows for an instrument, their zero precision stays unchanged. Raw price and size values
-stay unchanged; zero fields decode with the chosen precision, while an undefined price remains
-undefined at precision zero.
+在每个 Feather 文件内，满足"CLEAR-only、无方向、价格为零或未定义、数量为零、订单 ID 为零"的
+batch 在分组前会采用同一工具下一个非空订单 batch 的精度。末尾的 CLEAR batch 使用最近一个前置
+非空订单 batch 的精度。若文件中某工具只有 CLEAR 行，其零精度保持不变。原始价格与数量值保持
+不变；零字段按选定的精度解码，未定义的价格在精度为零时仍未定义。
 
-The catalog requires disjoint closed `ts_init` intervals per identifier directory. Before writing one
-Feather file, promotion unifies groups whose precision metadata differs only by a zero precision and
-whose zero-precision group has no decimal values. Promotion writes one file for the combined interval
-and preserves source order among rows with equal `ts_init`, including nonadjacent batches with the
-same schema.
-Groups that still overlap, or that cannot be unified without changing decimal values, fail before
-any catalog file from that Feather source is written. The staged Feather source is retained, and no
-promotion identity is recorded for that source. Automatic promotion and
-`ParquetDataCatalog.convert_stream_to_data()` plan each Feather file the same way. A storage error
-after that check, or a later Feather file in the same run, can still leave files already written;
-promotion is not a snapshot transaction. A repeated promotion of a file that was already written is
-skipped.
+目录要求每个标识符目录内已关闭的 `ts_init` 区间互不重叠。写入一个 Feather 文件前，晋升会合并
+那些精度元数据仅相差一个零精度、且零精度组不含小数值（decimal value）的组。晋升为合并后的区间
+写入一个文件，并保持 `ts_init` 相同的行维持源顺序，包括 schema 相同但不相邻的 batch。
+仍然重叠、或合并会改变小数的组，会在该 Feather 源的任何目录文件写出之前导致失败。暂存的
+Feather 源被保留，该源不会记录晋升身份。自动晋升与
+`ParquetDataCatalog.convert_stream_to_data()` 对每个 Feather 文件采用相同的规划。该检查之后的
+存储错误，或同一运行中后面的 Feather 文件，仍可能留下已写出的文件；晋升不是快照事务。对已写出
+文件的重复晋升会被跳过。
 
-See the [catalog guide](./../concepts/data/catalog.md) for query and storage behavior and
-[Parquet migration](./migrate_parquet_catalog.md) for importing older catalogs.
+查询与存储行为见[数据目录指南](./../concepts/data/catalog.md)，导入旧目录见
+[Parquet 迁移](./migrate_parquet_catalog.md)。

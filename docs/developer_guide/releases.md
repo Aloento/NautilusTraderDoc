@@ -1,32 +1,31 @@
-# Releases
+# 发布
 
-This guide covers the release process and the standards for writing release notes.
+本指南介绍发布流程，以及撰写发布说明的标准。
 
-## Overview
+## 总览 {#overview}
 
-NautilusTrader uses a three-branch model:
+NautilusTrader 采用三分支模型：
 
-- **`develop`**: active development. Publishes dev wheels to Cloudflare R2 on each push.
-- **`nightly`**: pre-release testing. Publishes all supported pre-release wheels and CLI binaries.
-- **`master`**: stable releases. Triggers the full release pipeline.
+- **`develop`**：活跃开发。每次 push 向 Cloudflare R2 发布 dev wheel。
+- **`nightly`**：预发布测试。发布所有支持的预发布 wheel 与 CLI 二进制。
+- **`master`**：稳定版发布。触发完整的发布流水线。
 
-When a release commit merges to `master`, the pipeline automatically:
+发布提交合并进 `master` 后，流水线自动：
 
-- Tags the version from `python/pyproject.toml`.
-- Creates a draft GitHub release.
-- Uploads release assets.
-- Publishes Cargo crates to crates.io.
-- Publishes wheels and sdist to PyPI.
-- Publishes the GitHub release.
-- Builds Docker images.
-- Triggers a docs rebuild.
+- 依据 `python/pyproject.toml` 打版本标签。
+- 创建草稿状态的 GitHub release。
+- 上传发布资源。
+- 把 Cargo crate 发布到 crates.io。
+- 把 wheel 与 sdist 发布到 PyPI。
+- 发布 GitHub release。
+- 构建 Docker 镜像。
+- 触发文档重建。
 
-## Stable release workflow
+## 稳定版发布工作流 {#stable-release-workflow}
 
-The `build` workflow treats the GitHub release as the anchor for stable releases. It first creates a draft
-release. It uploads the wheel and sdist assets to that draft. Only then does it publish those packages to
-package indexes. The workflow publishes the GitHub release only after the registry verification and final
-integrity assets are complete.
+`build` 工作流把 GitHub release 视为稳定版发布的锚点。它先创建草稿 release，
+把 wheel 与 sdist 资源上传到该草稿，然后才把这些包发布到包索引。只有在注册表验证
+与最终完整性资源都完成后，工作流才发布 GitHub release。
 
 ```mermaid
 flowchart TD
@@ -68,182 +67,175 @@ flowchart TD
     tag --> publish_release
 ```
 
-Keep these sequencing rules intact when editing `.github/workflows/build.yml`:
+编辑 `.github/workflows/build.yml` 时保持这些次序规则不变：
 
-- The draft GitHub release must exist before any release asset upload or package registry publish.
-- `tag-release` must depend on `security-audit` so stable release tagging cannot proceed after an
-  audit failure.
-- Wheel and sdist assets must be attached to the GitHub release before package index publishing
-  starts (`packages.nautechsystems.io`, PyPI, crates.io).
-- PyPI and crates.io Trusted Publishing jobs must keep `environment: release` and `id-token: write`. Those
-  registrations depend on the `release` environment.
-- Non-OIDC integrity and asset-upload jobs should avoid `environment: release` unless they need
-  release environment secrets or approvals.
-- `publish-release-integrity` must run after PyPI and crates.io publishing. It generates the
-  release manifest first, verifies registries against that manifest, then attaches final integrity
-  assets only after verification passes.
-- `publish-github-release` must be the final stable release job. GitHub recommends creating a draft release,
-  attaching all assets, then publishing the draft before enabling release immutability. If GitHub release
-  immutability is enabled for the repo, published release assets and the release tag cannot change. Only the
-  title and release notes stay editable. The job verifies the final draft asset set before publishing and
-  verifies GitHub's release attestation after publishing the draft.
+- 任何发布资源上传或包注册表发布之前，草稿 GitHub release 必须已存在。
+- `tag-release` 必须依赖 `security-audit`，使审计失败后无法继续打稳定版发布标签。
+- 包索引发布（`packages.nautechsystems.io`、PyPI、crates.io）开始之前，wheel 与
+  sdist 资源必须已挂到 GitHub release 上。
+- PyPI 与 crates.io 的 Trusted Publishing 任务必须保留 `environment: release` 与
+  `id-token: write`，这些注册依赖 `release` 环境。
+- 非 OIDC 的完整性与资源上传任务应避免 `environment: release`，除非它们确实需要
+  release 环境的 secret 或批准。
+- `publish-release-integrity` 必须在 PyPI 与 crates.io 发布之后运行。它先生成
+  发布清单，对照该清单验证注册表，验证通过后附上最终的完整性资源。
+- `publish-github-release` 必须是稳定版发布的最后一个任务。GitHub 建议先创建草稿
+  release、挂上全部资源，再发布草稿并启用 release 不可变性。若仓库启用了 GitHub
+  release 不可变性，已发布的 release 资源与 release 标签都无法更改，只有标题与
+  发布说明仍可编辑。该任务在发布前校验最终的草稿资源集合，发布草稿后再校验
+  GitHub 的 release 证明。
 
-## Recovering a missing release tag
+## 恢复缺失的发布标签 {#recovering-a-missing-release-tag}
 
-The `Create git tag` step creates `v<version>` only when the run's commit changes the version from
-its parent (`HEAD~1`), and never when the tag already exists. If the version is unchanged and the tag
-is missing, `Verify release tag` fails no matter how often the failed jobs are re-run.
+`Create git tag` 步骤只在本次运行的提交相对其父提交（`HEAD~1`）改变了版本时
+才创建 `v<version>`，且标签已存在时绝不创建。若版本未变而标签缺失，无论重跑
+多少次失败任务，`Verify release tag` 都会失败。
 
-A retried release normally has one or more commits on `master` after the version bump. Thus, the retry run has
-the same version as its parent and does not create the tag. Because `tag-release` anchors the draft release
-and each downstream publish job, the run cannot proceed while the tag is missing.
+重试的发布在版本提升之后，`master` 上通常又有一个或多个提交。于是重跑的运行
+与父提交版本相同，不会创建标签。由于 `tag-release` 是草稿 release 与每个下游
+发布任务的锚点，标签缺失时运行无法继续。
 
-First check whether the tag exists and whether the run's commit bumps the version:
+先检查标签是否存在，以及本次运行的提交是否提升版本：
 
-- If the tag is missing and the run's commit bumps the version, rerun the failed jobs. No manual tag is
-  necessary. After the jobs pass, `tag-release` creates the tag.
-- If the tag is missing and the run's commit carries the same version as its parent, no re-run
-  creates the tag. Recover with the manual tag procedure below.
+- 标签缺失且本次运行的提交提升了版本：重跑失败任务即可，无需手工打标签。
+  任务通过后 `tag-release` 会创建标签。
+- 标签缺失且本次运行的提交与父提交版本相同：任何重跑都不会创建标签，
+  按下面的手工标签流程恢复。
 
-Manual tag recovery works because of the remaining `tag-release` mechanics:
+手工恢复之所以可行，取决于 `tag-release` 剩余机制：
 
-- On a re-run after the manual push, `Create git tag` skips creation under the same rule.
-- `Verify release tag` requires `v<version>` to resolve to the run's commit (`GITHUB_SHA`), so a
-  manually pushed tag at that exact commit passes the check.
-- Draft release creation is idempotent, so a re-run updates the existing draft if one was already
-  created.
+- 手工推送后重跑时，`Create git tag` 依同一规则跳过创建。
+- `Verify release tag` 要求 `v<version>` 解析到本次运行的提交（`GITHUB_SHA`），
+  因此在该精确提交上手工推送的标签能通过检查。
+- 草稿 release 的创建是幂等的，重跑会更新已存在的草稿。
 
-To recover, a maintainer creates the tag manually and re-runs the failed jobs:
+恢复步骤：维护者手工创建标签，然后重跑失败任务：
 
-1. From the failed run page, note the run's commit SHA. Check out that commit locally and confirm
-   the version it carries:
+1. 从失败运行页记下该运行的提交 SHA。本地检出该提交并确认其携带的版本：
 
    ```bash
    ./scripts/package-version.sh
    ```
 
-1. Create a signed annotated tag at the run's exact commit, using the existing tag message
-   convention, and push it:
+1. 在该运行的精确提交上创建签名的附注标签，沿用既有的标签消息约定，并推送：
 
    ```bash
    git tag -s v<version> -m "Released version <version>" <run-commit-sha>
    git push origin v<version>
    ```
 
-1. Verify the tag locally. The signature must be good and `git rev-parse 'v<version>^{commit}'`
-   must equal the run's commit SHA:
+1. 本地验证标签。签名必须有效，且 `git rev-parse 'v<version>^{commit}'`
+   必须等于该运行的提交 SHA：
 
    ```bash
    git tag -v v<version>
    git rev-parse 'v<version>^{commit}'
    ```
 
-1. On the failed run, select "Re-run failed jobs". `Verify release tag` passes with the pushed
-   tag, and draft release creation and the downstream publishing jobs continue.
+1. 在失败的运行上选择 "Re-run failed jobs"。有了推送的标签，
+   `Verify release tag` 会通过，草稿 release 创建与下游发布任务继续执行。
 
-Only do this when the release commit and version are final. The tag is the permanent release anchor, and once
-release immutability applies the published release tag cannot be changed. If `v<version>` points at a
-different commit, do not move or re-push the existing tag. Investigate the mismatch. `Verify release tag`
-fails in that case by design.
+只在发布提交与版本都已定稿时才这样做。标签是永久的发布锚点，一旦 release
+不可变性生效，已发布的发布标签就无法更改。若 `v<version>` 指向不同的提交，
+不要移动或重推既有标签，要调查这个不一致——`Verify release tag` 在这种情况下
+就是设计为失败的。
 
-## Versioning
+## 版本管理 {#versioning}
 
-The project maintains two version numbers:
+项目维护两个版本号：
 
-| File                     | Scope          |
+| 文件                     | 范围          |
 | ------------------------ | -------------- |
-| `python/pyproject.toml`  | Python package |
-| `Cargo.toml` (workspace) | Rust crates    |
+| `python/pyproject.toml`  | Python 包 |
+| `Cargo.toml`（workspace） | Rust crate    |
 
-These are bumped independently. The Python version drives the `v<python-version>` release tag. Versions ending
-in `aN`, `bN`, or `rcN` create a GitHub pre-release. Final versions create a normal release.
+两者独立提升。Python 版本决定 `v<python-version>` 发布标签。以 `aN`、`bN` 或
+`rcN` 结尾的版本创建 GitHub 预发布；最终版本创建普通发布。
 
-## Crates.io publishing
+## Crates.io 发布 {#crates-io-publishing}
 
-The `build` workflow publishes Cargo crates from the `publish-cargo-crates` job. The job uses
-crates.io Trusted Publishing through GitHub Actions OIDC, so it does not use a persistent cargo
-token. Configure each crate on crates.io with:
+`build` 工作流通过 `publish-cargo-crates` 任务发布 Cargo crate。该任务经
+GitHub Actions OIDC 使用 crates.io Trusted Publishing，不使用持久 cargo 令牌。
+每个 crate 在 crates.io 上按如下配置：
 
-| Field       | Value             |
+| 字段       | 值             |
 | ----------- | ----------------- |
 | Owner       | `nautechsystems`  |
 | Repository  | `nautilus_trader` |
 | Workflow    | `build.yml`       |
 | Environment | `release`         |
 
-Enable Trusted Publishing Only for crates after their trusted publisher is configured. Crates that
-have never been published still need an initial manual publish before crates.io allows the trusted
-publisher configuration.
+配好 trusted publisher 之后，为 crate 启用 Trusted Publishing Only。从未发布过的
+crate 仍需先做一次初始的手工发布，crates.io 才允许配置 trusted publisher。
 
-Do not use `cargo publish --workspace` for CI releases. The release job runs
-`scripts/ci/publish-cargo-crates.sh`, which:
+CI 发布不要用 `cargo publish --workspace`。发布任务运行
+`scripts/ci/publish-cargo-crates.sh`，它会：
 
-- Publishes crates one at a time in dependency order.
-- Skips versions already present on crates.io.
-- Waits for each new version to appear in the crates.io API and sparse index before publishing dependents.
+- 按依赖顺序逐个发布 crate。
+- 跳过 crates.io 上已存在的版本。
+- 每个新版本发布后，等它出现在 crates.io API 与 sparse index 中，再发布依赖它的 crate。
 
-The script fails before uploading if a publishable crate depends on a local `publish = false` crate
-absent from crates.io. Optional local dependencies also block publication because a public feature
-that resolves to an absent crate would be unusable.
+若某个可发布的 crate 依赖一个不在 crates.io 上的本地 `publish = false` crate，
+脚本会在上传前失败。可选的本地依赖同样会阻止发布，因为解析到缺失 crate 的
+公开 feature 无法使用。
 
-Post-publish verification treats an existing crate version as `previously_published` only when
-crates.io shows it was trusted-published by this repository.
+发布后验证只在 crates.io 显示某版本由本仓库以 trusted-publishing 发布时，
+才将其视为 `previously_published`。
 
-**Manual recovery**: User-published versions fail verification unless
-`CRATES_IO_MANUAL_PUBLISH_EXCEPTIONS` names each recovered `crate@version` for emergency token-publish
-recovery. Accepted entries appear in `crates-manifest.json` with `release_status: "manual_token_publish"`.
-Malformed or unused exception entries fail the job.
+**人工恢复**：用户自行发布的版本会验证失败，除非
+`CRATES_IO_MANUAL_PUBLISH_EXCEPTIONS` 逐个列出紧急令牌发布恢复的每个
+`crate@version`。被接受的条目会以 `release_status: "manual_token_publish"` 出现在
+`crates-manifest.json` 中。格式错误或使用不到的例外条目会使任务失败。
 
-Wrong trusted-publishing repositories and checksum or sparse-index mismatches also fail verification.
+trusted-publishing 仓库填错，以及校验和或 sparse-index 不匹配，同样导致验证失败。
 
-## Release checklist
+## 发布清单 {#release-checklist}
 
-### Pre-release (on `develop`)
+### 发布前（在 `develop` 上） {#pre-release-on-develop}
 
-- [ ] Finalize `RELEASES.md`: review all items, remove empty sections
-- [ ] Ensure versions are set in `python/pyproject.toml` and the `Cargo.toml` workspace
-- [ ] Ensure crates.io Trusted Publishing is configured for every crate that CI publishes:
+- [ ] 定稿 `RELEASES.md`：评审所有条目，删除空小节
+- [ ] 确认 `python/pyproject.toml` 与 `Cargo.toml` workspace 中版本已设置
+- [ ] 确认 CI 发布的每个 crate 都配好了 crates.io Trusted Publishing：
   `bash scripts/ci/check-crates-io-trusted-publishing.sh`
-- [ ] Ensure all CI checks pass on `develop`
+- [ ] 确认 `develop` 上所有 CI 检查通过
 
-### Release
+### 发布 {#release}
 
-- [ ] Merge `develop` into `nightly`, verify nightly CI passes
-- [ ] Merge `nightly` into `master`
-- [ ] Verify the `build` workflow completes:
-  - Wheels built for Linux x86/ARM, macOS, Windows
-  - `cargo-deny` and `cargo-vet` pass
-  - `security-audit` passes its Zizmor and supply-chain checks
-  - Release docs/features and Cargo publish preflights pass before tagging
-  - Tag and draft GitHub release created
-  - Wheels and sdist attached to the GitHub release before package registry publishing
-  - Cargo crates published to crates.io or skipped because the version already exists
-  - Wheels and sdist published to PyPI
-  - Registry verification passes before release checksums, crates manifest, and attestation siblings
-    are attached
-  - GitHub release published after all release assets and integrity assets are attached
-  - If the run fails with the release tag missing, follow
-    [Recovering a missing release tag](#recovering-a-missing-release-tag) and re-run the failed jobs
-- [ ] Verify the `docker` workflow completes (images built and pushed)
-- [ ] Verify the `build-docs` workflow completes (docs rebuild triggered)
+- [ ] 把 `develop` 合入 `nightly`，确认 nightly CI 通过
+- [ ] 把 `nightly` 合入 `master`
+- [ ] 确认 `build` 工作流完成：
+  - Linux x86/ARM、macOS、Windows 的 wheel 均已构建
+  - `cargo-deny` 与 `cargo-vet` 通过
+  - `security-audit` 的 Zizmor 与供应链检查通过
+  - 打标签之前，发布文档/特性与 Cargo 发布预检通过
+  - 已创建标签与草稿 GitHub release
+  - 包注册表发布之前，wheel 与 sdist 已挂到 GitHub release
+  - Cargo crate 已发布到 crates.io，或因版本已存在而跳过
+  - wheel 与 sdist 已发布到 PyPI
+  - 注册表验证通过之后才附上发布校验和、crates 清单与证明伴生文件
+  - 全部发布资源与完整性资源挂载之后才发布 GitHub release
+  - 若运行因发布标签缺失而失败，按[恢复缺失的发布标签](#recovering-a-missing-release-tag)
+    处理并重跑失败任务
+- [ ] 确认 `docker` 工作流完成（镜像已构建并推送）
+- [ ] 确认 `build-docs` 工作流完成（已触发文档重建）
 
-### Post-release (on `develop`)
+### 发布后（在 `develop` 上） {#post-release-on-develop}
 
-- [ ] Update the release date in `RELEASES.md` for the published version
-- [ ] Add horizontal separator `---` below the completed release
-- [ ] Add the next version template at the top of `RELEASES.md` (see below)
-- [ ] Bump `python/pyproject.toml` version to the next release number
-- [ ] Bump crate versions in tutorial and how-to `Cargo.toml` snippets
-  (`docs/concepts/rust.md`, `docs/how_to/run_rust_backtest.md`,
-  `docs/how_to/run_rust_live_trading.md`)
+- [ ] 在 `RELEASES.md` 中为已发布版本更新发布日期
+- [ ] 在已完成的发布下方添加水平分隔线 `---`
+- [ ] 在 `RELEASES.md` 顶部添加下一版本的模板（见下文）
+- [ ] 把 `python/pyproject.toml` 版本提升到下一个发布号
+- [ ] 提升教程与 how-to 中 `Cargo.toml` 片段的 crate 版本
+  （`docs/concepts/rust.md`、`docs/how_to/run_rust_backtest.md`、
+  `docs/how_to/run_rust_live_trading.md`）
 
-## Release notes
+## 发布说明 {#release-notes}
 
-This section documents the standards for writing release notes in `RELEASES.md`.
+本节定义在 `RELEASES.md` 中撰写发布说明的标准。
 
-### Sections
+### 小节 {#sections}
 
-Use the following sections in this order:
+按以下顺序使用这些小节：
 
 1. Enhancements
 2. Breaking Changes
@@ -253,13 +245,13 @@ Use the following sections in this order:
 6. Documentation Updates
 7. Deprecations
 
-Omit sections that have no items for a given release.
+某次发布没有条目的小节直接省略。
 
-### Enhancements
+### Enhancements {#enhancements}
 
-New features and user-visible improvements.
+新特性与用户可见的改进。
 
-**Format**:
+**格式**：
 
 ```markdown
 - Added `subscribe_order_fills(...)` and `unsubscribe_order_fills(...)` for `Actor`
@@ -267,17 +259,17 @@ New features and user-visible improvements.
 - Added support for `OrderBookDepth10` requests (#2955), thanks @faysou
 ```
 
-**Guidelines**:
+**准则**：
 
-- Start with "Added".
-- Use backticks for code elements.
-- Be specific about what was added, not how.
+- 以 "Added" 开头。
+- 代码元素用反引号。
+- 具体写明加了什么，而不是怎么加的。
 
-### Breaking Changes
+### Breaking Changes {#breaking-changes}
 
-Changes that may break existing code.
+可能破坏既有代码的变更。
 
-**Format**:
+**格式**：
 
 ```markdown
 - Removed `nautilus_trader.analysis.statistics` subpackage - must import from `nautilus_trader.analysis`
@@ -285,50 +277,50 @@ Changes that may break existing code.
 - Changed `start` parameter to required for `Actor` data request methods
 ```
 
-**Guidelines**:
+**准则**：
 
-- Start with "Removed", "Renamed", or "Changed".
-- Explain migration path briefly.
+- 以 "Removed"、"Renamed" 或 "Changed" 开头。
+- 简要说明迁移路径。
 
-### Security
+### Security {#security}
 
-Security hardening and fixes that prevent crashes, undefined behavior, or data corruption.
-Includes significant hardening improvements elevated from Internal Improvements.
+防止崩溃、未定义行为或数据损坏的安全加固与修复。包括从 Internal Improvements
+提升上来的重要加固改进。
 
-**Format**:
+**格式**：
 
 ```markdown
 - Fixed divide-by-zero and overflow bugs in model crate that could cause crashes
 - Fixed core arithmetic operations to reject NaN/Infinity values and improve overflow handling
 ```
 
-**Guidelines**:
+**准则**：
 
-- Include overflow/underflow fixes, memory safety improvements, FFI guards, data integrity fixes.
-- Focus on user impact: what could have happened.
-- Exclude routine dependency updates, minor hardening, or test-only fixes.
-- Omit this section entirely if there are no security items for the release.
+- 收录上溢/下溢修复、内存安全改进、FFI 防护、数据完整性修复。
+- 聚焦对用户的影响：本来可能发生什么。
+- 排除常规依赖升级、轻微加固或仅涉及测试的修复。
+- 本次发布没有安全条目时，整个小节省略。
 
-### Fixes
+### Fixes {#fixes}
 
-Bug fixes that improve correctness but do not qualify as security issues.
+提升正确性、但不构成安全问题的缺陷修复。
 
-**Format**:
+**格式**：
 
 ```markdown
 - Fixed reduce-only order panic when quantity exceeds position
 - Fixed Binance order status parsing for external orders (#3006), thanks for reporting @bmlquant
 ```
 
-**Guidelines**:
+**准则**：
 
-- Start with "Fixed".
+- 以 "Fixed" 开头。
 
-### Internal Improvements
+### Internal Improvements {#internal-improvements}
 
-Implementation details and infrastructure changes.
+实现细节与基础设施变更。
 
-**Format**:
+**格式**：
 
 ```markdown
 - Added ARM64 support to Docker builds
@@ -338,16 +330,17 @@ Implementation details and infrastructure changes.
 - Upgraded `pyo3` crates to v0.26.0
 ```
 
-**Guidelines**:
+**准则**：
 
-- Use "Added", "Implemented", "Improved", "Optimized", "Upgraded", "Refined", "Standardized".
-- Include version numbers for dependency upgrades.
+- 使用 "Added"、"Implemented"、"Improved"、"Optimized"、"Upgraded"、"Refined"、
+  "Standardized"。
+- 依赖升级给出版本号。
 
-### Documentation Updates
+### Documentation Updates {#documentation-updates}
 
-Changes to guides and examples.
+指南与示例的变更。
 
-**Format**:
+**格式**：
 
 ```markdown
 - Added rate limit tables with links to official docs
@@ -355,83 +348,83 @@ Changes to guides and examples.
 - Fixed broken links
 ```
 
-### Deprecations
+### Deprecations {#deprecations}
 
-Features marked for removal.
+标记为将来移除的特性。
 
-**Format**:
+**格式**：
 
 ```markdown
 - Deprecated `some_config_option`; disable (`False`) to maintain consistent behavior. Will be removed in future version
 ```
 
-**Guidelines**:
+**准则**：
 
-- Explain migration path and provide alternatives.
+- 说明迁移路径并给出替代方案。
 
-## Attribution
+## 署名 {#attribution}
 
-- Credit external contributors: `thanks @username` or `thanks for reporting @username`.
-- Include issue/PR numbers for community contributions and complex features: `(#1234)`.
+- 给外部贡献者署名：`thanks @username` 或 `thanks for reporting @username`。
+- 社区贡献与复杂特性附上 issue/PR 编号：`(#1234)`。
 
-## Style
+## 风格 {#style}
 
-- Use sentence case (capitalize first word only).
-- Do not end with periods.
-- Use backticks for code elements.
-- Focus on **what** changed, not how.
+- 用句子式大写（只大写首词）。
+- 结尾不加句号。
+- 代码元素用反引号。
+- 聚焦**改了什么**，而不是怎么改的。
 
-**Be specific**:
+**要具体**：
 
 ```markdown
 Bad:  Improved Binance adapter
 Good: Improved Binance fill handling when instrument not cached
 ```
 
-## Security classification
+## 安全分类 {#security-classification}
 
-Include in Security if the change addresses:
+变更涉及以下任一项时归入 Security：
 
-- Memory safety (overflow, underflow, divide-by-zero that threatens stability).
-- Undefined behavior or crashes that could corrupt state.
-- Data integrity (NaN/Infinity propagation, race conditions leading to corruption).
-- Input validation preventing injection or exploitation (SQL injection, command injection, path traversal).
-- Build hardening (non-exec stack, FFI guards).
-- Significant hardening that users should know about.
+- 内存安全（上溢、下溢、威胁稳定性的除零）。
+- 可能损坏状态的未定义行为或崩溃。
+- 数据完整性（NaN/Infinity 传播、导致损坏的竞态）。
+- 防止注入或利用的输入校验（SQL 注入、命令注入、路径穿越）。
+- 构建加固（非执行栈、FFI 防护）。
+- 用户应当知晓的重要加固。
 
-Otherwise use Fixes (for logic bugs and panics) or Internal Improvements (for minor hardening).
+否则归入 Fixes（逻辑缺陷与 panic）或 Internal Improvements（轻微加固）。
 
-Note: Plain logic panics belong in Fixes unless they threaten system stability or data corruption.
+注意：普通逻辑 panic 归入 Fixes，除非它们威胁系统稳定性或数据损坏。
 
-## Examples
+## 示例 {#examples}
 
-**Security** (could cause crashes/corruption):
+**Security**（可能导致崩溃/损坏）：
 
 ```markdown
 - Fixed divide-by-zero in margin calculations that could crash the engine
 - Fixed integer overflow in model arithmetic that could crash the process
 ```
 
-**Fixes** (incorrect but safe):
+**Fixes**（结果错误但安全）：
 
 ```markdown
 - Fixed Binance order status parsing for external orders
 - Fixed position purge logic to prevent purging re-opened position
 ```
 
-**Enhancements** (user-facing):
+**Enhancements**（面向用户）：
 
 ```markdown
 - Added Bybit conditional orders support
 ```
 
-**Internal** (implementation):
+**Internal**（实现层面）：
 
 ```markdown
 - Implemented Bybit ping/pong handling
 ```
 
-## Release notes template
+## 发布说明模板 {#release-notes-template}
 
 ```markdown
 # NautilusTrader <VERSION> Beta

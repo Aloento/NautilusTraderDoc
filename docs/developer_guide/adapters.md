@@ -1575,59 +1575,50 @@ Betfair 在 60 秒的 `customerRef` 窗口内保留 45 秒的订单重试预算�
 
 ### 限流 {#rate-limiting}
 
-The shared [`HttpClient`](https://github.com/nautechsystems/nautilus_trader/blob/develop/crates/network/src/http/client.rs) supports one or more rate
-limiters. Scope limiter state to the venue quota, not to a convenient Rust object:
+共享的
+[`HttpClient`](https://github.com/nautechsystems/nautilus_trader/blob/develop/crates/network/src/http/client.rs)
+支持一个或多个限流器。限流器状态的作用域按交易场所配额划分，不按某个顺手的 Rust 对象：
 
-- Share a bucket across clients and operations that consume the same allowance.
-- Separate buckets only when the venue publishes independent quotas.
-- Acquire all required quota before sending a request.
-- Keep pagination and retry loops inside the same policy.
+- 消耗同一额度的客户端和操作共享同一个桶。
+- 只有交易场所公布相互独立的配额时才分桶。
+- 发出请求前取得全部所需配额。
+- 分页和重试循环纳入同一策略。
 
-Match the venue's actual meter: window shape, burst behavior, endpoint weights, and shared external
-traffic. A token bucket at the headline rate can still exceed a strict rolling window after an idle
-burst. Do not assume wire latency creates headroom.
+对齐交易场所真实的计量方式：窗口形状、突发行为、端点权重和共享的外部流量。即便令牌桶的速率等于标称速率，
+空闲突发后仍可能超出严格的滚动窗口。不要指望线路延迟会带来余量。
 
-When the venue separately caps concurrent unacknowledged commands, add a closed-loop in-flight gate
-beside the send-rate limiter. Release its slot on every terminal acknowledgement, rejection, or
-send failure, and reset the gate on reconnect. A rate limiter alone cannot observe acknowledgement
-latency.
+交易场所对未确认的并发命令单独设上限时，在发送速率限流器旁再加一个闭环的在途门。每次终态确认、拒绝或发送
+失败都释放其槽位，重连时重置该门。单靠限流器观察不到确认延迟。
 
-Do not copy one adapter's bucket names or quotas into another. Document user-visible limits and
-configuration in the integration guide.
+不要把某个适配器的桶名或配额照搬到另一个适配器。用户可见的限额和配置写进集成指南。
 
-## WebSocket client patterns
+## WebSocket 客户端模式 {#websocket-client-patterns}
 
-WebSocket dispatch follows the shared ownership and routing contract while module layout and state
-containers remain adapter-specific. Keep new code aligned with the shared network abstractions,
-bounded cache primitives, and nearest protocol peers. Do not treat one adapter's dispatch modules
-or a union of venue state as the target architecture.
+WebSocket 分发遵循共享的所有权与路由契约，模块布局和状态容器保持适配器特有。新代码对齐共享网络抽象、有界缓存
+原语和协议上最接近的同侪。不要把某个适配器的分发模块，或各交易场所状态的并集，当作目标架构。
 
-### Client structure
+### 客户端结构 {#client-structure-1}
 
-A common pattern separates an outer client from a handler task:
+常见模式把外层客户端与处理器任务分离：
 
-- The outer client owns lifecycle, authentication coordination, subscription intent, and the
-  stream exposed to data or execution clients.
-- The handler owns the `WebSocketClient`, serializes commands, decodes frames, and emits typed
-  messages.
-- Channels transfer owned commands and messages across the boundary.
+- 外层客户端负责生命周期、鉴权协调、订阅意图，以及暴露给数据或执行客户端的数据流。
+- 处理器负责 `WebSocketClient`、串行化命令、解码帧并发出类型化消息。
+- 通道在边界两侧传递持有的命令和消息。
 
-Some adapters use stream mode and perform reconnection in the adapter. Others use the network
-client's handler mode and automatic reconnection. Both are legitimate. Split market data and
-trading handlers only when endpoints, authentication, throughput, or protocol semantics justify
-the extra lifecycle.
+有些适配器用 stream 模式，在适配器内完成重连；另一些用网络客户端的 handler 模式与自动重连。两种都合理。只有
+端点、鉴权、吞吐量或协议语义确实需要额外生命周期时，才把行情与交易处理器分开。
 
-Choose client boundaries from protocol facts:
+按协议事实选择客户端边界：
 
-| Protocol shape                                      | Structure to consider                                      | Obligation                                                                  |
+| 协议形态 | 可以考虑的结构 | 义务 |
 | --------------------------------------------------- | ---------------------------------------------------------- | --------------------------------------------------------------------------- |
-| One endpoint and one multiplexed protocol           | One client and handler                                     | Route by typed channel identity without duplicating lifecycle state.        |
-| One protocol across separate product endpoints      | One orchestrator with a client collection                  | Connect, close, and replay intent for every active product client.          |
-| Separate public, private, or trading endpoints      | Separate transports with shared models where useful        | Authenticate and recover each endpoint according to its own contract.       |
-| Different wire formats, signing, or reconnect rules | Separate protocol modules behind shared data or exec logic | Keep shared instrument and order identity above the protocol-specific code. |
+| 单个端点、单一复用协议 | 一个客户端加一个处理器 | 按类型化通道标识路由，不重复生命周期状态。 |
+| 同一协议横跨独立的产品端点 | 一个编排者加一个客户端集合 | 为每个活跃产品客户端连接、关闭并重放意图。 |
+| 公共、私有或交易端点分离 | 分离的传输，可复用处共享模型 | 按各自的契约对每个端点鉴权和恢复。 |
+| 线路格式、签名或重连规则不同 | 共享数据或执行逻辑之下的独立协议模块 | 共享的金融工具与订单标识保持在协议特有代码之上。 |
 
-This table is a decision aid, not a target dispatch architecture. Do not split a client only to match another
-adapter's filenames. Do not combine endpoints if this hides independent authentication, quotas, or recovery.
+这张表是决策辅助，不是目标分发架构。不要仅仅为了对齐别的适配器的文件名而拆分客户端；拆分若会掩盖独立的鉴权、
+配额或恢复，就不要合并端点。
 
 ```mermaid
 flowchart LR
@@ -1648,188 +1639,167 @@ flowchart LR
     out_tx --> out_rx
 ```
 
-The diagram shows the common ownership boundary, not required type or field names.
+该图展示的是常见的所有权边界，不是必需的类型或字段名。
 
-#### Handler initialization handshake (`SetClient`)
+#### 处理器初始化握手（`SetClient`） {#handler-initialization-handshake-setclient}
 
-Several adapters move a connected `WebSocketClient` into an already running handler through a
-`SetClient` command. Others construct or publish the handler differently. Preserve this invariant
-in either design:
+多个适配器通过 `SetClient` 命令把已连接的 `WebSocketClient` 移入早已运行的处理器，其他适配器用别的方式构造或
+发布处理器。两种设计下都要保持这条不变式：
 
-> No public subscribe, order, or control command can overtake handler initialization.
+> 任何公共的订阅、订单或控制命令都不可能越过处理器初始化抢跑。
 
-Queue initialization before publishing a command sender or connected state, or use another
-mechanism that proves the same ordering. Test a command issued at the connection boundary so a
-race cannot silently drop it.
+在发布命令发送器或 connected 状态之前把初始化排入队列，或用其他能证明同一顺序的机制。测试在连接边界发出的命令，
+让竞态无法悄悄丢掉它。
 
-### Authentication
+### 鉴权 {#authentication}
 
-Use [`AuthTracker`](https://github.com/nautechsystems/nautilus_trader/blob/develop/crates/network/src/websocket/auth.rs) when authentication state must be
-shared across the client, handler, and reconnect path. The adapter still owns protocol details:
+鉴权状态需要在客户端、处理器和重连路径之间共享时使用
+[`AuthTracker`](https://github.com/nautechsystems/nautilus_trader/blob/develop/crates/network/src/websocket/auth.rs)。
+协议细节仍归适配器：
 
-- Begin one authentication attempt and correlate the response.
-- Mark positive success or failure from a definitive venue frame.
-- Invalidate authentication on reconnectable connection loss.
-- Fail waiters on terminal shutdown.
-- Gate private replay and commands until authentication succeeds.
+- 发起一次鉴权尝试并关联响应。
+- 依据确定的交易场所帧标记明确的成功或失败。
+- 可重连的连接丢失时使鉴权失效。
+- 终止性关闭时让等待者失败。
+- 鉴权成功之前挡住私有重放和命令。
 
-Refreshable tokens, multiple account sessions, and mixed public/private endpoints need
-adapter-specific state. Keep that state close to the credential and subscription paths and cover
-rotation or expiry with focused tests.
+可刷新的 token、多账户会话、公私混合端点需要适配器自有的状态。把该状态放在贴近凭证与订阅路径的地方，并用针对性
+测试覆盖轮换或过期。
 
-### Subscription management
+### 订阅管理 {#subscription-management}
 
-Use [`SubscriptionState`](https://github.com/nautechsystems/nautilus_trader/blob/develop/crates/network/src/websocket/subscription.rs) when the venue has
-acknowledged subscriptions or reconnect replay. It separates intent from confirmation and includes
-reference counts for duplicate subscribers.
+交易场所存在需确认的订阅或重连重放时使用
+[`SubscriptionState`](https://github.com/nautechsystems/nautilus_trader/blob/develop/crates/network/src/websocket/subscription.rs)。
+它把意图与确认分离，并为重复订阅者维护引用计数。
 
-| State               | Meaning                                                                      |
+| 状态 | 含义 |
 | ------------------- | ---------------------------------------------------------------------------- |
-| Pending subscribe   | The client intends to subscribe and awaits venue confirmation or first data. |
-| Confirmed           | The venue acknowledged the subscription or sent authoritative data for it.   |
-| Pending unsubscribe | The client intends to remove the subscription and awaits confirmation.       |
+| 待订阅 | 客户端打算订阅，正等待交易场所确认或首批数据。 |
+| 已确认 | 交易场所已确认该订阅，或就该订阅发出过权威数据。 |
+| 待退订 | 客户端打算移除订阅，正等待确认。 |
 
-| Trigger                                                | Shared operation                         | Result                                                          |
+| 触发 | 共享操作 | 结果 |
 | ------------------------------------------------------ | ---------------------------------------- | --------------------------------------------------------------- |
-| First local subscriber                                 | `try_mark_subscribe` or `mark_subscribe` | Record pending subscribe intent and send when required.         |
-| Subscribe acknowledgement or authoritative first frame | `confirm_subscribe`                      | Move pending intent to confirmed.                               |
-| Subscribe failure                                      | `mark_failure`                           | Keep subscribe intent pending for recovery.                     |
-| Last local subscriber                                  | `mark_unsubscribe`                       | Remove active intent and record pending unsubscribe.            |
-| Unsubscribe acknowledgement                            | `confirm_unsubscribe`                    | Remove pending unsubscribe without erasing a later resubscribe. |
+| 第一个本地订阅者 | `try_mark_subscribe` 或 `mark_subscribe` | 记录待订阅意图，需要时发送。 |
+| 订阅确认或权威的起始帧 | `confirm_subscribe` | 把待订阅意图转为已确认。 |
+| 订阅失败 | `mark_failure` | 订阅意图保持待处理，以便恢复。 |
+| 最后一个本地订阅者 | `mark_unsubscribe` | 移除活跃意图并记录待退订。 |
+| 退订确认 | `confirm_unsubscribe` | 移除待退订，且不清除之后的重新订阅。 |
 
-Confirm from an explicit venue acknowledgement when the protocol provides one. If acknowledgements
-are absent or unreliable, authoritative first data can confirm the topic. Both paths can coexist
-because confirmation is idempotent. Never confirm from local send success alone.
+协议提供显式交易场所确认时据此确认。确认缺失或不可靠时，权威的首批数据可以确认该主题。两条路径可以并存，因为
+确认是幂等的。绝不仅凭本地发送成功就确认。
 
-On a negative subscribe result, call `mark_failure` so reconnect retains the intent. Correlate
-unsubscribe results separately so a late subscribe acknowledgement cannot revive removed intent
-and a stale unsubscribe acknowledgement cannot erase a later resubscription.
+订阅得到否定结果时调用 `mark_failure`，让重连保留意图。退订结果的关联要独立处理：迟到的订阅确认不能复活已被
+移除的意图，过期的退订确认也不能抹掉之后的重新订阅。
 
-Derive a stable topic key from the venue subscription arguments. If replay would need lossy parsing of that
-key, keep the original arguments. On reconnect:
+用交易场所的订阅参数派生稳定的主题键。重放需要对该键做有损解析时，保留原始参数。重连时：
 
-1. Invalidate connection and authentication state.
-1. Re-establish the transport.
-1. Authenticate when required.
-1. Replay active and pending subscribe intent.
-1. Confirm subscriptions from explicit acknowledgements or authoritative data.
-1. Notify downstream consumers when they must reset protocol state.
+1. 使连接与鉴权状态失效。
+1. 重建传输。
+1. 需要时重新鉴权。
+1. 重放活跃与待处理的订阅意图。
+1. 由显式确认或权威数据确认订阅。
+1. 下游消费者必须重置协议状态时通知它们。
 
-Do not replay pending unsubscriptions. Handle late or stale acknowledgements without reviving removed
-subscriptions. `SubscriptionState` provides these state transitions. The adapter provides the wire
-correlation.
+不要重放待处理的退订。迟到或过期的确认要在不复活已移除订阅的前提下处理。`SubscriptionState` 提供这些状态转移，
+线路关联由适配器提供。
 
-### Message routing
+### 消息路由 {#message-routing}
 
-Keep the routing boundary auditable:
+路由边界要保持可审计：
 
-- Decode a raw frame once.
-- Handle transport control, authentication, and subscription acknowledgements before domain data.
-- Validate the channel and product identity before choosing a parser.
-- Convert a venue payload to one typed adapter message or a bounded sequence of messages.
-- Dispatch domain events outside mutable protocol state where practical.
-- Preserve enough identity to correlate execution responses and deduplicate overlapping sources.
+- 原始帧只解码一次。
+- 先处理传输控制、鉴权和订阅确认，再处理领域数据。
+- 选择解析器之前先校验通道与产品标识。
+- 把一个交易场所载荷转换为一个类型化的适配器消息，或有界的消息序列。
+- 尽可能在可变的协议状态之外分发领域事件。
+- 保留足够的标识，以便关联执行响应并对重叠来源去重。
 
-The handler owns transport control, authentication, subscription acknowledgements, frame decoding,
-and protocol correlation. The consuming data or execution client owns domain routing and emission.
-Parsing may remain in the handler when it depends on handler-owned protocol state, but tracked versus
-external execution ownership remains a client decision.
+处理器负责传输控制、鉴权、订阅确认、帧解码和协议关联。消费侧的数据或执行客户端负责领域路由与发出。解析依赖处理器
+自有的协议状态时可以留在处理器里，但"被跟踪还是外部"的执行所有权始终由客户端决策。
 
-When reporting malformed frames, log the parse error separately from a sanitized, bounded payload excerpt.
-Never log a raw authentication frame or a frame whose schema can contain secret material. Log a peer close
-code and reason at the transport layer that receives it. The adapter should not duplicate the shared transport
-log.
+上报畸形帧时，解析错误与清洗过的有界载荷摘录分开记录。绝不记录原始鉴权帧，也不记录 schema 可能含密钥材料的帧。
+对端关闭的 code 和 reason 在收到它的传输层记录，适配器不必重复共享传输的日志。
 
-Dispatch module layout, intermediate enum names, context registries, venue bindings, and state containers stay
-adapter-specific. Prefer the smallest design that makes protocol ownership and state transitions testable.
-Extract another component only when multiple adapters share its semantics and atomicity.
+分发模块布局、中间枚举名、上下文注册表、交易场所绑定和状态容器保持适配器特有。选择能让协议所有权和状态转移
+可测试的最小设计。只有多个适配器共享其语义与原子性时才抽出另一个组件。
 
-### Reconnection and shutdown
+### 重连与关闭 {#reconnection-and-shutdown}
 
-Reconnection must restore protocol state, not only the socket:
+重连必须恢复协议状态，而不只是 socket：
 
-- Recreate or replace command paths before reporting the client active.
-- Reauthenticate private sessions.
-- Restore subscription intent and required instrument context.
-- Reset sequence, snapshot, or gap state when the venue requires a fresh bootstrap.
-- Preserve in-flight execution state needed to correlate late responses or reconciliation.
+- 上报客户端激活之前重建或替换命令路径。
+- 私有会话重新鉴权。
+- 恢复订阅意图和必需的金融工具上下文。
+- 交易场所要求重新引导时重置序列号、快照或缺口状态。
+- 保留关联迟到响应或对账所需的在途执行状态。
 
-Support both WebSocket control frames and venue text heartbeats when applicable. Let the shared client handle
-protocol control frames. Keep application heartbeat messages in the venue handler.
+适用时同时支持 WebSocket 控制帧和交易场所的文本心跳。协议控制帧交给共享客户端处理，应用层心跳消息留在交易场所
+处理器。
 
-#### Reconnect ownership
+#### 重连的所有权 {#reconnect-ownership}
 
-A handler-mode client requests a reconnect through the shared client rather than a private reconnect loop. Its
-`request_reconnect` returns `true` only when the call moves an active client into reconnecting. If the adapter
-must distinguish `ReconnectRequestOutcome` variants, use the reconnect handle's `request_reconnect`.
-Transports that are already reconnecting, disconnecting, closed, or unsupported each need a different
-response. Stream-mode clients own their reconnect loop, and their handles report `Unsupported`.
+handler 模式的客户端经共享客户端请求重连，不用私有的重连循环。其 `request_reconnect` 只有在把活跃客户端移入
+重连中时才返回 `true`。适配器需要区分 `ReconnectRequestOutcome` 变体时，使用重连句柄的 `request_reconnect`。
+已在重连中、正在断开、已关闭或不支持的传输各自需要不同的响应。stream 模式的客户端自己负责重连循环，其句柄报告
+`Unsupported`。
 
-#### Shutdown
+#### 关闭 {#shutdown}
 
-Shutdown signals tasks, asks the transport to close, and then joins or aborts owned work according
-to a bounded policy. Make repeated shutdown safe. Do not assume a handler `JoinHandle` has one
-owner when client objects can be cloned.
+关闭的流程是：向任务发信号、请求关闭传输，再按有界策略 join 或 abort 自有的工作。重复关闭必须是安全的。客户端
+对象可克隆时，不要假设处理器的 `JoinHandle` 只有一个所有者。
 
-### Backpressure
+### 背压 {#backpressure}
 
-Shared WebSocket transport and adapter event paths use **unbounded** Tokio channels so receive
-loops do not wait for queue capacity. Preserve that convention for live event paths. Introducing a
-bounded channel, coalescing, dropping, or disconnect-on-full policy changes platform semantics and
-needs an explicit shared design, not an adapter-local change.
+共享的 WebSocket 传输和适配器事件路径使用**无界**的 Tokio 通道，让接收循环不必等待队列容量。实时事件路径保持
+这一约定。引入有界通道、合并、丢弃或"队满即断"策略会改变平台语义，需要一个显式的共享设计，不能作为适配器本地的
+改动。
 
-An unbounded queue trades backpressure for memory growth. Keep receive-loop work focused, expose
-handler failure, and test recovery from a disconnected consumer. Never drop execution events.
-Market data can use snapshot and resynchronization only when its protocol contract defines that
-recovery.
+无界队列是用背压换内存增长。保持接收循环的工作聚焦，暴露处理器失败，并测试消费者断开后的恢复。绝不丢弃执行事件。
+行情数据只有在协议契约定义了这种恢复时，才可以用快照与重新同步。
 
-## Task management
+## 任务管理 {#task-management}
 
-Classify every production task by its owner before choosing its storage and shutdown path.
+选择存储和关闭路径之前，先按所有者给每个生产任务分类。
 
-| Ownership           | Use                                                                                         | Required behavior                                                                                  |
+| 所有权 | 用途 | 必需行为 |
 | ------------------- | ------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------- |
-| Session-scoped      | Stream consumers, keepalives, health polls, refresh loops, and reconnect drivers.           | One session group owns the task from successful admission through disconnect or failed startup.    |
-| Command-scoped      | Work spawned by synchronous data requests or execution commands.                            | A separate command group owns the task without tying its outcome to the transport session.         |
-| Explicitly singular | One task whose handle or typed result must remain in owning state for direct joining.       | Store one named handle and apply the same bounded join, forced abort, and failure reporting rules. |
-| Handler-local       | Retry futures, send workers, and child work created and joined inside one handler.          | The handler drains the work before it exits and exposes failure to its owner.                      |
-| Protocol exception  | Typed fan-out results, keyed timeouts, or work whose local join preserves protocol meaning. | Keep the exception local, state why a shared group would lose meaning, and test its shutdown path. |
+| 会话级 | 数据流消费者、保活、健康轮询、刷新循环、重连驱动。 | 由一个会话组从成功准入起拥有该任务，直到断开或启动失败。 |
+| 命令级 | 由同步数据请求或执行命令派生的工作。 | 由独立的命令组拥有该任务，其结果不绑定到传输会话。 |
+| 显式单任务 | 其句柄或类型化结果必须留在所有权状态中以便直接 join 的单个任务。 | 存储一个具名句柄，应用同样的有界 join、强制 abort 和失败上报规则。 |
+| 处理器本地 | 在一个处理器内创建并 join 的重试 future、发送 worker 和子工作。 | 处理器在退出前排空这些工作，并把失败暴露给其所有者。 |
+| 协议例外 | 类型化扇出结果、按键超时，或本地 join 保住协议含义的工作。 | 例外保持局部，说明共享组为何会丢失语义，并测试其关闭路径。 |
 
-Use separate session and command groups even when both groups have the same timeout policy. A
-disconnect ends the session, while an accepted command can still need reconciliation or an
-explicit ambiguous outcome. Do not let transport shutdown silently reclassify that command result.
+即使会话组与命令组的超时策略相同，也要分开。断开结束会话，而已接受的命令可能仍需要对账或显式的歧义结果。不要让
+传输关闭悄悄改写该命令的结果分类。
 
-### Task storage and observation
+### 任务存储与观察 {#task-storage-and-observation}
 
-[`TaskHandles`](https://github.com/nautechsystems/nautilus_trader/blob/develop/crates/common/src/live/task.rs) stores unit task handles without setting
-spawn, cancellation, generation, or join policy. Use it inside a component that defines those rules.
+[`TaskHandles`](https://github.com/nautechsystems/nautilus_trader/blob/develop/crates/common/src/live/task.rs)
+存储无输出（unit）任务句柄，不设定派生、取消、世代或 join 策略，要在定义了这些规则的组件内部使用它。
 
-[`TaskGroup`](https://github.com/nautechsystems/nautilus_trader/blob/develop/crates/live/src/task.rs) supplies the shared live-client policy for unit-output
-session and command tasks. Use `TaskGroup::spawn_named` when client state must observe a grouped
-task's logical name, instance identity, or terminal state. Its `TaskRef` is read-only: the group
-remains the sole owner of cancellation and joining. Read-only observation does not make the task
-explicitly singular.
+[`TaskGroup`](https://github.com/nautechsystems/nautilus_trader/blob/develop/crates/live/src/task.rs)
+为无输出的会话与命令任务提供共享的 live 客户端策略。客户端状态需要观察某个被分组任务的逻辑名、实例标识或终态时，
+用 `TaskGroup::spawn_named`。其 `TaskRef` 是只读的：取消与 join 的唯一所有者仍是该组。只读观察不会把任务变成
+"显式单任务"。
 
-`TaskRef::is_active` and `TaskRef::is_finished` expose the same one-way lifecycle state. Active means the task
-was admitted and has not reached a terminal state. A task may finish before `spawn_named` returns. Neither
-state proves that the user future received its first poll.
+同一任务模块的 `TaskRef::is_active` 与 `TaskRef::is_finished` 暴露同样的单向生命周期状态。active 表示任务已
+准入且尚未到达终态。任务可能在 `spawn_named` 返回之前就已结束。两种状态都不能证明用户 future 得到过第一次轮询。
 
-The same task module's `finish_task` function applies the bounded policy to an explicitly singular
-handle without erasing a typed result. For another explicit ownership pattern, spawn through
-`nautilus_common::live::get_runtime().spawn()` as described in
-[Async code](./rust.md#async-code), then retain or locally await the returned handle.
+同一任务模块的 `finish_task` 函数把有界策略施加到显式单任务的句柄上，且不抹掉其类型化结果。另一种显式所有权
+模式，按[异步代码](./rust.md#async-code)所述经 `nautilus_common::live::get_runtime().spawn()` 派生，然后保留
+或就地 await 返回的句柄。
 
-### Spawn through a task group
+### 经任务组派生 {#spawn-through-a-task-group}
 
-Synchronous client trait methods must not block an active Tokio runtime. Clone owned inputs, spawn
-the asynchronous operation, and return the local validation result. Register client-owned work
-through its `TaskGroup`. The group stores the handle before opening the task's start gate, so a
-concurrent shutdown either owns the task or rejects its admission.
+同步的客户端 trait 方法不得阻塞活跃的 Tokio runtime。克隆持有的输入，派生异步操作，返回本地校验结果。
+客户端自有的工作经其 `TaskGroup` 登记。组在打开任务的启动门之前存好句柄，因此并发的关闭要么已经拥有该任务，
+要么拒绝其准入。
 
-The [Tokio usage hook](https://github.com/nautechsystems/nautilus_trader/blob/develop/.pre-commit-hooks/check_tokio_usage.sh) rejects `tokio::spawn` in
-adapter production code and requires fully qualified Tokio spawn, time, and sync paths.
+[Tokio 使用钩子](https://github.com/nautechsystems/nautilus_trader/blob/develop/.pre-commit-hooks/check_tokio_usage.sh)
+拒绝适配器生产代码中的 `tokio::spawn`，并要求 Tokio 的 spawn、time、sync 路径全部写全限定名。
 
-Keep the synchronous boundary small:
+同步边界保持小：
 
 ```rust
 fn spawn_request<F>(&self, description: &'static str, future: F)
@@ -1848,334 +1818,295 @@ where
 }
 ```
 
-Validate the command and clone each input before constructing the future. Work that outlives the trait call
-must not capture these values:
+构造 future 之前先校验命令并克隆每个输入。活过 trait 调用的工作不得捕获这些值：
 
-- A `RefCell` borrow.
-- A cache guard.
-- A clock borrow.
-- A reference to the command.
+- `RefCell` 借用。
+- cache guard。
+- 时钟借用。
+- 对命令的引用。
 
-When a long-lived task creates children, capture a `TaskSpawner` from the owning group. Use
-`TaskSpawner::spawn_named` when those child tasks also need identity in shutdown failures. A spawner from an
-older generation cannot register work in the replacement generation.
+长生命周期任务创建子任务时，从所属组捕获一个 `TaskSpawner`。子任务在关闭失败时也需要身份时，用
+`TaskSpawner::spawn_named`。旧世代的 spawner 无法在替换后的世代里登记工作。
 
-Give each task:
+每个任务都要有：
 
-- One owner responsible for joining or aborting it.
-- A stable description for failure logs.
-- A cancellation path.
-- Owned inputs that do not retain `RefCell` or engine borrows.
+- 一个负责 join 或 abort 它的所有者。
+- 一个用于失败日志的稳定描述。
+- 一条取消路径。
+- 不保留 `RefCell` 或引擎借用的自有输入。
 
-Keep typed task results local to the component that awaits them. Do not erase a `JoinHandle<T>` to
-fit a unit-output group when `T` carries order, transport, or startup evidence.
+类型化的任务结果留在等待它的组件内。`T` 携带订单、传输或启动证据时，不要为了塞进无输出的组把
+`JoinHandle<T>` 抹成无输出。
 
-### Shut down and reopen task generations
+### 关闭并重开任务世代 {#shut-down-and-reopen-task-generations}
 
-Task shutdown has separate synchronous and asynchronous phases:
+任务关闭分为独立的同步与异步阶段：
 
-1. `stop`, `reset`, and `dispose` call `begin_shutdown`. This closes admission and cancels the
-   current generation without blocking the runtime.
-   Use `abort` instead only when the existing synchronous contract requires immediate task
-   cancellation.
-1. `disconnect`, or the next asynchronous `connect`, closes the generation's transports in their
-   required protocol order and calls `finish_shutdown` with bounded graceful and forced intervals.
-1. `finish_shutdown` repeatedly drains tasks registered by an allowed race. It reports unexpected
-   cancellations and join failures. After the graceful interval, it aborts unfinished work. It awaits the
-   forced abort within its second bound.
-1. `start_generation` reopens the group only after the prior generation drains. A timeout retains
-   the remaining handles and keeps admission closed.
+1. `stop`、`reset` 和 `dispose` 调用 `begin_shutdown`。它关闭准入并取消当前世代，不阻塞 runtime。
+   只有既有的同步契约要求立即取消任务时才改用 `abort`。
+1. `disconnect`，或下一次异步的 `connect`，按协议要求的顺序关闭该世代的传输，再用有界的优雅与强制间隔调用
+   `finish_shutdown`。
+1. `finish_shutdown` 反复排空允许的竞态登记的任务，上报意外的取消和 join 失败。优雅间隔结束后 abort 未完成
+   的工作，并在第二个界限内等待强制 abort。
+1. `start_generation` 只在上一世代排空后重新打开组。超时会保留剩余句柄并让准入保持关闭。
 
-When `connect` fails after creating a transport or admitting a task, apply the same sequence before returning
-the startup error. Close all transports created by that attempt. Drain both session and command work that
-cannot survive the failure. Include teardown failures in the returned or logged evidence.
+`connect` 在创建传输或准入任务之后失败时，返回启动错误之前执行同一套序列：关闭该次尝试创建的全部传输，排空
+无法在失败中存活的会话与命令工作，并把拆卸失败计入返回或记录的证据。
 
-Make repeated `begin_shutdown` and `finish_shutdown` calls safe. A synchronous lifecycle method may
-begin teardown more than once before an asynchronous boundary finishes it.
+重复调用 `begin_shutdown` 和 `finish_shutdown` 必须是安全的：同步生命周期方法可能在异步边界完成拆卸之前多次
+开始拆卸。
 
-### Never use `block_on` in trait methods
+### 绝不在 trait 方法里用 `block_on` {#never-use-block_on-in-trait-methods}
 
-Live runners call synchronous data and execution methods from within Tokio. Calling `block_on`
-there can panic because a runtime is already active.
+live runner 会在 Tokio 内部调用同步的数据与执行方法。在那里调用 `block_on` 可能因为 runtime 已在活跃而 panic。
 
-| Boundary                                       | Adapter action                                            | Reason                                                                |
+| 边界 | 适配器动作 | 原因 |
 | ---------------------------------------------- | --------------------------------------------------------- | --------------------------------------------------------------------- |
-| Synchronous `DataClient` or `ExecutionClient`  | Clone owned inputs, spawn the operation, and return.      | The live runner may already be executing the method inside Tokio.     |
-| Async client, handler, or task method          | Await the operation or select it with cancellation.       | The async boundary already participates in the active runtime.        |
-| Top-level binary or dedicated non-Tokio thread | Block only when that boundary owns the runtime lifecycle. | No ambient runtime exists when the boundary is constructed correctly. |
-| Test                                           | Use `#[tokio::test]` or a test-owned runtime.             | The harness owns runtime setup and avoids nested `block_on` calls.    |
+| 同步的 `DataClient` 或 `ExecutionClient` | 克隆自有输入，派生该操作，立即返回。 | live runner 可能已在 Tokio 内执行该方法。 |
+| 异步客户端、处理器或任务方法 | await 该操作，或将其与取消一起 select。 | 异步边界本就参与活跃 runtime。 |
+| 顶层二进制或专用的非 Tokio 线程 | 只有该边界拥有 runtime 生命周期时才阻塞。 | 边界构造正确时不存在环境 runtime。 |
+| 测试 | 用 `#[tokio::test]` 或测试自有的 runtime。 | harness 负责 runtime 设置，避免嵌套 `block_on`。 |
 
-Do not use the top-level and test exceptions to justify blocking inside a live client trait
-method. Redesign an ambiguous boundary as async.
+不要用顶层二进制和测试这两条例外来论证"在 live 客户端 trait 方法里阻塞也可以"。含糊的边界改成异步设计。
 
-### Graceful shutdown with `CancellationToken`
+### 用 `CancellationToken` 优雅关闭 {#graceful-shutdown-with-cancellationtoken}
 
-Use `CancellationToken` when several tasks share a lifecycle. Select cancellation alongside
-streams, timers, or response channels. For grouped tasks, obtain child tokens from the generation
-group or spawner and let `begin_shutdown` cancel their parent. Obtain the replacement token only
-after `finish_shutdown` drains every handle and `start_generation` reopens the group. Reusing a
-canceled token makes replacement tasks exit immediately, while replacing it before the drain lets
-old work cross the reconnect boundary.
+多个任务共享一个生命周期时使用 `CancellationToken`。把取消与数据流、定时器或响应通道一起 select。被分组的任务
+从世代组或 spawner 获取子 token，由 `begin_shutdown` 取消其父 token。只有在 `finish_shutdown` 排空每个句柄、
+`start_generation` 重新打开组之后，才获取替换后的 token。复用已取消的 token 会让替换任务立即退出；在排空之前
+就替换 token，则会让旧工作越过重连边界。
 
-## Testing
+## 测试 {#testing}
 
-Tests prove adapter semantics at progressively wider boundaries. Store canonical valid fixtures under
-`test_data/` and keep network access out of ordinary unit and integration tests. Source valid payloads from
-official venue documentation or captured venue responses. Do not hand-fabricate them. Synthetic malformed or
-mutated inputs stay useful for negative, property, and fuzz tests when the test marks them as such.
+测试在逐步放宽的边界上证明适配器语义。规范的有效 fixture 存于 `test_data/`，常规单元与集成测试不访问网络。
+有效载荷取自交易场所官方文档或捕获的真实响应，不要手工编造。合成出的畸形或变异输入在负向、属性和模糊测试中
+仍然有用，前提是测试注明其性质。
 
-| Boundary                    | Typical location                                                  | Required proof                                                                                  |
+| 边界 | 典型位置 | 必需的证明 |
 | --------------------------- | ----------------------------------------------------------------- | ----------------------------------------------------------------------------------------------- |
-| Pure protocol logic         | `src/**` test modules                                             | Symbols, enums, timestamps, decimals, signatures, codecs, parsers, and malformed input.         |
-| Public Rust client boundary | `tests/`                                                          | Typed HTTP and WebSocket behavior through mock servers, event dispatch, lifecycle, and retries. |
-| Rust PyO3 boundary          | `tests/integration/python.rs` or another feature-gated crate test | Module registration, conversion, constructors, and representative async calls.                  |
-| Public Python package       | `python/tests/unit/adapters/`                                     | Package imports, config, factories, and user-visible behavior not proved by Rust tests.         |
-| Live venue acceptance       | Adapter examples or test nodes                                    | Authentication, subscriptions, execution, reports, recovery, and advertised limitations.        |
+| 纯协议逻辑 | `src/**` 测试模块 | 符号、枚举、时间戳、十进制、签名、编解码、解析器和畸形输入。 |
+| 公共 Rust 客户端边界 | `tests/` | 经 mock 服务器的类型化 HTTP 与 WebSocket 行为、事件分发、生命周期和重试。 |
+| Rust PyO3 边界 | `tests/integration/python.rs` 或其他 feature 门控的 crate 测试 | 模块注册、转换、构造函数和有代表性的异步调用。 |
+| 公共 Python 包 | `python/tests/unit/adapters/` | 包 import、配置、工厂，以及 Rust 测试未证明的用户可见行为。 |
+| 实时交易场所验收 | 适配器示例或测试节点 | 鉴权、订阅、执行、报告、恢复，以及声明的限制。 |
 
-### Rust testing
+### Rust 测试 {#rust-testing}
 
-Shared repository test policy uses `#[rstest]` for Rust test functions, permits
-`#[tokio::test]` for async tests, and rejects arrange/act/assert comments. The
-[testing conventions hook](https://github.com/nautechsystems/nautilus_trader/blob/develop/.pre-commit-hooks/check_testing_conventions.sh) enforces these
-repository-wide rules.
+仓库共享的测试策略规定：Rust 测试函数用 `#[rstest]`，异步测试可用 `#[tokio::test]`，不接受 arrange/act/assert
+注释。[测试约定钩子](https://github.com/nautechsystems/nautilus_trader/blob/develop/.pre-commit-hooks/check_testing_conventions.sh)
+在全仓库强制这些规则。
 
-#### Fixtures and parser assertions
+#### Fixture 与解析器断言 {#fixtures-and-parser-assertions}
 
-Use exact fixture values and assert every stable output field. Distinct inputs should expose field
-swaps, omitted values, wrong precision, and accidental defaults.
+使用精确的 fixture 值，断言每个稳定的输出字段。输入彼此相异，才能暴露字段互换、遗漏值、精度错误和意外的默认值。
 
-Parser and serializer tests should cover:
+解析器与序列化器测试应覆盖：
 
-- One realistic fixture for every supported message or instrument family.
-- Boundary values for decimal precision, quantities, timestamps, IDs, and enum codes.
-- Unknown, missing, null, and malformed fields according to the venue contract.
-- Round trips or canonical bytes where the protocol defines them.
-- Stable errors for rejected input.
+- 每个支持的消息或金融工具族一个真实 fixture。
+- 小数精度、数量、时间戳、ID 和枚举码的边界值。
+- 按交易场所契约处理未知、缺失、null 和畸形字段。
+- 协议有定义处的往返转换或规范字节。
+- 被拒绝输入的稳定错误。
 
-Keep the complete venue envelope when status fields, pagination cursors, timestamps, or nested result wrappers
-affect behavior. Record fixture provenance in the fixture, a nearby README, or a source manifest. Use separate
-real payloads for structurally distinct states, such as long, short, flat, empty, and partially filled. Do not
-mutate one happy-path fixture into all valid cases.
+状态字段、分页游标、时间戳或嵌套结果封套会影响行为时，保留完整的交易场所封套。fixture 的出处记录在 fixture
+本身、旁边的 README 或来源清单里。结构不同的状态（多头、空头、平仓、空、部分成交等）用各自独立的真实载荷，
+不要把一个"幸福路径" fixture 改来改去充当全部合法用例。
 
-If HTTP and WebSocket tests share fixture loaders or model builders, place test-only code in a
-`common::testing` module. Do not copy that shared test code into production modules. This pattern is optional
-when no test code is shared.
+HTTP 与 WebSocket 测试共享 fixture 加载器或模型构造器时，把仅测试用的代码放进 `common::testing` 模块，不要把
+共享测试代码复制进生产模块。没有共享的测试代码时，这个模式不必强求。
 
-#### Client synchronization
+#### 客户端同步 {#client-synchronization}
 
-Drive public client methods through mock HTTP or WebSocket servers. Assert emitted events,
-requests, connection state, subscription state, retry count, and shutdown behavior.
+通过 mock 的 HTTP 或 WebSocket 服务器驱动公共客户端方法，断言发出的事件、请求、连接状态、订阅状态、重试次数
+和关闭行为。
 
-Prefer a notification owned by the test or mock when the operation exposes one. Subscribe before
-reading authoritative state, then recheck it after every notification so a transition between the
-read and the await cannot be missed. When no suitable signal exists, use
-[`wait_until_async`](https://github.com/nautechsystems/nautilus_trader/blob/develop/crates/common/src/testing.rs). A short sleep is valid when the time window
-itself is under test, but it should not mask a missing synchronization point.
+操作自带通知时，优先用测试或 mock 拥有的通知。先订阅再读取权威状态，并且每次通知后重新检查，让读取与等待之间
+的转移不会被漏掉。没有合适的信号时使用
+[`wait_until_async`](https://github.com/nautechsystems/nautilus_trader/blob/develop/crates/common/src/testing.rs)。
+被测对象本身就是时间窗口时短睡眠是合理的，但它不应掩盖一个缺失的同步点。
 
-### Functional and integration testing
+### 功能与集成测试 {#functional-and-integration-testing}
 
-Exercise each public boundary with both successful and adverse protocol evidence:
+用成功与不利两类协议证据检验每个公共边界：
 
-| Surface          | Successful evidence                                                                       | Failure and recovery evidence                                                                           |
+| 界面 | 成功的证据 | 失败与恢复的证据 |
 | ---------------- | ----------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------- |
-| HTTP client      | Exact method, path, query or body, authentication, and typed response.                    | Missing credentials, venue errors, malformed bodies, retry classification, and pagination termination.  |
-| WebSocket client | Connection, authentication, heartbeat, subscription acknowledgement, and typed routing.   | Authentication failure, malformed frames, stale acknowledgements, disconnect, replay, and shutdown.     |
-| Data client      | Requests and subscriptions produce complete domain events with correct identity and time. | Freshness, filtering, malformed input, stream gaps, unsubscribe, and reconnect behavior.                |
-| Execution client | Commands produce ordered events, account state, and reconciliation reports.               | Local denial, definitive rejection, unknown outcome, duplicates, partial batches, and startup recovery. |
+| HTTP 客户端 | 精确的方法、路径、查询或 body、鉴权、类型化响应。 | 凭证缺失、交易场所错误、畸形 body、重试分类、分页终止。 |
+| WebSocket 客户端 | 连接、鉴权、心跳、订阅确认、类型化路由。 | 鉴权失败、畸形帧、过期确认、断开、重放、关闭。 |
+| 数据客户端 | 请求与订阅产出身份和时间都正确的完整领域事件。 | 时效、过滤、畸形输入、数据流缺口、退订、重连行为。 |
+| 执行客户端 | 命令产出有序事件、账户状态和对账报告。 | 本地拒绝、确定性拒绝、未知结果、重复、部分批次、启动恢复。 |
 
-Mock transports should expose enough state to assert requests, connection count, authentication,
-subscriptions, and emitted events. Wait for those observable conditions instead of sleeping.
-Assert both sides of the boundary: the exact venue request and the resulting Nautilus event or
-report.
+mock 传输要暴露足够的状态，以便断言请求、连接数、鉴权、订阅和发出的事件。等待这些可观察条件，而不是睡眠。
+边界两侧都要断言：精确的交易场所请求，以及产出的 Nautilus 事件或报告。
 
-Data tests cover each advertised request and subscription, plus:
+数据测试覆盖每个声明的请求与订阅，外加：
 
-- Instrument identity, precision, and freshness.
-- Snapshot and incremental order-book boundaries.
-- Multiple symbols or product families sharing a connection.
-- Acknowledgement, rejection, unsubscribe, reconnect, and resubscribe behavior.
-- Malformed or unknown messages without loss of subsequent valid data.
+- 金融工具的标识、精度与时效。
+- 快照与增量的订单簿边界。
+- 多个符号或产品族共享一条连接。
+- 确认、拒绝、退订、重连和重新订阅行为。
+- 畸形或未知消息不会丢失其后的有效数据。
 
-Execution tests cover each advertised command and report, plus:
+执行测试覆盖每个声明的命令与报告，外加：
 
-- Local denial before submission.
-- Definitive venue rejection.
-- Diagnostic context and the exact clean strategy-facing reason for each changed rejection path.
-- Unknown transport outcomes that remain reconcilable.
-- An ambiguous attempt followed by a definitive-looking response.
-- Missing, malformed, and mismatched returned venue identifiers.
-- Structured error fields and bounded raw-body fallbacks: empty, plain text, malformed structured
-  data, markup, invalid UTF-8, and oversized input.
-- Equivalent HTTP, WebSocket, polling, and reconciliation evidence producing the same reason and
-  classification.
-- Structured post-only evidence or an exact text classifier, including close non-matching messages.
-- Partial and per-order batch results.
-- Duplicate or out-of-order stream updates.
-- Account state, open orders, fills, positions, and startup reconciliation.
-- One fixed cutoff across bounded order and fill queries, including records on the boundary.
-- Complete and incomplete mass statuses for each independently failing report source.
-- Position snapshot coverage after reconnect, skipped rows, explicit flats, and absent instruments.
-- Exact order recovery without position or portfolio effects when bounded history is incomplete or
-  ambiguous.
-- Idempotent stop, reset, and disposal.
+- 提交前的本地拒绝。
+- 确定的交易场所拒绝。
+- 每条被改变的拒绝路径的诊断上下文，以及精确的、干净的面向策略原因。
+- 保持可对账的未知传输结果。
+- 歧义尝试之后跟随一个看似确定的响应。
+- 缺失、畸形、与查询不匹配的返回交易场所标识。
+- 结构化错误字段与有界的原始 body 回退：空、纯文本、畸形结构化数据、markup、无效 UTF-8、超长输入。
+- 等价的 HTTP、WebSocket、轮询和对账证据产出相同的原因与分类。
+- 结构化的 post-only 证据或精确的文本分类器，含形似而非的负例。
+- 部分成功与逐单批量结果。
+- 重复或乱序的数据流更新。
+- 账户状态、未决订单、成交、持仓和启动对账。
+- 有界订单与成交查询使用同一个固定截止时间，含边界上的记录。
+- 每个可独立失败的报告来源下，完整与不完整的全量状态。
+- 重连后的持仓快照覆盖、被跳过的行、显式平仓与缺席金融工具。
+- 有界历史不完整或有歧义时，精确恢复订单且不影响持仓与组合。
+- 幂等的 stop、reset 和处置。
 
-Keep adapter tests focused on adapter behavior. The
-[data testing specification](./spec_data_testing.md) and
-[execution testing specification](./spec_exec_testing.md) define the shared scenario catalogs and
-skip rules. Link to them instead of copying partial lists into an adapter README.
+适配器测试聚焦适配器自身行为。共享场景目录和跳过规则由
+[数据测试规范](./spec_data_testing.md)与[执行测试规范](./spec_exec_testing.md)定义，链接它们，不要把清单
+部分复制进适配器 README。
 
-### Acceptance testing
+### 验收测试 {#acceptance-testing}
 
-Run acceptance tests only after deterministic tests pass. Use testnet or a controlled account and
-record:
+确定性测试通过后才运行验收测试。使用 testnet 或受控账户，并记录：
 
-- Venue environment and product.
-- Supported and skipped specification cases.
-- Order types and flags exercised.
-- Reconnect or recovery cases exercised.
-- Venue restrictions, rate limits, and known gaps.
+- 交易场所环境与产品。
+- 支持与跳过的规范用例。
+- 演练过的订单类型与标志。
+- 演练过的重连或恢复用例。
+- 交易场所限制、限流和已知缺口。
 
-Acceptance tests must verify events and venue state, not only the absence of errors. Clean up open
-orders and positions according to the test plan, and never infer production support from one happy
-path.
+验收测试必须验证事件和交易场所状态，不能只看"没报错"。按测试计划清理未决订单和持仓，也不要凭一条幸福路径就
+推断生产可用。
 
-Provide the applicable tester entry points:
+提供适用的测试器入口：
 
-- Rust: `crates/adapters/<adapter>/examples/node_data_tester.rs` and
-  `node_exec_tester.rs`, with product subdirectories when protocols split by product.
-- Python: `examples/live/<adapter>/data_tester.py` and `exec_tester.py`, using `LiveNode` and
-  the Rust config and factory classes.
+- Rust：`crates/adapters/<adapter>/examples/node_data_tester.rs` 和 `node_exec_tester.rs`；协议按产品拆分时
+  用产品子目录。
+- Python：`examples/live/<adapter>/data_tester.py` 和 `exec_tester.py`，使用 `LiveNode` 与 Rust 的配置和工厂
+  类。
 
-Python tester settings live in module-level constants at the top of the file. Running the script
-connects and starts immediately without CLI flags.
+Python 测试器的设置放在文件顶部的模块级常量里。运行脚本立即连接并启动，没有 CLI 参数。
 
-**Execution testers place real orders by default.** State this in a warning at the top of the module. Set
-`dry_run=False` explicitly in `ExecTesterConfig` to advertise the dry-run option. Rust tester controls vary.
-Inspect them before running.
+**执行测试器默认会下真实订单。** 在模块顶部以警告形式写明这一点。要提供 dry-run 选项，需在 `ExecTesterConfig`
+中显式设 `dry_run=False`。Rust 测试器的控制项各不相同，运行前先查看。
 
-### Python boundary testing
+### Python 边界测试 {#python-boundary-testing}
 
-For Python-exposed adapters, test the Rust module before testing broad Python workflows. Verify:
+对暴露给 Python 的适配器，先测 Rust 模块，再测更宽的 Python 工作流。验证：
 
-- The module imports at the runtime path.
-- Stub metadata points to the public adapter package.
-- Config conversion preserves optional values and rejects unknown fields.
-- Factories downcast config and construct the correct Rust client.
-- Representative async client methods convert success and error results.
+- 模块在运行时路径下可 import。
+- stub 元数据指向公共适配器包。
+- 配置转换保留可选值，并拒绝未知字段。
+- 工厂把配置向下转型并构造出正确的 Rust 客户端。
+- 有代表性的异步客户端方法能转换成功与错误结果。
 
-Use `instrument_any_to_pyobject` and `pyobject_to_instrument_any` at Python instrument boundaries
-to preserve the concrete instrument variant in both directions.
+在 Python 金融工具边界用 `instrument_any_to_pyobject` 和 `pyobject_to_instrument_any`，两个方向都保留具体的
+金融工具变体。
 
-Regenerate stubs with `make py-stubs` after changing exported Rust types or signatures. The
-[generated drift check](https://github.com/nautechsystems/nautilus_trader/blob/develop/scripts/ci/check-generated-drift.bash) verifies that generator
-inputs and committed `.pyi` output agree.
+改动导出的 Rust 类型或签名后用 `make py-stubs` 重新生成 stub。
+[生成物漂移检查](https://github.com/nautechsystems/nautilus_trader/blob/develop/scripts/ci/check-generated-drift.bash)
+校验生成器输入与提交的 `.pyi` 输出一致。
 
-## Performance and robustness
+## 性能与健壮性 {#performance-and-robustness}
 
-Add these suites late, after functional, integration, and acceptance work establishes correct behavior. They
-deepen assurance for confirmed hot paths and untrusted venue input. They do not replace conformance tests.
+这些测试套件在功能、集成和验收工作确立正确行为之后，于后期添加。它们加深已确认热点路径和不可信交易场所输入的
+保证，不取代合规测试。
 
-### Canonical benchmarks
+### 规范化基准测试 {#canonical-benchmarks}
 
-Use Criterion for a deep performance pass on production boundaries that measurements identify as
-important. The Lighter and Derive suites provide the reference structure:
+对度量确认重要的生产边界，用 Criterion 做深入的性能检视。Lighter 和 Derive 的套件提供参考结构：
 
-| Suite               | Canonical boundary                                                                                                   | Reference                                                                                                                            |
+| 套件 | 规范化边界 | 参考 |
 | ------------------- | -------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------ |
-| `benches/data.rs`   | Raw venue frame or payload through decoding, parsing, cache lookup where required, and Nautilus domain construction. | [Lighter data](https://github.com/nautechsystems/nautilus_trader/blob/develop/crates/adapters/lighter/benches/data.rs), [Derive data](https://github.com/nautechsystems/nautilus_trader/blob/develop/crates/adapters/derive/benches/data.rs)           |
-| `benches/exec.rs`   | Order command through serialization and signing. Where applicable, inbound execution payload through event dispatch. | [Lighter execution](https://github.com/nautechsystems/nautilus_trader/blob/develop/crates/adapters/lighter/benches/exec.rs), [Derive execution](https://github.com/nautechsystems/nautilus_trader/blob/develop/crates/adapters/derive/benches/exec.rs) |
-| `benches/micros.rs` | Decode-only, parse-only, and focused component costs that localize a regression found at a pipeline boundary.        | [Lighter micros](https://github.com/nautechsystems/nautilus_trader/blob/develop/crates/adapters/lighter/benches/micros.rs), [Derive micros](https://github.com/nautechsystems/nautilus_trader/blob/develop/crates/adapters/derive/benches/micros.rs)   |
+| `benches/data.rs` | 原始交易场所帧或载荷，经解码、解析、必要的 cache 查找，直到构造 Nautilus 领域对象。 | [Lighter data](https://github.com/nautechsystems/nautilus_trader/blob/develop/crates/adapters/lighter/benches/data.rs)、[Derive data](https://github.com/nautechsystems/nautilus_trader/blob/develop/crates/adapters/derive/benches/data.rs) |
+| `benches/exec.rs` | 订单命令经序列化与签名；适用时，入站执行载荷经事件分发。 | [Lighter execution](https://github.com/nautechsystems/nautilus_trader/blob/develop/crates/adapters/lighter/benches/exec.rs)、[Derive execution](https://github.com/nautechsystems/nautilus_trader/blob/develop/crates/adapters/derive/benches/exec.rs) |
+| `benches/micros.rs` | 仅解码、仅解析以及聚焦的组件开销，用于定位在流水线边界发现的回退。 | [Lighter micros](https://github.com/nautechsystems/nautilus_trader/blob/develop/crates/adapters/lighter/benches/micros.rs)、[Derive micros](https://github.com/nautechsystems/nautilus_trader/blob/develop/crates/adapters/derive/benches/micros.rs) |
 
-Put shared realistic instruments, payloads, signer state, and other fixtures in
-`benches/common/`. Construct stable setup, allocation, and state outside the timed region when
-production does not pay that cost per operation. Include setup when it is part of the real hot
-path.
+共享的真实金融工具、载荷、签名器状态及其他 fixture 放 `benches/common/`。生产环境不按每次操作付出该开销时，把
+稳定的 setup、分配和状态放到计时区域之外；setup 属于真实热点路径时则包含进去。
 
-Measure representative end-to-end pipelines first. Add diagnostic components to explain a
-regression, not to inflate the suite. Set throughput when bytes, messages, orders, or another unit
-clarifies operational capacity.
+先度量有代表性的端到端流水线。加诊断组件是为了解释回退，不是为了撑大套件。字节、消息、订单或其他单位能澄清
+运维容量时，设置吞吐量。
 
-Add venue-specific suites for confirmed hot paths such as signing, hashing, binary codecs, or
-authentication. Lighter has focused cryptographic suites, and Derive has a signing suite. Do not
-require a category that the adapter does not use. Recorded Lighter signing numbers and the official
-Go comparison live in the
-[Lighter adapter benchmarks](https://github.com/nautechsystems/nautilus_trader/blob/develop/crates/adapters/lighter/benches/BENCHMARKS.md).
+为签名、哈希、二进制编解码或鉴权等已确认的热点路径添加交易场所特有的套件。Lighter 有聚焦的密码学套件，Derive
+有签名套件。不要强制要求适配器用不到的类别。记录在案的 Lighter 签名数字和官方 Go 对比见
+[Lighter adapter benchmarks](https://github.com/nautechsystems/nautilus_trader/blob/develop/crates/adapters/lighter/benches/BENCHMARKS.md)。
 
-Follow the repository [benchmarking guide](https://github.com/nautechsystems/nautilus_trader/blob/develop/BENCHMARKING.md) for tool choice, baselines, noise
-control, and result reporting. Use the
-[Criterion practitioner guide](./benchmarking.md#writing-criterion-benchmarks) for benchmark
-structure and local commands.
+工具选择、基线、噪声控制和结果报告遵循仓库的
+[benchmarking guide](https://github.com/nautechsystems/nautilus_trader/blob/develop/BENCHMARKING.md)。基准
+结构与本地命令见 [Criterion 实践指南](./benchmarking.md#writing-criterion-benchmarks)。
 
-### Fuzz testing
+### 模糊测试 {#fuzz-testing}
 
-Coverage-guided fuzzing adds assurance where arbitrary venue bytes or values cross a trust
-boundary. Prioritize:
+在任意交易场所字节或值跨越信任边界处，覆盖率引导的模糊测试能增加保证。优先：
 
-- Raw WebSocket or binary frame decoding.
-- Decimal, timestamp, symbol, and enum normalization.
-- Signing payload and canonical encoding.
-- Hashes and binary codecs.
-- Nonce or sequence allocation.
-- Other venue-specific parsers and encoders that accept untrusted input.
+- 原始 WebSocket 或二进制帧解码。
+- 十进制、时间戳、符号和枚举的归一化。
+- 签名载荷与规范化编码。
+- 哈希与二进制编解码器。
+- nonce 或序列号分配。
+- 其他接受不可信输入的交易场所解析器和编码器。
 
-Seed parser and decoder corpora with representative payloads from `test_data/` when they improve
-coverage. Keep harnesses below live network and runtime layers unless the target specifically
-needs one of those boundaries.
+`test_data/` 里的代表性载荷能提升覆盖率时，用它给解析器和解码器语料播种。除非目标确实需要那些边界，harness
+保持在实时网络与 runtime 层之下。
 
-Panic freedom is only the baseline. Assert deterministic properties such as:
+不 panic 只是基线。断言确定性的属性，例如：
 
-- Encode/decode round trips.
-- Canonical encoding and idempotence.
-- Length, precision, range, and allocation bounds.
-- Deterministic hashes and signatures.
-- Monotonic nonce or sequence models.
-- Agreement with an independent implementation.
-- Stable rejection for invalid input.
+- 编码/解码往返。
+- 规范化编码与幂等。
+- 长度、精度、范围和分配的上限。
+- 确定性的哈希与签名。
+- 单调的 nonce 或序列模型。
+- 与独立实现结果一致。
+- 无效输入的稳定拒绝。
 
-Use differential fuzzing when a sufficiently independent reference exists. Lighter's scalar
-multiplication target and Derive's nonce model show how to compare implementations without putting
-network state in the harness.
+有足够独立的参考实现时用差分模糊测试。Lighter 的标量乘法目标和 Derive 的 nonce 模型展示了如何在不把网络状态
+放进 harness 的前提下比较实现。
 
-Canonical adapter wiring is:
+适配器的规范化接线如下：
 
-| Surface                                                    | Required wiring                                                                    | Enforcement or use                                                            |
+| 界面 | 必需接线 | 强制方式或用途 |
 | ---------------------------------------------------------- | ---------------------------------------------------------------------------------- | ----------------------------------------------------------------------------- |
-| Adapter `[features]`                                       | `fuzz = ["nautilus-live/fuzz"]`                                                    | Enables the shared fuzz support without changing normal builds.               |
-| Adapter `[package.metadata]`                               | `cargo-fuzz = true`                                                                | Lets `cargo fuzz` treat the adapter manifest as a fuzz package.               |
-| Adapter `[[bin]]`                                          | One entry per target with the `fuzz` feature and `test`, `doc`, and `bench` false. | Registers discoverable binaries without adding them to ordinary test runs.    |
-| `fuzz/fuzz_targets/`                                       | Focused targets below live network and runtime layers.                             | Keeps arbitrary input at the parser, codec, normalization, or model boundary. |
-| [`scripts/fuzz-adapter.sh`](https://github.com/nautechsystems/nautilus_trader/blob/develop/scripts/fuzz-adapter.sh) | Adapter target discovery and repeated time-sliced runs.                            | Uses the registered binaries and preserves corpus and artifact locations.     |
+| 适配器 `[features]` | `fuzz = ["nautilus-live/fuzz"]` | 启用共享的模糊测试支持，不改变常规构建。 |
+| 适配器 `[package.metadata]` | `cargo-fuzz = true` | 让 `cargo fuzz` 把适配器清单当作模糊测试包。 |
+| 适配器 `[[bin]]` | 每个目标一个条目，带 `fuzz` feature，且 `test`、`doc`、`bench` 为 false。 | 注册可发现的二进制，不加入常规测试运行。 |
+| `fuzz/fuzz_targets/` | 位于实时网络与 runtime 层之下的聚焦目标。 | 把任意输入保持在解析器、编解码、归一化或模型边界。 |
+| [`scripts/fuzz-adapter.sh`](https://github.com/nautechsystems/nautilus_trader/blob/develop/scripts/fuzz-adapter.sh) | 适配器目标发现与重复的分片计时运行。 | 使用注册的二进制，保留语料和产物的位置。 |
 
-Adapter crates must not depend directly on `libfuzzer-sys`. The
-[Cargo conventions hook](https://github.com/nautechsystems/nautilus_trader/blob/develop/.pre-commit-hooks/check_cargo_conventions.sh) enforces the shared
-feature path. Use the focused [Lighter fuzz README][lighter-fuzz] and
-[Derive fuzz README][derive-fuzz] for setup, corpus, artifact, and target commands instead of
-copying every invocation here.
+适配器 crate 不得直接依赖 `libfuzzer-sys`。
+[Cargo 约定钩子](https://github.com/nautechsystems/nautilus_trader/blob/develop/.pre-commit-hooks/check_cargo_conventions.sh)
+强制共享的 feature 路径。setup、语料、产物和目标命令参见聚焦的 [Lighter fuzz README][lighter-fuzz] 和
+[Derive fuzz README][derive-fuzz]，不要把每个调用都抄到这里。
 
-## Documentation
+## 文档 {#documentation}
 
-Create or update `docs/integrations/<adapter>.md` with:
+创建或更新 `docs/integrations/<adapter>.md`，包含：
 
-- Supported products, environments, data types, order types, and reports.
-- Authentication and environment variables.
-- Config examples and factory registration.
-- Venue limits, reconciliation behavior, and known gaps.
-- Testnet or sandbox differences.
-- Links to venue protocol documentation used by the implementation.
+- 支持的产品、环境、数据类型、订单类型和报告。
+- 鉴权与环境变量。
+- 配置示例与工厂注册。
+- 交易场所限额、对账行为和已知缺口。
+- testnet 或 sandbox 差异。
+- 实现所引用的交易场所协议文档链接。
 
-Keep capability claims testable and name legitimate exceptions. Link to shared
-[configuration](./../concepts/configuration.md), [benchmarking](https://github.com/nautechsystems/nautilus_trader/blob/develop/BENCHMARKING.md), and testing
-guides instead of copying their policy.
+能力声明要可测试，例外要写明正当理由。链接共享的[配置](./../concepts/configuration.md)、
+[基准测试](https://github.com/nautechsystems/nautilus_trader/blob/develop/BENCHMARKING.md)和测试指南，不要
+复制其策略。
 
-Follow the repository [documentation guide](./docs.md) and
-[Markdown style guide](./markdown_style.md). Change generator inputs and regenerate generated output.
+遵循仓库的[文档指南](./docs.md)和 [Markdown 风格指南](./markdown_style.md)。改动生成器输入并重新生成生成物。
 
-## Testing spec references
+## 测试规范引用 {#testing-spec-references}
 
-Use these shared specifications to plan and report adapter conformance:
+用下面两份共享规范来规划并汇报适配器合规：
 
-- [Data client testing specification](./spec_data_testing.md).
-- [Execution client testing specification](./spec_exec_testing.md).
+- [数据客户端测试规范](./spec_data_testing.md)。
+- [执行客户端测试规范](./spec_exec_testing.md)。
 
 [binance]: https://github.com/nautechsystems/nautilus_trader/blob/develop/crates/adapters/binance/src/lib.rs
 [bybit]: https://github.com/nautechsystems/nautilus_trader/blob/develop/crates/adapters/bybit/src/lib.rs
