@@ -1,24 +1,7 @@
 # Adapters
 
-```{eval-rst}
-.. automodule:: nautilus_trader.adapters
-```
+Auto-generated from the latest source. See [`nautilus_trader.adapters`](https://nautilustrader.io/docs/python-api-latest/#module-nautilus_trader.adapters) in the official documentation.
 
-```{eval-rst}
-.. toctree::
-   :maxdepth: 2
-   :glob:
-   :titlesonly:
-   :hidden:
 
-   betfair.md
-   binance.md
-   bybit.md
-   coinbase_intx.md
-   databento.md
-   dydx.md
-   interactive_brokers.md
-   okx.md
-   polymarket.md
-   tardis.md
-```
+See the [Python API reference](https://nautilustrader.io/docs/python-api-latest/adapters/index.html).
+

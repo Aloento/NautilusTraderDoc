@@ -1,55 +1,9 @@
 # Core
 
-```{eval-rst}
-.. automodule:: nautilus_trader.core
-```
+Auto-generated from the latest source. See [`nautilus_trader.core`](https://nautilustrader.io/docs/python-api-latest/#module-nautilus_trader.core) in the official documentation.
+
 
 ## Datetime
 
-```{eval-rst}
-.. automodule:: nautilus_trader.core.datetime
-   :show-inheritance:
-   :inherited-members:
-   :members:
-   :member-order: bysource
-```
+Auto-generated from the latest source. See [`nautilus_trader.core.datetime`](https://nautilustrader.io/docs/python-api-latest/#module-nautilus_trader.core.datetime) in the official documentation.
 
-## Finite-State Machine (FSM)
-
-```{eval-rst}
-.. automodule:: nautilus_trader.core.fsm
-   :show-inheritance:
-   :inherited-members:
-   :members:
-   :member-order: bysource
-```
-
-## Message
-
-```{eval-rst}
-.. automodule:: nautilus_trader.core.message
-   :show-inheritance:
-   :inherited-members:
-   :members:
-   :member-order: bysource
-```
-
-## Stats
-
-```{eval-rst}
-.. automodule:: nautilus_trader.core.stats
-   :show-inheritance:
-   :inherited-members:
-   :members:
-   :member-order: bysource
-```
-
-## UUID
-
-```{eval-rst}
-.. automodule:: nautilus_trader.core.uuid
-   :show-inheritance:
-   :inherited-members:
-   :members:
-   :member-order: bysource
-```

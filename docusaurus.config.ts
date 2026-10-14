@@ -34,6 +34,11 @@ const config: Config = {
     defaultLocale: 'zh',
     locales: ['zh'],
   },
+  markdown: {
+    mermaid: true,
+    format: 'detect',
+  },
+  themes: ['@docusaurus/theme-mermaid'],
   presets: [
     [
       'classic',
@@ -41,12 +46,16 @@ const config: Config = {
         docs: {
           sidebarPath: './sidebars.ts',
           routeBasePath: '/',
+          showLastUpdateTime: true,
           // Please change this to your repo.
           // Remove this to remove the "edit this page" links.
           editUrl:
             'https://github.com/Aloento/NautilusTraderDoc/tree/main/',
         },
         blog: false,
+        theme: {
+          customCss: './src/css/custom.css',
+        },
       } satisfies Preset.Options,
     ],
   ],

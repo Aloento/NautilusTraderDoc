@@ -1,673 +1,926 @@
-# Rust 风格指南
+# Rust
 
-[Rust](https://www.rust-lang.org/learn) 语言非常适合实现平台和系统的关键核心部分。
-它强类型系统、所有权模型与编译期检查在设计上消除了内存错误和数据竞争，
-而零成本抽象与无垃圾回收机制则提供了接近 C 的性能，这对高频交易这类对延迟和吞吐敏感的工作负载至关重要。
+This page defines NautilusTrader conventions for Rust source, Cargo manifests, PyO3 bindings, and tests.
 
-## Cargo 清单（manifest）约定
+NautilusTrader uses Rust for its mission-critical core because the language combines a strong type
+system, an ownership model, and predictable performance. Safe Rust prevents data races and many
+memory errors at compile time. `unsafe` code must make explicit the invariants that the compiler
+cannot check.
 
-- 在 `[dependencies]` 中：先按字母顺序列出内部 crate（例如 `nautilus-*`），插入一个空行，再按字母顺序列出外部必需依赖；随后再插入一个空行，最后按字母顺序列出可选依赖（即带有 `optional = true` 的项）。保留每个依赖行上的内联注释。
-- 对于会构建 Python 工件的 `extension-module` 特性列表，请始终把 `"python"` 加入其中，并与 `"pyo3/extension-module"` 相邻，以便一眼看出完整的 Python 栈依赖。
-- 当 manifest 将适配器（adapters）单独分组时（例如 `crates/pyo3`），把 `# Adapters` 块放在内部 crate 列表下方，便于下游消费者快速查看适配器覆盖情况。
-- 在 `[dev-dependencies]` 和 `[build-dependencies]` 节之前始终保留一个空行。
-- 当相关 manifest 的特性或依赖集合发生变化时，保持相同布局以避免各个 crate 之间出现样式漂移。
-- 对 `bin/` 下的源文件使用 snake_case 文件名（例如 `bin/ws_data.rs`），并在每个 `[[bin]]` 部分中反映相应路径。
-- 保持 `[[bin]] name` 条目使用 kebab-case（例如 `name = "hyperliquid-ws-data"`），以保证编译出的二进制文件拥有预期的 CLI 名称。
+`rustfmt` and the workspace lints own general Rust style. The rules below supplement them.
 
-## 版本管理建议
+## Sources of truth
 
-- 对于共享依赖使用 workspace 继承（例如 `serde = { workspace = true }`）。
-- 仅对不属于 workspace 的 crate 特有依赖直接固定版本（pin）。
-- 把 workspace 提供的依赖放在 crate 专属依赖之前，便于审计继承关系。
+| Concern                    | Source                                             |
+| -------------------------- | -------------------------------------------------- |
+| Formatting and imports.    | `rustfmt.toml`.                                    |
+| Workspace lints.           | `Cargo.toml` and `clippy.toml`.                    |
+| Cargo layout.              | `.pre-commit-hooks/check_cargo_conventions.sh`.    |
+| Rust layout.               | `.pre-commit-hooks/check_formatting_rs.sh`.        |
+| Nautilus type conventions. | `.pre-commit-hooks/check_nautilus_conventions.sh`. |
+| Async boundaries.          | `.pre-commit-hooks/check_tokio_usage.sh`.          |
+| DST boundaries.            | `.pre-commit-hooks/check_dst_conventions.sh`.      |
+| PyO3 bindings.             | `.pre-commit-hooks/check_pyo3_conventions.sh`.     |
+| Anyhow.                    | `.pre-commit-hooks/check_anyhow_usage.sh`.         |
+| Error names.               | `.pre-commit-hooks/check_error_conventions.sh`.    |
+| Logging.                   | `.pre-commit-hooks/check_logging_conventions.sh`.  |
+| Rustdoc contracts.         | `.pre-commit-hooks/check_docs_conventions.sh`.     |
+| Test style.                | `.pre-commit-hooks/check_testing_conventions.sh`.  |
+| Workspace test selection.  | `scripts/ci/check-workspace-test-coverage.sh`.     |
 
-## 特性（feature）约定
+Match nearby code when the tools do not settle a choice. Change generator inputs and regenerate
+outputs instead of editing generated files directly.
 
-- 优先采用“可叠加”（additive）的特性开关——启用某特性不应破坏现有功能。
-- 使用描述性名称来说明特性启用后会带来什么能力。
-- 在 crate 级别文档中记录每个特性，方便使用者了解其影响。
-- 常见模式：
-  - `high-precision`：切换底层数值类型（64 位或 128 位整数），以支持需要更高精度的场景。
-  - `default = []`：保持默认集尽可能精简。
-  - `python`：启用 Python 绑定。
-  - `extension-module`：构建 Python 扩展模块（始终同时包含 `python`）。
-  - `ffi`：启用 C 语言 FFI 绑定。
-  - `stubs`：暴露用于测试的桩（stubs）。
+## Module layout
 
-## 模块组织
+Arrange each hand-written module so its primary behavior appears before its supporting
+implementation details.
 
-- 保持模块聚焦单一职责。
-- 在定义子模块时使用 `mod.rs` 作为模块根文件。
-- 相较于深度嵌套，更倾向于使用相对扁平的层级，以便路径更易管理。
-- 对常用项在 crate 根处进行 re-export，提升使用方便性。
+### Module roots and declarations
 
-## 代码风格与约定
+Preserve the surrounding module-root style when adding child modules. In each contiguous
+declaration block in a `mod.rs` file, order out-of-line module declarations by these sections:
 
-### 文件头要求
+1. `#[macro_use]` modules.
+1. Public modules.
+1. Restricted modules such as `pub(crate)`.
+1. Non-test `#[cfg(...)]`-gated modules.
+1. Private modules.
+1. Test-only modules.
 
-所有 Rust 文件必须包含标准化的版权头：
+Alphabetize declarations within each section and leave one blank line between sections. The
+formatting hook enforces this order in `mod.rs` files.
 
-```rust
-// -------------------------------------------------------------------------------------------------
-//  Copyright (C) 2015-2025 Nautech Systems Pty Ltd. All rights reserved.
-//  https://nautechsystems.io
-//
-//  Licensed under the GNU Lesser General Public License Version 3.0 (the "License");
-//  You may not use this file except in compliance with the License.
-//  You may obtain a copy of the License at https://www.gnu.org/licenses/lgpl-3.0.en.html
-//
-//  Unless required by applicable law or agreed to in writing, software
-//  distributed under the License is distributed on an "AS IS" BASIS,
-//  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-//  See the License for the specific language governing permissions and
-//  limitations under the License.
-// -------------------------------------------------------------------------------------------------
+Use the narrowest visibility that serves the caller. The workspace denies unreachable `pub` items.
+
+### Imports
+
+Keep imports at the top of the file or module. Use a local import only when its narrow scope
+materially improves clarity.
+
+### Constants and global state
+
+Group module-wide constants and global state near the top of the module. Put `const` items before
+`static` and `thread_local!` declarations. Keep a narrowly used constant or static next to its
+consumers instead.
+
+### Primary types and implementations
+
+Keep the primary type and its inherent implementation near the top of a module.
+
+### Enums
+
+Place enums by role rather than collecting them in one module-wide block:
+
+- Keep a primary or public enum with the module's primary types.
+- Keep a small state enum next to the global whose state it represents.
+- Place a private supporting enum below its first caller.
+
+### Supporting definitions
+
+Place private functions and types below their callers. In adapters, place private route types,
+decision enums, and parsing functions below the main client implementations.
+
+### Box-style banner comments
+
+Do not add box-style banner or separator comments to divide module contents. Use modules and
+implementation blocks to express structure. The standard copyright and license header is the
+exception.
+
+## Cargo manifests
+
+### Dependencies and sections
+
+- Use workspace inheritance for shared dependencies, for example
+  `serde = { workspace = true }`. Pin a version in a crate only when the dependency is not
+  workspace-managed.
+- Separate dependency groups with a blank line and alphabetize each group. Manifests normally group
+  internal `nautilus-*` crates, required external crates, and optional external crates, but preserve
+  a manifest's meaningful local groups.
+- Keep optional crates in their own blank-line group, except when every crate in the group is a
+  `nautilus-*` crate.
+- Keep the standard section order:
+
+  1. Package.
+  1. Lints.
+  1. Library.
+  1. Features.
+  1. `cargo-machete` metadata.
+  1. docs.rs metadata.
+  1. Dependencies.
+  1. Development dependencies.
+  1. Build dependencies.
+  1. Benches.
+  1. Binaries.
+  1. Examples.
+  1. Tests.
+
+- Add `[lints] workspace = true` to every workspace crate with a library or binary target.
+- Keep adapter dependencies in the `# Adapter dependencies` section of the workspace
+  `Cargo.toml`. Core crates must not depend on entries from that section.
+- Keep related dependency families compatible. The Cargo convention hook checks the known
+  constraints, including `capnp` with `capnpc`, `arrow` with `parquet`, and
+  `dydx-proto` with `prost` and `tonic`.
+- List only declared dependencies under `[package.metadata.cargo-machete] ignored`.
+- Remove a root `[workspace.dependencies]` entry when no crate uses it. Cargo tools kept only for CI
+  are exempt from this check.
+- Remove a root `[workspace.package]` field when no crate inherits it.
+- List each `[workspace] members` entry as a literal path. The convention hook resolves
+  member manifests directly and does not expand Cargo glob members.
+- Obtain `libfuzzer-sys` in adapter crates through `nautilus-live`. Do not add it directly to an adapter
+  manifest.
+
+When `crates/pyo3/Cargo.toml` groups adapters separately, keep its `# Adapters` block below the core
+internal crates.
+
+### Package fields
+
+Crate `[package]` sections use this canonical prefix. Cargo infers `README.md` next to the
+manifest, so omit `readme`. The other fields shown are required.
+
+```toml
+[package]
+name = "nautilus-example"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+authors.workspace = true
+license.workspace = true
+description = "Example crate for NautilusTrader"
+categories.workspace = true
+keywords.workspace = true
+documentation.workspace = true
+repository.workspace = true
+homepage.workspace = true
 ```
 
-### 代码格式化
+Place the optional `publish`, `build`, and `include` fields after `homepage.workspace`.
 
-运行 `make format` 时，`rustfmt` 会自动处理导入（import）的格式化。
-该工具会将导入按组（标准库、外部 crate、本地导入）划分，并在每个组内按字母顺序排序。
+### Features
 
-在本节内，请遵循以下空行规则：
+- Preserve the crate's existing default feature contract. Most core crates have empty defaults,
+  while many adapter crates enable `high-precision` by default.
+- Include `"python"` in every `extension-module` feature that builds a Python artifact. Keep it next
+  to `"pyo3/extension-module"`.
+- Propagate `high-precision` to dependent Nautilus crates that store or construct fixed-point
+  domain values.
+- Document each public non-default feature once, in alphabetical order, under `## Feature flags` in the
+  crate README and `# Feature Flags` in the crate-level library docs.
 
-- 在函数之间（包括测试）保留**一行空行**——这有助于可读性，也与 `rustfmt` 的默认行为一致。
-- 在每个文档注释（`///` 或 `//!`）上方保留**一行空行**，以便将注释与前面的代码块明显分离。
+### Targets
 
-#### 字符串格式
+- Use snake_case filenames for `bin/` sources and kebab-case executable names, for example
+  `path = "bin/ws_data.rs"` and `name = "hyperliquid-ws-data"`.
+- Set `doc = false` on binary and example targets. Also set `test = false` on binary targets.
+- Order library crate types as `rlib`, `staticlib`, then `cdylib` when a crate produces more than
+  one type.
 
-优先使用带变量名的内联格式字符串，而非位置参数：
+## File header requirements
+
+Copy the standard copyright and license header from a neighboring hand-written Rust file. Generated
+files retain their generator header instead. The copyright hook checks the year.
+
+Change a generator input and rerun the generator instead of editing generated Rust, C headers,
+Python stubs, or wrapper doc comments.
+
+## Formatting and attributes
+
+`rustfmt` groups standard library, external crate, and local imports, then alphabetizes each group.
+Run the formatter instead of ordering imports by hand.
+
+Leave one blank line:
+
+- Between functions, including tests.
+- Above each `///` or `//!` doc comment.
+- Above standalone `if`, `match`, `for`, `while`, and `loop` expressions.
+- Above task spawn calls, including `spawn_local` and `spawn_blocking`.
+- Before a `let` that contains a multiline braced expression, unless it starts a block.
+- Before a multiline struct literal or a direct qualified `Type::new(...)` call, unless it starts a block.
+- After a statement that contains a multiline braced expression, before the next statement in the same block.
+
+The control-flow and spawn rules do not apply when the expression starts a block, continues the
+previous operation, or has an attached comment or attribute. Wrapped calls and method chains alone
+do not need a separator.
+
+Construction spacing also applies to assignments, explicit returns, and calls followed by `?` or `.await`.
+Construction must span multiple lines after rustfmt layout. One-line initializers stay together.
+
+Keep comments and attributes attached to their statement when inserting a separator. Skip macro bodies and
+`rustfmt::skip` regions. Apply the multiline statement rules around changed code. Leave unrelated code alone.
+Add only blank lines that `rustfmt` preserves.
+
+The formatting hook:
+
+- Checks existing control-flow, spawn, and module-ordering rules at changed boundaries.
+- Compares staged and unstaged changes against `HEAD`, or against the merge base with `CHANGED_BASE_SHA` when set.
+- Falls back to checking all tracked Rust files when a CI base is unavailable.
+- Reads complete changed files for context and includes lines used by exemption checks when selecting diagnostics.
+- Does not modify files.
+
+These remain review conventions:
+
+- Multiline statement spacing.
+- Construction spacing.
+- `spawn_local` and `spawn_blocking` spacing.
+
+Keep changed code readable for a human reader. If those separators still leave a dense block hard to follow,
+add more blank lines.
+
+Use inline format arguments for existing variables:
 
 ```rust
-// Preferred - inline format with variable names
 anyhow::bail!("Failed to subtract {n} months from {datetime}");
-
-// Instead of - positional arguments
-anyhow::bail!("Failed to subtract {} months from {}", n, datetime);
 ```
 
-这种方式使得错误消息更具可读性与自说明性，尤其在变量较多时更明显。
+If discarding a returned value is almost certainly a mistake, add `#[must_use]` to these functions:
 
-### 日志（Logging）
+- Constructors.
+- Accessors.
+- Pure conversions.
+- Consuming `with_*` methods.
 
-- 明确限定日志宏的路径以指明后端：
-  - 在同步核心 crate 中使用 `log::…`（如 `log::info!`, `log::warn!` 等）。
-  - 在异步运行时、适配器及外围组件中使用 `tracing::…`（如 `tracing::debug!`, `tracing::info!` 等）。
-- 日志消息以首字母大写开头，优先使用完整句子，但省略结尾句号（例如使用 "Processing batch" 而不是 "Processing batch."）。
+A return type such as `Result` already carries its own `must_use` annotation.
 
-### 错误处理
-
-一致地采用结构化的错误处理模式：
-
-1. **主要模式**：对可能失败的函数使用 `anyhow::Result<T>`：
-
-   ```rust
-   pub fn calculate_balance(&mut self) -> anyhow::Result<Money> {
-       // Implementation
-   }
-   ```
-
-2. **自定义错误类型**：对领域特定错误使用 `thiserror`：
-
-   ```rust
-   #[derive(Error, Debug)]
-   pub enum NetworkError {
-       #[error("Connection failed: {0}")]
-       ConnectionFailed(String),
-       #[error("Timeout occurred")]
-       Timeout,
-   }
-   ```
-
-3. **错误传播**：使用 `?` 运算符实现清晰的错误传播。
-
-4. **构造错误**：偏好用 `anyhow::bail!` 做早期返回：
-
-   ```rust
-   // Preferred - using bail! for early returns
-   pub fn process_value(value: i32) -> anyhow::Result<i32> {
-       if value < 0 {
-           anyhow::bail!("Value cannot be negative: {value}");
-       }
-       Ok(value * 2)
-   }
-
-   // Instead of - verbose return statement
-   if value < 0 {
-       return Err(anyhow::anyhow!("Value cannot be negative: {value}"));
-   }
-   ```
-
-   注意：在需要闭包上下文（如 `ok_or_else()`）而无法早期返回时，使用 `anyhow::anyhow!`。
-
-### 异步模式（Async patterns）
-
-保持异步/await 的一致使用惯例：
-
-1. **异步函数命名**：无需特殊后缀，使用自然命名即可。
-2. **Tokio 使用**：对 fire-and-forget 类型的工作使用 `tokio::spawn`，并在文档中说明该后台任务何时应该完成。
-3. **错误处理**：异步函数也返回 `anyhow::Result`，以与同步约定一致。
-4. **取消安全（cancellation safety）**：在文档中说明函数是否对取消安全以及被取消后仍保持的不变式。
-5. **流处理**：使用 `tokio_stream`（或 `futures::Stream`）实现异步迭代器，从而显式处理背压（back-pressure）。
-6. **超时模式**：对网络或长耗时的 await 使用超时封装（`tokio::time::timeout`），并传播或处理超时错误。
-
-### 属性（attribute）使用规范
-
-一致地使用属性并保持固定顺序：
+When suppressing `missing_panics_doc` or `missing_errors_doc`, include a reason that explains why
+the lint does not apply:
 
 ```rust
-#[repr(C)]
-#[derive(Clone, Copy, Debug, Hash, PartialEq, Eq, PartialOrd, Ord)]
-#[cfg_attr(
-    feature = "python",
-    pyo3::pyclass(module = "nautilus_trader.model")
+#[allow(
+    clippy::missing_errors_doc,
+    reason = "result type is retained for API compatibility but no error is returned",
 )]
-pub struct Symbol(Ustr);
 ```
 
-对于带大量 derive 属性的枚举：
+Use `try_update` instead of the deprecated `fetch_update` on standard atomics. The pre-commit hook
+rejects `fetch_update`.
+
+## Type qualification
+
+| Item                          | Convention                                                                  |
+| ----------------------------- | --------------------------------------------------------------------------- |
+| `anyhow`.                     | Import only `anyhow::Context`. Fully qualify macros and `Result`.           |
+| Nautilus domain types.        | Import the type, then use its short name.                                   |
+| Tokio time, sync, and tasks.  | Fully qualify the path. Use `std::time::Duration`.                          |
+| `Debug` and `Display`.        | Import the trait.                                                           |
+| `Formatter` and `fmt::Result` | Use `std::fmt::Formatter` and `std::fmt::Result` at the implementation.     |
+| Nautilus macros.              | Import `nautilus_actor!` or `nautilus_strategy!`, then call it unqualified. |
+
+Use `debug_struct(stringify!(TypeName))` in manual `Debug` implementations.
+
+Use `// nautilus-import-ok` only where a macro, generated path, or conditional import requires a
+fully qualified Nautilus type. Put the marker on the affected line or directly above the narrow
+block.
+
+## Error handling and contracts
+
+### Design by contract
+
+Use the narrowest mechanism that expresses the contract:
+
+| Situation                                          | Mechanism                                    |
+| -------------------------------------------------- | -------------------------------------------- |
+| Compile-time state or ownership rule.              | Types, lifetimes, newtypes, and visibility.  |
+| Public input precondition.                         | `check_*` from `nautilus_core::correctness`. |
+| Validated value construction.                      | `new_checked()` with a `new()` wrapper.      |
+| Recoverable parse, I/O, or network failure.        | `Result<T, E>`.                              |
+| Internal invariant safe to omit in release builds. | `debug_assert!`, covered by a targeted test. |
+| Soundness or always-on invariant.                  | `assert!` or a checked error path.           |
+
+Place an assertion where the code first relies on the invariant. Never use `debug_assert!` for
+public input validation or a soundness condition because release builds remove it.
+
+Prefix debug assertion messages with `Invariant:` and state the positive rule. The shared
+`Condition failed: ...` prefix marks a caller input violation. `Invariant: ...` marks an internal contract
+bug.
+
+### Error boundaries
+
+Choose the error type at the API boundary:
+
+| Boundary                              | Return type                         |
+| ------------------------------------- | ----------------------------------- |
+| Reusable library or domain API.       | A typed `Result<T, E>`.             |
+| Application or adapter orchestration. | `anyhow::Result<T>`.                |
+| Public input validation.              | `CorrectnessResult<T>` when suited. |
+
+- Define a typed error with `thiserror` when callers inspect or recover from the failure.
+- Bind error patterns and closures as `e`, not `err` or `error`.
+- Use `anyhow::bail!` for an early return from an `anyhow::Result` function. Use
+  `anyhow::anyhow!` when an error value is required, such as inside `ok_or_else`.
+- Start `.context()` messages with lowercase text so chained errors read naturally. Preserve the
+  capitalization of a leading proper noun or acronym.
+- Do not use `", got"` in an error or assertion. Use `", was"`, `", received"`, or `", found"`
+  according to the context.
 
 ```rust
-#[repr(C)]
-#[derive(
-    Copy,
-    Clone,
-    Debug,
-    Display,
-    Hash,
-    PartialEq,
-    Eq,
-    PartialOrd,
-    Ord,
-    AsRefStr,
-    FromRepr,
-    EnumIter,
-    EnumString,
-)
-#[strum(ascii_case_insensitive)]
-#[strum(serialize_all = "SCREAMING_SNAKE_CASE")]
-#[cfg_attr(
-    feature = "python",
-    pyo3::pyclass(eq, eq_int, module = "nautilus_trader.model")
-)]
-pub enum AccountType {
-    /// An account with unleveraged cash assets only.
-    Cash = 1,
-    /// An account which facilitates trading on margin, using account assets as collateral.
-    Margin = 2,
-}
+parse_timestamp(value).context("failed to parse timestamp")?;
+connect().context("Bybit websocket did not become active")?;
 ```
 
-### 构造函数模式
+### Panic policy
 
-在 `new()` 与 `new_checked()` 之间保留一致约定：
+Panics are valid for internal invariant violations that callers cannot reasonably recover from.
+Keep an API infallible when returning `Result` would only require callers to handle a programming
+defect. Use an always-on assertion for an invariant that protects soundness or prevents unsafe code
+from continuing with invalid state.
+
+Return `Result` at boundaries that accept untrusted input. Also return `Result` at boundaries with failures
+from configuration, I/O, external data, task cancellation, or resource lifecycle. These are operational
+failures even when a specific call site expects them never to occur.
+
+For validated values, follow the [`new()` and `new_checked()` constructor pattern](#constructor-patterns).
+Expose a fallible path for untrusted values. Use the convenience wrapper only where its caller contract
+permits a panic. Document reachable panics in public Rust APIs, and make each panic message name the violated
+invariant.
+
+Treat findings for these lints from `make clippy-strict-audit` as review prompts:
+
+- `clippy::panic`
+- `clippy::unwrap_used`
+- `clippy::expect_used`
+
+The audit also reports `clippy::panic_in_result_fn`, which the required workspace Clippy gate already
+enforces. Remove a panic when the failure is recoverable. Retain a justified invariant panic, with a scoped
+lint reason when needed. The audit uses forced warnings, so its totals include deliberate sites with local
+lint allowances and diagnostics from macro expansions.
+
+### Failure contract examples
+
+APIs with a documented panic contract use panics for:
+
+- Programmer errors (logic bugs, incorrect API usage).
+- Data that violates fundamental invariants (negative timestamps, NaN prices).
+- Arithmetic that would silently produce incorrect results.
+
+APIs return `Result` or `Option` when callers, including downstream crates, can handle a failure or
+absence, including:
+
+- Expected runtime failures (network errors, file I/O).
+- Business logic validation (order constraints, risk limits).
+- User input validation.
+
+The API determines how an invalid operation fails:
 
 ```rust
-/// Creates a new [`Symbol`] instance with correctness checking.
-///
-/// # Errors
-///
-/// Returns an error if `value` is not a valid string.
-///
-/// # Notes
-///
-/// PyO3 requires a `Result` type for proper error handling and stacktrace printing in Python.
-pub fn new_checked<T: AsRef<str>>(value: T) -> anyhow::Result<Self> {
-    // Implementation
+let later = timestamp + duration_ns; // Panics on overflow.
+
+let price = Price::new_checked(f64::NAN, precision); // Returns Err.
+
+let later = timestamp.checked_add(duration_ns); // Returns None on overflow.
+```
+
+This policy is implemented throughout the core types (`UnixNanos`, `Price`, `Quantity`, etc.)
+and helps NautilusTrader maintain strong data correctness for production trading.
+
+The repository release profile sets `panic = "abort"`, so a panic terminates the process for a
+supervisor or orchestration system to handle. Downstream Rust binaries control their own release
+profile.
+
+## Logging
+
+- Fully qualify log macros, for example `log::debug!` and `log::info!`.
+- Start messages with a capitalized word and omit terminal periods.
+- A terminal period can be part of a logged value instead of sentence punctuation. For this case, use
+  `// log-period-ok` on the call or within three lines above it.
+- Keep connection and client lifecycle, reconnection, reconciliation, and mass-status summaries at
+  `INFO`.
+- Keep subscription detail, per-order confirmations, instrument counts, authentication, and
+  WebSocket internals at `DEBUG`.
+- Log a warning or error when an unexpected, user-actionable, or data-loss condition is handled
+  locally. Do not log an error that continues to propagate through `?` or `anyhow::bail!`.
+- Leave a blank line above a log call unless it is the first line of the function.
+- Do not write to stdout or stderr or terminate the process from production library code. Binaries,
+  examples, benches, tests, adapters, the CLI, and testkit may control their process when that is
+  part of their role.
+
+## Async code
+
+Synchronous core crates do not take Tokio as a regular dependency. The `common` crate keeps Tokio
+optional. The Tokio convention hook owns the exact crate list.
+
+Adapter production code uses the shared runtime because calls may arrive from Python threads without
+a thread-local Tokio context:
+
+```rust
+use nautilus_common::live::get_runtime;
+
+get_runtime().spawn(async move {
+    run_client().await;
+});
+```
+
+- Import `get_runtime` through `nautilus_common::live`, not `live::runtime`.
+- Use `get_runtime().block_on()` when synchronous adapter code must call an async function.
+- Use the runtime supplied by `#[tokio::test]` in tests. `tokio::spawn()` is valid there.
+- A site can be unable to use the fully qualified form or shared runtime. Only for such sites, put
+  `// tokio-import-ok` on the import or spawn line.
+- Install a custom runtime before `LiveNode::build()` or any adapter use. Build a multi-threaded
+  runtime with all drivers enabled.
+- `set_runtime()` bypasses the default initializer, including Python initialization. With the
+  `python` feature enabled, initialize Python before installing a custom runtime or keep the default
+  runtime.
+
+Code on the deterministic simulation path follows the
+[DST determinism contract](./../concepts/dst.md#determinism-contract). Route clocks, random values,
+task spawning, and network access through the project seams. Use `biased;` in `tokio::select!`
+blocks on that path.
+
+## Runtime ownership and access
+
+### Cache order access
+
+`Cache` hides its `SharedCell` order storage behind lifetime-scoped accessors. Use these lifetime-scoped
+accessors:
+
+- **Scoped read**: `order_ref()` or `try_order_ref()`.
+- **Exclusive write borrow**: `order_mut()`.
+- **Snapshot across a boundary**: `order_owned()` or `try_order_owned()`.
+
+The `try_*` forms return `OrderLookupError` when the order is absent.
+
+`order_mut()` requires `&mut Cache`, so adapter-facing `CacheView` code cannot mutate orders. Before event
+dispatch or a borrow that can re-enter the same order, drop the `OrderRef` or `OrderRefMut`. Then look up the
+order again for post-event state.
+
+### Runtime invariants
+
+The actor registry, component registry, and message bus use `thread_local!` storage. Objects
+registered on one thread are not visible from another. `LiveNodeHandle` is the intended
+cross-thread control surface.
+
+Keep an `ActorRef` within one synchronous scope. Do not store it in a struct, hold it across
+`.await`, or send it to another thread. Capture the actor ID in long-lived callbacks and look up the
+actor each time the callback runs.
+
+The component registry rejects aliased mutable access with a scoped borrow guard. Do not make
+component lifecycle operations re-entrant.
+
+## Construction and conversion
+
+### Constructor patterns
+
+Validated value types pair a fallible `new_checked()` with a convenience `new()`:
+
+```rust
+pub fn new_checked<T: AsRef<str>>(value: T) -> CorrectnessResult<Self> {
+    let value = value.as_ref();
+    check_valid_string_ascii(value, stringify!(value))?;
+    Ok(Self(Ustr::from(value)))
 }
 
-/// Creates a new [`Symbol`] instance.
-///
-/// # Panics
-///
-/// Panics if `value` is not a valid string.
 pub fn new<T: AsRef<str>>(value: T) -> Self {
-    Self::new_checked(value).expect(FAILED)
+    Self::new_checked(value).expect_display(FAILED)
 }
 ```
 
-始终在与正确性检查相关的 `.expect()` 信息中使用 `FAILED` 常量：
+Use the shared `FAILED` constant with `CorrectnessResultExt::expect_display` so panic messages use
+the standard `Condition failed: ...` prefix. Document the error on `new_checked()` and the panic on
+`new()`.
+
+If a long constructor mostly has optional fields, use a `bon` builder. For such types, do not expose public
+positional `new()` and `new_checked()` methods. Put `#[bon::bon]` on the inherent implementation. Make the
+builder's finish method delegate to a private validation function or perform validation directly. Keep one
+validation and defaulting path.
 
 ```rust
-use nautilus_core::correctness::FAILED;
-```
-
-### 常量与命名约定
-
-对描述性常量使用 SCREAMING_SNAKE_CASE：
-
-```rust
-/// Number of nanoseconds in one second.
-pub const NANOSECONDS_IN_SECOND: u64 = 1_000_000_000;
-
-/// Bar specification for 1-minute last price bars.
-pub const BAR_SPEC_1_MINUTE_LAST: BarSpecification = BarSpecification {
-    step: NonZero::new(1).unwrap(),
-    aggregation: BarAggregation::Minute,
-    price_type: PriceType::Last,
-};
-```
-
-### 哈希集合（Hash collections）
-
-优先使用 `ahash` crate 提供的 `AHashMap` 和 `AHashSet`，替代标准库的 `HashMap` 和 `HashSet`：
-
-```rust
-use ahash::{AHashMap, AHashSet};
-
-// Preferred - using AHashMap/AHashSet
-let mut symbols: AHashSet<Symbol> = AHashSet::new();
-let mut prices: AHashMap<InstrumentId, Price> = AHashMap::new();
-
-// Instead of - standard library HashMap/HashSet
-use std::collections::{HashMap, HashSet};
-let mut symbols: HashSet<Symbol> = HashSet::new();
-let mut prices: HashMap<InstrumentId, Price> = HashMap::new();
-```
-
-**为什么使用 `ahash`？**
-
-- **更优的性能**：AHash 在可用时利用 AES-NI 硬件指令，相较默认的 SipHash 可提供 2-3 倍的哈希速度提升。
-- **低碰撞率**：尽管不是加密哈希，但 AHash 在典型数据下仍能提供良好的分布与较低的碰撞概率。
-- **无缝替换**：与标准库集合兼容的 API，便于直接替换。
-
-**何时使用标准 `HashMap`/`HashSet`：**
-
-- **需要加密安全**：当哈希泛滥攻击（hash flooding）是关注点（例如处理来自不受信任用户的网络输入）时，请使用标准的 `HashMap`。
-- **面向网络的客户端**：对于网络相关组件，目前更倾向于使用标准库的 `HashMap`，因为安全性优先于性能。
-
-### Re-export 约定
-
-按字母顺序组织 re-export，并放在 `lib.rs` 文件末尾：
-
-```rust
-// Re-exports
-pub use crate::{
-    nanos::UnixNanos,
-    time::AtomicTime,
-    uuid::UUID4,
-};
-
-// Module-level re-exports
-pub use crate::identifiers::{
-    account_id::AccountId,
-    actor_id::ActorId,
-    client_id::ClientId,
-};
-```
-
-### 文档标准
-
-#### 模块级文档
-
-所有模块必须有模块级文档，并以简短描述开始：
-
-```rust
-//! Functions for correctness checks similar to the *design by contract* philosophy.
-//!
-//! This module provides validation checking of function or method conditions.
-//!
-//! A condition is a predicate which must be true just prior to the execution of
-//! some section of code - for correct behavior as per the design specification.
-```
-
-对于带有特性开关的模块，要清晰地记录这些特性：
-
-```rust
-//! # Feature flags
-//!
-//! This crate provides feature flags to control source code inclusion during compilation,
-//! depending on the intended use case:
-//!
-//! - `ffi`: Enables the C foreign function interface (FFI) from [cbindgen](https://github.com/mozilla/cbindgen).
-//! - `python`: Enables Python bindings from [PyO3](https://pyo3.rs).
-//! - `extension-module`: Builds as a Python extension module (used with `python`).
-//! - `stubs`: Enables type stubs for use in testing scenarios.
-```
-
-#### 字段文档
-
-所有结构体和枚举字段必须有以句号结尾的文档注释：
-
-```rust
-pub struct Currency {
-    /// The currency code as an alpha-3 string (e.g., "USD", "EUR").
-    pub code: Ustr,
-    /// The currency decimal precision.
-    pub precision: u8,
-    /// The ISO 4217 currency code.
-    pub iso4217: u16,
-    /// The full name of the currency.
-    pub name: Ustr,
-    /// The currency type, indicating its category (e.g. Fiat, Crypto).
-    pub currency_type: CurrencyType,
+#[builder(start_fn = builder, finish_fn = build)]
+pub fn build_checked(/* same inputs as new_checked */) -> CorrectnessResult<Self> {
+    Self::new_checked(/* forward inputs */)
 }
 ```
 
-#### 函数文档
+Required fields remain required in `bon` typestate. Optional fields remain omittable, and `build()`
+returns the same `CorrectnessResult` as the internal validation path.
 
-对所有公共函数请记录：
+### Conversion patterns
 
-- 目的与行为
-- 参数的使用说明
-- 可能出现的错误条件（如适用）
-- 可能触发的 panic 条件（如适用）
+- Implement `From` only for infallible, complete conversions.
+- Implement `TryFrom` when the source can contain an invalid or unrepresentable value.
+- Implement `FromStr` for string parsing.
+- Treat generic `From<T: AsRef<str>>` implementations that panic as compatibility surfaces. Do not
+  copy that pattern into new APIs.
+- Keep venue wire enums distinct from Nautilus domain enums. Use idiomatic Rust variant names,
+  express the wire spelling with `serde` or `strum` attributes, and convert explicitly at the
+  boundary.
+- Deserialize adapter payloads into wire models before constructing domain objects. Keep parsing
+  and validation in conversion functions instead of embedding venue wire details in domain types.
+
+### Domain numeric types
+
+Preserve discrete financial values as decimals from ingestion:
+
+| Value                                    | Type and construction                                    |
+| ---------------------------------------- | -------------------------------------------------------- |
+| Price or quantity.                       | `Price::from_decimal_dp` or `Quantity::from_decimal_dp`. |
+| Money, fee, margin, or balance.          | `Decimal`, then `Money::from_decimal` or `Money::zero`.  |
+| Continuous signal ratio or timing curve. | `f64` when decimal precision has no domain meaning.      |
+
+Do not route wire values through `f64` constructors. In tests, compare `.as_decimal()` with
+`dec!(value)`.
+
+## Identifier storage
+
+### How string interning works
+
+String interning stores one shared copy of each distinct string in a central cache. Repeated values
+refer to the same cached bytes instead of allocating another copy. Small handles make the values
+cheap to copy and compare, while a cached hash avoids reading the full string again during hashing.
+
+NautilusTrader uses `Ustr` for its interned identifier components. Each `Ustr` is a pointer-sized
+`Copy` handle with a precomputed hash and stable direct string access. Composite types such as
+`InstrumentId` preserve the same cheap copy semantics by storing these handles.
+
+### Reclamation boundary
+
+The string cache retains every unique value for the process lifetime. This retention keeps copied
+handles and returned string slices valid without reference counting, access guards, or explicit
+lifetime parameters on identifier types. Process teardown is the normal reclamation boundary.
+
+These guarantees rule out safe reclamation of individual entries. Rust can copy a `Copy` value
+without executing code, so an atomic reference count cannot observe every copy. Designs that add
+reclamation change the identifier contract:
+
+- Reference counting requires `Clone` and `Drop`, which removes `Copy` from identifiers and types
+  that contain them.
+- Borrowed or epoch-protected storage requires lifetimes or access guards at string access points.
+- Generational handles permit reclamation but make lookup fallible and invalidate stale handles.
+- A global cache reset is safe only at a proven quiescent point. All handles, references, and foreign pointers
+  must be destroyed first. No task or thread can retain one at that point.
+
+### Storage boundaries
+
+Interning is best suited to identifiers drawn from a bounded process-scoped universe and values that
+repeat enough to benefit from deduplication. Identifiers whose distinct values can grow with every
+order, trade, or message increase the cache for the process lifetime.
+
+Fixed-capacity inline storage retains `Copy` when the external protocol supplies a suitable maximum.
+`TradeId`, for example, uses a 36-character `StackStr`. Owned or reference-counted storage provides
+dynamic capacity when reclamation matters more than `Copy`.
+
+The domain model also contains compatibility exceptions. `ClientOrderId`, `VenueOrderId`,
+`PositionId`, and `OrderListId` remain `Ustr`-backed and therefore retain every distinct value.
+Identifier storage participates in the supported by-value C ABI, so a broader redesign depends on
+conversion-based bindings replacing raw layout sharing.
+
+The storage boundary includes an up-front estimate of each unique value and all intermediate strings interned
+during parsing. All `Ustr` uses in the process share the cache. Thus, its memory cost comes from the aggregate
+set, not a separate budget for each identifier type.
+
+### Polymarket scale example
+
+A Polymarket instrument symbol combines a 66-byte condition ID with a 77- or 78-byte token ID, for a 144- or
+145-byte interned symbol. With the 64-bit `ustr` 1.1.0 layout, 600,000 unique `InstrumentId` values need
+approximately 150 MiB. This covers retained identifier values, the cache lookup table, and reserved string
+storage.
+
+The Polymarket parsing path also interns each raw token ID and each condition ID. For 600,000
+instruments from about 300,000 markets, these entries raise the estimate to roughly 300 MiB before
+instrument objects, descriptions, maps, and other metadata. The estimate assumes unique instrument
+and token IDs and includes capacity reserved by the cache's geometric allocator, so it is not an
+exact resident-set measurement.
+
+NautilusTrader accepts this bounded cost to preserve `Copy`, stable direct access, and global
+deduplication across the instrument universe. Unbounded streams of unique external IDs remain
+outside this storage model.
+
+## Collections
+
+Choose a hash collection by iteration semantics and trust boundary:
+
+| Requirement                                    | Collection                |
+| ---------------------------------------------- | ------------------------- |
+| Observable insertion-order iteration.          | `IndexMap` or `IndexSet`. |
+| Hot lookup with no observable iteration order. | `AHashMap` or `AHashSet`. |
+| Keys chosen by an untrusted third party.       | `HashMap` or `HashSet`.   |
+| External API requires a standard collection.   | `HashMap` or `HashSet`.   |
+
+Default `AHashMap` and `AHashSet` instances randomize their hasher state, so their iteration order is not
+stable. If iteration order affects any of these outcomes, make that order deterministic:
+
+- Emitted events.
+- Commands and traffic sent to a venue.
+- Persisted output.
+- Random number consumption.
+
+An iteration whose order no caller observes does not need stabilization.
+
+Use `IndexMap` or `IndexSet` when insertion order is both deterministic and the required sequence. Otherwise,
+keep the hash collection and sort at the point of use. Prefer sorting when ordered traversal is infrequent or
+order-preserving removal is hot. `shift_remove` preserves relative order in O(n) average time. `swap_remove`
+runs in O(1) average time but can move the last entry.
+
+`AHash` is not cryptographically secure. Use `HashMap` or `HashSet` where untrusted keys make
+hash-flooding resistance part of the security boundary.
+
+## Documentation
+
+### Coverage and tone
+
+- Add doc comments to public items. Document private behavior with a normal comment only when
+  non-obvious context prevents a likely misreading.
+- Add module documentation to public modules and modules with a non-obvious contract. Do not add
+  boilerplate to a private leaf module.
+- Use the indicative mood: "Returns the account ID", not "Return the account ID".
+- End public field and enum variant documentation with a period.
+- Match documentation density to neighboring items. Do not add filler comments to make a bare block
+  look uniform.
+- Put important context for private fields in the type-level documentation instead of documenting
+  each field.
+
+Document public functions when their contract is not fully clear from the type and name. Cover
+fallible conditions, panic conditions, safety obligations, and non-obvious input semantics.
+
+### Rustdoc sections
+
+Use Title Case for Rustdoc section headings:
+
+- `# Examples`
+- `# Errors`
+- `# Panics`
+- `# Safety`
+- `# Notes`
+- `# Thread Safety`
+- `# Feature Flags`
+
+Start `# Errors` descriptions with `Returns an error if`, or ``Returns `None` if`` for an `Option`
+return. Start `# Panics` descriptions with `Panics if`. Describe the failure conditions without
+repeating concrete error types from the signature. Keep distinctions that affect caller behavior,
+such as retryable versus permanent failures.
+
+Use one sentence ending with a period for a single condition:
 
 ```rust
-/// Returns a reference to the `AccountBalance` for the specified currency, or `None` if absent.
-///
-/// # Panics
-///
-/// Panics if `currency` is `None` and `self.base_currency` is `None`.
-pub fn base_balance(&self, currency: Option<Currency>) -> Option<&AccountBalance> {
-    // Implementation
-}
-```
-
-#### 错误与 panic 的文档格式
-
-针对单行错误与 panic 的文档，使用句子式大小写并遵循下列约定：
-
-```rust
-/// Returns a reference to the `AccountBalance` for the specified currency, or `None` if absent.
-///
 /// # Errors
 ///
 /// Returns an error if the currency conversion fails.
-///
-/// # Panics
-///
-/// Panics if `currency` is `None` and `self.base_currency` is `None`.
-pub fn base_balance(&self, currency: Option<Currency>) -> anyhow::Result<Option<&AccountBalance>> {
-    // Implementation
-}
 ```
 
-对于多行的错误与 panic 文档，使用句子式大小写，并以要点形式列出每项，句尾以句号结束：
+For multiple conditions, use the same lead-in followed immediately by a colon:
+`Returns an error if:`, ``Returns `None` if:``, or `Panics if:`. Put each condition in a bullet that
+starts with a capital letter and ends with a period. A wrapped bullet needs its period at the end
+of its final line.
 
 ```rust
-/// Calculates the unrealized profit and loss for the position.
-///
 /// # Errors
 ///
 /// Returns an error if:
-/// - The market price for the instrument cannot be found.
+/// - The market price cannot be found.
 /// - The conversion rate calculation fails.
-/// - Invalid position state is encountered.
-///
+```
+
+```rust
 /// # Panics
 ///
-/// This function panics if:
-/// - The instrument ID is invalid or uninitialized.
-/// - Required market data is missing from the cache.
-/// - Internal state consistency checks fail.
-pub fn calculate_unrealized_pnl(&self, market_price: Price) -> anyhow::Result<Money> {
-    // Implementation
-}
+/// Panics if:
+/// - The quantity is zero.
+/// - The quantity exceeds the supported range.
 ```
 
-#### 安全（Safety）文档格式
+The documentation hook checks these lead-ins and bullet periods in `# Errors` and `# Panics` sections. It
+skips fenced code blocks and stops at the next section heading or the end of the doc block. The suppression
+markers below exempt contract checks only. They do not exempt wording or punctuation checks.
 
-对于 Safety 文档，使用 `SAFETY:` 前缀，简要说明为何该 unsafe 操作是安全的：
+Use `# Errors` only on a function that returns `Result`, `PyResult`, or `Option`. Use `# Panics` only when the
+function can panic. If the function cannot panic, remove the section. Do not state that it does not panic.
+
+The documentation hook recognizes direct panic sites in a `Result`-returning function. Put
+`// panics-doc-ok` immediately above the doc block when a called function supplies the documented
+panic. Use `// errors-doc-ok` in the same position only for a special error contract that the
+signature check cannot recognize.
+
+### Doc examples
+
+`make cargo-test-doc` compiles and runs doc examples. Annotate every fence:
+
+| Fence          | Behavior                  | Use for                                                |
+| -------------- | ------------------------- | ------------------------------------------------------ |
+| `rust`         | Compiled and run.         | Self-contained examples with no external dependencies. |
+| `rust,no_run`  | Compiled, not run.        | Examples needing a catalog, network, or venue.         |
+| `ignore`       | Neither compiled nor run. | Pseudocode. State why it cannot compile.               |
+| `compile_fail` | Must fail to compile.     | Demonstrating a rejected usage.                        |
+| `text`         | Not code.                 | Directory trees, output, or diagrams.                  |
+| `bash`, `json` | Not Rust.                 | Commands or payloads.                                  |
+
+Prefer `no_run` to `ignore` when only the runtime dependency is unavailable. Prefix setup lines with
+`#` when they must compile but would obscure the rendered example.
+
+Put examples on public items. Rustdoc also collects fences from private item docs, but those examples
+cannot import the item they document.
+
+## Python bindings
+
+### PyO3 names and errors
+
+- Prefix a Rust function renamed with `#[pyo3(name = "...")]` with `py_`.
+- When a binding needs a Rust-only wrapper type, prefix it with `Py` and expose the Python name
+  without that prefix.
+- Use `nautilus_trader.adapters.<adapter_name>` for public adapter stub metadata. Runtime module
+  paths use `nautilus_trader._libnautilus.<adapter_name>`.
+- Convert standard Python exceptions with `to_pyvalue_err`, `to_pytype_err`, `to_pyruntime_err`,
+  `to_pykey_err`, `to_pyexception`, or `to_pynotimplemented_err` from
+  `nautilus_core::python`.
+
+The submodules registered in `crates/pyo3/src/lib.rs` are public API. Do not add an internal crate as
+a new Python submodule as a refactor side effect. Register an intentional class in an existing
+submodule when that preserves the public package structure. A deliberate submodule change also
+updates the allowlist in `check_nautilus_conventions.sh`.
+
+Keep each submodule registration as `let n = "<name>"` followed by one
+`pyo3::wrap_pymodule!(<path>)` call. The name must match the final component of the target path.
+
+### PyO3 enums
+
+Nautilus domain integer enums use `frozen`, `eq`, `eq_int`, `from_py_object`, and
+`rename_all = "SCREAMING_SNAKE_CASE"`.
+
+Do not add PyO3's `hash` attribute to an `eq_int` enum. Its generated hash differs from Python's hash
+for the equal integer discriminant and breaks the rule that equal values have equal hashes. Return
+the discriminant directly instead:
 
 ```rust
-/// Creates a new instance from raw components without validation.
-///
-/// # Safety
-///
-/// The caller must ensure that all input parameters are valid and properly initialized.
-pub unsafe fn from_raw_parts(ptr: *const u8, len: usize) -> Self {
-    // SAFETY: Caller guarantees ptr is valid and len is correct
-    Self {
-        data: std::slice::from_raw_parts(ptr, len),
+#[pymethods]
+impl MyEnum {
+    const fn __hash__(&self) -> isize {
+        *self as isize
     }
 }
 ```
 
-对于内联的 unsafe 块，在 unsafe 代码上方直接添加 `SAFETY:` 注释：
+### Type stub annotations
 
-```rust
-impl Send for MessageBus {
-    fn send(&self) {
-        // SAFETY: Message bus is not meant to be passed between threads
-        unsafe {
-            // unsafe operation here
-        }
-    }
-}
+Every Python-exposed type and function needs the matching `pyo3-stub-gen` annotation:
+
+| PyO3 construct    | Stub annotation                                 |
+| ----------------- | ----------------------------------------------- |
+| `#[pyclass]`      | `pyo3_stub_gen::derive::gen_stub_pyclass`.      |
+| Enum `#[pyclass]` | `pyo3_stub_gen::derive::gen_stub_pyclass_enum`. |
+| `#[pymethods]`    | `pyo3_stub_gen::derive::gen_stub_pymethods`.    |
+| `#[pyfunction]`   | `pyo3_stub_gen::derive::gen_stub_pyfunction`.   |
+
+- Put class and enum stub annotations in `#[cfg_attr(feature = "python", ...)]` directly below the
+  runtime `pyo3::pyclass` attribute.
+- Put `gen_stub_pymethods` directly below `#[pymethods]`.
+- Put `gen_stub_pyfunction` after doc comments and directly above `#[pyfunction]`.
+- Set the stub `module` to the package from which Python imports the object.
+- Add `pyo3-stub-gen` as an optional dependency and include it in the `python` feature.
+
+### Generated Python artifacts
+
+The Python surface commits generated `.pyi` files under `python/nautilus_trader/` and generated
+wrapper doc comments under `crates/**/src/python/`. Regenerate both with:
+
+```bash
+make py-stubs
 ```
 
-## Python 绑定
+Run the target after changing a Python-exposed Rust item, its stub annotation, its core doc comments,
+or adapter feature wiring. Commit every changed generated artifact with the source change.
 
-通过 Cython 和 [PyO3](https://pyo3.rs) 提供 Python 绑定，使用户无需 Rust 工具链即可在 Python 中直接导入 NautilusTrader 的 crate。
+The stub generator removes `extension-module` before invoking Cargo. If a feature is enabled only through
+`extension-module`, add it explicitly to `cargo_features` in `python/generate_stubs.py`. If you omit it, the
+feature's exported types disappear from the generated stubs. The Interactive Brokers `gateway` feature is the
+model.
 
-### PyO3 命名约定
+The Python targets accept the uv minor series defined by `required-version` in
+`python/pyproject.toml`. `make sync`, `make py-stubs`, and `make build-debug` stop when the installed
+version falls outside that range. Run `make update-uv` to install the exact project version from
+`.nautilus-engineering/tools.toml`.
 
-在通过 PyO3 向 Python 暴露 Rust 函数时：
+Do not edit wrapper `///` comments in `crates/**/src/python/`. Edit the core Rust item docs and
+regenerate. The doc sync:
 
-1. Rust 符号在代码库内部应以 `py_*` 为前缀以明确其用途。
-2. 使用 `#[pyo3(name = "…")]` 属性在 Python 层公开名称（不带 `py_` 前缀），以保持 Python API 的简洁。
+- Preserves `# Errors` and `# Safety`.
+- Drops `# Panics` so a panic contract does not cross the Python API boundary.
+- Removes Rust intra-doc links.
+- Converts Rust `::` paths to Python `.` paths.
 
-```rust
-#[pyo3(name = "do_something")]
-pub fn py_do_something() -> PyResult<()> {
-    // …
-}
-```
+### Rust-Python object ownership
 
-### 测试约定
+`Py<T>` owns a reference to a Python object. Clone it with `Py::clone_ref` while attached to the
+interpreter or with `nautilus_core::python::clone_py_object`. An extra `Arc<Py<T>>` is normally
+unnecessary because `Py<T>` already provides shared ownership.
 
-- 使用 `mod tests` 作为标准测试模块名，除非需要特殊划分。
-- 一致使用 `#[rstest]` 属性，降低认知开销。
-- 不要在 Rust 测试中使用 Arrange、Act、Assert 分隔注释。
+Cloning a Python reference does not break a cycle. Use a Python weak reference when a back-reference
+must not keep its target alive.
 
-#### 测试组织
+## Testing conventions
 
-使用带节分隔符的一致测试模块结构：
+- Use `mod tests` for ordinary inline tests.
+- Use `#[rstest]` instead of `#[test]`, including for a non-parameterized test.
+- Use `#[tokio::test]` for a non-parameterized async test.
+- Keep `#[cfg(test)]` on test modules and test-only files. Do not add test behavior or interfaces to
+  production code.
+- Store JSON fixtures under the crate's `test_data/` directory and load them with `include_str!`.
+- Use distinct, non-default inputs and exact expected values. Assert every stable field.
+- Group assertions after setup and actions unless the test checks stepwise state changes.
+- Do not use Arrange, Act, Assert separator comments.
 
-```rust
-////////////////////////////////////////////////////////////////////////////////
-// Tests
-////////////////////////////////////////////////////////////////////////////////
+Each workspace member appears exactly once in `CORE_CRATES`, `ADAPTER_CRATES`, or `NO_TEST_CRATES` in the
+`Makefile`. Add a crate to `NO_TEST_CRATES` only when both conditions hold:
 
-#[cfg(test)]
-mod tests {
-    use rstest::rstest;
-    use super::*;
-    use crate::identifiers::{Symbol, stubs::*};
+- It defines no Rust test target.
+- It contains no `#[test]`, `#[rstest]`, or `#[test_case]` function.
 
-    #[rstest]
-    fn test_string_reprs(symbol_eth_perp: Symbol) {
-        assert_eq!(symbol_eth_perp.as_str(), "ETH-PERP");
-        assert_eq!(format!("{symbol_eth_perp}"), "ETH-PERP");
-    }
-}
-```
-
-#### 参数化测试
-
-对参数化测试一致使用 `rstest`：
+Parametrize cases when the same behavior applies to several inputs:
 
 ```rust
 #[rstest]
 #[case("AUDUSD", false)]
-#[case("AUD/USD", false)]
 #[case("CL.FUT", true)]
 fn test_symbol_is_composite(#[case] input: &str, #[case] expected: bool) {
-    let symbol = Symbol::new(input);
-    assert_eq!(symbol.is_composite(), expected);
+    assert_eq!(Symbol::new(input).is_composite(), expected);
 }
 ```
 
-#### 测试命名
+### Test specs
 
-使用能说明场景的描述性测试名称：
+Events with many constructor arguments use a fluent `bon` spec next to the event under
+`events/order/spec/`. Gate the module with `#[cfg(any(test, feature = "test-support"))]` so downstream
+tests can opt in without adding the spec to production builds.
 
-```rust
-fn test_sma_with_no_inputs()
-fn test_sma_with_single_input()
-fn test_symbol_is_composite()
-```
+- Derive `bon::Builder` with `finish_fn = into_spec`.
+- Give required fields deterministic valid defaults. Leave optional fields as `Option<T>`.
+- Default event IDs with `test_uuid()` from `crate::stubs`.
+- Implement `build()` by forwarding through the production constructor.
+- Return the event directly because spec defaults are valid by construction.
+- Pin every default in one test in the spec module.
 
-## Rust 与 Python 内存管理
-
-在处理 PyO3 绑定时，必须理解并避免 Rust 的 `Arc` 引用计数与 Python 垃圾回收器之间产生的引用环。
-本节记录了在持有回调的结构体中处理 Python 对象的最佳实践。
-
-### 引用环问题
-
-**问题**：在持有回调的结构体中使用 `Arc<PyObject>` 会产生循环引用：
-
-1. **Rust 的 `Arc` 持有 Python 对象** → 增加 Python 的引用计数。
-2. **Python 对象可能引用 Rust 对象** → 形成循环。
-3. **两端都无法被回收** → 导致内存泄漏。
-
-**问题模式示例**：
+Override only the fields relevant to the caller:
 
 ```rust
-// AVOID: This creates reference cycles
-struct CallbackHolder {
-    handler: Option<Arc<PyObject>>,  // ❌ Arc wrapper causes cycles
-}
+let fill = OrderFilledSpec::builder()
+    .last_qty(Quantity::from(50_000))
+    .trade_id(TradeId::from("TRADE-1"))
+    .build();
 ```
 
-### 解决方案：基于 GIL 的克隆（GIL-based cloning）
+Under plain `cargo test`, call `reset_test_uuid_rng()` before a test that compares UUID sequences.
+`cargo nextest` starts each test in a fresh process, so the sequence resets automatically.
 
-**解决思路**：使用普通的 `PyObject` 并通过 `clone_py_object()` 在获取 GIL 的上下文中安全克隆：
+### Property-based tests
 
-```rust
-use nautilus_core::python::clone_py_object;
+Use `proptest` when an invariant spans an input class that examples cannot cover. Keep strategies
+near the property suite and combine ranges with explicit edge cases.
 
-// CORRECT: Use plain PyObject without Arc wrapper
-struct CallbackHolder {
-    handler: Option<PyObject>,  // ✅ No Arc wrapper
-}
+Prefix property names with `prop_` and retain `#[rstest]` on tests inside `proptest!`. A large suite
+may use a `property_tests` module or a dedicated file, but the repository also keeps focused
+properties beside their unit tests.
 
-// Manual Clone implementation using clone_py_object
-impl Clone for CallbackHolder {
-    fn clone(&self) -> Self {
-        Self {
-            handler: self.handler.as_ref().map(clone_py_object),
-        }
-    }
-}
+## Unsafe Rust
+
+Unsafe code must make its proof obligations reviewable:
+
+- Give each unsafe function a `# Safety` section that states the caller's complete obligations.
+- Put a `SAFETY:` comment directly above each unsafe operation and explain why its preconditions
+  hold at that site.
+- Wrap each unsafe operation in its own `unsafe { ... }` block. Workspace crates deny
+  `unsafe_op_in_unsafe_fn`.
+- Use always-on checks for null, alignment, provenance, and other soundness conditions.
+- Add targeted tests for observable behavior around unsafe code. Tests support the proof but do not
+  establish soundness.
+- An unsafe `Send` or `Sync` implementation needs a proof over all reachable behavior:
+
+  - State.
+  - Aliases.
+  - Callbacks.
+  - Generic parameters.
+  - Safe methods.
+  - Cloning.
+  - Destruction.
+
+For raw vectors crossing FFI, follow the [FFI memory contract](./ffi.md). Foreign code owns the
+allocation after transfer and must call the matching `vec_drop_*` function exactly once.
+
+## Other generated artifacts
+
+### FFI bindings and precision
+
+Only `nautilus-core` and `nautilus-model` expose an `ffi` feature. Check both crates directly when
+changing their C ABI:
+
+```bash
+cargo check -q -p nautilus-core --features ffi
+cargo check -q -p nautilus-model --features ffi,python,high-precision
 ```
 
-### 最佳实践
+The crate-local `cbindgen.toml` files define the header layout for native consumers. Do not add an
+`ffi` feature or `src/ffi` module to another workspace crate.
 
-#### 1. 使用 `clone_py_object()` 进行 Python 对象克隆
+Run `make check-cbindgen-abi`. It generates both headers and checks their public names and compatibility enum
+values. It also compiles a C11 consumer against them. The scheduled nightly tests run this check.
 
-```rust
-// When cloning Python callbacks
-let cloned_callback = clone_py_object(&original_callback);
+### Cap'n Proto schemas
 
-// In manual Clone implementations
-self.py_handler.as_ref().map(clone_py_object)
-```
+Schema files live under `crates/serialization/schemas/capnp/`, and generated Rust lives under
+`crates/serialization/generated/capnp/`.
 
-#### 2. 从持有回调的结构体移除 `#[derive(Clone)]`
+- Add fields at the end.
+- Do not remove fields or reuse field numbers. Mark obsolete fields as deprecated in comments.
+- Regenerate with `make regen-capnp`.
+- Review `git diff crates/serialization/generated/capnp`.
+- Run `make check-capnp-schemas` to verify the checked-in output.
+- Test the serialization crate with `make cargo-test-crate-nautilus-serialization`.
 
-```rust
-// BEFORE: Automatic derive causes issues with PyObject
-#[derive(Clone)]  // ❌ Remove this
-struct Config {
-    handler: Option<PyObject>,
-}
-
-// AFTER: Manual implementation with proper cloning
-struct Config {
-    handler: Option<PyObject>,
-}
-
-impl Clone for Config {
-    fn clone(&self) -> Self {
-        Self {
-            // Clone regular fields normally
-            url: self.url.clone(),
-            // Use clone_py_object for Python objects
-            handler: self.handler.as_ref().map(clone_py_object),
-        }
-    }
-}
-```
-
-#### 3. 更新函数签名以接受 `PyObject`
-
-```rust
-// BEFORE: Arc wrapper in function signatures
-fn spawn_task(handler: Arc<PyObject>) { ... }  // ❌
-
-// AFTER: Plain PyObject
-fn spawn_task(handler: PyObject) { ... }  // ✅
-```
-
-#### 4. 创建 Python 回调时避免使用 `Arc::new()`
-
-```rust
-// BEFORE: Wrapping in Arc
-let callback = Arc::new(py_function);  // ❌
-
-// AFTER: Use directly
-let callback = py_function;  // ✅
-```
-
-### 为什么这样可行
-
-`clone_py_object()` 的实现要点：
-
-- **在克隆操作前获取 Python GIL**。
-- **使用 Python 的本地引用计数**（例如 `clone_ref()`）。
-- **避免使用 Rust 的 Arc 包装**，从而不干扰 Python 的 GC。
-- **通过正确的 GIL 管理保持线程安全**。
-
-这种方法允许 Rust 与 Python 的垃圾回收机制协同工作，避免因引用环导致的内存泄漏。
-
-## 常见反模式
-
-1. **在热点路径使用 `.clone()`**——应优先考虑借用或通过 `Arc` 共享所有权。
-2. **在生产代码中使用 `.unwrap()`**——通常应使用 `?` 传播错误或将其映射为领域错误，但对锁中毒（lock poisoning）进行 unwrap 是可接受的，因为这通常表明应当快速中止的严重程序状态。
-3. **在能使用 `&str` 的地方使用 `String`**——在紧循环中尽量减少分配。
-4. **暴露内部可变性（interior mutability）**——尽量通过安全 API 隐藏 `Mutex`/`RefCell`。
-5. **在 `Result<T, E>` 中放入大型结构体**——对大型错误载荷使用 boxing（`Box<dyn Error + Send + Sync>`）。
-
-## 不安全的 Rust（Unsafe Rust）
-
-为了在 Cython 与 Rust 之间实现互操作，编写 `unsafe` Rust 代码是必要的。跳出安全 Rust 的边界使我们能实现许多 Rust 语言自身的底层特性，正如 C 和 C++ 用于实现它们自己的标准库一样。
-
-在使用 Rust 的 `unsafe` 功能时务必非常谨慎——`unsafe` 只是启用一小部分额外的语言能力，它改变了接口与调用者之间的契约，将部分正确性保证的责任从编译器转移给我们。目标是在利用 `unsafe` 带来能力的同时，避免任何未定义行为（undefined behavior）。
-关于 Rust 语言设计者对未定义行为的定义，请参见[语言参考](https://doc.rust-lang.org/stable/reference/behavior-considered-undefined.html)。
-
-### 安全策略
-
-为保持正确性，任何使用 `unsafe` 的代码都必须遵循我们的策略：
-
-- 如果一个函数在调用上是 `unsafe` 的，文档中**必须**包含 `Safety` 小节，解释为何该函数为 `unsafe`，并说明调用者需要满足的各项不变式以及如何履行这些义务。
-  并覆盖所有 `unsafe` 区块的单元测试。
-- 在文档注释的 Safety 小节中说明为何函数为 `unsafe`，并为所有 `unsafe` 块提供单元测试覆盖。
-- 始终包含 `SAFETY:` 注释说明为何该 unsafe 操作是有效的：
-
-```rust
-// SAFETY: Message bus is not meant to be passed between threads
-#[allow(unsafe_code)]
-
-unsafe impl Send for MessageBus {}
-```
-
-- **Crate 级 lint** ——每个导出 FFI 符号的 crate 都应启用
-  `#![deny(unsafe_op_in_unsafe_fn)]`。即便位于 `unsafe fn` 内部，每次指针解除引用或其他危险操作也必须用独立的 `unsafe { … }` 包裹。
-
-- **CVec 合约** ——对于跨 FFI 边界的原始向量，请阅读 [FFI Memory Contract](ffi.md)。外部代码会成为该分配的所有者，**必须**恰好调用一次对应的 `vec_drop_*` 函数。
-
-## 工具链配置
-
-项目使用若干工具来保证代码质量：
-
-- **rustfmt**：自动代码格式化（参见 `rustfmt.toml`）。
-- **clippy**：代码 lint 与最佳实践（参见 `clippy.toml`）。
-- **cbindgen**：为 FFI 生成 C 头文件。
-
-## 参考资料
-
-- [The Rustonomicon](https://doc.rust-lang.org/nomicon/) – The Dark Arts of Unsafe Rust.
-- [The Rust Reference – Unsafety](https://doc.rust-lang.org/stable/reference/unsafety.html).
-- [Safe Bindings in Rust – Russell Johnston](https://www.abubalay.com/blog/2020/08/22/safe-bindings-in-rust).
-- [Google – Rust and C interoperability](https://www.chromium.org/Home/chromium-security/memory-safety/rust-and-c-interoperability/).
+Install the pinned compiler as described in
+[Environment setup](./environment_setup.md#capn-proto). Generated bindings stay checked in so
+docs.rs can build without the compiler.

@@ -1,455 +1,730 @@
-# 消息总线
+# Message Bus
 
-`MessageBus`（消息总线）是平台的核心组成部分之一，通过消息传递实现系统组件之间的通信。该设计带来松耦合的架构，使组件能够在不直接依赖彼此的情况下进行交互。
+The `MessageBus` enables communication between system components through message passing.
+This design creates a loosely coupled architecture where components interact without
+direct dependencies.
 
-消息传递模式（messaging patterns）包括：
+The *messaging patterns* include:
 
-- 点对点（Point-to-Point）
-- 发布/订阅（Publish/Subscribe）
-- 请求/响应（Request/Response）
+- Point-to-Point
+- Publish/Subscribe
+- Request/Response
 
-通过 `MessageBus` 交换的消息大致可分为三类：
+Messages exchanged through the `MessageBus` fall into three categories:
 
-- Data（数据）
-- Events（事件）
-- Commands（命令）
+- Data
+- Events
+- Commands
 
-## 数据与信号发布
+## Topic hierarchy
 
-虽然 `MessageBus` 属于较底层的组件，通常用户并不会直接频繁操作它，但 `Actor` 和 `Strategy` 类在其基础上提供了更便捷的方法：
+Nautilus keeps market data topics under the `data` root. Live data publications use the direct
+`data.<kind>...` topics, for example `data.book.deltas.XCME.ESZ24`.
+
+When requested, replayed, or workflow-generated data flows over the message bus as topic-addressable data, the
+`DataEngine` publishes it under `data.pipeline.<kind>...`. For example, book deltas on the pipeline path use
+`data.pipeline.book.deltas.XCME.ESZ24`.
+
+Long requests, grouped requests, and aggregation chains can split, transform, and fan data back in before the
+parent request completes. These messages are still data messages, but they do not claim the same live ordering
+and timing semantics as normal real-time publications.
+
+Correlated request responses are delivered through response handlers keyed by correlation ID. The
+`data.response` topic is a capture channel for response publications, not the pipeline data path.
+
+## Message integrity
+
+Once a message is created, **its fields must not be mutated**. This includes container fields such as
+`params` maps. Components can read a message and derive local state from it, but they must not
+rewrite the original.
+
+Immutable messages keep each consumer seeing the same input, preserve what was true at emission time, and
+remove a class of shared-state races. Replay, debugging, and audit all depend on messages remaining stable
+after dispatch.
+
+Three ownership rules follow from this:
+
+- Caller-supplied request options stay on the message.
+- Response metadata returned to the caller stays on the response.
+- Component workflow state (bounded date ranges, grouping state, replay cursors, counters,
+  processing flags) stays in component-owned context keyed by message or request ID.
+
+When a component needs a derived message, it creates a new one with the required values instead of
+rewriting the original.
+
+## Data and signal publishing
+
+While the `MessageBus` is a lower-level component that users typically interact with indirectly,
+`DataActor`, `Strategy`, and `ExecutionAlgorithm` provide typed methods built on top of it:
 
 ```python
-def publish_data(self, data_type: DataType, data: Data) -> None:
-def publish_signal(self, name: str, value, ts_event: int | None = None) -> None:
+def publish_data(self, data_type: DataType, data: CustomData) -> None:
+def publish_signal(self, name: str, value, ts_event: int = 0) -> None:
 ```
 
-这些方法让你在不直接使用 `MessageBus` 接口的情况下，也能高效地发布自定义数据和信号。
+These methods publish custom data and signals without exposing the raw message bus to Python.
 
-## 直接访问
+## Python topic messaging
 
-对于高级用法或特殊场景，可以在 `Actor` 和 `Strategy` 中通过 `self.msgbus` 直接访问消息总线，`self.msgbus` 提供完整的消息总线接口。
+Registered Python `DataActor`, `Strategy`, and `ExecutionAlgorithm` components publish arbitrary
+Python objects through `publish_message(topic, message)`. Use
+`subscribe_topic(topic, handler, priority=0)` and `unsubscribe_topic(topic, handler)` to manage
+callbacks on the same runtime bus.
+These methods do not construct, replace, or dispose the bus, and do not expose `self.msgbus`.
 
-若要直接发布自定义消息，可以将主题（topic）指定为 `str`，消息载荷可以是任意 Python 对象，例如：
+Subscribe from a component callback such as `on_start`:
 
 ```python
-self.msgbus.publish("MyTopic", "MyMessage")
+from nautilus_trader.common import DataActor
+
+
+class RiskObserver(DataActor):
+    def on_start(self) -> None:
+        self.subscribe_topic("app.risk.*", self.on_risk, priority=10)
+
+    def on_risk(self, message: object) -> None:
+        self.log.info(f"Risk update: {message}")
 ```
 
-## 消息风格
-
-NautilusTrader 是一个以事件驱动（event-driven）为核心的框架，组件之间通过发送和接收消息进行通信。了解不同的消息风格对构建高质量的交易系统至关重要。
-
-本指南说明 NautilusTrader 中可用的三种主要消息模式：
-
-| **消息风格**                             | **目的**               | **适用场景**                               |
-| :--------------------------------------- | :--------------------- | :----------------------------------------- |
-| **MessageBus - 按 topic 发布/订阅**      | 低层、直接访问消息总线 | 自定义事件、系统级通信                     |
-| **基于 Actor 的数据发布/订阅（Data）**   | 结构化交易数据交换     | 交易指标、需要持久化的数据或需序列化的数据 |
-| **基于 Actor 的信号发布/订阅（Signal）** | 轻量级通知             | 简单告警、标志、状态更新                   |
-
-每种方式各有侧重与优势，本指南将帮助你在实际应用中选择合适的消息传递方式。
-
-### 使用 MessageBus 按 topic 发布/订阅
-
-#### 概念
-
-`MessageBus` 是 NautilusTrader 中所有消息的中央枢纽。它实现了发布/订阅（publish/subscribe）模式：组件可以将事件发布到命名的主题（named topics），其他组件订阅这些主题以接收消息。这样组件之间不需要直接引用对方，从而实现解耦。
-
-#### 关键优点与适用场景
-
-当你需要下列功能时，消息总线是一种理想方案：
-
-- 在系统内部进行跨组件通信（cross-component communication）。
-- 自由定义任意主题并发送任意类型的载荷（任何 Python 对象）。
-- 发布者与订阅者无需相互了解，实现解耦。
-- 全局广播，多个订阅者可同时接收消息。
-- 处理不适合放入预定义 `Actor` 模型的事件。
-- 需要对消息传递有完全控制的高级场景。
-
-#### 注意事项
-
-- 需要手动管理主题名称（拼写错误可能导致消息丢失）。
-- 需要手动定义处理函数（handlers）。
-
-#### 快速示例代码
+From another registered component, publish on a matching topic:
 
 ```python
-from nautilus_trader.core.message import Event
-
-# 定义自定义事件
-class Each10thBarEvent(Event):
-    TOPIC = "each_10th_bar"  # 主题名
-    def __init__(self, bar):
-        self.bar = bar
-
-# 在组件中订阅（例如 Strategy）
-self.msgbus.subscribe(Each10thBarEvent.TOPIC, self.on_each_10th_bar)
-
-# 发布事件（例如 Strategy 中）
-event = Each10thBarEvent(bar)
-self.msgbus.publish(Each10thBarEvent.TOPIC, event)
-
-# 处理函数（例如 Strategy 中）
-def on_each_10th_bar(self, event: Each10thBarEvent):
-    self.log.info(f"Received 10th bar: {event.bar}")
+self.publish_message("app.risk.limit", {"instrument": "BTCUSDT", "limit": 3})
 ```
 
-#### 完整示例
+Publication requires a non-empty concrete topic without wildcards. Subscription patterns accept
+`*` for zero or more characters and `?` for exactly one character. Wildcards can cross dots, so
+`app.risk.*` also matches `app.risk.limit.eu`.
 
-[MessageBus Example](https://github.com/nautechsystems/nautilus_trader/tree/develop/examples/backtest/example_09_messaging_with_msgbus)
+Handlers receive the original object without copying, string conversion, or serialization. Follow
+[message integrity](#message-integrity): treat published objects as immutable. Use application-owned topics
+such as `app.risk.limit`. System data and event topics carry their own payload types.
 
-### 基于 Actor 的数据发布/订阅（Data）
+These callbacks receive objects published through `publish_message`, not typed market data or signals. Use the
+corresponding typed subscription methods for those payloads. Patterns that also match signals or custom data
+log an error for each incompatible payload instead of invoking the Python callback.
 
-#### 概念
+Python object publication does not send the object to external message-bus storage or transport.
 
-该方法用于在系统中的 `Actor` 之间交换交易相关的结构化数据。（注意：每个 `Strategy` 都继承自 `Actor`。）数据类型继承自 `Data`，从而保证事件具有正确的时间戳和顺序，这对回测准确性至关重要。
+Delivery is **synchronous**. Nested publication finishes before the publishing callback continues. Higher
+subscription priorities run first. Equal priority does not imply subscription insertion order. Use distinct
+priorities when callback order matters, including reproducible backtests.
 
-#### 关键优点与适用场景
+A handler exception is logged, and delivery continues to the remaining handlers. This delivery model does not
+make it safe to re-enter a component that is already executing in the publishing call stack.
 
-当你需要下列场景时，基于 Data 的发布/订阅非常合适：
+Subscriptions belong to the subscribing component:
 
-- 交换结构化的交易数据，例如市场数据、指标、自定义度量或期权希腊值（greeks）。
-- 通过内建时间戳（`ts_event`、`ts_init`）保证事件顺序，这对回测正确性非常重要。
-- 通过 `@customdataclass` 装饰器支持数据持久化与序列化，能无缝接入 NautilusTrader 的数据目录（data catalog）。
-- 在系统组件之间实现标准化的数据交换。
+- Repeating the same pattern and callable is a no-op, including attempts to change its priority.
+  Unsubscribe first to change priority.
+- Python-defined bound methods match by receiver and function, so repeated `self.on_risk` lookups identify
+  the same handler. Other callables, including bound built-in methods, match by object identity.
+  Keep a reference to these other callables for later unsubscription.
+  Neither equality nor representation methods run.
+- Unsubscription removes only the exact pattern and callable owned by that component. An absent subscription
+  is a no-op. Other components' subscriptions stay independent.
+- A callback already selected for a publication can still run if it is unsubscribed during that
+  publication.
 
-#### 注意事项
+Stopping keeps subscriptions, and raw topic callbacks can run while a component is stopped. Resuming keeps
+those subscriptions. Successful reset and disposal release the component's subscriptions and retained
+callables. Successful reset requires subscribing again. A failed disposal keeps subscriptions until retirement
+cleanup succeeds. Fault cleanup also releases subscriptions.
 
-- 需要定义继承自 `Data` 的类或使用 `@customdataclass`。
+These methods raise `RuntimeError` before runtime registration, after successful disposal, from a foreign
+thread, or while releasing subscriptions. They also raise `RuntimeError` when the registered bus is
+unavailable or replaced. Invalid topics and patterns raise `ValueError`. A non-callable handler raises
+`TypeError`. Priority must be an integer in `[0, 4294967295]`. Values outside this range raise
+`OverflowError`.
 
-#### 继承自 `Data` 与 使用 `@customdataclass` 的差异
+## Messaging styles
 
-**继承自 `Data` 类：**
+NautilusTrader is an **event-driven** framework where components communicate by sending and receiving messages.
+Understanding the different messaging styles helps when building trading systems.
 
-- 要求子类实现抽象属性 `ts_event` 和 `ts_init`，以确保回测时基于时间戳进行正确排序。
+This guide explains the four primary messaging patterns available in NautilusTrader:
 
-**`@customdataclass` 装饰器：**
+| **Messaging style**                                            | **Purpose**                          | **Best for**                                          |
+| :------------------------------------------------------------- | :----------------------------------- | :---------------------------------------------------- |
+| **Custom data publish/subscribe**                              | Structured trading data exchange     | Trading metrics, indicators, data needing persistence |
+| **Signal publish/subscribe**                                   | Lightweight notifications            | Simple alerts, flags, and status updates              |
+| [**Python object publish/subscribe**](#python-topic-messaging) | In-process Python object exchange    | Application topics shared by Python components        |
+| **Rust MessageBus publish/subscribe**                          | Low-level, typed topic communication | Native runtime components                             |
 
-- 如果未提供，装饰器会为类添加 `ts_event` 和 `ts_init` 属性。
-- 提供序列化函数：`to_dict()`、`from_dict()`、`to_bytes()`、`to_arrow()` 等。
-- 支持数据持久化与外部通信。
+Each approach serves different purposes. Use this guide to decide which pattern to use.
 
-#### 快速示例代码
+### Rust MessageBus publish/subscribe to topics
+
+#### Concept
+
+The `MessageBus` is the central hub for all messages in NautilusTrader. Rust components can publish
+typed messages to named topics and subscribe handlers to those topics. This low-level interface is
+not part of the Python actor or strategy surface.
+
+#### Benefits and use cases
+
+Direct message-bus access is for native components that need:
+
+- **Cross-component communication** within the system.
+- **Flexibility** to define typed topics and payloads.
+- **Decoupling** between publishers and subscribers who do not need to know about each other.
+- **Global reach** where messages can be received by multiple subscribers.
+- Working with events that do not fit the data actor model.
+- Advanced scenarios requiring full control over messaging.
+
+#### Considerations
+
+- You must track topic names manually (typos could result in missed messages).
+- You must define handlers manually.
+
+### Custom data publish/subscribe
+
+#### Concept
+
+Custom data exchanges structured values between data actors and strategies. A `CustomData` value
+carries a `DataType`, payload, event timestamp, and initialization timestamp for routing and event
+ordering.
+
+#### Benefits and use cases
+
+The Data publish/subscribe approach works well when you need:
+
+- **Exchange of structured trading data** like market data, indicators, custom metrics, or option greeks.
+- **Event timestamps** (`ts_event`, `ts_init`) for ordering inputs during backtests. Publication itself does
+  not sort messages.
+- **Data persistence and serialization** through registered custom data classes, integrating with NautilusTrader's data catalog system.
+- **Standardized trading data exchange** between system components.
+
+#### Considerations
+
+- The payload must expose `ts_event` and `ts_init`.
+- Persistence requires registering a serializable custom data class.
+
+#### Quick overview code
 
 ```python
-from nautilus_trader.core.data import Data
-from nautilus_trader.model.custom import customdataclass
+from dataclasses import dataclass
 
-@customdataclass
-class GreeksData(Data):
+from nautilus_trader.model import CustomData
+from nautilus_trader.model import DataType
+
+
+@dataclass
+class GreeksData:
     delta: float
     gamma: float
+    ts_event: int
+    ts_init: int
 
-# 发布数据（在 Actor / Strategy 中）
-data = GreeksData(delta=0.75, gamma=0.1, ts_event=1_630_000_000_000_000_000, ts_init=1_630_000_000_000_000_000)
-self.publish_data(GreeksData, data)
 
-# 订阅数据（在 Actor / Strategy 中）
-self.subscribe_data(GreeksData)
+data_type = DataType("GreeksData")
+data = CustomData(
+    data_type,
+    GreeksData(
+        delta=0.75,
+        gamma=0.1,
+        ts_event=1_630_000_000_000_000_000,
+        ts_init=1_630_000_000_000_000_000,
+    ),
+)
+self.publish_data(data_type, data)
 
-# 处理函数（固定名称的静态回调）
-def on_data(self, data: Data):
-    if isinstance(data, GreeksData):
-        self.log.info(f"Delta: {data.delta}, Gamma: {data.gamma}")
+self.subscribe_data(data_type)
+
+
+def on_data(self, data: CustomData) -> None:
+    if data.data_type == data_type:
+        greeks = data.data
+        self.log.info(f"Delta: {greeks.delta}, Gamma: {greeks.gamma}")
 ```
 
-#### 完整示例
+See [Custom data](./custom_data.md) for registration and persistence.
 
-[Actor-Based Data Example](https://github.com/nautechsystems/nautilus_trader/tree/develop/examples/backtest/example_10_messaging_with_actor_data)
+### Signal publish/subscribe
 
-### 基于 Actor 的信号发布/订阅（Signal）
+#### Concept
 
-#### 概念
+**Signals** are a lightweight way to publish and subscribe to simple notifications within the actor framework.
+This is the simplest messaging approach, requiring no custom class definitions.
 
-Signal（信号）是一个轻量级机制，用于在 Actor 框架内发布与订阅简单通知。这是最简单的消息方式，不需要定义自定义类。
+#### Benefits and use cases
 
-#### 关键优点与适用场景
+The Signal messaging approach works well when you need:
 
-当你需要下列场景时，Signal 方式非常合适：
+- **Simple, lightweight notifications/alerts** like "RiskThresholdExceeded" or "TrendUp".
+- **Quick, on-the-fly messaging** without defining custom classes.
+- **Broadcasting alerts or flags** as simple primitive values.
+- **API integration** through the methods (`publish_signal`, `subscribe_signal`).
+- **Multiple subscriber communication** where all subscribers receive signals when published.
+- **Minimal setup overhead** with no class definitions required.
 
-- 简单、轻量的通知/报警，例如 "RiskThresholdExceeded" 或 "TrendUp"。
-- 免定义类即可快速临时发送消息。
-- 以原始类型（`int`、`float`、`str`）广播警报或标志。
-- 与已有 API 简单集成，使用 `publish_signal`、`subscribe_signal` 等方法即可。
-- 多订阅者场景下，所有订阅者在消息发布时均可收到信号。
-- 设置开销极小，不需要类定义。
+#### Considerations
 
-#### 注意事项
+- Each signal carries a single value. The value is converted to a string on publish, so handlers always
+  receive `signal.value` as a `str`. Complex data structures are not preserved.
+- Differentiate between signals in the `on_signal` handler with `signal.name`.
 
-- 每个 signal 的值只能包含单个类型：`int`、`float` 或 `str`，不支持复杂结构或其他 Python 类型。
-- 在 `on_signal` 处理器中，无法通过 signal 名称进行区分，只能通过 `signal.value` 来判断信号类型。
+:::warning Signal callback reentry
+Signal publication can synchronously reenter an active actor, directly or through another subscriber,
+causing undefined behavior in Rust and Python-authored actors. **Releasing cache borrows does not make
+actor reentry safe.** Avoid publication cycles that invoke an actor before its current callback returns.
+:::
 
-#### 快速示例代码
+#### Quick overview code
 
 ```python
-# 建议为信号定义常量（可选，但推荐以便组织）
+# Define signal constants for better organization (optional but recommended)
 import types
+
+from nautilus_trader.common import LogColor
 from nautilus_trader.core.datetime import unix_nanos_to_dt
-from nautilus_trader.common.enums import LogColor
 
 signals = types.SimpleNamespace()
 signals.NEW_HIGHEST_PRICE = "NewHighestPriceReached"
 signals.NEW_LOWEST_PRICE = "NewLowestPriceReached"
 
-# 订阅信号（在 Actor/Strategy 中）
+# Subscribe from a DataActor or Strategy
 self.subscribe_signal(signals.NEW_HIGHEST_PRICE)
 self.subscribe_signal(signals.NEW_LOWEST_PRICE)
 
-# 发布信号（在 Actor/Strategy 中）
+# Publish from a DataActor or Strategy
 self.publish_signal(
     name=signals.NEW_HIGHEST_PRICE,
-    value=signals.NEW_HIGHEST_PRICE,  # 为简单起见，value 可以与 name 相同
-    ts_event=bar.ts_event,  # 触发事件的时间戳
+    value=signals.NEW_HIGHEST_PRICE,  # value can be the same as name for simplicity
+    ts_event=bar.ts_event,  # timestamp from triggering event
 )
 
-# 处理函数（固定名称的静态回调）
+
+# Handler (fixed callback name)
 def on_signal(self, signal):
-    # 重要：通过 signal.value 匹配，而不是 signal.name
-    match signal.value:
+    match signal.name:
         case signals.NEW_HIGHEST_PRICE:
             self.log.info(
                 f"New highest price was reached. | "
                 f"Signal value: {signal.value} | "
                 f"Signal time: {unix_nanos_to_dt(signal.ts_event)}",
-                color=LogColor.GREEN
+                color=LogColor.GREEN,
             )
         case signals.NEW_LOWEST_PRICE:
             self.log.info(
                 f"New lowest price was reached. | "
                 f"Signal value: {signal.value} | "
                 f"Signal time: {unix_nanos_to_dt(signal.ts_event)}",
-                color=LogColor.RED
+                color=LogColor.RED,
             )
 ```
 
-#### 完整示例
+### Summary and decision guide
 
-[Actor-Based Signal Example](https://github.com/nautechsystems/nautilus_trader/tree/develop/examples/backtest/example_11_messaging_with_actor_signals)
+#### Decision guide: Which style to choose?
 
-### 总结与决策指南
+| **Use case**                           | **Recommended approach**            | **Setup required**                        |
+| :------------------------------------- | :---------------------------------- | :---------------------------------------- |
+| Native system-level communication      | Rust `MessageBus` publish/subscribe | Typed topic and handler                   |
+| Structured Python component data       | `DataActor` custom data methods     | `DataType`, `CustomData`, and `on_data()` |
+| Arbitrary in-process Python objects    | Component topic methods             | Application topic and callable            |
+| Simple Python alerts and notifications | `DataActor` signal methods          | Signal name and `on_signal()`             |
 
-下面的速查表可帮助你决定应使用哪种消息风格：
+## External egress and ingress
 
-#### 决策指南：如何选择？
-
-| **使用场景**           | **推荐方法**                                                             | **所需配置**                                        |
-| :--------------------- | :----------------------------------------------------------------------- | :-------------------------------------------------- |
-| 自定义事件或系统级通信 | `MessageBus` + 按 topic 的发布/订阅                                      | 管理主题与处理函数                                  |
-| 结构化交易数据         | `Actor` + Data 的发布/订阅（必要时使用 `@customdataclass` 来支持序列化） | 新建继承自 `Data` 的类（处理器 `on_data` 为预定义） |
-| 简单报警/通知          | `Actor` + Signal 的发布/订阅                                             | 仅需信号名称                                        |
-
-## 外部发布
-
-当消息总线配置了外部 backing（例如某种数据库或消息代理）并提供相应的集成时，便可以将消息发布到外部系统。
+The `MessageBus` can write serialized messages to external streams. This section describes the
+external egress and ingress sides of the external bus. Rust-native live nodes use injected
+`MessageBusExternalEgress` and `MessageBusExternalIngress` surfaces, so the core node does not
+depend on Redis, a broker, shared-memory implementation, or socket protocol.
 
 :::info
-当前对外部可序列化消息的支持实现了 Redis。最低支持的 Redis 版本为 6.2（需要 streams 功能）。更多信息请参见 [https://redis.io/docs/latest/develop/data-types/streams/](https://redis.io/docs/latest/develop/data-types/streams/)。
+Redis is the built-in external backing for serializable messages. The minimum supported Redis
+version is 6.2, required for the `MINID` stream trimming used by autotrim.
 :::
 
-在内部实现层面，当配置了 backing（或其他兼容技术）后，所有外发消息会先被序列化，然后通过一个多生产单消费者（MPSC）通道发送到一个独立线程（以 Rust 实现）。在该独立线程中，消息被写入最终目标（当前为 Redis streams）。
+When external egress is configured, outgoing publish messages are first dispatched to in-process
+subscribers, then serialized into the existing `BusMessage` wire record:
 
-此设计主要出于性能考虑：将 I/O 操作（例如与数据库或客户端交互）移出主线程，可以保证主线程不被阻塞，继续处理实时任务。
+- `topic`: the exact message bus topic used by the internal publish call, for example
+  `data.quotes.BINANCE.BTCUSDT` or `events.order.S-001`.
+- `type`: the canonical payload type name, for example `QuoteTick` or `OrderEventAny`.
+- `payload_kind`: present with the value `typed` for control, execution, and reconciliation
+  payloads whose fixed type names could also identify custom payloads.
+- `encoding`: the payload encoding selected from the message bus encoding policy.
+- `payload`: serialized bytes encoded with the selected encoding.
 
-### 序列化
+An external producer that writes directly to a Redis stream must follow these rules:
 
-Nautilus 的序列化支持包括：
+- Include `topic`, `type`, and `payload`. The `topic` must be a valid publish topic and cannot contain `*` or
+  `?`.
+- The `encoding` field is optional and defaults to JSON when omitted.
+- The receiving node skips entries without `type` because it cannot select a payload decoder.
+- Set `payload_kind` to `typed` for a fixed typed payload. Without this discriminator, the receiving node
+  treats the same type name as custom data.
 
-- 所有 Nautilus 内置类型（序列化为包含可序列化基元的字典：`dict[str, Any]`）。
-- Python 原始类型（`str`、`int`、`float`、`bool`、`bytes`）。
+External egress receives that record as `publish(BusMessage)`. This outbound call must not block the
+node's bus thread. Bounded egress implementations drop on a full queue instead of applying
+back-pressure to the trading loop. Closing the message bus closes the configured egress.
 
-你也可以通过 `serialization` 子包为自定义类型添加序列化支持：
+Inbound external streams are exposed through the separate Rust `MessageBusExternalIngress` trait.
+Ingress yields the same `BusMessage { topic, payload_type, encoding, payload }` shape.
+`republish_external_message` decodes supported inbound messages and republishes them internally
+without forwarding the message back out. Normal internal republishing requires the inbound payload
+type to be registered for streaming and skips unregistered types without decoding.
 
-```python
-def register_serializable_type(
-    cls,
-    to_dict: Callable[[Any], dict[str, Any]],
-    from_dict: Callable[[dict[str, Any]], Any],
-):
-    ...
+`LiveNode::add_stream_processor` in Rust and `LiveNode.add_stream_processor` in Python register
+callbacks for typed JSON or MessagePack payloads. Processors run in registration order before the
+internal streaming registration check, so they receive supported typed messages even when internal
+republishing is disabled. Python processors receive a mapping with an added `payload_type` field. A
+processor error stops later processors and skips internal republishing for that message.
+
+For custom data, egress writes and ingress expects an envelope in the Redis `payload` field, not the
+bare custom object. The canonical JSON envelope is:
+
+```json
+{
+  "type": "MyData",
+  "data_type": {
+    "type_name": "MyData",
+    "metadata": {
+      "source": "external"
+    },
+    "identifier": "optional-storage-key"
+  },
+  "payload": {
+    "value": 42,
+    "ts_event": 0,
+    "ts_init": 0
+  }
+}
 ```
 
-- `cls`：要注册的类型。
-- `to_dict`：将对象转换为仅包含基元类型的字典的函数。
-- `from_dict`：从字典恢复对象的函数。
+The envelope requires `type` and `payload`. `data_type` is optional on ingress and defaults to the message
+type with no metadata or identifier.
 
-## 配置
+- **Canonical output**: `data_type.type_name` uses the same custom type name, `metadata` is an object that may
+  be empty, and `identifier` is present only when assigned.
+- **Type matching**: the envelope `type` must match the Redis stream `type`.
+- **Payload**: the envelope `payload` is the bare object passed to the registered class's `from_json(...)`
+  method.
 
-可以通过导入 `MessageBusConfig` 并将其传入你的 `TradingNodeConfig` 来配置消息总线的外部 backing。下面将介绍各项配置选项。
+MessagePack uses the same map fields encoded as MessagePack bytes.
+
+For Python custom data, register the class before starting the node:
 
 ```python
-...  # 省略其他配置
-message_bus=MessageBusConfig(
-    database=DatabaseConfig(),
-    encoding="json",
-    timestamps_as_iso8601=True,
-    buffer_interval_ms=100,
-    autotrim_mins=30,
-    use_trader_prefix=True,
-    use_trader_id=True,
-    use_instance_id=False,
-    streams_prefix="streams",
-    types_filter=[QuoteTick, TradeTick],
-)
-...
+from nautilus_trader.model import register_custom_data_class
+
+register_custom_data_class(MyData)
 ```
 
-### 数据库配置
+The external-client subscription registers the payload type for streaming, while
+`register_custom_data_class(...)` installs the process-wide JSON decoder. Both registrations are
+required. See [Custom data](./custom_data.md#registration-architecture) for the class requirements.
 
-必须提供一个 `DatabaseConfig`。对于本机 loopback 上的默认 Redis 配置，可直接传入 `DatabaseConfig()`，其会使用默认值。
+For Redis, the message bus sends messages through a Multiple-Producer Single-Consumer (MPSC) channel to a
+separate Rust task. That task writes the message to Redis streams.
 
-### 编码（Encoding）
+Offloading I/O to a separate task keeps the publishing thread unblocked.
 
-内置 `Serializer` 当前支持两种编码：
+With MessagePack or JSON, Rust-native external egress forwards serializable typed publications:
 
-- JSON（`json`）
-- MessagePack（`msgpack`）
+- Instruments, quotes, trades, bars, book deltas, and variable-depth snapshots.
+- Mark/index/funding updates and option greeks (`OptionGreeks`).
+- Account state, portfolio snapshots, order events, position events, and custom data.
+- With the `defi` feature, DeFi blocks, pools, liquidity updates, fee collects, and flash events.
 
-通过 `encoding` 配置选项控制消息写入时所用的编码。
+Full order book snapshots, `GreeksData` records, option chain slices, and DeFi pool swaps are not forwarded
+because those types do not implement Serde serialization.
+
+When `external_streams` is non-empty, JSON or MessagePack egress also forwards subscription commands, trading
+commands, and execution mass-status requests. It also forwards order status reports, fill reports, position
+status reports, and execution mass-status reports. These payloads stay local when no external streams are
+configured.
+
+With SBE or Cap'n Proto, Rust-native external egress forwards only these built-in market data payloads with schema codecs:
+
+- Quotes
+- Trades
+- Bars
+- Book deltas
+- Variable-depth snapshots
+- Mark price updates
+- Index price updates
+- Funding rate updates
+- Option greeks
+
+Other payload types are dropped with a debug log when those schema encodings are selected.
+
+## Configuration
+
+The message bus external backing technology uses a behavior config plus a technology-owned backing
+config. `MessageBusConfig` controls message bus behavior. `RedisMessageBusConfig` owns Redis
+connection settings and implements `MessageBusBackingFactory`.
+
+```rust
+use nautilus_common::{
+    enums::SerializationEncoding,
+    msgbus::{MessageBusBackingFactory, MessageBusConfig},
+};
+use nautilus_infrastructure::redis::msgbus::RedisMessageBusConfig;
+
+let config = MessageBusConfig {
+    encoding: SerializationEncoding::Json,
+    encoding_market_data: Some(SerializationEncoding::Sbe),
+    timestamps_as_iso8601: true,
+    buffer_interval_ms: Some(100),
+    autotrim_mins: Some(30),
+    use_trader_prefix: true,
+    use_trader_id: true,
+    use_instance_id: false,
+    streams_prefix: "streams".to_string(),
+    types_filter: Some(vec!["QuoteTick".to_string(), "TradeTick".to_string()]),
+    ..Default::default()
+};
+
+let redis_config = RedisMessageBusConfig::default();
+let backing = redis_config.create(trader_id, instance_id, config.clone())?;
+```
+
+Existing Rust callers can continue using `RedisMessageBusFactory::new(redis_config)`, which
+delegates to the config implementation.
+
+### Backing config
+
+A `RedisMessageBusConfig` is required when using the built-in Redis backing. For a default Redis
+setup on the local loopback you can pass `RedisMessageBusConfig::default()`.
+
+Redis selection is explicit in the Rust type. The config does not use a user-facing selector such
+as `type = "redis"` or `backing_type = "redis"`.
+
+Rust-native callers that inject `MessageBusExternalEgress` with
+`LiveNodeBuilder::with_external_msgbus_egress` pass concrete connection details when they construct
+that egress surface. The core message bus does not require a `RedisMessageBusConfig` for injected
+egress.
+
+The Rust live runtime accepts `external_streams` in `MessageBusConfig` and consumes inbound `BusMessage`s when
+callers inject a `MessageBusExternalIngress` with `LiveNodeBuilder::with_external_ingress`. The config names
+the external stream keys. The injected ingress is the concrete runtime source.
+
+Rust callers can install `RedisMessageBusConfig` with `LiveNodeBuilder::with_external_msgbus_factory`.
+Building fails when a factory is combined with separately injected egress or ingress. A factory always
+installs egress and creates ingress only when `external_streams` is non-empty.
+
+Python exposes the same builder method. Its only supported built-in backing config is `RedisMessageBusConfig`.
+The existing `RedisMessageBusFactory` wrapper stays supported. Python does not accept arbitrary factory classes.
+
+:::warning
+The built-in Redis ingress starts each configured stream at the current timestamp, so entries that already
+exist when the node starts are not replayed. After startup it advances the last-seen ID for each stream and
+preserves those IDs across connection retries. Use cache recovery or the event store when durable pre-start
+replay is required. `external_streams` provides live forwarding, not a consumer-group backlog.
+:::
+
+### Encoding
+
+Rust-native external message bus egress supports these encoding names:
+
+- JSON (`json`)
+- MessagePack (`msgpack`)
+- Cap'n Proto (`capnp`, with the Rust `capnp` feature)
+- SBE (`sbe`, with the Rust `sbe` feature)
+
+Use the `encoding` config option to control the message writing encoding.
+Use `encoding_market_data` to override the encoding for market data payloads backed by the external
+bus binary codecs. Use `encoding_builtin` to override account state, portfolio snapshot, order
+event, and position event payloads. Custom and unmapped payload types always use `encoding`.
+
+`MessageBusConfig::validate` requires the default `encoding` to support custom payloads, so it must be JSON or
+MessagePack. Category overrides must be supported by each published payload type in that category. SBE and
+Cap'n Proto can be used only for `encoding_market_data`, and only when the matching Rust feature is enabled.
+`encoding_builtin = "sbe"` and `encoding_builtin = "capnp"` fail validation until those schema codecs cover
+the built-in event category.
+
+The Redis cache payload path supports MessagePack and JSON only. SBE and Cap'n Proto are schema payload
+encodings for Rust-native external message bus egress, not Redis cache encodings. Either encoding is an error
+for a Redis cache payload.
 
 :::tip
-默认使用 `msgpack` 编码，因为它在序列化和内存性能上更优。如果可读性比性能更重要，建议使用 `json`。
+The `json` encoding is used by default for human readability and interoperability.
+Use `msgpack` when payload size and serialization performance are a primary concern.
 :::
 
-### 时间戳格式
+### Timestamp formatting
 
-默认情况下，时间戳以 UNIX epoch 纳秒整数表示。也可以将 `timestamps_as_iso8601` 设置为 `True`，以使用 ISO 8601 字符串格式。
+By default timestamps are formatted as UNIX epoch nanosecond integers. Alternatively you can
+configure ISO 8601 string formatting by setting `timestamps_as_iso8601` to `true`.
 
-### 消息流（stream）键
+### Message stream keys
 
-消息流键用于识别各个交易节点并组织流内消息。键格式可按需定制。在消息流上下文中，一个典型的 trader key 结构如下：
+Message stream keys identify individual trader nodes and organize messages within streams. The `trader-`
+prefix, trader ID, and instance ID segments are optional and controlled by the options below. The streams
+prefix is always included. With each segment enabled, a trader key has the following structure:
 
 ```
-trader:{trader_id}:{instance_id}:{streams_prefix}
+trader-{trader_id}:{instance_id}:{streams_prefix}
 ```
 
-以下是可配置的选项：
+With the default options (`use_trader_prefix` and `use_trader_id` enabled, `use_instance_id`
+disabled) the base stream key is `trader-{trader_id}:{streams_prefix}`.
 
-#### Trader 前缀
+These options control Redis stream keys. They do not rewrite the `topic` passed to an injected
+`MessageBusExternalEgress`. That topic stays the internal message bus publish topic. When `stream_per_topic`
+is `True`, Redis egress appends the topic to the stream key. When it is `False`, Redis stores all messages on
+the base stream key and keeps the topic as a message field.
 
-是否在键前添加 `trader` 前缀字符串。
+The following options are available for configuring message stream keys:
+
+#### Trader prefix
+
+If the key should begin with the `trader-` prefix.
 
 #### Trader ID
 
-是否在键中包含该节点的 trader ID。
+If the key should include the trader ID for the node.
 
 #### Instance ID
 
-每个交易节点都分配有一个唯一的 instance ID（UUIDv4），用于区分分布在多条流上的不同实例。通过将 `use_instance_id` 设为 `True` 可以将其包含在 trader key 中，这在多节点系统中跟踪实例时非常有用。
+Each trader node receives a unique UUIDv4 instance ID, which distinguishes individual traders when messages
+are distributed across multiple streams. Set `use_instance_id=True` to include it in the trader key and
+identify traders across streams in a multi-node trading system.
 
-#### Streams 前缀
+#### Streams prefix
 
-`streams_prefix` 字符串可以用于将某一实例的所有流分组或对多个实例的流进行组织。通过配置 `streams_prefix` 并关闭其他前缀选项，可获得更一致的键名空间。
+The `streams_prefix` string groups all streams for a single trader instance or organizes messages for multiple
+instances. Set the other prefixes to false. Then pass a string to the `streams_prefix` configuration option.
 
-#### 每主题单独流（Stream per topic）
+#### Stream per topic
 
-指示生产者是否为每个主题写入独立的流。对于 Redis backing 特别有用，因为 Redis 在监听 streams 时不支持通配符主题。如果设为 False，则所有消息写入同一条流。
+Set `stream_per_topic=True` to write a separate stream for each topic. This suits Redis backings, which do not
+support wildcard topics when listening to streams. Set it to `False` to write all messages to the same stream.
 
 :::info
-Redis 不支持通配符 stream topics。为兼容 Redis，建议将此选项设为 False。
+Redis does not support wildcard stream topics. For better compatibility with Redis, it is recommended to set this option to False.
 :::
 
-### 类型过滤（Types filtering）
+### Types filtering
 
-当消息在消息总线上发布且配置了外部 backing 时，消息会被序列化并写入流。为避免高频报价等数据淹没流，你可以在外部发布时过滤掉某些类型的消息。
+If a message-bus backing is configured and enabled, published messages are serialized and written to a stream.
+You can exclude selected message types from external publication to prevent stream flooding (such as from
+high-frequency quotes).
 
-要启用此过滤机制，请在 message bus 配置的 `types_filter` 参数中传入要排除的类型列表（`type` 对象）。
+For external publication filtering, pass a list of payload type names to the message-bus configuration's
+`types_filter` parameter. Listed types are excluded from external publication. A name shared by a custom
+payload and a fixed typed payload excludes both.
 
 ```python
 from nautilus_trader.config import MessageBusConfig
-from nautilus_trader.data import TradeTick
-from nautilus_trader.data import QuoteTick
 
-# 使用 types_filter 创建 MessageBusConfig 实例
-message_bus = MessageBusConfig(
-    types_filter=[QuoteTick, TradeTick]
-)
-
+# Create a MessageBusConfig instance with types filtering
+message_bus = MessageBusConfig(types_filter=["QuoteTick", "TradeTick"])
 ```
 
-### 自动裁剪（Stream auto-trimming）
+### Stream auto-trimming
 
-配置项 `autotrim_mins` 用于指定对消息流执行自动裁剪（自动删除较旧消息）的回溯窗口（以分钟为单位）。自动裁剪有助于控制流的大小，防止存储与性能问题。
+Use `autotrim_mins` to set a lookback window in minutes. Use `autotrim_maxlen` to set an approximate maximum
+number of entries for each Redis stream. You can configure either policy or both. When both are set, the
+message bus removes entries that exceed either the time window or the entry-count threshold.
+
+Redis applies `autotrim_maxlen` with approximate trimming for better write performance, so a stream
+may contain slightly more entries than the configured threshold.
 
 :::info
-当前 Redis 实现将 `autotrim_mins` 当作最大宽度来维护（外加大约一分钟的余量，因为流的裁剪操作不会每分钟执行多次）。这并非基于当前墙钟时间的最大回溯窗口。
+The Redis implementation trims each stream at most once per minute, so entries can stay up to roughly a minute
+longer than the `autotrim_mins` window.
 :::
 
-## 外部流（External streams）
+## External streams
 
-`TradingNode`（节点）内部使用的消息总线称为“内部消息总线（internal message bus）”。
-生产者节点（producer node）会将消息发布到外部流（参见上文“外部发布”）。
-消费者节点（consumer node）监听外部流，接收并反序列化消息后再在其内部消息总线上发布这些消息。
+The message bus within a `LiveNode` (node) is referred to as the "internal message bus".
+A producer node is one which publishes messages onto an external stream (see [external egress and ingress](#external-egress-and-ingress)).
+The consumer node listens to external streams to receive and publish deserialized message payloads on its internal message bus.
 
-```txt
-                  ┌───────────────────────────┐
-                  │                           │
-                  │                           │
-                  │                           │
-                  │      Producer Node        │
-                  │                           │
-                  │                           │
-                  │                           │
-                  │                           │
-                  │                           │
-                  │                           │
-                  └─────────────┬─────────────┘
-                                │
-                                │
-┌───────────────────────────────▼──────────────────────────────┐
-│                                                              │
-│                            Stream                            │
-│                                                              │
-└─────────────┬────────────────────────────────────┬───────────┘
-              │                                    │
-              │                                    │
-┌─────────────▼───────────┐          ┌─────────────▼───────────┐
-│                         │          │                         │
-│                         │          │                         │
-│     Consumer Node 1     │          │     Consumer Node 2     │
-│                         │          │                         │
-│                         │          │                         │
-│                         │          │                         │
-│                         │          │                         │
-│                         │          │                         │
-│                         │          │                         │
-└─────────────────────────┘          └─────────────────────────┘
+```mermaid
+flowchart TB
+    producer[Producer Node]
+    stream[Stream]
+    consumer1[Consumer Node 1]
+    consumer2[Consumer Node 2]
+
+    producer --> stream
+    stream --> consumer1
+    stream --> consumer2
 ```
 
-:::tip
-在 `LiveDataEngineConfig.external_clients` 中列出那些代表外部流客户端的 `client_id`。
-`DataEngine` 会为这些外部客户端过滤掉相应的订阅命令，保证外部流提供所需的数据订阅。
+:::info
+Set `LiveDataEngineConfig.external_clients` to the list of `client_id`s representing external streaming
+clients. The `DataEngine` filters out subscription commands for these clients because external streaming
+supplies their subscription data.
+
+When the Rust `DataEngine` skips an external-client subscription, it registers the corresponding streaming
+payload type for inbound republishing on the message bus.
 :::
 
-### 示例配置
+### Example configuration
 
-下面示例展示了生产者节点将 Binance 数据发布到外部流，随后下游的消费者节点将这些数据发布到其内部消息总线的配置方法。
+In this streaming example, a producer node publishes Binance data externally. A downstream consumer node
+publishes these data messages onto its internal message bus.
 
-#### 生产者节点
+#### Producer node
 
-将生产者节点的 `MessageBus` 配置为发布到名为 `"binance"` 的流。将 `use_trader_id`、`use_trader_prefix` 和 `use_instance_id` 全部设为 `False`，以确保生成一个简单且可预测的流键，方便消费者节点进行注册。
+The producer node's `MessageBus` publishes to a `"binance"` stream. The settings `use_trader_id`,
+`use_trader_prefix`, and `use_instance_id` are all `false`. This gives the stream a simple, predictable key
+that consumer nodes can register for.
 
-```python
-message_bus=MessageBusConfig(
-    database=DatabaseConfig(timeout=2),
-    use_trader_id=False,
-    use_trader_prefix=False,
-    use_instance_id=False,
-    streams_prefix="binance",  # <---
-    stream_per_topic=False,
-    autotrim_mins=30,
-),
+```rust
+let message_bus = MessageBusConfig {
+    use_trader_id: false,
+    use_trader_prefix: false,
+    use_instance_id: false,
+    streams_prefix: "binance".to_string(), // <---
+    stream_per_topic: false,
+    autotrim_mins: Some(30),
+    ..Default::default()
+};
+
+let redis_config = RedisMessageBusConfig {
+    connection_timeout: 2,
+    response_timeout: 2,
+    ..Default::default()
+};
+
+let mut node = LiveNode::builder(trader_id, Environment::Live)?
+    .with_msgbus_config(message_bus)
+    .with_external_msgbus_factory(Box::new(redis_config))
+    .build()?;
+node.run().await?;
 ```
 
-#### 消费者节点
+#### Consumer node
 
-将消费者节点的 `MessageBus` 配置为接收相同的 `"binance"` 流。节点将监听外部流键，并将接收到的消息发布到其内部消息总线。此外，我们把客户端 ID `"BINANCE_EXT"` 声明为外部客户端，这样 `DataEngine` 就不会向该客户端发送数据命令，因为我们期望这些消息由外部流推送并由节点内部总线分发。
+We configure the `MessageBus` of the consumer node to receive messages from the same `"binance"`
+stream. A `RedisMessageBusConfig` creates ingress from `external_streams`, and `LiveNode::run`
+publishes the received messages onto the node's internal message bus. We declare the client ID
+`"BINANCE_EXT"` as an external client so the `DataEngine` does not attempt to send data commands to
+this client ID.
 
-```python
-data_engine=LiveDataEngineConfig(
-    external_clients=[ClientId("BINANCE_EXT")],
-),
-message_bus=MessageBusConfig(
-    database=DatabaseConfig(timeout=2),
-    external_streams=["binance"],  # <---
-),
+```rust
+let data_engine = LiveDataEngineConfig {
+    external_clients: Some(vec![ClientId::from("BINANCE_EXT")]),
+    ..Default::default()
+};
+
+let message_bus = MessageBusConfig {
+    external_streams: Some(vec!["binance".to_string()]), // <---
+    ..Default::default()
+};
+
+let redis_config = RedisMessageBusConfig {
+    connection_timeout: 2,
+    response_timeout: 2,
+    ..Default::default()
+};
+
+let mut node = LiveNode::builder(trader_id, Environment::Live)?
+    .with_data_engine_config(data_engine)
+    .with_msgbus_config(message_bus)
+    .with_external_msgbus_factory(Box::new(redis_config))
+    .build()?;
+node.run().await?;
 ```
+
+## Related guides
+
+- [Actors](./actors.md) - Actors use the message bus for event handling.
+- [Architecture](./architecture.md) - Message bus role in system architecture.

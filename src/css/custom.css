@@ -1,0 +1,27 @@
+/**
+ * 任何 CSS 变量定义都应写在这里。
+ * 颜色变量在浅色与深色模式（[data-theme='dark']）下自动切换。
+ */
+
+:root {
+  --ifm-color-primary: #1f6feb;
+  --ifm-color-primary-dark: #1c62d6;
+  --ifm-color-primary-darker: #1a5ccb;
+  --ifm-color-primary-darkest: #164ba7;
+  --ifm-color-primary-light: #3a80ed;
+  --ifm-color-primary-lighter: #4888ee;
+  --ifm-color-primary-lightest: #74a5f3;
+  --ifm-code-font-size: 95%;
+  --docusaurus-highlighted-code-line-bg: rgba(0, 0, 0, 0.1);
+}
+
+[data-theme='dark'] {
+  --ifm-color-primary: #58a6ff;
+  --ifm-color-primary-dark: #3895ff;
+  --ifm-color-primary-darker: #278cff;
+  --ifm-color-primary-darkest: #0070f0;
+  --ifm-color-primary-light: #78b7ff;
+  --ifm-color-primary-lighter: #89c1ff;
+  --ifm-color-primary-lightest: #b9daff;
+  --docusaurus-highlighted-code-line-bg: rgba(0, 0, 0, 0.3);
+}

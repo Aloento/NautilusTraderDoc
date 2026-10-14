@@ -1,176 +1,198 @@
-# 回测（高级 API）
+# Backtest (High-Level API)
 
-本教程针对 NautilusTrader（高性能的算法交易平台与事件驱动的回测器），演示如何使用其高级 API 进行回测。
+Use `BacktestNode` for config-driven backtesting with the Parquet data catalog.
+This is the recommended path for production workflows because the strategies,
+actors, and execution algorithms you build here carry forward to live trading
+with `LiveNode`.
 
-[在 GitHub 查看源码](https://github.com/nautechsystems/nautilus_trader/blob/develop/docs/getting_started/backtest_high_level.ipynb)。
+This tutorial loads FX quote tick data, writes it to a catalog, and backtests
+an EMA cross strategy on a simulated FX ECN venue.
 
-## 概述
+[View source on GitHub](https://github.com/nautechsystems/nautilus_trader/blob/develop/docs/getting_started/backtest_high_level.py).
 
-本教程将展示如何使用 `BacktestNode`，利用历史报价（quote tick）数据在模拟的 FX ECN 交易场景上回测一个简单的 EMA（指数移动平均）交叉策略。
-
-本教程将涵盖以下内容：
-
-- 将原始数据（外部于 Nautilus）导入数据目录（data catalog）。
-- 为 `BacktestNode` 配置所需的配置对象。
-- 使用 `BacktestNode` 运行回测并查看结果。
-
-## 前置条件
-
-- 已安装 Python 3.11+。
-- 已安装 JupyterLab 或同类工具（可用 `pip install -U jupyterlab` 安装）。
-- 已安装最新版本的 NautilusTrader（可用 `pip install -U nautilus_trader` 安装）。
-
-## 导入（Imports）
-
-下面列出本教程余下部分所需的全部 import：
+## Prerequisites
+- Python 3.13-3.14
+- [NautilusTrader](https://pypi.org/project/nautilus_trader/) 2.x installed
+  (`pip install -U --pre nautilus_trader`). The `--pre` flag is required while 2.x
+  ships as `2.0.0rcN`.
+- pandas (`pip install pandas`). The wheel declares no runtime dependencies.
 
 ```python
+import os
 import shutil
 from decimal import Decimal
 from pathlib import Path
 
 import pandas as pd
 
-from nautilus_trader.backtest.node import BacktestDataConfig
-from nautilus_trader.backtest.node import BacktestEngineConfig
-from nautilus_trader.backtest.node import BacktestNode
-from nautilus_trader.backtest.node import BacktestRunConfig
-from nautilus_trader.backtest.node import BacktestVenueConfig
-from nautilus_trader.config import ImportableStrategyConfig
+from nautilus_trader.backtest import BacktestNode
+from nautilus_trader.common import LogLevel
+from nautilus_trader.config import BacktestDataConfig
+from nautilus_trader.config import BacktestEngineConfig
+from nautilus_trader.config import BacktestRunConfig
+from nautilus_trader.config import BacktestVenueConfig
+from nautilus_trader.config import LoggerConfig
 from nautilus_trader.core.datetime import dt_to_unix_nanos
-from nautilus_trader.model import QuoteTick
-from nautilus_trader.persistence.catalog import ParquetDataCatalog
-from nautilus_trader.persistence.wranglers import QuoteTickDataWrangler
-from nautilus_trader.test_kit.providers import CSVTickDataLoader
-from nautilus_trader.test_kit.providers import TestInstrumentProvider
+from nautilus_trader.execution import MakerTakerFeeModel
+from nautilus_trader.model import AccountType
+from nautilus_trader.model import BookType
+from nautilus_trader.model import Currency
+from nautilus_trader.model import OmsType
+from nautilus_trader.model import Quantity
+from nautilus_trader.model import NautilusDataType
+from nautilus_trader.persistence import ParquetDataCatalog
+from nautilus_trader.testkit.providers import TestDataProvider
+from nautilus_trader.testkit.providers import TestInstrumentProvider
+from nautilus_trader.trading import EmaCrossConfig
 ```
 
-在开始 notebook 之前，需要先下载一些示例数据以便用于回测。
+## Load the sample data
 
-在本示例中我们使用来自 histdata.com 的外汇（FX）数据。访问 [histdata 的下载页面](https://www.histdata.com/download-free-forex-historical-data/?/ascii/tick-data-quotes/)，选择一个货币对并下载一个或多个月的数据。
+The tutorial needs no manual download: `TestDataProvider` supplies AUD/USD quote
+ticks, read from the local `test_data/` directory in a source checkout and
+downloaded from GitHub otherwise, so a wheel install needs network access. We take
+the first 20,000 to keep the run short.
 
-示例下载文件：
-
-- `DAT_ASCII_EURUSD_T_202410.csv`（2024 年 10 月的 EUR/USD 数据）
-- `DAT_ASCII_EURUSD_T_202411.csv`（2024 年 11 月的 EUR/USD 数据）
-
-下载数据后：
-
-1. 把上述类似的文件复制到一个文件夹，例如 `~/Downloads/Data/`（默认会使用用户的 `Downloads/Data/` 目录）。
-2. 将下面的 `DATA_DIR` 变量设置为包含数据的目录。
-
-```python
-DATA_DIR = "~/Downloads/Data/"
-```
+To replay a longer history, download FX tick data from
+[histdata.com](https://www.histdata.com/download-free-forex-historical-data/?/ascii/tick-data-quotes/)
+and extract the CSV files into `~/Downloads/Data/HISTDATA/` (or set the
+`NAUTILUS_DATA_DIR` environment variable to the parent directory containing a
+`HISTDATA` subfolder). Downloaded files look like
+`DAT_ASCII_EURUSD_T_202410.csv` (EUR/USD for October 2024). The cell below
+picks them up automatically. A full month of tick data runs to millions of
+rows, so expect the catalog write to take several minutes.
 
 ```python
-path = Path(DATA_DIR).expanduser()
-raw_files = list(path.iterdir())
-assert raw_files, f"Unable to find any histdata files in directory {path}"
+DATA_DIR = Path(os.environ.get("NAUTILUS_DATA_DIR", "~/Downloads/Data")).expanduser() / "HISTDATA"
+
+raw_files = (
+    sorted(
+        f
+        for f in DATA_DIR.iterdir()
+        if f.is_file() and (f.suffix == ".csv" or f.name.endswith(".csv.gz"))
+    )
+    if DATA_DIR.is_dir()
+    else []
+)
 raw_files
 ```
 
-## 将数据加载到 Parquet 数据目录
+## Load data into the catalog
 
-Histdata 将外汇数据以 CSV/text 格式存储，字段通常为 `timestamp, bid_price, ask_price`。
-首先把这些原始数据加载为与 Nautilus 报价兼容的 `pandas.DataFrame`。
-
-随后使用 `QuoteTickDataWrangler` 对 DataFrame 进行处理，生成 Nautilus 的 `QuoteTick` 对象。
-
-```python
-# 这里我们只读取找到的第一个数据文件并加载为 pandas DataFrame
-df = CSVTickDataLoader.load(
-    file_path=raw_files[0],                                   # Input 1st CSV file
-    index_col=0,                                              # Use 1st column in data as index for dataframe
-    header=None,                                              # There are no column names in CSV files
-    names=["timestamp", "bid_price", "ask_price", "volume"],  # Specify names to individual columns
-    usecols=["timestamp", "bid_price", "ask_price"],          # Read only these columns from CSV file into dataframe
-    parse_dates=["timestamp"],                                # Specify columns containing date/time
-    date_format="%Y%m%d %H%M%S%f",                            # Format for parsing datetime
-)
-
-# 确保数据按时间戳排序
-df = df.sort_index()
-
-# 预览已加载的数据框（前两行）
-df.head(2)
-```
+Both loaders parse vendor rows into Nautilus `QuoteTick` objects with a
+default notional size. Histdata CSV files contain
+`timestamp, bid_price, ask_price` fields; the TrueFX sample contains
+`timestamp, bid, ask`.
 
 ```python
-# 使用 wrangler 处理报价数据
-EURUSD = TestInstrumentProvider.default_fx_ccy("EUR/USD")
-wrangler = QuoteTickDataWrangler(EURUSD)
+if raw_files:
+    instrument = TestInstrumentProvider.default_fx_ccy("EUR/USD")
+    ticks = TestDataProvider.quotes_from_histdata_csv(instrument, raw_files[0])
+else:
+    instrument = TestInstrumentProvider.default_fx_ccy("AUD/USD")
+    ticks = TestDataProvider.quotes_from_truefx_csv(
+        instrument,
+        "truefx/audusd-ticks.csv",
+        max_rows=20_000,
+    )
 
-ticks = wrangler.process(df)
+# Vendor exports are not always monotonic; the catalog requires ascending timestamps
+ticks.sort(key=lambda tick: tick.ts_init)
 
-# 预览：查看前 2 条 tick
+print(f"Loaded {len(ticks)} quote ticks for {instrument.id}")
+
+# Preview: see first 2 ticks
 ticks[0:2]
 ```
 
-更多关于数据加载的细节，请参见 [Loading data](../concepts/data) 指南。
+See the [Loading data](./../concepts/data/index.md) guide for more details.
 
-接下来，实例化一个 `ParquetDataCatalog`（传入一个目录用来存放数据；默认会使用当前目录）。
-然后把 instrument 和 tick 数据写入 catalog。根据你包含的数据月份数量，加载过程通常只需要几分钟。
+Instantiate a `ParquetDataCatalog` with a storage directory (here `catalog/` under the
+current directory, which the guide replaces on each run). Write the instrument and tick
+data to the catalog.
 
 ```python
 CATALOG_PATH = Path.cwd() / "catalog"
 
-# 如果目录已存在则先删除，再创建一个新的
+# Clear if it already exists, then create fresh
 if CATALOG_PATH.exists():
     shutil.rmtree(CATALOG_PATH)
 CATALOG_PATH.mkdir(parents=True)
 
-# 创建 catalog 实例
-catalog = ParquetDataCatalog(CATALOG_PATH)
+# Create a catalog instance
+catalog = ParquetDataCatalog(str(CATALOG_PATH))
 
-# 写入 instrument 到 catalog
-catalog.write_data([EURUSD])
+# Write instrument to the catalog
+catalog.write_instruments([instrument])
 
-# 写入 ticks 到 catalog
-catalog.write_data(ticks)
+# Write ticks to the catalog
+catalog.write_quote_ticks(ticks)
 ```
 
-## 使用数据目录
+## Query the catalog
 
-数据写入 catalog 后，可以使用 `catalog` 实例来为回测或研究加载数据。
-它提供了多种方法来从目录中提取数据，例如 `.instruments(...)` 和 `quote_ticks(...)`（示例如下）。
+The catalog provides methods like `.instruments()` and `.query_quote_ticks()`
+to query stored data and determine the available time range.
 
 ```python
-# 获取 catalog 中的所有 instruments 列表
+# Get list of all instruments in catalog
 catalog.instruments()
 ```
 
 ```python
-# 查看 catalog 的第 1 个 instrument
-instrument = catalog.instruments()[0]
-instrument
+# See 1st instrument from catalog
+catalog.instruments()[0]
 ```
 
 ```python
-# 从 catalog 中查询 quote-ticks
-start = dt_to_unix_nanos(pd.Timestamp("2024-10-01", tz="UTC"))
-end =  dt_to_unix_nanos(pd.Timestamp("2024-10-15", tz="UTC"))
-selected_quote_ticks = catalog.quote_ticks(instrument_ids=[EURUSD.id.value], start=start, end=end)
+# Query quote ticks from catalog to determine the data range
+all_ticks = catalog.query_quote_ticks(identifiers=[instrument.id.value])
+print(f"Total ticks in catalog: {len(all_ticks)}")
 
-# 预览前几条
-selected_quote_ticks[:2]
+if all_ticks:
+    # Get timestamps from the data
+    first_tick_time = pd.Timestamp(all_ticks[0].ts_init, unit="ns", tz="UTC")
+    last_tick_time = pd.Timestamp(all_ticks[-1].ts_init, unit="ns", tz="UTC")
+    print(f"Data range: {first_tick_time} to {last_tick_time}")
+
+    # Cap the backtest range at 2 weeks from the first tick (as UNIX nanoseconds);
+    # the AUD/USD sample spans about 5 hours, so it runs in full
+    start_ns = all_ticks[0].ts_init
+    end_ns = dt_to_unix_nanos(first_tick_time + pd.Timedelta(days=14))
+    print(f"Backtest range: {first_tick_time} to {first_tick_time + pd.Timedelta(days=14)}")
+
+    # Preview selected data
+    selected_quote_ticks = catalog.query_quote_ticks(
+        identifiers=[instrument.id.value],
+        start=start_ns,
+        end=end_ns,
+    )
+    print(f"Selected ticks for backtest: {len(selected_quote_ticks)}")
+    selected_quote_ticks[:2]
+else:
+    raise ValueError("No ticks found in catalog")
 ```
 
-## 添加交易场所（venues）
+## Add venues
 
 ```python
 venue_configs = [
     BacktestVenueConfig(
         name="SIM",
-        oms_type="HEDGING",
-        account_type="MARGIN",
-        base_currency="USD",
+        oms_type=OmsType.HEDGING,
+        account_type=AccountType.MARGIN,
+        book_type=BookType.L1_MBP,
+        base_currency=Currency.from_str("USD"),
         starting_balances=["1_000_000 USD"],
+        fee_model=MakerTakerFeeModel(
+            maker_rate=Decimal("0.00002"),
+            taker_rate=Decimal("0.00002"),
+        ),
     ),
 ]
 ```
 
-## 添加数据配置
+## Add data
 
 ```python
 str(CATALOG_PATH)
@@ -179,53 +201,60 @@ str(CATALOG_PATH)
 ```python
 data_configs = [
     BacktestDataConfig(
+        data_type=NautilusDataType.QuoteTick,
         catalog_path=str(CATALOG_PATH),
-        data_cls=QuoteTick,
         instrument_id=instrument.id,
-        start_time=start,
-        end_time=end,
+        start_time=start_ns,
+        end_time=end_ns,
     ),
 ]
 ```
 
-## 添加策略
+## Configure the backtest
 
-```python
-strategies = [
-    ImportableStrategyConfig(
-        strategy_path="nautilus_trader.examples.strategies.ema_cross:EMACross",
-        config_path="nautilus_trader.examples.strategies.ema_cross:EMACrossConfig",
-        config={
-            "instrument_id": instrument.id,
-            "bar_type": "EUR/USD.SIM-15-MINUTE-BID-INTERNAL",
-            "fast_ema_period": 10,
-            "slow_ema_period": 20,
-            "trade_size": Decimal(1_000_000),
-        },
-    ),
-]
-```
-
-## 配置回测
-
-Nautilus 使用 `BacktestRunConfig` 对象来集中管理回测配置。
-`BacktestRunConfig` 支持分阶段配置（Partialable），因此你可以逐步构建配置对象，便于在需要进行参数网格搜索等多次回测时减少样板代码。
+`BacktestRunConfig` centralizes venue and data configuration in one object.
 
 ```python
 config = BacktestRunConfig(
-    engine=BacktestEngineConfig(strategies=strategies),
-    data=data_configs,
     venues=venue_configs,
+    data=data_configs,
+    engine=BacktestEngineConfig(
+        logging=LoggerConfig(stdout_level=LogLevel.ERROR),
+    ),
 )
 ```
 
-## 运行回测
+## Add the strategy
 
-现在可以运行回测节点（BacktestNode），它会在整个数据流上模拟交易过程。
+Build the node, then attach a strategy to the run configuration. Here we add
+the built-in `EmaCross` example strategy, which subscribes to the quote ticks
+and trades the crossover of a fast and slow EMA on the mid price. To run your
+own strategy, make it importable and use `node.add_strategy_from_config()`
+with an `ImportableStrategyConfig` instead.
 
 ```python
 node = BacktestNode(configs=[config])
+node.build()
 
+node.add_builtin_strategy(
+    config.id,
+    "EmaCross",
+    EmaCrossConfig(
+        instrument_id=instrument.id,
+        trade_size=Quantity.from_int(1_000_000),
+        fast_period=10,
+        slow_period=20,
+    ),
+)
+```
+
+## Run the backtest
+
+`BacktestNode` processes all data in timestamp order with deterministic
+execution semantics. The architectural patterns (strategies, actors, execution
+algorithms) carry forward to live trading with `LiveNode`.
+
+```python
 results = node.run()
 results
 ```

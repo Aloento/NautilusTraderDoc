@@ -1,179 +1,511 @@
 # Binance
 
-Binance 成立于 2017 年，按日交易量和加密资产/衍生品的未平仓合约 (open interest) 计算，是规模最大的加密货币交易所之一。
+Binance was founded in 2017. It is one of the largest cryptocurrency exchanges by daily trading volume and
+open interest in crypto assets and derivatives.
 
-本集成支持实时行情（market data）接入与下单执行，覆盖以下产品：
+NautilusTrader provides Binance integration for live market data and execution. The adapter is
+implemented in Rust and exposed to Python through the same public configurations, factories, and
+data types.
 
-- **Binance Spot**（包含 Binance US）
-- **Binance USDT 计价期货**（包含永续合约和交割合约）
-- **Binance 币本位期货（Coin-Margined Futures）**
+Supported products:
 
-## 示例
+- **Binance Spot** (including Binance US)
+- **Binance USDT-Margined Futures** (crypto and TradFi perpetuals; current and next weekly,
+  monthly, and quarterly delivery contracts)
+- **Binance Coin-Margined Futures** (perpetuals and current or next quarterly delivery contracts)
 
-实时接入示例脚本位于仓库： [examples/live/binance](https://github.com/nautechsystems/nautilus_trader/tree/develop/examples/live/binance/)。
+## Examples
 
-## 概述
+- [Python examples](https://github.com/nautechsystems/nautilus_trader/tree/develop/examples/live/binance/)
+- [Rust spot examples](https://github.com/nautechsystems/nautilus_trader/tree/develop/crates/adapters/binance/examples/spot/)
+- [Rust futures examples](https://github.com/nautechsystems/nautilus_trader/tree/develop/crates/adapters/binance/examples/futures/)
 
-本指南假设你正在同时配置实时行情订阅与交易执行。Binance 适配器包含若干组件，可按需组合使用：
+## Overview
 
-- `BinanceHttpClient`：底层 HTTP API 连接。
-- `BinanceWebSocketClient`：底层 WebSocket 连接。
-- `BinanceInstrumentProvider`：合约/交易对解析与加载功能。
-- `BinanceSpotDataClient` / `BinanceFuturesDataClient`：行情数据管理。
-- `BinanceSpotExecutionClient` / `BinanceFuturesExecutionClient`：账户管理与交易执行网关。
-- `BinanceLiveDataClientFactory`：用于 TradingNode 的数据客户端工厂。
-- `BinanceLiveExecClientFactory`：用于 TradingNode 的执行客户端工厂。
+The adapter exposes these public components:
 
-:::note
-大多数用户只需为实时 TradingNode 定义配置（如下所示），通常无需直接操作这些底层组件。
-:::
-
-### 产品支持范围
-
-| Product Type                            | Supported | 说明                 |
-| --------------------------------------- | --------- | -------------------- |
-| Spot Markets (incl. Binance US)         | ✓         |                      |
-| Margin Accounts (Cross & Isolated)      | -         | 保证金交易尚未实现。 |
-| USDT-Margined Futures (PERP & Delivery) | ✓         |                      |
-| Coin-Margined Futures                   | ✓         |                      |
+- `BinanceDataClientConfig` and `BinanceExecutionClientConfig`: Live client configuration.
+- `BinanceInstrumentProviderConfig`: Instrument selection, filtering, and warning policy.
+- `BinanceDataClientFactory` and `BinanceExecutionClientFactory`: Trading node client factories.
+- `load_binance_instruments`: Standalone configured instrument discovery.
+- `load_binance_order_book_deltas`: Rust-backed Binance depth CSV loading for order book wrangling.
+- `BINANCE`, `BINANCE_CLIENT_ID`, `BINANCE_VENUE`, and the client-order-ID decoders: Public
+  identifiers and decoding utilities.
 
 :::note
-目前尚未实现保证金交易（cross & isolated）。欢迎通过提交 [GitHub issue #2631](https://github.com/nautechsystems/nautilus_trader/issues/#2631) 或 pull request 来贡献此功能。
+Most users need only the configs and factories, wired into a live trading node as shown under
+[Live node configuration](#live-node-configuration). The remaining components serve standalone
+loading and offline decoding.
 :::
 
-## 数据类型
+Low-level HTTP and WebSocket clients, their caches, and product-specific instrument provider
+objects are not exposed through the Python API. Use the live configs and factories, or the
+standalone instrument loader, instead of depending on those internals.
 
-该集成提供若干自定义数据类型以满足交易者的需求：
+For standalone discovery, pass the same data-client and provider configuration used by a live
+client:
 
-- `BinanceTicker`：用于 24 小时 ticker 订阅，包含价格与统计信息。
-- `BinanceBar`：用于历史或实时 bar（K 线）订阅，包含扩展的成交量指标。
-- `BinanceFuturesMarkPriceUpdate`：期货的 mark price（标记价格）更新。
+```python
+import asyncio
 
-完整定义见 Binance 的 [API Reference](../api_reference/adapters/binance.md)。
+from nautilus_trader.adapters.binance import BinanceDataClientConfig
+from nautilus_trader.adapters.binance import BinanceInstrumentProviderConfig
+from nautilus_trader.adapters.binance import BinanceProductType
+from nautilus_trader.adapters.binance import load_binance_instruments
 
-## 符号（Symbology）
+config = BinanceDataClientConfig(
+    product_type=BinanceProductType.USD_M,
+    instrument_provider=BinanceInstrumentProviderConfig(
+        load_all=False,
+        load_ids=["BTCUSDT-PERP.BINANCE"],
+    ),
+)
+instruments = asyncio.run(load_binance_instruments(config))
+```
 
-根据 Nautilus 的符号统一策略，优先使用 Binance 的原生符号（包括现货与期货）。由于 NautilusTrader 支持跨场所与多账户交易，需要明确区分同名但语义不同的合约，例如 `BTCUSDT` 既可表示现货/保证金交易对，也可表示永续期货合约（在 Binance 中这两个都使用相同的原生符号）。
+This function supports Spot, USD-M, and COIN-M. It uses the configured environment, URLs, proxy,
+receive window, Binance US mode, filters, warning policy, and commission policy. Margin is not a
+supported Binance product and is rejected.
 
-因此，Nautilus 会在所有永续合约符号后加上后缀 `-PERP`。例如在 Nautilus 系统中，Binance 的 `BTCUSDT` 永续合约会被表示为 `BTCUSDT-PERP`。
+For Binance depth CSV data, call the stateless loader directly:
 
-## 订单能力（Order capability）
+```python
+from nautilus_trader.adapters.binance import load_binance_order_book_deltas
 
-下面的表格列出了在不同 Binance 账户类型下支持的订单类型、执行指令与有效时间（time-in-force）选项：
+df = load_binance_order_book_deltas(path, nrows=1_000_000)
+```
 
-### 订单类型（Order types）
+The loader preserves the source values and column order. File-open failures and invalid numeric or
+side values raise `RuntimeError`.
 
-| Order Type             | Spot | Margin | USDT Futures | Coin Futures | 备注                               |
-| ---------------------- | ---- | ------ | ------------ | ------------ | ---------------------------------- |
-| `MARKET`               | ✓    | ✓      | ✓            | ✓            | Quote 数量下单仅支持 Spot/Margin。 |
-| `LIMIT`                | ✓    | ✓      | ✓            | ✓            |                                    |
-| `STOP_MARKET`          | -    | ✓      | ✓            | ✓            | Spot 不支持。                      |
-| `STOP_LIMIT`           | ✓    | ✓      | ✓            | ✓            |                                    |
-| `MARKET_IF_TOUCHED`    | -    | -      | ✓            | ✓            | 仅适用于期货。                     |
-| `LIMIT_IF_TOUCHED`     | ✓    | ✓      | ✓            | ✓            |                                    |
-| `TRAILING_STOP_MARKET` | -    | -      | ✓            | ✓            | 仅适用于期货。                     |
+### Product support
 
-### 执行指令（Execution instructions）
+| Product Type                            | Supported | Notes                                              |
+| --------------------------------------- | --------- | -------------------------------------------------- |
+| Spot Markets (incl. Binance US)         | ✓         |                                                    |
+| Margin Accounts (Cross & Isolated)      | -         | *Not implemented.*                                 |
+| USDT-Margined Futures (PERP & Delivery) | ✓         | Weekly, monthly, and quarterly delivery contracts. |
+| Coin-Margined Futures (PERP & Delivery) | ✓         | Quarterly delivery contracts.                      |
 
-| Instruction   | Spot | Margin | USDT Futures | Coin Futures | 备注                                |
-| ------------- | ---- | ------ | ------------ | ------------ | ----------------------------------- |
-| `post_only`   | ✓    | ✓      | ✓            | ✓            | 见下文限制。                        |
-| `reduce_only` | -    | -      | ✓            | ✓            | 仅期货支持；在 Hedge 模式下不可用。 |
-
-#### Post-only 限制
-
-只有 LIMIT 类订单支持 `post_only`：
-
-| Order Type   | Spot | Margin | USDT Futures | Coin Futures | 备注                                                 |
-| ------------ | ---- | ------ | ------------ | ------------ | ---------------------------------------------------- |
-| `LIMIT`      | ✓    | ✓      | ✓            | ✓            | Spot/Margin 使用 `LIMIT_MAKER`，期货使用 `GTX` TIF。 |
-| `STOP_LIMIT` | -    | -      | ✓            | ✓            | Spot/Margin 不支持。                                 |
-
-### 有效时间（Time in force）
-
-| Time in force | Spot | Margin | USDT Futures | Coin Futures | 说明                                            |
-| ------------- | ---- | ------ | ------------ | ------------ | ----------------------------------------------- |
-| `GTC`         | ✓    | ✓      | ✓            | ✓            | Good Till Canceled（直到手动取消）。            |
-| `GTD`         | ✓\*  | ✓\*    | ✓            | ✓            | \*对 Spot/Margin 会转换为 GTC 并给出警告。      |
-| `FOK`         | ✓    | ✓      | ✓            | ✓            | Fill or Kill（全部成交或立即取消）。            |
-| `IOC`         | ✓    | ✓      | ✓            | ✓            | Immediate or Cancel（立即部分成交并取消剩余）。 |
-
-### 高级订单功能（Advanced order features）
-
-| Feature            | Spot | Margin | USDT Futures | Coin Futures | 说明                                       |
-| ------------------ | ---- | ------ | ------------ | ------------ | ------------------------------------------ |
-| Order Modification | ✓    | ✓      | ✓            | ✓            | 仅限对 LIMIT 订单修改价格与数量。          |
-| Bracket/OCO Orders | ✓    | ✓      | ✓            | ✓            | 止损/止盈的 OCO（One-Cancels-Other）组合。 |
-| Iceberg Orders     | ✓    | ✓      | ✓            | ✓            | 大订单分拆为若干可见部分（Iceberg）。      |
-
-### 批量操作（Batch operations）
-
-| Operation    | Spot | Margin | USDT Futures | Coin Futures | 说明                                 |
-| ------------ | ---- | ------ | ------------ | ------------ | ------------------------------------ |
-| Batch Submit | ✓    | ✓      | ✓            | ✓            | 在单次请求中提交多笔订单。           |
-| Batch Modify | -    | -      | ✓            | ✓            | 在单次请求中修改多笔订单（仅期货）。 |
-| Batch Cancel | ✓    | ✓      | ✓            | ✓            | 在单次请求中取消多笔订单。           |
-
-### 持仓管理（Position management）
-
-| Feature          | Spot | Margin | USDT Futures | Coin Futures | 说明                                    |
-| ---------------- | ---- | ------ | ------------ | ------------ | --------------------------------------- |
-| Query positions  | -    | ✓      | ✓            | ✓            | 实时持仓更新。                          |
-| Position mode    | -    | -      | ✓            | ✓            | 单向（One-Way）或对冲（Hedge）模式。    |
-| Leverage control | -    | ✓      | ✓            | ✓            | 每个合约支持动态调整杠杆。              |
-| Margin mode      | -    | ✓      | ✓            | ✓            | 每合约的 Cross vs Isolated 保证金模式。 |
-
-### 订单查询（Order querying）
-
-| Feature              | Spot | Margin | USDT Futures | Coin Futures | 说明               |
-| -------------------- | ---- | ------ | ------------ | ------------ | ------------------ |
-| Query open orders    | ✓    | ✓      | ✓            | ✓            | 列出所有未结订单。 |
-| Query order history  | ✓    | ✓      | ✓            | ✓            | 历史订单数据。     |
-| Order status updates | ✓    | ✓      | ✓            | ✓            | 实时订单状态变更。 |
-| Trade history        | ✓    | ✓      | ✓            | ✓            | 成交与填单的报表。 |
-
-### 或有订单（Contingent orders）
-
-| Feature            | Spot | Margin | USDT Futures | Coin Futures | 说明                                    |
-| ------------------ | ---- | ------ | ------------ | ------------ | --------------------------------------- |
-| Order lists        | -    | -      | -            | -            | _不支持_                                |
-| OCO orders         | ✓    | ✓      | ✓            | ✓            | 止损/止盈的 OCO 组合。                  |
-| Bracket orders     | ✓    | ✓      | ✓            | ✓            | 止损 + 止盈 的组合单。                  |
-| Conditional orders | ✓    | ✓      | ✓            | ✓            | 条件触发、和 market-if-touched 等类型。 |
-
-### 订单参数（Order parameters）
-
-在调用 `Strategy.submit_order` 时，可以通过 `params` 字典为单笔订单添加自定义参数。当前 Binance 执行客户端支持：
-
-| Parameter     | Type  | Account types     | Description                                                                                                                                                                                                     |
-| ------------- | ----- | ----------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `price_match` | `str` | USDT/COIN Futures | 将价格选择权委托给交易所的 `priceMatch` 模式（见下表）。当提供该参数时，Nautilus 在 API 调用中不会传 limit price，而由 Binance 计算实际工作价格。该参数不能与 `post_only` 或 iceberg（`display_qty`）同时使用。 |
-
-Binance 期货支持的 `priceMatch` 值：
-
-| Value         | Behaviour                                                    |
-| ------------- | ------------------------------------------------------------ |
-| `OPPONENT`    | 抢对手方最优价（join the best price on the opposing side）。 |
-| `OPPONENT_5`  | 抢对手方价格，但允许最多 5 tick 的偏移。                     |
-| `OPPONENT_10` | 抢对手方价格，但允许最多 10 tick 的偏移。                    |
-| `OPPONENT_20` | 抢对手方价格，但允许最多 20 tick 的偏移。                    |
-| `QUEUE`       | 按同一方向队列加入（保持 maker 身份）。                      |
-| `QUEUE_5`     | 在同向队列中加入，但允许最多 5 tick 的偏移。                 |
-| `QUEUE_10`    | 在同向队列中加入，但允许最多 10 tick 的偏移。                |
-| `QUEUE_20`    | 在同向队列中加入，但允许最多 20 tick 的偏移。                |
+:::note
+Margin account features such as borrow, repay, and isolated margin management are not implemented.
+:::
 
 :::info
-更多细节请参阅官方文档： [Derivatives REST API](https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api)。
+Each Binance client instance handles one product type. The configs use a singular `product_type` field, and
+the live factories create one data or execution client from one config. To run Spot and Futures in the same
+node, configure separate clients with distinct IDs, such as `BINANCE_SPOT` and `BINANCE_FUTURES`. Then, when a
+strategy subscribes or submits orders, pass the matching `client_id`. When using both execution clients,
+configure an explicit `BINANCE` venue route or a default client as described in
+[Execution client routing](./../concepts/live.md#execution-client-routing). See the current Python examples for
+complete client setup.
 :::
 
-#### 示例：期货最优价（BBO）限价单
+## Data types
+
+The integration includes several custom data types:
+
+- `BinanceSpotTicker`: Spot 24-hour ticker data including prices, volumes, and trade statistics.
+- `BinanceFuturesTicker`: Futures 24-hour ticker data including price and statistics.
+- `BinanceBar`: Bar data with additional volume metrics for historical and real-time use.
+- `BinanceFuturesMarkPriceUpdate`: Futures mark data including the estimated settlement price.
+- `BinanceFuturesLiquidation`: Futures liquidation events from the `forceOrder` stream.
+- `BinanceFuturesOpenInterest`: Current Futures open interest snapshot (request only).
+- `BinanceFuturesOpenInterestHist`: Futures open interest history for a period (request only).
+
+See the Binance [API Reference](https://nautilustrader.io/docs/python-api-latest/adapters/binance.html) for full definitions.
+
+`BinanceBar`, `BinanceFuturesTicker`, `BinanceFuturesOpenInterest`, and
+`BinanceFuturesLiquidation` support Arrow/Parquet catalog persistence under
+`data/custom/{TypeName}/{identifier}`. Rust builds need the `nautilus-binance` `arrow` feature
+flag for this persistence. Convert catalogs that still use the legacy Python-written
+`data/custom_<snake_case>` layout (for example `data/custom_binance_bar`) with
+[nautilus catalog migrate-parquet](./../how_to/migrate_parquet_catalog.md).
+
+## Symbology
+
+Native Binance symbols are used where possible for spot and futures contracts.
+Because NautilusTrader supports multi-venue trading, it must distinguish between
+`BTCUSDT` the spot pair and `BTCUSDT` the perpetual futures contract (Binance
+uses the same symbol for both).
+
+Nautilus appends `-PERP` to USD-M perpetual symbols. For example, the Binance
+USD-M `BTCUSDT` perpetual becomes `BTCUSDT-PERP`. USD-M `TRADIFI_PERPETUAL`
+listings use the same suffix, so `XAUUSDT` becomes `XAUUSDT-PERP`.
+
+The adapter maps `TRADIFI_PERPETUAL` listings to
+`PerpetualContract` and derives their asset class from Binance's `underlyingType`:
+
+| Binance `underlyingType`                                     | Nautilus asset class |
+| ------------------------------------------------------------ | -------------------- |
+| `EQUITY`, `CN_EQUITY`, `KR_EQUITY`, `HK_EQUITY`, `PREMARKET` | Equity               |
+| `COMMODITY`                                                  | Commodity            |
+
+Listings with other or missing values are skipped with a warning.
+
+The adapter preserves Binance's native `_PERP` suffix for COIN-M
+perpetuals, so `BTCUSD_PERP` remains unchanged.
+
+Delivery symbols keep Binance's `_YYMMDD` suffix. For example,
+`BTCUSDT_270326` and `BTCUSD_270326` remain unchanged within Nautilus. USD-M
+supports the documented `CURRENT_MONTH`, `NEXT_MONTH`, `CURRENT_QUARTER`, and
+`NEXT_QUARTER` contract types, plus the weekly `CURRENT_WEEK` and `NEXT_WEEK`
+types that Binance's common definitions do not list. COIN-M supports
+`CURRENT_QUARTER` and `NEXT_QUARTER`. Contract availability varies by
+environment and listing cycle.
+
+USD-M delivery instruments are linear and settle in the margin asset. COIN-M
+delivery instruments are inverse, settle in the margin asset (the base
+currency), and use Binance's `contractSize` as the instrument multiplier. Both
+use `onboardDate` and `deliveryDate` for activation and expiration. See
+Binance's official
+[USD-M common definitions](https://developers.binance.com/en/docs/products/derivatives-trading-usds-futures/common-definition)
+and [COIN-M common definitions](https://developers.binance.com/en/docs/products/derivatives-trading-coin-futures/common-definition).
+
+The Rust Futures data tester accepts a delivery instrument without source edits:
+
+```bash
+BINANCE_FUTURES_INSTRUMENT_ID=BTCUSDT_270326.BINANCE \
+  cargo run -p nautilus-binance --example binance-futures-data-tester --features examples
+```
+
+## Spot notional constraints
+
+Spot instruments loaded through SBE or JSON populate the dedicated `min_notional` and
+`max_notional` fields from `MIN_NOTIONAL` and `NOTIONAL` filters. When both filters are present,
+the parser uses the strictest bounds. These fields hold quote-currency `Money` values at the
+currency's precision.
+
+The risk engine checks these instrument fields using its price estimates. Instrument `info` is
+metadata for downstream actors and strategies and does not affect risk decisions. Binance applies
+its market-order flags and reference-price rules when validating orders at the venue.
+
+PostgreSQL preserves instrument metadata when restoring instruments. After upgrading an existing
+database, run `nautilus database init --schema "$PWD/schema/sql"` from the repository root to add
+metadata storage. Previously discarded metadata requires reloading instrument definitions.
+
+## Order capability
+
+The following tables detail order types, execution instructions, and
+time-in-force options across the supported Binance products.
+
+### Order types
+
+| Order Type             | Spot | USDT Futures | Coin Futures | Notes                                   |
+| ---------------------- | ---- | ------------ | ------------ | --------------------------------------- |
+| `MARKET`               | ✓    | ✓            | ✓            | Quote quantity support: Spot only.      |
+| `LIMIT`                | ✓    | ✓            | ✓            |                                         |
+| `STOP_MARKET`          | ✓    | ✓            | ✓            | Spot sends Binance `STOP_LOSS`.         |
+| `STOP_LIMIT`           | ✓    | ✓            | ✓            | Spot sends Binance `STOP_LOSS_LIMIT`.   |
+| `MARKET_IF_TOUCHED`    | ✓    | ✓            | ✓            | Spot sends Binance `TAKE_PROFIT`.       |
+| `LIMIT_IF_TOUCHED`     | ✓    | ✓            | ✓            | Spot sends Binance `TAKE_PROFIT_LIMIT`. |
+| `TRAILING_STOP_MARKET` | -    | ✓            | ✓            | Futures only.                           |
+
+Binance Spot publishes a supported order-type set per symbol in `exchangeInfo`. The adapter does not filter on
+this set. Thus, the venue rejects a conditional Spot order with an unsupported type for that symbol. The
+adapter does not reject it locally.
+
+### Execution instructions
+
+| Instruction   | Spot | USDT Futures | Coin Futures | Notes                                                     |
+| ------------- | ---- | ------------ | ------------ | --------------------------------------------------------- |
+| `post_only`   | ✓    | ✓            | ✓            | See restrictions below.                                   |
+| `reduce_only` | -    | ✓            | ✓            | Futures only; translated to `positionSide` in Hedge Mode. |
+
+In One-way Mode, the adapter sends Binance's `reduceOnly` field. Binance does not accept that
+field in Hedge Mode, so the adapter instead selects the closing `positionSide`. This keeps the
+order on the identified leg and prevents it from opening the opposite leg. See Binance's
+[New Order API](https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/New-Order)
+for the wire restrictions.
+
+#### Post-only restrictions
+
+Only *limit* order types support `post_only`.
+
+| Order Type   | Spot | USDT Futures | Coin Futures | Notes                                               |
+| ------------ | ---- | ------------ | ------------ | --------------------------------------------------- |
+| `LIMIT`      | ✓    | ✓            | ✓            | Uses `LIMIT_MAKER` for Spot, `GTX` TIF for Futures. |
+| `STOP_LIMIT` | -    | ✓            | ✓            | Futures only.                                       |
+
+### Time in force
+
+| Time in force | Spot | USDT Futures | Coin Futures | Notes                                     |
+| ------------- | ---- | ------------ | ------------ | ----------------------------------------- |
+| `GTC`         | ✓    | ✓            | ✓            | Good Till Canceled.                       |
+| `GTD`         | ✓*   | ✓            | ✓*           | *Non-default local mapping through `GTC`. |
+| `FOK`         | ✓    | ✓            | ✓            | Fill or Kill.                             |
+| `IOC`         | ✓    | ✓            | ✓            | Immediate or Cancel.                      |
+
+#### GTD policy
+
+[Binance Spot time-in-force values](https://github.com/binance/binance-spot-api-docs/blob/master/enums.md) are
+`GTC`, `IOC`, and `FOK`. Spot has no native `GTD` or `goodTillDate`.
+
+USD-M supports native `GTD` for `LIMIT` and the limit forms of `STOP` and `TAKE_PROFIT`. The adapter routes
+regular orders through HTTP or WebSocket trading, independent batches through HTTP `batchOrders`, and
+conditional algo orders through HTTP `algoOrder`. The Binance WebSocket algo schema includes `goodTillDate`
+but omits `GTD` from its `timeInForce` enum. Thus, the adapter does not route GTD algo orders through that
+endpoint.
+
+COIN-M has no native `GTD` value or `goodTillDate` parameter in its documented order APIs. See the official
+[USD-M trade API](https://developers.binance.com/en/docs/catalog/core-trading-derivatives-trading-usd-s-m-futures/api/rest-api/trade)
+and
+[COIN-M common definitions](https://developers.binance.com/en/docs/products/derivatives-trading-coin-futures/common-definition).
+
+USD-M `goodTillDate` is an epoch timestamp in milliseconds, but Binance ignores any sub-second
+part. Nautilus rejects an expiry that is not on a whole-second boundary rather than silently
+rounding it. The expiry must be strictly greater than the current time plus 600 seconds and
+strictly less than `253402300799000`. Native GTD also rejects market and post-only orders and any
+order without an expiry.
+
+`use_gtd=True` is the default. It uses native USD-M GTD and rejects native GTD on Spot and COIN-M.
+Set `use_gtd=False` only when the submitting strategy has `manage_gtd_expiry=True`. The adapter
+then warns and sends `GTC`, while Nautilus cancels the order at its local expiry.
+
+### Advanced order features
+
+| Feature            | Spot | USDT Futures | Coin Futures | Notes                                       |
+| ------------------ | ---- | ------------ | ------------ | ------------------------------------------- |
+| Order Modification | ✓    | ✓            | ✓            | Price and quantity for `LIMIT` orders only. |
+| OCO Orders         | ✓    | -            | -            | Spot OCO submitted via `orderList/oco`.     |
+| Bracket Orders     | -    | -            | -            | *Planned*. Currently denied at submission.  |
+| Iceberg Orders     | ✓    | -            | -            | Spot `icebergQty` from `display_qty`.       |
+
+### Batch operations
+
+| Operation    | Spot | USDT Futures | Coin Futures | Notes                                   |
+| ------------ | ---- | ------------ | ------------ | --------------------------------------- |
+| Batch Submit | ✓    | ✓            | ✓            | Spot OCO or Futures `batchOrders`.      |
+| Batch Modify | -    | -            | -            | Not implemented.                        |
+| Batch Cancel | -*   | ✓            | ✓            | *Spot falls back to individual cancels. |
+
+#### Cancel all orders behavior
+
+By default, `Strategy.cancel_all_orders()` sends individual cancels for orders associated with that
+strategy. When `strategy_only=False` is used, the strategy sends a broad `CancelAllOrders` command
+to the adapter. The adapter includes orders in both open and inflight (SUBMITTED) states so that it
+also cancels orders not yet acknowledged by Binance.
+
+**Multi-strategy safety**: When multiple strategies trade the same instrument,
+the adapter compares orders associated with the requesting strategy against all orders
+for that instrument. If all orders are associated with the strategy, a single cancel-all API
+call is used. Otherwise, per-strategy cancels are sent (batch for regular
+orders, individual for algo orders) to avoid affecting other strategies.
+
+**Side filter**: A `CancelAllOrders` command with `order_side` set cancels only open orders on that side for
+the instrument. Spot sends one cancel per matching order, while Futures batches regular orders and cancels
+algo orders individually. A side-filtered request selects from open orders only, so an inflight (`SUBMITTED`)
+order not yet acknowledged by Binance survives one. Use an unfiltered cancel-all to include it.
+
+**Futures algo orders**: Conditional order types (`STOP_MARKET`, `STOP_LIMIT`,
+`TAKE_PROFIT`, `TAKE_PROFIT_MARKET`, `TRAILING_STOP_MARKET`) require a
+different cancel endpoint. The adapter routes these through the correct
+endpoint automatically. Once an algo order triggers and becomes a regular
+order, it uses the standard cancel endpoint.
+
+**Endpoints used**:
+
+| Product      | Regular Orders                  | Algo Orders (batch)              | Algo Orders (individual)    |
+| ------------ | ------------------------------- | -------------------------------- | --------------------------- |
+| Spot         | `DELETE /api/v3/openOrders`     | N/A                              | N/A                         |
+| USDT Futures | `DELETE /fapi/v1/allOpenOrders` | `DELETE /fapi/v1/algoOpenOrders` | `DELETE /fapi/v1/algoOrder` |
+| Coin Futures | `DELETE /dapi/v1/allOpenOrders` | `DELETE /dapi/v1/algoOpenOrders` | `DELETE /dapi/v1/algoOrder` |
+
+#### Submit, modify, and cancel retry policy
+
+The execution clients send each submit, modify, or cancel command once. The first request may have reached the
+matching engine. Thus, they do not blindly retry after a timeout, network failure, or Binance unknown-status
+response. Retrying could create a duplicate order or apply a second amendment.
+
+- Local submit validation emits `OrderDenied` before submission. Local modify validation emits
+  `OrderModifyRejected`. A definitive venue rejection emits the matching rejection event.
+- An ambiguous transport result remains inflight and is resolved by the private stream or REST
+  reconciliation. The adapter does not emit a false rejection while the venue outcome is unknown.
+- A Futures algo cancel may fall back from the pre-trigger algo endpoint to the regular-order endpoint. This
+  changes endpoint after the order triggers. It does not resend the same cancel to the same endpoint.
+- Strategy code must not resubmit a command while its result is ambiguous. Wait for reconciliation
+  or query the order by its client order ID.
+
+`BinanceDataClientConfig` and `BinanceExecutionClientConfig` expose `max_retries`,
+`retry_delay_initial_ms`, and `retry_delay_max_ms` for HTTP GET requests. Transient read failures
+retry with bounded exponential backoff and fresh authentication fields. A venue `Retry-After`
+header sets the minimum delay, which can exceed `retry_delay_max_ms`. The fixed total retry budget
+is 180 seconds. When a required delay exceeds the remaining budget, the request returns the venue
+error without waiting.
+
+These settings do not retry order commands because resending an ambiguous command could duplicate
+an order or amendment.
+
+### Position management
+
+| Feature          | Spot | USDT Futures | Coin Futures | Notes                                   |
+| ---------------- | ---- | ------------ | ------------ | --------------------------------------- |
+| Query positions  | -    | ✓            | ✓            | Real-time position updates.             |
+| Position mode    | -    | ✓            | ✓            | One-Way vs Hedge mode (position IDs).   |
+| Leverage control | -    | ✓            | ✓            | Dynamic leverage adjustment per symbol. |
+| Margin mode      | -    | ✓            | ✓            | Cross vs Isolated margin per symbol.    |
+
+Binance Futures logs out-of-scope position symbols at debug and drops them before parsing. For the
+remaining rows, position report generation warns when an amount cannot be parsed. After flat
+positions are removed, unresolved instruments and other conversion failures also warn. If any
+position fails, `generate_position_status_reports` returns an error with the failure count instead
+of an incomplete report set. See
+[instrument availability](./../concepts/execution/reconciliation.md#instrument-availability).
+
+### Risk events
+
+| Feature              | Spot | USDT Futures | Coin Futures | Notes                              |
+| -------------------- | ---- | ------------ | ------------ | ---------------------------------- |
+| Liquidation handling | -    | ✓            | ✓            | Exchange-forced position closures. |
+| ADL handling         | -    | ✓            | ✓            | Auto-Deleveraging events.          |
+
+Binance Futures can trigger exchange-generated orders in response to risk events:
+
+- **Liquidations**: When insufficient margin exists to maintain a position, Binance forcibly closes
+  it at the bankruptcy price. These orders have client IDs starting with `autoclose-`.
+- **ADL (Auto-Deleveraging)**: When the insurance fund is depleted, Binance closes profitable
+  positions to cover losses. These orders use client ID prefix `adl_autoclose`.
+- **Settlements (USD-M)**: Funding and margin settlement orders use client IDs starting with
+  `settlement_autoclose-`.
+- **Deliveries (COIN-M)**: Expiring delivery contracts auto-close with client IDs starting with
+  `delivery_autoclose-`.
+- **Insurance fund**: Takeover by the insurance fund uses status `NEW_INSURANCE` (deprecated on the
+  public changelog but still observed on the wire).
+
+The adapter detects these special order types via their client ID patterns
+(checked before the execution type), then:
+
+1. Logs a warning with order details for monitoring.
+2. Generates a `FillReport` with correct fill details and TAKER liquidity side.
+3. Generates an `OrderStatusReport` for reconciliation.
+
+Upstream references:
+
+- [USDT-M `ORDER_TRADE_UPDATE`](https://developers.binance.com/docs/derivatives/usds-margined-futures/user-data-streams/Event-Order-Update)
+- [COIN-M `ORDER_TRADE_UPDATE`](https://developers.binance.com/docs/derivatives/coin-margined-futures/user-data-streams/Event-Order-Update)
+
+The execution engine creates external orders from runtime status reports when
+the order is not already in cache. This covers first-seen exchange-generated
+orders (the typical case for a live liquidation or ADL event). The engine
+assigns the order through the instrument's active external order claim,
+configured initially with `external_order_instrument_ids`, or to the `EXTERNAL`
+strategy by default.
+
+:::note
+The status report and fill report are emitted bundled as a single
+`OrderWithFills` execution report. The engine creates the external order
+from the status report and then applies the real fill, preserving the
+venue's `trade_id` and `commission`. Any residual quantity not covered by
+the bundled fills is closed with an inferred fill from the status report's
+`avg_px`.
+:::
+
+#### Commission estimation
+
+When Binance omits the commission fields (`N`/`n`) from the fill event, the
+adapter estimates commission as `default_taker_fee * qty * price` using
+the quote currency. This applies to USD-M linear contracts only. COIN-M
+inverse contracts use zero commission as a fallback because the linear
+formula does not account for contract size. Configure `default_taker_fee` on
+`BinanceExecutionClientConfig` to match your fee tier (default: 0.0004 / 0.04%).
+
+### Order querying
+
+| Feature              | Spot | USDT Futures | Coin Futures | Notes                          |
+| -------------------- | ---- | ------------ | ------------ | ------------------------------ |
+| Query open orders    | ✓    | ✓            | ✓            | List all active orders.        |
+| Query order history  | ✓    | ✓            | ✓            | Historical order data.         |
+| Order status updates | ✓    | ✓            | ✓            | Real-time order state changes. |
+| Trade history        | ✓    | ✓            | ✓            | Execution and fill reports.    |
+
+#### Futures trade-history retention
+
+Binance retains USD-M and COIN-M account trades for the past three months. Binance does not define whether
+this means calendar months or a fixed duration. Thus, the adapter uses the most recent 88 days as its complete
+Futures fill-history window.
+
+`generate_fill_reports` rejects an explicit start before that window. The boundary uses the
+command's `ts_init`, capped so it can trail the current client time by no more than 12 hours. An end
+time also requires a start time.
+
+For mass status, an unset `reconciliation_lookback_mins` or a value longer than the complete window applies
+that window. The returned `ExecutionMassStatus` sets `lookback_start` to the applied boundary and
+`reports_complete` to `false`. See the
+[mass-status history contract](./../concepts/execution/reconciliation.md#mass-status-history-contract). Binance
+Spot is unaffected. See the Binance
+[Futures change log](https://developers.binance.com/en/docs/products/derivatives-trading-usds-futures/change-log).
+
+### Contingent orders
+
+| Feature            | Spot | USDT Futures | Coin Futures | Notes                                        |
+| ------------------ | ---- | ------------ | ------------ | -------------------------------------------- |
+| Order lists        | ✓    | ✓            | ✓            | Spot OCO lists; Futures independent batches. |
+| OCO orders         | ✓    | -            | -            | Spot only, via `orderList/oco`.              |
+| Bracket orders     | -    | -            | -            | *Planned*. Currently denied at submission.   |
+| Conditional orders | ✓    | ✓            | ✓            | Stop and market-if-touched orders.           |
+
+### Order parameters
+
+Customize individual orders by supplying a `params` dictionary when calling
+`Strategy.submit_order` (Python) or setting `Params` on a `SubmitOrder`
+command (Rust). The Binance execution clients recognize:
+
+| Parameter        | Type   | Products          | Purpose                                          | Restrictions                                                                              |
+| ---------------- | ------ | ----------------- | ------------------------------------------------ | ----------------------------------------------------------------------------------------- |
+| `price_match`    | `str`  | USDT/COIN Futures | Delegate price selection to Binance.             | `LIMIT` only; not with `post_only`.                                                       |
+| `close_position` | `bool` | USDT/COIN Futures | Close the whole position when the trigger fires. | `StopMarket` and `MarketIfTouched` only; requires `reduce_only=true`; not in order lists. |
+| `rpi`            | `bool` | USDT Futures      | Submit a Retail Price Improvement order.         | `LIMIT` only; requires `post_only=true`; individual orders only.                          |
+
+See [Price match](#price-match), [RPI](#rpi), and [Close position](#close-position) for the full
+behavior.
+
+### Price match
+
+Binance Futures supports BBO (Best Bid/Offer) price matching via the
+`priceMatch` parameter, which delegates price selection to the exchange. Limit
+orders dynamically join the order book at optimal prices without specifying an
+exact price level.
+
+With `price_match`, submit a limit order with a reference price for local risk checks. Binance determines the
+working price from the market state and price match mode.
+
+#### Valid price match values
+
+| Value         | Behavior                                                       |
+| ------------- | -------------------------------------------------------------- |
+| `OPPONENT`    | Join the best price on the opposing side of the book.          |
+| `OPPONENT_5`  | Join the opposing side price but allow up to a 5-tick offset.  |
+| `OPPONENT_10` | Join the opposing side price but allow up to a 10-tick offset. |
+| `OPPONENT_20` | Join the opposing side price but allow up to a 20-tick offset. |
+| `QUEUE`       | Join the best price on the same side (stay maker).             |
+| `QUEUE_5`     | Join the same-side queue but offset up to 5 ticks.             |
+| `QUEUE_10`    | Join the same-side queue but offset up to 10 ticks.            |
+| `QUEUE_20`    | Join the same-side queue but offset up to 20 ticks.            |
+
+:::info
+For more details, see the [official documentation](https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api).
+:::
+
+#### Event sequence
+
+When an order is submitted with `price_match`:
+
+1. Nautilus sends the order with the `priceMatch` parameter and omits the limit price from the API
+   request.
+2. Binance accepts the order and determines the actual working price.
+3. Nautilus generates an `OrderAccepted` event.
+4. If the Binance-accepted price differs from the reference price, Nautilus generates an
+   `OrderUpdated` event with the actual working price.
+5. The order price in the Nautilus cache now matches the Binance-accepted price.
+
+#### Example
 
 ```python
 order = strategy.order_factory.limit(
     instrument_id=InstrumentId.from_str("BTCUSDT-PERP.BINANCE"),
     order_side=OrderSide.BUY,
     quantity=Quantity.from_int(1),
-    price=Price.from_str("65000"),  # 本地保留用于风控校验
+    price=Price.from_str("65000"),  # Reference price for local risk checks
 )
 
 strategy.submit_order(
@@ -183,401 +515,1249 @@ strategy.submit_order(
 ```
 
 :::note
-`price_match` 不能与 `price` 一并发送到 Binance API。Nautilus 会在本地保留 limit price 以做验证，但发送到交易所的将仅包含 price match 模式参数。
+If Binance accepts the order at a different price (e.g. 64,995.50), you
+receive an `OrderAccepted` event followed by an `OrderUpdated` event with
+the new price.
 :::
 
-### 跟踪止损（Trailing stops）
+### RPI
 
-Binance 使用 activation price（激活价）来处理 trailing stop，详见其官方说明： [什么是 trailing stop order](https://www.binance.com/en/support/faq/what-is-a-trailing-stop-order-360042299292)。
-这与一些交易平台的用法有所不同：在 Binance 上，为了使 trailing stop 生效，应使用 `activation_price` 参数来设置激活价。
+Binance RPI (Retail Price Improvement) uses `timeInForce=RPI`. It is post-only and only matches eligible
+retail orders from the Binance App or Web.
 
-注意：activation price 并非触发价（trigger/STOP price）。Binance 会基于当前市场价与 `trailing_offset` 的回调率计算触发价；而 activation price 用来指示订单何时开始根据回调率进行跟踪。
+Nautilus exposes it through the Binance-specific `rpi` parameter. Use it only with a USD-M LIMIT order whose
+`post_only=true`. It is supported only for individual `SubmitOrder` commands. `SubmitOrderList` is denied.
+Without `rpi`, regular post-only orders continue to use `GTX`. See Binance's
+[USD-M Futures API definitions](https://developers.binance.com/docs/derivatives/usds-margined-futures/common-definition)
+for venue details.
+
+RPI is available only for symbols whose `permissionSets` contains `RPI` in the `GET /fapi/v1/exchangeInfo`
+response. Check symbol eligibility before submitting an RPI order. See Binance's
+[RPI guide](https://www.binance.com/en/support/faq/detail/92c83c53173947c4a44f9a7277c3b9ce).
+
+The Rust example assumes `order` is a post-only LIMIT order for an eligible symbol. For Python,
+set `instrument_id` to an eligible instrument and choose `quantity` (`Quantity`) and `price` (`Price`)
+that meet its trading rules.
+
+```rust tab="Rust"
+use nautilus_core::params::Params;
+
+let mut params = Params::new();
+params.insert("rpi".to_string(), true.into());
+self.submit_order(order, None, None, Some(params))?;
+```
+
+```python tab="Python"
+order = strategy.order_factory.limit(
+    instrument_id=instrument_id,
+    order_side=OrderSide.BUY,
+    quantity=quantity,
+    price=price,
+    post_only=True,
+)
+
+strategy.submit_order(order, params={"rpi": True})
+```
+
+### Close position
+
+Binance Futures conditional orders support `closePosition`, which closes the entire position
+when the trigger fires. Binance resolves the quantity server-side from the current position
+size at trigger time. See the official
+[USD-M Algo Service API](https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/New-Algo-Order)
+and [COIN-M Algo Service API](https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/rest-api/New-Algo-Order).
+
+Unlike `reduce_only`, `closePosition` adapts to position size changes, and Binance
+auto-cancels the order when the position is closed by other means.
+
+Set `reduce_only=true` on the Nautilus `StopMarket` or `MarketIfTouched` order, then pass
+`close_position=true` in its `params`. The reduce-only flag records the order's closing intent and
+is required for the order to pass while the trading state is `REDUCING`. The adapter translates
+this combination into Binance's close-all instruction and rejects `close_position` in order lists.
+
+Allow Binance whole-position exits in the risk engine configuration:
+
+```python
+from nautilus_trader.adapters.binance import BINANCE_VENUE
+from nautilus_trader.config import LiveRiskEngineConfig
+
+risk_engine = LiveRiskEngineConfig(
+    full_position_exit_venues=[BINANCE_VENUE],
+)
+```
+
+The allowlist defaults to empty. Without this entry, the placeholder quantity receives the same
+minimum quantity, maximum quantity, and notional checks as an ordinary order. Pass the open
+position ID when submitting the order so the risk engine can verify that the exit reduces it.
+
+```rust tab="Rust"
+let params = Params::from([("close_position", true.into())]);
+self.submit_order(order, Some(position.id), None, Some(params))?;
+```
+
+```python tab="Python"
+strategy.submit_order(
+    order,
+    position_id=position.id,
+    params={"close_position": True},
+)
+```
+
+:::info
+The Nautilus order must set `reduce_only=true`, but Binance does not permit its `reduceOnly` field
+with `closePosition=true`. The adapter therefore sends `closePosition=true` while omitting
+`quantity` and `reduceOnly` from the Binance request. In Hedge Mode, it also sends the closing
+`positionSide`.
+
+For an allowlisted venue, the risk engine still validates quantity precision and positivity,
+the trigger price, the order shape and side, and the linked open position. It does not apply
+minimum or maximum quantity and notional bounds to the placeholder quantity.
+:::
 
 :::warning
-对于 Binance 的 trailing stop，请务必使用 `activation_price` 而非 `trigger_price`，否则订单会被拒绝。
+Only add a venue when its configured execution client enforces whole-position closing semantics.
+An execution client that does not interpret `close_position` may submit only the placeholder
+quantity through its standard reduce-only path instead of closing the whole position.
 :::
 
-从策略提交 trailing stop 时，你有两种选择：
+### Trailing stops
 
-1. 显式提供 `activation_price` 来手动设置激活价；
-2. 将 `activation_price` 设为 `None`，立即启用跟踪机制（从当前市场价开始计算）。
+For trailing stop market orders on Binance:
 
-同时你至少需要满足以下任一条件：
+- Use `activation_price` (optional) to specify when the trailing mechanism activates.
+- When omitted, Binance uses the current market price at submission time.
+- Use `trailing_offset` for the callback rate, with `TrailingOffsetType.BASIS_POINTS`. The adapter
+  rejects any other offset type, and rejects a callback rate outside Binance's 0.1% to 10% range.
 
-- 订单设置了 `activation_price`。 -（或）你已订阅该合约的 quotes，用于推断激活价。 -（或）你已订阅该合约的 trades，用于推断激活价。
+:::warning
+Do not use `trigger_price` for trailing stop orders: it will fail with an
+error. Use `activation_price` instead.
+:::
 
-## 订单簿（Order books）
+## Link & Trade
 
-订单簿可根据订阅设置维持全深度或部分深度。Spot 与 Futures 的 WebSocket 更新节流策略不同，Nautilus 会采用可用的最高流速：
+The adapter prefixes supported client order IDs with the NautilusTrader integration ID for
+Binance's [Link and Trade](https://www.binance.com/en/support/faq/detail/a78a065d0c4846aaa1af474d8e712ab9)
+program. No user configuration is required.
 
-- **Spot**：100ms
-- **Futures**：0ms（不节流 / unthrottled）
+The adapter compresses outgoing `ClientOrderId` values to fit Binance's 36-character limit and
+decodes incoming events before they reach strategies. Supported formats include numeric factory
+IDs, UUIDs, and hyphenated factory IDs with a short alphanumeric trader or strategy tag, such as
+`O-20260922-160119-V2-000-8`.
 
-每个交易实例对每个合约只维护一个订单簿；由于流订阅可能变化，Binance 数据客户端会使用最新的订单簿数据订阅（delta 或 snapshot）。
+The short-tag format supports one or two ASCII letters or digits in one tag. The other tag must
+be a numeric value in `[0, 1023]`, padded to at least three digits. Its count supports `[0, 4194303]`
+without leading zeros, and timestamps span `[2020-01-01 00:00:00, 2156-02-07 06:28:15]` UTC.
+Enabling `use_uuid_client_order_ids` is optional.
 
-在以下情况会触发订单簿快照（snapshot）重建：
+Custom IDs of at most 24 bytes need no compression. For longer unsupported IDs, the adapter logs
+a warning and sends the original ID without a prefix.
+Binance's length and character restrictions still apply.
 
-- 初次订阅订单簿数据时。
-- 数据 websocket 重连时。
+### Existing orders after an upgrade
 
-事件序列大致如下：
+Existing numeric, UUID, and raw-prefixed encodings remain unchanged. The decoder also accepts
+historical unprefixed IDs. When an existing-order operation has a short-tag ID but no venue order
+ID, the adapter queries both its encoded form and the historical unprefixed form. If these identify
+separate orders, it rejects the operation as ambiguous.
 
-- 开始对 deltas 进行缓存。
-- 请求 snapshot 并等待响应。
-- 将 snapshot 响应解析为 `OrderBookDeltas`。
-- 将 snapshot 的 deltas 发送到 `DataEngine`。
-- 遍历缓存的 deltas，丢弃那些序列号不大于 snapshot 中最后一条 delta 的条目。
-- 停止缓存 deltas。
-- 将剩余的 deltas 发送到 `DataEngine`。
+Modifications and cancellations use the recovered venue order ID. Spot cancel-replace retains the
+existing wire client order ID when replacing the same logical order, including orders submitted
+with a historical unprefixed ID. These lookups also apply when the mutation uses WebSocket transport.
 
-## Binance 数据差异（Binance data differences）
+### Decoding client order IDs
 
-`QuoteTick` 对象的 `ts_event` 字段在 Spot 与 Futures 间有所不同：Spot 常常不提供事件时间戳，因此会使用 `ts_init`（即 `ts_event` 与 `ts_init` 相同）。
+When querying Binance directly (REST API, web UI, or your own HTTP code), the
+`clientOrderId` field contains the encoded form. Two utility functions recover
+the original Nautilus `ClientOrderId`:
 
-## Binance 特定数据（Binance specific data）
+```python
+from nautilus_trader.adapters.binance import (
+    decode_binance_futures_client_order_id,
+    decode_binance_spot_client_order_id,
+)
 
-适配器会随时间支持更多 Binance 特定的数据流，用户可以按需订阅这些自定义流。
+# Encoded ID from a Binance REST response or the web UI
+encoded = "x-TD67BGP9-T0000000000000"
+original = decode_binance_spot_client_order_id(encoded)
+# Returns "O-20200101-000000-000-000-0"
+
+# Futures equivalent
+encoded_futures = "x-aHRE4BCj-T0000000000000"
+original_futures = decode_binance_futures_client_order_id(encoded_futures)
+# Returns "O-20200101-000000-000-000-0"
+```
+
+Strings without the broker prefix pass through unchanged, so these are safe
+to call on any `clientOrderId` value.
 
 :::note
-Bars（K 线）并不被视为“Binance 特定”数据，可以像常规数据一样订阅。随着更多适配器功能完善，例如标记价（mark price）和资金费率（funding rate）更新，这类流可能会成为一等公民（first-class），无需通过通用/自定义订阅。
+The adapter decodes automatically wherever it returns Nautilus types such as `OrderStatusReport`.
+Manual decoding is only needed when working outside the adapter: direct REST queries, the Binance
+web UI, or raw venue payloads.
 :::
+
+## Order books
+
+Order books can be maintained at full or partial depths. The diff-depth stream and its update
+rate differ by product and Spot transport:
+
+| Product / transport | Diff-depth stream    | Update rate      |
+| ------------------- | -------------------- | ---------------- |
+| Spot SBE            | `<symbol>@depth`     | 25ms             |
+| Spot JSON           | `<symbol>@depth`     | 1000ms (default) |
+| Futures             | `<symbol>@depth@0ms` | Unthrottled      |
+
+Book subscriptions emit snapshots, whether seeded from REST or received as partial-depth frames,
+with these flags:
+
+- Every snapshot delta carries `F_SNAPSHOT`, and the final delta carries `F_SNAPSHOT | F_LAST`.
+- A snapshot without levels is a lone `Clear` that empties the book.
+
+### Futures L2 subscriptions
+
+The `L2_MBP` subscription depth selects the stream:
+
+| Depth                       | Stream                         | Book source               |
+| --------------------------- | ------------------------------ | ------------------------- |
+| 5, 10, or 20                | `<symbol>@depth<levels>@100ms` | Snapshot in each message  |
+| None, 50, 100, 500, or 1000 | `<symbol>@depth@0ms`           | REST snapshot, then diffs |
+| Any other                   | None                           | Rejected                  |
+
+- **Partial depth**: Binance provides partial-depth streams only at 5, 10, and 20 levels. Each message
+  snapshots both sides with a `Clear` delta followed by the snapshot levels. Thus, it removes absent prices
+  and keeps at most the requested number of levels per side. These subscriptions never request a REST
+  snapshot, including after reconnects.
+- **Diff depth**: The depth limits the initial, reconnect, and recovery REST snapshots, not the maintained
+  book. Omitting it selects a 1000-level snapshot. Later updates can add levels beyond that depth.
+
+The `OrderBook.bids(depth=...)` and `OrderBook.asks(depth=...)` accessors limit their returned
+results without removing stored levels. Unsubscribe before changing an instrument's subscription
+depth.
+
+### Spot L2 subscriptions
+
+Spot partial-depth subscriptions deliver self-contained top-N snapshots. The supported depths
+depend on the [Spot market data mode](#spot-market-data-mode):
+
+| Depth                                   | JSON                     | SBE                |
+| --------------------------------------- | ------------------------ | ------------------ |
+| 5 or 10                                 | `<symbol>@depth<levels>` | Rejected; use JSON |
+| 20                                      | `<symbol>@depth20`       | `<symbol>@depth20` |
+| None (diff depth)                       | `<symbol>@depth`         | `<symbol>@depth`   |
+| Any other, including 50, 100, 500, 1000 | Rejected                 | Rejected           |
+
+- Rejected depths fail before subscription. In JSON mode the error lists the valid depths.
+- Diff-depth subscriptions are seeded by a 5000-level REST snapshot.
+- Unsubscribe before changing an instrument's subscription depth. A new partial-depth subscription does not
+  remove the previous stream.
+
+### L1 top-of-book subscriptions
+
+`L1_MBP` subscriptions require depth 1 and use the Spot `bestBidAsk` or `bookTicker`
+stream and the Futures `bookTicker` stream. Each update emits the normal `QuoteTick`
+and a two-sided `OrderBookDeltas` batch with `F_MBP` flags so a managed L1 book receives
+the same top-of-book state.
+
+Quote and L1 subscriptions share the venue stream through reference counting. The client
+rejects concurrent L1 and L2 subscriptions for the same instrument.
+
+### Snapshot requests
+
+Explicit order-book snapshot requests are supported separately from subscription synchronization:
+
+- **Spot**: Depths in [1, 5000].
+- **Futures**: Depths 5, 10, 20, 50, 100, 500, or 1000.
+
+### Snapshot synchronization and recovery
+
+Futures diff-depth subscriptions and Spot `L2_MBP` subscriptions without an explicit depth keep the diff-depth
+stream subscribed. They seed the book from a REST snapshot through the
+[shared book recovery machinery](./../developer_guide/adapters.md#order-book-recovery-ownership).
+
+#### Synchronization
+
+Synchronization starts at the first diff after a subscription or data WebSocket reconnect:
+
+1. Diffs are buffered and a REST snapshot is requested.
+1. Buffered diffs covered by the snapshot's `lastUpdateId` are dropped.
+1. The remaining diffs must continue from the snapshot. Otherwise another snapshot is requested.
+1. The snapshot is sent to the `DataEngine`, followed by the remaining buffered diffs.
+1. Each later diff is validated against the previous one before it is sent.
+
+Each diff must continue from the snapshot or the previous diff:
+
+| Product | First diff after the snapshot | Later diffs           |
+| ------- | ----------------------------- | --------------------- |
+| Spot    | `U <= lastUpdateId + 1`       | `U <= previous u + 1` |
+| Futures | `U <= lastUpdateId <= u`      | `pu == previous u`    |
+
+A diff that breaks these rules is a sequence gap: book output stops, diffs are buffered, and a
+fresh snapshot is requested without resubscribing. A diff that fails to parse surfaces as a gap on
+the next diff.
+
+#### Recovery limits
+
+- **Snapshot timeout**: `book_snapshot_timeout_secs` (default **10 seconds**) bounds each snapshot
+  request. Set it to `0` to leave requests to the HTTP client timeout.
+- **Retry budget**: Each recovery makes **up to eight snapshot attempts within 180 seconds**, with exponential
+  backoff and jitter. It then retries at an interval that doubles from one minute to fifteen minutes. A
+  permanent request failure moves straight to that interval.
+- **Reconnects**: A reconnect restarts synchronization from the new stream and keeps a running recovery with
+  its remaining budget. A recovery waiting between attempts after its budget retries at once. That recovery's
+  next snapshot can seed the book before the new stream delivers a diff. The first diff must then continue
+  from the snapshot.
+- **Persistent failures**: Recovery continues until a snapshot bridges the buffered diffs or the
+  book is unsubscribed. Other books continue independently.
+
+#### Snapshot pacing
+
+Snapshot requests draw on a per-client share of the venue request-weight budget, so a burst of
+resyncs, such as after a reconnect, waits for budget instead of exceeding it:
+
+| Product | Snapshot budget  | Burst (half the budget) | Full snapshot cost |
+| ------- | ---------------- | ----------------------- | ------------------ |
+| Spot    | 3,000 per minute | 1,500                   | 250 (5000 levels)  |
+| Futures | 1,200 per minute | 600                     | 20 (1000 levels)   |
+
+- Queueing for the first snapshot does not consume the recovery's attempts or 180-second budget.
+- Explicit snapshot requests draw on the same budget.
+- The HTTP client's retries of a failed snapshot request are not paced.
+
+### Live recovery validation
+
+The `binance-book-stress` harness is a development tool for changes to book synchronization and recovery. It
+connects to the selected product's market data and submits no orders. It checks emitted books against the book
+stream contract and two independent oracles:
+
+- The venue's `<symbol>@depth20@100ms` stream at matching update IDs.
+- A reference book rebuilt from raw diffs and forwarded REST snapshots.
+
+The harness drops diffs to force gaps, fails, delays, and rejects REST snapshots, cuts and freezes
+connections, requests reconnects, and churns subscriptions. Its REST proxy refuses snapshot requests
+before venue request weight nears its limit, and a run fails if the venue throttles it.
+
+From the repository root, run:
+
+```bash
+CARGO_BUILD_JOBS=16 bash scripts/strip-adapter-env.bash \
+  cargo test -p nautilus-binance --features examples --test binance-book-stress -- --product futures
+```
+
+`--product` selects the venue:
+
+| Product          | Venue                                                                       |
+| ---------------- | --------------------------------------------------------------------------- |
+| `spot` (default) | Spot mainnet JSON streams.                                                  |
+| `spot-sbe`       | Spot mainnet SBE streams; reads `BINANCE_API_KEY` and `BINANCE_API_SECRET`. |
+| `futures`        | USD-M testnet.                                                              |
+| `coinm`          | COIN-M testnet.                                                             |
+
+Run `spot-sbe` without `strip-adapter-env.bash`, which unsets the API key it needs.
+
+`--scenario` selects the run:
+
+- `churn` (default): rotates gap, reconnect, subscription churn, cut, and freeze faults.
+- `boundaries`: probes snapshot deadlines, retry exhaustion into the retry ceiling, and a
+  permanent rejection.
+- `resubscribe`: races an unsubscribe with an immediate resubscribe once per round.
+- `quiet`: watches thinly traded books, one round per minute.
+- `crowd`: subscribes liquid books and reconnects once per round so snapshot pacing engages.
+
+`--timeout` sets the snapshot timeout in seconds, where `0` disables snapshot deadlines, and
+`--rounds` sets the number of rounds (14 by default). `--books` sets how many books `quiet` and
+`crowd` select by 24-hour trade count (4 by default).
+
+The harness requires access to the selected product's REST API and WebSocket market data streams.
+Automated book lifecycle tests use local mock servers. See
+[Stress harnesses](./../developer_guide/spec_data_testing.md#stress-harnesses) for the shared flags
+and output format.
+
+## Quote timestamps
+
+The `ts_event` field on `QuoteTick` differs between transports. Spot SBE uses the
+microsecond event timestamp. Spot public JSON `bookTicker` messages can omit an event
+timestamp, in which case the adapter uses `ts_init`. Futures uses the transaction time.
+
+## Bars and historical market data
+
+Spot supports one-second klines for subscriptions and historical requests. Real-time
+Spot kline subscriptions require `spot_market_data_mode=Json` because Binance does not
+publish kline or ticker streams over Spot SBE. Binance Futures rejects second-level
+klines because the Futures API does not offer them.
+
+Closed venue klines emit a core `Bar` and a `BinanceBar` custom-data event. `BinanceBar` retains quote volume,
+trade count, taker-buy base volume, and taker-buy quote volume. Historical core bar requests return `Bar`.
+Request `BinanceBar` custom data with `bar_type` metadata to retain the extended fields in historical
+responses.
+
+Real-time trade subscriptions use the `<symbol>@aggTrade` stream on Futures, because Binance only
+publishes aggregated trades on the Futures WebSocket, and the individual `<symbol>@trade` stream on
+Spot.
+
+Historical trade requests without bounds use the recent-trades endpoint. A request with time bounds uses
+aggregate trades and accepts at most 1000 records, so the source follows the request rather than a config
+option. Spot passes the supplied bounds to `/api/v3/aggTrades`. Futures accepts either bound within the last
+24 hours. When both are supplied, the range must be shorter than one hour.
+
+Historical core bar requests accept externally aggregated time bars and use the corresponding venue kline
+endpoint. Internally aggregated bars are built by the `DataEngine` from raw trade, quote, or source-bar
+responses through the `bar_types` request parameter. The Binance data client does not aggregate them.
+
+## Binance specific data
+
+Bars, mark prices, index prices, and funding rates are subscribed to in the normal way. The custom
+data types below expose additional venue-specific fields that the core data types do not carry.
+
+Binance Futures mark-price payloads preserve the venue `P` estimated settlement price in
+`BinanceFuturesMarkPriceUpdate`. Nautilus also emits standard mark-price, index-price, and
+funding-rate updates from the same stream. The optional USD-M `ap` moving-average field is
+parsed at the transport boundary but is not exposed as domain or custom data.
+
+### `BinanceSpotTicker`
+
+Spot 24-hour ticker custom data requires public JSON market-data mode and an
+`instrument_id` metadata value:
+
+```python
+from nautilus_trader.adapters.binance import BinanceSpotTicker
+from nautilus_trader.model import ClientId
+from nautilus_trader.model import DataType
+
+self.subscribe_data(
+    data_type=DataType(
+        BinanceSpotTicker.__name__,
+        metadata={"instrument_id": "BTCUSDT.BINANCE"},
+    ),
+    client_id=ClientId.from_str("BINANCE"),
+)
+```
+
+The adapter subscribes to the instrument `@ticker` stream. SBE mode rejects this
+subscription because Binance Spot SBE does not provide the stream.
+
+### `BinanceFuturesTicker`
+
+Subscribe to 24-hour ticker statistics for a specific Futures instrument:
+
+```python
+from nautilus_trader.adapters.binance import BinanceFuturesTicker
+from nautilus_trader.model import ClientId
+from nautilus_trader.model import DataType
+
+client_id = ClientId.from_str("BINANCE")
+
+self.subscribe_data(
+    data_type=DataType(
+        BinanceFuturesTicker.__name__,
+        metadata={"instrument_id": "BTCUSDT-PERP.BINANCE"},
+    ),
+    client_id=client_id,
+)
+```
+
+The adapter subscribes to the instrument `@ticker` stream and emits `BinanceFuturesTicker` custom data with
+`metadata={"instrument_id": "<instrument_id>"}`. Ticker custom data requires `instrument_id`. All-market
+ticker subscriptions are not supported.
 
 ### `BinanceFuturesMarkPriceUpdate`
 
-可通过在 actor 或 strategy 中订阅以下数据类型来接收 `BinanceFuturesMarkPriceUpdate`（包含 funding rate 信息）：
+Subscribe to `BinanceFuturesMarkPriceUpdate` (including funding rate info)
+from your actor or strategy:
 
 ```python
 from nautilus_trader.adapters.binance import BinanceFuturesMarkPriceUpdate
 from nautilus_trader.model import DataType
 from nautilus_trader.model import ClientId
 
-# 在你的 `on_start` 方法中
+# In your `on_start` method
 self.subscribe_data(
-    data_type=DataType(BinanceFuturesMarkPriceUpdate, metadata={"instrument_id": self.instrument.id}),
+    data_type=DataType(
+        BinanceFuturesMarkPriceUpdate.__name__,
+        metadata={"instrument_id": str(self.instrument.id)},
+    ),
     client_id=ClientId("BINANCE"),
 )
 ```
 
-订阅后，这些 `BinanceFuturesMarkPriceUpdate` 对象会被传递到你的 `on_data` 方法。由于 `on_data` 会处理多种自定义/通用数据，你需要先检查数据类型：
+Received `BinanceFuturesMarkPriceUpdate` objects are passed to your `on_data`
+method wrapped in `CustomData`. Unwrap the payload with `data.data` and check its
+type, as this method handles all custom/generic data.
 
 ```python
-from nautilus_trader.core import Data
+from nautilus_trader.adapters.binance import BinanceFuturesMarkPriceUpdate
+from nautilus_trader.model import CustomData
 
-def on_data(self, data: Data):
-    # 先判断数据类型
-    if isinstance(data, BinanceFuturesMarkPriceUpdate):
-        # 处理该数据
+
+def on_data(self, data: CustomData) -> None:
+    # Unwrap the payload, then check its type
+    payload = data.data
+    if isinstance(payload, BinanceFuturesMarkPriceUpdate):
+        self.log.info(
+            f"{payload.instrument_id} mark_price={payload.mark_price} "
+            f"funding_rate={payload.funding_rate}",
+        )
 ```
 
-## 速率限制（Rate limiting）
+### `BinanceFuturesLiquidation`
 
-Binance 使用基于固定时间窗口的权重限流（例如每分钟在 :00 秒重置）。适配器通过令牌桶（token bucket）限流器近似这一行为，降低超额请求的风险，同时在正常交易场景下保持高吞吐。
+Subscribe to liquidation updates for either:
 
-| Key / Endpoint       | Limit (weight/min)              | 说明                                   |
-| -------------------- | ------------------------------- | -------------------------------------- |
-| `binance:global`     | Spot: 6,000<br />Futures: 2,400 | 默认的请求桶，适用于所有请求。         |
-| `/api/v3/order`      | 3,000                           | Spot 下单接口。                        |
-| `/api/v3/allOrders`  | 150                             | Spot all-orders 接口（权重乘数 20×）。 |
-| `/api/v3/klines`     | 600                             | Spot 历史 K 线。                       |
-| `/fapi/v1/order`     | 1,200                           | 期货下单接口。                         |
-| `/fapi/v1/allOrders` | 60                              | 期货历史订单（权重乘数 20×）。         |
-| `/fapi/v1/klines`    | 600                             | 期货历史 K 线。                        |
+- a specific instrument (`<symbol>@forceOrder`), or
+- all symbols (`!forceOrder@arr`) by omitting `instrument_id`.
 
-Binance 会动态分配请求权重（例如 `/klines` 根据 `limit` 缩放）。上表为静态近似值，客户端仍会为每次调用消耗令牌，因此在拉取超长历史时可能需要手动限速以遵守返回的 `X-MBX-USED-WEIGHT-*` 头信息。
+```python
+from nautilus_trader.adapters.binance import BinanceFuturesLiquidation
+from nautilus_trader.model import ClientId
+from nautilus_trader.model import DataType
+
+client_id = ClientId.from_str("BINANCE")
+
+# Instrument-specific
+self.subscribe_data(
+    data_type=DataType(
+        BinanceFuturesLiquidation.__name__,
+        metadata={"instrument_id": "BTCUSDT-PERP.BINANCE"},
+    ),
+    client_id=client_id,
+)
+
+# All-market (no instrument_id metadata)
+self.subscribe_data(
+    data_type=DataType(BinanceFuturesLiquidation.__name__),
+    client_id=client_id,
+)
+```
+
+For instrument-specific subscriptions, `CustomData.data_type` includes
+`metadata={"instrument_id": "<instrument_id>"}`. For all-market subscriptions,
+the data type has no metadata.
+
+When both modes are subscribed concurrently, all-market takes precedence. The
+adapter suspends per-symbol liquidation streams while all-market is active, and
+restores active per-symbol streams after all-market is unsubscribed.
+
+### Futures open interest
+
+Open interest is request-only. The Futures data client has no open interest subscription. Both types require
+`instrument_id` metadata, and `BinanceFuturesOpenInterestHist` also requires a Binance `period` string such as
+`"5m"`:
+
+```python
+from nautilus_trader.adapters.binance import BinanceFuturesOpenInterest
+from nautilus_trader.adapters.binance import BinanceFuturesOpenInterestHist
+from nautilus_trader.model import ClientId
+from nautilus_trader.model import DataType
+
+client_id = ClientId.from_str("BINANCE")
+
+# Current open interest snapshot
+self.request_data(
+    data_type=DataType(
+        BinanceFuturesOpenInterest.__name__,
+        metadata={"instrument_id": "BTCUSDT-PERP.BINANCE"},
+    ),
+    client_id=client_id,
+)
+
+# Historical open interest series
+self.request_data(
+    data_type=DataType(
+        BinanceFuturesOpenInterestHist.__name__,
+        metadata={"instrument_id": "BTCUSDT-PERP.BINANCE", "period": "5m"},
+    ),
+    client_id=client_id,
+)
+```
+
+`BinanceFuturesOpenInterestHist` returns a batch of points, each carrying the summed open interest
+and its notional value for one bucket. COIN-M history is keyed by pair and contract type, which
+the adapter derives from the symbol for perpetuals and from the cached instrument definition for
+delivery contracts.
+
+## Funding rates
+
+The adapter emits `FundingRateUpdate` as a first-class data type through
+`subscribe_funding_rates`. The data comes from the
+[Mark Price Stream](https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/Mark-Price-Stream)
+WebSocket endpoint, which provides the current funding rate and next funding
+time alongside mark and index prices. All three subscriptions
+(`subscribe_mark_prices`, `subscribe_index_prices`, `subscribe_funding_rates`)
+share a single `@markPrice@1s` stream with ref-counted subscription management.
+
+Historical funding rates are available through `request_funding_rates`, which
+queries the
+[Get Funding Rate History](https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Get-Funding-Rate-History)
+REST endpoint (`GET /fapi/v1/fundingRate` for USD-M, `GET /dapi/v1/fundingRate`
+for COIN-M). Each history row maps to a `FundingRateUpdate` with `ts_event` set
+to the funding time. The `next_funding_ns` field is `None` for historical rows
+because the endpoint does not provide it.
+
+The adapter also exposes the venue payload through `BinanceFuturesMarkPriceUpdate` custom data
+subscriptions (see [Binance specific data](#binance-specific-data)).
+
+For Binance, `FundingRateUpdate.interval` is `None`. The Mark Price Stream and funding rate history endpoint
+do not include a funding interval field. Binance exposes `fundingIntervalHours` through the
+[Get Funding Rate Info](https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Get-Funding-Rate-Info)
+REST endpoint, but the adapter does not consume it.
+
+## Instrument status polling
+
+The data clients periodically poll Binance `exchangeInfo` to detect changes in
+instrument trading status. When a symbol transitions between states (e.g.
+Trading to Halt, or Trading to Delivering for a futures contract approaching
+expiry), the adapter emits an `InstrumentStatus` event.
+
+The polling interval defaults to 3,600 seconds (60 minutes) and is configurable
+via `instrument_status_poll_secs` in the data client config. Set to `0` to
+disable polling entirely.
+
+On initial connect, the adapter seeds its status cache from the exchange info
+response without emitting events. Only subsequent polls that detect a status
+change emit `InstrumentStatus` events. If a symbol disappears from exchange
+info (e.g. after delisting or contract expiry), the adapter emits
+`NotAvailableForTrading`.
+
+Status polling does not reload instrument definitions. The separate `instrument_refresh_interval_secs` task
+performs a complete filtered catalog load. It atomically replaces the data-client and WebSocket lookup maps.
+Then it sends the refreshed instruments to the data engine and updates the status snapshot. It also refreshes
+the execution client precision cache.
+
+The default full refresh interval is 3,600 seconds. Set it to `0` to disable it. Disconnect cancels the task,
+and reconnect starts one replacement task with a new cancellation token.
+
+### Status mapping
+
+#### Spot
+
+| Binance status   | MarketStatusAction     |
+| ---------------- | ---------------------- |
+| Trading          | Trading                |
+| EndOfDay         | Close                  |
+| Halt             | Halt                   |
+| Break            | Pause                  |
+| CancelOnly       | Halt                   |
+| NonRepresentable | NotAvailableForTrading |
+
+Binance US polls the public JSON exchange info instead, which maps `TRADING` to `Trading`, `BREAK`
+to `Pause`, and every other value to `NotAvailableForTrading`.
+
+#### Futures (USD-M)
+
+| Binance status    | MarketStatusAction |
+| ----------------- | ------------------ |
+| Trading           | Trading            |
+| PendingTrading    | PreOpen            |
+| PreTrading        | PreOpen            |
+| PostTrading       | PostClose          |
+| EndOfDay          | Close              |
+| Halt              | Halt               |
+| AuctionMatch      | Cross              |
+| Break             | Pause              |
+| PreDelivering     | PreClose           |
+| Delivering        | Close              |
+| Delivered         | Close              |
+| PreSettle         | PreClose           |
+| Settling          | Close              |
+| Close             | Close              |
+| TradingHalt       | Halt               |
+| TradingCancelOnly | Halt               |
+
+#### Futures (COIN-M)
+
+| Binance status    | MarketStatusAction     |
+| ----------------- | ---------------------- |
+| Trading           | Trading                |
+| PendingTrading    | PreOpen                |
+| PreDelivering     | PreClose               |
+| Delivering        | Close                  |
+| Delivered         | Close                  |
+| PreSettle         | PreClose               |
+| Settling          | Close                  |
+| Close             | Close                  |
+| PreDelisting      | PreClose               |
+| Delisting         | Suspend                |
+| Down              | NotAvailableForTrading |
+| TradingHalt       | Halt                   |
+| TradingCancelOnly | Halt                   |
+
+Unknown or undocumented Futures status values map to `NotAvailableForTrading`.
+
+:::note
+Only instruments that are in a tradable state at connect time are tracked.
+Symbols that start in a non-trading state (e.g. halted at connect) do not
+appear in the instruments cache, so status transitions for them are not
+monitored.
+:::
+
+## Rate limiting
+
+Binance uses an interval-based rate limiting system where request weight is
+tracked per fixed time window (every minute, resetting at :00 seconds). Each
+API endpoint has an assigned weight cost, and total weight usage is tracked
+per IP address.
+
+### Venue weight limits
+
+Binance's own per-IP weight allowance, which the endpoint costs below draw from:
+
+| Product     | Weight limit | Interval |
+| ----------- | ------------ | -------- |
+| Spot/Margin | 6,000        | 1 minute |
+| Futures     | 2,400        | 1 minute |
+
+### Endpoint weight costs
+
+Binance charges these weights per request:
+
+| Endpoint                  | Weight | Notes                                  |
+| ------------------------- | ------ | -------------------------------------- |
+| `/api/v3/order`           | 1      | Spot order placement.                  |
+| `/api/v3/allOrders`       | 20     | Spot historical orders (expensive).    |
+| `/api/v3/klines`          | 2+     | Scales with `limit` parameter.         |
+| `/api/v3/depth`           | 5+     | Scales with `limit`; 250 at 5000.      |
+| `/fapi/v1/order`          | 1      | Futures order placement.               |
+| `/fapi/v1/algoOrder`      | 0      | Uses order-count limits.               |
+| `/fapi/v1/allOrders`      | 20     | Futures historical orders (expensive). |
+| `/fapi/v1/commissionRate` | 20     | Futures commission rate query.         |
+| `/fapi/v1/klines`         | 5+     | Scales with `limit` parameter.         |
+| `/fapi/v1/depth`          | 2+     | Scales with `limit`; 20 at 1000.       |
+
+USD-M Futures `POST /fapi/v1/algoOrder` consumes `1` from both `X-MBX-ORDER-COUNT-10S` and
+`X-MBX-ORDER-COUNT-1M`. Binance charges no IP request weight for this endpoint. The adapter still queues it
+through the global bucket as part of its local pacing model.
+
+### WebSocket API limits
+
+The WebSocket API (used for order entry and user data streams) shares the same weight quota as the
+REST API:
+
+| Limit Type       | Value  | Notes                                 |
+| ---------------- | ------ | ------------------------------------- |
+| Request weight   | Shared | Counts against REST API weight quota. |
+| Handshake        | 5      | Weight cost per connection attempt.   |
+| Ping/pong frames | 5/sec  | Maximum ping/pong rate.               |
+
+### Adapter pacing
+
+The adapter runs its own token bucket limiters ahead of the venue's accounting. Every HTTP request
+draws one token from a per-product request bucket, and every order operation draws an additional
+token from the order-count buckets:
+
+| Product                    | Requests     | Order operations             |
+| -------------------------- | ------------ | ---------------------------- |
+| Spot                       | 1,200/minute | 10/second, 100,000/day       |
+| Futures (USD-M and COIN-M) | 2,400/minute | 300/10 seconds, 1,200/minute |
+
+The order-count buckets cover every order operation the product supports, not just placement:
+submit, OCO submit, batch submit, algo submit, modify (Spot modifies through cancel-replace), batch
+modify, cancel, cancel-all, batch cancel, and algo cancel. Cancel-heavy and modify-heavy strategies
+are throttled by these buckets as well. Non-order authenticated requests, such as leverage and
+margin-type changes and listen-key keepalives, draw from the request bucket alone.
+
+The request bucket counts calls rather than weight, so it does not mirror the venue's weight accounting. A run
+of high-weight or dynamic-weight endpoints (`/api/v3/allOrders` at weight 20, or `/klines` scaling with
+`limit`) spends venue weight faster than the local bucket accounts for. Large history requests may need manual
+pacing. Monitor the `X-MBX-USED-WEIGHT-*` response headers to track actual venue usage. Order book snapshot
+requests also wait on a weight-aware budget. See [Snapshot pacing](#snapshot-pacing).
 
 :::warning
-当超过允许的权重时，Binance 会返回 HTTP 429，连续的突发可能导致临时 IP 封禁，请在批量请求间留有余量。
+Binance returns HTTP 429 when you exceed the allowed weight. Repeated
+violations trigger temporary IP bans (escalating from 2 minutes to 3 days
+for repeat offenders).
 :::
 
 :::info
-有关限流的更多细节，请参见官方文档： [Limits](https://binance-docs.github.io/apidocs/futures/en/#limits)。
+For the latest rate limits, query `/api/v3/exchangeInfo` (Spot) or `/fapi/v1/exchangeInfo` (Futures), or see:
+
+- [Spot API Limits](https://developers.binance.com/docs/binance-spot-api-docs/rest-api/limits)
+- [Futures API Limits](https://developers.binance.com/docs/derivatives/usds-margined-futures/general-info)
+
 :::
 
-## 配置
+## Configuration
 
-### 数据客户端（Data client）配置选项
+### Data client
 
-| Option                             | Default   | Description                                                          |
-| ---------------------------------- | --------- | -------------------------------------------------------------------- |
-| `venue`                            | `BINANCE` | 注册客户端时使用的场所标识。                                         |
-| `api_key`                          | `None`    | Binance API key；未指定时从环境变量加载。                            |
-| `api_secret`                       | `None`    | Binance API secret；未指定时从环境变量加载。                         |
-| `key_type`                         | `HMAC`    | 密钥类型（`HMAC`、`RSA` 或 `ED25519`）。                             |
-| `account_type`                     | `SPOT`    | 数据端点使用的账户类型（spot、margin、usdt_futures、coin_futures）。 |
-| `base_url_http`                    | `None`    | 覆盖默认 HTTP REST 基址。                                            |
-| `base_url_ws`                      | `None`    | 覆盖默认 WebSocket 基址。                                            |
-| `us`                               | `False`   | 若为 `True` 则使用 Binance US 的端点。                               |
-| `testnet`                          | `False`   | 若为 `True` 则使用 Binance testnet。                                 |
-| `update_instruments_interval_mins` | `60`      | 刷新合约目录的间隔（分钟）。                                         |
-| `use_agg_trade_ticks`              | `False`   | 若为 `True` 则订阅聚合成交（agg trade ticks）而非原始 trades。       |
+| Option                             | Default   | Description                                                                    |
+| ---------------------------------- | --------- | ------------------------------------------------------------------------------ |
+| `product_type`                     | `Spot`    | One of `Spot`, `UsdM`, or `CoinM`.                                             |
+| `environment`                      | `Live`    | One of `Live`, `Testnet`, or `Demo`.                                           |
+| `base_url_http`                    | `None`    | Optional HTTP endpoint override.                                               |
+| `base_url_ws`                      | `None`    | Optional market WebSocket endpoint override.                                   |
+| `api_key` / `api_secret`           | `None`    | Required for Spot SBE; optional for public JSON and Futures data.              |
+| `spot_market_data_mode`            | `Sbe`     | `Json` keeps the credential-free Global Spot path. Binance US requires `Json`. |
+| `instrument_provider`              | default   | Loading, filters, parser-warning, and commission policy.                       |
+| `instrument_refresh_interval_secs` | `3,600`   | Full catalog refresh interval; `0` disables it.                                |
+| `instrument_status_poll_secs`      | `3,600`   | Status-only exchange-info poll interval; `0` disables it.                      |
+| `book_snapshot_timeout_secs`       | `10`      | Deadline for each diff-depth REST snapshot request; `0` disables it.           |
+| `proxy_url`                        | `None`    | Proxy applied to HTTP and every market WebSocket connection.                   |
+| `recv_window_ms`                   | `5,000`   | Signed HTTP receive window, inclusive range `1..=60000`.                       |
+| `max_retries`                      | `3`       | Maximum retries for HTTP GET requests.                                         |
+| `retry_delay_initial_ms`           | `1,000`   | Initial HTTP read retry delay in milliseconds.                                 |
+| `retry_delay_max_ms`               | `10,000`  | Maximum exponential delay; a venue minimum can exceed it.                      |
+| `us`                               | `False`   | Route a live Spot JSON client to Binance US.                                   |
+| `transport_backend`                | `Sockudo` | WebSocket transport backend.                                                   |
 
-### 执行客户端（Execution client）配置选项
+### Execution client
 
-| Option                                  | Default   | Description                                                              |
-| --------------------------------------- | --------- | ------------------------------------------------------------------------ |
-| `venue`                                 | `BINANCE` | 注册客户端时使用的场所标识。                                             |
-| `api_key`                               | `None`    | Binance API key；未指定时从环境变量加载。                                |
-| `api_secret`                            | `None`    | Binance API secret；未指定时从环境变量加载。                             |
-| `key_type`                              | `HMAC`    | 密钥类型（`HMAC`、`RSA` 或 `ED25519`）。                                 |
-| `account_type`                          | `SPOT`    | 下单使用的账户类型（spot、margin、usdt_futures、coin_futures）。         |
-| `base_url_http`                         | `None`    | 覆盖默认 HTTP REST 基址。                                                |
-| `base_url_ws`                           | `None`    | � 覆盖默认 WebSocket 基址。                                              |
-| `us`                                    | `False`   | 若为 `True` 则使用 Binance US 的端点。                                   |
-| `testnet`                               | `False`   | 若为 `True` 则使用 Binance testnet。                                     |
-| `use_gtd`                               | `True`    | 若为 `False`，则将 GTD 订单重映射为本地的 GTC。                          |
-| `use_reduce_only`                       | `True`    | 若为 `True`，则向 Binance 透传 `reduce_only` 指令。                      |
-| `use_position_ids`                      | `True`    | 启用 Binance 的对冲（hedging）position id；设为 `False` 则使用虚拟对冲。 |
-| `use_trade_lite`                        | `False`   | 使用包含派生手续费信息的 TRADE_LITE 执行事件。                           |
-| `treat_expired_as_canceled`             | `False`   | 若为 `True`，则将 `EXPIRED` 类型视为 `CANCELED`。                        |
-| `recv_window_ms`                        | `5,000`   | 签名 REST 请求的接收窗口（毫秒）。                                       |
-| `max_retries`                           | `None`    | 下单/取消/修改调用的最大重试次数。                                       |
-| `retry_delay_initial_ms`                | `None`    | 重试间的初始延迟（毫秒）。                                               |
-| `retry_delay_max_ms`                    | `None`    | 重试间的最大延迟（毫秒）。                                               |
-| `futures_leverages`                     | `None`    | 映射 `BinanceSymbol` 到期货账户初始杠杆。                                |
-| `futures_margin_types`                  | `None`    | 映射 `BinanceSymbol` 到期货保证金类型（isolated/cross）。                |
-| `listen_key_ping_max_failures`          | `3`       | listen key 连续 ping 失败允许的次数，超过触发恢复。                      |
-| `log_rejected_due_post_only_as_warning` | `True`    | 若为 `True`，则将 post-only 被拒记录为警告，否则作为错误记录。           |
+| Option                             | Default   | Description                                                             |
+| ---------------------------------- | --------- | ----------------------------------------------------------------------- |
+| `account_id`                       | Required  | Nautilus account identity.                                              |
+| `product_type`                     | `Spot`    | One of `Spot`, `UsdM`, or `CoinM`.                                      |
+| `environment`                      | `Live`    | One of `Live`, `Testnet`, or `Demo`.                                    |
+| `base_url_http`                    | `None`    | Optional HTTP endpoint override.                                        |
+| `base_url_ws`                      | `None`    | Optional private stream override.                                       |
+| `base_url_ws_trading`              | `None`    | Optional Global Spot or USD-M WebSocket trading override.               |
+| `use_ws_trading`                   | `True`    | Use Global WebSocket order entry where supported; Binance US uses HTTP. |
+| `ws_trading_setup_timeout_ms`      | `10,000`  | WebSocket trading authentication and setup timeout.                     |
+| `instrument_provider`              | default   | Loading, filters, parser-warning, and commission policy.                |
+| `instrument_refresh_interval_secs` | `3,600`   | Execution precision-cache refresh interval; `0` disables it.            |
+| `proxy_url`                        | `None`    | Proxy applied to HTTP, private streams, and WebSocket trading.          |
+| `recv_window_ms`                   | `5,000`   | Signed HTTP and WebSocket receive window, inclusive range `1..=60000`.  |
+| `max_retries`                      | `3`       | Maximum retries for HTTP GET requests.                                  |
+| `retry_delay_initial_ms`           | `1,000`   | Initial HTTP read retry delay in milliseconds.                          |
+| `retry_delay_max_ms`               | `10,000`  | Maximum exponential delay; a venue minimum can exceed it.               |
+| `us`                               | `False`   | Route a live Spot execution client to Binance US.                       |
+| `api_key` / `api_secret`           | `None`    | Global uses Ed25519 WebSocket auth; Binance US uses HMAC HTTP signing.  |
+| `use_gtd`                          | `True`    | Use native USD-M GTD; see [GTD policy](#gtd-policy).                    |
+| `use_position_ids`                 | `True`    | Expose Futures IDs on order, fill, and hedge REST reports.              |
+| `oms_type`                         | `None`    | `None` selects Futures netting; use `Hedging` for dual-side mode.       |
+| `default_taker_fee`                | `0.0004`  | Fallback for exchange-generated Futures fills.                          |
+| `futures_leverages`                | `None`    | Initial leverage by Futures symbol.                                     |
+| `futures_margin_types`             | `None`    | Initial margin type by Futures symbol.                                  |
+| `treat_expired_as_canceled`        | `False`   | Map `EXPIRED` execution events to canceled events.                      |
+| `use_trade_lite`                   | `False`   | Use the lower-latency USD-M trade-lite fill stream.                     |
+| `bnfcr_currency`                   | `USDT`    | Currency used to resolve `BNFCR` balances and fees.                     |
+| `transport_backend`                | `Sockudo` | WebSocket transport backend.                                            |
 
-最常见的用例是为实时 `TradingNode` 增加 Binance 的数据与执行客户端。为此请在你的客户端配置中添加 `BINANCE` 段：
+### Live node configuration
 
-```python
-from nautilus_trader.adapters.binance import BINANCE
-from nautilus_trader.live.node import TradingNode
+Use `BinanceDataClientConfig` with `BinanceDataClientFactory` and `BinanceExecutionClientConfig` with
+`BinanceExecutionClientFactory`. The current Python examples show the complete
+`LiveNode.builder(...)` configuration for data and execution clients.
 
-config = TradingNodeConfig(
-    ...,  # 省略其余配置
-    data_clients={
-        BINANCE: {
-            "api_key": "YOUR_BINANCE_API_KEY",
-            "api_secret": "YOUR_BINANCE_API_SECRET",
-            "account_type": "spot",  # {spot, margin, usdt_future, coin_future}
-            "base_url_http": None,  # 覆盖默认端点
-            "base_url_ws": None,  # 覆盖默认端点
-            "us": False,  # 若为 Binance US
-        },
-    },
-    exec_clients={
-        BINANCE: {
-            "api_key": "YOUR_BINANCE_API_KEY",
-            "api_secret": "YOUR_BINANCE_API_SECRET",
-            "account_type": "spot",  # {spot, margin, usdt_future, coin_future}
-            "base_url_http": None,
-            "base_url_ws": None,
-            "us": False,
-        },
-    },
-)
-```
+### Futures Credits Trading Mode (BNFCR)
 
-然后创建 `TradingNode` 并注册客户端工厂：
+Binance Futures Credits Trading Mode is an EU regulatory mode. It denominates the USD-M futures wallet,
+margin, PnL, and fees in `BNFCR`. This internal credit unit replaces stablecoin balances and has a 1:1 peg to
+USD.
 
-```python
-from nautilus_trader.adapters.binance import BINANCE
-from nautilus_trader.adapters.binance import BinanceLiveDataClientFactory
-from nautilus_trader.adapters.binance import BinanceLiveExecClientFactory
-from nautilus_trader.live.node import TradingNode
+`BNFCR` is not a tradable asset, so the adapter maps it to `bnfcr_currency` in the execution config (default
+`USDT`). Thus, account balances and commissions reconcile against the traded contracts' settlement stablecoin.
+Set `bnfcr_currency` to `USDC` when trading USDC-margined perpetuals. Any other unrecognized futures asset is
+registered as a generic crypto currency rather than failing.
 
-# 使用配置实例化实时交易节点
-node = TradingNode(config=config)
+### Spot market data mode
 
-# 注册客户端工厂
-node.add_data_client_factory(BINANCE, BinanceLiveDataClientFactory)
-node.add_exec_client_factory(BINANCE, BinanceLiveExecClientFactory)
+`spot_market_data_mode` on `BinanceDataClientConfig` selects the Spot data transport. It affects Spot only.
+Futures is unchanged.
 
-# 构建节点
-node.build()
-```
+| Mode   | Credentials        | Quotes       |
+| ------ | ------------------ | ------------ |
+| `Sbe`  | Ed25519 (required) | `bestBidAsk` |
+| `Json` | None (public)      | `bookTicker` |
 
-### 密钥类型（Key types）
+`Sbe` (default) uses Binance Simple Binary Encoding streams and requires Ed25519 keys (see
+[Key types](#key-types)). The client refuses to connect without them. `Json` uses public streams with no
+credentials.
 
-Binance 支持多种加密签名方式用于 API 认证：
-
-- **HMAC**（默认）：使用 HMAC-SHA256 与你的 API secret。
-- **RSA**：使用 RSA 私钥签名。
-- **Ed25519**：使用 Ed25519 私钥签名。
-
-可以在配置中指定密钥类型：
-
-```python
-from nautilus_trader.adapters.binance import BinanceKeyType
-
-config = TradingNodeConfig(
-    data_clients={
-        BINANCE: {
-            "api_key": "YOUR_BINANCE_API_KEY",
-            "api_secret": "YOUR_BINANCE_API_SECRET",  # HMAC 使用
-            "key_type": BinanceKeyType.ED25519,  # 可选 RSA、HMAC（默认）
-            "account_type": "spot",
-        },
-    },
-)
-```
+Full Spot `BookDeltas` subscriptions use the `<symbol>@depth` diff-depth stream on the selected
+transport, with REST snapshot synchronization. Explicit depth subscriptions use partial-book snapshots
+(see [Order books](#order-books)).
 
 :::note
-Ed25519 密钥必须为 base64 编码的 ASN.1/DER 格式。实现会自动从 DER 结构中提取 32 字节的 seed。
+Exposed to Python as `BinanceSpotMarketDataMode` on
+`nautilus_trader.adapters.binance`.
 :::
 
-### API 凭证
+### Key types
 
-你可以通过配置对象传入凭证，也可以通过环境变量传递。常用的环境变量包括：
+The adapter signs with **Ed25519** or **HMAC-SHA256**, auto-detecting the key type from your API secret
+format, so no configuration is needed. A secret that parses as a PKCS#8 Ed25519 private key signs with
+Ed25519. Anything else is treated as an HMAC secret.
 
-针对 Binance 实盘客户端（用于 Spot/Margin 与 Futures）：
+**Ed25519 is strongly recommended.** Binance recommends Ed25519 for its
+superior performance and security. A future version of NautilusTrader will
+require Ed25519 exclusively.
 
-- `BINANCE_API_KEY`
-- `BINANCE_API_SECRET`（适用于所有密钥类型）
-
-针对 Binance Spot/Margin testnet 客户端：
-
-- `BINANCE_TESTNET_API_KEY`
-- `BINANCE_TESTNET_API_SECRET`（适用于所有密钥类型）
-
-针对 Binance Futures testnet 客户端：
-
-- `BINANCE_FUTURES_TESTNET_API_KEY`
-- `BINANCE_FUTURES_TESTNET_API_SECRET`（适用于所有密钥类型）
-
-在启动交易节点时，系统会立即告知你的凭证是否有效以及是否具备交易权限。
-
-### 账户类型（Account type）
-
-所有 Binance 的账户类型都可用于实盘交易。通过 `BinanceAccountType` 枚举设置 `account_type`，可选项包括：
-
-- `SPOT`
-- `MARGIN`（共享保证金于未平仓头寸）
-- `ISOLATED_MARGIN`（保证金仅指定给单个头寸）
-- `USDT_FUTURES`（以 USDT 或 BUSD 作为抵押物）
-- `COIN_FUTURES`（以其他加密货币作为抵押物）
+| Key Type | Data Clients | Execution Clients | Status                                           |
+| -------- | ------------ | ----------------- | ------------------------------------------------ |
+| Ed25519  | ✓            | ✓                 | **Recommended**                                  |
+| HMAC     | ✓            | ✓                 | Deprecated, will be removed in a future version. |
+| RSA      | -            | -                 | Not supported; register an Ed25519 key instead.  |
 
 :::tip
-建议使用环境变量来管理凭证。
+Switch to Ed25519 keys now. Generate an Ed25519 keypair and register it with
+Binance. See [Generating Ed25519 keys](#generating-ed25519-keys) below.
 :::
 
-### 基址（Base URL）覆盖
+:::note
+Ed25519 keys must be provided in unencrypted PEM format (base64-encoded ASN.1/DER).
+The implementation automatically extracts the 32-byte seed from the DER structure.
+Encrypted (password-protected) PEM keys are not supported. If your key is encrypted,
+decrypt it first: `openssl pkey -in encrypted.pem -out decrypted.pem`
+:::
 
-可以覆盖 HTTP REST 与 WebSocket 的默认基址，这在配置 API 集群、性能优化或交易所提供专用端点时很有用。
+#### Generating Ed25519 keys
+
+**Option 1: OpenSSL (recommended)**
+
+```bash
+# Generate private key (PKCS#8 PEM format)
+openssl genpkey -algorithm ed25519 -out binance_ed25519_private.pem
+
+# Extract public key
+openssl pkey -in binance_ed25519_private.pem -pubout -out binance_ed25519_public.pem
+```
+
+**Option 2: Binance Key Generator**
+
+Download the
+[Binance Asymmetric Key Generator](https://github.com/binance/asymmetric-key-generator)
+from the releases page and run it to generate a keypair.
+
+**Registering with Binance**
+
+1. Log in to Binance and go to **Profile** -> **API Management**.
+2. Click **Create API** and select **Self-generated**.
+3. Paste the contents of your public key file, including the `-----BEGIN PUBLIC KEY-----`
+   header and footer.
+4. Configure permissions (Enable Spot & Margin Trading, etc.).
+
+**Using with NautilusTrader**
+
+Set the private key as your API secret:
+
+```bash
+export BINANCE_API_KEY="your-api-key-from-binance"
+export BINANCE_API_SECRET="$(cat binance_ed25519_private.pem)"
+```
+
+Or pass the PEM content directly in your configuration.
+
+:::warning
+Keep your private key secure. Never share it or commit it to version control.
+:::
+
+### API credentials
+
+Pass credentials directly to the configuration objects, or set the appropriate
+environment variables (see [Environments](#environments) for per-environment
+variables).
+
+:::tip
+Use Ed25519 keys for all clients. HMAC keys still work for both data and
+execution clients, but Ed25519 offers better performance and will become the
+only supported key type in a future version. See [Key types](#key-types).
+:::
+
+:::warning
+The `BINANCE_ED25519_*` and `BINANCE_*_ED25519_*` environment variables have been removed for Spot. A client
+that finds one logs an error and treats the credential as missing. For Futures they are deprecated, still
+honored with a warning, and will be removed in a future version. Rename them to `BINANCE_API_KEY` /
+`BINANCE_API_SECRET` (Ed25519 keys are now auto-detected).
+:::
+
+When the trading node starts, you receive confirmation of whether your
+credentials are valid and have trading permissions.
+
+### Product type
+
+Configs select one supported product with the `product_type` field and
+`BinanceProductType` enum:
+
+- `SPOT`
+- `USD_M` (USDT, USDC, or BNFCR collateral)
+- `COIN_M` (cryptocurrency collateral)
+
+:::note
+Margin trading is not implemented. Other enum variants are rejected by the live clients and the
+standalone instrument loader. See [Product support](#product-support).
+:::
+
+### Base URL overrides
+
+Override the default base URLs for both HTTP REST and WebSocket APIs. This is
+useful for configuring API clusters or when Binance has provided specialized
+endpoints.
 
 ### Binance US
 
-通过在配置中将 `us` 设置为 `True` 可以启用 Binance US。默认值为 `False`。对 US 账户的支持应与标准 Binance 行为一致。
+Set `us=True` on the config for first-class Binance US Spot routing. Binance US is not a custom-URL alias. The
+switch selects these endpoints and transports:
 
-### 测试网（Testnets）
+- `api.binance.us`.
+- The public JSON stream.
+- HMAC-signed HTTP execution.
+- The port 443 listen-key private stream with periodic keepalive.
 
-可以将数据或执行客户端指向 Binance 的 testnet，设置 `testnet` 为 `True` 即可（默认 `False`）：
+See the official Binance US [REST API](https://github.com/binance-us/binance-us-api-docs/blob/master/rest-api.md),
+[market streams](https://github.com/binance-us/binance-us-api-docs/blob/master/web-socket-streams.md),
+and [user data stream](https://github.com/binance-us/binance-us-api-docs/blob/master/web-socket-api.md)
+documentation for the venue contracts behind this routing.
+
+The supported combinations are deliberate:
+
+- Data: `product_type=Spot`, `environment=Live`, `spot_market_data_mode=Json`.
+- Execution: `product_type=Spot`, `environment=Live`. Order entry uses HTTP and private events use the
+  listen-key stream.
+- Futures, Testnet, Demo, and Spot SBE configurations with `us=True` fail validation.
+
+Binance US public JSON covers live market data, depth snapshots, recent and aggregate trade
+history, and kline history. It uses account-wide maker and taker rates. Global Binance keeps its
+existing credential-free Spot JSON behavior with `us=False` and
+`spot_market_data_mode=Json`.
+
+### Environments
+
+Binance provides three trading environments, each with separate API
+credentials and endpoints. The `environment` config option selects which to
+use.
+
+| Environment | Config value                 | Description                                         |
+| ----------- | ---------------------------- | --------------------------------------------------- |
+| **Live**    | `BinanceEnvironment.LIVE`    | Production trading with real funds (default).       |
+| **Demo**    | `BinanceEnvironment.DEMO`    | Demo Trading with simulated Spot and Futures funds. |
+| **Testnet** | `BinanceEnvironment.TESTNET` | Legacy Spot and Futures test network.               |
+
+#### Live (production)
+
+The default environment for live trading with real funds. Uses your main Binance
+account credentials.
 
 ```python
-from nautilus_trader.adapters.binance import BINANCE
-
-config = TradingNodeConfig(
-    ...,  # 省略
-    data_clients={
-        BINANCE: {
-            "api_key": "YOUR_BINANCE_TESTNET_API_KEY",
-            "api_secret": "YOUR_BINANCE_TESTNET_API_SECRET",
-            "account_type": "spot",
-            "testnet": True,
-        },
-    },
-    exec_clients={
-        BINANCE: {
-            "api_key": "YOUR_BINANCE_TESTNET_API_KEY",
-            "api_secret": "YOUR_BINANCE_TESTNET_API_SECRET",
-            "account_type": "spot",
-            "testnet": True,
-        },
-    },
+config = BinanceExecutionClientConfig(
+    account_id=AccountId.from_str("BINANCE-001"),
+    api_key="YOUR_API_KEY",
+    api_secret="YOUR_API_SECRET",
+    product_type=BinanceProductType.SPOT,
+    # environment=BinanceEnvironment.LIVE (default)
 )
 ```
 
-### 聚合成交（Aggregated trades）
+| Variable             | Description      |
+| -------------------- | ---------------- |
+| `BINANCE_API_KEY`    | Live API key.    |
+| `BINANCE_API_SECRET` | Live API secret. |
 
-Binance 提供聚合成交数据端点，作为原始 trades 的替代来源。与默认 trade 端点相比，聚合端点可返回 `start_time` 到 `end_time` 之间的所有 ticks。
+#### Demo trading
 
-若要使用聚合成交，请将 `use_agg_trade_ticks` 选项设为 `True`（默认 `False`）。
+Practice trading with simulated funds on production infrastructure. Demo
+accounts use the same Binance login as your live account but trade with
+virtual balances.
 
-### 解析器警告（Parser warnings）
+**How to get demo credentials**:
 
-某些 Binance 合约字段值过大，可能无法解析为 Nautilus 的对象。在这种情况下采取 "warn and continue" 的策略（该合约将不会被加载为可用对象）。
+1. Log in at [binance.com/en/demo-trading](https://www.binance.com/en/demo-trading).
+2. Go to **API Management** and create a demo API key.
+3. Demo keys work for Spot and Futures demo endpoints.
 
-这些警告可能导致日志噪音，你可以通过配置禁用此类警告，示例如下：
+| Endpoint    | URL                        |
+| ----------- | -------------------------- |
+| Spot HTTP   | `demo-api.binance.com`     |
+| Spot WS     | `demo-stream.binance.com`  |
+| USD-M HTTP  | `demo-fapi.binance.com`    |
+| USD-M WS    | `demo-fstream.binance.com` |
+| COIN-M HTTP | `demo-dapi.binance.com`    |
+| COIN-M WS   | `demo-dstream.binance.com` |
 
 ```python
-from nautilus_trader.config import InstrumentProviderConfig
+config = BinanceExecutionClientConfig(
+    account_id=AccountId.from_str("BINANCE-001"),
+    api_key="YOUR_DEMO_API_KEY",
+    api_secret="YOUR_DEMO_API_SECRET",
+    product_type=BinanceProductType.SPOT,
+    environment=BinanceEnvironment.DEMO,
+)
+```
 
-instrument_provider=InstrumentProviderConfig(
+| Variable                  | Description      |
+| ------------------------- | ---------------- |
+| `BINANCE_DEMO_API_KEY`    | Demo API key.    |
+| `BINANCE_DEMO_API_SECRET` | Demo API secret. |
+
+#### Testnet
+
+A legacy test network with its own user accounts, balances, and order books. Prefer
+`environment=BinanceEnvironment.DEMO` for new simulated trading setups. Spot testnet remains at
+`testnet.binance.vision`. Futures testnet endpoints may route through the Demo Trading infrastructure.
+
+**How to get Spot testnet credentials**:
+
+1. Go to [testnet.binance.vision](https://testnet.binance.vision/).
+2. Log in with GitHub.
+3. Generate an Ed25519 or HMAC API key (the adapter does not support RSA keys).
+
+**Futures testnet**: Existing configs with `BinanceEnvironment.TESTNET`
+continue to work, but new Futures testing should use `BinanceEnvironment.DEMO`.
+
+```python
+config = BinanceExecutionClientConfig(
+    account_id=AccountId.from_str("BINANCE-001"),
+    api_key="YOUR_TESTNET_API_KEY",
+    api_secret="YOUR_TESTNET_API_SECRET",
+    product_type=BinanceProductType.SPOT,
+    environment=BinanceEnvironment.TESTNET,
+)
+```
+
+| Variable                             | Description                 |
+| ------------------------------------ | --------------------------- |
+| `BINANCE_TESTNET_API_KEY`            | Spot testnet API key.       |
+| `BINANCE_TESTNET_API_SECRET`         | Spot testnet API secret.    |
+| `BINANCE_FUTURES_TESTNET_API_KEY`    | Futures testnet API key.    |
+| `BINANCE_FUTURES_TESTNET_API_SECRET` | Futures testnet API secret. |
+
+:::note
+Testnet credentials are completely separate from your live account. Market
+data and liquidity differ from production.
+:::
+
+### Instrument loading
+
+The instrument provider controls selection and filters:
+
+```python
+from nautilus_trader.adapters.binance import BinanceInstrumentProviderConfig
+
+instrument_provider = BinanceInstrumentProviderConfig(
+    load_all=False,
+    load_ids=["BTCUSDT.BINANCE", "ETHUSDT.BINANCE"],
+    filters={"quotes": ["USDT"], "bases": ["BTC", "ETH"]},
+    log_warnings=True,
+    query_commission_rates=True,
+)
+```
+
+`load_all=False` selects only `load_ids`. Venue filters then apply as an intersection. Supported filters are
+`symbols`, `bases`, and `quotes`, plus `contract_types` for Futures. Values are a string or non-empty list of
+strings, and matching is case-insensitive. The adapter rejects `filter_callable`. Use the supported
+declarative filters.
+
+Parsed instruments do not carry maker or taker fee rates.
+`query_commission_rates` does not copy account commission onto instruments.
+
+### Parser warnings
+
+Some Binance instruments cannot be parsed into Nautilus objects if they contain
+field values beyond what the platform handles. These instruments are skipped
+with a warning.
+
+Non-trading symbols are skipped with a debug log during bulk loads. They still
+warn when explicitly selected through `load_ids` or the `symbols` filter.
+
+To suppress these warnings:
+
+```python
+from nautilus_trader.adapters.binance import BinanceInstrumentProviderConfig
+
+instrument_provider = BinanceInstrumentProviderConfig(
     load_all=True,
     log_warnings=False,
 )
 ```
 
-### 期货对冲模式（Futures hedge mode）
+### Futures hedge mode
 
-Binance Futures 的 Hedge 模式允许交易者同时开多头与空头来对冲风险并从波动中获利。
+Binance Futures Hedge mode allows holding both long and short positions on the
+same instrument simultaneously.
 
-启用 Binance Futures Hedge 模式需完成以下三步：
+When `use_position_ids` is enabled (default), Futures order and fill reports include a
+`venue_position_id` derived from the instrument and Binance position side. Hedge-mode REST position
+reports use the same IDs, such as `ETHUSDT-PERP.BINANCE-LONG`. This identity is preserved through
+REST history, user stream updates, stream recovery, exchange-generated fills, and tracked
+`TRADE_LITE` fills.
 
-- 1. 在 Binance 端启用 Hedge 模式。
-- 2. 在 `BinanceExecClientConfig` 中将 `use_reduce_only` 设为 `False`（默认 `True`）。
+One-way `BOTH` positions, orders, and fills remain unkeyed and use netting reconciliation. Set
+`use_position_ids` to false only for virtual positions with `OmsType.HEDGING`, where the engine
+manages position identity. With `use_position_ids=True`, the adapter rejects a submitted custom
+position ID that differs from the canonical Binance hedge-leg ID before sending the order.
 
-  ```python
-  from nautilus_trader.adapters.binance import BINANCE
+To use hedge mode, configure it on Binance, set
+`oms_type=OmsType.HEDGING` on `BinanceExecutionClientConfig`, and keep `use_position_ids=True` to track
+both venue position sides:
 
-  config = TradingNodeConfig(
-      ...,  # 省略
-      data_clients={
-          BINANCE: BinanceDataClientConfig(
-              api_key=None,  # 使用 'BINANCE_API_KEY' 环境变量
-              api_secret=None,  # 使用 'BINANCE_API_SECRET' 环境变量
-              account_type=BinanceAccountType.USDT_FUTURES,
-              base_url_http=None,
-              base_url_ws=None,
-          ),
-      },
-      exec_clients={
-          BINANCE: BinanceExecClientConfig(
-              api_key=None,
-              api_secret=None,
-              account_type=BinanceAccountType.USDT_FUTURES,
-              base_url_http=None,
-              base_url_ws=None,
-              use_reduce_only=False,  # Hedge 模式下必须禁用
-          ),
-      }
-  )
-  ```
+```python
+from nautilus_trader.adapters.binance import BinanceExecutionClientConfig
+from nautilus_trader.adapters.binance import BinanceProductType
+from nautilus_trader.model import AccountId
+from nautilus_trader.model import OmsType
 
-- 3. 提交订单时，在 `position_id` 中使用后缀（`LONG` 或 `SHORT`）指明仓位方向。
+config = BinanceExecutionClientConfig(
+    account_id=AccountId.from_str("BINANCE-001"),
+    product_type=BinanceProductType.USD_M,
+    oms_type=OmsType.HEDGING,
+    use_position_ids=True,
+)
+```
 
-  ```python
-  class EMACrossHedgeMode(Strategy):
-      ...,  # 省略
-      def buy(self) -> None:
-          """
-          示例：买入方法
-          """
-          order: MarketOrder = self.order_factory.market(
-              instrument_id=self.instrument_id,
-              order_side=OrderSide.BUY,
-              quantity=self.instrument.make_qty(self.trade_size),
-          )
+This configuration is required for startup reconciliation to retain the `LONG` and `SHORT` legs
+separately.
 
-          # LONG 后缀会被 Binance 适配器识别为多头仓位
-          position_id = PositionId(f"{self.instrument_id}-LONG")
-          self.submit_order(order, position_id)
+If a cached open Binance hedge position has a different locally generated ID, the adapter rejects that
+position row. It reports both the cached and expected IDs. Reconcile the cached state before retrying startup.
+The adapter does not alias the old ID or create a duplicate venue position.
 
-      def sell(self) -> None:
-          """
-          示例：卖出方法
-          """
-          order: MarketOrder = self.order_factory.market(
-              instrument_id=self.instrument_id,
-              order_side=OrderSide.SELL,
-              quantity=self.instrument.make_qty(self.trade_size),
-          )
-          # SHORT 后缀会被 Binance 适配器识别为空头仓位
-          position_id = PositionId(f"{self.instrument_id}-SHORT")
-          self.submit_order(order, position_id)
-  ```
+### COIN-M / USD-M architecture
+
+Binance COIN-M Futures (CM / DAPI) and USD-M Futures (UM / FAPI) share a
+unified architecture. This section covers the implications for the adapter.
+
+See the [Important CM-UM Integration Notice](https://developers.binance.com/docs/derivatives/coin-margined-futures/Important-CM-UM-Integration-Notice)
+for the full details.
+
+#### WebSocket streams
+
+Market-data stream payloads include `st` (symbol type: `1` = UM, `2` = CM) on
+`<symbol>@aggTrade`, `<symbol>@ticker`, `<symbol>@bookTicker`,
+`<symbol>@depth<levels>`, `<symbol>@miniTicker`, and all `!*@arr` streams.
+UM-side single-symbol streams also include `ps` (pair symbol) on
+`<symbol>@bookTicker`, `<symbol>@depth<levels>`, `<symbol>@miniTicker`, and
+`<symbol>@rpiDepth`.
+
+The adapter decodes JSON with `serde`, which ignores unknown fields by default, so these fields
+are silently dropped.
+
+All-market array streams (`!ticker@arr`, `!miniTicker@arr`, `!bookTicker`,
+`!forceOrder@arr`, `!contractInfo`) deliver merged UM + CM content on both
+`fstream` and `dstream`.
+
+#### REST and WebSocket API
+
+- Order placement and modification acknowledgement responses do not include
+  `avgPrice` / `cumQuote` / `cumBase`. The adapter sources fills from the user
+  data stream. Query endpoints (`GET /{f,d}api/v1/order`, `userTrades`) still
+  return these fields.
+- `PUT /dapi/v1/order` (COIN-M modify) requires both `price` and `quantity`.
+  The adapter always sends both fields, falling back to the cached order's
+  values for whichever the modify command omits.
+- COIN-M conditional orders (STOP, TAKE_PROFIT, etc.) use the
+  `/dapi/v1/algoOrder` endpoint. The adapter routes all futures conditional
+  orders through the algo order API.
+- `GET /dapi/v1/openOrders` with an invalid symbol returns error `-1121`.
+
+#### Rate-limit pools
+
+UM and CM share Binance rate-limit pools: 2400 weight/min per IP, plus 1200 orders/min and 300 orders/10s per
+account. Rust futures HTTP clients in the same process share request-weight state across UM and CM for the
+same environment or custom endpoint scope and configured egress path. They share order-count state across UM
+and CM when authenticated with the same API key, regardless of egress path.
+
+Live, testnet, demo, and unrelated custom endpoint scopes remain isolated.
+Different configured egress paths have separate request-weight state, while
+different API keys have separate order-count state. Separate processes and
+multiple API keys for one Binance account still require external coordination.
+
+#### dualSidePosition
+
+UM and CM share the same `dualSidePosition` setting. Changing it on either
+side affects both. Ensure both UM and CM have no open orders or positions
+before flipping the setting.
+
+## Contributing
 
 :::info
-如需更多功能或为 Binance 适配器贡献代码，请参阅我们的贡献指南： [contributing guide](https://github.com/nautechsystems/nautilus_trader/blob/develop/CONTRIBUTING.md)。
+To contribute to the Binance adapter, see the
+[contributing guide](https://github.com/nautechsystems/nautilus_trader/blob/develop/CONTRIBUTING.md).
 :::

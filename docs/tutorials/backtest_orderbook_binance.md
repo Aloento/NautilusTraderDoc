@@ -1,0 +1,364 @@
+# Backtest with Order Book Depth Data (Binance)
+
+Replay Binance T_DEPTH order book deltas through `BacktestNode` and run an
+imbalance strategy that fires fill-or-kill (FOK) limit orders when one side
+of the book is much thicker than the other. The same pattern works against
+any venue's L2 delta feed.
+
+[View source on GitHub](https://github.com/nautechsystems/nautilus_trader/blob/develop/docs/tutorials/backtest_orderbook_binance.py).
+
+## Introduction
+
+Top-of-book imbalance is a microstructure signal: when the smaller resting
+side at the BBO drops well below the larger side, the book is leaning. The
+tutorial's `OrderBookImbalance` strategy works in two stages on every order
+book update:
+
+- Compute `min(bid_size, ask_size) / max(bid_size, ask_size)`. Higher means
+  balanced; lower means leaning.
+- When the larger side exceeds `trigger_min_size` and the ratio is below
+  `trigger_imbalance_ratio`, fire a single FOK limit order against the
+  thinner side: a buy at the best ask when bids are larger, otherwise a sell
+  at the best bid. A trigger cooldown of `min_seconds_between_triggers`
+  prevents the strategy from re-firing on every micro-update.
+
+The strategy is intentionally simple and has no edge.
+
+```mermaid
+flowchart LR
+    subgraph Inputs ["Data engine"]
+        S["Snap CSV (initial L2 state)"]
+        U["Update CSV (L2 deltas)"]
+    end
+
+    subgraph Engine ["BacktestEngine"]
+        W["deltas_from_frame"]
+        B["Per-instrument OrderBook"]
+        C["Cache.order_book"]
+    end
+
+    subgraph Strategy ["OrderBookImbalance"]
+        R{{"larger > trigger_min_size<br/>AND smaller/larger < ratio<br/>AND cooldown elapsed"}}
+        D{{"bid_size > ask_size?"}}
+        BUY["Submit FOK BUY at best ask"]
+        SELL["Submit FOK SELL at best bid"]
+    end
+
+    S --> W --> B
+    U --> W
+    B --> C
+    C --> R
+    R -->|yes| D
+    D -->|yes| BUY
+    D -->|no| SELL
+```
+
+## Prerequisites
+
+- Python 3.13+
+- [NautilusTrader](https://pypi.org/project/nautilus_trader/) 2.x installed
+  (`pip install -U --pre nautilus_trader`)
+- pandas (`pip install pandas`). The wheel declares no runtime dependencies.
+- The sibling
+  [`orderbook_data.py`](https://github.com/nautechsystems/nautilus_trader/blob/develop/docs/tutorials/orderbook_data.py)
+  and
+  [`orderbook_imbalance.py`](https://github.com/nautechsystems/nautilus_trader/blob/develop/docs/tutorials/orderbook_imbalance.py)
+  files. Keep them next to this tutorial when downloading or converting it
+  with Jupytext.
+- Optionally, Binance USD-M futures T_DEPTH CSVs that you supply for the day
+  you want to replay. The documented run uses BTCUSDT 2022-11-01, placed
+  under `NAUTILUS_DATA_DIR/Binance/` (default `~/Downloads/Data/Binance/`).
+  Without them the tutorial falls back to a 100-row sample of each file from
+  the NautilusTrader test data, downloaded from GitHub on first run outside a
+  source checkout. The sample runs end to end but is too short to trigger the
+  strategy.
+
+```python
+import os
+import shutil
+from decimal import Decimal
+from pathlib import Path
+
+import pandas as pd
+from nautilus_trader.adapters.binance import load_binance_order_book_deltas
+from nautilus_trader.backtest import BacktestNode
+from nautilus_trader.common import LogLevel
+from nautilus_trader.config import (
+    BacktestDataConfig,
+    BacktestEngineConfig,
+    BacktestRunConfig,
+    BacktestVenueConfig,
+    ImportableStrategyConfig,
+    LoggerConfig,
+)
+from nautilus_trader.core.datetime import dt_to_unix_nanos
+from nautilus_trader.execution import MakerTakerFeeModel
+from nautilus_trader.model import (
+    AccountType,
+    BookType,
+    Currency,
+    CurrencyPair,
+    InstrumentId,
+    NautilusDataType,
+    OmsType,
+    Price,
+    Quantity,
+    Symbol,
+    Venue,
+)
+from nautilus_trader.persistence import ParquetDataCatalog
+
+from orderbook_data import deltas_from_frame, sample_data_path
+```
+
+## Loading data
+
+Each row of `_depth_snap.csv` and `_depth_update.csv` is a single L2 level
+event. `load_binance_order_book_deltas` returns a pandas DataFrame with one
+row per event: snapshot rows (`update_type="snap"`) become `ADD` actions
+flagged `F_SNAPSHOT`, and update rows become `UPDATE`, or `DELETE` when the
+quantity is zero. The full update file for BTCUSDT 2022-11-01 is ~12 GB
+(~110 million rows), so the tutorial caps the read at 1,000,000 rows.
+
+```python
+DATA_DIR = Path(os.environ.get("NAUTILUS_DATA_DIR", "~/Downloads/Data")).expanduser() / "Binance"
+```
+
+```python
+path_snap = DATA_DIR / "BTCUSDT_T_DEPTH_2022-11-01_depth_snap.csv"
+path_update = DATA_DIR / "BTCUSDT_T_DEPTH_2022-11-01_depth_update.csv"
+
+if not (path_snap.is_file() and path_update.is_file()):
+    path_snap = sample_data_path("binance/btcusdt-depth-snap.csv")
+    path_update = sample_data_path("binance/btcusdt-depth-update.csv")
+
+path_snap, path_update
+```
+
+```python
+# Initial L2 snapshot of the book at session open.
+df_snap = load_binance_order_book_deltas(path_snap)
+df_snap.head()
+```
+
+```python
+# Per-level deltas for the day; capped to 1M rows for a reasonable run time.
+nrows = 1_000_000
+df_update = load_binance_order_book_deltas(path_update, nrows=nrows)
+df_update.head()
+```
+
+### Build current model objects
+
+Define the instrument with the public model API, then convert each loader row
+to an `OrderBookDelta`. Sort by `ts_init` so the data engine sees deltas in
+true publication order regardless of how the snapshot and update files
+interleave.
+
+```python
+BTCUSDT_BINANCE = CurrencyPair(
+    instrument_id=InstrumentId(Symbol("BTCUSDT"), Venue("BINANCE")),
+    raw_symbol=Symbol("BTCUSDT"),
+    base_currency=Currency.from_str("BTC"),
+    quote_currency=Currency.from_str("USDT"),
+    price_precision=2,
+    size_precision=6,
+    price_increment=Price(0.01, precision=2),
+    size_increment=Quantity(0.000001, precision=6),
+    ts_event=0,
+    ts_init=0,
+)
+
+deltas = deltas_from_frame(df_snap, BTCUSDT_BINANCE)
+deltas += deltas_from_frame(df_update, BTCUSDT_BINANCE)
+deltas.sort(key=lambda x: x.ts_init)
+deltas[:10]
+```
+
+### Set up the data catalog
+
+Persist the instrument and deltas to a fresh `ParquetDataCatalog` so the
+`BacktestNode` can lazy-load by time range. The tutorial writes the catalog
+to `catalog/` under the working directory and replaces that directory on
+each run.
+
+```python
+CATALOG_PATH = Path.cwd() / "catalog"
+if CATALOG_PATH.exists():
+    shutil.rmtree(CATALOG_PATH)
+CATALOG_PATH.mkdir()
+
+catalog = ParquetDataCatalog(str(CATALOG_PATH))
+```
+
+```python
+catalog.write_instruments([BTCUSDT_BINANCE])
+catalog.write_order_book_deltas(deltas)
+```
+
+```python
+catalog.instruments()
+```
+
+```python
+start = dt_to_unix_nanos(pd.Timestamp("2022-11-01", tz="UTC"))
+end = dt_to_unix_nanos(pd.Timestamp("2022-11-04", tz="UTC"))
+
+deltas = catalog.query_order_book_deltas(
+    identifiers=[str(BTCUSDT_BINANCE.id)],
+    start=start,
+    end=end,
+)
+print(len(deltas))
+deltas[:10]
+```
+
+## Configure the backtest
+
+`BacktestNode` ingests data from the catalog and builds a `BacktestEngine`
+per `BacktestRunConfig`. The venue book type must match the data: deltas
+carry full L2 information so we use `L2_MBP`.
+
+```python
+instrument = catalog.instruments()[0]
+book_type = BookType.L2_MBP
+
+data_configs = [
+    BacktestDataConfig(
+        catalog_path=str(CATALOG_PATH),
+        data_type=NautilusDataType.OrderBookDelta,
+        instrument_id=instrument.id,
+    ),
+]
+
+venues_configs = [
+    BacktestVenueConfig(
+        name="BINANCE",
+        oms_type=OmsType.NETTING,
+        account_type=AccountType.CASH,
+        base_currency=None,
+        starting_balances=["20 BTC", "100000 USDT"],
+        book_type=book_type,
+        fee_model=MakerTakerFeeModel(
+            maker_rate=Decimal("0.001"),
+            taker_rate=Decimal("0.001"),
+        ),
+    ),
+]
+
+strategy_config = ImportableStrategyConfig(
+    strategy_path="orderbook_imbalance:OrderBookImbalance",
+    config_path="orderbook_imbalance:OrderBookImbalanceConfig",
+    config={
+        "instrument_id": str(instrument.id),
+        "book_type": book_type.name,
+        "max_trade_size": "1.000",
+        "min_seconds_between_triggers": 1.0,
+    },
+)
+
+config = BacktestRunConfig(
+    engine=BacktestEngineConfig(
+        logging=LoggerConfig(stdout_level=LogLevel.ERROR),
+    ),
+    data=data_configs,
+    venues=venues_configs,
+    dispose_on_completion=False,
+)
+
+config
+```
+
+## Run the backtest
+
+```python
+node = BacktestNode(configs=[config])
+node.build()
+node.add_strategy_from_config(config.id, strategy_config)
+
+result = node.run()
+```
+
+```python
+result
+```
+
+```python
+node.generate_order_fills_report(config.id)
+```
+
+```python
+node.generate_positions_report(config.id)
+```
+
+```python
+node.generate_account_report(config.id, venue=Venue("BINANCE"))
+```
+
+## What the run produces
+
+The figures below come from the full T_DEPTH files. The test data sample covers
+100 rows of each, so it completes without firing any orders.
+
+With one million updates the data spans roughly the first eleven minutes of
+the trading day after the initial snapshot is rebuilt. The renderer below
+uses three million updates (~25 minutes) so the panels show enough trigger
+events to be informative; the strategy fires the same way on the smaller
+default window.
+
+Across the active update window the strategy submits 47 FOK limit orders
+and accumulates a net 14 BTC short. Every trigger lands on the bid side,
+implying ask size dominated bid size for nearly every imbalance event in
+the recorded window.
+
+![Top of book during the active window with FOK fills](./assets/backtest_orderbook_binance/panel_a_top_book.png)
+
+**Figure 1.** *BTCUSDT mid, best bid, and best ask during the FOK trigger
+window. Triangles down are short entries at the bid; the cross is the
+closing fill. The strategy is on the bid side throughout.*
+
+![Imbalance ratio distribution](./assets/backtest_orderbook_binance/panel_b_imbalance_dist.png)
+
+**Figure 2.** *`smaller / larger` ratio across all sampled top-of-book
+snapshots, with the 0.20 trigger threshold marked. The mass left of the
+threshold is the addressable trigger region.*
+
+![Top of book size and mid](./assets/backtest_orderbook_binance/panel_c_size_landscape.png)
+
+**Figure 3.** *Mid price (top) and best bid/ask size in BTC (bottom) across
+the active update window. Top-of-book sizes oscillate over a wide range
+while the mid drifts in a narrow band.*
+
+![Net position trajectory](./assets/backtest_orderbook_binance/panel_d_position.png)
+
+**Figure 4.** *Cumulative signed BTC across the FOK fill sequence. Each
+marker is a fill; orange is a sell, blue is a buy. The strategy ramps into
+a -14 BTC short over 25 minutes.*
+
+### Regenerate the panels
+
+A self-contained renderer re-runs the backtest with a sampling actor that
+captures top of book once per second, then writes PNG panels to the asset
+directory using the shared `nautilus_dark` tearsheet theme.
+
+After building NautilusTrader from source, run these commands from the repository root:
+
+```bash
+make sync
+NAUTILUS_DATA_DIR=test_data/local \
+    uv run --project python --no-sync \
+        python docs/tutorials/assets/backtest_orderbook_binance/render_panels.py
+```
+
+Set `NAUTILUS_DATA_DIR` to wherever your `Binance/` data directory lives.
+
+## Next steps
+
+- **Tighter trigger**. Drop `trigger_imbalance_ratio` to 0.10 to require a
+  ten-to-one lean before firing. Expect far fewer entries and lower hit
+  rate.
+- **Longer window**. Bump `nrows` to ten or twenty million to replay
+  several hours and see the strategy stress against more diverse sessions.
+- **Quote ticks instead of deltas**. See the
+  [Gold Perpetual Book Imbalance](./gold_book_imbalance_ax.md) tutorial for a
+  quote-driven imbalance strategy.

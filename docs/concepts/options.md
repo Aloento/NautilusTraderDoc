@@ -1,0 +1,472 @@
+# Options
+
+Nautilus supports options trading across traditional and crypto markets. It provides option-specific
+instrument types, venue-provided Greeks streaming, option chain aggregation, and a local Black-Scholes Greeks
+calculator for risk management.
+
+## Option instrument types
+
+The platform defines several option instrument types:
+
+| Instrument           | Description                                                                  |
+| -------------------- | ---------------------------------------------------------------------------- |
+| `OptionContract`     | Exchange-traded option on an underlying with strike and expiry.              |
+| `OptionSpread`       | Exchange-defined multi-leg option strategy as one line.                      |
+| `CryptoOption`       | Crypto option with crypto quote/settlement, with inverse or quanto style.    |
+| `CryptoOptionSpread` | Crypto option spread with inverse, settlement currency, and fractional size. |
+| `BinaryOption`       | Fixed-payout option that settles to 0 or 1.                                  |
+
+Greeks-relevant metadata varies by instrument type:
+
+- `OptionContract`, `CryptoOption`: full Greeks inputs including `strike_price`,
+  `option_kind` (CALL/PUT), `expiration_ns`, `underlying`, `multiplier`.
+- `OptionSpread`, `CryptoOptionSpread`: an exchange-defined multi-leg strategy published as a single tradable
+  instrument. Has `underlying`, `expiration_ns`, and `strategy_type` (a venue-defined code). The spread itself
+  carries no `strike_price` or `option_kind`. Venue-provided leg details are stored in `info` when the adapter
+  supplies them. Orders execute against the spread as one line. `CryptoOptionSpread` additionally carries
+  `is_inverse` and `settlement_currency` for venues like Deribit.
+- `BinaryOption`: has `expiration_ns` and `outcome`/`description`, but no
+  `strike_price`, `option_kind`, or `underlying`.
+
+## Option identifiers
+
+### Series references
+
+`OptionSeriesId` includes a reference-price `InstrumentId` in equality, hashing, and ordering.
+Python constructors default the optional final argument to `<UNDERLYING>.<VENUE>`.
+
+```python
+from nautilus_trader.model import InstrumentId
+from nautilus_trader.model import OptionSeriesId
+
+series_id = OptionSeriesId.from_expiry(
+    "DERIBIT", "BTC", "USDC", "2026-03-20", InstrumentId.from_str("BTCUSDT.BINANCE")
+)
+```
+
+Serialized forms:
+
+- **Derived reference**: `VENUE:UNDERLYING:SETTLEMENT:EXPIRY`.
+- **Other reference**: `VENUE:UNDERLYING:UNDERLYING_INSTRUMENT_ID:SETTLEMENT:EXPIRY`.
+
+Both forms round-trip through `from_str`, including colons in reference symbols and nanosecond expiries.
+Update four-field readers before using other references. Display keeps fractional expiry seconds in Python
+values, message bus topics, and handler IDs.
+
+| Rust API                        | Reference                                      |
+| ------------------------------- | ---------------------------------------------- |
+| `new`, `from_crypto_option`     | Required `InstrumentId`.                       |
+| `new_derived`                   | Derived, with four arguments.                  |
+| `from_expiry`, `from_expiry_ns` | Final `Option<InstrumentId>` (`None` derives). |
+
+Rust struct literals require `underlying_instrument_id`. Derivation rejects empty or whitespace-only underlyings.
+
+Local chain discovery and ATM bootstrap require derived references. The local engine rejects other
+references and does not subscribe to the reference instrument. External-client commands are forwarded.
+
+### Computed contract IDs
+
+Rust `compute_option_instrument_id` combines `OptionContractSpec` and `OptionSymbologyScheme`.
+The contract's actual underlying is independent of the series' price reference.
+
+**CME Globex** accepts futures codes such as `ESH6`, rather than `ES`:
+
+- **Roots**: ES, NQ, RTY, MES, MNQ, SR3 SOFR, and CL WTI weeklies on nominal weekday schedules.
+- **Expiry**: Equity quarterlies take precedence when futures and quarterly-expiry months match. End-of-month
+  (EOM) contracts use the last weekday.
+- **Digits**: The year suffix follows the underlying's one- or two-digit convention. Strikes use whole
+  index points for equities and hundredths for SOFR and WTI.
+
+The **Options Symbology Initiative (OSI)** defaults to the underlying symbol, with an optional root
+override and eight-digit strikes in exact thousandths.
+
+Unsupported roots, expiry dates, and strike precision return typed errors. This includes nominal WTI monthly
+dates and Micro E-mini (MES, MNQ) expiries on or after June 29, 2026.
+
+:::info
+Validate candidate IDs against instrument definitions for actual listings and holiday-adjusted expiries.
+:::
+
+## Option selection types
+
+`OptionSideFilter` selects calls, puts, both, or out-of-the-money wings, including both sides at ATM.
+Rust `StrikeSearchProfile` validates construction and deserialization:
+
+- Non-empty, positive, unique increments in caller preference order.
+- Non-negative grid origin.
+- Positive candidate limit.
+
+Chain subscription APIs accept neither type.
+
+## Subscribing to Greeks
+
+Venues like Deribit, Bybit, and OKX publish real-time Greeks alongside their options markets.
+Nautilus provides two subscription levels:
+
+- **Per-instrument Greeks**: subscribe to individual option contracts.
+- **Option chain slices**: subscribe to an aggregated view of an entire option series.
+
+### Per-instrument Greeks
+
+Subscribe to venue-provided Greeks for a single option contract from an actor or strategy:
+
+```python
+from nautilus_trader.model import ClientId
+
+client_id = ClientId("DERIBIT")
+self.subscribe_option_greeks(instrument_id, client_id=client_id)
+```
+
+Handle incoming updates by implementing the `on_option_greeks` handler:
+
+```python
+def on_option_greeks(self, greeks) -> None:
+    self.log.info(
+        f"{greeks.instrument_id}: "
+        f"delta={greeks.delta:.4f} gamma={greeks.gamma:.6f} "
+        f"vega={greeks.vega:.4f} theta={greeks.theta:.4f} "
+        f"mark_iv={greeks.mark_iv} underlying={greeks.underlying_price}"
+    )
+```
+
+To stop receiving updates:
+
+```python
+self.unsubscribe_option_greeks(instrument_id, client_id=client_id)
+```
+
+### Option chain subscriptions
+
+An option chain subscription aggregates quotes and Greeks across all strikes in an option series into
+`OptionChainSlice` snapshots. The `DataEngine` creates one Rust `OptionChainManager` per series and owns its
+lifecycle. It creates the manager, routes incoming data, runs snapshot timers, and drains wire subscription
+changes.
+
+```python
+from nautilus_trader.model import OptionSeriesId
+from nautilus_trader.model import StrikeRange
+
+series_id = OptionSeriesId(...)  # venue, underlying, settlement currency, expiry
+
+# Subscribe to 5 strikes above and below ATM, snapshot every 1000ms
+strike_range = StrikeRange.atm_relative(strikes_above=5, strikes_below=5)
+self.subscribe_option_chain(
+    series_id,
+    strike_range=strike_range,
+    snapshot_interval_ms=1000,
+)
+```
+
+Handle snapshots by implementing the `on_option_chain` handler:
+
+```python
+def on_option_chain(self, chain) -> None:
+    for strike in chain.strikes():
+        call = chain.get_call(strike)
+        put = chain.get_put(strike)
+        if call and call.greeks:
+            self.log.info(f"Call {strike}: delta={call.greeks.delta:.4f}")
+```
+
+### Strike range filtering
+
+`StrikeRange` controls which strikes are active in a chain subscription:
+
+| Variant       | Description                                         | Example                          |
+| ------------- | --------------------------------------------------- | -------------------------------- |
+| `Fixed`       | Subscribe to an explicit set of strikes.            | `StrikeRange.fixed([...])`       |
+| `AtmRelative` | N strikes above and N below the current ATM strike. | `StrikeRange.atm_relative(5, 5)` |
+| `AtmPercent`  | All strikes within a percentage band around ATM.    | `StrikeRange.atm_percent(0.10)`  |
+| `Delta`       | Strikes whose call or put delta is near a target.   | `StrikeRange.delta(0.25, 0.05)`  |
+
+For dynamic strike ranges, subscriptions are **deferred until the ATM price is determined**. ATM is derived
+from the venue reference price in `OptionGreeks.underlying_price`. It can also be seeded from a reference
+price fetched for the option series through HTTP. This permits immediate bootstrap before live WebSocket ticks
+arrive. As ATM shifts, the active strike set rebalances automatically.
+
+`Delta` resolves from venue-provided Greeks: a strike is active when its call or put delta magnitude (calls
+positive, puts negative, compared by absolute value) falls within `tolerance` of `target`. A typical
+out-of-the-money target such as `0.25` selects a strike on each side of ATM.
+
+Bootstrap and fallback depend on the available data:
+
+- **Before ATM is known**: `Delta` is deferred like other dynamic ranges.
+- **After ATM is known**: `Delta` falls back to an ATM-relative window when no active strike's Greeks match
+  the band, including before any Greeks arrive. This window includes five strikes either side of ATM.
+- **Before switching to selected delta strikes**: the aggregator waits until each fallback leg has Greeks so
+  partial early updates do not drop neighboring strikes.
+
+### Snapshot vs. raw mode
+
+The `snapshot_interval_ms` parameter controls publishing behavior:
+
+- **Snapshot mode** (`snapshot_interval_ms=1000`): Quotes and Greeks accumulate in a
+  buffer and publish as an `OptionChainSlice` on a timer. Suitable for periodic
+  portfolio rebalancing or UI display.
+- **Raw mode** (`snapshot_interval_ms=None`): Each quote or Greeks update for an
+  active instrument publishes a slice immediately. Suitable for latency-sensitive
+  strategies that react to individual updates.
+
+The engine rejects `snapshot_interval_ms=0`. Use `None` for raw mode.
+
+## Backtesting option chains
+
+Option-chain backtests use the same `OptionChainManager` and `OptionChainAggregator`
+path as live subscriptions. The prerequisite is a Nautilus Parquet catalog that
+already contains the option instruments and the per-instrument data needed for the
+chain:
+
+- `QuoteTick` records for each option contract, carrying the replayed best bid and offer.
+- `OptionGreeks` records for each option contract, carrying delta, implied volatility,
+  convention, and the `underlying_price` used to seed ATM.
+- `CryptoOption` or `OptionContract` instruments for the same instrument IDs.
+
+Tardis replays satisfy this contract when option book snapshots or quotes are written
+as `QuoteTick` and `option_summary` messages are written as `OptionGreeks`. The
+backtest does not download or request missing catalog data during the run.
+
+Configure a `BacktestNode` run with both data streams for the option instruments in
+the series:
+
+```python
+data = [
+    BacktestDataConfig(
+        data_type=NautilusDataType.QuoteTick,
+        catalog_path="/path/to/catalog",
+        instrument_ids=option_instrument_ids,
+    ),
+    BacktestDataConfig(
+        data_type=NautilusDataType.OptionGreeks,
+        catalog_path="/path/to/catalog",
+        instrument_ids=option_instrument_ids,
+    ),
+]
+```
+
+Then subscribe from the strategy:
+
+```python
+strike_range = StrikeRange.delta(0.25, 0.05)
+self.subscribe_option_chain(
+    series_id,
+    strike_range=strike_range,
+    snapshot_interval_ms=1000,
+)
+```
+
+Use `snapshot_interval_ms=None` for raw mode. Raw mode publishes a slice after each
+quote or Greeks update for an active instrument. Use an integer interval for
+thinned snapshots. Thinned mode accumulates the latest BBO and Greeks per instrument
+and publishes the chain on the timer cadence, reducing event volume for large chains.
+
+Each `OptionChainSlice` joins the latest BBO and Greeks by instrument, then groups the result by strike and
+option kind. A quote can arrive before Greeks, and Greeks can arrive before a quote. The aggregator keeps
+latest state and attaches both when available. The `underlying_price` in `OptionGreeks` drives ATM detection.
+
+Selection can happen either in the subscription range or inside the strategy:
+
+- Moneyness: use `StrikeRange.atm_relative(...)` or `StrikeRange.atm_percent(...)`.
+- Delta: use `StrikeRange.delta(target, tolerance)`, or inspect `entry.greeks.delta`
+  in `on_option_chain`.
+- Strike: use `StrikeRange.fixed([...])`, or read `chain.get_call(strike)` and
+  `chain.get_put(strike)`.
+
+Matching is quote-driven for options. Market orders and marketable limits fill as
+takers against the opposing replayed BBO. Passive limit orders rest on the simulated
+book and can fill as makers when later BBO updates trade through the limit price.
+The model does not simulate L2 queue position for options.
+
+Structural option fee models are configured on the simulated venue, not inferred
+from the venue name:
+
+```python
+from decimal import Decimal
+
+from nautilus_trader.execution import CappedOptionFeeModel
+from nautilus_trader.execution import TieredNotionalOptionFeeModel
+
+deribit_like = CappedOptionFeeModel(
+    maker_rate=Decimal("0.0003"),
+    taker_rate=Decimal("0.0003"),
+)
+okx_like = TieredNotionalOptionFeeModel(
+    maker_rate=Decimal("0.0002"),
+    taker_rate=Decimal("0.0005"),
+)
+```
+
+Pass one of these objects as `fee_model` on `BacktestVenueConfig`. The Rust surface
+uses `FeeModelAny::CappedOption(CappedOptionFeeModel::new(...))` and
+`FeeModelAny::TieredNotionalOption(TieredNotionalOptionFeeModel::new(...))`.
+
+See `examples/backtest/tardis_option_chain.py` and the Rust `tardis-option-chain`
+example in `crates/backtest/examples/`.
+
+## Option chain architecture
+
+The option chain system is event-driven and built around per-series isolation. The
+`DataEngine` creates one Rust `OptionChainManager` per subscribed option series. The
+manager wraps `OptionChainAggregator` and `AtmTracker`, registers message bus handlers,
+publishes snapshots, and queues wire subscription changes for the engine to drain.
+
+```mermaid
+flowchart TD
+    subgraph DataEngine
+        DE[DataEngine]
+    end
+
+    subgraph "OptionChainManager (per series)"
+        MGR[OptionChainManager]
+        AGG[OptionChainAggregator]
+        ATM[AtmTracker]
+        TMR[SnapshotTimer]
+    end
+
+    DC[DataClient] -- QuoteTick --> DE
+    DC -- OptionGreeks --> DE
+    DE -- "handle_quote()" --> MGR
+    DE -- "handle_greeks()" --> MGR
+    MGR --> AGG
+    MGR --> ATM
+    ATM -- "reference price" --> AGG
+    TMR -- "timer tick" --> MGR
+    MGR -- "OptionChainSlice" --> MB((MessageBus))
+    MB -- "on_option_chain" --> S[DataActor / Strategy]
+    DE -- "sub/unsub" --> DC
+```
+
+### Component responsibilities
+
+#### DataEngine
+
+Holds one `OptionChainManager` per active `OptionSeriesId`:
+
+- **Subscription**: on `SubscribeOptionChain`, it resolves instruments from the cache and requests a series
+  reference price for dynamic strike ranges. It creates the manager, subscribes active instruments to the data
+  client, and sets up the snapshot timer.
+- **Timer tick**: the manager checks for rebalances, publishes a snapshot, and queues any wire subscription
+  changes for the engine to drain.
+- **Teardown**: on `UnsubscribeOptionChain` or when all instruments expire, it tears down the manager, cancels
+  the timer, and unsubscribes wire-level feeds.
+
+#### OptionChainManager
+
+A per-series Rust manager around `OptionChainAggregator` and `AtmTracker`. The `DataEngine` feeds it market
+data through `handle_quote()` and `handle_greeks()`. The manager bootstraps the active instrument set
+internally on the first ATM price.
+
+- **Snapshot mode**: timer callbacks call `publish_slice()`.
+- **Raw mode**: each active quote or Greeks update calls `publish_slice()` immediately.
+
+#### OptionChainAggregator
+
+Accumulates quotes and Greeks into call/put buffers using **keep-latest semantics**. Instruments that did not
+update since the last snapshot are still included.
+
+Greeks that arrive before any quote for an instrument are held in a `pending_greeks` buffer and attached when
+the first quote arrives. On each `snapshot()` call, the aggregator produces an immutable `OptionChainSlice`.
+
+#### AtmTracker
+
+Derives the ATM price reactively from the `underlying_price` field in incoming
+`OptionGreeks` events. It can be pre-seeded from an HTTP reference price for the
+option series, allowing instant bootstrap without waiting for WebSocket ticks.
+
+### Bootstrap and rebalancing
+
+For dynamic strike ranges (`AtmRelative`, `AtmPercent`, and `Delta`), the active instrument set cannot be
+determined until the ATM price is known. Two bootstrap paths are available:
+
+**Instant bootstrap (reference price available)**:
+
+1. `DataEngine` receives `SubscribeOptionChain`, resolves all instruments for the
+   series from the cache, and requests a reference price from the data client.
+2. When the reference price response arrives, the engine creates the manager with
+   the ATM price pre-seeded. The manager computes the active strike set during
+   construction.
+3. The engine subscribes the active instruments immediately.
+
+**Deferred bootstrap (no reference price)**:
+
+1. The engine has no matching client or cached option instrument, or the client reports no reference price.
+   The request can also fail or time out after 30 seconds.
+2. The engine creates the manager with no initial ATM price. The active set is
+   empty. When the request reached a client with a cached sample option, the engine
+   subscribes that sample's Greeks as the bootstrap source. Without a client or sample,
+   bootstrap still depends on relevant Greeks data already flowing from another
+   subscription.
+1. When the engine feeds an `OptionGreeks` event with `underlying_price` through `handle_greeks()`, the
+   manager bootstraps the active instrument set. It registers message bus handlers and queues the new wire
+   subscriptions for the engine to drain. The sample subscription becomes part of the active set or is
+   released.
+
+Once bootstrapped, the aggregator monitors ATM drift. On each snapshot timer tick,
+the manager calls the aggregator's `check_rebalance()` which returns any instruments
+to add or remove. A hysteresis threshold and cooldown period prevent thrashing near
+strike boundaries.
+
+## OptionGreeks data type
+
+`OptionGreeks` carries venue-provided sensitivities and implied volatility for a
+single option contract:
+
+| Field              | Type               | Description                                         |
+| ------------------ | ------------------ | --------------------------------------------------- |
+| `instrument_id`    | `InstrumentId`     | The option contract these Greeks apply to.          |
+| `convention`       | `GreeksConvention` | Numeraire convention for the Greeks.                |
+| `delta`            | `float`            | Rate of change of option price per unit underlying. |
+| `gamma`            | `float`            | Rate of change of delta per unit underlying.        |
+| `vega`             | `float`            | Venue-reported vega.                                |
+| `theta`            | `float`            | Venue-reported theta.                               |
+| `rho`              | `float`            | Venue-reported rho, with zero as the default.       |
+| `mark_iv`          | `float` or None    | Mark implied volatility.                            |
+| `bid_iv`           | `float` or None    | Bid implied volatility.                             |
+| `ask_iv`           | `float` or None    | Ask implied volatility.                             |
+| `underlying_price` | `float` or None    | Underlying price at time of calculation.            |
+| `open_interest`    | `float` or None    | Open interest for the contract.                     |
+| `ts_event`         | `int`              | UNIX timestamp (nanoseconds) of the event.          |
+| `ts_init`          | `int`              | UNIX timestamp (nanoseconds) when initialized.      |
+
+## OptionChainSlice data type
+
+`OptionChainSlice` is a point-in-time snapshot of an entire option series.
+
+Properties:
+
+| Property     | Type             | Description                         |
+| ------------ | ---------------- | ----------------------------------- |
+| `series_id`  | `OptionSeriesId` | The option series identifier.       |
+| `atm_strike` | `Price` or None  | Current ATM strike (if determined). |
+| `ts_event`   | `int`            | UNIX timestamp (nanoseconds).       |
+| `ts_init`    | `int`            | UNIX timestamp (nanoseconds).       |
+
+Call and put data are accessed through methods, not as direct properties.
+Each `OptionStrikeData` returned by these methods contains a `quote` (`QuoteTick`)
+and an optional `greeks` (`OptionGreeks`) for that strike.
+
+Methods:
+
+- `strikes()`: all unique strike prices in the chain.
+- `strike_count()`, `call_count()`, `put_count()`: counts.
+- `get_call(strike)`, `get_put(strike)`: full `OptionStrikeData`.
+- `get_call_greeks(strike)`, `get_put_greeks(strike)`: Greeks only.
+- `get_call_quote(strike)`, `get_put_quote(strike)`: quote only.
+- `is_empty()`: true if the chain has no data.
+
+## Adapter support
+
+The following adapters support option Greeks subscriptions:
+
+| Adapter             | Per-instrument Greeks | Option chains |
+| ------------------- | --------------------- | ------------- |
+| Deribit             | Yes                   | Yes           |
+| Bybit               | Yes                   | Yes           |
+| Derive              | Yes                   | Yes           |
+| Interactive Brokers | Yes                   | Yes           |
+| OKX                 | Yes                   | Yes           |
+
+## See also
+
+- [Greeks](./greeks.md) - Local Greeks calculation and portfolio risk management.
+- [Data](./data/index.md) - Built-in data types and the subscription model.
+- [Actors](./actors.md) - Subscription and handler reference table.

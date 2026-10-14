@@ -1,29 +1,4 @@
 # Events
 
-```{eval-rst}
-.. automodule:: nautilus_trader.model.events
-```
+Auto-generated from the latest source. The official documentation renders [`nautilus_trader.model`](https://nautilustrader.io/docs/python-api-latest/#module-nautilus_trader.model) with the following members: `AccountState`、`OrderAccepted`、`OrderCancelRejected`、`OrderCanceled`、`OrderDenied`、`OrderEmulated`、`OrderExpired`、`OrderFillVoided`、`OrderFilled`、`OrderInitialized`、`OrderModifyRejected`、`OrderPendingCancel`、`OrderPendingUpdate`、`OrderRejected`、`OrderReleased`、`OrderSnapshot`、`OrderSubmitted`、`OrderTriggered`、`OrderUpdated`、`PortfolioSnapshot`、`PositionAdjusted`、`PositionChanged`、`PositionClosed`、`PositionOpened`、`PositionSnapshot`.
 
-```{eval-rst}
-.. automodule:: nautilus_trader.model.events.account
-   :show-inheritance:
-   :inherited-members:
-   :members:
-   :member-order: bysource
-```
-
-```{eval-rst}
-.. automodule:: nautilus_trader.model.events.order
-   :show-inheritance:
-   :inherited-members:
-   :members:
-   :member-order: bysource
-```
-
-```{eval-rst}
-.. automodule:: nautilus_trader.model.events.position
-   :show-inheritance:
-   :inherited-members:
-   :members:
-   :member-order: bysource
-```

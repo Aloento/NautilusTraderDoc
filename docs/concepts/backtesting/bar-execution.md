@@ -1,0 +1,165 @@
+# Bar-Based Execution
+
+Bar data records the open, high, low, close, and volume for an interval. It does not record when each price
+occurred within that interval or whether the high preceded the low. Bar-based execution thus simulates a
+plausible intrabar path rather than reconstructing the original trades.
+
+NautilusTrader converts each execution bar into synthetic market updates for an L1 order book.
+Resting orders match as those updates move through the bar.
+
+## Bar timestamp convention
+
+:::warning
+For execution simulation, each bar's initialization timestamp (`ts_init`) must represent the
+**close of the interval**. This prevents the complete bar from becoming visible before it formed.
+:::
+
+The event timestamp (`ts_event`) may represent the open or close, depending on the data source:
+
+- For bars timestamped at the close, set `ts_init` to the same timestamp.
+- For bars timestamped at the open, set `ts_init = ts_event + interval_ns`. For example, add
+  `60_000_000_000` nanoseconds for one-minute bars.
+
+If an adapter provides a setting such as `bars_timestamp_on_close=True`, prefer it so stored data
+uses the expected convention.
+
+For custom data, populate `ts_event` and `ts_init` before constructing `Bar` objects, encoding Arrow
+record batches, writing a catalog, or calling `add_data()`. The `BarDataWrangler` consumes explicit
+timestamp fields and does not expose a `ts_init_delta` argument. Verify the result on a small sample
+before running a backtest.
+
+## Processing bar data
+
+Bar execution applies only when:
+
+- The venue has `bar_execution=True`.
+- The venue uses `BookType.L1_MBP`.
+- The bar has an external aggregation source.
+
+Internally aggregated bars and bars sent to L2 or L3 venues still reach subscribed strategies. These bars do
+not update the matching engine's book or trigger matching.
+
+For each applicable bar, the engine:
+
+1. Selects the most granular configured bar type for the instrument.
+1. Splits the bar volume across four synthetic updates.
+1. Processes the open, high, and low in the configured order, then the close.
+1. Matches orders after each synthetic update.
+1. Dispatches the complete bar to actors and strategies.
+
+Orders already resting at the start of the bar can thus fill at an intermediate OHLC point. Orders submitted
+from `on_bar` arrive only after all four points for that bar have been processed.
+
+## OHLC price simulation
+
+The engine splits the bar volume evenly across the four price points. It assigns any remainder to
+the close so the synthetic updates preserve total volume. If one quarter of the volume is below the
+instrument's minimum `size_increment`, each point uses the minimum increment.
+
+The venue's `bar_adaptive_high_low_ordering` option controls the intrabar path:
+
+- With `False` (the default), each bar uses `Open -> High -> Low -> Close`.
+- With `True`, the engine visits the extreme closest to the open first:
+  - If the open is closer to the high, it uses `Open -> High -> Low -> Close`.
+  - If the open is closer to the low, it uses `Open -> Low -> High -> Close`.
+
+The adaptive path is a **deterministic heuristic**, not a reconstruction of the actual trade sequence.
+Its accuracy depends on the market, interval, and data source. An
+[exploratory EUR/USD analysis](https://gist.github.com/stefansimik/d387e1d9ff784a8973feca0cde51e363)
+motivates the distance heuristic but does not establish a general accuracy rate.
+
+The first visited level determines which order can fill first. Thus, the path matters when a protective stop
+and a profit target lie inside the same bar.
+
+Configure adaptive ordering on the venue:
+
+```python
+from decimal import Decimal
+
+from nautilus_trader.backtest import BacktestEngine
+from nautilus_trader.config import BacktestEngineConfig
+from nautilus_trader.execution import MakerTakerFeeModel
+from nautilus_trader.model import AccountType
+from nautilus_trader.model import Money
+from nautilus_trader.model import OmsType
+from nautilus_trader.model import Venue
+
+engine = BacktestEngine(BacktestEngineConfig())
+engine.add_venue(
+    venue=Venue("SIM"),
+    oms_type=OmsType.NETTING,
+    account_type=AccountType.CASH,
+    starting_balances=[Money.from_str("10_000 USDT")],
+    bar_adaptive_high_low_ordering=True,
+    fee_model=MakerTakerFeeModel(
+        maker_rate=Decimal("0"),
+        taker_rate=Decimal("0"),
+    ),
+)
+```
+
+## Order submission timing
+
+Bar N's OHLC sequence runs before `on_bar(N)`. Without a latency model, an order submitted from
+`on_bar` settles immediately against the book left at bar N's close.
+
+A latency model delays the order's effective arrival. Once the command reaches its arrival
+timestamp, the engine can release it from the venue's latency queue in two ways:
+
+- **Instrument market data**: Exchange-routed data for the order's instrument releases the command. With
+  bar-only data and no intervening timer events, the first bar at or after arrival completes its OHLC sweep
+  before the order settles. Thus, the order sees that bar's close. Quote or trade ticks can release it earlier
+  against the book state they establish.
+- **Unrestricted settlement**: Points such as actor or strategy timers, funding-rate settlement,
+  or shutdown drains release all commands due at that time.
+
+Market data for another instrument does not release the delayed command against stale book state.
+Portfolio snapshot timers for daily equity curves and `PortfolioConfig.snapshot_interval_ms` samples
+do not release older delayed commands.
+
+```python
+from decimal import Decimal
+
+from nautilus_trader.execution import MakerTakerFeeModel
+from nautilus_trader.execution import StaticLatencyModel
+
+engine.add_venue(
+    venue=Venue("SIM"),
+    oms_type=OmsType.NETTING,
+    account_type=AccountType.CASH,
+    starting_balances=[Money.from_str("10_000 USDT")],
+    latency_model=StaticLatencyModel(base_latency_nanos=1_000_000_000),
+    fee_model=MakerTakerFeeModel(
+        maker_rate=Decimal("0"),
+        taker_rate=Decimal("0"),
+    ),
+)
+```
+
+:::warning[Next-bar-open fills and look-ahead]
+The engine does not provide a native next-bar-open fill mode. A strategy can form a signal from a completed
+prior bar without look-ahead. But the engine processes the next bar's open before it dispatches that bar. If a
+strategy uses the current bar's open from its `on_bar` callback, it introduces look-ahead. With bar-only data,
+latency normally causes settlement against a later book state, not the next open.
+:::
+
+## Internal bar aggregation timing
+
+When the data engine aggregates time bars from ticks, a timer closes each bar at the interval
+boundary. Data with the exact same timestamp may otherwise be processed after that close timer.
+
+Set `time_bars_build_delay` in `DataEngineConfig` to delay the timer:
+
+```python
+from nautilus_trader.config import BacktestEngineConfig
+from nautilus_trader.config import DataEngineConfig
+
+config = BacktestEngineConfig(
+    data_engine=DataEngineConfig(
+        time_bars_build_delay=1,
+    ),
+)
+```
+
+The value is in microseconds. A small delay, such as one microsecond, lets boundary data arrive
+before the bar closes. It affects **only internally aggregated bars**.

@@ -1,373 +1,455 @@
-# 报告
+# Reports
 
-:::info
-本指南正在完善中。
-:::
+This guide explains how `ReportProvider` reports support portfolio analysis, PnL accounting, and backtest
+post-run analysis.
 
-本指南介绍 `ReportProvider` 类提供的组合分析与报告功能，说明这些报告如何用于 PnL（盈亏）记账以及回测后的结果分析。
+## Overview
 
-## 概览
+`ReportProvider` turns cached orders, fills, positions, and account states into pandas DataFrames
+for analysis and visualization. These reports help you evaluate strategy performance, analyze
+execution quality, and verify PnL accounting. The same reports are available in backtesting and live
+trading, which keeps performance evaluation and strategy comparison consistent across both.
 
-NautilusTrader 中的 `ReportProvider` 类可从交易数据生成结构化分析报告，将原始的订单、成交、持仓和账户状态转换为用于分析与可视化的 pandas DataFrame。这些报告对于理解策略表现、评估执行质量以及保证准确的 PnL 记账至关重要。
+Reports can be generated using two approaches:
 
-报告可以通过两种方式生成：
+- **Backtest methods**: `BacktestEngine.generate_orders_report()` and its siblings read the engine's
+  own cache. `BacktestNode` exposes the same methods, taking the run config ID as the first argument.
+- **`ReportProvider` directly**: pass any collection of orders or positions, such as a live node's
+  cache or a filtered cache query.
 
-- **通过 Trader 的帮助方法（推荐）**：例如 `trader.generate_orders_report()` 这类便捷方法。
-- **直接使用 `ReportProvider`**：当你需要更精细地选择或过滤数据时使用。
+Each method returns an empty DataFrame when no matching data exists.
 
-这些报告在回测与实盘环境中提供一致的分析结果，便于进行可靠的绩效评估与策略对比。
+Report generation requires pandas, which `nautilus_trader.analysis` imports lazily: the module
+imports without pandas installed, and the `ImportError` surfaces when you generate a report. The
+`visualization` extra installs it.
 
-## 可用报告
+## Available reports
 
-`ReportProvider` 类提供了若干静态方法用于从交易数据生成报告。每个报告返回一个 pandas DataFrame，包含特定的列与索引，便于后续分析。
+`ReportProvider` provides static methods that return pandas DataFrames from trading data. Each report has its
+own columns and index for analysis.
 
-### Orders 报告
+### Orders report
 
-生成对所有订单的汇总视图：
+Generates a full view of all orders:
 
 ```python
-# 使用 Trader 的帮助方法（推荐）
-orders_report = trader.generate_orders_report()
+from nautilus_trader.analysis import ReportProvider
 
-# 或者直接使用 ReportProvider
-from nautilus_trader.analysis.reporter import ReportProvider
-orders = cache.orders()
-orders_report = ReportProvider.generate_orders_report(orders)
+# From a completed backtest run
+orders_report = engine.generate_orders_report()
+
+# Or from any cache, such as a live node's
+orders_report = ReportProvider.generate_orders_report(cache.orders())
 ```
 
-**返回 `pd.DataFrame`，包含列：**
+Returns `pd.DataFrame`. Columns include:
 
-| Column            | 说明                           |
-| ----------------- | ------------------------------ |
-| `client_order_id` | 索引——唯一订单标识。           |
-| `instrument_id`   | 交易品种/合约。                |
-| `strategy_id`     | 创建该订单的策略标识。         |
-| `side`            | BUY 或 SELL。                  |
-| `type`            | 订单类型：MARKET、LIMIT 等。   |
-| `status`          | 当前订单状态。                 |
-| `quantity`        | 原始订单数量（字符串）。       |
-| `filled_qty`      | 已成交数量（字符串）。         |
-| `price`           | 限价（若设置则为字符串）。     |
-| `avg_px`          | 平均成交价（若设置为浮点数）。 |
-| `ts_init`         | 订单初始化时间戳（纳秒）。     |
-| `ts_last`         | 最近更新时间戳（纳秒）。       |
+| Column            | Description                                        |
+| ----------------- | -------------------------------------------------- |
+| `client_order_id` | Index - unique order identifier.                   |
+| `instrument_id`   | Trading instrument.                                |
+| `strategy_id`     | Strategy that created the order.                   |
+| `trader_id`       | Trader identifier.                                 |
+| `account_id`      | Account identifier (if assigned).                  |
+| `venue_order_id`  | Venue-assigned order ID (if accepted).             |
+| `side`            | BUY or SELL.                                       |
+| `type`            | MARKET, LIMIT, etc.                                |
+| `status`          | Current order status.                              |
+| `quantity`        | Original order quantity (string).                  |
+| `filled_qty`      | Amount filled (string).                            |
+| `price`           | Limit price (string, order-type dependent).        |
+| `avg_px`          | Average fill price (string, if filled).            |
+| `time_in_force`   | Time-in-force instruction.                         |
+| `ts_init`         | Order initialization timestamp (Unix nanoseconds). |
+| `ts_last`         | Last update timestamp (Unix nanoseconds).          |
 
-### Order fills 报告
+Additional columns vary by order type, such as `trigger_price` for stop orders and `expire_time_ns`
+for GTD orders. See `Order.to_dict()` for the complete field list.
 
-提供已成交订单的汇总（每个订单一行）：
+### Order fills report
+
+Provides a summary of filled orders (**one row per order**):
 
 ```python
-# 使用 Trader 的帮助方法（推荐）
-fills_report = trader.generate_order_fills_report()
+# From a completed backtest run
+fills_report = engine.generate_order_fills_report()
 
-# 或者直接使用 ReportProvider
-orders = cache.orders()
-fills_report = ReportProvider.generate_order_fills_report(orders)
+# Or from any cache
+fills_report = ReportProvider.generate_order_fills_report(cache.orders())
 ```
 
-该报告仅包含 `filled_qty > 0` 的订单，列与 Orders 报告相同，但仅保留已执行的订单。注意本报告中 `ts_init` 与 `ts_last` 会被转换为 datetime 以便分析。
+This report includes only orders with `filled_qty > 0`. It contains the same columns as the orders report,
+filtered to executed orders, and converts `ts_init` and `ts_last` to datetime objects for analysis.
 
-### Fills 报告
+### Fills report
 
-列出每一次成交事件（每次成交一行）：
+Details individual fill events (**one row per fill**):
 
 ```python
-# 使用 Trader 的帮助方法（推荐）
-fills_report = trader.generate_fills_report()
+# From a completed backtest run
+fills_report = engine.generate_fills_report()
 
-# 或者直接使用 ReportProvider
-orders = cache.orders()
-fills_report = ReportProvider.generate_fills_report(orders)
+# Or from any cache
+fills_report = ReportProvider.generate_fills_report(cache.orders())
 ```
 
-**返回 `pd.DataFrame`，包含列：**
+Returns `pd.DataFrame`. Columns include:
 
-| Column            | 说明                       |
-| ----------------- | -------------------------- |
-| `client_order_id` | 索引——订单标识。           |
-| `trade_id`        | 唯一的成交/填充标识。      |
-| `venue_order_id`  | 交易所/场所分配的订单 ID。 |
-| `last_px`         | 成交价格（字符串）。       |
-| `last_qty`        | 成交数量（字符串）。       |
-| `liquidity_side`  | MAKER 或 TAKER。           |
-| `commission`      | 佣金金额与币种。           |
-| `ts_event`        | 成交时间（datetime）。     |
-| `ts_init`         | 初始化时间戳（datetime）。 |
+| Column            | Description                              |
+| ----------------- | ---------------------------------------- |
+| `client_order_id` | Index - order identifier.                |
+| `trade_id`        | Unique trade/fill identifier.            |
+| `venue_order_id`  | Venue-assigned order ID.                 |
+| `instrument_id`   | Trading instrument.                      |
+| `strategy_id`     | Strategy that created the order.         |
+| `account_id`      | Account identifier.                      |
+| `position_id`     | Associated position ID (if applicable).  |
+| `order_side`      | BUY or SELL.                             |
+| `order_type`      | Order type (MARKET, LIMIT, etc.).        |
+| `last_px`         | Fill execution price (string).           |
+| `last_qty`        | Fill execution quantity (string).        |
+| `currency`        | Currency of the fill.                    |
+| `liquidity_side`  | MAKER or TAKER.                          |
+| `commission`      | Commission amount and currency (string). |
+| `ts_event`        | Fill timestamp (datetime).               |
+| `ts_init`         | Initialization timestamp (datetime).     |
 
-### Positions 报告
+See `OrderFilled.to_dict()` for the complete field list. The report drops its `type` column.
 
-包含快照在内的完整持仓分析：
+### Positions report
+
+Position analysis including snapshots:
 
 ```python
-# 使用 Trader 的帮助方法（推荐）
-# 对于 NETTING OMS，会自动包含历史快照
-positions_report = trader.generate_positions_report()
+# From a completed backtest run, which includes snapshots automatically
+positions_report = engine.generate_positions_report()
 
-# 或者直接使用 ReportProvider
-positions = cache.positions()
-snapshots = cache.position_snapshots()  # 针对 NETTING OMS
+# Or from any cache
 positions_report = ReportProvider.generate_positions_report(
-    positions=positions,
-    snapshots=snapshots
+    positions=cache.positions(),
+    snapshots=cache.position_snapshots(),  # Needed for NETTING OMS totals
 )
 ```
 
-**返回 `pd.DataFrame`，包含列：**
+Returns `pd.DataFrame`. Columns include:
 
-| Column            | 说明                              |
-| ----------------- | --------------------------------- |
-| `position_id`     | 索引——唯一持仓标识。              |
-| `instrument_id`   | 交易品种/合约。                   |
-| `strategy_id`     | 管理该持仓的策略标识。            |
-| `entry`           | 开仓方向（BUY 或 SELL）。         |
-| `side`            | 持仓方向（LONG、SHORT 或 FLAT）。 |
-| `quantity`        | 持仓数量。                        |
-| `peak_qty`        | 达到的最大持仓规模。              |
-| `avg_px_open`     | 开仓平均价。                      |
-| `avg_px_close`    | 平仓平均价（若已平仓）。          |
-| `realized_pnl`    | 已实现盈亏。                      |
-| `realized_return` | 已实现收益率（百分比）。          |
-| `ts_opened`       | 开仓时间（datetime）。            |
-| `ts_closed`       | 平仓时间（datetime 或 NA）。      |
-| `duration_ns`     | 持仓持续时长（纳秒）。            |
-| `is_snapshot`     | 是否为历史快照。                  |
+| Column             | Description                                           |
+| ------------------ | ----------------------------------------------------- |
+| `position_id`      | Index - unique position identifier.                   |
+| `instrument_id`    | Trading instrument.                                   |
+| `strategy_id`      | Strategy that managed the position.                   |
+| `trader_id`        | Trader identifier.                                    |
+| `account_id`       | Account identifier.                                   |
+| `opening_order_id` | Order ID that opened the position.                    |
+| `closing_order_id` | Order ID that closed the position.                    |
+| `entry`            | Entry side (BUY or SELL).                             |
+| `side`             | Position side (LONG, SHORT, or FLAT).                 |
+| `quantity`         | Current position size (string).                       |
+| `peak_qty`         | Maximum size reached (string).                        |
+| `avg_px_open`      | Average entry price (float).                          |
+| `avg_px_close`     | Average exit price (float, if closed).                |
+| `commissions`      | Commissions paid, one entry per currency (list).      |
+| `realized_pnl`     | Realized profit/loss in the cost currency (string).   |
+| `realized_return`  | Realized return as a ratio (float), so `0.05` is 5%.  |
+| `ts_init`          | Position initialization timestamp (Unix nanoseconds). |
+| `ts_opened`        | Opening timestamp (datetime).                         |
+| `ts_last`          | Last update timestamp (Unix nanoseconds).             |
+| `ts_closed`        | Closing timestamp (datetime or NA).                   |
+| `duration_ns`      | Position duration in nanoseconds.                     |
+| `is_snapshot`      | Whether this is a historical snapshot.                |
 
-### Account 报告
+Snapshot rows are indexed by a generated ID derived from the original position ID. Use `is_snapshot` rather
+than the index to separate archived cycles from live positions. See `Position.to_dict()` for the complete
+field list. The report drops `signed_qty`, `base_currency`, `quote_currency`, and `settlement_currency`.
 
-跟踪账户余额与保证金随时间的变化：
+### Account report
+
+Tracks account balance and margin changes over time:
 
 ```python
-# 使用 Trader 的帮助方法（推荐）
-# 需要传入 venue 参数
-from nautilus_trader.model.identifiers import Venue
-venue = Venue("BINANCE")
-account_report = trader.generate_account_report(venue)
+from nautilus_trader.model import Venue
 
-# 或者直接使用 ReportProvider
-account = cache.account(account_id)
-account_report = ReportProvider.generate_account_report(account)
+venue = Venue("BINANCE")
+
+# From a completed backtest run
+account_report = engine.generate_account_report(venue=venue)
+
+# Or from any cache
+account_report = ReportProvider.generate_account_report(cache.account_for_venue(venue))
 ```
 
-**返回 `pd.DataFrame`，包含列：**
+`BacktestEngine.generate_account_report()` requires `venue` or `account_id` and raises `ValueError`
+when both are omitted. `account_id` takes precedence when both are supplied, and an unknown account
+yields an empty DataFrame.
 
-| Column          | 说明                            |
-| --------------- | ------------------------------- |
-| `ts_event`      | 索引——账户状态变更时间。        |
-| `account_id`    | 账户标识。                      |
-| `account_type`  | 账户类型（例如 SPOT、MARGIN）。 |
-| `base_currency` | 账户基础币种。                  |
-| `total`         | 总余额。                        |
-| `free`          | 可用余额。                      |
-| `locked`        | 被订单锁定的余额。              |
-| `currency`      | 余额的币种。                    |
-| `reported`      | 是否为交易所上报的余额。        |
-| `margins`       | 保证金信息（如适用）。          |
-| `info`          | 其他交易所/场所特有的信息。     |
+Returns `pd.DataFrame`. Columns include:
 
-## PnL（盈亏）记账注意事项
+| Column          | Description                                  |
+| --------------- | -------------------------------------------- |
+| `ts_event`      | Index - timestamp of account state change.   |
+| `account_id`    | Account identifier.                          |
+| `account_type`  | Type of account (for example, CASH, MARGIN). |
+| `base_currency` | Base currency for the account.               |
+| `total`         | Total balance amount (string).               |
+| `free`          | Available balance (string).                  |
+| `locked`        | Balance locked in orders (string).           |
+| `currency`      | Currency of the balance.                     |
+| `reported`      | Whether balance was reported by venue.       |
+| `margins`       | Margin information (list, if applicable).    |
+| `info`          | Additional venue-specific information.       |
 
-准确的 PnL 记账需要对若干因素进行仔细考虑：
+Each row represents a balance entry. Accounts with multiple currencies produce multiple rows per account state
+event.
 
-### 基于持仓的 PnL
+## PnL accounting considerations
 
-- **已实现 PnL（Realized PnL）**：在持仓部分或全部平仓时计算。
-- **未实现 PnL（Unrealized PnL）**：使用当前市价进行标记（mark-to-market）。
-- **佣金影响**：仅在以结算币种计量时计入。
+PnL accounting depends on position calculations, currencies, and snapshots.
+
+### Position-based PnL
+
+- **Realized PnL**: Calculated when positions are partially or fully closed.
+- **Unrealized PnL**: Marked-to-market using current prices. `Position.unrealized_pnl(last)` marks
+  an open position at a given `Price`.
+- **Commission impact**: Only included when in the position's cost currency. See
+  [Positions](./positions.md) for how base-currency commissions on spot pairs adjust position size
+  instead.
 
 :::warning
-Pnl 计算依赖于 OMS 类型。在 `NETTING` 模式下，持仓快照会在持仓重新打开时保留历史 PnL。为保证总 PnL 的准确性，务必在报告中包含快照数据。
+Position snapshots preserve historical PnL when a closed position reopens under the same ID,
+in either `NETTING` or `HEDGING` OMS. **Include snapshots in reports** for accurate total PnL
+calculation. See [Position snapshotting](./positions.md#position-snapshotting) for reopening and
+flip behavior.
 :::
 
-### 多币种记账
+### Multi-currency accounting
 
-处理多种货币时：
+When dealing with multiple currencies:
 
-- 每个持仓以其结算币种跟踪 PnL。
-- 投资组合汇总需要进行货币转换。
-- 佣金的币种可能与结算币种不同。
+- Each position tracks PnL in its cost currency: quote for linear contracts, base for inverse
+  contracts, and settlement for quanto contracts.
+- Portfolio aggregation requires currency conversion. `Portfolio.realized_pnls(target_currency=...)` does this
+  with cached exchange rates. See [Supported conversions](./portfolio.md#supported-conversions).
+- Commission currencies may differ from the position's cost currency.
 
 ```python
-# 遍历持仓以获取 PnL
-for position in positions:
-    realized = position.realized_pnl  # 以结算币种计量
-    unrealized = position.unrealized_pnl(last_price)
+from decimal import Decimal
 
-    # 处理多币种合并（示例）
-    # 注意：货币转换需要用户提供汇率
-    if position.settlement_currency != base_currency:
-        # 从你的数据源获取转换率并应用
-        # rate = get_exchange_rate(position.settlement_currency, base_currency)
-        # realized_converted = realized.as_double() * rate
-        pass
+# Accessing PnL across positions
+for position in cache.positions_closed():
+    realized = position.realized_pnl  # Money in the position's cost currency, or None
+
+    if realized is None or realized.currency == base_currency:
+        continue
+
+    # Converting by hand: cache.get_xrate() returns a float, so wrap rates as Decimal
+    rate = Decimal(str(my_fx_rates[(realized.currency, base_currency)]))
+    converted = realized.as_decimal() * rate
 ```
 
-### 快照（Snapshot）注意事项
+### Snapshot considerations
 
-对于 `NETTING` OMS 配置：
+For `NETTING` OMS, an accurate instrument total adds the realized PnL of each archived cycle to the live
+position. See [Position snapshotting](./positions.md#position-snapshotting) for how the execution engine
+archives a closed cycle.
 
 ```python
-from nautilus_trader.model.objects import Money
+from decimal import Decimal
 
-# 按币种汇总完整 PnL（包括快照）
+from nautilus_trader.model import Money
+
 pnl_by_currency = {}
 
-# 累加当前持仓的已实现 PnL
 for position in cache.positions(instrument_id=instrument_id):
-    if position.realized_pnl:
-        currency = position.realized_pnl.currency
-        if currency not in pnl_by_currency:
-            pnl_by_currency[currency] = 0.0
-        pnl_by_currency[currency] += position.realized_pnl.as_double()
+    # Archived cycles are stored under the live position's ID
+    snapshots = cache.position_snapshots(position_id=position.id)
 
-# 累加历史快照中的已实现 PnL
-for snapshot in cache.position_snapshots(instrument_id=instrument_id):
-    if snapshot.realized_pnl:
-        currency = snapshot.realized_pnl.currency
-        if currency not in pnl_by_currency:
-            pnl_by_currency[currency] = 0.0
-        pnl_by_currency[currency] += snapshot.realized_pnl.as_double()
+    for pnl in (position.realized_pnl, *(s.realized_pnl for s in snapshots)):
+        if pnl is None:
+            continue
 
-# 为每个币种创建 Money 对象
-total_pnls = [Money(amount, currency) for currency, amount in pnl_by_currency.items()]
+        running = pnl_by_currency.get(pnl.currency, Decimal(0))
+        pnl_by_currency[pnl.currency] = running + pnl.as_decimal()
+
+# Create Money objects for each currency
+total_pnls = [Money.from_decimal(amount, currency) for currency, amount in pnl_by_currency.items()]
 ```
 
-## 回测结束后的分析（Backtest post-run analysis）
+## Backtest post-run analysis
 
-回测完成后，可以通过多种报告与投资组合分析器对结果进行深入分析。
+After a backtest completes, analysis is available through result statistics
+and generated reports.
 
-### 访问回测结果
+### Accessing backtest results
 
 ```python
-# 回测完成后
-engine.run(start=start_time, end=end_time)
+# After backtest run
+engine.run()
 
-# 使用 Trader 的帮助方法生成报告
-orders_report = engine.trader.generate_orders_report()
-positions_report = engine.trader.generate_positions_report()
-fills_report = engine.trader.generate_fills_report()
+# Access result statistics
+result = engine.get_result()
 
-# 或者直接访问缓存数据以做自定义分析
+# Generate reports from the backtest engine
+fills_report = engine.generate_fills_report()
+venue = engine.list_venues()[0]
+account_report = engine.generate_account_report(venue=venue)
+
+# Or access data directly for custom analysis
 orders = engine.cache.orders()
 positions = engine.cache.positions()
 snapshots = engine.cache.position_snapshots()
 ```
 
-### 投资组合统计
+### Portfolio statistics
 
-Portfolio analyzer 提供了全面的绩效指标：
+The backtest result provides performance metrics:
 
 ```python
-# 获取 portfolio analyzer
-portfolio = engine.portfolio
+# Access backtest result statistics
+result = engine.get_result()
 
-# 获取不同类别的统计数据
-stats_pnls = portfolio.analyzer.get_performance_stats_pnls()
-stats_returns = portfolio.analyzer.get_performance_stats_returns()
-stats_general = portfolio.analyzer.get_performance_stats_general()
+# Get different categories of statistics
+stats_pnls = result.stats_pnls  # Keyed by currency code, then statistic name
+stats_returns = result.stats_returns  # Keyed by statistic name
+stats_general = result.stats_general  # Keyed by statistic name
 ```
+
+Each statistic contributes to the categories for which it implements a calculation: realized PnLs,
+returns, or positions. A custom statistic can contribute to more than one category.
 
 :::info
-如需了解可用统计项与如何创建自定义指标，请参阅 [Portfolio guide](portfolio.md#portfolio-statistics)。该指南覆盖：
-
-- 内置统计类别（PnLs、returns、positions、orders 等）。
-- 使用 `PortfolioStatistic` 创建自定义统计项。
-- 注册与使用自定义指标。
-
+See the [Portfolio guide](./portfolio.md#portfolio-statistics) for the default statistic set, how each
+category is derived, and the difference between position returns and portfolio returns.
 :::
 
-### 可视化
+### Visualization
 
-报告可与常用可视化工具配合使用：
+NautilusTrader provides interactive tearsheets and plots through Plotly:
 
 ```python
-import matplotlib.pyplot as plt
+from nautilus_trader.analysis import create_tearsheet
 
-# 绘制累计收益
-returns = positions_report["realized_return"].cumsum()
-returns.plot(title="Cumulative Returns")
-plt.show()
+# After backtest run
+engine.run()
 
-# 分析成交质量（commission 为 Money 字符串，例如 "0.50 USD"）
-# 提取数值与币种
-fills_report["commission_value"] = fills_report["commission"].str.split().str[0].astype(float)
-fills_report["commission_currency"] = fills_report["commission"].str.split().str[1]
-
-# 按流动性方向与币种分组统计佣金
-commission_by_side = fills_report.groupby(["liquidity_side", "commission_currency"])["commission_value"].sum()
-commission_by_side.plot.bar()
-plt.title("Commission by Liquidity Side and Currency")
-plt.show()
+# Generate interactive HTML tearsheet
+create_tearsheet(engine, output_path="tearsheet.html")
 ```
 
-## 报告生成模式
+This creates an interactive HTML report with:
 
-### 实盘（Live trading）
+- Equity curve
+- Drawdown analysis
+- Monthly returns heatmap
+- Performance statistics table
+- Returns distribution
 
-在实盘中建议定期生成报告：
+For more control, generate individual plots:
 
 ```python
 import pandas as pd
 
-class ReportingActor(Actor):
-    def on_start(self):
-        # 安排定期报告任务
+from nautilus_trader.analysis import create_equity_curve
+
+returns = pd.Series(
+    [0.01, -0.005, 0.002],
+    index=pd.date_range("2024-01-01", periods=3, tz="UTC"),
+)
+fig = create_equity_curve(returns, title="My Strategy Equity")
+fig.show()  # Display in browser
+fig.write_image("equity.png")  # Export to PNG (requires kaleido)
+```
+
+Install visualization dependencies:
+
+```bash
+uv pip install --pre "nautilus_trader[visualization]"
+```
+
+## Report generation patterns
+
+### Live trading
+
+During live trading, generate reports periodically:
+
+```python
+from datetime import timedelta
+
+from nautilus_trader.analysis import ReportProvider
+from nautilus_trader.common import DataActor
+from nautilus_trader.common import TimeEvent
+
+
+class ReportingActor(DataActor):
+    def on_start(self) -> None:
+        # Schedule periodic reporting
         self.clock.set_timer(
             name="generate_reports",
-            interval=pd.Timedelta(minutes=30),
-            callback=self.generate_reports
+            interval=timedelta(minutes=30),
+            callback=self.generate_reports,
         )
 
-    def generate_reports(self, event):
-        # 生成并记录报告
-        positions_report = self.trader.generate_positions_report()
+    def generate_reports(self, event: TimeEvent) -> None:
+        # Generate and log reports
+        positions_report = ReportProvider.generate_positions_report(
+            positions=self.cache.positions(),
+            snapshots=self.cache.position_snapshots(),
+        )
 
-        # 保存或传输报告
+        # Save or transmit report
         positions_report.to_csv(f"positions_{event.ts_event}.csv")
 ```
 
-### 绩效分析
+### Performance analysis
 
-针对回测的分析示例：
+For backtest analysis:
 
 ```python
 import pandas as pd
 
-# 运行回测
-engine.run(start=start_time, end=end_time)
+# Run the backtest
+engine.run()
 
-# 汇总结果
+# Collect results
 positions_closed = engine.cache.positions_closed()
-stats_pnls = engine.portfolio.analyzer.get_performance_stats_pnls()
-stats_returns = engine.portfolio.analyzer.get_performance_stats_returns()
-stats_general = engine.portfolio.analyzer.get_performance_stats_general()
+result = engine.get_result()
+stats_pnls = result.stats_pnls
+stats_returns = result.stats_returns
+stats_general = result.stats_general
 
-# 创建摘要字典
+# Create summary dictionary
 results = {
     "total_positions": len(positions_closed),
-    "pnl_total": stats_pnls.get("PnL (total)"),
+    "pnl_total": stats_pnls.get("USD", {}).get("PnL (total)"),
+    "win_rate": stats_pnls.get("USD", {}).get("Win Rate"),
     "sharpe_ratio": stats_returns.get("Sharpe Ratio (252 days)"),
-    "profit_factor": stats_general.get("Profit Factor"),
-    "win_rate": stats_general.get("Win Rate"),
+    "profit_factor": stats_returns.get("Profit Factor"),
+    "long_ratio": stats_general.get("Long Ratio"),
 }
 
-# 显示结果
+# Display results
 results_df = pd.DataFrame([results])
-print(results_df.T)  # 转置用于竖向显示
+print(results_df.T)  # Transpose for vertical display
 ```
 
 :::info
-报告是从内存数据结构生成的。对于大规模分析或长期运行的系统，建议将报告持久化到数据库以便高效查询。有关持久化选项，请参阅 [Cache guide](cache.md)。
+Reports are generated from in-memory data structures. For large-scale analysis
+or long-running systems, consider persisting reports to a database for efficient
+querying. See the [Cache guide](./cache.md) for persistence options.
 :::
 
-## 与其他组件的集成
+## Integration with other components
 
-`ReportProvider` 与若干系统组件协同工作：
+The `ReportProvider` works with several system components:
 
-- **Cache**：报告的数据来源（订单、持仓、账户等）。
-- **Portfolio**：使用报告进行绩效分析与统计计算。
-- **BacktestEngine**：在回测结束后使用报告进行分析与可视化。
-- **持仓快照（Position snapshots）**：在 `NETTING` OMS 模式下对准确的 PnL 报告至关重要。
+- **Cache**: Source of all trading data (orders, positions, accounts) for reports.
+- **Portfolio**: Computes its statistics from the same cache data independently, not from these
+  reports.
+- **BacktestEngine**: Exposes the report methods used for post-run analysis and visualization.
+- **Position snapshots**: Required for accurate PnL reporting in `NETTING` OMS.
 
-## 总结
+## Related guides
 
-`ReportProvider` 提供了一整套用于评估交易绩效的分析报告。这些报告将原始交易数据转换为结构化的 DataFrame，便于对订单、成交、持仓和账户状态进行深入分析。理解如何生成与解读这些报告对于策略开发、绩效评估以及在 `NETTING` OMS 下处理持仓快照时确保 PnL 准确性非常重要。
+- [Visualization](./visualization.md) - Interactive tearsheets and charts from backtest results.
+- [Portfolio](./portfolio.md) - Portfolio statistics and performance metrics.
+- [Backtesting](./backtesting/index.md) - Running backtests that generate reports.
+- [Cache](./cache.md) - Cache system that stores data for reports.

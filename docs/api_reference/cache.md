@@ -1,29 +1,4 @@
 # Cache
 
-```{eval-rst}
-.. automodule:: nautilus_trader.cache
-```
+Auto-generated from the latest source. The official documentation renders [`nautilus_trader.common`](https://nautilustrader.io/docs/python-api-latest/#module-nautilus_trader.common) with the following members: `Cache`、`CacheConfig`.
 
-```{eval-rst}
-.. automodule:: nautilus_trader.cache.cache
-   :show-inheritance:
-   :inherited-members:
-   :members:
-   :member-order: bysource
-```
-
-```{eval-rst}
-.. automodule:: nautilus_trader.cache.database
-   :show-inheritance:
-   :inherited-members:
-   :members:
-   :member-order: bysource
-```
-
-```{eval-rst}
-.. automodule:: nautilus_trader.cache.base
-   :show-inheritance:
-   :inherited-members:
-   :members:
-   :member-order: bysource
-```

@@ -1,50 +1,140 @@
-# 编码规范
+# Coding Standards
 
-## 代码风格
+## Code Style
 
-当前代码库本身可作为格式约定的参考。下面补充了一些额外的指南。
+Use the codebase as a guide to formatting conventions, supplemented by the rules below.
 
-### 通用格式规则
+### Universal formatting rules
 
-下列规范适用于**所有**源文件（包括 Rust、Python、Cython、shell 等）：
+The following applies to **all** source files (Rust, Python, shell, etc.):
 
-- 仅使用 **空格**，禁止使用制表符（tab）。
-- 行长度通常应保持在 **100 字符以下**；必要时请合理换行。
-- 优先使用美式英语拼写（例如 `color`、`serialize`、`behavior`）。
+- Use **spaces only**, never hard tab characters.
+- Lines should generally stay below **100 characters**. Wrap thoughtfully when necessary.
+- Use American English spelling (`color`, `serialize`, `behavior`), enforced by `.typos.toml`. Preserve
+  external API spellings through exact identifier exceptions. Exclude verbatim data and generated files. Run
+  `prek run typos --all-files` to check the repository.
 
-### 注释约定
+### Shell scripts
 
-1. 通常在每个注释块或 docstring 之前保留 **一行空行**，以便在视觉上与代码分隔。
-2. 使用 _句子式大小写_（sentence case）——首字母大写，其余保持小写，专有名词或缩略词除外。
-3. 句号后不要使用双空格。
-4. **单行注释** 不应以句号结尾，**除非**该行以 URL 或内联 Markdown 链接结束——这类情况下按链接要求保留原有标点。
-5. **多行注释** 中句子之间使用逗号分隔（而非每行以句号结尾）。多行注释的最后一行应以句号结束。
-6. 注释请简明扼要；优先考虑清晰度，只解释不明显的内容——_越简洁越好_。
-7. 避免在文本中使用表情符号（emoji）。
+Bash is the default shell for repository scripts. Use POSIX `sh` only when a caller cannot rely on
+Bash being installed. See [Shell](./shell.md) for script selection, extensions, portability,
+structure, testing, formatting, and linting requirements.
 
-### 文档注释 / docstring 的语气
+### Comment conventions
 
-- **Python** 的 docstring 应采用 **祈使语气（imperative mood）**，例如：_"Return a cached client."_（返回一个已缓存的客户端。）
-- **Rust** 的文档注释应采用 **陈述语气（indicative mood）**，例如：_"Returns a cached client."_（返回一个已缓存的客户端。）
+1. Generally leave **one blank line above** every comment block or docstring so it is visually separated from code.
+2. Use *sentence case* - capitalize the first letter, keep the rest lowercase unless proper nouns or acronyms.
+3. Do not use double spaces after periods.
+4. **Single-line comments** *must not* end with a period, except when they end with a URL or inline Markdown
+   link. For those exceptions, keep the punctuation that the link needs.
+5. **Multi-line comments** should separate sentences with commas (not period-per-line). The final line *should* end with a period.
+6. Keep comments concise. Favor clarity and only explain the non-obvious - *less is more*.
+7. Avoid emoji symbols in text.
 
-这些约定与各语言生态的主流风格保持一致，能让生成的文档对最终用户更自然友好。
+### Doc comment mood
 
-### 术语与措辞
+Write Rust doc comments in the **indicative mood**, for example, *"Returns a cached client."* This
+matches the prevailing Rust ecosystem style and makes generated documentation natural for end-users.
 
-1. **错误信息**：避免在错误信息中使用 ", got"。可根据上下文使用更清晰的替代词，如 ", was"、", received" 或 ", found"。
+### Terminology and phrasing
 
-   - ❌ `"Expected string, got {type(value)}"`
-   - ✅ `"Expected string, was {type(value)}"`
+1. **Error messages**: Avoid using ", got" in error messages. Use more descriptive alternatives like ", was", ", received", or ", found" depending on context.
+   - Bad: `"Expected string, got {type(value)}"`
+   - Good: `"Expected string, was {type(value)}"`
 
-2. **拼写**：使用单词 "hardcoded"（连写），而不是 "hard-coded" 或 "hard coded" —— 这是更现代且被更广泛接受的写法。
+2. **Spelling**: Use "hardcoded" (single word) rather than "hard-coded" or "hard coded" - this is the more modern and accepted spelling.
 
-### 代码格式化细则
+3. **Error variable naming**: Use single-letter `e` for caught errors/exceptions:
+   - Rust: `Err(e)` not `Err(err)` or `Err(error)`, and `|e|` not `|err|` in closures
+   - Python: `except SomeError as e:` not `as err:` or `as error:`
 
-1. 当代码行较长或传入参数较多时，应换行并对齐到下一个逻辑缩进层级（而非尝试将参数按开括号进行“视觉对齐”）。这种做法能节省右侧空间，使重要代码更居中显示，并且对函数/方法名变更更具鲁棒性。
+### Naming conventions
 
-2. 关闭括号应置于新行，并与逻辑缩进对齐。
+1. **Internal fields**: Abbreviations are acceptable for private/internal fields (e.g., `_price_prec`, `_size_prec`) to keep hot-path code concise.
 
-3. 确保多行挂起的参数或参数列表以尾随逗号结束：
+2. **User-facing API**: Use full, descriptive names for public properties, function parameters, return types, and metric names/labels (e.g., `price_precision`, `size_precision`). This prevents abbreviated terminology from leaking into dashboards or alerts.
+
+3. **Error messages and logs**: Use full words for clarity (e.g., "price precision" not "price prec"). The user should never see abbreviated terminology.
+
+4. **Execution terminology**: Use `Execution` in public, project-owned PascalCase type names, such
+   as `BinanceExecutionClientConfig`. Internal implementation types may retain established `Exec`
+   names. Also reserve `Exec` for the `ExecAlgorithmId` and `ExecTester` families, established
+   `exec_*` names, and venue or protocol terms such as `OkxExecType`. Name protocol-specific
+   wire models after the venue concept, such as `HyperliquidExchangeAction`. Preserve established
+   public names, historical release entries, and source names in migration tables.
+
+5. **Runtime qualifiers**: Use `Live` when a type selects or configures real-time runtime semantics. Examples
+   include `LiveNode` versus `BacktestNode`, and `LiveClock` versus `VirtualClock`. The
+   `LiveDataEngineConfig`, `LiveRiskEngineConfig`, and `LiveExecutionEngineConfig` family differs from
+   reusable core engine configs in the same way.
+
+   Omit `Live` from the ordinary adapter client family because a connected client is the default. Qualify
+   alternate implementations by their behavior, such as `SandboxExecutionClient` or
+   `DatabentoHistoricalClient`. An explicit live/historical protocol pair may retain `Live` to distinguish the
+   two implementations.
+
+6. **Adapter factory configs**: Name the data and execution inputs `<Venue>DataClientConfig` and
+   `<Venue>ExecutionClientConfig`. Factories consume these client configs directly rather than a separate
+   factory config wrapper. `LiveNodeConfig` owns `trader_id`. Venue-specific `account_id` values belong on
+   execution client configs.
+
+#### Data loading APIs
+
+Use free functions for stateless data ingestion. Use a class only when instances retain reusable
+configuration, caches, workers, iteration state, or an open resource across calls. Do not use a
+zero-state class solely to group static or class methods.
+
+Follow the semantic distinction in the
+[Polars I/O API](https://docs.pola.rs/api/python/stable/reference/io.html), adapted to the
+established Nautilus `load_*` vocabulary:
+
+- `load_<source>_<data>` eagerly reads, normalizes, and materializes a complete result.
+- `scan_<source>_<data>` creates a lazy query or deferred execution plan.
+- `stream_<source>_<data>` incrementally yields records or batches.
+- `write_<format>` eagerly writes an in-memory result.
+- `sink_<format>` writes through a lazy or streaming execution path.
+
+For ingestion, order names from general to specific: verb, source, logical data, then an optional
+representation. Include the representation only when real sibling formats exist. For example,
+`load_binance_order_book_deltas` is preferable to a stateless
+`BinanceOrderBookDeltaDataLoader.load` class or a generic `load_binance_data` function.
+
+#### Adapter package facades
+
+Each package under `python/nautilus_trader/adapters/` is a thin facade over the private `_libnautilus`
+extension. Each adapter `__init__.py` declares a deterministic `__all__` as the single source of truth for its
+public API. `python/generate_stubs.py` copies that list into the matching `.pyi`. Thus, runtime and stub
+exports agree exactly.
+
+A venue adapter exposes its canonical identity constants plus the supported public surface:
+
+- `<VENUE>`, `<VENUE>_CLIENT_ID`, `<VENUE>_VENUE`, registered from Rust via `m.add` in the adapter's
+  `python/mod.rs`
+- data types, `*Config`, `*Factory`, user-facing enums (such as `*Environment` and `*ProductType`)
+- stateless loaders (`load_*`, `stream_*`, `convert_*`) and intentional utilities
+  (`decode_*`, `get_*_arrow_schema_map`)
+
+Keep the facade thin. Do not add internals to `__all__` only for structural parity. This includes raw HTTP or
+WebSocket clients, wire models, endpoint URL resolvers (`get_*_url`, `*_HTTP_URL`), and caches. These packages
+omit venue constants because the constants would be meaningless for them:
+
+- Data providers, such as `databento` and `tardis`.
+- The `blockchain` data client.
+- The `sandbox` execution client.
+- The multi-venue `interactive_brokers` broker.
+
+Order `__all__` entries so the `RUF022` pre-commit gate owns sort order. Do not hand-order the list.
+
+### Formatting
+
+1. For longer code lines and calls with more than a couple of arguments, the recommended layout uses the next
+   logical indent. Start a new line at that indent, rather than a hanging 'vanity' alignment from an opening
+   parenthesis. This practice saves space to the right and keeps important code more central in view. The
+   layout also survives function or method name changes.
+
+2. The closing parenthesis should be located on a new line, aligned at the logical indent.
+
+3. Multiple hanging parameters or arguments should end with a trailing comma:
 
 ```python
 long_method_with_many_params(
@@ -54,74 +144,68 @@ long_method_with_many_params(
 )
 ```
 
-### PEP-8
+## Commit messages
 
-代码库总体遵循 PEP-8 风格指南。即便在 Cython 部分利用了 C 类型，我们仍尽量保持 Python 的惯用写法。
-一个显著的例外是：在除集合类型之外的场景中，我们并不总是使用 Python 的 truthiness（真值）来判断参数是否为 `None`。
+Commit messages use a capitalized, imperative subject naming the affected surface, optionally followed by a body
+explaining the change.
 
-这有两个原因：
+### Subject line
 
-1. Cython 在遇到 `is None` 和 `is not None` 时，可以生成更高效的 C 代码，而无需进入 Python 运行时去检查 `PyObject` 的真值性。
+- Open with a capitalized imperative verb, so the subject describes what the commit does when applied.
+  `Add`, `Fix`, `Improve`, `Refine`, `Update`, `Remove`, `Refactor`, and `Standardize` cover most of the history.
+- Name the affected surface (crate, adapter, subsystem, or type) so the log stays scannable.
+- Keep the subject at 10 characters or more so it can name the affected surface clearly.
+- Aim for 60 characters or fewer for clear GitHub rendering and concise text. The commit-message
+  hook warns without failing when the subject exceeds this target. The project plans to enforce
+  this limit in the future.
+- Do not end the subject with a period.
+- Do not put an issue or pull request number in the subject. GitHub appends the pull request number
+  on squash merge, and any other reference belongs in the body. The commit-message hook rejects a
+  subject containing `#<number>` in any position.
 
-2. 根据 [Google Python Style Guide](https://google.github.io/styleguide/pyguide.html) 的建议——当函数或方法可能接收意外类型而导致布尔求值出现异常时，不建议用 truthiness 来判断变量是否为 `None`，因为这可能引入逻辑错误。
-
-> 始终使用 `if foo is None:`（或 `is not None`）来检查 None 值。例如，当判断一个默认值为 None 的变量或参数是否被设置为其他值时，其他值可能在布尔上下文中被判定为 False。
-
-在非性能关键的代码路径中，出于可读性考虑，`if foo is None:` 与 `if not foo:` 的使用仍然是可以接受的。
-
-:::note
-对于空集合（例如 `if not my_list:`），应使用 truthiness 检查，而不是显式与 `None` 或空值比较。
-:::
-
-我们欢迎对任何在无明显理由下偏离 PEP-8 的地方提供反馈。
-
-## Python 风格指南
-
-### 类型注解（Type hints）
-
-所有函数和方法签名**必须**包含完整的类型注解：
-
-```python
-def __init__(self, config: EMACrossConfig) -> None:
-def on_bar(self, bar: Bar) -> None:
-def on_save(self) -> dict[str, bytes]:
-def on_load(self, state: dict[str, bytes]) -> None:
+```text
+Add Decimal constructors to Instrument trait
+Fix non-atomic order event application
+Refine cross-platform wheel validation
+Remove stale security audit exceptions
 ```
 
-**泛型类型（Generic Types）**：对可重用组件使用 `TypeVar`
+Avoid these shapes:
 
-```python
-T = TypeVar("T")
-class ThrottledEnqueuer(Generic[T]):
+```text
+feat(bybit): add due_post_only flag        # Conventional Commits type and scope
+fix: bug                                   # lowercase, unspecific, too short
+Fixed the Bybit post-only rejection flag.  # past tense, trailing period
+Update stuff                               # says nothing about the surface
+Fix the post-only flag (#4544)             # pull request number added by hand
+Fix PR #4544 review feedback               # issue or pull request number in the subject
 ```
 
-### Docstrings
+### Conventional Commits
 
-代码库统一采用 [NumPy docstring 规范](https://numpydoc.readthedocs.io/en/latest/format.html)。
-必须一致遵守该规范以确保文档能正确构建。
+Do NOT use [Conventional Commits](https://www.conventionalcommits.org/) syntax for commit messages or pull
+request titles. Many editors and AI assistants emit that format by default. But no commit in this repository's
+history uses it. The type and scope repeat information that the subject already gives. Pull request titles
+matter here too, because a squash merge turns the PR title into the commit subject.
 
-**测试方法命名**：使用描述性名称说明测试场景：
+### Body
 
-```python
-def test_currency_with_negative_precision_raises_overflow_error(self):
-def test_sma_with_no_inputs_returns_zero_count(self):
-def test_sma_with_single_input_returns_expected_value(self):
-```
+The body is optional, but anything beyond a trivial change should say why the change was made rather than
+restate the diff.
 
-### Ruff
+- Separate the body from the subject with a blank line.
+- Keep body lines to 79 characters or fewer to align with PEP 8 and traditional Git tooling.
+- Use prose paragraphs or bullet points, whichever suits the change. Bullets may keep the same imperative
+  voice as the subject, and do not need terminating periods.
+- Include informative hyperlinks where they help a future reader.
 
-[ruff](https://astral.sh/ruff) 用于对代码库进行静态检查（lint）。Ruff 的规则位于顶层的 `pyproject.toml` 中，针对被忽略的规则通常会在注释中给出理由。
+### Issue references
 
-### 提交信息（Commit messages）
-
-以下为提交信息风格的建议：
-
-1. 提交主题（subject）应限制在 60 字符以内，首字母大写且不以句号结尾。
-
-2. 使用祈使句（imperative voice），即描述应用该提交后将会做什么。
-
-3. 可选：在正文中说明变更，正文与主题之间空一行。正文保持在每行 100 字符以内，可使用带或不带句号的项目符号。
-
-4. 可选：在提交信息中提供相关 issue 或 ticket 的 # 引用。
-
-5. 可选：提供任何有用的链接。
+- Reference issues from the body, typically on a final line: `Resolves #4534` when the commit closes the
+  issue, or `Related to #4547` when it is partial work.
+- GitHub appends the pull request number to the subject on squash merge, producing subjects such as
+  `Fix TWAP child-order sizing and interval validation (#4544)`. Do not add that suffix by hand. Do not
+  reference a pull request or issue anywhere else in the subject. The subject has no room for detail the body
+  carries better, and a hand-written number duplicates or contradicts the appended one.
+- Aim to keep the pull request title short enough for the appended suffix to leave the squash-merged
+  subject at 60 characters or fewer.

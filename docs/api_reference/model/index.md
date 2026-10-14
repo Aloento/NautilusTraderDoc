@@ -1,23 +1,7 @@
 # Model
 
-```{eval-rst}
-.. automodule:: nautilus_trader.model
-```
+Auto-generated from the latest source. See [`nautilus_trader.model`](https://nautilustrader.io/docs/python-api-latest/#module-nautilus_trader.model) in the official documentation.
 
-```{eval-rst}
-.. toctree::
-   :maxdepth: 2
-   :glob:
-   :titlesonly:
-   :hidden:
 
-   book.md
-   data.md
-   events.md
-   identifiers.md
-   instruments.md
-   objects.md
-   orders.md
-   position.md
-   tick_scheme.md
-```
+See the [Python API reference](https://nautilustrader.io/docs/python-api-latest/model/index.html).
+

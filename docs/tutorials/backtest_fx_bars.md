@@ -1,165 +1,295 @@
-# 回测：FX bar 数据
+# Backtest with FX Bar Data
 
-本教程面向 NautilusTrader，演示如何使用 FX bar 数据设置一个单次（one-shot）回测，使用低阶 API 的 `BacktestEngine` 进行运行。
+Run an EMA cross strategy on USD/JPY 1-minute bid/ask bars with FX rollover
+interest and a probabilistic fill model. The data comes from the
+NautilusTrader test data: a source checkout reads it locally, and other
+installs download it from GitHub on each run, so they need network access.
 
-[在 GitHub 查看源码](https://github.com/nautechsystems/nautilus_trader/blob/develop/docs/tutorials/backtest_fx_bars.ipynb)。
+[View source on GitHub](https://github.com/nautechsystems/nautilus_trader/blob/develop/docs/tutorials/backtest_fx_bars.py).
 
-:::info
-本教程仍在编写中，部分内容可能会更新。
-:::
+## Introduction
 
-## 概述
+The strategy is `EMACross`, a teaching example that compares a fast EMA
+against a slow EMA on bar closes:
 
-本教程展示如何用 FX bar 数据为 `BacktestEngine` 配置并执行一次性回测（one-shot backtest），适合对单个时间区间或样本数据做离线策略验证。
+- **Fast EMA crosses above slow EMA**: any short position is closed and a new
+  long is opened.
+- **Fast EMA crosses below slow EMA**: any long position is closed and a new
+  short is opened.
 
-## 前置条件
+The venue is a simulated FX ECN with a `MARGIN` account, `HEDGING` OMS, and
+multi-currency starting balances of 1,000,000 USD and 10,000,000 JPY. A
+`FillModel` introduces a 50% probability of one-tick slippage, and the
+`FXRolloverInterestModule` applies daily rollover at the relevant short-term
+interest differential.
 
-- 已安装 Python 3.11+。
-- 已安装 JupyterLab 或同类工具（`pip install -U jupyterlab`）。
-- 已安装 NautilusTrader 最新发布版（`pip install -U nautilus_trader`）。
+`EMACross` is a teaching strategy and has no edge.
 
-## 导入
+```mermaid
+flowchart LR
+    subgraph Inputs ["Data streams"]
+        B["1-minute BID bar (FXCM)"]
+        A["1-minute ASK bar (FXCM)"]
+    end
 
-下面是本教程余下部分所需的 import 列表：
+    subgraph Wrangler ["QuoteTickDataWrangler"]
+        Q["QuoteTick stream"]
+    end
+
+    subgraph Engine ["Backtest engine"]
+        AGG["5-minute BID INTERNAL aggregator"]
+        BAR["Bar close"]
+        F1(("EMA(10)"))
+        F2(("EMA(20)"))
+    end
+
+    subgraph Decision ["Crossover decision"]
+        X{{"fast >= slow"}}
+        Y{{"fast < slow"}}
+    end
+
+    subgraph Orders ["Orders"]
+        L["Close shorts -> BUY market"]
+        S["Close longs  -> SELL market"]
+    end
+
+    B --> Q
+    A --> Q
+    Q --> AGG --> BAR
+    BAR --> F1 --> X
+    BAR --> F2 --> X
+    F1 --> Y
+    F2 --> Y
+    X -->|cross up| L
+    Y -->|cross down| S
+```
+
+## Prerequisites
+
+- Python 3.13+
+- [NautilusTrader](https://pypi.org/project/nautilus_trader/) 2.x installed
+  (`pip install -U --pre nautilus_trader`). The `visualization` extra is only
+  needed if you also want to regenerate the panels at the end of the tutorial.
+- pandas (`pip install pandas`). The wheel declares no runtime dependencies.
+- The sibling
+  [`ema_cross.py`](https://github.com/nautechsystems/nautilus_trader/blob/develop/docs/tutorials/ema_cross.py)
+  file. Keep it next to this tutorial when downloading or converting it with
+  Jupytext.
 
 ```python
 from decimal import Decimal
 
-from nautilus_trader.backtest.config import BacktestEngineConfig
-from nautilus_trader.backtest.engine import BacktestEngine
-from nautilus_trader.backtest.models import FillModel
-from nautilus_trader.backtest.modules import FXRolloverInterestConfig
-from nautilus_trader.backtest.modules import FXRolloverInterestModule
-from nautilus_trader.config import LoggingConfig
+from nautilus_trader.common import LogLevel
+from nautilus_trader.config import BacktestEngineConfig
+from nautilus_trader.backtest import BacktestEngine
+from nautilus_trader.backtest import FXRolloverInterestModule
+from nautilus_trader.backtest import InterestRateRecord
+from nautilus_trader.config import LoggerConfig
 from nautilus_trader.config import RiskEngineConfig
-from nautilus_trader.examples.strategies.ema_cross import EMACross
-from nautilus_trader.examples.strategies.ema_cross import EMACrossConfig
+from nautilus_trader.execution import MakerTakerFeeModel
+from nautilus_trader.execution import ProbabilisticFillModel
+from nautilus_trader.model import AccountType
 from nautilus_trader.model import BarType
+from nautilus_trader.model import Currency
 from nautilus_trader.model import Money
+from nautilus_trader.model import OmsType
+from nautilus_trader.model import TraderId
 from nautilus_trader.model import Venue
-from nautilus_trader.model.currencies import JPY
-from nautilus_trader.model.currencies import USD
-from nautilus_trader.model.enums import AccountType
-from nautilus_trader.model.enums import OmsType
-from nautilus_trader.persistence.wranglers import QuoteTickDataWrangler
-from nautilus_trader.test_kit.providers import TestDataProvider
-from nautilus_trader.test_kit.providers import TestInstrumentProvider
+from nautilus_trader.testkit.providers import TestDataProvider
+from nautilus_trader.testkit.providers import TestInstrumentProvider
+
+from ema_cross import EMACross
+from ema_cross import EMACrossConfig
+
+
+JPY = Currency.from_str("JPY")
+USD = Currency.from_str("USD")
 ```
 
-## 创建 BacktestEngine 配置
+## Engine setup
+
+Pre-trade risk checks are bypassed so the strategy's market orders flow
+straight through to the matching engine.
 
 ```python
-# 初始化回测配置
 config = BacktestEngineConfig(
-    trader_id="BACKTESTER-001",
-    logging=LoggingConfig(log_level="ERROR"),
-    risk_engine=RiskEngineConfig(
-        bypass=True,  # 在回测中示例性地绕过 pre-trade 风控检查
-    ),
+    trader_id=TraderId.from_str("BACKTESTER-001"),
+    logging=LoggerConfig(stdout_level=LogLevel.ERROR),
+    risk_engine=RiskEngineConfig(bypass=True),
 )
-
-# 构建 BacktestEngine
 engine = BacktestEngine(config=config)
 ```
 
-## 添加仿真模块（可选）
+## Simulation modules
 
-可选地，我们可以插入一个模块来模拟 rollover interest（隔夜利息）。示例数据可从预打包的测试数据中读取。
+`FXRolloverInterestModule` charges or credits rollover interest on open
+positions at a fixed 17:00 New York cutover, using the sample
+`short-term-interest.csv` rates from the OECD short-term interest series.
+Without it a backtest spanning many sessions ignores carry.
 
 ```python
 provider = TestDataProvider()
 interest_rate_data = provider.read_csv("short-term-interest.csv")
-config = FXRolloverInterestConfig(interest_rate_data)
-fx_rollover_interest = FXRolloverInterestModule(config=config)
+interest_rate_records = [
+    InterestRateRecord(location=row.LOCATION, time=row.TIME, value=row.Value)
+    for row in interest_rate_data.itertuples(index=False)
+]
+fx_rollover_interest = FXRolloverInterestModule(records=interest_rate_records)
 ```
 
-## 添加 fill model
+## Fill model
 
-本示例使用一个简单的概率型 fill model。
+Limit orders fill on a 20% probability per tick when their price is reached,
+and any market or marketable order draws a one-tick slip on a 50% coin flip.
+The seed makes the run reproducible.
 
 ```python
-fill_model = FillModel(
+fill_model = ProbabilisticFillModel(
     prob_fill_on_limit=0.2,
-    prob_fill_on_stop=0.95,
     prob_slippage=0.5,
     random_seed=42,
 )
 ```
 
-## 添加交易场所（venue）
+## Venue
 
-示例中我们只需要一个模拟的 FX ECN 作为交易场所。
+`OmsType.HEDGING` lets the strategy carry concurrent long and short positions
+in the same instrument and have the venue assign position IDs. The account is
+multi-currency so PnL on USD/JPY accrues in JPY rather than being converted
+on every fill.
 
 ```python
 SIM = Venue("SIM")
 engine.add_venue(
     venue=SIM,
-    oms_type=OmsType.HEDGING,  # venue 将生成 position IDs
+    oms_type=OmsType.HEDGING,
     account_type=AccountType.MARGIN,
-    base_currency=None,  # 多币种账户
+    base_currency=None,
     starting_balances=[Money(1_000_000, USD), Money(10_000_000, JPY)],
     fill_model=fill_model,
+    fee_model=MakerTakerFeeModel(
+        maker_rate=Decimal("0.00002"),
+        taker_rate=Decimal("0.00002"),
+    ),
     modules=[fx_rollover_interest],
 )
 ```
 
-## 添加合约与数据
+## Instrument and data
 
-接下来添加合约与数据。本回测示例将把 bid / ask 的 bar 数据预处理为 quotes，使用 `QuoteTickDataWrangler`。
+`TestDataProvider.quotes_from_fxcm_bars` synthesizes quote ticks from each
+minute's open, high, low, and close in the sample FXCM bid and ask CSVs.
+The strategy declares `5-MINUTE-BID-INTERNAL`, so the engine builds 5-minute
+BID bars from the quote stream internally.
 
 ```python
-# 添加合约
 USDJPY_SIM = TestInstrumentProvider.default_fx_ccy("USD/JPY", SIM)
 engine.add_instrument(USDJPY_SIM)
 
-# 添加数据
-wrangler = QuoteTickDataWrangler(instrument=USDJPY_SIM)
-ticks = wrangler.process_bar_data(
-    bid_data=provider.read_csv_bars("fxcm/usdjpy-m1-bid-2013.csv"),
-    ask_data=provider.read_csv_bars("fxcm/usdjpy-m1-ask-2013.csv"),
+ticks = provider.quotes_from_fxcm_bars(
+    instrument=USDJPY_SIM,
+    bid_csv="fxcm/usdjpy-m1-bid-2013.csv",
+    ask_csv="fxcm/usdjpy-m1-ask-2013.csv",
 )
 engine.add_data(ticks)
 ```
 
-## 配置策略
+## Strategy
 
-然后配置并初始化一个简单的 `EMACross` 策略，用于本次回测。
+Trade size is one million USD per order. EMACross cancels and replaces the
+position on every crossover, so the strategy is in some position for nearly
+the whole month.
 
 ```python
-# 策略配置
-config = EMACrossConfig(
+strategy_config = EMACrossConfig(
     instrument_id=USDJPY_SIM.id,
     bar_type=BarType.from_str("USD/JPY.SIM-5-MINUTE-BID-INTERNAL"),
     fast_ema_period=10,
     slow_ema_period=20,
     trade_size=Decimal(1_000_000),
 )
-
-# 实例化并添加策略
-strategy = EMACross(config=config)
+strategy = EMACross(config=strategy_config)
 engine.add_strategy(strategy=strategy)
 ```
 
-## 运行回测
+## Run
 
-现在已准备好运行回测。引擎跑完所有数据并完成后，会记录一份事后分析报告。
+The engine processes every quote tick and bar in timestamp order, then
+returns when the data is exhausted.
 
 ```python
 engine.run()
 ```
 
-## 生成报告
+## Reports
 
-还可以生成多种报告以便进一步分析回测结果：
+`engine.generate_*` returns DataFrames covering the account state, the
+fills, and the closed positions.
 
 ```python
-engine.trader.generate_account_report(SIM)
+engine.generate_account_report(SIM)
 ```
 
 ```python
-engine.trader.generate_order_fills_report()
+engine.generate_order_fills_report()
 ```
 
 ```python
-engine.trader.generate_positions_report()
+engine.generate_positions_report()
 ```
+
+## What the run produces
+
+A 28-day run prints 8,065 5-minute bars and triggers 234 closed cycles
+across 468 fills (every crossover after the first emits a closing fill on
+the previous position and an opening fill on the new one). 70 of the 234
+cycles are profitable. Realized PnL ends at -1,326,300 JPY, of which
+871,300 JPY is commission: a textbook whipsaw signature on a noisy 5-minute
+series.
+
+![USD/JPY 5-minute close with EMAs across the month](./assets/backtest_fx_bars/panel_a_price_overview.png)
+
+**Figure 1.** *USD/JPY BID close at 5-minute resolution across 2013-02 with
+EMA(10) and EMA(20) overlaid. Long flat patches are weekend gaps in the FXCM
+bid feed.*
+
+![Three-day zoom on crossovers](./assets/backtest_fx_bars/panel_b_zoom.png)
+
+**Figure 2.** *Zoom on 2013-02-12 to 2013-02-15 UTC. Each marker is a
+crossover entry: triangles up are long, triangles down are short.*
+
+![Cumulative realized pnl](./assets/backtest_fx_bars/panel_c_pnl_curve.png)
+
+**Figure 3.** *Cumulative JPY pnl before commissions across all closed
+cycles. Marker color encodes per-cycle pnl: blue = positive, red = negative.*
+
+![Hold-time and pnl distributions](./assets/backtest_fx_bars/panel_d_distributions.png)
+
+**Figure 4.** *Cycle hold time and per-cycle pnl distributions. Most cycles
+hold for under three hours; the pnl distribution is roughly symmetric and
+heavily concentrated near zero.*
+
+### Regenerate the panels
+
+The panels above are produced by a self-contained renderer that re-runs the
+backtest, pulls bars and fills from the engine cache, and writes PNGs using
+the shared `nautilus_dark` tearsheet theme.
+
+After building NautilusTrader from source, run these commands from the repository root:
+
+```bash
+make sync
+uv run --project python --no-sync \
+    python docs/tutorials/assets/backtest_fx_bars/render_panels.py
+```
+
+## Next steps
+
+- **Slow the signal**. The default 10/20 EMAs whip in low-trend sessions.
+  Try 20/60 on the same bars or move to 15-minute bars to cut the cycle
+  count.
+- **Add a regime filter**. Suppress entries when realized range is below
+  a threshold so the strategy only trades sessions with directional movement.
+- **Compare aggregations**. Build the bars from raw tick data via
+  `BarType.from_str("USD/JPY.SIM-5-MINUTE-BID-INTERNAL")` against an
+  externally aggregated dataset to confirm both paths agree.

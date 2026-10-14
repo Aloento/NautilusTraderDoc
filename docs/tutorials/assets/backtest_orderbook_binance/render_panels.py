@@ -1,0 +1,542 @@
+"""
+Render the Binance order book imbalance tutorial panels from a backtest run.
+
+After building NautilusTrader from source, run these commands from the repository root:
+
+    make sync
+    NAUTILUS_DATA_DIR=test_data/local \
+        uv run --project python --no-sync \
+            python docs/tutorials/assets/backtest_orderbook_binance/render_panels.py
+
+Replays the three-million-row Binance T_DEPTH BTCUSDT 2022-11-01 panel window
+described by the tutorial, runs the shipped ``OrderBookImbalance`` strategy
+alongside a sampling actor that records top-of-book once per second, and writes
+four PNG panels to the same directory using the ``nautilus_dark`` tearsheet theme.
+
+"""
+
+from __future__ import annotations
+
+import os
+from decimal import Decimal
+from pathlib import Path
+import sys
+
+import numpy as np
+import pandas as pd
+import plotly.graph_objects as go
+from plotly.subplots import make_subplots
+
+from nautilus_trader.adapters.binance import load_binance_order_book_deltas
+from nautilus_trader.analysis.tearsheet import _write_figure
+from nautilus_trader.analysis.themes import get_theme
+from nautilus_trader.backtest import BacktestEngine
+from nautilus_trader.common import DataActor
+from nautilus_trader.common import LogLevel
+from nautilus_trader.config import BacktestEngineConfig
+from nautilus_trader.config import DataActorConfig
+from nautilus_trader.config import LoggerConfig
+from nautilus_trader.execution import MakerTakerFeeModel
+from nautilus_trader.model import AccountType
+from nautilus_trader.model import BookType
+from nautilus_trader.model import Currency
+from nautilus_trader.model import CurrencyPair
+from nautilus_trader.model import InstrumentId
+from nautilus_trader.model import Money
+from nautilus_trader.model import OmsType
+from nautilus_trader.model import OrderBookDeltas
+from nautilus_trader.model import Price
+from nautilus_trader.model import Quantity
+from nautilus_trader.model import Symbol
+from nautilus_trader.model import TraderId
+from nautilus_trader.model import Venue
+
+
+TUTORIAL_DIR = Path(__file__).resolve().parents[2]
+sys.path.insert(0, str(TUTORIAL_DIR))
+
+from orderbook_data import deltas_from_frame
+from orderbook_imbalance import OrderBookImbalance
+from orderbook_imbalance import OrderBookImbalanceConfig
+
+
+OUT = Path(__file__).resolve().parent
+DATA_DIR = Path(os.environ.get("NAUTILUS_DATA_DIR", "~/Downloads/Data")).expanduser() / "Binance"
+
+THEME = get_theme("nautilus_dark")
+TEMPLATE = THEME["template"]
+COLORS = THEME["colors"]
+PRIMARY = COLORS["primary"]
+POSITIVE = COLORS["positive"]
+NEGATIVE = COLORS["negative"]
+NEUTRAL = COLORS["neutral"]
+GRID = COLORS["grid"]
+
+
+class TopBookSamplerConfig(DataActorConfig):
+    def __init__(
+        self,
+        *,
+        instrument_id: InstrumentId,
+        book_type: str = "L2_MBP",
+        sample_every_secs: int = 1,
+        **_kwargs: object,
+    ) -> None:
+        super().__init__()
+        self.instrument_id = instrument_id
+        self.book_type = book_type
+        self.sample_every_secs = sample_every_secs
+
+
+class TopBookSampler(DataActor):
+    """
+    Capture top-of-book once every ``sample_every_secs`` seconds.
+    """
+
+    def __init__(self, config: TopBookSamplerConfig) -> None:
+        super().__init__(config)
+        self.samples: list[dict] = []
+        self._last_sample_ns = 0
+        self._interval_ns = config.sample_every_secs * 1_000_000_000
+
+    def on_start(self) -> None:
+        self.subscribe_book_deltas(
+            self.config.instrument_id,
+            BookType.from_str(self.config.book_type),
+            managed=True,
+        )
+
+    def on_book_deltas(self, deltas: OrderBookDeltas) -> None:
+        ts = deltas.ts_event
+        if ts - self._last_sample_ns < self._interval_ns:
+            return
+        book = self.cache.order_book(self.config.instrument_id)
+        if book is None or not book.spread():
+            return
+        bid = book.best_bid_price()
+        ask = book.best_ask_price()
+        bid_size = book.best_bid_size()
+        ask_size = book.best_ask_size()
+
+        if bid is None or ask is None:
+            return
+        self.samples.append(
+            {
+                "ts": pd.Timestamp(ts, unit="ns", tz="UTC"),
+                "bid": float(bid),
+                "ask": float(ask),
+                "bid_size": float(bid_size) if bid_size is not None else 0.0,
+                "ask_size": float(ask_size) if ask_size is not None else 0.0,
+            },
+        )
+        self._last_sample_ns = ts
+
+
+def apply_layout(fig: go.Figure, title: str, height: int = 480) -> None:
+    fig.update_layout(
+        template=TEMPLATE,
+        title={"text": title, "x": 0.02, "xanchor": "left"},
+        paper_bgcolor=COLORS["background"],
+        plot_bgcolor=COLORS["background"],
+        font={"family": "Inter, system-ui, sans-serif", "size": 13},
+        margin={"l": 60, "r": 30, "t": 70, "b": 50},
+        height=height,
+        width=1200,
+        legend={"orientation": "h", "yanchor": "bottom", "y": 1.02, "xanchor": "right", "x": 1.0},
+    )
+    fig.update_xaxes(gridcolor=GRID, zeroline=False)
+    fig.update_yaxes(gridcolor=GRID, zeroline=False)
+
+
+def run_backtest(nrows: int = 3_000_000) -> object:
+    snap_path = DATA_DIR / "BTCUSDT_T_DEPTH_2022-11-01_depth_snap.csv"
+    update_path = DATA_DIR / "BTCUSDT_T_DEPTH_2022-11-01_depth_update.csv"
+
+    df_snap = load_binance_order_book_deltas(snap_path)
+    df_update = load_binance_order_book_deltas(update_path, nrows=nrows)
+
+    BTCUSDT_BINANCE = CurrencyPair(
+        instrument_id=InstrumentId(Symbol("BTCUSDT"), Venue("BINANCE")),
+        raw_symbol=Symbol("BTCUSDT"),
+        base_currency=Currency.from_str("BTC"),
+        quote_currency=Currency.from_str("USDT"),
+        price_precision=2,
+        size_precision=6,
+        price_increment=Price(0.01, precision=2),
+        size_increment=Quantity(0.000001, precision=6),
+        ts_event=0,
+        ts_init=0,
+    )
+
+    deltas = deltas_from_frame(df_snap, BTCUSDT_BINANCE)
+    deltas += deltas_from_frame(df_update, BTCUSDT_BINANCE)
+    deltas.sort(key=lambda x: x.ts_init)
+
+    config = BacktestEngineConfig(
+        trader_id=TraderId.from_str("BACKTESTER-001"),
+        logging=LoggerConfig(stdout_level=LogLevel.ERROR),
+    )
+    engine = BacktestEngine(config=config)
+
+    BINANCE = Venue("BINANCE")
+    engine.add_venue(
+        venue=BINANCE,
+        oms_type=OmsType.NETTING,
+        account_type=AccountType.CASH,
+        base_currency=None,
+        starting_balances=[Money.from_str("20 BTC"), Money.from_str("100000 USDT")],
+        book_type=BookType.L2_MBP,
+        fee_model=MakerTakerFeeModel(
+            maker_rate=Decimal("0.001"),
+            taker_rate=Decimal("0.001"),
+        ),
+    )
+    engine.add_instrument(BTCUSDT_BINANCE)
+    engine.add_data(deltas)
+
+    sampler = TopBookSampler(
+        TopBookSamplerConfig(
+            instrument_id=BTCUSDT_BINANCE.id,
+            sample_every_secs=1,
+        ),
+    )
+    engine.add_actor(sampler)
+
+    strategy = OrderBookImbalance(
+        OrderBookImbalanceConfig(
+            instrument_id=str(BTCUSDT_BINANCE.id),
+            book_type="L2_MBP",
+            max_trade_size="1.000",
+            min_seconds_between_triggers=1.0,
+        ),
+    )
+    engine.add_strategy(strategy)
+    engine.run()
+
+    samples_df = pd.DataFrame(sampler.samples)
+    fills = engine.generate_fills_report()
+
+    if not samples_df.empty:
+        # Drop early warmup samples where bid is well below the median ask (the
+        # initial deltas rebuild the snapshot one level at a time so the top of
+        # book is briefly inverted or far apart).
+        median_mid = (samples_df["bid"].median() + samples_df["ask"].median()) / 2.0
+        ok = (samples_df["bid"] - median_mid).abs() < median_mid * 0.05
+        samples_df = samples_df.loc[ok].reset_index(drop=True)
+
+        # Drop trailing samples after a long gap so panels don't stretch across
+        # the dormant snap-only tail of the day.
+        if len(samples_df) > 1:
+            diffs = samples_df["ts"].diff().dt.total_seconds().fillna(0)
+            big_gap = diffs[diffs > 300]
+            if not big_gap.empty:
+                cutoff_idx = big_gap.index[0]
+                samples_df = samples_df.iloc[:cutoff_idx].reset_index(drop=True)
+
+    return samples_df, fills
+
+
+def fills_to_records(fills: pd.DataFrame) -> list[dict]:
+    if fills.empty:
+        return []
+    df = fills.copy()
+    df["ts_event"] = pd.to_datetime(df["ts_event"], utc=True)
+    return [
+        {
+            "ts": row["ts_event"],
+            "side": row["order_side"],
+            "qty": float(row["last_qty"]),
+            "price": float(row["last_px"]),
+        }
+        for _, row in df.iterrows()
+    ]
+
+
+def walk_fills_netting(fills: list[dict]) -> tuple[list[dict], list[dict], list[dict]]:
+    entries: list[dict] = []
+    closes: list[dict] = []
+    cycles: list[dict] = []
+    EPS = 1e-9
+    pos = 0.0
+    open_side = 0
+    open_ts = None
+    open_price = 0.0
+    open_qty = 0.0
+
+    for f in fills:
+        delta = f["qty"] if f["side"] == "BUY" else -f["qty"]
+        new_pos = pos + delta
+        if abs(pos) < EPS and abs(new_pos) >= EPS:
+            open_side = 1 if new_pos > 0 else -1
+            open_ts = f["ts"]
+            open_price = f["price"]
+            open_qty = abs(delta)
+            entries.append({**f, "side_sign": open_side})
+        elif abs(new_pos) < EPS and abs(pos) >= EPS:
+            closes.append({**f, "side_sign": -open_side})
+            cycles.append(
+                {
+                    "open_ts": open_ts,
+                    "close_ts": f["ts"],
+                    "side": open_side,
+                    "open_price": open_price,
+                    "close_price": f["price"],
+                    "qty": min(open_qty, abs(delta)),
+                },
+            )
+            open_side = 0
+            open_ts = None
+        pos = new_pos
+    return entries, closes, cycles
+
+
+def panel_a_top_book(samples: pd.DataFrame, fills: pd.DataFrame) -> go.Figure:
+    if samples.empty:
+        return go.Figure()
+    samples = samples.copy()
+    samples["mid"] = (samples["bid"] + samples["ask"]) / 2.0
+    samples["spread_bps"] = (samples["ask"] - samples["bid"]) / samples["mid"] * 1e4
+
+    if fills.empty:
+        zoom_lo = samples["ts"].min()
+        zoom_hi = samples["ts"].min() + pd.Timedelta(minutes=10)
+    else:
+        ts_e = pd.to_datetime(fills["ts_event"], utc=True)
+        first_burst = ts_e.iloc[: max(1, len(ts_e) // 4)]
+        zoom_lo = first_burst.min() - pd.Timedelta(seconds=60)
+        zoom_hi = first_burst.max() + pd.Timedelta(seconds=60)
+    zoom = samples[(samples["ts"] >= zoom_lo) & (samples["ts"] <= zoom_hi)]
+
+    fill_records = fills_to_records(fills)
+    entries, closes, _ = walk_fills_netting(fill_records)
+    e_in = [e for e in entries if zoom_lo <= e["ts"] <= zoom_hi]
+    c_in = [c for c in closes if zoom_lo <= c["ts"] <= zoom_hi]
+
+    fig = go.Figure()
+    fig.add_trace(
+        go.Scatter(
+            x=zoom["ts"],
+            y=zoom["mid"],
+            mode="lines",
+            name="Mid",
+            line={"color": PRIMARY, "width": 1.4},
+        ),
+    )
+    fig.add_trace(
+        go.Scatter(
+            x=zoom["ts"],
+            y=zoom["bid"],
+            mode="lines",
+            name="Best bid",
+            line={"color": POSITIVE, "width": 0.8, "dash": "dot"},
+        ),
+    )
+    fig.add_trace(
+        go.Scatter(
+            x=zoom["ts"],
+            y=zoom["ask"],
+            mode="lines",
+            name="Best ask",
+            line={"color": NEGATIVE, "width": 0.8, "dash": "dot"},
+        ),
+    )
+    longs = [r for r in e_in if r["side_sign"] == 1]
+    shorts = [r for r in e_in if r["side_sign"] == -1]
+
+    if longs:
+        fig.add_trace(
+            go.Scatter(
+                x=[r["ts"] for r in longs],
+                y=[r["price"] for r in longs],
+                mode="markers",
+                name="Long entry",
+                marker={
+                    "symbol": "triangle-up",
+                    "size": 10,
+                    "color": POSITIVE,
+                    "line": {"color": "white", "width": 1.0},
+                },
+            ),
+        )
+    if shorts:
+        fig.add_trace(
+            go.Scatter(
+                x=[r["ts"] for r in shorts],
+                y=[r["price"] for r in shorts],
+                mode="markers",
+                name="Short entry",
+                marker={
+                    "symbol": "triangle-down",
+                    "size": 10,
+                    "color": NEGATIVE,
+                    "line": {"color": "white", "width": 1.0},
+                },
+            ),
+        )
+    if c_in:
+        fig.add_trace(
+            go.Scatter(
+                x=[r["ts"] for r in c_in],
+                y=[r["price"] for r in c_in],
+                mode="markers",
+                name="Close",
+                marker={"symbol": "x", "size": 9, "color": "#eeeeee"},
+            ),
+        )
+    title = (
+        f"BTCUSDT top of book {zoom_lo.strftime('%Y-%m-%d %H:%M:%S')} to "
+        f"{zoom_hi.strftime('%H:%M:%S')} UTC with FOK fills"
+    )
+    apply_layout(fig, title, height=520)
+    fig.update_yaxes(title_text="USDT")
+    return fig
+
+
+def panel_b_imbalance_dist(samples: pd.DataFrame, threshold: float) -> go.Figure:
+    fig = go.Figure()
+    if samples.empty:
+        apply_layout(fig, "Imbalance ratio distribution", height=420)
+        return fig
+    df = samples.copy()
+    df["smaller"] = np.minimum(df["bid_size"], df["ask_size"])
+    df["larger"] = np.maximum(df["bid_size"], df["ask_size"])
+    df["ratio"] = df["smaller"] / df["larger"].replace(0, np.nan)
+    df = df.dropna(subset=["ratio"])
+    fig.add_trace(
+        go.Histogram(
+            x=df["ratio"],
+            nbinsx=40,
+            marker={"color": PRIMARY, "line": {"color": COLORS["background"], "width": 0.5}},
+            showlegend=False,
+        ),
+    )
+    fig.add_vline(
+        x=threshold,
+        line={"color": POSITIVE, "dash": "dash", "width": 1.2},
+        annotation_text=f"trigger ratio {threshold}",
+        annotation_position="top right",
+        annotation={"font": {"size": 12, "color": POSITIVE}},
+    )
+    apply_layout(
+        fig,
+        "Top-of-book imbalance ratio (smaller / larger) distribution across samples",
+        height=420,
+    )
+    fig.update_xaxes(title_text="ratio")
+    fig.update_yaxes(title_text="count")
+    return fig
+
+
+def panel_c_size_landscape(samples: pd.DataFrame) -> go.Figure:
+    fig = make_subplots(
+        rows=2,
+        cols=1,
+        shared_xaxes=True,
+        vertical_spacing=0.07,
+        subplot_titles=("Mid (USDT)", "Top-of-book size (BTC)"),
+        row_heights=[0.55, 0.45],
+    )
+
+    if samples.empty:
+        apply_layout(fig, "No samples", height=540)
+        return fig
+    df = samples.copy()
+    df["mid"] = (df["bid"] + df["ask"]) / 2.0
+    fig.add_trace(
+        go.Scatter(
+            x=df["ts"],
+            y=df["mid"],
+            mode="lines",
+            line={"color": PRIMARY, "width": 1.0},
+            showlegend=False,
+        ),
+        row=1,
+        col=1,
+    )
+    fig.add_trace(
+        go.Scatter(
+            x=df["ts"],
+            y=df["bid_size"],
+            mode="lines",
+            name="Best bid size",
+            line={"color": POSITIVE, "width": 0.8},
+        ),
+        row=2,
+        col=1,
+    )
+    fig.add_trace(
+        go.Scatter(
+            x=df["ts"],
+            y=df["ask_size"],
+            mode="lines",
+            name="Best ask size",
+            line={"color": NEGATIVE, "width": 0.8},
+        ),
+        row=2,
+        col=1,
+    )
+    apply_layout(fig, "Top-of-book mid and per-side size across the run", height=600)
+    fig.update_yaxes(title_text="USDT", row=1, col=1)
+    fig.update_yaxes(
+        title_text="BTC",
+        row=2,
+        col=1,
+        range=[0, df[["bid_size", "ask_size"]].max().max() * 1.05],
+    )
+    return fig
+
+
+def panel_d_position(fills: pd.DataFrame, samples: pd.DataFrame) -> go.Figure:
+    fig = go.Figure()
+    if fills.empty:
+        apply_layout(fig, "Net position trajectory (no fills)", height=420)
+        return fig
+    df = fills.copy()
+    df["ts_event"] = pd.to_datetime(df["ts_event"], utc=True)
+    df = df.sort_values("ts_event").reset_index(drop=True)
+    if not samples.empty:
+        df = df[df["ts_event"] <= samples["ts"].max()]
+    if df.empty:
+        apply_layout(fig, "Net position trajectory (no fills in active window)", height=420)
+        return fig
+    df["delta"] = df["last_qty"].astype(float) * df["order_side"].map({"BUY": 1.0, "SELL": -1.0})
+    df["net_position"] = df["delta"].cumsum()
+    fig.add_trace(
+        go.Scatter(
+            x=df["ts_event"],
+            y=df["net_position"],
+            mode="lines+markers",
+            line={"color": PRIMARY, "width": 1.4},
+            marker={
+                "size": 6,
+                "color": [POSITIVE if d > 0 else NEGATIVE for d in df["delta"]],
+                "line": {"color": COLORS["background"], "width": 0.5},
+            },
+            showlegend=False,
+        ),
+    )
+    fig.add_hline(y=0, line={"color": NEUTRAL, "dash": "dash", "width": 1})
+    apply_layout(fig, "Net BTC position across the FOK fill sequence", height=420)
+    fig.update_xaxes(title_text="fill time")
+    fig.update_yaxes(title_text="BTC (signed)")
+    return fig
+
+
+def main() -> None:
+    samples, fills = run_backtest()
+    print(f"samples={len(samples)} fill_rows={len(fills)}")
+    panels = {
+        "panel_a_top_book.png": panel_a_top_book(samples, fills),
+        "panel_b_imbalance_dist.png": panel_b_imbalance_dist(samples, threshold=0.20),
+        "panel_c_size_landscape.png": panel_c_size_landscape(samples),
+        "panel_d_position.png": panel_d_position(fills, samples),
+    }
+
+    for name, fig in panels.items():
+        path = OUT / name
+        _write_figure(fig, str(path))
+        print(f"wrote {path} ({path.stat().st_size / 1024:.1f} KB)")
+
+
+if __name__ == "__main__":
+    main()

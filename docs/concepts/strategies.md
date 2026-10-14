@@ -1,75 +1,96 @@
-# 策略
+# Strategies
 
-NautilusTrader 的核心体验来自于编写并运行交易策略。定义一个策略通常需要继承 `Strategy` 类并实现策略逻辑所需的方法。
+A strategy inherits the `Strategy` class and implements the methods its logic requires.
+`Strategy` builds on `DataActor` and adds order management.
 
-**主要功能**：
+**Capabilities**:
 
-- 继承自 `Actor` 的所有功能。
-- 订单管理。
-
-**与 Actor 的关系**：
-`Strategy` 类继承自 `Actor`，这意味着策略可以使用所有 Actor 的功能，同时提供额外的订单管理能力。
-
-:::tip
-在开始编写策略之前，建议先阅读 [Actors](actors.md) 指南。
-:::
-
-策略可以在任意 [环境上下文](/concepts/architecture.md#environment-contexts) 中添加到 Nautilus 系统中，系统启动后策略会根据其逻辑开始发送命令并接收事件。
-
-利用数据摄取（data ingest）、事件处理（event handling）和订单管理等基本构建块（下文会详细说明），可以实现各种类型的策略，例如方向性（directional）、动量（momentum）、再平衡（re-balancing）、配对交易（pairs）、做市（market making）等。
-
-:::info
-有关所有可用方法的完整说明，请参见 `Strategy` 的 [API 参考](../api_reference/trading.md)。
-:::
-
-Nautilus 交易策略主要由两部分组成：
-
-- 策略实现本身（通过继承 `Strategy` 类定义）。
-- 可选的策略配置（通过继承 `StrategyConfig` 类定义）。
+- Historical data requests.
+- Live data feed subscriptions.
+- Setting time alerts or timers.
+- Cache access.
+- Portfolio access.
+- Creating and managing orders and positions.
 
 :::tip
-一旦策略定义完成，相同的源代码可以用于回测（backtesting）和实盘交易（live trading）。
+Review the [Actors](./actors.md) guide before developing a strategy. It covers the subscription,
+request, and callback behavior a strategy inherits.
 :::
 
-策略的主要能力包括：
+Add strategies to a Nautilus system in any [environment context](./architecture.md#environment-contexts). They
+start sending commands and receiving events based on their logic as soon as the system starts. Data ingest,
+event handling, and order management support any strategy type, including directional, momentum, re-balancing,
+pairs, and market making.
 
-- 请求历史数据（historical data）。
-- 订阅实时数据（live data feed）。
-- 设置时间提醒或计时器（time alerts / timers）。
-- 访问缓存（Cache）。
-- 访问投资组合（Portfolio）。
-- 创建和管理订单与持仓（orders and positions）。
+A Nautilus trading strategy has two main parts:
 
-## 策略实现（Strategy implementation）
+- The strategy implementation itself, defined by inheriting the `Strategy` class.
+- The *optional* strategy configuration, defined by inheriting the `StrategyConfig` class.
 
-由于交易策略是继承自 `Strategy` 的类，你必须定义构造函数来进行初始化。至少需要调用基类的初始化：
+:::note
+The same strategy source can run in backtest and live environments. Live execution still introduces
+venue, transport, timing, persistence, external-activity, and reconciliation behavior that a
+simulation may not reproduce. See
+[Backtest and live differences](./live.md#backtest-and-live-differences).
+:::
+
+See the [`Strategy` API Reference](https://nautilustrader.io/docs/python-api-latest/trading.html) for all available methods.
+
+:::info Rust implementation
+Rust strategy authors implement the `DataActor` callbacks they need and use `nautilus_strategy!` to generate
+the `Strategy` implementation. They then call facade methods such as `clock()`, `cache()`, `order()`, and
+`portfolio()` on `self`.
+
+`DataActorNative` is native-only access to runtime wiring and actor-core state. `StrategyNative` exposes
+borrowed strategy state such as order factory, order manager, and portfolio access. Import them only for
+same-binary performance paths or internal runtime wiring.
+:::
+
+## Strategy implementation
+
+A trading strategy inherits from `Strategy`, so you must define a constructor.
+At minimum, initialize the base class:
 
 ```python
-from nautilus_trader.trading.strategy import Strategy
+from nautilus_trader.trading import Strategy
+
 
 class MyStrategy(Strategy):
     def __init__(self) -> None:
-        super().__init__()  # <-- 必须调用父类以初始化策略
+        super().__init__()  # <-- the superclass must be called to initialize the strategy
 ```
 
-此后，你可以根据需要实现各种 handler 来在状态变更或事件到达时执行相应操作。
+From here, you can implement handlers as necessary to perform actions based on state transitions
+and events.
 
 :::warning
-不要在 `__init__` 构造函数中调用诸如 `clock` 或 `logger` 之类的组件（因为此时尚未完成注册）。这是因为系统的时钟和日志子系统尚未初始化。
+`clock`, `cache`, `portfolio`, and `order_factory` raise a `RuntimeError` until the strategy is
+registered with a trader, which happens after `__init__` returns. Initialize plain state in the
+constructor and do system work in `on_start()`.
 :::
 
-### 处理器（Handlers）
+### Handlers
 
-Handlers 是 `Strategy` 类中的方法，用于在不同类型的事件或状态变更发生时执行动作。此类方法以 `on_*` 前缀命名。你可以根据策略的具体需求实现其中的部分或全部方法。
+Handlers are methods on the `Strategy` class that perform actions based on events or state changes.
+These methods use the `on_*` prefix. Implement any or all of them as your strategy requires.
 
-为相似类型事件提供多个 handler 的目的是为了在处理粒度上提供灵活性。你可以为特定事件实现专门的 handler，或使用更通用的 handler 处理一系列相关事件（类似 switch 语句的逻辑）。调用顺序是从最具体到最通用。
+Multiple handlers exist for similar event types to give you control over granularity.
+Respond to a specific event with a dedicated handler, or use a generic handler for a range
+of related events (using typical switch statement logic).
+The system calls handlers in sequence from **most specific to most general**.
 
-#### 有状态的操作（Stateful actions）
+Subscribed data, order, and position handlers dispatch only while the strategy is `RUNNING`.
+Messages that arrive in any other state are logged but not passed to your handlers. Request
+responses are not gated this way: an `on_historical_*` handler still runs if its response lands
+after the strategy stops.
 
-这些 handler 由策略的生命周期状态变化触发。建议：
+#### Stateful actions
 
-- 使用 `on_start` 方法初始化策略（例如：获取 instrument、订阅数据）。
-- 使用 `on_stop` 方法执行清理任务（例如：取消未结订单、平掉持仓、取消订阅）。
+Lifecycle state changes trigger these handlers. Recommendations:
+
+- Use the `on_start` method to initialize your strategy (for example, fetch instruments, subscribe to data).
+- Use the `on_stop` method for cleanup tasks (for example, cancel open orders, close open positions,
+  unsubscribe from data).
 
 ```python
 def on_start(self) -> None:
@@ -79,64 +100,93 @@ def on_reset(self) -> None:
 def on_dispose(self) -> None:
 def on_degrade(self) -> None:
 def on_fault(self) -> None:
-def on_save(self) -> dict[str, bytes]:  # 返回要保存的用户自定义状态字典
+def on_save(self) -> dict[str, bytes]:  # Returns user-defined dictionary of state to be saved
 def on_load(self, state: dict[str, bytes]) -> None:
 ```
 
-#### 数据处理（Data handling）
+#### Data handling
 
-这些 handler 接收数据更新，包括内置的市场数据和用户自定义数据。你可以在接收到相应的数据对象实例时在这些 handler 中定义处理逻辑。
+These handlers receive data updates, including built-in market data and custom user-defined data.
 
 ```python
-from nautilus_trader.core import Data
-from nautilus_trader.model import OrderBook
+from collections.abc import Sequence
+from typing import Any
+
+from nautilus_trader.common import Signal
 from nautilus_trader.model import Bar
-from nautilus_trader.model import QuoteTick
-from nautilus_trader.model import TradeTick
-from nautilus_trader.model import OrderBookDeltas
+from nautilus_trader.model import CustomData
+from nautilus_trader.model import FundingRateUpdate
+from nautilus_trader.model import IndexPriceUpdate
 from nautilus_trader.model import InstrumentClose
 from nautilus_trader.model import InstrumentStatus
-from nautilus_trader.model.instruments import Instrument
+from nautilus_trader.model import MarkPriceUpdate
+from nautilus_trader.model import OptionChainSlice
+from nautilus_trader.model import OptionGreeks
+from nautilus_trader.model import OrderBook
+from nautilus_trader.model import OrderBookDelta
+from nautilus_trader.model import OrderBookDeltas
+from nautilus_trader.model import OrderBookDepth
+from nautilus_trader.model import QuoteTick
+from nautilus_trader.model import TradeTick
 
-def on_order_book_deltas(self, deltas: OrderBookDeltas) -> None:
-def on_order_book(self, order_book: OrderBook) -> None:
-def on_quote_tick(self, tick: QuoteTick) -> None:
-def on_trade_tick(self, tick: TradeTick) -> None:
+def on_book_deltas(self, deltas: OrderBookDeltas) -> None:
+def on_book_depth(self, depth: OrderBookDepth) -> None:
+def on_book(self, order_book: OrderBook) -> None:
+def on_quote(self, tick: QuoteTick) -> None:
+def on_trade(self, tick: TradeTick) -> None:
 def on_bar(self, bar: Bar) -> None:
-def on_instrument(self, instrument: Instrument) -> None:
+def on_mark_price(self, mark_price: MarkPriceUpdate) -> None:
+def on_index_price(self, index_price: IndexPriceUpdate) -> None:
+def on_funding_rate(self, funding_rate: FundingRateUpdate) -> None:
+def on_instrument(self, instrument: Any) -> None:
 def on_instrument_status(self, data: InstrumentStatus) -> None:
 def on_instrument_close(self, data: InstrumentClose) -> None:
-def on_historical_data(self, data: Data) -> None:
-def on_data(self, data: Data) -> None:  # 自定义数据传入该 handler
-def on_signal(self, signal: Data) -> None:  # 自定义信号传入该 handler
+def on_option_greeks(self, greeks: OptionGreeks) -> None:
+def on_option_chain(self, chain: OptionChainSlice) -> None:
+def on_historical_data(self, data: CustomData | Sequence[CustomData]) -> None:
+def on_historical_book_deltas(self, deltas: Sequence[OrderBookDelta]) -> None:
+def on_historical_book_depth(self, depths: Sequence[OrderBookDepth]) -> None:
+def on_historical_quotes(self, quotes: Sequence[QuoteTick]) -> None:
+def on_historical_trades(self, trades: Sequence[TradeTick]) -> None:
+def on_historical_bars(self, bars: Sequence[Bar]) -> None:
+def on_historical_mark_prices(self, mark_prices: Sequence[MarkPriceUpdate]) -> None:
+def on_historical_index_prices(self, index_prices: Sequence[IndexPriceUpdate]) -> None:
+def on_historical_funding_rates(self, rates: Sequence[FundingRateUpdate]) -> None:
+def on_data(self, data: CustomData) -> None:
+def on_signal(self, signal: Signal) -> None:
 ```
 
-#### 订单管理（Order management）
+Subscribed updates and request responses reach different handlers. See
+[Actors: callback handlers](./actors.md#callback-handlers) for the operation-to-handler mapping.
 
-这些 handler 接收与订单相关的事件。`OrderEvent` 类型的消息按如下顺序传递给 handler：
+#### Order management
 
-1. 特定 handler（例如 `on_order_accepted`、`on_order_rejected` 等）
+These handlers receive events related to orders.
+`OrderEvent` type messages are passed to handlers in the following sequence:
+
+1. Specific handler (for example, `on_order_accepted`, `on_order_rejected`, etc.)
 2. `on_order_event(...)`
-3. `on_event(...)`
 
 ```python
-from nautilus_trader.model.events import OrderAccepted
-from nautilus_trader.model.events import OrderCanceled
-from nautilus_trader.model.events import OrderCancelRejected
-from nautilus_trader.model.events import OrderDenied
-from nautilus_trader.model.events import OrderEmulated
-from nautilus_trader.model.events import OrderEvent
-from nautilus_trader.model.events import OrderExpired
-from nautilus_trader.model.events import OrderFilled
-from nautilus_trader.model.events import OrderInitialized
-from nautilus_trader.model.events import OrderModifyRejected
-from nautilus_trader.model.events import OrderPendingCancel
-from nautilus_trader.model.events import OrderPendingUpdate
-from nautilus_trader.model.events import OrderRejected
-from nautilus_trader.model.events import OrderReleased
-from nautilus_trader.model.events import OrderSubmitted
-from nautilus_trader.model.events import OrderTriggered
-from nautilus_trader.model.events import OrderUpdated
+from typing import Any
+
+from nautilus_trader.model import OrderAccepted
+from nautilus_trader.model import OrderCanceled
+from nautilus_trader.model import OrderCancelRejected
+from nautilus_trader.model import OrderDenied
+from nautilus_trader.model import OrderEmulated
+from nautilus_trader.model import OrderExpired
+from nautilus_trader.model import OrderFilled
+from nautilus_trader.model import OrderFillVoided
+from nautilus_trader.model import OrderInitialized
+from nautilus_trader.model import OrderModifyRejected
+from nautilus_trader.model import OrderPendingCancel
+from nautilus_trader.model import OrderPendingUpdate
+from nautilus_trader.model import OrderRejected
+from nautilus_trader.model import OrderReleased
+from nautilus_trader.model import OrderSubmitted
+from nautilus_trader.model import OrderTriggered
+from nautilus_trader.model import OrderUpdated
 
 def on_order_initialized(self, event: OrderInitialized) -> None:
 def on_order_denied(self, event: OrderDenied) -> None:
@@ -154,237 +204,359 @@ def on_order_modify_rejected(self, event: OrderModifyRejected) -> None:
 def on_order_cancel_rejected(self, event: OrderCancelRejected) -> None:
 def on_order_updated(self, event: OrderUpdated) -> None:
 def on_order_filled(self, event: OrderFilled) -> None:
-def on_order_event(self, event: OrderEvent) -> None:  # 所有订单事件最终都会传递到该 handler
+def on_order_fill_voided(self, event: OrderFillVoided) -> None:
+def on_order_event(self, event: Any) -> None:  # All order event messages are eventually passed to this handler
 ```
 
-#### 持仓管理（Position management）
+:::note
+The Python API does not export an `OrderEvent` base type. `on_order_event(...)` receives the same
+concrete event object the specific handler received, such as an `OrderAccepted`.
+:::
 
-这些 handler 接收与持仓相关的事件。`PositionEvent` 类型的消息按如下顺序传递：
+#### Position management
 
-1. 特定 handler（例如 `on_position_opened`、`on_position_changed` 等）
+These handlers receive events related to positions.
+`PositionEvent` type messages are passed to handlers in the following sequence:
+
+1. Specific handler (for example, `on_position_opened`, `on_position_changed`, etc.)
 2. `on_position_event(...)`
-3. `on_event(...)`
 
 ```python
-from nautilus_trader.model.events import PositionChanged
-from nautilus_trader.model.events import PositionClosed
-from nautilus_trader.model.events import PositionEvent
-from nautilus_trader.model.events import PositionOpened
+from typing import Any
+
+from nautilus_trader.model import PositionChanged
+from nautilus_trader.model import PositionClosed
+from nautilus_trader.model import PositionOpened
 
 def on_position_opened(self, event: PositionOpened) -> None:
 def on_position_changed(self, event: PositionChanged) -> None:
 def on_position_closed(self, event: PositionClosed) -> None:
-def on_position_event(self, event: PositionEvent) -> None:  # 所有持仓事件最终都会传递到该 handler
+def on_position_event(self, event: Any) -> None:  # All position event messages are eventually passed to this handler
 ```
 
-#### 通用事件处理（Generic event handling）
+As with order events, the Python API does not export a `PositionEvent` base type, so
+`on_position_event(...)` receives the concrete event object.
 
-该 handler 最终会接收到传入策略的所有事件消息（包括没有对应特定 handler 的事件）。
+Use `on_time_event()` for timer events, `on_order_event()` for aggregate order events, and
+`on_position_event()` for aggregate position events. The Python API does not expose a generic
+`on_event()` hook.
 
-```python
-from nautilus_trader.core.message import Event
+#### Handler example
 
-def on_event(self, event: Event) -> None:
-```
+This `on_start` implementation from the example EMA cross strategy shows:
 
-#### Handler 示例
+- Indicators being registered to receive bar updates.
+- Historical data being requested (to hydrate the indicators).
+- Live data being subscribed to.
 
-下面的示例展示了一个典型的 `on_start` handler（取自示例 EMA cross 策略）。可以看到：
-
-- 指标被注册以接收 bar 更新。
-- 请求历史数据以初始化指标（hydrate indicators）。
-- 订阅实时数据。
+The cache check matters in live trading. Direct subscriptions assume the instrument was
+loaded by the instrument provider config or by an earlier instrument request.
 
 ```python
 def on_start(self) -> None:
     """
-    策略启动时要执行的操作。
+    Actions to be performed on strategy start.
     """
     self.instrument = self.cache.instrument(self.instrument_id)
     if self.instrument is None:
         self.log.error(f"Could not find instrument for {self.instrument_id}")
-        self.stop()
+        self.stop()  # Transitions strategy to STOPPED state
         return
 
-    # 注册指标以便接收更新
+    # Register the indicators for updating
     self.register_indicator_for_bars(self.bar_type, self.fast_ema)
     self.register_indicator_for_bars(self.bar_type, self.slow_ema)
 
-    # 请求历史数据
+    # Get historical data and subscribe to live data
     self.request_bars(self.bar_type)
-
-    # 订阅实时数据
     self.subscribe_bars(self.bar_type)
-    self.subscribe_quote_ticks(self.instrument_id)
+    self.subscribe_quotes(self.instrument_id)
 ```
 
-### 时钟与计时器（Clock and timers）
+Registered indicators receive the bars from a request response before `on_historical_bars()` runs,
+so a request hydrates them. Check `indicators_initialized()` before acting on indicator values.
 
-策略可以访问 `Clock`，它提供了多种方法来创建时间戳，并可设置时间提醒或计时器以触发 `TimeEvent`。
+### Clock and timers
 
-:::info
-有关 `Clock` 的完整方法列表，请参见 [API reference](../api_reference/common.md)。
-:::
+Strategies use a `Clock` to create timestamps and schedule time alerts or timers that trigger `TimeEvent`s.
 
-#### 当前时间戳（Current timestamps）
+See the [`Clock` API Reference](https://nautilustrader.io/docs/python-api-latest/common.html) for all available methods.
 
-获取当前时间戳有多种方式，以下给出两个常用示例：
+#### Current timestamps
 
-以带时区的 `pd.Timestamp` 获取当前 UTC 时间：
+Two common ways to get current timestamps are shown below.
+
+To get the current UTC timestamp as a tz-aware `datetime`:
 
 ```python
-import pandas as pd
+from datetime import datetime
 
 
-now: pd.Timestamp = self.clock.utc_now()
+now: datetime = self.clock.utc_now()
 ```
 
-以自 UNIX 纪元以来的纳秒数获取当前 UTC 时间：
+To get the current UTC timestamp as nanoseconds since the UNIX epoch:
 
 ```python
 unix_nanos: int = self.clock.timestamp_ns()
 ```
 
-#### 时间提醒（Time alerts）
+#### Time alerts
 
-可以设置时间提醒（time alerts），在指定的提醒时间将触发 `TimeEvent` 并派发到 `on_event` handler。在实盘环境中，该事件可能会有几微秒的延迟。
+Time alerts dispatch a `TimeEvent` to the `on_time_event` handler at the specified alert time. In live
+trading, scheduling and queued work can delay delivery. The alert time is not a latency guarantee.
 
-下面的示例设置了一个将在一分钟后触发的时间提醒：
+This example sets a time alert to trigger one minute from the current time:
 
 ```python
-import pandas as pd
+from datetime import timedelta
 
-# 在一分钟后触发一个 TimeEvent
+# Fire a TimeEvent one minute from now
 self.clock.set_time_alert(
     name="MyTimeAlert1",
-    alert_time=self.clock.utc_now() + pd.Timedelta(minutes=1),
+    alert_time=self.clock.utc_now() + timedelta(minutes=1),
 )
 ```
 
-#### 计时器（Timers）
+#### Timers
 
-可以设置周期性计时器（timers），在到期或被取消前会按设定间隔持续触发 `TimeEvent`。
+Continuous timers generate a `TimeEvent` at regular intervals until they expire or are canceled.
 
-下面的示例设置了一个立即开始、每分钟触发一次的计时器：
+This example sets a timer to fire once per minute. The timer starts immediately and its first event fires one
+interval later. Pass `fire_immediately=True` to fire at the start time instead:
 
 ```python
-import pandas as pd
+from datetime import timedelta
 
-# 每分钟触发一次 TimeEvent
+# Fire a TimeEvent every minute
 self.clock.set_timer(
     name="MyTimer1",
-    interval=pd.Timedelta(minutes=1),
+    interval=timedelta(minutes=1),
 )
 ```
 
-### 缓存访问（Cache access）
+Live fixed-duration timers move an overdue first event to the current time, except at an inclusive stop
+boundary. They then catch up ticks delayed by the runtime.
 
-策略实例可以访问中央 `Cache` 来获取数据和执行对象（如订单、持仓等）。Cache 提供了很多方法，通常带有过滤功能，下面展示一些常见用法。
+Pass a `callback` to route `TimeEvent` objects to your own method rather than `on_time_event`. Timer
+names share the clock namespace, so use names unique to the component. See
+[Actors: timers and alerts](./actors.md#timers-and-alerts).
 
-#### 获取数据（Fetching data）
+#### Calendar timers
 
-下面示例展示了如何从 cache 获取数据（假设已存在 instrument ID 属性）：
+Use `set_timer_zoned()` for recurring local times. Pass a positive span string, such as `"1d"` or `"P1M"`, and
+a timezone-aware start datetime. `zoneinfo.ZoneInfo` follows DST changes. `datetime.timezone` keeps a fixed
+offset. This example fires at 09:30 in New York, starting tomorrow:
 
 ```python
-last_quote = self.cache.quote_tick(self.instrument_id)
-last_trade = self.cache.trade_tick(self.instrument_id)
+from datetime import timedelta
+from zoneinfo import ZoneInfo
+
+start = self.clock.utc_now().astimezone(ZoneInfo("America/New_York"))
+start = start.replace(hour=9, minute=30, second=0, microsecond=0) + timedelta(days=1)
+
+self.clock.set_timer_zoned(
+    name="NewYorkMorning",
+    interval="1d",
+    start_time=start,
+    allow_past=False,
+    fire_immediately=True,
+)
+```
+
+The first event defaults to one interval after `start_time`. `fire_immediately=True` includes the start. With
+`allow_past=False`, the first event must not be in the past. Stop times are inclusive. Cancellation stops
+subsequent events.
+
+Days, weeks, months, and years follow the local calendar. Hour and shorter units measure elapsed time. At
+09:30 in New York, `"1d"` events are 23 hours apart when DST starts and 25 hours apart when it ends. With
+`"24h"`, events stay 24 hours apart and their local time changes by an hour.
+
+Choose an existing local start. DST gaps at the start are not validated. For an ambiguous start, `fold`
+selects the occurrence. Recurrence stays anchored to that start, so month-end clamping and DST adjustments do
+not shift later deadlines. Later gaps shift forward by the gap. Folds use the first occurrence.
+
+In live trading, `set_timer_zoned()` fires the next pending occurrence immediately if overdue, using its
+scheduled timestamp, then resumes at the first deadline after now. Virtual clocks emit each due occurrence
+during advancement. Event timestamps stay UTC UNIX nanoseconds.
+
+:::info Rust implementation
+Use `ClockApi::set_timer_zoned()` in Rust strategies. With a raw `Clock`, pass
+`Arc::new(CalendarSchedule::new(&start_time, span)?)` to `set_timer_schedule()`. The schedule implements
+`TimerSchedule` and supplies UTC deadlines. Clocks and timers own delivery and cancellation.
+:::
+
+### Cache access
+
+The trader's central `Cache` stores data and execution objects (orders, positions, etc).
+Many methods are available with filtering. Here are some basic use cases.
+
+#### Fetching data
+
+The following example fetches data from the cache (assuming some instrument ID attribute is assigned).
+These methods return `None` if the requested data is not available.
+
+```python
+last_quote = self.cache.quote(self.instrument_id)
+last_trade = self.cache.trade(self.instrument_id)
 last_bar = self.cache.bar(bar_type)
 ```
 
-#### 获取执行对象（Fetching execution objects）
+#### Fetching execution objects
 
-下面示例展示了如何从 cache 获取具体的订单或持仓对象：
+The following example shows how individual order and position objects can be fetched from the cache:
 
 ```python
 order = self.cache.order(client_order_id)
 position = self.cache.position(position_id)
-
 ```
 
-:::info
-有关 `Cache` 的完整 API，请参见 [API Reference](../api_reference/cache.md)。
-:::
+See the [`Cache` API Reference](https://nautilustrader.io/docs/python-api-latest/cache.html) for all available methods.
 
-### 投资组合访问（Portfolio access）
+### Portfolio access
 
-策略可以访问中心化的 `Portfolio` 以获取账户与持仓信息。下面列出了一些常用方法的概览。
+The trader's central `Portfolio` provides account and positional information.
+The following shows a general outline of available methods.
 
-#### 账户与持仓信息（Account and positional information）
+#### Account and positional information
 
 ```python
 import decimal
+import typing
 
-from nautilus_trader.accounting.accounts.base import Account
-from nautilus_trader.model import Venue
+from nautilus_trader.model import AccountId
 from nautilus_trader.model import Currency
-from nautilus_trader.model import Money
 from nautilus_trader.model import InstrumentId
+from nautilus_trader.model import Money
+from nautilus_trader.model import Price
+from nautilus_trader.model import Venue
 
-def account(self, venue: Venue) -> Account
+def account(
+    self,
+    venue: Venue | None = None,
+    account_id: AccountId | None = None,
+) -> typing.Any | None
 
-def balances_locked(self, venue: Venue) -> dict[Currency, Money]
-def margins_init(self, venue: Venue) -> dict[Currency, Money]
-def margins_maint(self, venue: Venue) -> dict[Currency, Money]
-def unrealized_pnls(self, venue: Venue) -> dict[Currency, Money]
-def realized_pnls(self, venue: Venue) -> dict[Currency, Money]
-def net_exposures(self, venue: Venue) -> dict[Currency, Money]
+def balances_locked(
+    self,
+    venue: Venue | None = None,
+    account_id: AccountId | None = None,
+) -> dict[Currency, Money] | None
+def instrument_initial_margins(
+    self,
+    venue: Venue | None = None,
+    account_id: AccountId | None = None,
+) -> dict[InstrumentId, Money] | None
+def instrument_maintenance_margins(
+    self,
+    venue: Venue | None = None,
+    account_id: AccountId | None = None,
+) -> dict[InstrumentId, Money] | None
+def unrealized_pnls(
+    self,
+    venue: Venue | None = None,
+    account_id: AccountId | None = None,
+    target_currency: Currency | None = None,
+) -> dict[Currency, Money]
+def realized_pnls(
+    self,
+    venue: Venue | None = None,
+    account_id: AccountId | None = None,
+    target_currency: Currency | None = None,
+) -> dict[Currency, Money]
+def total_pnls(
+    self,
+    venue: Venue | None = None,
+    account_id: AccountId | None = None,
+    target_currency: Currency | None = None,
+) -> dict[Currency, Money]
+def net_exposures(
+    self,
+    venue: Venue | None = None,
+    account_id: AccountId | None = None,
+    target_currency: Currency | None = None,
+) -> dict[Currency, Money] | None
 
-def unrealized_pnl(self, instrument_id: InstrumentId) -> Money
-def realized_pnl(self, instrument_id: InstrumentId) -> Money
-def net_exposure(self, instrument_id: InstrumentId) -> Money
-def net_position(self, instrument_id: InstrumentId) -> decimal.Decimal
+def unrealized_pnl(
+    self,
+    instrument_id: InstrumentId,
+    price: Price | None = None,
+    account_id: AccountId | None = None,
+    target_currency: Currency | None = None,
+) -> Money | None
+def realized_pnl(
+    self,
+    instrument_id: InstrumentId,
+    account_id: AccountId | None = None,
+    target_currency: Currency | None = None,
+) -> Money | None
+def total_pnl(
+    self,
+    instrument_id: InstrumentId,
+    price: Price | None = None,
+    account_id: AccountId | None = None,
+    target_currency: Currency | None = None,
+) -> Money | None
+def net_exposure(
+    self,
+    instrument_id: InstrumentId,
+    price: Price | None = None,
+    account_id: AccountId | None = None,
+    target_currency: Currency | None = None,
+) -> Money | None
+def net_position(
+    self,
+    instrument_id: InstrumentId,
+    account_id: AccountId | None = None,
+) -> decimal.Decimal
 
-def is_net_long(self, instrument_id: InstrumentId) -> bool
-def is_net_short(self, instrument_id: InstrumentId) -> bool
-def is_flat(self, instrument_id: InstrumentId) -> bool
-def is_completely_flat(self) -> bool
+def is_net_long(self, instrument_id: InstrumentId, account_id: AccountId | None = None) -> bool
+def is_net_short(self, instrument_id: InstrumentId, account_id: AccountId | None = None) -> bool
+def is_net_flat(self, instrument_id: InstrumentId, account_id: AccountId | None = None) -> bool
+def is_completely_net_flat(self, account_id: AccountId | None = None) -> bool
 ```
 
-:::info
-有关 `Portfolio` 的完整 API，请参见 [API Reference](../api_reference/portfolio.md)。
-:::
+If both `venue` and `account_id` are supplied, they must resolve to the same account, otherwise the query
+raises `ValueError`. The Portfolio exposes queries to strategies. Engine commands stay internal to the Rust
+runtime.
 
-#### 报告与分析（Reports and analysis）
+See the [`Portfolio` API Reference](https://nautilustrader.io/docs/python-api-latest/portfolio.html) for all available methods.
 
-`Portfolio` 还提供了 `PortfolioAnalyzer`，可向其传入灵活数量的数据以适配不同的回溯窗口（lookback windows），分析器可以用于跟踪并生成各种绩效指标与统计数据。
+#### Reports and analysis
 
-:::info
-有关 `PortfolioAnalyzer` 的完整 API，请参见 [API Reference](../api_reference/analysis.md)。
-:::
+Use `Portfolio.statistics()` and `Portfolio.snapshots(account_id)` for performance analysis. See the
+[Analysis API Reference](https://nautilustrader.io/docs/python-api-latest/analysis.html) and
+[Portfolio statistics](./portfolio.md#portfolio-statistics) guide. The
+[Portfolio](./portfolio.md) guide also covers equity, mark-to-market valuation, and multi-account
+query scope.
 
-:::info
-参见 [Portfolio statistics](portfolio.md#portfolio-statistics) 指南。
-:::
+### Trading commands
 
-### 交易命令（Trading commands）
+The following trading commands are available for order management.
+See also the [Execution](./execution/index.md) guide for the full flow through the system.
 
-NautilusTrader 提供了一套完整的交易命令，以支持细粒度的订单管理，满足算法交易的需求。这些命令对于执行策略、管理风险以及与各类交易场所的交互至关重要。下文将介绍每类命令的细节与使用场景。
+#### Submitting orders
 
-:::info
-可结合阅读 [Execution](../concepts/execution.md) 指南以理解命令在系统中的流转。
-:::
+Each `Strategy` provides an `OrderFactory` on its base class to reduce boilerplate when creating `Order`
+objects. You can also initialize orders directly with `Order.__init__(...)`.
 
-#### 提交订单（Submitting orders）
+A `SubmitOrder` or `SubmitOrderList` command is first routed as follows:
 
-基类为每个 `Strategy` 提供了一个 `OrderFactory`，以减少创建不同 `Order` 对象时的模板代码（当然你也可以直接使用 `Order.__init__(...)` 构造器初始化订单对象）。
+- If an `emulation_trigger` is specified, the command will *firstly* be sent to the `OrderEmulator`.
+- If an `exec_algorithm_id` is specified (with no `emulation_trigger`), the command will *firstly* be sent to the relevant `ExecutionAlgorithm`.
+- Otherwise, the command will *firstly* be sent to the `RiskEngine`.
 
-一个 `SubmitOrder` 或 `SubmitOrderList` 命令会先流向哪个组件取决于以下规则：
-
-- 如果指定了 `emulation_trigger`，命令会首先被发送到 `OrderEmulator`。
-- 如果指定了 `exec_algorithm_id`（且未指定 `emulation_trigger`），命令会首先被发送到相应的 `ExecAlgorithm`。
-- 否则，命令会首先被发送到 `RiskEngine`。
-
-下面的示例提交了一个用于仿真的 `LIMIT` 买单（参见 [Emulated Orders](orders.md#emulated-orders)）：
+This example submits a `LIMIT` BUY order for emulation (see [Emulated Orders](./orders/emulated.md)):
 
 ```python
-from nautilus_trader.model.enums import OrderSide
-from nautilus_trader.model.enums import TriggerType
-from nautilus_trader.model.orders import LimitOrder
+from nautilus_trader.model import LimitOrder
+from nautilus_trader.model import OrderSide
+from nautilus_trader.model import TriggerType
 
 
 def buy(self) -> None:
     """
-    用户的简单买入方法（示例）。
+    Users simple buy method (example).
     """
     order: LimitOrder = self.order_factory.limit(
         instrument_id=self.instrument_id,
@@ -398,20 +570,22 @@ def buy(self) -> None:
 ```
 
 :::info
-你可以同时指定订单仿真（emulation）和执行算法（execution algorithm）。
+You can specify both order emulation and an execution algorithm. In this case, the order is
+first sent to the `OrderEmulator`, and upon release is then routed to the `ExecutionAlgorithm`.
 :::
 
-下面的示例将一个 `MARKET` 买单提交给 TWAP 执行算法：
+This example submits a `MARKET` BUY order to a TWAP execution algorithm:
 
 ```python
-from nautilus_trader.model.enums import OrderSide
-from nautilus_trader.model.enums import TimeInForce
 from nautilus_trader.model import ExecAlgorithmId
+from nautilus_trader.model import MarketOrder
+from nautilus_trader.model import OrderSide
+from nautilus_trader.model import TimeInForce
 
 
 def buy(self) -> None:
     """
-    用户的简单买入方法（示例）。
+    Users simple buy method (example).
     """
     order: MarketOrder = self.order_factory.market(
         instrument_id=self.instrument_id,
@@ -419,185 +593,442 @@ def buy(self) -> None:
         quantity=self.instrument.make_qty(self.trade_size),
         time_in_force=TimeInForce.FOK,
         exec_algorithm_id=ExecAlgorithmId("TWAP"),
-        exec_algorithm_params={"horizon_secs": 20, "interval_secs": 2.5},
+        exec_algorithm_params={"horizon_secs": "20", "interval_secs": "2.5"},
     )
 
     self.submit_order(order)
 ```
 
-#### 取消订单（Canceling orders）
+See [Execution algorithms](./execution/algorithms.md) for TWAP parameter rules and spawned-order
+behavior.
 
-可以单独取消订单、批量取消，或取消某一合约的所有订单（可选按方向过滤）。
+#### Canceling orders
 
-如果订单已经 _closed_ 或已经处于待取消（pending cancel），系统会记录警告日志。
+Orders can be canceled individually, as a batch, or all orders for an instrument (with an optional side filter).
 
-如果订单当前处于 _open_ 状态，其状态将变为 `PENDING_CANCEL`。
+If the order is already *closed* or already pending cancel, then a warning will be logged.
 
-一个 `CancelOrder`、`CancelAllOrders` 或 `BatchCancelOrders` 命令会先流向哪个组件取决于：
+If the order is *open*, its status becomes `PENDING_CANCEL`.
 
-- 如果订单当前是仿真订单，命令会首先发送到 `OrderEmulator`。
-- 如果指定了 `exec_algorithm_id`（且未指定 `emulation_trigger`），并且订单仍在本地系统中处于活动状态，则命令会首先发送到相应的 `ExecAlgorithm`。
-- 否则，命令会首先发送到 `ExecutionEngine`。
+Routing depends on the command and on the state of each order:
+
+- For emulated orders, `cancel_order(...)` goes to the `OrderEmulator` first. For non-emulated orders, it goes
+  to the relevant `ExecutionAlgorithm` if the order has an `exec_algorithm_id` and is still active within the
+  local system. Otherwise, it goes to the `ExecutionEngine`.
+- `cancel_all_orders(...)` cancels each matching order associated with the strategy by default. Each
+  order follows the same routing as `cancel_order(...)`. If individual cancellations fail, the method
+  attempts the remaining orders, then raises `RuntimeError` containing all cancellation errors.
+- `cancel_orders(...)` always goes to the `ExecutionEngine` as a single `BatchCancelOrders` command.
 
 :::info
-任何由策略管理的 GTD 计时器在命令离开策略后也会被取消。
+Any managed GTD timer will also be canceled after the command has left the strategy.
 :::
 
-下面示例展示如何取消单个订单：
+The following shows how to cancel an individual order:
 
 ```python
-
-self.cancel_order(order)
-
+self.cancel_order(order.client_order_id)
 ```
 
-下面示例展示如何批量取消订单：
+The following shows how to cancel a batch of orders. Each order in the batch must be for the same instrument,
+and the batch must not include emulated or local orders:
 
 ```python
-from nautilus_trader.model import Order
+from nautilus_trader.model import ClientOrderId
 
 
-my_order_list: list[Order] = [order1, order2, order3]
-self.cancel_orders(my_order_list)
-
+client_order_ids: list[ClientOrderId] = [
+    order1.client_order_id,
+    order2.client_order_id,
+    order3.client_order_id,
+]
+self.cancel_orders(client_order_ids)
 ```
 
-下面示例展示如何取消所有订单：
+The following shows how to cancel all orders:
 
 ```python
-
-self.cancel_all_orders()
-
+self.cancel_all_orders(self.instrument_id)
 ```
-
-#### 修改订单（Modifying orders）
-
-当订单为仿真状态或在交易所/场所仍为 _open_（且该场所支持）时，可以对订单进行修改。
-
-如果订单已经 _closed_ 或已经处于待取消状态，会记录警告日志。如果订单当前为 _open_，其状态将变为 `PENDING_UPDATE`。
 
 :::warning
-命令至少应改变原订单的一个字段，否则该修改命令无效。
+Pass `strategy_only=False` to use the broad cancellation path. The strategy sends one `CancelAllOrders`
+command even when its cache has no matching order. The execution engine resolves one execution client and
+account, then routes venue, emulated, and execution-algorithm cancellation within that boundary.
+
+Matching orders associated with other strategies may be canceled, but orders assigned to other execution
+clients stay untouched. Use broad mode only when that cross-strategy scope is intended. See
+[Cancel-all routing](./execution/index.md#cancel-all-routing) for the complete flow and client-selection rules.
 :::
 
-`ModifyOrder` 命令会先流向哪个组件取决于：
+#### Modifying orders
 
-- 如果订单当前为仿真订单，命令会首先发送到 `OrderEmulator`。
-- 否则，命令会首先发送到 `RiskEngine`。
+Orders can be modified individually when emulated, or *open* on a venue (if supported).
+
+For a valid modification, an order that is already *closed* or pending cancel logs a warning. If the order is
+*open*, its status becomes `PENDING_UPDATE`.
+
+:::warning
+`modify_order(...)` raises `RuntimeError` when all supplied values are absent or unchanged.
+A strategy can resend the same quantity while the order is `PENDING_UPDATE`.
+These checks run before the closed-order and pending-cancel checks.
+:::
+
+A `ModifyOrder` command is first routed as follows:
+
+- If the order is emulated, the strategy sends the command to the `OrderEmulator` first.
+- Otherwise, if the order has an `exec_algorithm_id` and is still active within the local system, the
+  command will be sent to the relevant `ExecutionAlgorithm`.
+- Otherwise, the order will *firstly* be sent to the `RiskEngine`.
 
 :::info
-一旦订单由执行算法（execution algorithm）接管，策略无法直接修改该订单（只能取消）。
+An `ExecutionAlgorithm` refuses a `ModifyOrder` for a primary order that is still active locally, and logs a
+warning without emitting an event. The algorithm's schedule is keyed to the quantity it computed, so applying
+the modification in place would break that state. The primary order is left unchanged.
 :::
 
-下面示例展示了如何修改当前在场所上 _open_ 的 `LIMIT` 买单的数量：
+This example modifies the size of a `LIMIT` BUY order that is *open* on a venue:
 
 ```python
 from nautilus_trader.model import Quantity
 
 
 new_quantity: Quantity = Quantity.from_int(5)
-self.modify_order(order, new_quantity)
-
+self.modify_order(order.client_order_id, quantity=new_quantity)
 ```
 
 :::info
-当订单为仿真或场所支持时，价格和触发价也可以被修改。
+The price and trigger price can also be modified (when emulated or supported by a venue).
 :::
 
-## 策略配置（Strategy configuration）
+Use `modify_orders(...)` to send several modifications as a single `BatchModifyOrders` command to the
+`RiskEngine`. As with a batch cancel, each order must be for the same instrument, and the batch must not
+include emulated or local orders.
 
-单独的配置类的主要目的是提供关于策略如何以及在何处实例化的完全灵活性。这包括能够将策略与其配置序列化并通过网络传输，从而支持分布式回测和远程启动实盘交易。
+#### Market exit
 
-这种配置灵活性是可选的（opt-in），你也可以仅在构造函数中传入参数而不定义额外的配置类。但如果你希望运行分布式回测或远程启动实盘服务器，就需要定义策略配置类。
+The `market_exit()` method provides a graceful way to exit all positions and cancel all orders for a strategy.
+The strategy stays running after the exit completes, allowing you to re-enter positions later if desired.
 
-下面给出一个示例配置：
+```python
+self.market_exit()
+```
+
+The call logs a warning and returns without effect if the strategy is not `RUNNING`, or if an exit
+is already in progress.
+
+The market exit process:
+
+1. Calls `on_market_exit()`.
+2. Cancels all open and in-flight orders for the strategy.
+3. Closes all open positions with market orders tagged `MARKET_EXIT`.
+1. Periodically checks (at `market_exit_interval_ms`) until all orders resolve and positions close. When the
+   number of working orders is zero, it re-submits a closing order for any position still open.
+5. Calls `post_market_exit()` once flat, or after `market_exit_max_attempts` is reached, logging the
+   orders and positions still outstanding.
+
+Two hooks are available for custom logic:
+
+- `on_market_exit()`: called when the exit process begins.
+- `post_market_exit()`: called when the exit process completes.
+
+```python
+class MyStrategy(Strategy):
+    def on_market_exit(self) -> None:
+        self.log.info("Beginning market exit...")
+
+    def post_market_exit(self) -> None:
+        self.log.info("Market exit complete")
+```
+
+During a market exit, non-reduce-only orders are automatically denied with the reason
+`MARKET_EXIT_IN_PROGRESS`. The exit's own closing orders pass through because they carry the `MARKET_EXIT`
+tag. For order lists, if any order in the list is non-reduce-only, the entire list is denied to preserve list
+semantics (for example, bracket orders with interdependencies).
+
+To check if an exit is in progress (for example, to skip order submission logic), use `is_exiting()`:
+
+```python
+def on_quote(self, tick: QuoteTick) -> None:
+    if self.is_exiting():
+        return  # Skip order logic during exit
+    # ... normal order logic
+```
+
+To enable a market exit when the strategy stops, set `manage_stop=True`:
+
+```python
+config = StrategyConfig(manage_stop=True)
+```
+
+With this option, calling `stop()` first performs a market exit, then stops the strategy
+once flat or once `market_exit_max_attempts` is reached. Reaching the attempt limit can leave
+orders or positions outstanding.
+
+:::warning
+In a backtest, a managed stop requested at the end of the run cannot complete. `market_exit()` schedules its
+first completion check `market_exit_interval_ms` after the current time. This falls beyond the requested end,
+and the engine has already performed its final timer flush by then. No callback runs to observe that the exit
+is done. Thus, the strategy ends the run still `RUNNING` and is reported at `ERROR` even when it is already
+flat.
+:::
+
+Configuration options in `StrategyConfig`:
+
+- `manage_stop` (default: `False`): if `True`, `stop()` performs a market exit before stopping.
+- `market_exit_interval_ms` (default: `100`): interval between exit completion checks.
+- `market_exit_max_attempts` (default: `100`): maximum checks before completing the exit.
+- `market_exit_time_in_force` (default: `GTC`): time in force for closing market orders.
+- `market_exit_reduce_only` (default: `True`): if closing market orders should be reduce only.
+
+#### Closing positions
+
+Use `close_position(...)` and `close_all_positions(...)` to flatten without running the full market
+exit process. Both submit closing market orders and leave the strategy free to submit new orders.
+See the [Execution](./execution/index.md) guide.
+
+## Strategy configuration
+
+A separate configuration class gives full flexibility over where and how a strategy
+is instantiated. Configurations serialize over the wire, enabling distributed backtesting
+and remote live trading.
+
+This is opt-in. You can skip configuration and pass parameters directly to your
+strategy constructor. If you want distributed backtests or remote live trading,
+define a configuration.
+
+`StrategyConfig` is implemented in Rust. Its `__new__` reads the base fields (`strategy_id`, `order_id_tag`,
+`oms_type`, and the rest) out of the constructor call and validates them, ignoring any keyword it does not
+recognize. The base class has no `__init__`.
+
+A subclass thus needs only three things:
+
+- Declare its own fields as keyword-only arguments, so no positional argument is matched against a
+  base field.
+- Accept `**_kwargs` so the base fields pass through the subclass signature.
+- Call `super().__init__()` with no arguments, then assign its own fields.
+
+Do not give a custom field the same name as a base field. Both constructors would read it. `__new__` raises a
+`TypeError` when the value does not match the base field's type.
+
+Here is an example configuration:
 
 ```python
 from decimal import Decimal
+
 from nautilus_trader.config import StrategyConfig
-from nautilus_trader.model import Bar, BarType
+from nautilus_trader.model import Bar
+from nautilus_trader.model import BarType
 from nautilus_trader.model import InstrumentId
-from nautilus_trader.trading.strategy import Strategy
+from nautilus_trader.model import StrategyId
+from nautilus_trader.trading import Strategy
 
 
-# 配置定义
+# Configuration definition
 class MyStrategyConfig(StrategyConfig):
-    instrument_id: InstrumentId   # 示例值: "ETHUSDT-PERP.BINANCE"
-    bar_type: BarType             # 示例值: "ETHUSDT-PERP.BINANCE-15-MINUTE[LAST]-EXTERNAL"
-    fast_ema_period: int = 10
-    slow_ema_period: int = 20
-    trade_size: Decimal
-    order_id_tag: str
+    def __init__(
+        self,
+        *,
+        instrument_id: InstrumentId,
+        bar_type: BarType,
+        trade_size: Decimal,
+        fast_ema_period: int = 10,
+        slow_ema_period: int = 20,
+        **_kwargs,
+    ) -> None:
+        super().__init__()
+        self.instrument_id = instrument_id
+        self.bar_type = bar_type
+        self.trade_size = trade_size
+        self.fast_ema_period = fast_ema_period
+        self.slow_ema_period = slow_ema_period
 
 
-# 策略定义
+# Strategy definition
 class MyStrategy(Strategy):
     def __init__(self, config: MyStrategyConfig) -> None:
-        # 始终先初始化父类 Strategy
-        # 完成后，配置会存储在 `self.config` 中可供访问
+        # Always initialize the parent Strategy class
+        # After this, configuration is stored and available via `self.config`
         super().__init__(config)
 
-        # 自定义状态变量
+        # Custom state variables
         self.time_started = None
         self.count_of_processed_bars: int = 0
 
     def on_start(self) -> None:
-        self.time_started = self.clock.utc_now()    # 记录策略启动时间
-        self.subscribe_bars(self.config.bar_type)   # 通过 self.config 访问配置数据
+        self.time_started = self.clock.utc_now()  # Remember time, when strategy started
+        self.subscribe_bars(
+            self.config.bar_type
+        )  # See how configuration data are exposed via `self.config`
 
     def on_bar(self, bar: Bar):
-        self.count_of_processed_bars += 1           # 更新已处理的 bar 计数
+        self.count_of_processed_bars += 1  # Update count of processed bars
 
 
-# 用具体值实例化配置。通过设置:
-#   - InstrumentId - 参数化策略要交易的合约。
-#   - BarType - 参数化策略要使用的 bar 数据类型。
+# Instantiate configuration with specific values. By setting:
+#   - InstrumentId - we parameterize the instrument the strategy will trade.
+#   - BarType - we parameterize bar-data, that strategy will trade.
+#   - StrategyId - we name this instance, which also fixes its order ID tag.
 config = MyStrategyConfig(
     instrument_id=InstrumentId.from_str("ETHUSDT-PERP.BINANCE"),
-    bar_type=BarType.from_str("ETHUSDT-PERP.BINANCE-15-MINUTE[LAST]-EXTERNAL"),
-    trade_size=Decimal(1),
-    order_id_tag="001",
+    bar_type=BarType.from_str("ETHUSDT-PERP.BINANCE-15-MINUTE-LAST-EXTERNAL"),
+    trade_size=Decimal("1"),
+    strategy_id=StrategyId("MyStrategy-001"),
 )
 
-# 将配置传递给我们的策略实例。
+# Pass configuration to our trading strategy.
 strategy = MyStrategy(config=config)
 ```
 
-在实现策略时，建议通过 `self.config` 直接访问配置值。这有助于清晰地区分：
+Read configuration through `self.config`, and keep runtime state in direct strategy attributes:
 
-- 配置数据（通过 `self.config` 访问）：
+- Configuration data (accessed through `self.config`):
+  - Contains initial settings, that define how the strategy works.
+  - Example: `self.config.trade_size`, `self.config.instrument_id`
 
-  - 包含定义策略如何工作的初始设置。
-  - 例如：`self.config.trade_size`、`self.config.instrument_id`
+- Strategy state variables (as direct attributes):
+  - Track any custom state of the strategy.
+  - Example: `self.time_started`, `self.count_of_processed_bars`
 
-- 策略状态变量（作为实例属性）：
-  - 用于跟踪策略的自定义运行时状态。
-  - 例如：`self.time_started`、`self.count_of_processed_bars`
-
-这种分离使代码更易于理解与维护。
-
-:::note
-尽管通常一个策略会交易单个合约，但单个策略可以处理的合约数量仅受限于机器资源。
-:::
-
-### 管理 GTD 到期（Managed GTD expiry）
-
-策略可以选择管理具有 GTD（Good 'till Date）时限的订单的到期行为。如果交易所/经纪商不支持该时限，或你希望由策略负责管理，这个功能会很有用。
-
-要启用此选项，请在 `StrategyConfig` 中传入 `manage_gtd_expiry=True`。当以 GTD 时限提交订单时，策略会自动启动一个内部时间提醒。一旦内部 GTD 时间提醒触发，若订单尚未 _closed_，将会被取消。
-
-某些场所（例如 Binance Futures）原生支持 GTD 时限，因此在使用 `managed_gtd_expiry` 时，应在执行客户端配置中将 `use_gtd=False`，以避免冲突。
-
-### 多个策略实例（Multiple strategies）
-
-如果你打算运行同一策略的多个实例（使用不同配置，例如针对不同合约），需要为每个实例定义唯一的 `order_id_tag`（如上示例所示）。
+This separates initial settings from changing state, making code easier to understand and maintain.
 
 :::note
-平台内置了安全检查：如果两个策略共享相同的策略 ID，会抛出异常提示策略 ID 已被注册。
+A strategy often trades a single instrument, but machine resources are the only limit on how many instruments
+it can work with.
 :::
 
-之所以需要唯一标识，是因为系统必须能够识别各条命令和事件属于哪个策略。策略 ID 由策略类名与策略的 `order_id_tag` 用连字符连接组成。例如上面的配置会产生策略 ID `MyStrategy-001`。
+### Claiming external orders
+
+Live adapters can report venue orders that a strategy did not submit or that NautilusTrader has not
+yet observed locally. NautilusTrader creates these as external orders and assigns them to the
+`EXTERNAL` strategy unless an active claim identifies another strategy as their owner.
+
+Set `external_order_instrument_ids` to list the instruments a strategy intends to claim for
+external orders, fills, and materialized reconciliation activity:
+
+```python
+from nautilus_trader.config import StrategyConfig
+from nautilus_trader.model import InstrumentId
+
+
+config = StrategyConfig(
+    external_order_instrument_ids=[
+        InstrumentId.from_str("ETHUSDT-PERP.BINANCE"),
+    ],
+)
+```
+
+`external_order_instrument_ids` is serializable configuration intent. When a live node registers the strategy,
+the runtime materializes that intent as active external order claims in the shared cache. Each claim assigns
+one `InstrumentId` to one `StrategyId`.
+
+Registration fails without changing the active claims if:
+
+- The shared cache is already borrowed.
+- The list repeats an instrument.
+- Any listed instrument already has a claim, including a claim for the same strategy.
+
+After registration, call `set_external_order_instrument_ids(...)` to replace the strategy's complete active
+claim set. The method:
+
+- Keeps listed claims already owned by the strategy.
+- Releases omitted claims.
+- Acquires listed instruments that have no owner.
+
+Passing an empty list releases each claim owned by the strategy. If an instrument appears more than once or
+belongs to another strategy, the call fails and leaves the active claim set unchanged.
+
+A change affects ownership decisions made after the update. It does not reassign external orders already held
+in the cache.
+
+The strategy must be registered before it can update active claims, and the update fails if the shared cache
+is already borrowed. For Python strategies, this method changes active routing state. The original
+`strategy.config` object continues to show the construction intent.
+
+Stopping a strategy keeps its active claims so routing stays stable if it restarts. Removing the strategy from
+its trader releases the claims. A cache reset also preserves them.
+
+:::warning
+Transferring an instrument between strategies requires two calls: the existing owner releases the
+instrument before the new owner claims it. The transfer is not atomic across strategies. An external
+report processed between those calls has no active claim and is assigned to the `EXTERNAL` strategy.
+:::
+
+See [External order creation](./execution/reconciliation.md#external-order-creation) for how execution and
+reconciliation use active claims.
+
+### Managed GTD expiry
+
+A strategy can manage expiry for GTD (*Good 'till Date*) orders. Use local management when the exchange or
+broker does not support that time in force. You can also use it when you prefer local expiry management.
+
+To use this option, pass `manage_gtd_expiry=True` to your `StrategyConfig`. When you submit an order with a
+GTD time in force, the strategy starts an internal time alert. When that alert fires, the strategy cancels the
+order if it is not already *closed*.
+
+On start, the strategy also reinstates alerts for its open GTD orders held in the cache, and cancels
+any whose expiry has already passed.
+
+When a cancel request is rejected, a running strategy preserves existing alerts. For an open or inflight GTD
+order with a missing expiry alert:
+
+- If expiry has already passed, it immediately retries the cancel.
+- Otherwise, it restores the expiry alert.
+
+This runs before `on_order_cancel_rejected`, so an immediate retry can return the order to `PENDING_CANCEL`
+before the callback runs. A stopped strategy does not restore alerts or retry cancels on rejection.
+
+Some venues (such as Binance Futures) support the GTD time in force, so to avoid conflicts when using
+`manage_gtd_expiry` you should set `use_gtd=False` for your execution client config.
+
+### Multiple strategies
+
+For multiple instances of the same strategy with different configurations (such as trading different
+instruments), give each a **unique strategy ID and order ID tag**.
+
+The system must be able to identify which strategy owns each command and event. The order ID tag also keeps
+generated client order IDs unique across strategies for the same trader.
+
+#### Order ID tag
+
+Set `strategy_id` on each config. The runtime takes the order ID tag from the final hyphen-separated part of
+the strategy ID. Thus, `MyStrategy-001` and `MyStrategy-002` produce the tags `001` and `002`.
+
+Supplying `order_id_tag` as well appends the tag to the runtime strategy ID, unless the ID already
+ends with that tag. For example, `strategy_id=StrategyId("MyStrategy-PRIMARY")` with
+`order_id_tag="ABC"` registers as `MyStrategy-PRIMARY-ABC`.
+
+A strategy registered without `strategy_id` takes its base ID from the strategy type name. An `order_id_tag`
+becomes the suffix, so `MyStrategy` with `order_id_tag="ABC"` registers as `MyStrategy-ABC`. Without a tag,
+registration assigns the next numeric tag, starting with `000`.
+
+Because the runtime reads the tag back from the final hyphen-separated part of the strategy ID, an
+`order_id_tag` cannot contain a hyphen. `StrategyConfig(order_id_tag="A-B")` raises a `ValueError`,
+and so does a subclass constructed with that keyword. A config class that does not inherit from
+`StrategyConfig` carries the tag to registration instead, which raises a `RuntimeError`.
+
+The trader ID carries a tag in the same way, and its final hyphen-separated part reaches the same
+generated IDs. See [Configure a live trading node](./../how_to/configure_live_trading.md) for the
+requirement that it stays unique across nodes.
 
 :::note
-详情请参见 `StrategyId` 的 [API Reference](../api_reference/model/identifiers.md)。
+The platform has built-in safety measures. A duplicated strategy ID raises a `RuntimeError` that indicates the
+strategy ID is already registered. Two different strategy IDs that share an order ID tag raise a
+`RuntimeError` that reports the tag conflict.
 :::
+
+:::info Rust implementation
+Rust treats `StrategyConfig` as immutable construction input. The runtime
+`StrategyId` carries the order ID tag, matching the Python behavior. This keeps
+actor registration, client order ID generation, order list ID generation, and
+position ID generation aligned through `strategy_id.get_tag()`.
+:::
+
+See the [`StrategyId` API Reference](https://nautilustrader.io/docs/python-api-latest/model/identifiers.html) for further details.
+
+## Related guides
+
+- [Actors](./actors.md) - Base class that strategies extend.
+- [Events](./events/index.md) - Event types and handler dispatch.
+- [Orders](./orders/index.md) - Order types and management from strategies.
+- [Backtesting](./backtesting/index.md) - Test strategies with historical data.

@@ -1,21 +1,4 @@
 # Risk
 
-```{eval-rst}
-.. automodule:: nautilus_trader.risk
-```
+Auto-generated from the latest source. See [`nautilus_trader.risk`](https://nautilustrader.io/docs/python-api-latest/#module-nautilus_trader.risk) in the official documentation.
 
-```{eval-rst}
-.. automodule:: nautilus_trader.risk.engine
-   :show-inheritance:
-   :inherited-members:
-   :members:
-   :member-order: bysource
-```
-
-```{eval-rst}
-.. automodule:: nautilus_trader.risk.sizing
-   :show-inheritance:
-   :inherited-members:
-   :members:
-   :member-order: bysource
-```

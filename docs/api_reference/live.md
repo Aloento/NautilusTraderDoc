@@ -1,61 +1,21 @@
 # Live
 
-```{eval-rst}
-.. automodule:: nautilus_trader.live
-```
+Auto-generated from the latest source. See [`nautilus_trader.live`](https://nautilustrader.io/docs/python-api-latest/#module-nautilus_trader.live) in the official documentation.
 
-```{eval-rst}
-.. automodule:: nautilus_trader.live.data_client
-   :show-inheritance:
-   :inherited-members:
-   :members:
-   :member-order: bysource
-```
 
-```{eval-rst}
-.. automodule:: nautilus_trader.live.data_engine
-   :show-inheritance:
-   :inherited-members:
-   :members:
-   :member-order: bysource
-```
+## Python adapter clients
 
-```{eval-rst}
-.. automodule:: nautilus_trader.live.execution_client
-   :show-inheritance:
-   :inherited-members:
-   :members:
-   :member-order: bysource
-```
+Override hooks are documented in the [adapter interface](./../developer_guide/python_adapters.md).
+This API listing shows public methods; see the guide for ownership and migration rules.
 
-```{eval-rst}
-.. automodule:: nautilus_trader.live.execution_engine
-   :show-inheritance:
-   :inherited-members:
-   :members:
-   :member-order: bysource
-```
+Auto-generated from the latest source. The official documentation renders [`nautilus_trader.live.clients`](https://nautilustrader.io/docs/python-api-latest/#module-nautilus_trader.live.clients) with the following members: `DataClientFactory`、`DataClient`、`MarketDataClient`、`ExecutionClientFactory`、`ExecutionClient`.
 
-```{eval-rst}
-.. automodule:: nautilus_trader.live.risk_engine
-   :show-inheritance:
-   :inherited-members:
-   :members:
-   :member-order: bysource
-```
 
-```{eval-rst}
-.. automodule:: nautilus_trader.live.node
-   :show-inheritance:
-   :inherited-members:
-   :members:
-   :member-order: bysource
-```
+## Python instrument providers
 
-```{eval-rst}
-.. automodule:: nautilus_trader.live.node_builder
-   :show-inheritance:
-   :inherited-members:
-   :members:
-   :member-order: bysource
-```
+Auto-generated from the latest source. The official documentation renders [`nautilus_trader.live.providers`](https://nautilustrader.io/docs/python-api-latest/#module-nautilus_trader.live.providers) with the following members: `InstrumentProvider`.
+
+
+## Importable adapter configuration
+
+See `ImportableConfig` and `ImportableFactoryConfig` in the [configuration API](./config.md).
