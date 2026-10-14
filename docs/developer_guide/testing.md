@@ -126,9 +126,9 @@ workspace 固定了 `libfuzzer-sys`，`nautilus-live` 持有共享的 libFuzzer 
 
 构建或修改核心类型时，编写属性测试覆盖数学边界。
 
-性能测试帮助演进性能关键的组件。
+性能测试有助于演进性能关键组件。
 
-用 [pytest](https://docs.pytest.org)（我们主要的测试运行器）运行测试。
+用 [pytest](https://docs.pytest.org)（项目主要的测试运行器）运行测试。
 使用参数化测试与 fixture（如 `@pytest.mark.parametrize`）避免重复代码、提升清晰度。
 
 ## 运行测试 {#running-tests}
